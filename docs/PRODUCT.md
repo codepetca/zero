@@ -44,8 +44,11 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-- A minimal VS Code sidebar offers Run App, Stop, GitHub account/repository status,
-  sign-in, repository creation/connection, upload, copy link, setup help and files.
+- A minimal VS Code sidebar offers Run App, Stop, files and setup help. GitHub's
+  header has a profile icon (account initial when signed in); hover reveals the
+  account name and click opens account actions. The repository row shows
+  owner/name or “Connect a repo”; its menu offers create/connect or copy/change.
+  Upload and its simulation label stay visible for a signed-in connected repo.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
   Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
 - Compiler diagnostics support source navigation. Missing local tools have setup
@@ -58,7 +61,11 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 ## Repository and upload contract
 
 Students sign in through VS Code's native GitHub authentication/browser flow.
-Zero displays the selected account. Create Repository opens GitHub's new-repository
+Zero identifies the selected account through the initial's hover/accessibility
+label. Clicking it offers Change GitHub Account and Sign out; Sign out opens
+VS Code's native Accounts controls, where the user chooses their GitHub account
+and signs out. Session changes still invalidate pending upload reviews. Zero has
+no custom logout/token deletion. Connect a repo → Create a repository opens GitHub's new-repository
 page; students create their own empty repository following teacher visibility
 instructions, leaving README, license and gitignore uninitialized. There is no
 GitHub Classroom flow and no automatic repository creation.

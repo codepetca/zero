@@ -50,7 +50,7 @@ account/network trial. Current development checks mock authentication and transp
 - Use a fresh VS Code window/profile to test actual native browser sign-in,
   cancellation and denied authentication. Confirm local Run still works, retry
   successfully, and check the displayed account. Record browser/school restrictions.
-- Create a student-owned empty repository through Create Repository. Follow teacher
+- Create a student-owned empty repository through Connect a repo → Create a repository. Follow teacher
   visibility instructions; leave README, license and gitignore uninitialized.
   Connect its HTTPS URL from the standalone student folder and confirm the target.
 - Configure the student's per-repository Git name/email under privacy instructions.
@@ -61,7 +61,7 @@ account/network trial. Current development checks mock authentication and transp
 - Confirm success against the actual remote branch/commit and inspect source files
   on GitHub. Record failures and whether a local commit remains. A copied link
   alone does not prove uploaded or current work.
-- Copy Repository Link; submit it separately in Pika and verify teacher access to
+- Click the connected repository name → Copy repository link; submit it separately in Pika and verify teacher access to
   a private repository. Zero does not submit assignments or change grades.
 
 ## Decision and receipt

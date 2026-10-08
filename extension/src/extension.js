@@ -116,6 +116,35 @@ function activate(context) {
     return next;
   }
   const actions = {
+    'zero.githubAccount': async () => {
+      if (uploading || connecting || signingIn) return;
+      if (!auth.signedIn) return actions['zero.signInToGitHub']();
+      const choice = await vscode.window.showQuickPick([
+        {label:'Change GitHub account…', action:'change'},
+        {label:'Sign out…', description:'Use VS Code’s Accounts menu', action:'signOut'}
+      ], {title:`GitHub: ${auth.accountLabel}`, placeHolder:'Choose an account action'});
+      if (uploading || connecting || signingIn) return;
+      if (choice?.action === 'change') await actions['zero.signInToGitHub']();
+      if (choice?.action === 'signOut') await vscode.commands.executeCommand('workbench.actions.accounts');
+    },
+    'zero.chooseRepository': async () => {
+      if (uploading || connecting || signingIn) return;
+      const connected = repository.startsWith('https://github.com/');
+      const choice = await vscode.window.showQuickPick(connected ? [
+        {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
+        {label:'Connect another repository…', action:'connect'}
+      ] : [
+        {label:'Create a repository…', description:'Open GitHub, then connect its link here', action:'create'},
+        {label:'Connect an existing repository…', action:'connect'}
+      ], {title:connected ? repository : 'Connect a repo', placeHolder:'Choose a repository action'});
+      if (uploading || connecting || signingIn) return;
+      if (choice?.action === 'connect') await actions['zero.connectRepository']();
+      if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
+      if (choice?.action === 'create') {
+        if (!auth.signedIn) await actions['zero.signInToGitHub']();
+        await actions['zero.createRepository']();
+      }
+    },
     'zero.signInToGitHub': async () => {
       if (uploading || connecting || signingIn) return;
       signingIn = true; refresh();
@@ -128,7 +157,7 @@ function activate(context) {
     'zero.createRepository': async () => {
       if (uploading || connecting || signingIn) return;
       if (!auth.signedIn) throw new Error('Sign in to GitHub first.');
-      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose Connect existing repository.');
+      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose Connect a repo → Connect an existing repository.');
       if (!(await vscode.env.openExternal(vscode.Uri.parse('https://github.com/new')))) throw new Error('Could not open GitHub. Open https://github.com/new in your browser, create an empty repository, then connect its link.');
     },
     'zero.runApp': queuedRun,
@@ -202,14 +231,19 @@ function activate(context) {
     const busy = uploading || connecting || signingIn;
     const disabled = busy ? 'disabled' : '';
     const connected = repository.startsWith('https://github.com/');
-    const githubActions = !auth.signedIn
-      ? `<button class="secondary" data-command="zero.signInToGitHub" ${disabled}>Sign in to GitHub</button>`
-      : connected
-        ? `<p class="muted status">${escape(repository)}</p><button class="secondary" data-command="zero.uploadToGitHub" ${disabled}>Upload to GitHub</button><p class="badge">${uploadMode() === 'live' ? 'Reviews files before a real upload' : 'SIMULATION — nothing will be uploaded'}</p><button class="link" data-command="zero.copyRepositoryLink">Copy repository link</button>`
-        : `<p class="muted status">${escape(repository)}</p><button class="secondary" data-command="zero.createRepository" ${disabled}>Create repository</button><button class="link" data-command="zero.connectRepository" ${disabled}>Connect existing repository…</button>`;
+    const accountName = auth.accountLabel || '';
+    const accountTitle = auth.signedIn ? `Signed in as ${accountName}` : 'Sign in to GitHub';
+    const avatar = auth.signedIn ? escape(Array.from(accountName.trim())[0]?.toLocaleUpperCase() || '?')
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></svg>';
+    const repoName = connected ? repository.slice('https://github.com/'.length) : 'Connect a repo';
+    const githubActions = connected && auth.signedIn
+      ? `<button class="secondary" data-command="zero.uploadToGitHub" ${disabled}>Upload to GitHub</button><p class="badge">${uploadMode() === 'live' ? 'Reviews files before a real upload' : 'SIMULATION — nothing will be uploaded'}</p>` : '';
+    const repositoryWarning = !connected && repository !== 'No repository connected'
+      ? `<p class="muted status">${escape(repository)}</p>` : '';
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       body{color:var(--vscode-foreground);background:var(--vscode-sideBar-background);font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);padding:12px;margin:0}.muted{color:var(--vscode-descriptionForeground);font-size:12px;line-height:1.5}button{font:inherit;width:100%;padding:9px 8px;margin-top:8px;border:1px solid var(--vscode-button-border,transparent);border-radius:5px;cursor:pointer;color:var(--vscode-button-foreground);background:var(--vscode-button-background)}button:hover{filter:brightness(.95)}button.secondary{color:var(--vscode-button-secondaryForeground);background:var(--vscode-button-secondaryBackground)}button:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:2px}button:disabled{opacity:.45;cursor:default}.run{background:#6655cd;color:white}.row{display:flex;gap:8px}.row .run{flex:2}.row .secondary{flex:1}.repository{padding-top:12px;margin-top:12px;border-top:1px solid var(--vscode-panel-border)}.status{overflow-wrap:anywhere;line-height:1.5;margin:10px 0}.badge{font-size:11px;color:var(--vscode-descriptionForeground);margin:6px 0}button.link{background:transparent;color:var(--vscode-textLink-foreground);text-align:left;border:0;padding:4px 0;margin:0;font-size:12px}
-      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p><div class="repository"><strong>GitHub</strong><p class="muted status">${escape(auth.status)}</p>${githubActions}${auth.signedIn ? `<button class="link" data-command="zero.signInToGitHub" ${disabled}>Change GitHub account…</button>` : ''}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      .github-header{display:flex;align-items:center;justify-content:space-between;gap:8px}.account{width:28px;height:28px;flex:none;border-radius:50%;padding:0;margin:0;display:inline-flex;align-items:center;justify-content:center;background:var(--vscode-badge-background);color:var(--vscode-badge-foreground);font-weight:600}.account svg{width:16px;height:16px;fill:currentColor}.repo-choice{width:100%;margin:8px 0 0;padding:5px 0;background:transparent;color:var(--vscode-textLink-foreground);border:0;text-align:left;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.repo-choice:hover{text-decoration:underline}
+      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p><div class="repository"><div class="github-header"><strong>GitHub</strong><button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${avatar}</button></div><button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repo')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)}</button>${repositoryWarning}${githubActions}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};

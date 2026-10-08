@@ -1,5 +1,41 @@
 # Local verification — 2026-10-08
 
+## Compact GitHub sidebar — 0.3.2
+
+Local change on codex/minimal-github-sidebar, based on the completed study branch
+0cc62b5. The owner requested an account icon/initial with hover name and account
+actions, a connected repo name and create/connect options behind “Connect a repo”.
+The existing native authentication, upload review and transport are retained.
+Only a read-only account-label getter was added to the authentication bridge.
+
+Checks so far:
+
+- Focused UI/authentication tests passed 6/6. Account/repository menus support
+  cancellation, signed-out local connect, sign-in before create, account change,
+  delegation to VS Code Accounts for sign-out and copy-link when connected.
+  Existing busy guards also block new menu commands during upload review.
+  Account names are escaped and native tokens do not appear in the HTML.
+  Connected repository name remains visible after session removal.
+- The simulation regression now waits for its warning to be issued before
+  checking command release, removing an IO scheduling race exposed by the added
+  menu checks. Production still does not await warning dismissal.
+- Full Node suite: 37/37 passed (34.66s). Configuration, syntax, document links
+  and diff checks passed. Java source/dependencies are unchanged, so no Java GUI
+  re-run was needed for this sidebar change.
+- Packaged 0.3.2 VSIX installed into the isolated Zero profile. Actual Mac reload
+  showed the signed-in account's initial, accessible account name and compact
+  empty-repo row. The real repository quick pick displayed create/existing
+  choices. Concurrent user interaction interrupted further menu automation;
+  account actions are covered by mocks so far, not a completed native logout or
+  account switch. No account credentials, repo connection or files were changed
+  by the menu trial.
+
+Independent standard-risk review and final package byte checks are next.
+This local request does not authorize push/PR/merge or release publication.
+Windows/Linux and signed-out physical UI remain untested. Native sign-out uses
+VS Code Accounts: the user selects the GitHub account and Sign Out there; Zero
+does not directly delete a native session or display a custom credential form.
+
 ## Study-app dogfooding
 
 After the 0.3.1 fix merged in PR #3, the owner authorized building the study app

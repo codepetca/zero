@@ -1,7 +1,7 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. The kit contains `zero-0.3.1.vsix`, `Zero.code-profile`,
+separate JavaFX window. The kit contains `zero-0.3.2.vsix`, `Zero.code-profile`,
 optional keyboard shortcuts and `zero-starter.zip`. This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
 native sign-in and repository upload path.
@@ -18,7 +18,7 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.3.1.vsix** through
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.3.2.vsix** through
    **Extensions → Install from VSIX…**, then install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
@@ -64,14 +64,18 @@ The sidebar supports dark themes too. To return to an imported profile, run
 Local running needs no GitHub sign-in. For sharing work, follow your teacher's
 privacy, visibility and account instructions:
 
-1. Choose **Sign in to GitHub** in Zero and complete VS Code's native browser
-   authentication flow. Check the account shown in the sidebar. Canceling or
+1. Click the profile icon beside **GitHub** in Zero and complete VS Code's native
+   browser authentication flow. It becomes the account's first letter; hover
+   or focus it to identify the account. Click it for **Change GitHub account…**
+   or **Sign out…**. Sign out opens VS Code Accounts; select the GitHub account
+   there and choose Sign Out. Canceling or
    denying authentication leaves local running available; retry sign-in when ready.
-2. Choose **Create Repository** while signed in. This opens GitHub's new-repository
+2. Choose **Connect a repo → Create a repository…**. This opens GitHub's new-repository
    page. Create your **own empty repository**, leaving README, license and
    gitignore uninitialized to avoid a separate starting history. This workflow
    does not use GitHub Classroom.
-3. Choose **Connect Repository** and paste its HTTPS page URL. Zero initializes
+3. Return to **Connect a repo → Connect an existing repository…** and paste its
+   HTTPS page URL. Zero initializes
    Git in this standalone student folder if needed and adds its origin remote;
    it asks before replacing an existing origin. Connecting does not upload or
    verify repository ownership, existence or access.
@@ -99,7 +103,8 @@ pushes it, and confirms the remote branch. A failed upload may leave a local
 commit, so read the error and inspect the repository before retrying.
 
 After a successful real upload, open GitHub and check the remote files and commit.
-Use **Copy Repository Link** and paste the link separately into the assignment
+Click the connected repository name, choose **Copy repository link**, and paste
+the link separately into the assignment
 in **Pika**. Give your teacher access if the repository is private. Copying a URL
 does not upload code, establish that the remote is current or submit in Pika.
 

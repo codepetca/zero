@@ -14,7 +14,7 @@ Zero**, then close the app window or terminate that task before running again.
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
-   quiet settings-only profile. In your chosen profile, install the local **zero-0.3.1.vsix**, **Language
+   quiet settings-only profile. In your chosen profile, install the local **zero-0.3.2.vsix**, **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -138,12 +138,15 @@ modified component before copying an example over it.
 
 ## Your repository and Pika
 
-Choose **Sign in to GitHub** in Zero and complete VS Code's native browser flow.
-Check the selected account, then use **Create Repository** to open GitHub's page.
+Click the profile icon beside GitHub in Zero and complete VS Code's native browser
+flow. Its first letter identifies the signed-in account; hover for the full name
+or click for change/sign-out actions. Sign-out opens VS Code Accounts, where you
+select the GitHub account and choose Sign Out. Use **Connect a repo → Create a
+repository…** to open GitHub's page.
 Create your own **empty repository** on GitHub (leave README, license and
 gitignore uninitialized). Use your own account and follow your teacher's
 visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
-page URL in Zero. Connect initializes Git in this standalone student folder if
+page URL through **Connect a repo → Connect an existing repository…**. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or upload. Local running works without GitHub sign-in.
 
@@ -163,8 +166,9 @@ with Git HTTPS transport using your native sign-in; ignored files stay local. A 
 leave a local commit. A Mac teacher trial verified native sign-in and a private repository upload;
 other platforms and school environments still need trials.
 
-After a successful real upload, check the files on GitHub. Copy your repository
-page link and submit it separately in Pika. Give your teacher access if it is
+After a successful real upload, check the files on GitHub. Click the connected
+repository name and choose **Copy repository link**, then submit it separately
+in Pika. Give your teacher access if it is
 private. Zero does not submit assignments or change Pika grades.
 
 ## Contributor verification

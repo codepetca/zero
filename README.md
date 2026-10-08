@@ -48,7 +48,7 @@ profile. The sidebar also supports dark themes.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.3.1.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.3.2.vsix`,
 `zero-starter.zip`, the profile and combined kit ZIP. It does not publish them.
 
 Start contributions with one understandable helper, example or useful error.

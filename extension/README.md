@@ -5,7 +5,7 @@ Open a student folder containing `zero.json`, or the kit with its
 webview, file tree, task and command APIs. Files open in the normal editor.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.3.1.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.3.2.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
@@ -32,19 +32,24 @@ Commands: `zero.runApp`, `zero.stopApp`, `zero.uploadToGitHub`,
 
 ## Repository workflow
 
-The GitHub section follows your state: **Sign in to GitHub** when signed out;
-**Create repository** and **Connect existing repository** when signed in without
-an origin; **Upload to GitHub** and **Copy repository link** when connected.
-Run App always works without sign-in. The signed-in account is shown, with
-**Change GitHub account** using VS Code's account selector.
+The GitHub header has one profile button: a silhouette while signed out and the
+account's first letter while signed in. Its hover title/accessibility label names
+the account; click for **Change GitHub account…** or **Sign out…**. Sign out opens
+VS Code's native Accounts menu; select the GitHub account and Sign Out there.
+The repository row shows `owner/name`, or **Connect a repo**. Click for
+create/connect options when empty, or copy-link/change options when connected.
+**Upload to GitHub** and its explicit simulation/live label stay visible when
+signed in and connected. Run App works without sign-in.
 
 Sign-in uses VS Code's built-in GitHub authentication provider. It requests
 `repo` access, including private repositories, so students can choose Public or
 Private on GitHub. VS Code owns the sign-in and storage. Zero silently checks
 existing sessions on activation; only an explicit sign-in/account action can
-open the native authentication flow. Zero has no account, password or token UI.
+open the native authentication flow. Zero has no password or token form.
+Native session removal belongs to VS Code Accounts; Zero listens for session
+changes through the [VS Code authentication API](https://code.visualstudio.com/api/references/vscode-api#authentication).
 
-Create repository opens [GitHub's new repository page](https://github.com/new).
+Connect a repo → Create a repository opens [GitHub's new repository page](https://github.com/new).
 Use the same account as Zero and create an empty repository: leave README,
 .gitignore and license unselected. Return to Zero and connect its page link.
 Connect accepts `https://github.com/owner/repository`, optionally ending in

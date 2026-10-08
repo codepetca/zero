@@ -45,6 +45,7 @@ function createAuthentication(api, onChange = () => {}) {
     },
     get status() { return current ? `Signed in as ${current.label}` : unavailable ? 'GitHub sign-in unavailable. Try Sign in to GitHub; local running still works.' : 'Not signed in'; },
     get signedIn() { return Boolean(current); },
+    get accountLabel() { return current?.label; },
     async capture() {
       await refresh();
       if (!current) throw new Error('Sign in to GitHub before a live upload. Local running and simulation still work.');

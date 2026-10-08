@@ -1,5 +1,31 @@
 # Current state — 2026-10-08
 
+## Minimal GitHub sidebar
+
+Owner requested a profile icon/initial with account-name hover and account actions,
+connected repo name, and one “Connect a repo” entry offering create/existing.
+Implement locally on codex/minimal-github-sidebar, based on the completed local
+study branch at 0cc62b5. No push/PR/merge, real sign-out/account change, repository
+creation/upload or Pika action authorized by this UI request. Keep native auth,
+upload confirmation/simulation and local Run/Stop contracts. Current weekly
+remaining 59%; DeepSeek remains paused. Coordinator owns this small coherent
+extension change and guides; no implementation delegation needed.
+
+Account control uses a silhouette while signed out and first letter while signed
+in, with accessible account name and hover title. Account quick pick changes the
+native preference or opens VS Code Accounts for user-directed sign-out. Public
+authentication API has no native-provider session-removal function, so no custom
+credential handling is introduced. Repository row displays owner/name; menus
+offer create/connect when empty and copy/change when connected. Upload and its
+explicit simulation label stay visible when signed in and connected. Local kit
+version 0.3.2. Focused checks 6/6 and full Node suite 37/37 (34.66s); configuration
+and diff pass. Actual isolated Mac reload showed initial/name and create/existing
+quick pick; concurrent user actions interrupted further menu automation. No
+native logout/account switch or connection/upload performed. Standard-risk
+review: one Sol/medium reviewer, one initial wave, zero fixes so far, default
+seven-launch/four-batch/60-minute caps. Final package byte checks next. Coordinator
+will inspect evidence-only deltas; effective reviewer tokens/time unknown.
+
 ## Fix publication, then study-app dogfooding
 
 Owner said “do the fix. then the dogfooding” after the proposed next step of
