@@ -1,0 +1,126 @@
+{
+  "name": "zero",
+  "displayName": "Zero",
+  "description": "A small local Java teaching sidebar.",
+  "version": "0.2.0",
+  "publisher": "zero",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Education"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "workspaceContains:zero.json",
+    "workspaceContains:student-template/zero.json",
+    "onTaskType:zero"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "package": "vsce package --no-dependencies --allow-missing-repository"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "zero.runApp",
+        "title": "Zero: Run App"
+      },
+      {
+        "command": "zero.stopApp",
+        "title": "Zero: Stop App"
+      },
+      {
+        "command": "zero.uploadToGitHub",
+        "title": "Zero: Upload to GitHub"
+      },
+      {
+        "command": "zero.connectRepository",
+        "title": "Zero: Connect Repository"
+      },
+      {
+        "command": "zero.copyRepositoryLink",
+        "title": "Zero: Copy Repository Link"
+      },
+      {
+        "command": "zero.showSetup",
+        "title": "Zero: Setup Help"
+      },
+      {
+        "command": "zero.showSidebar",
+        "title": "Zero: Show Sidebar"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zero",
+          "title": "Zero",
+          "icon": "media/zero.svg"
+        }
+      ]
+    },
+    "views": {
+      "zero": [
+        {
+          "type": "webview",
+          "id": "zero.actions",
+          "name": "Your app"
+        },
+        {
+          "id": "zero.files",
+          "name": "Files"
+        }
+      ]
+    },
+    "taskDefinitions": [
+      {
+        "type": "zero",
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "enum": [
+              "run"
+            ],
+            "description": "Save and run the marked Zero Java project."
+          }
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "zero-java",
+        "owner": "java",
+        "fileLocation": [
+          "absolute"
+        ],
+        "pattern": {
+          "regexp": "^\\[ERROR\\] (.+):\\[(\\d+),(\\d+)\\] (.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 4
+        }
+      }
+    ],
+    "configuration": {
+      "title": "Zero",
+      "properties": {
+        "zero.uploadMode": {
+          "type": "string",
+          "enum": [
+            "simulation",
+            "live"
+          ],
+          "default": "simulation",
+          "scope": "resource",
+          "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using standard Git credentials."
+        }
+      }
+    }
+  }
+}

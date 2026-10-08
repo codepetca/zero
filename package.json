@@ -1,0 +1,16 @@
+{
+  "name": "zero-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Java teaching kit with a quiet VS Code sidebar",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node scripts/test-extension.mjs",
+    "package": "node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "4.0.0",
+    "fflate": "0.8.3"
+  }
+}
