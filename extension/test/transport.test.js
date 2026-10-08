@@ -67,7 +67,7 @@ test('successful reviewed upload uses isolated native-session transport for push
   const root=await project(t);const localCalls=[],networkCalls=[];let pushedHead;
   const localRun=async(cwd,args)=>{assert.ok(!JSON.stringify(process.env).includes(token));assert.ok(!['push','ls-remote'].includes(args[0]));localCalls.push(args[0]);return core.git(cwd,args);};
   const auth=createAuthentication({getSession:async()=>({id:'one',account:{id:'student',label:'student'},accessToken:token}),onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
-  const ticket=await auth.capture();const check=()=>auth.assertCurrent(ticket);const plan=await prepareUpload(root,localRun);
+  let nativeChecks=0;const ticket=await auth.capture();const check=()=>{nativeChecks++;return auth.assertCurrent(ticket);};const plan=await prepareUpload(root,localRun);
   const networkRun=createTransport(remote,check,{localRun,spawn:async(_,args,options)=>{
     networkCalls.push(args[0]);assert.ok(settings(options.env).some(([key,value])=>key===`credential.${remote}.helper`&&value===''));
     if(args[0]==='push'){pushedHead=args[2].split(':')[0];return {stdout:''};}
@@ -75,5 +75,60 @@ test('successful reviewed upload uses isolated native-session transport for push
   }});
   const result=await uploadPrepared(plan,'Save',{run:localRun,beforeUpload:check,networkRun});
   assert.equal(result.uploaded,true);assert.deepEqual(networkCalls,['push','ls-remote']);assert.ok(localCalls.includes('commit'));
+  assert.equal(nativeChecks,5,'One pre-upload check and eligibility/final checks for each protected operation');
   assert.doesNotMatch(await fs.readFile(path.join(root,'.git','config'),'utf8'),/Authorization|TEST_SECRET/);
+});
+
+test('persistent Git Trace2 config cannot write native-session secrets through early initialization', async t => {
+  const root=await project(t);
+  const {execFile}=require('node:child_process');const {promisify}=require('node:util');const execute=promisify(execFile);
+  const encoded=Buffer.from(`x-access-token:${token}`).toString('base64');
+  const header=`Authorization: Basic ${encoded}`;
+  const configFile=path.join(root,'isolated-global-config');
+  const eventFile=path.join(root,'trace2-event.json');const normalFile=path.join(root,'trace2-normal.log');const perfFile=path.join(root,'trace2-perf.log');
+  const environment={...process.env,GIT_CONFIG_GLOBAL:configFile,GIT_CONFIG_NOSYSTEM:'1'};
+  for(const [key,value] of [['trace2.eventTarget',eventFile],['trace2.normalTarget',normalFile],['trace2.perfTarget',perfFile],['trace2.envVars','GIT_CONFIG_VALUE_*'],['trace2.configParams','http.*.extraHeader']]) {
+    await execute('git',['config','--file',configFile,key,value],{cwd:root,env:environment});
+  }
+  let calls=0;
+  const run=createTransport(remote,async()=>nativeSession(),{environment,spawn:async(command,args,options)=>{
+    calls++;assert.equal(command,'git');assert.equal(args[0],'push');
+    assert.equal(options.env.GIT_CONFIG_GLOBAL,configFile);
+    for(const key of ['GIT_TRACE2','GIT_TRACE2_EVENT','GIT_TRACE2_PERF']) assert.equal(options.env[key],'0');
+    // The only actual child operation is local Git config. No transport occurs.
+    await execute('git',['config','--get','core.hooksPath'],options);
+    return {stdout:''};
+  }});
+  await run(root,['push',remote,`${sha}:refs/heads/main`]);assert.equal(calls,1);
+  for(const file of [configFile,eventFile,normalFile,perfFile,path.join(root,'.git','config')]) {
+    let contents='';try{contents=await fs.readFile(file,'utf8');}catch(error){if(error.code!=='ENOENT')throw error;}
+    assert.ok(!contents.includes(token),`${path.basename(file)} must exclude the raw token`);
+    assert.ok(!contents.includes(encoded),`${path.basename(file)} must exclude the encoded token`);
+    assert.ok(!contents.includes(header),`${path.basename(file)} must exclude the Basic header`);
+  }
+});
+
+test('account removal or switch during asynchronous preparation stops dispatch and removes the hook directory', async t => {
+  for(const preparation of ['root','rewrite','temporary-directory']) for(const change of ['remove','switch']) {
+    const root=await project(t);let session={id:'one',account:{id:'student',label:'student'},accessToken:token};let listener,hookPath;let calls=0,nativeChecks=0,changed=false;
+    const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:fn=>{listener=fn;return {dispose(){}};}});
+    const ticket=await auth.capture();
+    const revoke=()=>{if(changed)return;changed=true;session=change==='remove'?undefined:{...session,id:'other',account:{id:'other',label:'other'}};listener({provider:{id:'github'}});};
+    const originalMkdtemp=fs.mkdtemp;
+    fs.mkdtemp=async prefix=>{const result=await originalMkdtemp(prefix);if(prefix.includes('zero-upload-hooks-')){hookPath=result;if(preparation==='temporary-directory')revoke();}return result;};
+    const localRun=async(cwd,args)=>{
+      const result=await core.git(cwd,args).catch(error=>{if(args[0]==='config'&&error.code===1){if(preparation==='rewrite')revoke();}throw error;});
+      if(preparation==='root'&&args[0]==='rev-parse')revoke();
+      if(preparation==='rewrite'&&args[0]==='config')revoke();
+      return result;
+    };
+    try {
+      const run=createTransport(remote,()=>{nativeChecks++;return auth.assertCurrent(ticket);},{localRun,spawn:async()=>{calls++;return {stdout:''};}});
+      await assert.rejects(run(root,['push',remote,`${sha}:refs/heads/main`]),/account or sign-in changed/);
+      assert.equal(calls,0,`${change} during ${preparation} must prevent dispatch`);
+      assert.equal(nativeChecks,2,'Eligibility and final native-session checks both run');
+      assert.ok(hookPath,'Preparation creates the guarded empty hook directory');
+      await assert.rejects(fs.access(hookPath));
+    } finally {fs.mkdtemp=originalMkdtemp;auth.dispose();}
+  }
 });

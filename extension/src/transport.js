@@ -16,49 +16,59 @@ function createTransport(remote, authenticate, {spawn = execute, environment = p
     const pushing = args.length === 3 && args[0] === 'push' && args[1] === destination && /^[a-f0-9]{40,64}:refs\/heads\/[^\s:]+$/.test(args[2]);
     const checking = args.length === 4 && args[0] === 'ls-remote' && args[1] === '--heads' && args[2] === destination && /^refs\/heads\/[^\s:]+$/.test(args[3]);
     if (!pushing && !checking) throw new Error('Only the reviewed GitHub upload and confirmation may use this sign-in.');
-    const session = await authenticate();
-    if (!session?.accessToken || /[\r\n\0]/.test(session.accessToken)) throw new Error('Sign in to GitHub and review the upload again.');
-    // Recheck after the asynchronous session lookup, before credential dispatch.
+    // The first check keeps local guards after native-session revalidation.
+    // The authoritative check below runs after every asynchronous preparation.
+    await authenticate();
     await core.assertRepositoryRoot(root, localRun);
     await assertNoUrlRewrites(root, localRun);
-    const env = {...environment};
-    for (const key of Object.keys(env)) {
-      if (/^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
-    }
-    // Command-scope configuration overrides files without changing any file.
-    // Reset credential helpers and headers, stop redirects, and suppress hooks
-    // in the credential-bearing child so they cannot inherit its environment.
-    // Keep config file locations consistent with the local rewrite inspection.
-    // An empty, temporary directory prevents every hook without storing secrets.
     const hooks = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-upload-hooks-'));
-    const scoped = `http.${destination}.`;
-    const settings = [
-      ['credential.helper', ''], [`credential.${destination}.helper`, ''], ['core.askPass', ''],
-      ['core.hooksPath', hooks],
-      ['http.extraHeader', ''], [scoped + 'extraHeader', ''],
-      [scoped + 'extraHeader', `Authorization: Basic ${Buffer.from(`x-access-token:${session.accessToken}`).toString('base64')}`],
-      [scoped + 'followRedirects', 'false'], [scoped + 'sslVerify', 'true'], [scoped + 'curloptResolve', ''],
-      [scoped + 'cookieFile', ''], [scoped + 'saveCookies', 'false']
-    ];
-    env.GIT_TERMINAL_PROMPT = '0'; env.GIT_ASKPASS = ''; env.SSH_ASKPASS = '';
-    env.GIT_CONFIG_COUNT = String(settings.length);
-    settings.forEach(([key, value], index) => { env[`GIT_CONFIG_KEY_${index}`] = key; env[`GIT_CONFIG_VALUE_${index}`] = value; });
+    let env;
+    const settings = [];
     try {
-      const {stdout} = await spawn('git', args, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
-      // Neither operation needs arbitrary output: push is ignored, ls-remote
-      // returns only a SHA and the expected ref. Never expose raw child output.
-      if (pushing) return '';
-      const rows = stdout.trim().split('\n').filter(Boolean);
-      if (rows.some(row => !/^[a-f0-9]{40,64}\trefs\/heads\/[^\s:]+$/.test(row))) throw new Error('Unexpected remote response');
-      return rows.join('\n');
-    } catch (error) {
-      const detail = String(error.stderr || '');
-      if (/non-fast-forward|fetch first|rejected.*behind/i.test(detail)) throw new Error('GitHub has changes missing locally. Bring them into this project with Git, resolve conflicts, then review again. Your local commit is preserved.');
-      if (/authentication|credential|401|403|denied|repository not found/i.test(detail)) throw new Error('GitHub refused this upload. Check your VS Code GitHub account, repository access and sign-in, then review again. Your local commit is preserved.');
-      throw new Error('GitHub transport failed. Check the repository URL and network, then review again. Your local commit is preserved; nothing was confirmed uploaded.');
+      const session = await authenticate();
+      if (!session?.accessToken || /[\r\n\0]/.test(session.accessToken)) throw new Error('Sign in to GitHub and review the upload again.');
+      // No asynchronous preparation follows this check before child dispatch.
+      env = {...environment};
+      for (const key of Object.keys(env)) {
+        if (/^GIT_CONFIG_(?:COUNT|KEY_\d+|VALUE_\d+|PARAMETERS)$|^GIT_TRACE|^GIT_CURL_VERBOSE$|^GIT_SSL_NO_VERIFY$|^GIT_ASKPASS$|^SSH_ASKPASS$|^SSLKEYLOGFILE$/i.test(key)) delete env[key];
+      }
+      // Command-scope configuration overrides files without changing any file.
+      // Reset credential helpers and headers, stop redirects, and suppress hooks
+      // in the credential-bearing child so they cannot inherit its environment.
+      // Keep config file locations consistent with the local rewrite inspection.
+      // An empty, temporary directory prevents every hook without storing secrets.
+      const scoped = `http.${destination}.`;
+      settings.push(
+        ['credential.helper', ''], [`credential.${destination}.helper`, ''], ['core.askPass', ''],
+        ['core.hooksPath', hooks],
+        ['http.extraHeader', ''], [scoped + 'extraHeader', ''],
+        [scoped + 'extraHeader', `Authorization: Basic ${Buffer.from(`x-access-token:${session.accessToken}`).toString('base64')}`],
+        [scoped + 'followRedirects', 'false'], [scoped + 'sslVerify', 'true'], [scoped + 'curloptResolve', ''],
+        [scoped + 'cookieFile', ''], [scoped + 'saveCookies', 'false']
+      );
+      // Trace2 starts before command-scope config is applied; environment zero
+      // must override persistent trace targets that could record runtime secrets.
+      env.GIT_TRACE2 = '0'; env.GIT_TRACE2_EVENT = '0'; env.GIT_TRACE2_PERF = '0';
+      env.GIT_TERMINAL_PROMPT = '0'; env.GIT_ASKPASS = ''; env.SSH_ASKPASS = '';
+      env.GIT_CONFIG_COUNT = String(settings.length);
+      settings.forEach(([key, value], index) => { env[`GIT_CONFIG_KEY_${index}`] = key; env[`GIT_CONFIG_VALUE_${index}`] = value; });
+      try {
+        const {stdout} = await spawn('git', args, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
+        // Neither operation needs arbitrary output: push is ignored, ls-remote
+        // returns only a SHA and the expected ref. Never expose raw child output.
+        if (pushing) return '';
+        const rows = stdout.trim().split('\n').filter(Boolean);
+        if (rows.some(row => !/^[a-f0-9]{40,64}\trefs\/heads\/[^\s:]+$/.test(row))) throw new Error('Unexpected remote response');
+        return rows.join('\n');
+      } catch (error) {
+        const detail = String(error.stderr || '');
+        if (/non-fast-forward|fetch first|rejected.*behind/i.test(detail)) throw new Error('GitHub has changes missing locally. Bring them into this project with Git, resolve conflicts, then review again. Your local commit is preserved.');
+        if (/authentication|credential|401|403|denied|repository not found/i.test(detail)) throw new Error('GitHub refused this upload. Check your VS Code GitHub account, repository access and sign-in, then review again. Your local commit is preserved.');
+        throw new Error('GitHub transport failed. Check the repository URL and network, then review again. Your local commit is preserved; nothing was confirmed uploaded.');
+      }
     } finally {
       // Drop credential-bearing config references even when spawning fails.
-      for (const key of Object.keys(env)) if (/^GIT_CONFIG_/.test(key)) delete env[key];
+      for (const key of Object.keys(env || {})) if (/^GIT_CONFIG_/.test(key)) delete env[key];
       settings.length = 0;
       await fs.rm(hooks, {recursive:true, force:true}).catch(() => {});
     }

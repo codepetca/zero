@@ -84,7 +84,7 @@ public abstract class SketchApp extends SimpleApp {
                     update(seconds);
                     draw();
                 } catch (RuntimeException | Error failure) {
-                    stop(); // One useful stack trace, rather than the same error every frame.
+                    SketchApp.this.stop(); // Stop the timer and clear held input after a failed frame.
                     throw failure;
                 }
             }

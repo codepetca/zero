@@ -50,7 +50,15 @@ change. After inexpensive checks, one initial wave of two independent GPT-6.1
 Sol/high reviewers: framework/compatibility and auth/security. Default budget:
 at most seven launches, one full-diff wave, four targeted remediation waves/fix
 batches, one final integration wave, 60 minutes total/30 minutes per reviewer.
-Current review ledger: zero launches/waves/fix batches; not started.
+Current review ledger: two initial launches, one full-diff wave complete, one
+combined remediation batch. Initial head `353c3cb4082aa8b406f479de4dcc50f5bfd70993`.
+Framework reviewer: complete, no new blocker; two nonblocking corrections accepted
+(frame cleanup and historical guidance). Auth reviewer: complete, two accepted P1s
+(persistent Trace2 logging and removed session before dispatch). All four fixed.
+Affected smoke passed (2.506s); mutant smoke proves old cleanup is detected.
+Auth/transport 10 tests and full Node 32 tests pass; targeted independent review
+next. Native 0.3.0 VSIX installation passed, but computer-use selected the older
+editor process; new-version physical sidebar/shortcut checks remain a pilot gap.
 
 ## Previously delivered kit (historical evidence)
 

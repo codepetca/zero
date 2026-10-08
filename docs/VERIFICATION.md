@@ -13,7 +13,8 @@ Checks performed before independent review:
 
 - `npm run check`: configuration, syntax, command/task contracts and local
   documentation links passed.
-- `npm test`: 30 tests passed (~15 seconds). New coverage includes silent/native
+- `npm test`: initially 30 tests passed (~15 seconds); after remediation, 32
+  passed (33.1 seconds). New coverage includes silent/native
   sign-in cancellation, session/account changes, sidebar states, upload-session
   capture/revalidation, destination/rewrite guards, transient credential config,
   hook cleanup, trace suppression and sanitized transport failures. All sessions
@@ -32,8 +33,30 @@ Checks performed before independent review:
   to immediate movement. Three finite behavior checks passed in 9.55 seconds.
   These checks verify the exercise instructions, not novice comprehension.
 
-Independent review, regenerated ZIP integrity, extracted-package smoke and
-native editor checks are in progress; final results will be added here.
+Two independent GPT-6.1 Sol/high reviewers completed the initial change set at
+`353c3cb4082aa8b406f479de4dcc50f5bfd70993`. The credential review found two P1
+gaps: persistent Git Trace2 config could record runtime credentials, and a session
+removed during asynchronous preparation could still dispatch credentials. Both
+were fixed in one batch: explicit trace-disable environment values and final
+native-session validation immediately before dispatch. Actual local Git probes
+with fake credentials test trace files; removal/account-switch probes at three
+preparation boundaries require zero dispatch and temporary-directory cleanup.
+Targeted auth/transport tests passed 10/10 (~4 seconds).
+
+The framework review found two nonblocking corrections, also accepted in this
+batch: historical credential guidance now has explicit historical scope; failed
+animation calls outer app shutdown to clear held inputs. Updated GUI smoke passed
+(2.506 seconds Maven time). A disposable mutant restoring the old stop call failed
+the new assertion, confirming it detects the cleanup bug.
+
+Initial local packaging/source-byte checks passed. Scripted extraction into a
+path with spaces checked and honored Unix wrapper permission metadata and Windows
+wrapper CRLF; extracted GUI smoke passed (4.402 seconds Maven time). The local
+0.3.0 VSIX installed through VS Code's CLI into an isolated extensions directory.
+The running new editor reported VS Code 1.141.0. Computer-use tooling selected
+the older editor process, so new-version physical sidebar/keyboard interaction
+has not been verified; earlier 0.2.0 interactive evidence below remains historical.
+Final remediation review and regenerated package checks are in progress.
 Physical Windows/Linux, actual authentication/network upload and student pilots
 remain unverified. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) before adoption.
 The original Zero code's public license remains undecided.
@@ -51,7 +74,7 @@ Environment: macOS 26.6.2 arm64, OpenJDK 17.0.14, Node.js 22.21.1,
 Git 2.53.0 and VS Code 1.138.0. Pinned JavaFX 21.0.12, Maven 3.9.11,
 Maven Wrapper 3.3.4, compiler plugin 3.14.0 and clean plugin 3.2.0.
 
-## Automated checks passed
+### Automated checks passed
 
 - `npm run check`: source syntax, JSON/exported profile envelope, command/task
   contracts, matcher references and source documentation links.
@@ -74,7 +97,7 @@ Maven Wrapper 3.3.4, compiler plugin 3.14.0 and clean plugin 3.2.0.
   build/Git directories and combined-kit members were checked. No Marketplace
   publication occurred. Dependency audit reported no vulnerabilities.
 
-## Interactive Mac evidence
+### Interactive Mac evidence
 
 A settings-only profile was actually imported through the VS Code Profiles UI.
 The export envelope was corrected after an initial import failure. Zero VSIX,
@@ -103,7 +126,7 @@ source was restored. The actual dark-theme sidebar/editor screenshot is saved at
 [actual-zero-editor.png](design/actual-zero-editor.png). Both light-profile import
 and a user-selected dark theme have now been observed in the real editor.
 
-## Independent review and remediation
+### Independent review and remediation
 
 Two GPT-6.1 high-reasoning reviewers covered the upload engine and IDE/configuration
 in one initial wave. Three P1 and two P2 findings were accepted: trimmed NUL filenames,
@@ -120,7 +143,11 @@ Core SHA-256: `37844050205f033a9167bdc53f31cbec5d40355dfd59086479c99f6c02716682`
 The later IDE-only delta closes an empty AI sidebar on activation in the quiet
 profile; it does not change upload behavior.
 
-## Limits and next platform checks
+### Historical 0.2.0 limits and next platform checks
+
+The following are the earlier version's observations and proposed checks. The
+0.3.0 native-session bridge replaces its credential-helper requirement; use the
+current classroom pilot checklist for new trials.
 
 Physical Windows/Linux, school machine restrictions/proxies, fresh dependency
 caches, GitHub authentication/network upload and Pika submission are unverified.
@@ -143,7 +170,7 @@ Before classroom adoption, record OS/architecture, JDK and VS Code versions, the
    Cancel one upload review, then confirm a real upload and inspect remote files.
    Check failure/retry guidance and paste the repository link separately in Pika.
 
-## Coordination receipt
+### Coordination receipt
 
 Current goal started 2026-10-08 01:01 UTC; account weekly remaining was 79%.
 DeepSeek was paused through 2026-12-31 and was not used. Native GPT-6.1 medium

@@ -87,6 +87,7 @@ public final class SmokeLauncher extends SketchApp {
                 uiApp.stop(); uiStage.close();
             } else if (phase == 10) {
                 require(observedErrors == 1 && failing.updates == 1, "failed frame stops timer after one error");
+                require(!failing.mouseDown(MouseButton.PRIMARY), "failed frame clears owned input without explicit stop");
                 failing.stop();
                 failureStage.close();
                 Thread.currentThread().setUncaughtExceptionHandler(previousHandler);
@@ -131,7 +132,12 @@ public final class SmokeLauncher extends SketchApp {
     private static final class FailingSketch extends SketchApp {
         private int updates;
         @Override public void settings() { size(40, 40); }
-        @Override public void update(double seconds) { updates++; throw new IllegalStateException("Expected frame failure"); }
+        @Override public void update(double seconds) {
+            updates++;
+            mouse(canvas(), MouseEvent.MOUSE_PRESSED, MouseButton.PRIMARY);
+            require(mouseDown(MouseButton.PRIMARY), "failed frame starts with owned mouse input");
+            throw new IllegalStateException("Expected frame failure");
+        }
     }
     private static void key(javafx.scene.Node target, javafx.event.EventType<KeyEvent> type) {
         Event.fireEvent(target, new KeyEvent(type, "", "", KeyCode.SPACE, false, false, false, false));
