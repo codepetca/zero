@@ -8,10 +8,10 @@ GitHub onboarding and package a locally verified kit for a classroom pilot.
 The current task coordinates this work on `codex/zero-app-framework`, based on
 merged main `fdacdd46eb560fd8ef36e29027a0b116cb35b32e`.
 
-Current authorization permits local implementation, testing and packaging.
-The prior PR/merge request was fulfilled; this run has no new push, PR, merge,
-deployment, Marketplace/release publication, credential modification or real
-GitHub upload-trial authorization. All authentication/transport checks use mocks.
+The owner subsequently requested “pr and merge it” on 2026-10-08, authorizing
+push and PR/merge of this completed MVP into codepetca/zero main. This does not
+authorize deployment, Marketplace/release publication, credential modification
+or real GitHub upload trials. All authentication/transport checks use mocks.
 Physical classroom testing remains a documented pilot gate, not an automated claim.
 
 One execution plan:
@@ -42,7 +42,7 @@ Ownership and receipts (coordinator updates this record):
 - Worker evidence: 30 Node tests, Maven compile/smoke and six finite GUI examples
   passed. Coordinator's disposable quiz/caption/movement exercises passed (9.55s).
   All writer ownership released; implementation and independent review complete.
-  Final package regeneration and extracted-starter checks are coordinator-owned.
+  Final package regeneration and extracted-starter checks completed below.
 - Initial weekly remaining 68%; attributable worker/coordinator tokens unknown.
   DeepSeek pilot paused through 2026-12-31, so no DeepSeek launches.
 
@@ -95,9 +95,19 @@ Local MVP implementation is complete. Final ZIP/VSIX regenerated; all starter,
 extension and combined-kit bytes verified. Extracted starter in a path with spaces
 passed finite GUI smoke (2.553s Maven time); final VSIX installed through isolated
 VS Code CLI. Final check and diff validation passed. Artifacts remain ignored in
-dist/. No push/publication, credential changes or real uploads occurred.
+dist/. At local completion, no push/publication, credential changes or real
+uploads had occurred. The subsequent PR/merge request is authorized above.
 Real authentication/upload, physical 0.3 editor interaction, Windows/Linux and
 student trials remain the separate classroom-pilot gate.
+
+## Current publication gate
+
+Reuse independent review of implementation head d012776 and the completed local
+checks. Coordinator inspected the later evidence/authorization-only documentation
+delta; no implementation changed. origin/main remains fdacdd4, so no base sync or
+new interaction boundary exists. No additional reviewer wave is needed. GitHub
+checks, threads, readiness and final head will be checked on the PR before merge.
+Publication outcome will be recorded in the PR and final user report.
 
 ## Previously delivered kit (historical evidence)
 
