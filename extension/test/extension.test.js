@@ -75,12 +75,13 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
   const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[];let session,authEvent,webviewProvider,repo;let gitChanges=0;
+  let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
   const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return root;if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
   const vscode={
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
     workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?'simulation':fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);},showInputBox:async()=>undefined,showErrorMessage:async message=>{errors.push(message);}},
+    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);await warningPending;},showInputBox:async()=>undefined,showErrorMessage:async message=>{errors.push(message);}},
     tasks:{onDidStartTask:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async()=>{}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
@@ -91,7 +92,10 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const settle=async()=>{for(let i=0;i<6;i++) await new Promise(resolve=>setImmediate(resolve));};await settle();
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   assert.ok(authCalls.every(call=>call.options.silent));
-  await commands.get('zero.uploadToGitHub')();assert.match(notices.at(-1),/Simulation only/);assert.equal(gitChanges,0);
+  let simulationFinished=false;const simulation=commands.get('zero.uploadToGitHub')().then(()=>{simulationFinished=true;});
+  await settle();assert.equal(simulationFinished,true,'Simulation must release commands while its notification is still open');
+  assert.doesNotMatch(webview.html,/data-command="zero.signInToGitHub" disabled/,'Sign-in must remain available before notification dismissal');
+  assert.match(notices.at(-1),/Simulation only/);assert.equal(gitChanges,0);dismissWarning();await simulation;
   await commands.get('zero.signInToGitHub')();assert.match(errors.at(-1),/Sign in to GitHub/);assert.equal(authCalls.at(-1).options.createIfNone,true);
   session={id:'student-session',account:{id:'student',label:'student'},accessToken:'PRIVATE'};
   await commands.get('zero.signInToGitHub')();assert.match(webview.html,/Signed in as student/);assert.match(webview.html,/Create repository/);assert.match(webview.html,/Connect existing repository/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);

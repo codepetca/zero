@@ -145,7 +145,7 @@ function activate(context) {
         if (uploadMode(root) !== 'live') {
           const result = core.simulatedUpload();
           state = result.message; refresh();
-          await vscode.window.showWarningMessage(result.message);
+          void vscode.window.showWarningMessage(result.message);
           return;
         }
         const ticket = await auth.capture();

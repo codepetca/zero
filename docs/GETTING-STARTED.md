@@ -1,9 +1,10 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. The kit contains `zero-0.3.0.vsix`, `Zero.code-profile`,
+separate JavaFX window. The kit contains `zero-0.3.1.vsix`, `Zero.code-profile`,
 optional keyboard shortcuts and `zero-starter.zip`. This MVP still needs physical
-Windows/Linux, real GitHub authentication/upload and novice classroom trials.
+Windows/Linux and novice classroom trials. A Mac teacher trial verified the
+native sign-in and repository upload path.
 See [verification evidence](VERIFICATION.md) for checks actually completed.
 
 ## One-time setup
@@ -15,7 +16,9 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    it needs a newer editor JDK.
 2. Optionally import **Zero.code-profile first** through VS Code Profiles. It
    contains settings only, defaults to light and enables 500 ms autosave.
-   In the chosen profile, install **zero-0.3.0.vsix** through
+   In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
+   beside **New Profile → Import Profile… → Select File…**, then **Create** and
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.3.1.vsix** through
    **Extensions → Install from VSIX…**, then install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
@@ -103,8 +106,9 @@ does not upload code, establish that the remote is current or submit in Pika.
 ## Before a class adopts it
 
 Use the [classroom pilot checklist](CLASSROOM-PILOT.md) on a student machine.
-Real sign-in/upload and physical Windows/Linux execution remain unverified;
-automated authentication and transport checks use mocks.
+A Mac teacher trial verified native sign-in and a private repository upload.
+Physical Windows/Linux, school restrictions and novice trials remain unverified;
+automated authentication and transport checks continue to use mocks.
 
 For a contribution, propose one readable helper or example, explain how to try
 it and include the checks you ran. The first reusable-component exercise can add

@@ -1,6 +1,67 @@
 # Local verification — 2026-10-08
 
-## MVP 0.3.0 delivery checks
+## Teacher pilot and 0.3.1 correction
+
+The user authorized a real teacher workflow on 2026-10-08 and completed native
+GitHub permission/browser sign-in. Environment: macOS 26.6.2 arm64, VS Code
+1.141.0, OpenJDK/javac 17.0.14, Git 2.53.0, Red Hat Java 1.56.0 and Java Debugger
+0.59.0. Started from packaged 0.3.0 in a fresh standalone path with spaces and
+isolated VS Code user data/extensions. Imported the actual settings-only profile
+through Profiles UI and activated Zero; installed VSIX and Java extensions by CLI.
+
+Observed passes:
+
+- Minimal light sidebar, Java ready, Run while signed out, standard Cmd+Shift+B,
+  Stop and compiler Problems navigation. Autosave persisted a UI edit without Save.
+  VS Code continued a comment onto an import, causing a real missing-symbol error;
+  double-clicking Problems navigated to its line/column. Coordinator repaired the
+  source through file tools after unreliable repair-key automation and changed
+  the question to 5+5/answer 10/5 points. Rebuild contained the modified question,
+  no Problems, exactly one owned app process; Stop ended it.
+- Cancel native sign-in, useful retry text and local controls retained. User then
+  completed sign-in; Zero displayed the matching account. Create Repository opened
+  official GitHub in the OS-default Chrome profile. Created a private empty teacher
+  repository, connected from the standalone folder and set local test commit
+  identity using a noreply email. No global identity/config changes.
+- Simulation left Git status unchanged, with no index/commit. Live review displayed
+  the exact account/repository, main and 29 paths. Cancel left no commit/staging
+  and remote empty. Repeated Commit & Upload succeeded through Zero's native
+  session transport. GitHub remote SHA matched local commit, and all 29 file blob
+  SHAs matched; target/.git stayed excluded. No credentials persisted in Git config.
+- Copy Repository Link pasted the correct page URL without .git into Chrome.
+  The GitHub page showed the actual commit and uploaded files.
+
+Found a reproducible UI issue in stock 0.3.0: awaiting the simulation warning
+kept Upload/account controls disabled until its notification was dismissed.
+Clearing notifications released them. Version 0.3.1 issues this informational
+warning without awaiting dismissal; upload review/confirmation still waits.
+The strengthened deferred-notification regression failed against old code and
+passes after this correction. Full Node suite: 37 tests passed (22.66 seconds);
+targeted UI tests, configuration/document-link checks and diff check passed.
+The packaged 0.3.1 VSIX installed into the isolated Zero profile. After Reload
+Window, a real simulation left Upload and Change GitHub Account enabled while
+the warning remained visible. Git status was unchanged and no new commit was
+created; restored the pilot's live setting and verified its clean worktree.
+
+One independent GPT-6.1 Sol/medium reviewer completed the bounded correction and
+guide review with no actionable findings at `00901afba57e8a3cbe88df381e21824fac403f96`
+against merged MVP `3be9d5295b4f21b43d2b2b7077e40c612bf1403c`, independently running
+the deferred-notification regression. Approximately three minutes, one review
+turn, no review remediation; attributable token telemetry is unavailable. The
+coordinator inspected the subsequent evidence-only documentation delta.
+Regenerated 0.3.1 VSIX, starter ZIP and combined kit locally; byte checks match
+the extension, starter and packaged guides, with no build/Git directories.
+
+Limits: direct interaction with the unbundled JavaFX quiz window was unavailable
+through computer-use tooling; editor/process checks are not physical quiz input
+checks. Native permission cancellation was tried, not denied browser OAuth or
+account switching during a real upload. Pika submission awaits a chosen classroom/
+assignment; no submission, student impersonation or grades changed. Windows/Linux,
+school proxies/cold caches and novice students remain untested. The private pilot
+repository is retained as evidence. No further source push, release or Marketplace
+publication is authorized for the local correction.
+
+## Earlier MVP 0.3.0 delivery checks — before teacher pilot
 
 This local implementation separates event-driven SimpleApp from animated
 SketchApp, starts with a quiz, and includes six examples plus a reusable

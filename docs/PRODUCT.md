@@ -97,8 +97,9 @@ JDK 17+ for builds. JDK 17 was tested; editor runtime requirements may differ.
 ## Verification and distribution limits
 
 See [VERIFICATION.md](VERIFICATION.md) for actual local checks and their scope.
-Physical Windows/Linux, real GitHub authentication/transport, school restrictions
-and novice classroom pilots still need verification. First-time builds need
+A Mac teacher trial verified native authentication and a private repository
+upload. Physical Windows/Linux, school restrictions and novice classroom pilots
+still need verification. First-time builds need
 internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
 cohort adoption. A public license for original Zero code remains unresolved;
 upstream wrapper notices apply to the wrapper.

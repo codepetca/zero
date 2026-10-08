@@ -5,7 +5,7 @@ Open a student folder containing `zero.json`, or the kit with its
 webview, file tree, task and command APIs. Files open in the normal editor.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.3.0.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.3.1.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
@@ -95,7 +95,8 @@ npm run package
 Packaging uses pinned `@vscode/vsce` and creates a local VSIX; it never publishes.
 Tests cover root guards, review/staging/commit behavior, cancellation, errors,
 simulation, native session changes, credential isolation/cleanup and intercepted
-transport. Actual GitHub authentication/upload and
-student pilots are unverified. Mac profile/sidebar and app checks are recorded
+transport. A Mac teacher trial verified native GitHub sign-in/create/connect/cancel/upload
+and copy-link; novice student pilots remain unverified. Mac editor/process checks
+and their limits are recorded
 in the bundled `VERIFICATION.md`; physical Windows/Linux checks
 remain pending. Review focused changes before classroom adoption.

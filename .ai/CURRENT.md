@@ -1,5 +1,52 @@
 # Current state — 2026-10-08
 
+## Fix publication, then study-app dogfooding
+
+Owner said “do the fix. then the dogfooding” after the proposed next step of
+PR/merging the verified 0.3.1 fix, then building a useful study app. This authorizes
+the fix PR/merge into codepetca/zero main and local study-app implementation and
+verification. No deployment, Marketplace/release upload, new student-repository
+upload, credential change or Pika submission is authorized. Student trials are
+explicitly skipped for this phase; retain platform/physical-input limitations.
+
+Reuse the completed fix review and same-code checks. Coordinator inspected the
+later evidence/authority-only delta. Fetched origin/main still equals 3be9d52;
+check final PR readiness, checks, threads and merge outcome before syncing main.
+Then use a new codex branch for a standalone starter copy of a multi-question
+study app with feedback, score, next/restart and ordinary Question objects.
+Reuse a readable component in another example. Add framework API only for a
+demonstrated need; preserve the beginner default quiz. Exit: actual finite GUI
+behavior checks, packaged standalone build, readable instructions and bounded
+independent review. Initial weekly remaining 61%; DeepSeek remains paused.
+
+## Current teacher pilot follow-up
+
+MVP PR #2 merged to main at 3be9d5295b4f21b43d2b2b7077e40c612bf1403c.
+User then authorized the proposed real teacher pilot with “yes, do it” and
+completed native GitHub permission/browser sign-in (“Done”). Coordinator handles
+shared GUI state directly; initial weekly remaining 66%, DeepSeek paused. No new
+goal, chat or automation created. See local .verification/TEACHER-PILOT.md for
+step receipts (no credentials) and docs/VERIFICATION.md for distributable evidence.
+
+Teacher Mac trial completed sign-in, create private repository, connect,
+simulation, cancel live review, actual reviewed native-session upload and copy
+repository link. All 29 remote file blob SHAs match local commit. Pika target
+unanswered, so no assignment/student data was changed. Physical JavaFX input,
+Windows/Linux, school setup and novice students remain untested.
+
+Stock 0.3.0 held Upload disabled while awaiting simulation-notice dismissal.
+Coordinator reproduced failing regression, removed only that informational await,
+and bumped local kit to 0.3.1 on codex/pilot-upload-notice. All 37 Node tests pass
+(22.66 seconds). One GPT-6.1 Sol/medium reviewer accepted fixed head 00901af
+against merged MVP 3be9d52 with no actionable findings, independently checking
+the regression. One review turn, about three minutes, no remediation; token
+telemetry unknown. Coordinator inspected the evidence-only documentation delta.
+Packaged 0.3.1 installed and reloaded in the isolated editor: Upload/account
+controls remain enabled while the simulation warning is visible. Simulation
+changed neither Git status nor commit; pilot settings restored and worktree clean.
+Regenerated artifacts match current source and guide bytes. This follow-up was
+initially local only; the owner subsequently authorized the fix PR/merge above.
+
 ## Completed local MVP goal and execution plan
 
 Owner explicitly requested setting a goal and orchestrating the agreed work.
