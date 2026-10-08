@@ -24,7 +24,7 @@ unverified. This is a locally developed MVP for a classroom pilot; see the
 - [Development and contributions](docs/DEVELOPMENT.md)
 - [Classroom pilot checklist](docs/CLASSROOM-PILOT.md)
 - [Verification and remaining limits](docs/VERIFICATION.md)
-- [Actual dark-theme editor](docs/design/actual-zero-editor.png)
+- [Earlier dark-theme editor, version 0.2](docs/design/actual-zero-editor.png)
 - [Selected screen](docs/design/selected-sidebar.png)
 - [Student storyboard](docs/design/student-storyboard.png)
 

@@ -24,12 +24,14 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
     // Refresh once, then finish all asynchronous preparation and check the
     // captured session synchronously before constructing credentials/dispatch.
     const fresh = await authenticate();
-    await core.assertRepositoryRoot(root, localRun);
-    await assertNoUrlRewrites(root, localRun);
     const hooks = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-upload-hooks-'));
     let env;
     const settings = [];
     try {
+      // Prepare resources first; destination checks are the final asynchronous
+      // work, followed by the synchronous session check and immediate dispatch.
+      await core.assertRepositoryRoot(root, localRun);
+      await assertNoUrlRewrites(root, localRun);
       const session = assertCurrentNow();
       if (session && typeof session.then === 'function') {
         void Promise.resolve(session).catch(() => {});

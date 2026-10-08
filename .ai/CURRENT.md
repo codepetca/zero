@@ -69,6 +69,15 @@ full Node 36 tests pass; guides now specify the minimum Git version. Ledger:
 three reviewer turns, one initial wave, one targeted wave, two fix batches;
 second targeted wave next, then one final integration pass for the shared contract.
 
+Targeted wave 2 completed at `55724e228440a9419e453f10c02ff5c0d87999db`:
+sync session guard accepted; residual destination interval during mkdtemp found.
+Coordinator reproduced failure locally before changing production, moved mkdtemp
+before the final root/rewrite checks and cleanup scope around those checks.
+Full Node 37 tests passed (14.12s), configuration check and diff check passed.
+Ledger now four reviewer turns, two targeted waves, three fix batches; one final
+targeted check plus one cumulative integration check remain. Same boundary has
+recurred once after its first fix; a further recurrence invokes the human checkpoint.
+
 ## Previously delivered kit (historical evidence)
 
 Zero is a downloadable local Java teaching kit: a minimal VS Code extension and

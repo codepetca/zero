@@ -15,7 +15,8 @@ Checks performed before independent review:
   documentation links passed.
 - `npm test`: initially 30 tests passed (~15 seconds); after the first batch, 32
   passed (33.1 seconds), and after the second, 36 passed (40.8 seconds under
-  concurrent build load). New coverage includes silent/native
+  concurrent build load). After the final ordering correction, all 37 passed
+  (14.12 seconds). New coverage includes silent/native
   sign-in cancellation, session/account changes, sidebar states, upload-session
   capture/revalidation, destination/rewrite guards, transient credential config,
   hook cleanup, trace suppression and sanitized transport failures. All sessions
@@ -69,6 +70,11 @@ before its credential lookup. Targeted auth/transport/UI tests passed 16/16
 See [Git's runtime configuration documentation](https://git-scm.com/docs/git-config/2.48.0)
 and [Git 2.31 release notes](https://github.com/git/git/blob/master/Documentation/RelNotes/2.31.0.adoc).
 Final remediation review and regenerated package checks are in progress.
+The second targeted review identified one remaining preparation interval:
+temporary hook-directory creation still followed the destination checks. The
+coordinator reproduced it in a failing regression, moved directory creation
+before the final root/rewrite checks, and placed those checks inside cleanup.
+The new regression and full 37-test suite pass. This is the third fix batch.
 Physical Windows/Linux, actual authentication/network upload and student pilots
 remain unverified. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) before adoption.
 The original Zero code's public license remains undecided.
