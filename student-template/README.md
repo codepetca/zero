@@ -119,15 +119,20 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | --- | --- | --- |
 | Default quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
+| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |
 | Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |
 | Keyboard | `examples/keyboard/Main.java` and `examples/keyboard/Mover.java` | Arrow keys move/clamp the circle; diagonal movement is faster. |
 | Counter | `examples/counter/Main.java` | Native buttons beside a canvas change its displayed count. |
 | Drawing | `examples/drawing/Main.java` | Primary button paints; secondary clears. Separate strokes stay separate. |
 
-There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz
-and practice do not contain independent copies. The default compiled starter
+There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz,
+practice and study apps do not contain independent copies. The default compiled starter
 contains the same file. If improving it for a contribution, update the shared
-source and copy it into `src/main/java/ScoreDisplay.java`, then try both apps.
+source and copy it into `src/main/java/ScoreDisplay.java`, then try the affected apps.
+The no-argument constructor keeps the quiz's “Score” caption; the tracker passes
+“Completed” to the optional caption constructor. Main still owns the number and
+the rules. Study's Question class is an ordinary data object used by its question
+array; it does not need a framework parent class.
 The contributor verifier rejects starter/shared copy drift. Preserve your own
 modified component before copying an example over it.
 
@@ -174,7 +179,7 @@ focus, held-input release, configuration/setup/frame failures and shutdown, prin
 `ZERO_SMOKE_OK`, then closes itself.
 It requires a GUI desktop; input events are synthetic, so this does not replace
 physical typing/clicking checks. `SmokeLauncher.java` is a contributor check; normal
-Run App launches Main. From the kit repository, `python3 scripts/verify-examples.py` checks all six
+Run App launches Main. From the kit repository, `python3 scripts/verify-examples.py` checks all seven
 alternatives in temporary real GUI projects and verifies shared source copies.
 This does not verify an imported VS Code profile or real
 GitHub authentication/upload.

@@ -35,7 +35,9 @@ an isolated VS Code user-data/extensions directory before normal installation.
 Check the two startup paths, useful lifecycle errors, JavaFX event/state behavior,
 explicit object updates, drawing/input and shutdown. Preserve text control input
 when a sketch includes controls. Check that quiz and practice copy the canonical
-ScoreDisplay unchanged and that a caption contribution can preserve both apps.
+ScoreDisplay unchanged and that the caption constructor preserves existing apps.
+Study checks should exercise retries, duplicate scoring, advance/completion and
+restart, including a second run. Keep question data in ordinary Java objects.
 
 Test project resolution, Git URL parsing/root guards, simulation side effects,
 native authentication states, review cancellation, account/session drift and
@@ -60,7 +62,7 @@ ordinary controls/layouts available rather than introducing a larger engine.
 Start with one readable helper, example or useful error. Put alternative examples
 outside compiled `src/` and document exactly which files students copy. For shared
 components, start from `examples/shared/ScoreDisplay.java`, test exact-copy reuse
-in quiz and practice, then propose a caption enhancement preserving the existing
+in quiz, practice and study, retaining the caption enhancement and existing
 no-argument constructor. Include meaningful behavior checks and a short explanation
 another student can follow; seek review before cohort adoption.
 

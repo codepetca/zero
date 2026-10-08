@@ -19,18 +19,20 @@ switching examples; the exact copy list is in [README.md](README.md#try-an-examp
    README list. Complete twice, reset, then complete once. Change the tracker
    rules without editing ScoreDisplay. Reuse the class by creating separate
    instances: sharing one node between parents is not allowed in JavaFX.
-5. **Improve the caption compatibly.** In the shared ScoreDisplay, add a String
-   field for the caption and a constructor `ScoreDisplay(String caption)`.
-   Preserve `public ScoreDisplay()` and make it call `this("Score")` as its first
-   statement. In the new constructor, store the caption, create the Label and
-   call setScore(0). Update setScore to display `caption + ": " + points`.
-   Copy the improved shared class into src/main/java. The quiz must still use
-   `new ScoreDisplay()` unchanged and display “Score: 0” then “Score: 10”. Change
-   only the practice Main to `new ScoreDisplay("Completed")` and verify
-   “Completed: 0”, “Completed: 2”, reset to zero, and another completion. Keep
-   your enhanced practice Main when switching back. The normal verifier checks
-   the shipped examples; these custom captions need these checks too.
-6. **Animate an ordinary object.** Copy both animation Main and Player exactly
+5. **Trace a compatible contribution.** ScoreDisplay now accepts a caption:
+   `new ScoreDisplay("Completed")`. Read how the no-argument constructor calls
+   `this("Score")` so the original quiz still works unchanged. Try the quiz's
+   “Score: 0” then “Score: 10”, and the tracker's “Completed: 0” then
+   “Completed: 2”. Reset and complete again. Explain why changing presentation
+   belongs in this component while changing the scoring rule belongs in Main.
+   Propose a small presentation improvement and try it in both apps.
+6. **Grow the study app.** Copy its Main, Question and the shared ScoreDisplay
+   exactly as listed in README. Trace the question array, current index and
+   event handlers. Add one Question to the array without changing the handlers.
+   Try a wrong answer, success, another check, Next, the final summary and
+   Restart. Verify the new question appears and the score resets. See the
+   [study guide](examples/study/README.md) for the rules and reusable objects.
+7. **Animate an ordinary object.** Copy both animation Main and Player exactly
    as listed. Identify the explicit update/draw calls. Replace the smoothing
    formula in Player with `x = targetX; y = targetY;` and compare. Restore it,
    change speed/colour, then try keyboard movement. Click the canvas to play;

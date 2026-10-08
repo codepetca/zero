@@ -111,8 +111,9 @@ Physical Windows/Linux, school restrictions and novice trials remain unverified;
 automated authentication and transport checks continue to use mocks.
 
 For a contribution, propose one readable helper or example, explain how to try
-it and include the checks you ran. The first reusable-component exercise can add
-a caption constructor to ScoreDisplay while retaining its no-argument constructor:
-the quiz keeps working and the tracker can display “Completed”. Review the change
+it and include the checks you ran. ScoreDisplay's caption constructor is a shipped
+example of a compatible contribution: its no-argument constructor keeps the quiz
+working while the tracker displays “Completed”. The study app reuses that class
+and adds ordinary Question objects; see its bundled guide. Review a shared change
 with the teacher and verify both apps before a cohort adopts it. Ordinary Java
 packages, interfaces and JavaFX properties are available as later steps.

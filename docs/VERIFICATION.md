@@ -1,5 +1,53 @@
 # Local verification — 2026-10-08
 
+## Study-app dogfooding
+
+After the 0.3.1 fix merged in PR #3, the owner authorized building the study app
+and explicitly skipped novice trials for this phase. Local implementation on
+codex/study-app-dogfood starts from merged main 52cd3be. The new example uses
+the existing SimpleApp unchanged: three Question objects in an array, retries,
+once-only scoring, Enter/check, Next, explanations, final summary and Restart.
+The shared caption constructor keeps the quiz's no-argument ScoreDisplay working;
+the practice tracker uses “Completed”. No dependency, extension or framework
+source changed, and no further upload or Pika action occurred.
+
+Checks on the same Mac/JDK environment:
+
+- New study finite real-window checks passed (25.80s): blank/wrong retries,
+  trimmed/case-insensitive answers, Enter, duplicate scoring, locked Next,
+  advance resets, mid-session restart, summary, finished-state guards and
+  restart/rescoring. Quiz and practice checks passed with the shared constructor
+  changes; animation, counter and drawing also passed. Shared/default component
+  bytes match and the default quiz is unchanged.
+- The normal seven-example run stopped at the existing keyboard assertion
+  “Right arrow must move object”. Diagnostic state showed both window/canvas
+  unfocused; the existing framework deliberately ignores unfocused key input.
+  One worker diagnostic forced native window activation using unsupported UI
+  automation; that pass is excluded from acceptance. No test/framework bypass
+  or input-source change was made. This run does not establish a clean full
+  suite or physical keyboard interaction; the focus-dependent keyboard check
+  remains an environment verification gap.
+- Extracted the packaged starter into a standalone path with spaces, copied
+  study's exact three files, and added a fourth Question without changing the
+  handlers. Full study behavior checks passed against four-question progress,
+  scoring, completion and restart (10.046s Maven time). Restored the three-question
+  source and removed the contributor harness from the ready-to-run local copy.
+- Configuration, syntax, documentation links and diff checks passed. The full
+  37-test Node evidence from the fix is reused because extension code/tests are
+  unchanged. Local packaging passed; final review and artifact byte checks next.
+
+One GPT-6.1 Sol/medium builder delivered the app, shared caption and checks in
+about seven minutes including focus investigation. Coordinator inspected the
+source and independently tried the packaged fourth-question exercise. One writer
+per component, no integration conflict. Token telemetry and attributable
+coordination time are unknown. Independent review: standard risk, one Sol/medium
+reviewer, one initial wave planned; default seven-launch/four-batch/60-minute caps.
+
+The starter still opens the beginner one-question quiz. Study remains an optional
+example and an extracted local project. Windows/Linux, school setup and direct
+JavaFX typing/clicking remain unverified; novice testing was skipped by the owner.
+Study changes are local only; no PR/push/release publication is authorized for them.
+
 ## Teacher pilot and 0.3.1 correction
 
 The user authorized a real teacher workflow on 2026-10-08 and completed native
@@ -58,8 +106,12 @@ checks. Native permission cancellation was tried, not denied browser OAuth or
 account switching during a real upload. Pika submission awaits a chosen classroom/
 assignment; no submission, student impersonation or grades changed. Windows/Linux,
 school proxies/cold caches and novice students remain untested. The private pilot
-repository is retained as evidence. No further source push, release or Marketplace
-publication is authorized for the local correction.
+repository is retained as evidence. The owner subsequently authorized the fix PR
+and merge: [PR #3](https://github.com/codepetca/zero/pull/3) merged to main at
+`52cd3be7ea2b4fcfa2ea8d84e21a83cd7107c67a`; the local main checkout was synced.
+Its final head reused the unchanged code review and coordinator inspection of
+later documentation-only changes. No outstanding checks/reviews/threads or merge
+conflicts were reported. No release or Marketplace publication occurred.
 
 ## Earlier MVP 0.3.0 delivery checks — before teacher pilot
 

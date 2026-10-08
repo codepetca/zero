@@ -12,12 +12,32 @@ explicitly skipped for this phase; retain platform/physical-input limitations.
 Reuse the completed fix review and same-code checks. Coordinator inspected the
 later evidence/authority-only delta. Fetched origin/main still equals 3be9d52;
 check final PR readiness, checks, threads and merge outcome before syncing main.
-Then use a new codex branch for a standalone starter copy of a multi-question
+Fix PR #3 merged at 52cd3be7ea2b4fcfa2ea8d84e21a83cd7107c67a; main synced.
+PR head e2669ac reused review of unchanged code at 00901af and coordinator
+inspection of later docs; no checks/reviews/threads outstanding, mergeable/clean.
+Now on codex/study-app-dogfood for a standalone starter copy of a multi-question
 study app with feedback, score, next/restart and ordinary Question objects.
 Reuse a readable component in another example. Add framework API only for a
 demonstrated need; preserve the beginner default quiz. Exit: actual finite GUI
 behavior checks, packaged standalone build, readable instructions and bounded
 independent review. Initial weekly remaining 61%; DeepSeek remains paused.
+
+Ownership: study_app_build, GPT-6.1 Sol/medium, fresh context, bounded Java app
+and GUI checks; owns examples/study/**, canonical/default ScoreDisplay copies,
+practice Main and scripts/verify-examples.py. Coordinator owns remaining guides,
+packaging and isolated app trial; no concurrent edits to worker files. Start
+~18:31 UTC; delivered and source inspected, about seven minutes including focus
+investigation, no integration conflicts; attributable tokens/coordination time
+unknown. Requested configuration Sol/medium; effective telemetry unavailable.
+Builder owns no files now. Study, quiz, practice, animation, counter and drawing
+finite GUI checks passed. Existing keyboard check failed with stage/canvas
+unfocused; worker's forced-activation diagnostic used unsupported UI automation
+and is excluded. No source/test bypass was made; no clean full-suite pass claimed.
+Coordinator independently passed the packaged fourth-question exercise (10.046s).
+Configuration/diff checks and preliminary packaging pass. Standard-risk review
+next: one Sol/medium independent reviewer, one initial wave, zero fixes so far;
+default budget seven launches/four remediation batches/60 minutes. Remaining
+platform/physical-input gaps retained. Study source publication is not authorized.
 
 ## Current teacher pilot follow-up
 

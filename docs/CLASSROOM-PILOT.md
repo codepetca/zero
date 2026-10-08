@@ -34,7 +34,7 @@ out of the record.
   Change Player or Mover behavior; identify the explicit object update/draw calls
   and distinguish frame code from setup. Verify movement, input focus and Stop.
 - Run practice with the unchanged canonical `examples/shared/ScoreDisplay.java`.
-  Propose a caption constructor retaining the no-argument constructor; use
+  Trace its caption constructor and retained no-argument constructor; observe
   “Completed” in practice and verify the quiz still works. Explain app state versus
   component presentation. Keep each app's own display instance.
 - Have the student propose one small helper, example or useful error. Record

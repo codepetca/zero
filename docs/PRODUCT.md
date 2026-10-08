@@ -22,8 +22,12 @@ Useful startup errors explain invalid sizes and lifecycle misuse.
 
 The quiz and practice tracker reuse the canonical
 `examples/shared/ScoreDisplay.java` unchanged. Each app creates its own instance;
-a JavaFX node has one parent. The caption exercise extends this ordinary class
-while preserving the quiz's no-argument constructor. No component/screen base
+a JavaFX node has one parent. The optional caption extends this ordinary class
+while preserving the quiz's no-argument constructor. This compatible caption
+contribution now ships in the shared component and the tracker uses “Completed”.
+A separate study app grows the quiz with an array of ordinary Question objects,
+answer feedback, score, next/restart and a final summary. It reuses the same
+ScoreDisplay source. No component/screen base
 class, registration system or new engine is required. Packages, interfaces,
 JavaFX properties and other JavaFX features remain available as later lessons.
 
@@ -32,6 +36,11 @@ See the [starter](../student-template/README.md) for exact files and exercises.
 Framework source ships editable inside the starter. Review shared improvements
 in more than one app before cohort adoption; versioned library distribution is
 future work.
+
+The first dogfooding pass deliberately uses the existing framework. App-specific
+navigation and question rules stay in Main; Question stores question data and
+ScoreDisplay presents the app-owned total. Add framework API only when another
+app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 

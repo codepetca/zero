@@ -7,7 +7,9 @@ A minimal VS Code sidebar runs the app in a separate native window.
 Students own their GitHub repositories and submit links separately in Pika.
 
 The MVP starts with a small quiz and includes animation, keyboard, counter,
-drawing and practice examples. Readable framework source ships with the starter;
+drawing and practice examples. A multi-question [study app](student-template/examples/study/README.md)
+builds on the quiz with ordinary Question objects, feedback, score and next/restart.
+Readable framework source ships with the starter;
 there is no required component or screen base class.
 
 Run App saves, rebuilds and restarts. **Upload to GitHub defaults to simulation**.
@@ -39,7 +41,7 @@ profile. The sidebar also supports dark themes.
 - `extension/`: sidebar and commands using supported VS Code APIs.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`
-  is the canonical component reused by quiz and practice.
+  is the canonical component reused by quiz, practice and study apps.
 - `profile/`: optional light settings profile and separate F6/F7 bindings.
 - `scripts/`: local checks and packaging.
 - `docs/`: setup, decisions, pilot checklist and verification evidence.
