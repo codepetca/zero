@@ -19,7 +19,8 @@ Checks so far:
 - The simulation regression now waits for its warning to be issued before
   checking command release, removing an IO scheduling race exposed by the added
   menu checks. Production still does not await warning dismissal.
-- Full Node suite: 37/37 passed (34.66s). Configuration, syntax, document links
+- Full Node suite: 37/37 passed (34.66s initially, 28.41s after correcting the
+  native account-command route). Configuration, syntax, document links
   and diff checks passed. Java source/dependencies are unchanged, so no Java GUI
   re-run was needed for this sidebar change.
 - Packaged 0.3.2 VSIX installed into the isolated Zero profile. Actual Mac reload
@@ -27,8 +28,16 @@ Checks so far:
   empty-repo row. The real repository quick pick displayed create/existing
   choices. Concurrent user interaction interrupted further menu automation;
   account actions are covered by mocks so far, not a completed native logout or
-  account switch. No account credentials, repo connection or files were changed
-  by the menu trial.
+  account switch. A native sign-in permission prompt encountered during the
+  interrupted trial was cancelled; no authorization was granted. No account
+  credentials, repo connection or files were changed by the menu trial. The
+  corrected VSIX was installed again; final activation/menu trial remains a gap.
+
+Source inspection caught that workbench.actions.accounts is a UI action rather
+than a registered command. The corrected route detects the available public
+workbench.action.manageAccounts command before opening its native account picker.
+On older editors without it, Sign out gives manual native Accounts instructions.
+Both paths pass focused tests. No internal session-deletion command is called.
 
 Independent standard-risk review and final package byte checks are next.
 This local request does not authorize push/PR/merge or release publication.

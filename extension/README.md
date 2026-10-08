@@ -35,7 +35,9 @@ Commands: `zero.runApp`, `zero.stopApp`, `zero.uploadToGitHub`,
 The GitHub header has one profile button: a silhouette while signed out and the
 account's first letter while signed in. Its hover title/accessibility label names
 the account; click for **Change GitHub account…** or **Sign out…**. Sign out opens
-VS Code's native Accounts menu; select the GitHub account and Sign Out there.
+VS Code's native Manage Accounts picker; select the GitHub account and Sign Out
+there. Older editors without that command show instructions for their native
+Accounts menu instead.
 The repository row shows `owner/name`, or **Connect a repo**. Click for
 create/connect options when empty, or copy-link/change options when connected.
 **Upload to GitHub** and its explicit simulation/live label stay visible when

@@ -76,7 +76,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
-  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[];let session,authEvent,webviewProvider,repo,nextChoice,inputCount=0;let gitChanges=0;
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[];let session,authEvent,webviewProvider,repo,nextChoice,inputCount=0,nativeAccountsAvailable=true;let gitChanges=0;
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
@@ -85,7 +85,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
     workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?'simulation':fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return undefined;},showErrorMessage:async message=>{errors.push(message);}},
-    tasks:{onDidStartTask:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async id=>{dispatched.push(id);}},
+    tasks:{onDidStartTask:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>nativeAccountsAvailable?['workbench.action.manageAccounts']:[],executeCommand:async id=>{dispatched.push(id);}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
@@ -113,7 +113,9 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   await commands.get('zero.chooseRepository')();assert.equal(opened[0].url,'https://github.com/new');assert.match(notices.at(-1),/empty GitHub repository/);assert.match(notices.at(-1),/README, .gitignore and license unselected/);
   nextChoice=undefined;await commands.get('zero.githubAccount')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['change','signOut']);
-  nextChoice='signOut';await commands.get('zero.githubAccount')();assert.equal(dispatched.at(-1),'workbench.actions.accounts','Sign-out belongs to native VS Code Accounts controls');
+  nextChoice='signOut';await commands.get('zero.githubAccount')();assert.equal(dispatched.at(-1),'workbench.action.manageAccounts','Sign-out belongs to native VS Code Accounts controls');
+  const dispatchCount=dispatched.length;nativeAccountsAvailable=false;await commands.get('zero.githubAccount')();
+  assert.equal(dispatched.length,dispatchCount);assert.match(notices.at(-1),/Accounts menu.*Sign Out/,'Older editors get usable native sign-out guidance');nativeAccountsAvailable=true;
   nextChoice='change';await commands.get('zero.githubAccount')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
   repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle();
   assert.match(webview.html,/Upload to GitHub/);assert.match(webview.html,/>student\/app<\/button>/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);

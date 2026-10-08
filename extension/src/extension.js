@@ -121,11 +121,19 @@ function activate(context) {
       if (!auth.signedIn) return actions['zero.signInToGitHub']();
       const choice = await vscode.window.showQuickPick([
         {label:'Change GitHub account…', action:'change'},
-        {label:'Sign out…', description:'Use VS Code’s Accounts menu', action:'signOut'}
+        {label:'Sign out…', description:'Use VS Code’s Accounts controls', action:'signOut'}
       ], {title:`GitHub: ${auth.accountLabel}`, placeHolder:'Choose an account action'});
       if (uploading || connecting || signingIn) return;
       if (choice?.action === 'change') await actions['zero.signInToGitHub']();
-      if (choice?.action === 'signOut') await vscode.commands.executeCommand('workbench.actions.accounts');
+      if (choice?.action === 'signOut') {
+        const available = await vscode.commands.getCommands(true);
+        if (uploading || connecting || signingIn) return;
+        if (available.includes('workbench.action.manageAccounts')) {
+          await vscode.commands.executeCommand('workbench.action.manageAccounts');
+        } else {
+          void vscode.window.showInformationMessage('Open VS Code’s Accounts menu, select your GitHub account and choose Sign Out. You can also update VS Code to use its Manage Accounts picker. Zero does not sign out other extensions itself.');
+        }
+      }
     },
     'zero.chooseRepository': async () => {
       if (uploading || connecting || signingIn) return;

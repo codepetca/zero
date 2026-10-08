@@ -63,7 +63,8 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 Students sign in through VS Code's native GitHub authentication/browser flow.
 Zero identifies the selected account through the initial's hover/accessibility
 label. Clicking it offers Change GitHub Account and Sign out; Sign out opens
-VS Code's native Accounts controls, where the user chooses their GitHub account
+VS Code's native Manage Accounts picker (or manual Accounts instructions on
+older editors), where the user chooses their GitHub account
 and signs out. Session changes still invalidate pending upload reviews. Zero has
 no custom logout/token deletion. Connect a repo → Create a repository opens GitHub's new-repository
 page; students create their own empty repository following teacher visibility

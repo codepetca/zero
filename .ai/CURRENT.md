@@ -18,10 +18,15 @@ authentication API has no native-provider session-removal function, so no custom
 credential handling is introduced. Repository row displays owner/name; menus
 offer create/connect when empty and copy/change when connected. Upload and its
 explicit simulation label stay visible when signed in and connected. Local kit
-version 0.3.2. Focused checks 6/6 and full Node suite 37/37 (34.66s); configuration
+version 0.3.2. Focused checks 6/6 and full Node suite 37/37 (final 28.41s); configuration
 and diff pass. Actual isolated Mac reload showed initial/name and create/existing
 quick pick; concurrent user actions interrupted further menu automation. No
-native logout/account switch or connection/upload performed. Standard-risk
+native logout/account switch or connection/upload performed. An encountered
+native sign-in permission prompt was cancelled. Source inspection corrected a
+non-command Accounts action to the registered Manage Accounts command, detecting
+availability and giving manual native guidance on older editors. Focused tests
+cover both routes; corrected VSIX installed, final activation/menu trial pending.
+Standard-risk
 review: one Sol/medium reviewer, one initial wave, zero fixes so far, default
 seven-launch/four-batch/60-minute caps. Final package byte checks next. Coordinator
 will inspect evidence-only deltas; effective reviewer tokens/time unknown.
