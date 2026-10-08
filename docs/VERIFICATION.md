@@ -8,7 +8,7 @@ actions, a connected repo name and create/connect options behind “Connect a re
 The existing native authentication, upload review and transport are retained.
 Only a read-only account-label getter was added to the authentication bridge.
 
-Checks so far:
+Checks:
 
 - Focused UI/authentication tests passed 6/6. Account/repository menus support
   cancellation, signed-out local connect, sign-in before create, account change,
@@ -39,7 +39,17 @@ workbench.action.manageAccounts command before opening its native account picker
 On older editors without it, Sign out gives manual native Accounts instructions.
 Both paths pass focused tests. No internal session-deletion command is called.
 
-Independent standard-risk review and final package byte checks are next.
+One standard-risk GPT-6.1 Sol/medium independent review completed clean at
+`1534dd27b65f0f34088f85f5a2f9af6125066b1b` against
+`0cc62b5b719c474cebb4a7217b0fa14bd28fd1ae`: one turn/initial wave, zero
+remediation, about one minute estimated; token telemetry unavailable. Reviewer
+checked rendering, escaping/accessibility, cancellation/busy guards, session
+consistency, command compatibility, tests and guides, and independently confirmed
+the native Manage Accounts registration. Coordinator inspected the later
+evidence-only delta. Final ZIP/VSIX regenerated and byte-checked against the
+extension sources, manifest/README, every starter file and combined-kit members.
+The Unix Maven wrapper is executable; no build/Git directories are packaged.
+
 This local request does not authorize push/PR/merge or release publication.
 Windows/Linux and signed-out physical UI remain untested. Native sign-out uses
 VS Code Accounts: the user selects the GitHub account and Sign Out there; Zero
