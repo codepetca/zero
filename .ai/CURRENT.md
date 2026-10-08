@@ -1,5 +1,24 @@
 # Current state — 2026-10-08
 
+## Fix publication, then study-app dogfooding
+
+Owner said “do the fix. then the dogfooding” after the proposed next step of
+PR/merging the verified 0.3.1 fix, then building a useful study app. This authorizes
+the fix PR/merge into codepetca/zero main and local study-app implementation and
+verification. No deployment, Marketplace/release upload, new student-repository
+upload, credential change or Pika submission is authorized. Student trials are
+explicitly skipped for this phase; retain platform/physical-input limitations.
+
+Reuse the completed fix review and same-code checks. Coordinator inspected the
+later evidence/authority-only delta. Fetched origin/main still equals 3be9d52;
+check final PR readiness, checks, threads and merge outcome before syncing main.
+Then use a new codex branch for a standalone starter copy of a multi-question
+study app with feedback, score, next/restart and ordinary Question objects.
+Reuse a readable component in another example. Add framework API only for a
+demonstrated need; preserve the beginner default quiz. Exit: actual finite GUI
+behavior checks, packaged standalone build, readable instructions and bounded
+independent review. Initial weekly remaining 61%; DeepSeek remains paused.
+
 ## Current teacher pilot follow-up
 
 MVP PR #2 merged to main at 3be9d5295b4f21b43d2b2b7077e40c612bf1403c.
@@ -25,8 +44,8 @@ telemetry unknown. Coordinator inspected the evidence-only documentation delta.
 Packaged 0.3.1 installed and reloaded in the isolated editor: Upload/account
 controls remain enabled while the simulation warning is visible. Simulation
 changed neither Git status nor commit; pilot settings restored and worktree clean.
-Regenerated artifacts match current source and guide bytes. No source push/PR/merge or distribution publication authorized
-for this follow-up; the earlier authorization covered the merged MVP only.
+Regenerated artifacts match current source and guide bytes. This follow-up was
+initially local only; the owner subsequently authorized the fix PR/merge above.
 
 ## Completed local MVP goal and execution plan
 
