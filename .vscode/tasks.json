@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "zero",
+      "task": "run",
+      "label": "Zero: Run App",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": "$zero-java"
+    }
+  ]
+}

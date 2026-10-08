@@ -1,0 +1,9 @@
+node_modules/
+extension/dist/
+**/target/
+dist/
+.verification/
+.DS_Store
+*.log
+.env
+.env.*
