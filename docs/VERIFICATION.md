@@ -34,14 +34,25 @@ Checks on the same Mac/JDK environment:
   source and removed the contributor harness from the ready-to-run local copy.
 - Configuration, syntax, documentation links and diff checks passed. The full
   37-test Node evidence from the fix is reused because extension code/tests are
-  unchanged. Local packaging passed; final review and artifact byte checks next.
+  unchanged. Local packaging passed. In the isolated Zero profile, the standalone
+  study folder showed Main, Question and ScoreDisplay in the minimal file tree;
+  sidebar Run launched Maven and the JavaFX Main process. Sidebar Stop showed
+  “App stopped” and both owned processes ended. This is editor/process evidence,
+  not direct JavaFX typing/clicking.
 
 One GPT-6.1 Sol/medium builder delivered the app, shared caption and checks in
 about seven minutes including focus investigation. Coordinator inspected the
 source and independently tried the packaged fourth-question exercise. One writer
 per component, no integration conflict. Token telemetry and attributable
-coordination time are unknown. Independent review: standard risk, one Sol/medium
-reviewer, one initial wave planned; default seven-launch/four-batch/60-minute caps.
+coordination time are unknown. One standard-risk GPT-6.1 Sol/medium independent
+review completed clean at `3f0d0c71e3b1f1471d25513f10e1d86e5c857754` against
+`52cd3be7ea2b4fcfa2ea8d84e21a83cd7107c67a`, covering session transitions,
+compatibility, copy reuse, instructions and checks. The unchanged keyboard-focus
+gap does not block this SimpleApp change. One reviewer turn/initial wave, no
+remediation, about three minutes; token telemetry unavailable. Reviewer noticed
+the preliminary starter README needed repackaging. Coordinator inspected the
+subsequent evidence-only delta and regenerated the final kit, matching every
+starter file and guide/VSIX byte; no build/Git directories were included.
 
 The starter still opens the beginner one-question quiz. Study remains an optional
 example and an extracted local project. Windows/Linux, school setup and direct

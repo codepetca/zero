@@ -36,6 +36,9 @@ working. A readable example is a useful contribution in its own right.
 
 ## Verification record
 
+The study app and caption reuse passed finite GUI checks. A packaged standalone
+copy also passed after adding a fourth Question without changing the handlers.
+No framework API change was needed. Independent source review completed clean.
 Completion evidence is recorded in [VERIFICATION.md](VERIFICATION.md). Finite
 GUI checks exercise the app with synthetic events; they are not a novice student
 trial. The owner chose to skip student trials for this phase. Physical

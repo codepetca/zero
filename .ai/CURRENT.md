@@ -34,10 +34,16 @@ finite GUI checks passed. Existing keyboard check failed with stage/canvas
 unfocused; worker's forced-activation diagnostic used unsupported UI automation
 and is excluded. No source/test bypass was made; no clean full-suite pass claimed.
 Coordinator independently passed the packaged fourth-question exercise (10.046s).
-Configuration/diff checks and preliminary packaging pass. Standard-risk review
-next: one Sol/medium independent reviewer, one initial wave, zero fixes so far;
-default budget seven launches/four remediation batches/60 minutes. Remaining
-platform/physical-input gaps retained. Study source publication is not authorized.
+Configuration/diff checks passed. Standard-risk review completed clean at 3f0d0c7
+against 52cd3be: one Sol/medium reviewer, one turn/initial wave, zero remediation,
+about three minutes; token telemetry unknown. Existing keyboard-focus gap does
+not block this SimpleApp-only change. Reviewer identified stale preliminary
+packaged README; final artifacts regenerated and source/member bytes matched.
+Coordinator inspected later evidence-only delta. Actual isolated Zero sidebar
+shows Question, Run launched owned Maven/Main, Stop ended both; no physical quiz
+input claim. Standalone study remains open in Zero profile. Remaining platform
+gaps retained; novice trial skipped. Local app work complete and committed;
+study source publication is not authorized.
 
 ## Current teacher pilot follow-up
 
