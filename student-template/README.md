@@ -14,7 +14,7 @@ Zero**, then close the app window or terminate that task before running again.
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
-   quiet settings-only profile. In your chosen profile, install the local **zero-0.3.0.vsix**, **Language
+   quiet settings-only profile. In your chosen profile, install the local **zero-0.3.1.vsix**, **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -155,7 +155,8 @@ workspace settings. Upload saves files, asks for a commit message, then shows a
 modal review of your repository, branch and changed files. Check it before
 choosing **Commit & Upload**. This creates a local commit when needed and pushes
 with Git HTTPS transport using your native sign-in; ignored files stay local. A failed upload may
-leave a local commit. Real GitHub authentication/upload has not been verified.
+leave a local commit. A Mac teacher trial verified native sign-in and a private repository upload;
+other platforms and school environments still need trials.
 
 After a successful real upload, check the files on GitHub. Copy your repository
 page link and submit it separately in Pika. Give your teacher access if it is

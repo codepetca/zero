@@ -1,5 +1,26 @@
 # Current state — 2026-10-08
 
+## Current teacher pilot follow-up
+
+MVP PR #2 merged to main at 3be9d5295b4f21b43d2b2b7077e40c612bf1403c.
+User then authorized the proposed real teacher pilot with “yes, do it” and
+completed native GitHub permission/browser sign-in (“Done”). Coordinator handles
+shared GUI state directly; initial weekly remaining 66%, DeepSeek paused. No new
+goal, chat or automation created. See local .verification/TEACHER-PILOT.md for
+step receipts (no credentials) and docs/VERIFICATION.md for distributable evidence.
+
+Teacher Mac trial completed sign-in, create private repository, connect,
+simulation, cancel live review, actual reviewed native-session upload and copy
+repository link. All 29 remote file blob SHAs match local commit. Pika target
+unanswered, so no assignment/student data was changed. Physical JavaFX input,
+Windows/Linux, school setup and novice students remain untested.
+
+Stock 0.3.0 held Upload disabled while awaiting simulation-notice dismissal.
+Coordinator reproduced failing regression, removed only that informational await,
+and bumped local kit to 0.3.1 on codex/pilot-upload-notice. Review and regenerated
+package checks next. No source push/PR/merge or distribution publication authorized
+for this follow-up; the earlier authorization covered the merged MVP only.
+
 ## Completed local MVP goal and execution plan
 
 Owner explicitly requested setting a goal and orchestrating the agreed work.
