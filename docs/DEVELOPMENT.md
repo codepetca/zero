@@ -9,7 +9,7 @@ work. Keep one writer per component and inspect changes before integration.
 ## Commands
 
 Use Node.js 22+ for developer tooling. Students use a supported JDK 17+ and
-VS Code; Git is needed for repository work. Students do not need Node.js or
+VS Code; Git 2.31+ is needed for authenticated uploads. Students do not need Node.js or
 global Maven.
 
 ```sh

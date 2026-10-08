@@ -60,6 +60,15 @@ Auth/transport 10 tests and full Node 32 tests pass; targeted independent review
 next. Native 0.3.0 VSIX installation passed, but computer-use selected the older
 editor process; new-version physical sidebar/shortcut checks remain a pilot gap.
 
+Targeted wave 1 completed at `c47b4ca036699c4bde9764266a679ebfd8a2f47a`:
+original P1s resolved; new interacting P1 (async final lookup reopened Git URL
+rewrite interval). Second fix batch replaces the last async lookup with a
+required synchronous ticket check after all async preparation. Old/unknown Git
+versions fail closed (2.31+ required). Affected auth/transport/UI 16 tests and
+full Node 36 tests pass; guides now specify the minimum Git version. Ledger:
+three reviewer turns, one initial wave, one targeted wave, two fix batches;
+second targeted wave next, then one final integration pass for the shared contract.
+
 ## Previously delivered kit (historical evidence)
 
 Zero is a downloadable local Java teaching kit: a minimal VS Code extension and

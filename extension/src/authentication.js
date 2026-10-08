@@ -27,6 +27,10 @@ function createAuthentication(api, onChange = () => {}) {
     return next;
   }
   const refresh = () => request({silent: true});
+  function assertCurrentNow(ticket) {
+    if (disposed || ticket.revision !== revision || !current || !same(ticket.session, current)) throw new Error(changedMessage);
+    return current;
+  }
   const subscription = api.onDidChangeSessions(event => {
     if (event.provider.id !== 'github' || disposed) return;
     // Invalidate a pending review immediately, before asynchronous refresh.
@@ -48,9 +52,9 @@ function createAuthentication(api, onChange = () => {}) {
     },
     async assertCurrent(ticket) {
       await refresh();
-      if (disposed || ticket.revision !== revision || !current || !same(ticket.session, current)) throw new Error(changedMessage);
-      return current;
+      return assertCurrentNow(ticket);
     },
+    assertCurrentNow,
     dispose() { disposed = true; current = undefined; revision++; subscription.dispose(); }
   };
 }

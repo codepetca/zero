@@ -10,6 +10,8 @@ GitHub sign-in/upload and school restrictions remain unverified; consult
 Record the date, kit/VSIX version, OS/version/architecture, VS Code version,
 project JDK (`java -version` and `javac -version`), Java extension versions/editor
 runtime, Git version, browser, and whether the optional profile was imported.
+Authenticated uploads require Git 2.31+; older Git must be rejected before
+credential dispatch while local running remains available.
 Record school proxy/firewall restrictions, download failures, setup time and
 teacher interventions. Use the teacher's privacy, account and repository
 visibility instructions; keep tokens, passwords and student personal information

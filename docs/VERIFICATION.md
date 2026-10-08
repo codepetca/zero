@@ -13,8 +13,9 @@ Checks performed before independent review:
 
 - `npm run check`: configuration, syntax, command/task contracts and local
   documentation links passed.
-- `npm test`: initially 30 tests passed (~15 seconds); after remediation, 32
-  passed (33.1 seconds). New coverage includes silent/native
+- `npm test`: initially 30 tests passed (~15 seconds); after the first batch, 32
+  passed (33.1 seconds), and after the second, 36 passed (40.8 seconds under
+  concurrent build load). New coverage includes silent/native
   sign-in cancellation, session/account changes, sidebar states, upload-session
   capture/revalidation, destination/rewrite guards, transient credential config,
   hook cleanup, trace suppression and sanitized transport failures. All sessions
@@ -56,6 +57,17 @@ wrapper CRLF; extracted GUI smoke passed (4.402 seconds Maven time). The local
 The running new editor reported VS Code 1.141.0. Computer-use tooling selected
 the older editor process, so new-version physical sidebar/keyboard interaction
 has not been verified; earlier 0.2.0 interactive evidence below remains historical.
+The first targeted review confirmed those fixes but found a new interaction:
+the last asynchronous session lookup followed the URL-rewrite check. A rewrite
+introduced during that lookup could change Git's effective destination. The
+second batch performs a fresh asynchronous lookup, finishes Git/temporary-folder
+checks, then requires a synchronous captured-ticket check immediately before
+dispatch. Omitted/asynchronous checks fail closed. The transport requires Git
+2.31+ for environment-based runtime configuration, rejecting old/unknown versions
+before its credential lookup. Targeted auth/transport/UI tests passed 16/16
+(4.3 seconds), including this rewrite interval and unsupported Git versions.
+See [Git's runtime configuration documentation](https://git-scm.com/docs/git-config/2.48.0)
+and [Git 2.31 release notes](https://github.com/git/git/blob/master/Documentation/RelNotes/2.31.0.adoc).
 Final remediation review and regenerated package checks are in progress.
 Physical Windows/Linux, actual authentication/network upload and student pilots
 remain unverified. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) before adoption.

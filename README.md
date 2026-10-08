@@ -28,7 +28,7 @@ unverified. This is a locally developed MVP for a classroom pilot; see the
 - [Selected screen](docs/design/selected-sidebar.png)
 - [Student storyboard](docs/design/student-storyboard.png)
 
-Students need VS Code and a supported JDK 17+; Git and browser authentication
+Students need VS Code and a supported JDK 17+; Git 2.31+ and browser authentication
 are needed for repository work. They do not need Node.js or global Maven.
 The optional settings-only profile defaults to light, with 500 ms autosave.
 Import it before installing the local Zero VSIX and Java extensions in that

@@ -157,7 +157,7 @@ function activate(context) {
         const confirmed = await vscode.window.showInformationMessage('Upload this version to GitHub?', {modal:true, detail}, 'Commit & Upload');
         if (confirmed !== 'Commit & Upload') return;
         const assertCurrent = () => auth.assertCurrent(ticket);
-        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent), onProgress:text => {state=text; refresh();}});
+        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => auth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
         state = `Uploaded ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
         refresh(); await repositoryStatus();
         vscode.window.showInformationMessage(state);
@@ -191,7 +191,7 @@ function activate(context) {
       for (const id of ['redhat.java','vscjava.vscode-java-debug']) output.appendLine(`${id}: ${vscode.extensions.getExtension(id) ? 'installed' : 'missing — install this Java extension'}`);
       try {output.appendLine(`Student project: ${await project()}`);} catch(error) {output.appendLine(error.message);}
       output.appendLine('First builds download Maven and JavaFX dependencies. Run App saves files, rebuilds and opens a separate JavaFX window. Read errors in its task terminal.');
-      output.appendLine(`Upload mode: ${uploadMode()}. Simulation makes no Git changes. Live mode reviews files, commits and pushes using your VS Code GitHub sign-in. Git still needs your name/email identity configured for this repository; Zero does not change your Git identity or store passwords/tokens.`);
+      output.appendLine(`Upload mode: ${uploadMode()}. Simulation makes no Git changes. Live upload needs Git 2.31 or newer and uses your VS Code GitHub sign-in. Git still needs your name/email identity configured for this repository; Zero does not change your Git identity or store passwords/tokens.`);
     }
   };
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {

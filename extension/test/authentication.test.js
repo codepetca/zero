@@ -36,3 +36,14 @@ test('unavailable provider/cancelled sign-in never leaks its private error or bl
   assert.match(auth.status,/unavailable/);assert.doesNotMatch(auth.status,/PRIVATE/);
   await assert.rejects(auth.signIn(),error=>{assert.doesNotMatch(error.message,/PRIVATE/);return /cancelled or unavailable/.test(error.message);});auth.dispose();
 });
+
+test('synchronous captured-session guard uses the same checks without starting a native lookup', async () => {
+  const f=fixture();f.set(session());const auth=createAuthentication(f.api);const ticket=await auth.capture();
+  const initialCalls=f.calls.length;const current=auth.assertCurrentNow(ticket);
+  assert.equal(current.accessToken,'TEST_SECRET');assert.equal(current.then,undefined);assert.equal(f.calls.length,initialCalls);
+  f.event();assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
+  assert.equal(f.calls.length,initialCalls,'Immediate invalidation requires no asynchronous native lookup');
+  await auth.refresh();assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
+  const next=await auth.capture();await auth.assertCurrent(next);assert.equal(auth.assertCurrentNow(next).accountId,'student');
+  auth.dispose();assert.throws(()=>auth.assertCurrentNow(next),/account or sign-in changed/);
+});

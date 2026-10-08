@@ -8,7 +8,7 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
 
 ## One-time setup
 
-1. Install VS Code and a supported **JDK 17 or later**; install Git for repository
+1. Install VS Code and a supported **JDK 17 or later**; install **Git 2.31 or newer** for repository
    work. JDK 17 was tested. Check `java -version`, `javac -version` and
    `git --version` in a new terminal, then restart VS Code. The Java extension's
    runtime does not replace your project's build JDK; follow its setup help if

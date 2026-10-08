@@ -69,6 +69,8 @@ when the process completes. Native session changes invalidate the review;
 session/account/token are rechecked before push and remote confirmation.
 Local Git inspection and commits receive no native-session credentials.
 
+Live upload requires Git 2.31 or newer for isolated runtime configuration. Zero
+checks this before obtaining transport credentials and fails closed on older Git.
 Git still needs your name/email identity configured for this student repository.
 GitHub sign-in does not configure commit identity. For example, use
 `git config --local user.name "Your Name"` and

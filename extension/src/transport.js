@@ -9,23 +9,33 @@ const {assertNoUrlRewrites} = require('./github');
 const execute = promisify(execFile);
 
 // Only push and its confirmation receive credentials; local Git never does.
-function createTransport(remote, authenticate, {spawn = execute, environment = process.env, localRun = core.git} = {}) {
+function createTransport(remote, authenticate, {assertCurrentNow, spawn = execute, environment = process.env, localRun = core.git} = {}) {
   const destination = core.parseRepositoryUrl(remote).remote;
   if (remote !== destination) throw new Error('Review the ordinary GitHub HTTPS destination again.');
+  if (typeof assertCurrentNow !== 'function' || assertCurrentNow.constructor.name === 'AsyncFunction') throw new Error('GitHub transport requires a synchronous session guard.');
   return async (root, args) => {
     const pushing = args.length === 3 && args[0] === 'push' && args[1] === destination && /^[a-f0-9]{40,64}:refs\/heads\/[^\s:]+$/.test(args[2]);
     const checking = args.length === 4 && args[0] === 'ls-remote' && args[1] === '--heads' && args[2] === destination && /^refs\/heads\/[^\s:]+$/.test(args[3]);
     if (!pushing && !checking) throw new Error('Only the reviewed GitHub upload and confirmation may use this sign-in.');
-    // The first check keeps local guards after native-session revalidation.
-    // The authoritative check below runs after every asynchronous preparation.
-    await authenticate();
+    // Git 2.31 introduced runtime config via GIT_CONFIG_COUNT. Fail closed
+    // before obtaining transport credentials on versions that would ignore it.
+    const version = /^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(await localRun(root, ['--version']));
+    if (!version || Number(version[1]) < 2 || (Number(version[1]) === 2 && Number(version[2]) < 31)) throw new Error('Zero live upload needs Git 2.31 or newer for isolated credentials. Update Git, then review the upload again.');
+    // Refresh once, then finish all asynchronous preparation and check the
+    // captured session synchronously before constructing credentials/dispatch.
+    const fresh = await authenticate();
     await core.assertRepositoryRoot(root, localRun);
     await assertNoUrlRewrites(root, localRun);
     const hooks = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-upload-hooks-'));
     let env;
     const settings = [];
     try {
-      const session = await authenticate();
+      const session = assertCurrentNow();
+      if (session && typeof session.then === 'function') {
+        void Promise.resolve(session).catch(() => {});
+        throw new Error('GitHub transport requires a synchronous session guard.');
+      }
+      if (!session || session.id !== fresh?.id || session.accountId !== fresh?.accountId || session.accessToken !== fresh?.accessToken) throw new Error('Your GitHub sign-in changed. Review the upload again.');
       if (!session?.accessToken || /[\r\n\0]/.test(session.accessToken)) throw new Error('Sign in to GitHub and review the upload again.');
       // No asynchronous preparation follows this check before child dispatch.
       env = {...environment};

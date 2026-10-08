@@ -11,7 +11,7 @@ Zero**, then close the app window or terminate that task before running again.
 
 ## First setup
 
-1. Install a JDK (Java Development Kit), **17 or newer**, and Git. JDK 17 was tested. Check `java -version` and
+1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. In your chosen profile, install the local **zero-0.3.0.vsix**, **Language

@@ -68,6 +68,8 @@ a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity.
 
 Live transport uses transient credentials from the captured native GitHub session.
+It requires Git 2.31+ for runtime credential configuration and rejects older Git
+before credential dispatch.
 The session is revalidated before network actions, so account/session changes
 require another review. Zero does not store tokens or place them in Git command
 arguments or logs. It has no custom password/token UI. Automated checks mock
