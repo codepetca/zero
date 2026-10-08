@@ -1,6 +1,6 @@
 # Current state — 2026-10-08
 
-## Active MVP goal and execution plan
+## Completed local MVP goal and execution plan
 
 Owner explicitly requested setting a goal and orchestrating the agreed work.
 Build the small framework first, then real examples and exercises; finish local
@@ -41,7 +41,8 @@ Ownership and receipts (coordinator updates this record):
   released. Coordinator corrected starter's old separate-Git-credentials text.
 - Worker evidence: 30 Node tests, Maven compile/smoke and six finite GUI examples
   passed. Coordinator's disposable quiz/caption/movement exercises passed (9.55s).
-  All writer ownership released; integration, packaging/native UI and review next.
+  All writer ownership released; implementation and independent review complete.
+  Final package regeneration and extracted-starter checks are coordinator-owned.
 - Initial weekly remaining 68%; attributable worker/coordinator tokens unknown.
   DeepSeek pilot paused through 2026-12-31, so no DeepSeek launches.
 
@@ -50,7 +51,7 @@ change. After inexpensive checks, one initial wave of two independent GPT-6.1
 Sol/high reviewers: framework/compatibility and auth/security. Default budget:
 at most seven launches, one full-diff wave, four targeted remediation waves/fix
 batches, one final integration wave, 60 minutes total/30 minutes per reviewer.
-Current review ledger: two initial launches, one full-diff wave complete, one
+Initial review ledger: two launches, one full-diff wave, one
 combined remediation batch. Initial head `353c3cb4082aa8b406f479de4dcc50f5bfd70993`.
 Framework reviewer: complete, no new blocker; two nonblocking corrections accepted
 (frame cleanup and historical guidance). Auth reviewer: complete, two accepted P1s
@@ -77,6 +78,26 @@ Full Node 37 tests passed (14.12s), configuration check and diff check passed.
 Ledger now four reviewer turns, two targeted waves, three fix batches; one final
 targeted check plus one cumulative integration check remain. Same boundary has
 recurred once after its first fix; a further recurrence invokes the human checkpoint.
+
+Targeted wave 3 and final cumulative integration review completed clean at
+`d0127761507500abddc4e4ea680d66eef7770f62`, against base
+`fdacdd46eb560fd8ef36e29027a0b116cb35b32e`. No remaining actionable blocker
+was found. Final integration confirmed shared session/transport/upload contracts,
+simulation isolation, unchanged Run/Stop contracts, framework cleanup and guides.
+Final ledger: six reviewer turns, one initial wave, three targeted waves,
+three fix batches and one final integration wave, within the default budget.
+Review took approximately 25 minutes; the final pass took about three minutes.
+Worker token telemetry is unavailable. The credential boundary needed three
+remediation batches; the coordinator reproduced and fixed the last small ordering
+issue. All deliveries were inspected and verified before acceptance.
+
+Local MVP implementation is complete. Final ZIP/VSIX regenerated; all starter,
+extension and combined-kit bytes verified. Extracted starter in a path with spaces
+passed finite GUI smoke (2.553s Maven time); final VSIX installed through isolated
+VS Code CLI. Final check and diff validation passed. Artifacts remain ignored in
+dist/. No push/publication, credential changes or real uploads occurred.
+Real authentication/upload, physical 0.3 editor interaction, Windows/Linux and
+student trials remain the separate classroom-pilot gate.
 
 ## Previously delivered kit (historical evidence)
 

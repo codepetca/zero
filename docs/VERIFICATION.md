@@ -69,12 +69,30 @@ before its credential lookup. Targeted auth/transport/UI tests passed 16/16
 (4.3 seconds), including this rewrite interval and unsupported Git versions.
 See [Git's runtime configuration documentation](https://git-scm.com/docs/git-config/2.48.0)
 and [Git 2.31 release notes](https://github.com/git/git/blob/master/Documentation/RelNotes/2.31.0.adoc).
-Final remediation review and regenerated package checks are in progress.
 The second targeted review identified one remaining preparation interval:
 temporary hook-directory creation still followed the destination checks. The
 coordinator reproduced it in a failing regression, moved directory creation
 before the final root/rewrite checks, and placed those checks inside cleanup.
 The new regression and full 37-test suite pass. This is the third fix batch.
+The third targeted review accepted the final correction. A cumulative integration
+review completed clean at `d0127761507500abddc4e4ea680d66eef7770f62` against
+base `fdacdd46eb560fd8ef36e29027a0b116cb35b32e`, reusing the completed checks.
+No remaining actionable blocker was found. Review covered the shared native-session,
+transport and upload contract, simulation isolation, Run/Stop compatibility,
+framework cleanup and documentation/package contracts. Six reviewer turns, one
+initial wave, three targeted waves, three fix batches and one final integration
+pass took approximately 25 minutes; attributable token telemetry is unavailable.
+
+Final local artifacts were regenerated after the review fixes: Zero 0.3.0 VSIX,
+`zero-starter.zip` and combined `zero-bootstrap.zip`. Byte checks matched every
+starter source file, current extension module and combined-kit member; no build
+or Git directories were packaged. Extraction into `Final MVP with spaces`
+retained Maven wrapper executable metadata and Windows wrapper CRLF. The extracted
+starter's finite GUI smoke passed (2.553 seconds Maven time). The final VSIX
+installed successfully through the CLI into the isolated test extensions directory.
+Final configuration/document-link and diff checks passed. This CLI installation
+is not evidence of physical new-version sidebar or authentication interaction.
+
 Physical Windows/Linux, actual authentication/network upload and student pilots
 remain unverified. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) before adoption.
 The original Zero code's public license remains undecided.
