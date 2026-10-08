@@ -172,3 +172,8 @@ Sources: [OpenJFX 21 release requirements](https://github.com/openjdk/jfx/blob/j
 [OpenJFX Maven setup](https://openjfx.io/openjfx-docs/#maven),
 [JavaFX 21.0.12 artifact](https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.12/),
 [Apache Maven Wrapper](https://maven.apache.org/tools/wrapper/).
+
+The bundled Apache Maven Wrapper scripts retain their upstream attribution.
+See [wrapper license](.mvn/wrapper/LICENSE-APACHE-2.0.txt) and
+[wrapper notice](.mvn/wrapper/NOTICE). These apply to the wrapper; a public license
+for the original Zero code has not yet been selected.
