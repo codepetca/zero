@@ -1,4 +1,44 @@
-# Local verification — 2026-10-07
+# Local verification — 2026-10-08
+
+## MVP 0.3.0 delivery checks
+
+This local implementation separates event-driven SimpleApp from animated
+SketchApp, starts with a quiz, and includes six examples plus a reusable
+ScoreDisplay and student exercises. The extension adds native GitHub session
+onboarding, website repository creation and transient authenticated Git transport.
+No real authentication, GitHub upload trial, publication or account change was
+performed for this milestone. The previous publication is recorded below.
+
+Checks performed before independent review:
+
+- `npm run check`: configuration, syntax, command/task contracts and local
+  documentation links passed.
+- `npm test`: 30 tests passed (~15 seconds). New coverage includes silent/native
+  sign-in cancellation, session/account changes, sidebar states, upload-session
+  capture/revalidation, destination/rewrite guards, transient credential config,
+  hook cleanup, trace suppression and sanitized transport failures. All sessions
+  and network operations were mocked/intercepted; local disposable Git staging
+  and commits are real.
+- Clean Java compile passed on Mac arm64/JDK 17. Finite GUI smoke passed (3.784
+  seconds Maven time): shared startup, actual layout resize, canvas pixels,
+  canvas/control focus, held-input release, useful configuration/setup failures,
+  one-error animation shutdown and cleanup.
+- Six finite real GUI example checks passed (21.95 seconds): quiz, practice,
+  animation, keyboard, mixed-control counter and drawing. Canonical shared
+  ScoreDisplay and default quiz copies match. GUI input was synthetic.
+- Coordinator tried exercises in disposable copies: changed quiz question,
+  accepted answer and points; added caption constructor retaining the default;
+  used “Completed” in the tracker while quiz retained “Score”; changed Player
+  to immediate movement. Three finite behavior checks passed in 9.55 seconds.
+  These checks verify the exercise instructions, not novice comprehension.
+
+Independent review, regenerated ZIP integrity, extracted-package smoke and
+native editor checks are in progress; final results will be added here.
+Physical Windows/Linux, actual authentication/network upload and student pilots
+remain unverified. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) before adoption.
+The original Zero code's public license remains undecided.
+
+## Earlier 0.2.0 evidence — 2026-10-07
 
 Zero 0.2.0 is a locally packaged prototype. Initial verification ran before any
 kit publication. The owner subsequently authorized creating the public

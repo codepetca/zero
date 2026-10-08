@@ -1,5 +1,5 @@
 import javafx.scene.paint.Color;
-import zero.SimpleApp;
+import zero.SketchApp;
 
 /** This is a Java object, not a framework-managed game entity. */
 public class Mover {
@@ -22,7 +22,7 @@ public class Mover {
         y = Math.max(radius, Math.min(height - radius, y));
     }
 
-    public void draw(SimpleApp app) {
+    public void draw(SketchApp app) {
         app.fill(Color.CORNFLOWERBLUE);
         app.circle(x, y, radius * 2);
     }

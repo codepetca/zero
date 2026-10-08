@@ -1,46 +1,81 @@
-# Zero: local prototype
+# Zero: local Java teaching MVP
 
 ## Outcome
 
 A downloadable teaching kit for high school students who know beginning Java
-through CodeHS. Students make games, drawings, simulations and quizzes using
-ordinary Java, then contribute understandable examples and helpers for later
-cohorts. Students own their repositories; Pika submission is a separate action.
+through CodeHS. Students make interfaces, games, drawings, simulations and quizzes
+using ordinary Java, then contribute understandable examples and helpers for
+later cohorts. Students own their repositories; Pika submission is separate.
 
-## Current scope
+## App and learning contract
 
-- JavaFX Canvas with a tiny `zero.SimpleApp` lifecycle, basic drawing and input
-  helpers. Main explicitly updates/draws ordinary objects such as Player.
-- A follow-the-mouse starter plus keyboard, counter and drawing alternatives.
-  Examples live outside compiled source and are copied deliberately one at a time.
-- A minimal VS Code sidebar: Run App, Stop, Upload to GitHub, repository status,
-  Connect Repository, Copy Repository Link, Setup help and a simple files tree.
+`zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
+`size(...)`; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
+labels, text fields and layouts keep their ordinary JavaFX names and behavior.
+The default app is a small quiz with answer feedback and score state.
+
+`zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
+`draw()` each frame. Main explicitly updates and draws ordinary objects such as
+Player or Mover. Canvas input belongs to the focused canvas; controls can receive
+normal typing. The framework does not discover or automatically update objects.
+Useful startup errors explain invalid sizes and lifecycle misuse.
+
+The quiz and practice tracker reuse the canonical
+`examples/shared/ScoreDisplay.java` unchanged. Each app creates its own instance;
+a JavaFX node has one parent. The caption exercise extends this ordinary class
+while preserving the quiz's no-argument constructor. No component/screen base
+class, registration system or new engine is required. Packages, interfaces,
+JavaFX properties and other JavaFX features remain available as later lessons.
+
+Examples live outside compiled source and are copied deliberately one at a time.
+See the [starter](../student-template/README.md) for exact files and exercises.
+Framework source ships editable inside the starter. Review shared improvements
+in more than one app before cohort adoption; versioned library distribution is
+future work.
+
+## Editor workflow
+
+- A minimal VS Code sidebar offers Run App, Stop, GitHub account/repository status,
+  sign-in, repository creation/connection, upload, copy link, setup help and files.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
-  Re-running rebuilds/restarts; Stop terminates the owned run. No hot reload.
-- Source navigation from compiler diagnostics and setup checks for local tools.
-  GitHub authentication does not block local running.
-- A settings-only light profile with 500 ms autosave. Import it before installing
-  the local Zero VSIX and Java extensions. Standard build shortcut runs the app;
-  optional F6/F7 bindings stay separate.
+  Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
+- Compiler diagnostics support source navigation. Missing local tools have setup
+  help; GitHub sign-in does not block local running.
+- An optional settings-only profile defaults to light with 500 ms autosave;
+  the sidebar also supports dark themes. Import the profile before installing
+  the local VSIX and Java extensions in it. The standard build shortcut runs
+  the app; optional F6/F7 bindings stay separate.
 
 ## Repository and upload contract
 
+Students sign in through VS Code's native GitHub authentication/browser flow.
+Zero displays the selected account. Create Repository opens GitHub's new-repository
+page; students create their own empty repository following teacher visibility
+instructions, leaving README, license and gitignore uninitialized. There is no
+GitHub Classroom flow and no automatic repository creation.
+
 Connect accepts ordinary GitHub HTTPS repository URLs. It initializes/adds
 origin only in the exact standalone student Git root, with confirmation before
-replacing origin. It rejects nested projects and does not change account
-credentials. Connection does not verify remote ownership, existence or sign-in.
-Students create their own empty repository; there is no GitHub Classroom flow.
+replacing origin. It rejects nested projects. Connection is local: it does not
+verify remote ownership, existence or access and does not upload.
 
 `zero.uploadMode` defaults to `simulation`, which makes no Git changes and says
 nothing was uploaded. Opt-in `live` mode saves files, gathers a commit message
-and shows a modal review of repository, branch and changed files. After user
-confirmation it stages reviewed changes, commits when needed and pushes with
-normal Git HTTPS transport. It checks the remote branch before reporting success.
-Git identity and credentials must be configured through standard Git tooling;
-Zero has no custom password/token UI. A failed push can leave a local commit.
+and reviews repository, branch and changed files before confirmation. It stages
+reviewed changes, commits when needed and pushes the reviewed destination/SHA,
+then checks the remote branch before reporting success. A failed push can leave
+a local commit. Ordinary per-repository Git name/email identity is configured
+manually; signing in does not configure commit identity.
 
-Copy Repository Link returns a page URL for separate submission in Pika. It does
-not submit an assignment or alter a grade.
+Live transport uses transient credentials from the captured native GitHub session.
+The session is revalidated before network actions, so account/session changes
+require another review. Zero does not store tokens or place them in Git command
+arguments or logs. It has no custom password/token UI. Automated checks mock
+sessions and intercept transport; they do not prove a real upload.
+
+Copy Repository Link returns a page URL for separate Pika submission. A copied
+link does not establish that code was uploaded or that the remote is current.
+Verify files after a real upload, then submit the link separately in Pika.
 
 ## Integration contract
 
@@ -57,15 +92,11 @@ task supports running without Zero. Java language diagnostics require
 The starter targets Java 17, uses pinned JavaFX 21.0.12 and needs a supported
 JDK 17+ for builds. JDK 17 was tested; editor runtime requirements may differ.
 
-The readable framework source remains bundled. Native JavaFX controls are
-available through `layout()`. Prefer a focused helper or example over a larger
-engine, and review contributions before a cohort adopts them.
+## Verification and distribution limits
 
-## Verification limits
-
-Mac builds, finite GUI smoke, examples and interactive profile/sidebar checks
-have evidence in [VERIFICATION.md](VERIFICATION.md). Tests intercept Git
-transport; they do not establish actual GitHub authentication/upload. Physical
-Windows/Linux, student restrictions and classroom pilots still need verification.
-First-time builds need internet for Maven/JavaFX. This is not a classroom-ready
-release; versioned library distribution is future work.
+See [VERIFICATION.md](VERIFICATION.md) for actual local checks and their scope.
+Physical Windows/Linux, real GitHub authentication/transport, school restrictions
+and novice classroom pilots still need verification. First-time builds need
+internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
+cohort adoption. A public license for original Zero code remains unresolved;
+upstream wrapper notices apply to the wrapper.

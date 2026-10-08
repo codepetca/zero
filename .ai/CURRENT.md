@@ -1,4 +1,58 @@
-# Current state — 2026-10-07
+# Current state — 2026-10-08
+
+## Active MVP goal and execution plan
+
+Owner explicitly requested setting a goal and orchestrating the agreed work.
+Build the small framework first, then real examples and exercises; finish local
+GitHub onboarding and package a locally verified kit for a classroom pilot.
+The current task coordinates this work on `codex/zero-app-framework`, based on
+merged main `fdacdd46eb560fd8ef36e29027a0b116cb35b32e`.
+
+Current authorization permits local implementation, testing and packaging.
+The prior PR/merge request was fulfilled; this run has no new push, PR, merge,
+deployment, Marketplace/release publication, credential modification or real
+GitHub upload-trial authorization. All authentication/transport checks use mocks.
+Physical classroom testing remains a documented pilot gate, not an automated claim.
+
+One execution plan:
+
+1. Framework: event-driven SimpleApp plus explicit canvas SketchApp; ordinary
+   JavaFX controls, classes and useful errors. Exit: lifecycle, input, controls
+   and all examples pass local finite GUI checks.
+2. Learning examples: quiz, animation and tracker reuse ScoreDisplay; caption
+   extension demonstrates contributions. Exit: exact-copy reuse and meaningful
+   behavior checks pass, exercises and contribution instructions ship in ZIP.
+3. GitHub onboarding: native session, website repo creation, connect, reviewed
+   opt-in upload and copy URL. Exit: cancellation/auth removal/account drift and
+   credential isolation covered without real sign-in or network transport.
+4. Integrate, independently review, verify and regenerate ZIP/VSIX. Exit: local
+   checks green, bounded review findings resolved, artifact contents verified,
+   limitations and student pilot checklist recorded.
+
+Ownership and receipts (coordinator updates this record):
+
+- framework_mvp: delivered/inspected; student-template/** and scripts/verify-examples.py;
+  GPT-6.1 Sol/high, fresh context, started ~12:51 UTC. Owns API/examples/checks.
+- github_mvp: delivered/inspected; extension/**; GPT-6.1 Sol/high, fresh context, started
+  ~12:51 UTC. Owns native-session bridge, sidebar states and intercepted tests.
+- coordinator: root docs, packaging/check scripts, integration and goal status.
+- mvp_guides: delivered/inspected; root README and four product/setup/development/
+  pilot guides; GPT-6.1 Sol/medium, ~six minutes, no rework required. Ownership
+  released. Coordinator corrected starter's old separate-Git-credentials text.
+- Worker evidence: 30 Node tests, Maven compile/smoke and six finite GUI examples
+  passed. Coordinator's disposable quiz/caption/movement exercises passed (9.55s).
+  All writer ownership released; integration, packaging/native UI and review next.
+- Initial weekly remaining 68%; attributable worker/coordinator tokens unknown.
+  DeepSeek pilot paused through 2026-12-31, so no DeepSeek launches.
+
+Review plan: high risk because foundational lifecycle and credential transport
+change. After inexpensive checks, one initial wave of two independent GPT-6.1
+Sol/high reviewers: framework/compatibility and auth/security. Default budget:
+at most seven launches, one full-diff wave, four targeted remediation waves/fix
+batches, one final integration wave, 60 minutes total/30 minutes per reviewer.
+Current review ledger: zero launches/waves/fix batches; not started.
+
+## Previously delivered kit (historical evidence)
 
 Zero is a downloadable local Java teaching kit: a minimal VS Code extension and
 optional settings profile, plus a small readable JavaFX SimpleApp library.
@@ -25,7 +79,7 @@ SHA/destination and confirms the remote branch. Tests intercept all transport.
 Connect is local-only, serialized with Upload, and guards the exact student root.
 No custom credential storage, automatic Pika submission or hot reload.
 
-## Publication authority and current phase
+## Previous publication authority
 
 The owner explicitly requested PR and merge, then directed creation of public
 codepetca/zero. This supersedes the initial no-publication hold for the kit source.

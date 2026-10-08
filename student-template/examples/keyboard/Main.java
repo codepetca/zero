@@ -1,9 +1,9 @@
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
-import zero.SimpleApp;
+import zero.SketchApp;
 
 /** Arrow keys move an ordinary object. Main decides when to update it. */
-public class Main extends SimpleApp {
+public class Main extends SketchApp {
     private Mover mover;
 
     @Override

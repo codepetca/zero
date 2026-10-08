@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "zero",
   "license": "UNLICENSED",
   "engines": {
@@ -30,6 +30,14 @@
       {
         "command": "zero.stopApp",
         "title": "Zero: Stop App"
+      },
+      {
+        "command": "zero.signInToGitHub",
+        "title": "Zero: Sign in to GitHub"
+      },
+      {
+        "command": "zero.createRepository",
+        "title": "Zero: Create GitHub Repository"
       },
       {
         "command": "zero.uploadToGitHub",
@@ -118,7 +126,7 @@
           ],
           "default": "simulation",
           "scope": "resource",
-          "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using standard Git credentials."
+          "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using your VS Code GitHub sign-in. A local Git name/email identity is still required."
         }
       }
     }
