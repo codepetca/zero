@@ -1,7 +1,7 @@
 # My Zero App
 
 Open **this folder** in VS Code. Start with `src/main/java/Main.java` and
-`Player.java`. Run App opens a separate JavaFX window. Save changes, close or
+`ScoreDisplay.java` (the score helper). Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
 **Ctrl+Shift+B** on Windows/Linux or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
@@ -11,10 +11,10 @@ Zero**, then close the app window or terminate that task before running again.
 
 ## First setup
 
-1. Install a JDK (Java Development Kit), **17 or newer**, and Git. JDK 17 was tested. Check `java -version` and
+1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
-2. Install VS Code and import **Zero.code-profile first**. This is a settings-only
-   profile. In that profile, install the local **zero-0.2.0.vsix**, **Language
+2. Install VS Code and optionally import **Zero.code-profile first** for the
+   quiet settings-only profile. In your chosen profile, install the local **zero-0.3.0.vsix**, **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -47,84 +47,94 @@ verification; this prototype was checked on macOS arm64.
 
 ## Make something
 
-`settings()` sets the fixed canvas size and window title. `setup()` creates your
-objects once. Every frame calls `update(double seconds)` and then `draw()`.
-Movement uses elapsed seconds so different computers have similar speeds.
-Long pauses are capped at 0.1 seconds. Drawing does not automatically clear the
-canvas: call `background(Color.WHITE)` in draw if you want a fresh frame.
+The default is a tiny quiz. It teaches fields, objects, native controls, and
+methods called by events. `settings()` sets the window title and initial content
+size. `setup()` builds the interface once and calls `show(screen)` with an
+ordinary JavaFX node. A button's `setOnAction(event -> checkAnswer())` means
+“when clicked, call this method.” The method body is ordinary Java.
 
-`Player` is an ordinary Java object. Main explicitly calls `player.update(...)`
-and `player.draw(this)`. Add more ordinary classes the same way. The framework
-does not discover objects or update them for you.
+`SimpleApp` does not run an animation loop. The window is resizable; JavaFX
+layouts such as VBox/HBox arrange and resize their children. This quiz uses
+12-pixel spacing and 20-pixel padding directly in its VBox; change these numbers
+or use normal JavaFX CSS. Main owns the points and scoring rule. `ScoreDisplay`
+owns the label; `view()` is an ordinary method returning its JavaFX node. Every
+screen creates a new ScoreDisplay object: a node can have only one parent.
 
-Useful methods inherited from SimpleApp:
+Start the exercises in [EXERCISES.md](EXERCISES.md): change the quiz, extract a
+component, reuse it in another app, then contribute a compatible improvement.
+
+### Animated apps
+
+Choose `SketchApp` for animation, drawing or games. It extends the same SimpleApp
+startup, creates a canvas before setup, then calls `update(double seconds)` and
+`draw()` each frame. Your Main explicitly calls ordinary objects such as
+`player.update(...)` and `player.draw(this)`; there is no automatic object lifecycle.
+Both lifecycle callbacks and JavaFX events run on the JavaFX application thread.
+Slow work freezes the interface. A failed frame stops the animation and reports
+one stack trace instead of repeating it every frame.
+
+For a sketch, `size` means **fixed canvas dimensions**. The window can grow and
+native controls fit around the canvas; resizing the window does not scale its
+pixels. Elapsed seconds are capped at 0.1 after a long pause. Drawing does not
+clear automatically: call `background(Color.WHITE)` in draw for a fresh frame.
+
+Useful methods inherited from SketchApp:
 
 | Purpose | Example |
 | --- | --- |
 | Canvas size | `width()`, `height()` |
 | Filled shapes | `fill(Color.BLUE); rect(10, 20, 50, 30);` |
 | Circle centred at x/y | `circle(100, 100, 40);` (40 is diameter) |
-| Outlines and lines | `stroke(Color.BLACK); strokeWidth(2); outlineRect(10, 20, 50, 30);` |
+| Outlines/lines | `stroke(Color.BLACK); strokeWidth(2); outlineRect(10, 20, 50, 30);` |
 | Text | `textSize(20); text("Hello", 20, 40);` (y is baseline) |
 | Mouse | `mouseX()`, `mouseY()`, `mouseDown(MouseButton.PRIMARY)` |
 | Held keys | `keyDown(KeyCode.LEFT)` |
 | Images | `loadImage("/player.png")` in setup; `image(sprite, x, y)` in draw |
 
 Use imports from `javafx.scene.input` for KeyCode and MouseButton. Mouse positions
-are canvas coordinates and can be outside its bounds while dragging. Held inputs
-clear when the window loses focus. Put images in `src/main/resources`; load once
-in setup rather than every frame.
+are canvas coordinates and can leave its bounds while dragging. **Click the
+canvas to play.** Held keys belong to the focused canvas; clicking or typing in
+native controls does not press game keys or mouse buttons. Moving focus to a
+control or another window clears held inputs. Releasing an owned button outside
+the canvas also clears it. Put images in `src/main/resources`; load once in setup.
 
-For JavaFX features beyond these helpers, use `graphics()` (GraphicsContext),
-`canvas()`, and `layout()` (BorderPane). For example, in setup:
+Use normal JavaFX through `graphics()` (GraphicsContext), `canvas()`, and
+`layout()` (BorderPane). In SketchApp.setup(), `layout().setBottom(button)` adds a
+native control. Keep the canvas in the centre. The counter example proves this
+mixed UI approach; use `show(Node)` for the event-driven SimpleApp examples.
 
-```java
-javafx.scene.control.Button reset = new javafx.scene.control.Button("Reset");
-reset.setOnAction(event -> player = new Player(width() / 2, height() / 2));
-layout().setBottom(reset);
-```
-
-The small framework lives in **`src/main/java/zero/SimpleApp.java`**. Read it,
-propose improvements, and contribute understandable changes for later students.
-It is bundled source so you can inspect the same code that your app runs.
+Read the bundled framework in `src/main/java/zero/SimpleApp.java` and
+`SketchApp.java`. It has shared startup and a small drawing/input API, with no
+component base class, scene routing, or object discovery.
 
 ## Try an example
 
-The `examples/` folder is a shelf of alternatives, outside the compiled `src/`
-folder. Each example has its own `Main.java`; choose **one at a time**.
+The `examples/` shelf is outside compiled `src/`. Choose **one Main at a time**.
+Stop the app and save your current Main and helper classes outside `src/` (or in
+your own Git repository) before switching. Copy the files listed below into
+`src/main/java/`, replacing Main. Keep the `zero/` framework folder. Run as usual;
+no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 
-1. Save a copy of your current `src/main/java/Main.java` somewhere outside `src/`
-   (or save your work in your own Git repository).
-2. Copy the chosen example's `Main.java` over `src/main/java/Main.java`. For the
-   keyboard example, also copy `Mover.java` into `src/main/java/`.
-3. Run App as usual. Stop the app before switching examples. Restore your saved
-   Main when you want to return to your project; an unused Mover or Player can
-   stay in the folder or be removed.
-
-Do not copy the whole examples folder into `src/`: these alternatives all use
-the same Main class name. They need no changes to `pom.xml` or `zero.json`.
-
-| Example | Try it | Next idea |
+| Example | Exact files to copy | Try it |
 | --- | --- | --- |
-| `examples/keyboard` | Hold arrow keys; the circle stays inside the canvas. Main explicitly updates and draws a Mover object. | Add a second Mover with different keys, or a target to reach. |
-| `examples/counter` | Click Add one and Reset. Standard JavaFX buttons and a label sit below the canvas using `layout()`. | Add a subtract button, a goal, or quiz choices. |
-| `examples/drawing` | Hold the primary (usually left) mouse button to paint; hold the secondary (usually right) button to clear. | Add colour choices or change brush width. |
+| Default quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
+| Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
+| Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |
+| Keyboard | `examples/keyboard/Main.java` and `examples/keyboard/Mover.java` | Arrow keys move/clamp the circle; diagonal movement is faster. |
+| Counter | `examples/counter/Main.java` | Native buttons beside a canvas change its displayed count. |
+| Drawing | `examples/drawing/Main.java` | Primary button paints; secondary clears. Separate strokes stay separate. |
 
-All three follow the same lifecycle: settings configures the window, setup runs
-once after the canvas exists, and each frame runs update then draw. The counter
-uses short JavaFX button callbacks to change its fields. The drawing example
-clears only in setup or when requested, so previous marks remain visible.
-Keyboard movement is measured in pixels per second on each axis; diagonal
-movement is therefore faster. Try changing that rule after you understand it.
-
-For a contribution, start with one small feature that helps another student:
-a readable example, a useful error message, or a focused drawing helper. Explain
-what it does and how to try it, preserve explicit object updates, and include
-the checks you actually ran. Review a contribution and try it on a student
-machine before a cohort adopts it. Avoid a large engine change for one app's needs.
+There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz
+and practice do not contain independent copies. The default compiled starter
+contains the same file. If improving it for a contribution, update the shared
+source and copy it into `src/main/java/ScoreDisplay.java`, then try both apps.
+The contributor verifier rejects starter/shared copy drift. Preserve your own
+modified component before copying an example over it.
 
 ## Your repository and Pika
 
+Choose **Sign in to GitHub** in Zero and complete VS Code's native browser flow.
+Check the selected account, then use **Create Repository** to open GitHub's page.
 Create your own **empty repository** on GitHub (leave README, license and
 gitignore uninitialized). Use your own account and follow your teacher's
 visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
@@ -132,18 +142,19 @@ page URL in Zero. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or upload. Local running works without GitHub sign-in.
 
-Before a real upload, configure Git's name/email identity and a standard Git
-credential helper/browser authentication flow. VS Code's GitHub UI sign-in alone
-may not configure credentials for Zero's separate Git process. See the kit's
-getting-started guide or ask your teacher for help. Never put a password or token
-in Java source, the marker or README.
+Before a real upload, configure Git's per-repository name/email identity.
+Signing in does not configure commit identity. Zero supplies the selected native
+GitHub session to its network operations without storing a token in your project
+or Git configuration. Account/session changes require a fresh upload review.
+See the kit's getting-started guide or ask your teacher for help. Never put a
+password or token in Java source, the marker or README.
 
 **Upload defaults to simulation: nothing is staged, committed or uploaded.**
 To use the implemented real-upload path, set `"zero.uploadMode": "live"` in
 workspace settings. Upload saves files, asks for a commit message, then shows a
 modal review of your repository, branch and changed files. Check it before
 choosing **Commit & Upload**. This creates a local commit when needed and pushes
-with normal Git HTTPS transport; ignored files stay local. A failed upload may
+with Git HTTPS transport using your native sign-in; ignored files stay local. A failed upload may
 leave a local commit. Real GitHub authentication/upload has not been verified.
 
 After a successful real upload, check the files on GitHub. Copy your repository
@@ -157,10 +168,14 @@ private. Zero does not submit assignments or change Pika grades.
 ```
 
 On Windows use `.\mvnw.cmd` instead. This opens a small real window, checks
-settings/setup/update/draw ordering, elapsed time, actual shape pixels, held-key
-events and a standard JavaFX control, prints `ZERO_SMOKE_OK`, then closes itself.
-It requires a GUI desktop. `SmokeLauncher.java` is a contributor check; normal
-Run App launches Main. This does not verify an imported VS Code profile or real
+both startup paths, actual UI resizing, elapsed time, shape pixels, canvas/control
+focus, held-input release, configuration/setup/frame failures and shutdown, prints
+`ZERO_SMOKE_OK`, then closes itself.
+It requires a GUI desktop; input events are synthetic, so this does not replace
+physical typing/clicking checks. `SmokeLauncher.java` is a contributor check; normal
+Run App launches Main. From the kit repository, `python3 scripts/verify-examples.py` checks all six
+alternatives in temporary real GUI projects and verifies shared source copies.
+This does not verify an imported VS Code profile or real
 GitHub authentication/upload.
 
 Pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**, official Apache Maven

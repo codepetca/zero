@@ -1,4 +1,103 @@
-# Local verification — 2026-10-07
+# Local verification — 2026-10-08
+
+## MVP 0.3.0 delivery checks
+
+This local implementation separates event-driven SimpleApp from animated
+SketchApp, starts with a quiz, and includes six examples plus a reusable
+ScoreDisplay and student exercises. The extension adds native GitHub session
+onboarding, website repository creation and transient authenticated Git transport.
+No real authentication, GitHub upload trial, publication or account change was
+performed for this milestone. The previous publication is recorded below.
+
+Checks performed before independent review:
+
+- `npm run check`: configuration, syntax, command/task contracts and local
+  documentation links passed.
+- `npm test`: initially 30 tests passed (~15 seconds); after the first batch, 32
+  passed (33.1 seconds), and after the second, 36 passed (40.8 seconds under
+  concurrent build load). After the final ordering correction, all 37 passed
+  (14.12 seconds). New coverage includes silent/native
+  sign-in cancellation, session/account changes, sidebar states, upload-session
+  capture/revalidation, destination/rewrite guards, transient credential config,
+  hook cleanup, trace suppression and sanitized transport failures. All sessions
+  and network operations were mocked/intercepted; local disposable Git staging
+  and commits are real.
+- Clean Java compile passed on Mac arm64/JDK 17. Finite GUI smoke passed (3.784
+  seconds Maven time): shared startup, actual layout resize, canvas pixels,
+  canvas/control focus, held-input release, useful configuration/setup failures,
+  one-error animation shutdown and cleanup.
+- Six finite real GUI example checks passed (21.95 seconds): quiz, practice,
+  animation, keyboard, mixed-control counter and drawing. Canonical shared
+  ScoreDisplay and default quiz copies match. GUI input was synthetic.
+- Coordinator tried exercises in disposable copies: changed quiz question,
+  accepted answer and points; added caption constructor retaining the default;
+  used “Completed” in the tracker while quiz retained “Score”; changed Player
+  to immediate movement. Three finite behavior checks passed in 9.55 seconds.
+  These checks verify the exercise instructions, not novice comprehension.
+
+Two independent GPT-6.1 Sol/high reviewers completed the initial change set at
+`353c3cb4082aa8b406f479de4dcc50f5bfd70993`. The credential review found two P1
+gaps: persistent Git Trace2 config could record runtime credentials, and a session
+removed during asynchronous preparation could still dispatch credentials. Both
+were fixed in one batch: explicit trace-disable environment values and final
+native-session validation immediately before dispatch. Actual local Git probes
+with fake credentials test trace files; removal/account-switch probes at three
+preparation boundaries require zero dispatch and temporary-directory cleanup.
+Targeted auth/transport tests passed 10/10 (~4 seconds).
+
+The framework review found two nonblocking corrections, also accepted in this
+batch: historical credential guidance now has explicit historical scope; failed
+animation calls outer app shutdown to clear held inputs. Updated GUI smoke passed
+(2.506 seconds Maven time). A disposable mutant restoring the old stop call failed
+the new assertion, confirming it detects the cleanup bug.
+
+Initial local packaging/source-byte checks passed. Scripted extraction into a
+path with spaces checked and honored Unix wrapper permission metadata and Windows
+wrapper CRLF; extracted GUI smoke passed (4.402 seconds Maven time). The local
+0.3.0 VSIX installed through VS Code's CLI into an isolated extensions directory.
+The running new editor reported VS Code 1.141.0. Computer-use tooling selected
+the older editor process, so new-version physical sidebar/keyboard interaction
+has not been verified; earlier 0.2.0 interactive evidence below remains historical.
+The first targeted review confirmed those fixes but found a new interaction:
+the last asynchronous session lookup followed the URL-rewrite check. A rewrite
+introduced during that lookup could change Git's effective destination. The
+second batch performs a fresh asynchronous lookup, finishes Git/temporary-folder
+checks, then requires a synchronous captured-ticket check immediately before
+dispatch. Omitted/asynchronous checks fail closed. The transport requires Git
+2.31+ for environment-based runtime configuration, rejecting old/unknown versions
+before its credential lookup. Targeted auth/transport/UI tests passed 16/16
+(4.3 seconds), including this rewrite interval and unsupported Git versions.
+See [Git's runtime configuration documentation](https://git-scm.com/docs/git-config/2.48.0)
+and [Git 2.31 release notes](https://github.com/git/git/blob/master/Documentation/RelNotes/2.31.0.adoc).
+The second targeted review identified one remaining preparation interval:
+temporary hook-directory creation still followed the destination checks. The
+coordinator reproduced it in a failing regression, moved directory creation
+before the final root/rewrite checks, and placed those checks inside cleanup.
+The new regression and full 37-test suite pass. This is the third fix batch.
+The third targeted review accepted the final correction. A cumulative integration
+review completed clean at `d0127761507500abddc4e4ea680d66eef7770f62` against
+base `fdacdd46eb560fd8ef36e29027a0b116cb35b32e`, reusing the completed checks.
+No remaining actionable blocker was found. Review covered the shared native-session,
+transport and upload contract, simulation isolation, Run/Stop compatibility,
+framework cleanup and documentation/package contracts. Six reviewer turns, one
+initial wave, three targeted waves, three fix batches and one final integration
+pass took approximately 25 minutes; attributable token telemetry is unavailable.
+
+Final local artifacts were regenerated after the review fixes: Zero 0.3.0 VSIX,
+`zero-starter.zip` and combined `zero-bootstrap.zip`. Byte checks matched every
+starter source file, current extension module and combined-kit member; no build
+or Git directories were packaged. Extraction into `Final MVP with spaces`
+retained Maven wrapper executable metadata and Windows wrapper CRLF. The extracted
+starter's finite GUI smoke passed (2.553 seconds Maven time). The final VSIX
+installed successfully through the CLI into the isolated test extensions directory.
+Final configuration/document-link and diff checks passed. This CLI installation
+is not evidence of physical new-version sidebar or authentication interaction.
+
+Physical Windows/Linux, actual authentication/network upload and student pilots
+remain unverified. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) before adoption.
+The original Zero code's public license remains undecided.
+
+## Earlier 0.2.0 evidence — 2026-10-07
 
 Zero 0.2.0 is a locally packaged prototype. Initial verification ran before any
 kit publication. The owner subsequently authorized creating the public
@@ -11,7 +110,7 @@ Environment: macOS 26.6.2 arm64, OpenJDK 17.0.14, Node.js 22.21.1,
 Git 2.53.0 and VS Code 1.138.0. Pinned JavaFX 21.0.12, Maven 3.9.11,
 Maven Wrapper 3.3.4, compiler plugin 3.14.0 and clean plugin 3.2.0.
 
-## Automated checks passed
+### Automated checks passed
 
 - `npm run check`: source syntax, JSON/exported profile envelope, command/task
   contracts, matcher references and source documentation links.
@@ -34,7 +133,7 @@ Maven Wrapper 3.3.4, compiler plugin 3.14.0 and clean plugin 3.2.0.
   build/Git directories and combined-kit members were checked. No Marketplace
   publication occurred. Dependency audit reported no vulnerabilities.
 
-## Interactive Mac evidence
+### Interactive Mac evidence
 
 A settings-only profile was actually imported through the VS Code Profiles UI.
 The export envelope was corrected after an initial import failure. Zero VSIX,
@@ -63,7 +162,7 @@ source was restored. The actual dark-theme sidebar/editor screenshot is saved at
 [actual-zero-editor.png](design/actual-zero-editor.png). Both light-profile import
 and a user-selected dark theme have now been observed in the real editor.
 
-## Independent review and remediation
+### Independent review and remediation
 
 Two GPT-6.1 high-reasoning reviewers covered the upload engine and IDE/configuration
 in one initial wave. Three P1 and two P2 findings were accepted: trimmed NUL filenames,
@@ -80,7 +179,11 @@ Core SHA-256: `37844050205f033a9167bdc53f31cbec5d40355dfd59086479c99f6c02716682`
 The later IDE-only delta closes an empty AI sidebar on activation in the quiet
 profile; it does not change upload behavior.
 
-## Limits and next platform checks
+### Historical 0.2.0 limits and next platform checks
+
+The following are the earlier version's observations and proposed checks. The
+0.3.0 native-session bridge replaces its credential-helper requirement; use the
+current classroom pilot checklist for new trials.
 
 Physical Windows/Linux, school machine restrictions/proxies, fresh dependency
 caches, GitHub authentication/network upload and Pika submission are unverified.
@@ -103,7 +206,7 @@ Before classroom adoption, record OS/architecture, JDK and VS Code versions, the
    Cancel one upload review, then confirm a real upload and inspect remote files.
    Check failure/retry guidance and paste the repository link separately in Pika.
 
-## Coordination receipt
+### Coordination receipt
 
 Current goal started 2026-10-08 01:01 UTC; account weekly remaining was 79%.
 DeepSeek was paused through 2026-12-31 and was not used. Native GPT-6.1 medium

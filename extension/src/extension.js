@@ -7,6 +7,8 @@ const {execFile} = require('node:child_process');
 const {promisify} = require('node:util');
 const core = require('./core');
 const github = require('./github');
+const {createAuthentication} = require('./authentication');
+const {createTransport} = require('./transport');
 const execute = promisify(execFile);
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
@@ -16,6 +18,7 @@ function activate(context) {
   let runGeneration = 0;
   let uploading = false;
   let connecting = false;
+  let signingIn = false;
   let projectRoot;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'simulation') : 'simulation';
   let runQueue = Promise.resolve();
@@ -26,6 +29,9 @@ function activate(context) {
     return projectRoot;
   };
   const refresh = () => { if (view) render(view.webview); };
+  const auth = createAuthentication(vscode.authentication, refresh);
+  context.subscriptions.push(auth);
+  void auth.refresh();
   async function repositoryStatus() {
     repository = 'No repository connected';
     try {
@@ -110,6 +116,21 @@ function activate(context) {
     return next;
   }
   const actions = {
+    'zero.signInToGitHub': async () => {
+      if (uploading || connecting || signingIn) return;
+      signingIn = true; refresh();
+      try {
+        void vscode.window.showInformationMessage('VS Code will sign you into GitHub. Zero requests repository access (repo), including private repositories, so live uploads can use your chosen repository. VS Code stores the sign-in; Zero keeps no password or token file.');
+        await auth.signIn(auth.signedIn);
+        state = auth.status;
+      } finally { signingIn = false; refresh(); }
+    },
+    'zero.createRepository': async () => {
+      if (uploading || connecting || signingIn) return;
+      if (!auth.signedIn) throw new Error('Sign in to GitHub first.');
+      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose Connect existing repository.');
+      if (!(await vscode.env.openExternal(vscode.Uri.parse('https://github.com/new')))) throw new Error('Could not open GitHub. Open https://github.com/new in your browser, create an empty repository, then connect its link.');
+    },
     'zero.runApp': queuedRun,
     'zero.stopApp': stopRequested,
     'zero.showSidebar': async () => {
@@ -117,7 +138,7 @@ function activate(context) {
       if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
     },
     'zero.uploadToGitHub': async () => {
-      if (uploading || connecting) return;
+      if (uploading || connecting || signingIn) return;
       uploading = true; refresh();
       try {
         const root = await project();
@@ -127,21 +148,23 @@ function activate(context) {
           await vscode.window.showWarningMessage(result.message);
           return;
         }
+        const ticket = await auth.capture();
         if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
         const plan = await github.prepareUpload(root);
         const message = await vscode.window.showInputBox({title:'Describe this version', prompt:'A commit saves a version in Git. Upload sends it to your connected GitHub repository.', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
-        const detail = `${plan.page}\nBranch: ${plan.branch}\n${plan.summary}\n\n${plan.changes.map(change => `${change.kind}: ${change.path}`).join('\n')}\n\nIgnored files stay local. This will save a Git commit when files changed and upload your branch. Submit your repository link separately in Pika.`;
+        const detail = `${plan.page}\nGitHub account: ${ticket.session.label}\nBranch: ${plan.branch}\n${plan.summary}\n\n${plan.changes.map(change => `${change.kind}: ${change.path}`).join('\n')}\n\nIgnored files stay local. This will save a Git commit when files changed and upload your branch using your VS Code GitHub sign-in. Git still needs your repository name/email identity. Submit your repository link separately in Pika.`;
         const confirmed = await vscode.window.showInformationMessage('Upload this version to GitHub?', {modal:true, detail}, 'Commit & Upload');
         if (confirmed !== 'Commit & Upload') return;
-        const result = await github.uploadPrepared(plan, message, {onProgress:text => {state=text; refresh();}});
+        const assertCurrent = () => auth.assertCurrent(ticket);
+        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => auth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
         state = `Uploaded ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
         refresh(); await repositoryStatus();
         vscode.window.showInformationMessage(state);
       } finally {uploading = false; refresh();}
     },
     'zero.connectRepository': async () => {
-      if (uploading || connecting) return;
+      if (uploading || connecting || signingIn) return;
       connecting = true; refresh();
       try {
         const root = await project();
@@ -168,7 +191,7 @@ function activate(context) {
       for (const id of ['redhat.java','vscjava.vscode-java-debug']) output.appendLine(`${id}: ${vscode.extensions.getExtension(id) ? 'installed' : 'missing — install this Java extension'}`);
       try {output.appendLine(`Student project: ${await project()}`);} catch(error) {output.appendLine(error.message);}
       output.appendLine('First builds download Maven and JavaFX dependencies. Run App saves files, rebuilds and opens a separate JavaFX window. Read errors in its task terminal.');
-      output.appendLine(`Upload mode: ${uploadMode()}. Simulation makes no Git changes. Live mode reviews files, commits and pushes using your normal Git credentials. Configure identity/credentials through Git and VS Code; Zero does not collect passwords or tokens.`);
+      output.appendLine(`Upload mode: ${uploadMode()}. Simulation makes no Git changes. Live upload needs Git 2.31 or newer and uses your VS Code GitHub sign-in. Git still needs your name/email identity configured for this repository; Zero does not change your Git identity or store passwords/tokens.`);
     }
   };
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
@@ -176,9 +199,17 @@ function activate(context) {
   }));
   function render(webview) {
     const nonce = crypto.randomBytes(16).toString('hex');
+    const busy = uploading || connecting || signingIn;
+    const disabled = busy ? 'disabled' : '';
+    const connected = repository.startsWith('https://github.com/');
+    const githubActions = !auth.signedIn
+      ? `<button class="secondary" data-command="zero.signInToGitHub" ${disabled}>Sign in to GitHub</button>`
+      : connected
+        ? `<p class="muted status">${escape(repository)}</p><button class="secondary" data-command="zero.uploadToGitHub" ${disabled}>Upload to GitHub</button><p class="badge">${uploadMode() === 'live' ? 'Reviews files before a real upload' : 'SIMULATION — nothing will be uploaded'}</p><button class="link" data-command="zero.copyRepositoryLink">Copy repository link</button>`
+        : `<p class="muted status">${escape(repository)}</p><button class="secondary" data-command="zero.createRepository" ${disabled}>Create repository</button><button class="link" data-command="zero.connectRepository" ${disabled}>Connect existing repository…</button>`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       body{color:var(--vscode-foreground);background:var(--vscode-sideBar-background);font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);padding:12px;margin:0}.muted{color:var(--vscode-descriptionForeground);font-size:12px;line-height:1.5}button{font:inherit;width:100%;padding:9px 8px;margin-top:8px;border:1px solid var(--vscode-button-border,transparent);border-radius:5px;cursor:pointer;color:var(--vscode-button-foreground);background:var(--vscode-button-background)}button:hover{filter:brightness(.95)}button.secondary{color:var(--vscode-button-secondaryForeground);background:var(--vscode-button-secondaryBackground)}button:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:2px}button:disabled{opacity:.45;cursor:default}.run{background:#6655cd;color:white}.row{display:flex;gap:8px}.row .run{flex:2}.row .secondary{flex:1}.repository{padding-top:12px;margin-top:12px;border-top:1px solid var(--vscode-panel-border)}.status{overflow-wrap:anywhere;line-height:1.5;margin:10px 0}.badge{font-size:11px;color:var(--vscode-descriptionForeground);margin:6px 0}button.link{background:transparent;color:var(--vscode-textLink-foreground);text-align:left;border:0;padding:4px 0;margin:0;font-size:12px}
-      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><button class="secondary" data-command="zero.uploadToGitHub" ${uploading || connecting ? 'disabled' : ''}>Upload to GitHub</button><p class="badge">${uploadMode() === 'live' ? 'Reviews files before a real upload' : 'SIMULATION — nothing will be uploaded'}</p><p class="muted status" role="status" aria-live="polite">${escape(state)}</p><div class="repository"><strong>GitHub</strong><p class="muted status">${escape(repository)}</p><button class="link" data-command="zero.connectRepository" ${uploading || connecting ? 'disabled' : ''}>Connect repository…</button><button class="link" data-command="zero.copyRepositoryLink" ${repository.startsWith('https://github.com/') ? '' : 'disabled'}>Copy repository link</button><button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p><div class="repository"><strong>GitHub</strong><p class="muted status">${escape(auth.status)}</p>${githubActions}${auth.signedIn ? `<button class="link" data-command="zero.signInToGitHub" ${disabled}>Change GitHub account…</button>` : ''}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};

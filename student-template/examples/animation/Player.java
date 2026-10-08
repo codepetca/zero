@@ -1,5 +1,5 @@
 import javafx.scene.paint.Color;
-import zero.SimpleApp;
+import zero.SketchApp;
 
 /** An ordinary object. Main explicitly calls update and draw. */
 public class Player {
@@ -17,7 +17,7 @@ public class Player {
         y += (targetY - y) * amount;
     }
 
-    public void draw(SimpleApp app) {
+    public void draw(SketchApp app) {
         app.fill(Color.web("#4878e8"));
         // Circle positions describe the centre; rectangles use the top-left.
         app.circle(x, y, 44);

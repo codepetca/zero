@@ -10,7 +10,7 @@ function gitError(error, action) {
   const detail = String(error.stderr || error.message || '');
   if (/identity unknown|unable to auto-detect email|user\.email|user\.name/i.test(detail)) return new Error('Git needs your name and email. Configure your Git identity for this student repository, then review the upload again.');
   if (/non-fast-forward|fetch first|rejected.*behind/i.test(detail)) return new Error('GitHub has changes that are not in your local branch. Use Git to bring those changes into your project, resolve any conflicts, then review again. Nothing was confirmed uploaded.');
-  if (/authentication|credential|could not read username|terminal prompts disabled/i.test(detail)) return new Error('GitHub authentication failed. Sign in using the standard Git credential/browser flow, then review again.');
+  if (/authentication|credential|could not read username|terminal prompts disabled/i.test(detail)) return new Error('GitHub authentication failed. Sign in to GitHub in Zero through VS Code, then review again.');
   if (/permission|403|denied|repository not found/i.test(detail)) return new Error('GitHub refused access. Check that the connected repository exists and your Git account has permission to push.');
   return new Error(`Git could not ${action}. Check Git in the terminal, then review the upload again. Nothing was confirmed uploaded.`);
 }
@@ -99,9 +99,11 @@ async function prepareUpload(project, run = core.git) {
 function sameReview(plan, current) {
   return ['root', 'remote', 'branch', 'head', 'status', 'fingerprint'].every(key => plan[key] === current[key]);
 }
-async function uploadPrepared(plan, message, {run = core.git, onProgress = () => {}} = {}) {
+async function uploadPrepared(plan, message, {run = core.git, networkRun, beforeUpload = async () => {}, onProgress = () => {}} = {}) {
+  const network = networkRun || ((root, args) => execute(run, root, args, 'upload or confirm the GitHub branch'));
   if (!reviewedPlans.has(plan)) throw new Error('Review the project upload before continuing.');
   if (typeof message !== 'string' || !message.trim() || message.includes('\0')) throw new Error('Enter a short commit message describing your changes.');
+  await beforeUpload();
   const current = await inspect(plan.root, run);
   if (!sameReview(plan, current)) throw new Error('The project, branch, repository, or files changed after review. Review the upload again.');
   let committed = false;
@@ -133,14 +135,14 @@ async function uploadPrepared(plan, message, {run = core.git, onProgress = () =>
   await assertNoUrlRewrites(plan.root, run);
   // Capture both the reviewed destination and commit, independent of later
   // origin/HEAD changes. Never force, create a remote, or rebase.
-  await execute(run, plan.root, ['push', plan.remote, `${ready.head}:refs/heads/${plan.branch}`], 'push the student branch');
+  await network(plan.root, ['push', plan.remote, `${ready.head}:refs/heads/${plan.branch}`]);
   onProgress('Checking the branch on GitHub…');
   await assertNoUrlRewrites(plan.root, run);
-  const remoteHead = await execute(run, plan.root, ['ls-remote', '--heads', plan.remote, `refs/heads/${plan.branch}`], 'confirm the GitHub branch');
+  const remoteHead = await network(plan.root, ['ls-remote', '--heads', plan.remote, `refs/heads/${plan.branch}`]);
   const rows = remoteHead.split('\n').filter(Boolean);
   if (rows.length !== 1 || rows[0].split(/\s+/)[0] !== ready.head || rows[0].split(/\s+/)[1] !== `refs/heads/${plan.branch}`) throw new Error('GitHub did not confirm this commit on your branch. Check the repository before trying again. Nothing was confirmed uploaded.');
   const final = await inspect(plan.root, run);
   if (final.head !== ready.head || final.status || final.remote !== plan.remote || final.branch !== plan.branch) throw new Error('The local project changed during upload. Review again to check which changes still need uploading.');
   return Object.freeze({uploaded: true, simulation: false, page: plan.page, canonicalPage: plan.page, branch: plan.branch, head: ready.head, committed});
 }
-module.exports = {prepareUpload, uploadPrepared};
+module.exports = {prepareUpload, uploadPrepared, assertNoUrlRewrites};

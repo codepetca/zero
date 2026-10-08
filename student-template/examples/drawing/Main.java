@@ -1,9 +1,9 @@
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
-import zero.SimpleApp;
+import zero.SketchApp;
 
 /** Leave paint on the canvas instead of clearing it every frame. */
-public class Main extends SimpleApp {
+public class Main extends SketchApp {
     private double previousX;
     private double previousY;
     private boolean painting;

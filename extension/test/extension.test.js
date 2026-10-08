@@ -16,6 +16,7 @@ test('commands simulate upload without Git and share task ownership across short
   const originalGit=core.git;core.git=async()=>{mutations++;throw new Error('Unexpected git');};t.after(()=>{core.git=originalGit;});
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
+    authentication:{getSession:async()=>({id:'test-session',account:{id:'student',label:'student'},accessToken:'INTERCEPTED'}),onDidChangeSessions:disposable},
     workspace:{getConfiguration:(section,uri)=>({get:()=> {if(section!=='zero') return false; assert.equal(uri?.fsPath,root,'Upload mode must use the student folder scope, overriding global live'); return mode;}}),onDidChangeConfiguration:disposable,workspaceFolders:[{uri:{fsPath:root}}],saveAll:async()=>{saved++;if(saveGate) await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async()=> 'Describe changes',showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal) return confirmUpload;},showErrorMessage:async text=>{throw new Error(text);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{const execution={task,terminate(){ends.forEach(fn=>fn({execution}));}};launches.push(execution);starts.forEach(fn=>fn({execution}));return execution;}},
@@ -51,7 +52,7 @@ test('commands simulate upload without Git and share task ownership across short
   const originals={prepare:github.prepareUpload,upload:github.uploadPrepared};
   t.after(()=>{github.prepareUpload=originals.prepare;github.uploadPrepared=originals.upload;});
   let reviewed=0, uploaded=0;
-  github.prepareUpload=async()=>{reviewed++;return {page:'https://github.com/student/app',branch:'main',summary:'1 changed path',changes:[{kind:'M',path:'Main.java'}]};};
+  github.prepareUpload=async()=>{reviewed++;return {page:'https://github.com/student/app',remote:'https://github.com/student/app.git',branch:'main',summary:'1 changed path',changes:[{kind:'M',path:'Main.java'}]};};
   github.uploadPrepared=async(plan,message)=>{uploaded++;assert.equal(message,'Describe changes');return {head:'a'.repeat(40),branch:plan.branch,uploaded:true};};
   await commands.get('zero.uploadToGitHub')();
   assert.equal(reviewed,1);assert.equal(uploaded,0,'Cancel must not call the commit/push engine');
@@ -62,9 +63,42 @@ test('commands simulate upload without Git and share task ownership across short
   await commands.get('zero.connectRepository')();
   assert.equal(mutations,0,'Connect must not mutate origin while an upload review is pending');
   releaseReview(); await heldUpload;
-  github.prepareUpload=async()=>({page:'https://github.com/student/app',branch:'main',summary:'1 changed path',changes:[{kind:'M',path:'Main.java'}]});
+  github.prepareUpload=async()=>({page:'https://github.com/student/app',remote:'https://github.com/student/app.git',branch:'main',summary:'1 changed path',changes:[{kind:'M',path:'Main.java'}]});
   confirmUpload='Commit & Upload';
   await commands.get('zero.uploadToGitHub')();
   assert.equal(uploaded,1);assert.match(notices.at(-1),/Uploaded aaaaaaa/);
   assert.equal(mutations,0,'All real transport is mocked in the live UI test');
+});
+
+test('minimal GitHub section follows native sign-in and connection state; browser creation and simulation stay explicit', async t => {
+  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
+  await core.git(root,['init','-b','main']);
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[];let session,authEvent,webviewProvider,repo;let gitChanges=0;
+  const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
+  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return root;if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
+  const vscode={
+    authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
+    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?'simulation':fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);},showInputBox:async()=>undefined,showErrorMessage:async message=>{errors.push(message);}},
+    tasks:{onDidStartTask:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
+    env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async()=>{}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
+  };
+  const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
+  let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));
+  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}});
+  const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};webviewProvider.resolveWebviewView(candidate);
+  const settle=async()=>{for(let i=0;i<6;i++) await new Promise(resolve=>setImmediate(resolve));};await settle();
+  assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
+  assert.ok(authCalls.every(call=>call.options.silent));
+  await commands.get('zero.uploadToGitHub')();assert.match(notices.at(-1),/Simulation only/);assert.equal(gitChanges,0);
+  await commands.get('zero.signInToGitHub')();assert.match(errors.at(-1),/Sign in to GitHub/);assert.equal(authCalls.at(-1).options.createIfNone,true);
+  session={id:'student-session',account:{id:'student',label:'student'},accessToken:'PRIVATE'};
+  await commands.get('zero.signInToGitHub')();assert.match(webview.html,/Signed in as student/);assert.match(webview.html,/Create repository/);assert.match(webview.html,/Connect existing repository/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
+  await commands.get('zero.createRepository')();assert.equal(opened[0].url,'https://github.com/new');assert.match(notices.at(-1),/empty GitHub repository/);assert.match(notices.at(-1),/README, .gitignore and license unselected/);
+  await commands.get('zero.signInToGitHub')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
+  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle();
+  assert.match(webview.html,/Upload to GitHub/);assert.match(webview.html,/Copy repository link/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository/);assert.doesNotMatch(webview.html,/PRIVATE/);
+  session=undefined;authEvent({provider:{id:'github'}});await settle();assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
+  assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });

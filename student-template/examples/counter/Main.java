@@ -3,10 +3,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import zero.SimpleApp;
+import zero.SketchApp;
 
 /** Ordinary JavaFX controls can live beside the Zero canvas. */
-public class Main extends SimpleApp {
+public class Main extends SketchApp {
     private int count;
     private Label total;
 

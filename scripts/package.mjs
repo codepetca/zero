@@ -35,14 +35,22 @@ const extracted = unzipSync(starter);
 for (const [key, [bytes]] of Object.entries(members)) assert.deepEqual(extracted[key], bytes);
 assert.ok(extracted['zero-starter/.vscode/tasks.json']);
 assert.ok(extracted['zero-starter/.mvn/wrapper/maven-wrapper.properties']);
+assert.ok(extracted['zero-starter/src/main/java/zero/SketchApp.java']);
+assert.ok(extracted['zero-starter/EXERCISES.md']);
+assert.deepEqual(extracted['zero-starter/src/main/java/ScoreDisplay.java'],
+  extracted['zero-starter/examples/shared/ScoreDisplay.java'], 'Shared component copies must agree');
 assert.ok(!Object.keys(extracted).some(key => /\/(?:target|\.git)\//.test(key)));
 writeFileSync(path.join(dist, 'zero-starter.zip'), starter);
 copyFileSync(path.join(root, 'profile/Zero.code-profile'), path.join(dist, 'Zero.code-profile'));
 copyFileSync(path.join(root, 'profile/optional-keybindings.json'), path.join(dist, 'optional-keybindings.json'));
-for (const name of ['GETTING-STARTED.md', 'VERIFICATION.md']) copyFileSync(path.join(root, 'docs', name), path.join(dist, name));
+const guides = ['GETTING-STARTED.md', 'VERIFICATION.md', 'CLASSROOM-PILOT.md'];
+for (const name of guides) copyFileSync(path.join(root, 'docs', name), path.join(dist, name));
 const kit = {};
-for (const name of [vsix, 'zero-starter.zip', 'Zero.code-profile', 'optional-keybindings.json', 'GETTING-STARTED.md', 'VERIFICATION.md']) {
+for (const name of [vsix, 'zero-starter.zip', 'Zero.code-profile', 'optional-keybindings.json', ...guides]) {
   kit['zero-bootstrap/' + name] = new Uint8Array(readFileSync(path.join(dist, name)));
 }
-writeFileSync(path.join(dist, 'zero-bootstrap.zip'), zipSync(kit, { level: 6 }));
+const combined = zipSync(kit, { level: 6 });
+const combinedContents = unzipSync(combined);
+for (const [key, bytes] of Object.entries(kit)) assert.deepEqual(combinedContents[key], bytes);
+writeFileSync(path.join(dist, 'zero-bootstrap.zip'), combined);
 console.log(`Packaged ${vsix}, zero-starter.zip, Zero.code-profile and zero-bootstrap.zip locally. No publishing or push.`);
