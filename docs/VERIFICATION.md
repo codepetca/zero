@@ -36,7 +36,21 @@ kept Upload/account controls disabled until its notification was dismissed.
 Clearing notifications released them. Version 0.3.1 issues this informational
 warning without awaiting dismissal; upload review/confirmation still waits.
 The strengthened deferred-notification regression failed against old code and
-passes after this correction. Local packaging and targeted review are pending.
+passes after this correction. Full Node suite: 37 tests passed (22.66 seconds);
+targeted UI tests, configuration/document-link checks and diff check passed.
+The packaged 0.3.1 VSIX installed into the isolated Zero profile. After Reload
+Window, a real simulation left Upload and Change GitHub Account enabled while
+the warning remained visible. Git status was unchanged and no new commit was
+created; restored the pilot's live setting and verified its clean worktree.
+
+One independent GPT-6.1 Sol/medium reviewer completed the bounded correction and
+guide review with no actionable findings at `00901afba57e8a3cbe88df381e21824fac403f96`
+against merged MVP `3be9d5295b4f21b43d2b2b7077e40c612bf1403c`, independently running
+the deferred-notification regression. Approximately three minutes, one review
+turn, no review remediation; attributable token telemetry is unavailable. The
+coordinator inspected the subsequent evidence-only documentation delta.
+Regenerated 0.3.1 VSIX, starter ZIP and combined kit locally; byte checks match
+the extension, starter and packaged guides, with no build/Git directories.
 
 Limits: direct interaction with the unbundled JavaFX quiz window was unavailable
 through computer-use tooling; editor/process checks are not physical quiz input

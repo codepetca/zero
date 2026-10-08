@@ -17,8 +17,15 @@ Windows/Linux, school setup and novice students remain untested.
 
 Stock 0.3.0 held Upload disabled while awaiting simulation-notice dismissal.
 Coordinator reproduced failing regression, removed only that informational await,
-and bumped local kit to 0.3.1 on codex/pilot-upload-notice. Review and regenerated
-package checks next. No source push/PR/merge or distribution publication authorized
+and bumped local kit to 0.3.1 on codex/pilot-upload-notice. All 37 Node tests pass
+(22.66 seconds). One GPT-6.1 Sol/medium reviewer accepted fixed head 00901af
+against merged MVP 3be9d52 with no actionable findings, independently checking
+the regression. One review turn, about three minutes, no remediation; token
+telemetry unknown. Coordinator inspected the evidence-only documentation delta.
+Packaged 0.3.1 installed and reloaded in the isolated editor: Upload/account
+controls remain enabled while the simulation warning is visible. Simulation
+changed neither Git status nor commit; pilot settings restored and worktree clean.
+Regenerated artifacts match current source and guide bytes. No source push/PR/merge or distribution publication authorized
 for this follow-up; the earlier authorization covered the merged MVP only.
 
 ## Completed local MVP goal and execution plan
