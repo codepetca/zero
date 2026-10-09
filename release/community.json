@@ -1,7 +1,10 @@
 {
   "schemaVersion": 1,
   "origin": "public-release",
-  "publication": { "status": "local", "repository": "codepetca/zero-community" },
+  "publication": {
+    "status": "published",
+    "repository": "codepetca/zero-community"
+  },
   "repositoryUrl": "https://zero.codepet.ca/community/maven",
   "library": {
     "groupId": "school.zero.community",
@@ -11,6 +14,75 @@
     "javafxVersion": "21.0.12"
   },
   "latest": "0.1.2",
-  "components": [],
-  "releases": []
+  "components": [
+    {
+      "id": "health-bar",
+      "name": "HealthBar",
+      "className": "zero.community.HealthBar",
+      "description": "A label and progress bar for app-owned health or energy, updated explicitly.",
+      "api": [
+        "HealthBar(int maximum)",
+        "HealthBar(String caption, int maximum)",
+        "Node view()",
+        "void setHealth(int health)",
+        "int getHealth()",
+        "int getMaximum()"
+      ],
+      "examples": [
+        {
+          "id": "adventure",
+          "path": "examples/adventure/Main.java",
+          "description": "Damage, healing and restart with app-owned health."
+        },
+        {
+          "id": "study",
+          "path": "examples/study/Main.java",
+          "description": "A study budget with answer, retry, exhaustion and reset."
+        }
+      ],
+      "status": "experimental",
+      "license": "MIT",
+      "maintainer": null
+    }
+  ],
+  "releases": [
+    {
+      "version": "0.1.2",
+      "sourceRevision": "6b8205ff3001df228b0a28786954301570277264",
+      "sourceDigest": "2238db0313a3113efca4783ef0211bfbf264eca126badfb964c7c44f17e60d2e",
+      "notes": "First public MIT release; experimental HealthBar with the unchanged explicit Java API.",
+      "artifacts": {
+        "jar": {
+          "path": "school/zero/community/zero-community/0.1.2/zero-community-0.1.2.jar",
+          "size": 4512,
+          "sha256": "c071ce860f8d125dc0e82c5e75e81ce2bfe5dfd757ded04c7a0588213d06fca8",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.2/zero-community-0.1.2.jar"
+        },
+        "pom": {
+          "path": "school/zero/community/zero-community/0.1.2/zero-community-0.1.2.pom",
+          "size": 3526,
+          "sha256": "27e8dc1ba18e27c6fdd0dd7928cfd71476b0eb1515d255456fd4ae9dc1b9443f",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.2/zero-community-0.1.2.pom"
+        },
+        "sources": {
+          "path": "school/zero/community/zero-community/0.1.2/zero-community-0.1.2-sources.jar",
+          "size": 4111,
+          "sha256": "1440f70ab633be568e9f3b32c1a839500517b4e766158945acef82ceb5e48ae9",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.2/zero-community-0.1.2-sources.jar"
+        },
+        "javadoc": {
+          "path": "school/zero/community/zero-community/0.1.2/zero-community-0.1.2-javadoc.jar",
+          "size": 84794,
+          "sha256": "04832920735e2e78624b1e4ca5e94711c98acfad612152ae6867530fda146ba7",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.2/zero-community-0.1.2-javadoc.jar"
+        }
+      },
+      "workshop": {
+        "filename": "zero-community-workshop-0.1.2.zip",
+        "size": 222849,
+        "sha256": "915d956b38a0f162ba89911aff957e5d4344eb97db34ca0cd887e919dab5651d",
+        "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.2/zero-community-workshop-0.1.2.zip"
+      }
+    }
+  ]
 }

@@ -1,34 +1,40 @@
 # Current state — 2026-10-09
 
-## Public component workflow — active
+## Public component workflow — release integration
 
-Owner authorized public ultra-simple component delivery with "go". Current
-coordinator owns integration/PR/merge/publication; worktree public-components/zero
-at4565c03 and sibling community worktree at7c503b3 preserve primary funding work.
-Existing community maintain/admin users selected for human acceptance; no new
-permissions/accounts/settings. HealthBar first public0.1.2 remains experimental
-until independent authenticated human acceptance. Fixed HTTPS Maven gateway,
-public catalog, portable Workshop, next kit0.5.2; see COMPONENT-PLAN for contract.
-Two Sol/high read-only audits delivered; coordinator verified actual paths/metadata.
-Historical jars lack canonicalMITnotices; newcoordinate required, oldbytes preserved.
-Weekly39%remaining; DeepSeek pause retained; no tool-backed goal requested.
-All three Sol/high workers delivered and released ownership. Community writer:
-MIT0.1.2/publicpreparer/authenticatedread-onlyacceptancehelper,32+12tests,
-reproduciblebuild/twoconsumers/historicalproof. Consumer writer:105fulltests and
-50focused after correcting nestedWorkshopreceipt contract. Workshop writer:
-public0.1.2candidatebinding/nativepacketchecks and portablearchive assembler.
-Coordinator gateway/site17tests,typecheck/build pass. One contract mismatch fixed
-before review; attributable worker times/tokens and effective model unknown.
-Next commit source, regenerate exact committed candidate and Workshop, then
-independent paired review, CI/source merges, exact public files, metadata/kit
-promotion and real public Maven/VSIX proof. No real publication yet.
-Review highrisk; max2concurrent/7launches/1initialwave/4targetedwaves/1integration/
-4fixbatches/60minsession/30minreviewer. Initial paired review complete on Zero055ea885/community6b8205ff. Two accepted
-P2 findings: stale fresh-checkout Workshop instructions and string-coercion in
-website provenance/checksum fields. One fix batch adds failing array regression
-then explicit string checks and separates historical/public preparation docs.
-Updated mainfc22af9 interactions reviewed as compatible. Launches2/initial1/
-targeted0/fix1; session began19:41UTC. Effective model/tokens unknown.
+Source PRs merged: Zero#13 d78ebdd, community#2 2f94f71. Reviewed source
+Zero6109ce4/community6b8205ff; initial paired Sol/high + targeted Sol/high
+resolved website string coercion and stale Workshop instructions. Launches3,
+initial1/targeted1/fix1; session began19:41UTC. Updated mainfc22af9 interactions
+reviewed compatible. Current-head Zero CI37982751957 passed after an earlier
+unchanged simulation test timing failure; community CI37982098911 passed.
+
+Fresh generated-free checkout verified documented legacy cycle (6checks),
+actual editor-plan add/update/revert, double reproducible0.1.2 builds/two apps,
+public Workshop packaging and finite native check. Final76-member archive
+binds Zero d78ebdd/community6b8205ff,222849bytes, SHA256
+915d956b38a0f162ba89911aff957e5d4344eb97db34ca0cd887e919dab5651d.
+Extracted portable Workshop native check and independent Python packet validation
+passed; packet remains checked/communityReviewedfalse/publishAllowedfalse.
+
+Owner-authorized initial experimental community v0.1.2 is public; exact4Maven
+artifacts,Workshop,MIT/source/check receipts/SHA256SUMS all downloaded without
+authentication and matched candidate hashes. Tag6b8205ff is merged main ancestry.
+Existing maintain/admin humans selected as acceptors; actual PR helper reports
+waiting without independent approval. No contributor/CI/AI acceptance claim, new
+accounts/credentials/settings or CI publishing permissions. AI remains unavailable.
+
+Promotion13cac401 received complete independent Sol/high delta review, no
+findings. PR14CI repeated the old sidebar fixed-six-ticks timing failure;
+second fix batch replaces that test wait with bounded observable predicates,
+retaining warning-open simulation completion assertion. No product code change.
+Launches4/initial1/targeted2/fix2 before targeted test review.
+Next: reviewed metadata/public gateway and local kit0.5.2 source promotion,
+existing one-command kit publisher, real public Maven/VSIX/site verification.
+Primary funding work preserved. Weekly38%remaining, DeepSeek pause retained;
+no tool-backed goal requested. Models requestedSol/high; effective/token/worker
+time telemetry unknown; one contract correction plus one review fix batch.
+Physical Windows/Linux/input and classroom trials remain unverified.
 
 
 ## One-command Zero publishing — review and CI

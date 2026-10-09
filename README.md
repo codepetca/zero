@@ -69,7 +69,7 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.1.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.2.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After preparing the committed public component candidate and Workshop with
 `--public` as described in [Development](docs/DEVELOPMENT.md),

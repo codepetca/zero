@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
