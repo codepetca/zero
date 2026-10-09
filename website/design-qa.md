@@ -38,3 +38,7 @@ Production without preview flag explains unpublished availability.
 Mobile landing/Learn/Community do not overflow horizontally; landing targets
 are about 250×60px. Keyboard Tab shows a 3px purple focus outline.
 No browser warnings/errors observed. Public release and Vercel/DNS remain pending.
+
+Independent review caught a P2 section-link defect on supporting docs. Fixed
+heading IDs and URL fragments; the browser now follows exercises →
+`/docs/starter#try-an-example` and places Try an example at the viewport top.

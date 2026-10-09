@@ -1,6 +1,6 @@
 # Current state — 2026-10-09
 
-## Repository organization and website — active local phase
+## Repository organization and website — local verification complete
 
 Owner requested orchestration of the agreed local organization/site work.
 Branch codex/website-kit-organization from9cd8a16; selected design recorded at
@@ -18,6 +18,32 @@ scripts, root package/ignore, release metadata and related extension test paths.
 website_build (Sol/medium) owns website only. Coordinator owns root docs/handoff,
 browser QA and final integration. One writer per component, no worker Git mutation
 or publication. Generated caches, starter core copies and website snapshots ignored.
+
+Local implementation cceaf80 verified: full89/89 Node tests139.128s; all7 native
+examples24.15s; flat36-member kit and32-member starter source/permissions/VSIX
+receipt checks and extracted Maven build pass. Extracted69-member Workshop
+passes core0.1.1. Existing core0.1.0 immutable artifacts preserved. Unchanged
+SmokeLauncher failed background canvas-focus; no weakened assertion or full-smoke
+pass claimed. Physical Windows/Linux and final editor interaction remain pending.
+
+Website typecheck/build,4 download boundary tests and audit pass. Browser desktop
+1487×1058 and mobile390×844, actual ZIP download/hash, navigation/API, visible
+keyboard focus and unpublished production behavior pass. Normalized combined
+source/render comparison passed; website/design-qa.md records intentional existing
+logo/system-font choices and corrected P2 spacing. Local preview127.0.0.1:3000.
+
+Independent review high risk: two fresh GPT-6.1 Sol/high reviewers, one canonical
+framework/package compatibility, one website/download correctness; basefaa8ccb
+→cceaf80b708674601736b3e0b2855459fe19cc91. Both assigned scopes complete,
+no publication/security/architecture blocker. One duplicate P2/P3 section-link
+finding accepted once: Markdown fragments dropped and heading IDs absent.
+Fixed in one batch; actual browser exercises→starter#try-an-example reaches the
+heading. Build/typecheck pass. Targeted review follows; no full-suite rerun needed
+for this website-only delta. Budget: max7launches,1initialwave,4targetedwaves,
+1finalintegration,4fixbatches,60minelapsed/30minreviewer. Current2launches,
+1initialwave,1fixbatch; requested configs recorded, effective/token telemetry
+unknown. Delivery estimates framework~22min/website~16min; coordinator confirmed
+source bytes, artifacts, checks and UI. No file conflicts; one small link rework.
 
 ## Community source remote connection
 

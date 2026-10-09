@@ -62,7 +62,8 @@ and the distinction between source hosting and component artifact distribution.
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
 `npm run package` creates local artifacts in `dist/`: `zero-0.5.0.vsix`,
-`zero-starter.zip`, the profile and combined kit ZIP. After the documented local
+`zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
+kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After the documented local
 component proof, `npm run package:components` adds `zero-components.zip` with
 Workshop, community source, both immutable versions and a local catalog.
 These are experimental local artifacts; packaging does not publish them.

@@ -1,4 +1,4 @@
-# Zero download website — proposed plan
+# Zero download website — local implementation
 
 Status: local implementation authorized by “orchestrate that work”, 2026-10-09.
 Publication, source push/merge, deployment, DNS edits and account changes remain
@@ -45,8 +45,8 @@ Vercel project with Root Directory `website/`. Pages are mostly static:
 - `/community`: public entry point for Zero Community, source/contribution links
   and an honest explanation of current experimental local component tooling.
 - Setup lives on `/learn`; do not create a separate onboarding platform.
-- API and workshop documentation initially link to the existing maintained docs;
-  migrate them only when a website reading experience adds value.
+- Ten supporting `/docs/[slug]` pages render maintained repository Markdown,
+  with matching heading anchors and internal links. Preparation keeps one source.
 
 No website account system or database is needed for this MVP. Node.js is a site
 development/build requirement, not an additional student requirement.
