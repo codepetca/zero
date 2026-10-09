@@ -74,6 +74,24 @@ final class WorkshopChecks {
             : "Source differs from the immutable 0.1.1 sources JAR. Runtime checks describe the old"
                   + " pinned binary; edited source behavior is unverified.");
     Class<?> type = candidate == null ? HealthBar.class : candidate.type;
+    // Both constructors and every public method are the supported binary API.
+    // Testing only preview behavior would miss a removed constructor/getter.
+    try {
+      Object defaultBar = type.getConstructor(int.class).newInstance(8);
+      type.getConstructor(String.class, int.class);
+      requireReturn(type, "view", Node.class);
+      requireReturn(type, "setHealth", void.class, int.class);
+      requireReturn(type, "getHealth", int.class);
+      requireReturn(type, "getMaximum", int.class);
+      if (!type.getMethod("getMaximum").invoke(defaultBar).equals(8))
+        throw new IllegalArgumentException("getMaximum must retain the configured maximum");
+      record(checks,"public-api-compatibility",matches ? "passed" : "unavailable",
+          "Both constructors and exact method/return signatures retained; default instance keeps its maximum.");
+    } catch (ReflectiveOperationException | IllegalArgumentException failure) {
+      record(checks,"public-api-compatibility","failed",
+          "Documented HealthBar API is incompatible: " + failure.getMessage());
+      return report;
+    }
     ComponentPreview health = new ComponentPreview(type, "Energy", 8);
     health.setHealth(7);
     VBox view = (VBox) health.view();
@@ -150,5 +168,12 @@ final class WorkshopChecks {
     item.addProperty("status", status);
     item.addProperty("evidence", evidence);
     checks.add(item);
+  }
+
+  private static void requireReturn(Class<?> type, String method, Class<?> result, Class<?>... arguments)
+      throws ReflectiveOperationException {
+    var declared = type.getMethod(method,arguments);
+    if (declared.getReturnType() != result || java.lang.reflect.Modifier.isStatic(declared.getModifiers()))
+      throw new NoSuchMethodException(method + " must remain an instance method returning " + result.getSimpleName());
   }
 }

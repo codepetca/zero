@@ -32,7 +32,7 @@ test('Stop during example executeTask terminates the delivered task; task end cl
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
     authentication:{getSession:async()=>undefined,onDidChangeSessions:disposable},
-    workspace:{workspaceFolders:[{uri:{fsPath:student}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),onDidChangeConfiguration:disposable,onDidChangeWorkspaceFolders:disposable,
+    workspace:{workspaceFolders:[{uri:{fsPath:student}}],saveAll:async()=>true,getConfiguration:()=>({get:(_,fallback)=>fallback}),onDidChangeConfiguration:disposable,onDidChangeWorkspaceFolders:disposable,
       createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showErrorMessage:message=>errors.push(message)},
     commands:{registerCommand:(id,action)=>{commands.set(id,action);return disposable();},executeCommand:async()=>{}},
@@ -92,4 +92,18 @@ test('Stop during example executeTask terminates the delivered task; task end cl
   assert.equal(await fs.readFile(path.join(student,'zero.json'),'utf8'),'{}');
   assert.equal(await fs.readFile(path.join(sibling,'keep'),'utf8'),'keep','Cleanup owns only the exact completed example root');
   assert.deepEqual(errors,[]);
+
+  // An update/revert auto-run must retain its reviewed root across stopping an old run.
+  await commands.get('zero.runApp')();
+  const old = launches.at(-1), stopping=deferred();
+  old.terminate=()=>{old.terminated++;stopping.resolve();};
+  const autoRun=host.run(student);
+  await stopping.promise;
+  const other=path.join(directory,'other-student');await fs.mkdir(other);
+  await fs.writeFile(path.join(other,'zero.json'),'{}');await fs.writeFile(path.join(other,'mvnw'),'other wrapper');
+  vscode.workspace.workspaceFolders=[{uri:{fsPath:other}}];
+  ends.forEach(handler=>handler({execution:old}));
+  await assert.rejects(autoRun,/student project changed before running/);
+  assert.equal(launches.length,3,'Root drift while stopping cannot launch a different student app');
+  assert.equal(await fs.readFile(path.join(student,'Main.java'),'utf8'),'class Main { /* keep my work */ }\n');
 });

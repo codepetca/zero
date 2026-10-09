@@ -199,3 +199,23 @@ test('Try example uses packaged source/wrappers, isolated settings/cache and cap
   assert.equal(h.messages.some(m=>m.message.includes('build started')),false);
   assert.equal(await fs.readFile(path.join(assets,'Main.java'),'utf8'),'// trusted packaged example\nclass Main {}\n');
 });
+
+test('a launched example keeps its files if Stop fails; task owner alone may clean them', async t => {
+  const h=await harness(t),before=h.document.text;
+  const assets=path.join(h.context.extensionPath,'media/component-example');
+  await fs.mkdir(path.join(assets,'zero'),{recursive:true});
+  await fs.copyFile(path.join(starter,'src/main/java/zero/SimpleApp.java'),path.join(assets,'zero/SimpleApp.java'));
+  await fs.writeFile(path.join(assets,'Main.java'),'class Main {}');
+  for(const file of ['mvnw','mvnw.cmd'])await fs.copyFile(path.join(starter,file),path.join(assets,file));
+  await fs.cp(path.join(starter,'.mvn'),path.join(assets,'.mvn'),{recursive:true});
+  h.hooks.pick=items=>items.find(item=>item.action==='try') || items[0];
+  let ownedRoot;
+  h.hooks.example=async(destination,args,generation,didLaunch)=>{
+    ownedRoot=destination;t.after(()=>fs.rm(destination,{recursive:true,force:true}));
+    didLaunch();throw new Error('The app task has not stopped. Close its terminal before restarting.');
+  };
+  await assert.rejects(h.actions['zero.browseComponents'](),/task has not stopped/);
+  assert.ok(ownedRoot);
+  assert.equal(await fs.readFile(path.join(ownedRoot,'src/main/java/Main.java'),'utf8'),'class Main {}');
+  await unchanged(h,before);
+});

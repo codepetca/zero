@@ -114,20 +114,22 @@ function activate(context) {
       return task;
     }
   }));
-  async function run(generation) {
+  async function run(generation, expectedRoot) {
     if (generation !== runGeneration) return;
     await stop();
     const root = await project();
+    if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running the dependency update. Run the original app explicitly.');
     if (generation !== runGeneration) return;
     if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
     const task = await makeTask(root);
+    if (expectedRoot && await project() !== expectedRoot) throw new Error('The student project changed during run preparation. Run the original app explicitly.');
     if (generation !== runGeneration) return;
     pendingLaunch = vscode.tasks.executeTask(task).then(active => {track(active); return active;});
     try {await pendingLaunch;} finally {pendingLaunch = undefined;}
   }
-  function queuedRun() {
+  function queuedRun(expectedRoot) {
     const generation = runGeneration;
-    const next = runQueue.then(() => run(generation));
+    const next = runQueue.then(() => run(generation,expectedRoot));
     runQueue = next.catch(() => {});
     return next;
   }
@@ -327,7 +329,7 @@ function activate(context) {
   Object.assign(actions, createComponentActions(vscode,context,{
     project,run:queuedRun,isBusy,setBusy:value=>{componentBusy=value;refresh();},
     captureRunGeneration:()=>runGeneration,
-    runExample:async(root,args,generation)=>{
+    runExample:async(root,args,generation,didLaunch=()=>{})=>{
       const launch = async()=>{
         if (generation !== runGeneration) return false;
         await stop();
@@ -339,7 +341,7 @@ function activate(context) {
         const task = new vscode.Task({type:'zero',task:'run'},vscode.TaskScope.Workspace,'Try HealthBar','Zero',execution,'$zero-java');
         task.presentationOptions={reveal:vscode.TaskRevealKind.Always,panel:vscode.TaskPanelKind.Dedicated,clear:true,focus:false};
         pendingLaunch = vscode.tasks.executeTask(task).then(active=>{
-          track(active); exampleDirectories.set(active,root); return active;
+          exampleDirectories.set(active,root); didLaunch(); track(active); return active;
         });
         try {await pendingLaunch;} finally {pendingLaunch=undefined;}
         if (generation !== runGeneration) {await stop(); return false;}

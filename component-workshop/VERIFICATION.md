@@ -38,3 +38,11 @@ checks completed. Physical typing/clicks, DirectoryChooser interaction, visual
 comparison, Windows/Linux, novice trials, external AI and public upload were not
 tested. No UI activation workaround, Robot, AppleScript, credentials or network
 publication was used. Build dependencies resolved through Maven as documented.
+
+Independent review found that candidate previews did not cover the entire public
+API. Explicit compatibility now checks both constructors, every exact instance
+method/return signature and retained maximum. Compiled mutants with a private
+default constructor, missing getter or changed getter return type fail. The same
+harness rejects hidden Maven profiles and floating plugin dependencies. A pinned
+plugin dependency is included in the Java packet and independently accepted by
+the Python validator; neither tool executes contributor build configuration.

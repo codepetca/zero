@@ -45,7 +45,7 @@ function createComponentActions(vscode, context, host) {
     if (!(await document.save())) throw new Error('The dependency edit remains in the editor. Save it or Undo before running.');
     if (operation !== 'add') {
       if (await host.project() !== root) throw new Error('The project changed after the dependency edit. Run the original app explicitly.');
-      await host.run();
+      await host.run(root);
     }
     void vscode.window.showInformationMessage(`Community library ${plan.targetVersion} recorded. ${operation === 'add' ? 'Run your app after using its API.' : 'Check your app behavior in the opened window.'}`);
   }
@@ -78,11 +78,11 @@ function createComponentActions(vscode, context, host) {
     if (process.platform !== 'win32') await fs.chmod(path.join(destination,'mvnw'),0o755);
     await fs.writeFile(path.join(destination,'settings.xml'),'<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"/>\n');
     await fs.writeFile(path.join(destination,'pom.xml'),`<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><groupId>school.zero</groupId><artifactId>component-example</artifactId><version>1.0</version><properties><maven.compiler.release>17</maven.compiler.release></properties><repositories><repository><id>zero-local-components</id><url>${xml(source.repositoryUrl)}</url><snapshots><enabled>false</enabled></snapshots></repository></repositories><dependencies><dependency><groupId>school.zero.community</groupId><artifactId>zero-community</artifactId><version>${xml(source.catalog.latest)}</version></dependency><dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>21.0.12</version></dependency></dependencies><build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.0</version></plugin><plugin><groupId>org.openjfx</groupId><artifactId>javafx-maven-plugin</artifactId><version>0.0.8</version><configuration><mainClass>Main</mainClass></configuration></plugin></plugins></build></project>\n`);
-    let started;
+    let started, cleanupTransferred = false;
     try {
-      started = await host.runExample(destination,['-B','--no-transfer-progress','-s',path.join(destination,'settings.xml'),'-gs',path.join(destination,'settings.xml'),`-Dmaven.repo.local=${path.join(destination,'cache')}`,'compile','javafx:run'],generation);
+      started = await host.runExample(destination,['-B','--no-transfer-progress','-s',path.join(destination,'settings.xml'),'-gs',path.join(destination,'settings.xml'),`-Dmaven.repo.local=${path.join(destination,'cache')}`,'compile','javafx:run'],generation,()=>{cleanupTransferred=true;});
     } finally {
-      if (!started) await fs.rm(destination,{recursive:true,force:true});
+      if (!started && !cleanupTransferred) await fs.rm(destination,{recursive:true,force:true});
     }
     if (started) void vscode.window.showInformationMessage('Local HealthBar example build started. Stop closes it; your student app files were not changed.');
   }

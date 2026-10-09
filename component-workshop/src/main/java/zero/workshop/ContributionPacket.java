@@ -70,6 +70,12 @@ final class ContributionPacket {
             .newDocumentBuilder()
             .parse(new ByteArrayInputStream(pom.getBytes(StandardCharsets.UTF_8)))
             .getDocumentElement();
+    for (String unsupported : List.of("parent","profiles","dependencyManagement"))
+      if (childOrNull(root,unsupported) != null)
+        throw new IOException("POM schema 1 does not support " + unsupported);
+    Element build = childOrNull(root,"build");
+    if (build != null && (childOrNull(build,"pluginManagement") != null || childOrNull(build,"extensions") != null))
+      throw new IOException("POM schema 1 does not support management or build extensions");
     Map<String, String> properties = new HashMap<>();
     Element props = child(root, "properties");
     for (Node node = props.getFirstChild(); node != null; node = node.getNextSibling())
@@ -86,7 +92,8 @@ final class ContributionPacket {
             value = properties.get(value.substring(2, value.length() - 1));
           if (value == null
               || !value.matches("[A-Za-z0-9][A-Za-z0-9_.+-]*")
-              || value.toUpperCase(Locale.ROOT).contains("SNAPSHOT"))
+              || value.toUpperCase(Locale.ROOT).contains("SNAPSHOT")
+              || List.of("LATEST","RELEASE").contains(value.toUpperCase(Locale.ROOT)))
             throw new IOException("Dependency must have an exact pinned version");
           item.addProperty(key, value);
         }
@@ -94,7 +101,37 @@ final class ContributionPacket {
         item.addProperty("scope", scope == null ? "compile" : scope.getTextContent().strip());
         result.add(item);
       }
+    Element plugins = build == null ? null : childOrNull(build,"plugins");
+    if (plugins != null) for (Node node = plugins.getFirstChild(); node != null; node = node.getNextSibling()) {
+      if (!(node instanceof Element plugin) || !plugin.getTagName().equals("plugin")) continue;
+      if (childOrNull(plugin,"extensions") != null) throw new IOException("POM schema 1 does not support plugin extensions");
+      JsonObject coordinates = new JsonObject();
+      Element group = childOrNull(plugin,"groupId");
+      coordinates.addProperty("groupId",group == null ? "org.apache.maven.plugins" : group.getTextContent().strip());
+      coordinates.addProperty("artifactId",child(plugin,"artifactId").getTextContent().strip());
+      coordinates.addProperty("version",pinned(child(plugin,"version").getTextContent().strip(),properties));
+      Element extras = childOrNull(plugin,"dependencies");
+      if (extras == null) continue;
+      for (Node extra = extras.getFirstChild(); extra != null; extra = extra.getNextSibling()) {
+        if (!(extra instanceof Element dependency) || !dependency.getTagName().equals("dependency")) continue;
+        JsonObject item = new JsonObject();
+        for (String key : List.of("groupId","artifactId","version")) {
+          String value = child(dependency,key).getTextContent().strip();
+          item.addProperty(key,key.equals("version") ? pinned(value,properties) : value);
+        }
+        item.addProperty("scope","plugin"); item.add("plugin",coordinates); result.add(item);
+      }
+    }
     return result;
+  }
+
+  private static String pinned(String value, Map<String,String> properties) throws IOException {
+    if (value.startsWith("${") && value.endsWith("}")) value = properties.get(value.substring(2,value.length()-1));
+    if (value == null || !value.matches("[A-Za-z0-9][A-Za-z0-9_.+-]*")
+        || value.toUpperCase(Locale.ROOT).contains("SNAPSHOT")
+        || List.of("LATEST","RELEASE").contains(value.toUpperCase(Locale.ROOT)))
+      throw new IOException("Dependency/plugin must have an exact pinned version");
+    return value;
   }
 
   private static Element child(Element parent, String tag) throws IOException {

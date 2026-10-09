@@ -393,6 +393,26 @@ public class Workshop extends SimpleApp {
       }
       Files.writeString(candidate.resolve("private-notes.txt"), "outside packet scope");
       ComponentProject copy = new ComponentProject(candidate);
+      String originalPom = copy.read("pom.xml");
+      for (String pomMutation : List.of(
+          originalPom.replace("</project>","<profiles><profile><id>hidden</id></profile></profiles></project>"),
+          originalPom.replace("</plugin>","<dependencies><dependency><groupId>example</groupId><artifactId>tool</artifactId><version>LATEST</version></dependency></dependencies></plugin>"))) {
+        Files.writeString(candidate.resolve("pom.xml"),pomMutation);
+        boolean rejected = false;
+        try {ContributionPacket.inspect(copy);} catch (IOException expected) {rejected=true;}
+        require(rejected,"unsupported profile/floating plugin dependency cannot export");
+      }
+      Files.writeString(candidate.resolve("pom.xml"),originalPom.replaceFirst("</plugin>",
+          "<dependencies><dependency><groupId>example.tools</groupId><artifactId>compiler-helper</artifactId><version>5.11.4</version></dependency></dependencies></plugin>"));
+      JsonObject pluginManifest = ContributionPacket.inspect(copy);
+      boolean recorded = false;
+      for (JsonElement item : pluginManifest.getAsJsonArray("dependencies"))
+        if (item.getAsJsonObject().get("scope").getAsString().equals("plugin")) recorded=true;
+      require(recorded,"pinned plugin dependency appears in packet metadata");
+      Path pluginPacket = ContributionPacket.prepare(copy,candidate,WorkshopChecks.report(copy));
+      Files.createDirectories(Path.of("target"));
+      Files.copy(pluginPacket.resolve("packet.zip"),Path.of("target/workshop-plugin-proof.zip"),StandardCopyOption.REPLACE_EXISTING);
+      Files.writeString(candidate.resolve("pom.xml"),originalPom);
       JsonObject before = WorkshopChecks.report(copy);
       Files.writeString(
           candidate.resolve("src/main/java/zero/community/HealthBar.java"),
@@ -446,6 +466,23 @@ public class Workshop extends SimpleApp {
         }
         require(failed, "fractional fill mutant caught after local rebuild");
       }
+      for (String apiMutation : List.of(
+          original.replace("public HealthBar(int maximum)", "private HealthBar(int maximum)"),
+          original.replace("public int getMaximum()", "public int removedMaximum()"),
+          original.replace("public int getMaximum()", "public long getMaximum()"))) {
+        require(!apiMutation.equals(original), "API mutant must change source");
+        Files.writeString(candidate.resolve("src/main/java/zero/community/HealthBar.java"), apiMutation);
+        try (CandidateBuild mutant = new CandidateBuild(copy)) {
+          boolean failed = false;
+          for (JsonElement element : WorkshopChecks.report(copy,mutant).getAsJsonArray("checks")) {
+            JsonObject item = element.getAsJsonObject();
+            if (item.get("id").getAsString().equals("public-api-compatibility"))
+              failed = item.get("status").getAsString().equals("failed");
+          }
+          require(failed,"removed constructor/getter or changed return type must fail compatibility");
+        }
+      }
+      Files.writeString(candidate.resolve("src/main/java/zero/community/HealthBar.java"), original);
       edited = WorkshopChecks.report(copy);
       Path exported = ContributionPacket.prepare(copy, candidate, edited);
       try (java.util.zip.ZipFile zip =

@@ -50,7 +50,7 @@ Local integration evidence:
 - Actual Maven consumer from extension engine plans passes add0.1.0/update0.1.1/
   revert0.1.0; source unchanged, actual JAR hash/origin verified. Path has spaces.
   Initial coordinator harness cast error corrected; no production API issue.
-- Extracted68-member component ZIP passes actual finite JavaFX Workshop harness
+- Extracted component component ZIP passes actual finite JavaFX Workshop harness
   with default sibling paths in a folder with spaces. Initial plugin argument
   splitting exposed a real portability defect; relative defaults/file-URI custom
   paths fixed it after one unsuccessful quoting attempt. Final extracted pass.
@@ -420,3 +420,17 @@ targeted follow-up accepted the corrected delta. Publication reuses that coverag
 and runs a bounded focused integration pass; the PR records its final decision.
 All workers have released file ownership. The earlier Processing template is
 preserved. Generated dist, caches and verification logs stay out of Git.
+
+## Component review ledger
+
+Initial high-risk wave: two fresh GPT-6.1 Sol/high reviewers at Zero3559a1d and
+community1544095, start~11:17UTC Oct9. Both completed full assigned scope, no P0/P1.
+Five accepted P2s: Stop timeout cleanup ownership; update/revert queued Run root
+drift; unsupported Maven profiles/management missing admission; AI second-read
+digest drift; incomplete candidate API compatibility. One combined fix batch:
+coordinator owns Zero; original Sol/high admission worker owns its four files.
+No overlap, no source/library/artifact changes in community, no external action.
+Twenty affected Node checks pass; admission24 tests pass. Workshop finite harness
+passes constructor/getter/return-type mutants and Maven-profile/plugin fixtures.
+Pinned nested plugin dependencies now share Java/Python packet schema, validated
+independently. Two focused review turns planned for this delta; budgets unchanged.
