@@ -13,7 +13,7 @@ test('commands simulate upload without Git and share task ownership across short
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', confirmUpload;
-  const originalGit=core.git;core.git=async()=>{mutations++;throw new Error('Unexpected git');};t.after(()=>{core.git=originalGit;});
+  const originalGit=core.git;core.git=async(_,args)=>{if (args[0] === 'remote' || args[0] === 'rev-parse' || args[0] === 'symbolic-ref') throw new Error('No repository'); mutations++;throw new Error('Unexpected git');};t.after(()=>{core.git=originalGit;});
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
     authentication:{getSession:async()=>({id:'test-session',account:{id:'student',label:'student'},accessToken:'INTERCEPTED'}),onDidChangeSessions:disposable},
@@ -80,7 +80,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
-  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return root;if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
+  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return root;if(args[0]==='symbolic-ref')return 'main';if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
   const vscode={
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
     workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?'simulation':fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
@@ -118,7 +118,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.equal(dispatched.length,dispatchCount);assert.match(notices.at(-1),/Accounts menu.*Sign Out/,'Older editors get usable native sign-out guidance');nativeAccountsAvailable=true;
   nextChoice='change';await commands.get('zero.githubAccount')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
   repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle();
-  assert.match(webview.html,/Upload to GitHub/);assert.match(webview.html,/>student\/app<\/button>/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
+  assert.match(webview.html,/Upload changes/);assert.match(webview.html,/>student\/app<\/button>/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['copy','connect']);
   session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle();

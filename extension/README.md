@@ -5,7 +5,7 @@ Open a student folder containing `zero.json`, or the kit with its
 webview, file tree, task and command APIs. Files open in the normal editor.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.3.2.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.4.0.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
@@ -26,6 +26,8 @@ Compiler output stays in the task terminal. `$zero-java` matches Maven
 language support supplies editor diagnostics.
 
 Commands: `zero.runApp`, `zero.stopApp`, `zero.uploadToGitHub`,
+`zero.chooseBranch`, `zero.startChange`, `zero.finishChange`,
+`zero.githubAccount`, `zero.chooseRepository`,
 `zero.signInToGitHub`, `zero.createRepository`, `zero.connectRepository`,
 `zero.copyRepositoryLink`, `zero.showSetup` and
 `zero.showSidebar`.
@@ -40,8 +42,10 @@ there. Older editors without that command show instructions for their native
 Accounts menu instead.
 The repository row shows `owner/name`, or **Connect a repo**. Click for
 create/connect options when empty, or copy-link/change options when connected.
-**Upload to GitHub** and its explicit simulation/live label stay visible when
-signed in and connected. Run App works without sign-in.
+The current branch opens **Start a change** on main or **Finish change** on a
+change branch. **Upload changes** and its explicit simulation/live label stay
+visible when signed in and connected. Run App works without sign-in. No team/PR
+controls or rebase interface are included.
 
 Sign-in uses VS Code's built-in GitHub authentication provider. It requests
 `repo` access, including private repositories, so students can choose Public or
@@ -60,12 +64,30 @@ origin; replacement requires confirmation. Copy the starter outside the kit
 if it is nested inside another Git repository. Connecting is local and does
 not verify GitHub ownership, existence or permission.
 
-**Upload defaults to simulation — nothing uploaded.** Simulation does not stage,
-commit, push or open sign-in. Workspace setting `"zero.uploadMode": "live"`
+**Upload, Start and Finish default to simulation — nothing changed in Git or uploaded.**
+Upload, Start and Finish simulation do not save files, stage, commit, change
+branches, fetch, push or open sign-in. Workspace setting `"zero.uploadMode": "live"`
 enables live upload. After signing in, save files, enter a commit message and
 review the account, repository, branch and changed paths. **Commit & Upload**
 stages reviewed changes, commits when needed, pushes and checks the remote
 branch. Ignored files stay local. A failed push may leave a local commit.
+
+Upload the starting version once on main. For each improvement, start a named
+branch from clean committed main, edit/run, upload progress, then review Finish
+to merge and upload completed work to main. Start can only fast-forward main
+from its remote snapshot. Finish requires a clean change branch and refuses
+separate unpublished main history. It merges newer remote main into the change
+branch and pauses for Run App and another Finish review. Conflicts remain in
+place; native Source Control guides resolution/staging/commit before retrying.
+No rebase, force push, reset or automatic abort is performed.
+
+Finish advances local main with guarded SHA checks and non-force pushes the
+captured completed SHA, then confirms remote main before returning to it. A
+failed push retains the change branch for retry; local main may already have
+advanced. Optional cleanup deletes only the unchanged local finished branch
+after success. The remote change branch remains. Shared worktrees and unusual
+histories require ordinary Git tools. The repository link for Pika is unchanged;
+completed code should be on main.
 
 Live transport receives the captured VS Code session in transient child-process
 Git configuration scoped to that exact GitHub HTTPS repository. Zero writes no
@@ -73,7 +95,8 @@ credential/config file, changes no global Git credentials, disables hooks and
 redirects for these transport processes, and keeps credentials out of process
 arguments and displayed errors. An empty temporary hook directory is removed
 when the process completes. Native session changes invalidate the review;
-session/account/token are rechecked before push and remote confirmation.
+session/account/token are rechecked before push, remote confirmation and the
+strictly allowed main head queries/SHA-pinned fetches used by Start and Finish.
 Local Git inspection and commits receive no native-session credentials.
 
 Live upload requires Git 2.31 or newer for isolated runtime configuration. Zero
@@ -103,7 +126,9 @@ Packaging uses pinned `@vscode/vsce` and creates a local VSIX; it never publishe
 Tests cover root guards, review/staging/commit behavior, cancellation, errors,
 simulation, native session changes, credential isolation/cleanup and intercepted
 transport. A Mac teacher trial verified native GitHub sign-in/create/connect/cancel/upload
-and copy-link; novice student pilots remain unverified. Mac editor/process checks
+and copy-link for the earlier upload flow; the new start/finish flow uses injected
+local remotes for development verification. Real GitHub start/finish and novice
+student pilots remain unverified. Mac editor/process checks
 and their limits are recorded
 in the bundled `VERIFICATION.md`; physical Windows/Linux checks
 remain pending. Review focused changes before classroom adoption.

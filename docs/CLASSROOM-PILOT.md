@@ -64,6 +64,18 @@ account/network trial. Current development checks mock authentication and transp
 - Click the connected repository name → Copy repository link; submit it separately in Pika and verify teacher access to
   a private repository. Zero does not submit assignments or change grades.
 
+- Upload the starting version on main. Click main → Start a change, cancel once
+  and verify the branch/files are unchanged; then create a named branch. Make
+  and run a small app improvement, Upload changes to that branch, cancel Finish
+  once, then review/approve Finish. Confirm the completed SHA and files on remote
+  main, return to main and optional local branch cleanup. The remote change branch
+  remains. Simulation must not perform any branch/update/merge actions.
+- In a disposable repository, test newer main changes. Expect Finish to pause
+  after adding them to the change branch, then Run App and review Finish again.
+  For a conflict, verify Source Control opens, files/merge state remain and the
+  student can inspect/resolve/stage/commit before retrying. Record dirty-tree,
+  failed-upload and diverged-main messages; no force push/reset should occur.
+
 ## Decision and receipt
 
 Record each step as pass, fail or not tested, with useful errors, observed novice

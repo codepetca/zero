@@ -8,15 +8,16 @@ const core = require('./core');
 const {assertNoUrlRewrites} = require('./github');
 const execute = promisify(execFile);
 
-// Only push and its confirmation receive credentials; local Git never does.
+// Only reviewed remote operations receive credentials; local Git never does.
 function createTransport(remote, authenticate, {assertCurrentNow, spawn = execute, environment = process.env, localRun = core.git} = {}) {
   const destination = core.parseRepositoryUrl(remote).remote;
   if (remote !== destination) throw new Error('Review the ordinary GitHub HTTPS destination again.');
   if (typeof assertCurrentNow !== 'function' || assertCurrentNow.constructor.name === 'AsyncFunction') throw new Error('GitHub transport requires a synchronous session guard.');
   return async (root, args) => {
-    const pushing = args.length === 3 && args[0] === 'push' && args[1] === destination && /^[a-f0-9]{40,64}:refs\/heads\/[^\s:]+$/.test(args[2]);
+    const pushing = args.length === 3 && args[0] === 'push' && args[1] === destination && /^(?:[a-f0-9]{40}|[a-f0-9]{64}):refs\/heads\/[^\s:]+$/.test(args[2]);
     const checking = args.length === 4 && args[0] === 'ls-remote' && args[1] === '--heads' && args[2] === destination && /^refs\/heads\/[^\s:]+$/.test(args[3]);
-    if (!pushing && !checking) throw new Error('Only the reviewed GitHub upload and confirmation may use this sign-in.');
+    const fetching = args.length === 6 && args[0] === 'fetch' && args[1] === '--no-tags' && args[2] === '--no-recurse-submodules' && args[3] === '--no-write-fetch-head' && args[4] === destination && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(args[5]);
+    if (!pushing && !checking && !fetching) throw new Error('Only the reviewed GitHub upload, main fetch and branch confirmation may use this sign-in.');
     // Git 2.31 introduced runtime config via GIT_CONFIG_COUNT. Fail closed
     // before obtaining transport credentials on versions that would ignore it.
     const version = /^git version (\d+)\.(\d+)(?:\.|\s|$)/.exec(await localRun(root, ['--version']));
@@ -66,11 +67,11 @@ function createTransport(remote, authenticate, {assertCurrentNow, spawn = execut
       settings.forEach(([key, value], index) => { env[`GIT_CONFIG_KEY_${index}`] = key; env[`GIT_CONFIG_VALUE_${index}`] = value; });
       try {
         const {stdout} = await spawn('git', args, {cwd: root, env, timeout: 120000, maxBuffer: 1024 * 1024});
-        // Neither operation needs arbitrary output: push is ignored, ls-remote
+        // Push/fetch need no arbitrary output; ls-remote
         // returns only a SHA and the expected ref. Never expose raw child output.
-        if (pushing) return '';
+        if (pushing || fetching) return '';
         const rows = stdout.trim().split('\n').filter(Boolean);
-        if (rows.some(row => !/^[a-f0-9]{40,64}\trefs\/heads\/[^\s:]+$/.test(row))) throw new Error('Unexpected remote response');
+        if (rows.some(row => !/^(?:[a-f0-9]{40}|[a-f0-9]{64})\trefs\/heads\/[^\s:]+$/.test(row))) throw new Error('Unexpected remote response');
         return rows.join('\n');
       } catch (error) {
         const detail = String(error.stderr || '');

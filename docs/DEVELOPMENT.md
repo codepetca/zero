@@ -46,6 +46,16 @@ no real sign-in, upload or account/configuration changes are authorized by a
 local development check. Simulation stays the default. Signing in is separate
 from manually configuring per-repository Git commit identity.
 
+The individual workflow adds reviewed start/finish plans. Test real local Git
+against injected disposable bare remotes: baseline, branch progress, main updates,
+pause/run/review after updates, preserved conflict state, failed push/retry and
+safe optional local branch deletion. Never redirect production transport through
+Git URL rewriting or introduce a real GitHub test. Simulation must skip saves,
+auth, network and Git mutations for Upload, Start and Finish. Native transport
+accepts only the exact reviewed HTTPS destination and narrow push/head-query/
+SHA-pinned-fetch commands; session/root/rewrite checks remain required. UI tests
+cover cancellation, operation serialization, source-control guidance and drift.
+
 Run `git diff --check` before handoff. Record checks actually performed in
 [VERIFICATION.md](VERIFICATION.md); configuration/ZIP checks alone do not prove
 editor behavior or a real upload. Physical Windows/Linux and novice pilots remain

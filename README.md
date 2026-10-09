@@ -12,7 +12,8 @@ builds on the quiz with ordinary Question objects, feedback, score and next/rest
 Readable framework source ships with the starter;
 there is no required component or screen base class.
 
-Run App saves, rebuilds and restarts. **Upload to GitHub defaults to simulation**.
+Run App saves, rebuilds and restarts. **Upload, Start and Finish default to simulation**.
+The individual flow is Start a change → Upload changes → Finish change into main.
 The opt-in live path reviews changes and uses VS Code's native GitHub session.
 A Mac teacher trial verified real sign-in/create/connect/cancel/upload/copy-link.
 Physical Windows/Linux and novice student trials remain unverified; see the
@@ -48,7 +49,7 @@ profile. The sidebar also supports dark themes.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.3.2.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.4.0.vsix`,
 `zero-starter.zip`, the profile and combined kit ZIP. It does not publish them.
 
 Start contributions with one understandable helper, example or useful error.

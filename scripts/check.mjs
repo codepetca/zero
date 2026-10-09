@@ -22,7 +22,7 @@ if (profile.extensions) assert.ok(Array.isArray(JSON.parse(profile.extensions)))
 json('profile/optional-keybindings.json');
 const manifest = json('extension/package.json');
 assert.equal(`${manifest.publisher}.${manifest.name}`, 'zero.zero');
-for (const command of ['zero.runApp', 'zero.stopApp', 'zero.uploadToGitHub', 'zero.copyRepositoryLink']) {
+for (const command of ['zero.runApp', 'zero.stopApp', 'zero.uploadToGitHub', 'zero.copyRepositoryLink', 'zero.chooseBranch', 'zero.startChange', 'zero.finishChange']) {
   assert.ok(manifest.contributes.commands.some(item => item.command === command), command);
 }
 assert.ok(existsSync(path.join(root, manifest.main.startsWith('./')

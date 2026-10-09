@@ -1,5 +1,70 @@
 # Current state — 2026-10-08
 
+## Individual GitHub workflow — active goal
+
+Owner agreed an ultra-simple individual flow and requested orchestration:
+Start a change, build/run, Upload changes, Finish change into main; current branch
+opens the small menu, while Finish stays out of the permanent sidebar. No PR/team
+mode or rebase interface. Students submit the repository link separately in Pika.
+The tool-backed goal tracks implementation, local dogfooding, independent review,
+verification and regenerated kit. Work is local on codex/individual-workflow from
+528ce8ff0206f9de21ec111843be89c9a242edd6. No real GitHub push/account changes,
+source PR/merge, release or deployment authorized. Weekly remaining 55%; DeepSeek
+pilot paused through 2026-12-31. Existing Java app/source contracts stay intact.
+
+One execution plan:
+
+1. Implement guarded start/finish engine and compact sidebar. Exit: meaningful
+   local Git and mocked UI/transport tests pass; simulation changes no Git state.
+2. Dogfood a full cycle in a disposable standalone starter/local bare remote,
+   including updated main, cancellation, conflicts, retry and optional cleanup.
+   Exit: exact completed main SHA/files verified and source preserved on failures.
+3. Independently review the fixed implementation, verify/package source bytes,
+   and record actual native/platform gaps. Exit: no unresolved blockers, local
+   checks green, clean committed branch and regenerated ZIP/VSIX.
+
+Ownership: individual_git_engine, GPT-6.1 Sol/high, fresh context, started
+~02:40 UTC Oct 9 (~22:40 Toronto Oct 8), owns workflow.js, transport.js and
+github.js plus their tests. Individual_sidebar, GPT-6.1 Sol/medium, fresh context,
+owns extension.js, manifest and UI tests. Coordinator owns guides/checks/packaging
+and acceptance. No worker Git mutations or recursive delegation. Requested
+configuration recorded; effective telemetry, attributable tokens and coordination
+time unknown. First baseline on main uses existing reviewed Upload; Start requires
+clean committed main. Network uses exact destination and SHA-pinned fetch, no
+force. Finish merges updated main into the feature, preserves conflicts, retains
+the feature on failed push, and returns to main only after remote confirmation.
+Optional cleanup deletes only the unchanged local finished branch, never remote.
+
+Review plan: high risk due to new authenticated fetch and destructive/stateful
+Git boundaries. After checks, two independent GPT-6.1 Sol/high reviewers with
+fresh context: credential/destination correctness and Git-state/UI compatibility.
+Default caps: seven launches, one initial wave, four targeted/fix batches, one
+final integration wave, 60 minutes elapsed and 30 minutes per reviewer. Ledger
+not started; reviewed base/head recorded when implementation is stable.
+
+Sidebar delivery inspected: focused 3/3 tests, syntax/diff checks passed. Simulation
+skips saves/auth/engine while notifications remain open; branch menu and busy
+guards retain minimal source-control/account controls. Owner released files.
+Coordinator independently dogfooded a complete starter copy in a path with spaces:
+two compiled Java edits/cycles, two cancelled previews, failed final push/retry,
+exact local-bare main/source confirmation and safe local cleanup with remote
+progress branch retained. All 34 network commands were injected to the local
+bare remote; no GitHub endpoint contacted. Trial temporary repositories removed.
+Final main receipt 7db23efdfcd76e8b41a970d495404848e6d082a8. Engine guard/tests
+delivered and source inspected; 40/40 engine/GitHub/transport checks, then 2/2
+targeted latest guards passed. Both workers released ownership. Coordinator found
+and requested an atomic cleanup guard for a concurrently moved feature; worker
+added a real mutation regression and compared-and-deleted the exact expected SHA.
+No file conflicts. Coordinator clock observed ~10 minutes for the two deliveries,
+while worker self-estimates were ~14 minutes each; these are estimates, not token
+or cost telemetry. Full integration suite and independent review next. Preliminary
+0.4.0 VSIX packaged and installed in isolated editor data/extensions. CLI attempt
+with nonexistent Zero profile failed; default isolated install succeeded. CUA
+selected another Code process (Welcome window), so no native activation/interaction
+claim. The signed-out preview starter is saved outside the kit in
+/Users/stew/Documents/Zero Individual Preview 2026-10-08/zero-starter; its origin
+is a placeholder and simulation stays default. No account/network actions used.
+
 ## Minimal GitHub sidebar
 
 Owner requested a profile icon/initial with account-name hover and account actions,

@@ -14,7 +14,7 @@ Zero**, then close the app window or terminate that task before running again.
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
-   quiet settings-only profile. In your chosen profile, install the local **zero-0.3.2.vsix**, **Language
+   quiet settings-only profile. In your chosen profile, install the local **zero-0.4.0.vsix**, **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -157,16 +157,38 @@ or Git configuration. Account/session changes require a fresh upload review.
 See the kit's getting-started guide or ask your teacher for help. Never put a
 password or token in Java source, the marker or README.
 
-**Upload defaults to simulation: nothing is staged, committed or uploaded.**
+**Upload, Start and Finish default to simulation: no Git state changes or upload.**
 To use the implemented real-upload path, set `"zero.uploadMode": "live"` in
-workspace settings. Upload saves files, asks for a commit message, then shows a
+workspace settings. Upload changes saves files, asks for a commit message, then shows a
 modal review of your repository, branch and changed files. Check it before
 choosing **Commit & Upload**. This creates a local commit when needed and pushes
 with Git HTTPS transport using your native sign-in; ignored files stay local. A failed upload may
 leave a local commit. A Mac teacher trial verified native sign-in and a private repository upload;
 other platforms and school environments still need trials.
 
-After a successful real upload, check the files on GitHub. Click the connected
+For a new repository, Upload changes once on **main** to save the starter.
+Then use this individual flow for each improvement:
+
+1. Click **main → Start a change**, name your branch (for example `quiz-feedback`)
+   and review before creating it. Upload pending edits first. Main is updated
+   from GitHub when it can be advanced without combining separate histories.
+2. Edit and Run App. **Upload changes** saves and uploads progress to your branch;
+   repeat as needed.
+3. Click the branch name → **Finish change**. Upload pending edits first, run the
+   app and review before merging/uploading into main. If newer main code is added
+   to your branch, Zero pauses: run the combined app and review Finish again.
+4. After confirmed success, you are back on main. Remove the finished local
+   branch when prompted, or keep it; its GitHub branch remains.
+
+If an update conflicts, your work and merge state remain. In VS Code Source
+Control, inspect the conflicted files/Merge Editor, combine the intended changes,
+save and stage them, then commit the merge. Run App and review Finish again.
+Ask your teacher for help with an unclear conflict or diverged main history.
+A failed Finish upload can leave local main advanced while your change branch
+remains selected; repair the network/access problem and review Finish again.
+Zero does not force-push or automatically discard work.
+
+After a successful real Finish, check the files on GitHub's main branch. Click the connected
 repository name and choose **Copy repository link**, then submit it separately
 in Pika. Give your teacher access if it is
 private. Zero does not submit assignments or change Pika grades.

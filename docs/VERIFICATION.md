@@ -1,5 +1,40 @@
 # Local verification — 2026-10-08
 
+## Individual workflow — 0.4.0
+
+Local implementation on codex/individual-workflow from 528ce8f. The owner agreed
+Start a change → Upload changes → Finish change into main, then requested this
+goal's orchestration. No team/PR mode or rebase interface. Initial main upload
+uses the existing reviewed path; Finish and optional local cleanup add guarded
+state transitions. Authentication/storage and local Java framework are retained.
+This goal authorizes local implementation and injected-remote dogfooding, not a
+real GitHub upload, account modification, source push/PR/merge or release.
+
+Evidence so far:
+
+- Focused sidebar tests passed 3/3: default simulation skips save/auth/Git
+  mutation, cancellation, busy menus/commands, account and branch drift, update
+  pause for Run App/fresh Finish, preserved conflict guidance and native Source
+  Control/fallback, success-only optional cleanup, escaping and token exclusion.
+- Coordinator's standalone starter trial used a temporary path with spaces and
+  injected all 34 transport commands to a local bare repository. Two small Java
+  changes compiled with the pinned Maven wrapper; two complete branch/finish
+  cycles confirmed main and exact Java source bytes. Preparing then cancelling
+  Start/Finish kept refs/files unchanged. A failed final push retained the feature
+  and source; a new Finish review uploaded the preserved SHA. Optional cleanup
+  removed only the local feature; the remote progress branch remained. Reusing
+  that remote name was rejected. Final local-bare main was
+  7db23efdfcd76e8b41a970d495404848e6d082a8. Temporary trial repositories removed.
+- Configuration, syntax, command contracts, document links and diff checks passed.
+  Engine/transport checks and independent review are in progress.
+
+Local-bare transport is injected only in checks; production accepts the ordinary
+reviewed GitHub HTTPS destination and uses guarded native-session credentials.
+No real account/network trial is claimed. Native 0.4 editor interaction and real
+GitHub start/finish, physical Windows/Linux, school restrictions and novice
+student flow remain untested. The Java framework is unchanged; these Java edits
+were compile checks, not physical app input or full framework GUI evidence.
+
 ## Compact GitHub sidebar — 0.3.2
 
 Local change on codex/minimal-github-sidebar, based on the completed study branch

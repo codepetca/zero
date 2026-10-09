@@ -48,7 +48,9 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   header has a profile icon (account initial when signed in); hover reveals the
   account name and click opens account actions. The repository row shows
   owner/name or “Connect a repo”; its menu offers create/connect or copy/change.
-  Upload and its simulation label stay visible for a signed-in connected repo.
+  The current branch opens Start a change (on main) or Finish change (on a change
+  branch). Upload changes and its simulation label stay visible for a signed-in
+  connected repo. There is one individual workflow; no team/PR mode.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
   Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
 - Compiler diagnostics support source navigation. Missing local tools have setup
@@ -77,12 +79,34 @@ replacing origin. It rejects nested projects. Connection is local: it does not
 verify remote ownership, existence or access and does not upload.
 
 `zero.uploadMode` defaults to `simulation`, which makes no Git changes and says
-nothing was uploaded. Opt-in `live` mode saves files, gathers a commit message
+nothing was uploaded. Start/Finish also simulate without saving files or changing
+branches. Opt-in `live` mode saves files, gathers a commit message
 and reviews repository, branch and changed files before confirmation. It stages
 reviewed changes, commits when needed and pushes the reviewed destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave
 a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity.
+
+The individual flow uses main for completed work and one short-lived branch per
+change. A new empty repository starts with a reviewed Upload changes on main.
+Click main → Start a change, name the branch, and review its creation. Start
+requires clean committed main and brings in remote main only by fast-forward;
+diverged histories require manual repair. Upload changes commits/pushes progress
+to the current branch. Run and check the app before finishing.
+
+Click the change branch → Finish change. Upload pending edits first; Finish
+requires a clean committed change branch and previews the branch, destination,
+main snapshots and affected paths. Updated remote main is merged into the change
+branch, then Finish pauses for Run App and another Finish review before uploading
+the combined version. No rebase/force push is used. Conflicts preserve the branch and merge
+state, open native Source Control and require resolution/staging/commit before
+running the app and reviewing Finish again. Local main may not contain separate
+unpublished work outside the change branch. Finish advances local main, pushes
+the exact completed SHA to remote main and confirms it before switching to main.
+A failed push can leave main advanced locally while retaining the change branch
+for another Finish review. Optional cleanup removes only the unchanged local
+finished branch; the uploaded remote change branch remains. Shared worktrees and
+unusual histories require normal Git tools. No automatic source rollback occurs.
 
 Live transport uses transient credentials from the captured native GitHub session.
 It requires Git 2.31+ for runtime credential configuration and rejects older Git
@@ -91,10 +115,15 @@ The session is revalidated before network actions, so account/session changes
 require another review. Zero does not store tokens or place them in Git command
 arguments or logs. It has no custom password/token UI. Automated checks mock
 sessions and intercept transport; they do not prove a real upload.
+The same guarded transport permits only exact-destination pushes, branch-head
+queries and SHA-pinned fetches needed to update main. Local Git receives no native
+credentials. Preparation queries remote main without changing local files/refs;
+the reviewed executor performs updates, with drift/session checks throughout.
 
 Copy Repository Link returns a page URL for separate Pika submission. A copied
 link does not establish that code was uploaded or that the remote is current.
-Verify files after a real upload, then submit the link separately in Pika.
+After Finish, verify completed files on main after a real upload, then submit the
+link separately in Pika. A branch upload alone does not finish a change on main.
 
 ## Integration contract
 

@@ -186,3 +186,27 @@ test('destination rewriting during temporary-directory preparation prevents disp
     await assert.rejects(fs.access(hookPath));
   } finally {fs.mkdtemp=originalMkdtemp;}
 });
+
+test('pinned fetch gets isolated credentials and no stdout, while arbitrary fetch/refspecs are refused', async t => {
+  const root = await project(t); let calls = 0; let options;
+  const run = createTransport(remote, async () => nativeSession(), {assertCurrentNow: nativeSession, spawn: async (_, args, value) => {
+    calls++; options = value;
+    assert.deepEqual(args, ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, sha]);
+    assert.ok(settings(value.env).some(([key, val]) => key === 'credential.helper' && val === ''));
+    return {stdout: token};
+  }});
+  assert.equal(await run(root, ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, sha]), '');
+  assert.equal(options.env.GIT_CONFIG_COUNT, undefined);
+  for (const args of [
+    ['fetch', remote, 'main'],
+    ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, 'main'],
+    ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, `${sha}:refs/heads/main`],
+    ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, 'a'.repeat(41)],
+    ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', 'https://github.com/other/app.git', sha],
+    ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, sha, '--prune'],
+    ['push', remote, `${'a'.repeat(41)}:refs/heads/main`]
+  ]) await assert.rejects(run(root, args), /Only the reviewed/);
+  assert.equal(calls, 1);
+  const failed = createTransport(remote, async () => nativeSession(), {assertCurrentNow: nativeSession, spawn: async () => { throw Object.assign(new Error(token), {stderr: token}); }});
+  await assert.rejects(failed(root, ['fetch', '--no-tags', '--no-recurse-submodules', '--no-write-fetch-head', remote, sha]), error => !error.message.includes(token));
+});

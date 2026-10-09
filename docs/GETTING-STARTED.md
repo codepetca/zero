@@ -1,7 +1,7 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. The kit contains `zero-0.3.2.vsix`, `Zero.code-profile`,
+separate JavaFX window. The kit contains `zero-0.4.0.vsix`, `Zero.code-profile`,
 optional keyboard shortcuts and `zero-starter.zip`. This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
 native sign-in and repository upload path.
@@ -18,7 +18,7 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.3.2.vsix** through
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.4.0.vsix** through
    **Extensions → Install from VSIX…**, then install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
@@ -93,16 +93,49 @@ GitHub session for live upload and checks that the session is still current.
 Never put passwords or tokens in project files. If an account/session changes
 during review, sign in as needed and review the upload again.
 
-**Upload to GitHub defaults to simulation**: nothing is staged, committed or
-uploaded. For a teacher-authorized real trial, set the workspace setting
-`"zero.uploadMode": "live"`. Upload saves your files, asks for a short commit
-message, then shows a modal review of repository, branch and changed files.
-Check the destination and files before choosing **Commit & Upload**; cancel if
-anything is wrong. A successful upload creates a local commit when needed,
-pushes it, and confirms the remote branch. A failed upload may leave a local
-commit, so read the error and inspect the repository before retrying.
+## Your individual workflow
 
-After a successful real upload, open GitHub and check the remote files and commit.
+`main` holds completed work. A change branch holds your next improvement.
+**Upload changes defaults to simulation**: nothing is saved in Git or uploaded.
+Start and Finish also simulate without changing branches. To use real repository
+actions, set the workspace setting `"zero.uploadMode": "live"` when your teacher
+is ready for the trial. Local Run works in either mode.
+
+For a new repository, **Upload changes once on main** to save and upload the
+starter. Enter a short commit message and check the account, repository, branch
+and files before **Commit & Upload**. This is the starting version.
+
+For each improvement:
+
+1. Click **main → Start a change**. Give it a short name such as `quiz-feedback`
+   using lowercase letters, numbers and dashes. Review before creating the branch.
+   Upload pending edits first. Zero updates main from GitHub when it can do so
+   without combining separate histories, then creates the branch.
+2. Edit and **Run App**. Check your change.
+3. **Upload changes** to save a Git commit and upload progress to this branch.
+   Describe what changed and review before **Commit & Upload**. You can repeat
+   this while building; it does not yet add the change to main.
+4. Click the branch name → **Finish change**. Upload any pending edits first.
+   Check the preview before approving the merge and upload to main. If GitHub
+   has newer main changes, Zero incorporates them into your change branch and
+   pauses. Run the combined app, then choose Finish change again for a fresh
+   review before uploading it to main.
+5. After confirmed success, Zero returns to main. You can remove the finished
+   local branch when prompted, or keep it. Its GitHub branch remains available.
+
+If an update creates conflicts, Zero keeps your work and opens VS Code's Source
+Control. Open the conflicted files or Merge Editor, inspect both changes and
+choose/edit the combined result. Save, stage the resolved files and commit the
+merge through Source Control. Run the app, then choose **Finish change** again
+for a fresh review. Ask your teacher if the correct result is unclear.
+
+A failed upload can leave a local commit. A failed Finish upload can also leave
+main updated locally, with your change branch still selected. Read the error,
+repair network/access problems and review Finish again. Zero never force-pushes
+or silently discards work. Separate changes on local main, unrelated histories
+or unfinished Git operations need normal Git help before continuing.
+
+After a successful real Finish, open GitHub and check the files and commit on main.
 Click the connected repository name, choose **Copy repository link**, and paste
 the link separately into the assignment
 in **Pika**. Give your teacher access if the repository is private. Copying a URL
