@@ -29,7 +29,8 @@ project wrapper; do not require students to install Maven or Gradle globally.
 Packaging creates local artifacts in `dist/` and does not publish them.
 A published kit version is immutable: packaging refuses to overwrite it. Set a
 new local kit/extension version before building the next release. Existing
-public asset URLs/checksums remain pinned to their release.
+public asset URLs/checksums remain pinned to their release. See
+[release preparation and publication](RELEASING.md) for the read-only CI workflow.
 
 Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
 ignored readable copies into the starter; checks/packaging prepare them too.
@@ -151,10 +152,10 @@ The portable component ZIP includes local artifacts/catalog, source and Workshop
 extract the whole folder and open its `component-workshop/` subfolder. Students
 use its bundled Maven wrapper, not the maintainer Node/Python tooling.
 
-Current MIT catalogs require the current extension source in a VS Code
-extension development host (F5). The immutable published 0.5.0 VSIX predates
-MIT catalog support; it continues to support historical UNLICENSED catalogs.
-A future versioned extension release will include the loader change.
+Zero 0.5.1 and later support current MIT catalogs in the installed extension.
+The immutable published 0.5.0 VSIX predates MIT catalog support and continues
+to support historical UNLICENSED catalogs. Contributors can use the current
+extension source in a VS Code extension development host (F5).
 
 Community catalog selection is explicit and local in Zero's view title (…) menu.
 The extension edits only managed POM blocks through the native undoable editor,

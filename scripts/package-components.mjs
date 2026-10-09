@@ -52,9 +52,9 @@ Extract this entire folder; keep its sibling folders together. JDK 17+ is requir
 The first build downloads pinned Maven/JavaFX dependencies. Students need no Node
 or Python to run Workshop. GitHub sign-in is separate from this local flow.
 
-1. Run the current Zero extension source in a VS Code development host (F5).
-   The published ${release.kitVersion} VSIX predates MIT catalog support; these
-   MIT catalogs need the current source until the next extension release.
+1. Install Zero ${release.kitVersion} from the main kit. Version 0.5.1 and later
+   support MIT catalogs; the earlier 0.5.0 VSIX supports historical UNLICENSED
+   catalogs only.
 2. In a student starter, use the Zero view's (…) menu → Browse components.
    Choose this folder's catalog.json. View API, Try example, or Add library.
 3. Add records an exact Maven dependency. Your app owns its rules/state; import

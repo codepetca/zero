@@ -35,6 +35,7 @@ The complete kit is a single ZIP; original Zero code is MIT licensed.
 - [Zero Community: component source and contributions](https://github.com/codepetca/zero-community)
 - [Product scope and contracts](docs/PRODUCT.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
+- [Release preparation and publication](docs/RELEASING.md)
 - [Classroom pilot checklist](docs/CLASSROOM-PILOT.md)
 - [Verification and remaining limits](docs/VERIFICATION.md)
 - [Earlier dark-theme editor, version 0.2](docs/design/actual-zero-editor.png)
@@ -68,7 +69,7 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.0.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.1.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After the documented local
 component proof, `npm run package:components` adds `zero-components.zip` with
@@ -79,4 +80,4 @@ Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
 Original Zero code is available under the [MIT license](LICENSE). Bundled
 upstream dependencies and wrapper notices retain their own terms. Zero Community
-has its own licensing decision; its experimental archive is not part of this release.
+original source is also MIT licensed; its experimental archive is not part of this release.
