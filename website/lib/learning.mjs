@@ -50,6 +50,23 @@ export const lessons = [
 ];
 export const examples = [
   {
+    id: "hello-app",
+    title: "Hello, Java",
+    description: "A small styled interface with a name field, greeting and reset.",
+    files: ["hello-app/Main.java"],
+    resources: [
+      { file: "hello-app/theme.css", destination: "src/main/resources/hello-app/theme.css" },
+    ],
+    guide: "beginner",
+  },
+  {
+    id: "reach-the-coin",
+    title: "Reach the coin",
+    description: "Arrow keys move a square; touch the gold square to win and press R to restart.",
+    files: ["reach-the-coin/Main.java", "reach-the-coin/Player.java"],
+    guide: "beginner",
+  },
+  {
     id: "quiz",
     title: "Mini quiz",
     description: "Buttons, answer feedback and once-only scoring.",
@@ -104,6 +121,16 @@ export const examples = [
   },
 ];
 export const quickLinks = [
+  {
+    title: "Beginner toolkit",
+    description: "Start with a small set for apps or games.",
+    href: "/docs/beginner",
+  },
+  {
+    title: "Make it look good",
+    description: "Fonts, colours, spacing and editable styles.",
+    href: "/docs/style",
+  },
   {
     title: "Setup guide",
     description: "Install the JDK, VS Code and the Zero extension.",

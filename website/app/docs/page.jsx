@@ -12,6 +12,8 @@ const docGroups = [
   {
     title: "Write Java",
     items: [
+      ["beginner", "Beginner toolkit", "Start with a small set for apps or games."],
+      ["style", "Make it look good", "Fonts, colours, layouts and an editable theme."],
       ["api", "Java API reference", "Startup, controls, drawing and input."],
       ["exercises", "Starter exercises", "Small changes and reusable objects."],
     ],

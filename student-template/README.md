@@ -47,6 +47,10 @@ verification; this prototype was checked on macOS arm64.
 
 ## Make something
 
+Start with the small [beginner toolkit](BEGINNER.md). Choose an app or game,
+run a complete example, then try three small changes. The
+[appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
+
 The default is a tiny quiz. It teaches fields, objects, native controls, and
 methods called by events. `settings()` sets the window title and initial content
 size. `setup()` builds the interface once and calls `show(screen)` with an
@@ -119,6 +123,8 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 
 | Example | Exact files to copy | Try it |
 | --- | --- | --- |
+| Hello, Java | `examples/hello-app/Main.java` → `src/main/java/Main.java`; `examples/hello-app/theme.css` → `src/main/resources/hello-app/theme.css` | Type a name, say hello, reset, then change the theme. See [copy/run instructions](examples/hello-app/README.md). |
+| Reach the coin | `examples/reach-the-coin/Main.java` and `examples/reach-the-coin/Player.java` | Move with arrows, touch the gold square to win, press R to restart. See [copy/run instructions](examples/reach-the-coin/README.md). |
 | Default quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
 | Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |

@@ -21,6 +21,8 @@ const documentPaths = {
   "lesson-6": "student-template/lessons/06-project.md",
   setup: "docs/GETTING-STARTED.md",
   api: "student-template/API.md",
+  beginner: "student-template/BEGINNER.md",
+  style: "student-template/STYLE.md",
   starter: "student-template/README.md",
   exercises: "student-template/EXERCISES.md",
   components: "docs/COMPONENTS.md",
@@ -44,7 +46,7 @@ async function collect(folder) {
   })) {
     const file = `${folder}/${entry.name}`;
     if (entry.isDirectory()) await collect(file);
-    else if (entry.isFile() && /\.(java|md)$/.test(file))
+    else if (entry.isFile() && /\.(java|md|css)$/.test(file))
       sources[file] = await readFile(resolve(root, file), "utf8");
   }
 }

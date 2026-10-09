@@ -1,0 +1,41 @@
+/* Change these colours, sizes and spacing to make the app your own. */
+.screen {
+    -fx-background-color: #f6f5ff;
+    -fx-font-family: "System";
+    -fx-font-size: 16px;
+}
+.label { -fx-text-fill: #22213b; }
+.heading {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+.text-field {
+    -fx-background-color: white;
+    -fx-text-fill: #22213b;
+    -fx-prompt-text-fill: #626078;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #aaa6c5;
+    -fx-border-width: 2;
+    -fx-padding: 10 12;
+}
+.button {
+    -fx-background-color: #e5e2f5;
+    -fx-text-fill: #22213b;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-padding: 10 16;
+}
+.button:hover { -fx-background-color: #d6d1ee; }
+.button:pressed { -fx-background-color: #c8c1e7; }
+.button.primary {
+    -fx-background-color: #6457e8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.button.primary:hover { -fx-background-color: #5344cf; }
+.button.primary:pressed { -fx-background-color: #4435b3; }
+.button:focused, .text-field:focused { -fx-border-color: #22213b; }
+.button:disabled { -fx-opacity: 0.55; }

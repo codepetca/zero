@@ -1,5 +1,19 @@
 # Zero app API
 
+New to Zero? Start with the [beginner toolkit](BEGINNER.md), then
+[make it look good](STYLE.md). This page is the complete reference; you can
+learn a small set first:
+
+| Build | Start with |
+| --- | --- |
+| An app | `SimpleApp`: `settings()`, `setup()`, `size(...)`, `title(...)`, `show(...)`; ordinary `Label`, `Button`, `TextField`, `VBox`, `HBox`. |
+| A game | `SketchApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
+| Improve appearance | JavaFX fonts, a few colours, spacing/padding and an editable stylesheet; canvas fonts through `graphics().setFont(...)`. |
+
+Try [Hello, Java](examples/hello-app/README.md) for a complete styled app or
+[Reach the coin](examples/reach-the-coin/README.md) for a two-file game. Both use
+the pinned starter without additional dependencies or Zero APIs.
+
 This reference describes the bundled [SimpleApp source](src/main/java/zero/SimpleApp.java)
 and [SketchApp source](src/main/java/zero/SketchApp.java). Use these classes for
 startup, drawing and input; use ordinary Java for your app's objects and rules.
