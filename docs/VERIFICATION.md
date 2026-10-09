@@ -698,3 +698,20 @@ two reproducible builds, three behavior checks, two consumer apps and preserved
 historical bytes. Final canonical-source candidate/archive, independent review,
 CI and actual public Maven/VSIX delivery remain next. No new physical Windows/Linux
 or novice classroom evidence is claimed.
+
+
+## Public component release integration — 2026-10-09
+
+Zero source PR13 and community PR2 merged after independent paired review,
+one targeted correction review and current-head CI. A generated-free checkout
+passed documented historical/public preparation, real editor-plan Maven
+add/update/revert and the native Workshop harness. Canonical extracted
+0.1.2 Workshop passed the native build/check/export harness; independent Python
+validation retained checked/communityReviewed=false/publishAllowed=false.
+All nine published community v0.1.2 files were downloaded without authentication
+and matched their measured SHA256s. The initial HealthBar remains experimental;
+actual authenticated acceptance check did not find independent human approval.
+Public gateway/kit delivery verification follows after metadata deployment.
+Native checks were finite synthetic macOS checks. CI uses Linux/Xvfb; physical
+Windows/Linux, typing/DirectoryChooser usability and classroom trials remain
+unverified. No live student upload or AI service was exercised.
