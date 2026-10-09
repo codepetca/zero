@@ -1,53 +1,46 @@
 # Current state — 2026-10-09
 
-## Release and hosting — active
+## Release and hosting — complete
 
-Owner said “go” to release and Vercel/domain setup; this authorizes source PR/merge,
-release publication and Vercel/zero.codepet.ca DNS setup within the saved plan.
-Owner selected MIT for original Zero. The licensing hold is released for Zero;
-include the notice in every independent downloadable artifact before publication. Optional community archive remains local/unpublished because its
-separate license is unresolved. No credentials changes.
+Owner authorized release/hosting with “go” and selected MIT for original Zero.
+https://zero.codepet.ca is live on Vercel; /learn and /community are connected.
+Source PR4 merged8c54a3c; download PR5 mergedc482fc1. Public GitHub release
+v0.5.0 targets8c54a3c and contains exactly the main kit, starter and VSIX.
+Canonical MIT notice is included in all three independent distributions;
+upstream dependency notices are preserved. Community archive remains local,
+unpublished and UNLICENSED; no community repo/license changes in this phase.
 
-Coordinator owns external actions/licensing/release/packaging/docs.
-release_readiness Sol/medium completed ~4min read-only audit, accepted artifact
-hashes and missing license/optional-asset boundary; delivered website download
-contract files/tests (~3min) with5/5tests and typecheck. Coordinator inspected;
-optional publicationStatus local preserves main3 public integrity requirements. No recursive delegation. Weekly44%remaining; DeepSeek
-paused. Existing reviewed implementation/base9cf18fc is preserved.
+Vercel projectzero/prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA links GitHubcodepetca/zero,
+production branchmain, rootwebsite, Next.js, Node22.x, npmci/npmbuild and sources
+outside root enabled. No configured ZERO_LOCAL_DOWNLOADS environment variable.
+First Git deploymentdpl_DUoeW19p1dDonzbEirw1BWbZxDbY at c482fc1 passed remote
+build and protected CLI page checks before DNS changed. The first deployment
+was assigned production automatically; public domain DNS followed verification.
+CLI generated a deployment-protection bypass token for authenticated checks;
+account passwords and GitHub credentials unchanged, preview protection retained.
 
-GitHub armorup ADMIN of public codepetca/zero; origin/main52cd3be, outgoing100files
-include completed reviewed local phases. Vercel devcodepet-5583 current team
-stewarts-projects-cc2722c4; Zero project created as
-prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA. FrameworkNext.js/rootwebsite/npmci/npmbuild,
-Node22.x and sourceFilesOutsideRootDirectory true independently read back.
-SourcePR4 merged8c54a3c; public v0.5.0 main3 assets verified by unauthenticated
-download/hash. Website publication metadata and Vercel connection underway. Cloudflare codepet.ca active
-zone49640bebf0b463a4d227dfcfd509ef79 has no zero.codepet.ca record.
+Cloudflare DNS-only CNAMEzero.codepet.ca points to the exact Vercel recommendation
+53d627e7a30220c8.vercel-dns-017.com, TTLauto. Read back exactly one matching record;
+Vercel reports configuredByCNAME/misconfiguredfalse, ownership verifiedtrue.
+Public HTTPS returns200; HTTP redirects308 to HTTPS. Actual in-app browser
+DownloadZero retrieves100306bytes/SHA256d296f25f7411f14bdbabfeb8c4015eb90086251102e823cb88854426ee783980,
+matching the immutable published kit. Live Learn→Community navigation and API HTTP
+checks pass. Screenshot and machine receipts are ignored in .verification/.
+All three public assets were independently downloaded unauthenticated and hashed.
 
-
-
-Release-preparation delivery39b0c21614ad2dfba849bbb7d6ca54492a2010c6:
-rootcheck, website5/5tests,typecheck/build/diff pass. Independent
-release_contract_review/1 Sol/medium complete9cf18fc→39b0c21, zero findings;
-inspected six-file delta and preparation/route/local-integrity/receipt callers,
-independently reran5tests. One initial wave/one reviewerturn/no remediation,
-max7launches4fixes60minsession30minreviewer retained. Effective configuration,
-token and elapsed telemetry unavailable. Prior framework/native/browser evidence
-reused for unchanged behavior. No additional integration wave warranted.
-
-Vercel zero.codepet.ca domain assigned to Zero project, ownership verifiedtrue.
-Cloudflare DNS remains unchanged and domain not live; no source push/release or
-website deployment occurred while licensechoice pending. Project has no Git
-connection or configured local-download flag. Domain CNAME recommendation saved
-in ignored .verification/vercel-domain-config.json for deployment after choice.
-
-Owner answered MIT on2026-10-09; implemented original-code license with license text in root and independent starter,
-kit and VSIX distributions, SPDXmetadata and accurate supporting docs. Optional
-community license remains unresolved and its archive stays local. Then package/
-verify, publish reviewed source viaPR/merge, upload exact main3 versioned assets,
-independently retrieve/hash them, author published metadata, build/deployreviewed
-preview, then configure supplied DNS-only CNAME and verifypublicHTTPS/downloads.
-No tool-backed goal created. No credentials changes. MIT selected explicitly; community license remains held.
+Review evidence: release_contract_review Sol/medium complete9cf18fc→39b0c21,
+zero findings; mit_release_review Sol/high complete23f2ea7→61d772b MIT delta and
+cumulative integration inventory, zero blockers; targeted8c54a3c→185fc78 complete,
+one nonblocking P3 stale local-preview instruction fixed at42caf44. Coordinator
+checked the documentation fix. Reviewer independently reran5website tests and
+verified artifact metadata. Native/other unchanged prior reviews reused.
+MIT distribution worker Sol/medium delivered in~4min; reviewers~3–4min each.
+No recursive delegation or file conflicts. Weekly44%remaining; DeepSeek paused.
+Effective token/model/elapsed telemetry unavailable. Checks: package/license,
+extracted Maven compile, website5tests/typecheck/build and published-package
+immutability guard all pass; guard leaves all three released bytes unchanged.
+Physical Windows/Linux setup, final editor GitHub interaction and novice student
+trials remain unverified. No new tool-backed goal created.
 
 ## Repository organization and website — local verification complete
 
