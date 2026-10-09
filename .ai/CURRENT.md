@@ -1,5 +1,20 @@
 # Current state — 2026-10-09
 
+## Zero 0.5.1 release — active
+
+Owner said “go” to release0.5.1, verify extracted kit/component workflow, publish
+verified downloads/update website, then automate future release preparation.
+Isolated managed worktree protects unrelated uncommitted education-funding work
+in primary checkout. Baseb1d26f4, branchcodex/release-0-5-1. Main3 assets only;
+community archive remains local. Preserve0.5.0 release/tag/bytes and all existing
+core/component coordinates. Coordinator owns metadata/package/native/extracted
+verification/publication/site. Worker release_automation GPT6.1Sol/high owns new
+read-only manual/PR workflow, helper/tests and RELEASING guide. No account changes.
+Weekly43%remaining; DeepSeek paused. No new tool-backed goal requested.
+Review standard risk: one Sol/medium reviewer after checks, max7launches,
+1initialwave4targetedwaves1integration4fixes60minsession30minreviewer.
+
+
 ## Community MIT licensing — reviewed, publication underway
 
 Owner explicitly selected MIT for Zero Community on2026-10-09. Apply the canonical

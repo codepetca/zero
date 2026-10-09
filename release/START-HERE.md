@@ -4,7 +4,7 @@
    for Maven and JavaFX downloads. Students do not need Node.js or global Maven.
 2. In VS Code, open the **starter** folder beside this file. Keep the whole folder
    together, including its hidden .mvn and .vscode folders.
-3. Open Extensions, choose **Install from VSIX…**, and select **zero-0.5.0.vsix**
+3. Open Extensions, choose **Install from VSIX…**, and select **zero-0.5.1.vsix**
    beside this file. Install the Java extensions recommended by the starter.
 4. Open src/main/java/Main.java. Use **Zero: Run App** or the standard build
    shortcut to open the quiz. Change a question, save, and run again.
