@@ -40,15 +40,4 @@
       </plugin>
     </plugins>
   </build>
-  <!-- Teacher/contributor check: opens a real window, checks pixels/input, exits. -->
-  <profiles>
-    <profile>
-      <id>smoke</id>
-      <properties><app.mainClass>zero.SmokeLauncher</app.mainClass></properties>
-      <build><plugins><plugin>
-        <groupId>org.openjfx</groupId><artifactId>javafx-maven-plugin</artifactId>
-        <version>0.0.8</version>
-      </plugin></plugins></build>
-    </profile>
-  </profiles>
 </project>

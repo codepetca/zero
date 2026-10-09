@@ -48,8 +48,9 @@ Keep dependencies pinned. Do not commit target/, caches, credentials or tokens.
 Write short copy/run instructions and the behavior to expect. For reusable
 components, try at least two apps with separate instances. For the caption
 change, record both the unchanged quiz and the customized tracker results.
-Run the starter smoke check in README; contributors working in the full kit
-also run `python3 scripts/verify-examples.py`. Say which OS/JDK you used and
+Run your app and check the changed behavior; contributors working in the Zero
+source repository run `npm run verify:framework` and
+`python3 scripts/verify-examples.py`. Say which OS/JDK you used and
 which checks were actual GUI actions or synthetic events. A compile alone does
 not verify focus, layout, or student-machine restrictions.
 

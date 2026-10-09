@@ -1,8 +1,10 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. The kit contains `zero-0.5.0.vsix`, `Zero.code-profile`,
-optional keyboard shortcuts and `zero-starter.zip`. This MVP still needs physical
+separate JavaFX window. Extract the kit once to find `START-HERE.md`, the ready
+`starter/` folder, `zero-0.5.0.vsix` and an `optional/` folder containing the profile
+and keyboard shortcuts. The separate starter-only ZIP is also available locally.
+This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
 native sign-in and repository upload path.
 See [verification evidence](VERIFICATION.md) for checks actually completed.
@@ -13,8 +15,11 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    work. JDK 17 was tested. Check `java -version`, `javac -version` and
    `git --version` in a new terminal, then restart VS Code. The Java extension's
    runtime does not replace your project's build JDK; follow its setup help if
-   it needs a newer editor JDK.
-2. Optionally import **Zero.code-profile first** through VS Code Profiles. It
+   it needs a newer editor JDK. The normal platform-specific Java extension bundles
+   its tooling runtime on supported Windows/macOS/Linux platforms. Universal
+   builds and other platforms currently need a Java 25+ tooling JDK; see the
+   [Java extension setup](https://github.com/redhat-developer/vscode-java#quick-start).
+2. Optionally import **optional/Zero.code-profile first** through VS Code Profiles. It
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
@@ -22,8 +27,9 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    **Extensions → Install from VSIX…**, then install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
-3. Extract `zero-starter.zip` into your own folder, outside any other Git
-   repository. Open the extracted **zero-starter folder**, rather than a single
+3. Move or copy the kit's **starter folder** into your own location, outside any
+   other Git repository. For the separate starter-only ZIP, extract its
+   **zero-starter folder** instead. Open that folder, rather than a single
    Java file. Keep its hidden `.mvn` and `.vscode` folders. Trust it only after
    checking its source and build scripts.
 4. Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
@@ -53,7 +59,7 @@ or **Cmd+Shift+B** on macOS for the same default build task. There is no hot rel
 
 Read compiler errors in the task terminal and Problems panel; open the indicated
 source line. See **Setup help** for missing local tools. F6/F7 are optional:
-merge `optional-keybindings.json` into your keyboard shortcuts if wanted.
+merge `optional/optional-keybindings.json` into your keyboard shortcuts if wanted.
 
 To change appearance, run **Preferences: Color Theme** in the Command Palette.
 The sidebar supports dark themes too. To return to an imported profile, run

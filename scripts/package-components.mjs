@@ -5,6 +5,10 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {zipSync,unzipSync} from 'fflate';
+import {prepareStarter} from './prepare-starter.mjs';
+import {releaseDefinition, writeReleaseMetadata, verifiedExistingAssets} from './release.mjs';
+prepareStarter();
+const release = releaseDefinition();
 const require=createRequire(import.meta.url);
 const {loadCatalog}=require('../extension/src/components.js');
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -34,7 +38,7 @@ for(const release of prepared.catalog.releases) for(const artifact of Object.val
   await add(path.join(prepared.repositoryPath,artifact.path+'.sha256'),'component-repository/'+artifact.path+'.sha256');
 }
 for(const suffix of ['.jar','-sources.jar','.pom']) {
-  const relative='school/zero/zero-core/0.1.0/zero-core-0.1.0'+suffix;
+  const relative=`school/zero/zero-core/${release.coreVersion}/zero-core-${release.coreVersion}`+suffix;
   await add(path.join(prepared.repositoryPath,relative),'component-repository/'+relative);
   await add(path.join(prepared.repositoryPath,relative+'.sha256'),'component-repository/'+relative+'.sha256');
 }
@@ -45,7 +49,7 @@ Extract this entire folder; keep its sibling folders together. JDK 17+ is requir
 The first build downloads pinned Maven/JavaFX dependencies. Students need no Node
 or Python to run Workshop. GitHub sign-in is separate from this local flow.
 
-1. Install the local Zero 0.5.0 VSIX from the main bootstrap kit.
+1. Install the local Zero ${release.kitVersion} VSIX from the main kit.
 2. In a student starter, use the Zero view's (…) menu → Browse components.
    Choose this folder's catalog.json. View API, Try example, or Add library.
 3. Add records an exact Maven dependency. Your app owns its rules/state; import
@@ -75,5 +79,6 @@ const archive=zipSync(members,{level:6}),extracted=unzipSync(archive);
 for(const [key,[bytes]] of Object.entries(members)) assert.deepEqual(extracted[key],bytes);
 assert.ok(!Object.keys(extracted).some(key=>/\/(?:target|\.git|\.proof|__pycache__)\//.test(key)));
 await mkdir(path.join(root,'dist'),{recursive:true});
-await writeFile(path.join(root,'dist/zero-components.zip'),archive);
+await writeFile(path.join(root,'dist',release.assets.components.filename),archive);
+writeReleaseMetadata([...new Set([...verifiedExistingAssets(), 'components'])]);
 console.log(`Packaged ${Object.keys(members).length} verified local component kit members; no publication.`);

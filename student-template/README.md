@@ -195,22 +195,15 @@ repository name and choose **Copy repository link**, then submit it separately
 in Pika. Give your teacher access if it is
 private. Zero does not submit assignments or change Pika grades.
 
-## Contributor verification
+## Checking your changes
 
-```sh
-./mvnw -B -Psmoke clean compile javafx:run
-```
+Run your app after each change and try both correct and incorrect answers.
+Use the examples and exercises to check the behavior you changed. A compile
+alone does not verify layout, focus or school-machine restrictions.
 
-On Windows use `.\mvnw.cmd` instead. This opens a small real window, checks
-both startup paths, actual UI resizing, elapsed time, shape pixels, canvas/control
-focus, held-input release, configuration/setup/frame failures and shutdown, prints
-`ZERO_SMOKE_OK`, then closes itself.
-It requires a GUI desktop; input events are synthetic, so this does not replace
-physical typing/clicking checks. `SmokeLauncher.java` is a contributor check; normal
-Run App launches Main. From the kit repository, `python3 scripts/verify-examples.py` checks all seven
-alternatives in temporary real GUI projects and verifies shared source copies.
-This does not verify an imported VS Code profile or real
-GitHub authentication/upload.
+Zero maintainers keep the finite framework and example GUI checks in the
+[Zero source repository](https://github.com/codepetca/zero). These contributor tools are separate from this student
+project; your normal Run App launches Main and needs only the Maven wrapper.
 
 Pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**, official Apache Maven
 Wrapper **3.3.4** (only-script), JavaFX Maven plugin **0.0.8**, compiler plugin

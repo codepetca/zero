@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>school.zero</groupId>
   <artifactId>zero-core</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <name>Zero core (local development library)</name>
   <description>The existing readable SimpleApp and SketchApp, without student app classes.</description>
   <properties>
@@ -17,8 +17,7 @@
     <dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>${javafx.version}</version></dependency>
   </dependencies>
   <build>
-    <!-- Compile the canonical framework; do not create another editable copy. -->
-    <sourceDirectory>${project.basedir}/../student-template/src/main/java</sourceDirectory>
+    <!-- Canonical source lives in this module; the starter receives readable copies. -->
     <plugins>
       <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-clean-plugin</artifactId><version>3.2.0</version></plugin>
       <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-resources-plugin</artifactId><version>3.3.1</version></plugin>

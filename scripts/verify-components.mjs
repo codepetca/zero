@@ -7,6 +7,8 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {processSpecification} from './workshop-process.mjs';
+import {prepareStarter} from './prepare-starter.mjs';
+prepareStarter();
 const require = createRequire(import.meta.url);
 const components = require('../extension/src/components.js');
 const root = fileURLToPath(new URL('../',import.meta.url));

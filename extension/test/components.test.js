@@ -163,7 +163,7 @@ test('ambiguous and unsupported XML and Java compatibility overrides are refused
     baseline.replace('<maven.compiler.release>17', '<maven.compiler.release>21'),
     baseline.replace('<javafx.version>21.0.12', '<javafx.version>24.0.0'),
     baseline.replace('<version>${javafx.version}</version>', '<version>24.0.0</version>'),
-    baseline.replace('<id>smoke</id>', '<id>smoke</id><properties><javafx.version>24</javafx.version></properties>'),
+    baseline.replace('</project>', '<profiles><profile><id>compatibility-override</id><properties><javafx.version>24</javafx.version></properties></profile></profiles></project>'),
     baseline.replace('<artifactId>maven-compiler-plugin</artifactId>', '<artifactId>maven-compiler-plugin</artifactId><configuration><release>8</release></configuration>'),
     baseline.replace('</project>', '</wrong>'),
     baseline.replace('<properties>', '<properties unexpected="yes">')

@@ -40,7 +40,7 @@ source. No Node.js or Python installation is needed to use this kit.
 For custom locations, use a file URI with spaces encoded as `%20`; the developer
 preparation script generates it. Run the portable wrapper from its Workshop folder.
 
-The local repository must contain `school.zero:zero-core:0.1.0` and
+The local repository must contain `school.zero:zero-core:0.1.1` and
 `school.zero.community:zero-community:0.1.1`. JavaFX is pinned at 21.0.12 and Gson
 at 2.11.0. The default endpoint is the local sibling `component-repository/`,
 never a public community service. The wrapper may resolve

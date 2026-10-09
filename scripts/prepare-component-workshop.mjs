@@ -4,8 +4,12 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import path from 'node:path';
 import {processSpecification} from './workshop-process.mjs';
+import {prepareStarter} from './prepare-starter.mjs';
+import {releaseDefinition} from './release.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+prepareStarter();
+const {coreVersion} = releaseDefinition();
 const community = path.resolve(process.argv[2] || path.join(root, '../zero-community'));
 const generated = path.join(root, '.verification');
 const repository = path.join(generated, 'component-repository');
@@ -60,11 +64,11 @@ const buildSpec = processSpecification(wrapper, ['-B','--no-transfer-progress','
   '-f',path.join(root,'framework/pom.xml'),'clean','package']);
 const build = spawnSync(buildSpec.command,buildSpec.args,{cwd:root,stdio:'inherit'});
 if (build.status !== 0) throw new Error('The canonical Zero core library did not build.');
-const corePath = path.join(repository, 'school/zero/zero-core/0.1.0');
-for (const name of ['zero-core-0.1.0.jar','zero-core-0.1.0-sources.jar']) {
+const corePath = path.join(repository, 'school/zero/zero-core', coreVersion);
+for (const name of [`zero-core-${coreVersion}.jar`,`zero-core-${coreVersion}-sources.jar`]) {
   await immutableCopy(path.join(root,'framework/target',name), path.join(corePath,name));
 }
-await immutableCopy(path.join(root,'framework/pom.xml'),path.join(corePath,'zero-core-0.1.0.pom'));
+await immutableCopy(path.join(root,'framework/pom.xml'),path.join(corePath,`zero-core-${coreVersion}.pom`));
 await writeFile(path.join(generated,'component-catalog.json'),JSON.stringify({...catalog,repositorySubdirectory:'component-repository'},null,2)+'\n');
 const runArguments = ['-B','--no-transfer-progress','-s',settings,'-gs',settings,
   '-f',path.join(root,'component-workshop/pom.xml'),

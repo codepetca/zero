@@ -1,5 +1,24 @@
 # Current state — 2026-10-09
 
+## Repository organization and website — active local phase
+
+Owner requested orchestration of the agreed local organization/site work.
+Branch codex/website-kit-organization from9cd8a16; selected design recorded at
+faa8ccb. Plan docs/WEBSITE-PLAN.md; exact visual docs/design/selected-landing.png.
+No push/PR/merge, release publication, Vercel/DNS or credential change in this phase.
+No new tool-backed goal requested. Weekly remaining45%; DeepSeek pause retained.
+
+Phase exits: canonical framework source and assembled readable starter; flat
+verified kit with shared release metadata; Next.js routes /, /learn, /community;
+working local download/production-unpublished states; responsive browser/design
+QA, extracted native starter checks and risk-matched independent review.
+
+Ownership: framework_kit (Sol/high) owns framework, starter Java/source-assembly,
+scripts, root package/ignore, release metadata and related extension test paths.
+website_build (Sol/medium) owns website only. Coordinator owns root docs/handoff,
+browser QA and final integration. One writer per component, no worker Git mutation
+or publication. Generated caches, starter core copies and website snapshots ignored.
+
 ## Community source remote connection
 
 Owner authorized creating public `codepetca/zero-community` and connecting the

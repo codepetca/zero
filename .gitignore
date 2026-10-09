@@ -11,3 +11,10 @@ dist/
 *.log
 .env
 .env.*
+student-template/src/main/java/zero/SimpleApp.java
+student-template/src/main/java/zero/SketchApp.java
+website/.generated/
+website/.next/
+website/node_modules/
+website/tsconfig.tsbuildinfo
+website/public/generated/

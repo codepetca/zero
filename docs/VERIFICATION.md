@@ -504,3 +504,28 @@ One writer per component and small context handoffs limited coordination overhea
 The existing chat remained coordinator; no separate chat or automation was created.
 The publication request reused these completed reviews and checks; its PR records
 the final focused integration review and merge decision.
+
+
+## Repository organization and website — 2026-10-09
+
+Local framework source is canonical under framework/src; generated readable
+starter copies are drift guarded. Original Java API and harness bytes match.
+Flat kit verification checks source parity, receipts, VSIX bytes, wrapper modes,
+absence of contributor tools and an actual extracted Maven compile in a path
+with spaces. Full Node suite89/89 passed139.128s. Seven finite JavaFX example
+checks passed24.15s; extracted69-member Component Workshop native check passes
+with core0.1.1. Prior immutable core0.1.0 artifacts remain unchanged.
+
+The unchanged framework SmokeLauncher failed its canvas-focus assertion during
+background native launch. No assertion was weakened; full smoke success is not
+claimed. Physical Windows/Linux and final native editor interaction remain untested.
+
+Next.js typecheck/build, four download/publication boundary tests and dependency
+audit pass. In-app browser checked desktop1487×1058 and mobile390×844, navigation,
+API documentation, visible keyboard focus and actual kit download. Downloaded
+ZIP bytes match the generated release receipt. Default production explains the
+unpublished release; local verified downloads require an explicit flag, refused
+on Vercel. Visual comparison passed; see website/design-qa.md.
+
+No source push, PR, release publication, Vercel deployment, DNS or credentials
+changed in this phase. Local generated artifacts and browser evidence are ignored.

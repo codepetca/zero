@@ -14,16 +14,53 @@ global Maven.
 
 ```sh
 npm ci
+npm run prepare:starter
 npm run check
 npm test
 python3 scripts/verify-examples.py
 npm run package
+npm run verify:kit
+npm run verify:framework
 ```
 
 Java build and finite GUI checks are documented in
 [the student starter](../student-template/README.md). Builds use the pinned
 project wrapper; do not require students to install Maven or Gradle globally.
 Packaging creates local artifacts in `dist/` and does not publish them.
+
+Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
+ignored readable copies into the starter; checks/packaging prepare them too.
+An edited generated copy is preserved and stops preparation rather than being
+silently overwritten. Move intended upstream edits into the canonical framework
+or save them elsewhere before preparing again. The extracted student kit needs
+no preparation tooling. `verify:framework` uses a disposable starter and the
+maintainer harness in `framework/checks/`.
+
+## Website
+
+The selected front-page design is recorded in [design/WEBSITE.md](design/WEBSITE.md).
+The Next.js package has its own pinned dependencies and lockfile:
+
+```sh
+npm ci --prefix website
+npm run typecheck --prefix website
+npm test --prefix website
+npm run build --prefix website
+```
+
+For a local preview of the actual freshly packaged ZIP, run `npm run package`,
+then start the website from the root with:
+
+```sh
+ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
+```
+
+Without the explicit local preview flag, the unpublished release leads to its
+availability explanation on Learn more. No guessed public release URL is shown.
+The website prepares canonical docs/release content before development and build;
+generated snapshots and caches are ignored. Start here before later Vercel setup:
+Root Directory `website/`, with repository sources outside that directory included
+for build preparation. See [the website plan](WEBSITE-PLAN.md).
 
 Open this repository in VS Code and launch the `Zero Extension` debug
 configuration (F5) to use an extension development host. The host opens
@@ -92,6 +129,7 @@ local checkout path with the commands below. GitHub hosts source; generated
 Maven artifacts and the catalog remain local until artifact hosting is configured.
 
 ```sh
+npm run prepare:starter
 python3 ../zero-community/scripts/verify-release-cycle.py --zero-root "$PWD"
 node scripts/prepare-component-workshop.mjs ../zero-community
 node scripts/verify-components.mjs

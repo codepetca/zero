@@ -1,7 +1,8 @@
 # Zero download website — proposed plan
 
-Status: planning and visual concepts only, 2026-10-09. No website code,
-publication, deployment, DNS edits or account changes are authorized by this plan.
+Status: local implementation authorized by “orchestrate that work”, 2026-10-09.
+Publication, source push/merge, deployment, DNS edits and account changes remain
+outside this phase. Current execution is coordinated in `.ai/CURRENT.md`.
 
 Selected visual: the first ultra-minimal revision, confirmed 2026-10-09.
 See [the saved design/theme](design/WEBSITE.md) and
@@ -41,7 +42,9 @@ Vercel project with Root Directory `website/`. Pages are mostly static:
 - `/`: Zero name/mark, short description, Download Zero and Learn more only.
 - `/learn`: product explanation, screenshots and links to setup, API docs,
   GitHub source, other downloads and the Component Workshop.
-- `/start`: concise setup and troubleshooting, with Windows/macOS/Linux tabs.
+- `/community`: public entry point for Zero Community, source/contribution links
+  and an honest explanation of current experimental local component tooling.
+- Setup lives on `/learn`; do not create a separate onboarding platform.
 - API and workshop documentation initially link to the existing maintained docs;
   migrate them only when a website reading experience adds value.
 
@@ -98,6 +101,22 @@ does not assume an existing Vercel project, an unused record or a fixed CNAME va
 
 Report actual platform evidence: responsive web checks do not establish that
 Windows/Linux native Java setup or the interactive GitHub upload flow was tested.
+
+## Current shared contracts
+
+- `release/kit.json` is authored release metadata. Packaging generates checksums
+  and sizes in ignored `dist/release.json`; never invent a published asset URL.
+- Kit0.5.0 remains local. Core0.1.1 is a new local coordinate for changed build
+  metadata after source extraction; preserve previous immutable core0.1.0 files.
+- Canonical Java source moves into `framework/src/main/java/zero/`. Maintainer
+  preparation assembles readable copies into the starter; student downloads
+  remain standalone and need no Node.js tooling.
+- Website reads canonical release/docs through build preparation; its own npm
+  package stays independent of root tooling. Vercel must include repository
+  sources outside the `website/` Root Directory for this build preparation.
+- Local preview downloads require an explicit local-only environment flag and
+  verified packaged bytes. Ordinary production builds show release availability
+  on Learn more until publication. No network publication occurs in this phase.
 
 ## Primary technical references
 

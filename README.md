@@ -42,16 +42,22 @@ profile. The sidebar also supports dark themes.
 
 ## Project layout
 
+- `website/`: separately built Next.js download website, Learn more and Community.
 - `extension/`: sidebar and commands using supported VS Code APIs.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`
   is the canonical component reused by quiz, practice and study apps.
 - `component-workshop/`: native preview, examples/API, explicit candidate build/checks
   and local contribution export for the separate community library.
-- `framework/`: JAR build from the canonical starter framework source.
+- `framework/`: canonical Java source and core JAR build; readable source copies
+  are assembled into the standalone student starter.
 - `profile/`: optional light settings profile and separate F6/F7 bindings.
 - `scripts/`: local checks and packaging.
+- `release/`: compatible kit/core versions, asset names and publication status.
 - `docs/`: setup, decisions, pilot checklist and verification evidence.
+
+See [repository boundaries](docs/ARCHITECTURE.md) for ownership, source assembly
+and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.

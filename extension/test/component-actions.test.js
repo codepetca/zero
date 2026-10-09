@@ -172,7 +172,7 @@ test('Try example uses packaged source/wrappers, isolated settings/cache and cap
   const h=await harness(t), before=h.document.text;
   const assets=path.join(h.context.extensionPath,'media/component-example');
   await fs.mkdir(path.join(assets,'zero'),{recursive:true});
-  await fs.copyFile(path.join(starter,'src/main/java/zero/SimpleApp.java'),path.join(assets,'zero/SimpleApp.java'));
+  await fs.copyFile(path.join(__dirname,'../../framework/src/main/java/zero/SimpleApp.java'),path.join(assets,'zero/SimpleApp.java'));
   await fs.writeFile(path.join(assets,'Main.java'),'// trusted packaged example\nclass Main {}\n');
   for(const file of ['mvnw','mvnw.cmd']) await fs.copyFile(path.join(starter,file),path.join(assets,file));
   await fs.cp(path.join(starter,'.mvn'),path.join(assets,'.mvn'),{recursive:true});
@@ -204,7 +204,7 @@ test('a launched example keeps its files if Stop fails; task owner alone may cle
   const h=await harness(t),before=h.document.text;
   const assets=path.join(h.context.extensionPath,'media/component-example');
   await fs.mkdir(path.join(assets,'zero'),{recursive:true});
-  await fs.copyFile(path.join(starter,'src/main/java/zero/SimpleApp.java'),path.join(assets,'zero/SimpleApp.java'));
+  await fs.copyFile(path.join(__dirname,'../../framework/src/main/java/zero/SimpleApp.java'),path.join(assets,'zero/SimpleApp.java'));
   await fs.writeFile(path.join(assets,'Main.java'),'class Main {}');
   for(const file of ['mvnw','mvnw.cmd'])await fs.copyFile(path.join(starter,file),path.join(assets,file));
   await fs.cp(path.join(starter,'.mvn'),path.join(assets,'.mvn'),{recursive:true});

@@ -7,6 +7,13 @@ through CodeHS. Students make interfaces, games, drawings, simulations and quizz
 using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
+The download website is a separately built part of this repository. Its landing
+page has the Zero wordmark, one sentence, Download Zero and Learn more only.
+`/learn` contains setup/docs; `/community` introduces Zero Community and links to
+component development/contributions. It does not run Java in the browser or add
+a student website account. The local kit is unpublished until an approved release.
+See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
+
 ## App and learning contract
 
 `zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
@@ -33,7 +40,8 @@ JavaFX properties and other JavaFX features remain available as later lessons.
 
 Examples live outside compiled source and are copied deliberately one at a time.
 See the [starter](../student-template/README.md) for exact files and exercises.
-Framework source ships editable inside the starter. Review shared improvements
+Canonical framework source lives in `framework/src/main/java/zero/`; maintainer
+preparation assembles editable copies into the standalone starter. Review shared improvements
 in more than one app before cohort adoption. The extraction examples remain useful
 lessons; community components now have a separate local versioned-library prototype.
 
