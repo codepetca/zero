@@ -52,7 +52,22 @@ Screenshot saved primary .verification/component-alternatives-2026-10-09.
 Independent review high risk (cross-library execution/provenance and compatibility):
 two fresh Sol/high, separate safety and workflow assignments. Budget7launches,
 1initialwave,4targetedwaves,1integrationwave,4fixbatches,60minsession/30minreviewer.
-Initial fixed-head review begins after local commits; no external PR or merge.
+Initial fixed-head review completed at Zero833c285/community67cdb36. One P2
+example-metadata allowlist discrepancy was reproduced, corrected and targeted
+reviewed at Zero cb441e5/community8bc5879; no remaining findings or coverage gap.
+Two initial Sol/high assignments plus one targeted turn, one fix batch. The
+compatibility reviewer also identified two documentation corrections, applied
+in the same batch. No extra cumulative code review repeats unchanged coverage.
+Review began21:01UTC; reviewer time estimates~10min initial/~2min targeted;
+effective model/token telemetry unavailable. Both independent scopes completed.
+
+Final local preview kit0.5.3 packages cb441e5 in an isolated snapshot; canonical
+published0.5.2 metadata stays untouched. Portable Workshop0.1.3 packages committed
+Zero cb441e5/community8bc5879,81members,243011bytes,
+SHA256f73e1199eea6808d98b28fdc8878e777aa0bab7cb2b9fa5aedd3d088b86ec73e.
+Clean committed community preparation passed. Final archives/receipts and actual
+browser screenshot are retained in the primary ignored verification delivery
+folder. Generated assets are local only; live catalog/site/releases unchanged.
 
 ## Public component workflow — delivered 2026-10-09
 

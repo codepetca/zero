@@ -760,8 +760,9 @@ catalog starting choice, not contribution acceptance or core promotion.
   packet/plugin-packet validation pass. Actual prior0.1.2 binary/sources and
   eight-file schema1 packet remain compatible. Extracted current portable ZIP
   passes its finite native harness under a folder with spaces; no Node/Python
-  student runtime. Current local preparation is source-bound working-tree proof,
-  not a public committed release or human acceptance receipt.
+  student runtime. Final preparation uses clean committed community source8bc5879 and packages
+  Zero cb441e5. It is a local candidate, not a public release or human acceptance
+  receipt. Earlier working-tree proof remains separately labelled.
 - Coordinator independently exercised actual extension Add0.1.3 and ordinary
   Maven resolution from an absent coordinate into a separate cache, then native
   segmented damage/reset/fractional display using the packaged example Main.
@@ -772,4 +773,18 @@ receipt and primary .verification/component-alternatives-2026-10-09. Native chec
 are finite synthetic macOS JavaFX; physical typing/chooser, Windows/Linux, native
 VS Code picker click-through and novice cohorts remain unverified. No public
 release, push, merge, deployment, real student upload, live AI or account change.
-Independent fixed-head review follows before local delivery acceptance.
+Independent initial safety and compatibility review covered Zero833c285 and
+community67cdb36. One Java/Python example-field allowlist discrepancy was fixed;
+Java now rejects nested recommendation/discovery/command metadata, nonprimitive
+IDs/paths, duplicate example IDs and nonprimitive category/version values before
+opening/export. Corrected native harness and independently validated source-bound
+packet pass. Targeted review completed at cb441e5/8bc5879 with no remaining
+findings. Two initial reviewers plus one targeted turn, one fix batch; unchanged
+initial coverage and complete targeted coverage establish current code acceptance.
+
+Final committed-source Workshop is81members/243011bytes, SHA256
+f73e1199eea6808d98b28fdc8878e777aa0bab7cb2b9fa5aedd3d088b86ec73e.
+Preview0.5.3 VSIX/bootstrap/starter were regenerated from an isolated archived
+cb441e5 snapshot, pass standard kit verification and remain local only; canonical
+0.5.2 metadata and live downloads were not changed. Archive/source receipts and
+hashes are retained in the ignored delivery folder.

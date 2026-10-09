@@ -180,7 +180,7 @@ gateway accepts only manifest paths and verifies full bounded bytes before servi
 Components remain pinned; HTTPS POMs work on another machine without account access.
 A remembered local catalog can be selected explicitly through the components menu.
 
-Community maintainers prepare a clean committed 0.1.2 candidate with
+Community maintainers prepare a clean committed 0.1.3 candidate with
 `python3 scripts/prepare-public-release.py --zero-root ../zero` in zero-community.
 The candidate preparer requires a clean committed community checkout and refuses
 to replace an existing candidate output. Reuse verified output for that exact
@@ -196,7 +196,7 @@ npm run package:components
 
 Run opens the native Workshop until you close it. Its
 `-Dzero.workshopCheck=true` JVM option runs the finite native-window harness.
-Packaging creates `dist/zero-community-workshop-0.1.2.zip`, containing source,
+Packaging creates `dist/zero-community-workshop-0.1.3.zip`, containing source,
 Workshop and its pinned local artifacts/catalog. Extract the complete archive
 and open its `component-workshop/` subfolder. Students use the bundled Maven
 wrapper; they do not need maintainer Node/Python tooling.
