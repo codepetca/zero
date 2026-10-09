@@ -65,7 +65,7 @@ public class Workshop extends SimpleApp {
               project.value("status")
                   + " · "
                   + project.value("license")
-                  + " · public adoption needs license and maintainer decisions");
+                  + " · public releases need maintainer review and artifact hosting");
       gate.getStyleClass().add("muted");
       VBox header = new VBox(8, brand, name, description, gate);
       header.setPadding(new Insets(22));
@@ -223,7 +223,7 @@ public class Workshop extends SimpleApp {
             "Prepare a ZIP with declared source, two reusable app examples, API, metadata, tests"
                 + " and a source-bound check report. Choose a parent folder; a new folder is"
                 + " created without replacing existing files.\n\n"
-                + "Nothing is uploaded. Experimental / UNLICENSED work cannot become a reviewed"
+                + "Nothing is uploaded. Experimental work cannot become a reviewed"
                 + " community release here.\n\n"
                 + "AI review is unavailable in this local MVP. The packet records that missing"
                 + " advisory check for a maintainer.");
@@ -353,9 +353,13 @@ public class Workshop extends SimpleApp {
       require(Files.readString(marker).equals("preserved"), "existing folder preservation");
       try (java.util.zip.ZipFile zip =
           new java.util.zip.ZipFile(packet.resolve("packet.zip").toFile())) {
+        List<String> owned = project.files();
         Set<String> entries = new HashSet<>();
         zip.stream().forEach(entry -> entries.add(entry.getName()));
-        require(entries.containsAll(ComponentProject.FILES), "declared packet source");
+        require(entries.containsAll(owned), "declared packet source");
+        if (owned.contains("LICENSE"))
+          require(Arrays.equals(zip.getInputStream(zip.getEntry("LICENSE")).readAllBytes(),
+              Files.readAllBytes(project.file("LICENSE"))), "MIT notice preserved in ZIP");
         require(
             entries.contains("packet.json") && entries.contains("checks/report.json"),
             "packet evidence");
@@ -363,7 +367,7 @@ public class Workshop extends SimpleApp {
             entries.stream()
                 .allMatch(
                     path ->
-                        ComponentProject.FILES.contains(path)
+                        owned.contains(path)
                             || path.equals("src/test/java/zero/community/HealthBarTest.java")
                             || path.equals("checks/report.json")
                             || path.equals("packet.json")),
@@ -386,7 +390,7 @@ public class Workshop extends SimpleApp {
   private void verifyCandidateDrift() throws Exception {
     Path candidate = Files.createTempDirectory("zero-workshop-candidate-");
     try {
-      for (String name : ComponentProject.FILES) {
+      for (String name : project.files()) {
         Path destination = candidate.resolve(name);
         Files.createDirectories(destination.getParent());
         Files.copy(project.file(name), destination);
@@ -415,6 +419,21 @@ public class Workshop extends SimpleApp {
       Files.createDirectories(Path.of("target"));
       Files.copy(pluginPacket.resolve("packet.zip"),Path.of("target/workshop-plugin-proof.zip"),StandardCopyOption.REPLACE_EXISTING);
       Files.writeString(candidate.resolve("pom.xml"),originalPom);
+      if (copy.files().contains("LICENSE")) {
+        String notice = copy.read("LICENSE");
+        JsonObject licensedReport = WorkshopChecks.report(copy);
+        Files.writeString(candidate.resolve("LICENSE"), notice + "\n");
+        boolean staleLicenseRejected = false;
+        try { ContributionPacket.prepare(copy, candidate, licensedReport); }
+        catch (IOException expected) { staleLicenseRejected = true; }
+        require(staleLicenseRejected, "license drift invalidates source-bound export");
+        Files.delete(candidate.resolve("LICENSE"));
+        boolean missingLicenseRejected = false;
+        try { ContributionPacket.inspect(copy); }
+        catch (IOException expected) { missingLicenseRejected = true; }
+        require(missingLicenseRejected, "MIT source requires its notice");
+        Files.writeString(candidate.resolve("LICENSE"), notice);
+      }
       JsonObject before = WorkshopChecks.report(copy);
       Files.writeString(
           candidate.resolve("src/main/java/zero/community/HealthBar.java"),

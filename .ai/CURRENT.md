@@ -1,5 +1,24 @@
 # Current state — 2026-10-09
 
+## Community MIT licensing — verified locally
+
+Owner explicitly selected MIT for Zero Community on2026-10-09. Apply the canonical
+MIT notice to community original source and current metadata, preserve experimental
+status/null maintainer, update Zero loader/Workshop/docs/site and local packaging.
+No new artifact release or replacement of published Zero0.5.0 bytes. Existing
+source-publication/PR-merge/site authorization continues; no account changes.
+Community writer community_mit GPT6.1Sol/medium; coordinator owns Zero integration
+and external actions. Weekly43%remaining, DeepSeek paused. Community Java/POM and existing immutable coordinates remain unchanged.
+Worker delivered MIT catalog/docs and32admission checks; coordinator verified.
+Followup adds LICENSE to schema1MIT packet scope, preserving historical packets.
+Java/Python digests agree5f457df0b1c38f7bd4ad6c2584ef82fa3d40878e215e3fbc463e697f7bcbb517.
+Native Workshop,6consumer cycle25.93s,30focused editor tests, website5tests/
+typecheck/build and package notice/hash checks pass. Component ZIP stays local;
+all three immutable published Zero assets remain byte-identical.
+Review budget standard risk: one general reviewer Sol/medium, max7launches,
+1initialwave4targetedwaves1integration4fixes60minsession30minreviewer; bounded
+cross-repo license/loader/acceptance/packaging consistency review after checks.
+
 ## Release and hosting — complete
 
 Owner authorized release/hosting with “go” and selected MIT for original Zero.
@@ -7,8 +26,8 @@ https://zero.codepet.ca is live on Vercel; /learn and /community are connected.
 Source PR4 merged8c54a3c; download PR5 mergedc482fc1. Public GitHub release
 v0.5.0 targets8c54a3c and contains exactly the main kit, starter and VSIX.
 Canonical MIT notice is included in all three independent distributions;
-upstream dependency notices are preserved. Community archive remains local,
-unpublished and UNLICENSED; no community repo/license changes in this phase.
+upstream dependency notices are preserved. Community archive remained local,
+unpublished and UNLICENSED during initial hosting; the later MIT decision is above.
 
 Vercel projectzero/prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA links GitHubcodepetca/zero,
 production branchmain, rootwebsite, Next.js, Node22.x, npmci/npmbuild and sources

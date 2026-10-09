@@ -84,8 +84,9 @@ decision; after promotion Zero is canonical and the catalog links there.
 
 ## Public-adoption decisions
 
-Before public releases, select original/contributor reuse licensing, appointed
-maintainers and a public artifact host. Local HealthBar fixtures are experimental
-and UNLICENSED until that policy is decided; they are not reviewed community
-releases. External GitHub/AI execution and physical Windows/Linux verification
+Original Zero Community source, including HealthBar, uses MIT. Contributions
+follow the repository’s MIT license and preserve upstream notices. Before public
+artifact releases, appoint maintainers and select an artifact host. Local HealthBar
+fixtures remain experimental; licensing does not make them reviewed community
+releases. Historical local catalogs may retain the previous UNLICENSED label. External GitHub/AI execution and physical Windows/Linux verification
 must be reported separately from local automated evidence.
