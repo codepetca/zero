@@ -126,3 +126,19 @@ review/CI/source merge/public assets → Zero gateway/consumer/portable Workshop
 review/CI/merge/live public Maven consumer → kit0.5.2 publication using publisher.
 No artificial second community release or new AI provider. Native OS and classroom
 limitations reported separately. Weekly39%remaining; DeepSeek paused through2026-12-31.
+
+
+### Public phase delivered — 2026-10-09
+
+Zero0.5.2 and Community0.1.2 are public. The single-entry Community page,
+source-bound catalog, verified fixed HTTPS Maven gateway and portable Workshop
+implement the agreed path. Source PRs Zero13/14 and Community2 plus kit metadata
+PR15 merged after review/checks. Live catalog/artifacts/checksums/Workshop, a
+real public Maven consumer and extracted native Workshop passed. VSIX installation
+passed; fresh native editor click-through, physical Windows/Linux and classroom
+input remain unverified. Initial HealthBar is experimental; existing maintain/
+admin humans accept future source PRs, with read-only automated checks. No AI
+acceptance/provider, account settings or community publishing credentials were
+added. The first public version stays pinned; an explicit update/revert can be
+used when a later version exists. No further platform expansion is required
+for this phase.
