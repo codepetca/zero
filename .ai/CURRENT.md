@@ -1,6 +1,6 @@
 # Current state — 2026-10-09
 
-## Community MIT licensing — verified locally
+## Community MIT licensing — reviewed, publication underway
 
 Owner explicitly selected MIT for Zero Community on2026-10-09. Apply the canonical
 MIT notice to community original source and current metadata, preserve experimental
@@ -18,6 +18,15 @@ all three immutable published Zero assets remain byte-identical.
 Review budget standard risk: one general reviewer Sol/medium, max7launches,
 1initialwave4targetedwaves1integration4fixes60minsession30minreviewer; bounded
 cross-repo license/loader/acceptance/packaging consistency review after checks.
+community_mit_review/1 Sol/medium complete Zero3f9f5b2→5b968d2 and
+community00c21ed→c6157d8, no blockers; one P3 stale public-licensing sentence
+accepted and fixed. Coordinator also clarified the immutable0.5.0VSIX predates
+MIT catalog support; new local catalogs require current extension source until
+a future versioned extension release. Local ZIP guide matches that boundary.
+Worker~5min plus packet followup~2min; review~4min estimates. No file conflicts.
+Community PR1 CI32admission/native Java checks and Zero PR7 preview pass;
+effective token/model telemetry unavailable. No community artifact release.
+
 
 ## Release and hosting — complete
 
