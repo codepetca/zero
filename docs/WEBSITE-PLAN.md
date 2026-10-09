@@ -125,3 +125,13 @@ Windows/Linux native Java setup or the interactive GitHub upload flow was tested
 - [Vercel custom domains and unique subdomain CNAMEs](https://vercel.com/docs/domains/working-with-domains/add-a-domain)
 - [Cloudflare DNS proxy status](https://developers.cloudflare.com/dns/proxy-status/)
 - [GitHub release download links](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)
+
+## Hosting preparation — 2026-10-09
+
+Owner authorized release/hosting with “go”. Vercel Zero project created and
+configured for Next.js, website/ root, Node22.x, npmci/npmbuild and inclusion of
+canonical sources outside root. Domain zero.codepet.ca assigned; ownership
+verified. Cloudflare has no existing zero record; DNS remains unchanged until
+a working deployment is verified. Public license decision is pending; no source
+push, artifact release or deployment happened in this preparation step. Main
+kit/starter/VSIX can publish independently of the local-only community archive.
