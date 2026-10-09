@@ -121,8 +121,9 @@ no-argument constructor. Include meaningful behavior checks and a short explanat
 another student can follow; seek review before cohort adoption.
 
 Advanced contributions may introduce Java packages, interfaces or JavaFX properties
-when a concrete app needs them. A separate local versioned JAR/Workshop/admission prototype is documented in
-[COMPONENTS.md](COMPONENTS.md); public component distribution remains future work. Original Zero code uses
+when a concrete app needs them. Versioned Maven libraries, the portable Workshop and contribution admission are
+documented in [COMPONENTS.md](COMPONENTS.md). Public discovery and verified
+downloads are available at [Zero Community](https://zero.codepet.ca/community). Original Zero code uses
 [MIT](../LICENSE); upstream wrapper licenses/notices retain their own terms.
 
 ## Local component lifecycle
@@ -164,9 +165,10 @@ remains the resolver; normal project runs use ordinary Maven settings/cache.
 
 Candidate compilation runs trusted local Java in the Workshop process with
 normal permissions; it is not an untrusted-submission sandbox. Admission validates
-packets without executing code. CI and advisory AI interfaces are prepared locally;
-no hosted service, live provider or authenticated acceptance
-authority has been configured. See the community contribution/AI docs.
+packets without executing code. GitHub CI builds/checks source PRs with read-only permissions. A trusted
+owner-side helper checks independent current-head human maintain/admin approval
+and matching CI; an exported packet cannot establish that authority. The AI
+advisory interface has no live provider configured. See the community contribution/AI docs.
 
 
 ## Public component preparation

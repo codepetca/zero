@@ -711,7 +711,24 @@ validation retained checked/communityReviewed=false/publishAllowed=false.
 All nine published community v0.1.2 files were downloaded without authentication
 and matched their measured SHA256s. The initial HealthBar remains experimental;
 actual authenticated acceptance check did not find independent human approval.
-Public gateway/kit delivery verification follows after metadata deployment.
+Final public verification passed: the exact live catalog, all four Maven
+artifacts and eight checksum sidecars, portable Workshop and unknown-coordinate
+404. A disposable student app used the public adapter's Add plan and ordinary
+HTTPS Maven from an absent community coordinate; explicit updates, fractional
+fill/reset, exact JAR hash and preserved Java source passed native macOS checks.
+Zero0.5.2 preparation run37983866959 sealed the exact three public kit assets.
+The publisher resumed the same draft/run after an initial GitHub readback miss,
+then verified public downloads, PR15 metadata merge and live landing kit bytes.
+No existing asset was replaced. GitHub's native release-lock setting remains
+unchanged; publisher/receipt checks enforce immutable release coordinates.
+
+The released VSIX installed successfully and was listed as zero.zero@0.5.2 in
+an isolated extension directory. New native Browse/Try/Add click-through was
+not completed because UI automation selected the existing Code instance rather
+than the isolated test process. Automated native-editor mocks and the actual
+public Maven/JavaFX consumer passed; these do not establish physical editor input.
+First public0.1.2 has no older public version: future update/revert awaits another
+patch. The meaningful historical update/revert checks remain separate evidence.
 Native checks were finite synthetic macOS checks. CI uses Linux/Xvfb; physical
 Windows/Linux, typing/DirectoryChooser usability and classroom trials remain
 unverified. No live student upload or AI service was exercised.

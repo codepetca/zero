@@ -1,40 +1,59 @@
 # Current state — 2026-10-09
 
-## Public component workflow — release integration
+## Public component workflow — delivered 2026-10-09
 
-Source PRs merged: Zero#13 d78ebdd, community#2 2f94f71. Reviewed source
-Zero6109ce4/community6b8205ff; initial paired Sol/high + targeted Sol/high
-resolved website string coercion and stale Workshop instructions. Launches3,
-initial1/targeted1/fix1; session began19:41UTC. Updated mainfc22af9 interactions
-reviewed compatible. Current-head Zero CI37982751957 passed after an earlier
-unchanged simulation test timing failure; community CI37982098911 passed.
+Public https://zero.codepet.ca/community exposes one experimental MIT HealthBar
+0.1.2, pinned API/source and portable Workshop. Zero0.5.2 is public and the
+verified live landing downloads its exact kit bytes. Browse → Try → Add uses
+ordinary Maven at https://zero.codepet.ca/community/maven; no custom package
+resolver or new sidebar. Updates remain explicit; first public version has no
+older public version to revert to until a later patch exists. Historical real
+add/update/revert remains verified separately.
 
-Fresh generated-free checkout verified documented legacy cycle (6checks),
-actual editor-plan add/update/revert, double reproducible0.1.2 builds/two apps,
-public Workshop packaging and finite native check. Final76-member archive
-binds Zero d78ebdd/community6b8205ff,222849bytes, SHA256
-915d956b38a0f162ba89911aff957e5d4344eb97db34ca0cd887e919dab5651d.
-Extracted portable Workshop native check and independent Python packet validation
-passed; packet remains checked/communityReviewedfalse/publishAllowedfalse.
+Source/community PR13/2 merged d78ebdd/2f94f71; promotion PR14 merged0ffac0f;
+kit metadata PR15 merged40e2ccd. Community tag6b8205ff, kit tag0ffac0f.
+Kit CI preparation37983866959 sealed exactly3assets. Publisher initially
+stopped on GitHub draft readback, then resumed the SAME run/draft; no asset
+rebuild/replacement. Actual source/tag/3assets/live-site bytes verified.
+GitHub release-lock setting was not changed; reviewed receipts and the publisher
+enforce immutable coordinates. Existing published versions were preserved.
 
-Owner-authorized initial experimental community v0.1.2 is public; exact4Maven
-artifacts,Workshop,MIT/source/check receipts/SHA256SUMS all downloaded without
-authentication and matched candidate hashes. Tag6b8205ff is merged main ancestry.
-Existing maintain/admin humans selected as acceptors; actual PR helper reports
-waiting without independent approval. No contributor/CI/AI acceptance claim, new
-accounts/credentials/settings or CI publishing permissions. AI remains unavailable.
+Final76-member Workshop binds Zero d78ebdd/community6b8205ff,222849bytes,
+SHA256915d956b38a0f162ba89911aff957e5d4344eb97db34ca0cd887e919dab5651d.
+All9community public files downloaded without authentication and matched SHA256.
+Live catalog,4Maven artifacts/8checksum sidecars/Workshop/unknown404 verified.
+Public adapter Add + ordinary HTTPS Maven resolution from an absent community
+coordinate passed finite native macOS explicit-update/fraction/reset behavior;
+Java source unchanged. Fresh generated-free legacy/public preparation, double
+reproducible library builds/two apps and extracted native Workshop/build/check/
+export passed. Independent Python packet validation retained checked status.
 
-Promotion13cac401 received complete independent Sol/high delta review, no
-findings. PR14CI repeated the old sidebar fixed-six-ticks timing failure;
-second fix batch replaces that test wait with bounded observable predicates,
-retaining warning-open simulation completion assertion. No product code change.
-Launches4/initial1/targeted2/fix2 before targeted test review.
-Next: reviewed metadata/public gateway and local kit0.5.2 source promotion,
-existing one-command kit publisher, real public Maven/VSIX/site verification.
-Primary funding work preserved. Weekly38%remaining, DeepSeek pause retained;
-no tool-backed goal requested. Models requestedSol/high; effective/token/worker
-time telemetry unknown; one contract correction plus one review fix batch.
-Physical Windows/Linux/input and classroom trials remain unverified.
+Existing community maintain/admin humans accept source PRs. Actual authenticated
+helper returned waiting without independent current-head approval; initial
+owner-authorized release stays experimental/nullmaintainer. Packets/CI/AI cannot
+accept/publish. AI provider remains unavailable. No account/credential/settings
+changes or CI publishing credentials. Student coursework links still go to Pika.
+
+Requested native reviewers: initial pairSol/high; two promotion/schema delta
+passesSol/high; CI-testwait and exact generated metadataSol/medium. Six launches,
+initial1/targeted4, two fix batches; session began19:41UTC. Paired findings: stale
+Workshop commands and coerced metadata strings, fixed. Repeated old sidebar
+fixed-tick test timing failure replaced with bounded observable waits; current
+CI passes. Metadata review completed premerge on a6616fb. Final documentation
+receipt receives one bounded integration review; no repeated source audit.
+Effective model/tokens/attributable worker times unavailable; metadata reviewer
+reported about4min including wait/<1min head review. Weekly38%remaining at last
+reading, account-wide usage cannot isolate this task. DeepSeek pause retained.
+One initial source/Workshop contract mismatch corrected before review.
+
+VSIX CLI installed/listed zero.zero@0.5.2 in isolated extensions. Native editor
+click-through was not completed: long user-data socket path fixed with a shorter
+path, but automation bound the existing Code process instead of the isolated one.
+No user editor/project edits were made. Physical Windows/Linux, typing/chooser
+interaction and classroom trials remain unverified; Linux CI uses Xvfb.
+No real student GitHub upload or live AI was tested. Primary funding work remains
+untouched. Delivery receipts/screens retained under primary .verification/
+public-components-2026-10-09; no tool-backed goal or ongoing automation.
 
 
 ## One-command Zero publishing — review and CI
