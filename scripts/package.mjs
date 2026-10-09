@@ -12,6 +12,7 @@ const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
 // vsce packages its extension directory; retain the canonical license in every VSIX.
 copyFileSync(path.join(root, 'LICENSE'), path.join(root, 'extension/LICENSE'));
 const release = releaseDefinition(), dist = path.join(root, 'dist');
+if (release.publication.status === 'published') throw new Error('This kit version is published and immutable. Set a new local kit version before rebuilding release assets.');
 mkdirSync(dist, {recursive:true});
 const retained = verifiedExistingAssets().filter(key => key === 'components');
 const exampleAssets = path.join(root, 'extension/media/component-example');
