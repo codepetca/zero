@@ -92,7 +92,13 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};webviewProvider.resolveWebviewView(candidate);
-  const settle=async()=>{for(let i=0;i<6;i++) await new Promise(resolve=>setImmediate(resolve));};await settle();
+  const settle=async predicate=>{
+    const deadline=Date.now()+5000;
+    while(!predicate()) {
+      assert.ok(Date.now()<deadline,'Expected asynchronous sidebar state did not arrive');
+      await new Promise(resolve=>setImmediate(resolve));
+    }
+  };await settle(()=>authCalls.length>0 && /Sign in to GitHub/.test(webview.html));
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
   assert.match(webview.html,/aria-hidden="true"/);assert.match(webview.html,/Connect a repo/);
@@ -103,7 +109,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   nextChoice='connect';await commands.get('zero.chooseRepository')();
   assert.equal(inputCount,1,'Signed-out students can connect locally; cancelling input makes no changes');
   let simulationFinished=false;const simulation=commands.get('zero.uploadToGitHub')().then(()=>{simulationFinished=true;});
-  await warningShown;await settle();assert.equal(simulationFinished,true,'Simulation must release commands while its notification is still open');
+  await warningShown;await settle(()=>simulationFinished);assert.equal(simulationFinished,true,'Simulation must release commands while its notification is still open');
   assert.doesNotMatch(webview.html,/data-command="zero.githubAccount"[^>]* disabled/,'Account icon must remain available before notification dismissal');
   assert.match(notices.at(-1),/Simulation only/);assert.equal(gitChanges,0);dismissWarning();await simulation;
   await commands.get('zero.githubAccount')();assert.match(errors.at(-1),/Sign in to GitHub/);assert.equal(authCalls.at(-1).options.createIfNone,true);
@@ -117,13 +123,13 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const dispatchCount=dispatched.length;nativeAccountsAvailable=false;await commands.get('zero.githubAccount')();
   assert.equal(dispatched.length,dispatchCount);assert.match(notices.at(-1),/Accounts menu.*Sign Out/,'Older editors get usable native sign-out guidance');nativeAccountsAvailable=true;
   nextChoice='change';await commands.get('zero.githubAccount')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
-  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle();
+  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Upload changes/.test(webview.html) && />student\/app<\/button>/.test(webview.html));
   assert.match(webview.html,/Upload changes/);assert.match(webview.html,/>student\/app<\/button>/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['copy','connect']);
-  session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle();
+  session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle(()=>webview.html.includes('&lt;img src=x onerror=&quot;bad&quot;&gt;'));
   assert.match(webview.html,/&lt;img src=x onerror=&quot;bad&quot;&gt;/);assert.doesNotMatch(webview.html,/<img|PRIVATE/,'Account labels must be escaped and tokens excluded');
-  session=undefined;authEvent({provider:{id:'github'}});await settle();assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
+  session=undefined;authEvent({provider:{id:'github'}});await settle(()=>/Sign in to GitHub/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
   assert.match(webview.html,/>student\/app<\/button>/,'Connected repository stays visible after sign-out');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });

@@ -24,6 +24,11 @@ Existing maintain/admin humans selected as acceptors; actual PR helper reports
 waiting without independent approval. No contributor/CI/AI acceptance claim, new
 accounts/credentials/settings or CI publishing permissions. AI remains unavailable.
 
+Promotion13cac401 received complete independent Sol/high delta review, no
+findings. PR14CI repeated the old sidebar fixed-six-ticks timing failure;
+second fix batch replaces that test wait with bounded observable predicates,
+retaining warning-open simulation completion assertion. No product code change.
+Launches4/initial1/targeted2/fix2 before targeted test review.
 Next: reviewed metadata/public gateway and local kit0.5.2 source promotion,
 existing one-command kit publisher, real public Maven/VSIX/site verification.
 Primary funding work preserved. Weekly38%remaining, DeepSeek pause retained;
