@@ -10,7 +10,8 @@ Neither is a public/community-reviewed release.
 
 Full Node85/85 checks passed (129.62s); the subsequent task ownership/cleanup delta
 passes19 affected checks, including one new Stop-during-launch integration test.
-Current coverage86 tests. The separate community admission suite passes19 tests.
+Current coverage87 tests after review fixes;20 latest affected checks pass.
+The separate community admission suite now passes25 tests.
 Two consumer apps × install/update/revert passed six actual finite JavaFX stages.
 A coordinator consumer built from the same extension plans passed three additional
 Maven/JavaFX stages with source preservation and actual JAR hashes/origins.
@@ -18,7 +19,7 @@ Maven/JavaFX stages with source preservation and actual JAR hashes/origins.
 Workshop checks render fresh named states, change controls/reset, compile a
 trusted local candidate explicitly, reject a fractional-fill mutant and invalidate
 stale source-bound receipts. Its Java ZIP passes independent Python validation.
-The extracted68-member portable component kit passes with default sibling paths
+The extracted portable component kit passes with default sibling paths
 in a folder containing spaces. Maven plugin argument splitting initially broke
 that launch; relative defaults and file-URI custom paths corrected it.
 
@@ -26,7 +27,10 @@ The0.5.0 VSIX installs through isolated VS Code CLI; all extension source and
 packaged trusted example assets match local bytes. This proves installation,
 not native command interaction. Generated receipts stay ignored in .verification/
 and the separate community .proof/. Final independent review/artifact acceptance
-is recorded in CURRENT when complete.
+is recorded in CURRENT:5 review turns,2 fix batches,6 P2s resolved, no remaining
+findings. Final69-member component ZIP/source/library hashes and installed VSIX
+bytes match the locally committed code. Whitespace/property Java packet independently
+passes Python validation; a stale initial fixture ZIP was discarded.
 
 Physical editor clicks, chooser interaction, Windows/Linux, live CI/AI,
 authenticated community acceptance, public hosting/licensing and classroom trials

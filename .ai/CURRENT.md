@@ -1,9 +1,9 @@
 # Current state — 2026-10-09
 
-## Component lifecycle MVP — final integration/review
+## Component lifecycle MVP — locally complete
 
 Owner agreed Maven-backed components and requested an orchestrated goal. The
-active tool-backed goal covers local implementation/verification, not publication.
+tool-backed goal covers local implementation/verification, not publication.
 Plan: [COMPONENT-PLAN](../docs/COMPONENT-PLAN.md); architecture:
 [COMPONENTS](../docs/COMPONENTS.md). Zero branch codex/component-lifecycle from
 199c5b0; separate local /Users/stew/Repos/zero-community on main, no remote.
@@ -67,8 +67,8 @@ contexts, one writer each. Coordinator verified deliveries and shared contracts.
 Review high risk: two fresh Sol/high reviewers, security/correctness and
 architecture/compatibility, exact local revisions. Caps:7 launches,1 initial
 wave,4 targeted/fix waves,1 final integration,60min total/30min per reviewer.
-Next: fixed-revision independent review, bounded remediation, final regenerated
-artifacts and byte verification; then local goal completion. Physical editor
+Local implementation and independent review complete; final regenerated
+artifacts and byte verification accepted. Physical editor
 clicks/chooser, Windows/Linux, live GitHub/CI/AI, publication and novice trials
 remain unverified. No simulated feedback is presented as external acceptance.
 
@@ -449,3 +449,23 @@ acceptance. No library/source/artifact
 changes. Next one targeted compatibility review;5 total turns including it,
 2 fix batches,2 targeted waves, no final full integration wave planned unless
 new interaction evidence requires one. End weekly remaining46% (account-wide).
+
+Final targeted wave2 clean at Zero0ffddaf/community5f68f73. Reviewer independently
+inspected fresh whitespace/property ZIP and validated digestb9b18c97…f3048eb.
+All6 accepted P2s resolved across2 fix batches. Final ledger5 reviewer turns,
+1 initial wave,2 targeted waves; no remaining blocker or concrete interaction
+gap requiring another integration wave. Review session~35min including
+coordinator/remediation; reviewer-specific elapsed and tokens unavailable.
+No source or library changes after acceptance; final evidence-only docs inspected
+by coordinator. End weekly46% remaining, no task-cost attribution.
+
+Final0.5.0 VSIX/starter/bootstrap and69-member component ZIP regenerated locally.
+Every source/wrapper/library digest verified; corrected VSIX reinstalled in
+isolated editor and all installed source bytes match. Extracted portable native
+Workshop passed in a path with spaces. CurrentNode87 cases covered by full85
+initial suite plus20 latest affected checks; admission25 tests pass. RealMaven
+consumer9 stages, immutable replacement/regression checks and candidate API/
+behavior/drift/export checks accepted. Final whitespace Java export independently
+validated by Python. Generated evidence stays ignored. Public licensing, hosting,
+maintainers, liveAI/CI/authenticatedacceptance and physical editor/Windows/Linux
+are future boundaries, not claimed as implemented or tested. No publication.

@@ -29,7 +29,7 @@ authority or turn generated checks into proof of usefulness.
 
 ## One execution plan
 
-1. Contracts and proof (running): authoritative student API reference, component
+1. Contracts and proof: authoritative student API reference, component
    conventions, local versioned HealthBar library; two consumer apps. Exit:
    real Maven install 0.1.0 → compatible fix 0.1.1 → update → revert, verified
    dependency/source behavior, no copied HealthBar in consumers, old releases
@@ -63,3 +63,15 @@ Two independent Sol/high reviewers at fixed local revisions, separate security
 and compatibility assignments. Budget: seven launches, one initial wave, four
 targeted waves/fix batches, one final integration wave, 60 minutes elapsed and
 30 minutes per reviewer. No PR publication is implied by local review.
+
+## Local completion — 2026-10-09
+
+All five local phases are accepted. Student API is documented; two real apps
+consume immutable HealthBar versions through Maven. Workshop builds trusted local
+source, previews/checks it and exports a bounded packet. Zero exposes on-demand
+Browse/Try/Add/Update/Revert with native guarded POM edits. Admission, release
+proof, catalog and offline AI interfaces are prepared; no external service is
+configured. Two independent reviews and two bounded fix batches resolved six P2s.
+See [verification](VERIFICATION.md) and CURRENT for exact revisions/evidence.
+Local artifacts: zero-bootstrap.zip and zero-components.zip in ignored dist/.
+Public adoption and untested platform/native flows remain explicitly separate.
