@@ -18,3 +18,4 @@ website/.next/
 website/node_modules/
 website/tsconfig.tsbuildinfo
 website/public/generated/
+website/next-env.d.ts
