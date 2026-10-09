@@ -9,6 +9,8 @@
     "check": "node scripts/check.mjs",
     "test": "node scripts/test-extension.mjs",
     "package": "node scripts/package.mjs",
+    "release:publish": "node scripts/release-publish.mjs",
+    "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs",
     "package:components": "node scripts/package-components.mjs",
     "verify:kit": "node scripts/verify-kit.mjs",
     "verify:framework": "node scripts/verify-framework.mjs"

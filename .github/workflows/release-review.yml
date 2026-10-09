@@ -1,4 +1,5 @@
 name: Release checks and preparation
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Prepare Zero {0} [{1}]', inputs.version, inputs.request_id) || 'Zero release checks' }}
 
 on:
   pull_request:
@@ -7,6 +8,10 @@ on:
       version:
         description: Exact new local kit version on the selected source ref
         required: true
+        type: string
+      request_id:
+        description: Optional publisher correlation ID; leave blank for manual preparation
+        required: false
         type: string
 
 permissions:
@@ -41,7 +46,7 @@ jobs:
       - name: Configuration and release guard tests
         run: |
           npm run check
-          node --test scripts/release-review.test.mjs
+          npm run test:release
       - name: Extension and standalone starter tests
         run: npm test
       - name: Finite JavaFX example checks
