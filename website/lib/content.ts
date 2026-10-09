@@ -13,3 +13,5 @@ export function localDownloadsEnabled() {
 export function downloadHref(asset = 'kit') {
   return releaseAssetHref(release, asset, localDownloadsEnabled());
 }
+
+export const sources: Record<string,string> = snapshot.sources;

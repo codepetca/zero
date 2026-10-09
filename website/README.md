@@ -12,7 +12,17 @@ npm run build
 npm run dev -- --port 3000
 ```
 
-The package's preparation step reads `../release/kit.json` and the maintained setup/API/product/Workshop docs. It writes ignored `.generated/content.json` and `public/generated/` assets. Re-run preparation/restart after changing canonical docs. Those snapshots let the supporting pages work before source documentation is published. The logo paths are the supplied `extension/media/zero.svg`, with the approved purple colour; the download icon comes from Bootstrap Icons. The editor image is the existing recorded preview, not a claim of final interactive testing.
+The package's preparation step reads `../release/kit.json`, all six maintained lessons, teacher notes and the setup/API/product/Workshop docs. It writes ignored `.generated/content.json` and `public/generated/` assets. Re-run preparation/restart after changing canonical docs. Those snapshots let the supporting pages work before source documentation is published. The logo paths are the supplied `extension/media/zero.svg`, with the approved purple colour; the download icon comes from Bootstrap Icons. Bootstrap Icons also supply the navigation and disclosure icons.
+
+## Learning routes
+
+`/learn` is the compact six-lesson hub. `/tutorials/1` through `/tutorials/6` render the maintained lesson Markdown with collapsed sections, Expand all / Collapse all, related docs and previous/next navigation. Section fragments open the enclosing disclosure, including repeated clicks on the current fragment. `/docs` lists every maintained guide; `/docs/[slug]` uses the same folding reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` lists seven apps; each `/examples/[slug]` includes exact copy/run instructions and folded Java files.
+
+Markdown renders on the server. The browser receives only the current route's rendered content and small navigation/folding controllers, rather than every document and source file. The canonical Markdown files are read without edits. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer; unlisted files remain labeled source references. Unknown, absolute, traversal and repeated source query values return 404. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path.
+
+The build-time source allowlist includes regular Java/Markdown files in `student-template/examples/` and Markdown in `docs/`, all reader documents, `student-template/pom.xml`, `student-template/zero.json`, the root LICENSE/README, Workshop README, and the two canonical framework Java files exposed under their student-kit paths. Symlink entries are skipped during collection. Generated content/assets remain ignored. No live Java execution, auth, new dependencies or source-write API is added.
+
+The home page keeps the existing wordmark and two actions. Community retains its maintained content and availability limits, with longer explanations inside disclosures and direct source/contribution links.
 
 ## Download states
 

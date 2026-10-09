@@ -115,8 +115,10 @@ Repository creation/sign-in/live uploads follow explicit teacher instructions;
 simulation is the default. Check the remote files and teacher access when using
 a real repository submission. Do not ask for passwords or tokens in lesson records.
 
-These new lesson files can travel with a future starter distribution because they
-live inside `student-template/`. This task does not regenerate or publish the existing versioned archives.
-Integrate the lessons into the next approved kit rather than replacing released assets.
+The lessons are available on the Zero website and can travel with a future
+starter distribution because they live inside `student-template/`. Existing
+versioned archives remain unchanged; use the website for the lesson instructions
+and the downloaded starter for the runnable examples. Include the lessons in the
+next approved kit rather than replacing released assets.
 The separately developed simple game is an optional follow-on after lesson 5;
 the six lessons stand on existing examples without it.
