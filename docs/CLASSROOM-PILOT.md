@@ -34,7 +34,7 @@ out of the record.
   Change Player or Mover behavior; identify the explicit object update/draw calls
   and distinguish frame code from setup. Verify movement, input focus and Stop.
 - Run practice with the unchanged canonical `examples/shared/ScoreDisplay.java`.
-  Propose a caption constructor retaining the no-argument constructor; use
+  Trace its caption constructor and retained no-argument constructor; observe
   “Completed” in practice and verify the quiz still works. Explain app state versus
   component presentation. Keep each app's own display instance.
 - Have the student propose one small helper, example or useful error. Record
@@ -50,7 +50,7 @@ account/network trial. Current development checks mock authentication and transp
 - Use a fresh VS Code window/profile to test actual native browser sign-in,
   cancellation and denied authentication. Confirm local Run still works, retry
   successfully, and check the displayed account. Record browser/school restrictions.
-- Create a student-owned empty repository through Create Repository. Follow teacher
+- Create a student-owned empty repository through Connect a repo → Create a repository. Follow teacher
   visibility instructions; leave README, license and gitignore uninitialized.
   Connect its HTTPS URL from the standalone student folder and confirm the target.
 - Configure the student's per-repository Git name/email under privacy instructions.
@@ -61,8 +61,20 @@ account/network trial. Current development checks mock authentication and transp
 - Confirm success against the actual remote branch/commit and inspect source files
   on GitHub. Record failures and whether a local commit remains. A copied link
   alone does not prove uploaded or current work.
-- Copy Repository Link; submit it separately in Pika and verify teacher access to
+- Click the connected repository name → Copy repository link; submit it separately in Pika and verify teacher access to
   a private repository. Zero does not submit assignments or change grades.
+
+- Upload the starting version on main. Click main → Start a change, cancel once
+  and verify the branch/files are unchanged; then create a named branch. Make
+  and run a small app improvement, Upload changes to that branch, cancel Finish
+  once, then review/approve Finish. Confirm the completed SHA and files on remote
+  main, return to main and optional local branch cleanup. The remote change branch
+  remains. Simulation must not perform any branch/update/merge actions.
+- In a disposable repository, test newer main changes. Expect Finish to pause
+  after adding them to the change branch, then Run App and review Finish again.
+  For a conflict, verify Source Control opens, files/merge state remain and the
+  student can inspect/resolve/stage/commit before retrying. Record dirty-tree,
+  failed-upload and diverged-main messages; no force push/reset should occur.
 
 ## Decision and receipt
 
@@ -79,5 +91,5 @@ Hold adoption when a target OS or required sharing flow remains untested, setup
 needs unresolved proxy workarounds, input or state is unreliable, or students
 cannot explain their changes with reasonable teaching support. Resolve and repeat
 the failed steps; do not replace physical/student evidence with mocked results.
-Original Zero code's public license is unresolved and must be decided before a
-licensed public distribution is promised.
+Original Zero code uses the [MIT license](../LICENSE). Third-party notices
+remain separate; Zero Community artifact licensing is still unresolved.

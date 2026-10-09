@@ -3,12 +3,16 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import {prepareStarter} from './prepare-starter.mjs';
+import {releaseDefinition} from './release.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
+prepareStarter();
+releaseDefinition();
 function json(relative) { return JSON.parse(readFileSync(path.join(root, relative), 'utf8')); }
 function files(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
-    if (['.git', '.verification', 'node_modules', 'target', 'dist'].includes(entry.name) || entry.isSymbolicLink()) return [];
+    if (['.git', '.verification', 'node_modules', 'target', 'dist', '.next', '.generated', 'generated'].includes(entry.name) || entry.isSymbolicLink()) return [];
     const filename = path.join(directory, entry.name);
     return entry.isDirectory() ? files(filename) : [filename];
   });
@@ -22,7 +26,7 @@ if (profile.extensions) assert.ok(Array.isArray(JSON.parse(profile.extensions)))
 json('profile/optional-keybindings.json');
 const manifest = json('extension/package.json');
 assert.equal(`${manifest.publisher}.${manifest.name}`, 'zero.zero');
-for (const command of ['zero.runApp', 'zero.stopApp', 'zero.uploadToGitHub', 'zero.copyRepositoryLink']) {
+for (const command of ['zero.runApp', 'zero.stopApp', 'zero.uploadToGitHub', 'zero.copyRepositoryLink', 'zero.chooseBranch', 'zero.startChange', 'zero.finishChange']) {
   assert.ok(manifest.contributes.commands.some(item => item.command === command), command);
 }
 assert.ok(existsSync(path.join(root, manifest.main.startsWith('./')

@@ -1,8 +1,10 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. The kit contains `zero-0.3.1.vsix`, `Zero.code-profile`,
-optional keyboard shortcuts and `zero-starter.zip`. This MVP still needs physical
+separate JavaFX window. Extract the kit once to find `START-HERE.md`, the ready
+`starter/` folder, `zero-0.5.0.vsix` and an `optional/` folder containing the profile
+and keyboard shortcuts. The separate starter-only ZIP is also available locally.
+This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
 native sign-in and repository upload path.
 See [verification evidence](VERIFICATION.md) for checks actually completed.
@@ -13,17 +15,21 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    work. JDK 17 was tested. Check `java -version`, `javac -version` and
    `git --version` in a new terminal, then restart VS Code. The Java extension's
    runtime does not replace your project's build JDK; follow its setup help if
-   it needs a newer editor JDK.
-2. Optionally import **Zero.code-profile first** through VS Code Profiles. It
+   it needs a newer editor JDK. The normal platform-specific Java extension bundles
+   its tooling runtime on supported Windows/macOS/Linux platforms. Universal
+   builds and other platforms currently need a Java 25+ tooling JDK; see the
+   [Java extension setup](https://github.com/redhat-developer/vscode-java#quick-start).
+2. Optionally import **optional/Zero.code-profile first** through VS Code Profiles. It
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.3.1.vsix** through
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.0.vsix** through
    **Extensions → Install from VSIX…**, then install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
-3. Extract `zero-starter.zip` into your own folder, outside any other Git
-   repository. Open the extracted **zero-starter folder**, rather than a single
+3. Move or copy the kit's **starter folder** into your own location, outside any
+   other Git repository. For the separate starter-only ZIP, extract its
+   **zero-starter folder** instead. Open that folder, rather than a single
    Java file. Keep its hidden `.mvn` and `.vscode` folders. Trust it only after
    checking its source and build scripts.
 4. Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
@@ -53,7 +59,7 @@ or **Cmd+Shift+B** on macOS for the same default build task. There is no hot rel
 
 Read compiler errors in the task terminal and Problems panel; open the indicated
 source line. See **Setup help** for missing local tools. F6/F7 are optional:
-merge `optional-keybindings.json` into your keyboard shortcuts if wanted.
+merge `optional/optional-keybindings.json` into your keyboard shortcuts if wanted.
 
 To change appearance, run **Preferences: Color Theme** in the Command Palette.
 The sidebar supports dark themes too. To return to an imported profile, run
@@ -64,14 +70,18 @@ The sidebar supports dark themes too. To return to an imported profile, run
 Local running needs no GitHub sign-in. For sharing work, follow your teacher's
 privacy, visibility and account instructions:
 
-1. Choose **Sign in to GitHub** in Zero and complete VS Code's native browser
-   authentication flow. Check the account shown in the sidebar. Canceling or
+1. Click the profile icon beside **GitHub** in Zero and complete VS Code's native
+   browser authentication flow. It becomes the account's first letter; hover
+   or focus it to identify the account. Click it for **Change GitHub account…**
+   or **Sign out…**. Sign out opens VS Code Accounts; select the GitHub account
+   there and choose Sign Out. Canceling or
    denying authentication leaves local running available; retry sign-in when ready.
-2. Choose **Create Repository** while signed in. This opens GitHub's new-repository
+2. Choose **Connect a repo → Create a repository…**. This opens GitHub's new-repository
    page. Create your **own empty repository**, leaving README, license and
    gitignore uninitialized to avoid a separate starting history. This workflow
    does not use GitHub Classroom.
-3. Choose **Connect Repository** and paste its HTTPS page URL. Zero initializes
+3. Return to **Connect a repo → Connect an existing repository…** and paste its
+   HTTPS page URL. Zero initializes
    Git in this standalone student folder if needed and adds its origin remote;
    it asks before replacing an existing origin. Connecting does not upload or
    verify repository ownership, existence or access.
@@ -89,17 +99,51 @@ GitHub session for live upload and checks that the session is still current.
 Never put passwords or tokens in project files. If an account/session changes
 during review, sign in as needed and review the upload again.
 
-**Upload to GitHub defaults to simulation**: nothing is staged, committed or
-uploaded. For a teacher-authorized real trial, set the workspace setting
-`"zero.uploadMode": "live"`. Upload saves your files, asks for a short commit
-message, then shows a modal review of repository, branch and changed files.
-Check the destination and files before choosing **Commit & Upload**; cancel if
-anything is wrong. A successful upload creates a local commit when needed,
-pushes it, and confirms the remote branch. A failed upload may leave a local
-commit, so read the error and inspect the repository before retrying.
+## Your individual workflow
 
-After a successful real upload, open GitHub and check the remote files and commit.
-Use **Copy Repository Link** and paste the link separately into the assignment
+`main` holds completed work. A change branch holds your next improvement.
+**Upload changes defaults to simulation**: nothing is saved in Git or uploaded.
+Start and Finish also simulate without changing branches. To use real repository
+actions, set the workspace setting `"zero.uploadMode": "live"` when your teacher
+is ready for the trial. Local Run works in either mode.
+
+For a new repository, **Upload changes once on main** to save and upload the
+starter. Enter a short commit message and check the account, repository, branch
+and files before **Commit & Upload**. This is the starting version.
+
+For each improvement:
+
+1. Click **main → Start a change**. Give it a short name such as `quiz-feedback`
+   using lowercase letters, numbers and dashes. Review before creating the branch.
+   Upload pending edits first. Zero updates main from GitHub when it can do so
+   without combining separate histories, then creates the branch.
+2. Edit and **Run App**. Check your change.
+3. **Upload changes** to save a Git commit and upload progress to this branch.
+   Describe what changed and review before **Commit & Upload**. You can repeat
+   this while building; it does not yet add the change to main.
+4. Click the branch name → **Finish change**. Upload any pending edits first.
+   Check the preview before approving the merge and upload to main. If GitHub
+   has newer main changes, Zero incorporates them into your change branch and
+   pauses. Run the combined app, then choose Finish change again for a fresh
+   review before uploading it to main.
+5. After confirmed success, Zero returns to main. You can remove the finished
+   local branch when prompted, or keep it. Its GitHub branch remains available.
+
+If an update creates conflicts, Zero keeps your work and opens VS Code's Source
+Control. Open the conflicted files or Merge Editor, inspect both changes and
+choose/edit the combined result. Save, stage the resolved files and commit the
+merge through Source Control. Run the app, then choose **Finish change** again
+for a fresh review. Ask your teacher if the correct result is unclear.
+
+A failed upload can leave a local commit. A failed Finish upload can also leave
+main updated locally, with your change branch still selected. Read the error,
+repair network/access problems and review Finish again. Zero never force-pushes
+or silently discards work. Separate changes on local main, unrelated histories
+or unfinished Git operations need normal Git help before continuing.
+
+After a successful real Finish, open GitHub and check the files and commit on main.
+Click the connected repository name, choose **Copy repository link**, and paste
+the link separately into the assignment
 in **Pika**. Give your teacher access if the repository is private. Copying a URL
 does not upload code, establish that the remote is current or submit in Pika.
 
@@ -111,8 +155,9 @@ Physical Windows/Linux, school restrictions and novice trials remain unverified;
 automated authentication and transport checks continue to use mocks.
 
 For a contribution, propose one readable helper or example, explain how to try
-it and include the checks you ran. The first reusable-component exercise can add
-a caption constructor to ScoreDisplay while retaining its no-argument constructor:
-the quiz keeps working and the tracker can display “Completed”. Review the change
+it and include the checks you ran. ScoreDisplay's caption constructor is a shipped
+example of a compatible contribution: its no-argument constructor keeps the quiz
+working while the tracker displays “Completed”. The study app reuses that class
+and adds ordinary Question objects; see its bundled guide. Review a shared change
 with the teacher and verify both apps before a cohort adopts it. Ordinary Java
 packages, interfaces and JavaFX properties are available as later steps.

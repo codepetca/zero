@@ -2,9 +2,9 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.3.1",
+  "version": "0.5.0",
   "publisher": "zero",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -24,6 +24,14 @@
   "contributes": {
     "commands": [
       {
+        "command": "zero.githubAccount",
+        "title": "Zero: GitHub Account"
+      },
+      {
+        "command": "zero.chooseRepository",
+        "title": "Zero: Repository Actions"
+      },
+      {
         "command": "zero.runApp",
         "title": "Zero: Run App"
       },
@@ -41,7 +49,7 @@
       },
       {
         "command": "zero.uploadToGitHub",
-        "title": "Zero: Upload to GitHub"
+        "title": "Zero: Upload Changes"
       },
       {
         "command": "zero.connectRepository",
@@ -58,6 +66,34 @@
       {
         "command": "zero.showSidebar",
         "title": "Zero: Show Sidebar"
+      },
+      {
+        "command": "zero.chooseBranch",
+        "title": "Zero: Change Actions"
+      },
+      {
+        "command": "zero.startChange",
+        "title": "Zero: Start a Change"
+      },
+      {
+        "command": "zero.finishChange",
+        "title": "Zero: Finish Change"
+      },
+      {
+        "command": "zero.components",
+        "title": "Zero: Components"
+      },
+      {
+        "command": "zero.browseComponents",
+        "title": "Zero: Browse Components"
+      },
+      {
+        "command": "zero.updateComponents",
+        "title": "Zero: Update Community Library"
+      },
+      {
+        "command": "zero.revertComponents",
+        "title": "Zero: Revert Community Library"
       }
     ],
     "viewsContainers": {
@@ -129,6 +165,15 @@
           "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using your VS Code GitHub sign-in. A local Git name/email identity is still required."
         }
       }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "zero.components",
+          "when": "view == zero.actions",
+          "group": "zero-components"
+        }
+      ]
     }
   }
 }

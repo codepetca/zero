@@ -1,4 +1,344 @@
-# Current state — 2026-10-08
+# Current state — 2026-10-09
+
+## Release and hosting — active
+
+Owner said “go” to release and Vercel/domain setup; this authorizes source PR/merge,
+release publication and Vercel/zero.codepet.ca DNS setup within the saved plan.
+Owner selected MIT for original Zero. The licensing hold is released for Zero;
+include the notice in every independent downloadable artifact before publication. Optional community archive remains local/unpublished because its
+separate license is unresolved. No credentials changes.
+
+Coordinator owns external actions/licensing/release/packaging/docs.
+release_readiness Sol/medium completed ~4min read-only audit, accepted artifact
+hashes and missing license/optional-asset boundary; delivered website download
+contract files/tests (~3min) with5/5tests and typecheck. Coordinator inspected;
+optional publicationStatus local preserves main3 public integrity requirements. No recursive delegation. Weekly44%remaining; DeepSeek
+paused. Existing reviewed implementation/base9cf18fc is preserved.
+
+GitHub armorup ADMIN of public codepetca/zero; origin/main52cd3be, outgoing100files
+include completed reviewed local phases. Vercel devcodepet-5583 current team
+stewarts-projects-cc2722c4; Zero project created as
+prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA. FrameworkNext.js/rootwebsite/npmci/npmbuild,
+Node22.x and sourceFilesOutsideRootDirectory true independently read back.
+No Git connection/deployment yet; license implementation/verification underway. Cloudflare codepet.ca active
+zone49640bebf0b463a4d227dfcfd509ef79 has no zero.codepet.ca record.
+
+
+
+Release-preparation delivery39b0c21614ad2dfba849bbb7d6ca54492a2010c6:
+rootcheck, website5/5tests,typecheck/build/diff pass. Independent
+release_contract_review/1 Sol/medium complete9cf18fc→39b0c21, zero findings;
+inspected six-file delta and preparation/route/local-integrity/receipt callers,
+independently reran5tests. One initial wave/one reviewerturn/no remediation,
+max7launches4fixes60minsession30minreviewer retained. Effective configuration,
+token and elapsed telemetry unavailable. Prior framework/native/browser evidence
+reused for unchanged behavior. No additional integration wave warranted.
+
+Vercel zero.codepet.ca domain assigned to Zero project, ownership verifiedtrue.
+Cloudflare DNS remains unchanged and domain not live; no source push/release or
+website deployment occurred while licensechoice pending. Project has no Git
+connection or configured local-download flag. Domain CNAME recommendation saved
+in ignored .verification/vercel-domain-config.json for deployment after choice.
+
+Owner answered MIT on2026-10-09; implemented original-code license with license text in root and independent starter,
+kit and VSIX distributions, SPDXmetadata and accurate supporting docs. Optional
+community license remains unresolved and its archive stays local. Then package/
+verify, publish reviewed source viaPR/merge, upload exact main3 versioned assets,
+independently retrieve/hash them, author published metadata, build/deployreviewed
+preview, then configure supplied DNS-only CNAME and verifypublicHTTPS/downloads.
+No tool-backed goal created. No credentials changes. MIT selected explicitly; community license remains held.
+
+## Repository organization and website — local verification complete
+
+Owner requested orchestration of the agreed local organization/site work.
+Branch codex/website-kit-organization from9cd8a16; selected design recorded at
+faa8ccb. Plan docs/WEBSITE-PLAN.md; exact visual docs/design/selected-landing.png.
+No push/PR/merge, release publication, Vercel/DNS or credential change in this phase.
+No new tool-backed goal requested. Weekly remaining45%; DeepSeek pause retained.
+
+Phase exits: canonical framework source and assembled readable starter; flat
+verified kit with shared release metadata; Next.js routes /, /learn, /community;
+working local download/production-unpublished states; responsive browser/design
+QA, extracted native starter checks and risk-matched independent review.
+
+Ownership: framework_kit (Sol/high) owns framework, starter Java/source-assembly,
+scripts, root package/ignore, release metadata and related extension test paths.
+website_build (Sol/medium) owns website only. Coordinator owns root docs/handoff,
+browser QA and final integration. One writer per component, no worker Git mutation
+or publication. Generated caches, starter core copies and website snapshots ignored.
+
+Local implementation cceaf80 verified: full89/89 Node tests139.128s; all7 native
+examples24.15s; flat36-member kit and32-member starter source/permissions/VSIX
+receipt checks and extracted Maven build pass. Extracted69-member Workshop
+passes core0.1.1. Existing core0.1.0 immutable artifacts preserved. Unchanged
+SmokeLauncher failed background canvas-focus; no weakened assertion or full-smoke
+pass claimed. Physical Windows/Linux and final editor interaction remain pending.
+
+Website typecheck/build,4 download boundary tests and audit pass. Browser desktop
+1487×1058 and mobile390×844, actual ZIP download/hash, navigation/API, visible
+keyboard focus and unpublished production behavior pass. Normalized combined
+source/render comparison passed; website/design-qa.md records intentional existing
+logo/system-font choices and corrected P2 spacing. Local preview127.0.0.1:3000.
+
+Independent review high risk: two fresh GPT-6.1 Sol/high reviewers, one canonical
+framework/package compatibility, one website/download correctness; basefaa8ccb
+→cceaf80b708674601736b3e0b2855459fe19cc91. Both assigned scopes complete,
+no publication/security/architecture blocker. One duplicate P2/P3 section-link
+finding accepted once: Markdown fragments dropped and heading IDs absent.
+Fixed in one batch; actual browser exercises→starter#try-an-example reaches the
+heading. Build/typecheck pass. Targeted review follows; no full-suite rerun needed
+for this website-only delta. Budget: max7launches,1initialwave,4targetedwaves,
+1finalintegration,4fixbatches,60minelapsed/30minreviewer. Current2launches,
+1initialwave,1fixbatch; requested configs recorded, effective/token telemetry
+unknown. Delivery estimates framework~22min/website~16min; coordinator confirmed
+source bytes, artifacts, checks and UI. No file conflicts; one small link rework.
+
+Final review receipts (effective model/tokens and per-turn elapsed unavailable):
+- kit_organization_review/1: Sol/high, faa8ccb→cceaf80, complete assigned
+  architecture/compatibility scope, one duplicate nonblocking finding accepted.
+- website_download_review/1: Sol/high, faa8ccb→cceaf80, complete website/download
+  scope, same P2 accepted once; no security/publication blocker.
+- website_download_review/2: Sol/high, cceaf80→57d71fd, complete targeted anchor
+  fix, zero findings; built ten pages have unique matching heading IDs.
+- website_download_review/3: Sol/high,57d71fd→e10b1a9, complete generated-file
+  lifecycle delta, zero findings; installed Next confirms regeneration before tsc.
+
+Final coverage e10b1a995e0846f8d8ade993d35fdaa113401fb7:4reviewerturns,
+1initialwave,2targetedwaves,2fixcommits. No extra integration wave: targeted
+passes cover one website component and mechanical generated-file policy; unchanged
+architecture/download coverage reused. No unresolved blockers. Final check/diff
+pass and Git working tree clean before this evidence-only update. End-to-end
+browser downloaded final kit SHA256e471a5fa18a635eda8f868330b1993140aba4bdd747cbe8e0f05f54e707ae903,
+matching dist/release.json and dist/zero-bootstrap.zip. Final regenerated kit
+98092bytes; local Node preview server port3000 running production build with explicit
+ZERO_LOCAL_DOWNLOADS=1. Browser viewport reset; landing tab retained as deliverable.
+
+Local phase complete. No push/PR/merge, release publication, Vercel/DNS or account
+change. Public licensing, release approval and hosting remain separate next work.
+
+## Community source remote connection
+
+Owner authorized creating public `codepetca/zero-community` and connecting the
+repositories. Coordinator handles source-remote creation/push, companion links,
+portable sibling-clone instructions and read-only CI verification directly.
+Canonical URLs: `https://github.com/codepetca/zero` and
+`https://github.com/codepetca/zero-community`. This supersedes the earlier
+community-source remote hold, not artifact release, licensing, AI or deployment
+holds. Source catalog and local Maven/Workshop behavior stay unchanged.
+Current website/design work remains local and is not part of this source push.
+Public remote is created and connected; initial community head d66e7cf verified
+against origin/main. Actual GitHub Actions run37936790362 passed Ubuntu24.04
+virtual-display JavaFX checks,25 admission tests and packet validation. Physical
+Windows/Linux input, AI and Maven artifact hosting remain unverified/unconfigured.
+Zero companion documentation links are updated locally on the existing component
+branch; its unpublished implementation and website/design are not pushed by this
+community-source authorization.
+Completion: community origin/main00c21ed022a03debf84d0481af1824e5bb01b01a;
+fresh public clone matched all28 tracked files and executable wrapper, with no
+private/build outputs. Final-head CI run37937039736 completed successfully.
+Companion docs committed locally at7e96761; selected website mockup/theme/plan
+remain preserved as separate local changes. No Java/catalog/Maven artifact change,
+new release, Vercel/DNS deployment or account credential change. No delegation or
+rework; substantive coordination ~8min estimated, attributable usage unknown.
+
+## Component lifecycle MVP — locally complete
+
+Owner agreed Maven-backed components and requested an orchestrated goal. The
+tool-backed goal covers local implementation/verification, not publication.
+Plan: [COMPONENT-PLAN](../docs/COMPONENT-PLAN.md); architecture:
+[COMPONENTS](../docs/COMPONENTS.md). Zero branch codex/component-lifecycle from
+199c5b0; separate local /Users/stew/Repos/zero-community on main, no remote.
+No push, publication, deployment, credentials or deferred live GitHub trial.
+Public licensing, hosting and appointed maintainers remain future owner decisions.
+Local HealthBar fixtures remain experimental/UNLICENSED, never community-reviewed.
+
+Accepted delegated deliveries, verified against actual files/source/evidence:
+
+- student_api_reference, GPT-6.1 Sol/medium, ~5min reported: API.md matches actual
+  public/protected signatures; 31 public declarations/9 links checked. No rework.
+- community_library_proof, Sol/high, ~8min reported: ordinary HealthBar library,
+  version0.1.0 baseline →0.1.1 fractional-fill fix, two apps × install/update/revert.
+  Six real finite JavaFX stages, three library tests; regression rejects historical
+  bug. Repeated artifact bytes match; differing immutable replacement refused.
+- component_workshop_build, Sol/medium, ~15min reported: native previews, API/
+  examples, explicit trusted candidate Java build/checks, local packet export.
+  Actual GUI harness exercises caption edits, integer-division mutant and drift.
+  Corrections: Java-only runtime, source-bound candidate evidence, JSON null parity.
+- community_admission_build, Sol/high: Python structural admission/packet and
+  bounded offline AI schema, 19 boundary tests, pinned read-only CI draft.
+  Python independently validates Java packet/digest. CLI cannot approve/publish;
+  independent trusted human/check-runner authority remains a modeled contract.
+- component_consumer_engine, Sol/high, ~15min reported: read-only pinned Maven
+  plans and drift/artifact/source guards, 12 focused tests. Both actual catalogs
+  accepted; no source copies or custom resolver.
+- component_command_tests, Sol/medium: 16 actual-engine/mock-editor checks plus
+  one actual-extension Stop/pending-launch/cleanup regression. Inspected and
+  accepted; ownership released. No rework or file conflict.
+
+All writers released. Coordinator integrated minimal on-demand title menu,
+undoable version-checked POM editor transaction, update/revert/run, trusted Try
+assets and owned task lifecycle/cleanup. Canonical core JAR packages only starter
+SimpleApp/SketchApp, byte-matching sources, no starter binary migration. Portable
+component kit contains Workshop/community source/local repository/catalog.
+No Node/Python student runtime requirement. Candidate Java runs explicitly with
+normal local permissions; this is not an untrusted submission sandbox.
+
+Local integration evidence:
+
+- Configuration/syntax/documentation links and whitespace pass.
+- Full Node85/85 passed129.62s. Latest lifecycle delta19 focused checks pass;
+  new Stop/cleanup regression1/1 passes. Combined current coverage86 checks.
+- Actual Maven consumer from extension engine plans passes add0.1.0/update0.1.1/
+  revert0.1.0; source unchanged, actual JAR hash/origin verified. Path has spaces.
+  Initial coordinator harness cast error corrected; no production API issue.
+- Extracted component component ZIP passes actual finite JavaFX Workshop harness
+  with default sibling paths in a folder with spaces. Initial plugin argument
+  splitting exposed a real portability defect; relative defaults/file-URI custom
+  paths fixed it after one unsuccessful quoting attempt. Final extracted pass.
+- Java-exported packet independently validated by Python; candidate sourceDigest
+  d123308f…c7f8cf. Generated receipts/logs under ignored .verification/ and .proof/.
+- Preliminary0.5.0 VSIX/starter/bootstrap ZIP built; every extension source and
+  trusted example asset matches VSIX and isolated VS Code CLI installation.
+
+Start weekly remaining47%; account-wide, not attributable usage. DeepSeek paused
+through2026-12-31. Requested model/effort recorded; effective configuration/tokens
+and attributable coordination effort unavailable. Workers used focused fresh
+contexts, one writer each. Coordinator verified deliveries and shared contracts.
+
+Review high risk: two fresh Sol/high reviewers, security/correctness and
+architecture/compatibility, exact local revisions. Caps:7 launches,1 initial
+wave,4 targeted/fix waves,1 final integration,60min total/30min per reviewer.
+Local implementation and independent review complete; final regenerated
+artifacts and byte verification accepted. Physical editor
+clicks/chooser, Windows/Linux, live GitHub/CI/AI, publication and novice trials
+remain unverified. No simulated feedback is presented as external acceptance.
+
+## Previous delivery evidence
+
+
+## Individual GitHub workflow — locally complete
+
+Owner agreed an ultra-simple individual flow and requested orchestration:
+Start a change, build/run, Upload changes, Finish change into main; current branch
+opens the small menu, while Finish stays out of the permanent sidebar. No PR/team
+mode or rebase interface. Students submit the repository link separately in Pika.
+The tool-backed goal tracks implementation, local dogfooding, independent review,
+verification and regenerated kit. Work is local on codex/individual-workflow from
+528ce8ff0206f9de21ec111843be89c9a242edd6. No real GitHub push/account changes,
+source PR/merge, release or deployment authorized. Weekly remaining 55%; DeepSeek
+pilot paused through 2026-12-31. Existing Java app/source contracts stay intact.
+
+One execution plan:
+
+1. Implement guarded start/finish engine and compact sidebar. Exit: meaningful
+   local Git and mocked UI/transport tests pass; simulation changes no Git state.
+2. Dogfood a full cycle in a disposable standalone starter/local bare remote,
+   including updated main, cancellation, conflicts, retry and optional cleanup.
+   Exit: exact completed main SHA/files verified and source preserved on failures.
+3. Independently review the fixed implementation, verify/package source bytes,
+   and record actual native/platform gaps. Exit: no unresolved blockers, local
+   checks green, clean committed branch and regenerated ZIP/VSIX.
+
+Ownership: individual_git_engine, GPT-6.1 Sol/high, fresh context, started
+~02:40 UTC Oct 9 (~22:40 Toronto Oct 8), owns workflow.js, transport.js and
+github.js plus their tests. Individual_sidebar, GPT-6.1 Sol/medium, fresh context,
+owns extension.js, manifest and UI tests. Coordinator owns guides/checks/packaging
+and acceptance. No worker Git mutations or recursive delegation. Requested
+configuration recorded; effective telemetry, attributable tokens and coordination
+time unknown. First baseline on main uses existing reviewed Upload; Start requires
+clean committed main. Network uses exact destination and SHA-pinned fetch, no
+force. Finish merges updated main into the feature, preserves conflicts, retains
+the feature on failed push, and returns to main only after remote confirmation.
+Optional cleanup deletes only the unchanged local finished branch, never remote.
+
+Review plan: high risk due to new authenticated fetch and destructive/stateful
+Git boundaries. After checks, two independent GPT-6.1 Sol/high reviewers with
+fresh context: credential/destination correctness and Git-state/UI compatibility.
+Default caps: seven launches, one initial wave, four targeted/fix batches, one
+final integration wave, 60 minutes elapsed and 30 minutes per reviewer. Ledger
+started at 02:50:33 UTC Oct 9 (22:50:33 Toronto Oct 8). Initial head
+74bc2c58b45e8765f9fd2a72c5bc34788ff56434 against base 528ce8f: security review
+complete/clean (~120s), state/UI review complete (~3min) with one accepted P2.
+Native Git checkout left the new branch label stale until click. Coordinator
+added an exact-project Git HEAD/config watcher for change/create/delete and a
+meaningful metadata-event regression. Focused latest UI 3/3 and config/diff pass.
+Full exact initial-head suite passed 56/56 (147.121s); unchanged engine/transport
+coverage reused for the small UI refresh delta. Targeted state/UI review completed
+clean at ae1514cf50457860c7e27fa5121f4dc7a1e8c0ee against 74bc2c5 (~1min).
+Final ledger: three reviewer turns, one initial wave, one targeted wave, one
+remediation batch; ~6.5min elapsed review session including coordinator work.
+No final integration wave needed: delta is read-only status refresh with no
+workflow/security changes or coverage gap. Effective model/token telemetry unknown.
+
+Sidebar delivery inspected: focused 3/3 tests, syntax/diff checks passed. Simulation
+skips saves/auth/engine while notifications remain open; branch menu and busy
+guards retain minimal source-control/account controls. Owner released files.
+Coordinator independently dogfooded a complete starter copy in a path with spaces:
+two compiled Java edits/cycles, two cancelled previews, failed final push/retry,
+exact local-bare main/source confirmation and safe local cleanup with remote
+progress branch retained. All 34 network commands were injected to the local
+bare remote; no GitHub endpoint contacted. Trial temporary repositories removed.
+Final main receipt 7db23efdfcd76e8b41a970d495404848e6d082a8. Engine guard/tests
+delivered and source inspected; 40/40 engine/GitHub/transport checks, then 2/2
+targeted latest guards passed. Both workers released ownership. Coordinator found
+and requested an atomic cleanup guard for a concurrently moved feature; worker
+added a real mutation regression and compared-and-deleted the exact expected SHA.
+No file conflicts. Coordinator clock observed ~10 minutes for the two deliveries,
+while worker self-estimates were ~14 minutes each; these are estimates, not token
+or cost telemetry. Full integration suite and initial review complete as above. Preliminary
+0.4.0 VSIX packaged and installed in isolated editor data/extensions. CLI attempt
+with nonexistent Zero profile failed; default isolated install succeeded. CUA
+selected another Code process (Welcome window), so no native activation/interaction
+claim. The signed-out preview starter is saved outside the kit in
+/Users/stew/Documents/Zero Individual Preview 2026-10-08/zero-starter; its origin
+is a placeholder and simulation stays default. No account/network actions used.
+
+Coordinator inspected the final evidence-only delta and regenerated the 0.4.0
+VSIX/starter/combined ZIP. Every extension source, manifest, README, 32 starter
+files, seven combined members and profiles match local bytes; Unix wrapper mode
+is executable and build/Git directories are excluded. Final config/diff checks
+pass. All code committed locally; no source publication or real GitHub action.
+The initial full suite and final focused checks are accepted with unchanged
+coverage. Real GitHub Start/Finish, native final-version editor/watcher interaction,
+Windows/Linux and novice classroom trials remain explicitly untested. Final VSIX
+installed again in isolated editor data; installed JS bytes match reviewed source.
+End weekly remaining 50% (account-wide delta, no task-cost attribution).
+
+## Minimal GitHub sidebar
+
+Owner requested a profile icon/initial with account-name hover and account actions,
+connected repo name, and one “Connect a repo” entry offering create/existing.
+Implement locally on codex/minimal-github-sidebar, based on the completed local
+study branch at 0cc62b5. No push/PR/merge, real sign-out/account change, repository
+creation/upload or Pika action authorized by this UI request. Keep native auth,
+upload confirmation/simulation and local Run/Stop contracts. Current weekly
+remaining 59%; DeepSeek remains paused. Coordinator owns this small coherent
+extension change and guides; no implementation delegation needed.
+
+Account control uses a silhouette while signed out and first letter while signed
+in, with accessible account name and hover title. Account quick pick changes the
+native preference or opens VS Code Accounts for user-directed sign-out. Public
+authentication API has no native-provider session-removal function, so no custom
+credential handling is introduced. Repository row displays owner/name; menus
+offer create/connect when empty and copy/change when connected. Upload and its
+explicit simulation label stay visible when signed in and connected. Local kit
+version 0.3.2. Focused checks 6/6 and full Node suite 37/37 (final 28.41s); configuration
+and diff pass. Actual isolated Mac reload showed initial/name and create/existing
+quick pick; concurrent user actions interrupted further menu automation. No
+native logout/account switch or connection/upload performed. An encountered
+native sign-in permission prompt was cancelled. Source inspection corrected a
+non-command Accounts action to the registered Manage Accounts command, detecting
+availability and giving manual native guidance on older editors. Focused tests
+cover both routes; corrected VSIX installed, final activation/menu trial pending.
+Standard-risk review completed clean against 0cc62b5 at
+1534dd27b65f0f34088f85f5a2f9af6125066b1b: one GPT-6.1 Sol/medium reviewer,
+one turn/initial wave, zero remediation, about one minute estimated; token
+telemetry unavailable. Reviewer independently confirmed the registered native
+command and retained the activation/account-action testing gaps. Coordinator
+inspected the evidence-only delta. Final ZIP/VSIX regenerated: extension sources,
+manifest/README, every starter file and combined-kit members match local bytes;
+Unix wrapper permissions and absence of build/Git directories checked. All work
+remains local; no push or account mutation performed.
 
 ## Fix publication, then study-app dogfooding
 
@@ -12,12 +352,38 @@ explicitly skipped for this phase; retain platform/physical-input limitations.
 Reuse the completed fix review and same-code checks. Coordinator inspected the
 later evidence/authority-only delta. Fetched origin/main still equals 3be9d52;
 check final PR readiness, checks, threads and merge outcome before syncing main.
-Then use a new codex branch for a standalone starter copy of a multi-question
+Fix PR #3 merged at 52cd3be7ea2b4fcfa2ea8d84e21a83cd7107c67a; main synced.
+PR head e2669ac reused review of unchanged code at 00901af and coordinator
+inspection of later docs; no checks/reviews/threads outstanding, mergeable/clean.
+Now on codex/study-app-dogfood for a standalone starter copy of a multi-question
 study app with feedback, score, next/restart and ordinary Question objects.
 Reuse a readable component in another example. Add framework API only for a
 demonstrated need; preserve the beginner default quiz. Exit: actual finite GUI
 behavior checks, packaged standalone build, readable instructions and bounded
 independent review. Initial weekly remaining 61%; DeepSeek remains paused.
+
+Ownership: study_app_build, GPT-6.1 Sol/medium, fresh context, bounded Java app
+and GUI checks; owns examples/study/**, canonical/default ScoreDisplay copies,
+practice Main and scripts/verify-examples.py. Coordinator owns remaining guides,
+packaging and isolated app trial; no concurrent edits to worker files. Start
+~18:31 UTC; delivered and source inspected, about seven minutes including focus
+investigation, no integration conflicts; attributable tokens/coordination time
+unknown. Requested configuration Sol/medium; effective telemetry unavailable.
+Builder owns no files now. Study, quiz, practice, animation, counter and drawing
+finite GUI checks passed. Existing keyboard check failed with stage/canvas
+unfocused; worker's forced-activation diagnostic used unsupported UI automation
+and is excluded. No source/test bypass was made; no clean full-suite pass claimed.
+Coordinator independently passed the packaged fourth-question exercise (10.046s).
+Configuration/diff checks passed. Standard-risk review completed clean at 3f0d0c7
+against 52cd3be: one Sol/medium reviewer, one turn/initial wave, zero remediation,
+about three minutes; token telemetry unknown. Existing keyboard-focus gap does
+not block this SimpleApp-only change. Reviewer identified stale preliminary
+packaged README; final artifacts regenerated and source/member bytes matched.
+Coordinator inspected later evidence-only delta. Actual isolated Zero sidebar
+shows Question, Run launched owned Maven/Main, Stop ended both; no physical quiz
+input claim. Standalone study remains open in Zero profile. Remaining platform
+gaps retained; novice trial skipped. Local app work complete and committed;
+study source publication is not authorized.
 
 ## Current teacher pilot follow-up
 
@@ -195,3 +561,59 @@ targeted follow-up accepted the corrected delta. Publication reuses that coverag
 and runs a bounded focused integration pass; the PR records its final decision.
 All workers have released file ownership. The earlier Processing template is
 preserved. Generated dist, caches and verification logs stay out of Git.
+
+## Component review ledger
+
+Initial high-risk wave: two fresh GPT-6.1 Sol/high reviewers at Zero3559a1d and
+community1544095, start~11:17UTC Oct9. Both completed full assigned scope, no P0/P1.
+Five accepted P2s: Stop timeout cleanup ownership; update/revert queued Run root
+drift; unsupported Maven profiles/management missing admission; AI second-read
+digest drift; incomplete candidate API compatibility. One combined fix batch:
+coordinator owns Zero; original Sol/high admission worker owns its four files.
+No overlap, no source/library/artifact changes in community, no external action.
+Twenty affected Node checks pass; admission24 tests pass. Workshop finite harness
+passes constructor/getter/return-type mutants and Maven-profile/plugin fixtures.
+Pinned nested plugin dependencies now share Java/Python packet schema, validated
+independently. Two focused review turns planned for this delta; budgets unchanged.
+
+Targeted wave1 at Zeroe49ae69/community83744d2: security reviewer accepted all
+four fixes and ran actual late-Stop-timeout/retained-directory/eventual-cleanup
+reproduction. Compatibility API fix accepted; one new P2: Java/Python plugin
+coordinate whitespace disagreement. Second bounded fix batch normalizes Python
+POM leaves/properties and exercises Java-export/Python-validation with whitespace
+and a property version. Admission25 tests and the actual Workshop harness pass;
+independent Python accepts the freshly exported whitespace packet (digest
+b9b18c97…f3048eb). Initial fixture failed because replaceFirst interpreted a
+literal Maven property; quoteReplacement corrected the harness. A stale ZIP
+validation was discarded; the fresh ZIP contents/properties were verified before
+acceptance. No library/source/artifact
+changes. Next one targeted compatibility review;5 total turns including it,
+2 fix batches,2 targeted waves, no final full integration wave planned unless
+new interaction evidence requires one. End weekly remaining46% (account-wide).
+
+Final targeted wave2 clean at Zero0ffddaf/community5f68f73. Reviewer independently
+inspected fresh whitespace/property ZIP and validated digestb9b18c97…f3048eb.
+All6 accepted P2s resolved across2 fix batches. Final ledger5 reviewer turns,
+1 initial wave,2 targeted waves; no remaining blocker or concrete interaction
+gap requiring another integration wave. Review session~35min including
+coordinator/remediation; reviewer-specific elapsed and tokens unavailable.
+No source or library changes after acceptance; final evidence-only docs inspected
+by coordinator. End weekly46% remaining, no task-cost attribution.
+
+Final0.5.0 VSIX/starter/bootstrap and69-member component ZIP regenerated locally.
+Every source/wrapper/library digest verified; corrected VSIX reinstalled in
+isolated editor and all installed source bytes match. Extracted portable native
+Workshop passed in a path with spaces. CurrentNode87 cases covered by full85
+initial suite plus20 latest affected checks; admission25 tests pass. RealMaven
+consumer9 stages, immutable replacement/regression checks and candidate API/
+behavior/drift/export checks accepted. Final whitespace Java export independently
+validated by Python. Generated evidence stays ignored. Public licensing, hosting,
+maintainers, liveAI/CI/authenticatedacceptance and physical editor/Windows/Linux
+are future boundaries, not claimed as implemented or tested. No publication.
+
+MIT distribution delivery: mit_distribution Sol/medium ~4min estimated,
+canonical rootLICENSE with prepared ignored starter/extension copies. Exact notice
+bytes verified in starter,kitroot/starter and standardVSIXLICENSE.txt; SPDXMIT.
+Checks rootconfig,2 meaningful drift/extracted-edit compiletests,package/verifykit
+pass. No Java or Maven-coremetadata change; optionalcomponentarchive unchanged.
+No conflicts; coordinator owns websitecopy/docs and externalactions.

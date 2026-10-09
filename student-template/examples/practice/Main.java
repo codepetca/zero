@@ -14,7 +14,7 @@ public class Main extends SimpleApp {
     }
 
     @Override public void setup() {
-        score = new ScoreDisplay();
+        score = new ScoreDisplay("Completed");
         Button add = new Button("Completed an exercise");
         Button reset = new Button("Reset");
         add.setOnAction(event -> completeExercise());

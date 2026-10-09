@@ -5,9 +5,13 @@
   "description": "Local Java teaching kit with a quiet VS Code sidebar",
   "engines": { "node": ">=22" },
   "scripts": {
+    "prepare:starter": "node scripts/prepare-starter.mjs",
     "check": "node scripts/check.mjs",
     "test": "node scripts/test-extension.mjs",
-    "package": "node scripts/package.mjs"
+    "package": "node scripts/package.mjs",
+    "package:components": "node scripts/package-components.mjs",
+    "verify:kit": "node scripts/verify-kit.mjs",
+    "verify:framework": "node scripts/verify-framework.mjs"
   },
   "devDependencies": {
     "@vscode/vsce": "4.0.0",

@@ -14,13 +14,13 @@ function fixture() {
 const session = (account = 'student', token = 'TEST_SECRET') => ({id:'session',account:{id:account,label:account},accessToken:token});
 test('activation/revalidation are silent and only explicit sign-in can create/select a native session', async () => {
   const f = fixture(); const auth = createAuthentication(f.api);
-  await auth.refresh(); assert.equal(auth.signedIn,false); assert.equal(auth.status,'Not signed in');
+  await auth.refresh(); assert.equal(auth.signedIn,false); assert.equal(auth.accountLabel,undefined); assert.equal(auth.status,'Not signed in');
   await assert.rejects(auth.capture(), /Sign in to GitHub/);
   assert.ok(f.calls.every(call => call.provider === 'github' && call.scopes.join() === 'repo' && call.options.silent));
-  f.set(session()); await auth.signIn(); assert.equal(auth.status,'Signed in as student');
+  f.set(session()); await auth.signIn(); assert.equal(auth.status,'Signed in as student'); assert.equal(auth.accountLabel,'student');
   assert.deepEqual(f.calls.at(-1).options,{createIfNone:true});
   await auth.signIn(true); assert.deepEqual(f.calls.at(-1).options,{createIfNone:true,clearSessionPreference:true});
-  auth.dispose(); assert.equal(f.disposed,true); assert.equal(auth.signedIn,false);
+  auth.dispose(); assert.equal(f.disposed,true); assert.equal(auth.signedIn,false); assert.equal(auth.accountLabel,undefined);
 });
 test('session/account/token drift, removal, and provider changes invalidate a captured upload', async () => {
   for (const next of [undefined, session('other'), session('student','rotated')]) {

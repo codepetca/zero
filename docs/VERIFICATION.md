@@ -1,5 +1,225 @@
 # Local verification — 2026-10-08
 
+## Component lifecycle — local 0.5.0 prototype
+
+Student API reference, separate local community library, native Component Workshop
+and on-demand Browse/Try/Add/Update/Revert commands are implemented. Maven owns
+resolution; managed POM edits preserve student Java and unrelated configuration.
+HealthBar0.1.0's partial-fill bug and compatible0.1.1 fix remain immutable fixtures.
+Neither is a public/community-reviewed release.
+
+Full Node85/85 checks passed (129.62s); the subsequent task ownership/cleanup delta
+passes19 affected checks, including one new Stop-during-launch integration test.
+Current coverage87 tests after review fixes;20 latest affected checks pass.
+The separate community admission suite now passes25 tests.
+Two consumer apps × install/update/revert passed six actual finite JavaFX stages.
+A coordinator consumer built from the same extension plans passed three additional
+Maven/JavaFX stages with source preservation and actual JAR hashes/origins.
+
+Workshop checks render fresh named states, change controls/reset, compile a
+trusted local candidate explicitly, reject a fractional-fill mutant and invalidate
+stale source-bound receipts. Its Java ZIP passes independent Python validation.
+The extracted portable component kit passes with default sibling paths
+in a folder containing spaces. Maven plugin argument splitting initially broke
+that launch; relative defaults and file-URI custom paths corrected it.
+
+The0.5.0 VSIX installs through isolated VS Code CLI; all extension source and
+packaged trusted example assets match local bytes. This proves installation,
+not native command interaction. Generated receipts stay ignored in .verification/
+and the separate community .proof/. Final independent review/artifact acceptance
+is recorded in CURRENT:5 review turns,2 fix batches,6 P2s resolved, no remaining
+findings. Final69-member component ZIP/source/library hashes and installed VSIX
+bytes match the locally committed code. Whitespace/property Java packet independently
+passes Python validation; a stale initial fixture ZIP was discarded.
+
+Physical editor clicks, chooser interaction, Windows/Linux, live CI/AI,
+authenticated community acceptance, public hosting/licensing and classroom trials
+remain unverified. Candidate Java executes with normal local permissions, not a
+sandbox. Offline AI feedback is advisory; no tool can approve or publish. No
+remote repo, push, publication, deployment or credential changes occurred.
+
+
+## Individual workflow — 0.4.0
+
+Local implementation on codex/individual-workflow from 528ce8f. The owner agreed
+Start a change → Upload changes → Finish change into main, then requested this
+goal's orchestration. No team/PR mode or rebase interface. Initial main upload
+uses the existing reviewed path; Finish and optional local cleanup add guarded
+state transitions. Authentication/storage and local Java framework are retained.
+This goal authorizes local implementation and injected-remote dogfooding, not a
+real GitHub upload, account modification, source push/PR/merge or release.
+
+Checks:
+
+- Focused sidebar tests passed 3/3: default simulation skips save/auth/Git
+  mutation, cancellation, busy menus/commands, account and branch drift, update
+  pause for Run App/fresh Finish, preserved conflict guidance and native Source
+  Control/fallback, success-only optional cleanup, escaping and token exclusion.
+- Coordinator's standalone starter trial used a temporary path with spaces and
+  injected all 34 transport commands to a local bare repository. Two small Java
+  changes compiled with the pinned Maven wrapper; two complete branch/finish
+  cycles confirmed main and exact Java source bytes. Preparing then cancelling
+  Start/Finish kept refs/files unchanged. A failed final push retained the feature
+  and source; a new Finish review uploaded the preserved SHA. Optional cleanup
+  removed only the local feature; the remote progress branch remained. Reusing
+  that remote name was rejected. Final local-bare main was
+  7db23efdfcd76e8b41a970d495404848e6d082a8. Temporary trial repositories removed.
+- Full exact implementation suite passed 56/56 (147.121s at 74bc2c5). Real local
+  Git tests cover newer main fast-forward, disjoint merge/update pause, conflicts
+  and resolution/retry, remote non-fast-forward races, forged/stale plans,
+  local/remote/root/file drift, worktree/unrelated-history refusal, ignored-file
+  preservation, duplicate remote feature names and atomic cleanup against a
+  concurrently moved branch. Native-session transport tests cover the narrowly
+  permitted pinned fetch, destination/session guards and credential isolation.
+- Initial independent security review completed clean; state/UI review found
+  one P2: native checkout left the displayed current branch stale until clicked.
+  Coordinator added an exact-project Git HEAD/config watcher covering change,
+  create and delete. The affected 3/3 UI checks passed (0.190s), including refresh
+  without a Zero command and ignoring another project's metadata. Targeted review
+  accepted that delta at ae1514c with no new findings. Unchanged engine/transport
+  coverage is reused.
+- Configuration, syntax, command contracts, document links and diff checks passed.
+
+Review receipt: two independent GPT-6.1 Sol/high initial reviewers completed the
+full diff from 528ce8ff0206f9de21ec111843be89c9a242edd6 to
+74bc2c58b45e8765f9fd2a72c5bc34788ff56434; security clean (~120s), Git-state/UI
+one accepted P2 (~3min). The state/UI reviewer accepted the targeted correction
+at ae1514cf50457860c7e27fa5121f4dc7a1e8c0ee (~1min). Three reviewer turns,
+one initial wave, one targeted wave and one fix batch, about 6.5 minutes elapsed
+including coordination; effective model and attributable token telemetry unknown.
+No final integration wave adds coverage: the correction is read-only display
+refresh and retains workflow/security contracts. Coordinator inspected the final
+evidence-only delta. Final 0.4.0 kit regenerated; extension source/manifest/README,
+every starter file, profile/optional bindings and all seven combined-kit members
+match local bytes. The Unix Maven wrapper is executable and no target/Git folder
+is included. Source publication remains unauthorized.
+
+Local-bare transport is injected only in checks; production accepts the ordinary
+reviewed GitHub HTTPS destination and uses guarded native-session credentials.
+No real account/network trial is claimed. Final 0.4 VSIX installed through
+the isolated VS Code CLI (the first nonexistent-profile attempt failed; default
+isolated install succeeded). Computer-use selected a different Code process's
+Welcome window, so this does not confirm new-version activation or interaction.
+Installed JS bytes match the reviewed source after the final installation.
+Native 0.4 editor interaction and real
+GitHub start/finish, physical Windows/Linux, school restrictions and novice
+student flow remain untested. The Java framework is unchanged; these Java edits
+were compile checks, not physical app input or full framework GUI evidence.
+
+## Compact GitHub sidebar — 0.3.2
+
+Local change on codex/minimal-github-sidebar, based on the completed study branch
+0cc62b5. The owner requested an account icon/initial with hover name and account
+actions, a connected repo name and create/connect options behind “Connect a repo”.
+The existing native authentication, upload review and transport are retained.
+Only a read-only account-label getter was added to the authentication bridge.
+
+Checks:
+
+- Focused UI/authentication tests passed 6/6. Account/repository menus support
+  cancellation, signed-out local connect, sign-in before create, account change,
+  delegation to VS Code Accounts for sign-out and copy-link when connected.
+  Existing busy guards also block new menu commands during upload review.
+  Account names are escaped and native tokens do not appear in the HTML.
+  Connected repository name remains visible after session removal.
+- The simulation regression now waits for its warning to be issued before
+  checking command release, removing an IO scheduling race exposed by the added
+  menu checks. Production still does not await warning dismissal.
+- Full Node suite: 37/37 passed (34.66s initially, 28.41s after correcting the
+  native account-command route). Configuration, syntax, document links
+  and diff checks passed. Java source/dependencies are unchanged, so no Java GUI
+  re-run was needed for this sidebar change.
+- Packaged 0.3.2 VSIX installed into the isolated Zero profile. Actual Mac reload
+  showed the signed-in account's initial, accessible account name and compact
+  empty-repo row. The real repository quick pick displayed create/existing
+  choices. Concurrent user interaction interrupted further menu automation;
+  account actions are covered by mocks so far, not a completed native logout or
+  account switch. A native sign-in permission prompt encountered during the
+  interrupted trial was cancelled; no authorization was granted. No account
+  credentials, repo connection or files were changed by the menu trial. The
+  corrected VSIX was installed again; final activation/menu trial remains a gap.
+
+Source inspection caught that workbench.actions.accounts is a UI action rather
+than a registered command. The corrected route detects the available public
+workbench.action.manageAccounts command before opening its native account picker.
+On older editors without it, Sign out gives manual native Accounts instructions.
+Both paths pass focused tests. No internal session-deletion command is called.
+
+One standard-risk GPT-6.1 Sol/medium independent review completed clean at
+`1534dd27b65f0f34088f85f5a2f9af6125066b1b` against
+`0cc62b5b719c474cebb4a7217b0fa14bd28fd1ae`: one turn/initial wave, zero
+remediation, about one minute estimated; token telemetry unavailable. Reviewer
+checked rendering, escaping/accessibility, cancellation/busy guards, session
+consistency, command compatibility, tests and guides, and independently confirmed
+the native Manage Accounts registration. Coordinator inspected the later
+evidence-only delta. Final ZIP/VSIX regenerated and byte-checked against the
+extension sources, manifest/README, every starter file and combined-kit members.
+The Unix Maven wrapper is executable; no build/Git directories are packaged.
+
+This local request does not authorize push/PR/merge or release publication.
+Windows/Linux and signed-out physical UI remain untested. Native sign-out uses
+VS Code Accounts: the user selects the GitHub account and Sign Out there; Zero
+does not directly delete a native session or display a custom credential form.
+
+## Study-app dogfooding
+
+After the 0.3.1 fix merged in PR #3, the owner authorized building the study app
+and explicitly skipped novice trials for this phase. Local implementation on
+codex/study-app-dogfood starts from merged main 52cd3be. The new example uses
+the existing SimpleApp unchanged: three Question objects in an array, retries,
+once-only scoring, Enter/check, Next, explanations, final summary and Restart.
+The shared caption constructor keeps the quiz's no-argument ScoreDisplay working;
+the practice tracker uses “Completed”. No dependency, extension or framework
+source changed, and no further upload or Pika action occurred.
+
+Checks on the same Mac/JDK environment:
+
+- New study finite real-window checks passed (25.80s): blank/wrong retries,
+  trimmed/case-insensitive answers, Enter, duplicate scoring, locked Next,
+  advance resets, mid-session restart, summary, finished-state guards and
+  restart/rescoring. Quiz and practice checks passed with the shared constructor
+  changes; animation, counter and drawing also passed. Shared/default component
+  bytes match and the default quiz is unchanged.
+- The normal seven-example run stopped at the existing keyboard assertion
+  “Right arrow must move object”. Diagnostic state showed both window/canvas
+  unfocused; the existing framework deliberately ignores unfocused key input.
+  One worker diagnostic forced native window activation using unsupported UI
+  automation; that pass is excluded from acceptance. No test/framework bypass
+  or input-source change was made. This run does not establish a clean full
+  suite or physical keyboard interaction; the focus-dependent keyboard check
+  remains an environment verification gap.
+- Extracted the packaged starter into a standalone path with spaces, copied
+  study's exact three files, and added a fourth Question without changing the
+  handlers. Full study behavior checks passed against four-question progress,
+  scoring, completion and restart (10.046s Maven time). Restored the three-question
+  source and removed the contributor harness from the ready-to-run local copy.
+- Configuration, syntax, documentation links and diff checks passed. The full
+  37-test Node evidence from the fix is reused because extension code/tests are
+  unchanged. Local packaging passed. In the isolated Zero profile, the standalone
+  study folder showed Main, Question and ScoreDisplay in the minimal file tree;
+  sidebar Run launched Maven and the JavaFX Main process. Sidebar Stop showed
+  “App stopped” and both owned processes ended. This is editor/process evidence,
+  not direct JavaFX typing/clicking.
+
+One GPT-6.1 Sol/medium builder delivered the app, shared caption and checks in
+about seven minutes including focus investigation. Coordinator inspected the
+source and independently tried the packaged fourth-question exercise. One writer
+per component, no integration conflict. Token telemetry and attributable
+coordination time are unknown. One standard-risk GPT-6.1 Sol/medium independent
+review completed clean at `3f0d0c71e3b1f1471d25513f10e1d86e5c857754` against
+`52cd3be7ea2b4fcfa2ea8d84e21a83cd7107c67a`, covering session transitions,
+compatibility, copy reuse, instructions and checks. The unchanged keyboard-focus
+gap does not block this SimpleApp change. One reviewer turn/initial wave, no
+remediation, about three minutes; token telemetry unavailable. Reviewer noticed
+the preliminary starter README needed repackaging. Coordinator inspected the
+subsequent evidence-only delta and regenerated the final kit, matching every
+starter file and guide/VSIX byte; no build/Git directories were included.
+
+The starter still opens the beginner one-question quiz. Study remains an optional
+example and an extracted local project. Windows/Linux, school setup and direct
+JavaFX typing/clicking remain unverified; novice testing was skipped by the owner.
+Study changes are local only; no PR/push/release publication is authorized for them.
+
 ## Teacher pilot and 0.3.1 correction
 
 The user authorized a real teacher workflow on 2026-10-08 and completed native
@@ -58,8 +278,12 @@ checks. Native permission cancellation was tried, not denied browser OAuth or
 account switching during a real upload. Pika submission awaits a chosen classroom/
 assignment; no submission, student impersonation or grades changed. Windows/Linux,
 school proxies/cold caches and novice students remain untested. The private pilot
-repository is retained as evidence. No further source push, release or Marketplace
-publication is authorized for the local correction.
+repository is retained as evidence. The owner subsequently authorized the fix PR
+and merge: [PR #3](https://github.com/codepetca/zero/pull/3) merged to main at
+`52cd3be7ea2b4fcfa2ea8d84e21a83cd7107c67a`; the local main checkout was synced.
+Its final head reused the unchanged code review and coordinator inspection of
+later documentation-only changes. No outstanding checks/reviews/threads or merge
+conflicts were reported. No release or Marketplace publication occurred.
 
 ## Earlier MVP 0.3.0 delivery checks — before teacher pilot
 
@@ -280,3 +504,28 @@ One writer per component and small context handoffs limited coordination overhea
 The existing chat remained coordinator; no separate chat or automation was created.
 The publication request reused these completed reviews and checks; its PR records
 the final focused integration review and merge decision.
+
+
+## Repository organization and website — 2026-10-09
+
+Local framework source is canonical under framework/src; generated readable
+starter copies are drift guarded. Original Java API and harness bytes match.
+Flat kit verification checks source parity, receipts, VSIX bytes, wrapper modes,
+absence of contributor tools and an actual extracted Maven compile in a path
+with spaces. Full Node suite89/89 passed139.128s. Seven finite JavaFX example
+checks passed24.15s; extracted69-member Component Workshop native check passes
+with core0.1.1. Prior immutable core0.1.0 artifacts remain unchanged.
+
+The unchanged framework SmokeLauncher failed its canvas-focus assertion during
+background native launch. No assertion was weakened; full smoke success is not
+claimed. Physical Windows/Linux and final native editor interaction remain untested.
+
+Next.js typecheck/build, four download/publication boundary tests and dependency
+audit pass. In-app browser checked desktop1487×1058 and mobile390×844, navigation,
+API documentation, visible keyboard focus and actual kit download. Downloaded
+ZIP bytes match the generated release receipt. Default production explains the
+unpublished release; local verified downloads require an explicit flag, refused
+on Vercel. Visual comparison passed; see website/design-qa.md.
+
+No source push, PR, release publication, Vercel deployment, DNS or credentials
+changed in this phase. Local generated artifacts and browser evidence are ignored.

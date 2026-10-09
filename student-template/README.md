@@ -14,7 +14,7 @@ Zero**, then close the app window or terminate that task before running again.
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
-   quiet settings-only profile. In your chosen profile, install the local **zero-0.3.1.vsix**, **Language
+   quiet settings-only profile. In your chosen profile, install the local **zero-0.5.0.vsix**, **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -62,6 +62,8 @@ screen creates a new ScoreDisplay object: a node can have only one parent.
 
 Start the exercises in [EXERCISES.md](EXERCISES.md): change the quiz, extract a
 component, reuse it in another app, then contribute a compatible improvement.
+See [API.md](API.md) for the bundled app lifecycle, drawing/input methods and
+ordinary JavaFX component conventions.
 
 ### Animated apps
 
@@ -119,26 +121,34 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | --- | --- | --- |
 | Default quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
+| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |
 | Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |
 | Keyboard | `examples/keyboard/Main.java` and `examples/keyboard/Mover.java` | Arrow keys move/clamp the circle; diagonal movement is faster. |
 | Counter | `examples/counter/Main.java` | Native buttons beside a canvas change its displayed count. |
 | Drawing | `examples/drawing/Main.java` | Primary button paints; secondary clears. Separate strokes stay separate. |
 
-There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz
-and practice do not contain independent copies. The default compiled starter
+There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz,
+practice and study apps do not contain independent copies. The default compiled starter
 contains the same file. If improving it for a contribution, update the shared
-source and copy it into `src/main/java/ScoreDisplay.java`, then try both apps.
+source and copy it into `src/main/java/ScoreDisplay.java`, then try the affected apps.
+The no-argument constructor keeps the quiz's “Score” caption; the tracker passes
+“Completed” to the optional caption constructor. Main still owns the number and
+the rules. Study's Question class is an ordinary data object used by its question
+array; it does not need a framework parent class.
 The contributor verifier rejects starter/shared copy drift. Preserve your own
 modified component before copying an example over it.
 
 ## Your repository and Pika
 
-Choose **Sign in to GitHub** in Zero and complete VS Code's native browser flow.
-Check the selected account, then use **Create Repository** to open GitHub's page.
+Click the profile icon beside GitHub in Zero and complete VS Code's native browser
+flow. Its first letter identifies the signed-in account; hover for the full name
+or click for change/sign-out actions. Sign-out opens VS Code Accounts, where you
+select the GitHub account and choose Sign Out. Use **Connect a repo → Create a
+repository…** to open GitHub's page.
 Create your own **empty repository** on GitHub (leave README, license and
 gitignore uninitialized). Use your own account and follow your teacher's
 visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
-page URL in Zero. Connect initializes Git in this standalone student folder if
+page URL through **Connect a repo → Connect an existing repository…**. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or upload. Local running works without GitHub sign-in.
 
@@ -149,35 +159,51 @@ or Git configuration. Account/session changes require a fresh upload review.
 See the kit's getting-started guide or ask your teacher for help. Never put a
 password or token in Java source, the marker or README.
 
-**Upload defaults to simulation: nothing is staged, committed or uploaded.**
+**Upload, Start and Finish default to simulation: no Git state changes or upload.**
 To use the implemented real-upload path, set `"zero.uploadMode": "live"` in
-workspace settings. Upload saves files, asks for a commit message, then shows a
+workspace settings. Upload changes saves files, asks for a commit message, then shows a
 modal review of your repository, branch and changed files. Check it before
 choosing **Commit & Upload**. This creates a local commit when needed and pushes
 with Git HTTPS transport using your native sign-in; ignored files stay local. A failed upload may
 leave a local commit. A Mac teacher trial verified native sign-in and a private repository upload;
 other platforms and school environments still need trials.
 
-After a successful real upload, check the files on GitHub. Copy your repository
-page link and submit it separately in Pika. Give your teacher access if it is
+For a new repository, Upload changes once on **main** to save the starter.
+Then use this individual flow for each improvement:
+
+1. Click **main → Start a change**, name your branch (for example `quiz-feedback`)
+   and review before creating it. Upload pending edits first. Main is updated
+   from GitHub when it can be advanced without combining separate histories.
+2. Edit and Run App. **Upload changes** saves and uploads progress to your branch;
+   repeat as needed.
+3. Click the branch name → **Finish change**. Upload pending edits first, run the
+   app and review before merging/uploading into main. If newer main code is added
+   to your branch, Zero pauses: run the combined app and review Finish again.
+4. After confirmed success, you are back on main. Remove the finished local
+   branch when prompted, or keep it; its GitHub branch remains.
+
+If an update conflicts, your work and merge state remain. In VS Code Source
+Control, inspect the conflicted files/Merge Editor, combine the intended changes,
+save and stage them, then commit the merge. Run App and review Finish again.
+Ask your teacher for help with an unclear conflict or diverged main history.
+A failed Finish upload can leave local main advanced while your change branch
+remains selected; repair the network/access problem and review Finish again.
+Zero does not force-push or automatically discard work.
+
+After a successful real Finish, check the files on GitHub's main branch. Click the connected
+repository name and choose **Copy repository link**, then submit it separately
+in Pika. Give your teacher access if it is
 private. Zero does not submit assignments or change Pika grades.
 
-## Contributor verification
+## Checking your changes
 
-```sh
-./mvnw -B -Psmoke clean compile javafx:run
-```
+Run your app after each change and try both correct and incorrect answers.
+Use the examples and exercises to check the behavior you changed. A compile
+alone does not verify layout, focus or school-machine restrictions.
 
-On Windows use `.\mvnw.cmd` instead. This opens a small real window, checks
-both startup paths, actual UI resizing, elapsed time, shape pixels, canvas/control
-focus, held-input release, configuration/setup/frame failures and shutdown, prints
-`ZERO_SMOKE_OK`, then closes itself.
-It requires a GUI desktop; input events are synthetic, so this does not replace
-physical typing/clicking checks. `SmokeLauncher.java` is a contributor check; normal
-Run App launches Main. From the kit repository, `python3 scripts/verify-examples.py` checks all six
-alternatives in temporary real GUI projects and verifies shared source copies.
-This does not verify an imported VS Code profile or real
-GitHub authentication/upload.
+Zero maintainers keep the finite framework and example GUI checks in the
+[Zero source repository](https://github.com/codepetca/zero). These contributor tools are separate from this student
+project; your normal Run App launches Main and needs only the Maven wrapper.
 
 Pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**, official Apache Maven
 Wrapper **3.3.4** (only-script), JavaFX Maven plugin **0.0.8**, compiler plugin
@@ -191,5 +217,5 @@ Sources: [OpenJFX 21 release requirements](https://github.com/openjdk/jfx/blob/j
 
 The bundled Apache Maven Wrapper scripts retain their upstream attribution.
 See [wrapper license](.mvn/wrapper/LICENSE-APACHE-2.0.txt) and
-[wrapper notice](.mvn/wrapper/NOTICE). These apply to the wrapper; a public license
-for the original Zero code has not yet been selected.
+[wrapper notice](.mvn/wrapper/NOTICE). These apply to the wrapper. Original Zero source uses the bundled
+[MIT license](LICENSE).

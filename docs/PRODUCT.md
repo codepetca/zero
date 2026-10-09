@@ -7,6 +7,13 @@ through CodeHS. Students make interfaces, games, drawings, simulations and quizz
 using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
+The download website is a separately built part of this repository. Its landing
+page has the Zero wordmark, one sentence, Download Zero and Learn more only.
+`/learn` contains setup/docs; `/community` introduces Zero Community and links to
+component development/contributions. It does not run Java in the browser or add
+a student website account. The local kit is unpublished until an approved release.
+See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
+
 ## App and learning contract
 
 `zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
@@ -22,21 +29,44 @@ Useful startup errors explain invalid sizes and lifecycle misuse.
 
 The quiz and practice tracker reuse the canonical
 `examples/shared/ScoreDisplay.java` unchanged. Each app creates its own instance;
-a JavaFX node has one parent. The caption exercise extends this ordinary class
-while preserving the quiz's no-argument constructor. No component/screen base
+a JavaFX node has one parent. The optional caption extends this ordinary class
+while preserving the quiz's no-argument constructor. This compatible caption
+contribution now ships in the shared component and the tracker uses “Completed”.
+A separate study app grows the quiz with an array of ordinary Question objects,
+answer feedback, score, next/restart and a final summary. It reuses the same
+ScoreDisplay source. No component/screen base
 class, registration system or new engine is required. Packages, interfaces,
 JavaFX properties and other JavaFX features remain available as later lessons.
 
 Examples live outside compiled source and are copied deliberately one at a time.
 See the [starter](../student-template/README.md) for exact files and exercises.
-Framework source ships editable inside the starter. Review shared improvements
-in more than one app before cohort adoption; versioned library distribution is
-future work.
+Canonical framework source lives in `framework/src/main/java/zero/`; maintainer
+preparation assembles editable copies into the standalone starter. Review shared improvements
+in more than one app before cohort adoption. The extraction examples remain useful
+lessons; community components now have a separate local versioned-library prototype.
+
+The local component MVP consumes community components as pinned Maven libraries.
+Core source and extraction lessons remain readable; installed community libraries
+are developed separately in a Component Workshop. A separate local community
+repository proves install/fix/update/revert before public distribution. See
+[component architecture](COMPONENTS.md) and [the active execution plan](COMPONENT-PLAN.md)
+for the contract and local acceptance criteria. Automated checks, advisory AI
+and community maintainers should minimize routine teacher administration.
+
+The first dogfooding pass deliberately uses the existing framework. App-specific
+navigation and question rules stay in Main; Question stores question data and
+ScoreDisplay presents the app-owned total. Add framework API only when another
+app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-- A minimal VS Code sidebar offers Run App, Stop, GitHub account/repository status,
-  sign-in, repository creation/connection, upload, copy link, setup help and files.
+- A minimal VS Code sidebar offers Run App, Stop, files and setup help. GitHub's
+  header has a profile icon (account initial when signed in); hover reveals the
+  account name and click opens account actions. The repository row shows
+  owner/name or “Connect a repo”; its menu offers create/connect or copy/change.
+  The current branch opens Start a change (on main) or Finish change (on a change
+  branch). Upload changes and its simulation label stay visible for a signed-in
+  connected repo. There is one individual workflow; no team/PR mode.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
   Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
 - Compiler diagnostics support source navigation. Missing local tools have setup
@@ -49,7 +79,12 @@ future work.
 ## Repository and upload contract
 
 Students sign in through VS Code's native GitHub authentication/browser flow.
-Zero displays the selected account. Create Repository opens GitHub's new-repository
+Zero identifies the selected account through the initial's hover/accessibility
+label. Clicking it offers Change GitHub Account and Sign out; Sign out opens
+VS Code's native Manage Accounts picker (or manual Accounts instructions on
+older editors), where the user chooses their GitHub account
+and signs out. Session changes still invalidate pending upload reviews. Zero has
+no custom logout/token deletion. Connect a repo → Create a repository opens GitHub's new-repository
 page; students create their own empty repository following teacher visibility
 instructions, leaving README, license and gitignore uninitialized. There is no
 GitHub Classroom flow and no automatic repository creation.
@@ -60,12 +95,34 @@ replacing origin. It rejects nested projects. Connection is local: it does not
 verify remote ownership, existence or access and does not upload.
 
 `zero.uploadMode` defaults to `simulation`, which makes no Git changes and says
-nothing was uploaded. Opt-in `live` mode saves files, gathers a commit message
+nothing was uploaded. Start/Finish also simulate without saving files or changing
+branches. Opt-in `live` mode saves files, gathers a commit message
 and reviews repository, branch and changed files before confirmation. It stages
 reviewed changes, commits when needed and pushes the reviewed destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave
 a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity.
+
+The individual flow uses main for completed work and one short-lived branch per
+change. A new empty repository starts with a reviewed Upload changes on main.
+Click main → Start a change, name the branch, and review its creation. Start
+requires clean committed main and brings in remote main only by fast-forward;
+diverged histories require manual repair. Upload changes commits/pushes progress
+to the current branch. Run and check the app before finishing.
+
+Click the change branch → Finish change. Upload pending edits first; Finish
+requires a clean committed change branch and previews the branch, destination,
+main snapshots and affected paths. Updated remote main is merged into the change
+branch, then Finish pauses for Run App and another Finish review before uploading
+the combined version. No rebase/force push is used. Conflicts preserve the branch and merge
+state, open native Source Control and require resolution/staging/commit before
+running the app and reviewing Finish again. Local main may not contain separate
+unpublished work outside the change branch. Finish advances local main, pushes
+the exact completed SHA to remote main and confirms it before switching to main.
+A failed push can leave main advanced locally while retaining the change branch
+for another Finish review. Optional cleanup removes only the unchanged local
+finished branch; the uploaded remote change branch remains. Shared worktrees and
+unusual histories require normal Git tools. No automatic source rollback occurs.
 
 Live transport uses transient credentials from the captured native GitHub session.
 It requires Git 2.31+ for runtime credential configuration and rejects older Git
@@ -74,10 +131,15 @@ The session is revalidated before network actions, so account/session changes
 require another review. Zero does not store tokens or place them in Git command
 arguments or logs. It has no custom password/token UI. Automated checks mock
 sessions and intercept transport; they do not prove a real upload.
+The same guarded transport permits only exact-destination pushes, branch-head
+queries and SHA-pinned fetches needed to update main. Local Git receives no native
+credentials. Preparation queries remote main without changing local files/refs;
+the reviewed executor performs updates, with drift/session checks throughout.
 
 Copy Repository Link returns a page URL for separate Pika submission. A copied
 link does not establish that code was uploaded or that the remote is current.
-Verify files after a real upload, then submit the link separately in Pika.
+After Finish, verify completed files on main after a real upload, then submit the
+link separately in Pika. A branch upload alone does not finish a change on main.
 
 ## Integration contract
 
@@ -101,5 +163,5 @@ A Mac teacher trial verified native authentication and a private repository
 upload. Physical Windows/Linux, school restrictions and novice classroom pilots
 still need verification. First-time builds need
 internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
-cohort adoption. A public license for original Zero code remains unresolved;
-upstream wrapper notices apply to the wrapper.
+cohort adoption. Original Zero code uses the [MIT license](../LICENSE);
+upstream wrapper notices apply separately to the wrapper.

@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [{
+    "label": "Run Component Workshop",
+    "type": "shell",
+    "command": "${workspaceFolder}/mvnw",
+    "windows": {"command": "${workspaceFolder}\\mvnw.cmd"},
+    "args": ["-B", "--no-transfer-progress", "compile", "javafx:run"],
+    "options": {"cwd": "${workspaceFolder}"},
+    "group": {"kind": "build", "isDefault": true},
+    "problemMatcher": [],
+    "presentation": {"reveal": "always", "panel": "dedicated", "focus": false}
+  }]
+}
