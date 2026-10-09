@@ -9,7 +9,11 @@ commit. Successful manual run37954427674 prepared the exact3 published assets.
 All3 public downloads retrieved unauthenticated and SHA/size match. No component
 archive publication;0.5.0 bytes/core0.1.1/component coordinates preserved.
 Branchcodex/publish-0-5-1 contains only verified release metadata/README promotion
-and verification/handoff. Website promotion PR/production check pending.
+and verification/handoff. Promotion PR9 is attached; final CI/production verification follow.
+release_051_review/3 Sol/medium complete b47f7a3→54faf65, no blockers;
+independent candidate/public saved-byte SHA and metadata/optional-local checks pass.
+One P3 README label accepted and fixed (URL already correct); coordinator checked.
+Two targetedwaves now,1launch/1initialwave/1fixbatch; <2min followup estimate.
 
 release_automation Sol/high delivered4 read-only preparation files, ~8min estimate;
 release_extracted_qa Sol/medium delivered extracted install/native Quiz and actual
