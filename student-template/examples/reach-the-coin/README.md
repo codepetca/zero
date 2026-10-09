@@ -17,6 +17,9 @@ and `src/`. Keep a copy of your current app first. Copy **only** this example's
 Player. Keep `src/main/java/zero/` and the starter build files unchanged. This
 example needs no `ScoreDisplay.java`; that default quiz helper may stay there.
 Do not mix in a Main or Player from another example.
+If your downloaded kit does not have this example, copy the complete files shown
+on the website's [Reach the coin page](https://zero.codepet.ca/examples/reach-the-coin)
+into those same destinations.
 
 Open that standalone starter folder in VS Code and click **Zero → Run App**.
 Alternatively, open a terminal in that folder and run:

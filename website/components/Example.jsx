@@ -2,6 +2,12 @@ import { PageHeader } from "./PageHeader";
 import { Icon } from "./Icon";
 export function Example({ example, sources }) {
   const id = example.id;
+  const files = [
+    ...example.files.map((file) => ({
+      file, destination: `src/main/java/${file.split("/").at(-1)}`,
+    })),
+    ...(example.resources || []),
+  ];
   return (
     <>
       <PageHeader active="Examples" />
@@ -21,33 +27,34 @@ export function Example({ example, sources }) {
           <div className="reading-section-body">
             <p>
               Stop the app and save your current Main and helpers outside{" "}
-              <code>src/</code>. Copy these files from the starter's{" "}
-              <code>examples/</code> shelf into <code>src/main/java/</code>,
-              replacing Main and the listed helpers. Keep the <code>zero/</code>{" "}
-              framework folder.
+              <code>src/</code>. Copy the files shown below into the listed
+              destinations in your standalone starter, creating resource folders
+              when needed. Replace Main and the listed helpers. Keep the{" "}
+              <code>zero/</code> framework folder and build files. If an older
+              downloaded kit does not have these examples, use the source shown here.
             </p>
             <ul>
-              {example.files.map((file) => (
+              {files.map(({ file, destination }) => (
                 <li key={file}>
                   <a
                     href={`/source?file=${encodeURIComponent(`student-template/examples/${file}`)}`}
-                  >{`examples/${file}`}</a>
+                  >{`examples/${file}`}</a>{" → "}<code>{destination}</code>
                 </li>
               ))}
             </ul>
             <p>
               Run App to rebuild.{" "}
-              {["keyboard", "animation", "drawing"].includes(id) &&
+              {["keyboard", "animation", "drawing", "reach-the-coin"].includes(id) &&
                 "Click the canvas before testing input."}{" "}
               These examples run in VS Code, in a separate JavaFX window.
             </p>
-            <a className="button" href={`/tutorials/${example.lesson}`}>
-              Open related lesson <Icon name="arrow-right" />
+            <a className="button" href={example.guide ? `/docs/${example.guide}` : `/tutorials/${example.lesson}`}>
+              {example.guide ? "Open beginner toolkit" : "Open related lesson"} <Icon name="arrow-right" />
             </a>
           </div>
         </details>
         <h2>Read the source</h2>
-        {example.files.map((file) => (
+        {files.map(({ file }) => (
           <details className="source-file" key={file}>
             <summary>{file}</summary>
             <pre>

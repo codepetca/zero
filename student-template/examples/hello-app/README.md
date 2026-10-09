@@ -8,6 +8,9 @@ This app responds to events; it has no update/draw loop.
 
 Stop your current app and save Main and any helpers outside `src/` first. In a
 standalone Zero starter, copy these exact files:
+If your downloaded kit does not have this example, copy the complete Main and
+stylesheet shown on the website's [Hello, Java page](https://zero.codepet.ca/examples/hello-app)
+into these same destinations.
 
 | Example file | Destination |
 | --- | --- |

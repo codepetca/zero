@@ -7,6 +7,8 @@ You can learn more JavaFX when your project needs it.
 The starter opens with a small quiz. Keep it while you learn, or follow an
 example's copy instructions to replace it in a separate starter folder.
 Examples are outside `src/` until you copy them.
+If an older downloaded kit does not include these examples, the website's
+example pages show the complete files to copy into the same starter destinations.
 
 ## Apps: controls that respond to events
 

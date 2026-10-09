@@ -74,3 +74,21 @@ Coordinator start was 18:54 UTC; acceptance around 19:02 UTC (roughly eight
 minutes including coordination/review, not token/cost telemetry). The later
 receipt-only delta was inspected by the coordinator. Physical-input/platform
 limits above remain unchanged.
+
+## Website integration — 2026-10-09
+
+Owner requested integration and publication of the guides on the website.
+Merged current `origin/main` at `4565c03` into this branch without conflicts;
+the newer learning hub, lessons, release tooling and published 0.5.1 metadata
+are preserved. Registered `/docs/beginner` and `/docs/style`, linked them from
+Learn and Docs, and exposed both examples with exact Java/resource destinations.
+Hello's complete CSS is included in its example and allowlisted source views.
+Older downloaded starters can use the online source; no published kit bytes
+are rebuilt or replaced by this website/source integration.
+
+Both pinned-wrapper verifiers, root configuration/links/whitespace, website
+typecheck, all seven website tests and production build pass. The four new
+guide/example pages render in production HTML. Actual local browser checks
+confirmed Learn → beginner, app-section expansion, beginner → style and
+stylesheet-section expansion. Manual JavaFX input and platform limits remain
+as recorded above. Unrelated primary-checkout funding edits stay untouched.

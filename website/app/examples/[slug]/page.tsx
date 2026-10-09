@@ -23,7 +23,7 @@ export default async function Page({
   const example = examples.find((e) => e.id === slug);
   if (!example) notFound();
   const selected = Object.fromEntries(
-    example.files.map((file) => {
+    [...example.files, ...(example.resources || []).map((resource) => resource.file)].map((file) => {
       const key = `student-template/examples/${file}`;
       return [key, sources[key]];
     }),
