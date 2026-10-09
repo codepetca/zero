@@ -113,6 +113,9 @@ test('manifest cannot redirect downloads, grant acceptance or add executable fie
     m => {m.releases[0].artifacts.jar.sha256 = 'not a checksum';},
     m => {m.releases[0].artifacts.jar.size = 3 * 1024 * 1024;},
     m => {m.releases[0].sourceRevision = 'main';},
+    m => {m.releases[0].sourceRevision = [m.releases[0].sourceRevision];},
+    m => {m.releases[0].sourceDigest = [m.releases[0].sourceDigest];},
+    m => {m.releases[0].artifacts.jar.sha256 = [m.releases[0].artifacts.jar.sha256];},
     m => {m.releases.push(structuredClone(m.releases[0]));},
     m => {delete m.releases[0].artifacts.sources;},
   ];

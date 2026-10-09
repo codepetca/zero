@@ -19,7 +19,7 @@ function version(value) {
 }
 function asset(value, releaseVersion, filename) {
   keys(value, ['path', 'filename', 'size', 'sha256', 'url']);
-  requireValue(Number.isSafeInteger(value.size) && value.size > 0 && value.size <= maxBytes && /^[a-f0-9]{64}$/.test(value.sha256), 'Invalid public component asset receipt.');
+  requireValue(Number.isSafeInteger(value.size) && value.size > 0 && value.size <= maxBytes && typeof value.sha256 === 'string' && /^[a-f0-9]{64}$/.test(value.sha256), 'Invalid public component asset receipt.');
   requireValue(value.url === `https://github.com/${repository}/releases/download/v${releaseVersion}/${filename}`, 'Unexpected community asset URL.');
 }
 
@@ -47,7 +47,7 @@ export function validateCommunityManifest(manifest) {
   const versions = new Set();
   for (const release of manifest.releases) {
     keys(release, ['version', 'sourceRevision', 'sourceDigest', 'notes', 'artifacts', 'workshop']);
-    requireValue(version(release.version) && !versions.has(release.version) && /^[a-f0-9]{40}$/.test(release.sourceRevision) && /^[a-f0-9]{64}$/.test(release.sourceDigest) && text(release.notes, 2000), 'Invalid community release provenance.');
+    requireValue(version(release.version) && !versions.has(release.version) && typeof release.sourceRevision === 'string' && /^[a-f0-9]{40}$/.test(release.sourceRevision) && typeof release.sourceDigest === 'string' && /^[a-f0-9]{64}$/.test(release.sourceDigest) && text(release.notes, 2000), 'Invalid community release provenance.');
     versions.add(release.version);
     keys(release.artifacts, Object.keys(suffixes));
     requireValue(Object.keys(release.artifacts).length === 4, 'A library needs its binary, POM, source and API artifacts.');

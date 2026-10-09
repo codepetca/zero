@@ -23,7 +23,12 @@ Next commit source, regenerate exact committed candidate and Workshop, then
 independent paired review, CI/source merges, exact public files, metadata/kit
 promotion and real public Maven/VSIX proof. No real publication yet.
 Review highrisk; max2concurrent/7launches/1initialwave/4targetedwaves/1integration/
-4fixbatches/60minsession/30minreviewer. No review launched for this phase yet.
+4fixbatches/60minsession/30minreviewer. Initial paired review complete on Zero055ea885/community6b8205ff. Two accepted
+P2 findings: stale fresh-checkout Workshop instructions and string-coercion in
+website provenance/checksum fields. One fix batch adds failing array regression
+then explicit string checks and separates historical/public preparation docs.
+Updated mainfc22af9 interactions reviewed as compatible. Launches2/initial1/
+targeted0/fix1; session began19:41UTC. Effective model/tokens unknown.
 
 
 ## One-command Zero publishing — review and CI

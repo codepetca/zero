@@ -132,26 +132,23 @@ release-cycle proof and admission scripts. Its canonical source remote is
 [codepetca/zero-community](https://github.com/codepetca/zero-community).
 From the directory containing your Zero checkout, obtain the sibling with
 `git clone https://github.com/codepetca/zero-community.git`. Use the actual
-local checkout path with the commands below. GitHub hosts source; generated
-Maven artifacts and the catalog remain local until artifact hosting is configured.
+local checkout path with the commands below. GitHub hosts source. Historical verification uses local artifacts; public
+preparation is a separate step below.
 
 ```sh
 npm run prepare:starter
 python3 ../zero-community/scripts/verify-release-cycle.py --zero-root "$PWD"
 node scripts/prepare-component-workshop.mjs ../zero-community
 node scripts/verify-components.mjs
-node scripts/run-component-workshop.mjs
-npm run package:components
 ```
 
 `verify-components.mjs` checks add/update/revert with the actual extension engine
 and real Maven/JavaFX in a disposable project whose path includes spaces. It
 requires the release proof's cache for third-party downloads; tested community
 coordinates start absent. Generated evidence stays in `.verification/`.
-Workshop's `-Dzero.workshopCheck=true` option runs a finite native-window harness.
-The portable component ZIP includes local artifacts/catalog, source and Workshop;
-extract the whole folder and open its `component-workshop/` subfolder. Students
-use its bundled Maven wrapper, not the maintainer Node/Python tooling.
+This historical preparation writes `component-legacy-catalog.json` only; it does
+not prepare the current Workshop. Prepare the public candidate below before
+running or packaging it.
 
 Zero 0.5.1 and later support current MIT catalogs in the installed extension.
 The immutable published 0.5.0 VSIX predates MIT catalog support and continues
@@ -183,12 +180,24 @@ A remembered local catalog can be selected explicitly through the components men
 
 Community maintainers prepare a clean committed 0.1.2 candidate with
 `python3 scripts/prepare-public-release.py --zero-root ../zero` in zero-community.
-Then prepare and package the portable Workshop from Zero:
+The candidate preparer requires a clean committed community checkout and refuses
+to replace an existing candidate output. Reuse verified output for that exact
+revision, or use a fresh disposable checkout to verify preparation again.
+Then prepare, run and package the portable Workshop from Zero (the shipped
+Workshop files must also be committed):
 
 ```sh
 node scripts/prepare-component-workshop.mjs ../zero-community --public
-node scripts/package-public-workshop.mjs ../zero-community
+node scripts/run-component-workshop.mjs
+npm run package:components
 ```
+
+Run opens the native Workshop until you close it. Its
+`-Dzero.workshopCheck=true` JVM option runs the finite native-window harness.
+Packaging creates `dist/zero-community-workshop-0.1.2.zip`, containing source,
+Workshop and its pinned local artifacts/catalog. Extract the complete archive
+and open its `component-workshop/` subfolder. Students use the bundled Maven
+wrapper; they do not need maintainer Node/Python tooling.
 
 Preparation is local and cannot accept or publish. Verify source PRs, CI and
 independent review before intentionally publishing the exact release bytes. Import
