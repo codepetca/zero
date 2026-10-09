@@ -543,3 +543,24 @@ unauthenticated downloads independently matched their receipt sizes/SHA256s.
 Community archive remains local and its separate license unresolved. Website
 publication metadata is populated from those verified bytes; native platform
 limitations above remain unchanged.
+
+## Live website and release — 2026-10-09
+
+- https://zero.codepet.ca serves the minimal landing page, /learn, /community
+  and API docs. GitHub source PR4 and published-download PR5 merged.
+- Vercel remote build at c482fc1 passed; canonical sources outside website/
+  were available during preparation. Authenticated deployed page checks passed
+  before DNS changed. First Git deployment automatically targeted production.
+- Cloudflare read-back matches Vercel’s exact DNS-only CNAME recommendation.
+  Vercel domain ownership verified and configuration reports no mismatch.
+  Public HTTPS200 and HTTP308→HTTPS verified without certificate bypass.
+- In-app browser clicked DownloadZero on the live site and downloaded the
+  100306-byte kit, SHA256d296f25f7411f14bdbabfeb8c4015eb90086251102e823cb88854426ee783980.
+  This matches both the manifest and independently retrieved GitHub release.
+  Live Learn→Community navigation and /docs/api HTTP response verified.
+- Release v0.5.0 contains kit/starter/VSIX only, all under original-code MIT
+  with upstream notices preserved. Community archive stays local/unpublished.
+- Published-version packaging intentionally refuses rebuilding; an actual
+  attempt failed before artifact writes and all three hashes stayed unchanged.
+- Native Windows/Linux setup, final editor authentication/upload workflow and
+  novice classroom trials remain unverified; web checks do not establish them.

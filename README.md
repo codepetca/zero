@@ -1,5 +1,7 @@
 # Zero
 
+[Get started at zero.codepet.ca](https://zero.codepet.ca).
+
 Zero is a downloadable local Java teaching kit for students beginning Java
 through CodeHS. Build interfaces with ordinary JavaFX controls and `SimpleApp`,
 or animate a canvas with `SketchApp` and explicitly updated Java objects.
