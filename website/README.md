@@ -47,8 +47,8 @@ Cloudflare supplies the DNS-only CNAME recommended by Vercel; Vercel serves HTTP
 Browser interaction and design QA are recorded separately by the coordinator. A build is not proof of browser behavior or native Windows/Linux student setup.
 
 
-For a local preview of unpublished alternatives from the canonical sibling
-`../zero-community/catalog/components.json`, run:
+From the repository root, preview unpublished alternatives from the canonical
+sibling `../zero-community/catalog/components.json`:
 
 ```sh
 ZERO_COMMUNITY_PREVIEW=1 npm run dev --prefix website -- --port 3014

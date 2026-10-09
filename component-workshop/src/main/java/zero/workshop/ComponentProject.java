@@ -54,16 +54,38 @@ final class ComponentProject {
       if (!Set.of("id", "name", "className", "description", "api", "examples", "status", "license", "maintainer", "category", "versions").containsAll(c.keySet()))
         throw new IOException("Contributor component cannot declare curation or recommendation authority.");
       if (!ids.add(c.get("id").getAsString())) throw new IOException("Duplicate component ID.");
-      if (c.has("category") && !c.get("category").getAsString().matches("[a-z][a-z0-9-]*"))
+      if (c.has("category") && (!c.get("category").isJsonPrimitive()
+          || !c.get("category").getAsJsonPrimitive().isString()
+          || !c.get("category").getAsString().matches("[a-z][a-z0-9-]*")))
         throw new IOException("Invalid component category.");
       if (c.has("versions")) {
+        if (!c.get("versions").isJsonArray() || c.getAsJsonArray("versions").isEmpty())
+          throw new IOException("Component versions must be distinct exact releases.");
         Set<String> versions = new HashSet<>();
         for (JsonElement v : c.getAsJsonArray("versions"))
-          if (!v.getAsString().matches("[0-9]+\\.[0-9]+\\.[0-9]+") || !versions.add(v.getAsString()))
+          if (!v.isJsonPrimitive() || !v.getAsJsonPrimitive().isString()
+              || !v.getAsString().matches("[0-9]+\\.[0-9]+\\.[0-9]+") || !versions.add(v.getAsString()))
             throw new IOException("Component versions must be distinct exact releases.");
         if (!versions.contains(metadata.getAsJsonObject("library").get("version").getAsString()))
           throw new IOException("Component must be available in current library.");
       }
+      Set<String> exampleIds = new HashSet<>();
+      for (JsonElement example : c.getAsJsonArray("examples")) {
+        if (!example.isJsonObject()) throw new IOException("Example must be an object.");
+        JsonObject e = example.getAsJsonObject();
+        if (!Set.of("id", "path", "description").containsAll(e.keySet()))
+          throw new IOException("Contributor example cannot declare curation or recommendation authority.");
+        if (!e.has("id") || !e.get("id").isJsonPrimitive()
+            || !e.get("id").getAsJsonPrimitive().isString()
+            || !e.get("id").getAsString().matches("[a-z][a-z0-9-]*")
+            || !exampleIds.add(e.get("id").getAsString()))
+          throw new IOException("Examples must have distinct app IDs.");
+        if (!e.has("path") || !e.get("path").isJsonPrimitive()
+            || !e.get("path").getAsJsonPrimitive().isString()
+            || !e.get("path").getAsString().equals("examples/" + e.get("id").getAsString() + "/Main.java"))
+          throw new IOException("Example path is outside its owned app.");
+      }
+
     }
   }
 

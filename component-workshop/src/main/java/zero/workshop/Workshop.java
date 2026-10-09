@@ -444,6 +444,40 @@ public class Workshop extends SimpleApp {
       }
       Files.writeString(candidate.resolve("private-notes.txt"), "outside packet scope");
       ComponentProject copy = new ComponentProject(candidate);
+      String originalMetadata = copy.read("catalog/components.json");
+      // Reject nested contributor claims when opening the project, before
+      // source checks can pass or a packet can be exported.
+      for (String field : List.of("recommended", "recommendation", "discovery", "command")) {
+        JsonObject invalid = project.metadata.deepCopy();
+        invalid.getAsJsonArray("components").get(0).getAsJsonObject()
+            .getAsJsonArray("examples").get(0).getAsJsonObject().addProperty(field, true);
+        Files.writeString(candidate.resolve("catalog/components.json"), invalid.toString());
+        boolean rejected = false;
+        try {new ComponentProject(candidate);} catch (IOException expected) {rejected=true;}
+        require(rejected, "nested example authority/commands cannot open or export");
+      }
+      JsonObject duplicate = project.metadata.deepCopy();
+      JsonArray duplicateExamples = duplicate.getAsJsonArray("components").get(0).getAsJsonObject().getAsJsonArray("examples");
+      duplicateExamples.set(1, duplicateExamples.get(0).deepCopy());
+      Files.writeString(candidate.resolve("catalog/components.json"), duplicate.toString());
+      boolean duplicateRejected = false;
+      try {new ComponentProject(candidate);} catch (IOException expected) {duplicateRejected=true;}
+      require(duplicateRejected, "duplicate app example IDs cannot open or export");
+      JsonObject malformed = project.metadata.deepCopy();
+      JsonArray arrayId = new JsonArray(); arrayId.add("adventure");
+      malformed.getAsJsonArray("components").get(0).getAsJsonObject()
+          .getAsJsonArray("examples").get(0).getAsJsonObject().add("id", arrayId);
+      Files.writeString(candidate.resolve("catalog/components.json"), malformed.toString());
+      boolean malformedRejected = false;
+      try {new ComponentProject(candidate);} catch (IOException expected) {malformedRejected=true;}
+      require(malformedRejected, "coerced example IDs cannot open or export");
+      JsonObject invalidCategory = project.metadata.deepCopy();
+      invalidCategory.getAsJsonArray("components").get(0).getAsJsonObject().addProperty("category", true);
+      Files.writeString(candidate.resolve("catalog/components.json"), invalidCategory.toString());
+      boolean categoryRejected = false;
+      try {new ComponentProject(candidate);} catch (IOException expected) {categoryRejected=true;}
+      require(categoryRejected, "category must be a string");
+      Files.writeString(candidate.resolve("catalog/components.json"), originalMetadata);
       String originalPom = copy.read("pom.xml");
       for (String pomMutation : List.of(
           originalPom.replace("</project>","<profiles><profile><id>hidden</id></profile></profiles></project>"),
