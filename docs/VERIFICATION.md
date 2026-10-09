@@ -1,4 +1,47 @@
-# Local verification — 2026-10-08
+# Verification — 2026-10-09
+
+## Zero 0.5.1 release
+
+Source PR8 merged at b47f7a34706fa8c92a350f8c5bcbf0d875e189f0. Manual
+release preparation run37954427674 passed on that exact commit. Its three main
+assets are published at https://github.com/codepetca/zero/releases/tag/v0.5.1.
+Core0.1.1 and existing community Maven coordinates remain unchanged; optional
+community archives remain local. Zero0.5.0's three public downloads were retrieved
+and verified against their original sizes/hashes before publication.
+
+Local90/90 Node tests passed. Linux PR CI and manual CI both pass90 tests,
+3 release-boundary tests, all7 finite JavaFX examples under Xvfb, website5tests,
+typecheck/production build, packaging, canonical source/license parity, ZIP
+permissions, extracted Maven build and sealed exact asset hashes. The first
+Linux run exposed an existing fixed-event-loop test wait; bounded observable
+UI waits corrected it without changing production code or weakening assertions.
+
+Final candidate archives have the same complete member contents as the local
+macOS-tested archives; ZIP container timestamps differ. Final MIT licenses,
+core/extension source and trusted examples are byte-identical. All3 public assets
+were subsequently downloaded without authentication and matched the manual-run
+candidate sizes and SHA256. The tag resolves to the reviewed source merge commit.
+
+macOS extracted VSIX installed with isolated user/extension directories. Actual
+sidebar Run App launched Maven and its Main JavaFX child; actual Stop returned
+"App stopped", disabled Stop and terminated both processes. Native automation
+could not select the separate Java process window, so no manual app interaction
+is claimed. macOS ditto extraction preserves the ZIP's executable Maven wrapper;
+the initial Python QA extraction did not preserve modes and was unsuitable for
+that editor test. No release asset permission correction was needed.
+
+Extracted Quiz passed two finite native behavior/lifecycle runs; real extracted
+extension plans added HealthBar0.1.0, updated0.1.1 and reverted0.1.0 through Maven
+and native JavaFX. Catalog MIT support, immutable JAR hashes/origins, fractional
+fill behavior and preserved student source passed. These use the local community
+repository and do not establish a publicly hosted community artifact repository.
+
+Independent Sol/medium review covered the release/automation delta and the
+subsequent sidebar-test fix, with no blockers. Physical Windows/Linux installation,
+student GitHub authentication/upload, full profile import and novice classroom
+trials remain untested. Ignored .verification/release-0.5.1-* receipts retain the
+candidate, public downloads, CI logs and macOS editor/consumer evidence.
+
 
 ## Component lifecycle — local 0.5.0 prototype
 

@@ -1,19 +1,33 @@
 # Current state — 2026-10-09
 
-## Zero 0.5.1 release — active
+## Zero 0.5.1 release — publication complete, website promotion underway
 
-Owner said “go” to release0.5.1, verify extracted kit/component workflow, publish
-verified downloads/update website, then automate future release preparation.
-Isolated managed worktree protects unrelated uncommitted education-funding work
-in primary checkout. Baseb1d26f4, branchcodex/release-0-5-1. Main3 assets only;
-community archive remains local. Preserve0.5.0 release/tag/bytes and all existing
-core/component coordinates. Coordinator owns metadata/package/native/extracted
-verification/publication/site. Worker release_automation GPT6.1Sol/high owns new
-read-only manual/PR workflow, helper/tests and RELEASING guide. No account changes.
-Weekly43%remaining; DeepSeek paused. No new tool-backed goal requested.
-Review standard risk: one Sol/medium reviewer after checks, max7launches,
-1initialwave4targetedwaves1integration4fixes60minsession30minreviewer.
+Owner authorized release/site update and release-preparation automation with "go".
+Managed /Users/stew/.codex/worktrees/release-0-5-1/zero protects unrelated funding
+work in primary checkout. Source PR8 merged b47f7a3; tagv0.5.1 points to that exact
+commit. Successful manual run37954427674 prepared the exact3 published assets.
+All3 public downloads retrieved unauthenticated and SHA/size match. No component
+archive publication;0.5.0 bytes/core0.1.1/component coordinates preserved.
+Branchcodex/publish-0-5-1 contains only verified release metadata/README promotion
+and verification/handoff. Website promotion PR/production check pending.
 
+release_automation Sol/high delivered4 read-only preparation files, ~8min estimate;
+release_extracted_qa Sol/medium delivered extracted install/native Quiz and actual
+component add/update/revert receipts, no source edits. Coordinator checked parity,
+licenses/permissions/checksums, real editor Run App/Stop and public downloads.
+Manual/PR Linux CI each90 tests/3guards/7native examples/5site tests/build/package
+pass; local90 tests235.177s pass. Actual native Java window manual controls and
+physical Windows/Linux, student GitHub interaction remain untested. Details in
+VERIFICATION; ignored .verification/release-0.5.1-* retains receipts/bytes.
+
+release_051_review/1 Sol/medium complete b1d26f4→c681e10, no findings; /2 targeted
+c681e10→742130a test timing fix, no findings, focused test/diff independently pass.
+One initial launch,1 initialwave,1 targetedwave,1 CI-driven fixbatch; ~3min initial
+and <2min followup estimates, actual token telemetry unknown. Existing test had
+fixed8event-loop ticks; bounded state waits preserve all assertions and unrelated
+project guard. No production/packaged change. Budget max7launches/4targetedwaves/
+4fixbatches/60minsession/30minreviewer. Metadata delta targeted review next.
+Weekly43%remaining reading reused; DeepSeek paused; no new tool-backed goal.
 
 ## Community MIT licensing — reviewed, publication underway
 
