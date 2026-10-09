@@ -181,6 +181,35 @@ for (const published of [false, true]) test(`resumes exact existing ${published 
   assert.equal(f.calls.filter(call => call.args.includes('PATCH')).length, published ? 0 : 1);
 });
 
+for (const scenario of ['wrong lightweight tag', 'wrong annotated tag', 'tag changed during asset verification']) {
+  test(`resumed draft rejects ${scenario} before publication`, async t => {
+    let lookups = 0;
+    const f = await fixture(t, {existing: true, intercept: async (command, args) => {
+      if (command !== 'gh' || args[0] !== 'api') return;
+      if (args[1] === `repos/codepetca/zero/git/ref/tags/v${version}`) {
+        lookups++;
+        if (scenario === 'tag changed during asset verification' && lookups === 1) return;
+        return {object: {type: scenario === 'wrong annotated tag' ? 'tag' : 'commit', sha: 'd'.repeat(40)}};
+      }
+      if (args[1] === `repos/codepetca/zero/git/tags/${'d'.repeat(40)}`) return {object: {type: 'commit', sha: 'e'.repeat(40)}};
+    }});
+    await assert.rejects(publishZero({version, runId}, f.dependencies), /Release tag target drift/);
+    assert.equal(f.release.draft, true, 'Conflicting draft stays private');
+    assert.ok(!f.calls.some(call => call.args.includes('PATCH') || call.args[0] === 'release' || call.args[0] === 'pr'));
+    if (scenario === 'tag changed during asset verification') assert.equal(lookups, 2);
+  });
+}
+
+test('resumed draft accepts an annotated tag pinned to the prepared commit', async t => {
+  const f = await fixture(t, {existing: true, intercept: async (command, args) => {
+    if (command !== 'gh' || args[0] !== 'api') return;
+    if (args[1] === `repos/codepetca/zero/git/ref/tags/v${version}`) return {object: {type: 'tag', sha: 'd'.repeat(40)}};
+    if (args[1] === `repos/codepetca/zero/git/tags/${'d'.repeat(40)}`) return {object: {type: 'commit', sha}};
+  }});
+  assert.equal((await publishZero({version, runId}, f.dependencies)).phase, 'verified');
+  assert.equal(f.calls.filter(call => call.args.includes('PATCH')).length, 1);
+});
+
 test('verify-only checks all public metadata/downloads and actual live anchor without mutations', async t => {
   const f = await fixture(t, {existing: true, published: true, promoted: true});
   assert.equal((await publishZero({version, verifyOnly: true}, f.dependencies)).phase, 'verified');

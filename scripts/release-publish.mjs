@@ -165,8 +165,10 @@ export async function publishZero(options, dependencies = {}) {
       await publicBytes({...actual, sha256: receipt.assets[key].sha256});
     }
   }
-  async function verifyTag(sha) {
-    let reference = await api(`git/ref/tags/v${options.version}`);
+  async function verifyTag(sha, {allowAbsent = false} = {}) {
+    const endpoint = `git/ref/tags/v${options.version}`;
+    let reference = allowAbsent ? await maybeApi(endpoint) : await api(endpoint);
+    if (!reference) return;
     if (reference.object.type === 'tag') reference = await api(`git/tags/${reference.object.sha}`);
     assert.equal(reference.object.type, 'commit', 'Unsupported release tag target.');
     assert.equal(reference.object.sha, sha, 'Release tag target drift.');
@@ -286,6 +288,8 @@ export async function publishZero(options, dependencies = {}) {
     // Fetch by ID: releases/tags can return 404 for drafts.
     release = await api(`releases/${release.id}`);
     verifyRelease(release, receipt, sourceSha);
+    // Draft target_commitish does not override an existing tag's actual commit.
+    await verifyTag(sourceSha, {allowAbsent: release.draft});
     for (const key of publicKeys) {
       const expected = receipt.assets[key], asset = release.assets.find(item => item.name === expected.filename);
       const bytes = await command('gh', ['api', `repos/${repository}/releases/assets/${asset.id}`, '-H', 'Accept: application/octet-stream'], directory, {encoding: 'buffer'});
@@ -295,6 +299,7 @@ export async function publishZero(options, dependencies = {}) {
     if (release.draft) {
       // Check the complete draft again immediately before the deliberate transition.
       verifyRelease(await api(`releases/${release.id}`), receipt, sourceSha);
+      await verifyTag(sourceSha, {allowAbsent: true});
       await api(`releases/${release.id}`, ['--method', 'PATCH', '-F', 'draft=false']);
     }
     release = await api(`releases/${release.id}`);

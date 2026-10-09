@@ -14,7 +14,7 @@ Publisher worker GPT-6.1 Sol/high delivered the two script files and released
 ownership; coordinator owns integration and acceptance. Existing local gh sign-in
 performs future explicit publication; preparation Actions retain contents:read.
 
-Local configuration check, 39/39 release tests, website typecheck, 7/7 tests and
+Local configuration check, 43/43 release tests, website typecheck, 7/7 tests and
 production build pass. Actual read-only `--version 0.5.1 --verify-only` passed:
 all three public assets and the live landing's actual kit bytes match. New-version
 workflow/draft/publication/metadata-PR lifecycle uses transport fixtures; no new
@@ -25,7 +25,13 @@ read-only proof. Weekly 42% remaining at start; DeepSeek paused through
 2026-12-31. No new tool-backed goal. Review risk high (publication/merge boundary):
 two fresh GPT-6.1 Sol/high reviewers, security/correctness and lifecycle/integration.
 Budget: 7 launches, 1 initial wave, 4 targeted waves, 1 integration wave,
-4 fix batches, 60-minute session and 30-minute reviewer caps. Review not yet started.
+4 fix batches, 60-minute session and 30-minute reviewer caps. Initial wave completed on `2b31263`: both reviewers independently reproduced
+one P1 wrong-tag draft publication. Coordinator added failing regressions, then
+checks an existing lightweight/annotated tag before asset verification and again
+immediately before publication; absent draft tags remain allowed. One fix batch;
+targeted safety review next. Launches 2, initial waves 1, targeted waves 0,
+integration waves 0; token/effective model telemetry unavailable. Full initial
+coverage is reusable outside the tag delta.
 
 ## Learning website — integration and publication in progress
 

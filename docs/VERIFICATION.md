@@ -655,7 +655,7 @@ recorded. Independent reviewed-head CI and live publication receipts follow.
 
 ## One-command release publisher — 2026-10-09
 
-Root configuration/link checks and 39/39 release tests pass (36 new publisher
+Root configuration/link checks and 43/43 release tests pass (40 new publisher
 scenarios plus 3 preparation guards). Disposable-file fixtures intercept all
 GitHub/Git publication transports: exact three assets, realistic draft URLs,
 source/run/checksum drift, expired artifacts, existing branch/PR resume, immutable
@@ -672,3 +672,11 @@ publication and generated metadata PR/merge remain exercised through fixtures,
 not a complete real publication trial. No new Windows/Linux or interactive
 student/editor evidence is claimed. Existing immutable releases stay unchanged.
 Independent source review, CI and merge evidence will be recorded in the PR.
+
+Both independent Sol/high initial reviews reproduced one publication blocker:
+a resumed draft could become public before a conflicting tag was detected.
+Three regressions failed against the initial publisher. The correction checks
+existing lightweight/annotated tags against the prepared source before uploaded
+byte verification and immediately before publication. Wrong tags and tag drift
+leave the draft private without a publication PATCH; matching annotated tags
+and absent draft tags retain normal publication. Targeted review follows.
