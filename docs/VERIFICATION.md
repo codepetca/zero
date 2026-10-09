@@ -37,15 +37,31 @@ Checks:
   Coordinator added an exact-project Git HEAD/config watcher covering change,
   create and delete. The affected 3/3 UI checks passed (0.190s), including refresh
   without a Zero command and ignoring another project's metadata. Targeted review
-  of that delta is pending. Unchanged engine/transport coverage is reused.
+  accepted that delta at ae1514c with no new findings. Unchanged engine/transport
+  coverage is reused.
 - Configuration, syntax, command contracts, document links and diff checks passed.
+
+Review receipt: two independent GPT-6.1 Sol/high initial reviewers completed the
+full diff from 528ce8ff0206f9de21ec111843be89c9a242edd6 to
+74bc2c58b45e8765f9fd2a72c5bc34788ff56434; security clean (~120s), Git-state/UI
+one accepted P2 (~3min). The state/UI reviewer accepted the targeted correction
+at ae1514cf50457860c7e27fa5121f4dc7a1e8c0ee (~1min). Three reviewer turns,
+one initial wave, one targeted wave and one fix batch, about 6.5 minutes elapsed
+including coordination; effective model and attributable token telemetry unknown.
+No final integration wave adds coverage: the correction is read-only display
+refresh and retains workflow/security contracts. Coordinator inspected the final
+evidence-only delta. Final 0.4.0 kit regenerated; extension source/manifest/README,
+every starter file, profile/optional bindings and all seven combined-kit members
+match local bytes. The Unix Maven wrapper is executable and no target/Git folder
+is included. Source publication remains unauthorized.
 
 Local-bare transport is injected only in checks; production accepts the ordinary
 reviewed GitHub HTTPS destination and uses guarded native-session credentials.
-No real account/network trial is claimed. Preliminary 0.4 VSIX installed through
+No real account/network trial is claimed. Final 0.4 VSIX installed through
 the isolated VS Code CLI (the first nonexistent-profile attempt failed; default
 isolated install succeeded). Computer-use selected a different Code process's
 Welcome window, so this does not confirm new-version activation or interaction.
+Installed JS bytes match the reviewed source after the final installation.
 Native 0.4 editor interaction and real
 GitHub start/finish, physical Windows/Linux, school restrictions and novice
 student flow remain untested. The Java framework is unchanged; these Java edits

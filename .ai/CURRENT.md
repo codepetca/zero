@@ -1,6 +1,6 @@
 # Current state — 2026-10-08
 
-## Individual GitHub workflow — active goal
+## Individual GitHub workflow — locally complete
 
 Owner agreed an ultra-simple individual flow and requested orchestration:
 Start a change, build/run, Upload changes, Finish change into main; current branch
@@ -47,8 +47,12 @@ Native Git checkout left the new branch label stale until click. Coordinator
 added an exact-project Git HEAD/config watcher for change/create/delete and a
 meaningful metadata-event regression. Focused latest UI 3/3 and config/diff pass.
 Full exact initial-head suite passed 56/56 (147.121s); unchanged engine/transport
-coverage reused for the small UI refresh delta. Ledger: two reviewer turns,
-one initial wave, one remediation batch; targeted state/UI re-review next.
+coverage reused for the small UI refresh delta. Targeted state/UI review completed
+clean at ae1514cf50457860c7e27fa5121f4dc7a1e8c0ee against 74bc2c5 (~1min).
+Final ledger: three reviewer turns, one initial wave, one targeted wave, one
+remediation batch; ~6.5min elapsed review session including coordinator work.
+No final integration wave needed: delta is read-only status refresh with no
+workflow/security changes or coverage gap. Effective model/token telemetry unknown.
 
 Sidebar delivery inspected: focused 3/3 tests, syntax/diff checks passed. Simulation
 skips saves/auth/engine while notifications remain open; branch menu and busy
@@ -72,6 +76,17 @@ selected another Code process (Welcome window), so no native activation/interact
 claim. The signed-out preview starter is saved outside the kit in
 /Users/stew/Documents/Zero Individual Preview 2026-10-08/zero-starter; its origin
 is a placeholder and simulation stays default. No account/network actions used.
+
+Coordinator inspected the final evidence-only delta and regenerated the 0.4.0
+VSIX/starter/combined ZIP. Every extension source, manifest, README, 32 starter
+files, seven combined members and profiles match local bytes; Unix wrapper mode
+is executable and build/Git directories are excluded. Final config/diff checks
+pass. All code committed locally; no source publication or real GitHub action.
+The initial full suite and final focused checks are accepted with unchanged
+coverage. Real GitHub Start/Finish, native final-version editor/watcher interaction,
+Windows/Linux and novice classroom trials remain explicitly untested. Final VSIX
+installed again in isolated editor data; installed JS bytes match reviewed source.
+End weekly remaining 50% (account-wide delta, no task-cost attribution).
 
 ## Minimal GitHub sidebar
 
