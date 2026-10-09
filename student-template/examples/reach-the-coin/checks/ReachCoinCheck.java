@@ -94,7 +94,7 @@ public class ReachCoinCheck extends Application {
                 app.draw();
                 if (round == 0) saveCanvas(app, "won.png");
                 require(app.canvas().snapshot(null, null).getPixelReader()
-                        .getColor((int) wonX + 5, 185).equals(Color.CORNFLOWERBLUE),
+                        .getColor((int) wonX + 5, 185).equals(Color.web("#6457e8")),
                         "Winning player stays visible");
                 keys.add(KeyCode.R);
                 app.update(0.1);
@@ -106,9 +106,9 @@ public class ReachCoinCheck extends Application {
                 keys.clear();
                 app.draw();
                 var pixels = app.canvas().snapshot(null, null).getPixelReader();
-                require(pixels.getColor(45, 185).equals(Color.CORNFLOWERBLUE), "Player draw");
+                require(pixels.getColor(45, 185).equals(Color.web("#6457e8")), "Player draw");
                 require(pixels.getColor(525, 185).equals(Color.GOLD), "Fixed coin draw");
-                require(pixels.getColor(300, 200).equals(Color.ALICEBLUE), "Background draw");
+                require(pixels.getColor(300, 200).equals(Color.web("#f6f5ff")), "Background draw");
             }
             keys.add(KeyCode.UP); app.update(0.1);
             require(coordinate(player, "y") == 162, "Movement resumes after restart release");

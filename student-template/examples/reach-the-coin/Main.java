@@ -1,5 +1,7 @@
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import zero.SketchApp;
 
 /** Move the blue square to the gold square. */
@@ -9,6 +11,10 @@ public class Main extends SketchApp {
     private double coinY = 180;
     private double coinSize = 24;
     private boolean won;
+    private Color backgroundColor = Color.web("#f6f5ff");
+    private Color textColor = Color.web("#22213b");
+    private Font headingFont = Font.font("System", FontWeight.BOLD, 28);
+    private Font bodyFont = Font.font("System", 18);
 
     @Override
     public void settings() {
@@ -50,12 +56,14 @@ public class Main extends SketchApp {
 
     @Override
     public void draw() {
-        background(Color.ALICEBLUE);
-        fill(Color.DARKSLATEGRAY);
-        textSize(20);
-        text("Arrow keys: move     R: restart", 20, 30);
+        background(backgroundColor);
+        fill(textColor);
+        graphics().setFont(headingFont);
+        text("Reach the coin", 24, 42);
+        graphics().setFont(bodyFont);
+        text("Arrow keys: move     R: restart", 24, 74);
         if (won) {
-            text("You win! Press R to play again.", 20, 60);
+            text("You win! Press R to play again.", 24, 106);
         }
         fill(Color.GOLD);
         rect(coinX, coinY, coinSize, coinSize);

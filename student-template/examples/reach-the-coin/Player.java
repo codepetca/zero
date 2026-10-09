@@ -7,6 +7,7 @@ public class Player {
     private double y;
     private double size = 24;
     private double speed = 180;
+    private Color color = Color.web("#6457e8");
 
     public Player(double startX, double startY) {
         x = startX;
@@ -30,7 +31,7 @@ public class Player {
     }
 
     public void draw(SketchApp app) {
-        app.fill(Color.CORNFLOWERBLUE);
+        app.fill(color);
         app.rect(x, y, size, size);
     }
 }

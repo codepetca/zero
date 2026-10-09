@@ -55,3 +55,8 @@ contact. No object updates itself automatically.
 2. Change `coinY` in Main from `180` to `300`. Run again and reach the lower coin.
 
 Maintainer verification and its platform limits are in [checks/README.md](checks/README.md).
+
+The palette and two font fields in Main, plus `color` in Player, control the
+appearance. They are ordinary JavaFX values; fonts are created once and reused
+in draw. See [the beginner toolkit](../../BEGINNER.md) and
+[appearance guide](../../STYLE.md) for small sets of methods to learn first.
