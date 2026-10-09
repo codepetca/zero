@@ -564,3 +564,26 @@ limitations above remain unchanged.
   attempt failed before artifact writes and all three hashes stayed unchanged.
 - Native Windows/Linux setup, final editor authentication/upload workflow and
   novice classroom trials remain unverified; web checks do not establish them.
+
+## Community MIT licensing — 2026-10-09
+
+Owner selected MIT for original Zero Community source. Canonical notice copied
+byte-for-byte from Zero; current HealthBar metadata is MIT/experimental with null
+maintainer. License selection does not approve components or publish artifacts.
+Loader accepts MIT and historical UNLICENSED catalogs with unchanged status and
+maintainer guards. Focused component/editor tests30/30, website5/5 tests, typecheck,
+production build and root configuration/link checks pass. Community admission
+32/32 boundary tests pass.
+
+MIT schema1 packets carry root LICENSE as the eighth owned file. Native Workshop
+checks pass, including exact notice ZIP bytes, missing notice and license-drift
+export rejection. Python independently validates the actual Java-generated packet;
+its digest matches Python export5f457df0b1c38f7bd4ad6c2584ef82fa3d40878e215e3fbc463e697f7bcbb517.
+Historical UNLICENSED seven-file packets still validate. Acceptance remains false
+and publishing disabled without trusted maintainers/review.
+
+Community install→update→revert proof passes6consumer checks in25.93s; immutable
+0.1.0/0.1.1 artifact bytes retained. Prepared local catalog records MIT. Regenerated
+local component ZIP71members contains both canonical license notices and wrapper
+notices. Published Zero0.5.0 kit/starter/VSIX hashes remain unchanged. No community
+artifact release is included. Native Windows/Linux/editor input remains untested.

@@ -151,6 +151,11 @@ The portable component ZIP includes local artifacts/catalog, source and Workshop
 extract the whole folder and open its `component-workshop/` subfolder. Students
 use its bundled Maven wrapper, not the maintainer Node/Python tooling.
 
+Current MIT catalogs require the current extension source in a VS Code
+extension development host (F5). The immutable published 0.5.0 VSIX predates
+MIT catalog support; it continues to support historical UNLICENSED catalogs.
+A future versioned extension release will include the loader change.
+
 Community catalog selection is explicit and local in Zero's view title (…) menu.
 The extension edits only managed POM blocks through the native undoable editor,
 refuses unsaved/drifted documents and preserves Java source. Add pins a version;
@@ -161,5 +166,5 @@ remains the resolver; normal project runs use ordinary Maven settings/cache.
 Candidate compilation runs trusted local Java in the Workshop process with
 normal permissions; it is not an untrusted-submission sandbox. Admission validates
 packets without executing code. CI and advisory AI interfaces are prepared locally;
-no hosted service, live provider, public licensing or authenticated acceptance
+no hosted service, live provider or authenticated acceptance
 authority has been configured. See the community contribution/AI docs.
