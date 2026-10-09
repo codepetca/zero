@@ -51,15 +51,17 @@ npm test --prefix website
 npm run build --prefix website
 ```
 
-For a local preview of the actual freshly packaged ZIP, run `npm run package`,
-then start the website from the root with:
+The current published kit uses verified GitHub release links. To preview a new
+local version, set its release metadata to local, run `npm run package`, then
+start the website from the root with:
 
 ```sh
 ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 ```
 
-Without the explicit local preview flag, the unpublished release leads to its
-availability explanation on Learn more. No guessed public release URL is shown.
+An unpublished asset without the local preview flag leads to its availability
+explanation on Learn more. Published assets keep their verified public links
+even with the flag enabled. No guessed public release URL is shown.
 The website prepares canonical docs/release content before development and build;
 generated snapshots and caches are ignored. Start here before later Vercel setup:
 Root Directory `website/`, with repository sources outside that directory included

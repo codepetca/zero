@@ -16,7 +16,9 @@ The package's preparation step reads `../release/kit.json` and the maintained se
 
 ## Download states
 
-Default development and production expose the honest unpublished state at `/learn#downloads`. There is no guessed release URL. For an explicitly enabled **local** preview, first package the kit from the repository root, then:
+The current published kit links directly to its verified GitHub release assets in development and production, including when the local preview flag is enabled. Unpublished assets lead to their availability explanation at `/learn#downloads` by default.
+
+To preview a **new local version**, first set its release metadata to local and package it from the repository root, then:
 
 ```sh
 ZERO_LOCAL_DOWNLOADS=1 npm run dev -- --port 3000
