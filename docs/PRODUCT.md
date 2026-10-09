@@ -34,8 +34,16 @@ JavaFX properties and other JavaFX features remain available as later lessons.
 Examples live outside compiled source and are copied deliberately one at a time.
 See the [starter](../student-template/README.md) for exact files and exercises.
 Framework source ships editable inside the starter. Review shared improvements
-in more than one app before cohort adoption; versioned library distribution is
-future work.
+in more than one app before cohort adoption. The extraction examples remain useful
+lessons; community components now have a separate local versioned-library prototype.
+
+The local component MVP consumes community components as pinned Maven libraries.
+Core source and extraction lessons remain readable; installed community libraries
+are developed separately in a Component Workshop. A separate local community
+repository proves install/fix/update/revert before public distribution. See
+[component architecture](COMPONENTS.md) and [the active execution plan](COMPONENT-PLAN.md)
+for the contract and local acceptance criteria. Automated checks, advisory AI
+and community maintainers should minimize routine teacher administration.
 
 The first dogfooding pass deliberately uses the existing framework. App-specific
 navigation and question rules stay in Main; Question stores question data and

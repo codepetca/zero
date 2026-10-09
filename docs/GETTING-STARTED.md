@@ -1,7 +1,7 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. The kit contains `zero-0.4.0.vsix`, `Zero.code-profile`,
+separate JavaFX window. The kit contains `zero-0.5.0.vsix`, `Zero.code-profile`,
 optional keyboard shortcuts and `zero-starter.zip`. This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
 native sign-in and repository upload path.
@@ -18,7 +18,7 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.4.0.vsix** through
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.0.vsix** through
    **Extensions → Install from VSIX…**, then install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.

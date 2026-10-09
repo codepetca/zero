@@ -30,7 +30,8 @@ Commands: `zero.runApp`, `zero.stopApp`, `zero.uploadToGitHub`,
 `zero.githubAccount`, `zero.chooseRepository`,
 `zero.signInToGitHub`, `zero.createRepository`, `zero.connectRepository`,
 `zero.copyRepositoryLink`, `zero.showSetup` and
-`zero.showSidebar`.
+`zero.showSidebar`. Component commands: `zero.components`, `zero.browseComponents`,
+`zero.updateComponents` and `zero.revertComponents`.
 
 ## Repository workflow
 
@@ -132,3 +133,22 @@ student pilots remain unverified. Mac editor/process checks
 and their limits are recorded
 in the bundled `VERIFICATION.md`; physical Windows/Linux checks
 remain pending. Review focused changes before classroom adoption.
+
+## Local community prototype
+
+Open the Zero view title (…) menu for Components, or use the command palette.
+Choose the local kit's catalog.json; browse HealthBar, inspect its API, try the
+packaged example or add its pinned Maven library. Update/Revert show the exact
+version change, preserve Java source, save an undoable native POM edit and run.
+Dirty POMs, changed catalogs/documents/roots, incompatible projects and copied
+classes that shadow the dependency require correction before edits. These
+commands make no Git commit, upload, authentication or silent upgrade.
+
+Try runs trusted bundled source/wrapper in a temporary project/cache under the
+same owned Run/Stop lifecycle. Catalog example paths are descriptions, not code
+executed by Zero. The local catalog verifies artifacts but is not a public
+registry or security sandbox; Maven resolves project dependencies normally.
+Use the separate Component Workshop to edit/check trusted source and prepare
+a local packet. Experimental/UNLICENSED fixtures are not community-approved;
+public release and live AI remain unconfigured. Physical editor/Windows/Linux
+flows remain unverified.

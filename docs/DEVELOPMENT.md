@@ -77,6 +77,42 @@ no-argument constructor. Include meaningful behavior checks and a short explanat
 another student can follow; seek review before cohort adoption.
 
 Advanced contributions may introduce Java packages, interfaces or JavaFX properties
-when a concrete app needs them. A versioned shared JAR and cohort contribution
-release process are future work. A public license for original Zero code remains
+when a concrete app needs them. A separate local versioned JAR/Workshop/admission prototype is documented in
+[COMPONENTS.md](COMPONENTS.md); public distribution remains future work. A public license for original Zero code remains
 unresolved; upstream wrapper licenses/notices do not license all Zero source.
+
+## Local component lifecycle
+
+The sibling `../zero-community` checkout has its own source, Maven library,
+release-cycle proof and admission scripts. Use the actual local checkout path
+with the commands below; no remote repository is assumed.
+
+```sh
+python3 ../zero-community/scripts/verify-release-cycle.py --zero-root "$PWD"
+node scripts/prepare-component-workshop.mjs ../zero-community
+node scripts/verify-components.mjs
+node scripts/run-component-workshop.mjs
+npm run package:components
+```
+
+`verify-components.mjs` checks add/update/revert with the actual extension engine
+and real Maven/JavaFX in a disposable project whose path includes spaces. It
+requires the release proof's cache for third-party downloads; tested community
+coordinates start absent. Generated evidence stays in `.verification/`.
+Workshop's `-Dzero.workshopCheck=true` option runs a finite native-window harness.
+The portable component ZIP includes local artifacts/catalog, source and Workshop;
+extract the whole folder and open its `component-workshop/` subfolder. Students
+use its bundled Maven wrapper, not the maintainer Node/Python tooling.
+
+Community catalog selection is explicit and local in Zero's view title (…) menu.
+The extension edits only managed POM blocks through the native undoable editor,
+refuses unsaved/drifted documents and preserves Java source. Add pins a version;
+Update/Revert confirm and run the app. Try uses trusted packaged example source
+and a separate temporary Maven cache, cleaned when its owned task ends. Maven
+remains the resolver; normal project runs use ordinary Maven settings/cache.
+
+Candidate compilation runs trusted local Java in the Workshop process with
+normal permissions; it is not an untrusted-submission sandbox. Admission validates
+packets without executing code. CI and advisory AI interfaces are prepared locally;
+no hosted service, live provider, public licensing or authenticated acceptance
+authority has been configured. See the community contribution/AI docs.

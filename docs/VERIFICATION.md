@@ -1,5 +1,40 @@
 # Local verification — 2026-10-08
 
+## Component lifecycle — local 0.5.0 prototype
+
+Student API reference, separate local community library, native Component Workshop
+and on-demand Browse/Try/Add/Update/Revert commands are implemented. Maven owns
+resolution; managed POM edits preserve student Java and unrelated configuration.
+HealthBar0.1.0's partial-fill bug and compatible0.1.1 fix remain immutable fixtures.
+Neither is a public/community-reviewed release.
+
+Full Node85/85 checks passed (129.62s); the subsequent task ownership/cleanup delta
+passes19 affected checks, including one new Stop-during-launch integration test.
+Current coverage86 tests. The separate community admission suite passes19 tests.
+Two consumer apps × install/update/revert passed six actual finite JavaFX stages.
+A coordinator consumer built from the same extension plans passed three additional
+Maven/JavaFX stages with source preservation and actual JAR hashes/origins.
+
+Workshop checks render fresh named states, change controls/reset, compile a
+trusted local candidate explicitly, reject a fractional-fill mutant and invalidate
+stale source-bound receipts. Its Java ZIP passes independent Python validation.
+The extracted68-member portable component kit passes with default sibling paths
+in a folder containing spaces. Maven plugin argument splitting initially broke
+that launch; relative defaults and file-URI custom paths corrected it.
+
+The0.5.0 VSIX installs through isolated VS Code CLI; all extension source and
+packaged trusted example assets match local bytes. This proves installation,
+not native command interaction. Generated receipts stay ignored in .verification/
+and the separate community .proof/. Final independent review/artifact acceptance
+is recorded in CURRENT when complete.
+
+Physical editor clicks, chooser interaction, Windows/Linux, live CI/AI,
+authenticated community acceptance, public hosting/licensing and classroom trials
+remain unverified. Candidate Java executes with normal local permissions, not a
+sandbox. Offline AI feedback is advisory; no tool can approve or publish. No
+remote repo, push, publication, deployment or credential changes occurred.
+
+
 ## Individual workflow — 0.4.0
 
 Local implementation on codex/individual-workflow from 528ce8f. The owner agreed

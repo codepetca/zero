@@ -9,6 +9,14 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const dist = path.join(root, 'dist');
 mkdirSync(dist, { recursive: true });
 const manifest = JSON.parse(readFileSync(path.join(root, 'extension/package.json')));
+// Canonical trusted example tooling is generated into the VSIX, never copied
+// from a student's editable Maven configuration when trying a component.
+const exampleAssets = path.join(root,'extension/media/component-example');
+mkdirSync(path.join(exampleAssets,'zero'),{recursive:true});
+copyFileSync(path.join(root,'student-template/src/main/java/zero/SimpleApp.java'),path.join(exampleAssets,'zero/SimpleApp.java'));
+for (const name of ['mvnw','mvnw.cmd']) copyFileSync(path.join(root,'student-template',name),path.join(exampleAssets,name));
+mkdirSync(path.join(exampleAssets,'.mvn/wrapper'),{recursive:true});
+for (const name of readdirSync(path.join(root,'student-template/.mvn/wrapper'))) copyFileSync(path.join(root,'student-template/.mvn/wrapper',name),path.join(exampleAssets,'.mvn/wrapper',name));
 const vsix = `zero-${manifest.version}.vsix`;
 const result = spawnSync(process.execPath, [
   path.join(root, 'node_modules/@vscode/vsce/vsce'), 'package', '--no-dependencies',

@@ -14,7 +14,7 @@ Zero**, then close the app window or terminate that task before running again.
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
-   quiet settings-only profile. In your chosen profile, install the local **zero-0.4.0.vsix**, **Language
+   quiet settings-only profile. In your chosen profile, install the local **zero-0.5.0.vsix**, **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -62,6 +62,8 @@ screen creates a new ScoreDisplay object: a node can have only one parent.
 
 Start the exercises in [EXERCISES.md](EXERCISES.md): change the quiz, extract a
 component, reuse it in another app, then contribute a compatible improvement.
+See [API.md](API.md) for the bundled app lifecycle, drawing/input methods and
+ordinary JavaFX component conventions.
 
 ### Animated apps
 

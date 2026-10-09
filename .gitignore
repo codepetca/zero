@@ -1,5 +1,9 @@
 node_modules/
 extension/dist/
+extension/media/component-example/zero/
+extension/media/component-example/.mvn/
+extension/media/component-example/mvnw
+extension/media/component-example/mvnw.cmd
 **/target/
 dist/
 .verification/

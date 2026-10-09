@@ -23,6 +23,8 @@ Physical Windows/Linux and novice student trials remain unverified; see the
 
 - [Student/teacher setup](docs/GETTING-STARTED.md)
 - [Starter and example copy instructions](student-template/README.md)
+- [Student API](student-template/API.md)
+- [Component lifecycle and Workshop](docs/COMPONENTS.md)
 - [Product scope and contracts](docs/PRODUCT.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
 - [Classroom pilot checklist](docs/CLASSROOM-PILOT.md)
@@ -43,14 +45,20 @@ profile. The sidebar also supports dark themes.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`
   is the canonical component reused by quiz, practice and study apps.
+- `component-workshop/`: native preview, examples/API, explicit candidate build/checks
+  and local contribution export for the separate community library.
+- `framework/`: JAR build from the canonical starter framework source.
 - `profile/`: optional light settings profile and separate F6/F7 bindings.
 - `scripts/`: local checks and packaging.
 - `docs/`: setup, decisions, pilot checklist and verification evidence.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.4.0.vsix`,
-`zero-starter.zip`, the profile and combined kit ZIP. It does not publish them.
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.0.vsix`,
+`zero-starter.zip`, the profile and combined kit ZIP. After the documented local
+component proof, `npm run package:components` adds `zero-components.zip` with
+Workshop, community source, both immutable versions and a local catalog.
+These are experimental local artifacts; packaging does not publish them.
 
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.

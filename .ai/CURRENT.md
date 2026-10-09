@@ -1,4 +1,79 @@
-# Current state — 2026-10-08
+# Current state — 2026-10-09
+
+## Component lifecycle MVP — final integration/review
+
+Owner agreed Maven-backed components and requested an orchestrated goal. The
+active tool-backed goal covers local implementation/verification, not publication.
+Plan: [COMPONENT-PLAN](../docs/COMPONENT-PLAN.md); architecture:
+[COMPONENTS](../docs/COMPONENTS.md). Zero branch codex/component-lifecycle from
+199c5b0; separate local /Users/stew/Repos/zero-community on main, no remote.
+No push, publication, deployment, credentials or deferred live GitHub trial.
+Public licensing, hosting and appointed maintainers remain future owner decisions.
+Local HealthBar fixtures remain experimental/UNLICENSED, never community-reviewed.
+
+Accepted delegated deliveries, verified against actual files/source/evidence:
+
+- student_api_reference, GPT-6.1 Sol/medium, ~5min reported: API.md matches actual
+  public/protected signatures; 31 public declarations/9 links checked. No rework.
+- community_library_proof, Sol/high, ~8min reported: ordinary HealthBar library,
+  version0.1.0 baseline →0.1.1 fractional-fill fix, two apps × install/update/revert.
+  Six real finite JavaFX stages, three library tests; regression rejects historical
+  bug. Repeated artifact bytes match; differing immutable replacement refused.
+- component_workshop_build, Sol/medium, ~15min reported: native previews, API/
+  examples, explicit trusted candidate Java build/checks, local packet export.
+  Actual GUI harness exercises caption edits, integer-division mutant and drift.
+  Corrections: Java-only runtime, source-bound candidate evidence, JSON null parity.
+- community_admission_build, Sol/high: Python structural admission/packet and
+  bounded offline AI schema, 19 boundary tests, pinned read-only CI draft.
+  Python independently validates Java packet/digest. CLI cannot approve/publish;
+  independent trusted human/check-runner authority remains a modeled contract.
+- component_consumer_engine, Sol/high, ~15min reported: read-only pinned Maven
+  plans and drift/artifact/source guards, 12 focused tests. Both actual catalogs
+  accepted; no source copies or custom resolver.
+- component_command_tests, Sol/medium: 16 actual-engine/mock-editor checks plus
+  one actual-extension Stop/pending-launch/cleanup regression. Inspected and
+  accepted; ownership released. No rework or file conflict.
+
+All writers released. Coordinator integrated minimal on-demand title menu,
+undoable version-checked POM editor transaction, update/revert/run, trusted Try
+assets and owned task lifecycle/cleanup. Canonical core JAR packages only starter
+SimpleApp/SketchApp, byte-matching sources, no starter binary migration. Portable
+component kit contains Workshop/community source/local repository/catalog.
+No Node/Python student runtime requirement. Candidate Java runs explicitly with
+normal local permissions; this is not an untrusted submission sandbox.
+
+Local integration evidence:
+
+- Configuration/syntax/documentation links and whitespace pass.
+- Full Node85/85 passed129.62s. Latest lifecycle delta19 focused checks pass;
+  new Stop/cleanup regression1/1 passes. Combined current coverage86 checks.
+- Actual Maven consumer from extension engine plans passes add0.1.0/update0.1.1/
+  revert0.1.0; source unchanged, actual JAR hash/origin verified. Path has spaces.
+  Initial coordinator harness cast error corrected; no production API issue.
+- Extracted68-member component ZIP passes actual finite JavaFX Workshop harness
+  with default sibling paths in a folder with spaces. Initial plugin argument
+  splitting exposed a real portability defect; relative defaults/file-URI custom
+  paths fixed it after one unsuccessful quoting attempt. Final extracted pass.
+- Java-exported packet independently validated by Python; candidate sourceDigest
+  d123308f…c7f8cf. Generated receipts/logs under ignored .verification/ and .proof/.
+- Preliminary0.5.0 VSIX/starter/bootstrap ZIP built; every extension source and
+  trusted example asset matches VSIX and isolated VS Code CLI installation.
+
+Start weekly remaining47%; account-wide, not attributable usage. DeepSeek paused
+through2026-12-31. Requested model/effort recorded; effective configuration/tokens
+and attributable coordination effort unavailable. Workers used focused fresh
+contexts, one writer each. Coordinator verified deliveries and shared contracts.
+
+Review high risk: two fresh Sol/high reviewers, security/correctness and
+architecture/compatibility, exact local revisions. Caps:7 launches,1 initial
+wave,4 targeted/fix waves,1 final integration,60min total/30min per reviewer.
+Next: fixed-revision independent review, bounded remediation, final regenerated
+artifacts and byte verification; then local goal completion. Physical editor
+clicks/chooser, Windows/Linux, live GitHub/CI/AI, publication and novice trials
+remain unverified. No simulated feedback is presented as external acceptance.
+
+## Previous delivery evidence
+
 
 ## Individual GitHub workflow — locally complete
 
