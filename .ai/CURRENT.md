@@ -434,3 +434,14 @@ Twenty affected Node checks pass; admission24 tests pass. Workshop finite harnes
 passes constructor/getter/return-type mutants and Maven-profile/plugin fixtures.
 Pinned nested plugin dependencies now share Java/Python packet schema, validated
 independently. Two focused review turns planned for this delta; budgets unchanged.
+
+Targeted wave1 at Zeroe49ae69/community83744d2: security reviewer accepted all
+four fixes and ran actual late-Stop-timeout/retained-directory/eventual-cleanup
+reproduction. Compatibility API fix accepted; one new P2: Java/Python plugin
+coordinate whitespace disagreement. Second bounded fix batch normalizes Python
+POM leaves/properties and exercises Java-export/Python-validation with whitespace
+and a property version. Admission25 tests and the actual Workshop harness pass;
+independent Python accepts the whitespace packet. No library/source/artifact
+changes. Next one targeted compatibility review;5 total turns including it,
+2 fix batches,2 targeted waves, no final full integration wave planned unless
+new interaction evidence requires one. End weekly remaining46% (account-wide).

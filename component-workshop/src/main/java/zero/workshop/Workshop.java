@@ -403,7 +403,9 @@ public class Workshop extends SimpleApp {
         require(rejected,"unsupported profile/floating plugin dependency cannot export");
       }
       Files.writeString(candidate.resolve("pom.xml"),originalPom.replaceFirst("</plugin>",
-          "<dependencies><dependency><groupId>example.tools</groupId><artifactId>compiler-helper</artifactId><version>5.11.4</version></dependency></dependencies></plugin>"));
+          "<dependencies><dependency><groupId> example.tools </groupId><artifactId> compiler-helper </artifactId><version> ${junit.version} </version></dependency></dependencies></plugin>")
+          .replace("<junit.version>5.11.4</junit.version>","<junit.version> 5.11.4 </junit.version>")
+          .replace("<version>3.2.0</version>","<version> 3.2.0 </version>"));
       JsonObject pluginManifest = ContributionPacket.inspect(copy);
       boolean recorded = false;
       for (JsonElement item : pluginManifest.getAsJsonArray("dependencies"))
