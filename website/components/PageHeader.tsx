@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { Brand } from './Brand';
-export function PageHeader() {
-  return <header className="page-header"><Brand /><nav aria-label="Site"><Link href="/learn">Learn</Link><Link href="/community">Community</Link><a href="https://github.com/codepetca/zero">GitHub</a></nav></header>;
+import { Navigation } from "./Navigation";
+import { downloadHref } from "@/lib/content";
+export function PageHeader({ active = "" }: { active?: string }) {
+  return <Navigation active={active} downloadUrl={downloadHref()} />;
 }

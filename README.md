@@ -50,7 +50,7 @@ profile. The sidebar also supports dark themes.
 
 ## Project layout
 
-- `website/`: separately built Next.js download website, Learn more and Community.
+- `website/`: Next.js download website, guided tutorials, examples, docs and Community.
 - `extension/`: sidebar and commands using supported VS Code APIs.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`

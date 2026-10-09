@@ -630,3 +630,24 @@ Community install→update→revert proof passes6consumer checks in25.93s; immut
 local component ZIP71members contains both canonical license notices and wrapper
 notices. Published Zero0.5.0 kit/starter/VSIX hashes remain unchanged. No community
 artifact release is included. Native Windows/Linux/editor input remains untested.
+
+
+## Compact learning website — 2026-10-09
+
+Six tutorials, teacher guide, docs index, examples and read-only source pages
+integrated into the existing Next.js site; minimal landing retained.
+Root `npm run check`, website typecheck,7/7 tests and production build pass.
+31 static pages generated plus dynamic landing/learn/source/download handlers.
+All31 lesson relative file/fragment links resolve. Production browser checks:
+landing→Learn→tutorial, one/all folds, next lesson reset, API fragment reveal,
+example→source, mobile menu/lesson selector, keyboard summary and tablet layout.
+All18 tutorial/docs readers default closed with unique IDs; desktop/mobile/tablet
+no horizontal overflow. Build-time source allowlist returns200 for a known Java
+file; traversal, .env, constructor, repeated file queries and missing routes404.
+No browser warnings/errors. Design comparisons and local receipts ignored in
+`.verification/learning-site/`; see website/design-qa.md for visual judgment.
+
+Release0.5.1 manifest, download helpers/routes, dependency locks and all Java
+sources unchanged. Existing immutable kit is not rebuilt; new website lessons
+will enter a future kit. Native OS/editor/classroom evidence remains as previously
+recorded. Independent reviewed-head CI and live publication receipts follow.

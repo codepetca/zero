@@ -1,5 +1,30 @@
 # Current state — 2026-10-09
 
+## Learning website — integration and publication in progress
+
+Owner approved the compact guided hub and tutorial reader, requested short
+summaries with tap-to-expand detail, then explicitly authorized integration and
+publication with "do it". Preserve the minimal landing and current verified
+Zero0.5.1 downloads. No kit rebuild, component publication or account changes.
+Managed /Users/stew/.codex/worktrees/zero-learning-site/zero on
+codex/learning-website from efdf76a isolates active funding work in the primary
+checkout. Six lessons plus teacher guidance imported from the reviewed lesson
+pack; original prototype branch remains local and is not part of this PR.
+
+learning_site_port GPT6.1Sol/medium delivered the website port (~13min); ownership
+returned to coordinator. One mobile accessible-label refinement. Coordinator owns lesson
+integration, docs, browser/design QA, independent review, PR/merge and public
+production verification. Native delegation used for the bounded established
+Next.js port; DeepSeek pause retained, weekly42%remaining at phase start.
+Local root check, website typecheck/7tests/build and18reader browser checks pass.
+Design full/focused comparisons pass; native mobile selector, keyboard summary,
+fragment reveal, source allowlist and minimal landing verified.
+Exit: independent current-head review and green PR CI, main merge and live verification.
+Previously required website typecheck/tests/build, compact desktop/mobile flow and deep links,
+source whitelist, independent current-head review, green PR CI, main merge and
+live landing→Learn→tutorial verification. Existing immutable release data and
+download boundaries remain authoritative; supporting source views are read-only.
+
 ## Zero 0.5.1 release — publication complete, website promotion underway
 
 Owner authorized release/site update and release-preparation automation with "go".

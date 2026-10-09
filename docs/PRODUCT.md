@@ -9,7 +9,9 @@ later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
 page has the Zero wordmark, one sentence, Download Zero and Learn more only.
-`/learn` contains setup/docs; `/community` introduces Zero Community and links to
+`/learn` is a compact learning hub with six guided tutorials, examples and docs.
+Tutorial steps and reference sections expand when requested; full guides remain
+available. `/community` introduces Zero Community and links to
 component development/contributions. It does not run Java in the browser or add
 a student website account. The local kit is unpublished until an approved release.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).

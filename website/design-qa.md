@@ -1,4 +1,38 @@
-# Design QA — passed
+# Learning website design QA — passed
+
+2026-10-09. Approved compact references: `../docs/design/learning-hub-reference.png`
+and `learning-lesson-reference.png`. Next.js port of the accepted prototype.
+
+## Evidence and normalization
+
+In-app browser production build at CSS viewport1487×1058; both reference and
+rendered PNGs1487×1058. Full and focused side-by-side hub and lesson comparisons
+inspected in ignored `.verification/learning-site/comparison-{hub,lesson}-{full,focused}.jpg`.
+Mobile390×844 and tablet834×1112 captures inspected; no horizontal overflow.
+
+## Five surfaces and intentional differences
+
+System sans typography, bold navy titles, muted summaries and purple actions
+match the approved reference. Hub columns, reader width, whitespace, divider
+rows and closed sections match. Existing Zero SVG and small icons retained.
+Copy matches the accepted short summaries and section titles. Published download
+availability stays below the learning hub. Mobile reader uses an accessible
+native lesson/guide selector; desktop retains the lesson sidebar. These preserve
+the compact navigation while connecting actual maintained content.
+No unresolved visual blocker. Prior minimal landing remains intact.
+
+## Interaction checks
+
+Actual landing Learn more→hub→lesson; one section, Expand all/Collapse all,
+next lesson reset, related API fragment reveal, example instructions and Java
+source links pass. Mobile menu and lesson selection pass. Keyboard Enter opens
+summary. All18 tutorial/doc pages have sections closed, unique IDs and no desktop
+overflow. Invalid source/path/repeated-query and missing routes return404.
+No browser warnings/errors observed. Source lookup uses build-time allowlisted
+text only. Public production verification follows reviewed PR integration.
+
+## Earlier minimal landing QA
+
 
 2026-10-09. Reference: `../docs/design/selected-landing.png`. Implemented in
 Next.js using the approved system font and existing Zero brand asset.

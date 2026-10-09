@@ -41,13 +41,19 @@ in `codepetca/zero`, with pinned dependencies and its own lockfile. Configure on
 Vercel project with Root Directory `website/`. Pages are mostly static:
 
 - `/`: Zero name/mark, short description, Download Zero and Learn more only.
-- `/learn`: product explanation, screenshots and links to setup, API docs,
-  GitHub source, other downloads and the Component Workshop.
+- `/learn`: compact guided learning hub with six expandable lesson previews,
+  setup, docs, examples and a downloads disclosure.
+- `/tutorials/[lesson]`: six maintained lessons with short summaries, collapsed
+  steps, full-guide expansion and previous/next navigation.
+- `/examples` and `/examples/[slug]`: runnable local examples with on-demand
+  copy/run instructions and readable source.
+- `/source`: a read-only view of build-prepared, explicitly allowed source files.
 - `/community`: public entry point for Zero Community, source/contribution links
   and an honest explanation of current experimental local component tooling.
-- Setup lives on `/learn`; do not create a separate onboarding platform.
-- Ten supporting `/docs/[slug]` pages render maintained repository Markdown,
-  with matching heading anchors and internal links. Preparation keeps one source.
+- `/docs` groups setup/reference/teacher guides; `/docs/[slug]` renders maintained
+  repository Markdown, with matching heading anchors and internal links.
+  Sections expand on request, including automatically for direct section links.
+  Preparation keeps one source. No separate onboarding platform.
 
 No website account system or database is needed for this MVP. Node.js is a site
 development/build requirement, not an additional student requirement.
