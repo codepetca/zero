@@ -9,6 +9,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateManifest } from "../lib/contracts.mjs";
 import { validateCommunityManifest } from "../lib/community.mjs";
+import { communityPreview } from "../lib/community-preview.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -73,11 +74,13 @@ const release = validateManifest(
 const community = validateCommunityManifest(
   JSON.parse(await readFile(resolve(root, "release/community.json"), "utf8")),
 );
+const previewEnabled = process.env.ZERO_COMMUNITY_PREVIEW === '1' && !process.env.VERCEL;
+const preview = communityPreview(previewEnabled ? JSON.parse(await readFile(resolve(root, '../zero-community/catalog/components.json'), 'utf8')) : null, community, {enabled:previewEnabled, hosted:Boolean(process.env.VERCEL)});
 await mkdir(resolve(site, ".generated"), { recursive: true });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, community, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

@@ -10,9 +10,10 @@ import {releaseDefinition} from './release.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
 const {coreVersion} = releaseDefinition();
-const publicPreparation = process.argv.includes('--public');
-const arguments_ = process.argv.slice(2).filter(value => value !== '--public');
-if (arguments_.length > 1) throw new Error('Usage: node scripts/prepare-component-workshop.mjs [community-root] [--public]');
+const localPreparation = process.argv.includes('--local');
+const publicPreparation = process.argv.includes('--public') || localPreparation;
+const arguments_ = process.argv.slice(2).filter(value => !['--public', '--local'].includes(value));
+if (arguments_.length > 1) throw new Error('Usage: node scripts/prepare-component-workshop.mjs [community-root] [--public|--local]');
 const community = path.resolve(arguments_[0] || path.join(root, '../zero-community'));
 const generated = path.join(root, '.verification');
 const repository = path.join(generated, 'component-repository');
@@ -23,9 +24,12 @@ await writeFile(settings, '<settings xmlns="http://maven.apache.org/SETTINGS/1.0
 
 // This is a local developer preparation command, not a remote package installer.
 // Only the known proof layout and coordinates are accepted.
-const catalogFile = path.join(community, publicPreparation ? '.proof/public/0.1.2/catalog.json' : '.proof/catalog.json');
+const metadataVersion = JSON.parse(await readFile(path.join(community, 'catalog/components.json'), 'utf8')).library.version;
+if (!/^0\.1\.[0-9]+$/.test(metadataVersion) || Number(metadataVersion.split('.')[2]) < 2) throw new Error('Expected fixed current library version >= 0.1.2.');
+const candidatePath = path.join(community, localPreparation ? '.proof/local' : '.proof/public', metadataVersion);
+const catalogFile = publicPreparation ? path.join(candidatePath, 'catalog.json') : path.join(community, '.proof/catalog.json');
 const catalog = JSON.parse(await readFile(catalogFile, 'utf8'));
-const versions = publicPreparation ? ['0.1.2'] : ['0.1.0', '0.1.1'];
+const versions = publicPreparation ? [metadataVersion] : ['0.1.0', '0.1.1'];
 if (catalog.schemaVersion !== 1 || catalog.library?.groupId !== 'school.zero.community' ||
     catalog.library.artifactId !== 'zero-community' || catalog.latest !== versions.at(-1) ||
     catalog.library.javaRelease !== 17 || catalog.library.javafxVersion !== '21.0.12' ||
@@ -37,7 +41,7 @@ if (catalog.schemaVersion !== 1 || catalog.library?.groupId !== 'school.zero.com
   throw new Error('Prepare the documented community release proof (or public 0.1.2 candidate) first.');
 }
 // Public artifacts are flat release files; only fixed Maven coordinates are copied.
-const proofRepository = await realpath(path.join(community, publicPreparation ? '.proof/public/0.1.2' : '.proof/repository'));
+const proofRepository = await realpath(publicPreparation ? candidatePath : path.join(community, '.proof/repository'));
 let sourceReceipt;
 if (publicPreparation) {
   sourceReceipt = JSON.parse(await readFile(path.join(proofRepository, 'SOURCE.json'), 'utf8'));
@@ -47,11 +51,11 @@ if (publicPreparation) {
       !/^[a-f0-9]{64}$/.test(release.sourceDigest || '') ||
       sourceReceipt.sourceRevision !== release.sourceRevision || sourceReceipt.sourceDigest !== release.sourceDigest)
     throw new Error('Public release source provenance is missing or differs from its catalog.');
-  const declared = ['LICENSE', 'catalog/components.json', 'docs/HealthBar.md',
-    'examples/adventure/Main.java', 'examples/study/Main.java', 'pom.xml',
-    'src/main/java/zero/community/HealthBar.java', 'src/test/java/zero/community/HealthBarTest.java'];
-  if (JSON.stringify(sourceReceipt.files?.map(item => item.path)) !== JSON.stringify(declared))
-    throw new Error('Unexpected public contribution source scope.');
+  const inspect = spawnSync('python3', [path.join(community, 'scripts/admission.py'), 'inspect', '--root', community], {encoding:'utf8'});
+  if (inspect.status !== 0) throw new Error('Local source admission failed: ' + inspect.stderr);
+  const declared = JSON.parse(inspect.stdout);
+  if (JSON.stringify(sourceReceipt.files) !== JSON.stringify(declared.files) || sourceReceipt.sourceDigest !== declared.sourceDigest)
+    throw new Error('Unexpected contribution source scope or stale source digest.');
   for (const file of sourceReceipt.files) {
     const filename = path.join(community, file.path);
     if (await realpath(filename) !== filename || !(await lstat(filename)).isFile() ||
@@ -118,10 +122,15 @@ if (!publicPreparation) {
   process.exit(0);
 }
 await writeFile(path.join(generated,'component-workshop-source.json'),JSON.stringify(sourceReceipt,null,2)+'\n');
+const release = catalog.releases[0];
 const runArguments = ['-B','--no-transfer-progress','-s',settings,'-gs',settings,
   '-f',path.join(root,'component-workshop/pom.xml'),
   `-Dzero.componentRepository=${pathToFileURL(repository).href}`,
-  `-Dzero.communityRoot=${pathToFileURL(community).href}`,'compile','javafx:run'];
+  `-Dzero.communityRoot=${pathToFileURL(community).href}`,
+  `-Dzero.communityVersion=${metadataVersion}`,
+  `-Dzero.workshopArtifactSha256=${release.artifacts.jar.sha256}`,
+  `-Dzero.workshopSourcesSha256=${release.artifacts.sources.sha256}`,
+  `-Dzero.workshopSources=${pathToFileURL(path.join(repository, release.artifacts.sources.path)).href}`,'compile','javafx:run'];
 await writeFile(path.join(generated,'component-workshop-run.json'),JSON.stringify({command:wrapper,args:runArguments,cwd:root},null,2)+'\n');
 console.log('Prepared verified local library versions and canonical core. No upload or publication.');
 console.log('Run the workshop: node scripts/run-component-workshop.mjs');

@@ -167,3 +167,15 @@ still need verification. First-time builds need
 internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
 cohort adoption. Original Zero code uses the [MIT license](../LICENSE);
 upstream wrapper notices apply separately to the wrapper.
+
+
+## Community alternatives and curated starting choices
+
+Community experiments can coexist in categories such as Health bars. Each has its
+own identity and explicit library-version availability. A reviewed catalog names
+one recommended exact version per category and shows it first, independently of
+Experimental/check/review status. Recommendations do not change installed pins
+or move code into core. Core promotion is an occasional human decision based on
+stable APIs, teaching value and maintenance. Plain and segmented health bars prove
+this locally while sharing one Maven library; independent package support follows
+only a concrete need. Website developer preview is opt-in and never hosted.

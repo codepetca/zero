@@ -369,3 +369,139 @@ test('public source view uses the pinned GitHub revision, never a catalog-suppli
   assert.equal(opened,`https://github.com/codepetca/zero-community/blob/${'a'.repeat(40)}/src/main/java/zero/community/HealthBar.java`);
   await unchanged(h,before);
 });
+
+function withAlternatives(f) {
+  const health=f.catalog.components[0];health.category='health-bars';health.versions=['0.1.2','0.1.3'];
+  f.catalog.components.unshift({...health,id:'segmented-health-bar',name:'SegmentedHealthBar',className:'zero.community.SegmentedHealthBar',versions:['0.1.3']});
+  f.catalog.discovery={categories:[{id:'health-bars',name:'Health bars'}],recommendations:[{componentId:'health-bar',version:'0.1.2',reason:'A simple starting choice.'}]};
+  return f;
+}
+test('grouped Browse recommends exact older Add, changed curation preserves pin, explicit Update uses latest and Revert restores it',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f);
+  let choices;
+  h.hooks.pick=items=>{
+    if(items.some(item=>item.component)){choices=items;return items.find(item=>item.component);}
+    return items.find(item=>item.action==='add');
+  };
+  await h.actions['zero.browseComponents']();
+  assert.equal(choices[0].label,'Health bars');assert.equal(choices[1].component.id,'health-bar');
+  assert.match(choices[1].description,/Recommended · 0\.1\.2/);
+  let source=await loadPublicCatalog({fetch:f.fetch});assert.equal((await readProject(h.root,source)).currentVersion,'0.1.2');
+  const before=h.document.text;h.events.length=0;
+  f.catalog.discovery.recommendations[0]={componentId:'segmented-health-bar',version:'0.1.3',reason:'Another reviewed starting choice.'};
+  await h.actions['zero.browseComponents']();
+  assert.match(h.messages.at(-1).message,/currently uses community library 0\.1\.2.*pin is unchanged.*Update community library/);
+  assert.equal(h.document.text,before);assert.equal(h.events.includes('edit'),false);
+  await h.actions['zero.updateComponents']();
+  source=await loadPublicCatalog({fetch:f.fetch});assert.equal((await readProject(h.root,source)).currentVersion,'0.1.3');
+  await h.actions['zero.revertComponents']();assert.equal((await readProject(h.root,source)).currentVersion,'0.1.2');
+});
+test('recommended older Try verifies and builds exact version using trusted HealthBar source',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f),assets=await packagedExample(h),before=h.document.text;
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='health-bar')||items.find(item=>item.action==='try');
+  h.hooks.example=async destination=>{
+    t.after(()=>fs.rm(destination,{recursive:true,force:true}));
+    assert.match(await fs.readFile(path.join(destination,'pom.xml'),'utf8'),/<artifactId>zero-community<\/artifactId><version>0\.1\.2<\/version>/);
+    assert.deepEqual(await fs.readFile(path.join(destination,'src/main/java/Main.java')),await fs.readFile(path.join(assets,'Main.java')));return false;
+  };
+  await h.actions['zero.browseComponents']();
+  assert.ok(f.requests.some(r=>r.url.includes('/0.1.2/')));assert.equal(f.requests.some(r=>r.url.includes('/0.1.3/')),false);
+  await unchanged(h,before);
+});
+test('SegmentedHealthBar Try copies only its packaged source at its available version',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f),assets=await packagedExample(h);
+  const ownExample=path.join(assets,'segmented-health-bar/Main.java');await fs.mkdir(path.dirname(ownExample),{recursive:true});
+  await fs.copyFile(path.join(__dirname,'../media/component-example/segmented-health-bar/Main.java'),ownExample);
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='segmented-health-bar')||items.find(item=>item.action==='try');
+  h.hooks.example=async destination=>{
+    t.after(()=>fs.rm(destination,{recursive:true,force:true}));
+    const main=await fs.readFile(path.join(destination,'src/main/java/Main.java'),'utf8');
+    assert.equal(main,await fs.readFile(ownExample,'utf8'));assert.match(main,/new SegmentedHealthBar\(100\)/);
+    assert.match(await fs.readFile(path.join(destination,'pom.xml'),'utf8'),/<artifactId>zero-community<\/artifactId><version>0\.1\.3<\/version>/);return false;
+  };
+  await h.actions['zero.browseComponents']();assert.equal(h.events.includes('example'),true);
+});
+test('unknown component classes offer source/API/Add but cannot execute a HealthBar example',async t=>{
+  const f=publicFixture(),h=await harness(t,f);f.catalog.components[0].className='zero.community.OtherBar';
+  h.hooks.pick=items=>{
+    if(items.some(item=>item.component))return items.find(item=>item.component);
+    assert.equal(items.some(item=>item.action==='try'),false);
+    // Even a forged UI choice must not run an unrelated trusted class.
+    return {action:'try'};
+  };
+  await assert.rejects(h.actions['zero.browseComponents'](),/No trusted packaged example/);
+  assert.equal(h.events.includes('example'),false);
+});
+test('older API clearly distinguishes latest catalog metadata and source links use selected class/revision',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f);f.catalog.releases[1].sourceRevision='d'.repeat(40);
+  let doc,url;
+  h.hooks.open=options=>{doc=options;};
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='health-bar')||items.find(item=>item.action==='api');
+  await h.actions['zero.browseComponents']();assert.match(doc.content,/Catalog API \(latest metadata\); inspect source for selected version/);assert.match(doc.content,/zero-community:0\.1\.2/);
+  h.vscode.Uri.parse=value=>value;h.vscode.env={openExternal:async value=>{url=value;}};
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='segmented-health-bar')||items.find(item=>item.action==='source');
+  await h.actions['zero.browseComponents']();assert.equal(url,`https://github.com/codepetca/zero-community/blob/${'d'.repeat(40)}/src/main/java/zero/community/SegmentedHealthBar.java`);
+});
+test('explicit version chooser pins chosen available version rather than recommendation or latest',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f);f.catalog.discovery.recommendations[0].version='0.1.3';
+  let choseVersion=false;
+  h.hooks.pick=items=>{
+    if(items.some(item=>item.component))return items.find(item=>item.component?.id==='health-bar');
+    if(items.some(item=>item.version)) {choseVersion=true;return items.find(item=>item.version==='0.1.2');}
+    return items.find(item=>item.action===(choseVersion?'add':'version'));
+  };
+  await h.actions['zero.browseComponents']();assert.equal((await readProject(h.root,await loadPublicCatalog({fetch:f.fetch}))).currentVersion,'0.1.2');
+});
+
+test('selected unavailable alternative version refuses Add and Try before editing or launching',async t=>{
+  for(const action of ['add','try']) {
+    const f=withAlternatives(publicFixture()),h=await harness(t,f),before=h.document.text;
+    h.hooks.pick=items=>{
+      const selected=items.find(item=>item.component?.id==='segmented-health-bar');
+      if(selected) return {...selected,selectedVersion:'0.1.2'};
+      assert.equal(items.some(item=>item.action==='version'),false,'Only 0.1.3 contains the alternative');
+      return items.find(item=>item.action===action) || {action};
+    };
+    await assert.rejects(h.actions['zero.browseComponents'](),/listed version containing|No trusted packaged example/);
+    await unchanged(h,before);assert.equal(h.events.includes('edit'),false);assert.equal(h.events.includes('example'),false);
+  }
+});
+
+test('new alternative without explicit class version history cannot Try; legacy HealthBar fallback remains available',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f);delete f.catalog.components[0].versions;
+  h.hooks.pick=items=>{
+    const selected=items.find(item=>item.component?.id==='segmented-health-bar');if(selected)return selected;
+    assert.equal(items.some(item=>item.action==='try'),false);
+    return {action:'try'};
+  };
+  await assert.rejects(h.actions['zero.browseComponents'](),/No trusted packaged example/);assert.equal(h.events.includes('example'),false);
+});
+
+
+test('Add another component at the installed shared library version explains its import without edit/save/run',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f);
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='segmented-health-bar')||items.find(item=>item.action==='add');
+  await h.actions['zero.browseComponents']();
+  const before=h.document.text;h.events.length=0;h.messages.length=0;
+  // HealthBar is also present in 0.1.3; select that exact available version.
+  f.catalog.discovery.recommendations[0].version='0.1.3';
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='health-bar')||items.find(item=>item.action==='add');
+  await h.actions['zero.browseComponents']();
+  assert.match(h.messages[0].message,/HealthBar is already available in community library 0\.1\.3\. Use import zero\.community\.HealthBar;/);
+  assert.equal(h.messages[0].options,undefined);
+  assert.deepEqual(h.events.filter(event=>['review','edit','save','run'].includes(event)),[]);
+  assert.equal(h.document.text,before);await unchanged(h,before);
+});
+
+test('Add with another selected version preserves an available installed class and explains explicit version changes',async t=>{
+  const f=withAlternatives(publicFixture()),h=await harness(t,f);
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='segmented-health-bar')||items.find(item=>item.action==='add');
+  await h.actions['zero.browseComponents']();
+  const before=h.document.text;h.events.length=0;h.messages.length=0;
+  h.hooks.pick=items=>items.find(item=>item.component?.id==='health-bar')||items.find(item=>item.action==='add');
+  await h.actions['zero.browseComponents']();
+  assert.match(h.messages[0].message,/HealthBar is already available in community library 0\.1\.3/);
+  assert.match(h.messages[0].message,/existing 0\.1\.3 pin is unchanged.*Update community library or Revert explicitly/);
+  assert.deepEqual(h.events.filter(event=>['review','edit','save','run'].includes(event)),[]);
+  assert.equal(h.document.text,before);await unchanged(h,before);
+});

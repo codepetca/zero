@@ -229,3 +229,16 @@ test('ordinary comments mentioning Zero community remain unowned and metadata ca
   await writePlan(f, plan);
   assert.equal((await readProject(f.root, fresh)).currentVersion, '0.1.1');
 });
+
+test('local contributor discovery recommendations and self-promotion are refused; version availability stays descriptive', async t => {
+  const f=await fixture(t);
+  f.catalog.discovery={categories:[],recommendations:[]};await f.saveCatalog();
+  await assert.rejects(loadCatalog(f.catalogPath),/Local catalogs cannot claim discovery/);
+  delete f.catalog.discovery;f.catalog.components[0].recommended=true;await f.saveCatalog();
+  await assert.rejects(loadCatalog(f.catalogPath),/cannot recommend itself/);
+  delete f.catalog.components[0].recommended;
+  f.catalog.components[0].category='health-bars';f.catalog.components[0].versions=['0.1.1'];await f.saveCatalog();
+  assert.equal((await loadCatalog(f.catalogPath)).catalog.components[0].category,'health-bars');
+  f.catalog.components[0].versions=['0.1.9'];await f.saveCatalog();
+  await assert.rejects(loadCatalog(f.catalogPath),/distinct indexed releases/);
+});

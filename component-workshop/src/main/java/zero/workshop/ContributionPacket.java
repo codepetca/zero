@@ -22,26 +22,24 @@ final class ContributionPacket {
   static JsonObject inspect(ComponentProject project) throws Exception {
     JsonObject metadata =
         JsonParser.parseString(project.read("catalog/components.json")).getAsJsonObject();
-    if (metadata.getAsJsonArray("components").size() != 1)
-      throw new IOException("This Workshop exports one HealthBar component.");
-    JsonObject component = metadata.getAsJsonArray("components").get(0).getAsJsonObject();
-    String api = project.read("docs/HealthBar.md");
-    for (JsonElement signature : component.getAsJsonArray("api"))
-      if (!api.contains(signature.getAsString()))
-        throw new IOException("API documentation is missing " + signature.getAsString());
-    JsonArray examples = component.getAsJsonArray("examples");
-    if (examples.size() != 2) throw new IOException("Declare both app examples.");
-    Set<String> paths = new HashSet<>();
-    Set<String> examplesHashes = new HashSet<>();
-    for (JsonElement element : examples) {
-      JsonObject example = element.getAsJsonObject();
-      String path = example.get("path").getAsString();
-      paths.add(path);
-      examplesHashes.add(sha(Files.readAllBytes(project.file(path))));
+    if (!metadata.equals(project.metadata))
+      throw new IOException("Metadata changed since opening Workshop; reopen to load the declared scope.");
+    ComponentProject.validateMetadata(metadata);
+    for (JsonElement item : metadata.getAsJsonArray("components")) {
+      JsonObject component = item.getAsJsonObject();
+      String api = project.read("docs/" + component.get("name").getAsString() + ".md");
+      for (JsonElement signature : component.getAsJsonArray("api"))
+        if (!api.contains(signature.getAsString()))
+          throw new IOException("API documentation is missing " + signature.getAsString());
+      JsonArray examples = component.getAsJsonArray("examples");
+      Set<String> paths = new HashSet<>(), hashes = new HashSet<>();
+      for (JsonElement element : examples) {
+        String path = element.getAsJsonObject().get("path").getAsString();
+        paths.add(path); hashes.add(sha(Files.readAllBytes(project.file(path))));
+      }
+      if (paths.size() < 2 || hashes.size() < 2)
+        throw new IOException("Reuse requires two distinct app examples per component.");
     }
-    if (!paths.equals(Set.of("examples/adventure/Main.java", "examples/study/Main.java"))
-        || examplesHashes.size() != 2)
-      throw new IOException("Reuse requires two distinct app examples.");
     JsonArray files = new JsonArray();
     for (String path : project.files().stream().sorted().toList()) {
       JsonObject file = new JsonObject();

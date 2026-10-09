@@ -338,7 +338,7 @@ function activate(context) {
         const execution = spec.shell
           ? new vscode.ShellExecution({value:spec.command,quoting:vscode.ShellQuoting.Strong},args.map(value=>({value,quoting:vscode.ShellQuoting.Strong})),{cwd:root})
           : new vscode.ProcessExecution(spec.command,args,{cwd:root});
-        const task = new vscode.Task({type:'zero',task:'run'},vscode.TaskScope.Workspace,'Try HealthBar','Zero',execution,'$zero-java');
+        const task = new vscode.Task({type:'zero',task:'run'},vscode.TaskScope.Workspace,'Try component','Zero',execution,'$zero-java');
         task.presentationOptions={reveal:vscode.TaskRevealKind.Always,panel:vscode.TaskPanelKind.Dedicated,clear:true,focus:false};
         pendingLaunch = vscode.tasks.executeTask(task).then(active=>{
           exampleDirectories.set(active,root); didLaunch(); track(active); return active;

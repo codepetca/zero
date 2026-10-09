@@ -121,3 +121,39 @@ test('manifest cannot redirect downloads, grant acceptance or add executable fie
   ];
   for (const mutate of mutations) {const {manifest} = fixture(); mutate(manifest); assert.throws(() => validateCommunityManifest(manifest));}
 });
+
+test('alternatives are grouped and recommendations identify an available exact version', async () => {
+  const {manifest} = fixture();
+  manifest.schemaVersion = 2;
+  manifest.components[0].category = 'health-bars';
+  manifest.components[0].versions = ['0.1.2'];
+  manifest.components.push({...structuredClone(manifest.components[0]), id:'segmented-health-bar', name:'SegmentedHealthBar', className:'zero.community.SegmentedHealthBar'});
+  manifest.discovery = {categories:[{id:'health-bars', name:'Health bars'}], recommendations:[{componentId:'health-bar', version:'0.1.2', reason:'A simple starting point.'}]};
+  assert.equal(validateCommunityManifest(manifest), manifest);
+  const {discoveryGroups} = await import('../lib/community.mjs');
+  assert.deepEqual(discoveryGroups(manifest).map(group => [group.name, group.components.map(item => item.id)]), [['Health bars',['health-bar','segmented-health-bar']]]);
+  const legacy = await catalogResponse(manifest, false, {legacy:true}).json();
+  assert.equal(legacy.schemaVersion, 1);
+  assert.equal(legacy.components.length, 1);
+  assert.equal(legacy.discovery, undefined);
+  assert.equal(legacy.components[0].category, undefined);
+  assert.equal(legacy.components[0].versions, undefined);
+  assert.deepEqual(legacy.releases, manifest.releases, 'Artifact provenance is preserved.');
+  for (const mutate of [
+    m => {m.discovery.recommendations[0].version = '0.1.1';},
+    m => {m.discovery.recommendations.push({...m.discovery.recommendations[0], componentId:'segmented-health-bar'});},
+    m => {m.components[1].versions = ['0.1.1'];},
+    m => {m.components[1].recommended = true;},
+    m => {m.components[1].className = m.components[0].className;},
+    m => {m.components[1].id = m.components[0].id;},
+    m => {m.components[1].category = ['health-bars'];},
+  ]) {const changed = structuredClone(manifest); mutate(changed); assert.throws(() => validateCommunityManifest(changed));}
+});
+
+test('a recommendation changes neither immutable artifacts nor legacy selection', async () => {
+  const {manifest} = fixture();
+  const before = await catalogResponse(manifest, false, {legacy:true}).text();
+  manifest.discovery = {categories:[{id:'health-bars',name:'Health bars'}],recommendations:[{componentId:'health-bar',version:'0.1.2',reason:'A starting point.'}]};
+  manifest.components[0].category='health-bars';
+  assert.equal(await catalogResponse(manifest, false, {legacy:true}).text(), before);
+});

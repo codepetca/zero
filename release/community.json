@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "origin": "public-release",
   "publication": {
     "status": "published",
@@ -42,7 +42,11 @@
       ],
       "status": "experimental",
       "license": "MIT",
-      "maintainer": null
+      "maintainer": null,
+      "category": "health-bars",
+      "versions": [
+        "0.1.2"
+      ]
     }
   ],
   "releases": [
@@ -84,5 +88,20 @@
         "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.2/zero-community-workshop-0.1.2.zip"
       }
     }
-  ]
+  ],
+  "discovery": {
+    "categories": [
+      {
+        "id": "health-bars",
+        "name": "Health bars"
+      }
+    ],
+    "recommendations": [
+      {
+        "componentId": "health-bar",
+        "version": "0.1.2",
+        "reason": "A small starting point for beginners: one label, one progress bar and explicit health updates."
+      }
+    ]
+  }
 }

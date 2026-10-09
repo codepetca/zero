@@ -16,3 +16,12 @@ export function downloadHref(asset = 'kit') {
 
 export const sources: Record<string,string> = snapshot.sources;
 export const community = snapshot.community;
+
+export type CommunityComponent = {
+  id: string; name: string; className: string; description: string;
+  api: string[]; category?: string; versions?: string[];
+  status: string; license: string; maintainer: string | null;
+};
+export const communityPreview = snapshot.communityPreview as {
+  version: string; components: CommunityComponent[];
+} | null;

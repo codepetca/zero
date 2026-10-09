@@ -8,7 +8,10 @@ const spec = JSON.parse(await readFile(path.join(root,'.verification/component-w
 const expected = path.join(root,'student-template',process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw');
 if (spec.command !== expected || spec.cwd !== root || !Array.isArray(spec.args) ||
     spec.args.at(-1) !== 'javafx:run') throw new Error('Prepare the workshop with the documented script first.');
-const safeSpec = processSpecification(spec.command,spec.args);
+if (process.argv.slice(2).some(arg => arg !== '--check')) throw new Error('Usage: node scripts/run-component-workshop.mjs [--check]');
+const args = [...spec.args];
+if (process.argv.includes('--check')) args.splice(-2, 0, '-Dzero.workshopCheck=true');
+const safeSpec = processSpecification(spec.command,args);
 const processHandle = spawn(safeSpec.command,safeSpec.args,{cwd:root,stdio:'inherit'});
 processHandle.on('error',error => {console.error(error.message);process.exitCode=1;});
 processHandle.on('exit',code => {process.exitCode=code ?? 1;});

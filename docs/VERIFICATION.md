@@ -732,3 +732,44 @@ patch. The meaningful historical update/revert checks remain separate evidence.
 Native checks were finite synthetic macOS checks. CI uses Linux/Xvfb; physical
 Windows/Linux, typing/DirectoryChooser usability and classroom trials remain
 unverified. No live student upload or AI service was exercised.
+
+
+## Component alternatives — local verification 2026-10-09
+
+Plain HealthBar source is byte-identical; local community0.1.3 adds ordinary
+SegmentedHealthBar with the same explicit health/view API. Existing public0.1.2
+and five historical source/POM snapshots are unchanged. Both alternatives remain
+experimental/MIT/null maintainer. Recommended HealthBar0.1.2 is a separate reviewed
+catalog starting choice, not contribution acceptance or core promotion.
+
+- Full extension suite135 passed before the small installed-library Add guidance
+  follow-up; current affected discovery/public/local/action/run suite78 passed.
+  Tests cover recommended older version versus latest, selected exact Add/Try,
+  unknown/absent class examples, forged curation, explicit Update/Revert, source
+  preservation and installed-library no-edit behavior.
+- Website21tests, typecheck and production build pass. Actual desktop/narrow390px
+  browser preview shows both alternatives and expands API/install guidance;
+  unpublished candidate has no public download or recommendation claim.
+- Actual released0.5.2 adapter accepts the legacy endpoint payload, equal to its
+  original public catalog; original release hashes/URLs/bytes metadata unchanged.
+  Extended endpoint/schema2 is separate; older extensions retain schema1.
+- Community6JavaFX tests,35admission tests,13public-release boundaries pass.
+  Two identical current library builds, four real plain/segmented app consumers,
+  six historical install/update/revert checks50.35s pass.
+- Current two-class native Workshop build/check/export and independent Python
+  packet/plugin-packet validation pass. Actual prior0.1.2 binary/sources and
+  eight-file schema1 packet remain compatible. Extracted current portable ZIP
+  passes its finite native harness under a folder with spaces; no Node/Python
+  student runtime. Current local preparation is source-bound working-tree proof,
+  not a public committed release or human acceptance receipt.
+- Coordinator independently exercised actual extension Add0.1.3 and ordinary
+  Maven resolution from an absent coordinate into a separate cache, then native
+  segmented damage/reset/fractional display using the packaged example Main.
+  Student Java bytes remained unchanged and resolved JAR hash matched catalog.
+
+Evidence retained in ignored .verification/alternatives, public-workshop-package
+receipt and primary .verification/component-alternatives-2026-10-09. Native checks
+are finite synthetic macOS JavaFX; physical typing/chooser, Windows/Linux, native
+VS Code picker click-through and novice cohorts remain unverified. No public
+release, push, merge, deployment, real student upload, live AI or account change.
+Independent fixed-head review follows before local delivery acceptance.

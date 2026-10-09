@@ -1,5 +1,59 @@
 # Current state — 2026-10-09
 
+## Component alternatives and recommendations — local implementation
+
+Owner agreed category grouping, independent alternatives/version histories,
+maintainer-selected exact-version recommendations and eventual small core.
+Current phase prepares local source and review; no push, PR, merge, release,
+deployment, credentials or automatic promotion. Live Zero0.5.2/community0.1.2
+artifacts and unrelated primary education-funding work remain untouched.
+Worktrees: /Users/stew/.codex/worktrees/component-alternatives/zero and sibling
+zero-community, both codex/component-alternatives, bases00bd796/2f94f71.
+No new tool-backed goal or automation. Weekly37%remaining at start;
+account-wide usage cannot identify task usage. DeepSeek remains paused.
+
+One execution plan: (1) ordinary SegmentedHealthBar plus preserved HealthBar,
+local0.1.3 source/checks/Workshop/packet; (2) grouped discovery and exact-version
+recommendations, selected Add/Try and explicit Update/Revert; (3) minimal site,
+legacy endpoint preservation, local source preview, meaningful integration;
+(4) independent bounded review and locally reviewable delivery.
+Source components can state category and availability; recommendations live only
+in Zero's reviewed public manifest. Recommendation is a starting choice, not
+community acceptance or core membership. Initial choice is tested HealthBar0.1.2.
+New /community/catalog-v2.json uses schema2. Existing /catalog.json projects the
+original schema1 HealthBar fields for released0.5.2 rather than breaking old kits.
+Installed Maven versions remain unchanged when recommendations change.
+
+Ownership: alternatives_library GPT6.1Sol/high owns community source/admission/
+local release preparation and Zero Workshop/preparation/packaging. alternatives_
+discovery Sol/high owns extension catalogs/actions/shared discovery and tests.
+Coordinator owns website, reviewed root manifest, root docs/current/integration
+and generic Try task label. Fresh contexts; no recursive delegation or worker
+Git/external mutations. Requested configuration recorded; effective/model token
+and attributable coordination telemetry unavailable. Substantive behavioral
+cross-boundary work warrants native capable workers. Evidence below is historical.
+
+
+Local deliveries verified: library worker~20min estimate, discovery~15min plus
+~2min UX follow-up estimates. No file conflicts. Source metadata availability
+was narrowed to the indexed local candidate; legacy proof projects its original
+HealthBar metadata. Site shared-module build initially failed under website-only
+Turbopack root; repository root/tracing corrected, production build passes.
+Coordinator native consumer first encountered macOS /var symlink guard; harness
+resolved the temporary parent path, production guard unchanged, final pass.
+
+Checks: extension135full before last small guidance delta plus current78focused;
+website21tests/types/build; exact released0.5.2 old adapter/catalog parity; native
+community6/admission35/boundary13; four current consumers, six historical consumer
+cycles, old0.1.2/new0.1.3/extracted Workshop and packet validation. Coordinator
+separate-cache actual Add/native segmented example source-preservation passed.
+Screenshot saved primary .verification/component-alternatives-2026-10-09.
+
+Independent review high risk (cross-library execution/provenance and compatibility):
+two fresh Sol/high, separate safety and workflow assignments. Budget7launches,
+1initialwave,4targetedwaves,1integrationwave,4fixbatches,60minsession/30minreviewer.
+Initial fixed-head review begins after local commits; no external PR or merge.
+
 ## Public component workflow — delivered 2026-10-09
 
 Public https://zero.codepet.ca/community exposes one experimental MIT HealthBar

@@ -1,7 +1,8 @@
 'use strict';
 // Public discovery has one trusted root. Maven still resolves every dependency.
 const {createHash} = require('node:crypto');
-const CATALOG_URL = 'https://zero.codepet.ca/community/catalog.json';
+const {validateDiscovery} = require('./component-discovery');
+const CATALOG_URL = 'https://zero.codepet.ca/community/catalog-v2.json';
 const REPOSITORY_URL = 'https://zero.codepet.ca/community/maven';
 const REPOSITORY_ID = 'zero-community-public';
 const SUFFIXES = {jar: '.jar', pom: '.pom', sources: '-sources.jar', javadoc: '-javadoc.jar'};
@@ -21,10 +22,10 @@ function receipt(value, expectedPath, expectedUrl, label, limit = MAX_ARTIFACT) 
   if (value.path !== expectedPath || value.url !== expectedUrl || typeof value.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(value.sha256) || !Number.isSafeInteger(value.size) || value.size <= 0 || value.size > limit) fail(`Invalid public ${label} path, URL, size or SHA256.`);
 }
 function validateCatalog(catalog) {
-  fields(catalog, ['schemaVersion','origin','publication','repositoryUrl','library','latest','components','releases'], 'root');
+  fields(catalog, ['schemaVersion','origin','publication','repositoryUrl','library','latest','components','releases','discovery'], 'root');
   fields(catalog.publication, ['status','repository'], 'publication');
   fields(catalog.library, ['groupId','artifactId','version','javaRelease','javafxVersion'], 'library');
-  if (catalog.schemaVersion !== 1 || catalog.origin !== 'public-release' || catalog.publication.status !== 'published' || catalog.publication.repository !== 'codepetca/zero-community' || catalog.repositoryUrl !== REPOSITORY_URL || catalog.library.groupId !== 'school.zero.community' || catalog.library.artifactId !== 'zero-community' || catalog.library.javaRelease !== 17 || catalog.library.javafxVersion !== '21.0.12') fail('Only the published Zero community catalog for Java 17 and JavaFX 21.0.12 is supported.');
+  if (![1,2].includes(catalog.schemaVersion) || catalog.origin !== 'public-release' || catalog.publication.status !== 'published' || catalog.publication.repository !== 'codepetca/zero-community' || catalog.repositoryUrl !== REPOSITORY_URL || catalog.library.groupId !== 'school.zero.community' || catalog.library.artifactId !== 'zero-community' || catalog.library.javaRelease !== 17 || catalog.library.javafxVersion !== '21.0.12') fail('Only the published Zero community catalog for Java 17 and JavaFX 21.0.12 is supported.');
   version(catalog.latest);
   if (catalog.library.version !== catalog.latest || !Array.isArray(catalog.releases) || !catalog.releases.length || catalog.releases.length > 100) fail('The public catalog needs indexed immutable releases.');
   const versions = new Set();
@@ -47,20 +48,23 @@ function validateCatalog(catalog) {
     }
   }
   if (!versions.has(catalog.latest)) fail('The latest public version is not indexed.');
-  if (!Array.isArray(catalog.components) || catalog.components.length !== 1) fail('The public catalog supports one HealthBar component.');
-  const component = catalog.components[0];
-  fields(component, ['id','name','className','description','api','examples','status','license','maintainer'], 'component');
-  if (component.id !== 'health-bar' || component.className !== 'zero.community.HealthBar' || component.license !== 'MIT' || !['experimental','checked','community-reviewed','deprecated'].includes(component.status) || !(component.maintainer === null || (typeof component.maintainer === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9-]{0,38}$/.test(component.maintainer)))) fail('Invalid public HealthBar identity, license or status.');
-  plain(component.name, 'component name'); plain(component.description, 'component description');
-  if (!Array.isArray(component.api) || !component.api.length || component.api.length > 100 || !Array.isArray(component.examples) || component.examples.length > 100) fail('Invalid public component API or examples.');
-  component.api.forEach(entry => plain(entry, 'API entry'));
-  const examples = new Set();
-  for (const example of component.examples) {
-    fields(example, ['id','path','description'], 'example');
-    if (!/^[a-z][a-z0-9-]{0,79}$/.test(example.id || '') || examples.has(example.id) || typeof example.path !== 'string' || !/^examples\/[a-z][a-z0-9-]{0,79}\/Main\.java$/.test(example.path)) fail('Invalid public example identity or path.');
-    examples.add(example.id); plain(example.description, 'example description');
+  if (!Array.isArray(catalog.components) || !catalog.components.length || catalog.components.length > 100) fail('The public catalog needs component descriptions.');
+  const ids = new Set(), classes = new Set();
+  for (const component of catalog.components) {
+    fields(component, ['id','name','className','description','api','examples','status','license','maintainer','category','versions'], 'component');
+    if (typeof component.id !== 'string' || !/^[a-z][a-z0-9-]{0,79}$/.test(component.id) || ids.has(component.id) || typeof component.className !== 'string' || !/^zero\.community\.[A-Z][A-Za-z0-9]*$/.test(component.className) || classes.has(component.className) || component.license !== 'MIT' || !['experimental','checked','community-reviewed','deprecated'].includes(component.status) || !(component.maintainer === null || (typeof component.maintainer === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9-]{0,38}$/.test(component.maintainer)))) fail('Invalid or duplicate public component identity, license or status.');
+    ids.add(component.id); classes.add(component.className);
+    plain(component.name, 'component name'); plain(component.description, 'component description');
+    if (!Array.isArray(component.api) || !component.api.length || component.api.length > 100 || !Array.isArray(component.examples) || component.examples.length > 100) fail('Invalid public component API or examples.');
+    component.api.forEach(entry => plain(entry, 'API entry'));
+    const examples = new Set();
+    for (const example of component.examples) {
+      fields(example, ['id','path','description'], 'example');
+      if (!/^[a-z][a-z0-9-]{0,79}$/.test(example.id || '') || examples.has(example.id) || typeof example.path !== 'string' || !/^examples\/[a-z][a-z0-9-]{0,79}\/Main\.java$/.test(example.path)) fail('Invalid public example identity or path.');
+      examples.add(example.id); plain(example.description, 'example description');
+    }
   }
-  return catalog;
+  return validateDiscovery(catalog);
 }
 async function readBytes(url, limit, fetchBytes, timeoutMs) {
   const controller = new AbortController();
