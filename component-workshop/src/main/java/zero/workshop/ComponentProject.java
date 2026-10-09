@@ -35,8 +35,20 @@ final class ComponentProject {
     return component.get(key).getAsString();
   }
 
+  List<String> files() throws IOException {
+    JsonObject current = JsonParser.parseString(read("catalog/components.json")).getAsJsonObject();
+    for (JsonElement item : current.getAsJsonArray("components")) {
+      if ("MIT".equals(item.getAsJsonObject().get("license").getAsString())) {
+        List<String> licensed = new ArrayList<>(FILES);
+        licensed.add("LICENSE");
+        return List.copyOf(licensed);
+      }
+    }
+    return FILES;
+  }
+
   Path file(String relative) throws IOException {
-    if (!FILES.contains(relative))
+    if (!FILES.contains(relative) && !relative.equals("LICENSE"))
       throw new IOException("File is outside the contribution scope: " + relative);
     Path candidate = root.resolve(relative);
     Path current = root;

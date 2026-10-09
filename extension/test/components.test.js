@@ -96,6 +96,23 @@ test('safe fixed indexed versions only; local fixtures cannot promote their own 
   f.catalog.components[0].status = 'community-reviewed'; await f.saveCatalog();
   await assert.rejects(loadCatalog(f.catalogPath), /experimental/);
 });
+test('MIT catalogs support local library plans without granting review or maintainer authority', async t => {
+  const f = await fixture(t);
+  f.catalog.components[0].license = 'MIT'; await f.saveCatalog();
+  const context = await loadCatalog(f.catalogPath);
+  const plan = await prepareChange(f.root, context, '0.1.1', {operation: 'add'});
+  assert.equal(await validatePrepared(plan, context), true);
+  assert.equal(context.catalog.components[0].status, 'experimental');
+  assert.equal(context.catalog.components[0].maintainer, null);
+  f.catalog.components[0].status = 'community-reviewed'; await f.saveCatalog();
+  await assert.rejects(loadCatalog(f.catalogPath), /experimental/);
+  f.catalog.components[0].status = 'experimental';
+  f.catalog.components[0].maintainer = 'self-appointed'; await f.saveCatalog();
+  await assert.rejects(loadCatalog(f.catalogPath), /no named maintainer/);
+  f.catalog.components[0].maintainer = null;
+  f.catalog.components[0].license = 'invented-license'; await f.saveCatalog();
+  await assert.rejects(loadCatalog(f.catalogPath), /MIT or historical UNLICENSED/);
+});
 test('catalog traversal, symlink escape, coordinates and release POM identity are refused', async t => {
   const f = await fixture(t);
   const artifact = f.catalog.releases[0].artifacts.jar;

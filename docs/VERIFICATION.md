@@ -1,4 +1,47 @@
-# Local verification — 2026-10-08
+# Verification — 2026-10-09
+
+## Zero 0.5.1 release
+
+Source PR8 merged at b47f7a34706fa8c92a350f8c5bcbf0d875e189f0. Manual
+release preparation run37954427674 passed on that exact commit. Its three main
+assets are published at https://github.com/codepetca/zero/releases/tag/v0.5.1.
+Core0.1.1 and existing community Maven coordinates remain unchanged; optional
+community archives remain local. Zero0.5.0's three public downloads were retrieved
+and verified against their original sizes/hashes before publication.
+
+Local90/90 Node tests passed. Linux PR CI and manual CI both pass90 tests,
+3 release-boundary tests, all7 finite JavaFX examples under Xvfb, website5tests,
+typecheck/production build, packaging, canonical source/license parity, ZIP
+permissions, extracted Maven build and sealed exact asset hashes. The first
+Linux run exposed an existing fixed-event-loop test wait; bounded observable
+UI waits corrected it without changing production code or weakening assertions.
+
+Final candidate archives have the same complete member contents as the local
+macOS-tested archives; ZIP container timestamps differ. Final MIT licenses,
+core/extension source and trusted examples are byte-identical. All3 public assets
+were subsequently downloaded without authentication and matched the manual-run
+candidate sizes and SHA256. The tag resolves to the reviewed source merge commit.
+
+macOS extracted VSIX installed with isolated user/extension directories. Actual
+sidebar Run App launched Maven and its Main JavaFX child; actual Stop returned
+"App stopped", disabled Stop and terminated both processes. Native automation
+could not select the separate Java process window, so no manual app interaction
+is claimed. macOS ditto extraction preserves the ZIP's executable Maven wrapper;
+the initial Python QA extraction did not preserve modes and was unsuitable for
+that editor test. No release asset permission correction was needed.
+
+Extracted Quiz passed two finite native behavior/lifecycle runs; real extracted
+extension plans added HealthBar0.1.0, updated0.1.1 and reverted0.1.0 through Maven
+and native JavaFX. Catalog MIT support, immutable JAR hashes/origins, fractional
+fill behavior and preserved student source passed. These use the local community
+repository and do not establish a publicly hosted community artifact repository.
+
+Independent Sol/medium review covered the release/automation delta and the
+subsequent sidebar-test fix, with no blockers. Physical Windows/Linux installation,
+student GitHub authentication/upload, full profile import and novice classroom
+trials remain untested. Ignored .verification/release-0.5.1-* receipts retain the
+candidate, public downloads, CI logs and macOS editor/consumer evidence.
+
 
 ## Component lifecycle — local 0.5.0 prototype
 
@@ -543,3 +586,97 @@ unauthenticated downloads independently matched their receipt sizes/SHA256s.
 Community archive remains local and its separate license unresolved. Website
 publication metadata is populated from those verified bytes; native platform
 limitations above remain unchanged.
+
+## Live website and release — 2026-10-09
+
+- https://zero.codepet.ca serves the minimal landing page, /learn, /community
+  and API docs. GitHub source PR4 and published-download PR5 merged.
+- Vercel remote build at c482fc1 passed; canonical sources outside website/
+  were available during preparation. Authenticated deployed page checks passed
+  before DNS changed. First Git deployment automatically targeted production.
+- Cloudflare read-back matches Vercel’s exact DNS-only CNAME recommendation.
+  Vercel domain ownership verified and configuration reports no mismatch.
+  Public HTTPS200 and HTTP308→HTTPS verified without certificate bypass.
+- In-app browser clicked DownloadZero on the live site and downloaded the
+  100306-byte kit, SHA256d296f25f7411f14bdbabfeb8c4015eb90086251102e823cb88854426ee783980.
+  This matches both the manifest and independently retrieved GitHub release.
+  Live Learn→Community navigation and /docs/api HTTP response verified.
+- Release v0.5.0 contains kit/starter/VSIX only, all under original-code MIT
+  with upstream notices preserved. Community archive stays local/unpublished.
+- Published-version packaging intentionally refuses rebuilding; an actual
+  attempt failed before artifact writes and all three hashes stayed unchanged.
+- Native Windows/Linux setup, final editor authentication/upload workflow and
+  novice classroom trials remain unverified; web checks do not establish them.
+
+## Community MIT licensing — 2026-10-09
+
+Owner selected MIT for original Zero Community source. Canonical notice copied
+byte-for-byte from Zero; current HealthBar metadata is MIT/experimental with null
+maintainer. License selection does not approve components or publish artifacts.
+Loader accepts MIT and historical UNLICENSED catalogs with unchanged status and
+maintainer guards. Focused component/editor tests30/30, website5/5 tests, typecheck,
+production build and root configuration/link checks pass. Community admission
+32/32 boundary tests pass.
+
+MIT schema1 packets carry root LICENSE as the eighth owned file. Native Workshop
+checks pass, including exact notice ZIP bytes, missing notice and license-drift
+export rejection. Python independently validates the actual Java-generated packet;
+its digest matches Python export5f457df0b1c38f7bd4ad6c2584ef82fa3d40878e215e3fbc463e697f7bcbb517.
+Historical UNLICENSED seven-file packets still validate. Acceptance remains false
+and publishing disabled without trusted maintainers/review.
+
+Community install→update→revert proof passes6consumer checks in25.93s; immutable
+0.1.0/0.1.1 artifact bytes retained. Prepared local catalog records MIT. Regenerated
+local component ZIP71members contains both canonical license notices and wrapper
+notices. Published Zero0.5.0 kit/starter/VSIX hashes remain unchanged. No community
+artifact release is included. Native Windows/Linux/editor input remains untested.
+
+
+## Compact learning website — 2026-10-09
+
+Six tutorials, teacher guide, docs index, examples and read-only source pages
+integrated into the existing Next.js site; minimal landing retained.
+Root `npm run check`, website typecheck,7/7 tests and production build pass.
+31 static pages generated plus dynamic landing/learn/source/download handlers.
+All31 lesson relative file/fragment links resolve. Production browser checks:
+landing→Learn→tutorial, one/all folds, next lesson reset, API fragment reveal,
+example→source, mobile menu/lesson selector, keyboard summary and tablet layout.
+All18 tutorial/docs readers default closed with unique IDs; desktop/mobile/tablet
+no horizontal overflow. Build-time source allowlist returns200 for a known Java
+file; traversal, .env, constructor, repeated file queries and missing routes404.
+No browser warnings/errors. Design comparisons and local receipts ignored in
+`.verification/learning-site/`; see website/design-qa.md for visual judgment.
+
+Release0.5.1 manifest, download helpers/routes, dependency locks and all Java
+sources unchanged. Existing immutable kit is not rebuilt; new website lessons
+will enter a future kit. Native OS/editor/classroom evidence remains as previously
+recorded. Independent reviewed-head CI and live publication receipts follow.
+
+
+## One-command release publisher — 2026-10-09
+
+Root configuration/link checks and 43/43 release tests pass (40 new publisher
+scenarios plus 3 preparation guards). Disposable-file fixtures intercept all
+GitHub/Git publication transports: exact three assets, realistic draft URLs,
+source/run/checksum drift, expired artifacts, existing branch/PR resume, immutable
+conflicts, failed CI/current-head guards, public and live corrupted bytes.
+Website typecheck, 7/7 tests and production build also pass.
+
+The actual `release:publish -- --version 0.5.1 --verify-only` command retrieved
+canonical main, checked the pinned tag and three public asset URLs/sizes/SHA256s,
+and fetched the live Download Zero link and kit bytes successfully. It dispatched
+no workflow and changed no remote release, branch, PR or credential.
+
+No new version was created solely for testing. Real new-version dispatch, draft
+publication and generated metadata PR/merge remain exercised through fixtures,
+not a complete real publication trial. No new Windows/Linux or interactive
+student/editor evidence is claimed. Existing immutable releases stay unchanged.
+Independent source review, CI and merge evidence will be recorded in the PR.
+
+Both independent Sol/high initial reviews reproduced one publication blocker:
+a resumed draft could become public before a conflicting tag was detected.
+Three regressions failed against the initial publisher. The correction checks
+existing lightweight/annotated tags against the prepared source before uploaded
+byte verification and immediately before publication. Wrong tags and tag drift
+leave the draft private without a publication PATCH; matching annotated tags
+and absent draft tags retain normal publication. Targeted review follows.

@@ -1,53 +1,165 @@
 # Current state — 2026-10-09
 
-## Release and hosting — active
+## One-command Zero publishing — review and CI
 
-Owner said “go” to release and Vercel/domain setup; this authorizes source PR/merge,
-release publication and Vercel/zero.codepet.ca DNS setup within the saved plan.
-Owner selected MIT for original Zero. The licensing hold is released for Zero;
-include the notice in every independent downloadable artifact before publication. Optional community archive remains local/unpublished because its
-separate license is unresolved. No credentials changes.
+Owner said "do it" to final release automation: one explicit version command
+prepares checked assets, publishes exactly three files, promotes website metadata
+through a checked PR and verifies the live kit bytes. Existing 0.5.0/0.5.1 and
+core/component coordinates stay immutable. No new release solely to test; no
+community intake, credential, account-setting or branch-rule changes.
 
-Coordinator owns external actions/licensing/release/packaging/docs.
-release_readiness Sol/medium completed ~4min read-only audit, accepted artifact
-hashes and missing license/optional-asset boundary; delivered website download
-contract files/tests (~3min) with5/5tests and typecheck. Coordinator inspected;
-optional publicationStatus local preserves main3 public integrity requirements. No recursive delegation. Weekly44%remaining; DeepSeek
-paused. Existing reviewed implementation/base9cf18fc is preserved.
+Managed `/Users/stew/.codex/worktrees/release-publishing/zero`, branch
+`codex/release-publishing`, base `1835091`, preserves dirty primary funding work.
+Publisher worker GPT-6.1 Sol/high delivered the two script files and released
+ownership; coordinator owns integration and acceptance. Existing local gh sign-in
+performs future explicit publication; preparation Actions retain contents:read.
 
-GitHub armorup ADMIN of public codepetca/zero; origin/main52cd3be, outgoing100files
-include completed reviewed local phases. Vercel devcodepet-5583 current team
-stewarts-projects-cc2722c4; Zero project created as
-prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA. FrameworkNext.js/rootwebsite/npmci/npmbuild,
-Node22.x and sourceFilesOutsideRootDirectory true independently read back.
-SourcePR4 merged8c54a3c; public v0.5.0 main3 assets verified by unauthenticated
-download/hash. Website publication metadata and Vercel connection underway. Cloudflare codepet.ca active
-zone49640bebf0b463a4d227dfcfd509ef79 has no zero.codepet.ca record.
+Local configuration check, 43/43 release tests, website typecheck, 7/7 tests and
+production build pass. Actual read-only `--version 0.5.1 --verify-only` passed:
+all three public assets and the live landing's actual kit bytes match. New-version
+workflow/draft/publication/metadata-PR lifecycle uses transport fixtures; no new
+real release was created. Native OS/editor evidence remains historical.
+
+Exit: independent current-head review, green CI, main merge and final public
+read-only proof. Weekly 42% remaining at start; DeepSeek paused through
+2026-12-31. No new tool-backed goal. Review risk high (publication/merge boundary):
+two fresh GPT-6.1 Sol/high reviewers, security/correctness and lifecycle/integration.
+Budget: 7 launches, 1 initial wave, 4 targeted waves, 1 integration wave,
+4 fix batches, 60-minute session and 30-minute reviewer caps. Initial wave completed on `2b31263`: both reviewers independently reproduced
+one P1 wrong-tag draft publication. Coordinator added failing regressions, then
+checks an existing lightweight/annotated tag before asset verification and again
+immediately before publication; absent draft tags remain allowed. One fix batch;
+targeted safety review next. Launches 2, initial waves 1, targeted waves 0,
+integration waves 0; token/effective model telemetry unavailable. Full initial
+coverage is reusable outside the tag delta.
+
+## Learning website — integration and publication in progress
+
+Owner approved the compact guided hub and tutorial reader, requested short
+summaries with tap-to-expand detail, then explicitly authorized integration and
+publication with "do it". Preserve the minimal landing and current verified
+Zero0.5.1 downloads. No kit rebuild, component publication or account changes.
+Managed /Users/stew/.codex/worktrees/zero-learning-site/zero on
+codex/learning-website from efdf76a isolates active funding work in the primary
+checkout. Six lessons plus teacher guidance imported from the reviewed lesson
+pack; original prototype branch remains local and is not part of this PR.
+
+learning_site_port GPT6.1Sol/medium delivered the website port (~13min); ownership
+returned to coordinator. One mobile accessible-label refinement. Coordinator owns lesson
+integration, docs, browser/design QA, independent review, PR/merge and public
+production verification. Native delegation used for the bounded established
+Next.js port; DeepSeek pause retained, weekly42%remaining at phase start.
+Local root check, website typecheck/7tests/build and18reader browser checks pass.
+Design full/focused comparisons pass; native mobile selector, keyboard summary,
+fragment reveal, source allowlist and minimal landing verified.
+Exit: independent current-head review and green PR CI, main merge and live verification.
+Previously required website typecheck/tests/build, compact desktop/mobile flow and deep links,
+source whitelist, independent current-head review, green PR CI, main merge and
+live landing→Learn→tutorial verification. Existing immutable release data and
+download boundaries remain authoritative; supporting source views are read-only.
+
+## Zero 0.5.1 release — publication complete, website promotion underway
+
+Owner authorized release/site update and release-preparation automation with "go".
+Managed /Users/stew/.codex/worktrees/release-0-5-1/zero protects unrelated funding
+work in primary checkout. Source PR8 merged b47f7a3; tagv0.5.1 points to that exact
+commit. Successful manual run37954427674 prepared the exact3 published assets.
+All3 public downloads retrieved unauthenticated and SHA/size match. No component
+archive publication;0.5.0 bytes/core0.1.1/component coordinates preserved.
+Branchcodex/publish-0-5-1 contains only verified release metadata/README promotion
+and verification/handoff. Promotion PR9 is attached; final CI/production verification follow.
+release_051_review/3 Sol/medium complete b47f7a3→54faf65, no blockers;
+independent candidate/public saved-byte SHA and metadata/optional-local checks pass.
+One P3 README label accepted and fixed (URL already correct); coordinator checked.
+Two targetedwaves now,1launch/1initialwave/1fixbatch; <2min followup estimate.
+
+release_automation Sol/high delivered4 read-only preparation files, ~8min estimate;
+release_extracted_qa Sol/medium delivered extracted install/native Quiz and actual
+component add/update/revert receipts, no source edits. Coordinator checked parity,
+licenses/permissions/checksums, real editor Run App/Stop and public downloads.
+Manual/PR Linux CI each90 tests/3guards/7native examples/5site tests/build/package
+pass; local90 tests235.177s pass. Actual native Java window manual controls and
+physical Windows/Linux, student GitHub interaction remain untested. Details in
+VERIFICATION; ignored .verification/release-0.5.1-* retains receipts/bytes.
+
+release_051_review/1 Sol/medium complete b1d26f4→c681e10, no findings; /2 targeted
+c681e10→742130a test timing fix, no findings, focused test/diff independently pass.
+One initial launch,1 initialwave,1 targetedwave,1 CI-driven fixbatch; ~3min initial
+and <2min followup estimates, actual token telemetry unknown. Existing test had
+fixed8event-loop ticks; bounded state waits preserve all assertions and unrelated
+project guard. No production/packaged change. Budget max7launches/4targetedwaves/
+4fixbatches/60minsession/30minreviewer. Metadata delta targeted review next.
+Weekly43%remaining reading reused; DeepSeek paused; no new tool-backed goal.
+
+## Community MIT licensing — reviewed, publication underway
+
+Owner explicitly selected MIT for Zero Community on2026-10-09. Apply the canonical
+MIT notice to community original source and current metadata, preserve experimental
+status/null maintainer, update Zero loader/Workshop/docs/site and local packaging.
+No new artifact release or replacement of published Zero0.5.0 bytes. Existing
+source-publication/PR-merge/site authorization continues; no account changes.
+Community writer community_mit GPT6.1Sol/medium; coordinator owns Zero integration
+and external actions. Weekly43%remaining, DeepSeek paused. Community Java/POM and existing immutable coordinates remain unchanged.
+Worker delivered MIT catalog/docs and32admission checks; coordinator verified.
+Followup adds LICENSE to schema1MIT packet scope, preserving historical packets.
+Java/Python digests agree5f457df0b1c38f7bd4ad6c2584ef82fa3d40878e215e3fbc463e697f7bcbb517.
+Native Workshop,6consumer cycle25.93s,30focused editor tests, website5tests/
+typecheck/build and package notice/hash checks pass. Component ZIP stays local;
+all three immutable published Zero assets remain byte-identical.
+Review budget standard risk: one general reviewer Sol/medium, max7launches,
+1initialwave4targetedwaves1integration4fixes60minsession30minreviewer; bounded
+cross-repo license/loader/acceptance/packaging consistency review after checks.
+community_mit_review/1 Sol/medium complete Zero3f9f5b2→5b968d2 and
+community00c21ed→c6157d8, no blockers; one P3 stale public-licensing sentence
+accepted and fixed. Coordinator also clarified the immutable0.5.0VSIX predates
+MIT catalog support; new local catalogs require current extension source until
+a future versioned extension release. Local ZIP guide matches that boundary.
+Worker~5min plus packet followup~2min; review~4min estimates. No file conflicts.
+Community PR1 CI32admission/native Java checks and Zero PR7 preview pass;
+effective token/model telemetry unavailable. No community artifact release.
 
 
+## Release and hosting — complete
 
-Release-preparation delivery39b0c21614ad2dfba849bbb7d6ca54492a2010c6:
-rootcheck, website5/5tests,typecheck/build/diff pass. Independent
-release_contract_review/1 Sol/medium complete9cf18fc→39b0c21, zero findings;
-inspected six-file delta and preparation/route/local-integrity/receipt callers,
-independently reran5tests. One initial wave/one reviewerturn/no remediation,
-max7launches4fixes60minsession30minreviewer retained. Effective configuration,
-token and elapsed telemetry unavailable. Prior framework/native/browser evidence
-reused for unchanged behavior. No additional integration wave warranted.
+Owner authorized release/hosting with “go” and selected MIT for original Zero.
+https://zero.codepet.ca is live on Vercel; /learn and /community are connected.
+Source PR4 merged8c54a3c; download PR5 mergedc482fc1. Public GitHub release
+v0.5.0 targets8c54a3c and contains exactly the main kit, starter and VSIX.
+Canonical MIT notice is included in all three independent distributions;
+upstream dependency notices are preserved. Community archive remained local,
+unpublished and UNLICENSED during initial hosting; the later MIT decision is above.
 
-Vercel zero.codepet.ca domain assigned to Zero project, ownership verifiedtrue.
-Cloudflare DNS remains unchanged and domain not live; no source push/release or
-website deployment occurred while licensechoice pending. Project has no Git
-connection or configured local-download flag. Domain CNAME recommendation saved
-in ignored .verification/vercel-domain-config.json for deployment after choice.
+Vercel projectzero/prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA links GitHubcodepetca/zero,
+production branchmain, rootwebsite, Next.js, Node22.x, npmci/npmbuild and sources
+outside root enabled. No configured ZERO_LOCAL_DOWNLOADS environment variable.
+First Git deploymentdpl_DUoeW19p1dDonzbEirw1BWbZxDbY at c482fc1 passed remote
+build and protected CLI page checks before DNS changed. The first deployment
+was assigned production automatically; public domain DNS followed verification.
+CLI generated a deployment-protection bypass token for authenticated checks;
+account passwords and GitHub credentials unchanged, preview protection retained.
 
-Owner answered MIT on2026-10-09; implemented original-code license with license text in root and independent starter,
-kit and VSIX distributions, SPDXmetadata and accurate supporting docs. Optional
-community license remains unresolved and its archive stays local. Then package/
-verify, publish reviewed source viaPR/merge, upload exact main3 versioned assets,
-independently retrieve/hash them, author published metadata, build/deployreviewed
-preview, then configure supplied DNS-only CNAME and verifypublicHTTPS/downloads.
-No tool-backed goal created. No credentials changes. MIT selected explicitly; community license remains held.
+Cloudflare DNS-only CNAMEzero.codepet.ca points to the exact Vercel recommendation
+53d627e7a30220c8.vercel-dns-017.com, TTLauto. Read back exactly one matching record;
+Vercel reports configuredByCNAME/misconfiguredfalse, ownership verifiedtrue.
+Public HTTPS returns200; HTTP redirects308 to HTTPS. Actual in-app browser
+DownloadZero retrieves100306bytes/SHA256d296f25f7411f14bdbabfeb8c4015eb90086251102e823cb88854426ee783980,
+matching the immutable published kit. Live Learn→Community navigation and API HTTP
+checks pass. Screenshot and machine receipts are ignored in .verification/.
+All three public assets were independently downloaded unauthenticated and hashed.
+
+Review evidence: release_contract_review Sol/medium complete9cf18fc→39b0c21,
+zero findings; mit_release_review Sol/high complete23f2ea7→61d772b MIT delta and
+cumulative integration inventory, zero blockers; targeted8c54a3c→185fc78 complete,
+one nonblocking P3 stale local-preview instruction fixed at42caf44. Coordinator
+checked the documentation fix. Reviewer independently reran5website tests and
+verified artifact metadata. Native/other unchanged prior reviews reused.
+MIT distribution worker Sol/medium delivered in~4min; reviewers~3–4min each.
+No recursive delegation or file conflicts. Weekly44%remaining; DeepSeek paused.
+Effective token/model/elapsed telemetry unavailable. Checks: package/license,
+extracted Maven compile, website5tests/typecheck/build and published-package
+immutability guard all pass; guard leaves all three released bytes unchanged.
+Physical Windows/Linux setup, final editor GitHub interaction and novice student
+trials remain unverified. No new tool-backed goal created.
 
 ## Repository organization and website — local verification complete
 

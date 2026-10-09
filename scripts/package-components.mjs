@@ -1,4 +1,4 @@
-// Local prototype only. Public hosting, licensing and release authority are unset.
+// MIT-licensed local prototype. Public artifact hosting/release authority remain unset.
 import {readFile, readdir, lstat, mkdir, writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
@@ -14,6 +14,8 @@ const {loadCatalog}=require('../extension/src/components.js');
 const root=fileURLToPath(new URL('../',import.meta.url));
 const community=path.resolve(process.argv[2] || path.join(root,'../zero-community'));
 const prepared=await loadCatalog(path.join(root,'.verification/component-catalog.json'));
+const sourceMetadata=JSON.parse(await readFile(path.join(community,'catalog/components.json'),'utf8'));
+assert.deepEqual(prepared.catalog.components,sourceMetadata.components,'Prepared catalog is stale; rerun the community proof and Workshop preparation.');
 const members={};
 async function add(filename,key) {
   const stat=await lstat(filename);
@@ -28,10 +30,11 @@ async function tree(directory,prefix) {
     if(entry.isDirectory()) await tree(filename,key); else await add(filename,key);
   }
 }
+await add(path.join(root,'LICENSE'),'LICENSE');
 await tree(path.join(root,'component-workshop'),'component-workshop');
 for(const name of ['mvnw','mvnw.cmd']) await add(path.join(root,'student-template',name),'component-workshop/'+name);
 await tree(path.join(root,'student-template/.mvn'),'component-workshop/.mvn');
-for(const name of ['README.md','AGENTS.md','.gitignore','.gitattributes','pom.xml','mvnw','mvnw.cmd']) await add(path.join(community,name),'zero-community/'+name);
+for(const name of ['LICENSE','README.md','AGENTS.md','.gitignore','.gitattributes','pom.xml','mvnw','mvnw.cmd']) await add(path.join(community,name),'zero-community/'+name);
 for(const name of ['.ai','.mvn','.github','src','examples','docs','catalog','scripts','releases']) await tree(path.join(community,name),'zero-community/'+name);
 for(const release of prepared.catalog.releases) for(const artifact of Object.values(release.artifacts)) {
   await add(path.join(prepared.repositoryPath,artifact.path),'component-repository/'+artifact.path);
@@ -49,7 +52,9 @@ Extract this entire folder; keep its sibling folders together. JDK 17+ is requir
 The first build downloads pinned Maven/JavaFX dependencies. Students need no Node
 or Python to run Workshop. GitHub sign-in is separate from this local flow.
 
-1. Install the local Zero ${release.kitVersion} VSIX from the main kit.
+1. Install Zero ${release.kitVersion} from the main kit. Version 0.5.1 and later
+   support MIT catalogs; the earlier 0.5.0 VSIX supports historical UNLICENSED
+   catalogs only.
 2. In a student starter, use the Zero view's (…) menu → Browse components.
    Choose this folder's catalog.json. View API, Try example, or Add library.
 3. Add records an exact Maven dependency. Your app owns its rules/state; import
@@ -66,14 +71,17 @@ Workshop is not a sandbox for downloaded submissions. Preparation is local only:
 there is no upload, automatic acceptance, public release or live AI provider.
 Maintainer/CI Python commands and policy are documented in zero-community/docs.
 
-These fixtures are experimental and UNLICENSED, with no appointed maintainer.
-Public reuse licensing, hosting and acceptance service are owner decisions.
+Original Zero and Zero Community source uses MIT; preserve the included LICENSE
+notices. Bundled dependencies retain their upstream notices. These fixtures remain
+experimental, with no appointed maintainer or public artifact/acceptance service.
 Keep this folder on your computer: installed POMs reference its local repository.
 Moving it requires reconnecting manually; no remote dependency service is implied.
 Coursework repo links are submitted separately in Pika.
 
 macOS finite JavaFX and mocked editor tests were run. Physical editor interactions,
-Windows/Linux, live CI/AI/publication and classroom trials remain unverified.
+Windows/Linux physical setup, native editor flows and classroom trials remain
+unverified. Community source CI is separate from artifact publication; live AI
+and public component artifact hosting are not configured.
 `),{}];
 const archive=zipSync(members,{level:6}),extracted=unzipSync(archive);
 for(const [key,[bytes]] of Object.entries(members)) assert.deepEqual(extracted[key],bytes);

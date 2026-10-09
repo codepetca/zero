@@ -29,7 +29,9 @@ project wrapper; do not require students to install Maven or Gradle globally.
 Packaging creates local artifacts in `dist/` and does not publish them.
 A published kit version is immutable: packaging refuses to overwrite it. Set a
 new local kit/extension version before building the next release. Existing
-public asset URLs/checksums remain pinned to their release.
+public asset URLs/checksums remain pinned to their release. See
+[release preparation and publication](RELEASING.md) for the one-command publisher
+and its read-only CI preparation workflow.
 
 Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
 ignored readable copies into the starter; checks/packaging prepare them too.
@@ -51,15 +53,17 @@ npm test --prefix website
 npm run build --prefix website
 ```
 
-For a local preview of the actual freshly packaged ZIP, run `npm run package`,
-then start the website from the root with:
+The current published kit uses verified GitHub release links. To preview a new
+local version, set its release metadata to local, run `npm run package`, then
+start the website from the root with:
 
 ```sh
 ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 ```
 
-Without the explicit local preview flag, the unpublished release leads to its
-availability explanation on Learn more. No guessed public release URL is shown.
+An unpublished asset without the local preview flag leads to its availability
+explanation on Learn more. Published assets keep their verified public links
+even with the flag enabled. No guessed public release URL is shown.
 The website prepares canonical docs/release content before development and build;
 generated snapshots and caches are ignored. Start here before later Vercel setup:
 Root Directory `website/`, with repository sources outside that directory included
@@ -149,6 +153,11 @@ The portable component ZIP includes local artifacts/catalog, source and Workshop
 extract the whole folder and open its `component-workshop/` subfolder. Students
 use its bundled Maven wrapper, not the maintainer Node/Python tooling.
 
+Zero 0.5.1 and later support current MIT catalogs in the installed extension.
+The immutable published 0.5.0 VSIX predates MIT catalog support and continues
+to support historical UNLICENSED catalogs. Contributors can use the current
+extension source in a VS Code extension development host (F5).
+
 Community catalog selection is explicit and local in Zero's view title (…) menu.
 The extension edits only managed POM blocks through the native undoable editor,
 refuses unsaved/drifted documents and preserves Java source. Add pins a version;
@@ -159,5 +168,5 @@ remains the resolver; normal project runs use ordinary Maven settings/cache.
 Candidate compilation runs trusted local Java in the Workshop process with
 normal permissions; it is not an untrusted-submission sandbox. Admission validates
 packets without executing code. CI and advisory AI interfaces are prepared locally;
-no hosted service, live provider, public licensing or authenticated acceptance
+no hosted service, live provider or authenticated acceptance
 authority has been configured. See the community contribution/AI docs.

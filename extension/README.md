@@ -149,6 +149,6 @@ same owned Run/Stop lifecycle. Catalog example paths are descriptions, not code
 executed by Zero. The local catalog verifies artifacts but is not a public
 registry or security sandbox; Maven resolves project dependencies normally.
 Use the separate Component Workshop to edit/check trusted source and prepare
-a local packet. Experimental/UNLICENSED fixtures are not community-approved;
+a local packet. MIT-licensed experimental fixtures are not community-approved;
 public release and live AI remain unconfigured. Physical editor/Windows/Linux
 flows remain unverified.

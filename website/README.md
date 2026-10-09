@@ -12,11 +12,23 @@ npm run build
 npm run dev -- --port 3000
 ```
 
-The package's preparation step reads `../release/kit.json` and the maintained setup/API/product/Workshop docs. It writes ignored `.generated/content.json` and `public/generated/` assets. Re-run preparation/restart after changing canonical docs. Those snapshots let the supporting pages work before source documentation is published. The logo paths are the supplied `extension/media/zero.svg`, with the approved purple colour; the download icon comes from Bootstrap Icons. The editor image is the existing recorded preview, not a claim of final interactive testing.
+The package's preparation step reads `../release/kit.json`, all six maintained lessons, teacher notes and the setup/API/product/Workshop docs. It writes ignored `.generated/content.json` and `public/generated/` assets. Re-run preparation/restart after changing canonical docs. Those snapshots let the supporting pages work before source documentation is published. The logo paths are the supplied `extension/media/zero.svg`, with the approved purple colour; the download icon comes from Bootstrap Icons. Bootstrap Icons also supply the navigation and disclosure icons.
+
+## Learning routes
+
+`/learn` is the compact six-lesson hub. `/tutorials/1` through `/tutorials/6` render the maintained lesson Markdown with collapsed sections, Expand all / Collapse all, related docs and previous/next navigation. Section fragments open the enclosing disclosure, including repeated clicks on the current fragment. `/docs` lists every maintained guide; `/docs/[slug]` uses the same folding reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` lists seven apps; each `/examples/[slug]` includes exact copy/run instructions and folded Java files.
+
+Markdown renders on the server. The browser receives only the current route's rendered content and small navigation/folding controllers, rather than every document and source file. The canonical Markdown files are read without edits. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer; unlisted files remain labeled source references. Unknown, absolute, traversal and repeated source query values return 404. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path.
+
+The build-time source allowlist includes regular Java/Markdown files in `student-template/examples/` and Markdown in `docs/`, all reader documents, `student-template/pom.xml`, `student-template/zero.json`, the root LICENSE/README, Workshop README, and the two canonical framework Java files exposed under their student-kit paths. Symlink entries are skipped during collection. Generated content/assets remain ignored. No live Java execution, auth, new dependencies or source-write API is added.
+
+The home page keeps the existing wordmark and two actions. Community retains its maintained content and availability limits, with longer explanations inside disclosures and direct source/contribution links.
 
 ## Download states
 
-Default development and production expose the honest unpublished state at `/learn#downloads`. There is no guessed release URL. For an explicitly enabled **local** preview, first package the kit from the repository root, then:
+The current published kit links directly to its verified GitHub release assets in development and production, including when the local preview flag is enabled. Unpublished assets lead to their availability explanation at `/learn#downloads` by default.
+
+To preview a **new local version**, first set its release metadata to local and package it from the repository root, then:
 
 ```sh
 ZERO_LOCAL_DOWNLOADS=1 npm run dev -- --port 3000
@@ -26,8 +38,10 @@ ZERO_LOCAL_DOWNLOADS=1 npm run dev -- --port 3000
 
 A `publication.status: published` requires explicit immutable GitHub URLs matching the authored repository/version/filename, plus verified sizes and SHA-256 values for the kit, starter and extension. Preparation fails if these are absent. Assets inherit the release status unless they set `publicationStatus` to `local` or `published`. The optional components asset can stay `publicationStatus: local` while the main three are published; a local asset must have no public URL. Its download link leads to `/learn#downloads` in production and works only in an explicitly enabled local preview with verified packaged bytes. Publication and URL availability must be independently verified before authoring a published state.
 
-## Later Vercel setup
+## Vercel hosting
 
-No deployment configuration or account changes are performed here. The proposed project Root Directory is `website/`. Enable **Include source files outside of the Root Directory in the Build Step** so preparation can read canonical `release/`, docs, `student-template/`, `component-workshop/` and `extension/media/`. Use `npm ci` and `npm run build`. Do not set `ZERO_LOCAL_DOWNLOADS` there. This phase does not publish releases or configure Vercel/DNS.
+The live site is https://zero.codepet.ca, deployed from `codepetca/zero` on Vercel. The project Root Directory is `website/`; **Include source files outside of the Root Directory in the Build Step** is enabled so preparation can read canonical release/docs and media. Install/build commands are `npm ci` and `npm run build`, with Node.js 22.x selected. Main deploys to production and Git branches receive previews. Keep `ZERO_LOCAL_DOWNLOADS` unset on Vercel. GitHub Release assets host downloads.
+
+Cloudflare supplies the DNS-only CNAME recommended by Vercel; Vercel serves HTTPS. Release and deployment receipts are in the maintained verification record. Do not rebuild or replace published release bytes; prepare a new local kit version first.
 
 Browser interaction and design QA are recorded separately by the coordinator. A build is not proof of browser behavior or native Windows/Linux student setup.

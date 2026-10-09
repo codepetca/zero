@@ -73,8 +73,9 @@ async function loadCatalog(catalogPath) {
     if (!/^[a-z][a-z0-9-]{0,79}$/.test(component.id || '') || ids.has(component.id) || !/^zero\.community\.[A-Z][A-Za-z0-9]*$/.test(component.className || '') || classes.has(component.className)) fail('Invalid or duplicate component identity.');
     ids.add(component.id); classes.add(component.className);
     plain(component.name, 'name'); plain(component.description, 'description');
-    // Local fixture text cannot promote its own review/licensing status.
-    if (component.status !== 'experimental' || component.license !== 'UNLICENSED' || component.maintainer !== null) fail('Local proof components must remain experimental, UNLICENSED and without a named maintainer.');
+    // License labels do not grant review or maintainer authority.
+    // Keep older local UNLICENSED catalogs usable alongside owner-licensed MIT source.
+    if (component.status !== 'experimental' || !['MIT', 'UNLICENSED'].includes(component.license) || component.maintainer !== null) fail('Local proof components must remain experimental, use MIT or historical UNLICENSED metadata, and have no named maintainer.');
     if (!Array.isArray(component.api) || !component.api.length || component.api.length > 100 || !Array.isArray(component.examples) || component.examples.length > 100) fail('Invalid component API or examples.');
     component.api.forEach(entry => plain(entry, 'API entry'));
     for (const example of component.examples) {

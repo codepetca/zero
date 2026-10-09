@@ -1,5 +1,7 @@
 # Zero
 
+[Get started at zero.codepet.ca](https://zero.codepet.ca).
+
 Zero is a downloadable local Java teaching kit for students beginning Java
 through CodeHS. Build interfaces with ordinary JavaFX controls and `SimpleApp`,
 or animate a canvas with `SketchApp` and explicitly updated Java objects.
@@ -21,7 +23,7 @@ Physical Windows/Linux and novice student trials remain unverified; see the
 
 ## Download Zero
 
-[Download Zero 0.5.0](https://github.com/codepetca/zero/releases/download/v0.5.0/zero-bootstrap.zip) and follow `START-HERE.md`.
+[Download Zero 0.5.1](https://github.com/codepetca/zero/releases/download/v0.5.1/zero-bootstrap.zip) and follow `START-HERE.md`.
 The complete kit is a single ZIP; original Zero code is MIT licensed.
 
 ## Start here
@@ -33,6 +35,7 @@ The complete kit is a single ZIP; original Zero code is MIT licensed.
 - [Zero Community: component source and contributions](https://github.com/codepetca/zero-community)
 - [Product scope and contracts](docs/PRODUCT.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
+- [Release preparation and publication](docs/RELEASING.md)
 - [Classroom pilot checklist](docs/CLASSROOM-PILOT.md)
 - [Verification and remaining limits](docs/VERIFICATION.md)
 - [Earlier dark-theme editor, version 0.2](docs/design/actual-zero-editor.png)
@@ -47,7 +50,7 @@ profile. The sidebar also supports dark themes.
 
 ## Project layout
 
-- `website/`: separately built Next.js download website, Learn more and Community.
+- `website/`: Next.js download website, guided tutorials, examples, docs and Community.
 - `extension/`: sidebar and commands using supported VS Code APIs.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`
@@ -66,15 +69,20 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.0.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.1.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After the documented local
 component proof, `npm run package:components` adds `zero-components.zip` with
 Workshop, community source, both immutable versions and a local catalog.
 These are experimental local artifacts; packaging does not publish them.
 
+Maintainers approve a reviewed new version with `npm run release:publish -- --version 0.5.2`.
+The command checks, publishes verified files, updates the website through a checked PR
+and verifies the live kit. See [releasing Zero](docs/RELEASING.md) for prerequisites,
+recovery and the read-only `--verify-only` option.
+
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
 Original Zero code is available under the [MIT license](LICENSE). Bundled
 upstream dependencies and wrapper notices retain their own terms. Zero Community
-has its own licensing decision; its experimental archive is not part of this release.
+original source is also MIT licensed; its experimental archive is not part of this release.

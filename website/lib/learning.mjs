@@ -1,0 +1,127 @@
+export const lessons = [
+  {
+    id: "1",
+    title: "Change the quiz",
+    description: "Edit a simple quiz and make it your own.",
+    topic: "Setup, SimpleApp, editing and running in VS Code",
+    doc: "api",
+    anchor: "simpleapp-startup-and-interfaces",
+  },
+  {
+    id: "2",
+    title: "Reuse an object",
+    description: "Use a class to reuse code in your program.",
+    topic: "Objects, methods, parameters",
+    doc: "api",
+    anchor: "ordinary-javafx-and-reusable-objects",
+  },
+  {
+    id: "3",
+    title: "Grow a study session",
+    description: "Add more features to your quiz.",
+    topic: "Arrays, question objects, session state",
+    doc: "api",
+    anchor: "ordinary-javafx-and-reusable-objects",
+  },
+  {
+    id: "4",
+    title: "Animate an object",
+    description: "Make something move on screen.",
+    topic: "SketchApp, animation, explicit object updates",
+    doc: "api",
+    anchor: "sketchapp-frames-and-canvas",
+  },
+  {
+    id: "5",
+    title: "Control movement",
+    description: "Respond to keyboard input.",
+    topic: "Held keys, elapsed time, canvas bounds",
+    doc: "api",
+    anchor: "input-methods",
+  },
+  {
+    id: "6",
+    title: "Make a small improvement",
+    description: "Choose an idea and make your app better.",
+    topic: "Plan, build, check and explain",
+    doc: "exercises",
+    anchor: "contribute-for-another-student",
+  },
+];
+export const examples = [
+  {
+    id: "quiz",
+    title: "Mini quiz",
+    description: "Buttons, answer feedback and once-only scoring.",
+    files: ["quiz/Main.java", "shared/ScoreDisplay.java"],
+    lesson: "1",
+  },
+  {
+    id: "practice",
+    title: "Practice tracker",
+    description: "Reuse a score display with your own counting rules.",
+    files: ["practice/Main.java", "shared/ScoreDisplay.java"],
+    lesson: "2",
+  },
+  {
+    id: "study",
+    title: "Study session",
+    description: "Question objects, retries, Next and Restart.",
+    files: [
+      "study/Main.java",
+      "study/Question.java",
+      "shared/ScoreDisplay.java",
+    ],
+    lesson: "3",
+  },
+  {
+    id: "animation",
+    title: "Follow the mouse",
+    description: "An ordinary Player object follows a target.",
+    files: ["animation/Main.java", "animation/Player.java"],
+    lesson: "4",
+  },
+  {
+    id: "keyboard",
+    title: "Keyboard movement",
+    description: "Arrow keys move a circle and keep it inside the canvas.",
+    files: ["keyboard/Main.java", "keyboard/Mover.java"],
+    lesson: "5",
+  },
+  {
+    id: "counter",
+    title: "Canvas counter",
+    description: "Native buttons and a canvas in the same app.",
+    files: ["counter/Main.java"],
+    lesson: "6",
+  },
+  {
+    id: "drawing",
+    title: "Drawing pad",
+    description: "Paint with the mouse; clear with the secondary button.",
+    files: ["drawing/Main.java"],
+    lesson: "4",
+  },
+];
+export const quickLinks = [
+  {
+    title: "Setup guide",
+    description: "Install the JDK, VS Code and the Zero extension.",
+    href: "/docs/setup",
+  },
+  {
+    title: "Java API reference",
+    description: "Look up the classes and methods you will use.",
+    href: "/docs/api",
+  },
+  {
+    title: "Example apps",
+    description: "Browse the source and run an example locally.",
+    href: "/examples",
+  },
+  {
+    title: "For teachers",
+    description: "Lesson notes, expected results and assessment guidance.",
+    href: "/docs/teachers",
+  },
+];

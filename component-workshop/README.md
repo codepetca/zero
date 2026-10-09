@@ -61,9 +61,10 @@ checks cannot approve a component.
 “Prepare contribution” chooses a parent folder and creates a new contribution folder
 without replacing existing files. The Workshop creates `packet.zip`, `packet.json` and `checks/report.json`. The ZIP's declared scope
 is the Maven manifest, HealthBar source/test, adventure/study app examples, HealthBar
-API, component metadata and check evidence. Arbitrary repository files, `.git`,
+API, component metadata, the MIT LICENSE notice and check evidence. Arbitrary repository files, `.git`,
 credentials, caches and build artifacts are excluded. Packet generation uses ordinary Java file and ZIP APIs. Preparation errors
 stay visible. No upload, GitHub action, release or reviewed status is implied.
 
-Experimental / UNLICENSED is shown from metadata. Public reuse licensing and appointed
-maintainers remain required decisions; coursework submission in Pika is separate.
+Status and license are shown from metadata. Current Zero Community source uses MIT;
+older local catalogs may say UNLICENSED. Appointed maintainers and artifact hosting
+remain future decisions; coursework submission in Pika is separate.

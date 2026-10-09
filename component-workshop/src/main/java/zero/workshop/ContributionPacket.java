@@ -43,7 +43,7 @@ final class ContributionPacket {
         || examplesHashes.size() != 2)
       throw new IOException("Reuse requires two distinct app examples.");
     JsonArray files = new JsonArray();
-    for (String path : ComponentProject.FILES.stream().sorted().toList()) {
+    for (String path : project.files().stream().sorted().toList()) {
       JsonObject file = new JsonObject();
       file.addProperty("path", path);
       file.addProperty("sha256", sha(Files.readAllBytes(project.file(path))));

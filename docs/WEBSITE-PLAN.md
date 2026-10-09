@@ -1,8 +1,9 @@
-# Zero download website — local implementation
+# Zero download website
 
-Status: local implementation authorized by “orchestrate that work”, 2026-10-09.
-Publication, source push/merge, deployment, DNS edits and account changes remain
-outside this phase. Current execution is coordinated in `.ai/CURRENT.md`.
+Status: live at https://zero.codepet.ca, 2026-10-09. Owner authorized release and
+hosting with “go” and selected MIT. Current receipts are in `.ai/CURRENT.md` and
+`VERIFICATION.md`. The implementation and release plan below records the agreed
+boundaries; initial local-only restrictions were lifted for this release.
 
 Selected visual: the first ultra-minimal revision, confirmed 2026-10-09.
 See [the saved design/theme](design/WEBSITE.md) and
@@ -40,13 +41,19 @@ in `codepetca/zero`, with pinned dependencies and its own lockfile. Configure on
 Vercel project with Root Directory `website/`. Pages are mostly static:
 
 - `/`: Zero name/mark, short description, Download Zero and Learn more only.
-- `/learn`: product explanation, screenshots and links to setup, API docs,
-  GitHub source, other downloads and the Component Workshop.
+- `/learn`: compact guided learning hub with six expandable lesson previews,
+  setup, docs, examples and a downloads disclosure.
+- `/tutorials/[lesson]`: six maintained lessons with short summaries, collapsed
+  steps, full-guide expansion and previous/next navigation.
+- `/examples` and `/examples/[slug]`: runnable local examples with on-demand
+  copy/run instructions and readable source.
+- `/source`: a read-only view of build-prepared, explicitly allowed source files.
 - `/community`: public entry point for Zero Community, source/contribution links
   and an honest explanation of current experimental local component tooling.
-- Setup lives on `/learn`; do not create a separate onboarding platform.
-- Ten supporting `/docs/[slug]` pages render maintained repository Markdown,
-  with matching heading anchors and internal links. Preparation keeps one source.
+- `/docs` groups setup/reference/teacher guides; `/docs/[slug]` renders maintained
+  repository Markdown, with matching heading anchors and internal links.
+  Sections expand on request, including automatically for direct section links.
+  Preparation keeps one source. No separate onboarding platform.
 
 No website account system or database is needed for this MVP. Node.js is a site
 development/build requirement, not an additional student requirement.
@@ -63,8 +70,8 @@ optional profile and setup guide. Preserve the separate starter and workshop kit
 Use one release manifest for version, filenames, checksums and URLs. Generate
 website release data and README download information from it. Pin all recommended
 assets to the same release. Publication must succeed and downloads must be checked
-before the site advertises that release. The current 0.5 kit is local/unpublished;
-concept buttons are illustrations, not claims of working public downloads.
+before the site advertises that release. The main 0.5.0 kit, starter and VSIX are published with verified immutable URLs.
+The optional community archive remains local and has no public asset URL.
 
 After hosting/release automation is explicitly authorized, prepare versioned
 artifacts through CI, verify them, then publish through an intentional release
@@ -106,7 +113,8 @@ Windows/Linux native Java setup or the interactive GitHub upload flow was tested
 
 - `release/kit.json` is authored release metadata. Packaging generates checksums
   and sizes in ignored `dist/release.json`; never invent a published asset URL.
-- Kit0.5.0 remains local. Core0.1.1 is a new local coordinate for changed build
+- Kit0.5.0 main assets are published; optional community archive remains local.
+  Core0.1.1 is a new local coordinate for changed build
   metadata after source extraction; preserve previous immutable core0.1.0 files.
 - Canonical Java source moves into `framework/src/main/java/zero/`. Maintainer
   preparation assembles readable copies into the starter; student downloads
@@ -116,7 +124,7 @@ Windows/Linux native Java setup or the interactive GitHub upload flow was tested
   sources outside the `website/` Root Directory for this build preparation.
 - Local preview downloads require an explicit local-only environment flag and
   verified packaged bytes. Ordinary production builds show release availability
-  on Learn more until publication. No network publication occurs in this phase.
+  on Learn more until publication. Published main assets use verified GitHub links.
 
 ## Primary technical references
 
@@ -135,3 +143,14 @@ verified. Cloudflare has no existing zero record; DNS remains unchanged until
 a working deployment is verified. MIT selected for original Zero on2026-10-09; no source
 push, artifact release or deployment happened in the initial preparation step. Main
 kit/starter/VSIX can publish independently of the local-only community archive.
+
+## Live delivery — 2026-10-09
+
+Source and verified download metadata merged through PR4 and PR5. Zero0.5.0
+published under MIT; all three main downloads were retrieved unauthenticated and
+hashed. Vercel Git connection uses main production, rootwebsite and canonical
+sources outside root. Remote build/page checks passed before Cloudflare DNS-only
+CNAME was created. Domain ownership/configuration, public HTTPS, HTTP redirect,
+live browser kit download and Learn→Community navigation verified. Windows/Linux
+native setup and final editor Git interaction remain untested. Release automation
+is a future improvement; current release was intentional and manually verified.

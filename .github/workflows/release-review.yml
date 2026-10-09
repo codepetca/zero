@@ -1,0 +1,81 @@
+name: Release checks and preparation
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Prepare Zero {0} [{1}]', inputs.version, inputs.request_id) || 'Zero release checks' }}
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact new local kit version on the selected source ref
+        required: true
+        type: string
+      request_id:
+        description: Optional publisher correlation ID; leave blank for manual preparation
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            website/package-lock.json
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - name: Check version and immutable release boundary
+        id: release
+        run: node scripts/release-review.mjs plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+      - name: Configuration and release guard tests
+        run: |
+          npm run check
+          npm run test:release
+      - name: Extension and standalone starter tests
+        run: npm test
+      - name: Finite JavaFX example checks
+        run: xvfb-run -a python3 scripts/verify-examples.py
+      - name: Website checks
+        run: |
+          npm ci --prefix website
+          npm run typecheck --prefix website
+          npm test --prefix website
+          npm run build --prefix website
+      - name: Package and verify new local version
+        if: steps.release.outputs.status == 'local'
+        env:
+          EXPECTED_VERSION: ${{ inputs.version }}
+        run: |
+          npm run package
+          npm run verify:kit
+          node scripts/release-review.mjs seal
+      - name: Upload exact public assets and review receipts
+        if: steps.release.outputs.status == 'local'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-${{ steps.release.outputs.version }}-review-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/${{ steps.release.outputs.kit }}
+            dist/${{ steps.release.outputs.starter }}
+            dist/${{ steps.release.outputs.extension }}
+            dist/release.json
+            dist/SHA256SUMS
+            dist/SOURCE.txt
