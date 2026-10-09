@@ -1,5 +1,30 @@
 # Current state — 2026-10-09
 
+## Release and hosting — active
+
+Owner said “go” to release and Vercel/domain setup; this authorizes source PR/merge,
+release publication and Vercel/zero.codepet.ca DNS setup within the saved plan.
+License decision is pending in the user input panel; no original-code publication
+until answered. Optional community archive remains local/unpublished because its
+separate license is unresolved. No credentials changes.
+
+Coordinator owns external actions/licensing/release/packaging/docs.
+release_readiness Sol/medium completed ~4min read-only audit, accepted artifact
+hashes and missing license/optional-asset boundary; delivered website download
+contract files/tests (~3min) with5/5tests and typecheck. Coordinator inspected;
+optional publicationStatus local preserves main3 public integrity requirements. No recursive delegation. Weekly44%remaining; DeepSeek
+paused. Existing reviewed implementation/base9cf18fc is preserved.
+
+GitHub armorup ADMIN of public codepetca/zero; origin/main52cd3be, outgoing100files
+include completed reviewed local phases. Vercel devcodepet-5583 current team
+stewarts-projects-cc2722c4; Zero project created as
+prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA. FrameworkNext.js/rootwebsite/npmci/npmbuild,
+Node22.x and sourceFilesOutsideRootDirectory true independently read back.
+No Git connection/deployment yet; license answer pending. Cloudflare codepet.ca active
+zone49640bebf0b463a4d227dfcfd509ef79 has no zero.codepet.ca record.
+
+
+
 ## Repository organization and website — local verification complete
 
 Owner requested orchestration of the agreed local organization/site work.

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { verifiedLocalAsset } from '../lib/local-download.mjs';
-import { validateManifest } from '../lib/contracts.mjs';
+import { validateManifest, releaseAssetHref } from '../lib/contracts.mjs';
 const manifest = { schema: 1, kitVersion: '0.5.0', coreVersion: '0.1.1', publication: { status: 'local', repository: 'codepetca/zero', tag: 'v0.5.0' }, assets: Object.fromEntries(['kit', 'starter', 'extension', 'components'].map(key => [key, { filename: `${key}.zip`, label: key }])) };
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'zero-download-'));
@@ -52,4 +52,29 @@ test('published state requires explicit exact GitHub version URLs and integrity'
   assert.throws(() => validateManifest(published), /explicit/);
   published.assets.kit.filename = '../kit.zip';
   assert.throws(() => validateManifest(published), /Invalid kit/);
+});
+test('published main downloads can hold optional components locally without a public URL', () => {
+  const published = structuredClone(manifest);
+  published.publication.status = 'published';
+  published.assets.components.publicationStatus = 'local';
+  for (const key of ['kit', 'starter', 'extension']) {
+    const asset = published.assets[key];
+    Object.assign(asset, { url: `https://github.com/codepetca/zero/releases/download/v0.5.0/${asset.filename}`, size: 1, sha256: 'a'.repeat(64) });
+  }
+  validateManifest(published);
+  assert.equal(releaseAssetHref(published, 'kit'), published.assets.kit.url);
+  assert.equal(releaseAssetHref(published, 'components'), '/learn#downloads');
+  assert.equal(releaseAssetHref(published, 'components', true), '/download/components');
+  assert.equal(releaseAssetHref(published, '../components', true), '/learn#downloads');
+  published.assets.components.url = 'https://github.com/codepetca/zero/releases/download/v0.5.0/components.zip';
+  assert.throws(() => validateManifest(published), /Local components must not have a public URL/);
+  delete published.assets.components.url;
+  delete published.assets.starter.sha256;
+  assert.throws(() => validateManifest(published), /Published starter requires/);
+  published.assets.starter.sha256 = 'a'.repeat(64);
+  published.assets.starter.publicationStatus = 'local';
+  assert.throws(() => validateManifest(published), /requires published starter/);
+  delete published.assets.starter.publicationStatus;
+  published.assets.components.publicationStatus = 'held';
+  assert.throws(() => validateManifest(published), /Invalid components publication status/);
 });
