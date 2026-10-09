@@ -40,7 +40,15 @@ Git boundaries. After checks, two independent GPT-6.1 Sol/high reviewers with
 fresh context: credential/destination correctness and Git-state/UI compatibility.
 Default caps: seven launches, one initial wave, four targeted/fix batches, one
 final integration wave, 60 minutes elapsed and 30 minutes per reviewer. Ledger
-not started; reviewed base/head recorded when implementation is stable.
+started at 02:50:33 UTC Oct 9 (22:50:33 Toronto Oct 8). Initial head
+74bc2c58b45e8765f9fd2a72c5bc34788ff56434 against base 528ce8f: security review
+complete/clean (~120s), state/UI review complete (~3min) with one accepted P2.
+Native Git checkout left the new branch label stale until click. Coordinator
+added an exact-project Git HEAD/config watcher for change/create/delete and a
+meaningful metadata-event regression. Focused latest UI 3/3 and config/diff pass.
+Full exact initial-head suite passed 56/56 (147.121s); unchanged engine/transport
+coverage reused for the small UI refresh delta. Ledger: two reviewer turns,
+one initial wave, one remediation batch; targeted state/UI re-review next.
 
 Sidebar delivery inspected: focused 3/3 tests, syntax/diff checks passed. Simulation
 skips saves/auth/engine while notifications remain open; branch menu and busy
@@ -57,7 +65,7 @@ and requested an atomic cleanup guard for a concurrently moved feature; worker
 added a real mutation regression and compared-and-deleted the exact expected SHA.
 No file conflicts. Coordinator clock observed ~10 minutes for the two deliveries,
 while worker self-estimates were ~14 minutes each; these are estimates, not token
-or cost telemetry. Full integration suite and independent review next. Preliminary
+or cost telemetry. Full integration suite and initial review complete as above. Preliminary
 0.4.0 VSIX packaged and installed in isolated editor data/extensions. CLI attempt
 with nonexistent Zero profile failed; default isolated install succeeded. CUA
 selected another Code process (Welcome window), so no native activation/interaction

@@ -374,8 +374,14 @@ function activate(context) {
   context.subscriptions.push(output, changes, vscode.window.registerTreeDataProvider('zero.files', files));
   const watcher = vscode.workspace.createFileSystemWatcher('**/*');
   for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
+  const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
+  for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
+    if (!projectRoot) return;
+    const filename = path.resolve(uri.fsPath);
+    if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
+  }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  context.subscriptions.push(watcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus();}));
+  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus();}));
   context.subscriptions.push({dispose:() => {if (execution) execution.terminate();}});
   project().then(async () => {if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar'); if (!context.workspaceState.get('zero.sidebarShown')) {await actions['zero.showSidebar'](); await context.workspaceState.update('zero.sidebarShown',true);}}).catch(() => {});
 }

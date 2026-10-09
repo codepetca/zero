@@ -18,7 +18,7 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   t.after(()=>{core.git=original.git;core.assertRepositoryRoot=original.assert;github.prepareUpload=original.prepare;for(const key of Object.keys(workflow))workflow[key]=original[key];});
   let branch='main',mode='simulation',session={id:'session',account:{id:'student',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider;
   let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,confirm,reviewGate,pickGate,warningGate,finishError,finishUpdates=false,nativeScm=true;
-  const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[];
+  const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],metadata={};
   core.assertRepositoryRoot=async()=>root;
   core.git=async(_,args)=>{if(args[0]==='remote')return 'https://github.com/student/app.git';if(args[0]==='symbolic-ref')return branch;throw new Error('Unexpected Git mutation');};
   github.prepareUpload=async()=>({remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,changes:[],summary:'No changes'});
@@ -29,7 +29,7 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   workflow.deleteFinishedBranch=async(...args)=>{deleted++;deletions.push(args);};
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return items.find(item=>item.action===choice);},showInputBox:async()=>input,
       showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;},
@@ -42,6 +42,15 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await settle();
   assert.match(webview.html,/data-command="zero.chooseBranch"[^>]*aria-label="Current branch: main/);assert.match(webview.html,/Upload changes/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
+  for (const event of ['change','delete','create']) {
+    branch=`native-${event}`;
+    metadata[event]({fsPath:path.join(root,'.git','HEAD')});await settle();
+    assert.ok(webview.html.includes(`Current branch: ${branch}`),'Native HEAD events refresh the branch without a Zero command');
+  }
+  branch='outside-root';metadata.change({fsPath:path.join(root,'other','.git','HEAD')});await settle();
+  assert.ok(webview.html.includes('Current branch: native-create'),'Git metadata from another project is ignored');
+  branch='main';metadata.change({fsPath:path.join(root,'.git','config')});await settle();
+  assert.match(webview.html,/Current branch: main/,'Origin configuration changes refresh the repository and branch');
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['start']);
   let releaseWarning;warningGate=new Promise(resolve=>{releaseWarning=resolve;});const authBefore=authCalls;
   await commands.get('zero.startChange')();await commands.get('zero.finishChange')();await commands.get('zero.uploadToGitHub')();

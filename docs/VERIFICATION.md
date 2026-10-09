@@ -10,7 +10,7 @@ state transitions. Authentication/storage and local Java framework are retained.
 This goal authorizes local implementation and injected-remote dogfooding, not a
 real GitHub upload, account modification, source push/PR/merge or release.
 
-Evidence so far:
+Checks:
 
 - Focused sidebar tests passed 3/3: default simulation skips save/auth/Git
   mutation, cancellation, busy menus/commands, account and branch drift, update
@@ -25,12 +25,28 @@ Evidence so far:
   removed only the local feature; the remote progress branch remained. Reusing
   that remote name was rejected. Final local-bare main was
   7db23efdfcd76e8b41a970d495404848e6d082a8. Temporary trial repositories removed.
+- Full exact implementation suite passed 56/56 (147.121s at 74bc2c5). Real local
+  Git tests cover newer main fast-forward, disjoint merge/update pause, conflicts
+  and resolution/retry, remote non-fast-forward races, forged/stale plans,
+  local/remote/root/file drift, worktree/unrelated-history refusal, ignored-file
+  preservation, duplicate remote feature names and atomic cleanup against a
+  concurrently moved branch. Native-session transport tests cover the narrowly
+  permitted pinned fetch, destination/session guards and credential isolation.
+- Initial independent security review completed clean; state/UI review found
+  one P2: native checkout left the displayed current branch stale until clicked.
+  Coordinator added an exact-project Git HEAD/config watcher covering change,
+  create and delete. The affected 3/3 UI checks passed (0.190s), including refresh
+  without a Zero command and ignoring another project's metadata. Targeted review
+  of that delta is pending. Unchanged engine/transport coverage is reused.
 - Configuration, syntax, command contracts, document links and diff checks passed.
-  Engine/transport checks and independent review are in progress.
 
 Local-bare transport is injected only in checks; production accepts the ordinary
 reviewed GitHub HTTPS destination and uses guarded native-session credentials.
-No real account/network trial is claimed. Native 0.4 editor interaction and real
+No real account/network trial is claimed. Preliminary 0.4 VSIX installed through
+the isolated VS Code CLI (the first nonexistent-profile attempt failed; default
+isolated install succeeded). Computer-use selected a different Code process's
+Welcome window, so this does not confirm new-version activation or interaction.
+Native 0.4 editor interaction and real
 GitHub start/finish, physical Windows/Linux, school restrictions and novice
 student flow remain untested. The Java framework is unchanged; these Java edits
 were compile checks, not physical app input or full framework GUI evidence.
