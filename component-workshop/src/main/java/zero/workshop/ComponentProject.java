@@ -27,8 +27,8 @@ final class ComponentProject {
       throw new IOException("Unsupported component metadata schema.");
     component = metadata.getAsJsonArray("components").get(0).getAsJsonObject();
     if (!component.get("className").getAsString().equals("zero.community.HealthBar")
-        || !metadata.getAsJsonObject("library").get("version").getAsString().equals("0.1.1"))
-      throw new IOException("This local Workshop supports HealthBar from zero-community 0.1.1.");
+        || !metadata.getAsJsonObject("library").get("version").getAsString().equals("0.1.2"))
+      throw new IOException("This local Workshop supports HealthBar from zero-community 0.1.2.");
   }
 
   String value(String key) {

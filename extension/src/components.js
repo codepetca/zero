@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const {createHash} = require('node:crypto');
 const {pathToFileURL} = require('node:url');
+const {loadPublicCatalog, REPOSITORY_ID: PUBLIC_REPOSITORY} = require('./public-components');
 const GROUP = 'school.zero.community';
 const ARTIFACT = 'zero-community';
 const PREVIOUS = 'zero.community.previousVersion';
@@ -194,13 +195,14 @@ async function projectFiles(root, catalog) {
   return {root, pomPath, beforeText, beforeHash: hash(beforeText)};
 }
 async function inspectProject(root, context) {
+  const repositoryId = context.repositoryId || REPOSITORY;
   const snapshot = await projectFiles(root, context.catalog);
   const document = parseXml(snapshot.beforeText);
   const properties = single(document, 'properties');
   const dependencies = single(document, 'dependencies');
   const repositories = single(document, 'repositories', true);
   if (properties.selfClosing || dependencies.selfClosing || repositories?.selfClosing) fail('Use ordinary nonempty POM containers for community dependencies.');
-  if (value(single(properties, 'maven.compiler.release')) !== '17' || value(single(properties, 'javafx.version')) !== '21.0.12') fail('This local component requires Java 17 and JavaFX 21.0.12. Zero will not change your Java versions.');
+  if (value(single(properties, 'maven.compiler.release')) !== '17' || value(single(properties, 'javafx.version')) !== '21.0.12') fail('This component requires Java 17 and JavaFX 21.0.12. Zero will not change your Java versions.');
   // Profiles/parents/management can override apparently compatible project values.
   if (single(document, 'parent', true)) fail('Parent-managed Maven projects require manual component configuration.');
   for (const node of allNodes(document)) {
@@ -227,20 +229,20 @@ async function inspectProject(root, context) {
   const historyBlock = markers(snapshot.beforeText, properties, 'history', Boolean(dependencyBlock));
   const repositoryBlock = repositories ? markers(snapshot.beforeText, repositories, 'repository', Boolean(dependencyBlock)) : null;
   const historyNodes = allNodes(document).filter(node => node.name === PREVIOUS);
-  const repositoryNodes = allNodes(document).filter(node => node.name === 'repository' && node.children.some(child => child.name === 'id' && value(child) === REPOSITORY));
+  const repositoryNodes = allNodes(document).filter(node => node.name === 'repository' && node.children.some(child => child.name === 'id' && [REPOSITORY, PUBLIC_REPOSITORY].includes(value(child))));
   let currentVersion = null;
   let previousVersion = null;
   if (dependencyBlock) {
     const dependency = dependencyBlock.node;
     if (communityDependencies.length !== 1 || dependency !== communityDependencies[0] || dependency.name !== 'dependency' || dependency.children.length !== 3 || value(single(dependency, 'groupId')) !== GROUP || value(single(dependency, 'artifactId')) !== ARTIFACT) fail('A manual or duplicate community dependency needs manual configuration.');
     currentVersion = releaseVersion(value(single(dependency, 'version')));
-    if (!context.catalog.releases.some(release => release.version === currentVersion)) fail('The installed library version is not in this local catalog.');
+    if (!context.catalog.releases.some(release => release.version === currentVersion)) fail('The installed library version is not in this catalog. Use the catalog that supplied this project’s library.');
     if (!historyBlock || historyBlock.node.name !== PREVIOUS || historyNodes.length !== 1 || !repositoryBlock) fail('Community dependency history or repository is missing.');
     previousVersion = value(historyBlock.node);
     if (previousVersion === 'none') previousVersion = null;
-    else if (!context.catalog.releases.some(release => release.version === releaseVersion(previousVersion))) fail('The preceding version is not in this local catalog.');
+    else if (!context.catalog.releases.some(release => release.version === releaseVersion(previousVersion))) fail('The preceding version is not in this catalog. Use the catalog that supplied this project’s library.');
     const repository = repositoryBlock.node;
-    if (repositoryNodes.length !== 1 || repository !== repositoryNodes[0] || repository.name !== 'repository' || repository.children.length !== 4 || value(single(repository, 'id')) !== REPOSITORY || value(single(repository, 'url')) !== context.repositoryUrl || value(single(single(repository, 'releases'), 'enabled')) !== 'true' || value(single(single(repository, 'snapshots'), 'enabled')) !== 'false' || single(repository, 'releases').children.length !== 1 || single(repository, 'snapshots').children.length !== 1) fail('The managed community repository was changed. Review its local origin manually.');
+    if (repositoryNodes.length !== 1 || repository !== repositoryNodes[0] || repository.name !== 'repository' || repository.children.length !== 4 || value(single(repository, 'id')) !== repositoryId || value(single(repository, 'url')) !== context.repositoryUrl || value(single(single(repository, 'releases'), 'enabled')) !== 'true' || value(single(single(repository, 'snapshots'), 'enabled')) !== 'false' || single(repository, 'releases').children.length !== 1 || single(repository, 'snapshots').children.length !== 1) fail('The managed community repository was changed. Review its origin manually or choose the original catalog.');
   } else if (historyBlock || repositoryBlock || historyNodes.length || repositoryNodes.length) fail('Incomplete managed community configuration. Restore the complete blocks before continuing.');
   // No stray/renamed markers may acquire ownership or be silently ignored.
   const managedComments = allNodes(document).flatMap(node => node.comments).filter(comment => /^\s*Zero community [A-Za-z]+:/.test(comment.text));
@@ -260,21 +262,22 @@ async function prepareChange(root, context, targetVersion, {operation = 'add'} =
   if (operation === 'add' && project.currentVersion) fail('The community library is already installed. Choose Update or Revert.');
   if (operation !== 'add' && !project.currentVersion) fail('Add a component library before updating or reverting it.');
   if (operation === 'revert') {
-    if (!project.previousVersion) fail('No preceding library version is recorded.');
+    if (!project.previousVersion) fail('No preceding library version is recorded. Revert becomes available after updating this library.');
     if (targetVersion != null && targetVersion !== project.previousVersion) fail('Revert only restores the recorded preceding library version.');
     targetVersion = project.previousVersion;
   }
   releaseVersion(targetVersion);
-  if (!context.catalog.releases.some(release => release.version === targetVersion)) fail('Choose an immutable release listed in the local catalog.');
+  if (!context.catalog.releases.some(release => release.version === targetVersion)) fail('Choose an immutable release listed in the catalog.');
   if (targetVersion === project.currentVersion) fail('That library version is already installed.');
   if (operation === 'update') {
     const a = targetVersion.split('.').map(Number); const b = project.currentVersion.split('.').map(Number);
     if (a[0] !== b[0] || a[1] !== b[1] || a[2] <= b[2]) fail('Update supports a newer compatible patch. Use Revert for the recorded preceding version.');
   }
+  await verifyRelease(context, targetVersion);
   const newline = project.beforeText.includes('\r\n') ? '\r\n' : '\n';
   const dependency = block('dependency', `    <dependency>${newline}      <groupId>${GROUP}</groupId>${newline}      <artifactId>${ARTIFACT}</artifactId>${newline}      <version>${targetVersion}</version>${newline}    </dependency>`, newline);
   const history = block('history', `    <${PREVIOUS}>${project.currentVersion || 'none'}</${PREVIOUS}>`, newline);
-  const repository = block('repository', `    <repository>${newline}      <id>${REPOSITORY}</id>${newline}      <url>${xmlEscape(context.repositoryUrl)}</url>${newline}      <releases><enabled>true</enabled></releases>${newline}      <snapshots><enabled>false</enabled></snapshots>${newline}    </repository>`, newline);
+  const repository = block('repository', `    <repository>${newline}      <id>${context.repositoryId || REPOSITORY}</id>${newline}      <url>${xmlEscape(context.repositoryUrl)}</url>${newline}      <releases><enabled>true</enabled></releases>${newline}      <snapshots><enabled>false</enabled></snapshots>${newline}    </repository>`, newline);
   const edits = [];
   const xml = project._xml;
   function change(container, owned, content) {
@@ -293,15 +296,31 @@ async function prepareChange(root, context, targetVersion, {operation = 'add'} =
   for (const edit of edits.sort((a, b) => b.start - a.start)) afterText = afterText.slice(0, edit.start) + edit.text + afterText.slice(edit.end);
   parseXml(afterText);
   const {_xml, ...snapshot} = project;
-  return {...snapshot, afterText, targetVersion, operation, catalogFingerprint: context.fingerprint, repositoryUrl: context.repositoryUrl, summary: `${operation === 'add' ? 'Add' : operation === 'update' ? 'Update' : 'Revert'} experimental Zero community library: ${project.currentVersion || 'not installed'} → ${targetVersion}. Only pom.xml changes; your Java source stays yours.`};
+  return {...snapshot, afterText, targetVersion, operation, catalogFingerprint: context.fingerprint, repositoryUrl: context.repositoryUrl, summary: `${operation === 'add' ? 'Add' : operation === 'update' ? 'Update' : 'Revert'} ${context.catalog.origin === 'public-release' ? '' : 'experimental '}Zero community library: ${project.currentVersion || 'not installed'} → ${targetVersion}. Only pom.xml changes; your Java source stays yours.`};
 }
 async function validatePrepared(plan, context) {
-  const fresh = await loadCatalog(context.catalogPath);
-  if (fresh.fingerprint !== context.fingerprint || plan.catalogFingerprint !== fresh.fingerprint || fresh.repositoryUrl !== plan.repositoryUrl) fail('The component catalog or local repository changed. Review a new plan.');
+  const fresh = await reloadCatalog(context);
+  if (fresh.fingerprint !== context.fingerprint || plan.catalogFingerprint !== fresh.fingerprint || fresh.repositoryUrl !== plan.repositoryUrl) fail(`The component catalog or ${context.catalog.origin === 'public-release' ? 'public' : 'local'} repository changed. Review a new plan.`);
   const project = await readProject(plan.root, fresh);
   if (project.root !== plan.root || project.pomPath !== plan.pomPath || project.beforeHash !== plan.beforeHash || project.beforeText !== plan.beforeText || project.currentVersion !== plan.currentVersion || project.previousVersion !== plan.previousVersion) fail('Your POM changed after review. Prepare a new component change to preserve your edits.');
   const again = await prepareChange(plan.root, fresh, plan.targetVersion, {operation: plan.operation});
   if (again.afterText !== plan.afterText) fail('The prepared component change is no longer valid. Review a new plan.');
   return true;
 }
-module.exports = {loadCatalog, readProject, prepareChange, validatePrepared};
+async function reloadCatalog(context) {
+  return context.catalog.origin === 'public-release' ? context.reload() : loadCatalog(context.catalogPath);
+}
+async function verifyRelease(context, version) {
+  if (context.catalog.origin !== 'public-release') return;
+  const contents = await context.verifyRelease(version);
+  const pom = parseXml(contents.pom.toString('utf8'));
+  if (value(single(pom, 'groupId')) !== GROUP || value(single(pom, 'artifactId')) !== ARTIFACT || value(single(pom, 'version')) !== version) fail('Release POM coordinates do not match the public catalog.');
+  const licenses = single(pom, 'licenses', true);
+  const mit = licenses?.children.some(license => {
+    if (license.name !== 'license') return false;
+    const name = single(license, 'name', true), url = single(license, 'url', true);
+    return (name && ['MIT','MIT License'].includes(value(name))) || (url && value(url) === 'https://opensource.org/licenses/MIT');
+  });
+  if (!mit) fail('The public release POM must declare the MIT license.');
+}
+module.exports = {loadCatalog, loadPublicCatalog, reloadCatalog, verifyRelease, readProject, prepareChange, validatePrepared};

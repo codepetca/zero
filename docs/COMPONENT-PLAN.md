@@ -80,3 +80,49 @@ configured. Two independent reviews and two bounded fix batches resolved six P2s
 See [verification](VERIFICATION.md) and CURRENT for exact revisions/evidence.
 Local artifacts: zero-bootstrap.zip and zero-components.zip in ignored dist/.
 Public adoption and untested platform/native flows remain explicitly separate.
+
+
+## Public workflow — active, 2026-10-09
+
+Owner authorized orchestration/public delivery with "go", keeping it ultra simple.
+Existing maintain/admin users of codepetca/zero-community may accept contributions;
+automated checks/AI/contributor receipts cannot accept them. No new accounts,
+credentials, permissions or repository settings. Preserve unrelated funding work.
+
+Deliver one public HealthBar library 0.1.2 with MIT notices; preserve historical
+0.1.0/0.1.1 bytes. Initial public component remains experimental under explicit
+owner release authorization; independent human GitHub review is needed before
+claiming community acceptance. A contribution without a qualifying maintainer
+review waits. Keep existing fork/PR CI read-only and Workshop export source-bound.
+
+One trusted generated manifest in Zero release/community.json comes from community
+release receipts and catalog/components.json. No second authored component catalog.
+Fixed catalog https://zero.codepet.ca/community/catalog.json; fixed ordinary Maven
+base https://zero.codepet.ca/community/maven. GitHub Release assets remain flat;
+website maps exact known Maven paths to fixed codepetca/zero-community release
+assets, verifies bounded bytes/size/SHA256 before serving and supplies sha1/sha256
+sidecars. Unknown paths404; upstream/hash failures refuse bytes/no-store.
+
+Public manifest contract: schemaVersion1, origin public-release,
+publication {status:local|published,repository:codepetca/zero-community},
+repositoryUrl fixed Maven base, library fixed groupId school.zero.community,
+artifactId zero-community, version0.1.2, javaRelease17, javafxVersion21.0.12;
+latest, components derived from source metadata, releases array. Each release:
+version, sourceRevision (40hex), sourceDigest(64hex), notes, artifacts with four
+keys jar/pom/sources/javadoc. Each artifact: exact Maven-relative path, size,
+sha256, url (fixed repo/release download tag vVERSION/basename). Optional workshop
+record: filename zero-community-workshop-VERSION.zip, size, sha256, same tag URL.
+Public manifests contain actual verified published URLs, never guessed availability.
+
+Extension public adapter shares existing POM/native-editor plan guard; public
+catalog is default, explicit local selection retained. No new sidebar section.
+Try uses trusted bundled example and disposable Maven cache. Public POM is portable.
+Workshop ZIP remains portable, with editable community source and verified local
+core/community artifacts; no public core migration. One public version initially;
+Update/Revert use later real fixes, tested with fixtures and preserved local proof.
+
+Phases: community licensed build/release and authenticated acceptance helper →
+review/CI/source merge/public assets → Zero gateway/consumer/portable Workshop →
+review/CI/merge/live public Maven consumer → kit0.5.2 publication using publisher.
+No artificial second community release or new AI provider. Native OS and classroom
+limitations reported separately. Weekly39%remaining; DeepSeek paused through2026-12-31.

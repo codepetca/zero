@@ -8,6 +8,7 @@ import {
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateManifest } from "../lib/contracts.mjs";
+import { validateCommunityManifest } from "../lib/community.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -69,11 +70,14 @@ for (const name of ["SimpleApp", "SketchApp"])
 const release = validateManifest(
   JSON.parse(await readFile(resolve(root, "release/kit.json"), "utf8")),
 );
+const community = validateCommunityManifest(
+  JSON.parse(await readFile(resolve(root, "release/community.json"), "utf8")),
+);
 await mkdir(resolve(site, ".generated"), { recursive: true });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, community, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

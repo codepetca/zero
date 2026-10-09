@@ -51,10 +51,11 @@ let pom = await readFile(path.join(app,'pom.xml'),'utf8');
 pom = pom.replace('<app.mainClass>Main</app.mainClass>','<app.mainClass>ComponentCheck</app.mainClass>');
 pom = pom.replace('<mainClass>${app.mainClass}</mainClass>','<mainClass>${app.mainClass}</mainClass><options><option>-Dproof.version=${proof.version}</option></options>');
 await writeFile(path.join(app,'pom.xml'),pom);
-const catalog = await components.loadCatalog(path.join(generated,'component-catalog.json'));
+const catalog = await components.loadCatalog(path.join(generated,'component-legacy-catalog.json'));
 const cache = path.join(directory,'cache');
 // Reuse only third-party cache downloads; remove the tested coordinates first.
-await cp(path.join(root,'../zero-community/.proof/cache'),cache,{recursive:true,filter:filename=>!filename.includes(path.join('school','zero','community'))});
+const community = path.resolve(process.argv[2] || path.join(root,'../zero-community'));
+await cp(path.join(community,'.proof/cache'),cache,{recursive:true,filter:filename=>!filename.includes(path.join('school','zero','community'))});
 const settings = path.join(generated,'component-settings.xml');
 const receipts=[];
 for (const [operation,version] of [['add','0.1.0'],['update','0.1.1'],['revert','0.1.0']]) {

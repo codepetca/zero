@@ -90,3 +90,27 @@ artifact releases, appoint maintainers and select an artifact host. Local Health
 fixtures remain experimental; licensing does not make them reviewed community
 releases. Historical local catalogs may retain the previous UNLICENSED label. External GitHub/AI execution and physical Windows/Linux verification
 must be reported separately from local automated evidence.
+
+
+## Public component pilot
+
+The first public library is planned as 0.1.2, containing HealthBar under MIT.
+Historical 0.1.0/0.1.1 local fixtures retain their original bytes. Public Browse
+uses the fixed Zero catalog and HTTPS Maven repository; explicit local catalogs
+remain available. The website checks each listed artifact's size/SHA256 before
+serving it. Exact dependency versions keep old assignments stable. One public
+version initially means Update/Revert become available after a real later fix.
+
+Public source checks and publication are separate. The owner authorized an initial
+experimental release; it is not community-approved. Existing maintain/admin users
+of zero-community may accept contributions through independent, current-head
+GitHub review after CI. The owner-side check-github-acceptance.py helper reads
+GitHub directly and returns waiting unless that decision and current checks exist.
+It cannot approve, merge or publish. Contributor/AI/CI fields never grant authority.
+
+The portable Workshop includes editable source and verified local core/community
+artifacts. Students preview/check/export with JDK and their wrapper, then propose
+a normal fork/PR; no Python or Node is required for the student flow. Maven remains
+the resolver. The first catalog contains one component, and no live AI service or
+new student account is introduced. Actual public availability follows the release
+receipts and website manifest; see VERIFICATION for delivery evidence.

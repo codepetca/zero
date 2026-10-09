@@ -15,3 +15,4 @@ export function downloadHref(asset = 'kit') {
 }
 
 export const sources: Record<string,string> = snapshot.sources;
+export const community = snapshot.community;

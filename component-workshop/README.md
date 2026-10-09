@@ -1,7 +1,7 @@
-# Component Workshop — local prototype
+# Component Workshop — HealthBar 0.1.2
 
 A native JavaFX app built with Zero's ordinary `SimpleApp`. It previews the pinned
-`school.zero.community:zero-community:0.1.1` HealthBar; it does not compile arbitrary
+`school.zero.community:zero-community:0.1.2` HealthBar; it does not compile arbitrary
 components or execute their examples. The light interface uses a purple selected
 example, named Full/Partial/Empty/Custom caption states, caption/value controls and
 reset. Examples and API tabs read the community project's actual metadata and files.
@@ -23,7 +23,7 @@ to the compiled class hash. Changes after candidate compilation make its runtime
 checks unavailable until another build.
 
 From the Zero repository root, prepare the local repository with the coordinator's
-`scripts/prepare-component-workshop.mjs` integration command, then use the bundled
+`node scripts/prepare-component-workshop.mjs ../zero-community --public` command, then use the bundled
 student Maven wrapper (JDK 17):
 
 ```sh
@@ -32,7 +32,7 @@ student-template/mvnw -f component-workshop/pom.xml \
   -Dzero.communityRoot=file:///absolute/path/to/zero-community compile javafx:run
 ```
 
-For the portable `zero-components.zip`, extract the whole folder, open
+For the portable `zero-community-workshop-0.1.2.zip`, extract the whole folder, open
 `component-workshop/` in VS Code and use the standard build shortcut. Or run
 `./mvnw compile javafx:run` there (Windows: `.\mvnw.cmd compile javafx:run`).
 The bundled sibling folders supply the local repository and editable community
@@ -41,7 +41,7 @@ For custom locations, use a file URI with spaces encoded as `%20`; the developer
 preparation script generates it. Run the portable wrapper from its Workshop folder.
 
 The local repository must contain `school.zero:zero-core:0.1.1` and
-`school.zero.community:zero-community:0.1.1`. JavaFX is pinned at 21.0.12 and Gson
+`school.zero.community:zero-community:0.1.2`. JavaFX is pinned at 21.0.12 and Gson
 at 2.11.0. The default endpoint is the local sibling `component-repository/`,
 never a public community service. The wrapper may resolve
 pinned build/third-party dependencies from Maven Central on its first run.
@@ -54,7 +54,7 @@ prove physical typing, clicks, DirectoryChooser interaction or other operating s
 
 “Run checks” checks fractional fill, clamping, independent instances and invalid
 construction in the loaded runtime, and records the source digest using the shared packet schema. Runtime checks become
-unavailable for edited source that differs from the immutable 0.1.1 sources JAR until an explicit candidate
+unavailable for edited source that differs from the immutable 0.1.2 sources JAR until an explicit candidate
 build succeeds. AI advisory review is explicitly unavailable. These contributor
 checks cannot approve a component.
 
@@ -66,5 +66,9 @@ credentials, caches and build artifacts are excluded. Packet generation uses ord
 stay visible. No upload, GitHub action, release or reviewed status is implied.
 
 Status and license are shown from metadata. Current Zero Community source uses MIT;
-older local catalogs may say UNLICENSED. Appointed maintainers and artifact hosting
-remain future decisions; coursework submission in Pika is separate.
+HealthBar 0.1.2 remains experimental. Existing maintain/admin users of the public
+community repository independently accept contributions. Fork
+[zero-community](https://github.com/codepetca/zero-community), make source changes
+on a branch and open a pull request with your check evidence. Export never uploads
+a packet or approves it; contributor, CI and AI receipts cannot provide human
+acceptance. Coursework submission in Pika is separate.

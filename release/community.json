@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "origin": "public-release",
+  "publication": { "status": "local", "repository": "codepetca/zero-community" },
+  "repositoryUrl": "https://zero.codepet.ca/community/maven",
+  "library": {
+    "groupId": "school.zero.community",
+    "artifactId": "zero-community",
+    "version": "0.1.2",
+    "javaRelease": 17,
+    "javafxVersion": "21.0.12"
+  },
+  "latest": "0.1.2",
+  "components": [],
+  "releases": []
+}

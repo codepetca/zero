@@ -680,3 +680,21 @@ existing lightweight/annotated tags against the prepared source before uploaded
 byte verification and immediately before publication. Wrong tags and tag drift
 leave the draft private without a publication PATCH; matching annotated tags
 and absent draft tags retain normal publication. Targeted review follows.
+
+
+## Public community source — 2026-10-09
+
+Implementation adds the fixed public catalog/Maven transport and public default
+consumer while retaining explicit local catalogs, native editor guards and minimal
+sidebar. Root worker sweep105/105 passed; corrected public/Workshop schema delta
+50/50 focused tests passed. Website17/17 tests, typecheck and production build pass.
+Gateway tests cover four exact artifacts, SHA1/SHA256 sidecars, corrupt/oversized
+bytes, no unchecked redirect, HEAD, unknown/traversal paths and retry/no-store.
+
+Workshop worker verified historical real add/update/revert and a disposable
+committed 0.1.2 candidate with the finite native harness plus Java-to-Python packet
+validation. Community worker verified32 admission and12 public boundary checks,
+two reproducible builds, three behavior checks, two consumer apps and preserved
+historical bytes. Final canonical-source candidate/archive, independent review,
+CI and actual public Maven/VSIX delivery remain next. No new physical Windows/Linux
+or novice classroom evidence is claimed.
