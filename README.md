@@ -23,7 +23,7 @@ Physical Windows/Linux and novice student trials remain unverified; see the
 
 ## Download Zero
 
-[Download Zero 0.5.0](https://github.com/codepetca/zero/releases/download/v0.5.0/zero-bootstrap.zip) and follow `START-HERE.md`.
+[Download Zero 0.5.1](https://github.com/codepetca/zero/releases/download/v0.5.1/zero-bootstrap.zip) and follow `START-HERE.md`.
 The complete kit is a single ZIP; original Zero code is MIT licensed.
 
 ## Start here
