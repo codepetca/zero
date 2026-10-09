@@ -76,6 +76,11 @@ component proof, `npm run package:components` adds `zero-components.zip` with
 Workshop, community source, both immutable versions and a local catalog.
 These are experimental local artifacts; packaging does not publish them.
 
+Maintainers approve a reviewed new version with `npm run release:publish -- --version 0.5.2`.
+The command checks, publishes verified files, updates the website through a checked PR
+and verifies the live kit. See [releasing Zero](docs/RELEASING.md) for prerequisites,
+recovery and the read-only `--verify-only` option.
+
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
 Original Zero code is available under the [MIT license](LICENSE). Bundled

@@ -1,5 +1,32 @@
 # Current state — 2026-10-09
 
+## One-command Zero publishing — review and CI
+
+Owner said "do it" to final release automation: one explicit version command
+prepares checked assets, publishes exactly three files, promotes website metadata
+through a checked PR and verifies the live kit bytes. Existing 0.5.0/0.5.1 and
+core/component coordinates stay immutable. No new release solely to test; no
+community intake, credential, account-setting or branch-rule changes.
+
+Managed `/Users/stew/.codex/worktrees/release-publishing/zero`, branch
+`codex/release-publishing`, base `1835091`, preserves dirty primary funding work.
+Publisher worker GPT-6.1 Sol/high delivered the two script files and released
+ownership; coordinator owns integration and acceptance. Existing local gh sign-in
+performs future explicit publication; preparation Actions retain contents:read.
+
+Local configuration check, 39/39 release tests, website typecheck, 7/7 tests and
+production build pass. Actual read-only `--version 0.5.1 --verify-only` passed:
+all three public assets and the live landing's actual kit bytes match. New-version
+workflow/draft/publication/metadata-PR lifecycle uses transport fixtures; no new
+real release was created. Native OS/editor evidence remains historical.
+
+Exit: independent current-head review, green CI, main merge and final public
+read-only proof. Weekly 42% remaining at start; DeepSeek paused through
+2026-12-31. No new tool-backed goal. Review risk high (publication/merge boundary):
+two fresh GPT-6.1 Sol/high reviewers, security/correctness and lifecycle/integration.
+Budget: 7 launches, 1 initial wave, 4 targeted waves, 1 integration wave,
+4 fix batches, 60-minute session and 30-minute reviewer caps. Review not yet started.
+
 ## Learning website — integration and publication in progress
 
 Owner approved the compact guided hub and tutorial reader, requested short

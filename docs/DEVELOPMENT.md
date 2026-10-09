@@ -30,7 +30,8 @@ Packaging creates local artifacts in `dist/` and does not publish them.
 A published kit version is immutable: packaging refuses to overwrite it. Set a
 new local kit/extension version before building the next release. Existing
 public asset URLs/checksums remain pinned to their release. See
-[release preparation and publication](RELEASING.md) for the read-only CI workflow.
+[release preparation and publication](RELEASING.md) for the one-command publisher
+and its read-only CI preparation workflow.
 
 Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
 ignored readable copies into the starter; checks/packaging prepare them too.

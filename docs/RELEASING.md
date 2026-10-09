@@ -6,26 +6,83 @@ kit, standalone starter and versioned VSIX. Optional component archives stay loc
 The workflow prepares review artifacts with read-only GitHub permissions; it
 never creates a tag, release, deployment or account credential.
 
-## Prepare a new version
+## Publish a new version with one command
 
-1. Create a feature branch from current `main`. Choose an unused numeric version
-   such as `0.5.2`; never replace the bytes of an existing version.
-2. Update `kitVersion`, `publication.tag` (`v0.5.2`), and the extension filename
-   (`zero-0.5.2.vsix`) in `release/kit.json`. Set `publication.status` to `local`,
-   retain the canonical repository, and remove prior `url`, `size` and `sha256`
-   values from the three main asset definitions. Keep optional components local.
-   Match the version in `extension/package.json`. Change `coreVersion` and its
-   canonical POM references only when the core actually changes. The website
-   package's version is independent; its downloads come from the release manifest.
-3. Open a draft PR. **Release checks and preparation** runs configuration,
-   extension/starter tests, finite JavaFX examples under Xvfb, website checks,
-   packaging and exact archive/source/license/integrity verification. Published
-   manifests still run checks but skip packaging and upload. No push or tag
-   triggers automatic publication.
-4. Complete independent review and required CI before merging the source PR.
-   Then run the workflow manually on the reviewed source ref, entering its exact
-   new version. The manifest must still be local. Existing tags/releases, wrong
-   versions and unavailable GitHub absence checks stop preparation.
+Release tooling is for maintainers; students do not need Node.js or GitHub CLI.
+Use Node.js 22+, Git and a GitHub CLI (`gh`) already signed into an account allowed
+to publish releases and merge PRs in `codepetca/zero`. No additional token, GitHub
+App, Vercel secret or account-setting change is needed. Publication uses your
+existing CLI account; CI preparation retains read-only GitHub permissions.
+
+1. Create a feature branch from current `main`. Choose an unused numeric version,
+   for example `0.5.2`. Set the kit/extension versions, tag and filename together:
+   `release/kit.json` → `kitVersion`, `publication.tag` and extension filename;
+   `extension/package.json` → `version`. Set publication status to `local` and
+   clear the main assets' old `url`, `size` and `sha256` values. Keep optional
+   components local. Update the VSIX filename in `release/START-HERE.md`,
+   `docs/GETTING-STARTED.md` and `student-template/README.md`. Change core versions
+   only when the core actually changes. Keep the last verified README download
+   until the new release is public.
+2. Complete the normal source PR review and CI, then merge it to `main`.
+3. Approve publishing that exact version by running this once from a Zero checkout:
+
+```sh
+npm ci
+npm run release:publish -- --version 0.5.2
+```
+
+The publisher works in an isolated temporary checkout and leaves your current
+branch, working files and local `dist/` untouched. It selects the canonical remote
+`main`, starts the preparation workflow, correlates its run to the selected source
+and waits for successful checks. It downloads the sealed candidate and verifies
+its source/run receipt, exact filenames, licenses, sizes and SHA256 values.
+
+It creates and verifies a draft targeting that source commit, publishes precisely
+the three main files, and retrieves each public download without authentication
+to check its bytes. It generates only `release/kit.json` and README's download
+label/link, opens the metadata PR, waits for checks and merges that exact checked
+head through the normal PR path. Finally it waits for Vercel's existing Git
+integration and checks the actual live landing-page kit link and downloaded bytes.
+It reports release/PR URLs and a completion message; it never edits credentials,
+account settings, branch rules or community artifacts.
+
+## Retry and verify
+
+A stopped run can leave a correctly published release or an open metadata PR.
+Do not delete the release, replace files or invent a new version just to retry.
+Keep the reported preparation run ID and use the same version:
+
+```sh
+npm run release:publish -- --version 0.5.2 --run-id <successful-run-id>
+```
+
+Resume only accepts the same successful source-bound candidate and exact existing
+release files. A conflicting draft, changed bytes/source, unexpected metadata PR,
+failed checks, merge denial or unavailable verification stops publication/update
+rather than replacing another result or bypassing a rule. Fix the reported cause
+and resume the same verified run. An expired preparation artifact needs maintainer
+investigation; an already public release remains immutable.
+
+After metadata has merged, rerunning without a run ID automatically verifies the
+completed release. You can also request this explicitly with the read-only check:
+
+```sh
+npm run release:publish -- --version 0.5.1 --verify-only
+```
+
+This checks the current published manifest, public downloads and live site; it
+cannot dispatch a workflow, create/publish a release, change a branch or merge a PR.
+If the live site has not yet deployed after a successful merge, retry verification;
+a timeout does not undo the already published release or merged PR.
+
+## Preparation workflow and manual fallback
+
+Every source PR runs **Release checks and preparation**: configuration, release
+failure tests, extension/starter tests, finite JavaFX examples under Xvfb, website
+checks and, for a new local version, packaging/archive integrity verification.
+Published manifests skip rebuilding immutable downloads. Only an explicit publish
+command carries out publication; a push, tag or ordinary PR never publishes.
+Manual workflow dispatch and deliberate CLI publication remain a fallback below.
 
 Use the selected ref deliberately: `gh workflow run release-review.yml --ref
 <reviewed-ref> -f version=0.5.2`. The workflow file must exist on the default

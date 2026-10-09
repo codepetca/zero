@@ -651,3 +651,24 @@ Release0.5.1 manifest, download helpers/routes, dependency locks and all Java
 sources unchanged. Existing immutable kit is not rebuilt; new website lessons
 will enter a future kit. Native OS/editor/classroom evidence remains as previously
 recorded. Independent reviewed-head CI and live publication receipts follow.
+
+
+## One-command release publisher — 2026-10-09
+
+Root configuration/link checks and 39/39 release tests pass (36 new publisher
+scenarios plus 3 preparation guards). Disposable-file fixtures intercept all
+GitHub/Git publication transports: exact three assets, realistic draft URLs,
+source/run/checksum drift, expired artifacts, existing branch/PR resume, immutable
+conflicts, failed CI/current-head guards, public and live corrupted bytes.
+Website typecheck, 7/7 tests and production build also pass.
+
+The actual `release:publish -- --version 0.5.1 --verify-only` command retrieved
+canonical main, checked the pinned tag and three public asset URLs/sizes/SHA256s,
+and fetched the live Download Zero link and kit bytes successfully. It dispatched
+no workflow and changed no remote release, branch, PR or credential.
+
+No new version was created solely for testing. Real new-version dispatch, draft
+publication and generated metadata PR/merge remain exercised through fixtures,
+not a complete real publication trial. No new Windows/Linux or interactive
+student/editor evidence is claimed. Existing immutable releases stay unchanged.
+Independent source review, CI and merge evidence will be recorded in the PR.
