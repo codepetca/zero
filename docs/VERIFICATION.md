@@ -529,3 +529,17 @@ on Vercel. Visual comparison passed; see website/design-qa.md.
 
 No source push, PR, release publication, Vercel deployment, DNS or credentials
 changed in this phase. Local generated artifacts and browser evidence are ignored.
+
+
+## MIT release — 2026-10-09
+
+Owner selected MIT for original Zero. Canonical license text is included in the
+kit root/nested starter, standalone starter and VSIX LICENSE.txt; SPDXMIT and
+wrapper Apache notices verified. Two targeted source/license drift and extracted
+editable Maven checks pass. Main archives contain38/33/21entries respectively.
+Independent MIT/package integration review61d772b complete with no findings.
+Source PR4 merged8c54a3c. Public v0.5.0 contains only the three main artifacts;
+unauthenticated downloads independently matched their receipt sizes/SHA256s.
+Community archive remains local and its separate license unresolved. Website
+publication metadata is populated from those verified bytes; native platform
+limitations above remain unchanged.

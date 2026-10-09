@@ -19,6 +19,11 @@ A Mac teacher trial verified real sign-in/create/connect/cancel/upload/copy-link
 Physical Windows/Linux and novice student trials remain unverified; see the
 [verification record](docs/VERIFICATION.md) for checks actually performed.
 
+## Download Zero
+
+[Download Zero 0.5.0](https://github.com/codepetca/zero/releases/download/v0.5.0/zero-bootstrap.zip) and follow `START-HERE.md`.
+The complete kit is a single ZIP; original Zero code is MIT licensed.
+
 ## Start here
 
 - [Student/teacher setup](docs/GETTING-STARTED.md)

@@ -20,7 +20,8 @@ include completed reviewed local phases. Vercel devcodepet-5583 current team
 stewarts-projects-cc2722c4; Zero project created as
 prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA. FrameworkNext.js/rootwebsite/npmci/npmbuild,
 Node22.x and sourceFilesOutsideRootDirectory true independently read back.
-No Git connection/deployment yet; license implementation/verification underway. Cloudflare codepet.ca active
+SourcePR4 merged8c54a3c; public v0.5.0 main3 assets verified by unauthenticated
+download/hash. Website publication metadata and Vercel connection underway. Cloudflare codepet.ca active
 zone49640bebf0b463a4d227dfcfd509ef79 has no zero.codepet.ca record.
 
 
@@ -617,3 +618,16 @@ bytes verified in starter,kitroot/starter and standardVSIXLICENSE.txt; SPDXMIT.
 Checks rootconfig,2 meaningful drift/extracted-edit compiletests,package/verifykit
 pass. No Java or Maven-coremetadata change; optionalcomponentarchive unchanged.
 No conflicts; coordinator owns websitecopy/docs and externalactions.
+
+MIT final integration receipt mit_release_review/1 Sol/high ~4minestimated:
+23f2ea7→61d772bf9b57ad7d3ca245670f2fdad4da8b79d2 complete17filedelta
+and cumulative101fileinventory/previousreviewreceipts. Zero findings; independently
+checked5website tests, canonicallicense/SPDX/upstreamnotices/archivehashes and
+source/privateinventory. Unchanged priorreviews/89tests/native/browser reused.
+SourcePR4https://github.com/codepetca/zero/pull/4 merged8c54a3c855724243f8dc4bd0c88bd756f7a484ba,
+mainfastforwarded and source tree equal reviewed head. Release v0.5.0 target8c54a3c
+publicmain3 only; exact100306/42483/56676byte assets SHA256d296f25f…783980,
+3046d303…706289,4241893d…31f723. Publiccurlretrievalsverifiednoauth.
+Releasephasebudget2reviewerlaunches,1initialwave,1integrationwave; ownerdecision
+resolved. Effective model/token usage unknown. Nextmetadata delta review keeps
+remainingtargeted budget. No remote community changes.
