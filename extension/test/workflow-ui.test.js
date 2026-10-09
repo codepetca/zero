@@ -9,13 +9,21 @@ const core = require('../src/core');
 const github = require('../src/github');
 const workflow = require('../src/workflow');
 const disposable = () => ({dispose(){}});
-const settle = async () => {for(let i=0;i<8;i++) await new Promise(resolve=>setImmediate(resolve));};
+const waitFor = async (condition, message) => {
+  const deadline = Date.now() + 2000;
+  while (!condition()) {
+    assert.ok(Date.now() < deadline, message || 'Expected asynchronous UI state');
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+};
 
 test('individual change actions are reviewed, serialized, simulated and recover conflicts through native Git', async t => {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-workflow-ui-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.writeFile(path.join(root,'zero.json'),'{}');
-  const original = {git:core.git,assert:core.assertRepositoryRoot,prepare:github.prepareUpload,...workflow};
-  t.after(()=>{core.git=original.git;core.assertRepositoryRoot=original.assert;github.prepareUpload=original.prepare;for(const key of Object.keys(workflow))workflow[key]=original[key];});
+  const original = {git:core.git,resolve:core.resolveProject,assert:core.assertRepositoryRoot,prepare:github.prepareUpload,...workflow};
+  t.after(()=>{core.git=original.git;core.resolveProject=original.resolve;core.assertRepositoryRoot=original.assert;github.prepareUpload=original.prepare;for(const key of Object.keys(workflow))workflow[key]=original[key];});
+  let projectResolves=0;
+  core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
   let branch='main',mode='simulation',session={id:'session',account:{id:'student',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider;
   let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,confirm,reviewGate,pickGate,warningGate,finishError,finishUpdates=false,nativeScm=true;
   const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],metadata={};
@@ -40,16 +48,19 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true}});
-  const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await settle();
+  const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
   assert.match(webview.html,/data-command="zero.chooseBranch"[^>]*aria-label="Current branch: main/);assert.match(webview.html,/Upload changes/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;
-    metadata[event]({fsPath:path.join(root,'.git','HEAD')});await settle();
+    metadata[event]({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes(`Current branch: ${branch}`), 'Native HEAD update should render');
     assert.ok(webview.html.includes(`Current branch: ${branch}`),'Native HEAD events refresh the branch without a Zero command');
   }
-  branch='outside-root';metadata.change({fsPath:path.join(root,'other','.git','HEAD')});await settle();
+  const resolvesBeforeOutside=projectResolves;
+  branch='outside-root';metadata.change({fsPath:path.join(root,'other','.git','HEAD')});
+  // Resolution starts synchronously when a refresh is requested.
+  assert.equal(projectResolves,resolvesBeforeOutside,'Other project metadata must not start a refresh');
   assert.ok(webview.html.includes('Current branch: native-create'),'Git metadata from another project is ignored');
-  branch='main';metadata.change({fsPath:path.join(root,'.git','config')});await settle();
+  branch='main';metadata.change({fsPath:path.join(root,'.git','config')});await waitFor(()=>webview.html.includes('Current branch: main'), 'Origin configuration update should render');
   assert.match(webview.html,/Current branch: main/,'Origin configuration changes refresh the repository and branch');
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['start']);
   let releaseWarning;warningGate=new Promise(resolve=>{releaseWarning=resolve;});const authBefore=authCalls;
@@ -60,7 +71,7 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   input='add-score';confirm=undefined;await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,0);assert.match(reviews.at(-1).options.detail,/student\/app.*\nGitHub account: student/);
   confirm='Start change';await commands.get('zero.startChange')();assert.equal(executed,1);assert.match(webview.html,/>add-score ▾<\/button>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
-  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge & Upload main';const pending=commands.get('zero.finishChange')();while(reviews.at(-1).text!=='Finish this change?')await settle();
+  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge & Upload main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1).text==='Finish this change?', 'Finish review should open');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
   assert.deepEqual({saved,prepared,authCalls},before);assert.match(webview.html,/data-command="zero.chooseBranch"[^>]* disabled/);
   session={...session,id:'changed'};authEvent({provider:{id:'github'}});releaseReview();await pending;reviewGate=undefined;
@@ -72,7 +83,7 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   // Answer each modal by its purpose for the successful optional cleanup.
   branch='add-score';vscode.window.showInformationMessage=async(text,options)=>{if(options?.modal)return text.startsWith('Delete')?'Delete local branch':'Merge & Upload main';};
   await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.deepEqual(deletions[0],[root,'add-score','f'.repeat(40)]);
-  branch='<branch "x">';provider.resolveWebviewView(candidate);await settle();assert.match(webview.html,/&lt;branch &quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
-  branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();while(!picks.at(-1).options.title.includes('main'))await settle();await settle();
+  branch='<branch "x">';provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes('&lt;branch &quot;x&quot;&gt;'));assert.match(webview.html,/&lt;branch &quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
+  branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.at(-1).options.title.includes('main'), 'Main branch menu should open');
   const beforeMenu=executed;await commands.get('zero.startChange')();assert.equal(executed,beforeMenu);branch='changed-elsewhere';releasePick();await menu;pickGate=undefined;assert.equal(executed,beforeMenu,'A changed branch invalidates the menu selection');
 });
