@@ -1,131 +1,48 @@
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { PageHeader } from "@/components/PageHeader";
+import { community } from "@/lib/content";
 export const metadata = { title: "Community" };
 export default function Community() {
+  const published = community.publication.status === "published";
+  const current = (community.releases as Array<{version: string; sourceRevision: string; workshop?: unknown}>).find(item => item.version === community.latest);
+  const api = `https://github.com/codepetca/zero-community/blob/${current?.sourceRevision || "main"}/docs/HealthBar.md`;
   return (
     <>
       <PageHeader active="Community" />
       <main id="page-content" tabIndex={-1} className="reading">
         <div className="intro">
           <p className="eyebrow">Zero Community</p>
-          <h1>
-            Small components.
-            <br />
-            Shared learning.
-          </h1>
-          <p className="lead">
-            Build a useful Java library, explain it clearly, and help the next
-            person make something.
-          </p>
+          <h1>One useful piece.<br />Make it better together.</h1>
+          <p className="lead">Small Java components you can use, understand and improve.</p>
         </div>
-        <p className="community-links">
-          <a href="https://github.com/codepetca/zero-community">
-            Community source
-          </a>{" "}
-          ·{" "}
-          <a href="https://github.com/codepetca/zero-community/blob/main/docs/CONTRIBUTING.md">
-            Contribution guide
-          </a>
-        </p>
-        <p className="community-availability">
-          Experimental local tooling. Public Maven artifacts and a hosted
-          catalog are not available.
-        </p>
+        <h2>HealthBar</h2>
+        <p>A label and progress bar for health or energy. Your app owns the value; HealthBar displays it.</p>
+        <p>{published ? `Version ${community.latest} · Java 17 · MIT · Experimental` : "Public downloads are being prepared."}</p>
+        <div className="resource-links">
+          <a href={api}>API &amp; examples</a>
+          {published && Boolean(current?.workshop) && <a className="button secondary compact" href="/community/workshop">Download Workshop</a>}
+        </div>
         <details className="reading-section">
-          <summary>
-            <h2>The community starts with source</h2>
-            <Icon name="chevron-down" />
-          </summary>
+          <summary><h2>Use it in your app</h2><Icon name="chevron-down" /></summary>
           <div className="reading-section-body">
-            <p>
-              <a href="https://github.com/codepetca/zero-community">
-                codepetca/zero-community
-              </a>{" "}
-              is the public source home for the experimental component workflow.
-              It contains the HealthBar example, contribution guidance and
-              admission checks.
-            </p>
-            <p>
-              GitHub hosts source. Generated Maven artifacts and the component
-              catalog remain local. There is no live catalog service or public
-              Maven repository to browse here.
-            </p>
-            <a
-              className="button secondary compact"
-              href="https://github.com/codepetca/zero-community"
-            >
-              Visit Zero Community
-            </a>
+            <p>In Zero, open the sidebar’s (…) menu → Browse components → HealthBar. Try the example, then choose Add library.</p>
+            <p>Zero adds an exact Maven version to your project. Your Java stays editable. Update is available when a later fix is published; Revert restores your previous version after an update.</p>
+            <pre><code>{'import zero.community.HealthBar;\n\nHealthBar energy = new HealthBar("Energy", 100);\nenergy.setHealth(75);\n// Add energy.view() to your JavaFX layout.'}</code></pre>
+            <Link href="/learn#downloads">Get Zero</Link>
           </div>
         </details>
         <details className="reading-section">
-          <summary>
-            <h2>Make one understandable thing</h2>
-            <Icon name="chevron-down" />
-          </summary>
+          <summary><h2>Improve it for others</h2><Icon name="chevron-down" /></summary>
           <div className="reading-section-body">
-            <p>
-              A component is an ordinary Java library with a pinned Maven
-              version. Start with a small helper or control, document its API
-              and prove it works in more than one app. Your app keeps ownership
-              of its state and explicitly calls its objects’ methods.
-            </p>
-            <p>
-              Read the community’s{" "}
-              <a href="https://github.com/codepetca/zero-community/blob/main/docs/CONTRIBUTING.md">
-                contribution guide
-              </a>{" "}
-              before proposing a change. Automated checks validate evidence;
-              they do not grant publication or approval.
-            </p>
-          </div>
-        </details>
-        <details className="reading-section">
-          <summary>
-            <h2>Try the Component Workshop</h2>
-            <Icon name="chevron-down" />
-          </summary>
-          <div className="reading-section-body">
-            <p>
-              The local Workshop opens native JavaFX previews, lets you change
-              trusted Java source, and exports a contribution packet. Candidate
-              builds execute Java with normal local permissions; this is not a
-              sandbox for untrusted submissions.
-            </p>
-            <p>
-              Install, update and revert use normal Maven dependencies. There is
-              no component base class or automatic object lifecycle.
-            </p>
+            <p>Download Workshop, extract it, and open its component-workshop folder in VS Code. Run it with the standard build shortcut.</p>
+            <p>Edit the included community source, preview your change, run its checks and export a contribution packet. Fork Zero Community and open a pull request with your source change and packet.</p>
+            <p>GitHub runs the checks. An existing repository maintainer reviews the exact change before acceptance. Contributions waiting for review stay unpublished. Coursework repository links still go separately to Pika.</p>
             <div className="resource-links">
+              <a href="https://github.com/codepetca/zero-community/blob/main/docs/CONTRIBUTING.md">Contribution guide</a>
+              <a href="https://github.com/codepetca/zero-community">Community source</a>
               <Link href="/docs/workshop">Workshop guide</Link>
-              <Link href="/docs/components">Component architecture</Link>
-              <Link href="/docs/development">Local development commands</Link>
-              <Link href="/learn#downloads">Kit availability</Link>
             </div>
-          </div>
-        </details>
-        <details className="reading-section">
-          <summary>
-            <h2>Experimental, with clear limits</h2>
-            <Icon name="chevron-down" />
-          </summary>
-          <div className="reading-section-body">
-            <p>
-              Original Zero and Zero Community code use the MIT license; bundled
-              dependencies retain their own notices. Community examples remain
-              experimental; artifact hosting and appointed maintainers remain
-              future decisions. HealthBar is an experimental example, not a
-              community-approved release. Advisory AI is not configured as a
-              live service.
-            </p>
-            <p>
-              <a href="https://github.com/codepetca/zero">Zero source</a> ·{" "}
-              <a href="https://github.com/codepetca/zero-community">
-                Community source
-              </a>{" "}
-              · <Link href="/learn">Back to setup</Link>
-            </p>
           </div>
         </details>
       </main>

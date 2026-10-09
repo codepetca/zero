@@ -1,5 +1,31 @@
 # Current state — 2026-10-09
 
+## Public component workflow — active
+
+Owner authorized public ultra-simple component delivery with "go". Current
+coordinator owns integration/PR/merge/publication; worktree public-components/zero
+at4565c03 and sibling community worktree at7c503b3 preserve primary funding work.
+Existing community maintain/admin users selected for human acceptance; no new
+permissions/accounts/settings. HealthBar first public0.1.2 remains experimental
+until independent authenticated human acceptance. Fixed HTTPS Maven gateway,
+public catalog, portable Workshop, next kit0.5.2; see COMPONENT-PLAN for contract.
+Two Sol/high read-only audits delivered; coordinator verified actual paths/metadata.
+Historical jars lack canonicalMITnotices; newcoordinate required, oldbytes preserved.
+Weekly39%remaining; DeepSeek pause retained; no tool-backed goal requested.
+All three Sol/high workers delivered and released ownership. Community writer:
+MIT0.1.2/publicpreparer/authenticatedread-onlyacceptancehelper,32+12tests,
+reproduciblebuild/twoconsumers/historicalproof. Consumer writer:105fulltests and
+50focused after correcting nestedWorkshopreceipt contract. Workshop writer:
+public0.1.2candidatebinding/nativepacketchecks and portablearchive assembler.
+Coordinator gateway/site17tests,typecheck/build pass. One contract mismatch fixed
+before review; attributable worker times/tokens and effective model unknown.
+Next commit source, regenerate exact committed candidate and Workshop, then
+independent paired review, CI/source merges, exact public files, metadata/kit
+promotion and real public Maven/VSIX proof. No real publication yet.
+Review highrisk; max2concurrent/7launches/1initialwave/4targetedwaves/1integration/
+4fixbatches/60minsession/30minreviewer. No review launched for this phase yet.
+
+
 ## One-command Zero publishing — review and CI
 
 Owner said "do it" to final release automation: one explicit version command

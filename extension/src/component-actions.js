@@ -5,15 +5,16 @@ const path = require('node:path');
 const components = require('./components');
 const xml = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 
-function createComponentActions(vscode, context, host) {
+function createComponentActions(vscode, context, host, options = {}) {
   const remember = 'zero.localComponentCatalog';
   async function catalog(reselect = false) {
-    let filename = reselect ? undefined : context.workspaceState.get(remember);
-    if (!filename) {
+    let filename = context.workspaceState.get(remember);
+    if (reselect) {
       const chosen = await vscode.window.showOpenDialog({title:'Choose a local component catalog',canSelectMany:false,filters:{'Component catalog':['json']}});
       if (!chosen) return;
       filename = chosen[0].fsPath;
     }
+    if (!filename) return components.loadPublicCatalog(options.publicCatalog);
     const result = await components.loadCatalog(filename);
     await context.workspaceState.update(remember,filename);
     return result;
@@ -29,8 +30,10 @@ function createComponentActions(vscode, context, host) {
     if (document.getText() !== plan.beforeText) throw new Error('The Maven file changed. Review the component change again.');
     const version = document.version;
     const action = operation === 'update' ? 'Update & Run' : operation === 'revert' ? 'Revert & Run' : 'Add library';
+    const publicSource = source.catalog.origin === 'public-release';
+    const release = source.catalog.releases.find(item => item.version === plan.targetVersion);
     const approved = await vscode.window.showInformationMessage(`${action}?`,{modal:true,detail:
-      `${plan.summary}\n\nCatalog: ${source.catalogPath}\nExperimental local proof; public community acceptance is not configured.\n\nOnly the managed dependency/repository/history in pom.xml changes. Your Java source stays editable. No Git commit, upload or automatic future upgrade.`},action);
+      `${plan.summary}\n\nCatalog: ${source.catalogUrl || source.catalogPath}\n${publicSource ? `${source.catalog.components[0].status} · MIT\nJava 17 · JavaFX 21.0.12\n${release.notes}` : 'Experimental local proof; public community acceptance is not configured.'}\n\nOnly the managed dependency/repository/history in pom.xml changes. Your Java source stays editable. No Git commit, upload or automatic future upgrade.`},action);
     if (approved !== action) return;
     if (await host.project() !== root) throw new Error('The student project changed. Review the component change again.');
     await components.validatePrepared(plan,source);
@@ -51,15 +54,20 @@ function createComponentActions(vscode, context, host) {
   }
   async function browse() {
     const source = await catalog(); if (!source) return;
-    const chosen = await vscode.window.showQuickPick(source.catalog.components.map(item=>({label:item.name,description:'Experimental local proof',detail:item.description,component:item})),{title:'Community components',placeHolder:'Inspect a component before adding its library'});
+    const publicSource = source.catalog.origin === 'public-release';
+    const chosen = await vscode.window.showQuickPick(source.catalog.components.map(item=>({label:item.name,description:publicSource ? `${item.status} · ${source.catalog.latest} · MIT` : 'Experimental local proof',detail:item.description,component:item})),{title:'Community components',placeHolder:'Inspect a component before adding its library'});
     if (!chosen) return;
     const action = await vscode.window.showQuickPick([
-      {label:'View API',action:'api'}, {label:'Try example locally',action:'try'}, {label:'Add library to this app',action:'add'}
+      {label:'View API',action:'api'}, ...(publicSource ? [{label:'View source on GitHub',action:'source'}] : []),
+      {label:'Try example locally',action:'try'}, {label:'Add library to this app',action:'add'}
     ],{title:chosen.label,placeHolder:'Source, example and installation'});
     if (action?.action === 'api') {
-      const doc = await vscode.workspace.openTextDocument({language:'markdown',content:
-        `# ${chosen.label}\n\n${chosen.component.description}\n\nExperimental local proof · ${source.catalog.latest}\n\n${chosen.component.api.map(value=>'    '+value).join('\n')}\n\nInstalled as ${source.catalog.library.groupId}:${source.catalog.library.artifactId}; examples run locally.\n`});
+      const doc = await vscode.workspace.openTextDocument({language:'plaintext',content:
+        `${chosen.label}\n\n${chosen.component.description}\n\n${publicSource ? `${chosen.component.status} · MIT` : 'Experimental local proof'} · ${source.catalog.latest}\nJava 17 · JavaFX 21.0.12\n\n${chosen.component.api.join('\n')}\n\nInstalled as ${source.catalog.library.groupId}:${source.catalog.library.artifactId}; examples run locally.\n`});
       await vscode.window.showTextDocument(doc,{preview:true});
+    } else if (action?.action === 'source') {
+      const release = source.catalog.releases.find(item => item.version === source.catalog.latest);
+      await vscode.env.openExternal(vscode.Uri.parse(`https://github.com/codepetca/zero-community/blob/${release.sourceRevision}/src/main/java/zero/community/HealthBar.java`));
     } else if (action?.action === 'add') await change('add',source);
     else if (action?.action === 'try') await tryExample(source);
   }
@@ -67,7 +75,10 @@ function createComponentActions(vscode, context, host) {
     if (vscode.workspace.isTrusted === false) throw new Error('Trust the workspace before running a local Java example.');
     const generation = host.captureRunGeneration();
     // Re-read all catalog/artifact hashes immediately before preparing the app.
-    source = await components.loadCatalog(source.catalogPath);
+    const fresh = await components.reloadCatalog(source);
+    if (fresh.fingerprint !== source.fingerprint) throw new Error('The component catalog changed. Browse the component again before trying it.');
+    source = fresh;
+    await components.verifyRelease(source, source.catalog.latest);
     await host.project();
     const destination = await fs.mkdtemp(path.join(os.tmpdir(),'zero-component-example-'));
     await fs.mkdir(path.join(destination,'src/main/java/zero'),{recursive:true});
@@ -89,10 +100,12 @@ function createComponentActions(vscode, context, host) {
   async function menu() {
     const choice = await vscode.window.showQuickPick([
       {label:'Browse components…',action:'browse'}, {label:'Update community library…',action:'update'},
-      {label:'Revert previous library version…',action:'revert'}, {label:'Choose another local catalog…',action:'catalog'}
-    ],{title:'Zero components',placeHolder:'Local proof — Maven owns dependency versions'});
+      {label:'Revert previous library version…',action:'revert'}, {label:'Choose a local catalog…',action:'catalog'},
+      ...(context.workspaceState.get(remember) ? [{label:'Use public community catalog',action:'public'}] : [])
+    ],{title:'Zero components',placeHolder:'Browse, try and use a Maven library'});
     if (choice?.action === 'browse') await browse();
     else if (choice?.action === 'catalog') await catalog(true);
+    else if (choice?.action === 'public') await context.workspaceState.update(remember,undefined);
     else if (choice) await change(choice.action);
   }
   const guarded = fn => async () => {

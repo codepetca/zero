@@ -22,7 +22,7 @@ final class WorkshopChecks {
     provenance.addProperty("generator", "Zero Component Workshop 0.1.0");
     provenance.addProperty(
         "scope",
-        "Loaded school.zero.community:zero-community:0.1.1 runtime. Source edits require"
+        "Loaded school.zero.community:zero-community:0.1.2 runtime. Source edits require"
             + " rebuilding; runtime results do not prove edited source behavior.");
     report.add("provenance", provenance);
     JsonArray checks = new JsonArray();
@@ -42,20 +42,20 @@ final class WorkshopChecks {
         candidate != null
             ? candidate.sourceDigest.equals(source.get("sourceDigest").getAsString())
             : artifactHash.equals(
-                    "ecde77c90e6d01854c5aa89ad099d40ae1714675edfb9343266050d7c626c36e")
+                    "c071ce860f8d125dc0e82c5e75e81ce2bfe5dfd757ded04c7a0588213d06fca8")
                 && ContributionPacket.sha(
                         Files.readAllBytes(
                             project.file("src/main/java/zero/community/HealthBar.java")))
                     .equals("c023d56668b9fa4eb5cd75a0f2be0221c250bc1f2e2b416d065a5f98bbbcb109");
     JsonObject artifact = new JsonObject();
-    artifact.addProperty("version", "0.1.1");
+    artifact.addProperty("version", "0.1.2");
     artifact.addProperty("sha256", artifactHash);
     artifact.addProperty(
-        "sourceJarSha256", "8e3a2efa4a44f7d6e9433001829a690f654f48baa4212b1b7501cf50e1b1e518");
+        "sourceJarSha256", "1440f70ab633be568e9f3b32c1a839500517b4e766158945acef82ceb5e48ae9");
     artifact.addProperty("sourceBinding", matches ? "matched-immutable-source" : "unverified");
     provenance.add("testedArtifact", artifact);
     if (candidate != null) {
-      artifact.addProperty("version", "0.1.1");
+      artifact.addProperty("version", "0.1.2");
       artifact.addProperty("kind", "candidate-class");
       artifact.addProperty("sha256", candidate.classHash);
       artifact.remove("sourceJarSha256");
@@ -69,9 +69,9 @@ final class WorkshopChecks {
         matches ? "passed" : "unavailable",
         matches
             ? (candidate == null
-                ? "Source matches HealthBar in the immutable 0.1.1 sources JAR."
+                ? "Source matches HealthBar in the immutable 0.1.2 sources JAR."
                 : "Source digest matches this isolated compiled candidate.")
-            : "Source differs from the immutable 0.1.1 sources JAR. Runtime checks describe the old"
+            : "Source differs from the immutable 0.1.2 sources JAR. Runtime checks describe the old"
                   + " pinned binary; edited source behavior is unverified.");
     Class<?> type = candidate == null ? HealthBar.class : candidate.type;
     // Both constructors and every public method are the supported binary API.

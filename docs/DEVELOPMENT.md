@@ -170,3 +170,30 @@ normal permissions; it is not an untrusted-submission sandbox. Admission validat
 packets without executing code. CI and advisory AI interfaces are prepared locally;
 no hosted service, live provider or authenticated acceptance
 authority has been configured. See the community contribution/AI docs.
+
+
+## Public component preparation
+
+Public discovery defaults to https://zero.codepet.ca/community/catalog.json.
+The authored download source is the generated, reviewed release/community.json
+snapshot copied from source-bound community receipts. The website's fixed Maven
+gateway accepts only manifest paths and verifies full bounded bytes before serving.
+Components remain pinned; HTTPS POMs work on another machine without account access.
+A remembered local catalog can be selected explicitly through the components menu.
+
+Community maintainers prepare a clean committed 0.1.2 candidate with
+`python3 scripts/prepare-public-release.py --zero-root ../zero` in zero-community.
+Then prepare and package the portable Workshop from Zero:
+
+```sh
+node scripts/prepare-component-workshop.mjs ../zero-community --public
+node scripts/package-public-workshop.mjs ../zero-community
+```
+
+Preparation is local and cannot accept or publish. Verify source PRs, CI and
+independent review before intentionally publishing the exact release bytes. Import
+actual published asset URLs/sizes/SHA256s into the reviewed website snapshot; never
+replace an existing coordinate or rebuild historical fixtures with new notices.
+A public patch appends its version while retaining previously published records.
+Existing GitHub maintain/admin users own human acceptance; unreviewed work waits.
+No CI publishing credentials or AI acceptance is configured.

@@ -5,8 +5,10 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
 const {createHash} = require('node:crypto');
-const {loadCatalog, prepareChange, readProject} = require('../src/components');
+const {loadCatalog, loadPublicCatalog, prepareChange, readProject} = require('../src/components');
 const {createComponentActions} = require('../src/component-actions');
+const {CATALOG_URL, REPOSITORY_URL} = require('../src/public-components');
+const {publicFixture} = require('./helpers/public-catalog.cjs');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const starter = path.join(__dirname, '../../student-template');
 
@@ -43,23 +45,26 @@ async function fixture(t) {
   await fs.writeFile(path.join(root, 'pom.xml'), add.afterText);
   return {directory,root,catalogPath,repository,catalog,source,java,saveCatalog};
 }
-async function harness(t) {
+async function harness(t, publicSource) {
   const f = await fixture(t);
   const pom = path.join(f.root, 'pom.xml');
+  if (publicSource) await fs.copyFile(path.join(starter,'pom.xml'),pom);
   const document = {version:1,isDirty:false,text:await fs.readFile(pom,'utf8'),getText(){return this.text;},positionAt(offset){return {offset};},
     async save(){events.push('save'); if (hooks.save === false) return false; await fs.writeFile(pom,this.text); this.isDirty=false; return true;}};
   const events = [], hooks = {}, messages = [];
   let busy = false, currentRoot = f.root;
-  const context = {extensionPath:path.join(f.directory,'extension'),workspaceState:{get:()=>f.catalogPath,update:async()=>{}}};
+  let remembered = publicSource ? undefined : f.catalogPath;
+  const context = {extensionPath:path.join(f.directory,'extension'),workspaceState:{get:()=>remembered,update:async(key,value)=>{assert.equal(key,'zero.localComponentCatalog'); remembered=value;}}};
   const vscode = {Uri:{file:filename=>({fsPath:filename})},Range:class {constructor(start,end){this.start=start;this.end=end;}},
-    workspace:{isTrusted:true,openTextDocument:async()=>{events.push('open'); return document;}},
+    workspace:{isTrusted:true,openTextDocument:async options=>{events.push('open'); if(hooks.open) await hooks.open(options); return document;}},
     window:{showInformationMessage:async(message,options,action)=>{messages.push({message,options,action}); if (options?.modal) {events.push('review'); if(hooks.approve) await hooks.approve(); return hooks.cancel ? undefined : action;}},
       showQuickPick:async(items)=>{events.push('pick'); if(hooks.pick) return hooks.pick(items); return items[0];},
+      showOpenDialog:async()=>{events.push('local-dialog'); return hooks.localCancel ? undefined : [{fsPath:f.catalogPath}];},
       showTextDocument:async()=>{events.push('show'); if(hooks.show) await hooks.show(); return {edit:async(callback)=>{events.push('edit'); let replacement; callback({replace:(range,text)=>{assert.equal(range.start.offset,0); assert.equal(range.end.offset,document.text.length); replacement=text;}}); if(hooks.edit === false) return false; document.text=replacement; document.version++; document.isDirty=true; return true;}};}}};
   const host = {project:async()=>currentRoot,isBusy:()=>busy,setBusy:value=>{busy=value;events.push(value?'busy':'idle');},run:async()=>events.push('run'),captureRunGeneration:()=>17,
     runExample:async(...args)=>{events.push('example'); if(hooks.example) return hooks.example(...args); return true;}};
-  const actions = createComponentActions(vscode,context,host);
-  return {...f,pom,document,events,hooks,messages,context,vscode,host,actions,setRoot:root=>{currentRoot=root;},isBusy:()=>busy};
+  const actions = createComponentActions(vscode,context,host,publicSource ? {publicCatalog:{fetch:publicSource.fetch,timeoutMs:200}} : {});
+  return {...f,pom,document,events,hooks,messages,context,vscode,host,actions,setRoot:root=>{currentRoot=root;},isBusy:()=>busy,rememberedCatalog:()=>remembered};
 }
 async function unchanged(h, before) {
   assert.equal(await fs.readFile(h.pom,'utf8'), before);
@@ -217,5 +222,150 @@ test('a launched example keeps its files if Stop fails; task owner alone may cle
   await assert.rejects(h.actions['zero.browseComponents'](),/task has not stopped/);
   assert.ok(ownedRoot);
   assert.equal(await fs.readFile(path.join(ownedRoot,'src/main/java/Main.java'),'utf8'),'class Main {}');
+  await unchanged(h,before);
+});
+
+async function packagedExample(h) {
+  const assets=path.join(h.context.extensionPath,'media/component-example');
+  await fs.mkdir(path.join(assets,'zero'),{recursive:true});
+  await fs.copyFile(path.join(__dirname,'../../framework/src/main/java/zero/SimpleApp.java'),path.join(assets,'zero/SimpleApp.java'));
+  await fs.writeFile(path.join(assets,'Main.java'),'// trusted packaged HealthBar example\nclass Main {}');
+  for(const name of ['mvnw','mvnw.cmd']) await fs.copyFile(path.join(starter,name),path.join(assets,name));
+  await fs.cp(path.join(starter,'.mvn'),path.join(assets,'.mvn'),{recursive:true});
+  return assets;
+}
+
+test('Browse defaults to public API as plain text without a file picker or network commands', async t => {
+  const f=publicFixture(['0.1.2']),h=await harness(t,f),before=h.document.text;
+  f.catalog.components[0].description='Literal [run](command:attacker.command) API description.';
+  let opened;
+  h.hooks.open=options=>{opened=options;};
+  await h.actions['zero.browseComponents']();
+  assert.equal(h.events.includes('local-dialog'),false);
+  assert.equal(h.rememberedCatalog(),undefined);
+  assert.equal(opened.language,'plaintext');
+  assert.match(opened.content,/Literal \[run\]\(command:attacker.command\)/);
+  assert.match(opened.content,/experimental · MIT · 0\.1\.2/);
+  assert.deepEqual(f.requests.map(item=>item.url),[CATALOG_URL]);
+  await unchanged(h,before);
+});
+
+test('public Add uses native review/edit/save, verifies artifacts and never auto-runs or uploads', async t => {
+  const f=publicFixture(['0.1.2']),h=await harness(t,f);
+  h.hooks.pick=items=>items.find(item=>item.action==='add') || items[0];
+  await h.actions['zero.browseComponents']();
+  const source=await loadPublicCatalog({fetch:f.fetch}),installed=await readProject(h.root,source);
+  assert.equal(installed.currentVersion,'0.1.2'); assert.equal(installed.previousVersion,null);
+  assert.deepEqual(h.events.filter(item=>['edit','save','run'].includes(item)),['edit','save']);
+  assert.match(h.messages[0].options.detail,/HealthBar 0\.1\.2: explicit updates and MIT notices/);
+  assert.match(h.messages[0].options.detail,/Java 17 · JavaFX 21\.0\.12/);
+  assert.equal(h.messages[0].options.detail.includes('public community acceptance is not configured'),false);
+  assert.equal(await fs.readFile(h.java,'utf8'),'class Main { /* student work */ }\n');
+  await assert.rejects(h.actions['zero.revertComponents'](),/Revert becomes available after updating/);
+});
+
+test('public cancellation preserves the student project and releases its busy guard', async t => {
+  const f=publicFixture(['0.1.2']),h=await harness(t,f),before=h.document.text;
+  h.hooks.pick=items=>items.find(item=>item.action==='add') || items[0]; h.hooks.cancel=true;
+  await h.actions['zero.browseComponents']();
+  await unchanged(h,before);
+  assert.equal(h.events.includes('edit'),false);
+});
+
+test('later public patches Update and Revert through native saved edits before running', async t => {
+  const f=publicFixture(['0.1.2']),h=await harness(t,f);
+  h.hooks.pick=items=>items.find(item=>item.action==='add') || items[0];
+  await h.actions['zero.browseComponents']();
+  const next=publicFixture(); Object.assign(f.catalog,next.catalog);
+  for(const [url,bytes] of next.artifacts) f.artifacts.set(url,bytes);
+  h.events.length=0;
+  await h.actions['zero.updateComponents']();
+  const source=await loadPublicCatalog({fetch:f.fetch});
+  let installed=await readProject(h.root,source);
+  assert.equal(installed.currentVersion,'0.1.3'); assert.equal(installed.previousVersion,'0.1.2');
+  assert.deepEqual(h.events.filter(item=>['edit','save','run'].includes(item)),['edit','save','run']);
+  h.events.length=0;
+  await h.actions['zero.revertComponents']();
+  installed=await readProject(h.root,source);
+  assert.equal(installed.currentVersion,'0.1.2'); assert.equal(installed.previousVersion,'0.1.3');
+  assert.deepEqual(h.events.filter(item=>['edit','save','run'].includes(item)),['edit','save','run']);
+  assert.equal(await fs.readFile(h.java,'utf8'),'class Main { /* student work */ }\n');
+});
+
+for(const phase of ['approve','show']) {
+  test(`public catalog drift during ${phase} refuses the native edit`, async t => {
+    const f=publicFixture(['0.1.2']),h=await harness(t,f),before=h.document.text;
+    h.hooks.pick=items=>items.find(item=>item.action==='add') || items[0];
+    h.hooks[phase]=()=>{f.catalog.releases[0].notes='Release changed during review.';};
+    await assert.rejects(h.actions['zero.browseComponents'](),/catalog or public repository changed/);
+    await unchanged(h,before);
+    assert.equal(h.events.includes('edit'),false);
+  });
+}
+
+test('public Try retains packaged source, isolated settings/cache and the Stop generation during verification', async t => {
+  const f=publicFixture(['0.1.2']),h=await harness(t,f),before=h.document.text;
+  const assets=await packagedExample(h);
+  h.hooks.pick=items=>items.find(item=>item.action==='try') || items[0];
+  let stopped=false,exampleRoot;
+  f.hooks.fetch=url=>{if(url.endsWith('-sources.jar')) stopped=true;};
+  h.hooks.example=async(destination,args,generation)=>{
+    exampleRoot=destination;
+    assert.equal(stopped,true); assert.equal(generation,17);
+    assert.ok(f.requests.some(item=>item.url.endsWith('-javadoc.jar')));
+    assert.equal(args.includes(`-Dmaven.repo.local=${path.join(destination,'cache')}`),true);
+    assert.equal(await fs.readFile(path.join(destination,'settings.xml'),'utf8'),'<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"/>\n');
+    assert.deepEqual(await fs.readFile(path.join(destination,'src/main/java/Main.java')),await fs.readFile(path.join(assets,'Main.java')));
+    assert.match(await fs.readFile(path.join(destination,'pom.xml'),'utf8'),/<url>https:\/\/zero\.codepet\.ca\/community\/maven<\/url>/);
+    assert.match(await fs.readFile(path.join(destination,'pom.xml'),'utf8'),/<version>0\.1\.2<\/version>/);
+    return false; // The actual host refuses this captured generation after Stop.
+  };
+  await h.actions['zero.browseComponents']();
+  await unchanged(h,before);
+  await assert.rejects(fs.access(exampleRoot),{code:'ENOENT'});
+  assert.equal(h.messages.some(item=>item.message.includes('build started')),false);
+});
+
+test('public Try refuses catalog drift and corruption before creating or launching an example', async t => {
+  for(const drift of ['catalog','jar']) {
+    const f=publicFixture(['0.1.2']),h=await harness(t,f),before=h.document.text;
+    h.hooks.pick=items=>{
+      const action=items.find(item=>item.action==='try');
+      if(action) {
+        if(drift==='catalog') f.catalog.components[0].description='Changed before Try.';
+        else {const artifact=f.catalog.releases[0].artifacts.jar; f.artifacts.set(`${REPOSITORY_URL}/${artifact.path}`,Buffer.alloc(artifact.size));}
+      }
+      return action || items[0];
+    };
+    await assert.rejects(h.actions['zero.browseComponents'](),/catalog changed|digest or size/);
+    assert.equal(h.events.includes('example'),false);
+    await unchanged(h,before);
+  }
+});
+
+test('local catalog selection is explicit and remembered; public return clears it without changing the POM', async t => {
+  const f=publicFixture(['0.1.2']),h=await harness(t,f),before=h.document.text;
+  h.hooks.pick=items=>items.find(item=>item.action==='catalog');
+  await h.actions['zero.components']();
+  assert.equal(h.rememberedCatalog(),h.catalogPath);
+  assert.equal(h.events.includes('local-dialog'),true);
+  const requests=f.requests.length;
+  h.hooks.pick=items=>items[0];
+  await h.actions['zero.browseComponents']();
+  assert.equal(f.requests.length,requests,'A remembered local catalog never contacts the public host');
+  h.hooks.pick=items=>items.find(item=>item.action==='public');
+  await h.actions['zero.components']();
+  assert.equal(h.rememberedCatalog(),undefined);
+  await unchanged(h,before);
+});
+
+test('public source view uses the pinned GitHub revision, never a catalog-supplied URL', async t => {
+  const f=publicFixture(['0.1.2']),h=await harness(t,f),before=h.document.text;
+  let opened;
+  h.vscode.Uri.parse=url=>url;
+  h.vscode.env={openExternal:async url=>{opened=url;}};
+  h.hooks.pick=items=>items.find(item=>item.action==='source') || items[0];
+  await h.actions['zero.browseComponents']();
+  assert.equal(opened,`https://github.com/codepetca/zero-community/blob/${'a'.repeat(40)}/src/main/java/zero/community/HealthBar.java`);
   await unchanged(h,before);
 });

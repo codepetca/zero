@@ -41,7 +41,7 @@ public class Workshop extends SimpleApp {
 
   @Override
   public void settings() {
-    title("Zero / Component Workshop · Local prototype");
+    title("Zero / Component Workshop · HealthBar 0.1.2");
     size(1120, 780);
   }
 
@@ -54,7 +54,7 @@ public class Workshop extends SimpleApp {
       project = new ComponentProject(root.startsWith("file:") ? Path.of(java.net.URI.create(root)) : Path.of(root));
       BorderPane screen = new BorderPane();
       screen.getStyleClass().add("workshop");
-      Label brand = new Label("✦  Zero / Component Workshop     Local prototype");
+      Label brand = new Label("✦  Zero / Component Workshop     HealthBar 0.1.2");
       brand.getStyleClass().add("brand");
       Label name = new Label(project.value("name"));
       name.getStyleClass().add("title");
@@ -65,7 +65,7 @@ public class Workshop extends SimpleApp {
               project.value("status")
                   + " · "
                   + project.value("license")
-                  + " · public releases need maintainer review and artifact hosting");
+                  + " · independent maintainer review required");
       gate.getStyleClass().add("muted");
       VBox header = new VBox(8, brand, name, description, gate);
       header.setPadding(new Insets(22));
@@ -224,8 +224,10 @@ public class Workshop extends SimpleApp {
                 + " and a source-bound check report. Choose a parent folder; a new folder is"
                 + " created without replacing existing files.\n\n"
                 + "Nothing is uploaded. Experimental work cannot become a reviewed"
-                + " community release here.\n\n"
-                + "AI review is unavailable in this local MVP. The packet records that missing"
+                + " community release here. Fork codepetca/zero-community, apply your source changes,\n"
+                + "and open a pull request for independent maintainer review. Keep the packet\n"
+                + "as check evidence.\n\n"
+                + "AI review is unavailable. The packet records that missing"
                 + " advisory check for a maintainer.");
     explanation.setWrapText(true);
     VBox page = new VBox(20, heading("Prepare contribution"), explanation, prepare);
@@ -334,6 +336,9 @@ public class Workshop extends SimpleApp {
     require(bar.getHealth() == 60 && caption.getText().equals("Energy"), "reset selected example");
     check.fire();
     require(report != null, "run checks");
+    require(report.getAsJsonObject("provenance").getAsJsonObject("testedArtifact")
+        .get("sourceBinding").getAsString().equals("matched-immutable-source"),
+        "unchanged source matches the exact pinned 0.1.2 binary and sources");
     for (JsonElement item : report.getAsJsonArray("checks"))
       require(
           !item.getAsJsonObject().get("status").getAsString().equals("failed"),

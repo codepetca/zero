@@ -1,4 +1,4 @@
-# Local evidence — 2026-10-09
+# Historical Workshop evidence — 2026-10-09
 
 JDK 17.0.14 / Maven wrapper / JavaFX 21.0.12 on macOS. Actual finite JavaFX window
 opened and `WORKSHOP_CHECK_PASS` exited successfully. The last recorded run took
@@ -46,3 +46,37 @@ default constructor, missing getter or changed getter return type fail. The same
 harness rejects hidden Maven profiles and floating plugin dependencies. A pinned
 plugin dependency is included in the Java packet and independently accepted by
 the Python validator; neither tool executes contributor build configuration.
+
+
+## Public 0.1.2 preparation — 2026-10-09
+
+The Workshop source/dependency now selects HealthBar 0.1.2; core remains 0.1.1.
+`prepare-component-workshop.mjs --public` validates the public candidate's exact
+four artifact paths, sizes, digests and declared sourceDigest before preparing
+its local Maven repository. The historical catalog has a separate
+`component-legacy-catalog.json`, preserving real add 0.1.0 → update 0.1.1 → revert
+0.1.0. That cycle passed on macOS using actual editor plans and finite JavaFX
+windows after this separation; app source stayed unchanged. Both canonical core
+builds produced the same hashes. Evidence is ignored in
+`.verification/component-consumer-receipt.json`.
+
+The public assembler packages only declared ordinary committed source and the
+verified repository artifacts, with exact source commits in `SOURCE.txt`. It
+checks the extracted ZIP bytes, excludes generated/private paths, and preserves
+wrapper executable permissions and Windows CRLF. Final native 0.1.2/packet and
+extracted bundle checks require the actual community candidate and are recorded
+only after they run. Script syntax and Git whitespace checks pass.
+
+
+The disposable committed community public-release fixture supplied verified 0.1.2
+bytes. Workshop's fixed baseline independently matches binary SHA-256
+`c071ce860f8d125dc0e82c5e75e81ce2bfe5dfd757ded04c7a0588213d06fca8`,
+sources SHA-256
+`1440f70ab633be568e9f3b32c1a839500517b4e766158945acef82ceb5e48ae9`,
+and unchanged HealthBar source SHA-256
+`c023d56668b9fa4eb5cd75a0f2be0221c250bc1f2e2b416d065a5f98bbbcb109`.
+Native 0.1.2 finite Workshop checks pass for that fixture, including candidate
+source drift, public API mutants and source-bound scoped export. The Java packet
+and pinned-plugin packet both passed independent Python admission validation;
+fixtures cannot claim human acceptance. Final canonical source and extracted
+archive verification remain pending the coordinator's source commits.
