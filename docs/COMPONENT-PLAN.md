@@ -7,6 +7,11 @@ provides discovery, examples and a readable contribution workflow.
 
 ## Authority and boundaries
 
+Follow-up 2026-10-09: owner authorized creating and connecting the public source
+remote `https://github.com/codepetca/zero-community`. This supersedes the initial
+remote-creation hold below for community source only. Artifact releases, AI
+execution, licensing, maintainer appointments and deployment remain separate.
+
 Implement and verify locally. No push, remote repository creation, release upload,
 deployment, account changes or deferred live GitHub trial. The separate local
 community checkout is `/Users/stew/Repos/zero-community`; its public location is

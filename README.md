@@ -25,6 +25,7 @@ Physical Windows/Linux and novice student trials remain unverified; see the
 - [Starter and example copy instructions](student-template/README.md)
 - [Student API](student-template/API.md)
 - [Component lifecycle and Workshop](docs/COMPONENTS.md)
+- [Zero Community: component source and contributions](https://github.com/codepetca/zero-community)
 - [Product scope and contracts](docs/PRODUCT.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
 - [Classroom pilot checklist](docs/CLASSROOM-PILOT.md)

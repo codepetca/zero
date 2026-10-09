@@ -1,5 +1,23 @@
 # Current state — 2026-10-09
 
+## Community source remote connection
+
+Owner authorized creating public `codepetca/zero-community` and connecting the
+repositories. Coordinator handles source-remote creation/push, companion links,
+portable sibling-clone instructions and read-only CI verification directly.
+Canonical URLs: `https://github.com/codepetca/zero` and
+`https://github.com/codepetca/zero-community`. This supersedes the earlier
+community-source remote hold, not artifact release, licensing, AI or deployment
+holds. Source catalog and local Maven/Workshop behavior stay unchanged.
+Current website/design work remains local and is not part of this source push.
+Public remote is created and connected; initial community head d66e7cf verified
+against origin/main. Actual GitHub Actions run37936790362 passed Ubuntu24.04
+virtual-display JavaFX checks,25 admission tests and packet validation. Physical
+Windows/Linux input, AI and Maven artifact hosting remain unverified/unconfigured.
+Zero companion documentation links are updated locally on the existing component
+branch; its unpublished implementation and website/design are not pushed by this
+community-source authorization.
+
 ## Component lifecycle MVP — locally complete
 
 Owner agreed Maven-backed components and requested an orchestrated goal. The

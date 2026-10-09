@@ -84,8 +84,12 @@ unresolved; upstream wrapper licenses/notices do not license all Zero source.
 ## Local component lifecycle
 
 The sibling `../zero-community` checkout has its own source, Maven library,
-release-cycle proof and admission scripts. Use the actual local checkout path
-with the commands below; no remote repository is assumed.
+release-cycle proof and admission scripts. Its canonical source remote is
+[codepetca/zero-community](https://github.com/codepetca/zero-community).
+From the directory containing your Zero checkout, obtain the sibling with
+`git clone https://github.com/codepetca/zero-community.git`. Use the actual
+local checkout path with the commands below. GitHub hosts source; generated
+Maven artifacts and the catalog remain local until artifact hosting is configured.
 
 ```sh
 python3 ../zero-community/scripts/verify-release-cycle.py --zero-root "$PWD"

@@ -23,7 +23,10 @@ colliding with student classes; the student learns imports before library intern
 
 Accepted community components are distributed in one versioned Maven library
 initially. A component is a Java class; a distributed library may contain several
-components. The community source repository is separate from Zero. The original
+components. The community source repository is
+[codepetca/zero-community](https://github.com/codepetca/zero-community), separate
+from [codepetca/zero](https://github.com/codepetca/zero). Clone them as siblings
+for the existing local Workshop commands. The original
 core ships readable in the starter during the local proof; no core binary
 migration is assumed without a demonstrated need.
 
@@ -51,7 +54,8 @@ offers recovery. Passing compilation is not proof of correct app behavior.
 No silent upgrade when opening an old assignment. Automatic compatible updates
 are deferred. Any future import uses a fixed trusted catalog and verifies release
 digests; arbitrary community text cannot specify commands or grant tool authority.
-The first repository is local for verification; public hosting is a separate gate.
+The first Maven artifact repository is local for verification; public artifact
+hosting is a separate gate from the GitHub source remote.
 Downloads should eventually work without package-service credentials for students.
 
 ## Workshop and community workflow
