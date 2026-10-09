@@ -10,16 +10,18 @@ const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 export function prepareStarter(root = fileURLToPath(new URL('../', import.meta.url))) {
   const statePath = path.join(root, '.verification/starter-source.json');
   const previous = existsSync(statePath) ? JSON.parse(readFileSync(statePath, 'utf8')) : {};
-  const updates = coreSources.map(name => {
-    const source = path.join(root, 'framework/src/main/java/zero', name);
-    const destination = path.join(root, 'student-template/src/main/java/zero', name);
+  const files = coreSources.map(name => ({name,
+    source: path.join(root, 'framework/src/main/java/zero', name),
+    destination: path.join(root, 'student-template/src/main/java/zero', name)}));
+  files.push({name: 'LICENSE', source: path.join(root, 'LICENSE'), destination: path.join(root, 'student-template/LICENSE')});
+  const updates = files.map(({name, source, destination}) => {
     if (!lstatSync(source).isFile() || lstatSync(source).isSymbolicLink()) throw new Error(`Expected ordinary canonical source: ${source}`);
     const bytes = readFileSync(source), sha256 = digest(bytes);
     if (existsSync(destination)) {
       if (!lstatSync(destination).isFile() || lstatSync(destination).isSymbolicLink()) throw new Error(`Expected ordinary generated source: ${destination}`);
       const current = digest(readFileSync(destination));
       if (current !== sha256 && current !== previous[name]) {
-        throw new Error(`Preserved edited starter source: ${destination}. Move your edits into framework/src/main/java/zero or save them elsewhere before preparing again.`);
+        throw new Error(`Preserved edited starter source: ${destination}. Move intended source edits into framework/src/main/java/zero or save edited files elsewhere before preparing again.`);
       }
     }
     return {name, destination, bytes, sha256};

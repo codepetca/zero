@@ -24,6 +24,6 @@ The finite contributor harness lives separately in `checks/zero/SmokeLauncher.ja
 normal student projects contain only SimpleApp, SketchApp and their own app code.
 
 The JAR and sources JAR are generated in target/. No remote publishing target is
-configured. Original-code licensing and public Maven coordinates remain unresolved.
+configured. Original Zero source uses [MIT](../LICENSE); public Maven coordinates remain unresolved.
 Never add this JAR to a project that already compiles its own zero.SimpleApp and
 zero.SketchApp; pick one source of the framework classes.

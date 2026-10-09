@@ -4,8 +4,8 @@
 
 Owner said “go” to release and Vercel/domain setup; this authorizes source PR/merge,
 release publication and Vercel/zero.codepet.ca DNS setup within the saved plan.
-License decision is pending in the user input panel; no original-code publication
-until answered. Optional community archive remains local/unpublished because its
+Owner selected MIT for original Zero. The licensing hold is released for Zero;
+include the notice in every independent downloadable artifact before publication. Optional community archive remains local/unpublished because its
 separate license is unresolved. No credentials changes.
 
 Coordinator owns external actions/licensing/release/packaging/docs.
@@ -20,7 +20,7 @@ include completed reviewed local phases. Vercel devcodepet-5583 current team
 stewarts-projects-cc2722c4; Zero project created as
 prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA. FrameworkNext.js/rootwebsite/npmci/npmbuild,
 Node22.x and sourceFilesOutsideRootDirectory true independently read back.
-No Git connection/deployment yet; license answer pending. Cloudflare codepet.ca active
+No Git connection/deployment yet; license implementation/verification underway. Cloudflare codepet.ca active
 zone49640bebf0b463a4d227dfcfd509ef79 has no zero.codepet.ca record.
 
 
@@ -40,14 +40,13 @@ website deployment occurred while licensechoice pending. Project has no Git
 connection or configured local-download flag. Domain CNAME recommendation saved
 in ignored .verification/vercel-domain-config.json for deployment after choice.
 
-Next required owner input: license for original Zero, asked in native panel.
-Recommend MIT; applying it requires license text in root and independent starter,
+Owner answered MIT on2026-10-09; implemented original-code license with license text in root and independent starter,
 kit and VSIX distributions, SPDXmetadata and accurate supporting docs. Optional
 community license remains unresolved and its archive stays local. Then package/
 verify, publish reviewed source viaPR/merge, upload exact main3 versioned assets,
 independently retrieve/hash them, author published metadata, build/deployreviewed
 preview, then configure supplied DNS-only CNAME and verifypublicHTTPS/downloads.
-No tool-backed goal created. No credentials changes or license assumed.
+No tool-backed goal created. No credentials changes. MIT selected explicitly; community license remains held.
 
 ## Repository organization and website — local verification complete
 
@@ -611,3 +610,10 @@ behavior/drift/export checks accepted. Final whitespace Java export independentl
 validated by Python. Generated evidence stays ignored. Public licensing, hosting,
 maintainers, liveAI/CI/authenticatedacceptance and physical editor/Windows/Linux
 are future boundaries, not claimed as implemented or tested. No publication.
+
+MIT distribution delivery: mit_distribution Sol/medium ~4min estimated,
+canonical rootLICENSE with prepared ignored starter/extension copies. Exact notice
+bytes verified in starter,kitroot/starter and standardVSIXLICENSE.txt; SPDXMIT.
+Checks rootconfig,2 meaningful drift/extracted-edit compiletests,package/verifykit
+pass. No Java or Maven-coremetadata change; optionalcomponentarchive unchanged.
+No conflicts; coordinator owns websitecopy/docs and externalactions.

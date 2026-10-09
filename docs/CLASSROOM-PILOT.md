@@ -91,5 +91,5 @@ Hold adoption when a target OS or required sharing flow remains untested, setup
 needs unresolved proxy workarounds, input or state is unreliable, or students
 cannot explain their changes with reasonable teaching support. Resolve and repeat
 the failed steps; do not replace physical/student evidence with mocked results.
-Original Zero code's public license is unresolved and must be decided before a
-licensed public distribution is promised.
+Original Zero code uses the [MIT license](../LICENSE). Third-party notices
+remain separate; Zero Community artifact licensing is still unresolved.

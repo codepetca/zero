@@ -115,8 +115,8 @@ another student can follow; seek review before cohort adoption.
 
 Advanced contributions may introduce Java packages, interfaces or JavaFX properties
 when a concrete app needs them. A separate local versioned JAR/Workshop/admission prototype is documented in
-[COMPONENTS.md](COMPONENTS.md); public distribution remains future work. A public license for original Zero code remains
-unresolved; upstream wrapper licenses/notices do not license all Zero source.
+[COMPONENTS.md](COMPONENTS.md); public component distribution remains future work. Original Zero code uses
+[MIT](../LICENSE); upstream wrapper licenses/notices retain their own terms.
 
 ## Local component lifecycle
 

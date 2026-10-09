@@ -217,5 +217,5 @@ Sources: [OpenJFX 21 release requirements](https://github.com/openjdk/jfx/blob/j
 
 The bundled Apache Maven Wrapper scripts retain their upstream attribution.
 See [wrapper license](.mvn/wrapper/LICENSE-APACHE-2.0.txt) and
-[wrapper notice](.mvn/wrapper/NOTICE). These apply to the wrapper; a public license
-for the original Zero code has not yet been selected.
+[wrapper notice](.mvn/wrapper/NOTICE). These apply to the wrapper. Original Zero source uses the bundled
+[MIT license](LICENSE).

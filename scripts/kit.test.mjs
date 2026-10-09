@@ -13,8 +13,10 @@ test('starter preparation refreshes generated source and preserves edited copies
   const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-drift-'));
   try {
     mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
+    writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
     for (const name of coreSources) writeFileSync(path.join(fixture, 'framework/src/main/java/zero', name), `original ${name}`);
     prepareStarter(fixture);
+    assert.deepEqual(readFileSync(path.join(fixture, 'student-template/LICENSE')), readFileSync(path.join(root, 'LICENSE')));
     const generated = name => path.join(fixture, 'student-template/src/main/java/zero', name);
     writeFileSync(path.join(fixture, 'framework/src/main/java/zero/SimpleApp.java'), 'canonical update');
     prepareStarter(fixture);
@@ -24,6 +26,11 @@ test('starter preparation refreshes generated source and preserves edited copies
     assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
     assert.equal(readFileSync(generated('SketchApp.java'), 'utf8'), 'valuable student edit');
     assert.equal(readFileSync(generated('SimpleApp.java'), 'utf8'), 'canonical update');
+    writeFileSync(generated('SketchApp.java'), `original SketchApp.java`);
+    writeFileSync(path.join(fixture, 'student-template/LICENSE'), 'retained license edit');
+    assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
+    assert.equal(readFileSync(path.join(fixture, 'student-template/LICENSE'), 'utf8'), 'retained license edit');
+    assert.equal(readFileSync(generated('SimpleApp.java'), 'utf8'), 'canonical update');
   } finally {rmSync(fixture, {recursive:true, force:true});}
 });
 
@@ -32,9 +39,11 @@ test('assembled ZIP is a standalone editable Java project with canonical source 
   const archive = zipSync(starterMembers(root)), entries = unzipSync(archive);
   for (const name of coreSources) assert.deepEqual(entries[`zero-starter/src/main/java/zero/${name}`],
     new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
+  assert.deepEqual(entries['zero-starter/LICENSE'], new Uint8Array(readFileSync(path.join(root, 'LICENSE'))));
   assert.ok(!Object.keys(entries).some(name => /SmokeLauncher|node_modules|package\.json|\/target\//.test(name)));
   const project = extractProject(archive, 'zero-starter', tmpdir());
   try {
+    assert.deepEqual(readFileSync(path.join(project, 'LICENSE')), readFileSync(path.join(root, 'LICENSE')));
     const main = path.join(project, 'src/main/java/Main.java');
     writeFileSync(main, readFileSync(main, 'utf8').replace('public class Main', '/* independently edited */\npublic class Main'));
     // Compiles only the extracted project, without any repository framework path.

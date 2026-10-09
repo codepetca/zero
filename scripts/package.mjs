@@ -8,6 +8,9 @@ import {starterMembers} from './kit.mjs';
 import {root, releaseDefinition, writeReleaseMetadata, verifiedExistingAssets} from './release.mjs';
 
 prepareStarter();
+const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
+// vsce packages its extension directory; retain the canonical license in every VSIX.
+copyFileSync(path.join(root, 'LICENSE'), path.join(root, 'extension/LICENSE'));
 const release = releaseDefinition(), dist = path.join(root, 'dist');
 mkdirSync(dist, {recursive:true});
 const retained = verifiedExistingAssets().filter(key => key === 'components');
@@ -35,17 +38,21 @@ const starter = archive(starterMembers(root), release.assets.starter.filename);
 assert.ok(starter['zero-starter/.vscode/tasks.json']);
 assert.ok(starter['zero-starter/.mvn/wrapper/maven-wrapper.properties']);
 assert.ok(starter['zero-starter/EXERCISES.md']);
+assert.deepEqual(starter['zero-starter/LICENSE'], license);
 assert.deepEqual(starter['zero-starter/src/main/java/ScoreDisplay.java'], starter['zero-starter/examples/shared/ScoreDisplay.java']);
 for (const name of coreSources) assert.deepEqual(starter[`zero-starter/src/main/java/zero/${name}`], new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
 assert.ok(!starter['zero-starter/src/main/java/zero/SmokeLauncher.java']);
 const kit = starterMembers(root, 'zero-kit/starter');
 for (const [source, destination] of [
+  ['LICENSE', 'LICENSE'],
   ['release/START-HERE.md', 'START-HERE.md'], [`dist/${vsix}`, vsix],
   ['profile/Zero.code-profile', 'optional/Zero.code-profile'],
   ['profile/optional-keybindings.json', 'optional/optional-keybindings.json']
 ]) kit[`zero-kit/${destination}`] = [new Uint8Array(readFileSync(path.join(root, source))), {os:3, attrs:(0o100644 << 16) >>> 0}];
 const combined = archive(kit, release.assets.kit.filename);
 assert.ok(combined['zero-kit/START-HERE.md']);
+assert.deepEqual(combined['zero-kit/LICENSE'], license);
+assert.deepEqual(combined['zero-kit/starter/LICENSE'], license);
 assert.ok(combined['zero-kit/starter/src/main/java/Main.java']);
 assert.ok(combined[`zero-kit/${vsix}`]);
 assert.ok(!Object.keys(combined).some(key => key.endsWith('.zip')));

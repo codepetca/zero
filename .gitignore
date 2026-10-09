@@ -1,5 +1,6 @@
 node_modules/
 extension/dist/
+extension/LICENSE
 extension/media/component-example/zero/
 extension/media/component-example/.mvn/
 extension/media/component-example/mvnw
@@ -13,9 +14,12 @@ dist/
 .env.*
 student-template/src/main/java/zero/SimpleApp.java
 student-template/src/main/java/zero/SketchApp.java
+student-template/LICENSE
 website/.generated/
 website/.next/
 website/node_modules/
 website/tsconfig.tsbuildinfo
 website/public/generated/
 website/next-env.d.ts
+
+.vercel/

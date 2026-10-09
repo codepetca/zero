@@ -163,5 +163,5 @@ A Mac teacher trial verified native authentication and a private repository
 upload. Physical Windows/Linux, school restrictions and novice classroom pilots
 still need verification. First-time builds need
 internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
-cohort adoption. A public license for original Zero code remains unresolved;
-upstream wrapper notices apply to the wrapper.
+cohort adoption. Original Zero code uses the [MIT license](../LICENSE);
+upstream wrapper notices apply separately to the wrapper.

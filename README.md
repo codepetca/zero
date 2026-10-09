@@ -70,5 +70,6 @@ These are experimental local artifacts; packaging does not publish them.
 
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
-A public license for original Zero code has not yet been selected; bundled
-upstream dependency notices retain their own terms.
+Original Zero code is available under the [MIT license](LICENSE). Bundled
+upstream dependencies and wrapper notices retain their own terms. Zero Community
+has its own licensing decision; its experimental archive is not part of this release.
