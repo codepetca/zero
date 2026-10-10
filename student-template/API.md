@@ -189,6 +189,14 @@ resource root. A path without `/` is relative to your class's Java package.
 `loadImage` performs a load each time you call it; it does not maintain a cache.
 Avoid repeated loading inside draw.
 
+### Short sound effects
+
+The source starter also pins JavaFX media. Use an ordinary [AudioClip](https://openjfx.io/javadoc/21/javafx.media/javafx/scene/media/AudioClip.html), loaded
+once from a classpath resource, and call `play()` for one event. See
+[Lesson 12](lessons/12-media.md) for copying assets, the small loader and the
+additional dependency needed by older kits. Use short effects; AudioClip holds
+uncompressed audio in memory. Longer music and resource cleanup are later work.
+
 ### Input methods
 
 Import `KeyCode` and `MouseButton` from `javafx.scene.input`. These public final
@@ -263,7 +271,7 @@ For a packaged class `school.app.Main`, use `package school.app;`, place it in
 package; move its helpers into named packages too. Resource-root image paths
 such as `/player.png` keep working.
 
-The starter includes JavaFX controls (and its graphics dependencies). Persistence,
-media, FXML and web features are separate app/dependency work, not bundled Zero
-helpers. Versioned community components and a workshop are being developed
+The source starter includes JavaFX controls, graphics and media. Persistence,
+FXML and web need their own dependencies. AudioClip is ordinary JavaFX, not a Zero
+helper. Versioned community components and a workshop are being developed
 separately; they do not change this core API or require a component base class.

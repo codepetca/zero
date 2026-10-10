@@ -1,4 +1,192 @@
-# Verification — 2026-10-09
+# Verification — 2026-10-10
+
+## Lesson 12 media — local, 2026-10-10
+
+Added a tiny local PNG/WAV demo, original MIT assets, resource replacement lesson
+and JavaFX media at the existing21.0.12 pin in the source starter POM. Older kits
+get the exact dependency block. Core source/API and published0.5.2 bytes are
+unchanged. Camera/HUD/physics assessment is documented in GAME-SYSTEMS.md; camera,
+platformer/physics and longer-music cleanup are planned, not delivered features.
+
+Configuration/links,20website tests,2kit tests/extracted starter compile,site
+production build and whitespace checks pass. ZIP checks retain all13lessons and
+exact media Java/PNG/WAV bytes. Browser11→12, collapsed/expanded copy steps,
+fixed0–12 sidebar and final examples exit pass. Actual sprite and sound links
+download with the expected filenames and byte-match canonical assets. Public
+asset routes are a fixed two-file build-time mapping, not arbitrary file access.
+Full-page lesson-12.jpg and logs are ignored under .verification/media-2026-10-10/.
+
+Finite native macOS checks pass for media-demo, unchanged HelloWorld and coin-game
+(9.56s total). Media checks cover image dimensions/scaled drawing/transparency,
+load-once reuse, missing/unsupported sound path diagnostics, repeated button
+requests and native AudioClip playback/end. Playback checks are muted: successful
+backend state does not establish audible speaker output. A disposable replacement
+fixture (4px coral PNG,440Hz PCM WAV, paths/filenames containing spaces) compiles,
+draws and enters/completes playback. Its script/log remain ignored alongside logs.
+The standalone interactive copy compiles/launches; native Java did not appear in
+computer-use app inventory, so physical clicks are not claimed. Owned process
+was stopped. No physical keys/typing, Windows/Linux, fresh-machine/audio-device,
+classroom or live GitHub flow trial is claimed. Existing keyboard synthetic-check
+limitation remains; the full default GUI suite was not rerun.
+
+## Curriculum 4–11 — local, 2026-10-10
+
+Completes the sequence 0–11: counter, methods/reset, ordinary objects, full
+study app, movement, full coin game, component extraction/reuse and Community
+contribution. Lesson 12 is absent. Existing JavaFX kit architecture is unchanged.
+Kit ZIP assertions cover all twelve canonical lessons and five new example
+copy lists; the extracted default starter compiles. Two kit tests pass.
+
+Configuration, source contracts/local links, 19 website tests, production build
+and whitespace checks pass. The build includes tutorials 0–11 and two-digit
+routing. Browser walkthrough follows 7→8→9→10→11, expands sections and opens
+canonical study source; the final lesson exits to examples. Native held input
+is deterministic set mutation and time, not physical arrow keys.
+
+Finite native macOS checks pass for hello-world, hello-button, hello-name,
+tiny-quiz, click-counter, reset-counter, object-counter, scored quiz, practice,
+study, movement and coin-game. Checks cover retry/once-only scoring, independent
+objects, completion/restart, movement bounds, drawing/contact, coin disappearance,
+win freeze and repeated restart. Initially the disappearance assertion sampled a
+pixel covered by Player; the test now moves Player away first. The full game
+check then passes. Production Java was unchanged by this correction.
+Lesson 10's inline quiz variant independently passes wrong/trimmed-correct,
+single-score and repeat-disable checks.
+
+Workers compiled all three foundations with fenced-code parity, and ten runnable
+app/game stages and variants in disposable offline Maven projects. The component
+worker separately launched the exact bold ScoreDisplay in quiz/practice, and
+source-copy bold HealthBar in Community adventure/study: scoring, reset, damage,
+healing and energy/reset pass. These four logs are worker terminal receipts
+6432/72045 (exit0); disposable projects were removed. Coordinator inspected the
+commands/assertions and reused the coverage without repeating them. Community
+source and public contribution guide were read; no community checkout was edited.
+
+Ignored coordinator logs/variant script live in
+`.verification/curriculum-2026-10-10/`; initial selected-run log preserves the
+failed assertion, the coin-game-fixed log records its correction. No claim that
+the default all-example suite passes: the older keyboard synthetic-event limitation
+below remains. No physical keys/typing, Windows/Linux, fresh installation, novice
+classroom trial, live GitHub fork/PR, or public deployment was performed.
+Public 0.5.2 assets and primary checkout funding work remain unchanged.
+
+Independent GPT-6.1-Sol/high review covers the complete 9cc1ac1..3f43513 delta
+with no actionable findings/blockers. Reviewer checks independently confirm twelve
+lessons, forty local lesson links, canonical foundation/ScoreDisplay fences,
+copy lists and two-digit/final-boundary routing. One review launch/initial wave,
+no review remediation or extra integration wave. Final receipt edits do not
+change the reviewed implementation. Full-page screenshots lesson-index.jpg and
+lesson-11.jpg show the rebuilt 0–11 navigation and final examples exit; browser
+reported no warnings/errors and no desktop horizontal overflow. Temporary
+browser tab/server were closed. This remains a local candidate for an approved
+future release; published downloads do not contain these new lessons.
+
+## Lesson 3 tiny quiz — local, 2026-10-10
+
+Added tiny-quiz Main and replaced Lesson 3 with identical complete code and three
+steps. Native macOS JavaFX checks cover blank/wrong answers, correct 5, checking
+remaining enabled, and a later wrong answer replacing correct feedback. Existing
+scored quiz and practice checks pass; their canonical source is unchanged.
+Actions use setText/Button.fire, not physical typing/clicks. No full GUI rerun.
+
+Configuration/link and whitespace checks, 2 standalone-kit tests, 18 website
+tests, 3 affected tests after fixture alignment, and production build pass.
+Generated HTML links 2→3 tiny quiz→4 objects; generated lesson and source match
+canonical bytes. The later exercise/teacher/copy guides identify the scored
+quiz separately. No new screenshots, fresh install, Windows/Linux/classroom
+trial or release/publication action.
+
+## Lesson 2 name — local, 2026-10-10
+
+New hello-name example and minimal Lesson 2 add one TextField; the handler reads
+getText when clicked and updates the existing Label. Fenced Java exactly matches
+the canonical example. Finite macOS JavaFX checks compile and launch name/quiz:
+empty input at startup, Stew → Hello, Stew!, then Ada → Hello, Ada! in the same
+label; following quiz checks pass. Input uses setText/Button.fire, not physical
+typing or clicks. The broader GUI suite was not repeated.
+
+Quiz/later lessons move to 3–8. Configuration/link and whitespace checks,
+9 onboarding/standalone-kit tests, 18 website tests and production build pass.
+Built HTML confirms 1→2 name→3 quiz→4 objects and the lesson 8 examples exit.
+No new screenshots, fresh install, Windows/Linux or classroom trial. No release
+asset replacement or website publication; unchanged legacy fallback remains.
+
+## Lesson 1 button — local, 2026-10-10
+
+Added a small hello-button example and complete Lesson 1. Label, Button and VBox
+each use a named var; the handler changes the existing label with setText.
+Quiz and later lesson files, canonical references and website routing move to
+2–7. The default compiled Main remains Lesson 0. Legacy extension fallback to
+01-quiz.md intentionally remains for older downloaded projects.
+
+The lesson's fenced Java exactly matches the canonical example. Finite native
+macOS JavaFX checks compiled and launched the button and quiz examples:
+Button.fire changes Hello, world! to Hello, Java!, a repeated action retains
+the same Label, and quiz behavior passes. These are automated control actions;
+no physical student clicks, fresh installation or new screenshots are claimed.
+Configuration/link checks, 9 onboarding/standalone-kit tests, 18 website tests,
+production build and diff whitespace checks pass. Built HTML confirms the
+progression 0→1 button→2 quiz→3 objects and lesson 7's examples exit.
+The broader example suite was not repeated; its existing keyboard-input limit
+is recorded below. No Windows/Linux or classroom trial occurred. This local
+change does not publish a website or replace any immutable 0.5.2 asset.
+
+## Lesson 0 — local, 2026-10-10
+
+The default Main is now a short program showing a single Hello, world! Label.
+A follow-up names the Label with `var greeting` before `show(greeting)`;
+Maven compile, configuration/link checks and diff whitespace checks pass.
+GUI checks were not repeated for this syntax-only change.
+The short Lesson 0 asks students to Run, change the greeting and rerun, then
+links to the existing quiz. Bundled index, setup, teacher notes and website
+start/navigation include Lesson 0. The extension prefers Lesson 0 and falls
+back to Lesson 1 for older projects. Published 0.5.2 assets remain unchanged;
+Lesson 0 includes the complete replacement program for an older quiz starter.
+
+Config/link checks,11 affected extension/standalone-kit checks,18 website tests
+and the website production build pass, including generated /tutorials/0 and
+correct next/previous navigation. Finite native JavaFX checks pass for the
+new default greeting and quiz/practice/study/animation/counter/drawing examples.
+A separately rebuilt changed-greeting variant also displays Hello, Java!.
+Built HTML confirms next links0→1→2. Independent Sol/medium review at4c52a45
+found no actionable issue and passed12 focused checks.
+The existing keyboard check fails its synthetic right-arrow assertion with
+native display-link errors; the unchanged pre-Lesson-0 source reproduces the
+same failure. No keyboard/framework behavior changed and no all-eight-pass
+claim is made. Logs stay in .verification/onboarding-2026-10-10/. The full Node
+suite and physical Windows/Linux were not rerun for this bounded follow-up.
+
+## Student onboarding improvements — local, 2026-10-10
+
+Based on main `00bd796`, in `codex/student-onboarding`. Lesson 1 opens once
+when no editor tabs are open and can be reopened from the sidebar or Command
+Palette. Failed owned runs offer Show Problems; Stop and successful exits stay
+normal. Setup names both Java extensions and pairs quiz question/answer edits.
+Published 0.5.2 assets and release metadata are unchanged; these behaviors are
+verified from extension source in a development host, not a new released VSIX.
+
+`npm run check`, full Node suite 113/113 (166s), and `git diff --check` passed.
+Independent review found one P2: a Markdown preview could be mistaken for an
+empty editor. A new test reproduced it before remediation. The guard now checks
+all tab groups before preparation and immediately before preview dispatch.
+Ten affected checks pass, including existing-preview and late-tab regressions.
+Normal exit, stopped run, unrelated tasks and missing legacy lesson coverage pass.
+The full suite predates this small guard correction; affected tests/checks reran.
+Independent targeted review at `0aec588` confirmed resolution with no new findings
+and independently passed all ten affected checks plus delta whitespace validation.
+
+Actual macOS VS Code development host, disposable project in a path with spaces:
+first lesson preview, deliberate missing semicolon, failed-run Show Problems,
+source navigation, repair/recompile, Stop with no error/zero Problems, empty-editor
+reload without reopening, and explicit lesson reopening passed. Four screenshots
+are retained in this worktree's ignored `.verification/onboarding-2026-10-10/`.
+Maven compiled and launched the JavaFX child; quiz button interaction and normal
+window-close behavior were not exercised. The normal-exit distinction is covered
+by tests. Existing JDK/Java extensions/cache were reused; this was not fresh-machine
+installation. Physical Windows/Linux, live GitHub and novice classroom trials
+remain unverified. Initial short-path trial was restricted; it was replaced with
+a disposable project under the already-trusted user directory without changing
+trust settings. No credentials, live transport or publication changes.
 
 ## Zero 0.5.1 release
 

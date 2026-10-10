@@ -1,7 +1,10 @@
 # My Zero App
 
-Open **this folder** in VS Code. Start with `src/main/java/Main.java` and
-`ScoreDisplay.java` (the score helper). Run App opens a separate JavaFX window. Save changes, close or
+Open **this folder** in VS Code, complete the setup below, then start with
+[Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
+continues through counters, objects, a study app, a game, Community sharing and your own media.
+Start by editing only `src/main/java/Main.java`.
+Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
 **Ctrl+Shift+B** on Windows/Linux or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
@@ -14,7 +17,10 @@ Zero**, then close the app window or terminate that task before running again.
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
-   quiet settings-only profile. In your chosen profile, install the local **zero-0.5.2.vsix**, **Language
+   quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
+   Windows/Linux, **Command+Shift+P** on macOS) in your chosen profile. Use
+   **Extensions: Install from VSIX…** for the local **zero-0.5.2.vsix**, then
+   **Extensions: Install Extensions** for **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -47,18 +53,32 @@ verification; this prototype was checked on macOS arm64.
 
 ## Make something
 
-Start with the small [beginner toolkit](BEGINNER.md). Choose an app or game,
+Start with [Lesson 0](lessons/00-hello-world.md): click Run App to see
+**Hello, world!**, change the greeting, then Save, Stop and Run App again.
+Next, [Lesson 1](lessons/01-hello-button.md) adds a button that changes the
+greeting. [Lesson 2](lessons/02-hello-name.md) reads your name.
+[Lesson 3](lessons/03-quiz.md) checks one answer with `if`.
+
+Local upcoming extension changes open the first lesson's preview once per project.
+Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
+Zero run offers **Show Problems**. These changes are not in the published 0.5.2
+VSIX: open [the lesson file](lessons/00-hello-world.md) yourself and use
+**View: Toggle Problems** to open compiler errors.
+
+Then follow the [remaining lessons](lessons/README.md) or the small
+[beginner toolkit](BEGINNER.md). Choose an app or game,
 run a complete example, then try three small changes. The
 [appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
 
-The default is a tiny quiz. It teaches fields, objects, native controls, and
+The default is a short greeting with a single Label. Lesson 3 uses a tiny quiz
+with `if`/`else` and feedback. The later scored quiz teaches fields, objects and
 methods called by events. `settings()` sets the window title and initial content
 size. `setup()` builds the interface once and calls `show(screen)` with an
 ordinary JavaFX node. A button's `setOnAction(event -> checkAnswer())` means
 “when clicked, call this method.” The method body is ordinary Java.
 
 `SimpleApp` does not run an animation loop. The window is resizable; JavaFX
-layouts such as VBox/HBox arrange and resize their children. This quiz uses
+layouts such as VBox/HBox arrange and resize their children. The scored quiz uses
 12-pixel spacing and 20-pixel padding directly in its VBox; change these numbers
 or use normal JavaFX CSS. Main owns the points and scoring rule. `ScoreDisplay`
 owns the label; `view()` is an ordinary method returning its JavaFX node. Every
@@ -125,9 +145,18 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | --- | --- | --- |
 | Hello, Java | `examples/hello-app/Main.java` → `src/main/java/Main.java`; `examples/hello-app/theme.css` → `src/main/resources/hello-app/theme.css` | Type a name, say hello, reset, then change the theme. See [copy/run instructions](examples/hello-app/README.md). |
 | Reach the coin | `examples/reach-the-coin/Main.java` and `examples/reach-the-coin/Player.java` | Move with arrows, touch the gold square to win, press R to restart. See [copy/run instructions](examples/reach-the-coin/README.md). |
-| Default quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
+| Say hello | `examples/hello-button/Main.java` | Click one button to change a greeting. See [Lesson 1](lessons/01-hello-button.md). |
+| Greet by name | `examples/hello-name/Main.java` | Type your name, then click Say hello. See [Lesson 2](lessons/02-hello-name.md). |
+| Click counter | `examples/click-counter/Main.java` | +1 counts clicks. See [Lesson 4](lessons/04-counter.md). |
+| Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. See [Lesson 5](lessons/05-methods.md). |
+| Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. See [Lesson 6](lessons/06-objects.md). |
+| Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
+| Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12](lessons/12-media.md). |
+| Collect the coins | `examples/coin-game/Main.java`, `examples/coin-game/Player.java`, `examples/coin-game/Coin.java` | Collect three coins, win, Restart. See [Lesson 9](lessons/09-coin-game.md). |
+| Tiny quiz | `examples/tiny-quiz/Main.java` | Answer 2 + 3, click Check, then try again. See [Lesson 3](lessons/03-quiz.md). |
+| Scored quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
-| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |
+| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [the full app tutorial](lessons/07-study-app.md). |
 | Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |
 | Keyboard | `examples/keyboard/Main.java` and `examples/keyboard/Mover.java` | Arrow keys move/clamp the circle; diagonal movement is faster. |
 | Counter | `examples/counter/Main.java` | Native buttons beside a canvas change its displayed count. |
@@ -203,7 +232,7 @@ private. Zero does not submit assignments or change Pika grades.
 
 ## Checking your changes
 
-Run your app after each change and try both correct and incorrect answers.
+Run your app after each change. For the quiz, try both correct and incorrect answers.
 Use the examples and exercises to check the behavior you changed. A compile
 alone does not verify layout, focus or school-machine restrictions.
 

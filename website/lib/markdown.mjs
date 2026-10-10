@@ -1,4 +1,5 @@
 import path from "node:path";
+import { isLessonDocumentId } from "./learning.mjs";
 export const slugify = (text) =>
   text
     .toLowerCase()
@@ -9,17 +10,18 @@ const nodeText = (node) =>
     ? node.value
     : (node.children ?? []).map(nodeText).join("");
 export function documentHref(id) {
-  return /^lesson-[1-6]$/.test(id)
-    ? `/tutorials/${id.slice(-1)}`
+  return isLessonDocumentId(id)
+    ? `/tutorials/${id.slice("lesson-".length)}`
     : `/docs/${id}`;
 }
-export function resolveContentLink(source, href, documents, sources) {
+export function resolveContentLink(source, href, documents, sources, assets = {}) {
   if (!href || href.startsWith("#") || /^(https?:|mailto:)/.test(href))
     return href;
   const [file, fragment] = href.split("#");
   const key = path.posix.normalize(
     path.posix.join(path.posix.dirname(source), file),
   );
+  if (Object.hasOwn(assets, key)) return assets[key];
   const target = Object.entries(documents).find(
     ([, doc]) => doc.source === key,
   );

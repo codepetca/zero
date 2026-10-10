@@ -1,4 +1,201 @@
-# Current state — 2026-10-09
+# Current state — 2026-10-10
+
+## Integrated local kit — in progress, 2026-10-10
+
+Owner accepted the sequence: finish the media lesson, combine the local lessons
+and alternatives, then choose the camera/HUD teaching proof. This phase combines
+the two source branches locally; no push, PR, merge to main, release, deployment,
+credentials or camera implementation. Preserve primary funding work and both
+reviewed source branches. Current IDE design brief favors the extension/profile
+and a launcher after the owner's lightweight clarification; do not revive a fork
+implementation without a new explicit decision.
+
+Managed worktree /Users/stew/.codex/worktrees/kit-integration/zero,
+branch codex/kit-integration, starts at alternatives942bcf3. Sibling community
+checkout is detached8bc5879. Student498ad34 is combined without Git conflicts;
+its media review is still running in the separate prototype/onboarding task.
+Coordinator owns this integration only and does not edit the active source tree.
+Six shared files need semantic verification: CURRENT, DEVELOPMENT, PRODUCT,
+VERIFICATION, extension.js and website/scripts/prepare.mjs.
+
+Exit: exact reviewed media source included, affected extension/site/native
+checks pass, pinned public metadata preserved, independent integration review
+complete and one locally regenerated preview kit with receipts. Existing public
+0.5.2 and community0.1.2 remain untouched. No tool-backed goal or automation.
+Weekly25% remaining at phase start; account-wide usage cannot isolate task cost.
+DeepSeek pause through2026-12-31 remains active. Handle this coherent merge
+directly; use one bounded Sol/medium independent integration reviewer. Budget:
+7launches,1initialwave,4targeted,1integration,4fixbatches,60min session/30min
+reviewer; prior independent source coverage is reused outside shared boundaries.
+
+
+## Lesson 12 media — checks complete, review pending, 2026-10-10
+
+Owner authorized the tiny sprite/sound demo and asked about game-system structure.
+Scope: Lesson 12 PNG/WAV copy/customization, ordinary JavaFX AudioClip with pinned
+media module, downloadable canonical assets, tests/site/kit integration; assessment
+of camera/scoreboard/physics composition. Not the entire larger platformer yet.
+Basef54b291, same managed student-onboarding worktree. No primary edits, external
+publication/transport/credentials, community edits or immutable asset replacement.
+
+Coordinator owns all writes. game_systems_assessment GPT-6.1-Sol/high read-only
+source assessment delivered: core supports camera/HUD helpers; teaching examples
+and collision response are gaps; final shutdown lacks a future resource-cleanup
+hook. Verified sources; no core API expansion for one brief effect. Worker elapsed
+and attributable tokens unknown. Weekly25%remaining; DeepSeek paused throughDec31.
+Started23:38UTC; acceptance: canonical resources packaged/downloadable, PNG drawn,
+short WAV decoded/playback exercised, useful errors, copy/customization works,
+site progression0–12 and bounded independent current-head review.
+Review standard risk: one Sol/high; caps7launches/1initial/4targeted/1integration/
+4fixbatches/60minsession/30minreviewer, routine~8min. No PR/publish authorization.
+
+Checks: configuration/links,20website tests,2kit tests/extracted compile,production
+build pass. Native media/default greeting/coin-game pass; replacement 4px PNG,
+new PCM WAV and renamed paths with spaces pass. Muted check observes AudioClip
+playback/end, not audible device output. No physical clicks/keys/Windows/Linux.
+Browser11→12, resource copy steps and actual PNG/WAV downloads pass; downloaded
+bytes match canonical assets and are retained only in ignored verification folder.
+Interactive launch compiled/launched; Java app absent from computer-use app
+inventory, so no physical interaction claimed; owned demo process stopped.
+No core source/API changes. Current IDE direction remains VSCode extension/profile
+with the JavaFX teaching library and existing bootstrap; custom IDE/fork proposals
+are not revived. Before a combined release, reconcile the separately reviewed
+component-alternatives branches with this branch and rerun integration gates;
+shared doc/site/extension files overlap. This slice changes no component coordinates.
+Review ledger basef54b291, implementation head after commit, standard Sol/high,
+launches0/initial0/targeted0/integration0/fixbatches0; no external publication.
+
+## Curriculum through 11 — complete locally, 2026-10-10
+
+Owner authorized orchestration through Lesson 11, excluding Lesson 12.
+Base 9cc1ac1, codex/student-onboarding. Preserve primary funding work and public
+0.5.2 releases; no publication, transport, credentials or community-repo edits.
+One sequence: 0–3 delivered; 4 counter, 5 methods/reset, 6 ordinary objects,
+7 study app, 8 movement, 9 coin game, 10 component reuse, 11 Community sharing.
+Exit: canonical examples/copy lists and lesson/site progression 0–11 agree;
+affected JavaFX behavior, kit inclusion, site build/browser and review pass.
+Lesson 12 media/platformer/physics is not implemented or linked as a tutorial.
+
+Ownership, started ~21:54 UTC: curriculum_foundations Sol/medium owns new
+04-counter/05-methods/06-objects and click/reset/object-counter examples;
+curriculum_apps_games Sol/high owns 07-study-app/08-movement/09-coin-game and
+movement/coin-game examples; curriculum_components Sol/medium owns
+10-components/11-community. Coordinator owns shared docs/indexes/site/tests,
+old lesson removal, integration and serialized native/browser checks.
+All workers had bounded briefs, no Git writes/publication/delegation. Foundation
+and app/game workers compiled only; the component worker ran four finite native
+checks before the coordinator began serialized GUI checks. Ownership is released.
+Weekly 27% remaining; DeepSeek paused through Dec31; task token cost unknown.
+Review: standard behavior/content risk, one Sol/high independent full-diff pass
+after checks. Budget max7 launches/1 initial/4 targeted/1 integration/4 fix
+batches/60min total/30min reviewer; routine target ~8min. No PR is authorized.
+
+Verification: 19 website tests, 2 kit tests, config/link checks and site build
+pass. Native macOS checks pass for all twelve selected curriculum/example apps,
+plus the inline extraction variant and four component source-copy variants.
+The coin rendering check initially sampled the overlapping player; moving it
+away corrected the check, then the full game check passed. No app fix needed.
+Browser confirmed 7→8→9→10→11, collapsible sections and readable canonical source;
+final 11 exits to examples. A stale sidebar count was fixed and rebuilt.
+Physical keys/typing, Windows/Linux, classroom and live fork/PR remain untested.
+Worker command elapsed: foundations compile 4.91s, app/game stages 17.7s,
+component four native checks 10.3s. Worker total-minute estimates were not sampled
+and are discarded; attributable token and coordinator-active cost unknown.
+One test correction and one stale-label integration correction, no worker redo.
+Review ledger: base9cc1ac1, reviewed implementation head3f43513; standard risk,
+GPT-6.1-Sol/high curriculum_review turn1, complete coverage, no findings/blockers.
+Launches1, initial waves1, targeted/integration waves0, review fix batches0.
+Independent checks: twelve lessons, forty local lesson links, fence/copy parity,
+two-digit routes and final boundary. Existing native/build/kit evidence reused.
+Review completed within the ~8min target; exact elapsed seconds/tokens unavailable.
+Initial orchestration phase started ~21:54 UTC, completed ~22:06 UTC; task wall
+clock about12min, not an attribution of worker savings or coordinator-active time.
+This final receipt-only delta is coordinator-checked; implementation is unchanged.
+No publication, PR or merge. Remaining platform/live-flow gaps are above.
+See docs/VERIFICATION.md for coverage limits and ignored local evidence.
+
+## Lesson 3 — local follow-up, 2026-10-10
+
+Owner approved a tiny 2 + 3 quiz. Lesson 3 now has complete named-var code and
+three steps; tiny-quiz Main uses if/else for feedback. Scored quiz source stays
+unchanged for Lesson 4/reuse exercises; instructions distinguish the two apps.
+Coordinator handled this directly, no worker/review wave; recent weekly reading
+29% remaining, task cost unknown. Native macOS tiny/scored quiz and practice
+checks, 2 kit tests, 18 site tests (3 affected rerun), config/links, production
+build and canonical built lesson/example/navigation checks pass. Local only;
+no physical typing, Windows/Linux/classroom trial or publication.
+
+## Lesson 2 — local follow-up, 2026-10-10
+
+Owner approved greet-by-name with minimal wording. Added hello-name Main and
+complete Lesson 2: one TextField, named vars, three steps. Quiz/later lessons
+move to 3–8; canonical links, website routes/examples and teacher notes agree.
+Default Main and legacy first-lesson fallback remain unchanged. Coordinator
+handled this coherent change directly; weekly 29% remaining, task cost unknown.
+Native macOS name/quiz checks, 9 onboarding/kit tests, 18 website tests,
+configuration/links, production build and generated progression 1→2→3→4/end8
+pass. No physical typing, Windows/Linux or classroom trial is claimed.
+Local codex/student-onboarding only; no primary edits or publication.
+
+## Lesson 1 — local follow-up, 2026-10-10
+
+Owner chose minimal wording: Lesson 1 now keeps the complete code and four
+short steps. Code is unchanged; configuration/link and whitespace checks pass.
+
+Owner approved a tiny button lesson after Hello, world!. Added the canonical
+hello-button example and complete Lesson 1 with named vars, one click handler
+and a change/rerun exercise. Quiz and later lessons shift to 2–7; starter Main
+still begins at Lesson 0. Updated canonical links, website routes/examples and
+teacher guidance. The extension's legacy 01-quiz fallback remains for old kits.
+Coordinator handled this coherent content/example change directly, with no new
+worker or review wave. Recent weekly reading was 34% remaining; task usage unknown.
+Native macOS Button.fire checks pass for initial/changed/repeated greeting and
+the following quiz. Config/link checks, 9 onboarding/kit checks, 18 site tests,
+production build and generated HTML progression 0→1→2→3/end7 pass.
+Work stays local in codex/student-onboarding; primary funding edits and published
+0.5.2 assets remain untouched. See docs/VERIFICATION.md for evidence limits.
+
+## Lesson 0 — local follow-up, 2026-10-10
+
+Owner requested an ultra-simple Hello, world! beginning. Coordinator changed
+only the starter Main to a short Label app, added the three-step Lesson 0,
+updated the lesson transition/setup/site navigation and first-lesson selection
+with old-kit fallback. Work remains in codex/student-onboarding; primary funding
+edits and immutable0.5.2 release assets are untouched. No external publication.
+11 affected extension/kit checks,18 website tests,config and production build
+pass. Finite native greeting plus six existing examples pass; keyboard's existing
+synthetic-input failure reproduces with pre-change source/display-link errors.
+See docs/VERIFICATION.md for scope; do not describe the broad GUI run as green.
+Bounded Sol/medium review at4c52a45 completed in about3min with no findings;
+12 independent focused checks passed. Final3 reviewer turns/1 remediation batch
+within the existing budget; no worker edits or rework. Changed-greeting native
+check also passed (Hello, Java!), and built HTML links0→1→2 were verified.
+Coordinator handled this small coherent change directly.
+
+## Student onboarding — local work, 2026-10-10
+
+Owner's “Next” authorized the prior student-audit improvements. Worktree
+`codex/student-onboarding` starts at main `00bd796`; primary funding changes
+remain untouched. Lesson 1 opens once for an empty editor and has a sidebar
+reopen action. Failed runs offer Problems; success/Stop do not report an error.
+Setup names Java extensions, keeps recommendations enabled and pairs question
+and answer edits. Published 0.5.2 assets/version metadata remain immutable.
+No push, PR, merge, release or deployment is authorized for this follow-up.
+
+Coordinator owns extension/UI checks; onboarding_docs GPT-6.1 Sol/medium owned
+four starter/profile guides, delivered and inspected, ownership released.
+Coordinator corrected assembled-only links in START-HERE to readable paths.
+Independent onboarding_review GPT-6.1 Sol/medium completed full diff afc51bc
+against00bd796 in about4min; one P2 non-text-tab interruption reproduced and
+fixed by coordinator with early/late tab checks. Targeted review at0aec588
+resolved the P2 with no new findings in about1min; independent10 checks passed.
+Budget: max7 reviewer launches, initial1 wave, targeted4, integration1, fix4
+batches,60min total/30min reviewer; final2 turns/1 remediation batch; no further source changes.
+Weekly34% remaining at start (account-wide); attributable tokens/effective
+worker settings unavailable. DeepSeek remains paused. No file-writer conflict.
+Full113 tests/check/diff pass; corrected guard passes10 affected checks.
+Actual Mac development-host lesson/failure/Problems/repair/Stop/reload/reopen
+passed with screenshots; see docs/VERIFICATION.md for precise limits.
 
 ## Component alternatives and recommendations — local implementation
 

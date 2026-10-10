@@ -1,10 +1,72 @@
 from pathlib import Path
-import shutil, tempfile, subprocess, time, os
+import argparse, shutil, tempfile, subprocess, time, os
 source=Path(__file__).resolve().parent.parent / 'student-template'
 subprocess.run(['node', str(source.parent/'scripts/prepare-starter.mjs')], check=True)
 assert (source/'src/main/java/ScoreDisplay.java').read_bytes() == (source/'examples/shared/ScoreDisplay.java').read_bytes(), 'Shared ScoreDisplay copy drift'
-assert (source/'src/main/java/Main.java').read_bytes() == (source/'examples/quiz/Main.java').read_bytes(), 'Default quiz copy drift'
 checks={
+'hello-world': '''require(stage.isShowing(), "Greeting window is visible");
+        var content = ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        require(content instanceof Label && ((Label) content).getText().equals("Hello, world!"), "Default starter displays the greeting");''',
+'hello-button': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var greeting = (Label) screen.getChildren().get(0);
+        var sayHello = (Button) screen.getChildren().get(1);
+        require(greeting.getText().equals("Hello, world!") && sayHello.getText().equals("Say hello"), "Initial greeting and button");
+        sayHello.fire();
+        require(greeting.getText().equals("Hello, Java!"), "Click changes the greeting");
+        sayHello.fire();
+        require(greeting.getText().equals("Hello, Java!") && screen.getChildren().get(0) == greeting, "Repeated click updates the same label");''',
+'hello-name': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var greeting = (Label) screen.getChildren().get(0);
+        var name = (TextField) screen.getChildren().get(1);
+        var sayHello = (Button) screen.getChildren().get(2);
+        require(greeting.getText().equals("Hello, world!") && name.getText().isEmpty(), "Name lesson starts with an empty field");
+        name.setText("Stew"); sayHello.fire();
+        require(greeting.getText().equals("Hello, Stew!"), "Click reads the typed name");
+        name.setText("Ada"); sayHello.fire();
+        require(greeting.getText().equals("Hello, Ada!") && screen.getChildren().get(0) == greeting, "Next click reads the new name into the same label");''',
+'tiny-quiz': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var question = (Label) screen.getChildren().get(0);
+        var answer = (TextField) screen.getChildren().get(1);
+        var check = (Button) screen.getChildren().get(2);
+        var feedback = (Label) screen.getChildren().get(3);
+        require(question.getText().equals("What is 2 + 3?") && feedback.getText().isEmpty(), "Tiny quiz starts with its question and no feedback");
+        check.fire();
+        require(feedback.getText().equals("Try again."), "Blank answer takes the incorrect branch");
+        answer.setText("4"); check.fire();
+        require(feedback.getText().equals("Try again."), "Wrong answer permits retry");
+        answer.setText("5"); check.fire();
+        require(feedback.getText().equals("Correct!") && !check.isDisabled(), "Correct answer shows feedback and keeps checking enabled");
+        answer.setText("6"); check.fire();
+        require(feedback.getText().equals("Try again."), "Later wrong answer replaces correct feedback");''',
+'click-counter': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var display = (Label) screen.getChildren().get(0);
+        var add = (Button) screen.getChildren().get(1);
+        require(display.getText().equals("0"), "Counter starts at zero");
+        add.fire(); add.fire();
+        require(display.getText().equals("2") && (int) field(app, "count") == 2, "Two clicks update state and display");''',
+'reset-counter': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var display = (Label) screen.getChildren().get(0);
+        var add = (Button) screen.getChildren().get(1);
+        var reset = (Button) screen.getChildren().get(2);
+        require(display.getText().equals("0"), "Reset lesson starts at zero");
+        add.fire(); add.fire();
+        require(display.getText().equals("2"), "Increment method updates display");
+        reset.fire(); reset.fire();
+        require(display.getText().equals("0") && (int) field(app, "count") == 0, "Reset method clears state and remains at zero");
+        add.fire();
+        require(display.getText().equals("1"), "Increment works after Reset");''',
+'object-counter': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var display = (Label) screen.getChildren().get(0);
+        var add = (Button) screen.getChildren().get(1);
+        var reset = (Button) screen.getChildren().get(2);
+        var counter = (Counter) field(app, "counter");
+        require(display.getText().equals("0") && counter.value() == 0, "Object counter starts at zero");
+        add.fire(); add.fire();
+        require(display.getText().equals("2") && counter.value() == 2, "Main explicitly updates object and display");
+        reset.fire(); add.fire();
+        require(display.getText().equals("1") && counter.value() == 1, "Object resets and can increment again");
+        var independent = new Counter(); independent.increment(); independent.increment();
+        require(independent.value() == 2 && counter.value() == 1, "Counter instances keep independent state");''',
 'quiz': '''TextField answer = (TextField) field(app, "answer");
         Button check = (Button) field(app, "check");
         Label feedback = (Label) field(app, "feedback");
@@ -111,6 +173,16 @@ checks={
         app.draw();
         require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 100).equals(Color.WHITE), "Secondary button clears");'''
 }
+standalone = {
+    'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
+    'movement': ('MovementCheck', 'MOVEMENT_OK'),
+    'coin-game': ('CoinGameCheck', 'COIN_GAME_OK'),
+}
+checks.update({kind: None for kind in standalone})
+parser = argparse.ArgumentParser(description='Compile and check JavaFX examples in isolated projects.')
+parser.add_argument('--only', nargs='+', choices=list(checks), help='Run only the named examples.')
+args = parser.parse_args()
+selected = {kind: checks[kind] for kind in args.only} if args.only else checks
 harness='''import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
@@ -177,21 +249,29 @@ started = time.monotonic()
 with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
     root = Path(temp)
     print('Finite GUI checks in isolated projects:', root, flush=True)
-    for kind, check in checks.items():
+    for kind, check in selected.items():
         dest = root / kind
         shutil.copytree(source, dest, ignore=shutil.ignore_patterns('target', 'examples'))
+        resources = source/'examples'/kind/'resources'
+        if resources.is_dir():
+            shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):
             shutil.copy2(java, dest/'src/main/java'/java.name)
         if kind in ('quiz', 'practice', 'study'):
             shutil.copy2(source/'examples/shared/ScoreDisplay.java', dest/'src/main/java/ScoreDisplay.java')
-        (dest/'src/main/java/ExampleCheck.java').write_text(harness.replace('CHECK', check).replace('KIND', kind))
+        if kind in standalone:
+            main_class, marker = standalone[kind]
+            check_source = (source/'examples'/kind/'checks'/f'{main_class}.java').read_text()
+        else:
+            main_class, marker = 'ExampleCheck', 'EXAMPLE_OK ' + kind
+            check_source = harness.replace('CHECK', check).replace('KIND', kind)
+        (dest/'src/main/java'/f'{main_class}.java').write_text(check_source)
         wrapper = 'mvnw.cmd' if os.name == 'nt' else './mvnw'
         before = time.monotonic()
-        result = subprocess.run([wrapper, '-B', '-Dapp.mainClass=ExampleCheck', 'clean', 'compile', 'javafx:run'],
+        result = subprocess.run([wrapper, '-B', f'-Dapp.mainClass={main_class}', 'clean', 'compile', 'javafx:run'],
                                 cwd=dest, capture_output=True, text=True, timeout=60)
-        marker = 'EXAMPLE_OK ' + kind
         if result.returncode or marker not in result.stdout:
-            print(result.stdout[-5000:], result.stderr[-3000:], flush=True)
+            print(result.stdout[-5000:], result.stderr, flush=True)
             raise SystemExit(result.returncode or 1)
         print(f'{marker} ({time.monotonic() - before:.2f}s)', flush=True)
-print(f'All {len(checks)} GUI example checks passed ({time.monotonic() - started:.2f}s). Shared source copies match.', flush=True)
+print(f'All {len(selected)} selected GUI example checks passed ({time.monotonic() - started:.2f}s). Shared source copies match.', flush=True)

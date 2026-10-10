@@ -60,6 +60,14 @@
         "title": "Zero: Copy Repository Link"
       },
       {
+        "command": "zero.openFirstLesson",
+        "title": "Zero: Open First Lesson"
+      },
+      {
+        "command": "zero.showProblems",
+        "title": "Zero: Show Problems"
+      },
+      {
         "command": "zero.showSetup",
         "title": "Zero: Setup Help"
       },

@@ -1,54 +1,134 @@
 export const lessons = [
   {
-    id: "1",
-    title: "Change the quiz",
-    description: "Edit a simple quiz and make it your own.",
-    topic: "Setup, SimpleApp, editing and running in VS Code",
-    doc: "api",
-    anchor: "simpleapp-startup-and-interfaces",
+    "id": "0",
+    "title": "Hello, world!",
+    "description": "Run a tiny program and change its greeting.",
+    "topic": "Run, edit, rerun",
+    "doc": "api",
+    "anchor": "simpleapp-startup-and-interfaces"
   },
   {
-    id: "2",
-    title: "Reuse an object",
-    description: "Use a class to reuse code in your program.",
-    topic: "Objects, methods, parameters",
-    doc: "api",
-    anchor: "ordinary-javafx-and-reusable-objects",
+    "id": "1",
+    "title": "Say hello with a button",
+    "description": "Click a button to change the greeting.",
+    "topic": "Button, click handler, label text",
+    "doc": "api",
+    "anchor": "simpleapp-startup-and-interfaces"
   },
   {
-    id: "3",
-    title: "Grow a study session",
-    description: "Add more features to your quiz.",
-    topic: "Arrays, question objects, session state",
-    doc: "api",
-    anchor: "ordinary-javafx-and-reusable-objects",
+    "id": "2",
+    "title": "Greet by name",
+    "description": "Type your name and show a greeting.",
+    "topic": "TextField, getText, joining text",
+    "doc": "api",
+    "anchor": "simpleapp-startup-and-interfaces"
   },
   {
-    id: "4",
-    title: "Animate an object",
-    description: "Make something move on screen.",
-    topic: "SketchApp, animation, explicit object updates",
-    doc: "api",
-    anchor: "sketchapp-frames-and-canvas",
+    "id": "3",
+    "title": "A tiny quiz",
+    "description": "Check one answer and show feedback.",
+    "topic": "if/else, comparing text",
+    "doc": "api",
+    "anchor": "simpleapp-startup-and-interfaces"
   },
   {
-    id: "5",
-    title: "Control movement",
-    description: "Respond to keyboard input.",
-    topic: "Held keys, elapsed time, canvas bounds",
-    doc: "api",
-    anchor: "input-methods",
+    "id": "4",
+    "title": "Click counter",
+    "description": "Count each button click.",
+    "topic": "int, state, updating a label",
+    "doc": "api",
+    "anchor": "ordinary-javafx-and-reusable-objects"
   },
   {
-    id: "6",
-    title: "Make a small improvement",
-    description: "Choose an idea and make your app better.",
-    topic: "Plan, build, check and explain",
-    doc: "exercises",
-    anchor: "contribute-for-another-student",
+    "id": "5",
+    "title": "Reset and methods",
+    "description": "Give button actions their own methods.",
+    "topic": "Fields, methods, reset",
+    "doc": "api",
+    "anchor": "ordinary-javafx-and-reusable-objects"
+  },
+  {
+    "id": "6",
+    "title": "Reusable objects",
+    "description": "Let an ordinary Counter own its number.",
+    "topic": "Classes, constructors, object methods",
+    "doc": "api",
+    "anchor": "ordinary-javafx-and-reusable-objects"
+  },
+  {
+    "id": "7",
+    "title": "Study quiz",
+    "description": "Build a complete study app with Next and Restart.",
+    "topic": "Question objects, arrays, scoring, session state",
+    "doc": "api",
+    "anchor": "ordinary-javafx-and-reusable-objects"
+  },
+  {
+    "id": "8",
+    "title": "Movement and keys",
+    "description": "Move a player inside the canvas.",
+    "topic": "SketchApp, elapsed time, explicit updates",
+    "doc": "api",
+    "anchor": "input-methods"
+  },
+  {
+    "id": "9",
+    "title": "Collect the coins",
+    "description": "Build a game with coins, score, winning and restart.",
+    "topic": "Collision checks, game state, object reuse",
+    "doc": "api",
+    "anchor": "sketchapp-frames-and-canvas"
+  },
+  {
+    "id": "10",
+    "title": "Reuse a component",
+    "description": "Use the same display class in two apps.",
+    "topic": "Extraction, view, compatible changes",
+    "doc": "components",
+    "anchor": "student-api-and-responsibility"
+  },
+  {
+    "id": "11",
+    "title": "Share with Community",
+    "description": "Check a component and propose a contribution.",
+    "topic": "Workshop, evidence, fork and pull request",
+    "doc": "workshop",
+    "anchor": ""
+  },
+  {
+    id: "12",
+    title: "Sprites and sounds",
+    description: "Use your own image and a short sound effect.",
+    topic: "Resources, Image, AudioClip",
+    doc: "api",
+    anchor: "images-and-resources",
   },
 ];
+// Fixed teaching assets copied from canonical source at build time.
+export const lessonAssets = {
+  "student-template/examples/media-demo/resources/media-demo/player.png": "/generated/learning-assets/media-demo/player.png",
+  "student-template/examples/media-demo/resources/media-demo/chime.wav": "/generated/learning-assets/media-demo/chime.wav",
+};
+export function isLessonDocumentId(id) {
+  return lessons.some((lesson) => id === `lesson-${lesson.id}`);
+}
+export function lessonNavigation(id) {
+  const index = lessons.findIndex((lesson) => lesson.id === id);
+  if (index < 0) return {};
+  return { related: lessons[index], previous: lessons[index - 1], next: lessons[index + 1] };
+}
 export const examples = [
+  {
+    id: "media-demo",
+    title: "My sprite and sound",
+    description: "Draw a local PNG and play a short WAV effect.",
+    files: ["media-demo/Main.java"],
+    resources: [
+      { file: "media-demo/resources/media-demo/player.png", destination: "src/main/resources/media-demo/player.png" },
+      { file: "media-demo/resources/media-demo/chime.wav", destination: "src/main/resources/media-demo/chime.wav" },
+    ],
+    lesson: "12",
+  },
   {
     id: "hello-app",
     title: "Hello, Java",
@@ -67,18 +147,74 @@ export const examples = [
     guide: "beginner",
   },
   {
+    id: "hello-button",
+    title: "Say hello",
+    description: "A single button changes a label's greeting.",
+    files: ["hello-button/Main.java"],
+    lesson: "1",
+  },
+  {
+    id: "hello-name",
+    title: "Greet by name",
+    description: "A text field supplies the greeting name.",
+    files: ["hello-name/Main.java"],
+    lesson: "2",
+  },
+  {
+    id: "tiny-quiz",
+    title: "Tiny quiz",
+    description: "One question and Correct! or Try again. feedback.",
+    files: ["tiny-quiz/Main.java"],
+    lesson: "3",
+  },
+  {
+    id: "click-counter",
+    title: "Click counter",
+    description: "One button increases a number.",
+    files: ["click-counter/Main.java"],
+    lesson: "4",
+  },
+  {
+    id: "reset-counter",
+    title: "Reset and methods",
+    description: "Named methods count and reset.",
+    files: ["reset-counter/Main.java"],
+    lesson: "5",
+  },
+  {
+    id: "object-counter",
+    title: "Counter object",
+    description: "An ordinary object owns the counter.",
+    files: ["object-counter/Main.java", "object-counter/Counter.java"],
+    lesson: "6",
+  },
+  {
+    id: "movement",
+    title: "Movement and keys",
+    description: "Arrow keys move a player inside the canvas.",
+    files: ["movement/Main.java", "movement/Player.java"],
+    lesson: "8",
+  },
+  {
+    id: "coin-game",
+    title: "Collect the coins",
+    description: "Collect three coins, win and restart.",
+    files: ["coin-game/Main.java", "coin-game/Player.java", "coin-game/Coin.java"],
+    lesson: "9",
+  },
+  {
     id: "quiz",
-    title: "Mini quiz",
+    title: "Scored quiz",
     description: "Buttons, answer feedback and once-only scoring.",
     files: ["quiz/Main.java", "shared/ScoreDisplay.java"],
-    lesson: "1",
+    lesson: "10",
   },
   {
     id: "practice",
     title: "Practice tracker",
     description: "Reuse a score display with your own counting rules.",
     files: ["practice/Main.java", "shared/ScoreDisplay.java"],
-    lesson: "2",
+    lesson: "10",
   },
   {
     id: "study",
@@ -89,35 +225,34 @@ export const examples = [
       "study/Question.java",
       "shared/ScoreDisplay.java",
     ],
-    lesson: "3",
+    lesson: "7",
   },
   {
     id: "animation",
     title: "Follow the mouse",
     description: "An ordinary Player object follows a target.",
     files: ["animation/Main.java", "animation/Player.java"],
-    lesson: "4",
+    lesson: "8",
   },
   {
     id: "keyboard",
     title: "Keyboard movement",
     description: "Arrow keys move a circle and keep it inside the canvas.",
     files: ["keyboard/Main.java", "keyboard/Mover.java"],
-    lesson: "5",
+    lesson: "8",
   },
   {
     id: "counter",
     title: "Canvas counter",
     description: "Native buttons and a canvas in the same app.",
     files: ["counter/Main.java"],
-    lesson: "6",
   },
   {
     id: "drawing",
     title: "Drawing pad",
     description: "Paint with the mouse; clear with the secondary button.",
     files: ["drawing/Main.java"],
-    lesson: "4",
+    lesson: "8",
   },
 ];
 export const quickLinks = [

@@ -1,6 +1,9 @@
 # Build, extract, reuse, contribute
 
-Begin with the default quiz, `src/main/java/Main.java`. Keep changes small enough
+Use the [lesson sequence](lessons/README.md) for the guided app/game builds.
+These are optional later exercises.
+For these later exercises, copy `examples/quiz/Main.java` and
+`examples/shared/ScoreDisplay.java` into `src/main/java/`. Keep changes small enough
 to explain to another student. Run after each change. Save your work before
 switching examples; the exact copy list is in [README.md](README.md#try-an-example).
 

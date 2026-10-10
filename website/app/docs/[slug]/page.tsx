@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import { docs } from "@/lib/content";
+import { isLessonDocumentId } from "@/lib/learning.mjs";
 import { Document } from "@/components/Document";
 export const dynamicParams = false;
 export function generateStaticParams() {
   return Object.keys(docs)
-    .filter((id) => !/^lesson-[1-6]$/.test(id))
+    .filter((id) => !isLessonDocumentId(id))
     .map((slug) => ({ slug }));
 }
 export async function generateMetadata({
@@ -23,6 +24,6 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  if (!Object.hasOwn(docs, slug) || /^lesson-[1-6]$/.test(slug)) notFound();
+  if (!Object.hasOwn(docs, slug) || isLessonDocumentId(slug)) notFound();
   return <Document id={slug} />;
 }

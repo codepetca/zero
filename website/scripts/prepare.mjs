@@ -7,6 +7,7 @@ import {
 } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { lessonAssets } from "../lib/learning.mjs";
 import { validateManifest } from "../lib/contracts.mjs";
 import { validateCommunityManifest } from "../lib/community.mjs";
 import { communityPreview } from "../lib/community-preview.mjs";
@@ -15,12 +16,19 @@ const root = resolve(site, "..");
 const documentPaths = {
   teachers: "student-template/lessons/TEACHER.md",
   "lesson-guide": "student-template/lessons/README.md",
-  "lesson-1": "student-template/lessons/01-quiz.md",
-  "lesson-2": "student-template/lessons/02-objects.md",
-  "lesson-3": "student-template/lessons/03-study.md",
-  "lesson-4": "student-template/lessons/04-animation.md",
-  "lesson-5": "student-template/lessons/05-keyboard.md",
-  "lesson-6": "student-template/lessons/06-project.md",
+  "lesson-0": "student-template/lessons/00-hello-world.md",
+  "lesson-1": "student-template/lessons/01-hello-button.md",
+  "lesson-2": "student-template/lessons/02-hello-name.md",
+  "lesson-3": "student-template/lessons/03-quiz.md",
+  "lesson-4": "student-template/lessons/04-counter.md",
+  "lesson-5": "student-template/lessons/05-methods.md",
+  "lesson-6": "student-template/lessons/06-objects.md",
+  "lesson-7": "student-template/lessons/07-study-app.md",
+  "lesson-8": "student-template/lessons/08-movement.md",
+  "lesson-9": "student-template/lessons/09-coin-game.md",
+  "lesson-10": "student-template/lessons/10-components.md",
+  "lesson-11": "student-template/lessons/11-community.md",
+  "lesson-12": "student-template/lessons/12-media.md",
   setup: "docs/GETTING-STARTED.md",
   api: "student-template/API.md",
   beginner: "student-template/BEGINNER.md",
@@ -98,3 +106,9 @@ await copyFile(
 console.log(
   `Prepared release ${release.kitVersion} and ${Object.keys(docs).length} canonical documents.`,
 );
+
+for (const [source, url] of Object.entries(lessonAssets)) {
+  const output = resolve(site, "public", url.slice(1));
+  await mkdir(dirname(output), { recursive: true });
+  await copyFile(resolve(root, source), output);
+}

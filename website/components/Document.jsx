@@ -1,7 +1,7 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
-import { lessons } from "@/lib/learning.mjs";
+import { lessons, lessonNavigation, lessonAssets } from "@/lib/learning.mjs";
 import {
   foldSections,
   resolveContentLink,
@@ -17,9 +17,7 @@ export function Document({ id, lesson = "" }) {
   const title =
     doc.markdown.match(/^# (.+)$/m)?.[1].replace(/^\d+\. /, "") ||
     "Documentation";
-  const related = lesson && lessons[Number(lesson) - 1],
-    previous = lesson && lessons[Number(lesson) - 2],
-    next = lesson && lessons[Number(lesson)];
+  const { related, previous, next } = lessonNavigation(lesson);
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
@@ -77,9 +75,10 @@ export function Document({ id, lesson = "" }) {
                     href,
                     docs,
                     sources,
+                    lessonAssets,
                   );
                   return target ? (
-                    <a href={target}>{children}</a>
+                    <a href={target} download={Object.values(lessonAssets).includes(target) ? target.split("/").at(-1) : undefined}>{children}</a>
                   ) : (
                     <span
                       className="source-note"
