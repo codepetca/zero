@@ -1,5 +1,20 @@
 # Current state — 2026-10-10
 
+## Lesson 1 — local follow-up, 2026-10-10
+
+Owner approved a tiny button lesson after Hello, world!. Added the canonical
+hello-button example and complete Lesson 1 with named vars, one click handler
+and a change/rerun exercise. Quiz and later lessons shift to 2–7; starter Main
+still begins at Lesson 0. Updated canonical links, website routes/examples and
+teacher guidance. The extension's legacy 01-quiz fallback remains for old kits.
+Coordinator handled this coherent content/example change directly, with no new
+worker or review wave. Recent weekly reading was 34% remaining; task usage unknown.
+Native macOS Button.fire checks pass for initial/changed/repeated greeting and
+the following quiz. Config/link checks, 9 onboarding/kit checks, 18 site tests,
+production build and generated HTML progression 0→1→2→3/end7 pass.
+Work stays local in codex/student-onboarding; primary funding edits and published
+0.5.2 assets remain untouched. See docs/VERIFICATION.md for evidence limits.
+
 ## Lesson 0 — local follow-up, 2026-10-10
 
 Owner requested an ultra-simple Hello, world! beginning. Coordinator changed

@@ -7,6 +7,14 @@ checks={
 'hello-world': '''require(stage.isShowing(), "Greeting window is visible");
         var content = ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
         require(content instanceof Label && ((Label) content).getText().equals("Hello, world!"), "Default starter displays the greeting");''',
+'hello-button': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var greeting = (Label) screen.getChildren().get(0);
+        var sayHello = (Button) screen.getChildren().get(1);
+        require(greeting.getText().equals("Hello, world!") && sayHello.getText().equals("Say hello"), "Initial greeting and button");
+        sayHello.fire();
+        require(greeting.getText().equals("Hello, Java!"), "Click changes the greeting");
+        sayHello.fire();
+        require(greeting.getText().equals("Hello, Java!") && screen.getChildren().get(0) == greeting, "Repeated click updates the same label");''',
 'quiz': '''TextField answer = (TextField) field(app, "answer");
         Button check = (Button) field(app, "check");
         Label feedback = (Label) field(app, "feedback");

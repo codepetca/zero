@@ -9,7 +9,7 @@ later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
 page has the Zero wordmark, one sentence, Download Zero and Learn more only.
-`/learn` is a compact learning hub with a Hello, world! introduction, six guided
+`/learn` is a compact learning hub with a Hello, world! introduction, seven guided
 tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/community` introduces Zero Community and links to
@@ -23,7 +23,8 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 `size(...)`; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
 The default app is a short Hello, world! window with one Label. Lesson 0
-practises Run, change the greeting and rerun; Lesson 1 loads the quiz example
+practises Run, change the greeting and rerun; Lesson 1 adds one button
+that changes the greeting; Lesson 2 loads the quiz example
 with answer feedback and score state.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by

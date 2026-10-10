@@ -1,4 +1,4 @@
-# 4. Animate an ordinary object
+# 5. Animate an ordinary object
 
 Your goal is to explain how Main explicitly updates and draws a Player object.
 

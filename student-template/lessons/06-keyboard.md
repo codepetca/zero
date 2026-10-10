@@ -1,4 +1,4 @@
-# 5. Control movement
+# 6. Control movement
 
 Your goal is to connect held keys to direction values, elapsed time and bounds.
 

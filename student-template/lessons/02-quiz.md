@@ -1,10 +1,10 @@
-# 1. Change the quiz
+# 2. Change the quiz
 
 Your goal is to change a question and explain how a button changes program state.
 
 ## Open and predict
 
-After [Lesson 0](00-hello-world.md), copy [quiz Main](../examples/quiz/Main.java) and the
+After [Lesson 1](01-hello-button.md), copy [quiz Main](../examples/quiz/Main.java) and the
 [shared ScoreDisplay](../examples/shared/ScoreDisplay.java) using the
 [switching steps](README.md#before-each-lesson).
 

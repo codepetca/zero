@@ -1,5 +1,25 @@
 # Verification — 2026-10-10
 
+## Lesson 1 button — local, 2026-10-10
+
+Added a small hello-button example and complete Lesson 1. Label, Button and VBox
+each use a named var; the handler changes the existing label with setText.
+Quiz and later lesson files, canonical references and website routing move to
+2–7. The default compiled Main remains Lesson 0. Legacy extension fallback to
+01-quiz.md intentionally remains for older downloaded projects.
+
+The lesson's fenced Java exactly matches the canonical example. Finite native
+macOS JavaFX checks compiled and launched the button and quiz examples:
+Button.fire changes Hello, world! to Hello, Java!, a repeated action retains
+the same Label, and quiz behavior passes. These are automated control actions;
+no physical student clicks, fresh installation or new screenshots are claimed.
+Configuration/link checks, 9 onboarding/standalone-kit tests, 18 website tests,
+production build and diff whitespace checks pass. Built HTML confirms the
+progression 0→1 button→2 quiz→3 objects and lesson 7's examples exit.
+The broader example suite was not repeated; its existing keyboard-input limit
+is recorded below. No Windows/Linux or classroom trial occurred. This local
+change does not publish a website or replace any immutable 0.5.2 asset.
+
 ## Lesson 0 — local, 2026-10-10
 
 The default Main is now a short program showing a single Hello, world! Label.

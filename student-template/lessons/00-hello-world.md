@@ -24,4 +24,4 @@ public class Main extends SimpleApp {
 `show(greeting)` puts it in the window.
 Keep the other lines as they are for now.
 
-Next: [Lesson 1 — Change the quiz](01-quiz.md).
+Next: [Lesson 1 — Say hello with a button](01-hello-button.md).

@@ -56,7 +56,8 @@ Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.
 The older published 0.5.2 starter begins with the quiz; Lesson 0 includes the
 complete short program to replace it.
 
-Continue to [Lesson 1](../student-template/lessons/01-quiz.md), which shows
+Continue to [Lesson 1](../student-template/lessons/01-hello-button.md) for a
+button that changes the greeting. Then [Lesson 2](../student-template/lessons/02-quiz.md) shows
 exactly which quiz files to copy. Change the question and its expected answer
 together, then check a wrong answer, ` 13 ` and the score after success.
 
