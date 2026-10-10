@@ -40,12 +40,14 @@ function activate(context) {
     return projectRoot;
   };
   const refresh = () => { if (view) render(view.webview); };
-  async function openFirstLesson(root) {
+  const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
+  async function openFirstLesson(root, onlyWhenEmpty = false) {
     const filename = path.join(root, 'lessons', '01-quiz.md');
     try {if (!(await fs.stat(filename)).isFile()) return false;}
     catch (error) {if (error.code === 'ENOENT') return false; throw error;}
     // A folder switch during preparation must not open another project's lesson.
     if (await project() !== root) return false;
+    if (onlyWhenEmpty && hasOpenEditors()) return false;
     await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(filename));
     return true;
   }
@@ -57,8 +59,8 @@ function activate(context) {
       await context.workspaceState.update('zero.sidebarShown', true);
     }
     const key = `zero.firstLessonShown:${root}`;
-    // Do not interrupt an existing source-editing session on extension installation.
-    if (!context.workspaceState.get(key) && !vscode.window.activeTextEditor && await openFirstLesson(root)) await context.workspaceState.update(key, true);
+    // Preserve text editors and non-text tabs, including other lesson previews.
+    if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
   const auth = createAuthentication(vscode.authentication, refresh);
   context.subscriptions.push(auth);

@@ -1,4 +1,28 @@
-# Current state — 2026-10-09
+# Current state — 2026-10-10
+
+## Student onboarding — local work, 2026-10-10
+
+Owner's “Next” authorized the prior student-audit improvements. Worktree
+`codex/student-onboarding` starts at main `00bd796`; primary funding changes
+remain untouched. Lesson 1 opens once for an empty editor and has a sidebar
+reopen action. Failed runs offer Problems; success/Stop do not report an error.
+Setup names Java extensions, keeps recommendations enabled and pairs question
+and answer edits. Published 0.5.2 assets/version metadata remain immutable.
+No push, PR, merge, release or deployment is authorized for this follow-up.
+
+Coordinator owns extension/UI checks; onboarding_docs GPT-6.1 Sol/medium owned
+four starter/profile guides, delivered and inspected, ownership released.
+Coordinator corrected assembled-only links in START-HERE to readable paths.
+Independent onboarding_review GPT-6.1 Sol/medium completed full diff afc51bc
+against00bd796 in about4min; one P2 non-text-tab interruption reproduced and
+fixed by coordinator with early/late tab checks. One targeted review follows.
+Budget: max7 reviewer launches, initial1 wave, targeted4, integration1, fix4
+batches,60min total/30min reviewer; current2 turns/1 remediation batch.
+Weekly34% remaining at start (account-wide); attributable tokens/effective
+worker settings unavailable. DeepSeek remains paused. No file-writer conflict.
+Full113 tests/check/diff pass; corrected guard passes10 affected checks.
+Actual Mac development-host lesson/failure/Problems/repair/Stop/reload/reopen
+passed with screenshots; see docs/VERIFICATION.md for precise limits.
 
 ## Public component workflow — delivered 2026-10-09
 

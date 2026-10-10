@@ -1,4 +1,34 @@
-# Verification — 2026-10-09
+# Verification — 2026-10-10
+
+## Student onboarding improvements — local, 2026-10-10
+
+Based on main `00bd796`, in `codex/student-onboarding`. Lesson 1 opens once
+when no editor tabs are open and can be reopened from the sidebar or Command
+Palette. Failed owned runs offer Show Problems; Stop and successful exits stay
+normal. Setup names both Java extensions and pairs quiz question/answer edits.
+Published 0.5.2 assets and release metadata are unchanged; these behaviors are
+verified from extension source in a development host, not a new released VSIX.
+
+`npm run check`, full Node suite 113/113 (166s), and `git diff --check` passed.
+Independent review found one P2: a Markdown preview could be mistaken for an
+empty editor. A new test reproduced it before remediation. The guard now checks
+all tab groups before preparation and immediately before preview dispatch.
+Ten affected checks pass, including existing-preview and late-tab regressions.
+Normal exit, stopped run, unrelated tasks and missing legacy lesson coverage pass.
+The full suite predates this small guard correction; affected tests/checks reran.
+
+Actual macOS VS Code development host, disposable project in a path with spaces:
+first lesson preview, deliberate missing semicolon, failed-run Show Problems,
+source navigation, repair/recompile, Stop with no error/zero Problems, empty-editor
+reload without reopening, and explicit lesson reopening passed. Four screenshots
+are retained in this worktree's ignored `.verification/onboarding-2026-10-10/`.
+Maven compiled and launched the JavaFX child; quiz button interaction and normal
+window-close behavior were not exercised. The normal-exit distinction is covered
+by tests. Existing JDK/Java extensions/cache were reused; this was not fresh-machine
+installation. Physical Windows/Linux, live GitHub and novice classroom trials
+remain unverified. Initial short-path trial was restricted; it was replaced with
+a disposable project under the already-trusted user directory without changing
+trust settings. No credentials, live transport or publication changes.
 
 ## Zero 0.5.1 release
 

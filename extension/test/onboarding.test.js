@@ -14,20 +14,20 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, activeEditor=false, remembered=new Map()}={}) {
+async function fixture(t, {lesson=true, activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map()}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');
   await fs.writeFile(path.join(root,'mvnw'),'');
   if(lesson) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Change the quiz');}
   const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[];
-  let webviewProvider, folderChanged;
+  let webviewProvider, folderChanged, tabReads=0;
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
     authentication:{getSession:async()=>undefined,onDidChangeSessions:disposable},
     workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
-    window:{activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showErrorMessage:text=>errors.push(text)},
+    window:{tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showErrorMessage:text=>errors.push(text)},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
@@ -43,7 +43,7 @@ async function fixture(t, {lesson=true, activeEditor=false, remembered=new Map()
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
-  return {root,commands,calls,errors,launches,webview,remembered,finish,vscode,folderChanged:()=>folderChanged()};
+  return {root,commands,calls,errors,launches,webview,remembered,finish,vscode,tabReads:()=>tabReads,folderChanged:()=>folderChanged()};
 }
 test('first lesson opens once per project and can be reopened without modifying student source', async t=>{
   const f=await fixture(t);
@@ -63,6 +63,21 @@ test('installing during source editing does not replace the active editor', asyn
   await f.commands.get('zero.openFirstLesson')();
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1,'Only the explicit command opens the lesson');
   assert.deepEqual(f.errors,[]);
+});
+test('an existing Markdown preview is preserved on first activation', async t=>{
+  const f=await fixture(t,{openTabs:[{input:{viewType:'markdown.preview'}}]});
+  await settle(()=>f.tabReads()>0);
+  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
+  await f.commands.get('zero.openFirstLesson')();
+  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1,'Explicit reopen remains available');
+});
+test('a tab opened during asynchronous lesson preparation is preserved', async t=>{
+  const f=await fixture(t,{tabsDuringPreparation:true});
+  await settle(()=>f.tabReads()>=2);
+  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
+  assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
+  await f.commands.get('zero.openFirstLesson')();
+  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1);
 });
 test('older projects without bundled lessons still activate and run', async t=>{
   const f=await fixture(t,{lesson:false});
