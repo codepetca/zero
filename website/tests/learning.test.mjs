@@ -33,7 +33,7 @@ test("relative links preserve fragments and route only maintained documents or a
   };
   assert.equal(resolveContentLink("student-template/lessons/README.md", "00-hello-world.md", documents, {}), "/tutorials/0");
   const sources = {
-    "student-template/examples/quiz/Main.java": "class Main {}",
+    "student-template/examples/tiny-quiz/Main.java": "class Main {}",
   };
   assert.equal(
     resolveContentLink(
@@ -56,11 +56,11 @@ test("relative links preserve fragments and route only maintained documents or a
   assert.equal(
     resolveContentLink(
       "student-template/lessons/03-quiz.md",
-      "../examples/quiz/Main.java",
+      "../examples/tiny-quiz/Main.java",
       documents,
       sources,
     ),
-    "/source?file=student-template%2Fexamples%2Fquiz%2FMain.java",
+    "/source?file=student-template%2Fexamples%2Ftiny-quiz%2FMain.java",
   );
   assert.equal(
     resolveContentLink(
@@ -92,7 +92,7 @@ test("lesson navigation starts at zero and reaches the button, name then quiz wi
   assert.equal(lessonNavigation("1").next.id, "2");
   assert.equal(lessonNavigation("2").related.title, "Greet by name");
   assert.equal(lessonNavigation("2").next.id, "3");
-  assert.equal(lessonNavigation("3").related.title, "Change the quiz");
+  assert.equal(lessonNavigation("3").related.title, "A tiny quiz");
   assert.equal(lessonNavigation("8").next, undefined);
   assert.deepEqual(lessonNavigation(""), {});
 });

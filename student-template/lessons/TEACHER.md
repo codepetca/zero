@@ -17,7 +17,7 @@ school-machine readiness.
 Start with Lesson 0: run the greeting, change its text and run again. Confirm
 each student can do those three steps. Lesson 1 then adds a single button
 that changes the existing label. Lesson 2 reads a name from a text field;
-leave quiz state for Lesson 3.
+Lesson 3 adds if/else feedback; scoring stays in the later reuse examples.
 
 Plan 45–60 minutes for each of lessons 3–7 after setup, and one or two classes for
 lesson 8. Shorten by assigning only the required changes; extend with optional
@@ -37,7 +37,7 @@ formula. Leave packages, interfaces and JavaFX properties for a demonstrated nee
 | 0. Hello | The window displays the changed greeting after a rerun | Point to the quoted text; leave the launch boilerplate alone |
 | 1. Button | Text changes on a click; the same Label is updated | Point to the handler and setText; keep the event pattern intact |
 | 2. Name | getText reads the name when clicked; setText updates the greeting | Change the name and click again |
-| 3. Quiz | setup creates controls once; a click calls checkAnswer; Main owns points; disabled checking stops another award | Ask the student to point to the handler connection and the statement changing points |
+| 3. Tiny quiz | if/else chooses feedback when Check is clicked | Try a wrong answer, then 5, then a wrong answer again |
 | 4. Objects | Main changes the number; ScoreDisplay changes label text; both constructors still work | Ask “If we change points per click, which class changes?” |
 | 5. Study | Question owns data; Main owns index and completion flags; length controls navigation | Trace one wrong answer, one correct answer and Next on paper |
 | 6. Animation | Main calls update and draw; elapsed time differs from a frame count; circle coordinates are its centre | Ask what would happen if the Player update call disappeared |
@@ -53,10 +53,13 @@ message and rerunning, startup still shows Hello, world! until the button is cli
 **Name:** type Stew and click Say hello: Hello, Stew!. Change the name and
 click again; the same label uses the new text.
 
-**Quiz:** the changed `8 + 5` version accepts trimmed `13`, awards 5 once and
-resets on a fresh run. Wrong/blank input keeps 0 and permits retry. The repaired
-semicolon exercise should return to a runnable program. Do not grade an exact
-compiler-message string; locations and wording can vary.
+**Tiny quiz:** 5 gives Correct!; wrong or blank input gives Try again.
+Checking remains enabled after success, and a new answer replaces the feedback.
+Text is compared exactly; spaces are not removed in this introductory example.
+
+**Scored quiz (later exercises):** the changed `8 + 5` version accepts trimmed
+13, awards 5 once and resets on a fresh run. Wrong/blank input keeps 0 and
+permits retry.
 
 **Objects:** the baseline tracker gives 1, 2, 0, 1. With two per click it gives
 2, 4, 0, 2. The student's format experiment should show `Completed = 0` at startup
@@ -95,7 +98,7 @@ Undo and reset pass and the student can explain it.
   copy only the listed files. Renaming a Java file in place is not a safe backup.
 - Editing an example shelf file but running the unchanged compiled copy: point
   to `src/main/java/` and rebuild. Save the compiled work before switching.
-- Copying only Main: study also needs Question; quiz/practice/study need the
+- Copying only Main: study also needs Question; scored quiz/practice/study need the
   shared ScoreDisplay. The animation and keyboard apps need their object class.
 - Assuming an edited source changes a running window: Stop, then Run App again.
 - Keys seem broken: click the canvas; another control/window can own focus.

@@ -27,7 +27,7 @@ Find the constructor that stores the caption and creates a Label. Find `view()`:
 it returns the label so Main can put it in a VBox. ScoreDisplay is an ordinary
 class, with no Zero parent class or registration step.
 
-The quiz uses `new ScoreDisplay()`. Its no-argument constructor calls
+The scored quiz uses `new ScoreDisplay()`. Its no-argument constructor calls
 `this("Score")`, preserving the quiz's caption. Each app creates its own display
 object; one JavaFX node cannot belong to two different parents at once.
 
@@ -40,7 +40,7 @@ object; one JavaFX node cannot belong to two different parents at once.
    change the display format from `Completed: 2` to `Completed = 2`. Update both
    the initial Label text and `setScore()` so the format is consistent at zero
    and after changes. Keep both constructors and method signatures.
-4. Keep that modified display in place. Copy only the original quiz Main into
+4. Keep that modified display in place. Copy only [scored quiz Main](../examples/quiz/Main.java) into
    `src/main/java/Main.java`. Run it: expect `Score = 0`, then `Score = 10` after
    answering `42`. Restore your tracker Main and check Reset again.
 

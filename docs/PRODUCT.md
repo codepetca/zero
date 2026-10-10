@@ -24,8 +24,8 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
 The default app is a short Hello, world! window with one Label. Lesson 0
 practises Run, change the greeting and rerun; Lesson 1 adds one button
-that changes the greeting; Lesson 2 adds a name field; Lesson 3 loads the quiz example
-with answer feedback and score state.
+that changes the greeting; Lesson 2 adds a name field; Lesson 3 checks one answer
+with if/else and feedback. The scored quiz remains a later reuse example.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as
@@ -33,7 +33,7 @@ Player or Mover. Canvas input belongs to the focused canvas; controls can receiv
 normal typing. The framework does not discover or automatically update objects.
 Useful startup errors explain invalid sizes and lifecycle misuse.
 
-The quiz and practice tracker reuse the canonical
+The scored quiz and practice tracker reuse the canonical
 `examples/shared/ScoreDisplay.java` unchanged. Each app creates its own instance;
 a JavaFX node has one parent. The optional caption extends this ordinary class
 while preserving the quiz's no-argument constructor. This compatible caption

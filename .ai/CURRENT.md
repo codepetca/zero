@@ -1,5 +1,16 @@
 # Current state — 2026-10-10
 
+## Lesson 3 — local follow-up, 2026-10-10
+
+Owner approved a tiny 2 + 3 quiz. Lesson 3 now has complete named-var code and
+three steps; tiny-quiz Main uses if/else for feedback. Scored quiz source stays
+unchanged for Lesson 4/reuse exercises; instructions distinguish the two apps.
+Coordinator handled this directly, no worker/review wave; recent weekly reading
+29% remaining, task cost unknown. Native macOS tiny/scored quiz and practice
+checks, 2 kit tests, 18 site tests (3 affected rerun), config/links, production
+build and canonical built lesson/example/navigation checks pass. Local only;
+no physical typing, Windows/Linux/classroom trial or publication.
+
 ## Lesson 2 — local follow-up, 2026-10-10
 
 Owner approved greet-by-name with minimal wording. Added hello-name Main and

@@ -1,5 +1,20 @@
 # Verification — 2026-10-10
 
+## Lesson 3 tiny quiz — local, 2026-10-10
+
+Added tiny-quiz Main and replaced Lesson 3 with identical complete code and three
+steps. Native macOS JavaFX checks cover blank/wrong answers, correct 5, checking
+remaining enabled, and a later wrong answer replacing correct feedback. Existing
+scored quiz and practice checks pass; their canonical source is unchanged.
+Actions use setText/Button.fire, not physical typing/clicks. No full GUI rerun.
+
+Configuration/link and whitespace checks, 2 standalone-kit tests, 18 website
+tests, 3 affected tests after fixture alignment, and production build pass.
+Generated HTML links 2→3 tiny quiz→4 objects; generated lesson and source match
+canonical bytes. The later exercise/teacher/copy guides identify the scored
+quiz separately. No new screenshots, fresh install, Windows/Linux/classroom
+trial or release/publication action.
+
 ## Lesson 2 name — local, 2026-10-10
 
 New hello-name example and minimal Lesson 2 add one TextField; the handler reads

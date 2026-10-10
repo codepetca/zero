@@ -24,6 +24,20 @@ checks={
         require(greeting.getText().equals("Hello, Stew!"), "Click reads the typed name");
         name.setText("Ada"); sayHello.fire();
         require(greeting.getText().equals("Hello, Ada!") && screen.getChildren().get(0) == greeting, "Next click reads the new name into the same label");''',
+'tiny-quiz': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var question = (Label) screen.getChildren().get(0);
+        var answer = (TextField) screen.getChildren().get(1);
+        var check = (Button) screen.getChildren().get(2);
+        var feedback = (Label) screen.getChildren().get(3);
+        require(question.getText().equals("What is 2 + 3?") && feedback.getText().isEmpty(), "Tiny quiz starts with its question and no feedback");
+        check.fire();
+        require(feedback.getText().equals("Try again."), "Blank answer takes the incorrect branch");
+        answer.setText("4"); check.fire();
+        require(feedback.getText().equals("Try again."), "Wrong answer permits retry");
+        answer.setText("5"); check.fire();
+        require(feedback.getText().equals("Correct!") && !check.isDisabled(), "Correct answer shows feedback and keeps checking enabled");
+        answer.setText("6"); check.fire();
+        require(feedback.getText().equals("Try again."), "Later wrong answer replaces correct feedback");''',
 'quiz': '''TextField answer = (TextField) field(app, "answer");
         Button check = (Button) field(app, "check");
         Label feedback = (Label) field(app, "feedback");

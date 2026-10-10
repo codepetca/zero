@@ -78,7 +78,7 @@ an isolated VS Code user-data/extensions directory before normal installation.
 
 Check the two startup paths, useful lifecycle errors, JavaFX event/state behavior,
 explicit object updates, drawing/input and shutdown. Preserve text control input
-when a sketch includes controls. Check that quiz and practice copy the canonical
+when a sketch includes controls. Check that the scored quiz and practice copy the canonical
 ScoreDisplay unchanged and that the caption constructor preserves existing apps.
 Study checks should exercise retries, duplicate scoring, advance/completion and
 restart, including a second run. Keep question data in ordinary Java objects.

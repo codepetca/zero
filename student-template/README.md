@@ -57,7 +57,7 @@ Start with [Lesson 0](lessons/00-hello-world.md): click Run App to see
 **Hello, world!**, change the greeting, then Save, Stop and Run App again.
 Next, [Lesson 1](lessons/01-hello-button.md) adds a button that changes the
 greeting. [Lesson 2](lessons/02-hello-name.md) reads your name.
-[Lesson 3](lessons/03-quiz.md) introduces the quiz and its matching answer.
+[Lesson 3](lessons/03-quiz.md) checks one answer with `if`.
 
 Local upcoming extension changes open the first lesson's preview once per project.
 Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
@@ -70,15 +70,15 @@ Then follow the [remaining lessons](lessons/README.md) or the small
 run a complete example, then try three small changes. The
 [appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
 
-The default is a short greeting with a single Label. Lesson 3 loads the
-quiz from the example shelf. The quiz teaches fields, objects, native controls, and
+The default is a short greeting with a single Label. Lesson 3 uses a tiny quiz
+with `if`/`else` and feedback. The later scored quiz teaches fields, objects and
 methods called by events. `settings()` sets the window title and initial content
 size. `setup()` builds the interface once and calls `show(screen)` with an
 ordinary JavaFX node. A button's `setOnAction(event -> checkAnswer())` means
 “when clicked, call this method.” The method body is ordinary Java.
 
 `SimpleApp` does not run an animation loop. The window is resizable; JavaFX
-layouts such as VBox/HBox arrange and resize their children. This quiz uses
+layouts such as VBox/HBox arrange and resize their children. The scored quiz uses
 12-pixel spacing and 20-pixel padding directly in its VBox; change these numbers
 or use normal JavaFX CSS. Main owns the points and scoring rule. `ScoreDisplay`
 owns the label; `view()` is an ordinary method returning its JavaFX node. Every
@@ -147,7 +147,8 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | Reach the coin | `examples/reach-the-coin/Main.java` and `examples/reach-the-coin/Player.java` | Move with arrows, touch the gold square to win, press R to restart. See [copy/run instructions](examples/reach-the-coin/README.md). |
 | Say hello | `examples/hello-button/Main.java` | Click one button to change a greeting. See [Lesson 1](lessons/01-hello-button.md). |
 | Greet by name | `examples/hello-name/Main.java` | Type your name, then click Say hello. See [Lesson 2](lessons/02-hello-name.md). |
-| Mini quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
+| Tiny quiz | `examples/tiny-quiz/Main.java` | Answer 2 + 3, click Check, then try again. See [Lesson 3](lessons/03-quiz.md). |
+| Scored quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
 | Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |
 | Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |

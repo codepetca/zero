@@ -1,7 +1,8 @@
 # Build, extract, reuse, contribute
 
-After the greeting lessons, load the quiz using
-[Lesson 3](lessons/03-quiz.md). Keep changes small enough
+Start with the [tiny quiz in Lesson 3](lessons/03-quiz.md).
+For these later exercises, copy `examples/quiz/Main.java` and
+`examples/shared/ScoreDisplay.java` into `src/main/java/`. Keep changes small enough
 to explain to another student. Run after each change. Save your work before
 switching examples; the exact copy list is in [README.md](README.md#try-an-example).
 

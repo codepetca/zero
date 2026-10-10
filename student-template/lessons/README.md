@@ -10,7 +10,7 @@ Arrays and constructors are practised with worked examples here.
 | [0. Hello, world!](00-hello-world.md) | Run, change one line and run again | Your changed greeting |
 | [1. Say hello with a button](01-hello-button.md) | A button changes an existing label | Your greeting before and after a click |
 | [2. Greet by name](02-hello-name.md) | Read a name from a text field | Your personalised greeting |
-| [3. Change the quiz](03-quiz.md) | Fields, conditions and button events | Three answer checks and an explanation of the handler |
+| [3. A tiny quiz](03-quiz.md) | if/else and answer feedback | Correct and incorrect answers |
 | [4. Reuse an object](04-objects.md) | Constructors, methods and state versus display | Quiz and tracker results using one shared class |
 | [5. Grow a study session](05-study.md) | Question objects, arrays and session state | A new question, complete run and restart |
 | [6. Animate an object](06-animation.md) | Coordinates, elapsed time and explicit updates | Comparison of following and jumping |

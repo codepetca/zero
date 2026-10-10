@@ -25,9 +25,9 @@ export const lessons = [
   },
   {
     id: "3",
-    title: "Change the quiz",
-    description: "Edit a simple quiz and make it your own.",
-    topic: "Fields, conditions, answer feedback and scoring",
+    title: "A tiny quiz",
+    description: "Check one answer and show feedback.",
+    topic: "if/else, comparing text, answer feedback",
     doc: "api",
     anchor: "simpleapp-startup-and-interfaces",
   },
@@ -110,11 +110,18 @@ export const examples = [
     lesson: "2",
   },
   {
+    id: "tiny-quiz",
+    title: "Tiny quiz",
+    description: "One question and Correct! or Try again. feedback.",
+    files: ["tiny-quiz/Main.java"],
+    lesson: "3",
+  },
+  {
     id: "quiz",
-    title: "Mini quiz",
+    title: "Scored quiz",
     description: "Buttons, answer feedback and once-only scoring.",
     files: ["quiz/Main.java", "shared/ScoreDisplay.java"],
-    lesson: "3",
+    lesson: "4",
   },
   {
     id: "practice",
