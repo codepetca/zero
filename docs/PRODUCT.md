@@ -71,8 +71,11 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   connected repo. There is one individual workflow; no team/PR mode.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
   Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
-- Compiler diagnostics support source navigation. Missing local tools have setup
-  help; GitHub sign-in does not block local running.
+- Lesson 1 opens once per project when the editor is empty; Open Lesson 1 in the
+  sidebar or Command Palette reopens it. Existing projects without lessons still run.
+- A run that exits with an error offers Show Problems for source navigation;
+  successful exits and explicit Stop do not show an error. Missing local tools
+  have setup help; GitHub sign-in does not block local running.
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing
   the local VSIX and Java extensions in it. The standard build shortcut runs

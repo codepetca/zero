@@ -24,7 +24,8 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
    **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.2.vsix** through
-   **Extensions → Install from VSIX…**, then install **Language Support for Java
+   **Extensions: Install from VSIX…** in the Command Palette, then use
+   **Extensions: Install Extensions** to install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
 3. Move or copy the kit's **starter folder** into your own location, outside any
@@ -32,7 +33,8 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    **zero-starter folder** instead. Open that folder, rather than a single
    Java file. Keep its hidden `.mvn` and `.vscode` folders. Trust it only after
    checking its source and build scripts.
-4. Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
+4. Open the starter's `lessons/01-quiz.md` for **Lesson 1: Change the quiz**.
+   Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
    The first build needs internet to download Maven and JavaFX. Students do not
    need Node.js, global Maven or a separate JavaFX installation. On macOS/Linux,
    a ZIP that loses executable permissions may need `chmod +x mvnw` once.
@@ -41,10 +43,22 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
 
 ## Edit and run
 
-Start with `src/main/java/Main.java` and `ScoreDisplay.java`. The default quiz
+Start with [Lesson 1: Change the quiz](../student-template/lessons/01-quiz.md)
+and follow the [six-lesson guide](../student-template/lessons/README.md).
+These files are also bundled in the starter's `lessons/` folder.
+Local upcoming extension changes open Lesson 1's preview once per project and
+add **Zero: Open First Lesson** to reopen it from the Command Palette. They also
+offer **Show Problems** after a failed Zero run. These changes are not in the
+published 0.5.2 VSIX; open the bundled lesson yourself with that version.
+
+Edit `src/main/java/Main.java` and `ScoreDisplay.java`. The default quiz
 uses ordinary JavaFX controls: `settings()` configures the window and `setup()`
 builds the interface with `show(...)`. Button handlers call ordinary methods
 that update the quiz state and score display.
+
+Change the question and its expected answer together: for “What is 8 + 5?” in
+`setup()`, change `equals("42")` to `equals("13")` in `checkAnswer()`. Save, Stop
+and Run App again. Check a wrong answer, ` 13 ` and the score after success.
 
 Try the practice tracker to reuse ScoreDisplay. Try animation, keyboard or
 drawing to use `SketchApp`: it runs `update(seconds)` then `draw()` each frame;
@@ -57,8 +71,9 @@ and compiles the project, and restarts the app. Use **Ctrl+Shift+B** on Windows/
 or **Cmd+Shift+B** on macOS for the same default build task. There is no hot reload.
 **Stop** ends the owned run; the app lives in its own native window.
 
-Read compiler errors in the task terminal and Problems panel; open the indicated
-source line. See **Setup help** for missing local tools. F6/F7 are optional:
+Read compiler errors in the task terminal and Problems panel; use
+**View: Toggle Problems** in the Command Palette and open the indicated source
+line. See **Setup help** for missing local tools. F6/F7 are optional:
 merge `optional/optional-keybindings.json` into your keyboard shortcuts if wanted.
 
 To change appearance, run **Preferences: Color Theme** in the Command Palette.

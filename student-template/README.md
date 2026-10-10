@@ -1,7 +1,10 @@
 # My Zero App
 
-Open **this folder** in VS Code. Start with `src/main/java/Main.java` and
-`ScoreDisplay.java` (the score helper). Run App opens a separate JavaFX window. Save changes, close or
+Open **this folder** in VS Code, complete the setup below, then start with
+[Lesson 1: Change the quiz](lessons/01-quiz.md). The [six-lesson guide](lessons/README.md)
+continues from the quiz to objects, animation and your own improvement.
+You will edit `src/main/java/Main.java` and `ScoreDisplay.java` (the score helper).
+Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
 **Ctrl+Shift+B** on Windows/Linux or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
@@ -14,7 +17,10 @@ Zero**, then close the app window or terminate that task before running again.
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
-   quiet settings-only profile. In your chosen profile, install the local **zero-0.5.2.vsix**, **Language
+   quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
+   Windows/Linux, **Command+Shift+P** on macOS) in your chosen profile. Use
+   **Extensions: Install from VSIX…** for the local **zero-0.5.2.vsix**, then
+   **Extensions: Install Extensions** for **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
    setup help if it needs its own newer language-server JDK; the project's JDK
@@ -47,7 +53,19 @@ verification; this prototype was checked on macOS arm64.
 
 ## Make something
 
-Start with the small [beginner toolkit](BEGINNER.md). Choose an app or game,
+Start with [Lesson 1](lessons/01-quiz.md): run the quiz, then change the question
+and its matching answer together. For “What is 8 + 5?” in `setup()`, change
+`equals("42")` to `equals("13")` in `checkAnswer()`. Save, Stop and Run App again;
+try both a wrong answer and `13`.
+
+Local upcoming extension changes open the first lesson's preview once per project.
+Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
+Zero run offers **Show Problems**. These changes are not in the published 0.5.2
+VSIX: open [the lesson file](lessons/01-quiz.md) yourself and use
+**View: Toggle Problems** to open compiler errors.
+
+Then follow the [six lessons](lessons/README.md) or the small
+[beginner toolkit](BEGINNER.md). Choose an app or game,
 run a complete example, then try three small changes. The
 [appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
 

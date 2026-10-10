@@ -1,0 +1,86 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const Module = require('node:module');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const core = require('../src/core');
+const disposable = () => ({dispose(){}});
+const settle = async predicate => {
+  const deadline = Date.now()+5000;
+  while (!predicate()) {
+    assert.ok(Date.now()<deadline,'Expected onboarding state did not arrive');
+    await new Promise(resolve=>setImmediate(resolve));
+  }
+};
+async function fixture(t, {lesson=true, activeEditor=false, remembered=new Map()}={}) {
+  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
+  t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  await fs.writeFile(path.join(root,'zero.json'),'{}');
+  await fs.writeFile(path.join(root,'mvnw'),'');
+  if(lesson) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Change the quiz');}
+  const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[];
+  let webviewProvider, folderChanged;
+  class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
+  const vscode={
+    authentication:{getSession:async()=>undefined,onDidChangeSessions:disposable},
+    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
+      onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
+    window:{activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showErrorMessage:text=>errors.push(text)},
+    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);}},
+    tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
+      executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
+    Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
+    EventEmitter:class{event(){}fire(){}dispose(){}},Uri:{file:fsPath=>({fsPath})}
+  };
+  const filename=require.resolve('../src/extension'), oldCache=require.cache[filename], load=Module._load;
+  delete require.cache[filename];
+  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./core')return {...core,assertRepositoryRoot:async()=>{throw new Error('No repository');}};return load.call(this,id,...args);};
+  let extension;try{extension=require(filename);}finally{Module._load=load;}
+  t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
+  extension.activate({subscriptions,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}});
+  const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
+  await settle(()=>remembered.has('zero.sidebarShown'));
+  const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
+  return {root,commands,calls,errors,launches,webview,remembered,finish,vscode,folderChanged:()=>folderChanged()};
+}
+test('first lesson opens once per project and can be reopened without modifying student source', async t=>{
+  const f=await fixture(t);
+  await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
+  const previews=()=>f.calls.filter(([id])=>id==='markdown.showPreview');
+  assert.equal(previews().length,1);
+  assert.equal(previews()[0][1].fsPath,path.join(f.root,'lessons/01-quiz.md'));
+  f.folderChanged(); await new Promise(resolve=>setTimeout(resolve,30));
+  assert.equal(previews().length,1,'Already introduced project must not reopen the lesson');
+  await f.commands.get('zero.openFirstLesson')();
+  assert.equal(previews().length,2);
+  assert.match(f.webview.html,/Open Lesson 1/);
+  assert.equal(await fs.readFile(path.join(f.root,'lessons/01-quiz.md'),'utf8'),'# Change the quiz');
+});
+test('installing during source editing does not replace the active editor', async t=>{
+  const f=await fixture(t,{activeEditor:true});
+  await f.commands.get('zero.openFirstLesson')();
+  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1,'Only the explicit command opens the lesson');
+  assert.deepEqual(f.errors,[]);
+});
+test('older projects without bundled lessons still activate and run', async t=>{
+  const f=await fixture(t,{lesson:false});
+  await f.commands.get('zero.runApp')();assert.equal(f.launches.length,1);
+  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
+  await f.commands.get('zero.openFirstLesson')();assert.match(f.errors[0],/no lessons\/01-quiz.md/);
+});
+test('only failed owned tasks offer Problems; success and Stop are normal exits', async t=>{
+  const f=await fixture(t,{lesson:false});
+  await f.commands.get('zero.runApp')();
+  f.finish({task:{definition:{type:'other'}}},1);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
+  f.finish(f.launches.at(-1),1);
+  assert.match(f.webview.html,/App ended with an error/);
+  assert.match(f.webview.html,/data-command="zero.showProblems"/);
+  await f.commands.get('zero.showProblems')();assert.equal(f.calls.at(-1)[0],'workbench.actions.view.problems');
+  await f.commands.get('zero.runApp')();assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
+  f.finish(f.launches.at(-1),0);assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
+  await f.commands.get('zero.runApp')();await f.commands.get('zero.stopApp')();
+  assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
+});

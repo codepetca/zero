@@ -31,12 +31,35 @@ function activate(context) {
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'simulation') : 'simulation';
   let runQueue = Promise.resolve();
   let state = 'Ready to run';
+  let buildFailed = false;
+  const stoppedTasks = new WeakSet();
+  const taskExitCodes = new WeakMap();
   let repository = 'No repository connected';
   const project = async () => {
     projectRoot = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));
     return projectRoot;
   };
   const refresh = () => { if (view) render(view.webview); };
+  async function openFirstLesson(root) {
+    const filename = path.join(root, 'lessons', '01-quiz.md');
+    try {if (!(await fs.stat(filename)).isFile()) return false;}
+    catch (error) {if (error.code === 'ENOENT') return false; throw error;}
+    // A folder switch during preparation must not open another project's lesson.
+    if (await project() !== root) return false;
+    await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(filename));
+    return true;
+  }
+  async function introduceProject() {
+    const root = await project();
+    if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
+    if (!context.workspaceState.get('zero.sidebarShown')) {
+      await actions['zero.showSidebar']();
+      await context.workspaceState.update('zero.sidebarShown', true);
+    }
+    const key = `zero.firstLessonShown:${root}`;
+    // Do not interrupt an existing source-editing session on extension installation.
+    if (!context.workspaceState.get(key) && !vscode.window.activeTextEditor && await openFirstLesson(root)) await context.workspaceState.update(key, true);
+  }
   const auth = createAuthentication(vscode.authentication, refresh);
   context.subscriptions.push(auth);
   void auth.refresh();
@@ -54,6 +77,7 @@ function activate(context) {
   async function stop() {
     if (!execution) return;
     const active = execution;
+    stoppedTasks.add(active);
     active.terminate();
     state = 'Stopping app…'; refresh();
     let timer;
@@ -82,10 +106,11 @@ function activate(context) {
   const exampleDirectories = new Map();
   function track(active) {
     if (taskFinishes.has(active)) return;
-    if (execution && execution !== active) execution.terminate();
+    if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
     execution = active;
+    buildFailed = false;
     ending = new Promise(resolve => taskFinishes.set(active, resolve));
-    state = 'Running app — build output is in the terminal'; refresh();
+    state = 'Building / running app — output is in the terminal'; refresh();
   }
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
     if (event.execution.task.definition.type === 'zero') track(event.execution);
@@ -98,7 +123,15 @@ function activate(context) {
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
     taskFinishes.delete(event.execution); finish();
-    if (execution === event.execution) {execution = undefined; state = 'App stopped. Check the task terminal for build errors.'; refresh();}
+    if (execution === event.execution) {
+      execution = undefined;
+      buildFailed = !stoppedTasks.has(event.execution) && typeof taskExitCodes.get(event.execution) === 'number' && taskExitCodes.get(event.execution) !== 0;
+      state = buildFailed ? 'App ended with an error. Open Problems or check the task terminal.' : 'App stopped';
+      refresh();
+    }
+  }), vscode.tasks.onDidEndTaskProcess(event => {
+    if (!taskFinishes.has(event.execution)) return;
+    taskExitCodes.set(event.execution, event.exitCode);
   }));
   context.subscriptions.push(vscode.tasks.registerTaskProvider('zero', {
     // Configured tasks must pass through resolveTask for saving and restart checks.
@@ -262,6 +295,12 @@ function activate(context) {
     'zero.finishChange': () => change('finish'),
     'zero.runApp': queuedRun,
     'zero.stopApp': stopRequested,
+    'zero.openFirstLesson': async () => {
+      const root = await project();
+      if (!(await openFirstLesson(root))) throw new Error('This project has no lessons/01-quiz.md. Find the first lesson at https://zero.codepet.ca/learn.');
+      await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
+    },
+    'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),
     'zero.showSidebar': async () => {
       await vscode.commands.executeCommand('workbench.view.extension.zero');
       if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
@@ -371,7 +410,7 @@ function activate(context) {
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       body{color:var(--vscode-foreground);background:var(--vscode-sideBar-background);font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);padding:12px;margin:0}.muted{color:var(--vscode-descriptionForeground);font-size:12px;line-height:1.5}button{font:inherit;width:100%;padding:9px 8px;margin-top:8px;border:1px solid var(--vscode-button-border,transparent);border-radius:5px;cursor:pointer;color:var(--vscode-button-foreground);background:var(--vscode-button-background)}button:hover{filter:brightness(.95)}button.secondary{color:var(--vscode-button-secondaryForeground);background:var(--vscode-button-secondaryBackground)}button:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:2px}button:disabled{opacity:.45;cursor:default}.run{background:#6655cd;color:white}.row{display:flex;gap:8px}.row .run{flex:2}.row .secondary{flex:1}.repository{padding-top:12px;margin-top:12px;border-top:1px solid var(--vscode-panel-border)}.status{overflow-wrap:anywhere;line-height:1.5;margin:10px 0}.badge{font-size:11px;color:var(--vscode-descriptionForeground);margin:6px 0}button.link{background:transparent;color:var(--vscode-textLink-foreground);text-align:left;border:0;padding:4px 0;margin:0;font-size:12px}
       .github-header{display:flex;align-items:center;justify-content:space-between;gap:8px}.account{width:28px;height:28px;flex:none;border-radius:50%;padding:0;margin:0;display:inline-flex;align-items:center;justify-content:center;background:var(--vscode-badge-background);color:var(--vscode-badge-foreground);font-weight:600}.account svg{width:16px;height:16px;fill:currentColor}.repo-choice{width:100%;margin:8px 0 0;padding:5px 0;background:transparent;color:var(--vscode-textLink-foreground);border:0;text-align:left;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.repo-choice:hover{text-decoration:underline}
-      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p><div class="repository"><div class="github-header"><strong>GitHub</strong><button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${avatar}</button></div><button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repo')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)}</button>${repositoryWarning}${branchControl}${githubActions}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}<button class="link" data-command="zero.openFirstLesson">Open Lesson 1</button><div class="repository"><div class="github-header"><strong>GitHub</strong><button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${avatar}</button></div><button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repo')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)}</button>${repositoryWarning}${branchControl}${githubActions}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
@@ -415,8 +454,8 @@ function activate(context) {
     if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus();}));
+  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus(); void introduceProject().catch(error => output.appendLine(`Getting started: ${error.message}`));}));
   context.subscriptions.push({dispose:() => {if (execution) execution.terminate();}});
-  project().then(async () => {if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar'); if (!context.workspaceState.get('zero.sidebarShown')) {await actions['zero.showSidebar'](); await context.workspaceState.update('zero.sidebarShown',true);}}).catch(() => {});
+  void introduceProject().catch(() => {});
 }
 module.exports = {activate};
