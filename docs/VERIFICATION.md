@@ -16,6 +16,8 @@ all tab groups before preparation and immediately before preview dispatch.
 Ten affected checks pass, including existing-preview and late-tab regressions.
 Normal exit, stopped run, unrelated tasks and missing legacy lesson coverage pass.
 The full suite predates this small guard correction; affected tests/checks reran.
+Independent targeted review at `0aec588` confirmed resolution with no new findings
+and independently passed all ten affected checks plus delta whitespace validation.
 
 Actual macOS VS Code development host, disposable project in a path with spaces:
 first lesson preview, deliberate missing semicolon, failed-run Show Problems,

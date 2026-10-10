@@ -15,9 +15,10 @@ four starter/profile guides, delivered and inspected, ownership released.
 Coordinator corrected assembled-only links in START-HERE to readable paths.
 Independent onboarding_review GPT-6.1 Sol/medium completed full diff afc51bc
 against00bd796 in about4min; one P2 non-text-tab interruption reproduced and
-fixed by coordinator with early/late tab checks. One targeted review follows.
+fixed by coordinator with early/late tab checks. Targeted review at0aec588
+resolved the P2 with no new findings in about1min; independent10 checks passed.
 Budget: max7 reviewer launches, initial1 wave, targeted4, integration1, fix4
-batches,60min total/30min reviewer; current2 turns/1 remediation batch.
+batches,60min total/30min reviewer; final2 turns/1 remediation batch; no further source changes.
 Weekly34% remaining at start (account-wide); attributable tokens/effective
 worker settings unavailable. DeepSeek remains paused. No file-writer conflict.
 Full113 tests/check/diff pass; corrected guard passes10 affected checks.
