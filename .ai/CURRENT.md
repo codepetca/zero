@@ -1,6 +1,6 @@
 # Current state — 2026-10-10
 
-## Integrated local kit — in progress, 2026-10-10
+## Integrated local kit — complete locally, 2026-10-10
 
 Owner accepted the sequence: finish the media lesson, combine the local lessons
 and alternatives, then choose the camera/HUD teaching proof. This phase combines
@@ -29,6 +29,30 @@ DeepSeek pause through2026-12-31 remains active. Handle this coherent merge
 directly; use one bounded Sol/medium independent integration reviewer. Budget:
 7launches,1initialwave,4targeted,1integration,4fixbatches,60min session/30min
 reviewer; prior independent source coverage is reused outside shared boundaries.
+
+Accepted combined code head d771930; the final documentation-only record is
+coordinator-checked. All144 extension/kit tests pass in173.99s; website24tests,
+types and production build pass. Native greeting/coin/media examples pass in
+12.96s. Browser verifies all13 lessons, media copy/source links and both health
+bar alternatives. Published manifests and framework bytes remain unchanged from
+alternatives942bcf3. Standard isolated preview0.5.3 package/verify passes, including
+extracted Maven build. VSIX65267bytes/bootstrap178007bytes/starter111210bytes;
+exact hashes and artifact source d771930 are in the ignored preview receipt.
+
+Independent kit_integration_review Sol/medium completed both parent deltas and
+all six shared paths at d771930, no findings or gaps beyond recorded platform
+limits. Archive/source/media/public-metadata parity independently checked;
+initialwave1/launch1/fixbatches0,~5min estimate, effective model/tokens unknown.
+Prior source reviews remain valid; no additional review repeats unchanged work.
+Primary .verification/kit-integration-2026-10-10 retains ZIP/VSIX, screenshots and
+receipts. Preview server port3017/session5051 remains available; other servers
+and source worktrees were not changed. No external action or publication.
+
+Synthetic native macOS checks do not establish physical editor picker/typing,
+Windows/Linux, audible audio, school restrictions or classroom usability. Next
+agreed teaching slice is a scrolling world with ordinary Camera and fixed
+ScoreDisplay HUD; it is not implemented by this integration. Current IDE remains
+extension/profile/bootstrap; launcher/fork implementation is a separate decision.
 
 
 ## Lesson 12 media — complete locally, 2026-10-10

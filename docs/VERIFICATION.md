@@ -1,5 +1,31 @@
 # Verification — 2026-10-10
 
+## Combined local kit — 2026-10-10
+
+Local integration combines reviewed alternatives942bcf3 and student-onboarding
+fce71f6 at d771930. All144 extension/kit tests,24website tests,typecheck,production
+build and configuration/link checks pass. Selected native macOS greeting,coin-game
+and media examples pass. Browser verifies13lesson navigation,media copy/resource
+links and both health-bar alternatives. No new core API or component coordinate.
+Public kit/community manifests and framework bytes match the alternatives parent.
+
+Preview0.5.3 is assembled only in an isolated archive of d771930; canonical
+published0.5.2 metadata remains unchanged. Standard kit verification passes exact
+licenses,source/VSIX/wrapper parity and an extracted Maven build. Source and
+measured asset receipts are under ignored .verification/kit-integration-2026-10-10,
+also copied to that directory in the primary checkout with the local downloads.
+The matching website preview retains published links; it does not serve a newly
+published release. Existing portable community0.1.3 source-bound Workshop remains
+the separately reviewed local artifact, unchanged by this integration.
+
+Independent Sol/medium review completed both parent deltas and all six shared
+paths at d771930 with no findings. It independently checked archive/source/media
+parity and reused unchanged source reviews. One initial wave/launch,zero fixes;
+~5min estimate. Final evidence-only documentation is coordinator-checked.
+Checks are synthetic macOS evidence; physical editor interactions,Windows/Linux,
+audible device output and classroom use remain unverified. No push,PR,main merge,
+release,deployment,live student upload,AI or credential change was performed.
+
 ## Lesson 12 media — local, 2026-10-10
 
 Added a tiny local PNG/WAV demo, original MIT assets, resource replacement lesson
