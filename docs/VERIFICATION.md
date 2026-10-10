@@ -29,6 +29,17 @@ was stopped. No physical keys/typing, Windows/Linux, fresh-machine/audio-device,
 classroom or live GitHub flow trial is claimed. Existing keyboard synthetic-check
 limitation remains; the full default GUI suite was not rerun.
 
+Independent media_review/turn1 GPT-6.1-Sol/high covered the full f54b291..498ad34
+27-file/464-line delta in81seconds, with no actionable findings/blockers. Reviewer
+independently checked PNGstructure/CRCs, WAVformat/duration,13lessonroutes,
+canonical/generated content and asset parity, resource destinations, binary/source
+separation and whitespace; existing checks were reused. One initial review, no
+remediation or further integration wave. Receipt-only final edits preserve the
+reviewed implementation. Browser example page also shows binary downloads and
+only Main as readable source. No warnings/errors or desktop horizontal overflow.
+Temporary server/tab/native demo and temporary Downloads outputs were cleaned up.
+Local branch codex/student-onboarding; no publication or coordinate/version change.
+
 ## Curriculum 4–11 — local, 2026-10-10
 
 Completes the sequence 0–11: counter, methods/reset, ordinary objects, full
