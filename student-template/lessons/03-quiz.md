@@ -33,4 +33,4 @@ public class Main extends SimpleApp {
 2. Answer **2 + 3**
 3. Click **Check** → **Correct!** or **Try again.**
 
-Next: [Lesson 4](04-objects.md).
+Next: [Lesson 4](04-counter.md).

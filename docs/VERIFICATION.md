@@ -1,5 +1,46 @@
 # Verification — 2026-10-10
 
+## Curriculum 4–11 — local, 2026-10-10
+
+Completes the sequence 0–11: counter, methods/reset, ordinary objects, full
+study app, movement, full coin game, component extraction/reuse and Community
+contribution. Lesson 12 is absent. Existing JavaFX kit architecture is unchanged.
+Kit ZIP assertions cover all twelve canonical lessons and five new example
+copy lists; the extracted default starter compiles. Two kit tests pass.
+
+Configuration, source contracts/local links, 19 website tests, production build
+and whitespace checks pass. The build includes tutorials 0–11 and two-digit
+routing. Browser walkthrough follows 7→8→9→10→11, expands sections and opens
+canonical study source; the final lesson exits to examples. Native held input
+is deterministic set mutation and time, not physical arrow keys.
+
+Finite native macOS checks pass for hello-world, hello-button, hello-name,
+tiny-quiz, click-counter, reset-counter, object-counter, scored quiz, practice,
+study, movement and coin-game. Checks cover retry/once-only scoring, independent
+objects, completion/restart, movement bounds, drawing/contact, coin disappearance,
+win freeze and repeated restart. Initially the disappearance assertion sampled a
+pixel covered by Player; the test now moves Player away first. The full game
+check then passes. Production Java was unchanged by this correction.
+Lesson 10's inline quiz variant independently passes wrong/trimmed-correct,
+single-score and repeat-disable checks.
+
+Workers compiled all three foundations with fenced-code parity, and ten runnable
+app/game stages and variants in disposable offline Maven projects. The component
+worker separately launched the exact bold ScoreDisplay in quiz/practice, and
+source-copy bold HealthBar in Community adventure/study: scoring, reset, damage,
+healing and energy/reset pass. These four logs are worker terminal receipts
+6432/72045 (exit0); disposable projects were removed. Coordinator inspected the
+commands/assertions and reused the coverage without repeating them. Community
+source and public contribution guide were read; no community checkout was edited.
+
+Ignored coordinator logs/variant script live in
+`.verification/curriculum-2026-10-10/`; initial selected-run log preserves the
+failed assertion, the coin-game-fixed log records its correction. No claim that
+the default all-example suite passes: the older keyboard synthetic-event limitation
+below remains. No physical keys/typing, Windows/Linux, fresh installation, novice
+classroom trial, live GitHub fork/PR, or public deployment was performed.
+Public 0.5.2 assets and primary checkout funding work remain unchanged.
+
 ## Lesson 3 tiny quiz — local, 2026-10-10
 
 Added tiny-quiz Main and replaced Lesson 3 with identical complete code and three

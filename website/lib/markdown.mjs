@@ -1,4 +1,5 @@
 import path from "node:path";
+import { isLessonDocumentId } from "./learning.mjs";
 export const slugify = (text) =>
   text
     .toLowerCase()
@@ -9,8 +10,8 @@ const nodeText = (node) =>
     ? node.value
     : (node.children ?? []).map(nodeText).join("");
 export function documentHref(id) {
-  return /^lesson-[0-8]$/.test(id)
-    ? `/tutorials/${id.slice(-1)}`
+  return isLessonDocumentId(id)
+    ? `/tutorials/${id.slice("lesson-".length)}`
     : `/docs/${id}`;
 }
 export function resolveContentLink(source, href, documents, sources) {

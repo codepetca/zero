@@ -29,7 +29,7 @@ const docGroups = [
       [
         "lesson-guide",
         "Lesson guide",
-        "Hello, world, eight lessons and teaching sequence.",
+        "Twelve lessons, app and game tutorials, and Community sharing.",
       ],
       [
         "pilot",

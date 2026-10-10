@@ -33,7 +33,7 @@ export function ReaderNavigation({
         </select>
       </label>
       <details open className="reader-menu">
-        <summary>{lesson ? "Six short lessons" : "Documentation"}</summary>
+        <summary>{lesson ? "Lessons 0–11" : "Documentation"}</summary>
         <nav
           aria-label={lesson ? "Lesson navigation" : "Documentation navigation"}
         >

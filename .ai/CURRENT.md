@@ -1,5 +1,46 @@
 # Current state — 2026-10-10
 
+## Curriculum through 11 — checks complete, review pending, 2026-10-10
+
+Owner authorized orchestration through Lesson 11, excluding Lesson 12.
+Base 9cc1ac1, codex/student-onboarding. Preserve primary funding work and public
+0.5.2 releases; no publication, transport, credentials or community-repo edits.
+One sequence: 0–3 delivered; 4 counter, 5 methods/reset, 6 ordinary objects,
+7 study app, 8 movement, 9 coin game, 10 component reuse, 11 Community sharing.
+Exit: canonical examples/copy lists and lesson/site progression 0–11 agree;
+affected JavaFX behavior, kit inclusion, site build/browser and review pass.
+Lesson 12 media/platformer/physics is not implemented or linked as a tutorial.
+
+Ownership, started ~21:54 UTC: curriculum_foundations Sol/medium owns new
+04-counter/05-methods/06-objects and click/reset/object-counter examples;
+curriculum_apps_games Sol/high owns 07-study-app/08-movement/09-coin-game and
+movement/coin-game examples; curriculum_components Sol/medium owns
+10-components/11-community. Coordinator owns shared docs/indexes/site/tests,
+old lesson removal, integration and serialized native/browser checks.
+All workers had bounded briefs, no Git writes/publication/delegation. Foundation
+and app/game workers compiled only; the component worker ran four finite native
+checks before the coordinator began serialized GUI checks. Ownership is released.
+Weekly 27% remaining; DeepSeek paused through Dec31; task token cost unknown.
+Review: standard behavior/content risk, one Sol/high independent full-diff pass
+after checks. Budget max7 launches/1 initial/4 targeted/1 integration/4 fix
+batches/60min total/30min reviewer; routine target ~8min. No PR is authorized.
+
+Verification: 19 website tests, 2 kit tests, config/link checks and site build
+pass. Native macOS checks pass for all twelve selected curriculum/example apps,
+plus the inline extraction variant and four component source-copy variants.
+The coin rendering check initially sampled the overlapping player; moving it
+away corrected the check, then the full game check passed. No app fix needed.
+Browser confirmed 7→8→9→10→11, collapsible sections and readable canonical source;
+final 11 exits to examples. A stale sidebar count was fixed and rebuilt.
+Physical keys/typing, Windows/Linux, classroom and live fork/PR remain untested.
+Worker command elapsed: foundations compile 4.91s, app/game stages 17.7s,
+component four native checks 10.3s. Worker total-minute estimates were not sampled
+and are discarded; attributable token and coordinator-active cost unknown.
+One test correction and one stale-label integration correction, no worker redo.
+Review ledger: base9cc1ac1; exact head recorded after local commit; launches0,
+initial waves0, fix batches0; risk standard, planned Sol/high. No publication.
+See docs/VERIFICATION.md for coverage limits and ignored local evidence.
+
 ## Lesson 3 — local follow-up, 2026-10-10
 
 Owner approved a tiny 2 + 3 quiz. Lesson 3 now has complete named-var code and

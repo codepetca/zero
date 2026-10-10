@@ -2,7 +2,7 @@
 
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
-continues through the quiz, objects, animation and your own improvement.
+continues through counters, objects, a study app, a game and Community sharing.
 Start by editing only `src/main/java/Main.java`.
 Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
@@ -147,10 +147,15 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | Reach the coin | `examples/reach-the-coin/Main.java` and `examples/reach-the-coin/Player.java` | Move with arrows, touch the gold square to win, press R to restart. See [copy/run instructions](examples/reach-the-coin/README.md). |
 | Say hello | `examples/hello-button/Main.java` | Click one button to change a greeting. See [Lesson 1](lessons/01-hello-button.md). |
 | Greet by name | `examples/hello-name/Main.java` | Type your name, then click Say hello. See [Lesson 2](lessons/02-hello-name.md). |
+| Click counter | `examples/click-counter/Main.java` | +1 counts clicks. See [Lesson 4](lessons/04-counter.md). |
+| Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. See [Lesson 5](lessons/05-methods.md). |
+| Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. See [Lesson 6](lessons/06-objects.md). |
+| Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
+| Collect the coins | `examples/coin-game/Main.java`, `examples/coin-game/Player.java`, `examples/coin-game/Coin.java` | Collect three coins, win, Restart. See [Lesson 9](lessons/09-coin-game.md). |
 | Tiny quiz | `examples/tiny-quiz/Main.java` | Answer 2 + 3, click Check, then try again. See [Lesson 3](lessons/03-quiz.md). |
 | Scored quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
-| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |
+| Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [the full app tutorial](lessons/07-study-app.md). |
 | Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |
 | Keyboard | `examples/keyboard/Main.java` and `examples/keyboard/Mover.java` | Arrow keys move/clamp the circle; diagonal movement is faster. |
 | Counter | `examples/counter/Main.java` | Native buttons beside a canvas change its displayed count. |
