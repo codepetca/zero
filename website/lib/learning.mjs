@@ -94,8 +94,21 @@ export const lessons = [
     "topic": "Workshop, evidence, fork and pull request",
     "doc": "workshop",
     "anchor": ""
-  }
+  },
+  {
+    id: "12",
+    title: "Sprites and sounds",
+    description: "Use your own image and a short sound effect.",
+    topic: "Resources, Image, AudioClip",
+    doc: "api",
+    anchor: "images-and-resources",
+  },
 ];
+// Fixed teaching assets copied from canonical source at build time.
+export const lessonAssets = {
+  "student-template/examples/media-demo/resources/media-demo/player.png": "/generated/learning-assets/media-demo/player.png",
+  "student-template/examples/media-demo/resources/media-demo/chime.wav": "/generated/learning-assets/media-demo/chime.wav",
+};
 export function isLessonDocumentId(id) {
   return lessons.some((lesson) => id === `lesson-${lesson.id}`);
 }
@@ -105,6 +118,17 @@ export function lessonNavigation(id) {
   return { related: lessons[index], previous: lessons[index - 1], next: lessons[index + 1] };
 }
 export const examples = [
+  {
+    id: "media-demo",
+    title: "My sprite and sound",
+    description: "Draw a local PNG and play a short WAV effect.",
+    files: ["media-demo/Main.java"],
+    resources: [
+      { file: "media-demo/resources/media-demo/player.png", destination: "src/main/resources/media-demo/player.png" },
+      { file: "media-demo/resources/media-demo/chime.wav", destination: "src/main/resources/media-demo/chime.wav" },
+    ],
+    lesson: "12",
+  },
   {
     id: "hello-app",
     title: "Hello, Java",

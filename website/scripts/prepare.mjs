@@ -7,6 +7,7 @@ import {
 } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { lessonAssets } from "../lib/learning.mjs";
 import { validateManifest } from "../lib/contracts.mjs";
 import { validateCommunityManifest } from "../lib/community.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -26,6 +27,7 @@ const documentPaths = {
   "lesson-9": "student-template/lessons/09-coin-game.md",
   "lesson-10": "student-template/lessons/10-components.md",
   "lesson-11": "student-template/lessons/11-community.md",
+  "lesson-12": "student-template/lessons/12-media.md",
   setup: "docs/GETTING-STARTED.md",
   api: "student-template/API.md",
   beginner: "student-template/BEGINNER.md",
@@ -101,3 +103,9 @@ await copyFile(
 console.log(
   `Prepared release ${release.kitVersion} and ${Object.keys(docs).length} canonical documents.`,
 );
+
+for (const [source, url] of Object.entries(lessonAssets)) {
+  const output = resolve(site, "public", url.slice(1));
+  await mkdir(dirname(output), { recursive: true });
+  await copyFile(resolve(root, source), output);
+}

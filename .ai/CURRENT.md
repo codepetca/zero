@@ -1,5 +1,41 @@
 # Current state — 2026-10-10
 
+## Lesson 12 media — checks complete, review pending, 2026-10-10
+
+Owner authorized the tiny sprite/sound demo and asked about game-system structure.
+Scope: Lesson 12 PNG/WAV copy/customization, ordinary JavaFX AudioClip with pinned
+media module, downloadable canonical assets, tests/site/kit integration; assessment
+of camera/scoreboard/physics composition. Not the entire larger platformer yet.
+Basef54b291, same managed student-onboarding worktree. No primary edits, external
+publication/transport/credentials, community edits or immutable asset replacement.
+
+Coordinator owns all writes. game_systems_assessment GPT-6.1-Sol/high read-only
+source assessment delivered: core supports camera/HUD helpers; teaching examples
+and collision response are gaps; final shutdown lacks a future resource-cleanup
+hook. Verified sources; no core API expansion for one brief effect. Worker elapsed
+and attributable tokens unknown. Weekly25%remaining; DeepSeek paused throughDec31.
+Started23:38UTC; acceptance: canonical resources packaged/downloadable, PNG drawn,
+short WAV decoded/playback exercised, useful errors, copy/customization works,
+site progression0–12 and bounded independent current-head review.
+Review standard risk: one Sol/high; caps7launches/1initial/4targeted/1integration/
+4fixbatches/60minsession/30minreviewer, routine~8min. No PR/publish authorization.
+
+Checks: configuration/links,20website tests,2kit tests/extracted compile,production
+build pass. Native media/default greeting/coin-game pass; replacement 4px PNG,
+new PCM WAV and renamed paths with spaces pass. Muted check observes AudioClip
+playback/end, not audible device output. No physical clicks/keys/Windows/Linux.
+Browser11→12, resource copy steps and actual PNG/WAV downloads pass; downloaded
+bytes match canonical assets and are retained only in ignored verification folder.
+Interactive launch compiled/launched; Java app absent from computer-use app
+inventory, so no physical interaction claimed; owned demo process stopped.
+No core source/API changes. Current IDE direction remains VSCode extension/profile
+with the JavaFX teaching library and existing bootstrap; custom IDE/fork proposals
+are not revived. Before a combined release, reconcile the separately reviewed
+component-alternatives branches with this branch and rerun integration gates;
+shared doc/site/extension files overlap. This slice changes no component coordinates.
+Review ledger basef54b291, implementation head after commit, standard Sol/high,
+launches0/initial0/targeted0/integration0/fixbatches0; no external publication.
+
 ## Curriculum through 11 — complete locally, 2026-10-10
 
 Owner authorized orchestration through Lesson 11, excluding Lesson 12.

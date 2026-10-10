@@ -1,4 +1,4 @@
-# Build with Zero: Lessons 0–11
+# Build with Zero: Lessons 0–12
 
 Small steps first. Then build an app, a game and a shared component.
 
@@ -16,6 +16,7 @@ Small steps first. Then build an app, a game and a shared component.
 | [9](09-coin-game.md) | Full game: collect coins |
 | [10](10-components.md) | Extract and reuse a component |
 | [11](11-community.md) | Share with Community |
+| [12](12-media.md) | Add your sprites and sounds |
 
 ## Before each lesson
 

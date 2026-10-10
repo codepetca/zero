@@ -9,7 +9,7 @@ later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
 page has the Zero wordmark, one sentence, Download Zero and Learn more only.
-`/learn` is a compact learning hub with twelve lessons (0–11), including full app/game
+`/learn` is a compact learning hub with thirteen lessons (0–12), including full app/game
 tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/community` introduces Zero Community and links to
@@ -28,7 +28,8 @@ that changes the greeting; Lesson 2 adds a name field; Lesson 3 checks one answe
 with if/else and feedback. Lessons 4–6 add counter state, reset methods and
 ordinary objects; 7 builds a study app; 8 teaches movement; 9 builds a coin game.
 Lessons 10–11 cover component extraction/reuse and proposing a Community
-contribution. Media, platformers and physics remain outside this learning set.
+contribution. Lesson 12 starts the larger game with sprites and short sound effects.
+Platformers, camera/world examples and physics are later work; see [game systems](GAME-SYSTEMS.md).
 The scored quiz remains a later reuse example.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by

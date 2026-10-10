@@ -60,7 +60,7 @@ Continue to [Lesson 1](../student-template/lessons/01-hello-button.md) for a
 button that changes the greeting. [Lesson 2](../student-template/lessons/02-hello-name.md)
 adds a name field. [Lesson 3](../student-template/lessons/03-quiz.md) checks **2 + 3**.
 Try a wrong answer, then **5**.
-Continue through [Lessons 4–11](../student-template/lessons/README.md): counters,
+Continue through [Lessons 4–12](../student-template/lessons/README.md): counters,
 objects, a complete study app, a coin game and Community sharing.
 
 Try the practice tracker to reuse ScoreDisplay. Try animation, keyboard or

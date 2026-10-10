@@ -174,6 +174,7 @@ checks={
         require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 100).equals(Color.WHITE), "Secondary button clears");'''
 }
 standalone = {
+    'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
     'movement': ('MovementCheck', 'MOVEMENT_OK'),
     'coin-game': ('CoinGameCheck', 'COIN_GAME_OK'),
 }
@@ -251,6 +252,9 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
     for kind, check in selected.items():
         dest = root / kind
         shutil.copytree(source, dest, ignore=shutil.ignore_patterns('target', 'examples'))
+        resources = source/'examples'/kind/'resources'
+        if resources.is_dir():
+            shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):
             shutil.copy2(java, dest/'src/main/java'/java.name)
         if kind in ('quiz', 'practice', 'study'):

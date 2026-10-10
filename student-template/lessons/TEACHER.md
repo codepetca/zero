@@ -1,4 +1,4 @@
-# Teacher notes: Lessons 0–11
+# Teacher notes: Lessons 0–12
 
 Use [the lesson index](README.md). Lessons 0–6 are short steps. Lessons 7 and 9
 are full tutorials; spread their stages across sessions as needed.
@@ -20,6 +20,7 @@ Pacing is a planning guide, not classroom-trial evidence.
 | 9 | Each coin scores once; collecting all wins; Restart restores player, coins and score |
 | 10 | The same display class works in the scored quiz and practice tracker |
 | 11 | A contribution has source, API, examples, checks and independent review |
+| 12 | Supplied robot/chime work; replacing assets and rerunning shows/hears the change |
 
 ## Teach ownership
 

@@ -1,7 +1,7 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
-import { lessons, lessonNavigation } from "@/lib/learning.mjs";
+import { lessons, lessonNavigation, lessonAssets } from "@/lib/learning.mjs";
 import {
   foldSections,
   resolveContentLink,
@@ -75,9 +75,10 @@ export function Document({ id, lesson = "" }) {
                     href,
                     docs,
                     sources,
+                    lessonAssets,
                   );
                   return target ? (
-                    <a href={target}>{children}</a>
+                    <a href={target} download={Object.values(lessonAssets).includes(target) ? target.split("/").at(-1) : undefined}>{children}</a>
                   ) : (
                     <span
                       className="source-note"

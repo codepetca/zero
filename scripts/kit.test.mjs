@@ -41,15 +41,18 @@ test('assembled ZIP is a standalone editable Java project with canonical source 
     new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
   assert.deepEqual(entries['zero-starter/LICENSE'], new Uint8Array(readFileSync(path.join(root, 'LICENSE'))));
   const lessonFiles = readdirSync(path.join(root, 'student-template/lessons')).filter(name => /^\d{2}-.*\.md$/.test(name)).sort();
-  assert.deepEqual(lessonFiles.map(name => name.slice(0, 2)), Array.from({length:12}, (_, id) => String(id).padStart(2, '0')));
+  assert.deepEqual(lessonFiles.map(name => name.slice(0, 2)), Array.from({length:13}, (_, id) => String(id).padStart(2, '0')));
   for (const name of lessonFiles) assert.deepEqual(entries[`zero-starter/lessons/${name}`],
     new Uint8Array(readFileSync(path.join(root, 'student-template/lessons', name))));
-  for (const folder of ['click-counter', 'reset-counter', 'object-counter', 'movement', 'coin-game']) {
+  for (const folder of ['click-counter', 'reset-counter', 'object-counter', 'movement', 'coin-game', 'media-demo']) {
     for (const name of readdirSync(path.join(root, 'student-template/examples', folder)).filter(name => name.endsWith('.java'))) {
       assert.deepEqual(entries[`zero-starter/examples/${folder}/${name}`],
         new Uint8Array(readFileSync(path.join(root, 'student-template/examples', folder, name))));
     }
   }
+  for (const name of ['player.png', 'chime.wav']) assert.deepEqual(
+    entries[`zero-starter/examples/media-demo/resources/media-demo/${name}`],
+    new Uint8Array(readFileSync(path.join(root, 'student-template/examples/media-demo/resources/media-demo', name))));
   assert.ok(!Object.keys(entries).some(name => /SmokeLauncher|node_modules|package\.json|\/target\//.test(name)));
   const project = extractProject(archive, 'zero-starter', tmpdir());
   try {

@@ -1,5 +1,34 @@
 # Verification — 2026-10-10
 
+## Lesson 12 media — local, 2026-10-10
+
+Added a tiny local PNG/WAV demo, original MIT assets, resource replacement lesson
+and JavaFX media at the existing21.0.12 pin in the source starter POM. Older kits
+get the exact dependency block. Core source/API and published0.5.2 bytes are
+unchanged. Camera/HUD/physics assessment is documented in GAME-SYSTEMS.md; camera,
+platformer/physics and longer-music cleanup are planned, not delivered features.
+
+Configuration/links,20website tests,2kit tests/extracted starter compile,site
+production build and whitespace checks pass. ZIP checks retain all13lessons and
+exact media Java/PNG/WAV bytes. Browser11→12, collapsed/expanded copy steps,
+fixed0–12 sidebar and final examples exit pass. Actual sprite and sound links
+download with the expected filenames and byte-match canonical assets. Public
+asset routes are a fixed two-file build-time mapping, not arbitrary file access.
+Full-page lesson-12.jpg and logs are ignored under .verification/media-2026-10-10/.
+
+Finite native macOS checks pass for media-demo, unchanged HelloWorld and coin-game
+(9.56s total). Media checks cover image dimensions/scaled drawing/transparency,
+load-once reuse, missing/unsupported sound path diagnostics, repeated button
+requests and native AudioClip playback/end. Playback checks are muted: successful
+backend state does not establish audible speaker output. A disposable replacement
+fixture (4px coral PNG,440Hz PCM WAV, paths/filenames containing spaces) compiles,
+draws and enters/completes playback. Its script/log remain ignored alongside logs.
+The standalone interactive copy compiles/launches; native Java did not appear in
+computer-use app inventory, so physical clicks are not claimed. Owned process
+was stopped. No physical keys/typing, Windows/Linux, fresh-machine/audio-device,
+classroom or live GitHub flow trial is claimed. Existing keyboard synthetic-check
+limitation remains; the full default GUI suite was not rerun.
+
 ## Curriculum 4–11 — local, 2026-10-10
 
 Completes the sequence 0–11: counter, methods/reset, ordinary objects, full

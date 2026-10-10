@@ -4,7 +4,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { lessons, lessonNavigation, isLessonDocumentId } from "../lib/learning.mjs";
+import { lessons, lessonNavigation, isLessonDocumentId, lessonAssets } from "../lib/learning.mjs";
 import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
@@ -93,20 +93,28 @@ test("lesson navigation starts at zero and reaches the button, name then quiz wi
   assert.equal(lessonNavigation("2").related.title, "Greet by name");
   assert.equal(lessonNavigation("2").next.id, "3");
   assert.equal(lessonNavigation("3").related.title, "A tiny quiz");
-  assert.equal(lessonNavigation("11").next, undefined);
+  assert.equal(lessonNavigation("12").next, undefined);
   assert.deepEqual(lessonNavigation(""), {});
 });
 
-test("the curriculum ends at eleven and routes two-digit lessons without truncation", () => {
-  assert.deepEqual(lessons.map((lesson) => lesson.id), Array.from({ length: 12 }, (_, id) => String(id)));
+test("the curriculum ends at twelve and routes two-digit lessons without truncation", () => {
+  assert.deepEqual(lessons.map((lesson) => lesson.id), Array.from({ length: 13 }, (_, id) => String(id)));
   assert.equal(lessonNavigation("9").next.id, "10");
   assert.equal(lessonNavigation("10").next.id, "11");
   assert.equal(lessonNavigation("11").previous.id, "10");
-  assert.deepEqual(lessonNavigation("12"), {});
+  assert.equal(lessonNavigation("11").next.id, "12");
+  assert.deepEqual(lessonNavigation("13"), {});
   assert.equal(documentHref("lesson-10"), "/tutorials/10");
   assert.equal(documentHref("lesson-11"), "/tutorials/11");
   assert.equal(isLessonDocumentId("lesson-11"), true);
-  assert.equal(isLessonDocumentId("lesson-12"), false);
+  assert.equal(isLessonDocumentId("lesson-12"), true);
   const documents = { "lesson-11": { source: "student-template/lessons/11-community.md" } };
   assert.equal(resolveContentLink("student-template/lessons/10-components.md", "11-community.md#share", documents, {}), "/tutorials/11#share");
+});
+
+test("lesson media links use only the explicit build-time asset mapping", () => {
+  const source = "student-template/lessons/12-media.md";
+  assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/player.png", {}, {}, lessonAssets), "/generated/learning-assets/media-demo/player.png");
+  assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/chime.wav", {}, {}, lessonAssets), "/generated/learning-assets/media-demo/chime.wav");
+  assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
 });

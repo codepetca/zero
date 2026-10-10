@@ -33,7 +33,7 @@ export function ReaderNavigation({
         </select>
       </label>
       <details open className="reader-menu">
-        <summary>{lesson ? "Lessons 0–11" : "Documentation"}</summary>
+        <summary>{lesson ? `Lessons ${items[0]?.id}–${items.at(-1)?.id}` : "Documentation"}</summary>
         <nav
           aria-label={lesson ? "Lesson navigation" : "Documentation navigation"}
         >

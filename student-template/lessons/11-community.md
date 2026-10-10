@@ -126,5 +126,5 @@ checks/review. Contributor receipts, AI and CI cannot approve the contribution;
 unreviewed work waits. Acceptance and a published library release are separate
 maintainer decisions. The current public HealthBar remains experimental.
 
-Previous: [10. Make a reusable component](10-components.md). Continue with the
+Previous: [10. Make a reusable component](10-components.md). Next: [12. Sprites and sounds](12-media.md). Continue with the
 [lesson index](README.md) or [Community contribution guide](https://github.com/codepetca/zero-community/blob/main/docs/CONTRIBUTING.md).

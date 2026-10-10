@@ -1,3 +1,4 @@
+import { lessonAssets } from "@/lib/learning.mjs";
 import { PageHeader } from "./PageHeader";
 import { Icon } from "./Icon";
 export function Example({ example, sources }) {
@@ -37,11 +38,13 @@ export function Example({ example, sources }) {
               {files.map(({ file, destination }) => (
                 <li key={file}>
                   <a
-                    href={`/source?file=${encodeURIComponent(`student-template/examples/${file}`)}`}
+                    download={lessonAssets[`student-template/examples/${file}`] ? file.split("/").at(-1) : undefined}
+                    href={lessonAssets[`student-template/examples/${file}`] || `/source?file=${encodeURIComponent(`student-template/examples/${file}`)}`}
                   >{`examples/${file}`}</a>{" → "}<code>{destination}</code>
                 </li>
               ))}
             </ul>
+            {id === "media-demo" && <p>Older kits need the pinned javafx-media dependency from Lesson 12.</p>}
             <p>
               Run App to rebuild.{" "}
               {["keyboard", "animation", "drawing", "reach-the-coin"].includes(id) &&
@@ -54,7 +57,7 @@ export function Example({ example, sources }) {
           </div>
         </details>
         <h2>Read the source</h2>
-        {files.map(({ file }) => (
+        {files.filter(({ file }) => !lessonAssets[`student-template/examples/${file}`]).map(({ file }) => (
           <details className="source-file" key={file}>
             <summary>{file}</summary>
             <pre>
