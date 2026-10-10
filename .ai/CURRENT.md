@@ -1,6 +1,6 @@
 # Current state — 2026-10-10
 
-## Lesson 12 media — checks complete, review pending, 2026-10-10
+## Lesson 12 media — complete locally, 2026-10-10
 
 Owner authorized the tiny sprite/sound demo and asked about game-system structure.
 Scope: Lesson 12 PNG/WAV copy/customization, ordinary JavaFX AudioClip with pinned
@@ -33,8 +33,20 @@ with the JavaFX teaching library and existing bootstrap; custom IDE/fork proposa
 are not revived. Before a combined release, reconcile the separately reviewed
 component-alternatives branches with this branch and rerun integration gates;
 shared doc/site/extension files overlap. This slice changes no component coordinates.
-Review ledger basef54b291, implementation head after commit, standard Sol/high,
-launches0/initial0/targeted0/integration0/fixbatches0; no external publication.
+Review receipt media_review/turn1: basef54b291, reviewed498ad34, standard risk,
+GPT-6.1-Sol/high requested/effective unknown, complete27file/464line coverage.
+No actionable findings/blockers; accepted/rejected0/0. Independent PNGCRC/dimensions,
+WAVformat/duration,13lessonroutes/canonical-generatedparity/resource-destination/
+download-byte/source-binary-separation and whitespace checks pass. Existing checks
+reused. Launches1/initial1/targeted0/integration0/fixbatches0. Reviewer81seconds
+(23:45:30→23:46:51UTC); tokensunknown. No additional review wave adds coverage.
+Receipt-only changes after review are coordinator-checked; implementation unchanged.
+Next smallest teaching slice: ordinary Camera/scrolling world + fixed ScoreDisplay
+HUD, after coordinated local branch reconciliation. Do not independently promote
+release metadata or integrate the component alternatives. Publish/PR/merge held.
+Temporary browser/server/native demo closed; evidence lives in ignored media folder.
+Final local delivery stays on codex/student-onboarding. User-facing IDE direction
+remains existing extension/profile + bootstrap/launcher, not a custom IDE fork.
 
 ## Curriculum through 11 — complete locally, 2026-10-10
 
