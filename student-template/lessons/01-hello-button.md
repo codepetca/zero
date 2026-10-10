@@ -25,4 +25,4 @@ public class Main extends SimpleApp {
 3. Change `"Hello, Java!"`
 4. **Save → Stop → Run App**
 
-Next: [Lesson 2](02-quiz.md).
+Next: [Lesson 2](02-hello-name.md).

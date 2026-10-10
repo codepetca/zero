@@ -1,4 +1,4 @@
-# Build with Zero: Hello, world! and seven lessons
+# Build with Zero: Hello, world! and eight lessons
 
 Use ordinary Java to build something you can run, change and explain. This pack
 starts with a greeting in a window, then uses the existing example shelf. You
@@ -9,16 +9,17 @@ Arrays and constructors are practised with worked examples here.
 | --- | --- | --- |
 | [0. Hello, world!](00-hello-world.md) | Run, change one line and run again | Your changed greeting |
 | [1. Say hello with a button](01-hello-button.md) | A button changes an existing label | Your greeting before and after a click |
-| [2. Change the quiz](02-quiz.md) | Fields, conditions and button events | Three answer checks and an explanation of the handler |
-| [3. Reuse an object](03-objects.md) | Constructors, methods and state versus display | Quiz and tracker results using one shared class |
-| [4. Grow a study session](04-study.md) | Question objects, arrays and session state | A new question, complete run and restart |
-| [5. Animate an object](05-animation.md) | Coordinates, elapsed time and explicit updates | Comparison of following and jumping |
-| [6. Control movement](06-keyboard.md) | Conditions, direction and canvas bounds | Direction predictions and edge checks |
-| [7. Make a small improvement](07-project.md) | Plan, implement, check and explain | A small working change with a test record |
+| [2. Greet by name](02-hello-name.md) | Read a name from a text field | Your personalised greeting |
+| [3. Change the quiz](03-quiz.md) | Fields, conditions and button events | Three answer checks and an explanation of the handler |
+| [4. Reuse an object](04-objects.md) | Constructors, methods and state versus display | Quiz and tracker results using one shared class |
+| [5. Grow a study session](05-study.md) | Question objects, arrays and session state | A new question, complete run and restart |
+| [6. Animate an object](06-animation.md) | Coordinates, elapsed time and explicit updates | Comparison of following and jumping |
+| [7. Control movement](07-keyboard.md) | Conditions, direction and canvas bounds | Direction predictions and edge checks |
+| [8. Make a small improvement](08-project.md) | Plan, implement, check and explain | A small working change with a test record |
 
-Work at your teacher's pace. Lesson 1 is a short click-and-change step.
-Each of lessons 2–6 can fit a 45–60 minute class
-after setup; lesson 7 may need two classes. These are planning estimates, not
+Work at your teacher's pace. Lessons 1–2 are short greeting steps.
+Each of lessons 3–7 can fit a 45–60 minute class
+after setup; lesson 8 may need two classes. These are planning estimates, not
 classroom trial results. [Teacher notes](TEACHER.md) include prompts, likely
 mistakes, expected results and assessment guidance.
 

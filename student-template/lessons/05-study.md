@@ -1,4 +1,4 @@
-# 4. Grow a study session
+# 5. Grow a study session
 
 Your goal is to add a data object to an array and trace the app's session state.
 

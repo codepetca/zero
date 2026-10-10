@@ -1,5 +1,20 @@
 # Verification — 2026-10-10
 
+## Lesson 2 name — local, 2026-10-10
+
+New hello-name example and minimal Lesson 2 add one TextField; the handler reads
+getText when clicked and updates the existing Label. Fenced Java exactly matches
+the canonical example. Finite macOS JavaFX checks compile and launch name/quiz:
+empty input at startup, Stew → Hello, Stew!, then Ada → Hello, Ada! in the same
+label; following quiz checks pass. Input uses setText/Button.fire, not physical
+typing or clicks. The broader GUI suite was not repeated.
+
+Quiz/later lessons move to 3–8. Configuration/link and whitespace checks,
+9 onboarding/standalone-kit tests, 18 website tests and production build pass.
+Built HTML confirms 1→2 name→3 quiz→4 objects and the lesson 8 examples exit.
+No new screenshots, fresh install, Windows/Linux or classroom trial. No release
+asset replacement or website publication; unchanged legacy fallback remains.
+
 ## Lesson 1 button — local, 2026-10-10
 
 Added a small hello-button example and complete Lesson 1. Label, Button and VBox

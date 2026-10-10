@@ -1,4 +1,4 @@
-# 7. Make a small improvement
+# 8. Make a small improvement
 
 Your goal is to plan, build and explain one useful change using what you already
 understand. Start from a saved lesson app or copy its original example files using
@@ -13,7 +13,7 @@ Choose one of these or agree on a similarly small change with your teacher:
 - **Tracker:** add an “Undo one” button that subtracts one completion while never
   allowing the count below zero. Keep Main in charge of the number.
 - **Movement:** add A, W and S alternatives to the remaining arrow controls,
-  using the same either-key pattern as lesson 6. Simultaneous equivalent keys
+  using the same either-key pattern as lesson 7. Simultaneous equivalent keys
   should not double speed; preserve bounds and focus behavior.
 
 One finished behavior is enough. Use ordinary Java, native controls or the existing

@@ -1,11 +1,11 @@
-# 3. Reuse an ordinary object
+# 4. Reuse an ordinary object
 
 Your goal is to reuse ScoreDisplay and explain the difference between owning a
 number and displaying it.
 
 ## Open and predict
 
-Back up lesson 2 outside `src/`. Copy [practice Main](../examples/practice/Main.java)
+Back up lesson 3 outside `src/`. Copy [practice Main](../examples/practice/Main.java)
 and [shared ScoreDisplay](../examples/shared/ScoreDisplay.java) into
 `src/main/java/`, following [the switching steps](README.md#before-each-lesson).
 Keep the shared source unchanged for the first part of this lesson.

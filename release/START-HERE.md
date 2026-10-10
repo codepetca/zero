@@ -15,7 +15,7 @@
 4. Open **starter/lessons/00-hello-world.md** (Lesson 0: Hello, world!), then
    `src/main/java/Main.java`. Use **Zero: Run App** to see **Hello, world!**.
    Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.
-5. Continue with the button, quiz and later lessons in **starter/lessons/README.md**.
+5. Continue with the button, name field, quiz and later lessons in **starter/lessons/README.md**.
    **starter/README.md** covers running, examples and GitHub;
    **starter/API.md** describes the readable framework in your project.
 

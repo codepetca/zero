@@ -28,7 +28,7 @@ test("folds parsed sections without splitting code, preserving unique deep-link 
 test("relative links preserve fragments and route only maintained documents or allowlisted sources", () => {
   const documents = {
     "lesson-0": { source: "student-template/lessons/00-hello-world.md" },
-    "lesson-2": { source: "student-template/lessons/02-quiz.md" },
+    "lesson-3": { source: "student-template/lessons/03-quiz.md" },
     api: { source: "student-template/API.md" },
   };
   assert.equal(resolveContentLink("student-template/lessons/README.md", "00-hello-world.md", documents, {}), "/tutorials/0");
@@ -38,15 +38,15 @@ test("relative links preserve fragments and route only maintained documents or a
   assert.equal(
     resolveContentLink(
       "student-template/lessons/README.md",
-      "02-quiz.md#try-it",
+      "03-quiz.md#try-it",
       documents,
       sources,
     ),
-    "/tutorials/2#try-it",
+    "/tutorials/3#try-it",
   );
   assert.equal(
     resolveContentLink(
-      "student-template/lessons/02-quiz.md",
+      "student-template/lessons/03-quiz.md",
       "../API.md#input-methods",
       documents,
       sources,
@@ -55,7 +55,7 @@ test("relative links preserve fragments and route only maintained documents or a
   );
   assert.equal(
     resolveContentLink(
-      "student-template/lessons/02-quiz.md",
+      "student-template/lessons/03-quiz.md",
       "../examples/quiz/Main.java",
       documents,
       sources,
@@ -82,7 +82,7 @@ test("relative links preserve fragments and route only maintained documents or a
   );
 });
 
-test("lesson navigation starts at zero and reaches the button then quiz without looping", () => {
+test("lesson navigation starts at zero and reaches the button, name then quiz without looping", () => {
   const first = lessonNavigation("0");
   assert.equal(first.related.title, "Hello, world!");
   assert.equal(first.previous, undefined);
@@ -90,7 +90,9 @@ test("lesson navigation starts at zero and reaches the button then quiz without 
   assert.equal(first.next.title, "Say hello with a button");
   assert.equal(lessonNavigation("1").previous.id, "0");
   assert.equal(lessonNavigation("1").next.id, "2");
-  assert.equal(lessonNavigation("2").related.title, "Change the quiz");
-  assert.equal(lessonNavigation("7").next, undefined);
+  assert.equal(lessonNavigation("2").related.title, "Greet by name");
+  assert.equal(lessonNavigation("2").next.id, "3");
+  assert.equal(lessonNavigation("3").related.title, "Change the quiz");
+  assert.equal(lessonNavigation("8").next, undefined);
   assert.deepEqual(lessonNavigation(""), {});
 });

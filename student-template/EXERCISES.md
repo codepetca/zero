@@ -1,7 +1,7 @@
 # Build, extract, reuse, contribute
 
 After the greeting lessons, load the quiz using
-[Lesson 2](lessons/02-quiz.md). Keep changes small enough
+[Lesson 3](lessons/03-quiz.md). Keep changes small enough
 to explain to another student. Run after each change. Save your work before
 switching examples; the exact copy list is in [README.md](README.md#try-an-example).
 

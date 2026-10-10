@@ -56,7 +56,8 @@ verification; this prototype was checked on macOS arm64.
 Start with [Lesson 0](lessons/00-hello-world.md): click Run App to see
 **Hello, world!**, change the greeting, then Save, Stop and Run App again.
 Next, [Lesson 1](lessons/01-hello-button.md) adds a button that changes the
-greeting. [Lesson 2](lessons/02-quiz.md) introduces the quiz and its matching answer.
+greeting. [Lesson 2](lessons/02-hello-name.md) reads your name.
+[Lesson 3](lessons/03-quiz.md) introduces the quiz and its matching answer.
 
 Local upcoming extension changes open the first lesson's preview once per project.
 Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
@@ -69,7 +70,7 @@ Then follow the [remaining lessons](lessons/README.md) or the small
 run a complete example, then try three small changes. The
 [appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
 
-The default is a short greeting with a single Label. Lesson 2 loads the
+The default is a short greeting with a single Label. Lesson 3 loads the
 quiz from the example shelf. The quiz teaches fields, objects, native controls, and
 methods called by events. `settings()` sets the window title and initial content
 size. `setup()` builds the interface once and calls `show(screen)` with an
@@ -145,6 +146,7 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | Hello, Java | `examples/hello-app/Main.java` → `src/main/java/Main.java`; `examples/hello-app/theme.css` → `src/main/resources/hello-app/theme.css` | Type a name, say hello, reset, then change the theme. See [copy/run instructions](examples/hello-app/README.md). |
 | Reach the coin | `examples/reach-the-coin/Main.java` and `examples/reach-the-coin/Player.java` | Move with arrows, touch the gold square to win, press R to restart. See [copy/run instructions](examples/reach-the-coin/README.md). |
 | Say hello | `examples/hello-button/Main.java` | Click one button to change a greeting. See [Lesson 1](lessons/01-hello-button.md). |
+| Greet by name | `examples/hello-name/Main.java` | Type your name, then click Say hello. See [Lesson 2](lessons/02-hello-name.md). |
 | Mini quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
 | Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |

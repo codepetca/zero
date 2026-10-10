@@ -15,6 +15,15 @@ checks={
         require(greeting.getText().equals("Hello, Java!"), "Click changes the greeting");
         sayHello.fire();
         require(greeting.getText().equals("Hello, Java!") && screen.getChildren().get(0) == greeting, "Repeated click updates the same label");''',
+'hello-name': '''var screen = (javafx.scene.layout.VBox) ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        var greeting = (Label) screen.getChildren().get(0);
+        var name = (TextField) screen.getChildren().get(1);
+        var sayHello = (Button) screen.getChildren().get(2);
+        require(greeting.getText().equals("Hello, world!") && name.getText().isEmpty(), "Name lesson starts with an empty field");
+        name.setText("Stew"); sayHello.fire();
+        require(greeting.getText().equals("Hello, Stew!"), "Click reads the typed name");
+        name.setText("Ada"); sayHello.fire();
+        require(greeting.getText().equals("Hello, Ada!") && screen.getChildren().get(0) == greeting, "Next click reads the new name into the same label");''',
 'quiz': '''TextField answer = (TextField) field(app, "answer");
         Button check = (Button) field(app, "check");
         Label feedback = (Label) field(app, "feedback");

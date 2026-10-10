@@ -16,16 +16,17 @@ school-machine readiness.
 
 Start with Lesson 0: run the greeting, change its text and run again. Confirm
 each student can do those three steps. Lesson 1 then adds a single button
-that changes the existing label; leave quiz state for Lesson 2.
+that changes the existing label. Lesson 2 reads a name from a text field;
+leave quiz state for Lesson 3.
 
-Plan 45–60 minutes for each of lessons 2–6 after setup, and one or two classes for
-lesson 7. Shorten by assigning only the required changes; extend with optional
+Plan 45–60 minutes for each of lessons 3–7 after setup, and one or two classes for
+lesson 8. Shorten by assigning only the required changes; extend with optional
 experiments. A useful rhythm is predict, run the baseline, trace together, change
 one thing, check, then explain. Pace to actual student evidence.
 
 Teach `setOnAction(event -> method())` as the connection between a click and an
 ordinary method before teaching full lambda syntax. Students need constructors,
-fields and method calls for lesson 3; introduce array indexes before lesson 4.
+fields and method calls for lesson 4; introduce array indexes before lesson 5.
 Students can trace `Math.min`/`Math.max` with numbers before generalising the bounds
 formula. Leave packages, interfaces and JavaFX properties for a demonstrated need.
 
@@ -35,18 +36,22 @@ formula. Leave packages, interfaces and JavaFX properties for a demonstrated nee
 | --- | --- | --- |
 | 0. Hello | The window displays the changed greeting after a rerun | Point to the quoted text; leave the launch boilerplate alone |
 | 1. Button | Text changes on a click; the same Label is updated | Point to the handler and setText; keep the event pattern intact |
-| 2. Quiz | setup creates controls once; a click calls checkAnswer; Main owns points; disabled checking stops another award | Ask the student to point to the handler connection and the statement changing points |
-| 3. Objects | Main changes the number; ScoreDisplay changes label text; both constructors still work | Ask “If we change points per click, which class changes?” |
-| 4. Study | Question owns data; Main owns index and completion flags; length controls navigation | Trace one wrong answer, one correct answer and Next on paper |
-| 5. Animation | Main calls update and draw; elapsed time differs from a frame count; circle coordinates are its centre | Ask what would happen if the Player update call disappeared |
-| 6. Keyboard | Separate conditions combine keys; time scales distance; radius keeps the whole circle inside | Calculate one update, then one clamped edge result |
-| 7. Improvement | Goal, ownership, boundary check and actual behavior agree | Ask for the smallest demonstration that could disprove their claim |
+| 2. Name | getText reads the name when clicked; setText updates the greeting | Change the name and click again |
+| 3. Quiz | setup creates controls once; a click calls checkAnswer; Main owns points; disabled checking stops another award | Ask the student to point to the handler connection and the statement changing points |
+| 4. Objects | Main changes the number; ScoreDisplay changes label text; both constructors still work | Ask “If we change points per click, which class changes?” |
+| 5. Study | Question owns data; Main owns index and completion flags; length controls navigation | Trace one wrong answer, one correct answer and Next on paper |
+| 6. Animation | Main calls update and draw; elapsed time differs from a frame count; circle coordinates are its centre | Ask what would happen if the Player update call disappeared |
+| 7. Keyboard | Separate conditions combine keys; time scales distance; radius keeps the whole circle inside | Calculate one update, then one clamped edge result |
+| 8. Improvement | Goal, ownership, boundary check and actual behavior agree | Ask for the smallest demonstration that could disprove their claim |
 
 ## Concrete expected results
 
 **Button:** startup shows Hello, world!; clicking Say hello changes the same
 label to Hello, Java!. A second click keeps that text. After changing the handler's
 message and rerunning, startup still shows Hello, world! until the button is clicked.
+
+**Name:** type Stew and click Say hello: Hello, Stew!. Change the name and
+click again; the same label uses the new text.
 
 **Quiz:** the changed `8 + 5` version accepts trimmed `13`, awards 5 once and
 resets on a fresh run. Wrong/blank input keeps 0 and permits retry. The repaired
@@ -130,5 +135,5 @@ starter distribution because they live inside `student-template/`. Existing
 versioned archives remain unchanged; use the website for the lesson instructions
 and the downloaded starter for the runnable examples. Include the lessons in the
 next approved kit rather than replacing released assets.
-The separately developed simple game is an optional follow-on after lesson 6;
-the seven lessons stand on existing examples without it.
+The separately developed simple game is an optional follow-on after lesson 7;
+the eight lessons stand on existing examples without it.

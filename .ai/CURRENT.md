@@ -1,5 +1,17 @@
 # Current state — 2026-10-10
 
+## Lesson 2 — local follow-up, 2026-10-10
+
+Owner approved greet-by-name with minimal wording. Added hello-name Main and
+complete Lesson 2: one TextField, named vars, three steps. Quiz/later lessons
+move to 3–8; canonical links, website routes/examples and teacher notes agree.
+Default Main and legacy first-lesson fallback remain unchanged. Coordinator
+handled this coherent change directly; weekly 29% remaining, task cost unknown.
+Native macOS name/quiz checks, 9 onboarding/kit tests, 18 website tests,
+configuration/links, production build and generated progression 1→2→3→4/end8
+pass. No physical typing, Windows/Linux or classroom trial is claimed.
+Local codex/student-onboarding only; no primary edits or publication.
+
 ## Lesson 1 — local follow-up, 2026-10-10
 
 Owner chose minimal wording: Lesson 1 now keeps the complete code and four

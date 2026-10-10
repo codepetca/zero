@@ -17,6 +17,14 @@ export const lessons = [
   },
   {
     id: "2",
+    title: "Greet by name",
+    description: "Type your name and show a greeting.",
+    topic: "TextField, getText, joining text",
+    doc: "api",
+    anchor: "simpleapp-startup-and-interfaces",
+  },
+  {
+    id: "3",
     title: "Change the quiz",
     description: "Edit a simple quiz and make it your own.",
     topic: "Fields, conditions, answer feedback and scoring",
@@ -24,7 +32,7 @@ export const lessons = [
     anchor: "simpleapp-startup-and-interfaces",
   },
   {
-    id: "3",
+    id: "4",
     title: "Reuse an object",
     description: "Use a class to reuse code in your program.",
     topic: "Objects, methods, parameters",
@@ -32,7 +40,7 @@ export const lessons = [
     anchor: "ordinary-javafx-and-reusable-objects",
   },
   {
-    id: "4",
+    id: "5",
     title: "Grow a study session",
     description: "Add more features to your quiz.",
     topic: "Arrays, question objects, session state",
@@ -40,7 +48,7 @@ export const lessons = [
     anchor: "ordinary-javafx-and-reusable-objects",
   },
   {
-    id: "5",
+    id: "6",
     title: "Animate an object",
     description: "Make something move on screen.",
     topic: "SketchApp, animation, explicit object updates",
@@ -48,7 +56,7 @@ export const lessons = [
     anchor: "sketchapp-frames-and-canvas",
   },
   {
-    id: "6",
+    id: "7",
     title: "Control movement",
     description: "Respond to keyboard input.",
     topic: "Held keys, elapsed time, canvas bounds",
@@ -56,7 +64,7 @@ export const lessons = [
     anchor: "input-methods",
   },
   {
-    id: "7",
+    id: "8",
     title: "Make a small improvement",
     description: "Choose an idea and make your app better.",
     topic: "Plan, build, check and explain",
@@ -95,18 +103,25 @@ export const examples = [
     lesson: "1",
   },
   {
+    id: "hello-name",
+    title: "Greet by name",
+    description: "A text field supplies the greeting name.",
+    files: ["hello-name/Main.java"],
+    lesson: "2",
+  },
+  {
     id: "quiz",
     title: "Mini quiz",
     description: "Buttons, answer feedback and once-only scoring.",
     files: ["quiz/Main.java", "shared/ScoreDisplay.java"],
-    lesson: "2",
+    lesson: "3",
   },
   {
     id: "practice",
     title: "Practice tracker",
     description: "Reuse a score display with your own counting rules.",
     files: ["practice/Main.java", "shared/ScoreDisplay.java"],
-    lesson: "3",
+    lesson: "4",
   },
   {
     id: "study",
@@ -117,35 +132,35 @@ export const examples = [
       "study/Question.java",
       "shared/ScoreDisplay.java",
     ],
-    lesson: "4",
+    lesson: "5",
   },
   {
     id: "animation",
     title: "Follow the mouse",
     description: "An ordinary Player object follows a target.",
     files: ["animation/Main.java", "animation/Player.java"],
-    lesson: "5",
+    lesson: "6",
   },
   {
     id: "keyboard",
     title: "Keyboard movement",
     description: "Arrow keys move a circle and keep it inside the canvas.",
     files: ["keyboard/Main.java", "keyboard/Mover.java"],
-    lesson: "6",
+    lesson: "7",
   },
   {
     id: "counter",
     title: "Canvas counter",
     description: "Native buttons and a canvas in the same app.",
     files: ["counter/Main.java"],
-    lesson: "7",
+    lesson: "8",
   },
   {
     id: "drawing",
     title: "Drawing pad",
     description: "Paint with the mouse; clear with the secondary button.",
     files: ["drawing/Main.java"],
-    lesson: "5",
+    lesson: "6",
   },
 ];
 export const quickLinks = [
