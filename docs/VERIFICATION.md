@@ -41,6 +41,17 @@ below remains. No physical keys/typing, Windows/Linux, fresh installation, novic
 classroom trial, live GitHub fork/PR, or public deployment was performed.
 Public 0.5.2 assets and primary checkout funding work remain unchanged.
 
+Independent GPT-6.1-Sol/high review covers the complete 9cc1ac1..3f43513 delta
+with no actionable findings/blockers. Reviewer checks independently confirm twelve
+lessons, forty local lesson links, canonical foundation/ScoreDisplay fences,
+copy lists and two-digit/final-boundary routing. One review launch/initial wave,
+no review remediation or extra integration wave. Final receipt edits do not
+change the reviewed implementation. Full-page screenshots lesson-index.jpg and
+lesson-11.jpg show the rebuilt 0–11 navigation and final examples exit; browser
+reported no warnings/errors and no desktop horizontal overflow. Temporary
+browser tab/server were closed. This remains a local candidate for an approved
+future release; published downloads do not contain these new lessons.
+
 ## Lesson 3 tiny quiz — local, 2026-10-10
 
 Added tiny-quiz Main and replaced Lesson 3 with identical complete code and three

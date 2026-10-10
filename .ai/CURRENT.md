@@ -1,6 +1,6 @@
 # Current state — 2026-10-10
 
-## Curriculum through 11 — checks complete, review pending, 2026-10-10
+## Curriculum through 11 — complete locally, 2026-10-10
 
 Owner authorized orchestration through Lesson 11, excluding Lesson 12.
 Base 9cc1ac1, codex/student-onboarding. Preserve primary funding work and public
@@ -37,8 +37,16 @@ Worker command elapsed: foundations compile 4.91s, app/game stages 17.7s,
 component four native checks 10.3s. Worker total-minute estimates were not sampled
 and are discarded; attributable token and coordinator-active cost unknown.
 One test correction and one stale-label integration correction, no worker redo.
-Review ledger: base9cc1ac1; exact head recorded after local commit; launches0,
-initial waves0, fix batches0; risk standard, planned Sol/high. No publication.
+Review ledger: base9cc1ac1, reviewed implementation head3f43513; standard risk,
+GPT-6.1-Sol/high curriculum_review turn1, complete coverage, no findings/blockers.
+Launches1, initial waves1, targeted/integration waves0, review fix batches0.
+Independent checks: twelve lessons, forty local lesson links, fence/copy parity,
+two-digit routes and final boundary. Existing native/build/kit evidence reused.
+Review completed within the ~8min target; exact elapsed seconds/tokens unavailable.
+Initial orchestration phase started ~21:54 UTC, completed ~22:06 UTC; task wall
+clock about12min, not an attribution of worker savings or coordinator-active time.
+This final receipt-only delta is coordinator-checked; implementation is unchanged.
+No publication, PR or merge. Remaining platform/live-flow gaps are above.
 See docs/VERIFICATION.md for coverage limits and ignored local evidence.
 
 ## Lesson 3 — local follow-up, 2026-10-10
