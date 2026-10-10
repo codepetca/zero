@@ -9,7 +9,7 @@ const nodeText = (node) =>
     ? node.value
     : (node.children ?? []).map(nodeText).join("");
 export function documentHref(id) {
-  return /^lesson-[1-6]$/.test(id)
+  return /^lesson-[0-6]$/.test(id)
     ? `/tutorials/${id.slice(-1)}`
     : `/docs/${id}`;
 }

@@ -1,6 +1,7 @@
 # Build, extract, reuse, contribute
 
-Begin with the default quiz, `src/main/java/Main.java`. Keep changes small enough
+After [Lesson 0](lessons/00-hello-world.md), load the quiz using
+[Lesson 1](lessons/01-quiz.md). Keep changes small enough
 to explain to another student. Run after each change. Save your work before
 switching examples; the exact copy list is in [README.md](README.md#try-an-example).
 

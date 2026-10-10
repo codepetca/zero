@@ -9,7 +9,8 @@ later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
 page has the Zero wordmark, one sentence, Download Zero and Learn more only.
-`/learn` is a compact learning hub with six guided tutorials, examples and docs.
+`/learn` is a compact learning hub with a Hello, world! introduction, six guided
+tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/community` introduces Zero Community and links to
 component development/contributions. It does not run Java in the browser or add
@@ -21,7 +22,9 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 `zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
 `size(...)`; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
-The default app is a small quiz with answer feedback and score state.
+The default app is a nine-line Hello, world! window with one Label. Lesson 0
+practises Run, change the greeting and rerun; Lesson 1 loads the quiz example
+with answer feedback and score state.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as
@@ -71,8 +74,8 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   connected repo. There is one individual workflow; no team/PR mode.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
   Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
-- Lesson 1 opens once per project when the editor is empty; Open Lesson 1 in the
-  sidebar or Command Palette reopens it. Existing projects without lessons still run.
+- The first lesson opens once per project when the editor is empty; Open First
+  Lesson in the sidebar or Command Palette reopens it. Existing projects without lessons still run.
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools
   have setup help; GitHub sign-in does not block local running.

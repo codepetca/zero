@@ -1,5 +1,13 @@
 export const lessons = [
   {
+    id: "0",
+    title: "Hello, world!",
+    description: "Run a tiny program, change its greeting and run again.",
+    topic: "Run, edit one line, rerun",
+    doc: "api",
+    anchor: "simpleapp-startup-and-interfaces",
+  },
+  {
     id: "1",
     title: "Change the quiz",
     description: "Edit a simple quiz and make it your own.",
@@ -48,6 +56,11 @@ export const lessons = [
     anchor: "contribute-for-another-student",
   },
 ];
+export function lessonNavigation(id) {
+  const index = lessons.findIndex((lesson) => lesson.id === id);
+  if (index < 0) return {};
+  return { related: lessons[index], previous: lessons[index - 1], next: lessons[index + 1] };
+}
 export const examples = [
   {
     id: "hello-app",

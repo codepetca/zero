@@ -14,12 +14,12 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map()}={}) {
+async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map()}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');
   await fs.writeFile(path.join(root,'mvnw'),'');
-  if(lesson) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Change the quiz');}
+  if(lesson) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
   const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[];
   let webviewProvider, folderChanged, tabReads=0;
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
@@ -50,13 +50,19 @@ test('first lesson opens once per project and can be reopened without modifying 
   await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
   const previews=()=>f.calls.filter(([id])=>id==='markdown.showPreview');
   assert.equal(previews().length,1);
-  assert.equal(previews()[0][1].fsPath,path.join(f.root,'lessons/01-quiz.md'));
+  assert.equal(previews()[0][1].fsPath,path.join(f.root,'lessons/00-hello-world.md'));
   f.folderChanged(); await new Promise(resolve=>setTimeout(resolve,30));
   assert.equal(previews().length,1,'Already introduced project must not reopen the lesson');
   await f.commands.get('zero.openFirstLesson')();
   assert.equal(previews().length,2);
-  assert.match(f.webview.html,/Open Lesson 1/);
-  assert.equal(await fs.readFile(path.join(f.root,'lessons/01-quiz.md'),'utf8'),'# Change the quiz');
+  assert.match(f.webview.html,/Open First Lesson/);
+  assert.equal(await fs.readFile(path.join(f.root,'lessons/00-hello-world.md'),'utf8'),'# First lesson');
+});
+test('older kits retain their quiz first-lesson entry point', async t=>{
+  const f=await fixture(t,{lessonFile:'01-quiz.md'});
+  await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
+  const preview=f.calls.find(([id])=>id==='markdown.showPreview');
+  assert.equal(preview[1].fsPath,path.join(f.root,'lessons/01-quiz.md'));
 });
 test('installing during source editing does not replace the active editor', async t=>{
   const f=await fixture(t,{activeEditor:true});
@@ -83,7 +89,7 @@ test('older projects without bundled lessons still activate and run', async t=>{
   const f=await fixture(t,{lesson:false});
   await f.commands.get('zero.runApp')();assert.equal(f.launches.length,1);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
-  await f.commands.get('zero.openFirstLesson')();assert.match(f.errors[0],/no lessons\/01-quiz.md/);
+  await f.commands.get('zero.openFirstLesson')();assert.match(f.errors[0],/no bundled first lesson/);
 });
 test('only failed owned tasks offer Problems; success and Stop are normal exits', async t=>{
   const f=await fixture(t,{lesson:false});

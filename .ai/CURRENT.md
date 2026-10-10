@@ -1,5 +1,19 @@
 # Current state — 2026-10-10
 
+## Lesson 0 — local follow-up, 2026-10-10
+
+Owner requested an ultra-simple Hello, world! beginning. Coordinator changed
+only the starter Main to a nine-line Label app, added the three-step Lesson 0,
+updated the lesson transition/setup/site navigation and first-lesson selection
+with old-kit fallback. Work remains in codex/student-onboarding; primary funding
+edits and immutable0.5.2 release assets are untouched. No external publication.
+11 affected extension/kit checks,18 website tests,config and production build
+pass. Finite native greeting plus six existing examples pass; keyboard's existing
+synthetic-input failure reproduces with pre-change source/display-link errors.
+See docs/VERIFICATION.md for scope; do not describe the broad GUI run as green.
+One bounded Sol/medium review of this new delta follows within the existing
+review budget; coordinator handles this small coherent change directly.
+
 ## Student onboarding — local work, 2026-10-10
 
 Owner's “Next” authorized the prior student-audit improvements. Worktree

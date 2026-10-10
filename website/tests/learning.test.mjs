@@ -4,6 +4,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { lessonNavigation } from "../lib/learning.mjs";
 import { foldSections, resolveContentLink } from "../lib/markdown.mjs";
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
@@ -26,9 +27,11 @@ test("folds parsed sections without splitting code, preserving unique deep-link 
 });
 test("relative links preserve fragments and route only maintained documents or allowlisted sources", () => {
   const documents = {
+    "lesson-0": { source: "student-template/lessons/00-hello-world.md" },
     "lesson-1": { source: "student-template/lessons/01-quiz.md" },
     api: { source: "student-template/API.md" },
   };
+  assert.equal(resolveContentLink("student-template/lessons/README.md", "00-hello-world.md", documents, {}), "/tutorials/0");
   const sources = {
     "student-template/examples/quiz/Main.java": "class Main {}",
   };
@@ -77,4 +80,15 @@ test("relative links preserve fragments and route only maintained documents or a
     ),
     "https://example.com",
   );
+});
+
+test("lesson navigation starts at zero and reaches the quiz without looping", () => {
+  const first = lessonNavigation("0");
+  assert.equal(first.related.title, "Hello, world!");
+  assert.equal(first.previous, undefined);
+  assert.equal(first.next.id, "1");
+  assert.equal(lessonNavigation("1").previous.id, "0");
+  assert.equal(lessonNavigation("1").next.id, "2");
+  assert.equal(lessonNavigation("6").next, undefined);
+  assert.deepEqual(lessonNavigation(""), {});
 });

@@ -14,6 +14,7 @@ const root = resolve(site, "..");
 const documentPaths = {
   teachers: "student-template/lessons/TEACHER.md",
   "lesson-guide": "student-template/lessons/README.md",
+  "lesson-0": "student-template/lessons/00-hello-world.md",
   "lesson-1": "student-template/lessons/01-quiz.md",
   "lesson-2": "student-template/lessons/02-objects.md",
   "lesson-3": "student-template/lessons/03-study.md",

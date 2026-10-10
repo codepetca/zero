@@ -1,9 +1,9 @@
 # My Zero App
 
 Open **this folder** in VS Code, complete the setup below, then start with
-[Lesson 1: Change the quiz](lessons/01-quiz.md). The [six-lesson guide](lessons/README.md)
-continues from the quiz to objects, animation and your own improvement.
-You will edit `src/main/java/Main.java` and `ScoreDisplay.java` (the score helper).
+[Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
+continues through the quiz, objects, animation and your own improvement.
+Start by editing only `src/main/java/Main.java`.
 Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
 **Ctrl+Shift+B** on Windows/Linux or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
@@ -53,23 +53,23 @@ verification; this prototype was checked on macOS arm64.
 
 ## Make something
 
-Start with [Lesson 1](lessons/01-quiz.md): run the quiz, then change the question
-and its matching answer together. For “What is 8 + 5?” in `setup()`, change
-`equals("42")` to `equals("13")` in `checkAnswer()`. Save, Stop and Run App again;
-try both a wrong answer and `13`.
+Start with [Lesson 0](lessons/00-hello-world.md): click Run App to see
+**Hello, world!**, change the greeting, then Save, Stop and Run App again.
+Next, [Lesson 1](lessons/01-quiz.md) introduces the quiz and its matching answer.
 
 Local upcoming extension changes open the first lesson's preview once per project.
 Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
 Zero run offers **Show Problems**. These changes are not in the published 0.5.2
-VSIX: open [the lesson file](lessons/01-quiz.md) yourself and use
+VSIX: open [the lesson file](lessons/00-hello-world.md) yourself and use
 **View: Toggle Problems** to open compiler errors.
 
-Then follow the [six lessons](lessons/README.md) or the small
+Then follow the [remaining lessons](lessons/README.md) or the small
 [beginner toolkit](BEGINNER.md). Choose an app or game,
 run a complete example, then try three small changes. The
 [appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
 
-The default is a tiny quiz. It teaches fields, objects, native controls, and
+The default is a nine-line greeting with a single Label. Lesson 1 loads the
+quiz from the example shelf. The quiz teaches fields, objects, native controls, and
 methods called by events. `settings()` sets the window title and initial content
 size. `setup()` builds the interface once and calls `show(screen)` with an
 ordinary JavaFX node. A button's `setOnAction(event -> checkAnswer())` means
@@ -143,7 +143,7 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | --- | --- | --- |
 | Hello, Java | `examples/hello-app/Main.java` → `src/main/java/Main.java`; `examples/hello-app/theme.css` → `src/main/resources/hello-app/theme.css` | Type a name, say hello, reset, then change the theme. See [copy/run instructions](examples/hello-app/README.md). |
 | Reach the coin | `examples/reach-the-coin/Main.java` and `examples/reach-the-coin/Player.java` | Move with arrows, touch the gold square to win, press R to restart. See [copy/run instructions](examples/reach-the-coin/README.md). |
-| Default quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
+| Mini quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
 | Practice tracker | `examples/practice/Main.java` and **the same** `examples/shared/ScoreDisplay.java` | Complete exercises, reset, then complete another. |
 | Study app | `examples/study/Main.java`, `examples/study/Question.java` and **the same** `examples/shared/ScoreDisplay.java` | Retry answers, advance through the questions, finish and restart. See [study instructions](examples/study/README.md). |
 | Follow the mouse | `examples/animation/Main.java` and `examples/animation/Player.java` | Move the mouse; hold Space to pull toward centre. |
@@ -221,7 +221,7 @@ private. Zero does not submit assignments or change Pika grades.
 
 ## Checking your changes
 
-Run your app after each change and try both correct and incorrect answers.
+Run your app after each change. For the quiz, try both correct and incorrect answers.
 Use the examples and exercises to check the behavior you changed. A compile
 alone does not verify layout, focus or school-machine restrictions.
 

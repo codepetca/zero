@@ -1,5 +1,24 @@
 # Verification — 2026-10-10
 
+## Lesson 0 — local, 2026-10-10
+
+The default Main is now nine lines showing a single Hello, world! Label.
+The short Lesson 0 asks students to Run, change the greeting and rerun, then
+links to the existing quiz. Bundled index, setup, teacher notes and website
+start/navigation include Lesson 0. The extension prefers Lesson 0 and falls
+back to Lesson 1 for older projects. Published 0.5.2 assets remain unchanged;
+Lesson 0 includes the complete replacement program for an older quiz starter.
+
+Config/link checks,11 affected extension/standalone-kit checks,18 website tests
+and the website production build pass, including generated /tutorials/0 and
+correct next/previous navigation. Finite native JavaFX checks pass for the
+new default greeting and quiz/practice/study/animation/counter/drawing examples.
+The existing keyboard check fails its synthetic right-arrow assertion with
+native display-link errors; the unchanged pre-Lesson-0 source reproduces the
+same failure. No keyboard/framework behavior changed and no all-eight-pass
+claim is made. Logs stay in .verification/onboarding-2026-10-10/. The full Node
+suite and physical Windows/Linux were not rerun for this bounded follow-up.
+
 ## Student onboarding improvements — local, 2026-10-10
 
 Based on main `00bd796`, in `codex/student-onboarding`. Lesson 1 opens once

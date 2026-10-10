@@ -1,12 +1,13 @@
-# Build with Zero: six short lessons
+# Build with Zero: Hello, world! and six lessons
 
 Use ordinary Java to build something you can run, change and explain. This pack
-starts with the quiz already in Zero and uses the existing example shelf. You
+starts with a greeting in a window, then uses the existing example shelf. You
 should know variables, `if`, methods and the idea of a class from beginning Java.
 Arrays and constructors are practised with worked examples here.
 
 | Lesson | Build and practise | Evidence to keep |
 | --- | --- | --- |
+| [0. Hello, world!](00-hello-world.md) | Run, change one line and run again | Your changed greeting |
 | [1. Change the quiz](01-quiz.md) | Fields, conditions and button events | Three answer checks and an explanation of the handler |
 | [2. Reuse an object](02-objects.md) | Constructors, methods and state versus display | Quiz and tracker results using one shared class |
 | [3. Grow a study session](03-study.md) | Question objects, arrays and session state | A new question, complete run and restart |
@@ -21,8 +22,8 @@ mistakes, expected results and assessment guidance.
 
 ## Before each lesson
 
-First complete [the starter setup](../README.md#first-setup) and run the default
-quiz. Local running does not need a GitHub account. Ask for help with first-time
+First complete [the starter setup](../README.md#first-setup) and
+[Lesson 0](00-hello-world.md). Local running does not need a GitHub account. Ask for help with first-time
 dependency downloads before starting the lesson clock.
 
 When switching examples:

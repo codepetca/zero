@@ -12,19 +12,17 @@
    and debugging support.
 3. In VS Code, open the **starter** folder beside this file. Keep the whole folder
    together, including its hidden `.mvn` and `.vscode` folders.
-4. Open **starter/lessons/01-quiz.md** (Lesson 1: Change the quiz), then
-   `src/main/java/Main.java`. Use **Zero: Run App** to open the quiz. Change the
-   question **and its matching expected answer**: for “What is 8 + 5?” in
-   `setup()`, change `equals("42")` to `equals("13")` in `checkAnswer()`.
-   Save, Stop and Run App again. Try an incorrect answer and the correct answer.
-5. Continue with the six lessons in **starter/lessons/README.md**.
+4. Open **starter/lessons/00-hello-world.md** (Lesson 0: Hello, world!), then
+   `src/main/java/Main.java`. Use **Zero: Run App** to see **Hello, world!**.
+   Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.
+5. Continue with the quiz and six lessons in **starter/lessons/README.md**.
    **starter/README.md** covers running, examples and GitHub;
    **starter/API.md** describes the readable framework in your project.
 
 The optional profile uses a light theme and autosave. The optional keybindings
 file contains F6/F7 shortcuts you can add yourself.
 
-Local upcoming extension changes open Lesson 1's preview once per project and
+Local upcoming extension changes open the first lesson's preview once per project and
 add **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
 Zero run offers **Show Problems** to reach source errors. These changes are not
 in the published 0.5.2 VSIX; with that version, open the lesson file yourself

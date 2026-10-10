@@ -14,6 +14,9 @@ school restrictions and novice classroom trials remain pending; this pack has
 not been trialled with students. A prior Mac teacher upload trial does not prove
 school-machine readiness.
 
+Start with Lesson 0: run the greeting, change its text and run again. Confirm
+each student can do those three steps before introducing quiz state or events.
+
 Plan 45–60 minutes for each of lessons 1–5 after setup, and one or two classes for
 lesson 6. Shorten by assigning only the required changes; extend with optional
 experiments. A useful rhythm is predict, run the baseline, trace together, change
@@ -29,6 +32,7 @@ formula. Leave packages, interfaces and JavaFX properties for a demonstrated nee
 
 | Lesson | Evidence to listen for | Useful intervention |
 | --- | --- | --- |
+| 0. Hello | The window displays the changed greeting after a rerun | Point to the quoted text; leave the launch boilerplate alone |
 | 1. Quiz | setup creates controls once; a click calls checkAnswer; Main owns points; disabled checking stops another award | Ask the student to point to the handler connection and the statement changing points |
 | 2. Objects | Main changes the number; ScoreDisplay changes label text; both constructors still work | Ask “If we change points per click, which class changes?” |
 | 3. Study | Question owns data; Main owns index and completion flags; length controls navigation | Trace one wrong answer, one correct answer and Next on paper |

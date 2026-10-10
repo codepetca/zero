@@ -3,8 +3,10 @@ import shutil, tempfile, subprocess, time, os
 source=Path(__file__).resolve().parent.parent / 'student-template'
 subprocess.run(['node', str(source.parent/'scripts/prepare-starter.mjs')], check=True)
 assert (source/'src/main/java/ScoreDisplay.java').read_bytes() == (source/'examples/shared/ScoreDisplay.java').read_bytes(), 'Shared ScoreDisplay copy drift'
-assert (source/'src/main/java/Main.java').read_bytes() == (source/'examples/quiz/Main.java').read_bytes(), 'Default quiz copy drift'
 checks={
+'hello-world': '''require(stage.isShowing(), "Greeting window is visible");
+        var content = ((javafx.scene.layout.BorderPane) stage.getScene().getRoot()).getCenter();
+        require(content instanceof Label && ((Label) content).getText().equals("Hello, world!"), "Default starter displays the greeting");''',
 'quiz': '''TextField answer = (TextField) field(app, "answer");
         Button check = (Button) field(app, "check");
         Label feedback = (Label) field(app, "feedback");

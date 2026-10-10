@@ -33,7 +33,7 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    **zero-starter folder** instead. Open that folder, rather than a single
    Java file. Keep its hidden `.mvn` and `.vscode` folders. Trust it only after
    checking its source and build scripts.
-4. Open the starter's `lessons/01-quiz.md` for **Lesson 1: Change the quiz**.
+4. Open the starter's `lessons/00-hello-world.md` for **Lesson 0: Hello, world!**.
    Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
    The first build needs internet to download Maven and JavaFX. Students do not
    need Node.js, global Maven or a separate JavaFX installation. On macOS/Linux,
@@ -43,22 +43,22 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
 
 ## Edit and run
 
-Start with [Lesson 1: Change the quiz](../student-template/lessons/01-quiz.md)
-and follow the [six-lesson guide](../student-template/lessons/README.md).
+Start with [Lesson 0: Hello, world!](../student-template/lessons/00-hello-world.md)
+and follow the [lesson guide](../student-template/lessons/README.md).
 These files are also bundled in the starter's `lessons/` folder.
-Local upcoming extension changes open Lesson 1's preview once per project and
+Local upcoming extension changes open the first lesson's preview once per project and
 add **Zero: Open First Lesson** to reopen it from the Command Palette. They also
 offer **Show Problems** after a failed Zero run. These changes are not in the
 published 0.5.2 VSIX; open the bundled lesson yourself with that version.
 
-Edit `src/main/java/Main.java` and `ScoreDisplay.java`. The default quiz
-uses ordinary JavaFX controls: `settings()` configures the window and `setup()`
-builds the interface with `show(...)`. Button handlers call ordinary methods
-that update the quiz state and score display.
+Edit only `src/main/java/Main.java` to start. Run App shows **Hello, world!**.
+Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.
+The older published 0.5.2 starter begins with the quiz; Lesson 0 includes the
+complete short program to replace it.
 
-Change the question and its expected answer together: for “What is 8 + 5?” in
-`setup()`, change `equals("42")` to `equals("13")` in `checkAnswer()`. Save, Stop
-and Run App again. Check a wrong answer, ` 13 ` and the score after success.
+Continue to [Lesson 1](../student-template/lessons/01-quiz.md), which shows
+exactly which quiz files to copy. Change the question and its expected answer
+together, then check a wrong answer, ` 13 ` and the score after success.
 
 Try the practice tracker to reuse ScoreDisplay. Try animation, keyboard or
 drawing to use `SketchApp`: it runs `update(seconds)` then `draw()` each frame;
