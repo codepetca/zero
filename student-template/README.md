@@ -68,7 +68,7 @@ Then follow the [remaining lessons](lessons/README.md) or the small
 run a complete example, then try three small changes. The
 [appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
 
-The default is a nine-line greeting with a single Label. Lesson 1 loads the
+The default is a short greeting with a single Label. Lesson 1 loads the
 quiz from the example shelf. The quiz teaches fields, objects, native controls, and
 methods called by events. `settings()` sets the window title and initial content
 size. `setup()` builds the interface once and calls `show(screen)` with an

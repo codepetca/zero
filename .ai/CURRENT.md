@@ -3,7 +3,7 @@
 ## Lesson 0 — local follow-up, 2026-10-10
 
 Owner requested an ultra-simple Hello, world! beginning. Coordinator changed
-only the starter Main to a nine-line Label app, added the three-step Lesson 0,
+only the starter Main to a short Label app, added the three-step Lesson 0,
 updated the lesson transition/setup/site navigation and first-lesson selection
 with old-kit fallback. Work remains in codex/student-onboarding; primary funding
 edits and immutable0.5.2 release assets are untouched. No external publication.

@@ -9,7 +9,8 @@ import zero.SimpleApp;
 
 public class Main extends SimpleApp {
     public void setup() {
-        show(new Label("Hello, world!"));
+        var greeting = new Label("Hello, world!");
+        show(greeting);
     }
     public static void main(String[] args) { launch(args); }
 }
@@ -19,7 +20,8 @@ public class Main extends SimpleApp {
 2. Change `"Hello, world!"` to `"Hello, Java!"`.
 3. Save, click **Stop**, then **Run App** again. The window shows your new greeting.
 
-`new Label(...)` creates the text. `show(...)` puts it in the window.
+`greeting` names the label created by `new Label(...)`.
+`show(greeting)` puts it in the window.
 Keep the other lines as they are for now.
 
 Next: [Lesson 1 — Change the quiz](01-quiz.md).

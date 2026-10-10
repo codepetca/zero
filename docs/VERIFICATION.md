@@ -2,7 +2,10 @@
 
 ## Lesson 0 — local, 2026-10-10
 
-The default Main is now nine lines showing a single Hello, world! Label.
+The default Main is now a short program showing a single Hello, world! Label.
+A follow-up names the Label with `var greeting` before `show(greeting)`;
+Maven compile, configuration/link checks and diff whitespace checks pass.
+GUI checks were not repeated for this syntax-only change.
 The short Lesson 0 asks students to Run, change the greeting and rerun, then
 links to the existing quiz. Bundled index, setup, teacher notes and website
 start/navigation include Lesson 0. The extension prefers Lesson 0 and falls

@@ -22,7 +22,7 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 `zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
 `size(...)`; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
-The default app is a nine-line Hello, world! window with one Label. Lesson 0
+The default app is a short Hello, world! window with one Label. Lesson 0
 practises Run, change the greeting and rerun; Lesson 1 loads the quiz example
 with answer feedback and score state.
 
