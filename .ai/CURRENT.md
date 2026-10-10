@@ -11,8 +11,11 @@ edits and immutable0.5.2 release assets are untouched. No external publication.
 pass. Finite native greeting plus six existing examples pass; keyboard's existing
 synthetic-input failure reproduces with pre-change source/display-link errors.
 See docs/VERIFICATION.md for scope; do not describe the broad GUI run as green.
-One bounded Sol/medium review of this new delta follows within the existing
-review budget; coordinator handles this small coherent change directly.
+Bounded Sol/medium review at4c52a45 completed in about3min with no findings;
+12 independent focused checks passed. Final3 reviewer turns/1 remediation batch
+within the existing budget; no worker edits or rework. Changed-greeting native
+check also passed (Hello, Java!), and built HTML links0→1→2 were verified.
+Coordinator handled this small coherent change directly.
 
 ## Student onboarding — local work, 2026-10-10
 
