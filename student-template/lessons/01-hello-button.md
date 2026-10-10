@@ -1,8 +1,6 @@
 # 1. Say hello with a button
 
-Keep your greeting from [Lesson 0](00-hello-world.md) outside `src/` if you want
-to save it. Replace `src/main/java/Main.java` with this program, or copy
-[the button example](../examples/hello-button/Main.java) over that file:
+Back up your work outside `src/`. Replace `src/main/java/Main.java`:
 
 ```java
 import javafx.scene.control.Button;
@@ -22,19 +20,9 @@ public class Main extends SimpleApp {
 }
 ```
 
-1. Click **Run App**. The label says **Hello, world!**
-2. Click **Say hello**. The same label changes to **Hello, Java!**
-3. Change `"Hello, Java!"` in the click line to your own greeting. Save, **Stop**
-   and **Run App** again, then click the button to see your message.
+1. **Run App**
+2. Click **Say hello**
+3. Change `"Hello, Java!"`
+4. **Save → Stop → Run App**
 
-`greeting` names the label. `button` names the button.
-`new VBox(10, greeting, button)` stacks them with a small gap.
-
-Read `button.setOnAction(event -> ...)` as **when this button is clicked, do this**.
-`greeting.setText(...)` changes the label's text. Keep the `event ->` pattern
-as it is for now.
-
-Check: before clicking, the original greeting appears. After clicking, your
-new greeting appears. A second click keeps that greeting.
-
-Next: [Lesson 2 — Change the quiz](02-quiz.md).
+Next: [Lesson 2](02-quiz.md).

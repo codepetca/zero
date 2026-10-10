@@ -2,6 +2,9 @@
 
 ## Lesson 1 — local follow-up, 2026-10-10
 
+Owner chose minimal wording: Lesson 1 now keeps the complete code and four
+short steps. Code is unchanged; configuration/link and whitespace checks pass.
+
 Owner approved a tiny button lesson after Hello, world!. Added the canonical
 hello-button example and complete Lesson 1 with named vars, one click handler
 and a change/rerun exercise. Quiz and later lessons shift to 2–7; starter Main
