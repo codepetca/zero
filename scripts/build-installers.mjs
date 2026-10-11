@@ -4,10 +4,9 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {root, releaseDefinition} from './release.mjs';
 import {extractKit, kitEntries} from './installer-payload.mjs';
+import {installerOptions, installerPlist, signMacArtifact, verifyMacSignature} from './installer-signing.mjs';
 
-const args = process.argv.slice(2);
-if (args.length > 2 || (args.length && (args[0] !== '--platform' || !['macos', 'windows', 'all'].includes(args[1])))) throw new Error('Usage: node scripts/build-installers.mjs [--platform macos|windows|all]');
-const platform = args[1] || 'all';
+const {platform, identity, signed} = installerOptions(process.argv.slice(2), 'build');
 const release = releaseDefinition(), dist = path.join(root, 'dist'), output = path.join(dist, 'installers');
 const receipt = JSON.parse(readFileSync(path.join(dist, 'release.json'), 'utf8'));
 const kitFile = path.join(dist, release.assets.kit.filename), kit = readFileSync(kitFile);
@@ -17,11 +16,12 @@ kitEntries(kit);
 mkdirSync(output, {recursive:true});
 mkdirSync(path.join(root, '.verification/native-installer'), {recursive:true});
 const work = mkdtempSync(path.join(root, '.verification/native-installer/build-'));
-const receiptFile = path.join(output, `build-${platform}.json`);
+const receiptFile = path.join(output, `build-${platform}${signed ? '-signed' : ''}.json`);
 rmSync(receiptFile, {force:true});
 function run(command, args, timeout = 180000) {
-  const result = spawnSync(command, args, {cwd:root, stdio:'inherit', timeout, env:{...process.env, DOTNET_CLI_TELEMETRY_OPTOUT:'1', DOTNET_NOLOGO:'1'}});
-  if (result.error || result.status !== 0) throw new Error(`Build failed: ${command}: ${result.error?.message || result.status}`);
+  const result = spawnSync(command, args, {cwd:root, stdio:command === '/usr/bin/codesign' ? 'pipe' : 'inherit', encoding:'utf8', timeout, env:{...process.env, DOTNET_CLI_TELEMETRY_OPTOUT:'1', DOTNET_NOLOGO:'1'}});
+  if (result.error || result.status !== 0) throw new Error(`Build failed: ${command}: ${result.error?.message || result.stderr || result.status}`);
+  return {stdout:result.stdout || '', stderr:result.stderr || ''};
 }
 const artifacts = [];
 function measure(filename, fields) {
@@ -36,8 +36,7 @@ if (platform !== 'windows') {
   mkdirSync(bin, {recursive:true});
   extractKit(kit, path.join(contents, 'Resources/kit'));
   const plist = readFileSync(path.join(source, 'Info.plist'), 'utf8');
-  if (!plist.includes('__KIT_VERSION__')) throw new Error('Native plist must use canonical kit version token');
-  writeFileSync(path.join(contents, 'Info.plist'), plist.replaceAll('__KIT_VERSION__', release.kitVersion));
+  writeFileSync(path.join(contents, 'Info.plist'), installerPlist(plist, release.kitVersion, signed));
   const binaries = [];
   for (const arch of ['arm64', 'x86_64']) {
     const file = path.join(work, `ZeroSetup-${arch}`);
@@ -46,12 +45,24 @@ if (platform !== 'windows') {
   }
   run('/usr/bin/lipo', ['-create', ...binaries, '-output', path.join(bin, 'ZeroSetup')]);
   for (const arch of ['arm64', 'x86_64']) run('/usr/bin/lipo', [path.join(bin, 'ZeroSetup'), '-verify_arch', arch]);
-  writeFileSync(path.join(volume, 'DEVELOPMENT-BUILD.txt'), 'Zero Setup — local development build\nNot Developer ID signed or notarized. Not ready for classroom distribution.\nOpen Zero Setup, check your laptop, then choose a fresh writable project folder.\nInstall/repair actions require your explicit choice. GitHub setup is separate.\n');
-  const filename = `Zero-Setup-${release.kitVersion}-macos-development.dmg`, staged = path.join(work, filename);
-  run('/usr/bin/hdiutil', ['create', '-srcfolder', volume, '-volname', 'Zero Setup (development)', '-format', 'UDZO', staged]);
+  let appSignature;
+  if (signed) {
+    signMacArtifact(run, app, identity, true);
+    appSignature = verifyMacSignature(run, app, path.join(work, 'app-cert'), {app:true, identity});
+  }
+  if (!signed) writeFileSync(path.join(volume, 'DEVELOPMENT-BUILD.txt'), 'Zero Setup — local development build\nNot Developer ID signed or notarized. Not ready for classroom distribution.\nOpen Zero Setup, check your laptop, then choose a fresh writable project folder.\nInstall/repair actions require your explicit choice. GitHub setup is separate.\n');
+  const filename = `Zero-Setup-${release.kitVersion}-macos${signed ? '' : '-development'}.dmg`, staged = path.join(work, filename);
+  run('/usr/bin/hdiutil', ['create', '-srcfolder', volume, '-volname', signed ? 'Zero Setup' : 'Zero Setup (development)', '-format', 'UDZO', staged]);
   run('/usr/bin/hdiutil', ['verify', staged]);
+  let signing;
+  if (signed) {
+    signMacArtifact(run, staged, identity, false);
+    const first = appSignature.architectures[0];
+    const dmg = verifyMacSignature(run, staged, path.join(work, 'dmg-cert'), {identity, team:first.teamIdentifier});
+    signing = {identitySha1:first.identitySha1, teamIdentifier:first.teamIdentifier, authority:first.authority, app:appSignature, dmg};
+  }
   copyFileSync(staged, path.join(output, filename));
-  measure(filename, {platform:'macos', architectures:['arm64', 'x86_64'], minimumOS:'12.0', developerIdSigned:false, notarized:false});
+  measure(filename, {platform:'macos', architectures:['arm64', 'x86_64'], minimumOS:'12.0', developerIdSigned:signed, notarized:false, ...(signing ? {signing} : {})});
 }
 if (platform !== 'macos') {
   const project = path.join(root, 'native-installer/windows/ZeroSetup.csproj');
@@ -68,4 +79,4 @@ if (platform !== 'macos') {
 const git = spawnSync('git', ['rev-parse', 'HEAD'], {cwd:root, encoding:'utf8'});
 const dirty = spawnSync('git', ['status', '--porcelain'], {cwd:root, encoding:'utf8'});
 writeFileSync(receiptFile, JSON.stringify({schema:1, kitVersion:release.kitVersion, sourceRevision:git.stdout.trim(), sourceDirty:!!dirty.stdout.trim(), kit:{filename:release.assets.kit.filename, size:kit.length, sha256:sha256(kit)}, builtAt:new Date().toISOString(), artifacts}, null, 2) + '\n');
-console.log(`Built local development installers; measured receipt: ${receiptFile}`);
+console.log(`Built local ${signed ? 'signed Mac candidate (not notarized)' : 'development installers'}; measured receipt: ${receiptFile}`);

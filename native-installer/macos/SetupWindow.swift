@@ -15,6 +15,17 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
     }
 }
 
+struct SetupBuildLabel {
+    let development: Bool
+    let version: String
+    init(info: [String: Any] = Bundle.main.infoDictionary ?? [:]) {
+        development = info["ZeroDevelopmentBuild"] as? Bool ?? true
+        version = info["CFBundleShortVersionString"] as? String ?? ""
+    }
+    var windowTitle: String { development ? "Zero Setup — unsigned development build" : "Zero Setup" }
+    var detail: String { development ? "Unsigned development build · local testing only" : "Zero Setup \(version)" }
+}
+
 final class SetupWindow: NSWindowController, NSWindowDelegate {
     let controller: SetupController
     private let summary = NSTextView()
@@ -28,7 +39,8 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         self.controller = controller
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 550),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = "Zero Setup — unsigned development build"
+        let build = SetupBuildLabel()
+        window.title = build.windowTitle
         window.minSize = NSSize(width: 630, height: 430)
         super.init(window: window)
         window.delegate = self
@@ -40,7 +52,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         title.font = .systemFont(ofSize: 28, weight: .semibold)
         let subtitle = NSTextField(labelWithString: "Check this laptop, then choose a fresh folder for your Java kit.")
         subtitle.font = .systemFont(ofSize: 14)
-        let development = NSTextField(labelWithString: "Unsigned development build · local testing only")
+        let development = NSTextField(labelWithString: build.detail)
         development.textColor = .secondaryLabelColor
         development.font = .systemFont(ofSize: 12)
 

@@ -44,6 +44,36 @@ node scripts/build-installers.mjs --platform macos
 node scripts/verify-installers.mjs --platform macos
 ```
 
+A separately authorized Mac signing build accepts only an explicit 40-hex SHA1
+certificate identity; it does not discover identities or change Keychain access:
+
+```sh
+node scripts/build-installers.mjs --platform macos --sign-identity <40-hex-SHA1>
+node scripts/verify-installers.mjs --platform macos --signed
+```
+
+Replace the placeholder with the authorized certificate SHA1 (a public identifier,
+not a secret). The signed candidate is `Zero-Setup-0.5.4-macos.dmg`, measured in
+`build-macos-signed.json`. The development filename and receipt stay separate.
+The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
+removes unsigned-development labels and shows only Zero Setup/version. Signed
+mode requires macOS and explicit `--platform macos`; Windows remains deferred.
+
+The builder signs the owned universal app with hardened runtime and a secure
+timestamp, without entitlements or recursive signing, verifies its Developer ID
+signature, then creates, signs and verifies the DMG. The receipt records actual
+certificate SHA1/team/authority and signature evidence from both architecture
+signatures and the DMG. Signing leaves `notarized:false`; no notarization upload,
+authentication or publication is automated. Existing kit bytes are reused.
+
+After separately authorized notarization and DMG stapling, update the signed
+receipt with the exact stapled DMG size/SHA256 and verified notarization evidence
+before setting `notarized:true`. Signed verification checks artifact hashes,
+version/bundle identity, both architectures, every kit byte/mode and the actual
+Developer ID signatures against the receipt. For `notarized:true`, it also requires
+DMG staple validation and successful Gatekeeper DMG/app assessments. These
+checks do not establish classroom runtime, fresh-machine or physical Intel tests.
+
 The macOS app uses AppKit and Foundation, targets macOS 12+, and includes ARM64
 and Intel binaries. The Windows app uses Windows Forms and the Windows .NET
 Framework 4.8; the .NET SDK/reference package is build-only. Recent Windows 10/11
@@ -68,7 +98,7 @@ broken JAVA_HOME, unmanaged tools and failed repairs remain visible.
 
 ## Verification and distribution limits
 
-Development packages lack Developer ID/notarization or Authenticode signing.
+Default development packages lack Developer ID/notarization or Authenticode signing.
 A compiler's ad-hoc Mach-O signature is not a distribution identity. Do not guide
 students to disable security controls. Signing account access and publication
 need separate owner authorization.

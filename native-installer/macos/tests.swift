@@ -158,6 +158,14 @@ struct SetupTests {
             if member == "starter/mvnw" { try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path) }
         }
 
+        let developmentLabel = SetupBuildLabel(info: ["ZeroDevelopmentBuild": true, "CFBundleShortVersionString": "0.5.4"])
+        let signedLabel = SetupBuildLabel(info: ["ZeroDevelopmentBuild": false, "CFBundleShortVersionString": "0.5.4"])
+        try expect(developmentLabel.windowTitle.contains("unsigned development"), "development title is explicit")
+        try expect(developmentLabel.detail.contains("local testing only"), "development detail is honest")
+        try expect(signedLabel.windowTitle == "Zero Setup", "signed title uses product name")
+        try expect(signedLabel.detail == "Zero Setup 0.5.4", "signed detail states version without notarization claim")
+        try expect(SetupBuildLabel(info: [:]).development, "missing build marker defaults to development")
+
         let app = NSApplication.shared
         app.setActivationPolicy(.prohibited)
         let pausedRunner = FakeRunner()

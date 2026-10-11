@@ -49,7 +49,9 @@ after packaging/verification. macOS requires Xcode command line tools and
 `hdiutil`; Windows cross-builds use the .NET SDK and the pinned build-only
 .NET Framework 4.8 reference package. Students need no .NET SDK. Run packaging
 tests with `npm run test:installers`; platform harness commands are in
-[INSTALLER.md](INSTALLER.md). No signing credentials or publication are involved.
+[INSTALLER.md](INSTALLER.md). Default builds involve no signing credentials or publication. Explicit, separately
+authorized Mac signed-build commands and verification are in [INSTALLER.md](INSTALLER.md);
+signed mode reuses the existing kit and does not perform notarization.
 
 Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
 ignored readable copies into the starter; checks/packaging prepare them too.
