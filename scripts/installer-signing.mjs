@@ -38,7 +38,7 @@ export function signMacArtifact(run, target, identity, app) {
 // All signature evidence comes from the verified artifact, never a Keychain query.
 // run returns separate stdout/stderr strings; certificate files are scoped to scratch.
 export function verifyMacSignature(run, target, scratchPrefix, {app = false, identity, team} = {}) {
-  run('/usr/bin/codesign', ['--verify', '--strict', '--verbose=2', '-R', developerIdRequirement, target]);
+  run('/usr/bin/codesign', ['--verify', '--strict', '--verbose=2', '-R', `=${developerIdRequirement}`, target]);
   const architectures = app ? ['arm64', 'x86_64'] : [null];
   const evidence = [];
   for (const architecture of architectures) {

@@ -51,7 +51,7 @@ function signatureRunner({detail, entitlements = '', certificateBytes = certific
     commands.push([tool, args]);
     assert.equal(tool, '/usr/bin/codesign');
     if (args.includes('--verify')) {
-      assert.ok(args.includes('--strict')); assert.equal(args[args.indexOf('-R') + 1], developerIdRequirement);
+      assert.ok(args.includes('--strict')); assert.equal(args[args.indexOf('-R') + 1], `=${developerIdRequirement}`);
       if (fail) throw new Error('rejected signature');
     }
     if (args.includes('--extract-certificates')) writeFileSync(`${args[args.indexOf('--extract-certificates') + 1]}0`, certificateBytes);
