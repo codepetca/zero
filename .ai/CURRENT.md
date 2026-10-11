@@ -3,26 +3,36 @@
 Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 History/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
-## Active Mac onboarding simplification
+## Completed local Mac onboarding simplification
 
-Owner authorizes local implementation: eliminate native Mac profile import and
-manual Java setup. Keep fixed home/Zero and approved preservation updates.
-Worker easy_mac_onboarding (requested GPT-6.1-Sol/high) owns the reviewed
-Mac preservation/retry corrections; coordinator owns integration and evidence.
-Local kit/extension0.5.7; published0.5.6 and sealed candidate remain immutable.
-Target: initial Set up consent, isolated editor defaults, verified private JDK21,
-reuse compatible VS Code or install verified user-local copy, quiet progress,
-Open Zero/Run. GitHub later. No host installs during tests, no publishing/signing,
-no Windows behavioral change/testing. Current branch codex/default-setup-folder
-base1d5fa055cfad11eaadfa115efd04ae183a413afd. Initial implementation3dcc851.
-247root tests,14packaging/sealing tests and verified kit passed. Actual official
-ARM64 Java/editor assets passed SHA/vendor signature checks; real isolated setup
-and packaged-editor Run/Stop/autosave/default-build/private-Java proof passed.
-Disposable user-data path required a short fixture alias for VS Code IPC; trust
-was granted only to that starter, no protection disabled. Two complete Sol/high
-reviews found launcher concurrency and partial-settings retry P2s; one fix batch
-is underway, followed by targeted review. Development DMG/evidence pending.
-.verification/easy-onboarding/. Weekly87% remaining at start; task cost unknown.
+Owner-authorized local implementation complete on codex/default-setup-folder.
+Source3dcc851 plus accepted correctione10cce79; source/kit/extension0.5.7 remain
+unpublished. Native Set up Zero prepares a verified private JDK21, reuses compatible
+VS Code or downloads a verified private copy, applies isolated quiet settings and
+extensions, then Open Zero/Run. No manual profile import or global Java editing.
+Open Zero.command returns to that editor; later preferences are preserved.
+Fixed ~/Zero and the explicit update warning preserve student projects/saves.
+GitHub authentication remains separate. Windows behavior/testing unchanged.
+
+247root tests,14packaging/sealing/kit checks, regenerated ZIP verification,
+189final native assertions and both Mac production architecture compiles passed.
+Real official ARM64 assets passed hash/vendor signature checks; actual isolated
+setup and packaged-editor Run/Stop/500msautosave/default-build/private-Java proof
+passed. Final configure rerun passed ready=1. Fake-only native CUA preview passed.
+Two complete Sol/high reviews plus one fresh targeted review resolved2P2s in1fix
+batch,0remaining blockers. Targeted reviewer passed8independent focused assertions.
+Development DMG883970bytes,SHA2564fb8cdbec02315f14b51272cc32db1a34917432fa811bdbad2d9baa2c6766bfe
+built from clean e10cce79 and verified payload/permissions/universal architectures.
+All receipts .verification/easy-onboarding/; durable detail docs/EVIDENCE.md.
+No active workers, tool-backed goal, push, PR, signing/notarization, publication,
+deployment or credentials changes. Public signed0.5.6 and sealed candidate remain
+unchanged. Next release step requires a newly authorized signed/notarized candidate.
+
+Proof limits: disposable user-data needed a short fixture alias for VS Code IPC;
+trust granted only to that verified starter, no protection disabled. Physical
+Intel/macOS12, clean Mac vendor/quarantine/trust/novice use, restricted networks and
+Windows remain untested. A hard kill may leave owned staging; final settings remain
+absent or complete. Weekly87% remaining at start; effective model/task cost unknown.
 
 ## Product and authority
 
@@ -75,7 +85,7 @@ primary funding checkout/Community untouched. Prior optional location/numbered
 folder implementation is superseded. Weekly89% at start; effective models/task
 cost and attributable tokens unknown.
 The separately published ZIP/starter/VSIX remain0.5.3, freshly verified without
-authentication and pinned in release/published-kit.json. Local kit/extension0.5.6
+authentication and pinned in release/published-kit.json. Local kit/extension0.5.7
 and core0.1.1 are not separately published. Community0.1.3 untouched.
 Landing stays wordmark/sentence/two buttons; Mac primary on Learn with Other
 downloads explicitly versioned. Hosted setup/starter guidance uses selected kit's

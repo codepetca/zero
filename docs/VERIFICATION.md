@@ -723,14 +723,29 @@ CUA fake-only native preview verified the fixed one-line status and Open Zero.
 
 Two fresh GPT-6.1-Sol/high complete-diff reviews of1d5fa05→3dcc851 found twoP2s:
 a concurrent student launcher could be replaced, and a failed settings write could
-leave partial JSON that retries preserved. One bounded correction batch and
-independent targeted review are pending. This entry records completed checks;
-final source acceptance and development DMG evidence will follow.
+leave partial JSON that retries preserved. Correctione10cce79 passed189native
+assertions and both Mac architecture production compiles. A fresh Sol/high targeted
+review inspected the complete six-file correction, reused hash-matching checks
+and passed eight independently compiled focused assertions. BothP2s resolved;
+0newfindings or unresolved blockers.3review turns/1initialwave/1targetedwave/1fixbatch;
+unchanged initial download/controller coverage reused, no additional integration
+wave needed. Final real-vendor configure rerun passed ready=1.
+
+Clean e10cce79 produced the universal unsigned development DMG
+Zero-Setup-0.5.7-macos-development.dmg,883970bytes,SHA256
+4fb8cdbec02315f14b51272cc32db1a34917432fa811bdbad2d9baa2c6766bfe.
+DMG checksum, both architectures, bundled payload bytes and permissions passed
+verify-installers. Kit ZIP regenerated/verified: zero-bootstrap.zip,240292bytes,
+SHA256a7247dcbe6841c103c943a1fbd7d421790e10f3093e54cee4646de9e0e32db0b.
+Final root check/diff and14packaging/sealing/kit tests passed. Development artifacts
+are local only; no Developer ID signing or notarization.
 
 Receipts .verification/easy-onboarding/: actual/runtime-result.json,
 actual/vscode-smoke-result.json, actual/proof-limitations.json, vendor hashes,
 macos/worker-receipt.json, tests.log, packaging-tests.log,
-preview/{progress,ready}.png and independent reproduction harnesses.
+preview/{progress,ready}.png, macos/fix-batch-1-receipt.json,
+review-fix/targeted-e10cce79/result.log, build-macos.log, verify-macos.log,
+dist/installers/build-macos.json and independent reproduction harnesses.
 Real editor proof used a short /tmp alias to its disposable user-data directory
 because the long evidence path exceeds upstream VS Code's103-character IPC socket
 limit. The extension test host required trust, granted through CUA only to the
