@@ -1,5 +1,24 @@
 # Verification
 
+## Calm Windows setup — local 0.5.6, 2026-10-11
+
+Final runtime source `889e76690b2cc10835d16b12c0b4c8fa1bd311c3` is independently
+reviewed: two complete initial scopes and two targeted corrections, no remaining
+findings. One-line fixed-window controller and guided profile flow preserve actual
+checks, explicit extension approval and existing tool choices. Read-only child
+environment refresh fixes Java installation retries and preserves custom JDK order.
+
+247npm tests,8installer tests,134coordinator net48/Mono assertions,28portable PS7
+mocked checks, configuration/links, ZIP parity and extracted Maven compile pass.
+Clean AnyCPU EXE and exact embedded ZIP/hash verify; final Downloads copy matches.
+Signed Mac0.5.5 unchanged. Reused unaffected regression results after native-only
+corrections. Artifact hashes and review receipts are in [EVIDENCE.md](EVIDENCE.md).
+
+This cross-build/fake-backend verification does not test physical WinForms,
+Windows registry, PowerShell5.1/policy, vendor installations, SmartScreen or novice
+usability. Physical Windows remains deferred; candidate unsigned and unpublished.
+No host tool/profile/account changes, signing, publication, push or merge.
+
 ## Lesson 12 full game — source PR, 2026-10-10
 
 Baseline published f8f7829; isolated codex/lesson-12-game. All five stages remain

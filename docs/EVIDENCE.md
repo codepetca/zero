@@ -1,5 +1,53 @@
 # Delivery evidence index
 
+## Calm Windows setup 0.5.6 — local delivery, 2026-10-11
+
+Reviewed runtime source `889e76690b2cc10835d16b12c0b4c8fa1bd311c3`; base
+`7c6aeb7`, initial feature `018eb474feb10d61bf75147cc91974afc137394d`.
+Fixed440×180 WinForms content window uses one replacing short status line,
+progress indicator, primary action and optional separate Details. Native checks
+and approved editor extensions capture output in background. Missing system tools
+use deliberate official-download handoffs; vendor installers can show their own
+prompts. Main window guides profile import and explicit path-copy step by step;
+actual profile/extensions/readiness rechecks precede Open. Manual ZIP menu remains.
+
+One implementation worker, GPT-6.1-Sol/high, delivered Windows native/controller
+and PowerShell backend. `windows_calm_safety/turn1` and `windows_calm_compat/turn1`
+covered the complete initial21-file delta. Safety passed; compatibility identified
+stale inherited PATH after installing Java. `windows_environment_review/turn1`
+reviewed `018eb47..b618f8cadbc94755872e16c2f5f10cccb0aa99a6`, identifying lost
+precedence when a process explicitly reordered registered JDK paths.
+`windows_environment_review/turn2` accepted the complete correction delta
+`b618f8c..889e766`, both findings resolved and no new actionable findings.
+All reviewers requested GPT-6.1-Sol/high; effective configuration/tokens unknown.
+Unchanged initial coverage plus complete correction scopes cover the final source.
+Ledger4launches/1initialwave/2targetedwaves/2fixbatches/0integrationwaves;
+review wall clock1169seconds, not attributable worker or coordinator active time.
+Weekly95% remaining at start is account allowance, not task cost.
+
+Full npm247tests, installer8tests, corrected coordinator134net48/Mono assertions
+(worker133 without the extra actual-ZIP comparison), portable PowerShell7 fake28,
+configuration/links, kit source/license/mode parity and extracted Maven compilation
+pass. Both net48 builds are warning/error free. Final unsigned AnyCPU EXE verifies
+its exact embedded kit and managed PE header, built from clean reviewed source:
+
+- `Zero-Setup-0.5.6-windows-development.exe`:295936bytes; SHA256
+  `6e375bd0e3dec5cbf9518662cc33a97fd855a1811357816305458d8fd1ce8bd5`.
+- Regenerated `zero-bootstrap.zip`:239274bytes; SHA256
+  `121aefb26c6fecfddba0cdadba3070ab34ee48b11e8ab90ec493519d7afe421f`.
+
+Identical Windows EXE copy in Downloads. Signed/notarized Mac0.5.5 and its original
+kit/VSIX/receipt are preserved; Mac Downloads hash unchanged. Ignored receipts:
+`.verification/calm-windows-setup/{delivery,review-ledger,work-ledger}.json`,
+test logs and `dist/installers/build-windows.json`. The portable PowerShell runtime
+was downloaded only into an ignored test folder from the official release with
+its published digest verified; it is not a host installation or PS5.1 proof.
+
+Physical Windows UI/registry, PowerShell5.1, execution policy, actual vendor
+installation, SmartScreen, restricted networks and novice flow remain untested.
+Windows testing remains explicitly deferred. No push/PR/merge, publication,
+deployment, signing, host repair, profile/account or credential changes.
+
 ## Superseding branch-policy decision
 
 After approving [Zero PR20](https://github.com/codepetca/zero/pull/20) and

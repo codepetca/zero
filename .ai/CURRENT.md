@@ -13,8 +13,8 @@ extension0.5.6 and core0.1.1 unpublished. Upload simulation remains default.
 Community AI/CI cannot accept/recommend/publish; no live AI provider. Owner-requested
 removal of both main protections remains in effect; do not restore unasked.
 
-Current authorization: implement calm Windows setup matching the delivered Mac
-flow; local cross-build and fake backend tests. Physical Windows testing remains
+Completed current authorization: calm Windows setup matching the delivered Mac
+flow, local cross-build and fake backend tests. Physical Windows testing remains
 deferred. Existing Mac signing/notarization authorization was fulfilled. No push,
 PR, merge, release, deployment, host tool repair, account changes, key export or
 security weakening authorized. Earlier publication grants are completed.
@@ -52,7 +52,7 @@ AppleAccepted139fb1a8-c095-46a1-a238-3ec5b33919a8, no issues; staple/Gatekeeper 
 and DMG plus signed verifier pass. Same existing signer/Keychain profile reused.
 Next useful validation: fresh Mac vendor/profile flow and novice usability;
 publication requires separate owner decision. Do not republish/regenerate a signed
-candidate without source-bound revalidation. Windows stays held.
+candidate without source-bound revalidation. Physical Windows testing stays held.
 
 ## Preserved signing evidence and limits
 
@@ -67,33 +67,38 @@ its password privately. Do not read/export credentials or alter access policies.
 
 Fresh-Mac installs, actual first-time profile import/trust, browser quarantine,
 physical Intel/Mac12, restricted networks and novice usability remain untested.
-Windows held. Earlier0.5.4 existing-Mac copy/JavaFX runtime and historical isolated
+Physical Windows testing held. Earlier0.5.4 existing-Mac copy/JavaFX runtime and historical isolated
 VS Code Run/autosave/build/Stop are recorded in the evidence docs, not rerun claims.
 
-## Active Windows work
+## Completed calm Windows setup
 
-Base7c6aeb7, initial feature018eb47, same guided-setup worktree. Worker
-calm_windows_setup GPT-6.1-Sol/high owns native-installer/windows plus
-Setup.ps1/backend tests; second correction is delivered and source frozen.
-Coordinator owns docs,
-version0.5.6 and packaging/verification/review. Target one fixed small window and
-one replacing short line; explicit vendor downloads and guided profile import,
-approved background editor extensions, strict readiness. No automatic console,
-winget, policy bypass, host repair or credentials. Manual ZIP menu retained.
-Mac0.5.5 signed DMG/kit/VSIX/receipt preserved under
-.verification/calm-windows-setup/preserved-mac-0.5.5; Downloads unchanged.
-Preflight:105coordinator net48/Mono assertions against new ZIP; worker65Node and
-28portable PS7fake/parser checks, full native compile, configuration and kit
-parity/extracted Maven compile pass. Full npm regression247tests and8installer
-Node tests pass. Initial unsigned AnyCPU EXE/embedded kit verify at018eb47.
-Two initial independent reviews completed: safety passed; compatibility found
-stale PATH after vendor Java install. Correction adds read-only owned-child
-environment refresh, preserving explicit JAVA_HOME and custom PATH. Coordinator
-129native assertions, clean build and3Windows Node tests pass; corrected AnyCPU
-EXE verifies atb618f8c. Targeted review found deliberate reordered registered-JDK
-PATH entries lose precedence. Second correction preserves deliberate process
-reordering, while ordinary inherited paths refresh. Worker133native checks and
-both clean builds pass. Next: coordinator harness, second fixed-delta review, final local
-unsigned EXE/payload rebuild. Physical WinForms/PS5.1/installer/policy remain untested.
-No publication.
-Weekly95% remaining at start is account allowance; task/effective tokens unknown.
+Reviewed runtime source889e76690b2cc10835d16b12c0b4c8fa1bd311c3; feature018eb47,
+base7c6aeb7. Small fixed440×180 WinForms window, one replacing short status line,
+progress indicator, disabled primary while busy and optional separate Details.
+No automatic console/Explorer or native winget action. Manual ZIP menu retained.
+Deliberate official downloads for VS Code/Java, visible profile-import steps and
+explicit copy, approved background extensions and fresh readiness before Open.
+Owned-child environment refresh after vendor handoff sees new paths while
+preserving explicit JAVA_HOME/custom ordering; no global environment writes.
+
+One GPT-6.1-Sol/high implementation worker, two initial independent reviews and
+same targeted reviewer over two correction deltas: all accepted findings resolved,
+no blockers. Review4launches/1initialwave/2targetedwaves/2fixbatches, ~19.5min wall
+clock; no redundant integration review. No active writer/reviewer. Full npm247,
+installer8, corrected coordinator134net48/Mono assertions, worker133, portable
+PS7fake28, configuration/links, exact ZIP/source/license/mode parity and extracted
+Maven compile pass. Clean AnyCPU/.NET4.8 cross-build and exact embedded ZIP/hash
+verify at the reviewed revision. Real Windows registry, WinForms, PS5.1/policy,
+vendor installs, SmartScreen, restricted networks and novice flow remain untested.
+
+Local unpublished0.5.6 kit ZIP239274bytes SHA256
+121aefb26c6fecfddba0cdadba3070ab34ee48b11e8ab90ec493519d7afe421f.
+Unsigned Windows candidate295936bytes Zero-Setup-0.5.6-windows-development.exe,
+SHA256 6e375bd0e3dec5cbf9518662cc33a97fd855a1811357816305458d8fd1ce8bd5;
+identical Downloads copy. Evidence:docs/EVIDENCE.md, docs/VERIFICATION.md,
+ignored .verification/calm-windows-setup/delivery.json and build-windows.json.
+Signed Mac0.5.5 DMG/kit/VSIX/receipt preserved, Downloads Mac hash unchanged.
+Next useful validation is an owner-authorized physical Windows trial; still held.
+No publication/signing/account changes. Primary funding work and Community untouched.
+Weekly95% remaining at start is account allowance; effective model/task tokens/cost
+unknown. Local coordinator receipt-only edits follow the reviewed runtime source.

@@ -153,7 +153,7 @@ isolated PTY. See [VERIFICATION.md](VERIFICATION.md) for evidence and limits.
 
 ## Maintainer harnesses
 
-For safe interactive visual checks, run the compiled harness with
+For safe macOS interactive visual checks, run the compiled harness with
 `--interactive-preview --scenario extensions` (also `tools`, `profile`, `ready`,
 `failure`). This uses disposable kits and fake commands exclusively; it is not
 real installation evidence. It never installs tools or edits host profiles.
