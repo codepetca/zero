@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Brand, DownloadIcon } from "@/components/Brand";
-import { downloadHref } from "@/lib/content";
+import { landingHref } from "@/lib/content";
 export const dynamic = "force-dynamic";
 export default function Home() {
   return (
@@ -9,7 +9,7 @@ export default function Home() {
         <Brand hero />
         <p>A simple kit for building Java apps.</p>
         <div className="hero-actions">
-          <a className="button primary" href={downloadHref()}>
+          <a className="button primary" href={landingHref()}>
             <DownloadIcon />
             Download Zero
           </a>

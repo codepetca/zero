@@ -1,4 +1,5 @@
 import snapshot from '../.generated/content.json';
+import { installerHref, landingDownloadHref, localDownloadsAllowed } from './installer.mjs';
 import { releaseAssetHref } from './contracts.mjs';
 export const release = snapshot.release as {
   schema: number; kitVersion: string; coreVersion: string;
@@ -8,7 +9,7 @@ export const release = snapshot.release as {
 export const docs: Record<string, { source: string; markdown: string }> = snapshot.docs;
 export function localDownloadsEnabled() {
   // Never enable a local filesystem download on Vercel, even if a flag was copied.
-  return process.env.ZERO_LOCAL_DOWNLOADS === '1' && !process.env.VERCEL;
+  return localDownloadsAllowed(process.env);
 }
 export function downloadHref(asset = 'kit') {
   return releaseAssetHref(release, asset, localDownloadsEnabled());
@@ -25,3 +26,7 @@ export type CommunityComponent = {
 export const communityPreview = snapshot.communityPreview as {
   version: string; components: CommunityComponent[];
 } | null;
+
+export const installer = snapshot.installer;
+export function macDownloadHref() { return installerHref(installer, localDownloadsEnabled()); }
+export function landingHref() { return landingDownloadHref(downloadHref(), installer, localDownloadsEnabled()); }

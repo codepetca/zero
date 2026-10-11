@@ -3,6 +3,9 @@
 Zero Setup is a thin native wrapper around the guided setup scripts. The local
 0.5.6 Windows development build and signed/notarized Mac0.5.6 candidate embed the
 same complete kit. Neither is a published download. Mac0.5.5 is preserved.
+The website can preview the exact signed Mac candidate with the local-download
+flag; the unsigned Windows EXE is excluded. The separate native manifest and
+local sealing command are documented in [RELEASING.md](RELEASING.md).
 An isolated Mac trial passed copy, profile import, editor support, Open and
 Run/Stop. Fresh-machine tool installation and novice usability remain untested.
 

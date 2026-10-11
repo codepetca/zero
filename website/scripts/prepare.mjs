@@ -8,6 +8,7 @@ import {
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
+import { validateInstallerManifest } from "../lib/installer.mjs";
 import { validateManifest } from "../lib/contracts.mjs";
 import { validateCommunityManifest } from "../lib/community.mjs";
 import { communityPreview } from "../lib/community-preview.mjs";
@@ -79,6 +80,12 @@ for (const name of ["SimpleApp", "SketchApp"])
 const release = validateManifest(
   JSON.parse(await readFile(resolve(root, "release/kit.json"), "utf8")),
 );
+let installer = null;
+try {
+  installer = validateInstallerManifest(JSON.parse(await readFile(resolve(root, "release/installer.json"), "utf8")), release);
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
 const community = validateCommunityManifest(
   JSON.parse(await readFile(resolve(root, "release/community.json"), "utf8")),
 );
@@ -88,7 +95,7 @@ await mkdir(resolve(site, ".generated"), { recursive: true });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, installer, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

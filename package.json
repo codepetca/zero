@@ -12,6 +12,8 @@
     "package:installers": "npm run package && npm run verify:kit && node scripts/build-installers.mjs",
     "test:installers": "node --test scripts/installers.test.mjs",
     "verify:installers": "node scripts/verify-installers.mjs",
+    "release:prepare:mac": "node scripts/mac-release.mjs",
+    "test:release:mac": "node --test scripts/mac-release.test.mjs",
     "release:publish": "node scripts/release-publish.mjs",
     "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs",
     "package:components": "node scripts/package-components.mjs",

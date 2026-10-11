@@ -90,6 +90,21 @@ ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 An unpublished asset without the local preview flag leads to its availability
 explanation on Learn more. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
+The optional `release/installer.json` adds **Download for Mac** on Learn more.
+When that installer is published or local downloads are enabled, the landing
+Download Zero action opens the platform choices at `/learn#downloads`. The ZIP,
+starter and VSIX remain under Other downloads; no unsigned Windows EXE is offered.
+Local native download verifies bounded exact bytes, clean signed/notarized build
+provenance and unchanged packaged/native source. `VERCEL` always disables local
+filesystem downloads even with the preview flag set. A hosted build reads only
+the authored manifest; it needs no `dist/` files or build receipt.
+
+After source review/commit, `npm run release:prepare:mac` seals the existing signed
+Mac artifact and three kit files locally without rebuilding. See
+[RELEASING.md](RELEASING.md) for clean-source requirements and the separate native
+publication plan. Focused checks: `npm run test:release:mac` and
+`node --test website/tests/installer.test.mjs`.
+
 The website prepares canonical docs/release content before development and build;
 generated snapshots and caches are ignored. Start here before later Vercel setup:
 Root Directory `website/`, with repository sources outside that directory included

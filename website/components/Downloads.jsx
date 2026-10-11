@@ -1,12 +1,15 @@
 import { DownloadIcon } from "./Brand";
-import { downloadHref, localDownloadsEnabled, release } from "@/lib/content";
+import { downloadHref, macDownloadHref, localDownloadsEnabled, release, installer } from "@/lib/content";
 export function Downloads() {
   const local = localDownloadsEnabled();
+  const mac = macDownloadHref();
   const published = release.publication.status === "published";
   return (
     <section className="download-section" id="downloads">
       <h2>Get Zero</h2>
-      {published ? (
+      {mac ? (
+        <p>Zero Setup {release.kitVersion} for Mac{installer.publication.status === 'local' ? ' is available in this local preview and has not been publicly released.' : ' is available as a signed and notarized download.'}</p>
+      ) : published ? (
         <p>
           Zero {release.kitVersion} is available as a verified, versioned
           release.
@@ -24,7 +27,12 @@ export function Downloads() {
           files when publication is complete.
         </p>
       )}
-      {(published || local) && (
+      {mac && <>
+        <a className="button primary compact" href={mac}><DownloadIcon />Download for Mac</a>
+        <p>macOS 12 or later · Apple Silicon and Intel</p>
+        <p>Open Zero Setup and choose a fresh project folder. Setup guides the Zero profile import and asks before installing editor support or opening official VS Code and Java downloads.</p>
+      </>}
+      {!mac && (published || local) && (
         <a className="button primary compact" href={downloadHref()}>
           <DownloadIcon />
           Download Zero {release.kitVersion}
@@ -34,6 +42,7 @@ export function Downloads() {
         <summary>Other downloads</summary>
         {published || local ? (
           <ul>
+            {mac && <li><a href={downloadHref()}>Complete kit ZIP — Windows, Linux or manual setup</a></li>}
             {["starter", "extension"].map((key) => (
               <li key={key}>
                 <a href={downloadHref(key)}>{release.assets[key].label}</a>
