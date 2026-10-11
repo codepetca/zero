@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync, mkdirSync, writeFileSync, copyFileSync, readFileSync, rmSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
@@ -10,27 +10,34 @@ function fixture(options = {}) {
   const root = mkdtempSync(path.join(tmpdir(), 'Zero setup with spaces '));
   const setup = path.join(root, 'setup'), bin = path.join(root, 'fake tools'), jdk = path.join(root, 'JDK with spaces');
   for (const dir of [setup, bin, path.join(jdk, 'bin'), path.join(root, 'starter/.mvn/wrapper'), path.join(root, 'starter/.vscode'), path.join(root, 'optional')]) mkdirSync(dir, {recursive: true});
-  copyFileSync(source, path.join(setup, 'setup.sh'));
-  writeFileSync(path.join(setup, 'kit.properties'), 'kitVersion=0.5.4\nextensionId=zero.zero\n');
+  // Map only the stable system-app location into the disposable fake machine.
+  // Interactive tests bypass the TTY gate in this copied script, never in product source.
+  writeFileSync(path.join(setup, 'setup.sh'), readFileSync(source, 'utf8')
+    .replace('"/Applications/Visual Studio Code.app', '"' + root + '/System Applications/Visual Studio Code.app')
+    .replace('[ ! -t 0 ]', options.interactive ? 'false' : '[ ! -t 0 ]'));
+  writeFileSync(path.join(setup, 'kit.properties'), options.metadata ?? 'kitVersion=0.5.4\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n');
   for (const name of ['zero-0.5.4.vsix', 'optional/Zero.code-profile', 'starter/zero.json', 'starter/pom.xml', 'starter/mvnw', 'starter/mvnw.cmd', 'starter/.mvn/wrapper/maven-wrapper.properties', 'starter/.vscode/tasks.json']) writeFileSync(path.join(root, name), '', {mode: 0o755});
   const log = path.join(root, 'probes.log');
   const executable = (dir, name, body) => writeFileSync(path.join(dir, name), '#!/bin/bash\n' + body + '\n', {mode: 0o755});
-  executable(bin, 'uname', options.macApp ? 'echo Darwin' : 'echo Linux');
+  executable(bin, 'uname', options.macApp || options.mac ? 'echo Darwin' : 'echo Linux');
   executable(bin, 'git', options.git === false ? 'exit 1' : 'echo "git version 2.31.0"');
   let codeBin = bin;
   if (options.macApp) { codeBin = path.join(root, 'Applications/Visual Studio Code.app/Contents/Resources/app/bin'); mkdirSync(codeBin, {recursive: true}); }
-  executable(codeBin, 'code', 'printf "%s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n --version) ' + (options.code === false ? 'exit 1' : 'echo 1.100.0') + ' ;;\n "--profile Zero --list-extensions --show-versions") ' + (options.profile === false ? 'echo "Profile Zero not found"; exit 1' : 'printf "zero.zero@' + (options.extension || '0.5.4') + '\\nredhat.java@1.40.0\\n' + (options.debugger === false ? '' : 'vscjava.vscode-java-debug@0.58.0\\n') + '"') + ' ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac');
+  const codeBody = 'printf "%s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n --version) ' + (options.code === false ? 'exit 1' : 'echo ' + (options.codeVersion || '1.100.0')) + ' ;;\n "--profile Zero --list-extensions --show-versions") ' + (options.profile === false ? 'echo "Profile Zero not found"; exit 1' : 'printf "zero.zero@' + (options.extension || '0.5.4') + '\\nredhat.java@1.40.0\\n' + (options.debugger === false ? '' : 'vscjava.vscode-java-debug@0.58.0\\n') + '"') + ' ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac';
+  executable(codeBin, 'code', codeBody);
+  if (options.macApp && options.pathCodeVersion) executable(bin, 'code', codeBody.replace('echo ' + (options.codeVersion || '1.100.0'), 'echo ' + options.pathCodeVersion));
   executable(jdk + '/bin', 'java', 'echo \'openjdk version "' + (options.java || '17.0.12') + '"\' >&2');
   if (options.compiler !== false) executable(jdk + '/bin', 'javac', 'echo "javac ' + (options.javac || options.java || '17.0.12') + '"');
   // A valid PATH JDK must not conceal an explicitly invalid JAVA_HOME.
   for (const name of ['java', 'javac']) executable(bin, name, name === 'java' ? 'echo \'openjdk version "17.0.12"\' >&2' : 'echo "javac 17.0.12"');
   for (const name of ['brew', 'xdg-open', 'open']) executable(bin, name, 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99');
-  return {root, log, run() {
-    const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), '--check'], {env: {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : jdk, PROBE_LOG: log}, encoding: 'utf8', timeout: 10000});
+  if (options.brew) executable(bin, 'brew', 'printf "brew %s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n "list --versions --cask") ' + (options.brew === 'missing' ? ':' : 'echo "visual-studio-code 1.90.0"') + ' ;;\n "outdated --quiet --cask visual-studio-code") ' + (options.brew === 'outdated' ? 'echo visual-studio-code' : ':') + ' ;;\n "upgrade --cask visual-studio-code"|"install --cask visual-studio-code") exit 0 ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac');
+  return {root, log, run(input) {
+    const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), ...(input === undefined ? ['--check'] : [])], {env: {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : jdk, PROBE_LOG: log}, input, encoding: 'utf8', timeout: 10000});
     assert.equal(result.error, undefined);
     const commands = readFileSync(log, 'utf8');
     assert.doesNotMatch(commands, /UNEXPECTED_MUTATION|install-extension|new-window/);
-    assert.match(commands, /--profile Zero --list-extensions --show-versions|^--version\n$/);
+    assert.match(commands, /--profile Zero --list-extensions --show-versions|^--version\n/m);
     return result;
   }, cleanup() { rmSync(root, {recursive: true, force: true}); }};
 }
@@ -45,10 +52,40 @@ for (const [name, options, status, expected] of [
   ['old JDK not ready', {java: '11.0.20'}, 1, /needs matching/],
   ['invalid JAVA_HOME does not fall back to PATH', {invalidHome: true}, 1, /java: missing, javac: missing/],
   ['missing profile is queried but not created', {profile: false}, 1, /profile: unavailable/],
-  ['broken VS Code command not ready', {code: false}, 1, /VS Code: missing/]
+  ['broken VS Code command not ready', {code: false}, 1, /VS Code: missing/],
+  ['old VS Code is not ready', {codeVersion: '1.94.2'}, 1, /candidate:.*1.94.2.*requires 1.95.0/],
+  ['minimum VS Code is ready', {codeVersion: '1.95.0'}, 0, /VS Code: 1.95.0 at/],
+  ['unparseable VS Code is not ready', {codeVersion: 'unknown'}, 1, /candidate:.*unknown/],
+  ['future incompatible major is not ready', {codeVersion: '2.0.0'}, 1, /candidate:.*2.0.0/],
+  ['known Mac app used without PATH CLI', {macApp: true}, 0, /VS Code: 1.100.0 at.*Applications/],
+  ['compatible known Mac app follows old PATH CLI', {macApp: true, pathCodeVersion: '1.90.0'}, 0, /candidate:.*fake tools.*1.90.0/],
+  ['newer compatible PATH Code is preserved', {macApp: true, codeVersion: '1.95.0', pathCodeVersion: '1.110.0'}, 0, /VS Code: 1.110.0 at.*fake tools/],
 ]) test(name, () => { const kit = fixture(options); try { const result = kit.run(); assert.equal(result.status, status, result.stdout + result.stderr); assert.match(result.stdout, expected); } finally { kit.cleanup(); } });
 test('missing wrapper metadata is an actionable incomplete kit', () => {
   const kit = fixture();
   try { rmSync(path.join(kit.root, 'starter/.mvn/wrapper/maven-wrapper.properties')); const result = kit.run(); assert.equal(result.status, 1); assert.match(result.stdout, /Missing kit file:.*maven-wrapper.properties/); }
+  finally { kit.cleanup(); }
+});
+for (const metadata of ['kitVersion=0.5.4\nextensionId=zero.zero\n', 'kitVersion=0.5.4\nextensionId=zero.zero\nvscodeMinimum=unknown\n', 'kitVersion=0.5.4\nextensionId=zero.zero\nvscodeMinimum=1.95.0\nvscodeMinimum=1.95.0\n']) test('invalid minimum metadata fails closed: ' + JSON.stringify(metadata), () => {
+  const kit = fixture({metadata});
+  try { const result = kit.run(); assert.equal(result.status, 1); assert.match(result.stdout, /metadata missing or invalid/); }
+  finally { kit.cleanup(); }
+});
+for (const [name, brew, input, expected, forbidden] of [
+  ['old managed Code upgrades', 'outdated', '1\ny\n0\n', /brew upgrade --cask visual-studio-code/, /brew install/],
+  ['missing managed package installs', 'missing', '1\ny\n0\n', /brew install --cask visual-studio-code/, /brew upgrade/],
+  ['current managed package needs configuration', 'current', '1\n0\n', /already has visual-studio-code current/, /brew (install|upgrade)/],
+  ['cancelled upgrade performs no mutation', 'outdated', '1\nn\nn\n0\n', /Proposed command: brew upgrade/, /brew (install|upgrade)/],
+]) test(name, () => {
+  const kit = fixture({mac: true, interactive: true, codeVersion: '1.90.0', brew});
+  try {
+    const result = kit.run(input), commands = readFileSync(kit.log, 'utf8');
+    assert.match(result.stdout + '\n' + commands, expected); assert.doesNotMatch(commands, forbidden);
+    if (input.includes('\ny\n')) assert.match(result.stdout, /Homebrew finished.*Zero setup check/s);
+  } finally { kit.cleanup(); }
+});
+test('valid tools and invalid explicit JAVA_HOME never trigger package repair', () => {
+  const kit = fixture({mac: true, interactive: true, invalidHome: true, brew: 'outdated'});
+  try { const result = kit.run('1\n2\n3\n0\n'); assert.match(result.stdout, /JAVA_HOME selects/); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew /); }
   finally { kit.cleanup(); }
 });

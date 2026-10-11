@@ -12,7 +12,13 @@ Documents. On a school laptop, your teacher or IT may need to install software.
   help choose your distribution's installation method.
 
 Setup first shows what is ready and what needs attention. Choose install help
-only for tools you need: **VS Code** and a **JDK 17 or newer** run your apps.
+only for tools you need: a compatible **VS Code** and a **JDK 17 or newer** run your apps.
+The kit's generated metadata supplies the VS Code minimum (currently 1.95.0);
+setup accepts newer stable versions in the same major. A missing, failed or
+unreadable version does not pass. Setup reports the selected version and path,
+plus old or unusable candidates. It checks the PATH command and standard stable
+VS Code application locations on Windows and Mac; custom installations may need
+teacher/IT help to expose their supported CLI.
 **Git 2.31 or newer** is optional until you want to share with GitHub. A JDK
 includes both `java` and `javac` with matching major versions; a runtime alone is insufficient. You do
 not need Node.js, Python or a global Maven installation.
@@ -24,12 +30,22 @@ download page. If installation is blocked, show the check summary to your
 teacher/IT; do not try to bypass school restrictions. After an install, close
 VS Code completely and reopen setup. Windows may need a restart to update
 PATH/JAVA_HOME. An installer exit code does not mean setup is ready: check again.
+For a package already recorded by the manager, setup offers a specific upgrade
+only when it can verify one is available. If the package is current, or its
+inventory cannot be checked, setup asks for configuration/restart help instead
+of reinstalling. It displays the proposed package command before your choice and
+checks again after a package operation.
 
 If the check mentions a broken/old `JAVA_HOME`, ask your teacher/IT to select
 the installed JDK. Setup honours that choice and does not change saved system
 variables. On Mac, if `JAVA_HOME` is unset, setup selects an installed JDK 17+
 for this setup process. The same environment is passed to the editor it opens;
 close all existing VS Code windows first so they do not retain an old environment.
+An incompatible explicit `JAVA_HOME` always needs manual correction before any
+JDK installation through setup. Java and Git checks show the selected command
+paths. Git uses the first PATH installation; setup does not inventory every Git
+or JDK on the machine. If another installation should be selected, ask teacher/IT
+to review PATH or JAVA_HOME, then restart and check again.
 
 ## Your Zero profile
 
@@ -70,7 +86,8 @@ and retry if a local command is stuck. Installers keep their own prompts, and
 extension installs have a five-minute limit on Windows.
 
 If a kit file or `setup/kit.properties` is missing, extract the complete kit
-again. That generated metadata identifies the packaged version and local VSIX.
+again. That generated metadata identifies the packaged version, local VSIX and
+VS Code compatibility minimum derived from the extension's manifest.
 Do not copy only the launcher out of the kit. Windows script policy may block
 setup. Windows offers **Run normally** or an explicit **one-process allowance**
 for this trusted downloaded script. The latter uses process-only execution
@@ -84,6 +101,8 @@ Primary vendor guidance: [VS Code downloads](https://code.visualstudio.com/downl
 [VS Code profile/extension CLI](https://code.visualstudio.com/docs/configure/command-line),
 [Temurin JDK downloads](https://adoptium.net/temurin/releases/?version=17),
 [Git downloads](https://git-scm.com/downloads).
+Upgrade/inventory commands follow [winget upgrade](https://learn.microsoft.com/en-us/windows/package-manager/winget/upgrade)
+and the [Homebrew manual](https://docs.brew.sh/Manpage).
 Package names are verified against Microsoft's
 [VS Code winget manifest](https://github.com/microsoft/winget-pkgs/tree/master/manifests/m/Microsoft/VisualStudioCode),
 [Temurin 17 JDK manifest](https://github.com/microsoft/winget-pkgs/tree/master/manifests/e/EclipseAdoptium/Temurin/17/JDK),

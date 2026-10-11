@@ -31,8 +31,8 @@ or java/javac on PATH when JAVA_HOME is unset. These probes use the VS Code
 process environment. If VS Code terminal settings override build/tool variables,
 setup reports Run readiness as unverified and explains which setting needs
 review; it does not change those settings or recommend its first-run action.
-Ordinary Run App remains available for a teacher/IT-reviewed configuration. Both need compatible matching
-JDK17+ versions. A bad JAVA_HOME must not be hidden by a working PATH installation.
+Ordinary Run App remains available for a teacher/IT-reviewed configuration.
+Java and its compiler need compatible matching JDK17+ versions. A bad JAVA_HOME must not be hidden by a working PATH installation.
 Git2.31+ is checked separately for optional sharing. Java editor support and the
 debugger are checked in the active VS Code profile; debugger absence does not
 block Run App. Installed extensions in another profile do not satisfy this check.
@@ -70,3 +70,10 @@ Primary references: [VS Code CLI](https://code.visualstudio.com/docs/configure/c
 [Windows winget install](https://learn.microsoft.com/en-us/windows/package-manager/winget/install),
 [Temurin downloads](https://adoptium.net/temurin/releases/?version=17&package=jdk),
 [Git downloads](https://git-scm.com/downloads/).
+
+## Installer packaging direction
+
+The native installer will wrap these checks and repair actions. Windows would
+use a per-user setup EXE; macOS would use a setup app inside a DMG. No native
+installer has been built or published yet. Keep the ZIP/manual path for managed
+school machines. See [installer direction](INSTALLER.md).

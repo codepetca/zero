@@ -20,7 +20,7 @@ merge confirmed404 unprotected and empty rulesets. Do not restore protections
 without new authorization. Community acceptance-helper review checks remain.
 No live AI provider. Old release/merge grants completed; no standing publication grant.
 
-## Completed local delivery: guided student setup
+## Local delivery and active setup reliability follow-up
 
 Owner asks better setup guidance, checking installed tools and installation help,
 for personal as well as school laptops. Implement locally: Windows/macOS launchers,
@@ -62,5 +62,13 @@ remains separate. Relevant terminal overrides make Run readiness unverified;
 settings are preserved. A successful check alone does not prove a native window.
 Physical Windows/Linux classroom/personal setup, actual installers/permissions,
 network policy, native picker interaction and novice usability remain unverified.
-Next: owner may try the local kit and authorize source PR/merge or publication
-separately. Do not infer either authorization from completed older work.
+Owner agreed to strengthen checks before wrapping them in a native installer.
+Active bounded follow-up at080d7a4: detect compatible VS Code versions/candidates,
+make managed install versus upgrade actions explicit, show selected installations,
+and improve repair/recheck guidance. setup_compatibility GPT-6.1-Sol/high owns
+setup/; coordinator owns metadata/docs/integration. Minimum VS Code comes from
+extension engines, not a duplicate fixed version. Weekly21% remaining at start
+is account-wide; effective models/tokens unknown. No actual installers, account
+changes or publication. Native EXE/app distribution remains a later package phase.
+Next: verify affected tests, independent source review and rebuilt local ZIP.
+Do not infer source PR/merge or publication authorization from completed work.

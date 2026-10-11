@@ -23,7 +23,16 @@ export function starterMembers(root, prefix = 'zero-starter') {
 
 // Only student-facing setup files ship; maintainer tests and caches stay outside.
 export const setupFiles = ['Setup.cmd', 'Setup.ps1', 'Setup.command', 'setup.sh', 'README.md'];
+export function setupRequirements(root) {
+  const extension = JSON.parse(readFileSync(path.join(root, 'extension/package.json'), 'utf8'));
+  // Launchers implement a stable same-major range. Fail instead of guessing if
+  // the extension later adopts a different range or prerelease policy.
+  const match = /^\^([1-9]\d*\.\d+\.\d+)$/.exec(extension.engines?.vscode || '');
+  if (!match) throw new Error('Setup requires a stable caret VS Code engine range; update launcher compatibility policy before packaging.');
+  return {vscodeMinimum:match[1]};
+}
 export function setupMembers(root, release, prefix = 'zero-kit/setup') {
+  const {vscodeMinimum} = setupRequirements(root);
   const members = {};
   for (const name of setupFiles) {
     const filename = path.join(root, 'setup', name);
@@ -33,7 +42,7 @@ export function setupMembers(root, release, prefix = 'zero-kit/setup') {
       os:3, attrs:((/\.(command|sh)$/.test(name) ? 0o100755 : 0o100644) << 16) >>> 0
     }];
   }
-  const manifest = `kitVersion=${release.kitVersion}\nextensionId=zero.zero\n`;
+  const manifest = `kitVersion=${release.kitVersion}\nextensionId=zero.zero\nvscodeMinimum=${vscodeMinimum}\n`;
   members[`${prefix}/kit.properties`] = [new TextEncoder().encode(manifest), {os:3, attrs:(0o100644 << 16) >>> 0}];
   return members;
 }

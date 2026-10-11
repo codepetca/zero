@@ -9,6 +9,9 @@ $Code = $null
 $CliScript = $null
 $KitVersion = ''
 $ExtensionId = ''
+$VsCodeMinimum = ''
+$CodeVersion = ''
+$CodeDiagnostics = @()
 $Extensions = @{}
 $KitOK = $false
 $JavaOK = $false
@@ -57,25 +60,33 @@ function Meets-Version([string]$Actual, [string]$Required) {
     try { return [version]$Actual -ge [version]$Required } catch { return $false }
 }
 function Find-Code {
-    $script:Code = $null; $script:CliScript = $null
+    $script:Code = $null; $script:CliScript = $null; $script:CodeVersion = ''; $script:CodeDiagnostics = @()
     $candidates = @()
     $command = Get-Command code -ErrorAction SilentlyContinue
     if ($command -and $command.Source -match '\\bin\\code\.cmd$') {
         $candidates += Join-Path (Split-Path (Split-Path $command.Source -Parent) -Parent) 'Code.exe'
+    } elseif ($command -and $command.Source -match '\\Code\.exe$') {
+        $candidates += $command.Source
     }
     foreach ($base in @($env:LOCALAPPDATA, $env:ProgramFiles, ${env:ProgramFiles(x86)})) {
         if (-not $base) { continue }
         if ($base -eq $env:LOCALAPPDATA) { $candidates += Join-Path $base 'Programs\Microsoft VS Code\Code.exe' }
         else { $candidates += Join-Path $base 'Microsoft VS Code\Code.exe' }
     }
-    foreach ($candidate in $candidates) {
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
         $cli = Join-Path (Split-Path $candidate -Parent) 'resources\app\out\cli.js'
-        if ((Test-Path -LiteralPath $candidate -PathType Leaf) -and (Test-Path -LiteralPath $cli -PathType Leaf)) {
-            $script:Code = $candidate; $script:CliScript = $cli
-            if ((Invoke-Code @('--version')).Exit -eq 0) { return }
+        if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { continue }
+        if (-not (Test-Path -LiteralPath $cli -PathType Leaf)) {
+            $script:CodeDiagnostics += "VS Code candidate: $candidate (standard CLI missing)"; continue
+        }
+        $result = Invoke-Tool $candidate @($cli, '--version') $true
+        $actual = ($result.Output -split '\r?\n')[0]
+        if ($result.Exit -eq 0 -and $VsCodeMinimum -and (Meets-Version $actual $VsCodeMinimum) -and $actual.Split('.')[0] -eq $VsCodeMinimum.Split('.')[0]) {
+            if (-not $Code) { $script:Code = $candidate; $script:CliScript = $cli; $script:CodeVersion = $actual }
+        } else {
+            $script:CodeDiagnostics += "VS Code candidate: $candidate ($actual; failed/unparseable/incompatible; requires $VsCodeMinimum in the same major)"
         }
     }
-    $script:Code = $null; $script:CliScript = $null
 }
 function Find-Java {
     $script:JavaOK = $false; $script:JavaVersion = ''; $script:JavacVersion = ''
@@ -89,6 +100,7 @@ function Find-Java {
         $java = if ($j) { $j.Source } else { '' }
         $javac = if ($c) { $c.Source } else { '' }
     }
+    $script:JavaCommand = $java; $script:JavacCommand = $javac
     if ($java -and (Test-Path -LiteralPath $java -PathType Leaf)) {
         $result = Invoke-Tool $java @('-version')
         if ($result.Exit -eq 0 -and $result.Output -match '(?m)^(?:openjdk|java) version "([0-9]+(?:\.[0-9]+)*)') { $script:JavaVersion = $Matches[1] }
@@ -100,24 +112,29 @@ function Find-Java {
     $script:JavaOK = $JavaVersion -ne '' -and $JavacVersion -ne '' -and $JavaVersion.Split('.')[0] -eq $JavacVersion.Split('.')[0] -and [int]($JavaVersion.Split('.')[0]) -ge 17
 }
 function Find-Git {
-    $script:GitOK = $false
+    $script:GitOK = $false; $script:GitVersion = ''; $script:GitCommand = ''
     $git = Get-Command git.exe -ErrorAction SilentlyContinue
     if (-not $git) { return }
+    $script:GitCommand = $git.Source
     $result = Invoke-Tool $git.Source @('--version')
     if ($result.Exit -eq 0 -and $result.Output -match '^git version (\d+\.\d+\.\d+)') {
+        $script:GitVersion = $Matches[1]
         $script:GitOK = Meets-Version $Matches[1] '2.31.0'
     }
 }
 function Find-Kit {
-    $script:KitOK = $false; $script:KitVersion = ''; $script:ExtensionId = ''
+    $script:KitOK = $false; $script:KitVersion = ''; $script:ExtensionId = ''; $script:VsCodeMinimum = ''
     $metadata = Join-Path $PSScriptRoot 'kit.properties'
     if (Test-Path -LiteralPath $metadata -PathType Leaf) {
-        foreach ($line in Get-Content -LiteralPath $metadata) {
-            if ($line -match '^kitVersion=(\d+\.\d+\.\d+)$') { $script:KitVersion = $Matches[1] }
-            if ($line -eq 'extensionId=zero.zero') { $script:ExtensionId = 'zero.zero' }
-        }
+        $lines = @(Get-Content -LiteralPath $metadata)
+        $versions = @($lines | Where-Object { $_ -match '^kitVersion=' })
+        $ids = @($lines | Where-Object { $_ -match '^extensionId=' })
+        $minimums = @($lines | Where-Object { $_ -match '^vscodeMinimum=' })
+        if ($versions.Count -eq 1 -and $versions[0] -match '^kitVersion=(\d+\.\d+\.\d+)$') { $script:KitVersion = $Matches[1] }
+        if ($ids.Count -eq 1 -and $ids[0] -eq 'extensionId=zero.zero') { $script:ExtensionId = 'zero.zero' }
+        if ($minimums.Count -eq 1 -and $minimums[0] -match '^vscodeMinimum=(\d+\.\d+\.\d+)$') { $script:VsCodeMinimum = $Matches[1] }
     }
-    if (-not $KitVersion -or -not $ExtensionId) { Write-Host 'Kit metadata missing or invalid. Extract the complete kit again.'; return }
+    if (-not $KitVersion -or -not $ExtensionId -or -not $VsCodeMinimum) { $script:VsCodeMinimum = ''; Write-Host 'Kit metadata missing or invalid. Extract the complete kit again.'; return }
     $script:Vsix = Join-Path $KitDir "zero-$KitVersion.vsix"
     $files = @($Vsix, (Join-Path $KitDir 'optional\Zero.code-profile'))
     foreach ($relative in @('zero.json', 'pom.xml', 'mvnw', 'mvnw.cmd', '.mvn\wrapper\maven-wrapper.properties', '.vscode\tasks.json')) {
@@ -141,20 +158,23 @@ function Find-Extensions {
 }
 function Is-Ready { return $KitOK -and $Code -and $JavaOK -and $ExtensionsOK }
 function Show-Check {
-    Find-Code; Find-Java; Find-Git; Find-Kit; Find-Extensions
+    Find-Kit; Find-Code; Find-Java; Find-Git; Find-Extensions
     Write-Host "`nZero setup check (profile: Zero)"
     Write-Host $(if ($KitOK) { "Kit $KitVersion`: complete" } else { 'Kit: needs attention' })
-    Write-Host $(if ($Code) { "VS Code: $Code" } else { 'VS Code: missing or its command failed' })
+    Write-Host $(if ($Code) { "VS Code: $CodeVersion at $Code" } else { 'VS Code: missing or incompatible; see candidate details' })
+    foreach ($detail in $CodeDiagnostics) { Write-Host $detail }
     Write-Host $(if ($JavaOK) { "JDK: Java $JavaVersion and javac $JavacVersion" } else { "JDK: needs matching java + javac major versions 17+ (java: $JavaVersion, javac: $JavacVersion)" })
     if ($env:JAVA_HOME) { Write-Host "Selected JAVA_HOME: $env:JAVA_HOME" }
+    Write-Host "JDK commands: $JavaCommand ; $JavacCommand"
     Write-Host $(if (-not $ProfileOK) { 'Zero profile: unavailable; create/import before installing extensions' } elseif ($ExtensionsOK) { 'Zero profile extensions: ready' } else { 'Zero profile extensions: Zero/Java missing or Zero too old' })
     if ($ProfileOK -and -not $Extensions.ContainsKey('vscjava.vscode-java-debug')) { Write-Host 'Java debugger: missing (optional; Run App still works)' }
-    Write-Host $(if ($GitOK) { 'Git: ready for optional sharing' } else { 'Git 2.31+: missing/old (optional; local apps can run without it)' })
+    Write-Host $(if ($GitOK) { "Git: $GitVersion at $GitCommand (ready for optional sharing)" } else { "Git 2.31+: missing/old at $GitCommand (optional; local apps can run without it)" })
 }
 function Help-Tool([string]$Tool) {
     switch ($Tool) {
-        code { Find-Code; if ($Code) { Write-Host 'VS Code is already available. Use Check again.'; return } }
-        java { Find-Java; if ($JavaOK) { Write-Host 'A suitable JDK is already available. Use Check again.'; return } }
+        code { Find-Kit; Find-Code; if (-not $VsCodeMinimum) { return }; if ($Code) { Write-Host 'VS Code is already available. Use Check again.'; return } }
+        java { Find-Java; if ($JavaOK) { Write-Host 'A suitable JDK is already available. Use Check again.'; return }
+            if ($env:JAVA_HOME) { Write-Host 'JAVA_HOME selects an incompatible/missing JDK. Ask your teacher/IT to select an installed matching JDK 17+; no installation attempted.'; return } }
         git { Find-Git; if ($GitOK) { Write-Host 'A suitable Git is already available. Use Check again.'; return } }
     }
     switch ($Tool) {
@@ -165,10 +185,25 @@ function Help-Tool([string]$Tool) {
     Write-Host "`n$title`: school laptops may need your teacher or IT to install software."
     Write-Host 'If blocked, stop and show them the check summary. Do not bypass school restrictions.'
     $winget = Get-Command winget.exe -ErrorAction SilentlyContinue
-    if ($winget -and (Confirm-Choice "Use existing winget to install $title ($id)? You will review package terms and any administrator prompt.")) {
-        # Existing package manager only; do not bypass consent or request elevation.
-        & $winget.Source install --exact --id $id --source winget --interactive
-        Write-Host "winget finished with exit code $LASTEXITCODE."
+    if ($winget) {
+        # Listing commands never install. If inventory cannot be read, do not guess.
+        $inventory = Invoke-Tool $winget.Source @('list', '--source', 'winget', '--disable-interactivity')
+        if ($inventory.Exit -ne 0) { Write-Host 'Could not read winget inventory. Ask your teacher/IT or use the official download page; no installation attempted.'; return }
+        $operation = 'install'
+        $idPattern = '(?m)(?<![\w.-])' + [regex]::Escape($id) + '(?![\w.-])'
+        if ($inventory.Output -match $idPattern) {
+            $updates = Invoke-Tool $winget.Source @('upgrade', '--source', 'winget', '--disable-interactivity')
+            if ($updates.Exit -ne 0 -or $updates.Output -notmatch $idPattern) {
+                Write-Host "winget already knows $id and no update was verified. Review PATH/JAVA_HOME or the selected installation with your teacher/IT; restart and check again. No reinstall attempted."; return
+            }
+            $operation = 'upgrade'
+        }
+        Write-Host "Proposed command: winget $operation --exact --id $id --source winget --interactive"
+        if (Confirm-Choice "Use existing winget to $operation $title ($id)? You will review package terms and any administrator prompt.") {
+            & $winget.Source $operation --exact --id $id --source winget --interactive
+            Write-Host "winget finished with exit code $LASTEXITCODE."
+            Show-Check
+        } elseif (Confirm-Choice "Open the official $title download page?") { Start-Process $url }
     } elseif (Confirm-Choice "Open the official $title download page?") { Start-Process $url }
     Write-Host 'After installing, close VS Code completely and reopen setup. Windows may need a restart to refresh PATH/JAVA_HOME.'
 }

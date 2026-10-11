@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {zipSync, unzipSync} from 'fflate';
 import {prepareStarter, coreSources} from './prepare-starter.mjs';
-import {starterMembers, setupMembers, setupFiles} from './kit.mjs';
+import {starterMembers, setupMembers, setupFiles, setupRequirements} from './kit.mjs';
 import {root, releaseDefinition} from './release.mjs';
 import {extractProject, maven} from './verification-project.mjs';
 
@@ -13,15 +13,31 @@ test('setup archive contains only launchers, guidance and version-bound metadata
   const fixture = mkdtempSync(path.join(tmpdir(), 'zero-setup-kit-'));
   try {
     mkdirSync(path.join(fixture, 'setup/tests'), {recursive:true});
+    mkdirSync(path.join(fixture, 'extension'));
+    writeFileSync(path.join(fixture, 'extension/package.json'), JSON.stringify({engines:{vscode:'^1.95.0'}}));
     for (const name of setupFiles) writeFileSync(path.join(fixture, 'setup', name), `fixture ${name}`);
     writeFileSync(path.join(fixture, 'setup/tests/private-log.txt'), 'excluded');
     const release = {kitVersion:'9.8.7'};
     const members = setupMembers(fixture, release);
     const extracted = unzipSync(zipSync(members));
     assert.deepEqual(Object.keys(extracted).sort(), [...setupFiles, 'kit.properties'].map(name=>`zero-kit/setup/${name}`).sort());
-    assert.equal(new TextDecoder().decode(extracted['zero-kit/setup/kit.properties']), 'kitVersion=9.8.7\nextensionId=zero.zero\n');
+    assert.equal(new TextDecoder().decode(extracted['zero-kit/setup/kit.properties']), 'kitVersion=9.8.7\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n');
     assert.equal((members['zero-kit/setup/Setup.command'][1].attrs >>> 16) & 0o777, 0o755);
     assert.equal((members['zero-kit/setup/setup.sh'][1].attrs >>> 16) & 0o777, 0o755);
+  } finally {rmSync(fixture, {recursive:true, force:true});}
+});
+
+test('setup compatibility follows the extension engine and refuses unsupported range semantics', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-setup-policy-'));
+  try {
+    mkdirSync(path.join(fixture, 'extension'));
+    const manifest = path.join(fixture, 'extension/package.json');
+    writeFileSync(manifest, JSON.stringify({engines:{vscode:'^1.110.2'}}));
+    assert.deepEqual(setupRequirements(fixture), {vscodeMinimum:'1.110.2'});
+    for (const range of ['>=1.95.0', '^1.95.0-insider', undefined]) {
+      writeFileSync(manifest, JSON.stringify({engines:{vscode:range}}));
+      assert.throws(() => setupRequirements(fixture), /update launcher compatibility policy/);
+    }
   } finally {rmSync(fixture, {recursive:true, force:true});}
 });
 

@@ -15,6 +15,9 @@ OS=$(uname -s)
 CODE=''
 KIT_VERSION=''
 EXTENSION_ID=''
+VSCODE_MINIMUM=''
+CODE_VERSION=''
+CODE_DIAGNOSTICS=''
 JAVA_OK=0
 GIT_OK=0
 KIT_OK=0
@@ -69,13 +72,29 @@ extension_version() {
   printf '%s\n' "$EXTENSIONS" | awk -F@ -v id="$1" 'tolower($1)==tolower(id) {print $2; exit}'
 }
 detect_code() {
-  CODE=$(command -v code 2>/dev/null || :)
-  if [ -z "$CODE" ] && [ "$OS" = Darwin ]; then
-    for candidate in "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"; do
-      if [ -x "$candidate" ]; then CODE=$candidate; break; fi
-    done
+  CODE=''; CODE_VERSION=''; CODE_DIAGNOSTICS=''
+  candidates=("$(command -v code 2>/dev/null || :)")
+  if [ "$OS" = Darwin ]; then
+    candidates+=("/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code")
   fi
-  if [ -n "$CODE" ] && ! probe "$CODE" --version >/dev/null; then CODE=''; fi
+  # Only stable versions within the extension engine's major are compatible.
+  # Keep the first compatible CLI, but report rejected visible installations.
+  seen=''
+  for candidate in "${candidates[@]}"; do
+    [ -n "$candidate" ] && [ -x "$candidate" ] || continue
+    case "$seen" in *"|$candidate|"*) continue ;; esac
+    seen="$seen|$candidate|"
+    candidate_version=''
+    if candidate_output=$(probe "$candidate" --version); then
+      candidate_version=$(printf '%s\n' "$candidate_output" | head -n 1 | tr -d '\r')
+    fi
+    if printf '%s\n' "$candidate_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' && [ -n "$VSCODE_MINIMUM" ] && [ "${candidate_version%%.*}" = "${VSCODE_MINIMUM%%.*}" ] && at_least "$candidate_version" "$VSCODE_MINIMUM"; then
+      if [ -z "$CODE" ]; then CODE=$candidate; CODE_VERSION=$candidate_version; fi
+    else
+      CODE_DIAGNOSTICS="$CODE_DIAGNOSTICS
+VS Code candidate: $candidate (${candidate_version:-unusable/unparseable version}; requires ${VSCODE_MINIMUM:-valid kit metadata} in the same major)"
+    fi
+  done
 }
 detect_java() {
   JAVA_OK=0
@@ -101,7 +120,7 @@ detect_java() {
   if [ -n "$JAVA_VERSION" ] && [ "${JAVA_VERSION%%.*}" = "${JAVAC_VERSION%%.*}" ] && at_least "$JAVA_VERSION" 17.0.0; then JAVA_OK=1; fi
 }
 detect_git() {
-  GIT_OK=0
+  GIT_OK=0; git_version=''
   git_command=$(command -v git 2>/dev/null || :)
   # macOS /usr/bin/git can prompt to install developer tools even for --version.
   if [ "$OS" = Darwin ] && [ "$git_command" = /usr/bin/git ] && ! /usr/bin/xcode-select -p >/dev/null 2>&1; then return; fi
@@ -113,12 +132,14 @@ detect_git() {
 }
 detect_kit() {
   KIT_OK=0
-  KIT_VERSION=''; EXTENSION_ID=''
+  KIT_VERSION=''; EXTENSION_ID=''; VSCODE_MINIMUM=''
   if [ -f "$SETUP_DIR/kit.properties" ]; then
     KIT_VERSION=$(sed -n 's/^kitVersion=//p' "$SETUP_DIR/kit.properties")
     EXTENSION_ID=$(sed -n 's/^extensionId=//p' "$SETUP_DIR/kit.properties")
+    VSCODE_MINIMUM=$(sed -n 's/^vscodeMinimum=//p' "$SETUP_DIR/kit.properties")
   fi
-  if ! printf '%s\n' "$KIT_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || [ "$EXTENSION_ID" != zero.zero ]; then
+  if ! [[ "$KIT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || ! [[ "$VSCODE_MINIMUM" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [ "$EXTENSION_ID" != zero.zero ]; then
+    VSCODE_MINIMUM=''
     echo 'Kit metadata missing or invalid: extract the complete Zero kit again.'; return
   fi
   VSIX="$KIT_DIR/zero-$KIT_VERSION.vsix"
@@ -139,16 +160,18 @@ detect_extensions() {
   fi
 }
 summary() {
-  detect_code; detect_java; detect_git; detect_kit; detect_extensions
+  detect_kit; detect_code; detect_java; detect_git; detect_extensions
   printf '\nZero setup check (profile: Zero)\n'
   if [ "$KIT_OK" = 1 ]; then echo "Kit $KIT_VERSION: complete"; else echo 'Kit: needs attention'; fi
-  if [ -n "$CODE" ]; then echo "VS Code: $CODE"; else echo 'VS Code: missing or its command failed'; fi
+  if [ -n "$CODE" ]; then echo "VS Code: $CODE_VERSION at $CODE"; else echo 'VS Code: missing or incompatible; see candidate details'; fi
+  [ -z "$CODE_DIAGNOSTICS" ] || printf '%s\n' "$CODE_DIAGNOSTICS"
   if [ "$JAVA_OK" = 1 ]; then echo "JDK: Java $JAVA_VERSION and javac $JAVAC_VERSION"; else echo "JDK: needs matching java + javac major versions 17+ (java: ${JAVA_VERSION:-missing}, javac: ${JAVAC_VERSION:-missing})"; fi
   if [ -n "${JAVA_HOME:-}" ]; then echo "Selected JAVA_HOME: $JAVA_HOME"; fi
+  echo "JDK commands: ${java_command:-missing} ; ${javac_command:-missing}"
   if [ "$PROFILE_OK" = 0 ]; then echo 'Zero profile: unavailable; create/import it before installing extensions';
   elif [ "$EXTENSIONS_OK" = 1 ]; then echo 'Zero profile extensions: ready'; else echo 'Zero profile extensions: Zero/Java support missing or Zero too old'; fi
   if [ "$PROFILE_OK" = 1 ] && [ -z "$(extension_version vscjava.vscode-java-debug)" ]; then echo 'Java debugger: missing (optional; Run App still works)'; fi
-  if [ "$GIT_OK" = 1 ]; then echo 'Git: ready for optional sharing'; else echo 'Git 2.31+: missing/old (optional; local apps can run without it)'; fi
+  if [ "$GIT_OK" = 1 ]; then echo "Git: $git_version at $git_command (ready for optional sharing)"; else echo "Git 2.31+: missing/old at ${git_command:-missing} (optional; local apps can run without it)"; fi
   ready
 }
 ready() { [ "$KIT_OK" = 1 ] && [ -n "$CODE" ] && [ "$JAVA_OK" = 1 ] && [ "$EXTENSIONS_OK" = 1 ]; }
@@ -157,21 +180,41 @@ open_url() {
 }
 help_tool() {
   case "$1" in
-    code) detect_code; if [ -n "$CODE" ]; then echo 'VS Code is already available. Use Check again.'; return; fi ;;
-    java) detect_java; if [ "$JAVA_OK" = 1 ]; then echo 'A suitable JDK is already available. Use Check again.'; return; fi ;;
+    code) detect_kit; detect_code; if [ -z "$VSCODE_MINIMUM" ]; then return; fi; if [ -n "$CODE" ]; then echo 'VS Code is already available. Use Check again.'; return; fi ;;
+    java) detect_java; if [ "$JAVA_OK" = 1 ]; then echo 'A suitable JDK is already available. Use Check again.'; return; fi
+      if [ -n "${JAVA_HOME:-}" ]; then echo 'JAVA_HOME selects an incompatible/missing JDK. Ask your teacher/IT to select an installed matching JDK 17+; setup will not install over this environment choice.'; return; fi ;;
     git) detect_git; if [ "$GIT_OK" = 1 ]; then echo 'A suitable Git is already available. Use Check again.'; return; fi ;;
   esac
   case "$1" in
-    code) title='VS Code'; url='https://code.visualstudio.com/download'; brew_args=(install --cask visual-studio-code) ;;
-    java) title='Temurin JDK 17'; url='https://adoptium.net/temurin/releases/?version=17'; brew_args=(install --cask temurin@17) ;;
-    git) title='Git (optional sharing)'; url='https://git-scm.com/downloads'; brew_args=(install git) ;;
+    code) title='VS Code'; url='https://code.visualstudio.com/download'; package=visual-studio-code; package_kind=(--cask) ;;
+    java) title='Temurin JDK 17'; url='https://adoptium.net/temurin/releases/?version=17'; package=temurin@17; package_kind=(--cask) ;;
+    git) title='Git (optional sharing)'; url='https://git-scm.com/downloads'; package=git; package_kind=(--formula) ;;
   esac
   printf '\n%s: school laptops may require your teacher or IT to install software.\n' "$title"
   echo 'If blocked, stop here and show the check summary to them. Do not bypass school restrictions.'
-  if [ "$OS" = Darwin ] && command -v brew >/dev/null 2>&1 && yes "Use your existing Homebrew to install $title? It may request administrator approval."; then
-    brew "${brew_args[@]}"
-    install_status=$?
-    echo "Homebrew finished with exit code $install_status."
+  if [ "$OS" = Darwin ] && command -v brew >/dev/null 2>&1; then
+    operation=install
+    # Inventory queries cannot trigger Homebrew's automatic update.
+    if ! inventory=$(HOMEBREW_NO_AUTO_UPDATE=1 probe brew list --versions "${package_kind[@]}"); then
+      echo 'Could not read Homebrew inventory. Ask your teacher/IT or use the official download page; no installation attempted.'; return
+    fi
+    installed=$(printf '%s\n' "$inventory" | awk -v name="$package" '$1==name {print}')
+    if [ -n "$installed" ]; then
+      if ! outdated=$(HOMEBREW_NO_AUTO_UPDATE=1 probe brew outdated --quiet "${package_kind[@]}" "$package"); then
+        echo 'Could not verify package update status. Ask your teacher/IT; no installation was attempted.'; return
+      fi
+      if [ -z "$outdated" ]; then
+        echo "Homebrew already has $package current. Review PATH/JAVA_HOME or the selected installation with your teacher/IT; restart and check again. No reinstall attempted."; return
+      fi
+      operation=upgrade
+    fi
+    printf 'Proposed command: brew %s' "$operation"; printf ' %s' "${package_kind[@]}" "$package"; printf '\n'
+    if yes "Use your existing Homebrew to $operation $title? It may request administrator approval."; then
+      brew "$operation" "${package_kind[@]}" "$package"
+      install_status=$?
+      echo "Homebrew finished with exit code $install_status."
+      summary || :
+    elif yes "Open the official $title download page?"; then open_url "$url"; fi
   elif yes "Open the official $title download page?"; then open_url "$url"; fi
   echo 'After installing, close VS Code completely, reopen setup, and check again. A restart may be needed.'
 }
