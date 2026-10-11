@@ -203,6 +203,30 @@ internal static class Harness
         expected = KitFiles.InspectDefaultFolder(home);
         Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, beforeCommit: path => File.WriteAllText(Path.Combine(path, "setup", "Setup.ps1"), "raced runtime")), "runtime race at commit");
         Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")) == "raced runtime", "raced runtime not overwritten");
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
+        string driftBackup = null;
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, diagnostic: message => { if (message.StartsWith("Setup runtime backup: ")) driftBackup = message.Substring("Setup runtime backup: ".Length); }, afterReplace: path =>
+        {
+            if (path == "setup/Setup.cmd") File.WriteAllText(Path.Combine(destination, "setup", "README.md"), "external edit during update");
+        }), "later runtime edit detected during atomic replacement");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "README.md")) == "external edit during update", "actual replaced external edit restored");
+        Assert(driftBackup != null && File.ReadAllText(Path.Combine(driftBackup, "replaced-at-commit", "setup", "README.md")) == "external edit during update", "actual replaced entry retained in diagnostic backup");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.cmd")).StartsWith("0.5.3:") && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.3"), "drift rolls back prior runtime without committing metadata");
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home); driftBackup = null;
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, diagnostic: message => { if (message.StartsWith("Setup runtime backup: ")) driftBackup = message.Substring("Setup runtime backup: ".Length); }, afterReplace: path =>
+        {
+            if (path == "setup/Setup.cmd") { File.WriteAllText(Path.Combine(destination, "setup", "Setup.cmd"), "external edit before rollback"); throw new IOException("injected failure after edit"); }
+        }), "rollback preserves edits to already installed file");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.cmd")).StartsWith("0.5.3:"), "rollback restores original entry");
+        Assert(driftBackup != null && File.ReadAllText(Path.Combine(driftBackup, "replaced-at-rollback", "setup", "Setup.cmd")) == "external edit before rollback", "latest rollback entry retained atomically");
+        foreach (string relative in studentPaths.Where(path => path != "zero-0.5.3.vsix")) Assert(File.ReadAllBytes(Path.Combine(destination, relative)).SequenceEqual(preserved[relative]), "drift preserves student " + relative);
+        CreateKit(destination, "0.5.3"); File.Delete(Path.Combine(destination, "zero-0.5.6.vsix")); expected = KitFiles.InspectDefaultFolder(home); driftBackup = null;
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, diagnostic: message => { if (message.StartsWith("Setup runtime backup: ")) driftBackup = message.Substring("Setup runtime backup: ".Length); }, afterReplace: path =>
+        {
+            if (path == "zero-0.5.6.vsix") { File.WriteAllText(Path.Combine(destination, path), "edit to newly installed file"); throw new IOException("injected new file rollback"); }
+        }), "rollback retains unknown bytes in newly installed file");
+        Assert(driftBackup != null && File.ReadAllText(Path.Combine(driftBackup, "replaced-at-rollback", "zero-0.5.6.vsix")) == "edit to newly installed file", "new file rollback moves latest edit into retained backup");
+        Assert(!File.Exists(Path.Combine(destination, "zero-0.5.6.vsix")) && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.3"), "new file rollback removes transaction placement and keeps old metadata");
         string freshHome = Path.Combine(root, "fresh-race-home"); Directory.CreateDirectory(freshHome);
         Reject(() => KitFiles.PlaceFreshKit(source, freshHome, "Zero", CancellationToken.None, path => CreateKit(path, "0.5.3")), "fresh race cannot become update");
         Assert(File.ReadAllText(Path.Combine(freshHome, "Zero", "setup", "kit.properties")).Contains("0.5.3"), "fresh race kit preserved until explicit confirmation");

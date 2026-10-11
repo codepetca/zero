@@ -148,6 +148,7 @@ namespace ZeroSetup
                         string stage = System.IO.Path.Combine(parent, ".ZeroSetup-stage-" + Guid.NewGuid().ToString("N"));
                         string backup = System.IO.Path.Combine(parent, ".ZeroSetup-backup-" + Guid.NewGuid().ToString("N"));
                         var originals = new Dictionary<string, byte[]>();
+                        var installed = new Dictionary<string, byte[]>();
                         var replaced = new List<string>();
                         bool keepBackup = false;
                         try
@@ -167,6 +168,7 @@ namespace ZeroSetup
                                 cancellation.ThrowIfCancellationRequested();
                                 string staged = ContainedPath(stage, relative); Directory.CreateDirectory(System.IO.Path.GetDirectoryName(staged));
                                 File.Copy(ContainedPath(source, relative), staged, false);
+                                installed.Add(relative, File.ReadAllBytes(staged));
                                 if (originals[relative] != null)
                                 {
                                     string saved = ContainedPath(backup, relative); Directory.CreateDirectory(System.IO.Path.GetDirectoryName(saved));
@@ -189,10 +191,34 @@ namespace ZeroSetup
                                 Recheck(expected);
                                 string target = ContainedPath(expected.Path, relative); RejectReparseAncestors(target);
                                 string staged = ContainedPath(stage, relative);
-                                // Atomic replacement where available; metadata is the last commit.
+                                // Capture the actual replaced entry atomically, rather than
+                                // trusting the earlier snapshot. Metadata remains the last commit.
                                 if (originals[relative] == null) File.Move(staged, target);
-                                else File.Replace(staged, target, null);
-                                replaced.Add(relative); afterReplace?.Invoke(relative);
+                                else
+                                {
+                                    try { File.Replace(staged, target, RecoveryPath(backup, "replaced-at-commit", relative)); }
+                                    catch
+                                    {
+                                        // A failed OS replacement can leave an ambiguous state.
+                                        // Preserve both snapshot and actual-entry recovery paths.
+                                        keepBackup = true;
+                                        diagnostic?.Invoke("Replacement needs help; recovery backup retained at " + backup);
+                                        throw;
+                                    }
+                                }
+                                replaced.Add(relative);
+                                if (originals[relative] != null)
+                                {
+                                    string actual = ContainedPath(backup, "replaced-at-commit/" + relative);
+                                    RequireRegularFile(actual);
+                                    if (!File.ReadAllBytes(actual).SequenceEqual(originals[relative]))
+                                    {
+                                        keepBackup = true;
+                                        diagnostic?.Invoke("Setup files changed during replacement; latest bytes retained at " + actual);
+                                        throw new IOException("Setup files changed during the update. Your latest files were kept. See Details, then retry.");
+                                    }
+                                }
+                                afterReplace?.Invoke(relative);
                             }
                             keepBackup = true; // Keep a diagnostic recovery copy after success too.
                             return expected.Path;
@@ -205,8 +231,35 @@ namespace ZeroSetup
                                 {
                                     Recheck(expected, false);
                                     string target = ContainedPath(expected.Path, relative); RejectReparseAncestors(target);
-                                    if (originals[relative] == null) File.Delete(target);
-                                    else File.WriteAllBytes(target, originals[relative]);
+                                    string restore = null;
+                                    if (originals[relative] != null)
+                                    {
+                                        string actual = ContainedPath(backup, "replaced-at-commit/" + relative);
+                                        RequireRegularFile(actual);
+                                        restore = RecoveryPath(stage, "restore", relative);
+                                        File.Copy(actual, restore, false);
+                                    }
+                                    if (EntryExists(target))
+                                    {
+                                        RequireRegularFile(target);
+                                        string current = RecoveryPath(backup, "replaced-at-rollback", relative);
+                                        // Retain the actual current entry atomically before restoring
+                                        // or removing an installed file. Never delete unknown bytes.
+                                        if (restore == null) File.Move(target, current);
+                                        else File.Replace(restore, target, current);
+                                        RequireRegularFile(current);
+                                        if (!File.ReadAllBytes(current).SequenceEqual(installed[relative]))
+                                        {
+                                            keepBackup = true;
+                                            diagnostic?.Invoke("Changes made during setup were retained at " + current);
+                                        }
+                                    }
+                                    else if (restore != null)
+                                    {
+                                        keepBackup = true;
+                                        File.Move(restore, target);
+                                        diagnostic?.Invoke("A setup file disappeared during the update; recovery backup retained at " + backup);
+                                    }
                                 }
                                 catch (Exception error) { keepBackup = true; diagnostic?.Invoke("Restore needs help; backup retained at " + backup + ": " + error.Message); }
                             }
@@ -217,6 +270,14 @@ namespace ZeroSetup
                 }
                 finally { mutex.ReleaseMutex(); }
             }
+        }
+
+        private static string RecoveryPath(string root, string category, string relative)
+        {
+            string path = ContainedPath(root, category + "/" + relative);
+            RejectReparseAncestors(path);
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+            return path;
         }
 
         public static string CreatePrivateTemporaryDirectory()
