@@ -1,9 +1,10 @@
 # Native Zero Setup
 
 Zero Setup is a thin native wrapper around the guided setup scripts. The local
-0.5.6 Windows development build embeds the complete kit. The preserved local
-Mac0.5.5 candidate is Developer ID signed and notarized. Neither is a published
-download. Fresh-machine and student flow testing remain outstanding.
+0.5.6 Windows development build and signed/notarized Mac0.5.6 candidate embed the
+same complete kit. Neither is a published download. Mac0.5.5 is preserved.
+An isolated Mac trial passed copy, profile import, editor support, Open and
+Run/Stop. Fresh-machine tool installation and novice usability remain untested.
 
 ## Student flow
 
@@ -54,7 +55,10 @@ The calmer 0.5.5 Mac candidate passed signing, notarization, artifact verificati
 and a read-only existing-Mac check/copy smoke test. See VERIFICATION.md for exact
 source/hashes and untested flows. The prior signed/notarized 0.5.4
 DMG and receipt are preserved under `.verification/mac-signing/preserved-0.5.4/`;
-its verification does not cover changed setup behavior.
+its verification does not cover changed setup behavior. The 0.5.6 Mac candidate
+has its own accepted notarization and full artifact checks, with unchanged Mac
+runtime source. Its isolated Mac profile/extension/Open/Run/Stop trial passed;
+see VERIFICATION.md for the remaining platform and fresh-machine limits.
 The Windows candidate is unsigned and needs an actual Windows trial. To build
 only Windows after kit packaging/verification:
 

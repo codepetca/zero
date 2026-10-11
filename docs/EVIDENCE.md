@@ -516,3 +516,53 @@ networks and novice usability. Windows explicitly deferred. New starter runtime/
 editor Run was not rerun; unchanged earlier recorded evidence remains historical.
 No push, PR, merge, public release/deployment, host repairs, new certificate,
 account/Keychain policy changes or credential disclosure. Local candidate only.
+
+## Mac 0.5.6 alignment and student flow — 2026-10-11
+
+Clean build source `7d8db9bead9bc61ed556810df5373cb2e14dde45`; Mac/runtime source
+unchanged from reviewed 0.5.5. Both native candidates embed the same 239274-byte
+0.5.6 kit, SHA256 `121aefb26c6fecfddba0cdadba3070ab34ee48b11e8ab90ec493519d7afe421f`.
+Reused existing Developer ID identity and “Zero Notarization” Keychain profile.
+Apple accepted `4ba0305b-a1de-4fc5-b4b1-4b7732e50a95`, no issues. Universal
+ARM64/x86_64 signatures, hardened runtime/timestamps, all payload bytes/modes,
+staple validation and Gatekeeper app/DMG acceptance passed. Final 691970-byte
+`Zero-Setup-0.5.6-macos.dmg` SHA256
+`4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d`.
+Identical Downloads copy; prior 0.5.5 Downloads hash preserved.
+
+After owner manual unlock, actual signed app copied a fresh folder with spaces;
+all 126 files/modes match. Supported VS Code 1.141 profile-import UI created Zero
+in owned disposable user-data. Background installation after explicit selection
+added zero.zero 0.5.6 and redhat.java 1.56.0. Imported settings match; VS Code saves
+the requested Default Light Modern as builtin Light Modern. Native readiness
+passed. Open Zero displayed the minimal sidebar and first lesson. Sidebar Run
+compiled and launched unchanged Main with JDK 17.0.14 and JavaFX 21.0.12; Stop
+reported App stopped, disabled Stop and terminated both owned Java processes.
+A finite subclass of unchanged Main separately verified Stage.isShowing and
+“Hello, world!” label, then exited successfully. JavaFX is not exposed to CUA;
+this is runtime evidence, not a visual observation. Removed temporary probe,
+clean-compiled original four sources and rechecked all 126 files/modes.
+
+The official signed VS Code app was cloned into the ignored test area to permit
+exact-path UI control, with its signature verified unchanged. CLI wrapper and
+supported import isolate all profile/extension actions; owner's editor remains
+untouched. No internal profile storage manipulation. Test copy inside the Git
+worktree correctly refuses repository connection; no Git/account/upload trial.
+Owned setup/editor stopped, owned DMG ejected, local preview server stopped.
+
+One read-only GPT-6.1-Sol/medium download worker verified public 0.5.3 ZIP/starter/
+VSIX URLs and published hashes. Coordinator independently verified local 0.5.6
+home/Learn pages and all three HTTP download bytes/hashes. Website offers no native
+installer links yet; public 0.5.3 remains unchanged. No website source edits.
+No new runtime review needed because runtime source is unchanged; prior independent
+coverage retained. Approximately 25 minutes including manual unlock/UI work;
+weekly 92% at start is account allowance. Effective model/task tokens/cost unknown.
+Ignored source-bound receipts: `.verification/mac-056/` and
+`dist/installers/build-macos-signed.json`. Configuration/diff checks passed.
+
+Remaining limits: fresh-machine VS Code/JDK vendor installations, quarantined
+browser first-open, physical Intel/macOS 12, restricted networks and novice
+usability. Windows physical testing stays deferred; EXE remains unsigned.
+No push, PR, merge, publication/deployment, new certificate, account/credential/
+Keychain policy changes or security weakening. Primary funding work and Community
+untouched. Local candidates only.

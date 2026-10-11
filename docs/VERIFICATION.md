@@ -444,3 +444,33 @@ networks and novice usability. Windows explicitly deferred. New starter runtime/
 editor Run was not rerun; unchanged earlier recorded evidence remains historical.
 No push, PR, merge, public release/deployment, host repairs, new certificate,
 account/Keychain policy changes or credential disclosure. Local candidate only.
+
+## Signed Mac 0.5.6 student-flow verification — 2026-10-11
+
+Source `7d8db9bead9bc61ed556810df5373cb2e14dde45`, unchanged reviewed Mac/runtime.
+Apple accepted submission `4ba0305b-a1de-4fc5-b4b1-4b7732e50a95`; signing,
+stapling, Gatekeeper app/DMG and `verify-installers.mjs --platform macos --signed`
+passed. Final 691970-byte DMG and Downloads copy SHA256
+`4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d`.
+Same exact 0.5.6 kit as unsigned Windows candidate; no publication.
+
+On existing ARM64/macOS 26.6.2, actual signed setup copied all 126 files/modes,
+guided supported first-time Zero profile import in disposable editor data,
+installed Zero/Java extensions after explicit selection, rechecked readiness and
+opened the minimal sidebar/first lesson. Actual sidebar Run launched unchanged
+Main; Stop ended its processes and reported App stopped. Separate finite JavaFX
+probe verified a showing Stage and Hello, world! label with JDK 17.0.14 and JavaFX
+21.0.12. CUA does not expose JavaFX windows, so visual greeting remains unconfirmed.
+Temporary source removed, original four-source clean compile and byte/mode parity
+passed. Owner editor preserved; owned test apps/mount/server cleaned up.
+
+Local website home/Learn and all three 0.5.6 download hashes passed HTTP checks.
+Independent audit confirmed public 0.5.3 ZIP/starter/VSIX hashes; native DMG/EXE
+links are not implemented. `npm run check` and `git diff --check` passed.
+Receipts and complete source/artifact/delegation details: [EVIDENCE.md](EVIDENCE.md),
+`.verification/mac-056/` and `dist/installers/build-macos-signed.json`.
+
+Not tested: missing-tool vendor installs on a fresh Mac, browser quarantine,
+physical Intel/macOS 12, restricted networks, novice usability or Windows. No
+GitHub connection/upload in this trial; test folder inside the worktree correctly
+blocked connection. Existing standard-build/autosave coverage remains historical.

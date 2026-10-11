@@ -13,9 +13,10 @@ extension0.5.6 and core0.1.1 unpublished. Upload simulation remains default.
 Community AI/CI cannot accept/recommend/publish; no live AI provider. Owner-requested
 removal of both main protections remains in effect; do not restore unasked.
 
-Completed current authorization: calm Windows setup matching the delivered Mac
-flow, local cross-build and fake backend tests. Physical Windows testing remains
-deferred. Existing Mac signing/notarization authorization was fulfilled. No push,
+Completed authorization: align the Mac installer on0.5.6, reuse existing signing and
+notarization credentials, test setup/profile/Run App and check download links.
+Signing/notarization, isolated Mac student flow and download checks completed.
+No new host tool repair or account setup. Physical Windows testing remains deferred. No push,
 PR, merge, release, deployment, host tool repair, account changes, key export or
 security weakening authorized. Earlier publication grants are completed.
 Separate requested business-account conversation:01a12a95-bab5-7341-aa67-f7a7bc9da9c4.
@@ -26,6 +27,41 @@ Worktree /Users/stew/.codex/worktrees/kit-integration/zero, codex/guided-setup.
 Primary /Users/stew/Repos/zero has unrelated funding work; preserve it. Community
 unchanged. DeepSeek paused through2026-12-31. No tool-backed goal/task/automation
 created merely for orchestration.
+
+## Mac0.5.6 candidate — local student flow verified
+
+Clean build source7d8db9bead9bc61ed556810df5373cb2e14dde45, unchanged Mac/runtime
+source from the reviewed0.5.5 delivery. Same239274-byte kit/hash as Windows0.5.6.
+AppleAccepted4ba0305b-a1de-4fc5-b4b1-4b7732e50a95, no issues; stapled,
+Gatekeeper app/DMG and full signed artifact verifier pass. Final691970-byte
+Zero-Setup-0.5.6-macos.dmg SHA256
+4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d;
+identical Downloads copy. Previous Mac0.5.5 preserved unchanged.
+Existing signer/Keychain profile reused, no account/certificate/access changes.
+
+After manual unlock, actual signed setup copied a fresh folder with spaces:
+all126 files/modes match. Supported VS Code profile-import UI created Zero in
+disposable user-data; approved background installation added zero.zero0.5.6 and
+redhat.java1.56.0. All settings match, with the editor normalizing the theme name
+to builtin Light Modern. Native readiness passed; Open Zero showed the minimal
+sidebar and first lesson. Sidebar Run compiled/launched unchanged Main using
+JDK17.0.14/JavaFX21.0.12; Stop showed App stopped and ended both owned processes.
+A finite subclass verified showing Stage and Hello, world! label; JavaFX is not
+exposed to CUA, so this is runtime evidence, not visual confirmation. Probe
+removed; original four-source compile and126-file parity passed again.
+Official signed VS Code clone and test CLI wrapper isolate all profile/extension
+actions; owner editor preserved. No Git connection/upload trial. Test copy inside
+the worktree correctly refuses repo connection. Owned apps stopped and volume
+ejected; receipts .verification/mac-056/. No writer/reviewer active.
+
+Independent download audit GPT-6.1-Sol/medium: public0.5.3ZIP/starter/VSIX links
+and hashes remain correct; website has no native installer links. Local website
+prepared0.5.6 and HTTP preview on3234 verified home/Learn and all3download hashes;
+server stopped. No website source changes/publication. Native links need a future
+release/download decision, never guessed public URLs. Weekly92% at start is
+account allowance; effective model/attributable task tokens/cost unknown.
+
+## Preserved Mac0.5.5 delivery
 
 Calm Mac window:440×180 content, one replacing line, spinner, primary action and
 optional separate Details. Checks and extensions run in background; system tools
@@ -65,7 +101,7 @@ ACE8EE40F3615C5062CBBD5F085E299E049BAE08, team88FT6QZJP8; Keychain access scoped
 to codesign. Existing notarytool Keychain profile “Zero Notarization”; user entered
 its password privately. Do not read/export credentials or alter access policies.
 
-Fresh-Mac installs, actual first-time profile import/trust, browser quarantine,
+Fresh-Mac installs/trust, browser quarantine,
 physical Intel/Mac12, restricted networks and novice usability remain untested.
 Physical Windows testing held. Earlier0.5.4 existing-Mac copy/JavaFX runtime and historical isolated
 VS Code Run/autosave/build/Stop are recorded in the evidence docs, not rerun claims.
