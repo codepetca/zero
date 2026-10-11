@@ -19,7 +19,7 @@ Zero**, then close the app window or terminate that task before running again.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
    Windows/Linux, **Command+Shift+P** on macOS) in your chosen profile. Use
-   **Extensions: Install from VSIX…** for the local **zero-0.5.2.vsix**, then
+   **Extensions: Install from VSIX…** for the local **zero-0.5.3.vsix**, then
    **Extensions: Install Extensions** for **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
@@ -59,11 +59,9 @@ Next, [Lesson 1](lessons/01-hello-button.md) adds a button that changes the
 greeting. [Lesson 2](lessons/02-hello-name.md) reads your name.
 [Lesson 3](lessons/03-quiz.md) checks one answer with `if`.
 
-Local upcoming extension changes open the first lesson's preview once per project.
+Zero opens the first lesson's preview once per project when the editor is empty.
 Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
-Zero run offers **Show Problems**. These changes are not in the published 0.5.2
-VSIX: open [the lesson file](lessons/00-hello-world.md) yourself and use
-**View: Toggle Problems** to open compiler errors.
+Zero run offers **Show Problems** to reach source errors.
 
 Then follow the [remaining lessons](lessons/README.md) or the small
 [beginner toolkit](BEGINNER.md). Choose an app or game,

@@ -5,7 +5,7 @@
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows/Linux, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.2.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.3.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
@@ -22,11 +22,9 @@
 The optional profile uses a light theme and autosave. The optional keybindings
 file contains F6/F7 shortcuts you can add yourself.
 
-Local upcoming extension changes open the first lesson's preview once per project and
-add **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
-Zero run offers **Show Problems** to reach source errors. These changes are not
-in the published 0.5.2 VSIX; with that version, open the lesson file yourself
-and use **View: Toggle Problems** from the Command Palette if a build fails.
+Zero opens the first lesson's preview once per project when the editor is empty.
+Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
+Zero run offers **Show Problems** to reach source errors.
 
 From a terminal inside starter, run **./mvnw clean compile javafx:run**.
 On Windows use **.\mvnw.cmd clean compile javafx:run**.

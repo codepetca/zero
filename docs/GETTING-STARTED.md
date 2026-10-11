@@ -2,7 +2,7 @@
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
 separate JavaFX window. Extract the kit once to find `START-HERE.md`, the ready
-`starter/` folder, `zero-0.5.2.vsix` and an `optional/` folder containing the profile
+`starter/` folder, `zero-0.5.3.vsix` and an `optional/` folder containing the profile
 and keyboard shortcuts. The separate starter-only ZIP is also available locally.
 This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
@@ -23,7 +23,7 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.2.vsix** through
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.3.vsix** through
    **Extensions: Install from VSIX…** in the Command Palette, then use
    **Extensions: Install Extensions** to install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
@@ -46,10 +46,9 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
 Start with [Lesson 0: Hello, world!](../student-template/lessons/00-hello-world.md)
 and follow the [lesson guide](../student-template/lessons/README.md).
 These files are also bundled in the starter's `lessons/` folder.
-Local upcoming extension changes open the first lesson's preview once per project and
-add **Zero: Open First Lesson** to reopen it from the Command Palette. They also
-offer **Show Problems** after a failed Zero run. These changes are not in the
-published 0.5.2 VSIX; open the bundled lesson yourself with that version.
+Zero opens the first lesson's preview once per project when the editor is empty.
+Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
+Zero run offers **Show Problems** to reach source errors.
 
 Edit only `src/main/java/Main.java` to start. Run App shows **Hello, world!**.
 Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.

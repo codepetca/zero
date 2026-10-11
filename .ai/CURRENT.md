@@ -1,3 +1,14 @@
+# Publication — 2026-10-10
+
+Owner explicitly authorized source PRs, merge, Community 0.1.3 then Zero 0.5.3,
+verified public downloads and the existing Vercel deployment. Preserve unrelated
+primary funding work and all immutable older releases. Integrated implementation
+review coverage at d771930 and alternatives/community8bc5879 is reused. New version
+and public catalog deltas receive bounded independent review. No camera/fork work
+or credential/account-setting changes. Weekly25%remaining; DeepSeek paused.
+Review budget:7launches/1initial/4targeted/1integration/4fixbatches/60min session,
+30min per reviewer; source release delta one Sol/medium, promotion delta targeted.
+
 # Current state — 2026-10-10
 
 ## Integrated local kit — complete locally, 2026-10-10
