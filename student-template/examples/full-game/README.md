@@ -20,7 +20,7 @@ loads `/media-demo/player.png` and `/media-demo/chime.wav` once in setup; keep
 those resource paths. Use the pinned JavaFX media dependency already in this kit
 (see [Lesson 12](../../lessons/12-media.md) for older kits).
 
-Run App and click the canvas for keyboard focus. A/D or Left/Right move; Space or Up jumps once per press while grounded. Collect all four coins before each green exit. The score carries across both levels (eight coins total). Enemy contact or falling loses; the second exit wins. Won/lost states freeze updates. The native Restart button resets both levels, score, player, patrols and camera. A still-held jump is suppressed until released; horizontal held keys resume normal movement.
+Run App and click the canvas for keyboard focus. A/D or Left/Right move; Space or Up jumps once per press while grounded. Collect all four coins before each green exit. The score carries across both levels (eight coins total). Enemy contact or falling loses; the second exit wins. Won/lost states freeze updates. The native Restart button resets both levels, score, player, patrols and camera. A jump still reported by the canvas is suppressed until released. Native controls clear canvas input when they take focus; physical key-repeat after refocusing needs testing.
 
 Main explicitly updates and draws ordinary objects. Drawing saves the graphics
 state, translates the world, and restores in a finally block. ScoreDisplay is an

@@ -52,7 +52,7 @@ on their collection transition. Both levels require all their coins before exit.
 The intermediate level-game retries the current level on danger, preserving
 completed-level points, then loops after level2. The final full-game freezes on
 loss or final victory; Restart creates fresh level objects and resets game state,
-score, player, patrols and camera. Held jump is suppressed until released.
+score, player, patrols and camera. Reset suppresses a held jump reported by the canvas until release.
 
 ## Resource and lifecycle limits
 
@@ -62,6 +62,8 @@ and clears input but has no application cleanup callback. Looping music still
 needs an explicit idempotent cleanup design when a shared need is demonstrated.
 
 Canvas/window focus loss clears held input but does not pause physics or enemies.
+Restart observes that canvas state; physical OS key-repeat after button/canvas
+refocus remains a pilot check.
 The examples keep the canvas in the centre and manage endings through game state;
 inherited show can hide a canvas without stopping its timer. Pause, sprite
 animation, moving platforms and a larger physics library are future extensions.

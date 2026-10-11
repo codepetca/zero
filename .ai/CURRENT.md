@@ -1,4 +1,4 @@
-# Lesson 12 full game — active, 2026-10-10
+# Lesson 12 full game — complete locally, 2026-10-10
 
 Owner explicitly requested local implementation of the full Lesson 12 tutorial:
 media, scrolling camera/fixed scoreboard, platforms/physics, enemies/two levels,
@@ -13,14 +13,15 @@ Orchestration: GPT-6.1-Sol/high owns four new game example folders and native
 checks; GPT-6.1-Sol/medium owns Lesson12, teacher/index and starter copy guides.
 Coordinator owns site metadata, verifier/ZIP integration, architecture docs and
 acceptance. No recursive delegation. Effective model/token telemetry unknown.
-Weekly24% remaining at start is account-wide; DeepSeek paused through2026-12-31.
+Weekly24% remaining at start,23% at completion; readings are account-wide and
+do not isolate task cost. DeepSeek paused through2026-12-31.
 
 Exit: all five runnable stages, own-media replacement, unchanged ordinary-Java
 framework and ScoreDisplay, affected native/kit/site checks and browser lesson
 flow, then independent standard-risk Sol/high review. Review caps:7launches,
 1initial/4targeted/1integration waves,4fixbatches,60min total/30min per reviewer.
-Ledger: launches0, waves0, fixes0. Current status: implementation and affected native/kit/site/browser checks pass;
-independent review next. All five stages runnable; final game completed twice
+Ledger: launches1, initialwaves1, targetedwaves0, integrationwaves0, fixes0.
+Current status: accepted locally after independent review; affected native/kit/site/browser checks pass. All five stages runnable; final game completed twice
 through synthetic normal keys/time without teleports. See VERIFICATION.md.
 Guide worker delivered4docs (~615words Lesson12); coordinator verified copylists,
 corrected one stale snippet after leveldata changed. Game worker delivered31files;
@@ -31,6 +32,18 @@ workers, contract messages and serialized native verification. Browser inspectio
 led to runnable-example guide routing. Native scene and browser images retained
 in ignored .verification/lesson12-game/.
 Physical Windows/Linux, audible output and novice classroom use remain unverified.
+
+Independent receipt: lesson12_review/turn1, requested GPT-6.1-Sol/high,
+base f8f78290e3fd6cc3cae9ddfde9d79534778b9c87 to implementation
+8c9896d53bc3ea2674b640c907a3184555383142, all46changedfiles covered,
+0blockingfindings, focusedlearning7tests pass and full-diff whitespace check pass.
+Review accepted at2026-10-11 01:16UTC; elapsed~150seconds (coordinator clock
+observations, approximate), effective model/token telemetry unavailable. No
+remediation or extra integration wave. Final edits are receipt/pilot-qualifier docs
+only, coordinator-checked; implementation coverage remains exactly unchanged.
+Native Restart observes canvas-reported held keys; button focus clears canvas input.
+Physical key-repeat after refocus is a recorded pilot caveat, not a proven defect.
+Next: teacher play trial, then separately authorized publication if desired.
 
 Historical phase records below are evidence, not additional authorization.
 

@@ -31,7 +31,15 @@ game-won.png. Game images are native JavaFX scene snapshots from a disposable
 renderer running the same complete game check; they are not OS screenshots.
 Physical Windows/Linux, audible output, physical editor/keyboard/setup flow and
 novice classroom trials remain unverified. No push, PR, merge, release or deployment.
-Independent standard-risk review is pending on the local implementation commit.
+Independent standard-risk lesson12_review/turn1 GPT-6.1-Sol/high accepted
+f8f78290e3fd6cc3cae9ddfde9d79534778b9c87..8c9896d53bc3ea2674b640c907a3184555383142:
+all46files covered, no blocking findings. Independent focused learning7tests and
+full-diff whitespace check pass. Coordinator UTC observations indicate~150seconds (approximate); effective model
+and attributable tokens unknown. Ledger:1launch/1initialwave/0fixbatches; no redundant
+integration wave. Subsequent receipt/pilot wording changes are coordinator-checked;
+reviewed implementation is unchanged. Native Restart only sees canvas-held state:
+focusing its button clears that state, so OS repeat after refocus needs a physical
+pilot. Synthetic jump-reset coverage does not establish that physical guarantee.
 
 # Verification — 2026-10-10
 
