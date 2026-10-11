@@ -54,7 +54,9 @@ function signatureRunner({detail, entitlements = '', certificateBytes = certific
       assert.ok(args.includes('--strict')); assert.equal(args[args.indexOf('-R') + 1], `=${developerIdRequirement}`);
       if (fail) throw new Error('rejected signature');
     }
-    if (args.includes('--extract-certificates')) writeFileSync(`${args[args.indexOf('--extract-certificates') + 1]}0`, certificateBytes);
+    assert.ok(!args.includes('--extract-certificates'), 'Optional certificate prefix must use --option=value');
+    const extract = args.find(value => value.startsWith('--extract-certificates='));
+    if (extract) writeFileSync(`${extract.slice('--extract-certificates='.length)}0`, certificateBytes);
     if (args.includes('--entitlements')) return {stdout:entitlements, stderr:'Executable=fake'};
     return {stdout:'', stderr:detail ?? `Executable=fake\nIdentifier=ca.codepet.zero.setup\nAuthority=${authority}\nTeamIdentifier=${team}\nTimestamp=Oct 11, 2026 at 12:00:00\nCodeDirectory v=20500 size=42 flags=0x10000(runtime) hashes=1+0 location=embedded`};
   };

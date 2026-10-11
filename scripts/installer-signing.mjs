@@ -59,7 +59,7 @@ export function verifyMacSignature(run, target, scratchPrefix, {app = false, ide
     const prefix = `${scratchPrefix}-${architecture || 'dmg'}-`, certificate = `${prefix}0`;
     let identitySha1;
     try {
-      run('/usr/bin/codesign', ['--display', ...archArgs, '--extract-certificates', prefix, target]);
+      run('/usr/bin/codesign', ['--display', ...archArgs, `--extract-certificates=${prefix}`, target]);
       identitySha1 = createHash('sha1').update(readFileSync(certificate)).digest('hex').toUpperCase();
     } finally {
       // codesign extracts the leaf and its two issuer certificates.
