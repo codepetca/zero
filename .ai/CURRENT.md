@@ -8,13 +8,13 @@ Historical receipts are evidence, not active work orders.
 Zero is a local VS Code extension/profile and ordinary Java/JavaFX teaching kit.
 Preserve explicit updates, minimal sidebar, student-owned GitHub repos and separate
 Pika links. No Code OSS fork. Public Zero0.5.3/Community0.1.3 unchanged;
-local kit/extension0.5.4, core0.1.1 unpublished. Upload simulation remains default.
+local kit/extension0.5.5, core0.1.1 unpublished. Upload simulation remains default.
 Community AI/CI cannot accept/recommend/publish; no live AI provider.
 Owner-requested removal of both main protections remains in effect; do not restore
 without new authorization. Old publication/merge grants are completed.
 
-Current owner authorization: local Mac signing, Apple notarization and local installer
-testing. Windows
+Current owner authorization: calm Mac setup implementation, local signing, Apple
+notarization and local installer testing. Windows
 runtime testing explicitly held. No push/PR/merge/release/deploy, host tool repair,
 membership conversion, key export or OS/Keychain protection weakening authorized.
 A separate business-account conversation was explicitly requested and created:
@@ -26,7 +26,7 @@ Managed /Users/stew/.codex/worktrees/kit-integration/zero, codex/guided-setup.
 Signed-build source1cc84617c401f162f6dce0b85081fcfc87c8d648, built clean.
 Native runtime correction4b7058c restores child signals; earlier runtimeb3551be.
 Primary /Users/stew/Repos/zero has unrelated funding work; preserve it.
-Community unchanged. No active implementation writers. DeepSeek paused through
+Community unchanged. Active writer calm_mac_setup owns Mac native setup and shell backend/tests. DeepSeek paused through
 2026-12-31. No tool-backed goal/task/automation created merely for orchestration.
 
 ## Signed Mac candidate
@@ -91,3 +91,37 @@ VS Code Run/autosave/default-build/Stop checks apply historically, not rerun her
 Next useful validation is a fresh Mac's downloaded setup and profile flow, followed
 by a separate publication decision. No runtime changes or publication in this test.
 Do not regenerate/publish candidate without revalidating bytes. See INSTALLER.md.
+
+## Calm Mac setup — implemented; independent review next
+
+Owner wants one fixed small window, spinner and one replacing status line;
+no scrolling logs/checklist or Terminal menu in the native Mac happy path.
+Preserve tool/version/JAVA_HOME checks, atomic fresh-folder copy, explicit install
+approvals, existing profiles, Git optional and separate GitHub. Background actions
+must recheck before claiming ready; unavailable automation gets a deliberate,
+plain-language handoff. Manual kit shell flow stays available; Windows held.
+Worker calm_mac_setup GPT-6.1-Sol/high owns native-installer/macos and shell backend/
+tests. Coordinator owns docs/version0.5.5, packaging/native UI evidence and review.
+Base28e39a8; primary funding/community untouched. Old0.5.4 signed/notarized bytes
+and receipts preserved under .verification/mac-signing/preserved-0.5.4.
+Acceptance: fake install/profile state tests, native fixed one-line behavior,
+actual isolated profile/extension flow when feasible, compiled ARM64/universal
+candidate and artifact/source parity. No actual host installs/profile repairs.
+Review budget max7launches/1initialwave/4targetedwaves/1integrationwave/4fixbatches,
+60minsession/30minreviewer; risk assigned after actual install boundary diff.
+Started2026-10-11T15:19:59Z; weekly96% remaining account-wide, task tokens unknown.
+No tool-backed goal/task/automation, publication or source push authorized.
+
+Worker delivered five assigned files; coordinator verified actual source and
+recompiled native harness:87assertions. Shell55tests, Intel typecheck, bash syntax
+pass. Coordinator configuration/48focused packaging/editor checks and packaged
+0.5.5kit parity/extracted Maven compile pass. Actual CUA fake-runner preview covers
+spinner/disabled action, Zero→Java status replacement, ready, separate Details,
+final fake editor request, failure/retry. All captures440×212incltitlebar; source
+content440×180 fixed/nonresizable. No real installs or profile changes. Evidence
+.verification/calm-mac-setup/ui-result.json, {installing,ready,failure}.jpg.
+First-time profile import and elevated Java install remain intentional external
+handoffs; supported CLI isolated-profile probes confirmed no quiet profile creation.
+Worker~15min elapsed; one source implementation, coordinator requested early
+corrections (same-window consent, fallback, incomplete kit, import directions,
+slow preview). No competing writers. Effective tokens/model unknown.

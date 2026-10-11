@@ -3,15 +3,33 @@ import Foundation
 import Darwin
 
 #if ZERO_SETUP_TESTS
+private func snapshot(_ overrides: [String: Int] = [:]) -> String {
+    var values = ["kit": 1, "code": 1, "java": 1, "profile": 1, "zero": 1, "redhat": 1, "javaHomeBlocked": 0]
+    values.merge(overrides) { _, new in new }
+    values["ready"] = ["kit", "code", "java", "profile", "zero", "redhat"].allSatisfy { values[$0] == 1 } ? 1 : 0
+    return "ZERO_SETUP_V1\n" + values.keys.sorted().map { "\($0)=\(values[$0]!)" }.joined(separator: "\n") + "\nEND_ZERO_SETUP\n"
+}
 private final class FakeRunner: SetupCommandRunning {
     var commands: [SetupCommand] = []
     var timeouts: [TimeInterval] = []
     var paused = false
+    var delay: TimeInterval = 0
     var pending: ((CommandResult) -> Void)?
-    var result = CommandResult(exitCode: 0, output: "Zero setup check (profile: Zero)\nKit: complete\nVS Code: compatible\nJDK: ready\nZero profile extensions: ready\nGit: optional", timedOut: false, launchError: nil)
+    var result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
+    var checkOutput = snapshot()
+    var plan = "manual"
+    var useDynamic = false
+    var onRun: ((SetupCommand) -> Void)?
     func run(_ command: SetupCommand, timeout: TimeInterval, completion: @escaping (CommandResult) -> Void) {
-        commands.append(command); timeouts.append(timeout)
-        if paused { pending = completion } else { completion(result) }
+        commands.append(command); timeouts.append(timeout); onRun?(command)
+        if paused { pending = completion } else if delay > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { completion(self.response(command)) }
+        } else { completion(response(command)) }
+    }
+    private func response(_ command: SetupCommand) -> CommandResult {
+        guard useDynamic else { return result }
+        let output = command.arguments.contains("--native-check") ? checkOutput : command.arguments.contains("--native-plan") ? "ZERO_PLAN_V1\naction=\(plan)\nEND_ZERO_PLAN\n" : "Fake approved action finished."
+        return CommandResult(exitCode: 0, output: output, timedOut: false, launchError: nil)
     }
     func finish() { let completion = pending; pending = nil; completion?(result) }
 }
@@ -82,6 +100,35 @@ struct SetupTests {
         try kit.validate()
         let parent = temporary.appendingPathComponent("student files $x; 'quotes'")
         try manager.createDirectory(at: parent, withIntermediateDirectories: true)
+        if CommandLine.arguments.contains("--interactive-preview") {
+            let scenarioIndex = CommandLine.arguments.firstIndex(of: "--scenario")
+            let scenario = scenarioIndex.flatMap { $0 + 1 < CommandLine.arguments.count ? CommandLine.arguments[$0 + 1] : nil } ?? "profile"
+            let fake = FakeRunner(); fake.useDynamic = true; fake.delay = 5
+            switch scenario {
+            case "tools": fake.plan = "install"; fake.checkOutput = snapshot(["code": 0, "profile": 0, "zero": 0, "redhat": 0])
+            case "profile": fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0])
+            case "extensions": fake.checkOutput = snapshot(["zero": 0, "redhat": 0])
+            case "failure": fake.useDynamic = false; fake.result = CommandResult(exitCode: 42, output: "Fake network failure. No host changes.", timedOut: false, launchError: nil)
+            default: fake.checkOutput = snapshot()
+            }
+            fake.onRun = { command in
+                if command.arguments.contains("--native-install") { fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]) }
+                if command.arguments.contains("--native-profile") { fake.checkOutput = snapshot(["zero": 0, "redhat": 0]) }
+                if command.arguments.contains("--native-extension") && command.arguments.contains("java") { fake.checkOutput = snapshot() }
+            }
+            let app = NSApplication.shared; app.setActivationPolicy(.regular)
+            let controller = SetupController(kit: kit, runner: fake)
+            let window = SetupWindow(controller: controller)
+            let delegate = SetupApplication(); delegate.setupWindow = window
+            // No production launch delegate is installed: this harness exclusively
+            // owns disposable fixtures and fake commands, including approvals.
+            window.window?.title = "Zero Setup — safe fake preview"
+            window.showWindow(nil); app.activate(ignoringOtherApps: true)
+            controller.place(parent: parent, name: "Preview kit")
+            print("Safe interactive preview scenario: \(scenario). All commands fake; folder \(temporary.path)")
+            app.run()
+            return
+        }
         let fresh = try kit.place(parent: parent, name: "My Zero $x; 'quoted'")
         try expect(try manager.contentsOfDirectory(atPath: fresh.path).count == manager.contentsOfDirectory(atPath: kit.root.path).count, "complete kit copied")
         try expect(manager.isExecutableFile(atPath: fresh.appendingPathComponent("starter/mvnw").path), "Maven wrapper executable mode preserved")
@@ -119,44 +166,98 @@ struct SetupTests {
 
         let fake = FakeRunner()
         let controller = SetupController(kit: kit, runner: fake)
-        try expect(fake.commands.isEmpty, "opening controller executes nothing")
+        try expect(fake.commands.isEmpty, "controller waits for launch-triggered check")
         controller.place(parent: nil, name: nil)
         try expect(fake.commands.isEmpty && controller.selectedFolder == nil && !controller.busy, "cancelled selection executes nothing")
-        controller.continueSetup()
-        try expect(fake.commands.isEmpty, "continuation requires an explicit copied folder")
+        controller.primaryAction()
+        try expect(fake.commands.isEmpty, "initial action cannot launch editor")
         controller.check()
-        try expect(fake.commands == [SetupCommand(executable: "/bin/bash", arguments: [kit.root.appendingPathComponent("setup/setup.sh").path, "--check"])], "check uses fixed argv with metacharacter paths")
-        try expect(fake.timeouts == [180], "check has outer timeout")
-        try expect(controller.summary.contains("reports ready"), "zero exit reports checker readiness")
-        fake.result = CommandResult(exitCode: 1, output: "JDK: missing", timedOut: false, launchError: nil)
+        try expect(fake.commands == [SetupCommand(executable: "/bin/bash", arguments: [kit.root.appendingPathComponent("setup/setup.sh").path, "--native-check"])], "check uses fixed argv")
+        try expect(fake.timeouts == [180] && controller.stage == .chooseFolder, "read-only check precedes folder")
+        fake.result = CommandResult(exitCode: 0, output: "partial response", timedOut: false, launchError: nil)
         controller.check()
-        try expect(controller.summary.contains("needs attention") && !controller.summary.contains("reports ready"), "nonzero check truthful")
-        fake.result = CommandResult(exitCode: 0, output: "partial check", timedOut: true, launchError: nil)
+        try expect(controller.stage == .retry, "zero exit without complete response cannot ready")
+        fake.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: true, launchError: nil)
         controller.check()
-        try expect(controller.summary.contains("timed out") && !controller.summary.contains("reports ready"), "timeout overrides zero exit")
+        try expect(controller.stage == .retry && controller.summary.contains("timed out"), "timeout overrides exit zero")
         fake.result = CommandResult(exitCode: nil, output: "", timedOut: false, launchError: "denied")
         controller.check()
-        try expect(controller.summary.contains("could not finish") && controller.summary.contains("unverified"), "spawn failure truthful")
+        try expect(controller.stage == .retry && controller.diagnostics.contains("denied"), "spawn failure details separated")
+        fake.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
         controller.place(parent: parent, name: "Controller kit ; $x")
         try pump(until: { !controller.busy })
-        try expect(controller.selectedFolder != nil && fake.commands.count == 4, "placing kit launches no installer")
-        fake.result = CommandResult(exitCode: 0, output: "", timedOut: false, launchError: nil)
-        controller.continueSetup()
-        try expect(fake.commands.last == SetupCommand(executable: "/usr/bin/open", arguments: ["-a", "Terminal", controller.selectedFolder!.appendingPathComponent("setup/Setup.command").path]), "Terminal uses separate argv")
-        try expect(controller.summary.contains("does not confirm"), "open success is not installation success")
-        controller.check()
+        try expect(controller.selectedFolder != nil && controller.stage == .ready, "placed complete kit ready only after recheck")
+        try expect(!fake.commands.contains { $0.arguments.contains("--native-install") || $0.arguments.contains("--native-extension") }, "compatible tool/profile/extension installs skipped")
+        controller.primaryAction()
+        try expect(fake.commands.last?.arguments.last == "--native-open" && controller.stage == .opened, "final Open Zero explicit")
         let copied = controller.selectedFolder!
-        try expect(fake.commands.last == SetupCommand(executable: "/bin/bash", arguments: [copied.appendingPathComponent("setup/setup.sh").path, "--check"]), "recheck probes copied kit")
+        controller.check()
+        try expect(fake.commands.last == SetupCommand(executable: "/bin/bash", arguments: [copied.appendingPathComponent("setup/setup.sh").path, "--native-check"]), "recheck probes copied kit")
         for member in ["starter/pom.xml", "starter/mvnw"] {
-            let file = copied.appendingPathComponent(member)
-            let saved = try Data(contentsOf: file)
+            let file = copied.appendingPathComponent(member), saved = try Data(contentsOf: file)
             try manager.removeItem(at: file)
-            let commandCount = fake.commands.count
+            let count = fake.commands.count
             controller.check()
-            try expect(fake.commands.count == commandCount && controller.summary.contains(member) && !controller.summary.contains("reports ready"), "broken copied \(member) never reports readiness")
+            try expect(fake.commands.count == count && controller.stage == .retry && controller.diagnostics.contains(member), "broken copied member never ready")
             try saved.write(to: file)
             if member == "starter/mvnw" { try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path) }
         }
+        fake.useDynamic = true
+        fake.checkOutput = snapshot(["code": 0]); fake.plan = "install"
+        controller.check()
+        try expect(controller.stage == .toolConsent("code", "install"), "missing Code needs fixed command consent")
+        let countBeforeConsent = fake.commands.count
+        controller.approve(false)
+        try expect(fake.commands.count == countBeforeConsent, "cancelled install consent launches nothing")
+        fake.onRun = { command in if command.arguments.contains("--native-install") { fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]) } }
+        controller.approve(true)
+        try expect(controller.stage == .profileConsent, "approved tool install rechecks before profile")
+        try expect(fake.commands.contains { $0.arguments.suffix(4) == ["--native-install", "code", "install", "--approved"] }, "native consent bound to exact install")
+        controller.approve(false)
+        try expect(controller.stage == .profileConsent, "cancelled profile preserves stage")
+        controller.approve(true)
+        try expect(controller.stage == .profileWaiting, "profile handoff cannot claim import complete")
+        controller.primaryAction()
+        try expect(controller.stage == .profileConsent, "missing profile after handoff stays unready")
+        fake.checkOutput = snapshot(["zero": 0, "redhat": 0]); controller.check()
+        try expect(controller.stage == .extensionConsent, "extension consent only after tools and profile")
+        let beforeExtensions = fake.commands.count
+        controller.approve(false)
+        try expect(fake.commands.count == beforeExtensions, "cancelled extension consent preserves profile")
+        fake.onRun = { command in
+            if command.arguments.contains("--native-extension") && command.arguments.contains("java") { fake.checkOutput = snapshot() }
+        }
+        controller.approve(true)
+        let tail = Array(fake.commands.suffix(3)).map { Array($0.arguments.dropFirst()) }
+        try expect(tail == [["--native-extension", "zero", "--approved"], ["--native-extension", "java", "--approved"], ["--native-check"]], "required extensions installed sequentially then verified")
+        try expect(controller.stage == .ready, "ready follows verified extension response")
+        fake.checkOutput = snapshot(["java": 0, "javaHomeBlocked": 1]); controller.check()
+        try expect(controller.stage == .blockedJava, "explicit invalid JAVA_HOME never installs over selection")
+        fake.plan = "manual"; fake.checkOutput = snapshot(["java": 0]); controller.check()
+        try expect(controller.stage == .manualTool("java"), "JDK elevation uses vendor flow")
+        fake.checkOutput = snapshot(["zero": 0]); controller.check()
+        fake.useDynamic = false
+        fake.result = CommandResult(exitCode: 42, output: "network failure", timedOut: false, launchError: nil)
+        controller.approve(true)
+        try expect(controller.stage == .retry && !controller.summary.contains("ready"), "failed extension never ready")
+        fake.useDynamic = true; fake.checkOutput = snapshot(); controller.primaryAction()
+        try expect(controller.stage == .ready, "retry can recover through a fresh check")
+        try expect(!fake.commands.contains { $0.arguments.contains("Terminal") }, "native flow never launches Terminal")
+        try expect(!controller.summary.contains("\n") && controller.summary.count < 60, "default status always one short line")
+        try rejected("inconsistent readiness") { _ = try SetupSnapshot.parse(snapshot(["code": 0]).replacingOccurrences(of: "ready=0", with: "ready=1")) }
+        try rejected("duplicate protocol keys") { _ = try SetupSnapshot.parse(snapshot().replacingOccurrences(of: "kit=1", with: "kit=1\nkit=1")) }
+
+        fake.checkOutput = snapshot(["code": 0]); fake.plan = "install"; controller.check()
+        fake.useDynamic = false; fake.result = CommandResult(exitCode: 0, output: "brew waiting", timedOut: true, launchError: nil)
+        controller.approve(true)
+        try expect(controller.stage == .manualTool("code") && controller.primaryTitle == "Open download page", "brew timeout offers deliberate vendor fallback")
+        try expect(controller.diagnostics.contains("timed out") || controller.diagnostics.contains("exceeded"), "brew timeout retained in details")
+        let incompleteFake = FakeRunner()
+        incompleteFake.result = CommandResult(exitCode: 0, output: snapshot(["kit": 0]), timedOut: false, launchError: nil)
+        let incomplete = SetupController(kit: kit, runner: incompleteFake)
+        incomplete.check()
+        try expect(incomplete.stage == .retry && incomplete.selectedFolder == nil, "incomplete kit stops before folder prompt")
+        try expect(!fake.commands.contains { $0.arguments.contains("Terminal") }, "fallback never opens Terminal")
 
         let developmentLabel = SetupBuildLabel(info: ["ZeroDevelopmentBuild": true, "CFBundleShortVersionString": "0.5.4"])
         let signedLabel = SetupBuildLabel(info: ["ZeroDevelopmentBuild": false, "CFBundleShortVersionString": "0.5.4"])
@@ -182,13 +283,9 @@ struct SetupTests {
         try expect(pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "close and quit allowed after check finishes")
         pausedController.place(parent: parent, name: "Paused copy")
         try expect(!pausedController.mayExit(), "copy owns shutdown until completion")
-        try pump(until: { !pausedController.busy })
-        try expect(pausedController.mayExit(), "copy releases shutdown after completion")
-        pausedController.continueSetup()
-        try expect(!pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateCancel, "launch request owns window and app shutdown")
+        try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()
-        try expect(pausedController.mayExit(), "launch completion releases shutdown")
-
+        try expect(pausedController.mayExit(), "copy and recheck release shutdown after completion")
         // Exercise the real runner only against disposable scripts, never tools.
         let fakeScript = temporary.appendingPathComponent("fake script ; $x.sh")
         try "#!/bin/bash\nprintf 'captured output\\n'\nexit 7\n".write(to: fakeScript, atomically: true, encoding: .utf8)
@@ -253,7 +350,8 @@ struct SetupTests {
             let app = NSApplication.shared
             app.setActivationPolicy(.prohibited)
             let previewController = SetupController(kit: kit, runner: FakeRunner())
-            previewController.check()
+            previewController.place(parent: parent, name: "Preview ready")
+            try pump(until: { !previewController.busy })
             let window = SetupWindow(controller: previewController)
             window.window?.appearance = NSAppearance(named: .aqua)
             guard let content = window.window?.contentView else { throw SetupFailure(message: "No preview view") }

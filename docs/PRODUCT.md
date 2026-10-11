@@ -96,8 +96,11 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   installation, credential configuration or policy bypass. See [setup](SETUP.md).
 - Local native setup wrappers embed the complete kit: a universal macOS app/DMG
   and a Windows EXE. They check tools, place a fresh writable folder and explicitly
-  continue into the guided setup. Existing projects are preserved. Development
-  packages are unsigned and unpublished; see [native setup](INSTALLER.md).
+  guide setup while preserving existing projects. The Mac flow uses a small fixed
+  window with one replacing status line, hides technical logs under Details and
+  performs supported background actions after explicit approval. It pauses for
+  necessary vendor/editor handoffs. Windows retains its guided terminal menu.
+  New candidates remain local/unpublished; see [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing
   the local VSIX and Java extensions in it. The standard build shortcut runs

@@ -1,42 +1,57 @@
 # Native Zero Setup
 
 Zero Setup is a thin native wrapper around the guided setup scripts. The local
-0.5.4 development builds embed the complete kit; they are not published downloads
+0.5.5 development builds embed the complete kit; they are not published downloads
 and are not ready for classroom distribution until platform testing and signing.
 
-## Student flow
+## Mac student flow
 
-1. Open Zero Setup and choose **Check laptop**. Read selected tool versions/paths
-   and any missing or incompatible items. Checks do not install anything.
-2. Choose **Set up Zero**, select a writable parent folder, and give a fresh folder
-   name. The complete kit is copied there. Existing folders are never replaced,
-   including when a folder appears during copying.
-3. Choose **Continue setup**. The existing guided setup opens in a terminal and
-   offers explicit tool repair, profile and extension actions. Keep compatible
-   tools. Use official manual repair when a package manager cannot manage them.
-4. Open the copied starter in Zero, run the first app and confirm its window.
-   Git is optional for local running. GitHub sign-in/repository creation and Pika
-   link submission are separate.
+The Mac setup window stays small and fixed in size. It shows a spinner and one
+short status message, replacing the previous message as each step changes.
+Technical output is available only through **Details** in a separate window.
+There is no checklist, scrolling log or Terminal menu in the native Mac flow.
 
-The app also offers **Show guide** and **Open folder**. The kit is placed in a
-student folder, not inside a read-only DMG or Program Files. No setup is performed
-as root. Cancellation/failure preserves existing work; partial staging is cleaned
-up. Normal close/quit waits until the current check or copy has finished; a check
-has a bounded timeout. Forced process termination can still leave an owned hidden
-staging folder; it never authorizes replacing an existing project. Recheck after
-repairs and restart when environment changes require it.
+Setup checks existing tools before proposing changes. Choose a fresh writable
+kit folder; existing folders are never replaced. It handles one required item at
+a time, asks before installation or an external handoff, and checks the result
+before advancing. Compatible tools and existing profiles are reused. Git is
+optional for local running; GitHub and Pika remain separate.
+
+When setup needs a vendor installer or an editor action, it explains that step
+before opening the relevant application. macOS approval prompts remain visible;
+setup never enters passwords, silently elevates or installs a package manager.
+An unavailable or failed action leaves a clear retry/help state instead of
+claiming success. **Open Zero** is offered after required readiness checks pass;
+opening the editor is not proof that the first app runs. In Zero, use Run App
+and confirm the greeting window.
+
+Supported background work includes tool checks, kit copying and approved extension
+installation into an existing Zero profile. VS Code's supported CLI cannot create
+or import that profile quietly: if it is absent, setup provides an intentional
+editor/profile-file handoff and verifies the profile when the student returns.
+Compatible existing profiles are preserved; quiet settings remain an optional
+import before extensions. A missing JDK uses the official Temurin installer flow
+with normal macOS approval. Where existing Homebrew can manage VS Code without
+interactive elevation, an explicitly approved operation may run in the background;
+otherwise setup offers its official vendor flow. No hidden password prompt.
+
+The extracted kit's shell launcher stays available as a manual fallback. Windows
+retains its existing wrapper and guided menu; Windows testing is deferred.
+Cancellation/failure preserves existing work; owned partial staging is cleaned
+up. Close/quit waits for the current owned operation to finish. Forced termination
+can still leave owned staging, never permission to replace an existing project.
 
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates
-`dist/installers/Zero-Setup-0.5.4-macos-development.dmg` and
-`dist/installers/Zero-Setup-0.5.4-windows-development.exe`. The measured
+`dist/installers/Zero-Setup-0.5.5-macos-development.dmg` and
+`dist/installers/Zero-Setup-0.5.5-windows-development.exe`. The measured
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
-The current Mac-first pass uses the reviewed4b7058c source and
-`dist/installers/build-macos.json`; the earlier all-platform receipt is historical
-and archived under `.verification/native-installer/build-all-b3551be.json`.
+The calmer Mac setup is a new local candidate. The prior signed/notarized 0.5.4
+DMG and receipt are preserved under `.verification/mac-signing/preserved-0.5.4/`;
+its verification does not cover changed setup behavior.
 Windows testing is explicitly deferred. To rebuild/check only Mac:
 
 ```sh
@@ -53,7 +68,7 @@ node scripts/verify-installers.mjs --platform macos --signed
 ```
 
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
-not a secret). The signed candidate is `Zero-Setup-0.5.4-macos.dmg`, measured in
+not a secret). The signed candidate is `Zero-Setup-0.5.5-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
 The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
 removes unsigned-development labels and shows only Zero Setup/version. Signed
@@ -84,19 +99,25 @@ folder, and copies it atomically into the chosen fresh folder. The macOS app
 carries the kit in Contents/Resources/kit and preserves executable script modes.
 
 Native checks have bounded output/time and use fixed executables/arguments.
-macOS calls `/bin/bash .../setup.sh --check`; Windows calls native PowerShell
+macOS calls `/bin/bash .../setup.sh --native-check`; Windows calls native PowerShell
 `-NoProfile -NonInteractive -File .../Setup.ps1 -Check` under normal policy.
-Continue opens the copied launcher explicitly. Windows uses normal-policy
+The native Mac flow invokes fixed background actions from the copied kit. Windows
+Continue opens the copied launcher explicitly and uses normal-policy
 `-File`, never an automatic execution-policy exception. If policy blocks it,
 read the copied Setup.cmd guidance; managed policy remains authoritative.
 
 No new package manager, persistent agent or custom IDE engine is introduced.
-Compatible VS Code policy comes from canonical extension metadata. Shell scripts
-retain their explicit Homebrew/winget install-versus-update prompts; the wrapper
-does not download and execute its own unverified installers. Unknown versions,
+Compatible VS Code policy comes from canonical extension metadata. Manual shell
+scripts retain their explicit Homebrew/winget install-versus-update prompts; the Mac native flow approves fixed background actions in its own window.
+The wrapper does not download and execute its own unverified installers. Unknown versions,
 broken JAVA_HOME, unmanaged tools and failed repairs remain visible.
 
 ## Verification and distribution limits
+
+The prior 0.5.4 candidate passed Developer ID signing, Apple notarization, staple
+validation and Gatekeeper CLI assessments. Its local existing-Mac smoke test
+passed native checks, folder protection/copy and JavaFX runtime. New 0.5.5 source
+and artifacts require their own verification; prior receipts do not cover them.
 
 Default development packages lack Developer ID/notarization or Authenticode signing.
 A compiler's ad-hoc Mach-O signature is not a distribution identity. Do not guide
@@ -111,12 +132,17 @@ student/teacher profiles, tools and accounts were preserved; no package-manager
 installation or authentication was attempted.
 
 These checks do not prove physical Windows UI, Intel execution, clean-machine
-repairs, native Terminal/profile-import/trust prompts, Gatekeeper/SmartScreen,
+repairs, native profile-import/trust or first-open security prompts, SmartScreen,
 restricted school networks or novice usability. Terminal GUI access was blocked
 by the computer-control tool; the copied guided menu was tested through an
 isolated PTY. See [VERIFICATION.md](VERIFICATION.md) for evidence and limits.
 
 ## Maintainer harnesses
+
+For safe interactive visual checks, run the compiled harness with
+`--interactive-preview --scenario extensions` (also `tools`, `profile`, `ready`,
+`failure`). This uses disposable kits and fake commands exclusively; it is not
+real installation evidence. It never installs tools or edits host profiles.
 
 On macOS, compile and run against disposable files/fake commands:
 

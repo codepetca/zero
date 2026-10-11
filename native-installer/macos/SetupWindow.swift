@@ -7,6 +7,7 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
         let controller = SetupController(kit: SetupKit(root: resources.appendingPathComponent("kit")))
         setupWindow = SetupWindow(controller: controller)
         setupWindow?.showWindow(nil)
+        controller.check()
         NSApp.activate(ignoringOtherApps: true)
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
@@ -28,107 +29,69 @@ struct SetupBuildLabel {
 
 final class SetupWindow: NSWindowController, NSWindowDelegate {
     let controller: SetupController
-    private let summary = NSTextView()
-    private let checkButton = NSButton(title: "Check laptop", target: nil, action: nil)
-    private let setupButton = NSButton(title: "Set up Zero…", target: nil, action: nil)
-    private let continueButton = NSButton(title: "Continue setup", target: nil, action: nil)
-    private let folderButton = NSButton(title: "Open folder", target: nil, action: nil)
-    private let guideButton = NSButton(title: "Show guide", target: nil, action: nil)
+    private let status = NSTextField(labelWithString: "")
+    private let spinner = NSProgressIndicator()
+    private let primary = NSButton(title: "Please wait", target: nil, action: nil)
+    private let details = NSButton(title: "Details…", target: nil, action: nil)
+    private var diagnosticsWindow: NSWindowController?
 
     init(controller: SetupController) {
         self.controller = controller
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 550),
-                              styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        let build = SetupBuildLabel()
-        window.title = build.windowTitle
-        window.minSize = NSSize(width: 630, height: 430)
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 180),
+                              styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
+        window.title = SetupBuildLabel().windowTitle
         super.init(window: window)
-        window.delegate = self
-        window.center()
-        let root = NSView()
-        root.translatesAutoresizingMaskIntoConstraints = false
+        window.delegate = self; window.center()
+        let root = NSView(frame: NSRect(x: 0, y: 0, width: 440, height: 180))
         window.contentView = root
-        let title = NSTextField(labelWithString: "Zero Setup")
-        title.font = .systemFont(ofSize: 28, weight: .semibold)
-        let subtitle = NSTextField(labelWithString: "Check this laptop, then choose a fresh folder for your Java kit.")
-        subtitle.font = .systemFont(ofSize: 14)
-        let development = NSTextField(labelWithString: build.detail)
-        development.textColor = .secondaryLabelColor
-        development.font = .systemFont(ofSize: 12)
-
-        summary.isEditable = false
-        summary.isSelectable = true
-        summary.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
-        summary.textContainerInset = NSSize(width: 12, height: 12)
-        summary.autoresizingMask = [.width]
-        summary.isHorizontallyResizable = false
-        summary.isVerticallyResizable = true
-        summary.textContainer?.widthTracksTextView = true
-        summary.setAccessibilityLabel("Read-only setup check summary")
-        let scroll = NSScrollView()
-        scroll.hasVerticalScroller = true
-        scroll.borderType = .bezelBorder
-        scroll.documentView = summary
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-
-        configure(checkButton, action: #selector(checkLaptop))
-        configure(setupButton, action: #selector(setupZero))
-        configure(continueButton, action: #selector(continueSetup))
-        configure(folderButton, action: #selector(openFolder))
-        configure(guideButton, action: #selector(showGuide))
-        let buttons = NSStackView(views: [checkButton, setupButton, guideButton])
-        buttons.orientation = .horizontal; buttons.spacing = 10
-        let continuation = NSStackView(views: [continueButton, folderButton])
-        continuation.orientation = .horizontal; continuation.spacing = 10
-        let header = NSStackView(views: [title, subtitle, development])
-        header.orientation = .vertical; header.alignment = .leading; header.spacing = 6
-        [header, buttons, continuation].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
-        [header, scroll, buttons, continuation].forEach { root.addSubview($0) }
+        status.font = .systemFont(ofSize: 14)
+        status.alignment = .center
+        status.maximumNumberOfLines = 1
+        status.lineBreakMode = .byTruncatingTail
+        status.setAccessibilityLabel("Setup status")
+        spinner.style = .spinning; spinner.controlSize = .small
+        spinner.isDisplayedWhenStopped = false
+        for view in [status, spinner, primary, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
+        primary.bezelStyle = .rounded; primary.target = self; primary.action = #selector(primaryAction)
+        details.bezelStyle = .rounded; details.target = self; details.action = #selector(showDetails)
         NSLayoutConstraint.activate([
-            header.topAnchor.constraint(equalTo: root.topAnchor, constant: 24),
-            header.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
-            header.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor, constant: -24),
-            scroll.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 20),
-            scroll.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
-            scroll.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -24),
-            scroll.bottomAnchor.constraint(equalTo: buttons.topAnchor, constant: -18),
-            buttons.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
-            buttons.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor, constant: -24),
-            buttons.bottomAnchor.constraint(equalTo: continuation.topAnchor, constant: -12),
-            continuation.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 24),
-            continuation.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -24)
+            spinner.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+            spinner.topAnchor.constraint(equalTo: root.topAnchor, constant: 25),
+            spinner.widthAnchor.constraint(equalToConstant: 18), spinner.heightAnchor.constraint(equalToConstant: 18),
+            status.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: 16),
+            status.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 20),
+            status.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -20),
+            status.heightAnchor.constraint(equalToConstant: 22),
+            primary.topAnchor.constraint(equalTo: status.bottomAnchor, constant: 18),
+            primary.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+            details.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
+            details.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10)
         ])
         controller.changed = { [weak self] in self?.refresh() }
         refresh()
     }
-
     required init?(coder: NSCoder) { fatalError("Use init(controller:)") }
-
     func windowShouldClose(_ sender: NSWindow) -> Bool { controller.mayExit() }
-
-    private func configure(_ button: NSButton, action: Selector) {
-        button.bezelStyle = .rounded
-        button.target = self
-        button.action = action
-    }
-
     func refresh() {
-        summary.string = controller.summary
-        checkButton.title = controller.hasChecked ? "Check again" : "Check laptop"
-        checkButton.isEnabled = !controller.busy
-        setupButton.isEnabled = !controller.busy
-        guideButton.isEnabled = !controller.busy
-        continueButton.isEnabled = !controller.busy && controller.selectedFolder != nil
-        folderButton.isEnabled = !controller.busy && controller.selectedFolder != nil
+        status.stringValue = controller.summary
+        primary.title = controller.primaryTitle; primary.isEnabled = !controller.busy
+        if controller.busy { spinner.startAnimation(nil) } else { spinner.stopAnimation(nil) }
+    }
+    @objc private func primaryAction() {
+        guard !controller.busy, window != nil else { return }
+        if controller.stage == .chooseFolder { chooseFolder(); return }
+        if controller.consent != nil {
+            let profileHandoff = controller.stage == .profileConsent
+            controller.approve(true)
+            if profileHandoff { NSWorkspace.shared.activateFileViewerSelecting([controller.profileFile]) }
+        } else { controller.primaryAction() }
     }
 
-    @objc private func checkLaptop() { controller.check() }
-
-    @objc private func setupZero() {
+    private func chooseFolder() {
         guard let window else { return }
         let picker = NSOpenPanel()
         picker.title = "Choose where to place your new Zero folder"
-        picker.message = "Choose a writable parent folder. The complete kit goes into a fresh folder inside it."
+        picker.message = "Your kit goes into a fresh folder here. Existing projects are preserved."
         picker.prompt = "Choose folder"
         picker.canChooseDirectories = true; picker.canChooseFiles = false
         picker.allowsMultipleSelection = false; picker.canCreateDirectories = true
@@ -137,30 +100,32 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
             let alert = NSAlert()
             alert.messageText = "Name your new Zero folder"
             alert.informativeText = "Existing folders and projects are always preserved."
-            alert.addButton(withTitle: "Place kit"); alert.addButton(withTitle: "Cancel")
+            alert.addButton(withTitle: "Set up Zero"); alert.addButton(withTitle: "Cancel")
             let name = NSTextField(string: "Zero")
-            name.frame = NSRect(x: 0, y: 0, width: 340, height: 24)
+            name.frame = NSRect(x: 0, y: 0, width: 300, height: 24)
             name.setAccessibilityLabel("New Zero folder name")
-            alert.accessoryView = name
-            alert.window.initialFirstResponder = name
+            alert.accessoryView = name; alert.window.initialFirstResponder = name
             alert.beginSheetModal(for: window) { response in
                 if response == .alertFirstButtonReturn { self.controller.place(parent: parent, name: name.stringValue) }
             }
         }
     }
-
-    @objc private func continueSetup() { controller.continueSetup() }
-    @objc private func openFolder() {
-        guard let folder = controller.selectedFolder else { return }
-        NSWorkspace.shared.activateFileViewerSelecting([folder])
-    }
-    @objc private func showGuide() {
-        let guide = (controller.selectedFolder ?? controller.kit.root).appendingPathComponent("START-HERE.md")
-        if !NSWorkspace.shared.open(guide) {
-            let alert = NSAlert()
-            alert.messageText = "Could not open the guide"
-            alert.informativeText = "Open this file manually:\n\(guide.path)"
-            alert.runModal()
-        }
+    @objc private func showDetails() {
+        let detailWindow = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 700, height: 460),
+                                    styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        detailWindow.title = "Zero Setup Details"
+        let text = NSTextView()
+        text.isEditable = false; text.isSelectable = true
+        text.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
+        text.textContainerInset = NSSize(width: 12, height: 12)
+        text.isHorizontallyResizable = false; text.isVerticallyResizable = true
+        text.autoresizingMask = [.width]; text.textContainer?.widthTracksTextView = true
+        text.string = "\(controller.summary)\n\n\(controller.consent?.detail ?? "")\n\nProfile import: Command Palette > Preferences: Open Profiles (UI) > menu beside New Profile > Import Profile… > Select File…. Select \(controller.profileFile.path) and Create a profile named Zero. Return here and Continue.\n\n\(controller.diagnostics)\nGuide: \((controller.selectedFolder ?? controller.kit.root).appendingPathComponent("START-HERE.md").path)"
+        let scroll = NSScrollView(frame: detailWindow.contentLayoutRect)
+        scroll.autoresizingMask = [.width, .height]
+        scroll.hasVerticalScroller = true; scroll.documentView = text
+        detailWindow.contentView = scroll
+        diagnosticsWindow = NSWindowController(window: detailWindow)
+        detailWindow.center(); diagnosticsWindow?.showWindow(nil)
     }
 }

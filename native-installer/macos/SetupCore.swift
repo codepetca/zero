@@ -291,83 +291,218 @@ struct SetupKit {
     }
 }
 
+/// Only the final complete protocol block is authoritative. Human/tool output
+/// stays in diagnostics; a successful process exit alone never proves readiness.
+struct SetupSnapshot {
+    let fields: [String: Bool]
+    subscript(_ key: String) -> Bool { fields[key] ?? false }
+    var ready: Bool { self["ready"] }
+    static func parse(_ output: String) throws -> SetupSnapshot {
+        let fields = try protocolFields(output, start: "ZERO_SETUP_V1", end: "END_ZERO_SETUP")
+        let keys: Set<String> = ["kit", "code", "java", "profile", "zero", "redhat", "javaHomeBlocked", "ready"]
+        guard Set(fields.keys) == keys, fields.values.allSatisfy({ $0 == "0" || $0 == "1" }) else {
+            throw SetupFailure(message: "Invalid setup check response.")
+        }
+        let snapshot = SetupSnapshot(fields: fields.mapValues { $0 == "1" })
+        let complete = ["kit", "code", "java", "profile", "zero", "redhat"].allSatisfy { snapshot[$0] }
+        guard snapshot.ready == complete, !(snapshot["javaHomeBlocked"] && snapshot["java"]) else {
+            throw SetupFailure(message: "Inconsistent setup check response.")
+        }
+        return snapshot
+    }
+}
+
+private func protocolFields(_ output: String, start: String, end: String) throws -> [String: String] {
+    let lines = output.components(separatedBy: .newlines)
+    guard let begin = lines.lastIndex(of: start), let finish = lines.lastIndex(of: end), finish > begin,
+          lines[(finish + 1)...].allSatisfy({ $0.isEmpty }) else {
+        throw SetupFailure(message: "Incomplete setup response.")
+    }
+    var result: [String: String] = [:]
+    for line in lines[(begin + 1)..<finish] {
+        let pair = line.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+        guard pair.count == 2, result[String(pair[0])] == nil else { throw SetupFailure(message: "Invalid setup response.") }
+        result[String(pair[0])] = String(pair[1])
+    }
+    return result
+}
+
+enum SetupStage: Equatable {
+    case checking, chooseFolder, toolConsent(String, String), manualTool(String), blockedJava
+    case profileConsent, profileWaiting, extensionConsent, ready, retry, opened
+}
+
 final class SetupController {
     let kit: SetupKit
     let runner: SetupCommandRunning
     private(set) var selectedFolder: URL?
     private(set) var busy = false
     private(set) var hasChecked = false
-    private(set) var summary = "Choose Check laptop to inspect installed tools.\nNothing is installed by opening this app or running a check.\n\nSet up Zero places the complete kit in a new folder. Continue setup then opens the guided terminal menu, where each repair or installation is your choice. GitHub is separate; Git is optional for local Run."
+    private(set) var stage: SetupStage = .checking
+    private(set) var summary = "Checking your laptop…"
+    private(set) var diagnostics = "Git is optional for local apps. GitHub sign-in and sharing are separate.\n"
+    private var snapshot: SetupSnapshot?
     var changed: (() -> Void)?
 
-    init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner()) {
-        self.kit = kit
-        self.runner = runner
+    init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner()) { self.kit = kit; self.runner = runner }
+
+    var primaryTitle: String {
+        switch stage {
+        case .checking: return "Please wait"
+        case .chooseFolder: return "Choose folder…"
+        case .toolConsent(_, let operation): return operation == "upgrade" ? "Update VS Code…" : "Install VS Code…"
+        case .manualTool: return "Open download page"
+        case .blockedJava, .retry: return "Check again"
+        case .profileConsent: return "Open VS Code"
+        case .profileWaiting: return "Continue"
+        case .extensionConsent: return "Install support"
+        case .ready: return "Open Zero"
+        case .opened: return "Open Zero again"
+        }
+    }
+    var profileFile: URL { (selectedFolder ?? kit.root).appendingPathComponent("optional/Zero.code-profile") }
+    var consent: (title: String, detail: String)? {
+        switch stage {
+        case .toolConsent(_, let operation):
+            return (operation == "upgrade" ? "Update VS Code?" : "Install VS Code?",
+                    "Use your existing Homebrew to \(operation) Visual Studio Code?\n\nbrew \(operation) --cask visual-studio-code\n\nIf administrator permission or school policy blocks it, setup stops and offers the official download page.")
+        case .profileConsent:
+            return ("Import the Zero profile", "VS Code needs one manual import. Open the Command Palette and choose Preferences: Open Profiles (UI). Use the menu beside New Profile > Import Profile… > Select File…. Choose the highlighted Zero.code-profile file, name it Zero, and choose Create.\n\nThis adds the supplied light theme and autosave settings in a separate profile. Your existing profiles are preserved. Return here and choose Continue afterward.")
+        case .extensionConsent:
+            return ("Install Zero support?", "Install the bundled Zero extension and any missing Java language support (redhat.java) in the Zero profile? Java support downloads from the VS Code Marketplace. Compatible installed extensions are kept. Your other profiles and settings are preserved.")
+        default: return nil
+        }
     }
 
-    func check() {
-        guard !busy else { return }
+    private func set(_ next: SetupStage, _ message: String) { stage = next; summary = message; changed?() }
+    private func record(_ text: String) {
+        diagnostics += text + "\n"
+        if diagnostics.utf8.count > 1024 * 1024 { diagnostics = String(diagnostics.suffix(512 * 1024)) }
+    }
+    private func fail(_ message: String, detail: String) {
+        snapshot = nil; busy = false; record(detail); set(.retry, message)
+    }
+    private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, onFailure: (() -> Void)? = nil, completion: @escaping (CommandResult) -> Void) {
         do {
-            let command = try SetupKit(root: selectedFolder ?? kit.root).checkCommand()
-            busy = true
-            summary = "Checking this laptop… No installation is requested.\nThis check can take up to three minutes."
-            changed?()
-            runner.run(command, timeout: 180) { [weak self] result in
+            let current = SetupKit(root: selectedFolder ?? kit.root)
+            try current.validate()
+            busy = true; summary = status; changed?()
+            let command = SetupCommand(executable: "/bin/bash", arguments: [current.root.appendingPathComponent("setup/setup.sh").path] + arguments)
+            runner.run(command, timeout: timeout) { [weak self] result in
                 guard let self else { return }
                 self.busy = false
-                self.hasChecked = true
-                let heading: String
-                if result.timedOut { heading = "Check timed out. Readiness is unverified; use Check again." }
-                else if let error = result.launchError { heading = "Check could not finish: \(error). Readiness is unverified." }
-                else if result.succeeded { heading = "The kit check reports ready for local Run. Open Zero and run the first app to confirm its window." }
-                else { heading = "Check needs attention (\(result.exitCode.map { "exit \($0)" } ?? "process stopped")). Review the details below, then use Set up Zero for guided help." }
-                self.summary = heading + "\n\n" + result.output
-                self.changed?()
+                self.record("Action: \(arguments.joined(separator: " "))\nExit: \(result.exitCode.map(String.init) ?? "stopped")\n\(result.output)")
+                if result.timedOut { self.fail("Setup timed out. Try again.", detail: "Command exceeded \(timeout) seconds. Readiness is unverified."); onFailure?(); return }
+                if let error = result.launchError { self.fail("Setup could not finish. Try again.", detail: error); onFailure?(); return }
+                if !result.succeeded { self.fail("Setup needs attention. Try again.", detail: "Action failed. No readiness confirmed. Use Details for details."); onFailure?(); return }
+                completion(result)
             }
-        } catch { summary = error.localizedDescription; changed?() }
+        } catch { fail("The kit needs attention. See Details.", detail: error.localizedDescription) }
     }
-
-    /// Both window-close and application-quit share this policy. Keep the owner
-    /// alive until an asynchronous check/copy/open completes; no cancellation.
+    func check() {
+        guard !busy else { return }
+        snapshot = nil; stage = .checking
+        run(["--native-check"], status: "Checking your laptop…") { [weak self] result in
+            guard let self else { return }
+            self.hasChecked = true
+            do {
+                self.snapshot = try SetupSnapshot.parse(result.output)
+                guard self.snapshot?["kit"] == true else { self.fail("The kit is incomplete. See Details.", detail: "Kit metadata or required files are incomplete."); return }
+                if self.selectedFolder == nil { self.set(.chooseFolder, "Choose a folder for your Zero kit."); return }
+                self.advance()
+            } catch { self.fail("The check was incomplete. Try again.", detail: error.localizedDescription) }
+        }
+    }
+    private func advance() {
+        guard let snapshot else { return }
+        guard snapshot["kit"] else { fail("The kit is incomplete. See Details.", detail: "Extract a complete Zero kit."); return }
+        if !snapshot["code"] { plan("code"); return }
+        if !snapshot["java"] {
+            if snapshot["javaHomeBlocked"] {
+                record("JAVA_HOME selects an incompatible or missing JDK. Ask your teacher/IT to select an installed matching JDK 17+. Setup will not change this environment choice.")
+                set(.blockedJava, "Java needs help. See Details.")
+            } else { plan("java") }
+            return
+        }
+        if !snapshot["profile"] { set(.profileConsent, "Import the Zero profile in VS Code."); return }
+        if !snapshot["zero"] || !snapshot["redhat"] { set(.extensionConsent, "Install Zero and Java editor support?"); return }
+        guard snapshot.ready && selectedFolder != nil else { fail("Readiness is unverified. Try again.", detail: "Required check fields did not establish readiness."); return }
+        set(.ready, "Zero is ready. Open it to begin.")
+    }
+    private func plan(_ tool: String) {
+        run(["--native-plan", tool], status: tool == "code" ? "Finding VS Code setup options…" : "Finding Java setup options…") { [weak self] result in
+            guard let self else { return }
+            do {
+                let fields = try protocolFields(result.output, start: "ZERO_PLAN_V1", end: "END_ZERO_PLAN")
+                guard fields.count == 1, let action = fields["action"] else { throw SetupFailure(message: "Invalid installation proposal.") }
+                switch action {
+                case "install" where tool == "code", "upgrade" where tool == "code": self.set(.toolConsent(tool, action), action == "upgrade" ? "Update VS Code with Homebrew?" : "Install VS Code with Homebrew?")
+                case "manual": self.set(.manualTool(tool), tool == "code" ? "Install VS Code, then check again." : "Install Java 17 or newer, then check again.")
+                case "blocked": self.fail("Setup needs help. See Details.", detail: "Tool setup is blocked by kit or environment configuration.")
+                case "skip": self.set(.retry, "Tools changed. Check again.")
+                default: throw SetupFailure(message: "Invalid installation proposal.")
+                }
+            } catch { self.fail("Setup options could not be checked.", detail: error.localizedDescription) }
+        }
+    }
+    /// Consent is supplied only by a deliberate native confirmation button.
+    func approve(_ approved: Bool) {
+        guard !busy, approved else { return }
+        switch stage {
+        case .toolConsent(let tool, let operation):
+            run(["--native-install", tool, operation, "--approved"], status: operation == "upgrade" ? "Updating VS Code…" : "Installing VS Code…", timeout: 600, onFailure: { [weak self] in self?.set(.manualTool("code"), "VS Code installation stopped. Get help.") }) { [weak self] _ in self?.check() }
+        case .profileConsent:
+            run(["--native-profile"], status: "Opening the profile import…", timeout: 30) { [weak self] _ in self?.set(.profileWaiting, "Import Zero in VS Code (Details for steps).") }
+        case .extensionConsent:
+            installExtensions()
+        default: break
+        }
+    }
+    private func installExtensions() {
+        guard let snapshot else { check(); return }
+        let missing = ["zero", "redhat"].filter { !snapshot[$0] }
+        func install(_ index: Int) {
+            guard index < missing.count else { self.check(); return }
+            let target = missing[index] == "zero" ? "zero" : "java"
+            self.run(["--native-extension", target, "--approved"], status: target == "zero" ? "Installing Zero support…" : "Installing Java support…", timeout: 600) { _ in install(index + 1) }
+        }
+        install(0)
+    }
+    func primaryAction() {
+        guard !busy else { return }
+        switch stage {
+        case .profileWaiting, .retry, .blockedJava: check()
+        case .manualTool(let tool):
+            let url = tool == "code" ? "https://code.visualstudio.com/download" : "https://adoptium.net/temurin/releases/?version=17"
+            busy = true; summary = tool == "code" ? "Opening the VS Code download page…" : "Opening the Java download page…"; changed?()
+            runner.run(SetupCommand(executable: "/usr/bin/open", arguments: [url]), timeout: 15) { [weak self] result in
+                guard let self else { return }
+                self.busy = false; self.record(result.output)
+                if result.succeeded { self.set(.retry, "Finish installing, then check again.") }
+                else { self.fail("Could not open the download page.", detail: result.launchError ?? url) }
+            }
+        case .ready, .opened:
+            // The backend rechecks immediately before launch, catching drift.
+            run(["--native-open"], status: "Opening Zero…", timeout: 180) { [weak self] _ in self?.set(.opened, "In Zero, choose Run App to begin.") }
+        default: break
+        }
+    }
     func mayExit() -> Bool {
         guard busy else { return true }
-        let message = "Please wait for the current check, copy or open request to finish before closing Zero Setup."
-        if !summary.hasPrefix(message) { summary = message + "\n\n" + summary; changed?() }
-        return false
+        summary = "Please wait for setup to finish this step."; changed?(); return false
     }
-
     func place(parent: URL?, name: String?) {
-        guard !busy, let parent, let name else { return }
-        busy = true
-        summary = "Copying the complete kit into a new folder…"
-        changed?()
+        guard !busy, selectedFolder == nil, let parent, let name else { return }
+        busy = true; summary = "Preparing your Zero folder…"; changed?()
         DispatchQueue.global(qos: .userInitiated).async { [self] in
             let result = Result { try kit.place(parent: parent, name: name) }
             DispatchQueue.main.async {
                 self.busy = false
                 switch result {
-                case .success(let folder):
-                    self.selectedFolder = folder
-                    self.summary = "The complete kit is in:\n\(folder.path)\n\nChoose Continue setup to open its guided terminal menu. Each repair, profile or extension action still asks you to choose. Choose Open folder to see your files. GitHub remains separate."
-                case .failure(let error): self.summary = error.localizedDescription
+                case .success(let folder): self.selectedFolder = folder; self.record("Kit folder: \(folder.path)"); self.check()
+                case .failure(let error): self.record(error.localizedDescription); self.set(.chooseFolder, "Choose a fresh folder. See Details.")
                 }
-                self.changed?()
             }
-        }
-    }
-
-    func continueSetup() {
-        guard !busy, let selectedFolder else { return }
-        do { try SetupKit(root: selectedFolder).validate() }
-        catch { summary = error.localizedDescription; changed?(); return }
-        let command = SetupCommand(executable: "/usr/bin/open", arguments: ["-a", "Terminal", selectedFolder.appendingPathComponent("setup/Setup.command").path])
-        busy = true; changed?()
-        runner.run(command, timeout: 15) { [weak self] result in
-            guard let self else { return }
-            self.busy = false
-            if result.succeeded { self.summary = "Requested guided setup in Terminal for:\n\(selectedFolder.path)\n\nUse its normal prompts to choose actions. A successful open request does not confirm that setup or an installation finished. Return here to check again." }
-            else { self.summary = "Could not open guided setup in Terminal. Open \(selectedFolder.appendingPathComponent("setup/Setup.command").path) manually.\n\n\(result.launchError ?? result.output)" }
-            self.changed?()
         }
     }
 }

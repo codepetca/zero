@@ -5,12 +5,13 @@ SETUP_DIR=$(cd "$(dirname "$0")" && pwd) || exit 1
 KIT_DIR=$(cd "$SETUP_DIR/.." && pwd) || exit 1
 STARTER="$KIT_DIR/starter"
 CHECK_ONLY=0
+NATIVE_MODE=''
 case "${1:-}" in
-  --check) CHECK_ONLY=1 ;;
-  '') ;;
+  --check) CHECK_ONLY=1; [ "$#" = 1 ] || exit 2 ;;
+  --native-check|--native-plan|--native-install|--native-extension|--native-profile|--native-open) NATIVE_MODE=$1 ;;
+  '') [ "$#" = 0 ] || exit 2 ;;
   *) printf 'Usage: %s [--check]\n' "$0"; exit 2 ;;
 esac
-if [ "$#" -gt 1 ]; then echo 'Use only --check, or no arguments.'; exit 2; fi
 OS=$(uname -s)
 CODE=''
 KIT_VERSION=''
@@ -223,6 +224,90 @@ help_tool() {
   elif yes "Open the official $title download page?"; then open_url "$url"; fi
   echo 'After installing, close VS Code completely, reopen setup, and check again. A restart may be needed.'
 }
+# Native protocol stays separate from human diagnostics. Fixed keys contain only
+# booleans/tokens; paths and tool output are never parsed as commands or state.
+native_check() {
+  summary || :
+  zero_ok=0; redhat_ok=0; home_blocked=0; readiness=0; code_ok=0
+  at_least "$(extension_version "$EXTENSION_ID")" "$KIT_VERSION" && zero_ok=1
+  [ -n "$(extension_version redhat.java)" ] && redhat_ok=1
+  [ -n "${JAVA_HOME:-}" ] && [ "$JAVA_OK" = 0 ] && home_blocked=1
+  [ -n "$CODE" ] && code_ok=1
+  ready && readiness=1
+  printf '\nZERO_SETUP_V1\nkit=%s\ncode=%s\njava=%s\nprofile=%s\nzero=%s\nredhat=%s\njavaHomeBlocked=%s\nready=%s\nEND_ZERO_SETUP\n' "$KIT_OK" "$code_ok" "$JAVA_OK" "$PROFILE_OK" "$zero_ok" "$redhat_ok" "$home_blocked" "$readiness"
+  # A completed check is successful even when work remains. Readiness is a field.
+}
+detect_brew() {
+  BREW=''
+  for candidate in "$(command -v brew 2>/dev/null || :)" /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then BREW=$candidate; return; fi
+  done
+}
+native_plan() {
+  PLAN=manual
+  case "$1" in
+    code) detect_kit; detect_code; [ "$KIT_OK" = 1 ] || { PLAN=blocked; return; }
+      [ -z "$CODE" ] || { PLAN=skip; return; } ;;
+    java) detect_java; [ "$JAVA_OK" = 0 ] || { PLAN=skip; return; }
+      [ -z "${JAVA_HOME:-}" ] || { PLAN=blocked; return; }
+      # Temurin's macOS package needs administrator installation. Leave that to
+      # the normal vendor/OS flow, never a background password/sudo prompt.
+      return ;;
+    *) return 2 ;;
+  esac
+  [ "$OS" = Darwin ] || return
+  detect_brew
+  [ -n "$BREW" ] && [ -w /Applications ] || return
+  inventory=$(HOMEBREW_NO_AUTO_UPDATE=1 probe "$BREW" list --versions --cask) || return
+  if ! printf '%s\n' "$inventory" | awk '$1=="visual-studio-code" {found=1} END {exit !found}'; then PLAN=install; return; fi
+  outdated=$(HOMEBREW_NO_AUTO_UPDATE=1 probe "$BREW" outdated --quiet --cask --greedy-auto-updates) || return
+  if printf '%s\n' "$outdated" | awk '$0=="visual-studio-code" {found=1} END {exit !found}'; then PLAN=upgrade; fi
+}
+if [ -n "$NATIVE_MODE" ]; then
+  case "$NATIVE_MODE" in
+    --native-check) [ "$#" = 1 ] || exit 2; native_check ;;
+    --native-plan)
+      [ "$#" = 2 ] || exit 2
+      native_plan "$2" || exit 2
+      printf '\nZERO_PLAN_V1\naction=%s\nEND_ZERO_PLAN\n' "$PLAN" ;;
+    --native-install)
+      [ "$#" = 4 ] && [ "$4" = --approved ] && [ "$2" = code ] || exit 2
+      case "$3" in install|upgrade) ;; *) exit 2 ;; esac
+      native_plan "$2" || exit 2
+      if [ "$PLAN" = skip ]; then echo 'Compatible VS Code preserved.'; exit 0; fi
+      [ "$PLAN" = "$3" ] || { echo 'Installation proposal changed; check again before approving.'; exit 1; }
+      # Homebrew may fail for policy/elevation/network reasons. No Terminal,
+      # password collection or new package manager is introduced here.
+      NONINTERACTIVE=1 HOMEBREW_NO_AUTO_UPDATE=1 SUDO_ASKPASS=/usr/bin/false "$BREW" "$PLAN" --cask visual-studio-code </dev/null ;;
+    --native-extension)
+      [ "$#" = 3 ] && [ "$3" = --approved ] || exit 2
+      case "$2" in zero|java) ;; *) exit 2 ;; esac
+      detect_kit; detect_code; detect_extensions
+      [ "$KIT_OK" = 1 ] && [ -n "$CODE" ] && [ "$PROFILE_OK" = 1 ] || { echo 'Complete the kit and import the Zero profile first.'; exit 1; }
+      if [ "$2" = zero ]; then
+        at_least "$(extension_version "$EXTENSION_ID")" "$KIT_VERSION" && exit 0
+        target="$VSIX"
+      else
+        [ -n "$(extension_version redhat.java)" ] && exit 0
+        target=redhat.java
+      fi
+      "$CODE" --profile Zero --install-extension "$target" </dev/null ;;
+    --native-profile)
+      [ "$#" = 1 ] || exit 2
+      detect_kit; detect_code; detect_extensions
+      [ "$KIT_OK" = 1 ] && [ -n "$CODE" ] || exit 1
+      [ "$PROFILE_OK" = 0 ] || { echo 'Existing Zero profile preserved.'; exit 0; }
+      # Official CLI cannot import/create a profile without opening the editor.
+      # The user imports the supplied settings-only file in the supported UI.
+      "$CODE" --new-window ;;
+    --native-open)
+      [ "$#" = 1 ] || exit 2
+      summary || :
+      ready || { echo 'Readiness changed; check again before opening Zero.'; exit 1; }
+      "$CODE" --new-window --profile Zero "$STARTER" ;;
+  esac
+  exit $?
+fi
 summary || :
 if [ "$CHECK_ONLY" = 1 ]; then ready; exit $?; fi
 if [ ! -t 0 ]; then echo 'Interactive setup needs a terminal. Use --check for a read-only summary.'; exit 2; fi

@@ -1,11 +1,20 @@
 # Guided student setup
 
-The local0.5.4 kit provides check-and-repair help for personal and school laptops.
+The local0.5.5 kit provides check-and-repair help for personal and school laptops.
 Published0.5.3 remains available and unchanged. No new release is published by
 this implementation. The complete kit owns setup launchers; the starter-only ZIP
 continues to be an ordinary editable Java project.
 
-## Student flow
+## Mac native setup
+
+Zero Setup uses one small fixed window with one replacing status message and a
+spinner. It checks first, preserves compatible tools, copies the kit to a fresh
+folder and guides one required action at a time. The normal native Mac flow does
+not open a Terminal menu. Details are separate and optional; failed operations
+remain actionable rather than being reported as ready. See [native setup](INSTALLER.md).
+Windows testing remains deferred; the manual ZIP launchers below stay available.
+
+## ZIP/manual student flow
 
 1. Download and extract the complete kit.
 2. Open setup/Setup.cmd on Windows or setup/Setup.command on macOS. Linux uses
@@ -73,8 +82,9 @@ Primary references: [VS Code CLI](https://code.visualstudio.com/docs/configure/c
 
 ## Installer packaging direction
 
-Native development wrappers now reuse these checks and repair actions: a Windows
-EXE and a universal macOS app inside a DMG. They are local unsigned development
-builds, not published student downloads. Both require a fresh writable kit folder
-and explicit Continue setup; existing projects are preserved. Keep the ZIP/manual path for managed
-school machines. See [installer direction](INSTALLER.md).
+Native wrappers embed the complete kit: a Windows EXE and a universal macOS app
+inside a DMG. The calmer Mac flow is local and unpublished; the prior 0.5.4 Mac
+candidate was Developer ID signed and notarized. Windows retains explicit Continue
+setup into its guided menu. Both preserve existing projects and use a fresh
+writable folder. Keep the ZIP/manual path for managed machines; see
+[installer direction](INSTALLER.md).

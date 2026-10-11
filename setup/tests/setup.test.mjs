@@ -14,16 +14,18 @@ function fixture(options = {}) {
   // Interactive tests bypass the TTY gate in this copied script, never in product source.
   writeFileSync(path.join(setup, 'setup.sh'), readFileSync(source, 'utf8')
     .replace('"/Applications/Visual Studio Code.app', '"' + root + '/System Applications/Visual Studio Code.app')
+    .replace('[ -w /Applications ]', '[ -w "' + root + '" ]')
     .replace('[ ! -t 0 ]', options.interactive ? 'false' : '[ ! -t 0 ]'));
   writeFileSync(path.join(setup, 'kit.properties'), options.metadata ?? 'kitVersion=0.5.4\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n');
   for (const name of ['zero-0.5.4.vsix', 'optional/Zero.code-profile', 'starter/zero.json', 'starter/pom.xml', 'starter/mvnw', 'starter/mvnw.cmd', 'starter/.mvn/wrapper/maven-wrapper.properties', 'starter/.vscode/tasks.json']) writeFileSync(path.join(root, name), '', {mode: 0o755});
   const log = path.join(root, 'probes.log');
+  writeFileSync(log, '');
   const executable = (dir, name, body) => writeFileSync(path.join(dir, name), '#!/bin/bash\n' + body + '\n', {mode: 0o755});
   executable(bin, 'uname', options.macApp || options.mac ? 'echo Darwin' : 'echo Linux');
   executable(bin, 'git', options.git === false ? 'exit 1' : 'echo "git version ' + (options.gitVersion || '2.31.0') + '"');
   let codeBin = bin;
   if (options.macApp) { codeBin = path.join(root, 'Applications/Visual Studio Code.app/Contents/Resources/app/bin'); mkdirSync(codeBin, {recursive: true}); }
-  const codeBody = 'printf "%s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n --version) ' + (options.code === false ? 'exit 1' : 'echo ' + (options.codeVersion || '1.100.0')) + ' ;;\n "--profile Zero --list-extensions --show-versions") ' + (options.profile === false ? 'echo "Profile Zero not found"; exit 1' : 'printf "zero.zero@' + (options.extension || '0.5.4') + '\\nredhat.java@1.40.0\\n' + (options.debugger === false ? '' : 'vscjava.vscode-java-debug@0.58.0\\n') + '"') + ' ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac';
+  const codeBody = 'printf "%s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n --version) ' + (options.code === false ? 'exit 1' : 'echo ' + (options.codeVersion || '1.100.0')) + ' ;;\n "--profile Zero --list-extensions --show-versions") ' + (options.profile === false ? 'echo "Profile Zero not found"; exit 1' : 'printf "zero.zero@' + (options.extension || '0.5.4') + '\\n' + (options.javaExtension === false ? '' : 'redhat.java@1.40.0\\n') + (options.debugger === false ? '' : 'vscjava.vscode-java-debug@0.58.0\\n') + '"') + ' ;;\n "--profile Zero --install-extension"*) ' + (options.allowMutation ? 'echo fake-install; exit ' + (options.installExit || 0) : 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99') + ' ;;\n --new-window*) ' + (options.allowMutation ? 'echo fake-open' : 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99') + ' ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac';
   executable(codeBin, 'code', codeBody);
   if (options.macApp && options.pathCodeVersion) executable(bin, 'code', codeBody.replace('echo ' + (options.codeVersion || '1.100.0'), 'echo ' + options.pathCodeVersion));
   executable(jdk + '/bin', 'java', 'echo \'openjdk version "' + (options.java || '17.0.12') + '"\' >&2');
@@ -32,6 +34,10 @@ function fixture(options = {}) {
   for (const name of ['java', 'javac']) executable(bin, name, name === 'java' ? 'echo \'openjdk version "17.0.12"\' >&2' : 'echo "javac 17.0.12"');
   for (const name of ['brew', 'xdg-open', 'open']) executable(bin, name, 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99');
   if (options.brew) executable(bin, 'brew', `printf "brew %s\\n" "$*" >> "$PROBE_LOG"
+if [ "\${NONINTERACTIVE:-}" = 1 ]; then
+  printf 'NATIVE_ENV=%s:%s:%s\\n' "$NONINTERACTIVE" "$HOMEBREW_NO_AUTO_UPDATE" "$SUDO_ASKPASS" >> "$PROBE_LOG"
+  case "$*" in install*|upgrade*) if read -r unexpected; then echo HIDDEN_INPUT >> "$PROBE_LOG"; exit 99; fi ;; esac
+fi
 case "$*" in
  "list --versions --cask") ${options.brew === 'inventoryFailure' ? 'exit 2' : ['missing', 'installFailure'].includes(options.brew) ? ':' : 'echo "visual-studio-code 1.90.0"'} ;;
  "outdated --quiet --cask --greedy-auto-updates") ${options.brew === 'outdatedFailure' ? 'exit 2' : ['outdated', 'upgradeFailure'].includes(options.brew) ? 'echo visual-studio-code' : options.brew === 'unrelated' ? 'printf "other-cask\\nvisual-studio-code-insiders\\n"' : ':'} ;;
@@ -45,7 +51,11 @@ case "$*" in
  "upgrade --formula git") exit 0 ;;
  *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;
 esac`);
-  return {root, log, run(input) {
+  const environment = {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : jdk, PROBE_LOG: log};
+  return {root, log, runArgs(args) {
+    const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), ...args], {env: environment, encoding: 'utf8', timeout: 10000});
+    assert.equal(result.error, undefined); return result;
+  }, run(input) {
     const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), ...(input === undefined ? ['--check'] : [])], {env: {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : jdk, PROBE_LOG: log}, input, encoding: 'utf8', timeout: 10000});
     assert.equal(result.error, undefined);
     const commands = readFileSync(log, 'utf8');
@@ -123,4 +133,82 @@ test('valid tools and invalid explicit JAVA_HOME never trigger package repair', 
   const kit = fixture({mac: true, interactive: true, invalidHome: true, brew: 'outdated'});
   try { const result = kit.run('1\n2\n3\n0\n'); assert.match(result.stdout, /JAVA_HOME selects/); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew /); }
   finally { kit.cleanup(); }
+});
+
+for (const [name, options, fields] of [
+  ['native check compatible tools with optional Git absent', {git: false}, /ready=1/],
+  ['native check explicit invalid JAVA_HOME', {invalidHome: true}, /javaHomeBlocked=1/],
+  ['native check absent profile', {profile: false}, /profile=0/],
+  ['native check old Zero', {extension: '0.5.3'}, /zero=0/],
+]) test(name, () => {
+  const kit = fixture(options);
+  try {
+    const result = kit.runArgs(['--native-check']);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stdout, /ZERO_SETUP_V1\n[\s\S]*\nEND_ZERO_SETUP\n$/);
+    assert.match(result.stdout, fields);
+    assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /install|new-window|brew /);
+  } finally { kit.cleanup(); }
+});
+for (const args of [
+  ['--native-install', 'code', 'install'],
+  ['--native-install', 'git', 'install', '--approved'],
+  ['--native-extension', 'java'],
+  ['--native-extension', 'unknown', '--approved'],
+  ['--native-open', 'extra'],
+  ['--native-profile', 'extra'],
+]) test('native action rejects invalid/unapproved arguments: ' + args.join(' '), () => {
+  const kit = fixture();
+  try { assert.equal(kit.runArgs(args).status, 2); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /install|new-window/); }
+  finally { kit.cleanup(); }
+});
+for (const [name, options, expected] of [
+  ['compatible Code skipped before package-manager inventory', {mac: true, brew: 'outdated'}, 'skip'],
+  ['broken JAVA_HOME blocked before package-manager inventory', {mac: true, invalidHome: true, brew: 'outdated'}, 'blocked'],
+  ['missing managed Code plans fixed install', {mac: true, codeVersion: '1.90.0', brew: 'missing'}, 'install'],
+  ['outdated managed Code plans fixed upgrade', {mac: true, codeVersion: '1.90.0', brew: 'outdated'}, 'upgrade'],
+  ['current incompatible package uses manual vendor help', {mac: true, codeVersion: '1.90.0', brew: 'current'}, 'manual'],
+]) test(name, () => {
+  const kit = fixture(options);
+  try {
+    const tool = options.invalidHome ? 'java' : 'code', result = kit.runArgs(['--native-plan', tool]);
+    assert.equal(result.status, 0, result.stdout + result.stderr); assert.match(result.stdout, new RegExp('action=' + expected));
+    const commands = readFileSync(kit.log, 'utf8');
+    assert.doesNotMatch(commands, /brew (install|upgrade)|new-window|install-extension/);
+    if (['skip', 'blocked'].includes(expected)) assert.doesNotMatch(commands, /brew /);
+  } finally { kit.cleanup(); }
+});
+test('approved install proposal drift refuses mutation', () => {
+  const kit = fixture({mac: true, codeVersion: '1.90.0', brew: 'outdated'});
+  try { const result = kit.runArgs(['--native-install', 'code', 'install', '--approved']); assert.equal(result.status, 1); assert.match(result.stdout, /proposal changed/); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew (install|upgrade)/); }
+  finally { kit.cleanup(); }
+});
+test('native failed managed install preserves nonzero exit', () => {
+  const kit = fixture({mac: true, codeVersion: '1.90.0', brew: 'installFailure'});
+  try { const result = kit.runArgs(['--native-install', 'code', 'install', '--approved']); assert.equal(result.status, 43); assert.match(readFileSync(kit.log, 'utf8'), /brew install --cask visual-studio-code/); assert.match(readFileSync(kit.log, 'utf8'), /NATIVE_ENV=1:1:\/usr\/bin\/false/); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /HIDDEN_INPUT/); }
+  finally { kit.cleanup(); }
+});
+test('compatible native extensions skipped in exact Zero profile', () => {
+  const kit = fixture();
+  try { for (const target of ['zero', 'java']) assert.equal(kit.runArgs(['--native-extension', target, '--approved']).status, 0); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /install-extension/); }
+  finally { kit.cleanup(); }
+});
+test('native extension installation failure remains truthful and profile scoped', () => {
+  const kit = fixture({extension: '0.5.3', allowMutation: true, installExit: 44});
+  try { const result = kit.runArgs(['--native-extension', 'zero', '--approved']); assert.equal(result.status, 44, result.stdout); assert.match(readFileSync(kit.log, 'utf8'), /--profile Zero --install-extension .*zero-0.5.4.vsix/); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /--force|--new-window/); }
+  finally { kit.cleanup(); }
+});
+test('native profile handoff preserves existing profile and deliberately opens absent one', () => {
+  for (const profile of [true, false]) {
+    const kit = fixture({profile, allowMutation: true});
+    try { const result = kit.runArgs(['--native-profile']); assert.equal(result.status, 0); const commands = readFileSync(kit.log, 'utf8'); if (profile) assert.doesNotMatch(commands, /new-window/); else assert.match(commands, /\n--new-window\n/); assert.doesNotMatch(commands, /--new-window --profile|--install-extension/); }
+    finally { kit.cleanup(); }
+  }
+});
+test('native open rechecks readiness and Git remains optional', () => {
+  for (const ready of [true, false]) {
+    const kit = fixture({git: false, extension: ready ? '0.5.4' : '0.5.3', allowMutation: true});
+    try { const result = kit.runArgs(['--native-open']); assert.equal(result.status, ready ? 0 : 1, result.stdout); const commands = readFileSync(kit.log, 'utf8'); if (ready) assert.match(commands, /--new-window --profile Zero .*starter/); else assert.doesNotMatch(commands, /new-window/); }
+    finally { kit.cleanup(); }
+  }
 });
