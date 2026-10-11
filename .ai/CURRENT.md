@@ -70,3 +70,25 @@ trust UI, school networks and novice use remain unverified. Windows testing is
 explicitly deferred; its earlier cross-build is not a Windows runtime claim.
 No push, PR, merge, release, deploy, signing-account access, host tool repair or
 credential changes are authorized for this local phase. See docs/INSTALLER.md.
+
+
+## Apple signing identity — 2026-10-11
+
+Owner authorized Apple Developer access, then explicitly approved issuing the
+prepared Developer ID Application/G2 certificate and importing it into login
+Keychain. Completed: Stewart Chan team88FT6QZJP8, certificateRAAV6N44WD;
+identity Developer ID Application: Stewart Chan (88FT6QZJP8), SHA1
+ACE8EE40F3615C5062CBBD5F085E299E049BAE08. The issued certificate matched both
+local private key and approved CSR; security find-identity reports1valid identity.
+Keychain key access was scoped to /usr/bin/codesign, without allow-all access.
+Plaintext staging key copies were removed after verification; public certificate/
+CSR/recovery state stay outside Git under Library/Application Support/Zero Signing.
+Do not export private keys or place signing secrets in a repository.
+
+Xcode/notarytool are present. Certificate-only setup is complete; the local Mac
+installer is STILL unsigned/not notarized. No API credentials, signing, Apple
+notarization upload, push/merge/public release or OS-policy changes occurred.
+Next phase is signing/notarization preparation with separately established
+notarization authentication. Do not infer publication authority. Windows testing
+remains deferred. Apple issuance proof: ignored
+.verification/mac-signing/certificate-issued.jpg; live certificate page retained.

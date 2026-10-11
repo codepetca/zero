@@ -270,3 +270,23 @@ receipt archived because its Mac hash was superseded. No Windows runtime work,
 push/PR/merge/release/deploy/signing access, system installation or OS-policy
 change. Primary funding work and Community preserved. Final CURRENT/documentation
 receipts are coordinator-owned, nonfunctional and locally checked.
+
+
+## Apple Developer ID identity — 2026-10-11
+
+Owner explicitly approved certificate issuance and login-Keychain import after
+reviewing the prepared request. Apple issued Developer ID Application/G2 for the
+verified Stewart Chan team. The public certificate matched the original CSR and
+local private key; current-valid certificate dates and team/type were checked.
+Private-key PEM import was initially rejected twice by macOS for its format;
+conversion to PKCS1 encoding preserved the same RSA key and imported successfully.
+Certificate import succeeded; security find-identity verified1valid signing identity.
+Only codesign application access was granted; no allow-all key access or partition
+list/password workaround was used. After verification, temporary plaintext key
+copies were removed; the private key remains in login Keychain. Public certificate,
+CSR and recovery state are outside Git; screenshot proof is ignored.
+
+This was coordinator-owned account setup, not a code feature or release. No worker
+or independent source review was needed; application code and build artifacts were
+unchanged. No private key, credentials or signing secrets entered Git. No app
+signing/notarization, API-key creation, publication or Windows testing occurred.
