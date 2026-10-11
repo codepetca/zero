@@ -189,6 +189,35 @@ struct SetupTests {
         runner.run(SetupCommand(executable: "/bin/bash", arguments: [fakeScript.path]), timeout: 2) { actual = $0 }
         try pump(until: { actual != nil })
         try expect(actual!.exitCode == 7 && actual!.output.contains("captured output") && !actual!.succeeded, "real runner captures failure")
+        try "#!/bin/bash\nkill -TERM $$\nprintf 'survived TERM\\n'\n".write(to: fakeScript, atomically: true, encoding: .utf8)
+        actual = nil
+        let termStarted = ProcessInfo.processInfo.systemUptime
+        runner.run(SetupCommand(executable: "/bin/bash", arguments: [fakeScript.path]), timeout: 3) { actual = $0 }
+        try pump(until: { actual != nil })
+        try expect(actual!.exitCode == nil && !actual!.timedOut && !actual!.output.contains("survived TERM"), "GCD-spawned Bash receives normal TERM")
+        try expect(ProcessInfo.processInfo.systemUptime - termStarted < 2, "TERM finishes without outer timeout escalation")
+        let timerReady = temporary.appendingPathComponent("timer ready ; $x")
+        try """
+        #!/bin/bash
+        /usr/bin/true & probe_pid=$!
+        (
+          sleep 20 & timer_sleep=$!
+          trap 'kill "$timer_sleep" 2>/dev/null; printf "timer cleaned\\n"; exit 0' TERM
+          : > "$1"
+          wait "$timer_sleep"
+        ) & timer_pid=$!
+        while [ ! -f "$1" ]; do sleep 0.01; done
+        wait "$probe_pid"
+        kill -TERM "$timer_pid"
+        wait "$timer_pid"
+        printf 'probe complete\\n'
+        """.write(to: fakeScript, atomically: true, encoding: .utf8)
+        actual = nil
+        let timerStarted = ProcessInfo.processInfo.systemUptime
+        runner.run(SetupCommand(executable: "/bin/bash", arguments: [fakeScript.path, timerReady.path]), timeout: 4) { actual = $0 }
+        try pump(until: { actual != nil }, seconds: 6)
+        try expect(actual!.succeeded && actual!.output.contains("timer cleaned") && actual!.output.contains("probe complete"), "probe timer TERM trap completes normally")
+        try expect(ProcessInfo.processInfo.systemUptime - timerStarted < 2, "successful probe cleanup does not wait for its 20 second timer")
         try "#!/bin/bash\nsleep 30 &\nwait\n".write(to: fakeScript, atomically: true, encoding: .utf8)
         actual = nil
         runner.run(SetupCommand(executable: "/bin/bash", arguments: [fakeScript.path]), timeout: 0.1) { actual = $0 }

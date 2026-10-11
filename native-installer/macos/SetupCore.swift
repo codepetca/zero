@@ -54,8 +54,24 @@ final class NativeCommandRunner: SetupCommandRunning {
             posix_spawn_file_actions_adddup2(&actions, descriptors[1], STDERR_FILENO)
             posix_spawn_file_actions_addclose(&actions, descriptors[0])
             posix_spawn_file_actions_addclose(&actions, descriptors[1])
-            posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_SETPGROUP))
-            posix_spawnattr_setpgroup(&attributes, 0)
+            // Dispatch workers block signals. Inheriting their mask prevents
+            // Bash probe timers from receiving TERM during normal cleanup.
+            // Reset only the child, including dispositions ignored by the host.
+            var childSignalMask = sigset_t()
+            var childSignalDefaults = sigset_t()
+            sigemptyset(&childSignalMask)
+            sigemptyset(&childSignalDefaults)
+            for signal in 1..<NSIG where signal != SIGKILL && signal != SIGSTOP {
+                sigaddset(&childSignalDefaults, signal)
+            }
+            guard posix_spawnattr_setsigmask(&attributes, &childSignalMask) == 0,
+                  posix_spawnattr_setsigdefault(&attributes, &childSignalDefaults) == 0,
+                  posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSIGDEF)) == 0,
+                  posix_spawnattr_setpgroup(&attributes, 0) == 0 else {
+                close(descriptors[0]); close(descriptors[1])
+                DispatchQueue.main.async { completion(CommandResult(exitCode: nil, output: "", timedOut: false, launchError: "Could not prepare the check process signal state.")) }
+                return
+            }
             let arguments = ([command.executable] + command.arguments).map { strdup($0) } + [nil]
             let environment = ProcessInfo.processInfo.environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
             defer {
