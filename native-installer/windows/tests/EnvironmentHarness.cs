@@ -97,6 +97,18 @@ internal static class EnvironmentHarness
         Assert(result["JAVA_HOME"] == "%old_selection%", "original JAVA_HOME remains byte-for-byte process choice");
         result = WindowsToolEnvironment.Build(Values(), Values(), Values(), Values("PATH", "%missing%\\bin;C:\\same;C:\\SAME\\;C:/same"), Values());
         Assert(result["PATH"] == "%missing%\\bin;C:\\same", "unknown variables stay literal and Windows paths deduplicate ignoring case and slash");
+        var registered = Values("PATH", @"C:\Windows;C:\JDK8\bin;C:\JDK17\bin");
+        var addedCode = Values("PATH", @"C:\VS Code\bin");
+        result = WindowsToolEnvironment.Build(Values("PATH", @"C:\JDK17\bin;C:\Windows;C:\JDK8\bin"), registered, Values(), registered, addedCode);
+        Assert(result["PATH"] == @"C:\JDK17\bin;C:\Windows;C:\JDK8\bin;C:\VS Code\bin", "registered JDK process reorder survives vendor handoff exact reproducer");
+        result = WindowsToolEnvironment.Build(Values("PATH", @"C:\JDK17\bin;C:\Windows;C:\JDK8\bin;C:\JDK17\bin"), registered, Values(), registered, addedCode);
+        Assert(result["PATH"] == @"C:\JDK17\bin;C:\Windows;C:\JDK8\bin;C:\VS Code\bin", "explicit prepend duplicate keeps registered JDK first");
+        result = WindowsToolEnvironment.Build(Values("PATH", @"C:\Windows;C:\JDK8\bin;C:\JDK17\bin"), registered, Values(), Values("PATH", @"C:\Windows;C:\JDK21\bin"), addedCode);
+        Assert(result["PATH"] == @"C:\Windows;C:\JDK21\bin;C:\VS Code\bin", "ordinary baseline order replaces removed old registered JDK paths");
+        result = WindowsToolEnvironment.Build(Values("PATH", @"C:\custom JDK\bin;C:\Windows;C:\JDK8\bin;C:\JDK17\bin;C:\custom tools"), registered, Values(), Values("PATH", @"C:\Windows;C:\JDK21\bin"), addedCode);
+        Assert(result["PATH"] == @"C:\custom JDK\bin;C:\custom tools;C:\Windows;C:\JDK21\bin;C:\VS Code\bin", "custom extras keep priority while ordinary stale registered entries are replaced");
+        result = WindowsToolEnvironment.Build(Values("PATH", @"C:\JDK17\bin;C:\Windows", "JAVA_HOME", @"C:\explicit JDK"), registered, Values(), Values("PATH", @"C:\Windows;C:\JDK21\bin", "JAVA_HOME", @"C:\registry JDK"), addedCode);
+        Assert(result["PATH"] == @"C:\JDK17\bin;C:\Windows;C:\JDK21\bin;C:\VS Code\bin" && result["JAVA_HOME"] == @"C:\explicit JDK", "subset reorder and original JAVA_HOME remain explicit process selections");
         reader.Fail = true; child = new ProcessStartInfo(); child.EnvironmentVariables["PATH"] = "before failed refresh";
         try { tools.Apply(child); throw new Exception("FAILED: environment read failure accepted"); }
         catch (IOException error) { Assert(error.Message.Contains("Close Zero Setup") && error.Message.Contains("unverified"), "failed refresh actionable and readiness unverified"); }

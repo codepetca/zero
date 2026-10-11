@@ -146,10 +146,21 @@ namespace ZeroSetup
             var nowMachine = Copy(currentMachine); var nowUser = Copy(currentUser);
             var before = Variables(original, beforeMachine, beforeUser);
             var now = Variables(original, nowMachine, nowUser);
-            var baseline = new HashSet<string>(Entries(Value(beforeMachine, "PATH"), before)
-                .Concat(Entries(Value(beforeUser, "PATH"), before)).Select(Key), StringComparer.OrdinalIgnoreCase);
-            var entries = Entries(Value(original, "PATH"), original).Where(entry => !baseline.Contains(Key(entry)))
-                .Concat(Entries(Value(nowMachine, "PATH"), now)).Concat(Entries(Value(nowUser, "PATH"), now));
+            var baselineOrder = Entries(Value(beforeMachine, "PATH"), before)
+                .Concat(Entries(Value(beforeUser, "PATH"), before)).Select(Key)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            var baseline = new HashSet<string>(baselineOrder, StringComparer.OrdinalIgnoreCase);
+            var originalEntries = Entries(Value(original, "PATH"), original).ToArray();
+            var sharedOrder = originalEntries.Select(Key).Where(baseline.Contains)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            var shared = new HashSet<string>(sharedOrder, StringComparer.OrdinalIgnoreCase);
+            // A process can deliberately prepend/reorder a registered JDK. Keep
+            // that selection ahead of refreshed OS paths. Ordinary inherited
+            // registry order still replaces stale entries with current OS values.
+            bool reordered = !sharedOrder.SequenceEqual(baselineOrder.Where(shared.Contains), StringComparer.OrdinalIgnoreCase);
+            var priority = reordered ? originalEntries : originalEntries.Where(entry => !baseline.Contains(Key(entry)));
+            var entries = priority.Concat(Entries(Value(nowMachine, "PATH"), now))
+                .Concat(Entries(Value(nowUser, "PATH"), now));
             var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {

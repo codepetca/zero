@@ -74,7 +74,7 @@ VS Code Run/autosave/build/Stop are recorded in the evidence docs, not rerun cla
 
 Base7c6aeb7, initial feature018eb47, same guided-setup worktree. Worker
 calm_windows_setup GPT-6.1-Sol/high owns native-installer/windows plus
-Setup.ps1/backend tests; the Java retry correction is delivered and source frozen.
+Setup.ps1/backend tests; second correction is delivered and source frozen.
 Coordinator owns docs,
 version0.5.6 and packaging/verification/review. Target one fixed small window and
 one replacing short line; explicit vendor downloads and guided profile import,
@@ -88,9 +88,12 @@ parity/extracted Maven compile pass. Full npm regression247tests and8installer
 Node tests pass. Initial unsigned AnyCPU EXE/embedded kit verify at018eb47.
 Two initial independent reviews completed: safety passed; compatibility found
 stale PATH after vendor Java install. Correction adds read-only owned-child
-environment refresh, preserving explicit JAVA_HOME and custom PATH. Worker reports
-128native assertions, clean build and3Windows Node tests pass. Next: coordinator
-affected harness, one fixed-delta review, final local
+environment refresh, preserving explicit JAVA_HOME and custom PATH. Coordinator
+129native assertions, clean build and3Windows Node tests pass; corrected AnyCPU
+EXE verifies atb618f8c. Targeted review found deliberate reordered registered-JDK
+PATH entries lose precedence. Second correction preserves deliberate process
+reordering, while ordinary inherited paths refresh. Worker133native checks and
+both clean builds pass. Next: coordinator harness, second fixed-delta review, final local
 unsigned EXE/payload rebuild. Physical WinForms/PS5.1/installer/policy remain untested.
 No publication.
 Weekly95% remaining at start is account allowance; task/effective tokens unknown.
