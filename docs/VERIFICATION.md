@@ -1,3 +1,38 @@
+## Lesson 12 full game — local, 2026-10-10
+
+Baseline published f8f7829; isolated codex/lesson-12-game. All five stages remain
+inside Lesson12: media-demo, scrolling-game, platform-game, level-game, full-game.
+Core framework, shared ScoreDisplay, dependencies and published metadata unchanged.
+
+Affected acceptance checks pass: configuration/source-link check; website26tests,
+typecheck and production build; in-memory ZIP2tests including new example Java and
+README bytes and extracted standalone compilation. No immutable release was rebuilt.
+Native macOS JavaFX21.0.12 checks pass for media-demo(3.96s), scrolling-game(2.42s),
+platform-game(2.68s), level-game(2.29s), full-game(2.40s). They cover cached media,
+camera clamping including small worlds, fixed HUD and drawing transform restoration,
+solid floor/wall/head response, frame cap and jump edges, once-only collection,
+level score/retry rules, danger, locked exits, win/loss freezes and repeated restart.
+The final game also completes both levels twice using synthetic held keys and
+1/120second updates without teleporting the player. Other state checks intentionally
+place objects to isolate transitions. No physical keyboard/novice play claim.
+
+Coordinator caught and worker corrected two harness defects (early scrolling
+contact assertion and JavaFX Platform import shadowing) plus a real physics bug:
+floating residual steps cleared grounded on a floor. Integer bounded step counts
+fix that bug in all three gravity stages; final native checks above pass.
+An earlier platform at80px was reduced to70px to fit the actual discrete jump.
+
+Local production browser checks pass:11→12 navigation, five collapsed stages,
+stage→example links, complete8Java/2resource copy lists, current Player source,
+actual PNG/WAV downloads with byte parity, no horizontal overflow or error logs.
+The example guide links now open runnable pages instead of raw README text.
+Ignored evidence: .verification/lesson12-game/lesson12.jpg and game-playing.png,
+game-won.png. Game images are native JavaFX scene snapshots from a disposable
+renderer running the same complete game check; they are not OS screenshots.
+Physical Windows/Linux, audible output, physical editor/keyboard/setup flow and
+novice classroom trials remain unverified. No push, PR, merge, release or deployment.
+Independent standard-risk review is pending on the local implementation commit.
+
 # Verification — 2026-10-10
 
 ## Combined local kit — 2026-10-10

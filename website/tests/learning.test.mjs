@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { lessons, lessonNavigation, isLessonDocumentId, lessonAssets } from "../lib/learning.mjs";
+import { lessons, lessonNavigation, isLessonDocumentId, lessonAssets, examples } from "../lib/learning.mjs";
 import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
@@ -117,4 +118,32 @@ test("lesson media links use only the explicit build-time asset mapping", () => 
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/player.png", {}, {}, lessonAssets), "/generated/learning-assets/media-demo/player.png");
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/chime.wav", {}, {}, lessonAssets), "/generated/learning-assets/media-demo/chime.wav");
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
+});
+
+test("Lesson 12 stages expose every runnable helper and reuse canonical assets", () => {
+  assert.equal(lessonNavigation("12").related.title, "Build a platformer");
+  for (const id of ["scrolling-game", "platform-game", "level-game", "full-game"]) {
+    const example = examples.find((item) => item.id === id);
+    assert.equal(example.lesson, "12");
+    const folder = new URL(`../../student-template/examples/${id}/`, import.meta.url);
+    const actual = readdirSync(folder).filter((name) => name.endsWith(".java")).map((name) => `${id}/${name}`);
+    assert.deepEqual([...example.files].sort(), [...actual, "shared/ScoreDisplay.java"].sort());
+    for (const file of example.files) {
+      assert.ok(readFileSync(new URL(`../../student-template/examples/${file}`, import.meta.url), "utf8").length);
+    }
+    assert.deepEqual(example.resources.map(({ destination }) => destination), [
+      "src/main/resources/media-demo/player.png", "src/main/resources/media-demo/chime.wav",
+    ]);
+    for (const { file } of example.resources) assert.ok(lessonAssets[`student-template/examples/${file}`]);
+  }
+});
+
+test("stage guides open the runnable example page and unknown guides stay unlinked", () => {
+  const source = "student-template/lessons/12-media.md";
+  for (const id of ["scrolling-game", "platform-game", "level-game", "full-game"]) {
+    const key = `student-template/examples/${id}/README.md`;
+    assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, { [key]: "# Copy files" }), `/examples/${id}`);
+    assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, {}), null);
+  }
+  assert.equal(resolveContentLink(source, "../examples/private/README.md", {}, {}), null);
 });

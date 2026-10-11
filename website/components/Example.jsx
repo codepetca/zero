@@ -44,10 +44,10 @@ export function Example({ example, sources }) {
                 </li>
               ))}
             </ul>
-            {id === "media-demo" && <p>Older kits need the pinned javafx-media dependency from Lesson 12.</p>}
+            {files.some(({ file }) => file.endsWith("chime.wav")) && <p>Older kits need the pinned javafx-media dependency from Lesson 12.</p>}
             <p>
               Run App to rebuild.{" "}
-              {["keyboard", "animation", "drawing", "reach-the-coin"].includes(id) &&
+              {["keyboard", "animation", "drawing", "reach-the-coin", "movement", "coin-game", "scrolling-game", "platform-game", "level-game", "full-game"].includes(id) &&
                 "Click the canvas before testing input."}{" "}
               These examples run in VS Code, in a separate JavaFX window.
             </p>

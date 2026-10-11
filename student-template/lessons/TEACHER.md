@@ -1,7 +1,8 @@
 # Teacher notes: Lessons 0–12
 
 Use [the lesson index](README.md). Lessons 0–6 are short steps. Lessons 7 and 9
-are full tutorials; spread their stages across sessions as needed.
+are full tutorials; Lesson 12 builds a larger game in five stages. Spread their
+stages across sessions as needed.
 Pacing is a planning guide, not classroom-trial evidence.
 
 ## Check each step
@@ -20,7 +21,7 @@ Pacing is a planning guide, not classroom-trial evidence.
 | 9 | Each coin scores once; collecting all wins; Restart restores player, coins and score |
 | 10 | The same display class works in the scored quiz and practice tracker |
 | 11 | A contribution has source, API, examples, checks and independent review |
-| 12 | Supplied robot/chime work; replacing assets and rerunning shows/hears the change |
+| 12 | Assets work; camera scrolls with fixed HUD; jump/collisions work; two levels bank score; loss/win freeze and Restart resets everything |
 
 ## Teach ownership
 
@@ -29,6 +30,11 @@ Read `event ->` as “when clicked”; full lambda syntax can wait.
 Methods name actions. Ordinary objects own data; Main calls their methods.
 A display presents app-owned state. SketchApp calls Main's update/draw; Main
 explicitly updates and draws its Player/Coin objects.
+
+In Lesson 12, compare world positions with camera-adjusted drawing. The unchanged
+ScoreDisplay is a native node. Trace bounded simulation steps, gravity and collision response;
+introduce Level's arrays before changing them. Contrast stage 4's current-level
+reset with stage 5's lost state, then test Restart after both endings.
 
 Introduce the study array and its indexes before Lesson 7's customization.
 Later scored-quiz exercises use trimmed 42 and award 10 once; the tiny quiz

@@ -1,70 +1,70 @@
 # Game systems in Zero
 
-The current structure suits small 2D games and student-written systems. Keep
-SketchApp as the window/input/frame host. Main owns the game rules and calls
-ordinary Java objects explicitly. No component registry or engine rewrite is
-needed for a camera or scoreboard.
+Lesson 12 builds a two-level platformer in five runnable stages. SketchApp stays
+small: it hosts the window, input and frames. Main owns the rules and explicitly
+updates/draws ordinary Java objects. No registry or engine rewrite is needed.
 
-| Need | Available now | Next teaching step |
+| Stage | Example | New system |
 | --- | --- | --- |
-| Sprites | Image loading/drawing; Lesson 12 assets | Animation frames in an ordinary Sprite class |
-| Sound effects | JavaFX AudioClip; Lesson 12 | Play on a state transition, not every held-key frame |
-| Scoreboard | ScoreDisplay; ordinary JavaFX labels/layout | Reuse the same display in a game HUD |
-| Camera | GraphicsContext transforms | A Camera holding the world viewport position |
-| Physics | Elapsed-time updates; ordinary objects | Gravity, velocity and collision response; overlaps alone are insufficient |
-| Levels | Arrays/collections, app-owned state | Separate level data from rules |
+| 1 | [media-demo](../student-template/examples/media-demo/README.md) | Cached Image and one-shot AudioClip |
+| 2 | [scrolling-game](../student-template/examples/scrolling-game/README.md) | Camera, world coordinates and fixed native ScoreDisplay |
+| 3 | [platform-game](../student-template/examples/platform-game/README.md) | Gravity, grounded jumping and solid platforms |
+| 4 | [level-game](../student-template/examples/level-game/README.md) | Enemy patrols and two levels of ordinary arrays |
+| 5 | [full-game](../student-template/examples/full-game/README.md) | Playing/won/lost state and complete restart |
 
-## Compose a camera and HUD
+Follow [Lesson 12](../student-template/lessons/12-media.md) for exact copy lists.
+The game examples reuse unchanged shared ScoreDisplay source and the original
+media-demo PNG/WAV; students may replace the resources with their own.
 
-Keep world coordinates in Player/Coin, screen coordinates in the HUD. A small
-Camera can follow the player's centre and clamp its top-left to world bounds:
-`x = max(0, min(playerCentreX - viewportWidth / 2, worldWidth - viewportWidth))`.
-Do the same for y. A world smaller than the viewport stays at zero.
+## Camera and scoreboard
 
-In update, Main calls Player.update with world bounds, then Camera.follow. The
-current Player needs centre-coordinate getters for that example. In draw:
+Player/Coin/Platform/Enemy store world coordinates. Camera follows the player
+centre, clamps to world edges, and stays at zero for a smaller-than-viewport world:
 
 ```java
-background(Color.ALICEBLUE);
-var g = graphics();
-g.save();
-try {
-    g.translate(-camera.x(), -camera.y());
-    for (Coin coin : coins) coin.draw(this);
-    player.draw(this);
-} finally {
-    g.restore();
-}
-// Draw a canvas HUD here, after restoring screen coordinates.
+x = Math.max(0, Math.min(centreX - viewportWidth / 2,
+        Math.max(0, worldWidth - viewportWidth)));
 ```
 
-This is a design sketch; Camera and the centre getters are not yet shipped.
-A native ScoreDisplay can go in `layout().setBottom(score.view())`, or alongside
-buttons in an HBox; it stays outside canvas transforms. Main changes points and
-calls setScore. For a translation-only camera, mouse world coordinates are
-`mouseX() + camera.x()` and `mouseY() + camera.y()`.
+The same rule handles y. Main calls Player.update, then Camera.follow. Drawing
+uses graphics().save(), translate(-camera.x(), -camera.y()), and finally restore().
+The native ScoreDisplay sits in a bottom HBox outside canvas transforms; Main owns
+points and calls setScore. Canvas instructions draw after restore in screen space.
+For this translation-only camera, mouse world coordinates are mouseX()+camera.x()
+and mouseY()+camera.y().
 
-`background()` temporarily uses an identity transform, then restores the old
-one. It does not repair an unbalanced camera transform. Always pair save/restore.
+background() temporarily uses an identity transform, then restores the old one.
+It does not repair a leaked camera transform. Always balance save/restore.
 
-## Boundaries for the larger game
+## Physics and game rules
 
-SketchApp uses variable frame time capped at 0.1 seconds. Current inclusive
-rectangle overlap handles coin collection, not solid collision response or fast
-objects crossing a platform between frames. Teach gravity, grounded state and
-collision response before building the platformer; use fixed simulation steps
-or swept checks if the game needs them. Do not promise a general physics engine.
+SketchApp caps variable frame time at0.1seconds. The platformer Player further
+splits it into steps no larger than1/120second, limits fall speed, and resolves
+horizontal then vertical solid overlap. The bounded movement is smaller than the
+provided platforms' thickness. This is a teaching implementation for axis-aligned
+static platforms, with ordinary velocity/grounded fields; it is not general
+rigid-body physics, moving-platform support or collision handling for arbitrary
+high speeds/tiny obstacles. Main detects new jump presses rather than repeating
+jumps while a key stays held.
 
-Canvas/window focus loss clears held input but does not pause simulation. Pause
-is app-owned state. Keep the canvas in the centre; inherited show can replace it
-without stopping its timer. Use update/draw state for screens initially.
+Level data creates fresh arrays of platforms, coins and enemies. Coins score only
+on their collection transition. Both levels require all their coins before exit.
+The intermediate level-game retries the current level on danger, preserving
+completed-level points, then loops after level2. The final full-game freezes on
+loss or final victory; Restart creates fresh level objects and resets game state,
+score, player, patrols and camera. Held jump is suppressed until released.
 
-Load small assets once. AudioClip keeps uncompressed samples in memory; use it
-for brief effects. The current final SketchApp shutdown hook stops the timer and
-clears input but offers no app cleanup callback. Looping music and owned resources
-need an explicit idempotent cleanup design when that shared need is demonstrated.
-No extra lifecycle hook is needed for the current 0.12-second one-shot demo.
+## Resource and lifecycle limits
 
-Next implementation after media: a scrolling-world example with ordinary Camera,
-Player and ScoreDisplay objects. Then solid platforms/physics, enemies/levels and
-win/lose/restart. These are planned stages, not delivered features.
+Load assets once; play a short effect on collection. AudioClip keeps samples in
+memory, so brief effects remain appropriate. The core shutdown stops animation
+and clears input but has no application cleanup callback. Looping music still
+needs an explicit idempotent cleanup design when a shared need is demonstrated.
+
+Canvas/window focus loss clears held input but does not pause physics or enemies.
+The examples keep the canvas in the centre and manage endings through game state;
+inherited show can hide a canvas without stopping its timer. Pause, sprite
+animation, moving platforms and a larger physics library are future extensions.
+
+Physical Windows/Linux, audible output and novice classroom play still require
+trials. See [verification](VERIFICATION.md) for actual local acceptance evidence.

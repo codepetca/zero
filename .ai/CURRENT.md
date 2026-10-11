@@ -1,3 +1,39 @@
+# Lesson 12 full game — active, 2026-10-10
+
+Owner explicitly requested local implementation of the full Lesson 12 tutorial:
+media, scrolling camera/fixed scoreboard, platforms/physics, enemies/two levels,
+win/lose/restart. This supersedes historical camera holds below. No publication,
+PR, merge, release, credentials or core-engine rewrite is authorized in this pass.
+
+Isolated managed worktree: /Users/stew/.codex/worktrees/lesson-12-game/zero,
+branch codex/lesson-12-game, published baseline f8f7829. Primary funding and
+kit-integration AI workflow hardening are separate active work; preserve both.
+
+Orchestration: GPT-6.1-Sol/high owns four new game example folders and native
+checks; GPT-6.1-Sol/medium owns Lesson12, teacher/index and starter copy guides.
+Coordinator owns site metadata, verifier/ZIP integration, architecture docs and
+acceptance. No recursive delegation. Effective model/token telemetry unknown.
+Weekly24% remaining at start is account-wide; DeepSeek paused through2026-12-31.
+
+Exit: all five runnable stages, own-media replacement, unchanged ordinary-Java
+framework and ScoreDisplay, affected native/kit/site checks and browser lesson
+flow, then independent standard-risk Sol/high review. Review caps:7launches,
+1initial/4targeted/1integration waves,4fixbatches,60min total/30min per reviewer.
+Ledger: launches0, waves0, fixes0. Current status: implementation and affected native/kit/site/browser checks pass;
+independent review next. All five stages runnable; final game completed twice
+through synthetic normal keys/time without teleports. See VERIFICATION.md.
+Guide worker delivered4docs (~615words Lesson12); coordinator verified copylists,
+corrected one stale snippet after leveldata changed. Game worker delivered31files;
+coordinator verification found2harness defects and1physics defect, corrected by
+same writer in2follow-ups before acceptance. No integration/edit conflicts.
+Elapsed/attributable token telemetry unavailable; coordination involved2bounded
+workers, contract messages and serialized native verification. Browser inspection
+led to runnable-example guide routing. Native scene and browser images retained
+in ignored .verification/lesson12-game/.
+Physical Windows/Linux, audible output and novice classroom use remain unverified.
+
+Historical phase records below are evidence, not additional authorization.
+
 # Publication — 2026-10-10
 
 Owner explicitly authorized source PRs, merge, Community 0.1.3 then Zero 0.5.3,

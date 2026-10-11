@@ -28,8 +28,10 @@ that changes the greeting; Lesson 2 adds a name field; Lesson 3 checks one answe
 with if/else and feedback. Lessons 4–6 add counter state, reset methods and
 ordinary objects; 7 builds a study app; 8 teaches movement; 9 builds a coin game.
 Lessons 10–11 cover component extraction/reuse and proposing a Community
-contribution. Lesson 12 starts the larger game with sprites and short sound effects.
-Platformers, camera/world examples and physics are later work; see [game systems](GAME-SYSTEMS.md).
+contribution. Lesson 12 grows sprites and short sound effects into a two-level platformer in
+five runnable stages: media, camera/scoreboard, platforms/gravity, enemies/levels,
+and win/lose/restart. The examples remain ordinary Java classes; see
+[game systems](GAME-SYSTEMS.md).
 The scored quiz remains a later reuse example.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
