@@ -1,5 +1,55 @@
 # Verification
 
+## Lesson 12 full game — source PR, 2026-10-10
+
+Baseline published f8f7829; isolated codex/lesson-12-game. All five stages remain
+inside Lesson12: media-demo, scrolling-game, platform-game, level-game, full-game.
+Core framework, shared ScoreDisplay, dependencies and published metadata unchanged.
+
+Affected acceptance checks pass: configuration/source-link check; website26tests,
+typecheck and production build; in-memory ZIP2tests including new example Java and
+README bytes and extracted standalone compilation. No immutable release was rebuilt.
+Native macOS JavaFX21.0.12 checks pass for media-demo(3.96s), scrolling-game(2.42s),
+platform-game(2.68s), level-game(2.29s), full-game(2.40s). They cover cached media,
+camera clamping including small worlds, fixed HUD and drawing transform restoration,
+solid floor/wall/head response, frame cap and jump edges, once-only collection,
+level score/retry rules, danger, locked exits, win/loss freezes and repeated restart.
+The final game also completes both levels twice using synthetic held keys and
+1/120second updates without teleporting the player. Other state checks intentionally
+place objects to isolate transitions. No physical keyboard/novice play claim.
+
+Coordinator caught and worker corrected two harness defects (early scrolling
+contact assertion and JavaFX Platform import shadowing) plus a real physics bug:
+floating residual steps cleared grounded on a floor. Integer bounded step counts
+fix that bug in all three gravity stages; final native checks above pass.
+An earlier platform at80px was reduced to70px to fit the actual discrete jump.
+
+Local production browser checks pass:11→12 navigation, five collapsed stages,
+stage→example links, complete8Java/2resource copy lists, current Player source,
+actual PNG/WAV downloads with byte parity, no horizontal overflow or error logs.
+The example guide links now open runnable pages instead of raw README text.
+Ignored evidence: .verification/lesson12-game/lesson12.jpg and game-playing.png,
+game-won.png. Game images are native JavaFX scene snapshots from a disposable
+renderer running the same complete game check; they are not OS screenshots.
+Physical Windows/Linux, audible output, physical editor/keyboard/setup flow and
+novice classroom trials remain unverified. Source PR21 is owner-authorized;
+no new immutable release or direct deployment is included.
+Independent standard-risk lesson12_review/turn1 GPT-6.1-Sol/high accepted
+f8f78290e3fd6cc3cae9ddfde9d79534778b9c87..8c9896d53bc3ea2674b640c907a3184555383142:
+all46files covered, no blocking findings. Independent focused learning7tests and
+full-diff whitespace check pass. Coordinator UTC observations indicate~150seconds (approximate); effective model
+and attributable tokens unknown. Ledger:1launch/1initialwave/0fixbatches; no redundant
+integration wave. Subsequent receipt/pilot wording changes are coordinator-checked;
+reviewed implementation is unchanged. Native Restart only sees canvas-held state:
+focusing its button clears that state, so OS repeat after refocus needs a physical
+pilot. Synthetic jump-reset coverage does not establish that physical guarantee.
+
+Original-head [PR21](https://github.com/codepetca/zero/pull/21) Actions
+[38101600157](https://github.com/codepetca/zero/actions/runs/38101600157) passed:
+full extension/kit tests, release guards, all finite Linux JavaFX examples under
+Xvfb/virtual audio, website tests/types/build. Main PR20 changed only policy and
+documentation; integration preserves the exact reviewed game/site/runtime source.
+
 ## Current published delivery — 2026-10-10
 
 Zero0.5.3 and Community0.1.3 are published. The complete source/review/CI/PR/release

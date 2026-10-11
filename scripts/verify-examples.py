@@ -175,6 +175,10 @@ checks={
 }
 standalone = {
     'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
+    'scrolling-game': ('ScrollingGameCheck', 'SCROLLING_GAME_OK'),
+    'platform-game': ('PlatformGameCheck', 'PLATFORM_GAME_OK'),
+    'level-game': ('LevelGameCheck', 'LEVEL_GAME_OK'),
+    'full-game': ('FullGameCheck', 'FULL_GAME_OK'),
     'movement': ('MovementCheck', 'MOVEMENT_OK'),
     'coin-game': ('CoinGameCheck', 'COIN_GAME_OK'),
 }
@@ -257,7 +261,9 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
             shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):
             shutil.copy2(java, dest/'src/main/java'/java.name)
-        if kind in ('quiz', 'practice', 'study'):
+        if kind in ('scrolling-game', 'platform-game', 'level-game', 'full-game'):
+            shutil.copytree(source/'examples/media-demo/resources', dest/'src/main/resources', dirs_exist_ok=True)
+        if kind in ('quiz', 'practice', 'study', 'scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copy2(source/'examples/shared/ScoreDisplay.java', dest/'src/main/java/ScoreDisplay.java')
         if kind in standalone:
             main_class, marker = standalone[kind]

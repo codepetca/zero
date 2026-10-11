@@ -20,59 +20,40 @@ are evidence, not current work orders.
 
 ## Current authorized work
 
-Owner accepted the AI workflow audit fixes: compact recovery records, durable
-publication evidence, trusted Community checks, exact AI request/schema validation,
-and GitHub human-review enforcement. No live AI provider is being connected.
-The previous release authorization completed; it is not a standing release grant.
-No new kit release, student UI change, camera/HUD implementation or credential
-change is included. Owner now explicitly authorized PR publication and merge in both repositories.
-Owner subsequently explicitly requested removal of GitHub branch protections
-in both repositories and approved merging both source PRs. Protection removal
-was verified by authenticated404 readback and empty rulesets. No impersonated
-approval; no new release/provider/credentials change is authorized.
+Owner authorized implementing Lesson 12, publishing PR21 and merging it; the
+latest instruction is to retry the merge. No new release, credential change or
+branch-policy change is authorized here. Owner removed protections separately;
+normal GitHub merge remains subject to passing checks and independent source review.
+AI workflow hardening from [PR20](https://github.com/codepetca/zero/pull/20) is
+merged at `1f2fd53`; its reviewed policy and compact recovery docs are preserved.
 
-## Execution and ownership
+## Execution and acceptance
 
-- Clean managed Zero worktree: `codex/ai-flow-hardening`, base `f8f78290`.
-  Sibling Community worktree: same branch name, base `f6460f48`.
-  Primary Zero contains unrelated funding work; do not reset, stash or overwrite it.
-- Coordinator owns Zero docs, both current snapshots, evidence indexes and GitHub
-  rules. Community implementation worker owns admission/acceptance code, tests and
-  contribution docs. One writer per component; no recursive delegation.
-- Requested worker: GPT-6.1-Sol/high for CI/authority boundary. Effective model and
-  attributable tokens unknown. Weekly24% remaining at start is account-wide.
-  Automatic DeepSeek remains paused by owner preference through 2026-12-31.
-- Status: local implementation accepted after independent initial+targeted review.
-  GitHub protection was applied, then removed at the owner's explicit request.
-  Reviewed source PRs are published: [Zero20](https://github.com/codepetca/zero/pull/20)
-  and [Community5](https://github.com/codepetca/zero-community/pull/5). Owner approved
-  their merges; verify final-head CI and recover their actual status from GitHub
-  before acting. Do not infer a merge from an open PR.
+- Managed worktree: `codex/lesson-12-game`, implementation `8c9896d`, previous
+  final head `944ddfe`, current main integration base `1f2fd53`.
+- Lesson12 includes media, scrolling camera/fixed ScoreDisplay, platforms and
+  gravity, enemies/two levels, and a complete win/lose/restart game. Ordinary Java
+  framework, dependencies and immutable published release bytes remain unchanged.
+- Original independent GPT-6.1-Sol/high review covered all46files, no blockers.
+  Local native, ZIP, browser and website checks passed; original-head Linux CI
+  [38101600157](https://github.com/codepetca/zero/actions/runs/38101600157) passed.
+- Main integration conflicts only in CURRENT and VERIFICATION; retain compact
+  main guidance and archive Lesson12 phase detail. Review the documentation delta
+  and verify final-head CI before merging [PR21](https://github.com/codepetca/zero/pull/21).
+- Primary funding work and other managed checkouts remain untouched. One writer
+  per component. DeepSeek remains paused through2026-12-31. Usage/token telemetry
+  is unknown for this retry; the prior weekly23% remaining was account-wide.
+- [Lesson12 phase evidence](../docs/history/lesson12-through-2026-10-10.md),
+  [delivery index](../docs/EVIDENCE.md), and [verification](../docs/VERIFICATION.md)
+  retain review/check scope. No new implementation wave is planned.
 
-## Review and exit
+## Remaining limits and next action
 
-High-risk boundary change: two independent GPT-6.1-Sol/high reviewers, separate
-security/correctness and architecture/compatibility scopes. No self-approval or
-GitHub review impersonation. Budget: at most7launches,1initialwave,4targetedwaves,
-1integrationwave,4fixbatches,60minutes session,30minutes per reviewer.
-Ledger:3review turns (2initial,1targeted),1initialwave,1targetedwave,1fix batch.
-Both accepted P2 findings are resolved; final targeted verdict has no blockers.
-No integration repeat: targeted review covers both corrections, unchanged initial
-coverage remains applicable. No new implementation review is needed for
-receipt-only publication status updates.
-GitHub branch protections are disabled by explicit owner decision. CODEOWNERS
-and main-protection.json do not enforce a gate or authorize re-enabling it.
-Exit met: regression tests cover changed policy/no-op CI and exact outbound AI bytes;
-current state/evidence links are valid; source changes independently reviewed.
-The earlier live-protection exit criterion was superseded by the owner decision.
-
-## Remaining limits and next product work
-
-No live AI quality/cost/provider test; no automated Community approval/publication.
-Physical Windows/Linux editor/setup, typing/choosers, audible device output,
-school restrictions and novice classroom use remain unverified.
-Next action: verify final-head CI, merge both approved source PRs, and verify actual
-merged state. Do not re-enable protections without owner authorization. Live advisory AI is
-a separate future decision. Camera/scrolling world with fixed ScoreDisplay HUD is a later teaching slice,
-not an active implementation instruction. Read [AI workflow](../docs/AI-WORKFLOW.md)
-and [Development](../docs/DEVELOPMENT.md) before resuming.
+No live AI provider or automatic Community approval. Physical Windows/Linux
+editor/setup, typing/choosers, audible device output, school restrictions and
+novice classroom use remain unverified; Linux virtual-display CI is verified.
+Next: finish documentation integration, verify current-head checks/review, merge
+PR21 normally and verify merged state. Published0.5.3 does not contain the new
+full-game stages; a new kit release requires separate authorization.
+Read [AI workflow](../docs/AI-WORKFLOW.md) and [Development](../docs/DEVELOPMENT.md)
+before resuming. Historical permissions are not standing grants.

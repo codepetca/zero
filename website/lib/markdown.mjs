@@ -1,5 +1,5 @@
 import path from "node:path";
-import { isLessonDocumentId } from "./learning.mjs";
+import { isLessonDocumentId, examples } from "./learning.mjs";
 export const slugify = (text) =>
   text
     .toLowerCase()
@@ -26,6 +26,10 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
     ([, doc]) => doc.source === key,
   );
   if (target) return documentHref(target[0]) + (fragment ? `#${fragment}` : "");
+  if (!fragment && Object.hasOwn(sources, key)) {
+    const example = examples.find((item) => key === `student-template/examples/${item.id}/README.md`);
+    if (example) return `/examples/${example.id}`;
+  }
   if (Object.hasOwn(sources, key))
     return (
       `/source?file=${encodeURIComponent(key)}` +

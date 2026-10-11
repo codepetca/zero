@@ -121,3 +121,16 @@ cost. Implementation worker estimated12minutes+4minutes correction; those estima
 are not a claim of savings. No source push/PR/merge, new release or live AI provider.
 Final receipt-only state edits are coordinator-checked; runtime source is unchanged
 from the reviewed revisions. Code-owner file selection takes effect after human merge.
+
+## Lesson 12 source delivery
+
+[PR21](https://github.com/codepetca/zero/pull/21) adds five runnable teaching stages,
+including the complete platformer. Owner authorized source publication and merge;
+this does not create a new kit release. Implementation `8c9896d53bc3ea2674b640c907a3184555383142`
+was independently reviewed by `lesson12_review/turn1`, GPT-6.1-Sol/high, complete
+46-file scope with no blockers. Receipt-only head `944ddfe` passed
+[Actions38101600157](https://github.com/codepetca/zero/actions/runs/38101600157).
+Main integration at `1f2fd53` affects documentation only; current final-head checks
+and actual merge status must be recovered from PR21. See [verification](VERIFICATION.md)
+and the [phase archive](history/lesson12-through-2026-10-10.md) for scope and limits.
+No published artifact version or sealed bytes changed.

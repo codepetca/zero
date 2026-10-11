@@ -97,9 +97,9 @@ export const lessons = [
   },
   {
     id: "12",
-    title: "Sprites and sounds",
-    description: "Use your own image and a short sound effect.",
-    topic: "Resources, Image, AudioClip",
+    title: "Build a platformer",
+    description: "Grow your sprites and sounds into a two-level game.",
+    topic: "Camera, scoreboard, gravity, levels, game state",
     doc: "api",
     anchor: "images-and-resources",
   },
@@ -117,7 +117,23 @@ export function lessonNavigation(id) {
   if (index < 0) return {};
   return { related: lessons[index], previous: lessons[index - 1], next: lessons[index + 1] };
 }
+const gameResources = [
+  { file: "media-demo/resources/media-demo/player.png", destination: "src/main/resources/media-demo/player.png" },
+  { file: "media-demo/resources/media-demo/chime.wav", destination: "src/main/resources/media-demo/chime.wav" },
+];
+const gameStages = [
+  { id: "scrolling-game", title: "Scrolling world", description: "Follow your sprite with a camera and keep the scoreboard fixed.", helpers: ["Camera", "Player", "Coin"] },
+  { id: "platform-game", title: "Jump onto platforms", description: "Add gravity, jumping and solid platform collisions.", helpers: ["Camera", "Player", "Coin", "Platform"] },
+  { id: "level-game", title: "Enemies and levels", description: "Patrolling enemies and two levels built from ordinary objects.", helpers: ["Camera", "Player", "Coin", "Platform", "Enemy", "Level"] },
+  { id: "full-game", title: "Robot platformer", description: "Collect every coin across two levels, avoid enemies and restart after winning or losing.", helpers: ["Camera", "Player", "Coin", "Platform", "Enemy", "Level"] },
+];
 export const examples = [
+  ...gameStages.map(({ id, title, description, helpers }) => ({
+    id, title, description,
+    files: [`${id}/Main.java`, ...helpers.map((name) => `${id}/${name}.java`), "shared/ScoreDisplay.java"],
+    resources: gameResources,
+    lesson: "12",
+  })),
   {
     id: "media-demo",
     title: "My sprite and sound",

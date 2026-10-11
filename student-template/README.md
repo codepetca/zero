@@ -2,7 +2,8 @@
 
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
-continues through counters, objects, a study app, a game, Community sharing and your own media.
+continues through counters, objects, a study app, Community sharing and a larger
+game with your own media, scrolling, platforms, two levels and endings.
 Start by editing only `src/main/java/Main.java`.
 Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
@@ -149,7 +150,11 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. See [Lesson 5](lessons/05-methods.md). |
 | Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. See [Lesson 6](lessons/06-objects.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
-| Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12](lessons/12-media.md). |
+| Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
+| Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |
+| Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See [stage 3](lessons/12-media.md#3-gravity-platforms-and-collisions). |
+| Two-level game | `examples/level-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Collect coins, avoid enemies and advance levels. See [stage 4](lessons/12-media.md#4-enemies-and-two-levels). |
+| Full platform game | `examples/full-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java, Enemy.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Win or lose, then Restart a fresh game. See [stage 5](lessons/12-media.md#5-win-lose-and-restart). |
 | Collect the coins | `examples/coin-game/Main.java`, `examples/coin-game/Player.java`, `examples/coin-game/Coin.java` | Collect three coins, win, Restart. See [Lesson 9](lessons/09-coin-game.md). |
 | Tiny quiz | `examples/tiny-quiz/Main.java` | Answer 2 + 3, click Check, then try again. See [Lesson 3](lessons/03-quiz.md). |
 | Scored quiz | `examples/quiz/Main.java` and `examples/shared/ScoreDisplay.java` | Wrong answer keeps points; trimmed “42” awards 10 once. |
@@ -161,7 +166,7 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | Drawing | `examples/drawing/Main.java` | Primary button paints; secondary clears. Separate strokes stay separate. |
 
 There is one reusable example source, `examples/shared/ScoreDisplay.java`; quiz,
-practice and study apps do not contain independent copies. The default compiled starter
+practice, study and Lesson 12 game stages do not contain independent copies. The default compiled starter
 contains the same file. If improving it for a contribution, update the shared
 source and copy it into `src/main/java/ScoreDisplay.java`, then try the affected apps.
 The no-argument constructor keeps the quiz's “Score” caption; the tracker passes

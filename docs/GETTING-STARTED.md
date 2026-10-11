@@ -60,7 +60,8 @@ button that changes the greeting. [Lesson 2](../student-template/lessons/02-hell
 adds a name field. [Lesson 3](../student-template/lessons/03-quiz.md) checks **2 + 3**.
 Try a wrong answer, then **5**.
 Continue through [Lessons 4–12](../student-template/lessons/README.md): counters,
-objects, a complete study app, a coin game and Community sharing.
+objects, a complete study app, a coin game, Community sharing and a larger
+platformer with your own sprites and sounds.
 
 Try the practice tracker to reuse ScoreDisplay. Try animation, keyboard or
 drawing to use `SketchApp`: it runs `update(seconds)` then `draw()` each frame;
