@@ -1,4 +1,4 @@
-import {readFileSync, readdirSync} from 'node:fs';
+import {readFileSync, readdirSync, lstatSync} from 'node:fs';
 import path from 'node:path';
 import {prepareStarter} from './prepare-starter.mjs';
 
@@ -18,5 +18,22 @@ export function starterMembers(root, prefix = 'zero-starter') {
     }
   }
   collect(path.join(root, 'student-template'));
+  return members;
+}
+
+// Only student-facing setup files ship; maintainer tests and caches stay outside.
+export const setupFiles = ['Setup.cmd', 'Setup.ps1', 'Setup.command', 'setup.sh', 'README.md'];
+export function setupMembers(root, release, prefix = 'zero-kit/setup') {
+  const members = {};
+  for (const name of setupFiles) {
+    const filename = path.join(root, 'setup', name);
+    const stat = lstatSync(filename);
+    if (!stat.isFile() || stat.isSymbolicLink()) throw new Error(`Setup must be a regular file: ${name}`);
+    members[`${prefix}/${name}`] = [new Uint8Array(readFileSync(filename)), {
+      os:3, attrs:((/\.(command|sh)$/.test(name) ? 0o100755 : 0o100644) << 16) >>> 0
+    }];
+  }
+  const manifest = `kitVersion=${release.kitVersion}\nextensionId=zero.zero\n`;
+  members[`${prefix}/kit.properties`] = [new TextEncoder().encode(manifest), {os:3, attrs:(0o100644 << 16) >>> 0}];
   return members;
 }

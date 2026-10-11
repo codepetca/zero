@@ -5,9 +5,25 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {zipSync, unzipSync} from 'fflate';
 import {prepareStarter, coreSources} from './prepare-starter.mjs';
-import {starterMembers} from './kit.mjs';
+import {starterMembers, setupMembers, setupFiles} from './kit.mjs';
 import {root, releaseDefinition} from './release.mjs';
 import {extractProject, maven} from './verification-project.mjs';
+
+test('setup archive contains only launchers, guidance and version-bound metadata with executable shell files', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-setup-kit-'));
+  try {
+    mkdirSync(path.join(fixture, 'setup/tests'), {recursive:true});
+    for (const name of setupFiles) writeFileSync(path.join(fixture, 'setup', name), `fixture ${name}`);
+    writeFileSync(path.join(fixture, 'setup/tests/private-log.txt'), 'excluded');
+    const release = {kitVersion:'9.8.7'};
+    const members = setupMembers(fixture, release);
+    const extracted = unzipSync(zipSync(members));
+    assert.deepEqual(Object.keys(extracted).sort(), [...setupFiles, 'kit.properties'].map(name=>`zero-kit/setup/${name}`).sort());
+    assert.equal(new TextDecoder().decode(extracted['zero-kit/setup/kit.properties']), 'kitVersion=9.8.7\nextensionId=zero.zero\n');
+    assert.equal((members['zero-kit/setup/Setup.command'][1].attrs >>> 16) & 0o777, 0o755);
+    assert.equal((members['zero-kit/setup/setup.sh'][1].attrs >>> 16) & 0o777, 0o755);
+  } finally {rmSync(fixture, {recursive:true, force:true});}
+});
 
 test('starter preparation refreshes generated source and preserves edited copies as a pair', () => {
   const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-drift-'));

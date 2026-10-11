@@ -69,7 +69,7 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.3.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.4.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After preparing the committed public component candidate and Workshop with
 `--public` as described in [Development](docs/DEVELOPMENT.md),
@@ -78,7 +78,7 @@ It contains the editable Workshop/source, one pinned community version and its
 verified local Maven repository. Historical update/revert verification is separate.
 These are experimental local artifacts; packaging does not publish them.
 
-Maintainers approve a reviewed new version with `npm run release:publish -- --version 0.5.3`.
+Maintainers approve a reviewed new version with `npm run release:publish -- --version 0.5.4`.
 The command checks, publishes verified files, updates the website through a checked PR
 and verifies the live kit. See [releasing Zero](docs/RELEASING.md) for prerequisites,
 recovery and the read-only `--verify-only` option.

@@ -2,7 +2,7 @@
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
 separate JavaFX window. Extract the kit once to find `START-HERE.md`, the ready
-`starter/` folder, `zero-0.5.3.vsix` and an `optional/` folder containing the profile
+`starter/` folder, `zero-0.5.4.vsix` and an `optional/` folder containing the profile
 and keyboard shortcuts. The separate starter-only ZIP is also available locally.
 This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
@@ -10,6 +10,21 @@ native sign-in and repository upload path.
 See [verification evidence](VERIFICATION.md) for checks actually completed.
 
 ## One-time setup
+
+The local0.5.4 kit adds guided setup. Published0.5.3 uses the manual steps below.
+In the complete extracted0.5.4 kit, open `setup/Setup.cmd` on Windows or
+`setup/Setup.command` on macOS; on Linux run `bash setup/setup.sh`.
+The checker reuses suitable installations, offers explicit install/help actions,
+installs extensions in the selected setup profile and opens the starter.
+Keep the whole extracted kit together. No Node.js or separate Maven is needed.
+Actual Windows installers, school policies and clean personal-machine installation
+remain unverified; see [setup behaviour and limits](SETUP.md).
+
+Inside VS Code, **Setup help** now shows a native checklist with **Check again**.
+Java editor/debugger repair uses VS Code's extension installer in the current
+profile. Java/Git repair opens an official download page and explains installation
+and restarting VS Code. **Run first app** uses the usual save/build/launch flow;
+confirm its JavaFX window, since tool detection is not a build test.
 
 1. Install VS Code and a supported **JDK 17 or later**; install **Git 2.31 or newer** for repository
    work. JDK 17 was tested. Check `java -version`, `javac -version` and
@@ -23,7 +38,7 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.3.vsix** through
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.4.vsix** through
    **Extensions: Install from VSIX…** in the Command Palette, then use
    **Extensions: Install Extensions** to install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**

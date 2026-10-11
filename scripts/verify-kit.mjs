@@ -6,7 +6,7 @@ import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 import {unzipSync} from 'fflate';
 import {root, releaseDefinition} from './release.mjs';
-import {starterMembers} from './kit.mjs';
+import {starterMembers, setupMembers} from './kit.mjs';
 import {coreSources} from './prepare-starter.mjs';
 import {extractProject, maven} from './verification-project.mjs';
 
@@ -25,6 +25,7 @@ const kitPath = path.join(root, 'dist', release.assets.kit.filename);
 const kitBytes = readFileSync(kitPath), kit = unzipSync(kitBytes);
 for (const [name, [bytes]] of Object.entries(starterMembers(root, 'zero-kit/starter'))) assert.deepEqual(kit[name], bytes, name);
 assert.ok(kit['zero-kit/START-HERE.md']);
+for (const [name, [bytes]] of Object.entries(setupMembers(root, release))) assert.deepEqual(kit[name], bytes, name);
 assert.deepEqual(kit['zero-kit/LICENSE'], license);
 assert.deepEqual(kit['zero-kit/starter/LICENSE'], license);
 assert.deepEqual(kit[`zero-kit/${release.assets.extension.filename}`], new Uint8Array(readFileSync(path.join(root, 'dist', release.assets.extension.filename))));
@@ -40,7 +41,7 @@ assert.deepEqual(Object.keys(starter).sort(), Object.keys(expectedStarter).sort(
 for (const [name, [bytes]] of Object.entries(expectedStarter)) assert.deepEqual(starter[name], bytes, name);
 assert.deepEqual(starter['zero-starter/LICENSE'], license);
 assert.deepEqual(vsix['extension/media/component-example/zero/SimpleApp.java'], new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero/SimpleApp.java'))));
-const permissions = spawnSync('python3', ['-c', 'import sys,zipfile; z=zipfile.ZipFile(sys.argv[1]); i=z.getinfo("zero-kit/starter/mvnw"); assert (i.external_attr>>16)&0o111; assert all(not n.endswith(".zip") for n in z.namelist()); print("ZIP wrapper executable and flat layout verified")', kitPath], {encoding:'utf8'});
+const permissions = spawnSync('python3', ['-c', 'import sys,zipfile; z=zipfile.ZipFile(sys.argv[1]); names=["zero-kit/starter/mvnw","zero-kit/setup/Setup.command","zero-kit/setup/setup.sh"]; assert all((z.getinfo(n).external_attr>>16)&0o111 for n in names); assert all(not n.endswith(".zip") for n in z.namelist()); print("ZIP wrapper/setup executables and flat layout verified")', kitPath], {encoding:'utf8'});
 assert.equal(permissions.status, 0, permissions.stderr);
 const project = extractProject(kitBytes, 'zero-kit/starter', tmpdir());
 try {maven(project, ['-q', 'clean', 'compile']);} finally {rmSync(project, {recursive:true, force:true});}

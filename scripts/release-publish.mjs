@@ -14,7 +14,7 @@ const workflow = 'release-review.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
 const definitionFiles = ['extension/package.json', 'framework/pom.xml', 'component-workshop/pom.xml'];
 const promotionFiles = ['README.md', 'release/kit.json'];
-const packagedSources = ['extension', 'framework', 'student-template', 'profile', 'LICENSE', 'release/START-HERE.md',
+const packagedSources = ['extension', 'framework', 'student-template', 'profile', 'setup', 'LICENSE', 'release/START-HERE.md',
   'scripts/package.mjs', 'scripts/prepare-starter.mjs', 'scripts/kit.mjs', 'scripts/verify-kit.mjs'];
 const exec = promisify(execFile);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');

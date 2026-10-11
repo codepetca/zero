@@ -3,15 +3,13 @@ const vscode = require('vscode');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const {execFile} = require('node:child_process');
-const {promisify} = require('node:util');
 const core = require('./core');
 const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
 const {createTransport} = require('./transport');
 const {createComponentActions} = require('./component-actions');
-const execute = promisify(execFile);
+const {createSetupHelp} = require('./setup');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 function activate(context) {
@@ -359,18 +357,7 @@ function activate(context) {
       await vscode.env.clipboard.writeText(page);
       vscode.window.showInformationMessage('Repository link copied. Paste it into Pika when submitting.');
     },
-    'zero.showSetup': async () => {
-      output.clear(); output.show(true);
-      output.appendLine('Zero setup — local running does not require GitHub sign-in.');
-      for (const [name, args] of [['java',['-version']], ['javac',['-version']], ['git',['--version']]]) {
-        try {const result = await execute(name, args, {timeout:10000}); output.appendLine(`${name}: ${(result.stdout || result.stderr).trim()}`);}
-        catch(error) {output.appendLine(`${name}: unavailable. Install ${name !== 'git' ? 'JDK 17 or newer and ensure java is on PATH' : 'Git and ensure git is on PATH'}. ${error.message}`);}
-      }
-      for (const id of ['redhat.java','vscjava.vscode-java-debug']) output.appendLine(`${id}: ${vscode.extensions.getExtension(id) ? 'installed' : 'missing — install this Java extension'}`);
-      try {output.appendLine(`Student project: ${await project()}`);} catch(error) {output.appendLine(error.message);}
-      output.appendLine('First builds download Maven and JavaFX dependencies. Run App saves files, rebuilds and opens a separate JavaFX window. Read errors in its task terminal.');
-      output.appendLine(`Upload mode: ${uploadMode()}. Simulation makes no Git changes. Live upload needs Git 2.31 or newer and uses your VS Code GitHub sign-in. Git still needs your name/email identity configured for this repository; Zero does not change your Git identity or store passwords/tokens.`);
-    }
+    'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
   Object.assign(actions, createComponentActions(vscode,context,{
     project,run:queuedRun,isBusy,setBusy:value=>{componentBusy=value;refresh();},
