@@ -90,9 +90,10 @@ Primary references: [VS Code CLI](https://code.visualstudio.com/docs/configure/c
 
 ## Installer packaging direction
 
-Native wrappers embed the complete kit: a Windows EXE and a universal macOS app
-inside a DMG. Both use a small window with one replacing status line. The local
-Mac0.5.5 candidate is signed/notarized; Windows0.5.6 is an unsigned development
-candidate requiring a Windows trial. Both preserve existing student projects; the next native build uses the fixed
-home `Zero` folder with an update confirmation. Keep the ZIP/manual path for managed machines; see
+Native installers embed the complete kit and use a small window with one replacing
+status line. Published Mac0.5.7 is signed and notarized; it automatically prepares
+Java and a separate Zero editor configuration. It uses `~/Zero`, asks before
+updating an existing kit and preserves student projects. Windows development
+installers remain unsigned and local; physical Windows testing is deferred.
+Keep the ZIP/manual path for managed machines; see
 [installer direction](INSTALLER.md).
