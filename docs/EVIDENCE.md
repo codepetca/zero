@@ -205,3 +205,40 @@ unknown. 27initial launcher tests (20.367seconds),34corrected cases (28.067secon
 Full logs and measured final artifacts in ignored .verification/setup-reliability-2026-10-10
 and dist/release.json. No push/PR/merge/release/deploy, host installs or account
 changes. Primary funding work preserved; public0.5.3 and Community unchanged.
+
+
+## Native setup delivery — local only
+
+Base d0311ea1827769110adbe86b5a66db83b85ed113; implementation d9c79ba8d8b0939be1df2c3256853423d7512db2;
+accepted runtime b3551bec3b0cb856b386876d0aebf9553d5035f0. Mac AppKit/DMG and
+Windows WinForms/net48 AnyCPU wrappers embed the measured complete kit, preserve
+fresh-folder boundaries and retain explicit guided repair/account separation.
+
+installer_macos and installer_windows requested GPT-6.1-Sol/high, one writer per
+platform. Mac worker estimated15minutes, Windows15–20minutes; correction effort
+and effective models/tokens unknown. Coordinator owned build/verification/docs.
+Two initial build attempts exposed host lipo multi-architecture verify parsing;
+one-architecture-per-call fixed it before review. Four build attempts total,
+two failed; final corrected artifacts bind clean b3551be. These estimates and
+account-wide20% weekly remaining at phase start do not establish task cost/savings.
+
+native_setup_security_review/turn1 completed24-file initial scope at d9c79ba:
+2accepted P2s (unbounded detached output drain, bundled versus copied recheck).
+native_setup_compatibility_review/turn1 completed24-file scope:1accepted P2
+(normal close before asynchronous cleanup). One corrective batch addressed all;
+Windows worker also confirmed old incomplete-capture exit0 through a failing
+fake-process assertion, then fixed the same readiness invariant. No rejected
+findings or failed launches. native_setup_security_review/turn2 completed all
+12 correction files and immediate lifecycle/copy/probe/package boundaries at
+b3551be:0new findings/blockers. Unchanged initial coverage retained; no extra
+integration wave needed. Final nonfunctional receipts coordinator-checked.
+
+Ledger3turns/1initial wave/1targeted wave/1runtime fix batch. Review-session clock
+03:04:31–03:14:05UTC on2026-10-11,574seconds; attributable coordinator/reviewer
+active time unknown. Full receipt and
+artifacts in ignored .verification/native-installer and dist/installers.
+56Mac assertions/52Mono checks/3packaging tests, config/links, exact kit/Maven
+and final read-only DMG/PE payload checks pass. See VERIFICATION.md for hashes
+and precise gaps. Physical Windows, actual installations and distribution signing
+remain pending. No push/PR/merge/release/deploy, tool/profile/account mutations or
+security-policy changes. Primary funding work and Community preserved.

@@ -155,3 +155,43 @@ macOS Bash3.2 fake-tool execution is verified. PowerShell/native Windows, actual
 Homebrew/winget installers, clean-machine profile/editor interaction, school
 network/policies and novice usability remain unverified. Known-location discovery
 is bounded, not an exhaustive machine inventory. No native EXE/app/DMG is claimed.
+
+
+## Native setup wrappers — local development builds
+
+Native feature base d0311ea1827769110adbe86b5a66db83b85ed113, implementation
+d9c79ba8d8b0939be1df2c3256853423d7512db2, accepted corrected runtime
+b3551bec3b0cb856b386876d0aebf9553d5035f0. Existing kit/editor/framework source
+coverage remains valid; native wrappers do not change Java APIs or sharing.
+
+- Mac harness:56 assertions passed, including complete/executable copy, existing
+  and raced destination preservation, detached pipe timeout, copied-file failure,
+  real delegate window/quit guards and paused fake check/launch. ARM64 and x86_64
+  compile with warnings treated as errors. AppKit preview uses fake check results.
+- Windows harness:52 checks passed under Mono, including ZIP validation before
+  writing, fresh copy/cancellation, paused work close gate, literal argv quoting,
+  nonzero/timeout/cancel/incomplete-output capture, and real kit extraction.
+  Final net48 AnyCPU publish emits EXE only, with no extra runtime DLLs.
+- Packaging:3 tests pass; configuration/syntax/command/document links pass.
+  Rebuilt kit verifies source/licenses/metadata/modes and extracted Maven compile.
+  Final installer verifier measures DMG/EXE hashes, Windows PE/CLR header and
+  exact embedded ZIP; mounts DMG read-only, compares every payload byte/mode,
+  checks executable launcher and both architectures, then detaches.
+- Local complete kit236725bytes, SHA256
+  `1dc0d486a9bd07f5dd8ab75896e599771435025e23b8ce792cd26d3b63d90bed`.
+  DMG389837bytes, SHA256
+  `2df1cf3fd2fd5f5ddb2a35ee643590656cf4b8d53804230caf988700814de14d`.
+  EXE270336bytes, SHA256
+  `49fc51d838da5b2e1a0d12c9f33b6bd39ec3ff6116110e6fdf9a1e2017e24ac4`.
+  Measured source-clean receipt at dist/installers/build-all.json binds b3551be.
+
+Two complete initial independent reviews plus one correction pass accepted the
+runtime. Normal close now waits for asynchronous cleanup; detached/incomplete
+output cannot imply readiness; Mac rechecks its copied kit. Forced termination
+may leave an owned staging folder but cannot authorize overwriting an existing
+project. Physical Windows UI, ACL creation, Explorer/native PowerShell/policy,
+physical Intel execution, clean-machine tool installs, security/signing prompts,
+restricted networks and novice usability remain unverified. macOS checks use
+disposable files/fake commands; the preview is not a real setup completion.
+No host installations, profiles/accounts/credentials, policy changes or remote
+writes occurred. Artifacts remain unsigned development builds and unpublished.
