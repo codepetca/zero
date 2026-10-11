@@ -62,7 +62,7 @@ Audit at Zero `f8f78290` / Community `f6460f48`:43release tests and48Community
 boundary tests passed. Reproduced no-op workflow trust, mismatched outbound-byte
 budget, and boolean schema acceptance. Remediation passes39admission and25acceptance/release regression tests. Zero
 43release tests,24site tests, types/build and configuration/link checks pass. Source
-remains local pending independent review; no new release or live provider.
+remains local after completed independent review; no new release or live provider.
 
 ## GitHub main protection — 2026-10-10
 
@@ -78,13 +78,35 @@ request applied successfully. No account identity, credentials or release bytes 
 
 ## Independent remediation review — initial wave
 
-Security/correctness reviewed Community `f6460f48..a120d2cb` and Zero rules at
-`49385146`; compatibility reviewed both complete `f8f78290..49385146` and
+`ai_hardening_security_review/turn1` (correctness) reviewed Community `f6460f48..a120d2cb` and Zero rules at
+`49385146`; `ai_hardening_compat_review/turn1` reviewed both complete `f8f78290..49385146` and
 `f6460f48..a120d2cb` diffs. Requested GPT-6.1-Sol/high in two fresh contexts;
 effective configuration/tokens/elapsed telemetry unknown. Both assigned scopes
 complete. Accepted two P2 corrections: final PR/review/role readback and accurate
 publisher stop/resume documentation. First correction batch passes25acceptance
 regressions (15.202seconds), retaining39admission tests and unchanged source digest.
-A targeted independent review of both correction deltas is next. Main protection
+Targeted independent review completed for both correction deltas. Main protection
 was absent (authenticated404 `Branch not protected`, repository rulesets empty)
 before applying the stronger gate; the apply script rechecked that baseline.
+
+## Accepted local hardening delivery
+
+`ai_hardening_security_review/turn2` covered Community `a120d2cb..6be28609fae074b1e0d8b51d142b8e1c5a4b842b`
+and Zero `49385146..1d37a70276843a695a5a83fc0ebdbf5cbf92d79b`, requested
+GPT-6.1-Sol/high. Complete correction scope, both accepted P2 findings resolved,
+no new blockers; five focused race cases passed in2.173seconds. Initial unchanged
+policy/AI and compatibility coverage remains applicable; no extra integration wave.
+
+Final checks:39admission,25acceptance/release,43Zero release and24site tests pass;
+Zero configuration/links/types/production build pass. Current CLI emits33,875UTF-8
+request bytes, no provider call; library source digest unchanged. GitHub protection
+was read back again after review, matching the intended gate. Histories match the
+original revisions except archive headers/rebased links. Primary funding work untouched.
+
+Review ledger:2initial turns+1targeted turn,1fix batch,0failed reviewer launches;
+effective models/attributable tokens/worker elapsed telemetry unknown. Conservative
+review budget clock01:06:06–01:12:04UTC (~6minutes), not measured worker/coordination
+cost. Implementation worker estimated12minutes+4minutes correction; those estimates
+are not a claim of savings. No source push/PR/merge, new release or live AI provider.
+Final receipt-only state edits are coordinator-checked; runtime source is unchanged
+from the reviewed revisions. Code-owner file selection takes effect after human merge.

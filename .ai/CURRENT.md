@@ -39,9 +39,9 @@ publication/merge. Repository branch-protection changes are authorized in this p
 - Requested worker: GPT-6.1-Sol/high for CI/authority boundary. Effective model and
   attributable tokens unknown. Weekly24% remaining at start is account-wide.
   Automatic DeepSeek remains paused by owner preference through 2026-12-31.
-- Status: initial independent wave complete; first correction batch complete. GitHub
-  protection applied and authenticated readback verified for both main branches.
-  Next: targeted review of final authority/doc corrections, then local delivery.
+- Status: local implementation accepted after independent initial+targeted review.
+  GitHub protection is live and authenticated readback verified for both main
+  branches. Source/CODEOWNERS remains local; no PR, push or merge was performed.
 
 ## Review and exit
 
@@ -49,12 +49,13 @@ High-risk boundary change: two independent GPT-6.1-Sol/high reviewers, separate
 security/correctness and architecture/compatibility scopes. No self-approval or
 GitHub review impersonation. Budget: at most7launches,1initialwave,4targetedwaves,
 1integrationwave,4fixbatches,60minutes session,30minutes per reviewer.
-Ledger:2reviewer launches/1initial wave,2accepted P2 findings,1fix batch complete (25acceptance regressions pass).
- Security refreshes final PR/review/role snapshot; compatibility corrects
-publisher stop/resume docs. Next:1targeted review of both deltas. No source pushed.
+Ledger:3review turns (2initial,1targeted),1initialwave,1targetedwave,1fix batch.
+Both accepted P2 findings are resolved; final targeted verdict has no blockers.
+No integration repeat: targeted review covers both corrections, unchanged initial
+coverage remains applicable. No source pushed.
 GitHub rules require1current approval+strict canonical CI, including admins.
 CODEOWNERS is local; named owner selection takes effect after human merge.
-Exit: regression tests cover changed policy/no-op CI and exact outbound AI bytes;
+Exit met: regression tests cover changed policy/no-op CI and exact outbound AI bytes;
 current state/evidence links are valid; live main protection requires human approval
 and canonical passing CI without admin bypass; source changes independently reviewed.
 
@@ -63,6 +64,8 @@ and canonical passing CI without admin bypass; source changes independently revi
 No live AI quality/cost/provider test; no automated Community approval/publication.
 Physical Windows/Linux editor/setup, typing/choosers, audible device output,
 school restrictions and novice classroom use remain unverified.
-Camera/scrolling world with fixed ScoreDisplay HUD is a later teaching slice,
+Next action: source PR publication/merge requires owner authorization and the real
+human GitHub gate; do not impersonate approval or bypass it. Live advisory AI is
+a separate future decision. Camera/scrolling world with fixed ScoreDisplay HUD is a later teaching slice,
 not an active implementation instruction. Read [AI workflow](../docs/AI-WORKFLOW.md)
 and [Development](../docs/DEVELOPMENT.md) before resuming.

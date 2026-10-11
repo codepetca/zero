@@ -35,8 +35,12 @@ Reproductions exposed CI-policy identity and two AI interface boundary gaps.
 Remediation:39admission and25acceptance/release tests pass, including no-op
 workflow, policy changes/modes, main/head drift, exact outbound-byte boundary and
 invalid schema cases. Zero43release tests,24website tests, types/build and
-configuration/link checks pass. Initial independent scopes complete; accepted authority snapshot and publisher
-doc corrections are implemented. Targeted correction review is pending.
+configuration/link checks pass. Two initial independent scopes and the targeted correction review are complete.
+Both accepted P2 authority-snapshot/publisher-doc findings are resolved; no new
+blockers. Five reviewer race checks passed in2.173seconds. Runtime source matches
+the reviewed Community6be28609; Zero1d37a702 is documentation only. Final receipt
+edits are coordinator-checked. GitHub main protection was independently read back
+after review; source changes and CODEOWNERS are local, pending human-reviewed merge.
 No kit/library/extension version changes or new immutable releases are included.
 
 ## Historical verification
