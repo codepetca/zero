@@ -200,9 +200,14 @@ help_tool() {
     fi
     installed=$(printf '%s\n' "$inventory" | awk -v name="$package" '$1==name {print}')
     if [ -n "$installed" ]; then
-      if ! outdated=$(HOMEBREW_NO_AUTO_UPDATE=1 probe brew outdated --quiet "${package_kind[@]}" "$package"); then
+      outdated_options=(--quiet "${package_kind[@]}")
+      if [ "${package_kind[0]}" = --cask ]; then outdated_options+=(--greedy-auto-updates); fi
+      # Named outdated returns exit 1 when updates exist. Query the kind without
+      # names, include auto-updating casks, then select this exact fixed package.
+      if ! outdated_inventory=$(HOMEBREW_NO_AUTO_UPDATE=1 probe brew outdated "${outdated_options[@]}"); then
         echo 'Could not verify package update status. Ask your teacher/IT; no installation was attempted.'; return
       fi
+      outdated=$(printf '%s\n' "$outdated_inventory" | awk -v name="$package" '$0==name {print}')
       if [ -z "$outdated" ]; then
         echo "Homebrew already has $package current. Review PATH/JAVA_HOME or the selected installation with your teacher/IT; restart and check again. No reinstall attempted."; return
       fi

@@ -20,7 +20,7 @@ function fixture(options = {}) {
   const log = path.join(root, 'probes.log');
   const executable = (dir, name, body) => writeFileSync(path.join(dir, name), '#!/bin/bash\n' + body + '\n', {mode: 0o755});
   executable(bin, 'uname', options.macApp || options.mac ? 'echo Darwin' : 'echo Linux');
-  executable(bin, 'git', options.git === false ? 'exit 1' : 'echo "git version 2.31.0"');
+  executable(bin, 'git', options.git === false ? 'exit 1' : 'echo "git version ' + (options.gitVersion || '2.31.0') + '"');
   let codeBin = bin;
   if (options.macApp) { codeBin = path.join(root, 'Applications/Visual Studio Code.app/Contents/Resources/app/bin'); mkdirSync(codeBin, {recursive: true}); }
   const codeBody = 'printf "%s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n --version) ' + (options.code === false ? 'exit 1' : 'echo ' + (options.codeVersion || '1.100.0')) + ' ;;\n "--profile Zero --list-extensions --show-versions") ' + (options.profile === false ? 'echo "Profile Zero not found"; exit 1' : 'printf "zero.zero@' + (options.extension || '0.5.4') + '\\nredhat.java@1.40.0\\n' + (options.debugger === false ? '' : 'vscjava.vscode-java-debug@0.58.0\\n') + '"') + ' ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac';
@@ -31,7 +31,20 @@ function fixture(options = {}) {
   // A valid PATH JDK must not conceal an explicitly invalid JAVA_HOME.
   for (const name of ['java', 'javac']) executable(bin, name, name === 'java' ? 'echo \'openjdk version "17.0.12"\' >&2' : 'echo "javac 17.0.12"');
   for (const name of ['brew', 'xdg-open', 'open']) executable(bin, name, 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99');
-  if (options.brew) executable(bin, 'brew', 'printf "brew %s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n "list --versions --cask") ' + (options.brew === 'missing' ? ':' : 'echo "visual-studio-code 1.90.0"') + ' ;;\n "outdated --quiet --cask visual-studio-code") ' + (options.brew === 'outdated' ? 'echo visual-studio-code' : ':') + ' ;;\n "upgrade --cask visual-studio-code"|"install --cask visual-studio-code") exit 0 ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac');
+  if (options.brew) executable(bin, 'brew', `printf "brew %s\\n" "$*" >> "$PROBE_LOG"
+case "$*" in
+ "list --versions --cask") ${options.brew === 'inventoryFailure' ? 'exit 2' : ['missing', 'installFailure'].includes(options.brew) ? ':' : 'echo "visual-studio-code 1.90.0"'} ;;
+ "outdated --quiet --cask --greedy-auto-updates") ${options.brew === 'outdatedFailure' ? 'exit 2' : ['outdated', 'upgradeFailure'].includes(options.brew) ? 'echo visual-studio-code' : options.brew === 'unrelated' ? 'printf "other-cask\\nvisual-studio-code-insiders\\n"' : ':'} ;;
+ "list --versions --formula") echo "git 2.30.0" ;;
+ "outdated --quiet --formula") echo git ;;
+ # Match Homebrew: a named outdated query succeeds in finding an update but exits 1.
+ "outdated --quiet --cask visual-studio-code"|"outdated --quiet --cask --greedy-auto-updates visual-studio-code") echo visual-studio-code; exit 1 ;;
+ "outdated --quiet --formula git") echo git; exit 1 ;;
+ "upgrade --cask visual-studio-code") exit ${options.brew === 'upgradeFailure' ? 42 : 0} ;;
+ "install --cask visual-studio-code") exit ${options.brew === 'installFailure' ? 43 : 0} ;;
+ "upgrade --formula git") exit 0 ;;
+ *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;
+esac`);
   return {root, log, run(input) {
     const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), ...(input === undefined ? ['--check'] : [])], {env: {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : jdk, PROBE_LOG: log}, input, encoding: 'utf8', timeout: 10000});
     assert.equal(result.error, undefined);
@@ -76,12 +89,34 @@ for (const [name, brew, input, expected, forbidden] of [
   ['missing managed package installs', 'missing', '1\ny\n0\n', /brew install --cask visual-studio-code/, /brew upgrade/],
   ['current managed package needs configuration', 'current', '1\n0\n', /already has visual-studio-code current/, /brew (install|upgrade)/],
   ['cancelled upgrade performs no mutation', 'outdated', '1\nn\nn\n0\n', /Proposed command: brew upgrade/, /brew (install|upgrade)/],
+  ['failed manager inventory performs no mutation', 'inventoryFailure', '1\n0\n', /Could not read Homebrew inventory/, /brew (outdated|install|upgrade)/],
+  ['failed update inventory performs no mutation', 'outdatedFailure', '1\n0\n', /Could not verify package update status/, /brew (install|upgrade)/],
+  ['unrelated outdated casks do not upgrade selected package', 'unrelated', '1\n0\n', /already has visual-studio-code current/, /brew (install|upgrade)/],
+  ['failed upgrade reports exit code and rechecks', 'upgradeFailure', '1\ny\n0\n', /Homebrew finished with exit code 42/, /brew install/],
+  ['failed install reports exit code and rechecks', 'installFailure', '1\ny\n0\n', /Homebrew finished with exit code 43/, /brew upgrade/],
 ]) test(name, () => {
   const kit = fixture({mac: true, interactive: true, codeVersion: '1.90.0', brew});
   try {
     const result = kit.run(input), commands = readFileSync(kit.log, 'utf8');
+    assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.match(result.stdout + '\n' + commands, expected); assert.doesNotMatch(commands, forbidden);
     if (input.includes('\ny\n')) assert.match(result.stdout, /Homebrew finished.*Zero setup check/s);
+  } finally { kit.cleanup(); }
+});
+test('read-only checks never query or change managed old packages', () => {
+  const kit = fixture({mac: true, codeVersion: '1.90.0', brew: 'outdated'});
+  try { assert.equal(kit.run().status, 1); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew /); }
+  finally { kit.cleanup(); }
+});
+test('old managed Git uses unnamed formula inventory and fixed optional upgrade', () => {
+  const kit = fixture({mac: true, interactive: true, gitVersion: '2.30.0', brew: 'outdated'});
+  try {
+    const result = kit.run('3\ny\n0\n'), commands = readFileSync(kit.log, 'utf8');
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.match(commands, /brew outdated --quiet --formula\n/);
+    assert.match(commands, /brew upgrade --formula git\n/);
+    assert.doesNotMatch(commands, /--greedy|brew install/);
+    assert.match(result.stdout, /Homebrew finished.*Zero setup check/s);
   } finally { kit.cleanup(); }
 });
 test('valid tools and invalid explicit JAVA_HOME never trigger package repair', () => {
