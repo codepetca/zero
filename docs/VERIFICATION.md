@@ -32,10 +32,11 @@ provider, public student acceptance or automatic Community approval is claimed.
 
 Audit:43Zero release tests plus48Community admission/acceptance tests passed.
 Reproductions exposed CI-policy identity and two AI interface boundary gaps.
-Remediation:39admission and20acceptance/release tests pass, including no-op
+Remediation:39admission and25acceptance/release tests pass, including no-op
 workflow, policy changes/modes, main/head drift, exact outbound-byte boundary and
 invalid schema cases. Zero43release tests,24website tests, types/build and
-configuration/link checks pass. Independent review is pending.
+configuration/link checks pass. Initial independent scopes complete; accepted authority snapshot and publisher
+doc corrections are implemented. Targeted correction review is pending.
 No kit/library/extension version changes or new immutable releases are included.
 
 ## Historical verification

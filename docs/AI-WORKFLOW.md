@@ -67,8 +67,10 @@ actual rules; preserve stronger existing protections rather than replacing them
 blindly. See [GitHub's protection API](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection).
 
 Release tooling respects this gate: it can prepare/publish authorized immutable
-assets, but its generated metadata PR waits for human approval before merging.
-A successful AI review is separate from an authenticated GitHub review.
+assets, but stops with its exact metadata PR preserved when human review or a
+blocked merge requires action. After approval, resume with the same version and
+preparation run ID to merge through the normal gate. A successful AI review is
+separate from an authenticated GitHub review.
 
 ## Community and provider boundary
 

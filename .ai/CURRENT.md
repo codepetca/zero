@@ -39,9 +39,9 @@ publication/merge. Repository branch-protection changes are authorized in this p
 - Requested worker: GPT-6.1-Sol/high for CI/authority boundary. Effective model and
   attributable tokens unknown. Weekly24% remaining at start is account-wide.
   Automatic DeepSeek remains paused by owner preference through 2026-12-31.
-- Status: implementation complete; independent boundary review pending. GitHub
+- Status: initial independent wave complete; first correction batch complete. GitHub
   protection applied and authenticated readback verified for both main branches.
-  Next: review final fixed revisions, then local delivery.
+  Next: targeted review of final authority/doc corrections, then local delivery.
 
 ## Review and exit
 
@@ -49,7 +49,9 @@ High-risk boundary change: two independent GPT-6.1-Sol/high reviewers, separate
 security/correctness and architecture/compatibility scopes. No self-approval or
 GitHub review impersonation. Budget: at most7launches,1initialwave,4targetedwaves,
 1integrationwave,4fixbatches,60minutes session,30minutes per reviewer.
-Ledger: initial review planned with2launches/1initialwave; fixes0. No source pushed.
+Ledger:2reviewer launches/1initial wave,2accepted P2 findings,1fix batch complete (25acceptance regressions pass).
+ Security refreshes final PR/review/role snapshot; compatibility corrects
+publisher stop/resume docs. Next:1targeted review of both deltas. No source pushed.
 GitHub rules require1current approval+strict canonical CI, including admins.
 CODEOWNERS is local; named owner selection takes effect after human merge.
 Exit: regression tests cover changed policy/no-op CI and exact outbound AI bytes;
