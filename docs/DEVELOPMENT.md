@@ -32,6 +32,12 @@ Packaging creates local artifacts in `dist/` and does not publish them.
 Guided setup is documented in [SETUP.md](SETUP.md). `npm test` includes launcher
 fake-tool tests; focused checks use `node --test setup/tests/setup.test.mjs` and
 `node --test extension/test/setup.test.js extension/test/setup-ui.test.js`.
+Windows native setup contracts use `node --test setup/tests/windows-native.test.mjs`.
+Set `ZERO_TEST_PWSH` to an existing test PowerShell executable to run its parser and
+mocked backend checks; otherwise those runtime checks are explicitly skipped.
+PowerShell 7 on a Mac is useful for these fakes but does not verify Windows
+PowerShell 5.1, policy, installers or WinForms. The net48/Mono backend harness is
+documented in [INSTALLER.md](INSTALLER.md); actual Windows testing remains separate.
 Do not run installer actions against developer tools/accounts as a test. The
 packaged kit generates setup metadata from the release definition, ships shell
 launchers with executable permissions and excludes maintainer setup tests.

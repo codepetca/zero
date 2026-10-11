@@ -9,12 +9,13 @@ and docs/VERIFICATION.md.
 Zero is a local VS Code extension/profile and ordinary Java/JavaFX teaching kit.
 Preserve explicit updates, minimal sidebar, student-owned repos and separate Pika
 links. No Code OSS fork. Published Zero0.5.3/Community0.1.3 unchanged; local kit/
-extension0.5.5 and core0.1.1 unpublished. Upload simulation remains default.
+extension0.5.6 and core0.1.1 unpublished. Upload simulation remains default.
 Community AI/CI cannot accept/recommend/publish; no live AI provider. Owner-requested
 removal of both main protections remains in effect; do not restore unasked.
 
-Current authorization: calm Mac setup implementation, local signing, Apple
-notarization and local installer testing. Windows runtime testing held. No push,
+Current authorization: implement calm Windows setup matching the delivered Mac
+flow; local cross-build and fake backend tests. Physical Windows testing remains
+deferred. Existing Mac signing/notarization authorization was fulfilled. No push,
 PR, merge, release, deployment, host tool repair, account changes, key export or
 security weakening authorized. Earlier publication grants are completed.
 Separate requested business-account conversation:01a12a95-bab5-7341-aa67-f7a7bc9da9c4.
@@ -68,3 +69,22 @@ Fresh-Mac installs, actual first-time profile import/trust, browser quarantine,
 physical Intel/Mac12, restricted networks and novice usability remain untested.
 Windows held. Earlier0.5.4 existing-Mac copy/JavaFX runtime and historical isolated
 VS Code Run/autosave/build/Stop are recorded in the evidence docs, not rerun claims.
+
+## Active Windows work
+
+Base7c6aeb7, same guided-setup worktree. Worker calm_windows_setup GPT-6.1-Sol/high
+delivered native-installer/windows plus Setup.ps1/backend tests; source frozen.
+Coordinator owns docs,
+version0.5.6 and packaging/verification/review. Target one fixed small window and
+one replacing short line; explicit vendor downloads and guided profile import,
+approved background editor extensions, strict readiness. No automatic console,
+winget, policy bypass, host repair or credentials. Manual ZIP menu retained.
+Mac0.5.5 signed DMG/kit/VSIX/receipt preserved under
+.verification/calm-windows-setup/preserved-mac-0.5.5; Downloads unchanged.
+Preflight:105coordinator net48/Mono assertions against new ZIP; worker65Node and
+28portable PS7fake/parser checks, full native compile, configuration and kit
+parity/extracted Maven compile pass. Full npm regression suite running.
+Next: fixed-revision independent review, local unsigned Windows EXE build and
+payload verification. Physical WinForms/PS5.1/installer/policy remain untested.
+No publication.
+Weekly95% remaining at start is account allowance; task/effective tokens unknown.

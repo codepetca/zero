@@ -62,6 +62,30 @@ namespace ZeroSetup
             };
         }
 
+        public static ProcessStartInfo NativeInfo(string executable, string kit, string action, string target = null, bool approved = false)
+        {
+            string flags;
+            switch (action)
+            {
+                case "check": flags = "-NativeCheck"; break;
+                case "profile": flags = "-NativeProfile"; break;
+                case "open": flags = "-NativeOpen"; break;
+                case "plan":
+                    if (target != "code" && target != "java") throw new ArgumentException("Invalid tool proposal.");
+                    flags = "-NativePlan " + target; break;
+                case "extension":
+                    if (!approved || (target != "zero" && target != "java")) throw new ArgumentException("Invalid or unapproved extension action.");
+                    flags = "-NativeExtension " + target + " -Approved"; break;
+                default: throw new ArgumentException("Unknown native setup action.");
+            }
+            if (action != "extension" && approved) throw new ArgumentException("Unexpected approval.");
+            if (action != "plan" && action != "extension" && target != null) throw new ArgumentException("Unexpected target.");
+            var info = SetupInfo(executable, kit, true);
+            info.Arguments = "-NoLogo -NoProfile -NonInteractive -File " + QuoteArgument(Path.Combine(kit, "setup", "Setup.ps1")) + " " + flags;
+            info.RedirectStandardInput = true;
+            return info;
+        }
+
         public static void LaunchSetup(string kit)
         {
             using (var process = Process.Start(SetupInfo(PowerShellPath(), kit, false)))
@@ -89,6 +113,7 @@ namespace ZeroSetup
             using (var process = new Process { StartInfo = info })
             {
                 if (!process.Start()) throw new IOException("The laptop check could not be started.");
+                if (info.RedirectStandardInput) process.StandardInput.Close();
                 Task<string> stdout = ReadBoundedAsync(process.StandardOutput);
                 Task<string> stderr = ReadBoundedAsync(process.StandardError);
                 var result = await Task.Run(() =>
@@ -106,7 +131,10 @@ namespace ZeroSetup
                 // A child may retain a pipe after its parent exits. Never wait indefinitely for it.
                 var reads = Task.WhenAll(stdout, stderr);
                 if (await Task.WhenAny(reads, Task.Delay(2000)) == reads)
+                {
                     result.Output = (await stdout) + (await stderr);
+                    if ((result.Output.Contains("[Check output truncated.]") || result.Output.Contains("[Check output incomplete.]"))) { result.OutputIncomplete = true; if (result.ExitCode == 0) result.ExitCode = 1; }
+                }
                 else
                 {
                     result.OutputIncomplete = true;
@@ -133,8 +161,8 @@ namespace ZeroSetup
                     if (keep < count) truncated = true;
                 }
             }
-            catch (ObjectDisposedException) { }
-            catch (IOException) { }
+            catch (ObjectDisposedException) { text.Append("\r\n[Check output incomplete.]\r\n"); }
+            catch (IOException) { text.Append("\r\n[Check output incomplete.]\r\n"); }
             if (truncated) text.Append("\r\n[Check output truncated.]\r\n");
             return text.ToString();
         }

@@ -1,16 +1,16 @@
 # Native Zero Setup
 
 Zero Setup is a thin native wrapper around the guided setup scripts. The local
-0.5.5 builds embed the complete kit. The local Mac candidate is Developer ID
-signed and notarized; it is not a published download. Fresh-machine and student
-flow testing remain outstanding.
+0.5.6 Windows development build embeds the complete kit. The preserved local
+Mac0.5.5 candidate is Developer ID signed and notarized. Neither is a published
+download. Fresh-machine and student flow testing remain outstanding.
 
-## Mac student flow
+## Student flow
 
-The Mac setup window stays small and fixed in size. It shows a spinner and one
+The setup window stays small and fixed in size. It shows a progress indicator and one
 short status message, replacing the previous message as each step changes.
 Technical output is available only through **Details** in a separate window.
-There is no checklist, scrolling log or Terminal menu in the native Mac flow.
+There is no checklist, scrolling log or Terminal menu in the native flow.
 
 Setup checks existing tools before proposing changes. Choose a fresh writable
 kit folder; existing folders are never replaced. It handles one required item at
@@ -19,7 +19,7 @@ before advancing. Compatible tools and existing profiles are reused. Git is
 optional for local running; GitHub and Pika remain separate.
 
 When setup needs a vendor installer or an editor action, it explains that step
-before opening the relevant application. macOS approval prompts remain visible;
+before opening the relevant application. System approval prompts remain visible;
 setup never enters passwords, silently elevates or installs a package manager.
 An unavailable or failed action leaves a clear retry/help state instead of
 claiming success. **Open Zero** is offered after required readiness checks pass;
@@ -33,11 +33,11 @@ one short instruction at a time. A **Copy profile path** button helps select the
 bundled file; **Check profile** verifies the result before continuing. Required
 instructions never depend on Details. Compatible existing profiles are preserved.
 Missing or incompatible VS Code and Java use explicit official-download handoffs
-with normal macOS approval. The native flow does not run Homebrew. Fully quit and
+with normal system approval. Native setup uses vendor handoffs for tools. Fully quit and
 reopen VS Code after changing Java or its environment, then check again.
 
-The extracted kit's shell launcher stays available as a manual fallback. Windows
-retains its existing wrapper and guided menu; Windows testing is deferred.
+The extracted kit's shell launchers stay available as a manual fallback. Physical
+Windows testing remains deferred; cross-builds and fake tests do not prove its UI.
 Cancellation/failure preserves existing work; owned partial staging is cleaned
 up. Close/quit waits for the current owned operation to finish. Forced termination
 can still leave owned staging, never permission to replace an existing project.
@@ -45,8 +45,8 @@ can still leave owned staging, never permission to replace an existing project.
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates
-`dist/installers/Zero-Setup-0.5.5-macos-development.dmg` and
-`dist/installers/Zero-Setup-0.5.5-windows-development.exe`. The measured
+`dist/installers/Zero-Setup-0.5.6-macos-development.dmg` and
+`dist/installers/Zero-Setup-0.5.6-windows-development.exe`. The measured
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -55,7 +55,17 @@ and a read-only existing-Mac check/copy smoke test. See VERIFICATION.md for exac
 source/hashes and untested flows. The prior signed/notarized 0.5.4
 DMG and receipt are preserved under `.verification/mac-signing/preserved-0.5.4/`;
 its verification does not cover changed setup behavior.
-Windows testing is explicitly deferred. To rebuild/check only Mac:
+The Windows candidate is unsigned and needs an actual Windows trial. To build
+only Windows after kit packaging/verification:
+
+```sh
+node scripts/build-installers.mjs --platform windows
+node scripts/verify-installers.mjs --platform windows
+```
+
+The signed Mac0.5.5 kit/receipt are preserved under
+`.verification/calm-windows-setup/preserved-mac-0.5.5/`; this Windows work does not
+regenerate or re-sign it. To rebuild/check a new unsigned Mac candidate:
 
 ```sh
 node scripts/build-installers.mjs --platform macos
@@ -71,7 +81,7 @@ node scripts/verify-installers.mjs --platform macos --signed
 ```
 
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
-not a secret). The signed candidate is `Zero-Setup-0.5.5-macos.dmg`, measured in
+not a secret). A new signed candidate would be `Zero-Setup-0.5.6-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
 The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
 removes unsigned-development labels and shows only Zero Setup/version. Signed
@@ -103,16 +113,15 @@ carries the kit in Contents/Resources/kit and preserves executable script modes.
 
 Native checks have bounded output/time and use fixed executables/arguments.
 macOS calls `/bin/bash .../setup.sh --native-check`; Windows calls native PowerShell
-`-NoProfile -NonInteractive -File .../Setup.ps1 -Check` under normal policy.
-The native Mac flow invokes fixed background actions from the copied kit. Windows
-Continue opens the copied launcher explicitly and uses normal-policy
-`-File`, never an automatic execution-policy exception. If policy blocks it,
+`-NoProfile -NonInteractive -File .../Setup.ps1 -NativeCheck` under normal policy.
+Both invoke fixed background actions from the copied kit. Windows uses normal-policy
+`-File` for native actions. If policy blocks it,
 read the copied Setup.cmd guidance; managed policy remains authoritative.
 
 No new package manager, persistent agent or custom IDE engine is introduced.
 Compatible VS Code policy comes from canonical extension metadata. Manual shell
 scripts retain their explicit Homebrew/winget install-versus-update prompts; the
-Mac native flow approves editor extension installation in its own window.
+native flows approve editor extension installation in their own window.
 The wrapper does not download and execute its own unverified installers. Unknown versions,
 broken JAVA_HOME, unmanaged tools and failed repairs remain visible.
 

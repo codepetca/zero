@@ -1,7 +1,19 @@
 # Windows PowerShell 5.1; no policy changes, downloads or installs during --check.
-param([switch]$Check)
-if ($args.Count -eq 1 -and $args[0] -eq '--check') { $Check = $true }
+param([switch]$Check, [switch]$NativeCheck, [string]$NativePlan,
+    [switch]$NativeProfile, [string]$NativeExtension, [switch]$Approved, [switch]$NativeOpen)
+# Validate the complete machine request before probing tools or making changes.
+$nativeCount = @('NativeCheck', 'NativePlan', 'NativeProfile', 'NativeExtension', 'NativeOpen' | Where-Object { $PSBoundParameters.ContainsKey($_) }).Count
+if ($args.Count -eq 1 -and $args[0] -eq '--check' -and $PSBoundParameters.Count -eq 0) { $Check = $true }
 elseif ($args.Count -gt 0) { Write-Host 'Usage: Setup.cmd [--check]'; exit 2 }
+if ($nativeCount -gt 0) {
+    $expectedCount = if ($NativeExtension) { 2 } else { 1 }
+    if ($nativeCount -ne 1 -or $PSBoundParameters.Count -ne $expectedCount -or
+        ($PSBoundParameters.ContainsKey('NativeCheck') -and -not $NativeCheck) -or
+        ($PSBoundParameters.ContainsKey('NativeProfile') -and -not $NativeProfile) -or
+        ($PSBoundParameters.ContainsKey('NativeOpen') -and -not $NativeOpen) -or
+        ($PSBoundParameters.ContainsKey('NativePlan') -and $NativePlan -notin @('code', 'java')) -or
+        ($PSBoundParameters.ContainsKey('NativeExtension') -and ($NativeExtension -notin @('zero', 'java') -or -not $Approved))) { exit 2 }
+} elseif ($Approved -or $PSBoundParameters.ContainsKey('Approved')) { exit 2 }
 $ErrorActionPreference = 'Stop'
 $KitDir = Split-Path -Parent $PSScriptRoot
 $Starter = Join-Path $KitDir 'starter'
@@ -26,6 +38,32 @@ function Quote-Native([string]$Value) {
     # Windows native argv quoting: preserve spaces, embedded quotes and final slashes.
     return '"' + [regex]::Replace([regex]::Replace($Value, '(\\*)"', '$1$1\"'), '(\\+)$', '$1$1') + '"'
 }
+function Initialize-BoundedReader {
+    if ('ZeroSetupBoundedReader' -as [type]) { return }
+    # Windows PowerShell 5.1's compiler supports this dependency-free C# helper.
+    # Drain both pipes while retaining bounded diagnostics, including child-held pipes.
+    Add-Type -TypeDefinition @'
+using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+public static class ZeroSetupBoundedReader {
+    public static async Task<string> Read(StreamReader reader) {
+        var text = new StringBuilder();
+        var buffer = new char[4096];
+        bool truncated = false;
+        int count;
+        while ((count = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0) {
+            int keep = Math.Min(count, 262144 - text.Length);
+            if (keep > 0) text.Append(buffer, 0, keep);
+            if (keep < count) truncated = true;
+        }
+        if (truncated) text.Append("\r\n[Tool output truncated.]\r\n");
+        return text.ToString();
+    }
+}
+'@
+}
 function Invoke-Tool([string]$File, [string[]]$Arguments, [bool]$NodeCli = $false, [int]$Timeout = 20000) {
     $info = New-Object System.Diagnostics.ProcessStartInfo
     $info.FileName = $File
@@ -34,19 +72,27 @@ function Invoke-Tool([string]$File, [string[]]$Arguments, [bool]$NodeCli = $fals
     $info.CreateNoWindow = $true
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
+    $info.RedirectStandardInput = $true
     if ($NodeCli) { $info.EnvironmentVariables['ELECTRON_RUN_AS_NODE'] = '1' }
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $info
     try {
+        Initialize-BoundedReader
         [void]$process.Start()
-        $stdout = $process.StandardOutput.ReadToEndAsync()
-        $stderr = $process.StandardError.ReadToEndAsync()
+        $process.StandardInput.Close()
+        $stdout = [ZeroSetupBoundedReader]::Read($process.StandardOutput)
+        $stderr = [ZeroSetupBoundedReader]::Read($process.StandardError)
         if (-not $process.WaitForExit($Timeout)) {
             $process.Kill()
-            $process.WaitForExit()
+            [void]$process.WaitForExit(5000)
             return @{ Exit = 124; Output = 'Tool check timed out. Close setup and try again.' }
         }
-        return @{ Exit = $process.ExitCode; Output = ($stdout.Result + $stderr.Result) }
+        if (-not [System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]@($stdout, $stderr), 2000)) {
+            return @{ Exit = 1; Output = 'Tool output was incomplete. Close remaining tool processes and check again.' }
+        }
+        $output = $stdout.Result + $stderr.Result
+        if ($output.Contains('[Tool output truncated.]')) { return @{ Exit = 1; Output = $output } }
+        return @{ Exit = $process.ExitCode; Output = $output }
     } catch { return @{ Exit = 1; Output = $_.Exception.Message } }
     finally { $process.Dispose() }
 }
@@ -156,7 +202,7 @@ function Find-Extensions {
     }
     $script:ExtensionsOK = (Meets-Version $Extensions[$ExtensionId] $KitVersion) -and $Extensions.ContainsKey('redhat.java')
 }
-function Is-Ready { return $KitOK -and $Code -and $JavaOK -and $ExtensionsOK }
+function Is-Ready { return $KitOK -and $Code -and $JavaOK -and $ProfileOK -and $ExtensionsOK }
 function Show-Check {
     Find-Kit; Find-Code; Find-Java; Find-Git; Find-Extensions
     Write-Host "`nZero setup check (profile: Zero)"
@@ -207,7 +253,72 @@ function Help-Tool([string]$Tool) {
     } elseif (Confirm-Choice "Open the official $title download page?") { Start-Process $url }
     Write-Host 'After installing, close VS Code completely and reopen setup. Windows may need a restart to refresh PATH/JAVA_HOME.'
 }
+function Show-NativeCheck {
+    Show-Check
+    $zeroOK = Meets-Version $Extensions[$ExtensionId] $KitVersion
+    $redhatOK = $Extensions.ContainsKey('redhat.java')
+    $blocked = [bool]$env:JAVA_HOME -and -not $JavaOK
+    Write-Output 'ZERO_SETUP_V1'
+    foreach ($field in @(@('kit', $KitOK), @('code', [bool]$Code), @('java', $JavaOK),
+        @('profile', $ProfileOK), @('zero', $zeroOK), @('redhat', $redhatOK),
+        @('javaHomeBlocked', $blocked), @('ready', (Is-Ready)))) {
+        Write-Output ($field[0] + '=' + [int][bool]$field[1])
+    }
+    Write-Output 'END_ZERO_SETUP'
+}
+function Invoke-NativeAction {
+    if ($NativeCheck) { Show-NativeCheck; return 0 }
+    if ($NativePlan) {
+        Find-Kit
+        $action = 'manual'
+        if (-not $KitOK) { $action = 'blocked' }
+        elseif ($NativePlan -eq 'code') { Find-Code; if ($Code) { $action = 'skip' } }
+        else { Find-Java; if ($JavaOK) { $action = 'skip' } elseif ($env:JAVA_HOME) { $action = 'blocked' } }
+        # Native system-tool setup is always a deliberate vendor/browser handoff.
+        Write-Output "ZERO_PLAN_V1`naction=$action`nEND_ZERO_PLAN"
+        return 0
+    }
+    if ($NativeProfile) {
+        Find-Kit; Find-Code; Find-Extensions
+        if (-not $KitOK -or -not $Code) { return 1 }
+        if ($ProfileOK) { Write-Host 'Existing Zero profile preserved.'; return 0 }
+        $result = Invoke-Code @('--new-window')
+        Write-Host $result.Output
+        return $result.Exit
+    }
+    if ($NativeExtension) {
+        # Re-read state immediately before each approved mutation; keep compatible tools.
+        Find-Kit; Find-Code; Find-Extensions
+        if (-not $KitOK -or -not $Code -or -not $ProfileOK) { Write-Host 'Complete the kit and import the Zero profile first.'; return 1 }
+        if ($NativeExtension -eq 'zero') {
+            if (Meets-Version $Extensions[$ExtensionId] $KitVersion) { return 0 }
+            $target = $Vsix
+        } else {
+            if ($Extensions.ContainsKey('redhat.java')) { return 0 }
+            $target = 'redhat.java'
+        }
+        $result = Invoke-Code @('--profile', 'Zero', '--install-extension', $target) 300000
+        Write-Host $result.Output
+        return $result.Exit
+    }
+    if ($NativeOpen) {
+        Show-Check
+        if (-not (Is-Ready)) { Write-Host 'Readiness changed; check again before opening Zero.'; return 1 }
+        $result = Invoke-Code @('--new-window', '--profile', 'Zero', $Starter)
+        Write-Host $result.Output
+        return $result.Exit
+    }
+    return 2
+}
 try {
+    if ($nativeCount -gt 0) {
+        # Protocol output is captured by the caller; the function's final integer is
+        # the exit status, never a menu choice or implicit success.
+        $nativeOutput = @(Invoke-NativeAction)
+        $nativeExit = [int]$nativeOutput[-1]
+        if ($nativeOutput.Count -gt 1) { $nativeOutput[0..($nativeOutput.Count - 2)] | Write-Output }
+        exit $nativeExit
+    }
     Show-Check
     if ($Check) { if (Is-Ready) { exit 0 } else { exit 1 } }
     Write-Host "`nWelcome! Nothing is installed until you choose an action."

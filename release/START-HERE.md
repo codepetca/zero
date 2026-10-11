@@ -1,10 +1,10 @@
 # Start with Zero
 
-## Mac setup app
+## Zero setup app
 
-If you used Zero Setup on Mac, follow its single status message and choose
+If you used the native Zero Setup app, follow its single status message and choose
 **Open Zero** when ready. It preserves existing tools and files. The first profile
-import or Java installation may need an editor or macOS approval step. Run App
+import or Java installation may need an editor or system approval step. Run App
 in Zero and confirm the greeting window. The ZIP/manual paths remain below.
 
 ## Guided setup
@@ -36,7 +36,7 @@ work, not for running the first app. Sign in only when you are ready to upload.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows/Linux, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.5.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.6.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

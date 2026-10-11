@@ -50,6 +50,7 @@ internal static class Harness
         try
         {
             TestCloseDuringPausedWork(root);
+            checks += ControllerHarness.Run(root);
             string extracted = Path.Combine(root, "extracted");
             Directory.CreateDirectory(extracted);
             using (var archive = Archive()) KitFiles.Extract(archive, extracted, CancellationToken.None);

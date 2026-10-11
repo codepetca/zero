@@ -7,7 +7,7 @@
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Harness.cs;../KitFiles.cs;../Processes.cs;../CloseGate.cs" />
+    <Compile Include="Harness.cs;ControllerHarness.cs;../KitFiles.cs;../Processes.cs;../CloseGate.cs;../SetupController.cs" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
