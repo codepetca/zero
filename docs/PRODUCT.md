@@ -14,7 +14,8 @@ tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/community` introduces Zero Community and links to
 component development/contributions. It does not run Java in the browser or add
-a student website account. The local kit is unpublished until an approved release.
+a student website account. Zero0.5.3 and Community0.1.3 are published; new local
+versions remain unpublished until an approved release.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract

@@ -40,8 +40,12 @@ its source/run receipt, exact filenames, licenses, sizes and SHA256 values.
 It creates and verifies a draft targeting that source commit, publishes precisely
 the three main files, and retrieves each public download without authentication
 to check its bytes. It generates only `release/kit.json` and README's download
-label/link, opens the metadata PR, waits for checks and merges that exact checked
-head through the normal PR path. Finally it waits for Vercel's existing Git
+label/link, opens the metadata PR, waits for checks and the required independent
+human approval, and merges that exact checked head through the normal PR path.
+The approval must satisfy main's GitHub protection rules, including approval of
+the latest push by another human. AI source review does not provide that approval.
+If the wait expires, keep the exact release/PR and resume after approval; never
+weaken or bypass the gate. Finally it waits for Vercel's existing Git
 integration and checks the actual live landing-page kit link and downloaded bytes.
 It reports release/PR URLs and a completion message; it never edits credentials,
 account settings, branch rules or community artifacts.
@@ -136,5 +140,7 @@ Run configuration and website typecheck/tests/build; CI skips rebuilding
 this published version. The website reads the manifest during preparation/build,
 so merging the metadata PR updates its download links through the configured
 hosting path. Verify the live site's download retrieves the same measured kit.
-Record the release URL, target commit, run ID and public download verification in
-the existing handoff. Future improvements start with another new local version.
+Record the release URL, target commit, run ID, review verdict and public download
+verification in the short current handoff and tracked [evidence index](EVIDENCE.md).
+Keep logs/binaries ignored and archive phase detail. Future improvements start
+with another new local version.
