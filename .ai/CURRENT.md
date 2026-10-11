@@ -20,7 +20,7 @@ merge confirmed404 unprotected and empty rulesets. Do not restore protections
 without new authorization. Community acceptance-helper review checks remain.
 No live AI provider. Old release/merge grants completed; no standing publication grant.
 
-## Active goal: guided student setup
+## Completed local delivery: guided student setup
 
 Owner asks better setup guidance, checking installed tools and installation help,
 for personal as well as school laptops. Implement locally: Windows/macOS launchers,
@@ -31,34 +31,36 @@ are authorized for this feature. Student repair actions explicitly prompt/choose
 no silent privileged installs or bypass of school policy. Preserve existing tools.
 GitHub sign-in/sharing is optional for local running; upload simulation stays default.
 
-## Execution and ownership
+## Local source and verification
 
 Managed checkout: /Users/stew/.codex/worktrees/kit-integration/zero,
 branch codex/guided-setup, basecbd12ad1b67252f6c4c33fbbe22aa40052eb0791.
+Implementation8032789; runtime correction61025bf09b633921a09e32b099754633dde4855e.
 Lesson12 PR21 merged before this branch; its game stages are preserved in the
 new local kit and are outside the setup feature delta. Primary Zero contains
 unrelated funding work; do not reset, stash, overwrite or integrate it.
-Coordinator owns packaging, release metadata, root docs, integration and checks.
-guided_setup_launcher: GPT-6.1-Sol/high, owns setup/ only.
-guided_setup_editor: GPT-6.1-Sol/medium, owns extension setup module, setup command
-integration and new setup tests only. One writer per component, no recursive delegation.
-Effective models/tokens unknown. Weekly22% remaining at start is account-wide;
-DeepSeek remains paused through2026-12-31. Do not create extra tasks/goals/automations.
 
-## Acceptance and current phase
+178 full-suite tests passed before the guard correction; 46 affected tests passed
+on the corrected runtime. Launcher12, release43 and kit3 checks passed.
+Configuration/links and regenerated ZIP source/permissions/extracted Maven build
+passed. Two initial independent GPT-6.1-Sol/high reviews plus one targeted pass
+accepted the runtime; both P2 findings resolved. No extra integration wave:
+unchanged source retained its initial coverage; targeted pass covered both guards
+and the Run recheck boundary. Final nonfunctional README wording/receipts are
+coordinator-checked. See docs/EVIDENCE.md and docs/VERIFICATION.md.
 
-Implementation delivered at8032789; initial independent reviews completed.
-178 full-suite tests pass. Two accepted P2 findings are in one correction batch:
-POSIX wrapper execute permission and task-environment readiness uncertainty.
-Existing instructions/check outputs are not evidence that a physical clean machine installed tools. Require read-only checks with
-accurate JDK/compiler/version/project/profile readiness, explicit installs/repair,
-quoted paths, cancellation, optional Git, no user-settings/credential mutation,
-focused tests and extracted ZIP source/permissions/Maven compile verification.
-Review runtime/installer authority and packaging/platform compatibility independently
-before delivery. Never run installation tests against real host tools/accounts.
+Coordinator accepted launchers (GPT-6.1-Sol/high) and editor checks
+(GPT-6.1-Sol/medium). One writer per component. Effective models/tokens unknown;
+weekly22% remaining at start is account-wide, not task cost. DeepSeek remains
+paused through2026-12-31. No extra tasks/goals/automations were created.
 
+## Next decision and limits
+
+Local kit: dist/zero-bootstrap.zip. It is not the published website download.
+Guided setup detects/reuses tools and offers explicit installation/help; GitHub
+remains separate. Relevant terminal overrides make Run readiness unverified;
+settings are preserved. A successful check alone does not prove a native window.
 Physical Windows/Linux classroom/personal setup, actual installers/permissions,
-network policy and novice usability remain unverified. Run-first-app stays explicit;
-Version checks alone do not prove a native window works. Next: verify the
-correction batch, complete one targeted review, regenerate the local ZIP and
-report limits. Publication is a separate user decision.
+network policy, native picker interaction and novice usability remain unverified.
+Next: owner may try the local kit and authorize source PR/merge or publication
+separately. Do not infer either authorization from completed older work.

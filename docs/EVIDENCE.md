@@ -134,3 +134,38 @@ Main integration at `1f2fd53` affects documentation only; current final-head che
 and actual merge status must be recovered from PR21. See [verification](VERIFICATION.md)
 and the [phase archive](history/lesson12-through-2026-10-10.md) for scope and limits.
 No published artifact version or sealed bytes changed.
+
+## Guided student setup — local 0.5.4
+
+Feature base `cbd12ad1b67252f6c4c33fbbe22aa40052eb0791` already contains merged
+Lesson12 PR21. Setup implementation `80327897619ba89db07eeacdf220ef9910defd41`;
+corrected runtime `61025bf09b633921a09e32b099754633dde4855e`. Local kit/extension
+0.5.4, core0.1.1; public0.5.3 bytes and Community remain unchanged.
+No push, PR, merge, release, deployment, host installs or account changes.
+
+Accepted workers: guided_setup_launcher GPT-6.1-Sol/high (setup launchers),
+guided_setup_editor GPT-6.1-Sol/medium (native checklist/repair). Root verified
+packaging/integration. Editor valid-project-switch recheck was corrected before
+initial review. Initial base was briefly misidentified as1f2fd53; both reviewers
+acknowledged the actual base during their original turns, without relaunches.
+
+Independent guided_setup_security_review/turn1 and guided_setup_compat_review/turn1,
+GPT-6.1-Sol/high, completed the feature diff and execution/packaging callers at8032789.
+Accepted two unique P2 findings (wrapper execute permission and task-environment
+uncertainty), including one duplicate. One runtime correction batch addressed both.
+guided_setup_security_review/turn2 completed the six-file correction delta at61025bf:
+no new blockers, independent fake-UI proof confirms changed terminal environment
+blocks the pre-Run handoff. Unchanged compatibility coverage remains applicable;
+no extra integration wave. Final README wording follows the nonblocking review
+correction; receipt/text-only edits are coordinator-checked, runtime unchanged.
+
+178 full tests passed before correction (127.901seconds); 46 affected tests pass
+on corrected runtime (0.171seconds). Launcher12 (8.594seconds), release43, kit3,
+configuration/links and regenerated extracted-kit checks passed. See verification.
+Ignored receipt/logs: .verification/guided-setup-2026-10-10. Requested/effective
+models distinguished; effective models, tokens and worker elapsed telemetry unknown.
+Review ledger:3turns,1initial wave,1targeted wave,0failed launches,1runtime fix batch
+plus final nonfunctional wording/receipt cleanup. Conservative budget counts2batches.
+Review-session clock began02:15:17UTC on2026-10-11; end in ignored receipt. Weekly22%
+remaining at start is account-wide, not project cost; no savings claim. Native
+Windows/Linux, real installers, school policy and novice usability remain unverified.

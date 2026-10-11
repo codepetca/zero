@@ -155,4 +155,4 @@ flows remain unverified.
 
 ## Setup checklist
 
-**Zero: Setup Help** checks the effective JDK/compiler, project files, current-profile Java extensions and optional Git. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm a JavaFX window. No installation or account changes occur just by opening the checklist.
+**Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm a JavaFX window. No installation or account changes occur just by opening the checklist.

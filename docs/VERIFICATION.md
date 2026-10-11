@@ -101,3 +101,32 @@ retain prior trial evidence and limits. They describe their recorded revisions,
 not current published state or new authorization. Full logs, screenshots and
 archives remain ignored under `.verification/`; the tracked index is sufficient
 for a fresh agent to locate durable public evidence.
+
+## Guided setup — local 0.5.4
+
+`8032789`: full npm test passed178tests in127.901seconds. Launcher12tests use
+macOS Bash3.2 fake tools/disposable kits (8.594seconds); Windows script execution
+was not performed. Release publisher/review43tests and kit3tests pass.
+`61025bf`: 46 affected setup/editor/onboarding/workflow tests passed in0.171seconds;
+unchanged full-suite coverage reused. Both accepted independent-review P2 findings
+are resolved. A reviewer independently confirmed task-env drift blocks Run handoff.
+
+Final configuration/syntax/command/documentation-link and whitespace checks pass.
+Regenerated complete ZIP/starter/VSIX pass exact source/license/metadata/permissions
+checks and a standalone extracted Maven compile. The complete kit includes the
+pre-existing merged Lesson12 game stages. The website's published0.5.3 download
+was not changed. Artifact sizes/hashes and logs are in the ignored guided-setup
+receipt and local dist/release.json. No further runtime change after61025bf;
+final README wording/receipt edits are coordinator-checked.
+
+Read-only checks use fixed bounded version probes. Tests cover missing/old/mismatched
+JDKs, invalid JAVA_HOME, quoted paths, optional Git, profile-specific extensions,
+cancellation/blocked repair, missing files and POSIX wrapper permissions. Relevant
+terminal environment overrides (including null/interpolation/Windows mixed case)
+leave readiness unverified rather than changing settings or assuming the task JDK.
+
+No real installer, host extension/profile/account mutation or system-policy change
+was executed. Native Windows PowerShell/cmd, physical Linux, fresh-machine macOS
+installs, actual permission prompts, school proxies/policies, native picker use and
+novice setup remain unverified. Version checks do not establish a working app window;
+Run first app and visual confirmation remain explicit student steps. No publication.
