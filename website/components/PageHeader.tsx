@@ -1,5 +1,5 @@
 import { Navigation } from "./Navigation";
-import { downloadHref } from "@/lib/content";
+import { landingHref } from "@/lib/content";
 export function PageHeader({ active = "" }: { active?: string }) {
-  return <Navigation active={active} downloadUrl={downloadHref()} />;
+  return <Navigation active={active} downloadUrl={landingHref()} />;
 }
