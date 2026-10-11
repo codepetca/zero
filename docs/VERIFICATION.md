@@ -319,3 +319,46 @@ change, new certificate or Windows testing. Existing signed Mac UI check evidenc
 applies; a fresh Mac's downloaded/quarantine/install/profile/permission flow and
 physical Intel remain untested. Gatekeeper CLI acceptance on this owner Mac does
 not prove those interactive flows. Previous unsigned-phase limits are historical.
+
+## Signed Mac installer local smoke test — 2026-10-11
+
+Tested the final notarized 0.5.4 DMG copied to Downloads, on this existing ARM64
+Mac running macOS 26.6.2. Its SHA256 remained
+`f211ae3963e9ff6bab20413e2a53601ada4d7eb215741d9e496dd1b656424c60`.
+Finder mounted the DMG and launched its actual signed app. The native laptop check
+found VS Code 1.141.0, Java/javac 21.0.1 and Git 2.54.0, and correctly flagged
+missing/outdated Zero/Java support in the existing Zero profile. No tools,
+extensions, profiles or existing projects were installed, repaired or changed.
+
+Native picker cancellation and existing-folder protection passed. Copying to a
+fresh folder with spaces preserved all 126 bundled files and executable modes;
+the protected existing Main.java was unchanged, with no partial-copy residue.
+Continue setup launched the exact copied Setup.command in Terminal (process
+verified); the owned test launch was stopped without choosing repairs. Open folder
+revealed the copied folder in Finder. Separately, its actual guided menu ran in an
+exec PTY with only Check again and Exit; exit 1 correctly reflected incomplete
+profile readiness, not a launcher crash. Native Terminal GUI control remains
+restricted, so this is launch plus separate CLI-menu evidence.
+
+The copied starter compiled using JDK 21, the pinned Maven 3.9.11 wrapper and
+JavaFX 21.0.12, with fresh test-owned dependency caches. Main started; its owned
+process was deliberately stopped. A temporary subclass of unchanged Main used
+ready(Stage) to verify a showing stage and visible “Hello, world!” label, then
+exited cleanly: BUILD SUCCESS, passed:true, stageShowing:true, javaVersion:21.0.1.
+The JavaFX window was not exposed to native UI automation; this is application
+runtime evidence, not a visual UI observation. Removed the probe and clean-compiled
+the original four sources successfully; all 126 original files/modes still match.
+
+Ignored receipts and native copy screenshot:
+`.verification/signed-mac-test-gu79ylnd/{result.json,javafx-probe.json,placed-kit.png}`;
+active receipt `.verification/mac-signing/active-install-test.json`.
+Coordinator handled this bounded test directly; no worker/review wave or runtime
+source changes. Weekly 98% remaining was account-wide allowance, not task cost.
+
+A local-only browser download attempt failed (origin discovery, then navigation
+timeout); its server was stopped. The verified Downloads copy had no quarantine
+attribute. Browser-download/first-open security prompts, full profile-import/trust,
+missing-tool installations, a fresh Mac, physical Intel, restricted networks and
+novice usability remain untested. Prior Gatekeeper CLI acceptance and earlier
+isolated VS Code Run/autosave/default-build/Stop evidence remain applicable, but
+those editor flows were not rerun here. Windows stays deferred. No publication.

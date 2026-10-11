@@ -13,7 +13,8 @@ Community AI/CI cannot accept/recommend/publish; no live AI provider.
 Owner-requested removal of both main protections remains in effect; do not restore
 without new authorization. Old publication/merge grants are completed.
 
-Current owner authorization: local Mac signing and Apple notarization. Windows
+Current owner authorization: local Mac signing, Apple notarization and local installer
+testing. Windows
 runtime testing explicitly held. No push/PR/merge/release/deploy, host tool repair,
 membership conversion, key export or OS/Keychain protection weakening authorized.
 A separate business-account conversation was explicitly requested and created:
@@ -53,7 +54,7 @@ Effective model/token/time unavailable; weekly99% remaining at start is account
 allowance, not task cost. See EVIDENCE/VERIFICATION and ignored
 .verification/mac-signing/review-ledger.json for receipts.
 
-## Notarization complete; next: fresh Mac test
+## Notarization and existing-Mac smoke test complete
 
 User created/entered the Apple app-specific password personally; notarytool profile
 “Zero Notarization” authenticated from local login Keychain. Codex did not read
@@ -66,16 +67,27 @@ Same hash verified in /Users/stew/Downloads/Zero-Setup-0.5.4-macos.dmg.
 Ignored evidence: .verification/mac-signing/notarization-{submit,log,complete}.json;
 submitted pre-staple DMG preserved there. No public release or membership changes.
 
-Local signing/notarization phase is complete. Next useful validation: actual
-fresh-machine downloaded installer/setup with normal security/profile prompts,
-then decide publication separately. Windows still held; physical Intel not run.
-Do not regenerate or publish this candidate without revalidating resulting bytes.
-No source changes in notarization pass; source review coverage is unchanged.
+Local signing/notarization and existing-Mac smoke test are complete. Finder launched
+the final Downloads DMG on ARM64/macOS26.6.2. Native check found Java21.0.1,
+Code1.141.0/Git2.54.0 and correctly flagged incomplete Zero/Java profile support.
+Picker cancel/overwrite guards passed; copied126files/modes matched ZIP, including
+paths with spaces. Continue launched exact copied Setup.command; Finder reveal
+passed. Separate read-only PTY menu exited1 for incomplete profile readiness.
+No host repair/install/profile change. Terminal GUI restriction retained.
 
-Earlier isolated real VS Code checks proved Run/autosave/default-build/Stop with
-Zero0.5.4/Java extensions; quiet-profile settings were a fixture, not a tested
-profile-import/trust GUI. Original Main.java restored. Real picker/copy/Continue
-and copied PTY menu were checked; Terminal GUI control was blocked. Full signed
-clean-machine setup, physical Intel execution, repairs/security prompts, profile
-import/trust, restricted school networks and novice use remain unverified.
-Windows explicitly deferred. See docs/INSTALLER.md for exact build/verify commands.
+Copied starter compiled with JDK21 and fresh owned Maven caches. Temporary Main
+subclass verified showing JavaFX stage/visible Hello-world label and exited cleanly;
+probe removed, original4sources clean-compiled,126file/mode parity restored.
+JavaFX window was not available to native UI tool; runtime probe is not a visual
+observation. Signed DMG hash unchanged. Ignored local evidence:
+.verification/signed-mac-test-gu79ylnd/{result.json,javafx-probe.json,placed-kit.png}.
+Handled directly; no new implementation/review wave. Weekly98% remaining at test
+start is account allowance, not task cost. See EVIDENCE/VERIFICATION for details.
+
+Browser download attempt failed; no quarantined first-open path tested. Full fresh-
+Mac/tool-install/profile-import/trust/security prompts, physical Intel, restricted
+networks and novice use remain unverified; Windows held. Earlier isolated real
+VS Code Run/autosave/default-build/Stop checks apply historically, not rerun here.
+Next useful validation is a fresh Mac's downloaded setup and profile flow, followed
+by a separate publication decision. No runtime changes or publication in this test.
+Do not regenerate/publish candidate without revalidating bytes. See INSTALLER.md.
