@@ -9,6 +9,8 @@ struct SetupFailure: LocalizedError {
 struct SetupCommand: Equatable {
     let executable: String
     let arguments: [String]
+    var environment: [String: String]? = nil
+    var ownsProcessGroup = true
 }
 
 struct CommandResult {
@@ -24,9 +26,11 @@ protocol SetupCommandRunning {
     func run(_ command: SetupCommand, timeout: TimeInterval, completion: @escaping (CommandResult) -> Void)
 }
 
-/// Each probe owns a process group, so timeout also stops its shell/tool children.
+/// Top-level probes own a process group. Native helper tool probes inherit that
+/// owned group, so outer timeout also stops nested shell/tool children.
 /// All commands have separate arguments. No shell command text is constructed.
 final class NativeCommandRunner: SetupCommandRunning {
+    var progress: ((String) -> Void)?
     func run(_ command: SetupCommand, timeout: TimeInterval, completion: @escaping (CommandResult) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             var descriptors: [Int32] = [0, 0]
@@ -66,14 +70,14 @@ final class NativeCommandRunner: SetupCommandRunning {
             }
             guard posix_spawnattr_setsigmask(&attributes, &childSignalMask) == 0,
                   posix_spawnattr_setsigdefault(&attributes, &childSignalDefaults) == 0,
-                  posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSIGDEF)) == 0,
+                  posix_spawnattr_setflags(&attributes, Int16((command.ownsProcessGroup ? POSIX_SPAWN_SETPGROUP : 0) | POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSIGDEF)) == 0,
                   posix_spawnattr_setpgroup(&attributes, 0) == 0 else {
                 close(descriptors[0]); close(descriptors[1])
                 DispatchQueue.main.async { completion(CommandResult(exitCode: nil, output: "", timedOut: false, launchError: "Could not prepare the check process signal state.")) }
                 return
             }
             let arguments = ([command.executable] + command.arguments).map { strdup($0) } + [nil]
-            let environment = ProcessInfo.processInfo.environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
+            let environment = (command.environment ?? ProcessInfo.processInfo.environment).map { strdup("\($0.key)=\($0.value)") } + [nil]
             defer {
                 arguments.forEach { free($0) }
                 environment.forEach { free($0) }
@@ -93,17 +97,36 @@ final class NativeCommandRunner: SetupCommandRunning {
                 return
             }
 
-            let state = ProbeState(pid: pid)
+            let state = ProbeState(pid: pid, ownsProcessGroup: command.ownsProcessGroup)
             let output = ProbeOutput()
             let reader = DispatchGroup()
             reader.enter()
             let readDescriptor = descriptors[0]
+            let reportProgress = self.progress
             DispatchQueue.global(qos: .utility).async {
                 var buffer = [UInt8](repeating: 0, count: 8192)
                 var reachedEOF = false
+                var progressBuffer = ""
+                var progressCount = 0
+                var lastProgress = ""
                 while output.canRead {
                     let count = read(readDescriptor, &buffer, buffer.count)
-                    if count > 0 { output.append(buffer, count: count) }
+                    if count > 0 {
+                        output.append(buffer, count: count)
+                        progressBuffer += String(decoding: buffer.prefix(count), as: UTF8.self)
+                        while let newline = progressBuffer.firstIndex(of: "\n") {
+                            let line = String(progressBuffer[..<newline]); progressBuffer.removeSubrange(...newline)
+                            if line.hasPrefix("ZERO_PROGRESS=") {
+                                let token = String(line.dropFirst(14))
+                                if progressCount < 32, token != lastProgress,
+                                   ["java", "editor", "settings", "zero", "redhat", "verify"].contains(token) {
+                                    progressCount += 1; lastProgress = token
+                                    DispatchQueue.main.async { reportProgress?(token) }
+                                }
+                            }
+                        }
+                        if progressBuffer.utf8.count > 4096 { progressBuffer = "" }
+                    }
                     else if count < 0 && errno == EINTR { continue }
                     else if count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK) { usleep(10_000) }
                     else { reachedEOF = count == 0; break }
@@ -123,7 +146,7 @@ final class NativeCommandRunner: SetupCommandRunning {
             let timedOut = state.finish()
             // A failed tool may leave descendants holding the output pipe open.
             // This group belongs exclusively to this command, never to the app.
-            kill(-pid, SIGKILL)
+            if command.ownsProcessGroup { kill(-pid, SIGKILL) }
             // A detached descendant can retain stdout after leaving our group.
             // Its pipe must not defeat the command timeout or the exit result.
             output.beginDrain()
@@ -143,19 +166,20 @@ final class NativeCommandRunner: SetupCommandRunning {
 private final class ProbeState {
     let lock = NSLock()
     let pid: pid_t
+    let ownsProcessGroup: Bool
     var finished = false
     var timedOut = false
-    init(pid: pid_t) { self.pid = pid }
+    init(pid: pid_t, ownsProcessGroup: Bool) { self.pid = pid; self.ownsProcessGroup = ownsProcessGroup }
     func expire() -> Bool {
         lock.lock(); defer { lock.unlock() }
         guard !finished else { return false }
         timedOut = true
-        kill(-pid, SIGTERM)
+        kill(ownsProcessGroup ? -pid : pid, SIGTERM)
         return true
     }
     func forceStop() {
         lock.lock(); defer { lock.unlock() }
-        if !finished { kill(-pid, SIGKILL) }
+        if !finished { kill(ownsProcessGroup ? -pid : pid, SIGKILL) }
     }
     func finish() -> Bool {
         lock.lock(); defer { lock.unlock() }
@@ -252,20 +276,25 @@ struct SetupKit {
             throw SetupFailure(message: "Use a short folder name without slashes, colons or surrounding spaces.")
         }
         try rejectSymlink(parent)
-        let canonicalParent = parent.standardizedFileURL.resolvingSymlinksInPath()
+        try KitUpdatePlan.realDirectory(parent)
+        let canonicalParent = parent
         var directory: ObjCBool = false
         guard manager.fileExists(atPath: canonicalParent.path, isDirectory: &directory), directory.boolValue,
               manager.isWritableFile(atPath: canonicalParent.path) else {
-            throw SetupFailure(message: "Choose an existing writable folder for your new Zero project.")
+            throw SetupFailure(message: "Your home must be an existing writable folder. Check its permissions, then retry.")
         }
+        let parentIdentity = try KitUpdatePlan.identity(canonicalParent)!
+        let parentFD = open(canonicalParent.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard parentFD >= 0 else { throw SetupFailure(message: "Cannot open your home folder. Check permissions, then retry.") }
+        defer { close(parentFD) }
         let destination = canonicalParent.appendingPathComponent(name, isDirectory: true)
         var info = stat()
         guard lstat(destination.path, &info) != 0 && errno == ENOENT else {
-            throw SetupFailure(message: "That folder already exists. Choose a new name; Zero never replaces an existing project.")
+            throw SetupFailure(message: "The Zero folder already exists. Review it and retry setup to confirm an update.")
         }
         var template = Array(canonicalParent.appendingPathComponent(".zero-setup-XXXXXX").path.utf8CString)
         guard let temporaryPath = mkdtemp(&template) else {
-            throw SetupFailure(message: "Could not create a temporary folder. Choose another writable folder.")
+            throw SetupFailure(message: "Could not prepare setup in your home folder. Check its permissions, then retry.")
         }
         let temporary = URL(fileURLWithPath: String(cString: temporaryPath), isDirectory: true)
         defer { try? manager.removeItem(at: temporary) }
@@ -273,11 +302,16 @@ struct SetupKit {
         // The private, exclusively created container owns all partial copies.
         try manager.copyItem(at: root, to: staging)
         try beforePublish?()
-        guard renamex_np(staging.path, destination.path, UInt32(RENAME_EXCL)) == 0 else {
+        try KitUpdatePlan.realDirectory(canonicalParent)
+        guard let current = try KitUpdatePlan.identity(canonicalParent), parentIdentity.sameDirectory(current),
+              fstat(parentFD, &info) == 0, parentIdentity.sameDirectory(KitUpdatePlan.Identity(info)) else {
+            throw SetupFailure(message: "Your home folder changed during setup. Review it and retry.")
+        }
+        guard renameatx_np(AT_FDCWD, staging.path, parentFD, name, UInt32(RENAME_EXCL)) == 0 else {
             if errno == EEXIST || errno == ENOTEMPTY {
-                throw SetupFailure(message: "That folder appeared during setup. It was preserved. Choose a new name.")
+                throw SetupFailure(message: "The Zero folder appeared during setup. It was preserved. Review it and retry to confirm an update.")
             }
-            throw SetupFailure(message: "Could not place the kit: \(String(cString: strerror(errno))). Choose another writable folder.")
+            throw SetupFailure(message: "Could not place the kit: \(String(cString: strerror(errno))). Check your home folder permissions, then retry.")
         }
         return destination
     }
@@ -286,7 +320,224 @@ struct SetupKit {
         var info = stat()
         guard lstat(url.path, &info) == 0 else { throw SetupFailure(message: "Cannot read \(url.lastPathComponent).") }
         guard (info.st_mode & S_IFMT) != S_IFLNK else {
-            throw SetupFailure(message: "Choose a real folder. Symbolic links are not supported by Zero Setup.")
+            throw SetupFailure(message: "Symbolic links are not supported by Zero Setup. Review your home/Zero folder and ask for help.")
+        }
+    }
+}
+
+/// The native UI always targets the owner's home/Zero. Inspection never writes.
+struct DefaultSetupLocation {
+    let home: URL
+    static func entryMode(_ url: URL) throws -> mode_t? {
+        var info = stat()
+        if lstat(url.path, &info) == 0 { return info.st_mode }
+        if errno == ENOENT { return nil }
+        throw SetupFailure(message: "Cannot inspect your Zero folder. Check home folder permissions, then retry.")
+    }
+    func destination() throws -> URL {
+        try KitUpdatePlan.realDirectory(home)
+        guard access(home.path, W_OK | X_OK) == 0 else {
+            throw SetupFailure(message: "Your home must be an existing writable real folder. Check its permissions, then retry.")
+        }
+        return home.appendingPathComponent("Zero", isDirectory: true)
+    }
+}
+
+/// A read-only, identity-bound proposal. Only installer runtime paths are touched;
+/// starter, optional and all other entries belong to the student.
+struct KitUpdatePlan {
+    struct Identity: Equatable {
+        let device: dev_t, inode: ino_t, mode: mode_t, size: off_t
+        let modified: timespec
+        static func == (a: Identity, b: Identity) -> Bool {
+            a.device == b.device && a.inode == b.inode && a.mode == b.mode && a.size == b.size &&
+            a.modified.tv_sec == b.modified.tv_sec && a.modified.tv_nsec == b.modified.tv_nsec
+        }
+        init(_ info: stat) { device = info.st_dev; inode = info.st_ino; mode = info.st_mode; size = info.st_size; modified = info.st_mtimespec }
+        func sameDirectory(_ other: Identity) -> Bool { device == other.device && inode == other.inode && (other.mode & S_IFMT) == S_IFDIR }
+    }
+    static let runtime = ["setup/Setup.cmd", "setup/Setup.ps1", "setup/Setup.command", "setup/setup.sh", "setup/mac-downloads.json", "setup/README.md", "START-HERE.md", "LICENSE"]
+    static let markers = ["START-HERE.md", "setup/setup.sh", "setup/Setup.command", "setup/kit.properties", "starter/zero.json", "starter/pom.xml", "starter/mvnw", "starter/mvnw.cmd", "starter/.mvn/wrapper/maven-wrapper.properties", "starter/.vscode/tasks.json"]
+    let destination: URL
+    let homeIdentity: Identity, rootIdentity: Identity, setupIdentity: Identity
+    let files: [String]
+    let originals: [String: Identity]
+    let markerIdentities: [String: Identity]
+    static func identity(_ url: URL) throws -> Identity? {
+        var info = stat()
+        if lstat(url.path, &info) == 0 { return Identity(info) }
+        if errno == ENOENT { return nil }
+        throw SetupFailure(message: "Cannot inspect \(url.path). Check its permissions.")
+    }
+    static func realDirectory(_ url: URL) throws {
+        var current = url
+        while current.path != "/" {
+            guard let info = try identity(current), (info.mode & S_IFMT) == S_IFDIR else {
+                throw SetupFailure(message: "Use an existing real folder. Files and symbolic links are not supported: \(current.path).")
+            }
+            current.deleteLastPathComponent()
+        }
+    }
+    static func regular(_ url: URL) throws -> Identity {
+        try realDirectory(url.deletingLastPathComponent())
+        guard let info = try identity(url), (info.mode & S_IFMT) == S_IFREG else {
+            throw SetupFailure(message: "Existing Zero is not a recognizable complete kit: \(url.path). Your files were kept.")
+        }
+        return info
+    }
+    static func version(_ root: URL) throws -> String {
+        _ = try regular(root.appendingPathComponent("setup/kit.properties"))
+        let metadata = try String(contentsOf: root.appendingPathComponent("setup/kit.properties"), encoding: .utf8)
+        let entries = metadata.components(separatedBy: .newlines).filter { $0.hasPrefix("kitVersion=") }
+        guard entries.count == 1 else { throw SetupFailure(message: "Existing Zero kit metadata is invalid. Your files were kept.") }
+        let version = String(entries[0].dropFirst(11))
+        guard version.range(of: #"^[0-9]+\.[0-9]+\.[0-9]+$"#, options: .regularExpression) != nil else {
+            throw SetupFailure(message: "Existing Zero kit version is invalid. Your files were kept.")
+        }
+        _ = try regular(root.appendingPathComponent("zero-\(version).vsix"))
+        return version
+    }
+    static func validateInstalled(_ root: URL) throws {
+        try realDirectory(root)
+        for name in markers { _ = try regular(root.appendingPathComponent(name)) }
+        _ = try version(root)
+    }
+    init(kit: SetupKit, destination: URL) throws {
+        try kit.validate()
+        try Self.validateInstalled(destination)
+        self.destination = destination
+        homeIdentity = try Self.identity(destination.deletingLastPathComponent())!
+        rootIdentity = try Self.identity(destination)!
+        setupIdentity = try Self.identity(destination.appendingPathComponent("setup"))!
+        files = Self.runtime + ["zero-\(try Self.version(kit.root)).vsix", "setup/kit.properties"] // metadata last
+        var old: [String: Identity] = [:]
+        for name in files {
+            _ = try Self.regular(kit.root.appendingPathComponent(name))
+            let path = destination.appendingPathComponent(name)
+            try Self.realDirectory(path.deletingLastPathComponent())
+            if let info = try Self.identity(path) {
+                guard (info.mode & S_IFMT) == S_IFREG else { throw SetupFailure(message: "Cannot replace \(name): it is not a regular setup file. Your files were kept.") }
+                old[name] = info
+            }
+        }
+        originals = old
+        var markers: [String: Identity] = [:]
+        for name in Self.markers + ["zero-\(try Self.version(destination)).vsix"] { markers[name] = try Self.regular(destination.appendingPathComponent(name)) }
+        markerIdentities = markers
+    }
+    func recheckDirectories() throws {
+        let home = destination.deletingLastPathComponent()
+        try Self.realDirectory(home)
+        guard let h = try Self.identity(home), homeIdentity.sameDirectory(h),
+              let r = try Self.identity(destination), rootIdentity.sameDirectory(r),
+              let s = try Self.identity(destination.appendingPathComponent("setup")), setupIdentity.sameDirectory(s) else {
+            throw SetupFailure(message: "Your Zero folder changed during setup. Review it and try again.")
+        }
+    }
+    func recheck() throws {
+        try recheckDirectories()
+        for (name, old) in markerIdentities {
+            guard try Self.regular(destination.appendingPathComponent(name)) == old else { throw SetupFailure(message: "Your Zero kit changed after confirmation. Review it and try again.") }
+        }
+        for name in files {
+            guard try Self.identity(destination.appendingPathComponent(name)) == originals[name] else { throw SetupFailure(message: "Setup file \(name) changed after confirmation. Try again.") }
+        }
+    }
+    /// Anchored directory handles prevent symlink ancestor replacement from
+    /// redirecting writes. A directory flock serializes cooperating installers.
+    func update(from kit: SetupKit, beforeCommit: (() throws -> Void)? = nil,
+                afterReplace: ((String) throws -> Void)? = nil) throws -> URL {
+        try kit.validate(); try recheck()
+        let rootFD = open(destination.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard rootFD >= 0 else { throw SetupFailure(message: "Cannot open your Zero folder for updating.") }
+        defer { close(rootFD) }
+        guard flock(rootFD, LOCK_EX | LOCK_NB) == 0 else { throw SetupFailure(message: "Another Zero update is running. Wait for it to finish, then retry.") }
+        defer { flock(rootFD, LOCK_UN) }
+        let setupFD = openat(rootFD, "setup", O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard setupFD >= 0 else { throw SetupFailure(message: "Cannot open the existing setup folder.") }
+        defer { close(setupFD) }
+        var info = stat()
+        guard fstat(rootFD, &info) == 0, rootIdentity.sameDirectory(Identity(info)),
+              fstat(setupFD, &info) == 0, setupIdentity.sameDirectory(Identity(info)) else { throw SetupFailure(message: "Your Zero folder changed. Try again.") }
+        let homeFD = open(destination.deletingLastPathComponent().path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard homeFD >= 0 else { throw SetupFailure(message: "Cannot open your home folder for updating.") }
+        defer { close(homeFD) }
+        guard fstat(homeFD, &info) == 0, homeIdentity.sameDirectory(Identity(info)) else { throw SetupFailure(message: "Your home folder changed. Try again.") }
+        let backupName = ".zero-setup-backup-\(UUID().uuidString)"
+        let backup = destination.deletingLastPathComponent().appendingPathComponent(backupName)
+        guard mkdirat(homeFD, backupName, 0o700) == 0 else { throw SetupFailure(message: "Cannot create a setup backup in your home. Check permissions, then retry.") }
+        let backupFD = openat(homeFD, backupName, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard backupFD >= 0 else { throw SetupFailure(message: "Cannot open setup backup: \(backup.path)") }
+        defer { close(backupFD) }
+        guard mkdirat(backupFD, "new", 0o700) == 0, mkdirat(backupFD, "previous", 0o700) == 0 else { throw SetupFailure(message: "Cannot prepare setup backup: \(backup.path)") }
+        let stagedFD = openat(backupFD, "new", O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        let savedFD = openat(backupFD, "previous", O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard stagedFD >= 0, savedFD >= 0 else {
+            if stagedFD >= 0 { close(stagedFD) }; if savedFD >= 0 { close(savedFD) }
+            throw SetupFailure(message: "Cannot open setup backup folders: \(backup.path)")
+        }
+        defer { close(stagedFD); close(savedFD) }
+        func writePrivate(_ bytes: Data, fd: Int32, leaf: String, mode: mode_t) throws {
+            let file = openat(fd, leaf, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, mode & 0o777)
+            guard file >= 0 else { throw SetupFailure(message: "Cannot write setup backup file \(leaf).") }
+            let handle = FileHandle(fileDescriptor: file, closeOnDealloc: true)
+            try handle.write(contentsOf: bytes)
+            guard fsync(file) == 0 else { throw SetupFailure(message: "Cannot finish writing setup backup file \(leaf).") }
+        }
+        // Flatten only our fixed paths inside the private transaction folder.
+        func flat(_ name: String) -> String { name.replacingOccurrences(of: "/", with: "_") }
+        func target(_ name: String) -> (Int32, String) { name.hasPrefix("setup/") ? (setupFD, String(name.dropFirst(6))) : (rootFD, name) }
+        var replaced: [String] = []
+        do {
+            for name in files {
+                let bundled = kit.root.appendingPathComponent(name)
+                let sourceInfo = try Self.regular(bundled)
+                try writePrivate(Data(contentsOf: bundled), fd: stagedFD, leaf: flat(name), mode: sourceInfo.mode)
+                if let old = originals[name] {
+                    let (fd, leaf) = target(name)
+                    let fileFD = openat(fd, leaf, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
+                    guard fileFD >= 0 else { throw SetupFailure(message: "Cannot back up \(name).") }
+                    let handle = FileHandle(fileDescriptor: fileFD, closeOnDealloc: true)
+                    guard fstat(fileFD, &info) == 0, Identity(info) == old else { throw SetupFailure(message: "Setup files changed while preparing the backup.") }
+                    let bytes = try handle.readToEnd() ?? Data()
+                    guard fstat(fileFD, &info) == 0, Identity(info) == old else { throw SetupFailure(message: "Setup file changed while being backed up.") }
+                    try writePrivate(bytes, fd: savedFD, leaf: flat(name), mode: old.mode)
+                }
+            }
+            try beforeCommit?(); try recheck()
+            for name in files {
+                try recheckDirectories()
+                let (fd, leaf) = target(name)
+                let source = flat(name)
+                var current = stat()
+                let exists = fstatat(fd, leaf, &current, AT_SYMLINK_NOFOLLOW) == 0
+                guard (exists ? Identity(current) : nil) == originals[name] else { throw SetupFailure(message: "Setup file \(name) changed during updating.") }
+                // Exclusive publication protects newly added files; exchange keeps
+                // the actual replaced entry available even if an external writer races.
+                let flags = originals[name] == nil ? UInt32(RENAME_EXCL) : UInt32(RENAME_SWAP)
+                guard renameatx_np(stagedFD, source, fd, leaf, flags) == 0 else { throw SetupFailure(message: "Could not replace \(name): \(String(cString: strerror(errno))).") }
+                replaced.append(name)
+                if let old = originals[name] {
+                    guard fstatat(stagedFD, source, &current, AT_SYMLINK_NOFOLLOW) == 0, Identity(current) == old else { throw SetupFailure(message: "A setup file changed during replacement. Restoring the previous files.") }
+                }
+                try afterReplace?(name)
+            }
+            try recheckDirectories()
+            for name in files { unlinkat(stagedFD, flat(name), 0) }
+            unlinkat(backupFD, "new", AT_REMOVEDIR)
+            return backup
+        } catch {
+            var restored = true
+            for name in replaced.reversed() {
+                let (fd, leaf) = target(name)
+                let source = flat(name)
+                // Exchanged entries are the exact previous files, not reconstructed
+                // student data. Keep both versions if restoration cannot complete.
+                if originals[name] != nil {
+                    if renameatx_np(stagedFD, source, fd, leaf, UInt32(RENAME_SWAP)) != 0 { restored = false }
+                } else if renameatx_np(fd, leaf, stagedFD, source, UInt32(RENAME_EXCL)) != 0 { restored = false }
+            }
+            throw SetupFailure(message: "\(error.localizedDescription) \(restored ? "Previous setup files were restored." : "Restoration was incomplete; keep the backup and ask for help.") Backup: \(backup.path)")
         }
     }
 }
@@ -327,55 +578,49 @@ private func protocolFields(_ output: String, start: String, end: String) throws
     return result
 }
 
-enum ProfileImportStep: Int, CaseIterable {
-    case commandPalette, importMenu, filePicker, pastePath, create
-}
-
 enum SetupStage: Equatable {
-    case checking, chooseFolder, manualTool(String), blockedJava
-    case profileConsent, profileStep(ProfileImportStep), extensionConsent, ready, retry, opened
+    case checking, chooseFolder, updateConsent, ready, retry, opened
 }
 
 final class SetupController {
     let kit: SetupKit
     let runner: SetupCommandRunning
+    let defaultLocation: DefaultSetupLocation
     private(set) var selectedFolder: URL?
     private(set) var busy = false
     private(set) var hasChecked = false
     private(set) var stage: SetupStage = .checking
     private(set) var summary = "Checking your laptop…"
-    private(set) var diagnostics = "Git is optional for local apps. GitHub sign-in and sharing are separate.\nAfter changing Java, fully quit VS Code (⌘Q) and reopen it. A CLI check does not verify the Java environment in an already-running editor.\n"
+    private(set) var diagnostics = "Set up Zero prepares ~/Zero and a separate editor configuration in ~/Library/Application Support/Zero. Missing VS Code and JDK 21 are downloaded from official pinned URLs and verified. Zero and Java support are installed in that separate editor. Git is optional; GitHub sign-in and sharing are separate. Existing editor profiles and student files are preserved. Workspace trust and system security prompts remain yours to approve.\n"
     private var snapshot: SetupSnapshot?
-    private var profileImportStarted = false
+    private var pendingUpdate: KitUpdatePlan?
     var changed: (() -> Void)?
 
-    init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner()) { self.kit = kit; self.runner = runner }
+    init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner(),
+         home: URL = FileManager.default.homeDirectoryForCurrentUser) {
+        self.kit = kit; self.runner = runner; defaultLocation = DefaultSetupLocation(home: home)
+        (runner as? NativeCommandRunner)?.progress = { [weak self] token in
+            let messages = ["java": "Preparing Java…", "editor": "Preparing Zero editor…", "settings": "Preparing Zero settings…", "zero": "Installing Zero support…", "redhat": "Installing Java support…", "verify": "Checking Zero is ready…"]
+            guard let self, self.busy, let message = messages[token] else { return }
+            self.summary = message; self.changed?()
+        }
+    }
+
 
     var primaryTitle: String {
         switch stage {
         case .checking: return "Please wait"
-        case .chooseFolder: return "Choose folder…"
-        case .manualTool: return "Open download page"
-        case .blockedJava, .retry: return "Check again"
-        case .profileConsent: return "Open VS Code"
-        case .profileStep(let step):
-            switch step {
-            case .filePicker: return "Copy profile path"
-            case .create: return "Check profile"
-            default: return "Next"
-            }
-        case .extensionConsent: return "Install support"
+        case .chooseFolder: return "Set up Zero"
+        case .updateConsent: return "Update Zero"
+        case .retry: return "Try again"
         case .ready: return "Open Zero"
         case .opened: return "Open Zero again"
         }
     }
-    var profileFile: URL { (selectedFolder ?? kit.root).appendingPathComponent("optional/Zero.code-profile") }
     var consent: (title: String, detail: String)? {
         switch stage {
-        case .profileConsent:
-            return ("Import the Zero profile", "VS Code needs one manual import. Open the Command Palette and choose Preferences: Open Profiles (UI). Use the menu beside New Profile > Import Profile… > Select File…. Choose the supplied Zero.code-profile file, name it Zero, and choose Create.\n\nThis adds the supplied light theme and autosave settings in a separate profile. Your existing profiles are preserved. Follow the steps here, then choose Check profile.")
-        case .extensionConsent:
-            return ("Install Zero support?", "Install the bundled Zero extension and any missing Java language support (redhat.java) in the Zero profile? Java support downloads from the VS Code Marketplace. Compatible installed extensions are kept. Your other profiles and settings are preserved.")
+        case .updateConsent:
+            return ("Update the existing Zero folder?", "Setup files will be replaced; your code, assets and saved projects will be kept. Setup prepares a separate Zero editor and verified Java runtime, downloading missing tools and Java support.")
         default: return nil
         }
     }
@@ -391,9 +636,9 @@ final class SetupController {
     private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, completion: @escaping (CommandResult) -> Void) {
         do {
             let current = SetupKit(root: selectedFolder ?? kit.root)
-            try current.validate()
+            if selectedFolder == nil { try current.validate() } else { try KitUpdatePlan.validateInstalled(current.root) }
             busy = true; summary = status; changed?()
-            let command = SetupCommand(executable: "/bin/bash", arguments: [current.root.appendingPathComponent("setup/setup.sh").path] + arguments)
+            let command = SetupCommand(executable: Bundle.main.executableURL!.path, arguments: ["--runtime", current.root.path] + arguments)
             runner.run(command, timeout: timeout) { [weak self] result in
                 guard let self else { return }
                 self.busy = false
@@ -414,7 +659,7 @@ final class SetupController {
             do {
                 self.snapshot = try SetupSnapshot.parse(result.output)
                 guard self.snapshot?["kit"] == true else { self.fail("The kit is incomplete. See Details.", detail: "Kit metadata or required files are incomplete."); return }
-                if self.selectedFolder == nil { self.set(.chooseFolder, "Choose a folder for your Zero kit."); return }
+                if self.selectedFolder == nil { self.showDefaultLocation(); return }
                 self.advance()
             } catch { self.fail("The check was incomplete. Try again.", detail: error.localizedDescription) }
         }
@@ -422,127 +667,82 @@ final class SetupController {
     private func advance() {
         guard let snapshot else { return }
         guard snapshot["kit"] else { fail("The kit is incomplete. See Details.", detail: "Extract a complete Zero kit."); return }
-        if !snapshot["code"] { plan("code"); return }
-        if !snapshot["java"] {
-            if snapshot["javaHomeBlocked"] {
-                record("JAVA_HOME selects an incompatible or missing JDK. Ask your teacher/IT to select an installed matching JDK 17+. Setup will not change this environment choice.")
-                set(.blockedJava, "Java needs help. See Details.")
-            } else { plan("java") }
+        if !snapshot.ready {
+            set(.retry, "Finish setup to prepare the editor and Java.")
             return
         }
-        if !snapshot["profile"] {
-            if profileImportStarted { set(.profileStep(.create), "Zero profile not found. Finish Create, then check.") }
-            else { set(.profileConsent, "Import the Zero profile in VS Code.") }
-            return
-        }
-        if !snapshot["zero"] || !snapshot["redhat"] { set(.extensionConsent, "Install Zero and Java editor support?"); return }
         guard snapshot.ready && selectedFolder != nil else { fail("Readiness is unverified. Try again.", detail: "Required check fields did not establish readiness."); return }
         set(.ready, "Zero is ready. Open it to begin.")
     }
-    private func plan(_ tool: String) {
-        run(["--native-plan", tool], status: tool == "code" ? "Finding VS Code setup options…" : "Finding Java setup options…") { [weak self] result in
-            guard let self else { return }
-            do {
-                let fields = try protocolFields(result.output, start: "ZERO_PLAN_V1", end: "END_ZERO_PLAN")
-                guard fields.count == 1, let action = fields["action"] else { throw SetupFailure(message: "Invalid installation proposal.") }
-                switch action {
-                case "manual": self.set(.manualTool(tool), tool == "code" ? "Install VS Code, then check again." : "Install Java 17 or newer, then check again.")
-                case "blocked": self.fail("Setup needs help. See Details.", detail: "Tool setup is blocked by kit or environment configuration.")
-                case "skip": self.set(.retry, "Tools changed. Check again.")
-                default: throw SetupFailure(message: "Invalid installation proposal.")
-                }
-            } catch { self.fail("Setup options could not be checked.", detail: error.localizedDescription) }
-        }
-    }
     /// Consent is supplied only by a deliberate native confirmation button.
     func approve(_ approved: Bool) {
-        guard !busy, approved else { return }
+        guard !busy else { return }
+        if !approved {
+            if stage == .updateConsent { pendingUpdate = nil; showDefaultLocation() }
+            return
+        }
         switch stage {
-        case .profileConsent:
-            run(["--native-profile"], status: "Opening VS Code for profile import…", timeout: 30) { [weak self] _ in
-                self?.profileImportStarted = true
-                self?.showProfileStep(.commandPalette)
+        case .updateConsent:
+            guard let plan = pendingUpdate else { return }
+            pendingUpdate = nil
+            busy = true; summary = "Updating Zero setup files…"; changed?()
+            DispatchQueue.global(qos: .userInitiated).async { [self] in
+                let result = Result { try plan.update(from: kit) }
+                DispatchQueue.main.async {
+                    self.busy = false
+                    switch result {
+                    case .success(let backup):
+                        self.selectedFolder = plan.destination
+                        self.record("Kit folder: \(plan.destination.path)\nPrevious setup backup: \(backup.path)")
+                        self.configure()
+                    case .failure(let error):
+                        self.record(error.localizedDescription)
+                        self.set(.chooseFolder, "Could not update Zero. See Details, then retry.")
+                    }
+                }
             }
-        case .extensionConsent:
-            installExtensions()
         default: break
         }
-    }
-    private func installExtensions() {
-        guard let snapshot else { check(); return }
-        let missing = ["zero", "redhat"].filter { !snapshot[$0] }
-        func install(_ index: Int) {
-            guard index < missing.count else { self.check(); return }
-            let target = missing[index] == "zero" ? "zero" : "java"
-            self.run(["--native-extension", target, "--approved"], status: target == "zero" ? "Installing Zero support…" : "Installing Java support…", timeout: 600) { _ in install(index + 1) }
-        }
-        install(0)
     }
     func primaryAction() {
         guard !busy else { return }
         switch stage {
-        case .retry, .blockedJava: check()
-        case .profileStep(let step):
-            switch step {
-            case .commandPalette: showProfileStep(.importMenu)
-            case .importMenu: showProfileStep(.filePicker)
-            case .pastePath: showProfileStep(.create)
-            case .create: check()
-            case .filePicker: break // Copy requires the explicit native clipboard action.
-            }
-        case .manualTool(let tool):
-            let url = tool == "code" ? "https://code.visualstudio.com/download" : "https://adoptium.net/temurin/releases/?version=17"
-            busy = true; summary = tool == "code" ? "Opening the VS Code download page…" : "Opening the Java download page…"; changed?()
-            runner.run(SetupCommand(executable: "/usr/bin/open", arguments: [url]), timeout: 15) { [weak self] result in
-                guard let self else { return }
-                self.busy = false; self.record(result.output)
-                if result.succeeded {
-                    if tool == "java" {
-                        self.record("After changing Java, fully quit VS Code (⌘Q) and reopen it so the editor receives the new environment. A CLI check does not verify an already-running editor's Java environment.")
-                        self.set(.retry, "Install Java; quit VS Code (⌘Q), then check again.")
-                    } else { self.set(.retry, "Finish installing VS Code, then check again.") }
+        case .chooseFolder:
+            do {
+                let destination = try defaultLocation.destination()
+                if try DefaultSetupLocation.entryMode(destination) == nil {
+                    place(parent: defaultLocation.home, name: "Zero")
+                } else {
+                    pendingUpdate = try KitUpdatePlan(kit: kit, destination: destination)
+                    set(.updateConsent, "Update setup files in ~/Zero?")
                 }
-                else { self.fail("Could not open the download page.", detail: result.launchError ?? url) }
+            } catch {
+                record(error.localizedDescription)
+                set(.chooseFolder, "Cannot use home. See Details, then retry.")
             }
+        case .retry:
+            if selectedFolder != nil { configure() } else { check() }
         case .ready, .opened:
             // The backend rechecks immediately before launch, catching drift.
             run(["--native-open"], status: "Opening Zero…", timeout: 180) { [weak self] _ in self?.set(.opened, "In Zero, choose Run App to begin.") }
         default: break
         }
     }
-    private func showProfileStep(_ step: ProfileImportStep) {
-        let message: String
-        switch step {
-        case .commandPalette: message = "Press ⌘⇧P; open Preferences: Open Profiles (UI)."
-        case .importMenu: message = "New Profile menu → Import Profile → Select File."
-        case .filePicker: message = "Press ⌘⇧G in the file picker."
-        case .pastePath: message = "Paste the path; press Return, then Open."
-        case .create: message = "Click Create; keep the profile name Zero."
-        }
-        set(.profileStep(step), message)
-    }
-    var canGoBack: Bool {
-        if case .profileStep(let step) = stage { return step != .commandPalette && !busy }
-        return false
-    }
-    func previousProfileStep() {
-        guard !busy, case .profileStep(let step) = stage,
-              let previous = ProfileImportStep(rawValue: step.rawValue - 1) else { return }
-        showProfileStep(previous)
-    }
-    /// Called only by the deliberate Copy profile path button. The UI owns the
-    /// public clipboard API; an unsuccessful copy leaves the step unchanged.
-    func copyProfilePath(_ copy: (String) -> Bool) {
-        guard !busy, stage == .profileStep(.filePicker) else { return }
-        do {
-            try SetupKit(root: selectedFolder ?? kit.root).validate()
-            guard copy(profileFile.path) else { record("Could not copy the profile path. Try Copy profile path again."); set(.profileStep(.filePicker), "Could not copy the path. Try again."); return }
-            showProfileStep(.pastePath)
-        } catch { fail("The profile file needs attention. See Details.", detail: error.localizedDescription) }
-    }
     func mayExit() -> Bool {
         guard busy else { return true }
         summary = "Please wait for setup to finish this step."; changed?(); return false
+    }
+    private func configure() {
+        run(["--native-install", "--approved"], status: "Preparing Zero editor and Java…", timeout: 3600) { [weak self] _ in self?.check() }
+    }
+    private func showDefaultLocation() {
+        do {
+            _ = try defaultLocation.destination()
+            set(.chooseFolder, "Set up Zero; download any missing tools.")
+        } catch {
+            record(error.localizedDescription)
+            set(.chooseFolder, "Cannot use home. See Details, then retry.")
+        }
     }
     func place(parent: URL?, name: String?) {
         guard !busy, selectedFolder == nil, let parent, let name else { return }
@@ -552,8 +752,8 @@ final class SetupController {
             DispatchQueue.main.async {
                 self.busy = false
                 switch result {
-                case .success(let folder): self.selectedFolder = folder; self.record("Kit folder: \(folder.path)"); self.check()
-                case .failure(let error): self.record(error.localizedDescription); self.set(.chooseFolder, "Choose a fresh folder. See Details.")
+                case .success(let folder): self.selectedFolder = folder; self.record("Kit folder: \(folder.path)"); self.configure()
+                case .failure(let error): self.record(error.localizedDescription); self.set(.chooseFolder, "Could not prepare Zero. See Details, then retry.")
                 }
             }
         }

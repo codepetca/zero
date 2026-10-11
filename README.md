@@ -44,7 +44,10 @@ The complete kit is a single ZIP; original Zero code is MIT licensed.
 
 Students need VS Code and a supported JDK 17+; Git 2.31+ and browser authentication
 are needed for repository work. They do not need Node.js or global Maven.
-The optional settings-only profile defaults to light, with 500 ms autosave.
+The next local Mac0.5.7 setup prepares a private Java runtime and a separate
+quiet editor automatically; use its Open Zero launcher to return. The public
+Mac0.5.6 download still has guided manual setup. See [native setup](docs/INSTALLER.md).
+The optional settings-only profile for ZIP/manual setup defaults to light, with 500 ms autosave.
 Import it before installing the local Zero VSIX and Java extensions in that
 profile. The sidebar also supports dark themes.
 
@@ -69,7 +72,7 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.4.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.7.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After preparing the committed public component candidate and Workshop with
 `--public` as described in [Development](docs/DEVELOPMENT.md),

@@ -18,16 +18,24 @@ internal static class ControllerHarness
     private sealed class Fake : ISetupBackend
     {
         public string Root { get; private set; }
+        public string UserHome { get; private set; }
         public string State = Snapshot();
         public string Plan = "manual";
         public bool CopyFail;
         public bool FailExtensions;
         public bool FailOpen;
+        public bool RaceDefault;
+        public string LastParent, LastName;
         public TaskCompletionSource<CheckResult> Pending;
         public readonly List<string> Calls = new List<string>();
-        public Fake(string root) { Root = root; Directory.CreateDirectory(Path.Combine(root, "optional")); File.WriteAllText(Path.Combine(root, "optional", "Zero.code-profile"), "fake"); }
+        public Fake(string root) { Root = root; UserHome = Path.Combine(root, "home"); Directory.CreateDirectory(UserHome); Directory.CreateDirectory(Path.Combine(root, "optional")); File.WriteAllText(Path.Combine(root, "optional", "Zero.code-profile"), "fake"); }
         public Task EnsureKit(CancellationToken token) { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }
-        public Task<string> Place(string parent, string name, CancellationToken token) { Calls.Add("copy"); if (CopyFail) throw new IOException("existing folder"); return Task.FromResult(Root); }
+        public Task<string> Place(string parent, string name, KitFiles.KitTarget expected, Action<string> diagnostic, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested(); Calls.Add("copy"); LastParent = parent; LastName = name;
+            if (RaceDefault) { RaceDefault = false; Directory.CreateDirectory(Path.Combine(parent, name)); File.WriteAllText(Path.Combine(parent, name, "keep.txt"), "racing project"); throw new IOException("existing folder"); }
+            if (CopyFail) throw new IOException("existing folder"); return Task.FromResult(Root);
+        }
         public Task<CheckResult> Run(string root, string action, string target, bool approved, CancellationToken token)
         {
             Calls.Add(action + ":" + target + ":" + approved);
@@ -38,8 +46,8 @@ internal static class ControllerHarness
         }
         public Task Download(string url, CancellationToken token) { Calls.Add("download:" + url); return Task.CompletedTask; }
     }
-    private static SetupController Controller(Fake backend, CancellationToken token = default(CancellationToken)) { return new SetupController(backend, token); }
-    private static void Placed(SetupController controller) { Wait(controller.Check()); Wait(controller.Place("fake parent", "Zero")); }
+    private static SetupController Controller(Fake backend, CancellationToken token = default(CancellationToken)) { return new SetupController(backend, token, () => backend.UserHome); }
+    private static void Placed(SetupController controller) { Wait(controller.Check()); Wait(controller.PrimaryAction()); }
     public static int Run(string root)
     {
         var fake = new Fake(Path.Combine(root, "controller"));
@@ -48,17 +56,46 @@ internal static class ControllerHarness
         controller.Changed = () => statuses.Add(controller.Summary + ":" + controller.Busy);
         Wait(controller.Check());
         Assert(controller.Stage == SetupStage.ChooseFolder && controller.SelectedFolder == null, "startup checks before placement without ready");
+        Assert(controller.PrimaryTitle == "Set up Zero" && controller.DefaultFolder == Path.Combine(fake.UserHome, "Zero"), "default primary uses home folder");
+        Assert(!Directory.EnumerateFileSystemEntries(fake.UserHome).Any(), "checking does not create a default folder");
         Assert(fake.Calls.SequenceEqual(new[] { "check::False" }), "startup read-only");
-        Wait(controller.Place(null, null)); Assert(fake.Calls.Count == 1, "cancel picker performs no copy");
-        fake.CopyFail = true; Wait(controller.Place("parent", "Zero"));
+        string originalDefault = controller.DefaultFolder;
+        Wait(controller.Place(null, null)); Assert(fake.Calls.Count == 1 && controller.DefaultFolder == originalDefault, "invalid placement preserves default without copy");
+        fake.CopyFail = true; Wait(controller.PrimaryAction());
         Assert(controller.Stage == SetupStage.ChooseFolder && controller.SelectedFolder == null && !controller.Busy, "copy failure never ready");
-        fake.CopyFail = false; Wait(controller.Place("parent", "Zero"));
+        fake.CopyFail = false; Wait(controller.PrimaryAction());
         Assert(controller.Stage == SetupStage.Ready && controller.SelectedFolder == fake.Root, "existing tools and profile ready after fresh copy");
         Assert(statuses.Any(value => value == "Preparing your Zero folder…:True") && statuses.Last().EndsWith(":False"), "busy status order");
         Assert(!fake.Calls.Any(call => call.StartsWith("profile") || call.StartsWith("extension") || call.StartsWith("download")), "compatible setup preserved");
         fake.FailOpen = true; Wait(controller.PrimaryAction());
         Assert(controller.Stage == SetupStage.Retry && !controller.Summary.Contains("ready"), "final backend reread failure cannot open");
         Wait(controller.Check()); fake.FailOpen = false; Wait(controller.PrimaryAction()); Assert(controller.Stage == SetupStage.Opened, "verified open");
+        fake = new Fake(Path.Combine(root, "default-primary")); controller = Controller(fake); Wait(controller.Check()); Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.Ready && fake.LastParent == fake.UserHome && fake.LastName == "Zero", "primary places default home folder");
+        fake = new Fake(Path.Combine(root, "default-race")); controller = Controller(fake); Wait(controller.Check()); fake.RaceDefault = true; Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.ChooseFolder && controller.DefaultFolder == null && fake.Calls.Count(call => call == "copy") == 1, "race refuses occupied unrelated folder without automatic copy loop");
+        Assert(File.ReadAllText(Path.Combine(fake.UserHome, "Zero", "keep.txt")) == "racing project", "race preserves occupied project");
+        Wait(controller.Place(null, null)); Wait(controller.PrimaryAction()); Assert(controller.DefaultFolder == null && fake.Calls.Count(call => call == "copy") == 1, "retry never chooses an alternative");
+        Directory.Delete(Path.Combine(fake.UserHome, "Zero"), true); Wait(controller.PrimaryAction()); Assert(fake.LastName == "Zero" && controller.Stage == SetupStage.Ready, "retry uses repaired exact default");
+        fake = new Fake(Path.Combine(root, "update-confirm"));
+        Harness.CreateKit(Path.Combine(fake.UserHome, "Zero"), "0.5.3");
+        controller = Controller(fake); Wait(controller.Check());
+        Assert(controller.DefaultIsExisting && controller.PrimaryTitle == "Set up Zero", "recognized existing kit keeps primary with update warning");
+        string[] before = Directory.GetFileSystemEntries(fake.UserHome);
+        Wait(controller.PrimaryAction()); Wait(controller.PrimaryAction(() => false));
+        Assert(!fake.Calls.Contains("copy") && before.SequenceEqual(Directory.GetFileSystemEntries(fake.UserHome)), "missing approval and Cancel make no filesystem writes");
+        int prompts = 0; Wait(controller.PrimaryAction(() => { prompts++; return true; }));
+        Assert(prompts == 1 && controller.Stage == SetupStage.Ready && fake.Calls.Count(call => call == "copy") == 1, "explicit headless approval matches native update confirmation");
+        fake = new Fake(Path.Combine(root, "missing-home")); Directory.Delete(fake.UserHome); controller = Controller(fake); Wait(controller.Check()); Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.ChooseFolder && controller.DefaultFolder == null && !fake.Calls.Contains("copy"), "unavailable home never copies or claims ready");
+        Assert(controller.Summary.Contains("retry") && !controller.Summary.Contains("Change location"), "home error offers details and retry without chooser");
+        Directory.CreateDirectory(fake.UserHome); Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.Ready && fake.LastParent == fake.UserHome && fake.LastName == "Zero", "retry uses default after home is repaired");
+        fake = new Fake(Path.Combine(root, "cancel-default")); using (var token = new CancellationTokenSource())
+        {
+            controller = Controller(fake, token.Token); Wait(controller.Check()); token.Cancel(); Wait(controller.PrimaryAction());
+            Assert(!fake.Calls.Contains("copy") && controller.Stage == SetupStage.Retry, "cancelled default placement performs no copy");
+        }
         fake = new Fake(Path.Combine(root, "manual")); fake.State = Snapshot(code: false); controller = Controller(fake); Placed(controller);
         Assert(controller.Stage == SetupStage.ManualCode && !fake.Calls.Any(call => call.StartsWith("download")), "manual tool needs explicit handoff");
         Wait(controller.PrimaryAction()); Assert(fake.Calls.Last() == "download:https://code.visualstudio.com/download" && controller.Stage == SetupStage.Retry, "approved official Code handoff");
@@ -86,7 +123,7 @@ internal static class ControllerHarness
         Assert(fake.Calls.Contains("extension:java:True") && fake.Calls.Last() == "check::False", "approved essential extensions followed by recheck");
         fake.State = Snapshot(); Wait(controller.Check()); Assert(controller.Stage == SetupStage.Ready, "actual extension verification required");
         fake = new Fake(Path.Combine(root, "busy")); controller = Controller(fake); var paused = new TaskCompletionSource<CheckResult>(); fake.Pending = paused;
-        var running = controller.Check(); Assert(controller.Busy, "pending check busy"); Wait(controller.PrimaryAction()); Wait(controller.Check()); Wait(controller.Place("parent", "Zero"));
+        var running = controller.Check(); Assert(controller.Busy, "pending check busy"); Wait(controller.PrimaryAction()); Wait(controller.Check()); Wait(controller.PrimaryAction());
         Assert(fake.Calls.Count == 1 && controller.Busy, "busy actions serialized");
         paused.SetResult(new CheckResult { ExitCode = 1, Cancelled = true, Output = "cancelled" }); Wait(running);
         Assert(!controller.Busy && controller.Stage == SetupStage.Retry, "cancel never ready");

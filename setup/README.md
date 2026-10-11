@@ -1,5 +1,11 @@
 # Set up Zero
 
+The native Mac0.5.7 setup automatically prepares Java and a separate quiet editor.
+Use **Set up Zero**, then **Open Zero**; later use **Open Zero.command** in your
+home Zero folder. The instructions below describe the ZIP/manual launchers and
+Windows guidance. No manual profile import is needed in the new native Mac app.
+
+
 Extract the **whole** Zero kit first. Keep the `setup`, `starter` and `optional`
 folders beside the kit's Zero VSIX. Choose a folder you can write to, such as
 Documents. On a school laptop, your teacher or IT may need to install software.
@@ -47,7 +53,7 @@ paths. Git uses the first PATH installation; setup does not inventory every Git
 or JDK on the machine. If another installation should be selected, ask teacher/IT
 to review PATH or JAVA_HOME, then restart and check again.
 
-## Your Zero profile
+## Your Zero profile (ZIP/manual setup)
 
 All extension checks and installs use a VS Code profile named **Zero**. Extensions
 installed only in Default or another profile will not count as ready here.

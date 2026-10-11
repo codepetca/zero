@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "architectures": {
+    "arm64": {
+      "jdk": {
+        "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.12.1_1.tar.gz",
+        "sha256": "3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998",
+        "format": "tar.gz",
+        "version": "jdk-21.0.12.1+1",
+        "size": 200073404
+      },
+      "vscode": {
+        "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/2a59476c9bfcb90b3ddc372c36762471b7dfad1c/VSCode-darwin-arm64.zip",
+        "sha256": "9b4ae386e3cf738d7ba990237ddf0a18092c924a1bcae465ed4697964745f42d",
+        "format": "zip",
+        "version": "1.141.0",
+        "size": 328788027
+      }
+    },
+    "x64": {
+      "jdk": {
+        "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_mac_hotspot_21.0.12.1_1.tar.gz",
+        "sha256": "44db0f08196daf19a47f90d13388b0c943b67663cb537f998fe29e836fa842ce",
+        "format": "tar.gz",
+        "version": "jdk-21.0.12.1+1",
+        "size": 194316575
+      },
+      "vscode": {
+        "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/2a59476c9bfcb90b3ddc372c36762471b7dfad1c/VSCode-darwin.zip",
+        "sha256": "c1b3950fbe76dcb14a5eaebb9834c3b87bc28bf54b2ad7953e0e6eda268150b6",
+        "format": "zip",
+        "version": "1.141.0",
+        "size": 354470558
+      }
+    }
+  }
+}

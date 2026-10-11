@@ -583,3 +583,179 @@ No Windows release, account/credential/security changes, Community edits or prim
 funding checkout changes. Physical Windows and fresh-machine/quarantine/Intel/
 macOS12/novice-use limits retained. Exact release/draft/tag/public receipts at
 `.verification/mac-publication/`; live deployment verification remains pending.
+
+## Completed production download rollout — 2026-10-11
+
+[Metadata PR23](https://github.com/codepetca/zero/pull/23) reviewed at
+a19e6133d175edb5e12ef957645ad33c8842ed45, merged7b0320e5eb3f84e695c305d8ac2b77b19c9d7745
+after [CI38165240574](https://github.com/codepetca/zero/actions/runs/38165240574).
+Independent mac_public_metadata_review/turn1 requested GPT-6-Luna/medium: complete
+six-file diff/receipt/caller review,0blockers; independently validated sealed
+manifest equality except status/URL and9targeted website tests. Existing product
+distribution labels were sufficient; optional repeated maintainer-state wording
+was not needed. Full36website tests/typecheck/build and root/diff checks passed.
+Metadata review1launch/1initialwave/0fixbatches; effective model/tokens unknown.
+
+Vercel production succeeded for exact7b0320e merge. Live
+[Download Zero](https://zero.codepet.ca/) opens `/learn#downloads`; Mac0.5.6 is
+primary and separately labelled0.5.3ZIP/starter/VSIX remain under Other downloads.
+All four real anchors retrieved without authentication: HTTP200, exact pinned
+sizes/SHA256. Actual CUA browser home→Download Zero→Download for Mac saved the
+691970-byte DMG with matching
+`4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d`.
+Download saved as `Zero-Setup-0.5.6-macos (1).dmg` beside the existing Downloads
+candidate; not launched again. Local preview tabs/servers cleaned up.
+Receipts/screenshot: `.verification/mac-publication/live-verification.json`,
+`browser-verification.json`, `production-deployment.json`, `live-downloads.jpg`
+and completed `delivery.json`. Coordinator checkout synchronized to remote main
+before this local completion-note commit; primary funding branch untouched.
+
+Authorized task complete. Existing candidate/public assets immutable; no extra
+kit/Windows publication, signing/notarization, credentials/account/security changes.
+Windows physical testing remains held; fresh-Mac vendor/quarantine, Intel/macOS12
+and novice classroom trials remain unverified. Greeting window remains owner-owned.
+
+## Default native setup location — local source, 2026-10-11
+
+Owner requested default location instead of a mandatory folder picker. Next native
+build offers Set up Zero at user-home/Zero plus optional Change location, with
+Zero-2 through Zero-1000 for any occupied entry. Selection is read-only, copying
+requires the primary action and retains exclusive placement/close/cancellation
+guards. Lookup/permission/exhaustion errors preserve manual location choice;
+collision races preserve the existing project and allow explicit fresh retry.
+Published Mac0.5.6 and its sealed candidate are unchanged; new release required.
+
+Two bounded GPT-6.1-Sol/high workers, one writer per platform; no recursive
+delegation. Mac145harness assertions and ARM64/x86_64 source compiles passed.
+Windows153Mono backend/controller checks,3portable PowerShell parser/mock tests
+and net48 harness/WinForms cross-build passed with0warnings/errors. Coordinator
+root/diff,8installer and2Macsealing tests passed. No dist/candidate replacement,
+installation, signing/notarization, GitHub publication or account changes. Actual
+Windows/WinForms remains untested/held; Intel/macOS12 execution not established by
+compilation. CUA AppKit fake-only preview verified the one-line default screen,
+optional picker cancellation retaining the default and primary→ready without a
+mandatory picker. All copy/command actions used disposable fixtures/fakes; no host
+installation. Screenshot `.verification/default-folder/mac-default.jpg`.
+
+Independent default_folder_review/turn1 requested GPT-6.1-Sol/high completely
+reviewed all13changed files and immediate native placement/lifecycle/UI callers at
+0adb412b537ed0edd6d83e820192d033339f536a against
+fc25c39cab143a13709977a959909727c289f756:0actionable findings/blockers, exact-range
+diff check passed.1launch/1initialwave/0fixbatches; approximately90reviewer seconds.
+Existing harness/build checks reused; no extra integration wave needed because
+reviewed source is unchanged. Final delta records this evidence only. Local source
+accepted; no source push/PR or new installer release performed.
+Receipts `.verification/default-folder/`; weekly89% at start is account allowance,
+effective models/task tokens/attributable cost and coordination time unknown.
+Primary funding checkout and Community untouched.
+
+
+## Fixed native location and confirmed setup updates — local source, 2026-10-11
+
+Owner removed location/name choices and numbered alternatives, then requested
+existing-folder updates with a warning while preserving saves. Local native setup
+uses only user-home/Zero. Existing recognizable kits get Update Zero/Cancel:
+“Setup files will be replaced. Your code, assets and saved projects will be kept.”
+Cancel writes nothing. Files/links/unrelated Zero folders are refused. Fresh
+placement retains exclusive publication and never upgrades a raced target silently.
+
+Only allowlisted setup runtime, guide/license, metadata and the current VSIX change.
+Entire starter (source/framework edits/POM/wrappers/settings/Git/assets/saves),
+optional files, extras and old VSIXs remain unchanged. Replaced files are backed up
+with a Details path. Transaction guards serialize updates, verify target identities,
+commit metadata last and attempt rollback without discarding recovery data.
+Student project/API upgrades remain separate from updating setup.
+
+Two bounded GPT-6.1-Sol/high platform workers completed; one writer per platform,
+no recursive delegation. Mac179disposable/fake assertions and ARM64/x86_64 macOS12
+production compiles passed. Windows228net48/Mono assertions, including an update of
+the existing packaged kit and concurrent-edit regressions, passed; WinForms
+cross-build0warnings/errors. Coordinator root check,8installer tests,2Macsealing
+checks and diff checks passed. CUA fake-only Mac preview verified the minimal
+screen, native warning, Cancel→unchanged and Update Zero→ready. Screenshot
+`.verification/upgrade-default/mac-confirmation.jpg`; owned test process terminated.
+
+Complete independent GPT-6.1-Sol/high preservation and workflow reviews inspected
+886953f4d92049dbb8224ec47caa17d836635e58→6d4fced89a0b73c781790ff1284a7da6bcc709f8.
+One accepted P2: Windows could lose runtime edits made during commit/rollback.
+Correction6abdac87cf358fd9ba0f7c7cf198cc04d0158ed3 atomically retains actual replaced
+entries and rollback targets, detects drift and keeps ambiguous recovery backups.
+Complete targeted preservation review of the two-file correction: resolved,
+0newblockers.3review turns/1initialwave/1targetedwave/1fixbatch. Unchanged Mac and
+workflow coverage reused; no additional integration wave needed because the
+correction stayed inside the reviewed filesystem boundary and targeted review
+covered retry/metadata interactions. Windows/Mac recognition criteria differ,
+but both refuse unsafe targets and preserve student files; no demonstrated
+workflow blocker. Requested models/efforts recorded; effective configuration,
+per-turn tokens/elapsed/cost and coordinator active time unknown. Overall session
+timestamps are in `.verification/upgrade-default/review.json`; weekly89% remaining
+at start is account allowance, not task cost. DeepSeek remains paused.
+
+Local source accepted only. No source push/PR, signing/notarization, dist rebuild,
+release replacement, deployment, account/credential changes or actual tool installs.
+Public signed Mac0.5.6 still uses its old picker; a new versioned verified release
+is needed to deliver this flow. Primary funding checkout and Community untouched.
+Windows physical/native handle/WinForms testing remains held. Physical Intel,
+macOS12 execution, fresh-machine vendor/trust flows and novice use remain untested.
+Receipts `.verification/upgrade-default/`; prior optional-folder behavior above
+is historical and superseded by this phase.
+
+
+## Automatic Mac onboarding — local 0.5.7, 2026-10-11
+
+Native Mac setup now prepares a pinned private Temurin JDK21 and isolated editor
+configuration with one Set up Zero action. It reuses compatible installed VS Code
+or downloads a pinned Microsoft build, verifies archives/signatures, installs Zero
+and Java support, and offers Open Zero. No profile import, global JAVA_HOME editing,
+Homebrew, Python or Node is needed by students. Open Zero.command returns to the
+prepared editor. Fixed ~/Zero, the update warning and student-file preservation
+remain. Progress uses one changing line; GitHub sign-in remains separate.
+
+Implementation3dcc851 passed247root tests,14packaging/sealing tests, check/diff,
+kit extraction verification,173native disposable assertions,62manual shell tests
+and both Mac architecture production compiles. Official ARM64 JDK/editor archives
+were downloaded, size/SHA256 checked and passed actual vendor signature checks;
+VS Code passed Gatekeeper assessment. Real archive extraction and configuration
+in a disposable home installed the actual packaged Zero0.5.7 and Red Hat Java.
+The real editor test passed Run→visible JavaFX Hello, world!→Stop,500msautosave,
+standard build→Hello, Mac!→Stop. Both child apps used Zero's private Java.
+CUA fake-only native preview verified the fixed one-line status and Open Zero.
+
+Two fresh GPT-6.1-Sol/high complete-diff reviews of1d5fa05→3dcc851 found twoP2s:
+a concurrent student launcher could be replaced, and a failed settings write could
+leave partial JSON that retries preserved. Correctione10cce79 passed189native
+assertions and both Mac architecture production compiles. A fresh Sol/high targeted
+review inspected the complete six-file correction, reused hash-matching checks
+and passed eight independently compiled focused assertions. BothP2s resolved;
+0newfindings or unresolved blockers.3review turns/1initialwave/1targetedwave/1fixbatch;
+unchanged initial download/controller coverage reused, no additional integration
+wave needed. Final real-vendor configure rerun passed ready=1.
+
+Clean e10cce79 produced the universal unsigned development DMG
+Zero-Setup-0.5.7-macos-development.dmg,883970bytes,SHA256
+4fb8cdbec02315f14b51272cc32db1a34917432fa811bdbad2d9baa2c6766bfe.
+DMG checksum, both architectures, bundled payload bytes and permissions passed
+verify-installers. Kit ZIP regenerated/verified: zero-bootstrap.zip,240292bytes,
+SHA256a7247dcbe6841c103c943a1fbd7d421790e10f3093e54cee4646de9e0e32db0b.
+Final root check/diff and14packaging/sealing/kit tests passed. Development artifacts
+are local only; no Developer ID signing or notarization.
+
+Receipts .verification/easy-onboarding/: actual/runtime-result.json,
+actual/vscode-smoke-result.json, actual/proof-limitations.json, vendor hashes,
+macos/worker-receipt.json, tests.log, packaging-tests.log,
+preview/{progress,ready}.png, macos/fix-batch-1-receipt.json,
+review-fix/targeted-e10cce79/result.log, build-macos.log, verify-macos.log,
+dist/installers/build-macos.json and independent reproduction harnesses.
+Real editor proof used a short /tmp alias to its disposable user-data directory
+because the long evidence path exceeds upstream VS Code's103-character IPC socket
+limit. The extension test host required trust, granted through CUA only to the
+verified disposable starter. No security protection was disabled. This is not a
+clean physical Mac or exact default-home first-run proof. Intel/macOS12 execution,
+quarantine/vendor prompts, restricted networks, novice use and Windows physical
+testing remain unverified. Windows behavior unchanged in this phase.
+
+No push, PR, publication, signing/notarization, website update or credentials change.
+Public signed Mac0.5.6 and its sealed candidate remain unchanged. Local version0.5.7
+is unpublished. Primary funding checkout and Community remain untouched.
+Weekly87% remaining at start is account allowance, not task cost; effective model,
+attributable tokens/cost and coordinator active time are unknown. DeepSeek paused.

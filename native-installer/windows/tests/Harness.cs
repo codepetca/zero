@@ -45,13 +45,25 @@ internal static class Harness
     private static int Main(string[] args)
     {
         // macOS /var is a link; use the ignored checkout cache so link guards remain enabled.
-        string root = Path.Combine(Directory.GetCurrentDirectory(), ".verification", "windows-native", "harness " + Guid.NewGuid().ToString("N"));
+        string root = Path.Combine(Directory.GetCurrentDirectory(), ".verification", "upgrade-default", "windows-fixtures " + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         try
         {
             TestCloseDuringPausedWork(root);
             checks += ControllerHarness.Run(root);
             checks += EnvironmentHarness.Run();
+            string home = Path.Combine(root, "default-home"); Directory.CreateDirectory(home);
+            Assert(KitFiles.ResolveDefaultFolder(home) == Path.Combine(home, "Zero") && !Directory.EnumerateFileSystemEntries(home).Any(), "default selection read-only in home");
+            File.WriteAllText(Path.Combine(home, "Zero"), "existing file");
+            Reject(() => KitFiles.ResolveDefaultFolder(home), "default refuses existing file");
+            Assert(File.ReadAllText(Path.Combine(home, "Zero")) == "existing file", "default preserves occupied file");
+            File.Delete(Path.Combine(home, "Zero")); Directory.CreateDirectory(Path.Combine(home, "Zero"));
+            File.WriteAllText(Path.Combine(home, "Zero", "keep.txt"), "student project");
+            Reject(() => KitFiles.ResolveDefaultFolder(home), "default refuses unrelated directory");
+            Assert(!Directory.Exists(Path.Combine(home, "Zero-2")), "default never chooses numbered folder");
+            Reject(() => KitFiles.ResolveDefaultFolder(null), "missing user home");
+            Reject(() => KitFiles.ResolveDefaultFolder(Path.Combine(root, "never-existing-home")), "nonexistent user home");
+            TestUpdates(root);
             string extracted = Path.Combine(root, "extracted");
             Directory.CreateDirectory(extracted);
             using (var archive = Archive()) KitFiles.Extract(archive, extracted, CancellationToken.None);
@@ -125,6 +137,13 @@ internal static class Harness
                 using (var process = Process.Start(new ProcessStartInfo("/bin/ln", "-s " + Processes.QuoteArgument(extracted) + " " + Processes.QuoteArgument(link)) { UseShellExecute = false })) process.WaitForExit();
                 Reject(() => KitFiles.PlaceFreshKit(link, root, "linked-copy", CancellationToken.None), "copy source symlink");
                 File.Delete(link);
+                Directory.Delete(Path.Combine(home, "Zero"), true);
+                string dangling = Path.Combine(home, "Zero");
+                using (var process = Process.Start(new ProcessStartInfo("/bin/ln", "-s " + Processes.QuoteArgument(Path.Combine(home, "missing-target")) + " " + Processes.QuoteArgument(dangling)) { UseShellExecute = false })) process.WaitForExit();
+                Assert((File.GetAttributes(dangling) & FileAttributes.ReparsePoint) != 0, "actual dangling symlink detected");
+                Reject(() => KitFiles.ResolveDefaultFolder(home), "default refuses dangling symlink");
+                Reject(() => KitFiles.PlaceFreshKit(extracted, home, "Zero", CancellationToken.None), "fresh copy rejects dangling destination");
+                File.Delete(dangling);
             }
             if (args.Length > 0)
             {
@@ -132,12 +151,142 @@ internal static class Harness
                 Directory.CreateDirectory(realKit);
                 using (var bytes = File.OpenRead(args[0])) KitFiles.Extract(bytes, realKit, CancellationToken.None);
                 Assert(File.Exists(Path.Combine(realKit, "starter", "pom.xml")), "real kit extraction");
+                string actualHome = Path.Combine(root, "embedded-upgrade-home"); CreateKit(Path.Combine(actualHome, "Zero"), "0.5.3");
+                File.WriteAllText(Path.Combine(actualHome, "Zero", "starter", "saved.txt"), "student saved project");
+                KitFiles.UpdateKit(realKit, KitFiles.InspectDefaultFolder(actualHome), CancellationToken.None);
+                Assert(File.ReadAllText(Path.Combine(actualHome, "Zero", "setup", "kit.properties")) == File.ReadAllText(Path.Combine(realKit, "setup", "kit.properties")), "existing embedded kit updates exact runtime metadata");
+                Assert(File.ReadAllText(Path.Combine(actualHome, "Zero", "starter", "saved.txt")) == "student saved project", "embedded kit update preserves student save");
             }
             Console.WriteLine("Windows wrapper harness: " + checks + " checks passed.");
             return 0;
         }
         catch (Exception error) { Console.Error.WriteLine(error); return 1; }
         finally { KitFiles.DeleteOwnedDirectory(root); }
+    }
+
+    internal static void CreateKit(string root, string version)
+    {
+        foreach (string relative in new[] { "setup/Setup.cmd", "setup/Setup.ps1", "setup/Setup.command", "setup/setup.sh", "setup/README.md", "starter/zero.json", "START-HERE.md", "LICENSE", "zero-" + version + ".vsix" })
+        {
+            string path = Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, version + ":" + relative);
+        }
+        File.WriteAllText(Path.Combine(root, "setup", "kit.properties"), "kitVersion=" + version + "\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n");
+    }
+    private static void TestUpdates(string root)
+    {
+        string source = Path.Combine(root, "upgrade-source"); CreateKit(source, "0.5.6");
+        string home = Path.Combine(root, "upgrade-home"), destination = Path.Combine(home, "Zero"); CreateKit(destination, "0.5.3");
+        string[] studentPaths = { "starter/src/Main.java", "starter/src/zero/SimpleApp.java", "starter/pom.xml", "starter/.vscode/settings.json", "starter/.git/config", "starter/assets/image.png", "starter/saves/game.dat", "optional/Zero.code-profile", "optional/optional-keybindings.json", "my-notes.txt", "zero-0.5.3.vsix" };
+        foreach (string relative in studentPaths)
+        {
+            string path = Path.Combine(destination, relative); Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, "student bytes: " + relative);
+        }
+        var preserved = studentPaths.ToDictionary(path => path, path => File.ReadAllBytes(Path.Combine(destination, path)));
+        string backup = null;
+        var expected = KitFiles.InspectDefaultFolder(home);
+        Assert(expected.Existing && KitFiles.ResolveDefaultFolder(home) == destination, "recognized kit selected read-only");
+        KitFiles.UpdateKit(source, expected, CancellationToken.None, message => backup = message.Substring("Setup runtime backup: ".Length));
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")).StartsWith("0.5.6:") && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.6"), "runtime and metadata upgraded");
+        Assert(File.Exists(Path.Combine(destination, "zero-0.5.3.vsix")) && File.Exists(Path.Combine(destination, "zero-0.5.6.vsix")), "old vsix retained and current bundle installed");
+        Assert(Directory.Exists(backup) && File.ReadAllText(Path.Combine(backup, "setup", "Setup.ps1")).StartsWith("0.5.3:"), "backup path records old runtime");
+        foreach (string relative in studentPaths) Assert(File.ReadAllBytes(Path.Combine(destination, relative)).SequenceEqual(preserved[relative]), "preserved " + relative);
+        KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None);
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.6"), "repeat update supported");
+        foreach (string relative in studentPaths) Assert(File.ReadAllBytes(Path.Combine(destination, relative)).SequenceEqual(preserved[relative]), "repeat preserved " + relative);
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
+        string oldScript = File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1"));
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, afterReplace: path => { if (path == "setup/Setup.ps1") throw new IOException("injected failure"); }), "injected replacement failure");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")) == oldScript && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.3"), "failure restores old runtime and metadata");
+        KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None);
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")).StartsWith("0.5.6:"), "explicit retry succeeds after rollback");
+        expected = KitFiles.InspectDefaultFolder(home);
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, beforeCommit: path => File.WriteAllText(Path.Combine(path, "setup", "Setup.ps1"), "raced runtime")), "runtime race at commit");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")) == "raced runtime", "raced runtime not overwritten");
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
+        string driftBackup = null;
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, diagnostic: message => { if (message.StartsWith("Setup runtime backup: ")) driftBackup = message.Substring("Setup runtime backup: ".Length); }, afterReplace: path =>
+        {
+            if (path == "setup/Setup.cmd") File.WriteAllText(Path.Combine(destination, "setup", "README.md"), "external edit during update");
+        }), "later runtime edit detected during atomic replacement");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "README.md")) == "external edit during update", "actual replaced external edit restored");
+        Assert(driftBackup != null && File.ReadAllText(Path.Combine(driftBackup, "replaced-at-commit", "setup", "README.md")) == "external edit during update", "actual replaced entry retained in diagnostic backup");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.cmd")).StartsWith("0.5.3:") && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.3"), "drift rolls back prior runtime without committing metadata");
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home); driftBackup = null;
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, diagnostic: message => { if (message.StartsWith("Setup runtime backup: ")) driftBackup = message.Substring("Setup runtime backup: ".Length); }, afterReplace: path =>
+        {
+            if (path == "setup/Setup.cmd") { File.WriteAllText(Path.Combine(destination, "setup", "Setup.cmd"), "external edit before rollback"); throw new IOException("injected failure after edit"); }
+        }), "rollback preserves edits to already installed file");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.cmd")).StartsWith("0.5.3:"), "rollback restores original entry");
+        Assert(driftBackup != null && File.ReadAllText(Path.Combine(driftBackup, "replaced-at-rollback", "setup", "Setup.cmd")) == "external edit before rollback", "latest rollback entry retained atomically");
+        foreach (string relative in studentPaths.Where(path => path != "zero-0.5.3.vsix")) Assert(File.ReadAllBytes(Path.Combine(destination, relative)).SequenceEqual(preserved[relative]), "drift preserves student " + relative);
+        CreateKit(destination, "0.5.3"); File.Delete(Path.Combine(destination, "zero-0.5.6.vsix")); expected = KitFiles.InspectDefaultFolder(home); driftBackup = null;
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, diagnostic: message => { if (message.StartsWith("Setup runtime backup: ")) driftBackup = message.Substring("Setup runtime backup: ".Length); }, afterReplace: path =>
+        {
+            if (path == "zero-0.5.6.vsix") { File.WriteAllText(Path.Combine(destination, path), "edit to newly installed file"); throw new IOException("injected new file rollback"); }
+        }), "rollback retains unknown bytes in newly installed file");
+        Assert(driftBackup != null && File.ReadAllText(Path.Combine(driftBackup, "replaced-at-rollback", "zero-0.5.6.vsix")) == "edit to newly installed file", "new file rollback moves latest edit into retained backup");
+        Assert(!File.Exists(Path.Combine(destination, "zero-0.5.6.vsix")) && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.3"), "new file rollback removes transaction placement and keeps old metadata");
+        string freshHome = Path.Combine(root, "fresh-race-home"); Directory.CreateDirectory(freshHome);
+        Reject(() => KitFiles.PlaceFreshKit(source, freshHome, "Zero", CancellationToken.None, path => CreateKit(path, "0.5.3")), "fresh race cannot become update");
+        Assert(File.ReadAllText(Path.Combine(freshHome, "Zero", "setup", "kit.properties")).Contains("0.5.3"), "fresh race kit preserved until explicit confirmation");
+        using (var cancel = new CancellationTokenSource())
+        {
+            cancel.Cancel(); string[] entries = Directory.GetFileSystemEntries(home);
+            try { KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), cancel.Token); throw new Exception("Cancellation accepted"); }
+            catch (OperationCanceledException) { checks++; }
+            Assert(entries.SequenceEqual(Directory.GetFileSystemEntries(home)), "cancelled update has no staging writes");
+        }
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
+        using (var cancel = new CancellationTokenSource())
+        {
+            try { KitFiles.UpdateKit(source, expected, cancel.Token, afterReplace: path => cancel.Cancel()); throw new Exception("Cancellation accepted"); }
+            catch (OperationCanceledException) { checks++; }
+            Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.cmd")).StartsWith("0.5.3:") && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.3"), "cancel during commit restores old runtime");
+        }
+        KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None);
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.6"), "retry after commit cancellation succeeds");
+        int competingChecks = 0;
+        KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None, beforeCommit: path =>
+        {
+            Task.Run(() =>
+            {
+                try { KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None); throw new Exception("Concurrent update accepted"); }
+                catch (IOException error) { if (!error.Message.Contains("Another Zero update")) throw; Interlocked.Increment(ref competingChecks); }
+            }).GetAwaiter().GetResult();
+        });
+        Assert(competingChecks == 1, "concurrent updates serialized before filesystem writes");
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
+        string retained = null;
+        Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, diagnostic: message => { if (message.StartsWith("Setup runtime backup: ")) retained = message.Substring("Setup runtime backup: ".Length); }, afterReplace: path =>
+        {
+            if (path == "setup/Setup.ps1") { string changed = Path.Combine(destination, "setup", "Setup.ps1"); File.Delete(changed); Directory.CreateDirectory(changed); throw new IOException("injected restore failure"); }
+        }), "restore failure surfaced");
+        Assert(retained != null && Directory.Exists(retained) && File.ReadAllText(Path.Combine(retained, "setup", "Setup.ps1")).StartsWith("0.5.3:"), "restore failure retains old runtime backup");
+        Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.cmd")).StartsWith("0.5.3:"), "restore attempts other runtime files after one restore failure");
+        Directory.Delete(Path.Combine(destination, "setup", "Setup.ps1")); CreateKit(destination, "0.5.3");
+        string badHome = Path.Combine(root, "invalid-kit-home"); CreateKit(Path.Combine(badHome, "Zero"), "0.5.3");
+        File.WriteAllText(Path.Combine(badHome, "Zero", "setup", "kit.properties"), "kitVersion=bad\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n");
+        Reject(() => KitFiles.InspectDefaultFolder(badHome), "invalid metadata cannot be approved");
+        if (Path.DirectorySeparatorChar == '/')
+        {
+            CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
+            string moved = Path.Combine(home, "student-backup");
+            Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, beforeCommit: path => { Directory.Move(path, moved); Directory.CreateDirectory(path); File.WriteAllText(Path.Combine(path, "keep.txt"), "racing unrelated directory"); }), "folder replacement race");
+            Assert(File.ReadAllText(Path.Combine(destination, "keep.txt")) == "racing unrelated directory" && File.ReadAllText(Path.Combine(moved, "setup", "kit.properties")).Contains("0.5.3"), "folder race preserves both directories");
+            Directory.Delete(destination, true); Directory.Move(moved, destination);
+        }
+        if (Path.DirectorySeparatorChar == '/')
+        {
+            string studentLink = Path.Combine(destination, "starter", "linked-assets");
+            using (var process = Process.Start(new ProcessStartInfo("/bin/ln", "-s " + Processes.QuoteArgument(source) + " " + Processes.QuoteArgument(studentLink)) { UseShellExecute = false })) process.WaitForExit();
+            KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None);
+            Assert((File.GetAttributes(studentLink) & FileAttributes.ReparsePoint) != 0, "student link preserved without recursive refusal");
+            File.Delete(studentLink);
+            string script = Path.Combine(destination, "setup", "Setup.ps1"); File.Delete(script);
+            using (var process = Process.Start(new ProcessStartInfo("/bin/ln", "-s " + Processes.QuoteArgument(Path.Combine(source, "setup", "Setup.ps1")) + " " + Processes.QuoteArgument(script)) { UseShellExecute = false })) process.WaitForExit();
+            Reject(() => KitFiles.InspectDefaultFolder(home), "managed file link refused"); File.Delete(script);
+        }
     }
 
     private static void TestCloseDuringPausedWork(string root)

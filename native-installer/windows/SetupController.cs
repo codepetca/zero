@@ -49,7 +49,7 @@ namespace ZeroSetup
     {
         string Root { get; }
         Task EnsureKit(CancellationToken cancellation);
-        Task<string> Place(string parent, string name, CancellationToken cancellation);
+        Task<string> Place(string parent, string name, KitFiles.KitTarget expected, Action<string> diagnostic, CancellationToken cancellation);
         Task<CheckResult> Run(string root, string action, string target, bool approved, CancellationToken cancellation);
         Task Download(string url, CancellationToken cancellation);
     }
@@ -58,13 +58,17 @@ namespace ZeroSetup
     {
         private readonly ISetupBackend backend;
         private readonly CancellationToken cancellation;
+        private readonly Func<string> userHome;
         private SetupSnapshot snapshot;
         private bool profileStarted;
+        private KitFiles.KitTarget defaultTarget;
+        public bool DefaultIsExisting { get { return defaultTarget != null && defaultTarget.Existing; } }
         public Action Changed;
         public bool Busy { get; private set; }
         public SetupStage Stage { get; private set; } = SetupStage.Checking;
         public ProfileStep Step { get; private set; }
         public string SelectedFolder { get; private set; }
+        public string DefaultFolder { get; private set; }
         public string Summary { get; private set; } = "Checking your laptop…";
         public string Diagnostics { get; private set; } = "Git and Java debugging are optional. GitHub sign-in and sharing are separate.\r\nAfter changing Java, close all VS Code windows and reopen it. Windows may need a restart to refresh PATH/JAVA_HOME. A CLI check does not verify an already-running editor's Java environment.\r\n";
         public string Root { get { return SelectedFolder ?? backend.Root; } }
@@ -76,7 +80,7 @@ namespace ZeroSetup
             {
                 switch (Stage)
                 {
-                    case SetupStage.ChooseFolder: return "Choose folder…";
+                    case SetupStage.ChooseFolder: return "Set up Zero";
                     case SetupStage.ManualCode: case SetupStage.ManualJava: return "Open download page";
                     case SetupStage.ProfileConsent: return "Open VS Code";
                     case SetupStage.ProfileStep: return Step == ProfileStep.FilePicker ? "Copy profile path" : Step == ProfileStep.Create ? "Check profile" : "Next";
@@ -92,12 +96,17 @@ namespace ZeroSetup
         {
             get
             {
+                if (Stage == SetupStage.ChooseFolder && DefaultFolder != null) return DefaultIsExisting ? "Setup files will be replaced. Your code, assets and saved projects will be kept." : "Zero will create " + DefaultFolder + ".";
                 if (Stage == SetupStage.ProfileConsent) return "Import the supplied light theme and autosave settings in a separate profile named Zero. Existing profiles are preserved. Follow each instruction here, then choose Check profile.";
                 if (Stage == SetupStage.ExtensionConsent) return "Install bundled Zero and missing Java language support (redhat.java) in the Zero profile? Java support downloads from the VS Code Marketplace. Compatible extensions and other profiles are preserved.";
                 return "";
             }
         }
-        public SetupController(ISetupBackend backend, CancellationToken cancellation) { this.backend = backend; this.cancellation = cancellation; }
+        public SetupController(ISetupBackend backend, CancellationToken cancellation, Func<string> userHome = null)
+        {
+            this.backend = backend; this.cancellation = cancellation;
+            this.userHome = userHome ?? (() => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        }
         private void Set(SetupStage stage, string message) { Stage = stage; Summary = message; Changed?.Invoke(); }
         private void SetBusy(bool value, string message = null) { Busy = value; if (message != null) Summary = message; Changed?.Invoke(); }
         private void Record(string text) { Diagnostics += text + "\r\n"; if (Diagnostics.Length > 1024 * 1024) Diagnostics = Diagnostics.Substring(Diagnostics.Length - 512 * 1024); }
@@ -128,7 +137,7 @@ namespace ZeroSetup
             var result = await Run("check", null, false, "Checking your laptop…");
             snapshot = SetupSnapshot.Parse(result.Output);
             if (!snapshot["kit"]) { Fail("The kit is incomplete. See Details.", "Extract the complete kit again."); return; }
-            if (SelectedFolder == null) { Set(SetupStage.ChooseFolder, "Choose a folder for your Zero kit."); return; }
+            if (SelectedFolder == null) { ChooseDefaultFolder(); return; }
             await Advance();
         }
         private async Task Advance()
@@ -164,19 +173,47 @@ namespace ZeroSetup
                 default: throw new InvalidDataException("Invalid setup proposal.");
             }
         }
-        public Task Place(string parent, string name)
+        private void ChooseDefaultFolder(string message = null)
+        {
+            DefaultFolder = null; defaultTarget = null;
+            try
+            {
+                defaultTarget = KitFiles.InspectDefaultFolder(userHome());
+                DefaultFolder = defaultTarget.Path;
+                Set(SetupStage.ChooseFolder, message ?? (DefaultIsExisting ? "Zero is already here. Update setup files?" : "Create Zero in your home folder."));
+            }
+            catch (Exception error)
+            {
+                Record(error.Message);
+                Set(SetupStage.ChooseFolder, "Cannot use home. See Details, then retry.");
+            }
+        }
+        public Task Place(string parent, string name, bool updateApproved = false)
         {
             if (Busy || SelectedFolder != null || parent == null || name == null) return Task.CompletedTask;
+            if (defaultTarget == null || Path.GetFullPath(Path.Combine(parent, name)) != defaultTarget.Path || (defaultTarget.Existing && !updateApproved)) return Task.CompletedTask;
             return Operation("Preparing your Zero folder…", async () =>
             {
-                try { SelectedFolder = await backend.Place(parent, name, cancellation); Record("Kit folder: " + SelectedFolder); }
-                catch (Exception error) when (!(error is OperationCanceledException)) { Record(error.Message); Set(SetupStage.ChooseFolder, "Choose a fresh folder. See Details."); return; }
+                try { SelectedFolder = await backend.Place(parent, name, defaultTarget, Record, cancellation); Record("Kit folder: " + SelectedFolder); }
+                catch (Exception error) when (!(error is OperationCanceledException)) { Record(error.Message); ChooseDefaultFolder("Could not prepare Zero. See Details, then retry."); return; }
                 SetBusy(true, "Checking your laptop…"); await CheckCore();
             });
         }
-        public Task PrimaryAction()
+        public Task PrimaryAction(Func<bool> confirmUpdate = null)
         {
             if (Busy) return Task.CompletedTask;
+            if (Stage == SetupStage.ChooseFolder)
+            {
+                if (DefaultFolder == null) ChooseDefaultFolder();
+                if (DefaultFolder == null) return Task.CompletedTask;
+                bool approved = false;
+                if (DefaultIsExisting)
+                {
+                    if (confirmUpdate == null || !confirmUpdate()) return Task.CompletedTask;
+                    approved = true;
+                }
+                return Place(Path.GetDirectoryName(DefaultFolder), Path.GetFileName(DefaultFolder), approved);
+            }
             if (Stage == SetupStage.Retry || Stage == SetupStage.BlockedJava) return Check();
             if (Stage == SetupStage.ProfileStep)
             {
