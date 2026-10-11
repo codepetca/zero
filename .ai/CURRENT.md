@@ -7,14 +7,21 @@ History/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
 Owner authorizes local implementation: eliminate native Mac profile import and
 manual Java setup. Keep fixed home/Zero and approved preservation updates.
-Worker easy_mac_onboarding (requested GPT-6.1-Sol/high) owns Mac runtime/UI;
-coordinator owns pinned vendor manifest, packaging, docs and integration.
+Worker easy_mac_onboarding (requested GPT-6.1-Sol/high) owns the reviewed
+Mac preservation/retry corrections; coordinator owns integration and evidence.
 Local kit/extension0.5.7; published0.5.6 and sealed candidate remain immutable.
 Target: initial Set up consent, isolated editor defaults, verified private JDK21,
 reuse compatible VS Code or install verified user-local copy, quiet progress,
 Open Zero/Run. GitHub later. No host installs during tests, no publishing/signing,
 no Windows behavioral change/testing. Current branch codex/default-setup-folder
-base1d5fa055cfad11eaadfa115efd04ae183a413afd. Checks/review pending; evidence
+base1d5fa055cfad11eaadfa115efd04ae183a413afd. Initial implementation3dcc851.
+247root tests,14packaging/sealing tests and verified kit passed. Actual official
+ARM64 Java/editor assets passed SHA/vendor signature checks; real isolated setup
+and packaged-editor Run/Stop/autosave/default-build/private-Java proof passed.
+Disposable user-data path required a short fixture alias for VS Code IPC; trust
+was granted only to that starter, no protection disabled. Two complete Sol/high
+reviews found launcher concurrency and partial-settings retry P2s; one fix batch
+is underway, followed by targeted review. Development DMG/evidence pending.
 .verification/easy-onboarding/. Weekly87% remaining at start; task cost unknown.
 
 ## Product and authority

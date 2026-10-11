@@ -699,3 +699,48 @@ Windows physical/native handle/WinForms testing remains held. Physical Intel,
 macOS12 execution, fresh-machine vendor/trust flows and novice use remain untested.
 Receipts `.verification/upgrade-default/`; prior optional-folder behavior above
 is historical and superseded by this phase.
+
+
+## Automatic Mac onboarding — local 0.5.7, 2026-10-11
+
+Native Mac setup now prepares a pinned private Temurin JDK21 and isolated editor
+configuration with one Set up Zero action. It reuses compatible installed VS Code
+or downloads a pinned Microsoft build, verifies archives/signatures, installs Zero
+and Java support, and offers Open Zero. No profile import, global JAVA_HOME editing,
+Homebrew, Python or Node is needed by students. Open Zero.command returns to the
+prepared editor. Fixed ~/Zero, the update warning and student-file preservation
+remain. Progress uses one changing line; GitHub sign-in remains separate.
+
+Implementation3dcc851 passed247root tests,14packaging/sealing tests, check/diff,
+kit extraction verification,173native disposable assertions,62manual shell tests
+and both Mac architecture production compiles. Official ARM64 JDK/editor archives
+were downloaded, size/SHA256 checked and passed actual vendor signature checks;
+VS Code passed Gatekeeper assessment. Real archive extraction and configuration
+in a disposable home installed the actual packaged Zero0.5.7 and Red Hat Java.
+The real editor test passed Run→visible JavaFX Hello, world!→Stop,500msautosave,
+standard build→Hello, Mac!→Stop. Both child apps used Zero's private Java.
+CUA fake-only native preview verified the fixed one-line status and Open Zero.
+
+Two fresh GPT-6.1-Sol/high complete-diff reviews of1d5fa05→3dcc851 found twoP2s:
+a concurrent student launcher could be replaced, and a failed settings write could
+leave partial JSON that retries preserved. One bounded correction batch and
+independent targeted review are pending. This entry records completed checks;
+final source acceptance and development DMG evidence will follow.
+
+Receipts .verification/easy-onboarding/: actual/runtime-result.json,
+actual/vscode-smoke-result.json, actual/proof-limitations.json, vendor hashes,
+macos/worker-receipt.json, tests.log, packaging-tests.log,
+preview/{progress,ready}.png and independent reproduction harnesses.
+Real editor proof used a short /tmp alias to its disposable user-data directory
+because the long evidence path exceeds upstream VS Code's103-character IPC socket
+limit. The extension test host required trust, granted through CUA only to the
+verified disposable starter. No security protection was disabled. This is not a
+clean physical Mac or exact default-home first-run proof. Intel/macOS12 execution,
+quarantine/vendor prompts, restricted networks, novice use and Windows physical
+testing remain unverified. Windows behavior unchanged in this phase.
+
+No push, PR, publication, signing/notarization, website update or credentials change.
+Public signed Mac0.5.6 and its sealed candidate remain unchanged. Local version0.5.7
+is unpublished. Primary funding checkout and Community remain untouched.
+Weekly87% remaining at start is account allowance, not task cost; effective model,
+attributable tokens/cost and coordinator active time are unknown. DeepSeek paused.

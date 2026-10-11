@@ -1,6 +1,6 @@
 # Native Zero Setup
 
-Zero Setup is a thin native wrapper around the guided setup scripts. Signed,
+Zero Setup uses a native Mac runtime; Windows wraps the guided setup scripts. Signed,
 notarized Mac0.5.6 is published at [setup-v0.5.6](https://github.com/codepetca/zero/releases/tag/setup-v0.5.6)
 and embeds the complete0.5.6 kit. The Windows0.5.6 development EXE remains local
 and unsigned; it is excluded from student downloads. Mac0.5.5 is preserved.

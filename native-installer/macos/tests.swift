@@ -445,6 +445,28 @@ struct SetupTests {
         try manager.removeItem(at: settings); try manager.createSymbolicLink(at: settings, withDestinationURL: outside)
         try rejected("symlink settings") { try runtime.seedSettings(selected) }
         try expect(try String(contentsOf: outside) == "student", "symlink settings never write outside")
+        try manager.removeItem(at: settings)
+        var originalLimit = rlimit()
+        guard getrlimit(RLIMIT_FSIZE, &originalLimit) == 0 else { throw SetupFailure(message: "Cannot inspect test file-size limit") }
+        let oldSignal = signal(SIGXFSZ, SIG_IGN)
+        var smallLimit = originalLimit; smallLimit.rlim_cur = 32
+        guard setrlimit(RLIMIT_FSIZE, &smallLimit) == 0 else { throw SetupFailure(message: "Cannot set disposable write-failure limit") }
+        do {
+            try rejected("partial settings write") { try runtime.seedSettings(selected) }
+        } catch {
+            setrlimit(RLIMIT_FSIZE, &originalLimit); signal(SIGXFSZ, oldSignal); throw error
+        }
+        guard setrlimit(RLIMIT_FSIZE, &originalLimit) == 0 else { throw SetupFailure(message: "Cannot restore test file-size limit") }
+        signal(SIGXFSZ, oldSignal)
+        try expect(!manager.fileExists(atPath: settings.path), "failed settings write exposes no partial final JSON")
+        try expect(try !manager.contentsOfDirectory(atPath: settings.deletingLastPathComponent().path).contains { $0.hasPrefix(".zero-write-") }, "failed settings staging cleaned")
+        try runtime.seedSettings(selected)
+        try expect((try? JSONSerialization.jsonObject(with: Data(contentsOf: settings))) != nil, "settings retry publishes complete valid JSON")
+        try manager.removeItem(at: settings)
+        runtime.testBeforeExchange = { try "student concurrent settings".write(to: settings, atomically: true, encoding: .utf8) }
+        try rejected("concurrent initial settings creation") { try runtime.seedSettings(selected) }
+        runtime.testBeforeExchange = nil
+        try expect(try String(contentsOf: settings) == "student concurrent settings", "exclusive settings publication preserves concurrent student settings")
         try manifest(String(repeating: "b", count: 64))
         var badHash = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)
         badHash.testDownload = { target, _ in try manager.copyItem(at: archive, to: target) }
@@ -478,6 +500,39 @@ struct SetupTests {
         try runtime.launcher(cli: URL(fileURLWithPath: "/fake editor/code"), java: selected)
         let generated = try String(contentsOf: launcher)
         try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME="), "standalone launcher preserves private editor and Java after DMG closes")
+        try manager.removeItem(at: launcher)
+        runtime.testBeforeExchange = { try "student newly created launcher".write(to: launcher, atomically: true, encoding: .utf8) }
+        try rejected("concurrent launcher creation") { try runtime.launcher(cli: URL(fileURLWithPath: "/fake code"), java: selected) }
+        runtime.testBeforeExchange = nil
+        try expect(try String(contentsOf: launcher) == "student newly created launcher", "exclusive launcher publication preserves concurrent creation")
+        try generated.write(to: launcher, atomically: true, encoding: .utf8)
+        runtime.testBeforeExchange = { try "student replacement after ownership check".write(to: launcher, atomically: true, encoding: .utf8) }
+        try rejected("launcher replacement between identity check and exchange") { try runtime.launcher(cli: URL(fileURLWithPath: "/fake code"), java: selected) }
+        runtime.testBeforeExchange = nil
+        try expect(try String(contentsOf: launcher) == "student replacement after ownership check", "exchanged actual concurrent launcher restored")
+        try generated.write(to: launcher, atomically: true, encoding: .utf8)
+        runtime.testAfterExchange = { try "student post-publication edit".write(to: launcher, atomically: true, encoding: .utf8) }
+        try rejected("launcher edit after exchange") { try runtime.launcher(cli: URL(fileURLWithPath: "/fake code"), java: selected) }
+        runtime.testAfterExchange = nil
+        let recoveries = try manager.contentsOfDirectory(at: runtimeKit.root, includingPropertiesForKeys: nil).filter { $0.lastPathComponent.hasPrefix(".zero-write-") }
+        try expect(try String(contentsOf: launcher) == "student post-publication edit", "later launcher edit remains at its chosen filename")
+        try expect(try recoveries.contains { try String(contentsOf: $0) == generated }, "prior launcher retained as an explicit recovery file")
+        for file in recoveries { try manager.removeItem(at: file) }
+        try generated.write(to: launcher, atomically: true, encoding: .utf8)
+        let movedRuntimeKit = runtimeKit.root.deletingLastPathComponent().appendingPathComponent("runtime kit moved during launcher")
+        let externalKit = temporary.appendingPathComponent("external kit untouched")
+        try MacRuntime.mkdir(externalKit)
+        let externalLauncher = externalKit.appendingPathComponent("Open Zero.command")
+        try "external student launcher".write(to: externalLauncher, atomically: true, encoding: .utf8)
+        runtime.testBeforeExchange = {
+            try manager.moveItem(at: runtimeKit.root, to: movedRuntimeKit)
+            try manager.createSymbolicLink(at: runtimeKit.root, withDestinationURL: externalKit)
+        }
+        try rejected("launcher ancestor drift during exchange") { try runtime.launcher(cli: URL(fileURLWithPath: "/fake code"), java: selected) }
+        runtime.testBeforeExchange = nil
+        try expect(try String(contentsOf: externalLauncher) == "external student launcher", "anchored launcher writes never follow raced ancestor link")
+        try expect(try String(contentsOf: movedRuntimeKit.appendingPathComponent("Open Zero.command")) == generated, "ancestor drift restores prior generated launcher in anchored folder")
+        try manager.removeItem(at: runtimeKit.root); try manager.moveItem(at: movedRuntimeKit, to: runtimeKit.root)
         let privateLinkHome = temporary.appendingPathComponent("linked private home")
         try MacRuntime.mkdir(privateLinkHome.appendingPathComponent("Library/Application Support"))
         try manager.createSymbolicLink(at: privateLinkHome.appendingPathComponent("Library/Application Support/Zero"), withDestinationURL: runtime.root)
