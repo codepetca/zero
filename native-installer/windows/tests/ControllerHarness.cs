@@ -18,16 +18,24 @@ internal static class ControllerHarness
     private sealed class Fake : ISetupBackend
     {
         public string Root { get; private set; }
+        public string UserHome { get; private set; }
         public string State = Snapshot();
         public string Plan = "manual";
         public bool CopyFail;
         public bool FailExtensions;
         public bool FailOpen;
+        public bool RaceDefault;
+        public string LastParent, LastName;
         public TaskCompletionSource<CheckResult> Pending;
         public readonly List<string> Calls = new List<string>();
-        public Fake(string root) { Root = root; Directory.CreateDirectory(Path.Combine(root, "optional")); File.WriteAllText(Path.Combine(root, "optional", "Zero.code-profile"), "fake"); }
+        public Fake(string root) { Root = root; UserHome = Path.Combine(root, "home"); Directory.CreateDirectory(UserHome); Directory.CreateDirectory(Path.Combine(root, "optional")); File.WriteAllText(Path.Combine(root, "optional", "Zero.code-profile"), "fake"); }
         public Task EnsureKit(CancellationToken token) { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }
-        public Task<string> Place(string parent, string name, CancellationToken token) { Calls.Add("copy"); if (CopyFail) throw new IOException("existing folder"); return Task.FromResult(Root); }
+        public Task<string> Place(string parent, string name, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested(); Calls.Add("copy"); LastParent = parent; LastName = name;
+            if (RaceDefault) { RaceDefault = false; Directory.CreateDirectory(Path.Combine(parent, name)); File.WriteAllText(Path.Combine(parent, name, "keep.txt"), "racing project"); throw new IOException("existing folder"); }
+            if (CopyFail) throw new IOException("existing folder"); return Task.FromResult(Root);
+        }
         public Task<CheckResult> Run(string root, string action, string target, bool approved, CancellationToken token)
         {
             Calls.Add(action + ":" + target + ":" + approved);
@@ -38,7 +46,7 @@ internal static class ControllerHarness
         }
         public Task Download(string url, CancellationToken token) { Calls.Add("download:" + url); return Task.CompletedTask; }
     }
-    private static SetupController Controller(Fake backend, CancellationToken token = default(CancellationToken)) { return new SetupController(backend, token); }
+    private static SetupController Controller(Fake backend, CancellationToken token = default(CancellationToken)) { return new SetupController(backend, token, () => backend.UserHome); }
     private static void Placed(SetupController controller) { Wait(controller.Check()); Wait(controller.Place("fake parent", "Zero")); }
     public static int Run(string root)
     {
@@ -48,8 +56,11 @@ internal static class ControllerHarness
         controller.Changed = () => statuses.Add(controller.Summary + ":" + controller.Busy);
         Wait(controller.Check());
         Assert(controller.Stage == SetupStage.ChooseFolder && controller.SelectedFolder == null, "startup checks before placement without ready");
+        Assert(controller.PrimaryTitle == "Set up Zero" && controller.CanChangeLocation && controller.DefaultFolder == Path.Combine(fake.UserHome, "Zero"), "default primary and optional location");
+        Assert(!Directory.EnumerateFileSystemEntries(fake.UserHome).Any(), "checking does not create a default folder");
         Assert(fake.Calls.SequenceEqual(new[] { "check::False" }), "startup read-only");
-        Wait(controller.Place(null, null)); Assert(fake.Calls.Count == 1, "cancel picker performs no copy");
+        string originalDefault = controller.DefaultFolder;
+        Wait(controller.Place(null, null)); Assert(fake.Calls.Count == 1 && controller.DefaultFolder == originalDefault, "cancel picker preserves default without copy");
         fake.CopyFail = true; Wait(controller.Place("parent", "Zero"));
         Assert(controller.Stage == SetupStage.ChooseFolder && controller.SelectedFolder == null && !controller.Busy, "copy failure never ready");
         fake.CopyFail = false; Wait(controller.Place("parent", "Zero"));
@@ -59,6 +70,21 @@ internal static class ControllerHarness
         fake.FailOpen = true; Wait(controller.PrimaryAction());
         Assert(controller.Stage == SetupStage.Retry && !controller.Summary.Contains("ready"), "final backend reread failure cannot open");
         Wait(controller.Check()); fake.FailOpen = false; Wait(controller.PrimaryAction()); Assert(controller.Stage == SetupStage.Opened, "verified open");
+        fake = new Fake(Path.Combine(root, "default-primary")); controller = Controller(fake); Wait(controller.Check()); Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.Ready && fake.LastParent == fake.UserHome && fake.LastName == "Zero", "primary places default home folder");
+        fake = new Fake(Path.Combine(root, "default-race")); controller = Controller(fake); Wait(controller.Check()); fake.RaceDefault = true; Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.ChooseFolder && controller.DefaultFolder == Path.Combine(fake.UserHome, "Zero-2") && controller.CanChangeLocation && fake.Calls.Count(call => call == "copy") == 1, "race offers next default without automatic copy loop");
+        Assert(File.ReadAllText(Path.Combine(fake.UserHome, "Zero", "keep.txt")) == "racing project", "race preserves occupied project");
+        Wait(controller.Place(null, null)); Wait(controller.PrimaryAction()); Assert(fake.LastName == "Zero-2" && controller.Stage == SetupStage.Ready, "cancel custom then retry next default");
+        fake = new Fake(Path.Combine(root, "custom-primary")); controller = Controller(fake); Wait(controller.Check()); Wait(controller.Place(root, "Custom"));
+        Assert(fake.LastParent == root && fake.LastName == "Custom" && controller.Stage == SetupStage.Ready, "custom choice still places explicit fresh folder");
+        fake = new Fake(Path.Combine(root, "missing-home")); Directory.Delete(fake.UserHome); controller = Controller(fake); Wait(controller.Check()); Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.ChooseFolder && controller.DefaultFolder == null && controller.CanChangeLocation && !fake.Calls.Contains("copy"), "unavailable home keeps manual choice and does not copy");
+        fake = new Fake(Path.Combine(root, "cancel-default")); using (var token = new CancellationTokenSource())
+        {
+            controller = Controller(fake, token.Token); Wait(controller.Check()); token.Cancel(); Wait(controller.PrimaryAction());
+            Assert(!fake.Calls.Contains("copy") && controller.Stage == SetupStage.Retry, "cancelled default placement performs no copy");
+        }
         fake = new Fake(Path.Combine(root, "manual")); fake.State = Snapshot(code: false); controller = Controller(fake); Placed(controller);
         Assert(controller.Stage == SetupStage.ManualCode && !fake.Calls.Any(call => call.StartsWith("download")), "manual tool needs explicit handoff");
         Wait(controller.PrimaryAction()); Assert(fake.Calls.Last() == "download:https://code.visualstudio.com/download" && controller.Stage == SetupStage.Retry, "approved official Code handoff");

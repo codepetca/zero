@@ -36,7 +36,12 @@ alternatives HTTP200 with exact size/hash verified without authentication.
 Actual browser Mac button downloaded identical DMG; screenshot live-downloads.jpg.
 Authorized source/merge/publication/website goal complete. No active worker.
 Final completion receipt .verification/mac-publication/delivery.json.
-No further action queued; preserve Windows hold and immutable published assets.
+Current owner request: native setup defaults to a Zero folder in the user's home,
+with optional Change location; fresh numbered folders preserve existing projects.
+Local implementation on codex/default-setup-folder. Mac and Windows source changes
+plus focused checks/review only; no new release/signing/deployment authorized.
+Windows physical testing remains held. Published0.5.6 assets remain immutable.
+Coordinator owns contracts, docs and integration; one writer per platform.
 
 The separately published ZIP/starter/VSIX remain0.5.3, freshly verified without
 authentication and pinned in release/published-kit.json. Local kit/extension0.5.6

@@ -14,6 +14,7 @@ namespace ZeroSetup
         private readonly Button primary;
         private readonly Button back;
         private readonly Button details;
+        private readonly Button changeLocation;
         private readonly NativeSetupBackend backend = new NativeSetupBackend();
         private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
         private readonly CloseGate closeGate = new CloseGate();
@@ -33,12 +34,14 @@ namespace ZeroSetup
             primary = new Button { Location = new Point(125, 92), Size = new Size(190, 30), Text = "Please wait" };
             back = new Button { Location = new Point(16, 145), Size = new Size(62, 25), Text = "Back", Visible = false };
             details = new Button { Location = new Point(345, 145), Size = new Size(79, 25), Text = "Details…" };
-            Controls.AddRange(new Control[] { progress, status, primary, back, details });
+            changeLocation = new Button { Location = new Point(150, 145), Size = new Size(140, 25), Text = "Change location…", Visible = false };
+            Controls.AddRange(new Control[] { progress, status, primary, back, details, changeLocation });
             AcceptButton = primary;
             controller.Changed = RefreshStatus;
             primary.Click += async (sender, args) => await PrimaryAction();
             back.Click += (sender, args) => controller.PreviousProfileStep();
             details.Click += (sender, args) => ShowDetails();
+            changeLocation.Click += async (sender, args) => { if (controller.CanChangeLocation) await ChooseFolder(); };
             Shown += async (sender, args) => await controller.Check();
             FormClosing += (sender, args) =>
             {
@@ -58,11 +61,12 @@ namespace ZeroSetup
             back.Visible = controller.CanGoBack;
             back.Enabled = !controller.Busy;
             progress.Visible = controller.Busy;
+            changeLocation.Visible = controller.Stage == SetupStage.ChooseFolder && !controller.Busy;
+            changeLocation.Enabled = controller.CanChangeLocation;
         }
         private async Task PrimaryAction()
         {
             if (controller.Busy) return;
-            if (controller.Stage == SetupStage.ChooseFolder) { await ChooseFolder(); return; }
             if (controller.Stage == SetupStage.ProfileStep && controller.Step == ProfileStep.FilePicker)
             {
                 controller.CopyProfilePath(path => { Clipboard.SetText(path); return true; });

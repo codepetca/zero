@@ -291,6 +291,35 @@ struct SetupKit {
     }
 }
 
+/// Read-only selection. Every filesystem entry occupies a name, even a dangling
+/// symlink. Only ENOENT means available; permission/inspection errors must stop.
+struct DefaultSetupLocation {
+    let home: URL
+
+    static func entryMode(_ url: URL) throws -> mode_t? {
+        var info = stat()
+        if lstat(url.path, &info) == 0 { return info.st_mode }
+        let failure = errno
+        if failure == ENOENT { return nil }
+        throw SetupFailure(message: "Could not inspect the default folder: \(String(cString: strerror(failure))). Change location or check your home folder permissions.")
+    }
+
+    func nextAvailable(limit: Int = 1000,
+                       inspect: (URL) throws -> mode_t? = DefaultSetupLocation.entryMode) throws -> URL {
+        guard let mode = try inspect(home), (mode & S_IFMT) == S_IFDIR,
+              access(home.path, W_OK | X_OK) == 0 else {
+            throw SetupFailure(message: "Your home must be an existing writable real folder. Use Change location to choose another folder.")
+        }
+        guard limit > 0, limit <= 1000 else { throw SetupFailure(message: "Invalid default folder search limit.") }
+        for number in 1...limit {
+            let name = number == 1 ? "Zero" : "Zero-\(number)"
+            let candidate = home.appendingPathComponent(name, isDirectory: true)
+            if try inspect(candidate) == nil { return candidate }
+        }
+        throw SetupFailure(message: "Too many Zero folders already exist here. Use Change location to choose a fresh folder.")
+    }
+}
+
 /// Only the final complete protocol block is authoritative. Human/tool output
 /// stays in diagnostics; a successful process exit alone never proves readiness.
 struct SetupSnapshot {
@@ -339,6 +368,7 @@ enum SetupStage: Equatable {
 final class SetupController {
     let kit: SetupKit
     let runner: SetupCommandRunning
+    let defaultLocation: DefaultSetupLocation
     private(set) var selectedFolder: URL?
     private(set) var busy = false
     private(set) var hasChecked = false
@@ -349,12 +379,17 @@ final class SetupController {
     private var profileImportStarted = false
     var changed: (() -> Void)?
 
-    init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner()) { self.kit = kit; self.runner = runner }
+    init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner(),
+         home: URL = FileManager.default.homeDirectoryForCurrentUser) {
+        self.kit = kit; self.runner = runner; defaultLocation = DefaultSetupLocation(home: home)
+    }
+
+    var canChangeLocation: Bool { stage == .chooseFolder && !busy }
 
     var primaryTitle: String {
         switch stage {
         case .checking: return "Please wait"
-        case .chooseFolder: return "Choose folder…"
+        case .chooseFolder: return "Set up Zero"
         case .manualTool: return "Open download page"
         case .blockedJava, .retry: return "Check again"
         case .profileConsent: return "Open VS Code"
@@ -414,7 +449,7 @@ final class SetupController {
             do {
                 self.snapshot = try SetupSnapshot.parse(result.output)
                 guard self.snapshot?["kit"] == true else { self.fail("The kit is incomplete. See Details.", detail: "Kit metadata or required files are incomplete."); return }
-                if self.selectedFolder == nil { self.set(.chooseFolder, "Choose a folder for your Zero kit."); return }
+                if self.selectedFolder == nil { self.showDefaultLocation(); return }
                 self.advance()
             } catch { self.fail("The check was incomplete. Try again.", detail: error.localizedDescription) }
         }
@@ -481,6 +516,14 @@ final class SetupController {
     func primaryAction() {
         guard !busy else { return }
         switch stage {
+        case .chooseFolder:
+            do {
+                let destination = try defaultLocation.nextAvailable()
+                place(parent: defaultLocation.home, name: destination.lastPathComponent)
+            } catch {
+                record(error.localizedDescription)
+                set(.chooseFolder, "Cannot use home. Choose Change location…")
+            }
         case .retry, .blockedJava: check()
         case .profileStep(let step):
             switch step {
@@ -543,6 +586,15 @@ final class SetupController {
     func mayExit() -> Bool {
         guard busy else { return true }
         summary = "Please wait for setup to finish this step."; changed?(); return false
+    }
+    private func showDefaultLocation() {
+        do {
+            let destination = try defaultLocation.nextAvailable()
+            set(.chooseFolder, "Set up in ~/\(destination.lastPathComponent)")
+        } catch {
+            record(error.localizedDescription)
+            set(.chooseFolder, "Cannot use home. Choose Change location…")
+        }
     }
     func place(parent: URL?, name: String?) {
         guard !busy, selectedFolder == nil, let parent, let name else { return }

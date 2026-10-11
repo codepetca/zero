@@ -117,14 +117,15 @@ struct SetupTests {
                 if command.arguments.contains("--native-extension") && command.arguments.contains("java") { fake.checkOutput = snapshot() }
             }
             let app = NSApplication.shared; app.setActivationPolicy(.regular)
-            let controller = SetupController(kit: kit, runner: fake)
+            let controller = SetupController(kit: kit, runner: fake, home: parent)
             let window = SetupWindow(controller: controller)
             let delegate = SetupApplication(); delegate.setupWindow = window
             // No production launch delegate is installed: this harness exclusively
             // owns disposable fixtures and fake commands, including approvals.
             window.window?.title = "Zero Setup — safe fake preview"
             window.showWindow(nil); app.activate(ignoringOtherApps: true)
-            controller.place(parent: parent, name: "Preview kit")
+            if scenario == "folder" { controller.check() }
+            else { controller.place(parent: parent, name: "Preview kit") }
             print("Safe interactive preview scenario: \(scenario). All commands fake; folder \(temporary.path)")
             app.run()
             return
@@ -164,8 +165,85 @@ struct SetupTests {
         try rejected("symlink in kit") { try kit.validate() }
         try manager.removeItem(at: sourceLink)
 
+        let defaultHome = temporary.appendingPathComponent("default home")
+        try manager.createDirectory(at: defaultHome, withIntermediateDirectories: false)
+        let location = DefaultSetupLocation(home: defaultHome)
+        try expect(try location.nextAvailable().lastPathComponent == "Zero", "empty home defaults to Zero")
+        try expect(try manager.contentsOfDirectory(atPath: defaultHome.path).isEmpty, "default scan creates nothing")
+        try "owned file".write(to: defaultHome.appendingPathComponent("Zero"), atomically: true, encoding: .utf8)
+        try manager.createDirectory(at: defaultHome.appendingPathComponent("Zero-2"), withIntermediateDirectories: false)
+        try manager.createSymbolicLink(at: defaultHome.appendingPathComponent("Zero-3"), withDestinationURL: defaultHome.appendingPathComponent("missing"))
+        try expect(try location.nextAvailable().lastPathComponent == "Zero-4", "file directory and dangling link each occupy a default name")
+        try rejected("bounded default scan exhaustion") { _ = try location.nextAvailable(limit: 3) }
+        try rejected("default child inspection failure") {
+            _ = try location.nextAvailable { url in
+                if url == defaultHome { return try DefaultSetupLocation.entryMode(url) }
+                throw SetupFailure(message: "injected permission error")
+            }
+        }
+        try rejected("missing default home") { _ = try DefaultSetupLocation(home: temporary.appendingPathComponent("missing home")).nextAvailable() }
+        try rejected("file default home") { _ = try DefaultSetupLocation(home: existingFile).nextAvailable() }
+        try rejected("symlink default home") { _ = try DefaultSetupLocation(home: parentLink).nextAvailable() }
+        try rejected("lstat root error") { _ = try DefaultSetupLocation(home: existingFile.appendingPathComponent("not-a-directory")).nextAvailable() }
+        let deniedHome = temporary.appendingPathComponent("denied home")
+        try manager.createDirectory(at: deniedHome, withIntermediateDirectories: false)
+        try manager.setAttributes([.posixPermissions: 0o500], ofItemAtPath: deniedHome.path)
+        try rejected("unwritable default home") { _ = try DefaultSetupLocation(home: deniedHome).nextAvailable() }
+        try manager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: deniedHome.path)
+        let emptyController = SetupController(kit: kit, runner: FakeRunner(), home: deniedHome)
+        emptyController.check()
+        try expect(emptyController.summary == "Set up in ~/Zero", "empty default destination visible before primary action")
+        try expect(try manager.contentsOfDirectory(atPath: deniedHome.path).isEmpty, "controller check leaves empty home unchanged")
+        emptyController.primaryAction()
+        try pump(until: { !emptyController.busy })
+        try expect(emptyController.stage == .ready && emptyController.selectedFolder?.lastPathComponent == "Zero", "empty home primary creates Zero and rechecks readiness")
+        try rejected("default atomic collision") {
+            let destination = try location.nextAvailable()
+            _ = try kit.place(parent: defaultHome, name: destination.lastPathComponent) {
+                try manager.createSymbolicLink(at: destination, withDestinationURL: defaultHome.appendingPathComponent("missing race target"))
+            }
+        }
+        try expect(try manager.destinationOfSymbolicLink(atPath: defaultHome.appendingPathComponent("Zero-4").path).contains("missing race target"), "default atomic race preserves the other entry")
+        try expect(try location.nextAvailable().lastPathComponent == "Zero-5", "fresh scan advances after default collision")
+        try expect(try !manager.contentsOfDirectory(atPath: defaultHome.path).contains { $0.hasPrefix(".zero-setup-") }, "default race cleans owned staging")
+
+        let defaultFake = FakeRunner()
+        let defaultController = SetupController(kit: kit, runner: defaultFake, home: defaultHome)
+        defaultController.check()
+        try expect(defaultController.stage == .chooseFolder && defaultController.primaryTitle == "Set up Zero" && defaultController.summary == "Set up in ~/Zero-5", "checked folder stage names the default destination")
+        try expect(defaultController.canChangeLocation && defaultController.selectedFolder == nil, "folder stage offers optional custom location before placement")
+        let priorSummary = defaultController.summary
+        let priorEntries = try manager.contentsOfDirectory(atPath: defaultHome.path)
+        defaultController.place(parent: nil, name: nil)
+        defaultController.place(parent: parent, name: nil)
+        try expect(defaultController.summary == priorSummary && defaultController.stage == .chooseFolder && defaultController.selectedFolder == nil, "custom chooser/name cancellation preserves default state")
+        try expect(try manager.contentsOfDirectory(atPath: defaultHome.path) == priorEntries, "check and cancellation create nothing")
+        // An occupied name appearing after the displayed proposal is rescanned
+        // before copying. The publication guard still protects later collisions.
+        try "late owner".write(to: defaultHome.appendingPathComponent("Zero-5"), atomically: true, encoding: .utf8)
+        defaultController.primaryAction()
+        try expect(defaultController.busy && !defaultController.canChangeLocation && !defaultController.mayExit(), "default copy owns lifetime and hides location change")
+        try pump(until: { !defaultController.busy })
+        try expect(defaultController.selectedFolder?.lastPathComponent == "Zero-6" && defaultController.stage == .ready, "default primary publishes a fresh numbered folder then verifies readiness")
+        try expect(defaultFake.commands.count == 2 && defaultFake.commands.last?.arguments.first?.hasPrefix(defaultHome.appendingPathComponent("Zero-6").path) == true, "default readiness rechecks the actual placed kit")
+        try expect(defaultController.diagnostics.contains(defaultHome.appendingPathComponent("Zero-6").path), "Details records the actual chosen path")
+        try expect(try String(contentsOf: defaultHome.appendingPathComponent("Zero-5"), encoding: .utf8) == "late owner", "late owner is preserved")
+        let unavailable = SetupController(kit: kit, runner: FakeRunner(), home: parentLink)
+        unavailable.check()
+        try expect(unavailable.stage == .chooseFolder && unavailable.canChangeLocation && unavailable.summary.contains("Change location"), "unavailable default stays actionable at folder stage")
+        unavailable.primaryAction()
+        try expect(!unavailable.busy && unavailable.selectedFolder == nil && unavailable.canChangeLocation, "failed default never claims success or starts copying")
+        unavailable.place(parent: parent, name: "Custom after default failure")
+        try pump(until: { !unavailable.busy })
+        try expect(unavailable.stage == .ready && unavailable.selectedFolder?.lastPathComponent == "Custom after default failure", "manual location still works after default failure")
+        let collisionController = SetupController(kit: kit, runner: FakeRunner(), home: defaultHome)
+        collisionController.check()
+        collisionController.place(parent: defaultHome, name: "Zero")
+        try pump(until: { !collisionController.busy })
+        try expect(collisionController.stage == .chooseFolder && collisionController.canChangeLocation && collisionController.selectedFolder == nil, "failed placement returns to actionable folder stage")
+
         let fake = FakeRunner()
-        let controller = SetupController(kit: kit, runner: fake)
+        let controller = SetupController(kit: kit, runner: fake, home: parent)
         try expect(fake.commands.isEmpty, "controller waits for launch-triggered check")
         controller.place(parent: nil, name: nil)
         try expect(fake.commands.isEmpty && controller.selectedFolder == nil && !controller.busy, "cancelled selection executes nothing")
@@ -283,7 +361,7 @@ struct SetupTests {
         try expect(!fake.commands.contains { $0.arguments.contains("--native-install") }, "native controller never requests background system installation")
         let incompleteFake = FakeRunner()
         incompleteFake.result = CommandResult(exitCode: 0, output: snapshot(["kit": 0]), timedOut: false, launchError: nil)
-        let incomplete = SetupController(kit: kit, runner: incompleteFake)
+        let incomplete = SetupController(kit: kit, runner: incompleteFake, home: parent)
         incomplete.check()
         try expect(incomplete.stage == .retry && incomplete.selectedFolder == nil, "incomplete kit stops before folder prompt")
         try expect(!fake.commands.contains { $0.arguments.contains("Terminal") }, "fallback never opens Terminal")
@@ -300,8 +378,10 @@ struct SetupTests {
         app.setActivationPolicy(.prohibited)
         let pausedRunner = FakeRunner()
         pausedRunner.paused = true
-        let pausedController = SetupController(kit: kit, runner: pausedRunner)
+        let pausedController = SetupController(kit: kit, runner: pausedRunner, home: parent)
         let pausedWindow = SetupWindow(controller: pausedController)
+        let locationButton = pausedWindow.window?.contentView?.subviews.compactMap { $0 as? NSButton }.first { $0.title == "Change location…" }
+        try expect(locationButton?.isHidden == true, "location button hidden during initial checking")
         let delegate = SetupApplication()
         delegate.setupWindow = pausedWindow
         pausedController.check()
@@ -309,8 +389,10 @@ struct SetupTests {
         try expect(delegate.applicationShouldTerminate(app) == .terminateCancel, "application quit rejected while check paused")
         try expect(pausedController.summary.contains("Please wait"), "shutdown rejection explains active work")
         pausedRunner.finish()
+        try expect(locationButton?.isHidden == false, "location button visible after read-only check reaches folder stage")
         try expect(pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "close and quit allowed after check finishes")
         pausedController.place(parent: parent, name: "Paused copy")
+        try expect(locationButton?.isHidden == true, "location button hidden while placement owns setup")
         try expect(!pausedController.mayExit(), "copy owns shutdown until completion")
         try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()
@@ -378,7 +460,7 @@ struct SetupTests {
         if let option = CommandLine.arguments.firstIndex(of: "--preview"), option + 1 < CommandLine.arguments.count {
             let app = NSApplication.shared
             app.setActivationPolicy(.prohibited)
-            let previewController = SetupController(kit: kit, runner: FakeRunner())
+            let previewController = SetupController(kit: kit, runner: FakeRunner(), home: parent)
             previewController.place(parent: parent, name: "Preview ready")
             try pump(until: { !previewController.busy })
             let window = SetupWindow(controller: previewController)

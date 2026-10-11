@@ -33,6 +33,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     private let spinner = NSProgressIndicator()
     private let primary = NSButton(title: "Please wait", target: nil, action: nil)
     private let back = NSButton(title: "Back", target: nil, action: nil)
+    private let changeLocation = NSButton(title: "Change location…", target: nil, action: nil)
     private let details = NSButton(title: "Details…", target: nil, action: nil)
     private var diagnosticsWindow: NSWindowController?
 
@@ -52,9 +53,10 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         status.setAccessibilityLabel("Setup status")
         spinner.style = .spinning; spinner.controlSize = .small
         spinner.isDisplayedWhenStopped = false
-        for view in [status, spinner, primary, back, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
+        for view in [status, spinner, primary, back, changeLocation, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
         primary.bezelStyle = .rounded; primary.target = self; primary.action = #selector(primaryAction)
         back.bezelStyle = .rounded; back.target = self; back.action = #selector(previousProfileStep)
+        changeLocation.bezelStyle = .rounded; changeLocation.target = self; changeLocation.action = #selector(chooseFolder)
         details.bezelStyle = .rounded; details.target = self; details.action = #selector(showDetails)
         NSLayoutConstraint.activate([
             spinner.centerXAnchor.constraint(equalTo: root.centerXAnchor),
@@ -68,6 +70,8 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
             primary.centerXAnchor.constraint(equalTo: root.centerXAnchor),
             back.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
             back.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10),
+            changeLocation.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            changeLocation.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10),
             details.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
             details.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10)
         ])
@@ -79,12 +83,12 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     func refresh() {
         status.stringValue = controller.summary
         back.isHidden = !controller.canGoBack
+        changeLocation.isHidden = !controller.canChangeLocation
         primary.title = controller.primaryTitle; primary.isEnabled = !controller.busy
         if controller.busy { spinner.startAnimation(nil) } else { spinner.stopAnimation(nil) }
     }
     @objc private func primaryAction() {
         guard !controller.busy, window != nil else { return }
-        if controller.stage == .chooseFolder { chooseFolder(); return }
         if controller.consent != nil {
             controller.approve(true)
         } else if controller.stage == .profileStep(.filePicker) {
@@ -98,8 +102,8 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
 
     @objc private func previousProfileStep() { controller.previousProfileStep() }
 
-    private func chooseFolder() {
-        guard let window else { return }
+    @objc private func chooseFolder() {
+        guard controller.canChangeLocation, let window else { return }
         let picker = NSOpenPanel()
         picker.title = "Choose where to place your new Zero folder"
         picker.message = "Your kit goes into a fresh folder here. Existing projects are preserved."

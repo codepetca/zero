@@ -103,7 +103,9 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   tools use vendor handoffs; first-time profile import gets one instruction at a
   time in the main window. The ZIP launchers retain their manual menus.
   Signed/notarized Mac0.5.6 is published; Windows remains a local unsigned
-  development build. See [native setup](INSTALLER.md).
+  development build. The next local native build defaults to a fresh `Zero` folder
+  in the user’s home with optional Change location and numbered names on collision.
+  See [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing
   the local VSIX and Java extensions in it. The standard build shortcut runs

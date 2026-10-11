@@ -52,6 +52,18 @@ internal static class Harness
             TestCloseDuringPausedWork(root);
             checks += ControllerHarness.Run(root);
             checks += EnvironmentHarness.Run();
+            string home = Path.Combine(root, "default-home"); Directory.CreateDirectory(home);
+            Assert(KitFiles.ResolveDefaultFolder(home) == Path.Combine(home, "Zero") && !Directory.EnumerateFileSystemEntries(home).Any(), "default selection read-only in home");
+            File.WriteAllText(Path.Combine(home, "Zero"), "existing file");
+            Directory.CreateDirectory(Path.Combine(home, "Zero-2")); File.WriteAllText(Path.Combine(home, "Zero-2", "keep.txt"), "student project");
+            Assert(KitFiles.ResolveDefaultFolder(home) == Path.Combine(home, "Zero-3"), "default skips files and existing projects");
+            Assert(File.ReadAllText(Path.Combine(home, "Zero")) == "existing file" && File.ReadAllText(Path.Combine(home, "Zero-2", "keep.txt")) == "student project", "default selection preserves existing work");
+            Reject(() => KitFiles.ResolveDefaultFolder(null), "missing user home");
+            Reject(() => KitFiles.ResolveDefaultFolder(Path.Combine(root, "never-existing-home")), "nonexistent user home");
+            try { KitFiles.ResolveDefaultFolder(home, path => { if (path == home) return FileAttributes.Directory; throw new UnauthorizedAccessException("lookup denied"); }); throw new Exception("FAILED selection error swallowed"); }
+            catch (UnauthorizedAccessException) { checks++; }
+            Reject(() => KitFiles.ResolveDefaultFolder(home, path => FileAttributes.Directory), "bounded exhausted default names");
+            Assert(KitFiles.ResolveDefaultFolder(home, path => { if (path == home) return FileAttributes.Directory; if (Path.GetFileName(path) == "Zero") return FileAttributes.ReparsePoint; throw new FileNotFoundException(); }) == Path.Combine(home, "Zero-2"), "default reserves reparse entry name");
             string extracted = Path.Combine(root, "extracted");
             Directory.CreateDirectory(extracted);
             using (var archive = Archive()) KitFiles.Extract(archive, extracted, CancellationToken.None);
@@ -125,6 +137,11 @@ internal static class Harness
                 using (var process = Process.Start(new ProcessStartInfo("/bin/ln", "-s " + Processes.QuoteArgument(extracted) + " " + Processes.QuoteArgument(link)) { UseShellExecute = false })) process.WaitForExit();
                 Reject(() => KitFiles.PlaceFreshKit(link, root, "linked-copy", CancellationToken.None), "copy source symlink");
                 File.Delete(link);
+                string dangling = Path.Combine(home, "Zero-3");
+                using (var process = Process.Start(new ProcessStartInfo("/bin/ln", "-s " + Processes.QuoteArgument(Path.Combine(home, "missing-target")) + " " + Processes.QuoteArgument(dangling)) { UseShellExecute = false })) process.WaitForExit();
+                Assert((File.GetAttributes(dangling) & FileAttributes.ReparsePoint) != 0 && KitFiles.ResolveDefaultFolder(home) == Path.Combine(home, "Zero-4"), "default skips actual dangling symlink");
+                Reject(() => KitFiles.PlaceFreshKit(extracted, home, "Zero-3", CancellationToken.None), "fresh copy rejects dangling destination");
+                File.Delete(dangling);
             }
             if (args.Length > 0)
             {

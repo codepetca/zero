@@ -12,6 +12,29 @@ namespace ZeroSetup
     {
         private const long MaxFileBytes = 16 * 1024 * 1024;
         private const long MaxTotalBytes = 128 * 1024 * 1024;
+        internal const int MaxDefaultFolders = 1000;
+
+        // Read-only selection. The exclusive final move in PlaceFreshKit still
+        // decides ownership if another process takes this name after selection.
+        public static string ResolveDefaultFolder(string home, Func<string, FileAttributes> attributes = null)
+        {
+            if (string.IsNullOrWhiteSpace(home)) throw new IOException("Your home folder is unavailable. Change location to choose an existing writable folder.");
+            home = Path.GetFullPath(home);
+            RejectReparseAncestors(home);
+            var read = attributes ?? File.GetAttributes;
+            if ((read(home) & FileAttributes.Directory) == 0)
+                throw new IOException("Your home folder is unavailable. Change location to choose an existing writable folder.");
+            for (int number = 1; number <= MaxDefaultFolders; number++)
+            {
+                string candidate = Path.Combine(home, number == 1 ? "Zero" : "Zero-" + number);
+                try { read(candidate); }
+                catch (FileNotFoundException) { return candidate; }
+                catch (DirectoryNotFoundException) { return candidate; }
+                // Every existing entry, including a dangling link or junction,
+                // reserves its name. Permission and other lookup errors propagate.
+            }
+            throw new IOException("All default Zero folder names are occupied. Change location to choose a new folder.");
+        }
 
         public static string CreatePrivateTemporaryDirectory()
         {

@@ -47,6 +47,19 @@ Cancellation/failure preserves existing work; owned partial staging is cleaned
 up. Close/quit waits for the current owned operation to finish. Forced termination
 can still leave owned staging, never permission to replace an existing project.
 
+## Default location in the next local build
+
+The next native setup build offers **Set up Zero** using a `Zero` folder inside
+current user’s home: `~/Zero` on macOS and `%USERPROFILE%\Zero` on Windows.
+**Change location…** remains optional. If that path is occupied by any existing
+file, folder or link, setup chooses `Zero-2`, `Zero-3`, and so on. It creates a
+fresh kit only when Set up Zero is chosen; existing projects are never replaced.
+A location/copy failure keeps the optional picker and retry available.
+
+The public signed Mac0.5.6 installer still uses its original folder picker.
+These source changes need a new versioned, verified installer release before
+students receive them. ZIP launchers keep their current manual behavior.
+
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates

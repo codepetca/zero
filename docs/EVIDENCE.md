@@ -728,3 +728,25 @@ Authorized task complete. Existing candidate/public assets immutable; no extra
 kit/Windows publication, signing/notarization, credentials/account/security changes.
 Windows physical testing remains held; fresh-Mac vendor/quarantine, Intel/macOS12
 and novice classroom trials remain unverified. Greeting window remains owner-owned.
+
+## Default native setup location — local source, 2026-10-11
+
+Owner requested default location instead of a mandatory folder picker. Next native
+build offers Set up Zero at user-home/Zero plus optional Change location, with
+Zero-2 through Zero-1000 for any occupied entry. Selection is read-only, copying
+requires the primary action and retains exclusive placement/close/cancellation
+guards. Lookup/permission/exhaustion errors preserve manual location choice;
+collision races preserve the existing project and allow explicit fresh retry.
+Published Mac0.5.6 and its sealed candidate are unchanged; new release required.
+
+Two bounded GPT-6.1-Sol/high workers, one writer per platform; no recursive
+delegation. Mac145harness assertions and ARM64/x86_64 source compiles passed.
+Windows153Mono backend/controller checks,3portable PowerShell parser/mock tests
+and net48 harness/WinForms cross-build passed with0warnings/errors. Coordinator
+root/diff,8installer and2Macsealing tests passed. No dist/candidate replacement,
+installation, signing/notarization, GitHub publication or account changes. Actual
+Windows/WinForms remains untested/held; Intel/macOS12 execution not established by
+compilation. UI preview and independent review precede local acceptance.
+Receipts `.verification/default-folder/`; weekly89% at start is account allowance,
+effective models/task tokens/attributable cost and coordination time unknown.
+Primary funding checkout and Community untouched.
