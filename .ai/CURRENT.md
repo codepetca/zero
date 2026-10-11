@@ -24,9 +24,12 @@ batch,0remaining blockers. Targeted reviewer passed8independent focused assertio
 Development DMG883970bytes,SHA2564fb8cdbec02315f14b51272cc32db1a34917432fa811bdbad2d9baa2c6766bfe
 built from clean e10cce79 and verified payload/permissions/universal architectures.
 All receipts .verification/easy-onboarding/; durable detail docs/EVIDENCE.md.
-No active workers, tool-backed goal, push, PR, signing/notarization, publication,
-deployment or credentials changes. Public signed0.5.6 and sealed candidate remain
-unchanged. Next release step requires a newly authorized signed/notarized candidate.
+Owner subsequently authorized signing/notarization, native publication and website
+update. Source PR24 is draft while local0.5.7installer metadata is aligned; previous
+0.5.6 remains public and unchanged. Signed build reused the existing identity and
+Keychain profile; Apple accepted3f1e1013-a4a3-4109-b6ae-999cb6881945 and stapling
+passed. Candidate verification/review/source CI, sealing, publication and website
+promotion are underway. No credentials or protections changed.
 
 Proof limits: disposable user-data needed a short fixture alias for VS Code IPC;
 trust granted only to that verified starter, no protection disabled. Physical

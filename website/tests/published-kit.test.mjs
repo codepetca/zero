@@ -63,7 +63,9 @@ test('current publication and explicit local preview take precedence, hosted fla
 test('downloads render their own kit versions alongside independently published Mac setup', async () => {
   const publishedNative={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
   const html=await render(current,fallback,publishedNative,false);
-  assert.match(html,/Zero Setup 0\.5\.6 for Mac/);
+  assert.ok(html.includes(`Zero Setup ${native.kitVersion} for Mac`));
+  assert.match(html,/Set up Zero.*~\/Zero.*automatically prepares Java.*your work is kept.*Open Zero and Run App.*GitHub sign-in can wait/);
+  assert.doesNotMatch(html,/choose a fresh project folder|guides the Zero profile import/);
   assert.match(html,/Complete kit ZIP 0\.5\.3/);
   assert.match(html,/Starter project 0\.5\.3/);
   assert.match(html,/Zero extension 0\.5\.3/);
@@ -73,13 +75,13 @@ test('downloads render their own kit versions alongside independently published 
   assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/learn#downloads');
 });
 test('local, published, fallback and missing states render accurate labels and availability', async () => {
-  assert.match(await render(current,fallback,native,true),/Complete kit ZIP 0\.5\.6/);
+  assert.ok((await render(current,fallback,native,true)).includes(`Complete kit ZIP ${current.kitVersion}`));
   assert.match(await render(current,fallback,native,false),/Download Zero 0\.5\.3/);
   const published=structuredClone(current);
   published.publication.status='published';
   for (const key of ['kit','starter','extension']) published.assets[key].url=`https://github.com/codepetca/zero/releases/download/v${published.kitVersion}/${published.assets[key].filename}`;
   const publishedHtml=await render(published,fallback,null,false);
-  assert.match(publishedHtml,/Download Zero 0\.5\.6/);
+  assert.ok(publishedHtml.includes(`Download Zero ${current.kitVersion}`));
   assert.ok(publishedHtml.includes(`href="${published.assets.kit.url}"`));
   assert.doesNotMatch(publishedHtml,/0\.5\.3/);
   const missing=await render(current,null,null,false);

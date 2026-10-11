@@ -29,7 +29,7 @@ export function Downloads() {
       {mac && <>
         <a className="button primary compact" href={mac}><DownloadIcon />Download for Mac</a>
         <p>macOS 12 or later · Apple Silicon and Intel</p>
-        <p>Open Zero Setup and choose a fresh project folder. Setup guides the Zero profile import and asks before installing editor support or opening official VS Code and Java downloads.</p>
+        <p>Open Zero Setup and choose Set up Zero. Setup uses ~/Zero and automatically prepares Java and a separate editor configuration. If Zero is already there, confirm the update; your work is kept. Wait for the progress message, then choose Open Zero and Run App. GitHub sign-in can wait until sharing.</p>
       </>}
       {!mac && kit && (
         <a className="button primary compact" href={downloadHref()}>

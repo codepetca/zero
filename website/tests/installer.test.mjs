@@ -39,7 +39,7 @@ test('strict independent manifest, versioned publication and platform choice', (
   assert.throws(() => validateInstallerManifest(published, kit), /versioned/);
   published.asset.url=`https://github.com/codepetca/zero/releases/download/setup-v${kit.kitVersion}/${published.asset.filename}`;
   validateInstallerManifest(published, kit); assert.equal(installerHref(published), published.asset.url);
-  for (const mutate of [m => m.kitVersion='0.5.7', m => m.asset.filename='evil.exe', m => m.asset.size=129*1024*1024, m => m.publication.tag='v0.5.6', m => m.asset.url='https://example.com']) {
+  for (const mutate of [m => m.kitVersion='999.0.0', m => m.asset.filename='evil.exe', m => m.asset.size=129*1024*1024, m => m.publication.tag='v0.5.6', m => m.asset.url='https://example.com']) {
     const bad=structuredClone(authored); mutate(bad); assert.throws(() => validateInstallerManifest(bad, kit));
   }
 });
