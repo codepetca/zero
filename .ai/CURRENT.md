@@ -1,3 +1,18 @@
+# Lesson 12 PR and merge — 2026-10-10
+
+Owner explicitly authorized publishing the reviewed Lesson12 branch as a PR and
+merging it to codepetca/zero:main. No new kit release or credential/rule changes.
+Implementation review at8c9896d and receipt-only final1f80b0c remain valid; main
+is unchanged atf8f7829. Preserve other active worktrees and primary funding work.
+
+Publish this branch, attach PR, verify exact-head CI/review threads and merge using
+normal GitHub rules. Live main requires the canonical Actions review check,
+independent human approval, code-owner review and approval of the last push;
+admins are enforced. Do not bypass, weaken, self-approve or impersonate a human.
+Current phase: PR preparation. Required human approval may block merge after CI.
+Weekly23% remaining account-wide; DeepSeek still paused. Existing standard-risk
+review reused; no new implementation/review waves planned for unchanged code.
+
 # Lesson 12 full game — complete locally, 2026-10-10
 
 Owner explicitly requested local implementation of the full Lesson 12 tutorial:
