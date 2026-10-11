@@ -5,6 +5,8 @@ Publish through a reviewed feature PR only with user authorization. Never deploy
 push, publish or change account credentials without explicit authorization.
 There is no required external service or private environment file for local app
 work. Keep one writer per component and inspect changes before integration.
+Follow [AI workflow](AI-WORKFLOW.md) for delegation/review and recovery.
+Record compact durable delivery evidence in [EVIDENCE.md](EVIDENCE.md).
 
 ## Commands
 

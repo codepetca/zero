@@ -2,6 +2,8 @@
 
 Read `.ai/CURRENT.md` and `docs/PRODUCT.md` before changing code. Read
 `docs/DEVELOPMENT.md` for commands and verification when it exists.
+Use `docs/AI-WORKFLOW.md` for bounded delegation, independent review and durable
+handoffs. Keep CURRENT short; archived phase records are not active instructions.
 
 - Zero is a local Java teaching kit: a VS Code extension/profile and a small
   JavaFX library. Preserve ordinary Java and explicit object updates.
