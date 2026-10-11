@@ -612,3 +612,14 @@ preparation time; recheck immediately before any later authorized publication.
 No push, PR, merge, release/publication/deployment, account/credential/security
 changes. Windows remains untested/deferred; fresh-Mac vendor/trust/quarantine,
 physical Intel/macOS12, restricted networks and novice usability limits remain.
+
+## Owner visual greeting confirmation — 2026-10-11
+
+After a delayed reply to the earlier window check, the owner noted they may have
+closed the app. Relaunched unchanged four-source Main through the copied starter's
+Maven wrapper (`clean compile javafx:run`), then verified its owned process running.
+Owner confirmed: “yes i see the hello world window”. This establishes a fresh
+manual visual observation; it does not retroactively claim CUA saw the earlier
+sidebar Run window. Greeting left open for the owner to close. Receipt:
+`.verification/mac-056/manual-greeting-run.json`. No source, candidate artifact,
+profile, credential or publication changes. Other platform/setup limits remain.

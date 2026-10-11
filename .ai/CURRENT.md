@@ -76,7 +76,10 @@ Zero/Java extensions, readiness, minimal sidebar/first lesson, unchanged Main
 Run and Stop passed. JDK17.0.14/JavaFX21.0.12. Separate finite probe confirmed
 showing Stage and Hello, world! label; CUA cannot visually inspect JavaFX window.
 Probe removed, original four-source compile/parity passed; owned apps/mount/server
-cleaned up, owner editor untouched. No Git/account/upload trial in this phase.
+cleaned up, owner editor untouched. Later unchanged Main was relaunched through
+the wrapper for a fresh visual check; owner confirmed seeing Hello, world!.
+That greeting was left open for the owner to close; run receipt and owned PID
+are in .verification/mac-056/manual-greeting-run.json. No Git/account/upload trial.
 
 Public0.5.3 ZIP/starter/VSIX and local0.5.6 HTTP hashes verified; no native links
 existed before this phase. Remaining limits: fresh-Mac vendor installs/trust,
