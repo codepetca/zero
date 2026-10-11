@@ -72,8 +72,9 @@ VS Code Run/autosave/build/Stop are recorded in the evidence docs, not rerun cla
 
 ## Active Windows work
 
-Base7c6aeb7, same guided-setup worktree. Worker calm_windows_setup GPT-6.1-Sol/high
-delivered native-installer/windows plus Setup.ps1/backend tests; source frozen.
+Base7c6aeb7, initial feature018eb47, same guided-setup worktree. Worker
+calm_windows_setup GPT-6.1-Sol/high owns native-installer/windows plus
+Setup.ps1/backend tests; the Java retry correction is delivered and source frozen.
 Coordinator owns docs,
 version0.5.6 and packaging/verification/review. Target one fixed small window and
 one replacing short line; explicit vendor downloads and guided profile import,
@@ -83,8 +84,13 @@ Mac0.5.5 signed DMG/kit/VSIX/receipt preserved under
 .verification/calm-windows-setup/preserved-mac-0.5.5; Downloads unchanged.
 Preflight:105coordinator net48/Mono assertions against new ZIP; worker65Node and
 28portable PS7fake/parser checks, full native compile, configuration and kit
-parity/extracted Maven compile pass. Full npm regression suite running.
-Next: fixed-revision independent review, local unsigned Windows EXE build and
-payload verification. Physical WinForms/PS5.1/installer/policy remain untested.
+parity/extracted Maven compile pass. Full npm regression247tests and8installer
+Node tests pass. Initial unsigned AnyCPU EXE/embedded kit verify at018eb47.
+Two initial independent reviews completed: safety passed; compatibility found
+stale PATH after vendor Java install. Correction adds read-only owned-child
+environment refresh, preserving explicit JAVA_HOME and custom PATH. Worker reports
+128native assertions, clean build and3Windows Node tests pass. Next: coordinator
+affected harness, one fixed-delta review, final local
+unsigned EXE/payload rebuild. Physical WinForms/PS5.1/installer/policy remain untested.
 No publication.
 Weekly95% remaining at start is account allowance; task/effective tokens unknown.

@@ -15,7 +15,7 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Program.cs;MainForm.cs;KitFiles.cs;Processes.cs;CloseGate.cs;SetupController.cs;NativeSetupBackend.cs" />
+    <Compile Include="Program.cs;MainForm.cs;KitFiles.cs;Processes.cs;CloseGate.cs;SetupController.cs;NativeSetupBackend.cs;WindowsToolEnvironment.cs" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />

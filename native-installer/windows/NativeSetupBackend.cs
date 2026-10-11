@@ -9,6 +9,7 @@ namespace ZeroSetup
 {
     internal sealed class NativeSetupBackend : ISetupBackend, IDisposable
     {
+        private readonly WindowsToolEnvironment tools = new WindowsToolEnvironment(new WindowsEnvironmentReader());
         public string Root { get; private set; }
         public async Task EnsureKit(CancellationToken cancellation)
         {
@@ -38,13 +39,16 @@ namespace ZeroSetup
         {
             // Allow bounded preflight probes before the backend's 5-minute extension timeout.
             int timeout = action == "extension" ? 600000 : action == "profile" ? 180000 : 240000;
-            return Processes.RunAsync(Processes.NativeInfo(Processes.PowerShellPath(), root, action, target, approved), timeout, cancellation);
+            var info = Processes.NativeInfo(Processes.PowerShellPath(), root, action, target, approved);
+            tools.Apply(info);
+            return Processes.RunAsync(info, timeout, cancellation);
         }
         public Task Download(string url, CancellationToken cancellation)
         {
             cancellation.ThrowIfCancellationRequested();
             if (url != "https://code.visualstudio.com/download" && url != "https://adoptium.net/temurin/releases/?version=17") throw new ArgumentException("Unknown download page.");
             using (var process = Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })) { /* Shell handoff may reuse the existing browser without a process handle. */ }
+            tools.VendorHandoffCompleted();
             return Task.CompletedTask;
         }
         public void Dispose() { KitFiles.DeleteOwnedDirectory(Root); }
