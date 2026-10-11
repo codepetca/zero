@@ -169,3 +169,39 @@ plus final nonfunctional wording/receipt cleanup. Conservative budget counts2bat
 Review-session clock began02:15:17UTC on2026-10-11; end in ignored receipt. Weekly22%
 remaining at start is account-wide, not project cost; no savings claim. Native
 Windows/Linux, real installers, school policy and novice usability remain unverified.
+
+## Setup compatibility and repair follow-up — local only
+
+Base `080d7a4c7f69dff12fb1efd2aabb81998f833f0e`; implementation
+`e2fad4beb4ae83813bd2e4a5fe22def7677d5f38`; corrected runtime
+`a6078beb91bf8210e8c9ded4ac5467363eaefe64`. New setup metadata derives VS Code
+compatibility from extension engines; compatible selected tools are retained,
+known stable locations checked, selected paths reported and managed repair uses
+explicit fixed install/upgrade commands. Native installer wrapping is planned in
+[INSTALLER.md](INSTALLER.md), not delivered. Core/editor runtime unchanged.
+
+setup_compatibility GPT-6.1-Sol/high delivered setup scripts/tests; root accepted
+metadata/docs/integration. Worker estimate10–12minutes plus4minutes correction,
+not measured total cost. Four initial fake-brew test failures were test regex
+anchoring, corrected before independent review. Actual per-turn tokens/effective
+models and attributable coordination time unknown. Weekly21% remaining at start
+is account-wide, not this feature's consumption; no savings claim.
+
+setup_reliability_security/turn1 and setup_reliability_compatibility/turn1 requested
+GPT-6.1-Sol/high, completed all9files at e2fad4b and relevant execution/packaging
+callers. One aggregated P2: named Homebrew outdated status1 rejects available
+updates, plus explicit auto-update-cask inventory semantics. Both independent
+proofs and coordinator reading of installed official source validated it. One
+correction batch uses unnamed per-kind inventory and exact package-name matching.
+setup_reliability_compatibility/turn2 accepted the complete two-file correction
+delta at a6078be with no new blockers. Genuine query errors still stop repair.
+Prior unchanged coverage applies; no extra integration wave. Final receipt-only
+edits are coordinator-checked, runtime unchanged.
+
+Ledger3turns/1initial wave/1targeted wave/1fix batch/0failed launches. Conservative
+review clock02:42:40–02:48:00UTC on2026-10-11,320seconds; worker elapsed telemetry
+unknown. 27initial launcher tests (20.367seconds),34corrected cases (28.067seconds),
+4kit checks (4.019seconds), configuration and final regenerated ZIP checks pass.
+Full logs and measured final artifacts in ignored .verification/setup-reliability-2026-10-10
+and dist/release.json. No push/PR/merge/release/deploy, host installs or account
+changes. Primary funding work preserved; public0.5.3 and Community unchanged.

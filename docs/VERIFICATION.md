@@ -130,3 +130,28 @@ was executed. Native Windows PowerShell/cmd, physical Linux, fresh-machine macOS
 installs, actual permission prompts, school proxies/policies, native picker use and
 novice setup remain unverified. Version checks do not establish a working app window;
 Run first app and visual confirmation remain explicit student steps. No publication.
+
+## Setup reliability follow-up
+
+At e2fad4b,27launcher tests passed in20.367seconds; at corrected a6078be,
+34passed in28.067seconds. Fake-machine tests cover old/minimum/new/unknown VS Code,
+known app fallback, path selection, invalid metadata, managed install/upgrade,
+cancellation, current package/configuration guidance and selected JAVA_HOME.
+Correction cases model Homebrew's named-outdated status1 and explicit auto-update
+cask filtering; unnamed inventory filters exact names. Real inventory failure,
+unrelated/prefix names, failed installation/update with recheck, Git formula
+handling and read-only checks are covered. No real package-manager mutation.
+
+4kit tests passed in4.019seconds, including metadata/engine policy agreement,
+unsupported range rejection and standalone extracted Maven compile. Configuration,
+syntax, documentation links and whitespace pass. Regenerated ZIP verification
+passes exact bytes, licenses, canonical sources, executable permissions and
+standalone build. Metadata/extension policy is not duplicated in script constants.
+Unchanged editor/framework source retains prior checks; the full suite was not
+repeated for this shell-only correction. Independent initial and targeted source
+reviews are accepted; final receipt-only changes leave runtime unchanged.
+
+macOS Bash3.2 fake-tool execution is verified. PowerShell/native Windows, actual
+Homebrew/winget installers, clean-machine profile/editor interaction, school
+network/policies and novice usability remain unverified. Known-location discovery
+is bounded, not an exhaustive machine inventory. No native EXE/app/DMG is claimed.

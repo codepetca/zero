@@ -62,13 +62,21 @@ remains separate. Relevant terminal overrides make Run readiness unverified;
 settings are preserved. A successful check alone does not prove a native window.
 Physical Windows/Linux classroom/personal setup, actual installers/permissions,
 network policy, native picker interaction and novice usability remain unverified.
-Owner agreed to strengthen checks before wrapping them in a native installer.
-Active bounded follow-up at080d7a4: detect compatible VS Code versions/candidates,
-make managed install versus upgrade actions explicit, show selected installations,
-and improve repair/recheck guidance. setup_compatibility GPT-6.1-Sol/high owns
-setup/; coordinator owns metadata/docs/integration. Minimum VS Code comes from
-extension engines, not a duplicate fixed version. Weekly21% remaining at start
-is account-wide; effective models/tokens unknown. No actual installers, account
-changes or publication. Native EXE/app distribution remains a later package phase.
-Next: verify affected tests, independent source review and rebuilt local ZIP.
-Do not infer source PR/merge or publication authorization from completed work.
+Owner agreed to strengthen checks before native installer wrapping. Follow-up
+base080d7a4, implementatione2fad4b, corrected runtimea6078beb91bf8210e8c9ded4ac5467363eaefe64
+is locally accepted: compatible VS Code engine/candidates, selected paths,
+explicit managed install versus upgrade, conservative configuration guidance.
+Minimum VS Code is generated from extension engines. 34 launcher tests,4kit tests,
+configuration/links, corrected ZIP byte/permission/source checks and standalone
+Maven compile pass. Two complete initial independent GPT-6.1-Sol/high scopes plus
+one targeted pass resolved one aggregated Homebrew inventory P2. Unchanged editor
+and prior compatibility coverage reused; no extra integration wave.
+setup_compatibility GPT-6.1-Sol/high accepted; no active writers. Weekly21%
+remaining at start is account-wide; effective models/tokens unknown. Native
+Windows/PowerShell, actual managed installs, profile interaction and novice use
+remain unverified. No host installations or publication occurred.
+
+Next: wrap the accepted checks in native installers per docs/INSTALLER.md.
+EXE/macOS app/DMG packages are not yet built. Source PR/merge, signing-account
+access and publication remain separate owner decisions. Do not infer authorization
+from completed older work. Local ZIP remains dist/zero-bootstrap.zip.
