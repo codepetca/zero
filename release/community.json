@@ -9,11 +9,11 @@
   "library": {
     "groupId": "school.zero.community",
     "artifactId": "zero-community",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "javaRelease": 17,
     "javafxVersion": "21.0.12"
   },
-  "latest": "0.1.2",
+  "latest": "0.1.3",
   "components": [
     {
       "id": "health-bar",
@@ -45,7 +45,41 @@
       "maintainer": null,
       "category": "health-bars",
       "versions": [
-        "0.1.2"
+        "0.1.2",
+        "0.1.3"
+      ]
+    },
+    {
+      "id": "segmented-health-bar",
+      "name": "SegmentedHealthBar",
+      "className": "zero.community.SegmentedHealthBar",
+      "description": "A label and integer-capacity segments for app-owned health or energy, updated explicitly.",
+      "api": [
+        "SegmentedHealthBar(int maximum)",
+        "SegmentedHealthBar(String caption, int maximum)",
+        "Node view()",
+        "void setHealth(int health)",
+        "int getHealth()",
+        "int getMaximum()"
+      ],
+      "examples": [
+        {
+          "id": "segmented-adventure",
+          "path": "examples/segmented-adventure/Main.java",
+          "description": "Damage, healing and restart with app-owned health."
+        },
+        {
+          "id": "segmented-study",
+          "path": "examples/segmented-study/Main.java",
+          "description": "A study budget with answer, retry, exhaustion and reset."
+        }
+      ],
+      "status": "experimental",
+      "license": "MIT",
+      "maintainer": null,
+      "category": "health-bars",
+      "versions": [
+        "0.1.3"
       ]
     }
   ],
@@ -86,6 +120,44 @@
         "size": 222849,
         "sha256": "915d956b38a0f162ba89911aff957e5d4344eb97db34ca0cd887e919dab5651d",
         "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.2/zero-community-workshop-0.1.2.zip"
+      }
+    },
+    {
+      "version": "0.1.3",
+      "sourceRevision": "7d4fa181d07f320cc4a305f60636e81aab9a9bcb",
+      "sourceDigest": "388dd646ae188f30f91df6404f126d6857fe9f292926c658ba7418f5f3a76c34",
+      "notes": "Experimental MIT health bar alternatives; explicit updates and readable source/API. Owner-authorized release, without independent community acceptance.",
+      "artifacts": {
+        "jar": {
+          "path": "school/zero/community/zero-community/0.1.3/zero-community-0.1.3.jar",
+          "size": 6428,
+          "sha256": "f331fb4e444b0b6dbd3af6507b8e704009a9e0e52f4ba343cb30dd43e0d08b33",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.3/zero-community-0.1.3.jar"
+        },
+        "pom": {
+          "path": "school/zero/community/zero-community/0.1.3/zero-community-0.1.3.pom",
+          "size": 3526,
+          "sha256": "4878b1c7de5d552c3a9f2fe69163665573ad3caa39bd1736ba3f20063e2f4bf3",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.3/zero-community-0.1.3.pom"
+        },
+        "sources": {
+          "path": "school/zero/community/zero-community/0.1.3/zero-community-0.1.3-sources.jar",
+          "size": 5421,
+          "sha256": "803ae3d3e936d3fa1754b266bad7544499ddd9a8b435356a270784269c5b3f0c",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.3/zero-community-0.1.3-sources.jar"
+        },
+        "javadoc": {
+          "path": "school/zero/community/zero-community/0.1.3/zero-community-0.1.3-javadoc.jar",
+          "size": 89460,
+          "sha256": "ae29e033eebf7261a5a7d685f463cfb465a20dac721cd22de1a25dce43b1961f",
+          "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.3/zero-community-0.1.3-javadoc.jar"
+        }
+      },
+      "workshop": {
+        "filename": "zero-community-workshop-0.1.3.zip",
+        "size": 243011,
+        "sha256": "da507795c4e935e1fced1230ed32ba8f35eaf85e868328cf5b086061af70fa50",
+        "url": "https://github.com/codepetca/zero-community/releases/download/v0.1.3/zero-community-workshop-0.1.3.zip"
       }
     }
   ],
