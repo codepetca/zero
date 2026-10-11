@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -58,6 +58,14 @@
       {
         "command": "zero.copyRepositoryLink",
         "title": "Zero: Copy Repository Link"
+      },
+      {
+        "command": "zero.openFirstLesson",
+        "title": "Zero: Open First Lesson"
+      },
+      {
+        "command": "zero.showProblems",
+        "title": "Zero: Show Problems"
       },
       {
         "command": "zero.showSetup",

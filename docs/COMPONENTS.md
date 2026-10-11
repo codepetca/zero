@@ -114,3 +114,37 @@ a normal fork/PR; no Python or Node is required for the student flow. Maven rema
 the resolver. The first catalog contains one component, and no live AI service or
 new student account is introduced. Actual public availability follows the release
 receipts and website manifest; see VERIFICATION for delivery evidence.
+
+
+## Alternatives, recommendations and core
+
+A component ID identifies an alternative; a version identifies an immutable Maven
+library release containing it. Plain HealthBar and SegmentedHealthBar can coexist
+in the same Health bars category and currently share one library artifact. Students
+install the library once, then use either class available in their pinned version.
+A second class may require an explicit library update; it never appears in older
+versions merely because the catalog lists it.
+
+The reviewed public manifest can name one starting recommendation per category,
+with an exact component ID, release version and short reason. Source contributions
+may describe their category and available releases; they cannot recommend themselves.
+Recommendation does not change check/review status, establish human acceptance,
+replace an installed pin or make a component part of core. Existing maintainers
+review recommendation changes through the normal maintained-source process; CI
+validates references and integrity, not subjective usefulness.
+
+Alternatives remain accessible. Students may deliberately choose another available
+version. Add uses that exact selection; Try uses a trusted packaged example for
+supported classes at the same version. Update is an explicit library action and
+Revert uses recorded prior version history. Related components move together while
+they share one Maven artifact. Separate independent packages can be introduced
+when real maintenance/dependency needs justify them; no bespoke resolver is added.
+
+Core stays small. Promotion requires stable APIs, clear teaching value, reusable
+examples and ongoing maintenance; it is a separate human decision and migration,
+not an automated winner selection. No component is promoted by this phase.
+
+The extended discovery endpoint is `/community/catalog-v2.json` (schema2).
+`/community/catalog.json` retains the original schema1 HealthBar view for released
+Zero0.5.2. Fixed Maven artifact URLs/hashes are the same; curation adds no executable
+source, credentials, automatic upload or custom package resolution.

@@ -1,4 +1,6 @@
 import {createHash} from 'node:crypto';
+import discovery from '../../extension/src/component-discovery.js';
+export const {discoveryGroups, recommendationFor, componentVersion, componentVersions} = discovery;
 
 export const repositoryUrl = 'https://zero.codepet.ca/community/maven';
 const repository = 'codepetca/zero-community';
@@ -25,24 +27,29 @@ function asset(value, releaseVersion, filename) {
 
 // This is a reviewed build snapshot, never metadata supplied by a browser or PR.
 export function validateCommunityManifest(manifest) {
-  keys(manifest, ['schemaVersion', 'origin', 'publication', 'repositoryUrl', 'library', 'latest', 'components', 'releases']);
+  keys(manifest, ['schemaVersion', 'origin', 'publication', 'repositoryUrl', 'library', 'latest', 'components', 'releases', 'discovery']);
   keys(manifest.publication, ['status', 'repository']);
   keys(manifest.library, ['groupId', 'artifactId', 'version', 'javaRelease', 'javafxVersion']);
-  requireValue(manifest.schemaVersion === 1 && manifest.origin === 'public-release' && manifest.publication.repository === repository && ['local', 'published'].includes(manifest.publication.status), 'Unsupported community publication.');
+  requireValue([1, 2].includes(manifest.schemaVersion) && manifest.origin === 'public-release' && manifest.publication.repository === repository && ['local', 'published'].includes(manifest.publication.status), 'Unsupported community publication.');
   requireValue(manifest.repositoryUrl === repositoryUrl && manifest.library.groupId === 'school.zero.community' && manifest.library.artifactId === 'zero-community' && manifest.library.javaRelease === 17 && manifest.library.javafxVersion === '21.0.12' && version(manifest.latest) && manifest.library.version === manifest.latest, 'Unsupported community library.');
   requireValue(Array.isArray(manifest.releases) && manifest.releases.length <= 100 && Array.isArray(manifest.components), 'Invalid community catalog.');
   if (manifest.publication.status === 'local') {
-    requireValue(manifest.releases.length === 0 && manifest.components.length === 0, 'Unpublished community placeholders cannot contain download claims.');
+    requireValue(manifest.releases.length === 0 && manifest.components.length === 0 && manifest.discovery === undefined, 'Unpublished community placeholders cannot contain download claims.');
     return manifest;
   }
-  requireValue(manifest.components.length === 1, 'The initial public catalog contains one HealthBar.');
-  const component = manifest.components[0];
-  keys(component, ['id', 'name', 'className', 'description', 'api', 'examples', 'status', 'license', 'maintainer']);
-  requireValue(component.id === 'health-bar' && component.name === 'HealthBar' && component.className === 'zero.community.HealthBar' && component.status === 'experimental' && component.license === 'MIT' && component.maintainer === null && text(component.description), 'Unsupported public component.');
-  requireValue(Array.isArray(component.api) && component.api.length > 0 && component.api.length <= 100 && component.api.every(entry => text(entry)) && Array.isArray(component.examples) && component.examples.length <= 100, 'Invalid public API.');
-  for (const example of component.examples) {
-    keys(example, ['id', 'path', 'description']);
-    requireValue(/^[a-z][a-z0-9-]{0,79}$/.test(example.id) && example.path === `examples/${example.id}/Main.java` && text(example.description), 'Invalid public example.');
+  requireValue(manifest.components.length > 0 && manifest.components.length <= 100, 'Invalid public component count.');
+  const ids = new Set(), classes = new Set();
+  for (const component of manifest.components) {
+    keys(component, ['id', 'name', 'className', 'description', 'api', 'examples', 'status', 'license', 'maintainer', 'category', 'versions']);
+    requireValue(typeof component.id === 'string' && /^[a-z][a-z0-9-]{0,79}$/.test(component.id) && !ids.has(component.id) && typeof component.className === 'string' && /^zero\.community\.[A-Z][A-Za-z0-9]*$/.test(component.className) && !classes.has(component.className) && text(component.name, 200) && component.status === 'experimental' && component.license === 'MIT' && component.maintainer === null && text(component.description), 'Unsupported public component.');
+    ids.add(component.id); classes.add(component.className);
+    requireValue(Array.isArray(component.api) && component.api.length > 0 && component.api.length <= 100 && component.api.every(entry => text(entry)) && Array.isArray(component.examples) && component.examples.length <= 100, 'Invalid public API.');
+    const examples = new Set();
+    for (const example of component.examples) {
+      keys(example, ['id', 'path', 'description']);
+      requireValue(typeof example.id === 'string' && /^[a-z][a-z0-9-]{0,79}$/.test(example.id) && !examples.has(example.id) && example.path === `examples/${example.id}/Main.java` && text(example.description), 'Invalid public example.');
+      examples.add(example.id);
+    }
   }
   const versions = new Set();
   for (const release of manifest.releases) {
@@ -64,6 +71,7 @@ export function validateCommunityManifest(manifest) {
     }
   }
   requireValue(versions.has(manifest.latest), 'The latest community version is missing.');
+  discovery.validateDiscovery(manifest);
   return manifest;
 }
 
@@ -93,10 +101,26 @@ async function verifiedBytes(asset, request) {
 }
 const failure = (status, message) => new Response(message, {status, headers: {'Cache-Control': 'no-store', 'Content-Type': 'text/plain; charset=utf-8', 'X-Content-Type-Options': 'nosniff'}});
 
-export function catalogResponse(manifest, head = false) {
+// Older released extensions reject new discovery fields. Keep their endpoint
+// on its original shape while newer extensions use catalog-v2.json.
+export function legacyCommunityCatalog(manifest) {
+  validateCommunityManifest(manifest);
+  const component = manifest.components.find(item => item.id === 'health-bar' && item.className === 'zero.community.HealthBar');
+  if (!component) return null;
+  const versions = discovery.componentVersions(manifest, component);
+  if (!versions.length) return null;
+  const latest = versions.at(-1);
+  const {discovery: ignored, ...legacy} = manifest;
+  const {category: ignoredCategory, versions: ignoredVersions, ...healthBar} = component;
+  return {...legacy, schemaVersion:1, latest, library:{...manifest.library, version:latest}, components:[healthBar]};
+}
+
+export function catalogResponse(manifest, head = false, {legacy = false} = {}) {
   validateCommunityManifest(manifest);
   if (manifest.publication.status !== 'published') return failure(503, 'The public component catalog is not ready.');
-  return new Response(head ? null : JSON.stringify(manifest) + '\n', {headers: {'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=60', 'X-Content-Type-Options': 'nosniff'}});
+  const payload = legacy ? legacyCommunityCatalog(manifest) : manifest;
+  if (!payload) return failure(503, 'The catalog for this older Zero version is unavailable.');
+  return new Response(head ? null : JSON.stringify(payload) + '\n', {headers: {'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=60', 'X-Content-Type-Options': 'nosniff'}});
 }
 
 export async function artifactResponse(manifest, parts, {request = fetch, head = false, workshop = false} = {}) {

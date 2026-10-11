@@ -1,74 +1,64 @@
-# Component Workshop — HealthBar 0.1.2
+# Component Workshop — health bar alternatives
 
-A native JavaFX app built with Zero's ordinary `SimpleApp`. It previews the pinned
-`school.zero.community:zero-community:0.1.2` HealthBar; it does not compile arbitrary
-components or execute their examples. The light interface uses a purple selected
-example, named Full/Partial/Empty/Custom caption states, caption/value controls and
-reset. Examples and API tabs read the community project's actual metadata and files.
+This native JavaFX app reads a trusted local community checkout. Select plain
+HealthBar or SegmentedHealthBar to preview app-owned health, try explicit updates,
+and read the selected API and two examples. Both remain experimental MIT
+components without a named maintainer or contributor recommendation authority.
 
-Use a trusted local community checkout. Reading API, examples and export metadata
-does not execute contributor code, build hooks or preparation scripts.
-Use “Build local source & check” after editing HealthBar. This explicit local run
-uses the existing JDK compiler, fixed JavaFX paths, no annotation processors, and
-a temporary output folder. It loads only the candidate HealthBar and its nested
-classes, renders fresh views and checks the same public API. It does not run the
-contributor POM or any hooks, and leaves immutable release artifacts intact.
-The explicit candidate build runs your Java class in the Workshop process with
-normal local Java permissions. It is for your trusted development source; it is
-not a sandbox for downloaded submissions.
-Runtime results explicitly describe the loaded pinned binary, while the packet binds
-source files to their digest. A source digest is provenance, not proof that edited
-source produced the loaded binary. Candidate reports bind the exact source digest
-to the compiled class hash. Changes after candidate compilation make its runtime
-checks unavailable until another build.
-
-From the Zero repository root, prepare the local repository with the coordinator's
-`node scripts/prepare-component-workshop.mjs ../zero-community --public` command, then use the bundled
-student Maven wrapper (JDK 17):
+From the sibling community checkout, prepare current trusted local source:
 
 ```sh
-student-template/mvnw -f component-workshop/pom.xml \
-  -Dzero.componentRepository=file:///absolute/path/to/local/component-repository \
-  -Dzero.communityRoot=file:///absolute/path/to/zero-community compile javafx:run
+python3 scripts/prepare-public-release.py --local-source --zero-root ../zero
 ```
 
-For the portable `zero-community-workshop-0.1.2.zip`, extract the whole folder, open
-`component-workshop/` in VS Code and use the standard build shortcut. Or run
-`./mvnw compile javafx:run` there (Windows: `.\mvnw.cmd compile javafx:run`).
-The bundled sibling folders supply the local repository and editable community
-source. No Node.js or Python installation is needed to use this kit.
-For custom locations, use a file URI with spaces encoded as `%20`; the developer
-preparation script generates it. Run the portable wrapper from its Workshop folder.
+Then from Zero:
 
-The local repository must contain `school.zero:zero-core:0.1.1` and
-`school.zero.community:zero-community:0.1.2`. JavaFX is pinned at 21.0.12 and Gson
-at 2.11.0. The default endpoint is the local sibling `component-repository/`,
-never a public community service. The wrapper may resolve
-pinned build/third-party dependencies from Maven Central on its first run.
+```sh
+node scripts/prepare-component-workshop.mjs ../zero-community --local
+node scripts/run-component-workshop.mjs
+node scripts/run-component-workshop.mjs --check
+node scripts/package-components.mjs ../zero-community --local-source
+```
 
-Add `-Dzero.workshopCheck=true` to open a real finite JavaFX window and exercise
-named previews, visible value changes, fresh views, reset, candidate build, checks and contribution
-export. This synthetic harness uses ordinary JavaFX event handlers. It does not
-prove physical typing, clicks, DirectoryChooser interaction or other operating systems.
-`WORKSHOP_CHECK_PASS` is the acceptance marker; failures emit `WORKSHOP_CHECK_FAIL`.
+Preparation copies exact verified current artifacts to an immutable local Maven
+repository. The finite native check exercises selection, state buttons, caption,
+adjustment, reset, both public APIs, continuous/segmented fill, clamping, independent
+views, constructor errors and source-bound packet export. It also verifies edited
+source requires rebuilding, bad API/fill mutations fail, private files stay out,
+license drift is rejected and either component's source drift invalidates receipts.
 
-“Run checks” checks fractional fill, clamping, independent instances and invalid
-construction in the loaded runtime, and records the source digest using the shared packet schema. Runtime checks become
-unavailable for edited source that differs from the immutable 0.1.2 sources JAR until an explicit candidate
-build succeeds. AI advisory review is explicitly unavailable. These contributor
-checks cannot approve a component.
+Build local source & check uses the JDK compiler with fixed Java17/JavaFX options,
+annotation processing and implicit compilation disabled. It compiles every declared
+component source, loads the resulting classes in an isolated loader, and checks both
+alternatives. It never invokes contributor POMs or hooks. Trusted candidate Java
+executes with normal local permissions; this is not a sandbox for remote submissions.
 
-“Prepare contribution” chooses a parent folder and creates a new contribution folder
-without replacing existing files. The Workshop creates `packet.zip`, `packet.json` and `checks/report.json`. The ZIP's declared scope
-is the Maven manifest, HealthBar source/test, adventure/study app examples, HealthBar
-API, component metadata, the MIT LICENSE notice and check evidence. Arbitrary repository files, `.git`,
-credentials, caches and build artifacts are excluded. Packet generation uses ordinary Java file and ZIP APIs. Preparation errors
-stay visible. No upload, GitHub action, release or reviewed status is implied.
+Prepare contribution creates a new local folder with schema1 ZIP and check report.
+The shared digest covers every component's source, API, tests, examples, manifest,
+POM and MIT notice. Source changes require fresh checks. Metadata changes require
+reopening the Workshop to reload its scope. Nothing is uploaded or accepted.
+Contributor/CI/AI receipts cannot appoint maintainers, recommend alternatives,
+approve contributions or promote a component into core. Use an ordinary source PR
+for independent review by existing canonical repository maintain/admin users.
 
-Status and license are shown from metadata. Current Zero Community source uses MIT;
-HealthBar 0.1.2 remains experimental. Existing maintain/admin users of the public
-community repository independently accept contributions. Fork
-[zero-community](https://github.com/codepetca/zero-community), make source changes
-on a branch and open a pull request with your check evidence. Export never uploads
-a packet or approves it; contributor, CI and AI receipts cannot provide human
-acceptance. Coursework submission in Pika is separate.
+The source POM defaults to pinned HealthBar0.1.2 for old metadata/runtime compatibility.
+Current preparation passes exact0.1.3 coordinates and verified source/artifact hashes;
+portable assembly writes those exact pins into its generated POM. Historical schema1
+HealthBar-only metadata and packets remain supported. Core stays pinned0.1.1.
+Published0.1.2 artifacts and historical0.1.0/0.1.1 source/POM bytes stay unchanged.
+
+Public preparation without --local-source requires clean committed source. Local
+working-tree proofs identify the exact declared digest and mark sourceState as
+working-tree; commit URLs identify the base only. Packaging retains committed-source
+guards by default and refuses artifact replacement. Explicit local packaging creates
+a separate version-and-digest-named archive without publication claims.
+
+Extract the complete portable folder and keep sibling directories together. Open
+component-workshop in VSCode, or run ./mvnw compile javafx:run (Windows:
+.\mvnw.cmd compile javafx:run). JDK17+ is required; no Node/Python is needed to run,
+check or export the portable app. First-time Maven/JavaFX dependency downloads need
+network access. Preserve both MIT LICENSE files and Maven wrapper notices.
+
+Verification is finite synthetic native JavaFX on macOS. Physical input,
+DirectoryChooser interaction, Windows/Linux and novice classroom trials remain
+unverified. No external AI provider is configured. See VERIFICATION.md.

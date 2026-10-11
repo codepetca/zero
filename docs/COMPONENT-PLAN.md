@@ -5,6 +5,24 @@ consume versioned community components, apply fixes and prepare contributions
 with minimal teacher administration. Maven owns dependency resolution; Zero
 provides discovery, examples and a readable contribution workflow.
 
+## Alternatives and recommendation follow-up — 2026-10-09
+
+Local target: two ordinary health-bar alternatives, grouped discovery and one
+maintainer-curated starting recommendation per category. Preserve published0.1.2
+and all installed pins. Current community library becomes local0.1.3; both bars
+share that artifact for now. Versions are library releases, while component IDs
+identify alternatives. Independent packages remain a later need, not a new package
+manager or automatic consolidation project.
+
+Exit: both classes pass behavior checks; Workshop selects/previews/checks/exports
+both with source-bound evidence; admission rejects contributor recommendations;
+Add/Try targets the chosen exact available release; explicit Update/Revert and
+existing source guards remain; legacy0.5.2 endpoint works; website displays a
+recommended exact version independently of Experimental status. Developer preview
+shows unpublished alternatives from canonical sibling metadata with no download
+or acceptance claims and is excluded from hosted builds. Finish with local checks,
+browser proof and independent review. Publication is a separate authorized step.
+
 ## Authority and boundaries
 
 Follow-up 2026-10-09: owner authorized creating and connecting the public source

@@ -5,6 +5,7 @@ const path = require('node:path');
 const {createHash} = require('node:crypto');
 const {pathToFileURL} = require('node:url');
 const {loadPublicCatalog, REPOSITORY_ID: PUBLIC_REPOSITORY} = require('./public-components');
+const {validateDiscovery} = require('./component-discovery');
 const GROUP = 'school.zero.community';
 const ARTIFACT = 'zero-community';
 const PREVIOUS = 'zero.community.previousVersion';
@@ -40,6 +41,7 @@ async function loadCatalog(catalogPath) {
   let catalog;
   try { catalog = JSON.parse(bytes.toString('utf8')); } catch { fail('The catalog is not valid JSON.'); }
   if (!catalog || typeof catalog !== 'object' || Array.isArray(catalog)) fail('The catalog must be a JSON object.');
+  if (catalog.discovery !== undefined || catalog.recommendation !== undefined || catalog.recommendations !== undefined || catalog.recommended !== undefined) fail('Local catalogs cannot claim discovery recommendations.');
   const library = catalog.library;
   if (catalog.schemaVersion !== 1 || catalog.origin !== 'local-proof' || !['repository', 'component-repository'].includes(catalog.repositorySubdirectory) || library?.groupId !== GROUP || library?.artifactId !== ARTIFACT || library.javaRelease !== 17 || library.javafxVersion !== '21.0.12') fail('Only the local Zero community proof catalog for Java 17 and JavaFX 21.0.12 is supported.');
   const repositoryPath = path.join(path.dirname(catalogPath), catalog.repositorySubdirectory);
@@ -85,6 +87,7 @@ async function loadCatalog(catalogPath) {
       relativePath(example.path); plain(example.description, 'example description');
     }
   }
+  validateDiscovery(catalog);
   return {catalog, catalogPath, repositoryPath, repositoryUrl: pathToFileURL(repositoryPath).href, fingerprint: hash(bytes)};
 }
 

@@ -17,6 +17,11 @@ import zero.community.HealthBar;
 /** A small native Java app. Main owns the preview state and updates its object explicitly. */
 public class Workshop extends SimpleApp {
   private ComponentProject project;
+  private final ComboBox<String> components = new ComboBox<>();
+  private final Label componentName = new Label();
+  private final Label componentDescription = new Label();
+  private final TextArea examplesText = new TextArea();
+  private final TextArea apiText = new TextArea();
   private final String[] states = {"Full", "Partial", "Empty", "Custom caption"};
   private final int[] values = {100, 75, 0, 60};
   private final VBox preview = new VBox(16);
@@ -41,7 +46,7 @@ public class Workshop extends SimpleApp {
 
   @Override
   public void settings() {
-    title("Zero / Component Workshop · HealthBar 0.1.2");
+    title("Zero / Component Workshop · Health bars");
     size(1120, 780);
   }
 
@@ -54,12 +59,16 @@ public class Workshop extends SimpleApp {
       project = new ComponentProject(root.startsWith("file:") ? Path.of(java.net.URI.create(root)) : Path.of(root));
       BorderPane screen = new BorderPane();
       screen.getStyleClass().add("workshop");
-      Label brand = new Label("✦  Zero / Component Workshop     HealthBar 0.1.2");
+      Label brand = new Label("✦  Zero / Component Workshop     Health bars " + project.version());
       brand.getStyleClass().add("brand");
-      Label name = new Label(project.value("name"));
-      name.getStyleClass().add("title");
-      Label description = new Label(project.value("description"));
-      description.setWrapText(true);
+      componentName.setText(project.value("name"));
+      componentName.getStyleClass().add("title");
+      componentDescription.setText(project.value("description"));
+      componentDescription.setWrapText(true);
+      for (JsonElement item : project.metadata.getAsJsonArray("components"))
+        components.getItems().add(item.getAsJsonObject().get("name").getAsString());
+      components.getSelectionModel().selectFirst();
+      components.setOnAction(event -> selectComponent(components.getValue()));
       Label gate =
           new Label(
               project.value("status")
@@ -67,15 +76,15 @@ public class Workshop extends SimpleApp {
                   + project.value("license")
                   + " · independent maintainer review required");
       gate.getStyleClass().add("muted");
-      VBox header = new VBox(8, brand, name, description, gate);
+      VBox header = new VBox(8, brand, components, componentName, componentDescription, gate);
       header.setPadding(new Insets(22));
       screen.setTop(header);
       tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
       tabs.getTabs()
           .addAll(
               new Tab("Preview", previewPage()),
-              new Tab("Examples", text(project.examples())),
-              new Tab("API", text(project.read("docs/HealthBar.md"))),
+              new Tab("Examples", examplesText),
+              new Tab("API", apiText),
               new Tab("Checks", checksPage()),
               new Tab("Prepare contribution", contributionPage()));
       screen.setCenter(tabs);
@@ -101,10 +110,29 @@ public class Workshop extends SimpleApp {
               });
       reset.setOnAction(event -> select(selected));
       check.setOnAction(event -> runChecks());
+      examplesText.setEditable(false); examplesText.setWrapText(true);
+      apiText.setEditable(false); apiText.setWrapText(true);
+      updateReference();
       select(0);
     } catch (Exception failure) {
       show(new VBox(12, new Label("Workshop could not open"), text(failure.getMessage())));
     }
+  }
+
+  private void updateReference() throws IOException {
+    componentName.setText(project.value("name")); componentDescription.setText(project.value("description"));
+    examplesText.setText(project.examples()); apiText.setText(project.read("docs/" + project.value("name") + ".md"));
+  }
+
+  private void selectComponent(String name) {
+    try {
+      for (JsonElement item : project.metadata.getAsJsonArray("components"))
+        if (item.getAsJsonObject().get("name").getAsString().equals(name))
+          project.select(item.getAsJsonObject().get("id").getAsString());
+      previewType = candidate == null ? Class.forName(project.value("className")) : candidate.types.get(project.value("className"));
+      updateReference(); refresh(); report = null;
+      feedback.setText("Selected " + name + ". Run checks to verify both declared alternatives.");
+    } catch (Exception failure) { feedback.setText(failure.getMessage()); }
   }
 
   private Node previewPage() {
@@ -326,6 +354,13 @@ public class Workshop extends SimpleApp {
       stateButtons.get(i).fire();
       require(bar.getHealth() == values[i], states[i]);
     }
+    for (String name : components.getItems()) {
+      components.getSelectionModel().select(name);
+      require(project.value("name").equals(name), "component selection " + name);
+      require(bar.view().getAccessibleText().equals("Energy: 60 / 100"), "selected alternative preview");
+      require(examplesText.getText().contains(name) && apiText.getText().contains(name), "selected API and examples");
+    }
+    components.getSelectionModel().selectFirst();
     Node oldView = bar.view();
     caption.setText("Completed");
     require(bar.view() != oldView, "fresh caption view");
@@ -338,7 +373,7 @@ public class Workshop extends SimpleApp {
     require(report != null, "run checks");
     require(report.getAsJsonObject("provenance").getAsJsonObject("testedArtifact")
         .get("sourceBinding").getAsString().equals("matched-immutable-source"),
-        "unchanged source matches the exact pinned 0.1.2 binary and sources");
+        "unchanged source matches exact pinned binary and source JAR");
     for (JsonElement item : report.getAsJsonArray("checks"))
       require(
           !item.getAsJsonObject().get("status").getAsString().equals("failed"),
@@ -349,6 +384,13 @@ public class Workshop extends SimpleApp {
       require(
           !item.getAsJsonObject().get("status").getAsString().equals("failed"),
           "candidate behavior result");
+    for (String name : components.getItems()) {
+      components.getSelectionModel().select(name);
+      require(previewType == candidate.types.get(project.value("className")), "candidate alternative selected");
+      amount.setValue(37); require(bar.getHealth() == 37, "candidate explicit update");
+    }
+    components.getSelectionModel().selectFirst();
+    runChecks();
     verifyCandidateDrift();
     Path parent = Files.createTempDirectory("zero-workshop-behavior-");
     try {
@@ -402,6 +444,40 @@ public class Workshop extends SimpleApp {
       }
       Files.writeString(candidate.resolve("private-notes.txt"), "outside packet scope");
       ComponentProject copy = new ComponentProject(candidate);
+      String originalMetadata = copy.read("catalog/components.json");
+      // Reject nested contributor claims when opening the project, before
+      // source checks can pass or a packet can be exported.
+      for (String field : List.of("recommended", "recommendation", "discovery", "command")) {
+        JsonObject invalid = project.metadata.deepCopy();
+        invalid.getAsJsonArray("components").get(0).getAsJsonObject()
+            .getAsJsonArray("examples").get(0).getAsJsonObject().addProperty(field, true);
+        Files.writeString(candidate.resolve("catalog/components.json"), invalid.toString());
+        boolean rejected = false;
+        try {new ComponentProject(candidate);} catch (IOException expected) {rejected=true;}
+        require(rejected, "nested example authority/commands cannot open or export");
+      }
+      JsonObject duplicate = project.metadata.deepCopy();
+      JsonArray duplicateExamples = duplicate.getAsJsonArray("components").get(0).getAsJsonObject().getAsJsonArray("examples");
+      duplicateExamples.set(1, duplicateExamples.get(0).deepCopy());
+      Files.writeString(candidate.resolve("catalog/components.json"), duplicate.toString());
+      boolean duplicateRejected = false;
+      try {new ComponentProject(candidate);} catch (IOException expected) {duplicateRejected=true;}
+      require(duplicateRejected, "duplicate app example IDs cannot open or export");
+      JsonObject malformed = project.metadata.deepCopy();
+      JsonArray arrayId = new JsonArray(); arrayId.add("adventure");
+      malformed.getAsJsonArray("components").get(0).getAsJsonObject()
+          .getAsJsonArray("examples").get(0).getAsJsonObject().add("id", arrayId);
+      Files.writeString(candidate.resolve("catalog/components.json"), malformed.toString());
+      boolean malformedRejected = false;
+      try {new ComponentProject(candidate);} catch (IOException expected) {malformedRejected=true;}
+      require(malformedRejected, "coerced example IDs cannot open or export");
+      JsonObject invalidCategory = project.metadata.deepCopy();
+      invalidCategory.getAsJsonArray("components").get(0).getAsJsonObject().addProperty("category", true);
+      Files.writeString(candidate.resolve("catalog/components.json"), invalidCategory.toString());
+      boolean categoryRejected = false;
+      try {new ComponentProject(candidate);} catch (IOException expected) {categoryRejected=true;}
+      require(categoryRejected, "category must be a string");
+      Files.writeString(candidate.resolve("catalog/components.json"), originalMetadata);
       String originalPom = copy.read("pom.xml");
       for (String pomMutation : List.of(
           originalPom.replace("</project>","<profiles><profile><id>hidden</id></profile></profiles></project>"),
@@ -509,6 +585,16 @@ public class Workshop extends SimpleApp {
         }
       }
       Files.writeString(candidate.resolve("src/main/java/zero/community/HealthBar.java"), original);
+      if (copy.files().contains("src/main/java/zero/community/SegmentedHealthBar.java")) {
+        Path segmented = candidate.resolve("src/main/java/zero/community/SegmentedHealthBar.java");
+        String segmentSource = Files.readString(segmented);
+        JsonObject bothChecked = WorkshopChecks.report(copy);
+        Files.writeString(segmented, segmentSource + "\n// changed second alternative\n");
+        boolean stale = false;
+        try { ContributionPacket.prepare(copy, candidate, bothChecked); } catch (IOException expected) { stale = true; }
+        require(stale, "second component drift invalidates shared receipt");
+        Files.writeString(segmented, segmentSource);
+      }
       edited = WorkshopChecks.report(copy);
       Path exported = ContributionPacket.prepare(copy, candidate, edited);
       try (java.util.zip.ZipFile zip =

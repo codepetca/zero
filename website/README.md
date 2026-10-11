@@ -45,3 +45,18 @@ The live site is https://zero.codepet.ca, deployed from `codepetca/zero` on Verc
 Cloudflare supplies the DNS-only CNAME recommended by Vercel; Vercel serves HTTPS. Release and deployment receipts are in the maintained verification record. Do not rebuild or replace published release bytes; prepare a new local kit version first.
 
 Browser interaction and design QA are recorded separately by the coordinator. A build is not proof of browser behavior or native Windows/Linux student setup.
+
+
+From the repository root, preview unpublished alternatives from the canonical
+sibling `../zero-community/catalog/components.json`:
+
+```sh
+ZERO_COMMUNITY_PREVIEW=1 npm run dev --prefix website -- --port 3014
+```
+
+The Community page labels those alternatives Unpublished and offers no public
+download. Published entries and download receipts still come from reviewed
+`release/community.json`. The preview is disabled on Vercel regardless of the
+flag. It never changes catalog/Maven/Workshop responses or recommends a candidate.
+The extended catalog is `/community/catalog-v2.json`; `/community/catalog.json`
+keeps the original schema1 HealthBar shape for released Zero0.5.2 installations.

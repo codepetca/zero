@@ -36,7 +36,7 @@ test('Stop during example executeTask terminates the delivered task; task end cl
       createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showErrorMessage:message=>errors.push(message)},
     commands:{registerCommand:(id,action)=>{commands.set(id,action);return disposable();},executeCommand:async()=>{}},
-    tasks:{onDidStartTask:disposable,onDidEndTask:handler=>{ends.push(handler);return disposable();},registerTaskProvider:disposable,
+    tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:handler=>{ends.push(handler);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{
         const active={task,terminated:0,terminate(){this.terminated++;ends.forEach(handler=>handler({execution:active}));}};
         launches.push(active);entered.resolve();

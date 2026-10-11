@@ -2,7 +2,7 @@
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
 separate JavaFX window. Extract the kit once to find `START-HERE.md`, the ready
-`starter/` folder, `zero-0.5.2.vsix` and an `optional/` folder containing the profile
+`starter/` folder, `zero-0.5.3.vsix` and an `optional/` folder containing the profile
 and keyboard shortcuts. The separate starter-only ZIP is also available locally.
 This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
@@ -23,8 +23,9 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.2.vsix** through
-   **Extensions → Install from VSIX…**, then install **Language Support for Java
+   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.3.vsix** through
+   **Extensions: Install from VSIX…** in the Command Palette, then use
+   **Extensions: Install Extensions** to install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
 3. Move or copy the kit's **starter folder** into your own location, outside any
@@ -32,7 +33,8 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    **zero-starter folder** instead. Open that folder, rather than a single
    Java file. Keep its hidden `.mvn` and `.vscode` folders. Trust it only after
    checking its source and build scripts.
-4. Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
+4. Open the starter's `lessons/00-hello-world.md` for **Lesson 0: Hello, world!**.
+   Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
    The first build needs internet to download Maven and JavaFX. Students do not
    need Node.js, global Maven or a separate JavaFX installation. On macOS/Linux,
    a ZIP that loses executable permissions may need `chmod +x mvnw` once.
@@ -41,10 +43,24 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
 
 ## Edit and run
 
-Start with `src/main/java/Main.java` and `ScoreDisplay.java`. The default quiz
-uses ordinary JavaFX controls: `settings()` configures the window and `setup()`
-builds the interface with `show(...)`. Button handlers call ordinary methods
-that update the quiz state and score display.
+Start with [Lesson 0: Hello, world!](../student-template/lessons/00-hello-world.md)
+and follow the [lesson guide](../student-template/lessons/README.md).
+These files are also bundled in the starter's `lessons/` folder.
+Zero opens the first lesson's preview once per project when the editor is empty.
+Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
+Zero run offers **Show Problems** to reach source errors.
+
+Edit only `src/main/java/Main.java` to start. Run App shows **Hello, world!**.
+Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.
+The older published 0.5.2 starter begins with the quiz; Lesson 0 includes the
+complete short program to replace it.
+
+Continue to [Lesson 1](../student-template/lessons/01-hello-button.md) for a
+button that changes the greeting. [Lesson 2](../student-template/lessons/02-hello-name.md)
+adds a name field. [Lesson 3](../student-template/lessons/03-quiz.md) checks **2 + 3**.
+Try a wrong answer, then **5**.
+Continue through [Lessons 4–12](../student-template/lessons/README.md): counters,
+objects, a complete study app, a coin game and Community sharing.
 
 Try the practice tracker to reuse ScoreDisplay. Try animation, keyboard or
 drawing to use `SketchApp`: it runs `update(seconds)` then `draw()` each frame;
@@ -57,8 +73,9 @@ and compiles the project, and restarts the app. Use **Ctrl+Shift+B** on Windows/
 or **Cmd+Shift+B** on macOS for the same default build task. There is no hot reload.
 **Stop** ends the owned run; the app lives in its own native window.
 
-Read compiler errors in the task terminal and Problems panel; open the indicated
-source line. See **Setup help** for missing local tools. F6/F7 are optional:
+Read compiler errors in the task terminal and Problems panel; use
+**View: Toggle Problems** in the Command Palette and open the indicated source
+line. See **Setup help** for missing local tools. F6/F7 are optional:
 merge `optional/optional-keybindings.json` into your keyboard shortcuts if wanted.
 
 To change appearance, run **Preferences: Color Theme** in the Command Palette.

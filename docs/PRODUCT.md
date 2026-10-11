@@ -9,7 +9,8 @@ later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
 page has the Zero wordmark, one sentence, Download Zero and Learn more only.
-`/learn` is a compact learning hub with six guided tutorials, examples and docs.
+`/learn` is a compact learning hub with thirteen lessons (0–12), including full app/game
+tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/community` introduces Zero Community and links to
 component development/contributions. It does not run Java in the browser or add
@@ -21,7 +22,15 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 `zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
 `size(...)`; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
-The default app is a small quiz with answer feedback and score state.
+The default app is a short Hello, world! window with one Label. Lesson 0
+practises Run, change the greeting and rerun; Lesson 1 adds one button
+that changes the greeting; Lesson 2 adds a name field; Lesson 3 checks one answer
+with if/else and feedback. Lessons 4–6 add counter state, reset methods and
+ordinary objects; 7 builds a study app; 8 teaches movement; 9 builds a coin game.
+Lessons 10–11 cover component extraction/reuse and proposing a Community
+contribution. Lesson 12 starts the larger game with sprites and short sound effects.
+Platformers, camera/world examples and physics are later work; see [game systems](GAME-SYSTEMS.md).
+The scored quiz remains a later reuse example.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as
@@ -29,7 +38,7 @@ Player or Mover. Canvas input belongs to the focused canvas; controls can receiv
 normal typing. The framework does not discover or automatically update objects.
 Useful startup errors explain invalid sizes and lifecycle misuse.
 
-The quiz and practice tracker reuse the canonical
+The scored quiz and practice tracker reuse the canonical
 `examples/shared/ScoreDisplay.java` unchanged. Each app creates its own instance;
 a JavaFX node has one parent. The optional caption extends this ordinary class
 while preserving the quiz's no-argument constructor. This compatible caption
@@ -71,8 +80,11 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   connected repo. There is one individual workflow; no team/PR mode.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
   Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
-- Compiler diagnostics support source navigation. Missing local tools have setup
-  help; GitHub sign-in does not block local running.
+- The first lesson opens once per project when the editor is empty; Open First
+  Lesson in the sidebar or Command Palette reopens it. Existing projects without lessons still run.
+- A run that exits with an error offers Show Problems for source navigation;
+  successful exits and explicit Stop do not show an error. Missing local tools
+  have setup help; GitHub sign-in does not block local running.
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing
   the local VSIX and Java extensions in it. The standard build shortcut runs
@@ -167,3 +179,15 @@ still need verification. First-time builds need
 internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
 cohort adoption. Original Zero code uses the [MIT license](../LICENSE);
 upstream wrapper notices apply separately to the wrapper.
+
+
+## Community alternatives and curated starting choices
+
+Community experiments can coexist in categories such as Health bars. Each has its
+own identity and explicit library-version availability. A reviewed catalog names
+one recommended exact version per category and shows it first, independently of
+Experimental/check/review status. Recommendations do not change installed pins
+or move code into core. Core promotion is an occasional human decision based on
+stable APIs, teaching value and maintenance. Plain and segmented health bars prove
+this locally while sharing one Maven library; independent package support follows
+only a concrete need. Website developer preview is opt-in and never hosted.

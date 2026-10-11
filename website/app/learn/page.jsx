@@ -12,10 +12,10 @@ export default function Learn() {
         <div className="hub-intro">
           <p className="eyebrow">Learn with Zero</p>
           <h1>Learn Java.</h1>
-          <p className="hub-lead">Six lessons. One small app.</p>
+          <p className="hub-lead">Start with Hello, world. Build from there.</p>
           <div className="hub-actions">
-            <a className="button" href="/tutorials/1">
-              Start lesson 1
+            <a className="button" href="/tutorials/0">
+              Start lesson 0
             </a>
             <a className="setup-link" href="/docs/setup">
               New here? Set up Zero <Icon name="arrow-right" />

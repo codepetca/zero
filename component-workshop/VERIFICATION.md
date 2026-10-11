@@ -80,3 +80,44 @@ source drift, public API mutants and source-bound scoped export. The Java packet
 and pinned-plugin packet both passed independent Python admission validation;
 fixtures cannot claim human acceptance. Final canonical source and extracted
 archive verification remain pending the coordinator's source commits.
+
+## Local alternatives — 2026-10-09
+
+Current source prepares school.zero.community:zero-community:0.1.3 locally with
+HealthBar and SegmentedHealthBar in health-bars. Native finite Workshop checks
+pass for selecting each component, selected API/examples, both artifact APIs and
+fill behavior, explicit adjustment/reset, isolated candidate compilation of both
+classes, mutation rejection and source-bound export. Both current ZIPs validate
+with independent Python admission. A packaged archive extracted under a path with
+spaces passes the same native harness using its generated exact0.1.3 POM pins.
+
+Prior0.1.2 compatibility was tested, not inferred: a HealthBar-only checkout made
+from the unchanged community base HEAD's eight owned files ran this current
+Workshop with the actual verified published0.1.2 library/source/POM bytes. Its
+native harness and exported schema1 packet validation pass. Default source POM
+retains0.1.2 pins and immutable hash fallback; preparation supplies exact current
+version/source/artifact hashes for0.1.3.
+
+Evidence lives under Zero .verification/alternatives/: current013-prepare.txt,
+current013-native.txt, current013-packet.zip, current013-packet-validation.json,
+current013-plugin-packet.zip, current013-plugin-packet-validation.json,
+current013-package.txt, extracted013-native.txt, legacy012-native.txt,
+legacy012-packet.zip and legacy012-packet-validation.json. Community
+.proof/local/0.1.3/{catalog.json,SOURCE.json,checks.json} binds source digest
+388dd646ae188f30f91df6404f126d6857fe9f292926c658ba7418f5f3a76c34.
+It records working-tree provenance; commit URLs identify the base only.
+Default public packaging rejects this working-tree proof. Local archives use
+version/source/artifact digests and cannot replace existing bytes.
+
+Community checks passed: six native JavaFX tests,35admission boundaries,13public
+release/acceptance boundaries, two reproducible builds, exact two-class source/API/
+MIT notices and four actual Maven app consumers (plain and segmented adventure/
+study). Historical install/update/revert passed all six app checks in50.35s,
+including known-bug rejection and artifact replacement refusal. Plain HealthBar
+main bytes and all five preserved release source/POM/test files match baseHEAD.
+
+Checks use synthetic JavaFX events on macOS. Native platform startup/shutdown
+warnings were emitted, but finite harness markers and Maven exit codes passed.
+Physical input, DirectoryChooser, Windows/Linux, extension Try's exact native
+launch and novice trials remain untested. No AI provider, independent maintainer
+acceptance, recommendation, publication, Git push or credential changes occurred.
