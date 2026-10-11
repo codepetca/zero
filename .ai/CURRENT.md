@@ -36,20 +36,23 @@ alternatives HTTP200 with exact size/hash verified without authentication.
 Actual browser Mac button downloaded identical DMG; screenshot live-downloads.jpg.
 Authorized source/merge/publication/website goal complete. No active worker.
 Final completion receipt .verification/mac-publication/delivery.json.
-Current owner request: native setup uses only home/Zero, with no folder/name
-picker or numbered alternatives. Existing recognizable Zero requires an explicit
-Update Zero/Cancel warning; preserve all student work and back up replaced setup
-files. Unrelated folders/files/links must be refused. Local implementation on
-codex/default-setup-folder. Mac worker mac_upgrade_preserve owns native Mac;
-Windows worker windows_upgrade_preserve owns native Windows; coordinator owns
-contracts/docs/integration. Workers GPT-6.1-Sol/high; no recursive delegation.
-Focused checks/independent review precede acceptance. No new release/signing,
-push/PR/deployment authorized. Windows physical testing remains held. Published
-0.5.6 assets and sealed candidate remain immutable; primary funding untouched.
-Prior default-folder implementation reviewed clean at0adb412; local receipt notes
-886953f. Current edits supersede optional location/numbered-folder behavior.
-Receipts .verification/upgrade-default/. Weekly89% remaining at start; effective
-models/attributable tokens and cost unknown.
+Current owner request completed locally: native setup uses only home/Zero; no
+folder/name picker or numbered alternatives. Existing recognizable Zero requires
+Update Zero/Cancel warning, preserves all student project/optional files, and
+backs up replaced setup runtime. Unsafe/unrelated targets refused. Local source
+6abdac87cf358fd9ba0f7c7cf198cc04d0158ed3 on codex/default-setup-folder.
+Two bounded Sol/high platform workers completed. Independent complete Sol/high
+preservation+workflow review and targeted pass resolved1P2 Windows concurrent-edit
+backup issue;3review turns/1fixbatch. No remaining blockers or active workers.
+Mac179/Windows228fixture checks, bothMacarchitecture production compiles, WinForms
+cross-build/root/diff/8installer/2sealing checks passed. CUA fake-only Mac warning,
+Cancel and confirmedready passed. Receipts .verification/upgrade-default/.
+No push/PR/release/signing/notarization/deployment authorized or performed in this
+phase. New versioned verified installer release is next; public0.5.6 and sealed
+candidate remain immutable with old picker. Windows physical testing remains held;
+primary funding checkout/Community untouched. Prior optional location/numbered
+folder implementation is superseded. Weekly89% at start; effective models/task
+cost and attributable tokens unknown.
 The separately published ZIP/starter/VSIX remain0.5.3, freshly verified without
 authentication and pinned in release/published-kit.json. Local kit/extension0.5.6
 and core0.1.1 are not separately published. Community0.1.3 untouched.

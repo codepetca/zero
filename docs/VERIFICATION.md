@@ -648,3 +648,54 @@ accepted; no source push/PR or new installer release performed.
 Receipts `.verification/default-folder/`; weekly89% at start is account allowance,
 effective models/task tokens/attributable cost and coordination time unknown.
 Primary funding checkout and Community untouched.
+
+
+## Fixed native location and confirmed setup updates — local source, 2026-10-11
+
+Owner removed location/name choices and numbered alternatives, then requested
+existing-folder updates with a warning while preserving saves. Local native setup
+uses only user-home/Zero. Existing recognizable kits get Update Zero/Cancel:
+“Setup files will be replaced. Your code, assets and saved projects will be kept.”
+Cancel writes nothing. Files/links/unrelated Zero folders are refused. Fresh
+placement retains exclusive publication and never upgrades a raced target silently.
+
+Only allowlisted setup runtime, guide/license, metadata and the current VSIX change.
+Entire starter (source/framework edits/POM/wrappers/settings/Git/assets/saves),
+optional files, extras and old VSIXs remain unchanged. Replaced files are backed up
+with a Details path. Transaction guards serialize updates, verify target identities,
+commit metadata last and attempt rollback without discarding recovery data.
+Student project/API upgrades remain separate from updating setup.
+
+Two bounded GPT-6.1-Sol/high platform workers completed; one writer per platform,
+no recursive delegation. Mac179disposable/fake assertions and ARM64/x86_64 macOS12
+production compiles passed. Windows228net48/Mono assertions, including an update of
+the existing packaged kit and concurrent-edit regressions, passed; WinForms
+cross-build0warnings/errors. Coordinator root check,8installer tests,2Macsealing
+checks and diff checks passed. CUA fake-only Mac preview verified the minimal
+screen, native warning, Cancel→unchanged and Update Zero→ready. Screenshot
+`.verification/upgrade-default/mac-confirmation.jpg`; owned test process terminated.
+
+Complete independent GPT-6.1-Sol/high preservation and workflow reviews inspected
+886953f4d92049dbb8224ec47caa17d836635e58→6d4fced89a0b73c781790ff1284a7da6bcc709f8.
+One accepted P2: Windows could lose runtime edits made during commit/rollback.
+Correction6abdac87cf358fd9ba0f7c7cf198cc04d0158ed3 atomically retains actual replaced
+entries and rollback targets, detects drift and keeps ambiguous recovery backups.
+Complete targeted preservation review of the two-file correction: resolved,
+0newblockers.3review turns/1initialwave/1targetedwave/1fixbatch. Unchanged Mac and
+workflow coverage reused; no additional integration wave needed because the
+correction stayed inside the reviewed filesystem boundary and targeted review
+covered retry/metadata interactions. Windows/Mac recognition criteria differ,
+but both refuse unsafe targets and preserve student files; no demonstrated
+workflow blocker. Requested models/efforts recorded; effective configuration,
+per-turn tokens/elapsed/cost and coordinator active time unknown. Overall session
+timestamps are in `.verification/upgrade-default/review.json`; weekly89% remaining
+at start is account allowance, not task cost. DeepSeek remains paused.
+
+Local source accepted only. No source push/PR, signing/notarization, dist rebuild,
+release replacement, deployment, account/credential changes or actual tool installs.
+Public signed Mac0.5.6 still uses its old picker; a new versioned verified release
+is needed to deliver this flow. Primary funding checkout and Community untouched.
+Windows physical/native handle/WinForms testing remains held. Physical Intel,
+macOS12 execution, fresh-machine vendor/trust flows and novice use remain untested.
+Receipts `.verification/upgrade-default/`; prior optional-folder behavior above
+is historical and superseded by this phase.
