@@ -291,3 +291,31 @@ Physical Intel execution, fresh-machine installs/security prompts, profile impor
 trust, restricted networks and novice use remain unverified; Windows explicitly held.
 Primary funding branch and Community preserved. Separate requested business-account
 conversation is projectless; no membership or certificate change from that task.
+
+
+## Apple notarization completed — 2026-10-11
+
+User personally created/entered the app-specific password; the local login-Keychain
+profile “Zero Notarization” authenticated with Apple. Codex did not read its value.
+Apple accepted submission `4e9cb092-c188-4066-add4-726928ee0d16` with no issues.
+Downloaded Apple log binds submitted SHA256
+`c9644040203edde4eed4f303b14a4320c65d4fb2f99be352887352aff6fb9631`
+to that job. No repeat submission or new certificate was needed.
+
+`xcrun stapler staple` and `stapler validate` succeeded. Gatekeeper DMG assessment
+reported accepted/source=Notarized Developer ID. The signed artifact verifier
+passed after stapling: actual app/DMG signatures, both architectures, exact kit
+bytes/modes, ticket validation, DMG and mounted-app Gatekeeper assessment.
+`build-macos-signed.json` now records notarized:true, source1cc8461, submitted
+hash/size, submission ID/status/staple and Gatekeeper outcomes. Final684093-byte
+DMG SHA256: `f211ae3963e9ff6bab20413e2a53601ada4d7eb215741d9e496dd1b656424c60`.
+Identical copy verified in `/Users/stew/Downloads/Zero-Setup-0.5.4-macos.dmg`.
+Ignored Apple submission/log/completion receipts and pre-staple DMG are retained
+under `.verification/mac-signing/`. No runtime source changed; completed independent
+review coverage reused. This phase handled directly by coordinator.
+
+No push, PR, merge, public release/deployment, account conversion, Keychain policy
+change, new certificate or Windows testing. Existing signed Mac UI check evidence
+applies; a fresh Mac's downloaded/quarantine/install/profile/permission flow and
+physical Intel remain untested. Gatekeeper CLI acceptance on this owner Mac does
+not prove those interactive flows. Previous unsigned-phase limits are historical.

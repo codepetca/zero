@@ -37,7 +37,7 @@ plaintext staging key copies removed. Public CSR/certificate/recovery metadata
 remain outside Git under Library/Application Support/Zero Signing.
 
 Local dist/installers/Zero-Setup-0.5.4-macos.dmg is Developer ID signed,
-NOT notarized. Separate build-macos-signed.json binds actual signer/team,
+Apple accepted and ticket-stapled (submission4e9cb092-c188-4066-add4-726928ee0d16). Separate build-macos-signed.json binds actual signer/team,
 secure app/DMG timestamps, both architectures and exact unchanged kit. App uses
 hardened runtime, no entitlements and production bundleID ca.codepet.zero.setup.
 Default unsigned DMG/build-macos.json preserved. Signed app opened; real read-only
@@ -53,15 +53,24 @@ Effective model/token/time unavailable; weekly99% remaining at start is account
 allowance, not task cost. See EVIDENCE/VERIFICATION and ignored
 .verification/mac-signing/review-ledger.json for receipts.
 
-## Next action: human authentication, then notarization
+## Notarization complete; next: fresh Mac test
 
-Profile “Zero Notarization” absent in login Keychain at last check. Apple Account
-sign-in tab and private local Terminal launcher are open for human app-specific-
-password creation/hidden entry. Do not read passwords or inspect a password-result
-page. After the user completes authentication, verify profile, submit this exact
-signed DMG, record submission ID, wait for Accepted, staple/validate, remeasure
-receipt and verify Gatekeeper before setting notarized:true. No submission,
-staple or Gatekeeper acceptance yet. Do not rebuild unless source changes.
+User created/entered the Apple app-specific password personally; notarytool profile
+“Zero Notarization” authenticated from local login Keychain. Codex did not read
+its value. Apple accepted submission4e9cb092-c188-4066-add4-726928ee0d16 with
+no issues; exact submitted SHA256 is bound in the signed receipt and Apple log.
+DMG ticket stapled/validated; final signed verifier passed all payload/signature
+checks and Gatekeeper assessment of both DMG and mounted app. Final684093-byte
+DMG SHA256 f211ae3963e9ff6bab20413e2a53601ada4d7eb215741d9e496dd1b656424c60.
+Same hash verified in /Users/stew/Downloads/Zero-Setup-0.5.4-macos.dmg.
+Ignored evidence: .verification/mac-signing/notarization-{submit,log,complete}.json;
+submitted pre-staple DMG preserved there. No public release or membership changes.
+
+Local signing/notarization phase is complete. Next useful validation: actual
+fresh-machine downloaded installer/setup with normal security/profile prompts,
+then decide publication separately. Windows still held; physical Intel not run.
+Do not regenerate or publish this candidate without revalidating resulting bytes.
+No source changes in notarization pass; source review coverage is unchanged.
 
 Earlier isolated real VS Code checks proved Run/autosave/default-build/Stop with
 Zero0.5.4/Java extensions; quiet-profile settings were a fixture, not a tested
