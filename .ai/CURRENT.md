@@ -36,20 +36,20 @@ alternatives HTTP200 with exact size/hash verified without authentication.
 Actual browser Mac button downloaded identical DMG; screenshot live-downloads.jpg.
 Authorized source/merge/publication/website goal complete. No active worker.
 Final completion receipt .verification/mac-publication/delivery.json.
-Current owner request: native setup defaults to a Zero folder in the user's home,
-with optional Change location; fresh numbered folders preserve existing projects.
-Local implementation on codex/default-setup-folder. Mac and Windows source changes
-plus focused checks/review only; no new release/signing/deployment authorized.
-Windows physical testing remains held. Published0.5.6 assets remain immutable.
-Local source complete at0adb412b537ed0edd6d83e820192d033339f536a. Two bounded
-GPT-6.1-Sol/high platform workers completed; independent complete Sol/high review
-found0blockers (1turn/0fixbatches). Mac145/Windows153harness checks,3PowerShell
-checks, bothMacarchitecture compiles/WinForms cross-build, root/diff/8installer/
-2sealing checks passed. Actual CUA fake-only Mac preview: default screen, optional
-picker cancellation and primary→ready passed. Receipts .verification/default-folder/.
-No active worker. Next installer release requires a new version/build; public0.5.6
-still uses the old chooser. No push/PR/new release in this phase.
-
+Current owner request: native setup uses only home/Zero, with no folder/name
+picker or numbered alternatives. Existing recognizable Zero requires an explicit
+Update Zero/Cancel warning; preserve all student work and back up replaced setup
+files. Unrelated folders/files/links must be refused. Local implementation on
+codex/default-setup-folder. Mac worker mac_upgrade_preserve owns native Mac;
+Windows worker windows_upgrade_preserve owns native Windows; coordinator owns
+contracts/docs/integration. Workers GPT-6.1-Sol/high; no recursive delegation.
+Focused checks/independent review precede acceptance. No new release/signing,
+push/PR/deployment authorized. Windows physical testing remains held. Published
+0.5.6 assets and sealed candidate remain immutable; primary funding untouched.
+Prior default-folder implementation reviewed clean at0adb412; local receipt notes
+886953f. Current edits supersede optional location/numbered-folder behavior.
+Receipts .verification/upgrade-default/. Weekly89% remaining at start; effective
+models/attributable tokens and cost unknown.
 The separately published ZIP/starter/VSIX remain0.5.3, freshly verified without
 authentication and pinned in release/published-kit.json. Local kit/extension0.5.6
 and core0.1.1 are not separately published. Community0.1.3 untouched.

@@ -49,7 +49,7 @@ namespace ZeroSetup
     {
         string Root { get; }
         Task EnsureKit(CancellationToken cancellation);
-        Task<string> Place(string parent, string name, CancellationToken cancellation);
+        Task<string> Place(string parent, string name, KitFiles.KitTarget expected, Action<string> diagnostic, CancellationToken cancellation);
         Task<CheckResult> Run(string root, string action, string target, bool approved, CancellationToken cancellation);
         Task Download(string url, CancellationToken cancellation);
     }
@@ -61,13 +61,14 @@ namespace ZeroSetup
         private readonly Func<string> userHome;
         private SetupSnapshot snapshot;
         private bool profileStarted;
+        private KitFiles.KitTarget defaultTarget;
+        public bool DefaultIsExisting { get { return defaultTarget != null && defaultTarget.Existing; } }
         public Action Changed;
         public bool Busy { get; private set; }
         public SetupStage Stage { get; private set; } = SetupStage.Checking;
         public ProfileStep Step { get; private set; }
         public string SelectedFolder { get; private set; }
         public string DefaultFolder { get; private set; }
-        public bool CanChangeLocation { get { return !Busy && Stage == SetupStage.ChooseFolder; } }
         public string Summary { get; private set; } = "Checking your laptop…";
         public string Diagnostics { get; private set; } = "Git and Java debugging are optional. GitHub sign-in and sharing are separate.\r\nAfter changing Java, close all VS Code windows and reopen it. Windows may need a restart to refresh PATH/JAVA_HOME. A CLI check does not verify an already-running editor's Java environment.\r\n";
         public string Root { get { return SelectedFolder ?? backend.Root; } }
@@ -95,7 +96,7 @@ namespace ZeroSetup
         {
             get
             {
-                if (Stage == SetupStage.ChooseFolder && DefaultFolder != null) return "Zero will create " + DefaultFolder + ". Existing folders are preserved. Choose Change location to use another folder.";
+                if (Stage == SetupStage.ChooseFolder && DefaultFolder != null) return DefaultIsExisting ? "Setup files will be replaced. Your code, assets and saved projects will be kept." : "Zero will create " + DefaultFolder + ".";
                 if (Stage == SetupStage.ProfileConsent) return "Import the supplied light theme and autosave settings in a separate profile named Zero. Existing profiles are preserved. Follow each instruction here, then choose Check profile.";
                 if (Stage == SetupStage.ExtensionConsent) return "Install bundled Zero and missing Java language support (redhat.java) in the Zero profile? Java support downloads from the VS Code Marketplace. Compatible extensions and other profiles are preserved.";
                 return "";
@@ -174,35 +175,44 @@ namespace ZeroSetup
         }
         private void ChooseDefaultFolder(string message = null)
         {
-            DefaultFolder = null;
+            DefaultFolder = null; defaultTarget = null;
             try
             {
-                DefaultFolder = KitFiles.ResolveDefaultFolder(userHome());
-                Set(SetupStage.ChooseFolder, message ?? "Create " + Path.GetFileName(DefaultFolder) + " in your home folder.");
+                defaultTarget = KitFiles.InspectDefaultFolder(userHome());
+                DefaultFolder = defaultTarget.Path;
+                Set(SetupStage.ChooseFolder, message ?? (DefaultIsExisting ? "Zero is already here. Update setup files?" : "Create Zero in your home folder."));
             }
             catch (Exception error)
             {
                 Record(error.Message);
-                Set(SetupStage.ChooseFolder, "Change location to choose a writable folder.");
+                Set(SetupStage.ChooseFolder, "Cannot use home. See Details, then retry.");
             }
         }
-        public Task Place(string parent, string name)
+        public Task Place(string parent, string name, bool updateApproved = false)
         {
             if (Busy || SelectedFolder != null || parent == null || name == null) return Task.CompletedTask;
+            if (defaultTarget == null || Path.GetFullPath(Path.Combine(parent, name)) != defaultTarget.Path || (defaultTarget.Existing && !updateApproved)) return Task.CompletedTask;
             return Operation("Preparing your Zero folder…", async () =>
             {
-                try { SelectedFolder = await backend.Place(parent, name, cancellation); Record("Kit folder: " + SelectedFolder); }
-                catch (Exception error) when (!(error is OperationCanceledException)) { Record(error.Message); ChooseDefaultFolder("Try again or change location. See Details."); return; }
+                try { SelectedFolder = await backend.Place(parent, name, defaultTarget, Record, cancellation); Record("Kit folder: " + SelectedFolder); }
+                catch (Exception error) when (!(error is OperationCanceledException)) { Record(error.Message); ChooseDefaultFolder("Could not prepare Zero. See Details, then retry."); return; }
                 SetBusy(true, "Checking your laptop…"); await CheckCore();
             });
         }
-        public Task PrimaryAction()
+        public Task PrimaryAction(Func<bool> confirmUpdate = null)
         {
             if (Busy) return Task.CompletedTask;
             if (Stage == SetupStage.ChooseFolder)
             {
-                ChooseDefaultFolder();
-                return DefaultFolder == null ? Task.CompletedTask : Place(Path.GetDirectoryName(DefaultFolder), Path.GetFileName(DefaultFolder));
+                if (DefaultFolder == null) ChooseDefaultFolder();
+                if (DefaultFolder == null) return Task.CompletedTask;
+                bool approved = false;
+                if (DefaultIsExisting)
+                {
+                    if (confirmUpdate == null || !confirmUpdate()) return Task.CompletedTask;
+                    approved = true;
+                }
+                return Place(Path.GetDirectoryName(DefaultFolder), Path.GetFileName(DefaultFolder), approved);
             }
             if (Stage == SetupStage.Retry || Stage == SetupStage.BlockedJava) return Check();
             if (Stage == SetupStage.ProfileStep)

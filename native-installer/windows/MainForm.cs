@@ -14,7 +14,6 @@ namespace ZeroSetup
         private readonly Button primary;
         private readonly Button back;
         private readonly Button details;
-        private readonly Button changeLocation;
         private readonly NativeSetupBackend backend = new NativeSetupBackend();
         private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
         private readonly CloseGate closeGate = new CloseGate();
@@ -34,14 +33,12 @@ namespace ZeroSetup
             primary = new Button { Location = new Point(125, 92), Size = new Size(190, 30), Text = "Please wait" };
             back = new Button { Location = new Point(16, 145), Size = new Size(62, 25), Text = "Back", Visible = false };
             details = new Button { Location = new Point(345, 145), Size = new Size(79, 25), Text = "Details…" };
-            changeLocation = new Button { Location = new Point(150, 145), Size = new Size(140, 25), Text = "Change location…", Visible = false };
-            Controls.AddRange(new Control[] { progress, status, primary, back, details, changeLocation });
+            Controls.AddRange(new Control[] { progress, status, primary, back, details });
             AcceptButton = primary;
             controller.Changed = RefreshStatus;
             primary.Click += async (sender, args) => await PrimaryAction();
             back.Click += (sender, args) => controller.PreviousProfileStep();
             details.Click += (sender, args) => ShowDetails();
-            changeLocation.Click += async (sender, args) => { if (controller.CanChangeLocation) await ChooseFolder(); };
             Shown += async (sender, args) => await controller.Check();
             FormClosing += (sender, args) =>
             {
@@ -61,8 +58,6 @@ namespace ZeroSetup
             back.Visible = controller.CanGoBack;
             back.Enabled = !controller.Busy;
             progress.Visible = controller.Busy;
-            changeLocation.Visible = controller.Stage == SetupStage.ChooseFolder && !controller.Busy;
-            changeLocation.Enabled = controller.CanChangeLocation;
         }
         private async Task PrimaryAction()
         {
@@ -72,28 +67,19 @@ namespace ZeroSetup
                 controller.CopyProfilePath(path => { Clipboard.SetText(path); return true; });
                 return;
             }
-            await controller.PrimaryAction();
+            await controller.PrimaryAction(ConfirmUpdate);
         }
-        private async Task ChooseFolder()
+        private bool ConfirmUpdate()
         {
-            using (var picker = new FolderBrowserDialog { Description = "Choose a writable parent folder. Zero will create a new folder inside it.", ShowNewFolderButton = true })
+            using (var dialog = new Form { Text = "Update Zero?", ClientSize = new Size(440, 150), FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false, MinimizeBox = false, StartPosition = FormStartPosition.CenterParent, Font = Font })
             {
-                if (picker.ShowDialog(this) != DialogResult.OK) return;
-                string name = AskFolderName();
-                if (name != null) await controller.Place(picker.SelectedPath, name);
-            }
-        }
-        private string AskFolderName()
-        {
-            using (var dialog = new Form { Text = "New Zero folder", ClientSize = new Size(420, 142), FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MinimizeBox = false, MaximizeBox = false, Font = Font })
-            {
-                var label = new Label { Text = "Name a new folder. Existing folders are kept.", Location = new Point(16, 16), AutoSize = true };
-                var input = new TextBox { Text = "Zero", Location = new Point(16, 44), Width = 388, MaxLength = 100 };
-                var ok = new Button { Text = "Set up Zero", DialogResult = DialogResult.OK, Location = new Point(200, 88), Width = 104 };
-                var cancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new Point(312, 88), Width = 92 };
-                dialog.Controls.AddRange(new Control[] { label, input, ok, cancel });
-                dialog.AcceptButton = ok; dialog.CancelButton = cancel;
-                return dialog.ShowDialog(this) == DialogResult.OK ? input.Text : null;
+                var warning = new Label { Location = new Point(20, 20), Size = new Size(400, 60), Text = "Setup files will be replaced. Your code, assets and saved projects will be kept.", AccessibleName = "Update warning" };
+                var update = new Button { Text = "Update Zero", Location = new Point(180, 100), Size = new Size(115, 30), DialogResult = DialogResult.OK };
+                var cancel = new Button { Text = "Cancel", Location = new Point(305, 100), Size = new Size(115, 30), DialogResult = DialogResult.Cancel };
+                dialog.Controls.AddRange(new Control[] { warning, update, cancel });
+                dialog.AcceptButton = cancel; dialog.CancelButton = cancel;
+                return dialog.ShowDialog(this) == DialogResult.OK;
             }
         }
         private void ShowDetails()

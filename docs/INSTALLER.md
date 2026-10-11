@@ -49,12 +49,26 @@ can still leave owned staging, never permission to replace an existing project.
 
 ## Default location in the next local build
 
-The next native setup build offers **Set up Zero** using a `Zero` folder inside
-current user’s home: `~/Zero` on macOS and `%USERPROFILE%\Zero` on Windows.
-**Change location…** remains optional. If that path is occupied by any existing
-file, folder or link, setup chooses `Zero-2`, `Zero-3`, and so on. It creates a
-fresh kit only when Set up Zero is chosen; existing projects are never replaced.
-A location/copy failure keeps the optional picker and retry available.
+The next native setup build uses only `~/Zero` on macOS and
+`%USERPROFILE%\Zero` on Windows. There is no location or name picker and no
+numbered replacement folder. A fresh install begins with **Set up Zero**.
+
+When that folder already contains a recognizable Zero kit, setup asks:
+**“Update Zero? Setup files will be replaced. Your code, assets and saved projects
+will be kept.”** Choose **Update Zero** or **Cancel**. Cancelling leaves the kit
+untouched. Files, links and unrelated folders named Zero are refused rather than
+overwritten; resolve that conflict manually before retrying.
+
+An update refreshes only the bundled setup launchers/scripts, setup metadata,
+top-level guide/license and the current version’s Zero VSIX. Replaced setup files
+are backed up, with the backup location in Details. The entire `starter/` project,
+including source, framework copies, build files, editor settings, Git history,
+assets and saves, remains unchanged. Existing `optional/` profile/keybinding files,
+other files and older VSIXs remain unchanged too. Updating setup does not migrate
+an existing student app to a new Java API or project build configuration.
+
+An access/copy failure offers Details and retry. Fix home folder access (or ask
+for help) before retrying; setup never silently falls back to another location.
 
 The public signed Mac0.5.6 installer still uses its original folder picker.
 These source changes need a new versioned, verified installer release before

@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.IO.Compression;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
+using System.Text;
+using System.Security.Cryptography;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace ZeroSetup
 {
@@ -12,28 +17,206 @@ namespace ZeroSetup
     {
         private const long MaxFileBytes = 16 * 1024 * 1024;
         private const long MaxTotalBytes = 128 * 1024 * 1024;
-        internal const int MaxDefaultFolders = 1000;
-
-        // Read-only selection. The exclusive final move in PlaceFreshKit still
-        // decides ownership if another process takes this name after selection.
-        public static string ResolveDefaultFolder(string home, Func<string, FileAttributes> attributes = null)
+        internal sealed class KitTarget
         {
-            if (string.IsNullOrWhiteSpace(home)) throw new IOException("Your home folder is unavailable. Change location to choose an existing writable folder.");
-            home = Path.GetFullPath(home);
+            public string Path { get; internal set; }
+            public bool Existing { get; internal set; }
+            internal string Identity, Metadata;
+        }
+
+        // Selection is read-only. A fresh expectation may never turn into an update.
+        public static string ResolveDefaultFolder(string home) { return InspectDefaultFolder(home).Path; }
+        public static KitTarget InspectDefaultFolder(string home)
+        {
+            if (string.IsNullOrWhiteSpace(home)) throw new IOException("Your home folder is unavailable. See Details, then retry.");
+            home = System.IO.Path.GetFullPath(home);
             RejectReparseAncestors(home);
-            var read = attributes ?? File.GetAttributes;
-            if ((read(home) & FileAttributes.Directory) == 0)
-                throw new IOException("Your home folder is unavailable. Change location to choose an existing writable folder.");
-            for (int number = 1; number <= MaxDefaultFolders; number++)
+            if (!Directory.Exists(home)) throw new IOException("Your home folder is unavailable. See Details, then retry.");
+            string path = System.IO.Path.Combine(home, "Zero");
+            RejectReparseAncestors(path);
+            if (!EntryExists(path)) return new KitTarget { Path = path };
+            if (!Directory.Exists(path)) throw new IOException("Your home Zero path is a file. Move it safely before retrying.");
+            string metadata = ReadKitMetadata(path);
+            return new KitTarget { Path = path, Existing = true, Identity = DirectoryIdentity(path), Metadata = metadata };
+        }
+        private static bool EntryExists(string path)
+        {
+            try { File.GetAttributes(path); return true; }
+            catch (FileNotFoundException) { return false; }
+            catch (DirectoryNotFoundException) { return false; }
+        }
+        private static void RequireRegularFile(string path)
+        {
+            RejectReparseAncestors(path);
+            if ((File.GetAttributes(path) & FileAttributes.Directory) != 0) throw new IOException("Expected a regular setup file: " + path);
+        }
+        private static string ReadKitMetadata(string root)
+        {
+            foreach (string relative in new[] { "setup/Setup.cmd", "setup/Setup.ps1", "setup/README.md", "starter/zero.json", "START-HERE.md", "setup/kit.properties" })
+                RequireRegularFile(ContainedPath(root, relative));
+            string metadataPath = ContainedPath(root, "setup/kit.properties");
+            if (new FileInfo(metadataPath).Length > 4096) throw new IOException("Zero setup metadata is invalid.");
+            string metadata = File.ReadAllText(metadataPath);
+            if (metadata.Length > 4096) throw new IOException("Zero setup metadata is invalid.");
+            var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (string line in metadata.Replace("\r\n", "\n").Split('\n'))
             {
-                string candidate = Path.Combine(home, number == 1 ? "Zero" : "Zero-" + number);
-                try { read(candidate); }
-                catch (FileNotFoundException) { return candidate; }
-                catch (DirectoryNotFoundException) { return candidate; }
-                // Every existing entry, including a dangling link or junction,
-                // reserves its name. Permission and other lookup errors propagate.
+                if (line.Length == 0) continue;
+                int split = line.IndexOf('=');
+                if (split <= 0 || fields.ContainsKey(line.Substring(0, split))) throw new IOException("Zero setup metadata is invalid.");
+                fields.Add(line.Substring(0, split), line.Substring(split + 1));
             }
-            throw new IOException("All default Zero folder names are occupied. Change location to choose a new folder.");
+            Version version, minimum;
+            if (fields.Count != 3 || !fields.ContainsKey("kitVersion") || !Version.TryParse(fields["kitVersion"], out version) || version.Build < 0 || version.Revision >= 0 ||
+                !fields.ContainsKey("extensionId") || fields["extensionId"] != "zero.zero" || !fields.ContainsKey("vscodeMinimum") || !Version.TryParse(fields["vscodeMinimum"], out minimum))
+                throw new IOException("This Zero folder is not a recognizable kit. Your files were kept.");
+            return metadata;
+        }
+        private static string KitVersion(string metadata)
+        {
+            return metadata.Replace("\r\n", "\n").Split('\n').Single(line => line.StartsWith("kitVersion=", StringComparison.Ordinal)).Substring(11);
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct FileIdentity
+        {
+            public uint Attributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME Creation, Access, Write;
+            public uint Volume, SizeHigh, SizeLow, Links, IndexHigh, IndexLow;
+        }
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern SafeFileHandle CreateFile(string name, uint access, uint share, IntPtr security, uint disposition, uint flags, IntPtr template);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool GetFileInformationByHandle(SafeFileHandle handle, out FileIdentity info);
+        private static SafeFileHandle HoldDirectory(string path)
+        {
+            // Deny deletion/rename while updating on Windows. The Mono harness uses
+            // creation time for identity; native file IDs are verified on Windows.
+            if (System.IO.Path.DirectorySeparatorChar != '\\') return null;
+            var handle = CreateFile(path, 0, 3, IntPtr.Zero, 3, 0x02000000, IntPtr.Zero);
+            if (handle.IsInvalid) { handle.Dispose(); throw new IOException("Cannot hold the Zero folder safely."); }
+            return handle;
+        }
+        private static string DirectoryIdentity(string path)
+        {
+            using (var handle = HoldDirectory(path))
+            {
+                if (handle == null) return Directory.GetCreationTimeUtc(path).Ticks.ToString();
+                FileIdentity info;
+                if (!GetFileInformationByHandle(handle, out info)) throw new IOException("Cannot verify the Zero folder identity.");
+                return info.Volume + ":" + info.IndexHigh + ":" + info.IndexLow;
+            }
+        }
+        private static void Recheck(KitTarget expected, bool metadata = true)
+        {
+            if (!metadata)
+            {
+                RejectReparseAncestors(expected.Path);
+                if (!Directory.Exists(expected.Path) || DirectoryIdentity(expected.Path) != expected.Identity) throw new IOException("The Zero folder identity changed; runtime backup retained.");
+                return;
+            }
+            var actual = InspectDefaultFolder(System.IO.Path.GetDirectoryName(expected.Path));
+            if (actual.Existing != expected.Existing || actual.Path != expected.Path || actual.Identity != expected.Identity || (metadata && actual.Metadata != expected.Metadata))
+                throw new IOException("The Zero folder changed. Check again and confirm before updating.");
+        }
+
+        // Only setup runtime files are replaced. The complete starter and optional
+        // settings are student-owned, including its frameworks, wrapper and saves.
+        public static string UpdateKit(string source, KitTarget expected, CancellationToken cancellation, Action<string> diagnostic = null,
+            Action<string> beforeCommit = null, Action<string> afterReplace = null)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (expected == null || !expected.Existing) throw new IOException("An existing Zero kit requires explicit confirmation.");
+            string parent = System.IO.Path.GetDirectoryName(expected.Path);
+            string lockName;
+            using (var hash = SHA256.Create()) lockName = "ZeroSetupUpdate-" + BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(expected.Path.ToUpperInvariant()))).Replace("-", "");
+            using (var mutex = new Mutex(false, lockName))
+            {
+                bool locked;
+                try { locked = mutex.WaitOne(0); } catch (AbandonedMutexException) { locked = true; }
+                if (!locked) throw new IOException("Another Zero update is running. Wait, then retry.");
+                try
+                {
+                    RejectReparseAncestors(parent);
+                    Recheck(expected);
+                    using (var heldParent = HoldDirectory(parent))
+                    using (var held = HoldDirectory(expected.Path))
+                    using (var heldSetup = HoldDirectory(System.IO.Path.Combine(expected.Path, "setup")))
+                    {
+                        Recheck(expected);
+                        string metadata = ReadKitMetadata(source);
+                        var paths = new List<string> { "setup/Setup.cmd", "setup/Setup.ps1", "setup/Setup.command", "setup/setup.sh", "setup/README.md", "START-HERE.md", "LICENSE", "zero-" + KitVersion(metadata) + ".vsix", "setup/kit.properties" };
+                        string stage = System.IO.Path.Combine(parent, ".ZeroSetup-stage-" + Guid.NewGuid().ToString("N"));
+                        string backup = System.IO.Path.Combine(parent, ".ZeroSetup-backup-" + Guid.NewGuid().ToString("N"));
+                        var originals = new Dictionary<string, byte[]>();
+                        var replaced = new List<string>();
+                        bool keepBackup = false;
+                        try
+                        {
+                            // Validate every touched file before making even staging writes.
+                            foreach (string relative in paths)
+                            {
+                                RequireRegularFile(ContainedPath(source, relative));
+                                string target = ContainedPath(expected.Path, relative);
+                                RejectReparseAncestors(target);
+                                if (EntryExists(target)) { RequireRegularFile(target); if (new FileInfo(target).Length > MaxFileBytes) throw new IOException("A setup runtime file is too large to back up safely: " + target); originals.Add(relative, File.ReadAllBytes(target)); }
+                                else originals.Add(relative, null);
+                            }
+                            Directory.CreateDirectory(stage); Directory.CreateDirectory(backup);
+                            foreach (string relative in paths)
+                            {
+                                cancellation.ThrowIfCancellationRequested();
+                                string staged = ContainedPath(stage, relative); Directory.CreateDirectory(System.IO.Path.GetDirectoryName(staged));
+                                File.Copy(ContainedPath(source, relative), staged, false);
+                                if (originals[relative] != null)
+                                {
+                                    string saved = ContainedPath(backup, relative); Directory.CreateDirectory(System.IO.Path.GetDirectoryName(saved));
+                                    File.WriteAllBytes(saved, originals[relative]);
+                                }
+                            }
+                            diagnostic?.Invoke("Setup runtime backup: " + backup);
+                            beforeCommit?.Invoke(expected.Path);
+                            Recheck(expected);
+                            foreach (string relative in paths)
+                            {
+                                string target = ContainedPath(expected.Path, relative); RejectReparseAncestors(target);
+                                byte[] old = originals[relative];
+                                if (old == null ? EntryExists(target) : !EntryExists(target) || !File.ReadAllBytes(target).SequenceEqual(old))
+                                    throw new IOException("Setup files changed before the update. Check again.");
+                            }
+                            foreach (string relative in paths)
+                            {
+                                cancellation.ThrowIfCancellationRequested();
+                                Recheck(expected);
+                                string target = ContainedPath(expected.Path, relative); RejectReparseAncestors(target);
+                                string staged = ContainedPath(stage, relative);
+                                // Atomic replacement where available; metadata is the last commit.
+                                if (originals[relative] == null) File.Move(staged, target);
+                                else File.Replace(staged, target, null);
+                                replaced.Add(relative); afterReplace?.Invoke(relative);
+                            }
+                            keepBackup = true; // Keep a diagnostic recovery copy after success too.
+                            return expected.Path;
+                        }
+                        catch
+                        {
+                            foreach (string relative in replaced.AsEnumerable().Reverse())
+                            {
+                                try
+                                {
+                                    Recheck(expected, false);
+                                    string target = ContainedPath(expected.Path, relative); RejectReparseAncestors(target);
+                                    if (originals[relative] == null) File.Delete(target);
+                                    else File.WriteAllBytes(target, originals[relative]);
+                                }
+                                catch (Exception error) { keepBackup = true; diagnostic?.Invoke("Restore needs help; backup retained at " + backup + ": " + error.Message); }
+                            }
+                            throw;
+                        }
+                        finally { DeleteOwnedDirectory(stage); if (!keepBackup) DeleteOwnedDirectory(backup); }
+                    }
+                }
+                finally { mutex.ReleaseMutex(); }
+            }
         }
 
         public static string CreatePrivateTemporaryDirectory()
@@ -144,7 +327,7 @@ namespace ZeroSetup
         {
             if (string.IsNullOrWhiteSpace(name) || name.Length > 100 || name == "." || name == ".." ||
                 name.EndsWith(".", StringComparison.Ordinal) || name.EndsWith(" ", StringComparison.Ordinal))
-                throw new IOException("Choose a short folder name without a final space or dot.");
+                throw new IOException("The folder name must be short and have no final space or dot.");
             foreach (char character in name)
                 if (character < 32 || "<>:\"/\\|?*".IndexOf(character) >= 0)
                     throw new IOException("The folder name contains an unsupported character.");
@@ -173,7 +356,7 @@ namespace ZeroSetup
                 try
                 {
                     if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
-                        throw new IOException("Choose a regular folder rather than a link or junction: " + current);
+                        throw new IOException("Zero setup cannot use a link or junction. Review this path safely, then retry: " + current);
                 }
                 catch (FileNotFoundException) { }
                 catch (DirectoryNotFoundException) { }
@@ -182,7 +365,7 @@ namespace ZeroSetup
         }
 
         // Build beside the destination, then rename. Directory.Move refuses an existing project.
-        public static string PlaceFreshKit(string source, string parent, string name, CancellationToken cancellation)
+        public static string PlaceFreshKit(string source, string parent, string name, CancellationToken cancellation, Action<string> beforeCommit = null)
         {
             ValidateName(name);
             parent = Path.GetFullPath(parent);
@@ -190,17 +373,19 @@ namespace ZeroSetup
             // Windows uses a directory's ReadOnly bit for Explorer customization, not write permission.
             // Creating/writing the sibling stage is the permission check; failures leave the destination untouched.
             if (!Directory.Exists(parent))
-                throw new IOException("Choose an existing writable folder.");
+                throw new IOException("Your home folder must exist and be writable. See Details, then retry.");
             string destination = Path.Combine(parent, name);
             RejectReparseAncestors(destination);
-            if (Directory.Exists(destination) || File.Exists(destination)) throw new IOException("That folder already exists. Choose a new name to preserve your work.");
+            if (EntryExists(destination)) throw new IOException("The Zero folder already exists. Check again before continuing.");
             string stage = Path.Combine(parent, ".ZeroSetup-" + Guid.NewGuid().ToString("N"));
             try
             {
                 Directory.CreateDirectory(stage);
                 CopyDirectory(source, stage, cancellation);
                 cancellation.ThrowIfCancellationRequested();
+                beforeCommit?.Invoke(destination);
                 RejectReparseAncestors(parent);
+                RejectReparseAncestors(destination);
                 RejectReparseAncestors(stage);
                 Directory.Move(stage, destination);
                 return destination;

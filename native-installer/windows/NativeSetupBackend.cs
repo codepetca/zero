@@ -31,9 +31,9 @@ namespace ZeroSetup
             }
             catch { KitFiles.DeleteOwnedDirectory(created); throw; }
         }
-        public Task<string> Place(string parent, string name, CancellationToken cancellation)
+        public Task<string> Place(string parent, string name, KitFiles.KitTarget expected, Action<string> diagnostic, CancellationToken cancellation)
         {
-            return Task.Run(() => KitFiles.PlaceFreshKit(Root, parent, name, cancellation));
+            return Task.Run(() => expected.Existing ? KitFiles.UpdateKit(Root, expected, cancellation, diagnostic) : KitFiles.PlaceFreshKit(Root, parent, name, cancellation));
         }
         public Task<CheckResult> Run(string root, string action, string target, bool approved, CancellationToken cancellation)
         {

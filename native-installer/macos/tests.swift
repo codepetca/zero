@@ -53,6 +53,7 @@ struct SetupTests {
     }
     static func fixture(_ root: URL) throws -> SetupKit {
         let members = ["START-HERE.md", "setup/setup.sh", "setup/Setup.command", "setup/kit.properties", "zero-1.2.3.vsix",
+                       "setup/Setup.cmd", "setup/Setup.ps1", "setup/README.md", "LICENSE",
                        "starter/zero.json", "starter/pom.xml", "starter/mvnw", "starter/mvnw.cmd",
                        "starter/.mvn/wrapper/maven-wrapper.properties", "starter/.vscode/tasks.json", "optional/Zero.code-profile"]
         for member in members {
@@ -93,7 +94,9 @@ struct SetupTests {
             print("parent exited; detached child holds pipe")
             return
         }
-        let temporary = manager.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent("Zero native tests \(UUID().uuidString)")
+        let temporaryBase = manager.temporaryDirectory.resolvingSymlinksInPath()
+        let realTemporary = temporaryBase.path.hasPrefix("/var/") ? URL(fileURLWithPath: "/private" + temporaryBase.path) : temporaryBase
+        let temporary = realTemporary.appendingPathComponent("Zero native tests \(UUID().uuidString)")
         try manager.createDirectory(at: temporary, withIntermediateDirectories: true)
         defer { try? manager.removeItem(at: temporary) }
         let kit = try fixture(temporary.appendingPathComponent("bundled kit $x; 'quotes'"))
@@ -124,7 +127,13 @@ struct SetupTests {
             // owns disposable fixtures and fake commands, including approvals.
             window.window?.title = "Zero Setup — safe fake preview"
             window.showWindow(nil); app.activate(ignoringOtherApps: true)
-            if scenario == "folder" { controller.check() }
+            if scenario == "update" {
+                let existing = try kit.place(parent: parent, name: "Zero")
+                try "student code".write(to: existing.appendingPathComponent("starter/Main.java"), atomically: true, encoding: .utf8)
+                try "student save".write(to: existing.appendingPathComponent("starter/save.dat"), atomically: true, encoding: .utf8)
+                try "old setup".write(to: existing.appendingPathComponent("setup/README.md"), atomically: true, encoding: .utf8)
+                controller.check()
+            } else if scenario == "folder" { controller.check() }
             else { controller.place(parent: parent, name: "Preview kit") }
             print("Safe interactive preview scenario: \(scenario). All commands fake; folder \(temporary.path)")
             app.run()
@@ -168,79 +177,152 @@ struct SetupTests {
         let defaultHome = temporary.appendingPathComponent("default home")
         try manager.createDirectory(at: defaultHome, withIntermediateDirectories: false)
         let location = DefaultSetupLocation(home: defaultHome)
-        try expect(try location.nextAvailable().lastPathComponent == "Zero", "empty home defaults to Zero")
-        try expect(try manager.contentsOfDirectory(atPath: defaultHome.path).isEmpty, "default scan creates nothing")
-        try "owned file".write(to: defaultHome.appendingPathComponent("Zero"), atomically: true, encoding: .utf8)
-        try manager.createDirectory(at: defaultHome.appendingPathComponent("Zero-2"), withIntermediateDirectories: false)
-        try manager.createSymbolicLink(at: defaultHome.appendingPathComponent("Zero-3"), withDestinationURL: defaultHome.appendingPathComponent("missing"))
-        try expect(try location.nextAvailable().lastPathComponent == "Zero-4", "file directory and dangling link each occupy a default name")
-        try rejected("bounded default scan exhaustion") { _ = try location.nextAvailable(limit: 3) }
-        try rejected("default child inspection failure") {
-            _ = try location.nextAvailable { url in
-                if url == defaultHome { return try DefaultSetupLocation.entryMode(url) }
-                throw SetupFailure(message: "injected permission error")
-            }
-        }
-        try rejected("missing default home") { _ = try DefaultSetupLocation(home: temporary.appendingPathComponent("missing home")).nextAvailable() }
-        try rejected("file default home") { _ = try DefaultSetupLocation(home: existingFile).nextAvailable() }
-        try rejected("symlink default home") { _ = try DefaultSetupLocation(home: parentLink).nextAvailable() }
-        try rejected("lstat root error") { _ = try DefaultSetupLocation(home: existingFile.appendingPathComponent("not-a-directory")).nextAvailable() }
+        try expect(try location.destination().lastPathComponent == "Zero", "empty home defaults to Zero")
+        try expect(try manager.contentsOfDirectory(atPath: defaultHome.path).isEmpty, "default inspection creates nothing")
+        try rejected("missing default home") { _ = try DefaultSetupLocation(home: temporary.appendingPathComponent("missing home")).destination() }
+        try rejected("file default home") { _ = try DefaultSetupLocation(home: existingFile).destination() }
+        try rejected("symlink default home") { _ = try DefaultSetupLocation(home: parentLink).destination() }
+        try rejected("lstat root error") { _ = try DefaultSetupLocation(home: existingFile.appendingPathComponent("not-a-directory")).destination() }
         let deniedHome = temporary.appendingPathComponent("denied home")
         try manager.createDirectory(at: deniedHome, withIntermediateDirectories: false)
         try manager.setAttributes([.posixPermissions: 0o500], ofItemAtPath: deniedHome.path)
-        try rejected("unwritable default home") { _ = try DefaultSetupLocation(home: deniedHome).nextAvailable() }
+        try rejected("unwritable default home") { _ = try DefaultSetupLocation(home: deniedHome).destination() }
         try manager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: deniedHome.path)
         let emptyController = SetupController(kit: kit, runner: FakeRunner(), home: deniedHome)
         emptyController.check()
-        try expect(emptyController.summary == "Set up in ~/Zero", "empty default destination visible before primary action")
-        try expect(try manager.contentsOfDirectory(atPath: deniedHome.path).isEmpty, "controller check leaves empty home unchanged")
+        try expect(emptyController.summary == "Set up in ~/Zero", "fixed destination visible before action")
+        try expect(try manager.contentsOfDirectory(atPath: deniedHome.path).isEmpty, "check leaves empty home unchanged")
         emptyController.primaryAction()
+        try expect(emptyController.busy && !emptyController.mayExit(), "fresh placement gates shutdown")
         try pump(until: { !emptyController.busy })
-        try expect(emptyController.stage == .ready && emptyController.selectedFolder?.lastPathComponent == "Zero", "empty home primary creates Zero and rechecks readiness")
-        try rejected("default atomic collision") {
-            let destination = try location.nextAvailable()
-            _ = try kit.place(parent: defaultHome, name: destination.lastPathComponent) {
-                try manager.createSymbolicLink(at: destination, withDestinationURL: defaultHome.appendingPathComponent("missing race target"))
+        try expect(emptyController.stage == .ready && emptyController.selectedFolder?.lastPathComponent == "Zero", "primary creates fixed Zero and rechecks")
+        try rejected("fresh default race never auto updates") {
+            _ = try kit.place(parent: defaultHome, name: "Zero") {
+                _ = try fixture(defaultHome.appendingPathComponent("Zero"))
+                try "race owner".write(to: defaultHome.appendingPathComponent("Zero/starter/Main.java"), atomically: true, encoding: .utf8)
             }
         }
-        try expect(try manager.destinationOfSymbolicLink(atPath: defaultHome.appendingPathComponent("Zero-4").path).contains("missing race target"), "default atomic race preserves the other entry")
-        try expect(try location.nextAvailable().lastPathComponent == "Zero-5", "fresh scan advances after default collision")
-        try expect(try !manager.contentsOfDirectory(atPath: defaultHome.path).contains { $0.hasPrefix(".zero-setup-") }, "default race cleans owned staging")
-
+        try expect(try String(contentsOf: defaultHome.appendingPathComponent("Zero/starter/Main.java"), encoding: .utf8) == "race owner", "raced kit preserved until new confirmation")
+        let existing = defaultHome.appendingPathComponent("Zero")
+        let preserved = ["starter/Main.java", "starter/pom.xml", "starter/.vscode/tasks.json", "starter/.git/config", "starter/assets/art.png", "starter/saves/game.dat", "starter/src/main/java/zero/SimpleApp.java", "optional/Zero.code-profile", "optional/keybindings.json", "teacher-notes.txt", "zero-0.9.0.vsix"]
+        for name in preserved {
+            let file = existing.appendingPathComponent(name)
+            try manager.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try "student \(name)".write(to: file, atomically: true, encoding: .utf8)
+        }
+        let studentLink = existing.appendingPathComponent("starter/assets/student-link")
+        try manager.createSymbolicLink(at: studentLink, withDestinationURL: existingFile)
+        try "old launcher".write(to: existing.appendingPathComponent("setup/README.md"), atomically: true, encoding: .utf8)
         let defaultFake = FakeRunner()
         let defaultController = SetupController(kit: kit, runner: defaultFake, home: defaultHome)
         defaultController.check()
-        try expect(defaultController.stage == .chooseFolder && defaultController.primaryTitle == "Set up Zero" && defaultController.summary == "Set up in ~/Zero-5", "checked folder stage names the default destination")
-        try expect(defaultController.canChangeLocation && defaultController.selectedFolder == nil, "folder stage offers optional custom location before placement")
-        let priorSummary = defaultController.summary
-        let priorEntries = try manager.contentsOfDirectory(atPath: defaultHome.path)
-        defaultController.place(parent: nil, name: nil)
-        defaultController.place(parent: parent, name: nil)
-        try expect(defaultController.summary == priorSummary && defaultController.stage == .chooseFolder && defaultController.selectedFolder == nil, "custom chooser/name cancellation preserves default state")
-        try expect(try manager.contentsOfDirectory(atPath: defaultHome.path) == priorEntries, "check and cancellation create nothing")
-        // An occupied name appearing after the displayed proposal is rescanned
-        // before copying. The publication guard still protects later collisions.
-        try "late owner".write(to: defaultHome.appendingPathComponent("Zero-5"), atomically: true, encoding: .utf8)
+        try expect(defaultController.summary == "Set up in ~/Zero" && defaultController.stage == .chooseFolder, "existing fixed folder shown before confirmation")
+        let beforeEntries = try manager.contentsOfDirectory(atPath: defaultHome.path)
         defaultController.primaryAction()
-        try expect(defaultController.busy && !defaultController.canChangeLocation && !defaultController.mayExit(), "default copy owns lifetime and hides location change")
+        try expect(defaultController.stage == .updateConsent && !defaultController.busy, "existing kit requires explicit confirmation")
+        try expect(defaultController.consent?.detail == "Setup files will be replaced. Your code, assets and saved projects will be kept.", "overwrite confirmation explains preserved work")
+        try expect(defaultFake.commands.count == 1 && defaultFake.commands[0].arguments[0].hasPrefix(kit.root.path), "no existing launcher executed before upgrade")
+        defaultController.approve(false)
+        try expect(defaultController.stage == .chooseFolder && defaultController.selectedFolder == nil, "cancel returns without selecting existing kit")
+        try expect(try manager.contentsOfDirectory(atPath: defaultHome.path) == beforeEntries, "cancel creates no backup or staging")
+        try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "old launcher", "cancel changes no setup files")
+        defaultController.primaryAction(); defaultController.approve(true)
+        try expect(defaultController.busy && !defaultController.mayExit(), "update gates close")
         try pump(until: { !defaultController.busy })
-        try expect(defaultController.selectedFolder?.lastPathComponent == "Zero-6" && defaultController.stage == .ready, "default primary publishes a fresh numbered folder then verifies readiness")
-        try expect(defaultFake.commands.count == 2 && defaultFake.commands.last?.arguments.first?.hasPrefix(defaultHome.appendingPathComponent("Zero-6").path) == true, "default readiness rechecks the actual placed kit")
-        try expect(defaultController.diagnostics.contains(defaultHome.appendingPathComponent("Zero-6").path), "Details records the actual chosen path")
-        try expect(try String(contentsOf: defaultHome.appendingPathComponent("Zero-5"), encoding: .utf8) == "late owner", "late owner is preserved")
+        try expect(defaultController.stage == .ready && defaultController.selectedFolder == existing, "confirmed update rechecks fixed kit")
+        try expect(defaultController.diagnostics.contains("Previous setup backup:"), "Details records permanent backup location")
+        try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "fixture setup/README.md\n", "old setup refreshed from bundle")
+        for name in preserved {
+            try expect(try String(contentsOf: existing.appendingPathComponent(name), encoding: .utf8) == "student \(name)", "student file preserved: \(name)")
+        }
+        try expect(try manager.destinationOfSymbolicLink(atPath: studentLink.path) == existingFile.path, "unrelated student symlink preserved")
+        let backupNames = try manager.contentsOfDirectory(atPath: defaultHome.path).filter { $0.hasPrefix(".zero-setup-backup-") }
+        try expect(backupNames.count == 1, "one retained backup after update")
+        try expect(try String(contentsOf: defaultHome.appendingPathComponent(backupNames[0] + "/previous/setup_README.md"), encoding: .utf8) == "old launcher", "backup retains replaced launcher")
+        let repeatPlan = try KitUpdatePlan(kit: kit, destination: existing)
+        _ = try repeatPlan.update(from: kit)
+        try expect(try String(contentsOf: existing.appendingPathComponent("starter/saves/game.dat"), encoding: .utf8) == "student starter/saves/game.dat", "repeat update preserves saves")
+        let lockedPlan = try KitUpdatePlan(kit: kit, destination: existing)
+        let lockFD = open(existing.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        try expect(lockFD >= 0 && flock(lockFD, LOCK_EX | LOCK_NB) == 0, "fixture acquires update lock")
+        try rejected("concurrent update serialized") { _ = try lockedPlan.update(from: kit) }
+        flock(lockFD, LOCK_UN); close(lockFD)
+        let nextKit = try fixture(temporary.appendingPathComponent("new version bundle"))
+        try "kitVersion=1.2.4\n".write(to: nextKit.root.appendingPathComponent("setup/kit.properties"), atomically: true, encoding: .utf8)
+        try manager.moveItem(at: nextKit.root.appendingPathComponent("zero-1.2.3.vsix"), to: nextKit.root.appendingPathComponent("zero-1.2.4.vsix"))
+        _ = try KitUpdatePlan(kit: nextKit, destination: existing).update(from: nextKit)
+        try expect(try String(contentsOf: existing.appendingPathComponent("setup/kit.properties"), encoding: .utf8) == "kitVersion=1.2.4\n", "new version metadata published")
+        try expect(manager.fileExists(atPath: existing.appendingPathComponent("zero-1.2.4.vsix").path) && manager.fileExists(atPath: existing.appendingPathComponent("zero-1.2.3.vsix").path), "current extension added and old extension kept")
+        let metadataBefore = try Data(contentsOf: existing.appendingPathComponent("setup/kit.properties"))
+        try rejected("failure after metadata rollback") {
+            _ = try KitUpdatePlan(kit: kit, destination: existing).update(from: kit, afterReplace: { name in
+                if name == "setup/kit.properties" { throw SetupFailure(message: "metadata failure") }
+            })
+        }
+        try expect(try Data(contentsOf: existing.appendingPathComponent("setup/kit.properties")) == metadataBefore, "metadata restored on failure")
+        let setupDirectory = existing.appendingPathComponent("setup")
+        let renamedSetup = existing.appendingPathComponent("previous-setup")
+        try manager.moveItem(at: setupDirectory, to: renamedSetup)
+        try manager.createSymbolicLink(at: setupDirectory, withDestinationURL: renamedSetup)
+        try rejected("touched ancestor symlink refused") { _ = try KitUpdatePlan(kit: kit, destination: existing) }
+        try manager.removeItem(at: setupDirectory); try manager.moveItem(at: renamedSetup, to: setupDirectory)
+        try "kitVersion=not-a-version\n".write(to: existing.appendingPathComponent("setup/kit.properties"), atomically: true, encoding: .utf8)
+        try rejected("invalid installed metadata refused") { _ = try KitUpdatePlan(kit: kit, destination: existing) }
+        try metadataBefore.write(to: existing.appendingPathComponent("setup/kit.properties"))
+        let racePlan = try KitUpdatePlan(kit: kit, destination: existing)
+        try rejected("changed target after confirmation") {
+            _ = try racePlan.update(from: kit, beforeCommit: {
+                try "external change".write(to: existing.appendingPathComponent("setup/README.md"), atomically: true, encoding: .utf8)
+            })
+        }
+        try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "external change", "external edit before commit preserved")
+        let failurePlan = try KitUpdatePlan(kit: kit, destination: existing)
+        try rejected("mid update failure") {
+            _ = try failurePlan.update(from: kit, afterReplace: { name in
+                if name == "setup/README.md" { throw SetupFailure(message: "injected failure") }
+            })
+        }
+        try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "external change", "failure restores exact old setup file")
+        _ = try KitUpdatePlan(kit: kit, destination: existing).update(from: kit)
+        try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "fixture setup/README.md\n", "retry succeeds after rollback")
+        let rootRacePlan = try KitUpdatePlan(kit: kit, destination: existing)
+        let moved = defaultHome.appendingPathComponent("moved Zero")
+        try rejected("root identity raced") {
+            _ = try rootRacePlan.update(from: kit, beforeCommit: {
+                try manager.moveItem(at: existing, to: moved)
+                try manager.createSymbolicLink(at: existing, withDestinationURL: moved)
+            })
+        }
+        try expect(try String(contentsOf: moved.appendingPathComponent("starter/saves/game.dat"), encoding: .utf8) == "student starter/saves/game.dat", "root race preserves student work")
+        try manager.removeItem(at: existing); try manager.moveItem(at: moved, to: existing)
+        let badHome = temporary.appendingPathComponent("unrelated home")
+        try manager.createDirectory(at: badHome, withIntermediateDirectories: false)
+        for kind in ["folder", "file", "link"] {
+            let target = badHome.appendingPathComponent("Zero")
+            if kind == "folder" { try manager.createDirectory(at: target, withIntermediateDirectories: false) }
+            if kind == "file" { try "owned".write(to: target, atomically: true, encoding: .utf8) }
+            if kind == "link" { try manager.createSymbolicLink(at: target, withDestinationURL: existing) }
+            let refused = SetupController(kit: kit, runner: FakeRunner(), home: badHome)
+            refused.check(); refused.primaryAction()
+            try expect(refused.stage == .chooseFolder && refused.selectedFolder == nil && !refused.busy, "refuse unrelated \(kind)")
+            try expect(try manager.contentsOfDirectory(atPath: badHome.path) == ["Zero"], "refusal writes nothing")
+            try manager.removeItem(at: target)
+        }
         let unavailable = SetupController(kit: kit, runner: FakeRunner(), home: parentLink)
         unavailable.check()
-        try expect(unavailable.stage == .chooseFolder && unavailable.canChangeLocation && unavailable.summary.contains("Change location"), "unavailable default stays actionable at folder stage")
+        try expect(unavailable.stage == .chooseFolder && unavailable.summary.contains("retry"), "unavailable default offers error details and retry")
         unavailable.primaryAction()
-        try expect(!unavailable.busy && unavailable.selectedFolder == nil && unavailable.canChangeLocation, "failed default never claims success or starts copying")
-        unavailable.place(parent: parent, name: "Custom after default failure")
+        try expect(!unavailable.busy && unavailable.selectedFolder == nil, "failed default never claims success or starts copying")
+        try manager.removeItem(at: parentLink)
+        try manager.createDirectory(at: parentLink, withIntermediateDirectories: false)
+        unavailable.primaryAction()
         try pump(until: { !unavailable.busy })
-        try expect(unavailable.stage == .ready && unavailable.selectedFolder?.lastPathComponent == "Custom after default failure", "manual location still works after default failure")
+        try expect(unavailable.stage == .ready && unavailable.selectedFolder?.lastPathComponent == "Zero", "retry uses default after home is repaired")
         let collisionController = SetupController(kit: kit, runner: FakeRunner(), home: defaultHome)
         collisionController.check()
         collisionController.place(parent: defaultHome, name: "Zero")
         try pump(until: { !collisionController.busy })
-        try expect(collisionController.stage == .chooseFolder && collisionController.canChangeLocation && collisionController.selectedFolder == nil, "failed placement returns to actionable folder stage")
+        try expect(collisionController.stage == .chooseFolder && collisionController.selectedFolder == nil, "failed placement returns to actionable folder stage")
 
         let fake = FakeRunner()
         let controller = SetupController(kit: kit, runner: fake, home: parent)
@@ -381,7 +463,7 @@ struct SetupTests {
         let pausedController = SetupController(kit: kit, runner: pausedRunner, home: parent)
         let pausedWindow = SetupWindow(controller: pausedController)
         let locationButton = pausedWindow.window?.contentView?.subviews.compactMap { $0 as? NSButton }.first { $0.title == "Change location…" }
-        try expect(locationButton?.isHidden == true, "location button hidden during initial checking")
+        try expect(locationButton == nil, "location button absent during initial checking")
         let delegate = SetupApplication()
         delegate.setupWindow = pausedWindow
         pausedController.check()
@@ -389,10 +471,10 @@ struct SetupTests {
         try expect(delegate.applicationShouldTerminate(app) == .terminateCancel, "application quit rejected while check paused")
         try expect(pausedController.summary.contains("Please wait"), "shutdown rejection explains active work")
         pausedRunner.finish()
-        try expect(locationButton?.isHidden == false, "location button visible after read-only check reaches folder stage")
+        try expect(!pausedWindow.window!.contentView!.subviews.contains { ($0 as? NSButton)?.title == "Change location…" }, "location button absent at default folder stage")
         try expect(pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "close and quit allowed after check finishes")
         pausedController.place(parent: parent, name: "Paused copy")
-        try expect(locationButton?.isHidden == true, "location button hidden while placement owns setup")
+        try expect(locationButton == nil, "no location button during placement")
         try expect(!pausedController.mayExit(), "copy owns shutdown until completion")
         try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()

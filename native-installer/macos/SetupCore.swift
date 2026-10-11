@@ -252,20 +252,25 @@ struct SetupKit {
             throw SetupFailure(message: "Use a short folder name without slashes, colons or surrounding spaces.")
         }
         try rejectSymlink(parent)
-        let canonicalParent = parent.standardizedFileURL.resolvingSymlinksInPath()
+        try KitUpdatePlan.realDirectory(parent)
+        let canonicalParent = parent
         var directory: ObjCBool = false
         guard manager.fileExists(atPath: canonicalParent.path, isDirectory: &directory), directory.boolValue,
               manager.isWritableFile(atPath: canonicalParent.path) else {
-            throw SetupFailure(message: "Choose an existing writable folder for your new Zero project.")
+            throw SetupFailure(message: "Your home must be an existing writable folder. Check its permissions, then retry.")
         }
+        let parentIdentity = try KitUpdatePlan.identity(canonicalParent)!
+        let parentFD = open(canonicalParent.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard parentFD >= 0 else { throw SetupFailure(message: "Cannot open your home folder. Check permissions, then retry.") }
+        defer { close(parentFD) }
         let destination = canonicalParent.appendingPathComponent(name, isDirectory: true)
         var info = stat()
         guard lstat(destination.path, &info) != 0 && errno == ENOENT else {
-            throw SetupFailure(message: "That folder already exists. Choose a new name; Zero never replaces an existing project.")
+            throw SetupFailure(message: "The Zero folder already exists. Review it and retry setup to confirm an update.")
         }
         var template = Array(canonicalParent.appendingPathComponent(".zero-setup-XXXXXX").path.utf8CString)
         guard let temporaryPath = mkdtemp(&template) else {
-            throw SetupFailure(message: "Could not create a temporary folder. Choose another writable folder.")
+            throw SetupFailure(message: "Could not prepare setup in your home folder. Check its permissions, then retry.")
         }
         let temporary = URL(fileURLWithPath: String(cString: temporaryPath), isDirectory: true)
         defer { try? manager.removeItem(at: temporary) }
@@ -273,11 +278,16 @@ struct SetupKit {
         // The private, exclusively created container owns all partial copies.
         try manager.copyItem(at: root, to: staging)
         try beforePublish?()
-        guard renamex_np(staging.path, destination.path, UInt32(RENAME_EXCL)) == 0 else {
+        try KitUpdatePlan.realDirectory(canonicalParent)
+        guard let current = try KitUpdatePlan.identity(canonicalParent), parentIdentity.sameDirectory(current),
+              fstat(parentFD, &info) == 0, parentIdentity.sameDirectory(KitUpdatePlan.Identity(info)) else {
+            throw SetupFailure(message: "Your home folder changed during setup. Review it and retry.")
+        }
+        guard renameatx_np(AT_FDCWD, staging.path, parentFD, name, UInt32(RENAME_EXCL)) == 0 else {
             if errno == EEXIST || errno == ENOTEMPTY {
-                throw SetupFailure(message: "That folder appeared during setup. It was preserved. Choose a new name.")
+                throw SetupFailure(message: "The Zero folder appeared during setup. It was preserved. Review it and retry to confirm an update.")
             }
-            throw SetupFailure(message: "Could not place the kit: \(String(cString: strerror(errno))). Choose another writable folder.")
+            throw SetupFailure(message: "Could not place the kit: \(String(cString: strerror(errno))). Check your home folder permissions, then retry.")
         }
         return destination
     }
@@ -286,37 +296,225 @@ struct SetupKit {
         var info = stat()
         guard lstat(url.path, &info) == 0 else { throw SetupFailure(message: "Cannot read \(url.lastPathComponent).") }
         guard (info.st_mode & S_IFMT) != S_IFLNK else {
-            throw SetupFailure(message: "Choose a real folder. Symbolic links are not supported by Zero Setup.")
+            throw SetupFailure(message: "Symbolic links are not supported by Zero Setup. Review your home/Zero folder and ask for help.")
         }
     }
 }
 
-/// Read-only selection. Every filesystem entry occupies a name, even a dangling
-/// symlink. Only ENOENT means available; permission/inspection errors must stop.
+/// The native UI always targets the owner's home/Zero. Inspection never writes.
 struct DefaultSetupLocation {
     let home: URL
-
     static func entryMode(_ url: URL) throws -> mode_t? {
         var info = stat()
         if lstat(url.path, &info) == 0 { return info.st_mode }
-        let failure = errno
-        if failure == ENOENT { return nil }
-        throw SetupFailure(message: "Could not inspect the default folder: \(String(cString: strerror(failure))). Change location or check your home folder permissions.")
+        if errno == ENOENT { return nil }
+        throw SetupFailure(message: "Cannot inspect your Zero folder. Check home folder permissions, then retry.")
     }
+    func destination() throws -> URL {
+        try KitUpdatePlan.realDirectory(home)
+        guard access(home.path, W_OK | X_OK) == 0 else {
+            throw SetupFailure(message: "Your home must be an existing writable real folder. Check its permissions, then retry.")
+        }
+        return home.appendingPathComponent("Zero", isDirectory: true)
+    }
+}
 
-    func nextAvailable(limit: Int = 1000,
-                       inspect: (URL) throws -> mode_t? = DefaultSetupLocation.entryMode) throws -> URL {
-        guard let mode = try inspect(home), (mode & S_IFMT) == S_IFDIR,
-              access(home.path, W_OK | X_OK) == 0 else {
-            throw SetupFailure(message: "Your home must be an existing writable real folder. Use Change location to choose another folder.")
+/// A read-only, identity-bound proposal. Only installer runtime paths are touched;
+/// starter, optional and all other entries belong to the student.
+struct KitUpdatePlan {
+    struct Identity: Equatable {
+        let device: dev_t, inode: ino_t, mode: mode_t, size: off_t
+        let modified: timespec
+        static func == (a: Identity, b: Identity) -> Bool {
+            a.device == b.device && a.inode == b.inode && a.mode == b.mode && a.size == b.size &&
+            a.modified.tv_sec == b.modified.tv_sec && a.modified.tv_nsec == b.modified.tv_nsec
         }
-        guard limit > 0, limit <= 1000 else { throw SetupFailure(message: "Invalid default folder search limit.") }
-        for number in 1...limit {
-            let name = number == 1 ? "Zero" : "Zero-\(number)"
-            let candidate = home.appendingPathComponent(name, isDirectory: true)
-            if try inspect(candidate) == nil { return candidate }
+        init(_ info: stat) { device = info.st_dev; inode = info.st_ino; mode = info.st_mode; size = info.st_size; modified = info.st_mtimespec }
+        func sameDirectory(_ other: Identity) -> Bool { device == other.device && inode == other.inode && (other.mode & S_IFMT) == S_IFDIR }
+    }
+    static let runtime = ["setup/Setup.cmd", "setup/Setup.ps1", "setup/Setup.command", "setup/setup.sh", "setup/README.md", "START-HERE.md", "LICENSE"]
+    static let markers = ["START-HERE.md", "setup/setup.sh", "setup/Setup.command", "setup/kit.properties", "starter/zero.json", "starter/pom.xml", "starter/mvnw", "starter/mvnw.cmd", "starter/.mvn/wrapper/maven-wrapper.properties", "starter/.vscode/tasks.json"]
+    let destination: URL
+    let homeIdentity: Identity, rootIdentity: Identity, setupIdentity: Identity
+    let files: [String]
+    let originals: [String: Identity]
+    let markerIdentities: [String: Identity]
+    static func identity(_ url: URL) throws -> Identity? {
+        var info = stat()
+        if lstat(url.path, &info) == 0 { return Identity(info) }
+        if errno == ENOENT { return nil }
+        throw SetupFailure(message: "Cannot inspect \(url.path). Check its permissions.")
+    }
+    static func realDirectory(_ url: URL) throws {
+        var current = url
+        while current.path != "/" {
+            guard let info = try identity(current), (info.mode & S_IFMT) == S_IFDIR else {
+                throw SetupFailure(message: "Use an existing real folder. Files and symbolic links are not supported: \(current.path).")
+            }
+            current.deleteLastPathComponent()
         }
-        throw SetupFailure(message: "Too many Zero folders already exist here. Use Change location to choose a fresh folder.")
+    }
+    static func regular(_ url: URL) throws -> Identity {
+        try realDirectory(url.deletingLastPathComponent())
+        guard let info = try identity(url), (info.mode & S_IFMT) == S_IFREG else {
+            throw SetupFailure(message: "Existing Zero is not a recognizable complete kit: \(url.path). Your files were kept.")
+        }
+        return info
+    }
+    static func version(_ root: URL) throws -> String {
+        _ = try regular(root.appendingPathComponent("setup/kit.properties"))
+        let metadata = try String(contentsOf: root.appendingPathComponent("setup/kit.properties"), encoding: .utf8)
+        let entries = metadata.components(separatedBy: .newlines).filter { $0.hasPrefix("kitVersion=") }
+        guard entries.count == 1 else { throw SetupFailure(message: "Existing Zero kit metadata is invalid. Your files were kept.") }
+        let version = String(entries[0].dropFirst(11))
+        guard version.range(of: #"^[0-9]+\.[0-9]+\.[0-9]+$"#, options: .regularExpression) != nil else {
+            throw SetupFailure(message: "Existing Zero kit version is invalid. Your files were kept.")
+        }
+        _ = try regular(root.appendingPathComponent("zero-\(version).vsix"))
+        return version
+    }
+    static func validateInstalled(_ root: URL) throws {
+        try realDirectory(root)
+        for name in markers { _ = try regular(root.appendingPathComponent(name)) }
+        _ = try version(root)
+    }
+    init(kit: SetupKit, destination: URL) throws {
+        try kit.validate()
+        try Self.validateInstalled(destination)
+        self.destination = destination
+        homeIdentity = try Self.identity(destination.deletingLastPathComponent())!
+        rootIdentity = try Self.identity(destination)!
+        setupIdentity = try Self.identity(destination.appendingPathComponent("setup"))!
+        files = Self.runtime + ["zero-\(try Self.version(kit.root)).vsix", "setup/kit.properties"] // metadata last
+        var old: [String: Identity] = [:]
+        for name in files {
+            _ = try Self.regular(kit.root.appendingPathComponent(name))
+            let path = destination.appendingPathComponent(name)
+            try Self.realDirectory(path.deletingLastPathComponent())
+            if let info = try Self.identity(path) {
+                guard (info.mode & S_IFMT) == S_IFREG else { throw SetupFailure(message: "Cannot replace \(name): it is not a regular setup file. Your files were kept.") }
+                old[name] = info
+            }
+        }
+        originals = old
+        var markers: [String: Identity] = [:]
+        for name in Self.markers + ["zero-\(try Self.version(destination)).vsix"] { markers[name] = try Self.regular(destination.appendingPathComponent(name)) }
+        markerIdentities = markers
+    }
+    func recheckDirectories() throws {
+        let home = destination.deletingLastPathComponent()
+        try Self.realDirectory(home)
+        guard let h = try Self.identity(home), homeIdentity.sameDirectory(h),
+              let r = try Self.identity(destination), rootIdentity.sameDirectory(r),
+              let s = try Self.identity(destination.appendingPathComponent("setup")), setupIdentity.sameDirectory(s) else {
+            throw SetupFailure(message: "Your Zero folder changed during setup. Review it and try again.")
+        }
+    }
+    func recheck() throws {
+        try recheckDirectories()
+        for (name, old) in markerIdentities {
+            guard try Self.regular(destination.appendingPathComponent(name)) == old else { throw SetupFailure(message: "Your Zero kit changed after confirmation. Review it and try again.") }
+        }
+        for name in files {
+            guard try Self.identity(destination.appendingPathComponent(name)) == originals[name] else { throw SetupFailure(message: "Setup file \(name) changed after confirmation. Try again.") }
+        }
+    }
+    /// Anchored directory handles prevent symlink ancestor replacement from
+    /// redirecting writes. A directory flock serializes cooperating installers.
+    func update(from kit: SetupKit, beforeCommit: (() throws -> Void)? = nil,
+                afterReplace: ((String) throws -> Void)? = nil) throws -> URL {
+        try kit.validate(); try recheck()
+        let rootFD = open(destination.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard rootFD >= 0 else { throw SetupFailure(message: "Cannot open your Zero folder for updating.") }
+        defer { close(rootFD) }
+        guard flock(rootFD, LOCK_EX | LOCK_NB) == 0 else { throw SetupFailure(message: "Another Zero update is running. Wait for it to finish, then retry.") }
+        defer { flock(rootFD, LOCK_UN) }
+        let setupFD = openat(rootFD, "setup", O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard setupFD >= 0 else { throw SetupFailure(message: "Cannot open the existing setup folder.") }
+        defer { close(setupFD) }
+        var info = stat()
+        guard fstat(rootFD, &info) == 0, rootIdentity.sameDirectory(Identity(info)),
+              fstat(setupFD, &info) == 0, setupIdentity.sameDirectory(Identity(info)) else { throw SetupFailure(message: "Your Zero folder changed. Try again.") }
+        let homeFD = open(destination.deletingLastPathComponent().path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard homeFD >= 0 else { throw SetupFailure(message: "Cannot open your home folder for updating.") }
+        defer { close(homeFD) }
+        guard fstat(homeFD, &info) == 0, homeIdentity.sameDirectory(Identity(info)) else { throw SetupFailure(message: "Your home folder changed. Try again.") }
+        let backupName = ".zero-setup-backup-\(UUID().uuidString)"
+        let backup = destination.deletingLastPathComponent().appendingPathComponent(backupName)
+        guard mkdirat(homeFD, backupName, 0o700) == 0 else { throw SetupFailure(message: "Cannot create a setup backup in your home. Check permissions, then retry.") }
+        let backupFD = openat(homeFD, backupName, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard backupFD >= 0 else { throw SetupFailure(message: "Cannot open setup backup: \(backup.path)") }
+        defer { close(backupFD) }
+        guard mkdirat(backupFD, "new", 0o700) == 0, mkdirat(backupFD, "previous", 0o700) == 0 else { throw SetupFailure(message: "Cannot prepare setup backup: \(backup.path)") }
+        let stagedFD = openat(backupFD, "new", O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        let savedFD = openat(backupFD, "previous", O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard stagedFD >= 0, savedFD >= 0 else {
+            if stagedFD >= 0 { close(stagedFD) }; if savedFD >= 0 { close(savedFD) }
+            throw SetupFailure(message: "Cannot open setup backup folders: \(backup.path)")
+        }
+        defer { close(stagedFD); close(savedFD) }
+        func writePrivate(_ bytes: Data, fd: Int32, leaf: String, mode: mode_t) throws {
+            let file = openat(fd, leaf, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, mode & 0o777)
+            guard file >= 0 else { throw SetupFailure(message: "Cannot write setup backup file \(leaf).") }
+            let handle = FileHandle(fileDescriptor: file, closeOnDealloc: true)
+            try handle.write(contentsOf: bytes)
+            guard fsync(file) == 0 else { throw SetupFailure(message: "Cannot finish writing setup backup file \(leaf).") }
+        }
+        // Flatten only our fixed paths inside the private transaction folder.
+        func flat(_ name: String) -> String { name.replacingOccurrences(of: "/", with: "_") }
+        func target(_ name: String) -> (Int32, String) { name.hasPrefix("setup/") ? (setupFD, String(name.dropFirst(6))) : (rootFD, name) }
+        var replaced: [String] = []
+        do {
+            for name in files {
+                let bundled = kit.root.appendingPathComponent(name)
+                let sourceInfo = try Self.regular(bundled)
+                try writePrivate(Data(contentsOf: bundled), fd: stagedFD, leaf: flat(name), mode: sourceInfo.mode)
+                if let old = originals[name] {
+                    let (fd, leaf) = target(name)
+                    let fileFD = openat(fd, leaf, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
+                    guard fileFD >= 0 else { throw SetupFailure(message: "Cannot back up \(name).") }
+                    let handle = FileHandle(fileDescriptor: fileFD, closeOnDealloc: true)
+                    guard fstat(fileFD, &info) == 0, Identity(info) == old else { throw SetupFailure(message: "Setup files changed while preparing the backup.") }
+                    let bytes = try handle.readToEnd() ?? Data()
+                    guard fstat(fileFD, &info) == 0, Identity(info) == old else { throw SetupFailure(message: "Setup file changed while being backed up.") }
+                    try writePrivate(bytes, fd: savedFD, leaf: flat(name), mode: old.mode)
+                }
+            }
+            try beforeCommit?(); try recheck()
+            for name in files {
+                try recheckDirectories()
+                let (fd, leaf) = target(name)
+                let source = flat(name)
+                var current = stat()
+                let exists = fstatat(fd, leaf, &current, AT_SYMLINK_NOFOLLOW) == 0
+                guard (exists ? Identity(current) : nil) == originals[name] else { throw SetupFailure(message: "Setup file \(name) changed during updating.") }
+                // Exclusive publication protects newly added files; exchange keeps
+                // the actual replaced entry available even if an external writer races.
+                let flags = originals[name] == nil ? UInt32(RENAME_EXCL) : UInt32(RENAME_SWAP)
+                guard renameatx_np(stagedFD, source, fd, leaf, flags) == 0 else { throw SetupFailure(message: "Could not replace \(name): \(String(cString: strerror(errno))).") }
+                replaced.append(name)
+                if let old = originals[name] {
+                    guard fstatat(stagedFD, source, &current, AT_SYMLINK_NOFOLLOW) == 0, Identity(current) == old else { throw SetupFailure(message: "A setup file changed during replacement. Restoring the previous files.") }
+                }
+                try afterReplace?(name)
+            }
+            try recheckDirectories()
+            for name in files { unlinkat(stagedFD, flat(name), 0) }
+            unlinkat(backupFD, "new", AT_REMOVEDIR)
+            return backup
+        } catch {
+            var restored = true
+            for name in replaced.reversed() {
+                let (fd, leaf) = target(name)
+                let source = flat(name)
+                // Exchanged entries are the exact previous files, not reconstructed
+                // student data. Keep both versions if restoration cannot complete.
+                if originals[name] != nil {
+                    if renameatx_np(stagedFD, source, fd, leaf, UInt32(RENAME_SWAP)) != 0 { restored = false }
+                } else if renameatx_np(fd, leaf, stagedFD, source, UInt32(RENAME_EXCL)) != 0 { restored = false }
+            }
+            throw SetupFailure(message: "\(error.localizedDescription) \(restored ? "Previous setup files were restored." : "Restoration was incomplete; keep the backup and ask for help.") Backup: \(backup.path)")
+        }
     }
 }
 
@@ -362,7 +560,7 @@ enum ProfileImportStep: Int, CaseIterable {
 
 enum SetupStage: Equatable {
     case checking, chooseFolder, manualTool(String), blockedJava
-    case profileConsent, profileStep(ProfileImportStep), extensionConsent, ready, retry, opened
+    case updateConsent, profileConsent, profileStep(ProfileImportStep), extensionConsent, ready, retry, opened
 }
 
 final class SetupController {
@@ -377,6 +575,7 @@ final class SetupController {
     private(set) var diagnostics = "Git is optional for local apps. GitHub sign-in and sharing are separate.\nAfter changing Java, fully quit VS Code (⌘Q) and reopen it. A CLI check does not verify the Java environment in an already-running editor.\n"
     private var snapshot: SetupSnapshot?
     private var profileImportStarted = false
+    private var pendingUpdate: KitUpdatePlan?
     var changed: (() -> Void)?
 
     init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner(),
@@ -384,12 +583,12 @@ final class SetupController {
         self.kit = kit; self.runner = runner; defaultLocation = DefaultSetupLocation(home: home)
     }
 
-    var canChangeLocation: Bool { stage == .chooseFolder && !busy }
 
     var primaryTitle: String {
         switch stage {
         case .checking: return "Please wait"
         case .chooseFolder: return "Set up Zero"
+        case .updateConsent: return "Update Zero"
         case .manualTool: return "Open download page"
         case .blockedJava, .retry: return "Check again"
         case .profileConsent: return "Open VS Code"
@@ -407,6 +606,8 @@ final class SetupController {
     var profileFile: URL { (selectedFolder ?? kit.root).appendingPathComponent("optional/Zero.code-profile") }
     var consent: (title: String, detail: String)? {
         switch stage {
+        case .updateConsent:
+            return ("Update the existing Zero folder?", "Setup files will be replaced. Your code, assets and saved projects will be kept.")
         case .profileConsent:
             return ("Import the Zero profile", "VS Code needs one manual import. Open the Command Palette and choose Preferences: Open Profiles (UI). Use the menu beside New Profile > Import Profile… > Select File…. Choose the supplied Zero.code-profile file, name it Zero, and choose Create.\n\nThis adds the supplied light theme and autosave settings in a separate profile. Your existing profiles are preserved. Follow the steps here, then choose Check profile.")
         case .extensionConsent:
@@ -426,7 +627,7 @@ final class SetupController {
     private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, completion: @escaping (CommandResult) -> Void) {
         do {
             let current = SetupKit(root: selectedFolder ?? kit.root)
-            try current.validate()
+            if selectedFolder == nil { try current.validate() } else { try KitUpdatePlan.validateInstalled(current.root) }
             busy = true; summary = status; changed?()
             let command = SetupCommand(executable: "/bin/bash", arguments: [current.root.appendingPathComponent("setup/setup.sh").path] + arguments)
             runner.run(command, timeout: timeout) { [weak self] result in
@@ -491,8 +692,31 @@ final class SetupController {
     }
     /// Consent is supplied only by a deliberate native confirmation button.
     func approve(_ approved: Bool) {
-        guard !busy, approved else { return }
+        guard !busy else { return }
+        if !approved {
+            if stage == .updateConsent { pendingUpdate = nil; showDefaultLocation() }
+            return
+        }
         switch stage {
+        case .updateConsent:
+            guard let plan = pendingUpdate else { return }
+            pendingUpdate = nil
+            busy = true; summary = "Updating Zero setup files…"; changed?()
+            DispatchQueue.global(qos: .userInitiated).async { [self] in
+                let result = Result { try plan.update(from: kit) }
+                DispatchQueue.main.async {
+                    self.busy = false
+                    switch result {
+                    case .success(let backup):
+                        self.selectedFolder = plan.destination
+                        self.record("Kit folder: \(plan.destination.path)\nPrevious setup backup: \(backup.path)")
+                        self.check()
+                    case .failure(let error):
+                        self.record(error.localizedDescription)
+                        self.set(.chooseFolder, "Could not update Zero. See Details, then retry.")
+                    }
+                }
+            }
         case .profileConsent:
             run(["--native-profile"], status: "Opening VS Code for profile import…", timeout: 30) { [weak self] _ in
                 self?.profileImportStarted = true
@@ -518,11 +742,16 @@ final class SetupController {
         switch stage {
         case .chooseFolder:
             do {
-                let destination = try defaultLocation.nextAvailable()
-                place(parent: defaultLocation.home, name: destination.lastPathComponent)
+                let destination = try defaultLocation.destination()
+                if try DefaultSetupLocation.entryMode(destination) == nil {
+                    place(parent: defaultLocation.home, name: "Zero")
+                } else {
+                    pendingUpdate = try KitUpdatePlan(kit: kit, destination: destination)
+                    set(.updateConsent, "Update setup files in ~/Zero?")
+                }
             } catch {
                 record(error.localizedDescription)
-                set(.chooseFolder, "Cannot use home. Choose Change location…")
+                set(.chooseFolder, "Cannot use home. See Details, then retry.")
             }
         case .retry, .blockedJava: check()
         case .profileStep(let step):
@@ -578,7 +807,7 @@ final class SetupController {
     func copyProfilePath(_ copy: (String) -> Bool) {
         guard !busy, stage == .profileStep(.filePicker) else { return }
         do {
-            try SetupKit(root: selectedFolder ?? kit.root).validate()
+            _ = try KitUpdatePlan.regular(profileFile)
             guard copy(profileFile.path) else { record("Could not copy the profile path. Try Copy profile path again."); set(.profileStep(.filePicker), "Could not copy the path. Try again."); return }
             showProfileStep(.pastePath)
         } catch { fail("The profile file needs attention. See Details.", detail: error.localizedDescription) }
@@ -589,11 +818,11 @@ final class SetupController {
     }
     private func showDefaultLocation() {
         do {
-            let destination = try defaultLocation.nextAvailable()
+            let destination = try defaultLocation.destination()
             set(.chooseFolder, "Set up in ~/\(destination.lastPathComponent)")
         } catch {
             record(error.localizedDescription)
-            set(.chooseFolder, "Cannot use home. Choose Change location…")
+            set(.chooseFolder, "Cannot use home. See Details, then retry.")
         }
     }
     func place(parent: URL?, name: String?) {
@@ -605,7 +834,7 @@ final class SetupController {
                 self.busy = false
                 switch result {
                 case .success(let folder): self.selectedFolder = folder; self.record("Kit folder: \(folder.path)"); self.check()
-                case .failure(let error): self.record(error.localizedDescription); self.set(.chooseFolder, "Choose a fresh folder. See Details.")
+                case .failure(let error): self.record(error.localizedDescription); self.set(.chooseFolder, "Could not prepare Zero. See Details, then retry.")
                 }
             }
         }

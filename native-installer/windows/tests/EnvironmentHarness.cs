@@ -39,7 +39,7 @@ internal static class EnvironmentHarness
         public string LastPath;
         public ToolBackend() { tools = new WindowsToolEnvironment(Reader); }
         public Task EnsureKit(CancellationToken token) { return Task.CompletedTask; }
-        public Task<string> Place(string parent, string name, CancellationToken token) { return Task.FromResult(Root); }
+        public Task<string> Place(string parent, string name, KitFiles.KitTarget expected, Action<string> diagnostic, CancellationToken token) { return Task.FromResult(Root); }
         public Task Download(string url, CancellationToken token)
         {
             Reader.Machine = Values("PATH", @"C:\Windows;C:\new JDK\bin");
@@ -118,8 +118,10 @@ internal static class EnvironmentHarness
         try { tools.Apply(child); throw new Exception("FAILED: missing baseline accepted"); }
         catch (IOException) { checks++; }
         var backend = new ToolBackend();
-        var controller = new SetupController(backend, CancellationToken.None);
-        controller.Check().GetAwaiter().GetResult(); controller.Place("parent", "Zero").GetAwaiter().GetResult();
+        string fakeHome = Path.Combine(Directory.GetCurrentDirectory(), ".verification", "upgrade-default", "environment-home-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(fakeHome);
+        var controller = new SetupController(backend, CancellationToken.None, () => fakeHome);
+        controller.Check().GetAwaiter().GetResult(); controller.PrimaryAction().GetAwaiter().GetResult();
         Assert(controller.Stage == SetupStage.ManualJava, "fresh fake machine initially lacks Java");
         controller.PrimaryAction().GetAwaiter().GetResult(); controller.Check().GetAwaiter().GetResult();
         Assert(controller.Stage == SetupStage.ExtensionConsent && backend.LastPath.Contains("new JDK"), "Check again after handoff sees new JDK without app restart");
@@ -129,6 +131,7 @@ internal static class EnvironmentHarness
         Assert(controller.Stage == SetupStage.Opened && backend.LastPath.Contains("new JDK"), "final Code open receives same refreshed child PATH");
         backend.Reader.Fail = true; controller.Check().GetAwaiter().GetResult();
         Assert(controller.Stage == SetupStage.Retry && !controller.Busy && controller.Diagnostics.Contains("unverified"), "environment read failure cannot report Ready");
+        KitFiles.DeleteOwnedDirectory(fakeHome);
         return checks;
     }
 }
