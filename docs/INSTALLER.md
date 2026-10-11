@@ -1,14 +1,15 @@
 # Native Zero Setup
 
 Zero Setup uses a native Mac runtime; Windows wraps the guided setup scripts. Signed,
-notarized Mac0.5.6 is published at [setup-v0.5.6](https://github.com/codepetca/zero/releases/tag/setup-v0.5.6)
-and embeds the complete0.5.6 kit. The Windows0.5.6 development EXE remains local
-and unsigned; it is excluded from student downloads. Mac0.5.5 is preserved.
+notarized Mac0.5.7 is published at [setup-v0.5.7](https://github.com/codepetca/zero/releases/tag/setup-v0.5.7)
+and embeds the complete0.5.7 kit. Windows development installers remain local
+and unsigned; they are excluded from student downloads. Previous Mac releases
+are preserved.
 The website offers Mac setup alongside the separately verified0.5.3 ZIP.
 The independent native manifest and exact-byte sealing/publication procedure
 are documented in [RELEASING.md](RELEASING.md).
-An isolated Mac trial passed copy, profile import, editor support, Open and
-Run/Stop. Fresh-machine tool installation and novice usability remain untested.
+An isolated Mac trial passed verified vendor assets, automatic editor support,
+Open, Run/Stop, autosave and the standard build command. Fresh-machine tool installation and novice usability remain untested.
 
 ## Student flow
 
@@ -17,7 +18,7 @@ short status message, replacing the previous message as each step changes.
 Technical output is available only through **Details** in a separate window.
 There is no checklist, scrolling log or Terminal menu in the native flow.
 
-The next local Mac build (kit0.5.7) has a shorter flow:
+The published Mac build (kit0.5.7) has this flow:
 
 1. Choose **Set up Zero**. If `~/Zero` already contains a Zero kit, confirm
    **Update Zero** first; the existing student project is preserved.
@@ -57,9 +58,9 @@ Cancellation/failure preserves existing work; owned partial staging is cleaned
 up. Close/quit waits for the current owned operation to finish. Forced termination
 can still leave owned staging, never permission to replace an existing project.
 
-## Default location in the next local build
+## Default location
 
-The next native setup build uses only `~/Zero` on macOS and
+Native setup source uses only `~/Zero` on macOS and
 `%USERPROFILE%\Zero` on Windows. There is no location or name picker and no
 numbered replacement folder. A fresh install begins with **Set up Zero**.
 
@@ -80,10 +81,10 @@ an existing student app to a new Java API or project build configuration.
 An access/copy failure offers Details and retry. Fix home folder access (or ask
 for help) before retrying; setup never silently falls back to another location.
 
-The public signed Mac0.5.6 installer still uses its original folder picker and
-manual profile/tool guidance.
-These source changes need a new versioned, verified installer release before
-students receive them. ZIP launchers keep their current manual behavior.
+Mac0.5.7 delivers the default-folder and automatic editor/Java flow. Previous
+Mac0.5.6 downloads retain their original picker and manual guidance. Windows
+source is tested with fakes/cross-builds only; no new Windows installer is published.
+ZIP launchers keep their current manual behavior.
 
 ## Local build
 
@@ -158,7 +159,7 @@ folder, and copies it atomically into the chosen fresh folder. The macOS app
 carries the kit in Contents/Resources/kit and preserves executable script modes.
 
 Native checks have bounded output/time and use fixed executables/arguments.
-macOS calls `/bin/bash .../setup.sh --native-check`; Windows calls native PowerShell
+macOS calls its compiled native runtime helper; Windows calls native PowerShell
 `-NoProfile -NonInteractive -File .../Setup.ps1 -NativeCheck` under normal policy.
 Both invoke fixed background actions from the copied kit. Windows uses normal-policy
 `-File` for native actions. If policy blocks it,

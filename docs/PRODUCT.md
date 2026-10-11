@@ -14,9 +14,9 @@ tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/community` introduces Zero Community and links to
 component development/contributions. It does not run Java in the browser or add
-a student website account. The standalone Zero kit0.5.3, signed Mac setup0.5.6 and Community0.1.3 are
+a student website account. The standalone Zero kit0.5.3, signed Mac setup0.5.7 and Community0.1.3 are
 published independently. New local versions remain unpublished until an approved
-release. Mac setup embeds kit0.5.6; the separate ZIP/starter/VSIX remain0.5.3.
+release. Mac setup embeds kit0.5.7; the separate ZIP/starter/VSIX remain0.5.3.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract
@@ -102,14 +102,14 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   prepare approved editor support in the background. Windows missing tools use
   vendor handoffs and profile import gets one instruction at a time. The ZIP
   launchers retain their manual menus.
-  The next local Mac0.5.7 native flow automatically prepares a private verified
+  The published Mac0.5.7 native flow automatically prepares a private verified
   JDK21 and isolated Zero editor settings/extensions; compatible installed VS Code
   is reused or a verified private copy is downloaded. Manual profile import is
   removed from this Mac flow. Later editor choices and all student projects stay
   intact. Open Zero.command returns to this configured editor; ordinary VS Code
   profiles and Windows/ZIP setup remain separate.
-  Signed/notarized Mac0.5.6 is published; Windows remains a local unsigned
-  development build. The next local native build uses a `Zero` folder
+  Signed/notarized Mac0.5.7 is published; Windows remains a local unsigned
+  development build. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Re-running setup confirms an
   update of installer files while preserving the entire student project; an
   unrelated folder named Zero is refused.

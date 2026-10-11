@@ -1,13 +1,12 @@
 # Guided student setup
 
-The local0.5.6 kit provides check-and-repair help for personal and school laptops.
-Published0.5.3 remains available and unchanged. No new release is published by
-this implementation. The complete kit owns setup launchers; the starter-only ZIP
+The signed Mac0.5.7 setup provides automatic Java/editor preparation for personal
+and school laptops. The independently published0.5.3 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
 continues to be an ordinary editable Java project.
 
 ## Native setup
 
-The next local Mac0.5.7 setup uses **Set up Zero → Open Zero → Run App**.
+The published Mac0.5.7 setup uses **Set up Zero → Open Zero → Run App**.
 It uses `~/Zero`, asks before updating an existing kit, and preserves the student
 project. Background work uses one small window with a replacing status message.
 It automatically prepares a private verified JDK21, reuses compatible VS Code or
@@ -15,8 +14,8 @@ installs a verified user-local copy, seeds separate Zero editor settings, and
 installs required extensions. No profile import or Java version selection is
 needed. Use `~/Zero/Open Zero.command` to reopen that configured editor.
 
-This shorter flow is local development work, not part of the public signed
-Mac0.5.6 download. Windows and ZIP/manual setup retain their existing guidance.
+Mac0.5.6 remains available as a previous release with its older setup flow.
+Windows and ZIP/manual setup retain their existing guidance.
 Details and failures remain visible; GitHub sign-in comes later. See
 [native setup](INSTALLER.md) for isolation, downloads and platform limits.
 
