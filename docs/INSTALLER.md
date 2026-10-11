@@ -1,11 +1,12 @@
 # Native Zero Setup
 
-Zero Setup is a thin native wrapper around the guided setup scripts. The local
-0.5.6 Windows development build and signed/notarized Mac0.5.6 candidate embed the
-same complete kit. Neither is a published download. Mac0.5.5 is preserved.
-The website can preview the exact signed Mac candidate with the local-download
-flag; the unsigned Windows EXE is excluded. The separate native manifest and
-local sealing command are documented in [RELEASING.md](RELEASING.md).
+Zero Setup is a thin native wrapper around the guided setup scripts. Signed,
+notarized Mac0.5.6 is published at [setup-v0.5.6](https://github.com/codepetca/zero/releases/tag/setup-v0.5.6)
+and embeds the complete0.5.6 kit. The Windows0.5.6 development EXE remains local
+and unsigned; it is excluded from student downloads. Mac0.5.5 is preserved.
+The website offers Mac setup alongside the separately verified0.5.3 ZIP.
+The independent native manifest and exact-byte sealing/publication procedure
+are documented in [RELEASING.md](RELEASING.md).
 An isolated Mac trial passed copy, profile import, editor support, Open and
 Run/Stop. Fresh-machine tool installation and novice usability remain untested.
 

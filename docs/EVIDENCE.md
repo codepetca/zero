@@ -664,3 +664,36 @@ hosted navigation. Corrected with explicit hosted source/anchor aliases for setu
 and Pika, preserving protected source. Related nonblocking P3 profile wording
 corrected: separate extension download, optional profile from complete ZIP.
 Ledger2review turns/1targetedwave before this second fixbatch.
+
+## Authorized source merge and Mac publication — 2026-10-11
+
+[Source PR22](https://github.com/codepetca/zero/pull/22) merged with a merge commit
+`34415b9d5c52d348936df82f9dfd202ceae627a7`, preserving preparation source history.
+Final reviewed head9eee284731d06f5a4ce42c58021b80f17483fd88;
+[CI38164762983](https://github.com/codepetca/zero/actions/runs/38164762983) passed
+including finite JavaFX examples, website and kit preparation. Independent
+mac_publication_integration_review/turn3 completed correction5245af2→9eee284 with
+no new findings; complete original coverage plus targeted deltas retained.
+Review ledger3turns/1initialwave/2targetedwaves/2fixbatches, no failed launches.
+Requested GPT-6.1-Sol/high; effective model/task tokens/attributable cost unknown.
+Browser verified legacy lesson setup link opens the expanded correct hosted
+section. Website36tests/typecheck/build and configuration/diff checks pass.
+
+[Zero Setup0.5.6](https://github.com/codepetca/zero/releases/tag/setup-v0.5.6)
+publishes exactly one DMG,691970bytes/SHA256
+`4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d`.
+Immediately preceding creation, release/tag absence checked; all10sealed candidate
+checksums passed. Draft target779d856f24c37f303842b1a14a8bdc30dd5fb415, singleasset
+name/size/GitHubdigest and authenticated downloaded bytes verified. After deliberate
+publication, actual asset URL downloaded without authentication: HTTP200, exact
+size/hash and tag commit verified. Source build7d8db9b recorded separately.
+Installer unchanged from sealed signed/notarized/stapled candidate; no rebuild or
+new signing/notarization. Publication notes explain current distribution/testing
+limits; original sealed candidate notes remain unchanged.
+
+Only native URL/status promotion follows in a separate reviewed metadata PR.
+Standalone0.5.3ZIP/starter/VSIX preserved; local0.5.6kit not independently published.
+No Windows release, account/credential/security changes, Community edits or primary
+funding checkout changes. Physical Windows and fresh-machine/quarantine/Intel/
+macOS12/novice-use limits retained. Exact release/draft/tag/public receipts at
+`.verification/mac-publication/`; live deployment verification remains pending.
