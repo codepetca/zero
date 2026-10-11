@@ -532,3 +532,14 @@ passed; signed installer bytes remain unchanged. Public fallback receipt:
 and GitHub source CI precede merge/publication. Physical Windows remains held;
 primary funding checkout and Community untouched. Effective model/task tokens and
 attributable cost unknown; weekly91% at start is account allowance.
+
+Final integration review `mac_publication_integration_review/turn1`, requested
+GPT-6.1-Sol/high, completed cumulative basecbd12ad→headc36bad4 and new delta98242ea:
+reused documented unchanged phase security/runtime coverage; one accepted P2
+blocker in hosted setup/starter guidance naming unavailable VSIX/launcher versions.
+Correction is hosted/docs-only: both routes share download-aware setup guidance,
+use the downloaded kit’s VSIX and explain optional launcher availability. Sealed
+packaged sources and installer bytes preserved. Targeted review follows corrected
+head;1initial launch/1fixbatch so far. No additional code findings or coverage gaps.
+Local browser confirmed fallback home/Learn/Other downloads0.5.3 labels/links;
+receipt `.verification/mac-publication/fallback-ui.jpg`.

@@ -34,7 +34,7 @@ const documentPaths = {
   api: "student-template/API.md",
   beginner: "student-template/BEGINNER.md",
   style: "student-template/STYLE.md",
-  starter: "student-template/README.md",
+  starter: "docs/GETTING-STARTED.md",
   exercises: "student-template/EXERCISES.md",
   components: "docs/COMPONENTS.md",
   workshop: "component-workshop/README.md",

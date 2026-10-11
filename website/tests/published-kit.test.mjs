@@ -91,3 +91,13 @@ test('local, published, fallback and missing states render accurate labels and a
   const home=await readFile(new URL('../app/page.tsx',import.meta.url),'utf8');
   assert.equal((home.match(/className="button /g)||[]).length,2);
 });
+
+test('hosted starter and setup share download-aware guidance rather than packaged version assumptions', async () => {
+  const prepare=await readFile(new URL('../scripts/prepare.mjs',import.meta.url),'utf8');
+  assert.match(prepare,/setup: "docs\/GETTING-STARTED\.md"/);
+  assert.match(prepare,/starter: "docs\/GETTING-STARTED\.md"/);
+  const guide=await readFile(new URL('../../docs/GETTING-STARTED.md',import.meta.url),'utf8');
+  assert.match(guide,/Zero \.vsix included with your downloaded kit/);
+  assert.match(guide,/If your extracted complete kit includes a `setup\/` folder/);
+  assert.match(guide,/For the 0\.5\.3 ZIP this is `zero-0\.5\.3\.vsix`/);
+});
