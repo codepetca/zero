@@ -42,8 +42,10 @@ impersonated approval. No new release/provider/credentials change is authorized.
   Automatic DeepSeek remains paused by owner preference through 2026-12-31.
 - Status: local implementation accepted after independent initial+targeted review.
   GitHub protection is live and authenticated readback verified for both main
-  branches. Source PR publication is in progress. Merge remains subject to current human
-  approval and canonical CI. Implementation and review coverage are unchanged.
+  branches. Reviewed source PRs are published: [Zero20](https://github.com/codepetca/zero/pull/20)
+  and [Community5](https://github.com/codepetca/zero-community/pull/5). Merge remains
+  subject to final-head CI and independent GitHub approval. Recover their actual
+  status from GitHub before acting; do not infer a merge from an open PR.
 
 ## Review and exit
 
