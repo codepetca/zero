@@ -7,7 +7,10 @@ import { createHash } from 'node:crypto';
 import { validateInstallerManifest, installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
 import { verifiedLocalInstaller, boundedFile } from '../lib/local-installer.mjs';
 const kit = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
-const authored = JSON.parse(await readFile(new URL('../../release/installer.json', import.meta.url)));
+const releaseInstaller = JSON.parse(await readFile(new URL('../../release/installer.json', import.meta.url)));
+const authored = structuredClone(releaseInstaller);
+authored.publication.status = 'local';
+delete authored.asset.url;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'zero-native-download-'));
@@ -25,6 +28,7 @@ async function fixture(t) {
   return {root, manifest, receipt, save, bytes};
 }
 test('strict independent manifest, versioned publication and platform choice', () => {
+  validateInstallerManifest(releaseInstaller, kit);
   validateInstallerManifest(authored, kit);
   assert.equal(validateInstallerManifest(null, kit), null);
   assert.equal(installerHref(authored), null);

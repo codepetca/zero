@@ -1,22 +1,21 @@
 import { DownloadIcon } from "./Brand";
-import { downloadHref, macDownloadHref, localDownloadsEnabled, release, installer } from "@/lib/content";
+import { downloadHref, downloadableKit, macDownloadHref, release, installer } from "@/lib/content";
 export function Downloads() {
-  const local = localDownloadsEnabled();
+  const kit = downloadableKit();
   const mac = macDownloadHref();
-  const published = release.publication.status === "published";
   return (
     <section className="download-section" id="downloads">
       <h2>Get Zero</h2>
       {mac ? (
-        <p>Zero Setup {release.kitVersion} for Mac{installer.publication.status === 'local' ? ' is available in this local preview and has not been publicly released.' : ' is available as a signed and notarized download.'}</p>
-      ) : published ? (
+        <p>Zero Setup {installer.kitVersion} for Mac{installer.publication.status === 'local' ? ' is available in this local preview and has not been publicly released.' : ' is available as a signed and notarized download.'}</p>
+      ) : kit?.publication.status === 'published' ? (
         <p>
-          Zero {release.kitVersion} is available as a verified, versioned
+          Zero {kit.kitVersion} is available as a verified, versioned
           release.
         </p>
-      ) : local ? (
+      ) : kit ? (
         <p>
-          This local preview offers the packaged Zero {release.kitVersion} kit.
+          This local preview offers the packaged Zero {kit.kitVersion} kit.
           Downloads are checked against the local release receipt; this version
           has not been publicly released.
         </p>
@@ -32,20 +31,20 @@ export function Downloads() {
         <p>macOS 12 or later · Apple Silicon and Intel</p>
         <p>Open Zero Setup and choose a fresh project folder. Setup guides the Zero profile import and asks before installing editor support or opening official VS Code and Java downloads.</p>
       </>}
-      {!mac && (published || local) && (
+      {!mac && kit && (
         <a className="button primary compact" href={downloadHref()}>
           <DownloadIcon />
-          Download Zero {release.kitVersion}
+          Download Zero {kit.kitVersion}
         </a>
       )}
       <details>
         <summary>Other downloads</summary>
-        {published || local ? (
+        {kit ? (
           <ul>
-            {mac && <li><a href={downloadHref()}>Complete kit ZIP — Windows, Linux or manual setup</a></li>}
+            {mac && <li><a href={downloadHref()}>Complete kit ZIP {kit.kitVersion} — Windows, Linux or manual setup</a></li>}
             {["starter", "extension"].map((key) => (
               <li key={key}>
-                <a href={downloadHref(key)}>{release.assets[key].label}</a>
+                <a href={downloadHref(key)}>{kit.assets[key].label} {kit.kitVersion}</a>
               </li>
             ))}
           </ul>

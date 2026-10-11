@@ -9,7 +9,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
 import { validateInstallerManifest } from "../lib/installer.mjs";
-import { validateManifest } from "../lib/contracts.mjs";
+import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { validateCommunityManifest } from "../lib/community.mjs";
 import { communityPreview } from "../lib/community-preview.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -80,6 +80,12 @@ for (const name of ["SimpleApp", "SketchApp"])
 const release = validateManifest(
   JSON.parse(await readFile(resolve(root, "release/kit.json"), "utf8")),
 );
+let publishedKit = null;
+try {
+  publishedKit = validatePublishedKit(JSON.parse(await readFile(resolve(root, "release/published-kit.json"), "utf8")), release);
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
 let installer = null;
 try {
   installer = validateInstallerManifest(JSON.parse(await readFile(resolve(root, "release/installer.json"), "utf8")), release);
@@ -95,7 +101,7 @@ await mkdir(resolve(site, ".generated"), { recursive: true });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, installer, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, publishedKit, installer, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

@@ -509,3 +509,26 @@ manual visual observation; it does not retroactively claim CUA saw the earlier
 sidebar Run window. Greeting left open for the owner to close. Receipt:
 `.verification/mac-056/manual-greeting-run.json`. No source, candidate artifact,
 profile, credential or publication changes. Other platform/setup limits remain.
+
+## Publication integration checks — 2026-10-11
+
+Owner authorized source PR/merge, exact signed Mac0.5.6 publication and website
+update. Preserved `release/published-kit.json` from canonical main
+`cbd12ad1b67252f6c4c33fbbe22aa40052eb0791`: all three public0.5.3 assets freshly
+verified without authentication against exact size/SHA256. Website selects a
+published current kit, explicit local preview, or this verified fallback; download
+labels distinguish kit0.5.3 and Mac0.5.6. Existing three-asset publisher now accepts
+only a direct kit link or the same-site Learn chooser with one actual kit anchor
+inside the downloads section before measuring its bytes. Native metadata tests
+validate the authored state and use explicit local/published fixtures.
+
+One bounded GPT-6.1-Sol/high implementation worker, no recursive delegation. Final
+checks: website34tests/typecheck/build, release53guards, Maccandidate2tests, root
+and diff checks. Coordinator reused full247extension/setup tests and8installer
+tests completed in this publication phase. All10sealed candidate checksum entries
+passed; signed installer bytes remain unchanged. Public fallback receipt:
+`.verification/native-download/published-kit-fallback.json`; delivery receipt:
+`.verification/mac-publication/delivery.json`. Final independent integration review
+and GitHub source CI precede merge/publication. Physical Windows remains held;
+primary funding checkout and Community untouched. Effective model/task tokens and
+attributable cost unknown; weekly91% at start is account allowance.

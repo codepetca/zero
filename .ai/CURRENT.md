@@ -13,12 +13,21 @@ local kit/extension0.5.6 and core0.1.1 are unpublished. Upload simulation remain
 default. Community AI/CI cannot accept/recommend/publish; no live provider.
 Owner-requested removal of main protections remains in effect; do not restore.
 
-Completed authorization: add the tested Mac installer to the local website and
-prepare its exact-byte release candidate. This does not authorize publication,
-push, PR, merge, deployment, host repairs, account/credential/Keychain changes,
-new signing, or security weakening. Earlier publication grants are completed.
-Physical Windows testing remains deferred; unsigned EXE stays out of student
-website downloads. Business-account conversation:01a12a95-bab5-7341-aa67-f7a7bc9da9c4.
+Current authorization: source PR and merge, publish the exact signed Mac0.5.6
+installer, then update/deploy the website download and verify public bytes.
+No extra kit publication, new signing/notarization, account/credential/security
+changes. Windows physical testing stays held; unsigned EXE not offered.
+Business-account conversation:01a12a95-bab5-7341-aa67-f7a7bc9da9c4.
+
+Current coordinator phase: preserve verified public0.5.3 ZIP/starter/VSIX as
+website fallback while adding Mac0.5.6, review/merge full guided-setup source,
+publish exact sealed DMG as setup-v0.5.6, verify unauthenticated bytes, promote
+only native metadata through reviewed PR and verify live Vercel deployment.
+Worker published_zip_fallback (GPT-6.1-Sol/high) delivered verified fallback and
+chooser compatibility; no writer active. Website34tests/typecheck/build, release53
+guards, Maccandidate2tests and root/diff checks pass. Coordinator owns review, Git,
+release and live verification. Primary funding branch/files untouched.
+Receipt .verification/mac-publication/delivery.json; weekly91% account allowance.
 
 ## Completed local download phase
 
@@ -49,7 +58,7 @@ Local preview apps/servers closed. Evidence .verification/native-download/ and
 tracked EVIDENCE/VERIFICATION. Approximately12min; weekly91% at start is account
 allowance, effective model/task tokens/cost unknown.
 
-Next decision: authorize source PR/merge and publication/deployment separately.
+Source PR/merge and Mac publication/deployment are now authorized by the owner.
 Public0.5.3/Community0.1.3 and README download remain unchanged. Source equivalent
 maintainer receipt edits follow the reviewed preparation revision. Do not rebuild
 or replace the sealed candidate. Windows physical testing still held.

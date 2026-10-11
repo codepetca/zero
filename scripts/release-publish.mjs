@@ -180,13 +180,31 @@ export async function publishZero(options, dependencies = {}) {
       try {
         const response = await request(`${website}/?zero_release=${encodeURIComponent(options.version)}&check=${now()}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
         assert.equal(response.status, 200, 'Live landing page unavailable.');
+        const visibleMarkup = html => html.replace(/<!--[\s\S]*?-->|<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+        const anchors = html => [...visibleMarkup(html).matchAll(/<a\b[^>]*\shref=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
         const html = await response.text();
-        const links = [...html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)]
+        const links = anchors(html)
           .filter(match => /Download(?:\s|<[^>]*>)*Zero/i.test(match[2].replace(/<[^>]*>/g, ' ')));
         assert.equal(links.length, 1, 'Live landing must have one Download Zero link.');
-        assert.equal(links[0][1].replace(/&amp;/g, '&'), kit.url, 'Live download link is stale.');
-        // Fetch the exact link found on the live page, then measure the actual kit.
-        await publicBytes({...kit, url: links[0][1].replace(/&amp;/g, '&')});
+        let found = links[0][1].replace(/&amp;/g, '&');
+        if (found !== kit.url) {
+          assert.ok(found === '/learn#downloads' || found === `${website}/learn#downloads`, 'Live download link is stale.');
+          const choices = await request(`${website}/learn`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
+          assert.equal(choices.status, 200, 'Live download choices unavailable.');
+          if (choices.url) {
+            const destination = new URL(choices.url);
+            assert.ok(destination.origin === website && destination.pathname === '/learn', 'Live download choices redirected outside the expected page.');
+          }
+          const sections = [...visibleMarkup(await choices.text()).matchAll(/<section\b[^>]*\sid=["']downloads["'][^>]*>([\s\S]*?)<\/section\s*>/gi)];
+          assert.equal(sections.length, 1, 'Live page must have one downloads section.');
+          const candidates = anchors(sections[0][1]).filter(match =>
+            /Complete\s+kit\s+ZIP|Download\s+Zero/i.test(match[2].replace(/<[^>]*>/g, ' ')) || /(?:^|\/)zero-bootstrap\.zip(?:[?#]|$)/i.test(match[1]) || match[1].replace(/&amp;/g, '&') === kit.url);
+          assert.equal(candidates.length, 1, 'Live downloads must have one kit candidate.');
+          found = candidates[0][1].replace(/&amp;/g, '&');
+          assert.equal(found, kit.url, 'Live download choices kit link is stale.');
+        }
+        // Fetch the exact public kit anchor found on the live page and measure it.
+        await publicBytes({...kit, url: found});
         return;
       } catch (error) {reason = error.message;}
       await sleep(dependencies.pollInterval ?? 10000);

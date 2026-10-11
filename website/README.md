@@ -26,7 +26,7 @@ The home page keeps the existing wordmark and two actions. Community retains its
 
 ## Download states
 
-The current published kit links directly to its verified GitHub release assets in development and production, including when the local preview flag is enabled. Unpublished assets lead to their availability explanation at `/learn#downloads` by default.
+The current published kit links directly to its verified GitHub release assets in development and production, including when the local preview flag is enabled. While the current kit remains local, the optional `../release/published-kit.json` preserves the last verified public kit, starter and VSIX with their own version labels. Preparation requires a published fallback no newer than the current kit, with explicit versioned URLs, sizes and hashes. Verify those public bytes without authentication before authoring the fallback. A missing fallback retains the availability explanation at `/learn#downloads`. Explicit local preview selects the current kit instead; `/download/*` always verifies that current kit. Mac setup publication is independent and does not change the ZIP version.
 
 To preview a **new local version**, first set its release metadata to local and package it from the repository root, then:
 

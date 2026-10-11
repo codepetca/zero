@@ -79,7 +79,11 @@ npm test --prefix website
 npm run build --prefix website
 ```
 
-The current published kit uses verified GitHub release links. To preview a new
+The website uses the current kit when published, or the last verified published
+kit in `release/published-kit.json` while a newer kit remains local. The fallback
+is validated as published and no newer than the current version; its explicit
+GitHub URLs, sizes and hashes must first be checked without authentication. A
+missing fallback retains the availability explanation. To preview a new
 local version, set its release metadata to local, run `npm run package`, then
 start the website from the root with:
 
@@ -87,13 +91,15 @@ start the website from the root with:
 ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 ```
 
-An unpublished asset without the local preview flag leads to its availability
-explanation on Learn more. Published assets keep their verified public links
+Without the local preview flag, an unpublished kit uses the verified fallback
+when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
 The optional `release/installer.json` adds **Download for Mac** on Learn more.
 When that installer is published or local downloads are enabled, the landing
 Download Zero action opens the platform choices at `/learn#downloads`. The ZIP,
-starter and VSIX remain under Other downloads; no unsigned Windows EXE is offered.
+starter and VSIX remain under Other downloads with their own kit version, even
+when Mac setup and the published ZIP are different versions. No unsigned Windows
+EXE is offered.
 Local native download verifies bounded exact bytes, clean signed/notarized build
 provenance and unchanged packaged/native source. `VERCEL` always disables local
 filesystem downloads even with the preview flag set. A hosted build reads only
