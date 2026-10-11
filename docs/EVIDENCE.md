@@ -242,3 +242,31 @@ and final read-only DMG/PE payload checks pass. See VERIFICATION.md for hashes
 and precise gaps. Physical Windows, actual installations and distribution signing
 remain pending. No push/PR/merge/release/deploy, tool/profile/account mutations or
 security-policy changes. Primary funding work and Community preserved.
+
+
+## Mac-first setup correction and dogfood — local only
+
+Owner deferred Windows testing. Base9917502b5c349863a3ad12b1bdabdf3667f536a2;
+reviewed runtime4b7058c46a0c2f633329c8f5222a25f5376e7623. Live AppKit checking
+revealed inherited child signal masks, confirmed by before/after Bash self-TERM.
+installer_macos requested GPT-6.1-Sol/high corrected only SetupCore.swift/tests.swift;
+coordinator handled actual UI, isolated editor testing, build and records.
+62 harness assertions pass. Native check/picker/fresh copy/launcher startup and
+6 real VS Code/JavaFX flow assertions pass, with precise interaction limits in
+VERIFICATION.md. No teacher profile/tools/accounts were modified; only disposable
+profile/extensions and instrumented starter were used. Original Main restored.
+
+native_setup_security_review/mac-signals-turn1 requested GPT-6.1-Sol/high completed
+the entire two-file9917502..4b7058c correction, process/controller/timer/output
+boundaries;0findings/blockers. Ledger1turn/1initial wave/0targeted waves/0review
+fix batches, no failed reviewer launches. No integration wave: code remained
+unchanged after the complete clean review. Reviewer/coordination elapsed time,
+effective model and per-turn tokens are unknown; weekly17% remaining at start is
+account-wide allowance, not task cost. DeepSeek remains paused. Ignored ledger
+and test receipts are in .verification/mac-first-run.
+
+Mac-only source-clean build/verification receipt binds4b7058c. Previous all-platform
+receipt archived because its Mac hash was superseded. No Windows runtime work,
+push/PR/merge/release/deploy/signing access, system installation or OS-policy
+change. Primary funding work and Community preserved. Final CURRENT/documentation
+receipts are coordinator-owned, nonfunctional and locally checked.

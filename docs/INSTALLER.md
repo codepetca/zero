@@ -34,6 +34,16 @@ repairs and restart when environment changes require it.
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
+The current Mac-first pass uses the reviewed4b7058c source and
+`dist/installers/build-macos.json`; the earlier all-platform receipt is historical
+and archived under `.verification/native-installer/build-all-b3551be.json`.
+Windows testing is explicitly deferred. To rebuild/check only Mac:
+
+```sh
+node scripts/build-installers.mjs --platform macos
+node scripts/verify-installers.mjs --platform macos
+```
+
 The macOS app uses AppKit and Foundation, targets macOS 12+, and includes ARM64
 and Intel binaries. The Windows app uses Windows Forms and the Windows .NET
 Framework 4.8; the .NET SDK/reference package is build-only. Recent Windows 10/11
@@ -63,12 +73,18 @@ A compiler's ad-hoc Mach-O signature is not a distribution identity. Do not guid
 students to disable security controls. Signing account access and publication
 need separate owner authorization.
 
-Harnesses use disposable files and fake probe/launch interfaces. No actual
-student tools, profiles, authentication or package-manager installations are
-changed during verification. Native macOS backend/preview checks and Windows
-cross-build/Mono checks do not prove physical Windows UI, normal PowerShell
-policy, clean-machine tool repairs, Gatekeeper/SmartScreen behavior, restricted
-school networks or novice usability. See [VERIFICATION.md](VERIFICATION.md).
+Harnesses use disposable files and fake probe/launch interfaces. The Mac-first
+pass also checked the real AppKit check/picker/copy flow and installed Zero/Java
+extensions in isolated VS Code test directories. Real editor Run/autosave/default
+build/Stop opened the starter JavaFX window with a disposable stage probe. Existing
+student/teacher profiles, tools and accounts were preserved; no package-manager
+installation or authentication was attempted.
+
+These checks do not prove physical Windows UI, Intel execution, clean-machine
+repairs, native Terminal/profile-import/trust prompts, Gatekeeper/SmartScreen,
+restricted school networks or novice usability. Terminal GUI access was blocked
+by the computer-control tool; the copied guided menu was tested through an
+isolated PTY. See [VERIFICATION.md](VERIFICATION.md) for evidence and limits.
 
 ## Maintainer harnesses
 

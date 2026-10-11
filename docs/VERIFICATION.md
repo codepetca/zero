@@ -195,3 +195,55 @@ restricted networks and novice usability remain unverified. macOS checks use
 disposable files/fake commands; the preview is not a real setup completion.
 No host installations, profiles/accounts/credentials, policy changes or remote
 writes occurred. Artifacts remain unsigned development builds and unpublished.
+
+
+## Mac-first real setup and editor check — 2026-10-10
+
+Owner explicitly deferred Windows testing. Base9917502b5c349863a3ad12b1bdabdf3667f536a2;
+reviewed Mac runtime4b7058c46a0c2f633329c8f5222a25f5376e7623.
+On Apple Silicon macOS26.6.2, native Check laptop exposed inherited blocked child
+signals: Bash could survive TERM and normal probe timer cleanup waited20seconds.
+The correction resets only spawned child signal masks/dispositions, retaining
+owned process groups and bounded output/timeout cleanup. Before/after self-TERM
+proof and timer-trap regression pass;62 native harness assertions pass.
+
+Real AppKit app startup, Check laptop and native parent/name picker succeeded.
+The existing VS Code1.141.0/JDK17.0.14 were detected; missing/old Zero profile
+support remained visible instead of implying readiness. Native copy produced126
+files with exact ZIP bytes/modes in a disposable fresh folder. Continue setup
+started its copied Setup.command/setup.sh. The computer-control tool denied
+Terminal GUI access; only those test-owned launcher processes were stopped.
+The copied guided menu subsequently ran in an isolated PTY and exited with0;
+no install/repair action was selected. A read-only check using an isolated Code
+CLI shim reported ready (real Code plus disposable profile/extensions).
+
+Real marketplace installation in separate test directories installed Red Hat
+Java1.56.0, debugger0.59.0 and the packaged local Zero0.5.4 VSIX. Existing user
+profiles/tools/accounts were preserved. The VS Code test host passed6 flow
+assertions: packaged extension activation/fixture settings, Run App with a visible
+Hello, world! JavaFX stage, Stop, actual editor autosave, default build command
+with changed Hello, Mac! stage, and second Stop. A disposable Main.ready stage
+probe recorded isShowing/label; it was removed and the original Main restored.
+This is actual editor/task/JavaFX execution, not a screenshot or manual button
+click trial. The first test attempt stopped at the trust guard; the final test
+used an ephemeral trusted-fixture flag. Quiet-profile settings were deserialized
+into disposable test data; actual profile import and trust prompts remain
+untested. VS Code UI automation could not select the separate instance safely.
+
+Rebuilt only the Mac artifact from clean reviewed4b7058c; macOS-only verification
+checks checksum, both ARM64/x86_64 architectures and every read-only mounted
+payload byte/mode. Current DMG645322bytes, SHA256
+`54bd45768aeeaf8fbbb3a884cd99fa4b97390d5ad966e71b686dc8dc65ca10ed`.
+Current receipt: dist/installers/build-macos.json. The prior build-all.json was
+archived to .verification/native-installer/build-all-b3551be.json because its
+Mac hash is superseded; its Windows record is historical. Kit ZIP/VSIX unchanged.
+Logs, real editor receipt, proof binaries and test fixtures: .verification/mac-first-run
+and .verification/native-installer/macos-signals.
+
+One complete independent GPT-6.1-Sol/high review accepted the two-file delta and
+immediate process/controller/probe callers, with no actionable findings. No extra
+integration review added coverage after that clean pass. Whitespace checks pass.
+Intel execution, fresh-machine installs, native Terminal/profile/trust interactions,
+Gatekeeper/notarization, restricted networks and novice usability remain pending.
+Windows testing stays deferred. No publication or existing tool/profile/account/
+security-policy change; the Mac package is unsigned local development only.
