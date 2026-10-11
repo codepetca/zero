@@ -746,7 +746,19 @@ and net48 harness/WinForms cross-build passed with0warnings/errors. Coordinator
 root/diff,8installer and2Macsealing tests passed. No dist/candidate replacement,
 installation, signing/notarization, GitHub publication or account changes. Actual
 Windows/WinForms remains untested/held; Intel/macOS12 execution not established by
-compilation. UI preview and independent review precede local acceptance.
+compilation. CUA AppKit fake-only preview verified the one-line default screen,
+optional picker cancellation retaining the default and primary→ready without a
+mandatory picker. All copy/command actions used disposable fixtures/fakes; no host
+installation. Screenshot `.verification/default-folder/mac-default.jpg`.
+
+Independent default_folder_review/turn1 requested GPT-6.1-Sol/high completely
+reviewed all13changed files and immediate native placement/lifecycle/UI callers at
+0adb412b537ed0edd6d83e820192d033339f536a against
+fc25c39cab143a13709977a959909727c289f756:0actionable findings/blockers, exact-range
+diff check passed.1launch/1initialwave/0fixbatches; approximately90reviewer seconds.
+Existing harness/build checks reused; no extra integration wave needed because
+reviewed source is unchanged. Final delta records this evidence only. Local source
+accepted; no source push/PR or new installer release performed.
 Receipts `.verification/default-folder/`; weekly89% at start is account allowance,
 effective models/task tokens/attributable cost and coordination time unknown.
 Primary funding checkout and Community untouched.

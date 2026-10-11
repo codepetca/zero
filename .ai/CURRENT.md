@@ -41,7 +41,14 @@ with optional Change location; fresh numbered folders preserve existing projects
 Local implementation on codex/default-setup-folder. Mac and Windows source changes
 plus focused checks/review only; no new release/signing/deployment authorized.
 Windows physical testing remains held. Published0.5.6 assets remain immutable.
-Coordinator owns contracts, docs and integration; one writer per platform.
+Local source complete at0adb412b537ed0edd6d83e820192d033339f536a. Two bounded
+GPT-6.1-Sol/high platform workers completed; independent complete Sol/high review
+found0blockers (1turn/0fixbatches). Mac145/Windows153harness checks,3PowerShell
+checks, bothMacarchitecture compiles/WinForms cross-build, root/diff/8installer/
+2sealing checks passed. Actual CUA fake-only Mac preview: default screen, optional
+picker cancellation and primary→ready passed. Receipts .verification/default-folder/.
+No active worker. Next installer release requires a new version/build; public0.5.6
+still uses the old chooser. No push/PR/new release in this phase.
 
 The separately published ZIP/starter/VSIX remain0.5.3, freshly verified without
 authentication and pinned in release/published-kit.json. Local kit/extension0.5.6
