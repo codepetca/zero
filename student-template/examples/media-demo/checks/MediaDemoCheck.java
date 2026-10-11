@@ -17,7 +17,7 @@ public class MediaDemoCheck extends Application {
     private Stage stage;
     private AudioClip sound;
     private boolean observedPlayback;
-    private int polls;
+    private long playbackDeadline;
 
     private static Object field(Main app, String name) throws Exception {
         var field = Main.class.getDeclaredField(name);
@@ -79,6 +79,7 @@ public class MediaDemoCheck extends Application {
                     "Each click updates state once");
             require(field(app, "sprite") == sprite && field(app, "sound") == sound,
                     "Assets reused rather than reloaded");
+            playbackDeadline = System.nanoTime() + 5_000_000_000L;
             pollPlayback();
         } catch (Throwable failure) { fail(failure); }
     }
@@ -88,7 +89,9 @@ public class MediaDemoCheck extends Application {
         wait.setOnFinished(event -> {
             try {
                 observedPlayback |= sound.isPlaying();
-                if (++polls < 100) {
+                // Native audio startup/buffering differs across platforms.
+                if ((!observedPlayback || sound.isPlaying())
+                        && System.nanoTime() < playbackDeadline) {
                     pollPlayback();
                     return;
                 }
