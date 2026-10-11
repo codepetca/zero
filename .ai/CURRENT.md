@@ -3,6 +3,20 @@
 Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 History/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
+## Active Mac onboarding simplification
+
+Owner authorizes local implementation: eliminate native Mac profile import and
+manual Java setup. Keep fixed home/Zero and approved preservation updates.
+Worker easy_mac_onboarding (requested GPT-6.1-Sol/high) owns Mac runtime/UI;
+coordinator owns pinned vendor manifest, packaging, docs and integration.
+Local kit/extension0.5.7; published0.5.6 and sealed candidate remain immutable.
+Target: initial Set up consent, isolated editor defaults, verified private JDK21,
+reuse compatible VS Code or install verified user-local copy, quiet progress,
+Open Zero/Run. GitHub later. No host installs during tests, no publishing/signing,
+no Windows behavioral change/testing. Current branch codex/default-setup-folder
+base1d5fa055cfad11eaadfa115efd04ae183a413afd. Checks/review pending; evidence
+.verification/easy-onboarding/. Weekly87% remaining at start; task cost unknown.
+
 ## Product and authority
 
 Zero is a local VS Code extension/profile and ordinary Java/JavaFX teaching kit.

@@ -40,7 +40,7 @@ if (platform !== 'windows') {
   const binaries = [];
   for (const arch of ['arm64', 'x86_64']) {
     const file = path.join(work, `ZeroSetup-${arch}`);
-    run('/usr/bin/xcrun', ['swiftc', '-O', '-target', `${arch}-apple-macosx12.0`, '-framework', 'AppKit', '-framework', 'Foundation', ...['SetupCore.swift', 'SetupWindow.swift', 'main.swift'].map(name => path.join(source, name)), '-o', file]);
+    run('/usr/bin/xcrun', ['swiftc', '-O', '-target', `${arch}-apple-macosx12.0`, '-framework', 'AppKit', '-framework', 'Foundation', ...['SetupCore.swift', 'MacRuntime.swift', 'SetupWindow.swift', 'main.swift'].map(name => path.join(source, name)), '-o', file]);
     binaries.push(file);
   }
   run('/usr/bin/lipo', ['-create', ...binaries, '-output', path.join(bin, 'ZeroSetup')]);

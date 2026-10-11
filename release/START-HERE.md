@@ -2,10 +2,15 @@
 
 ## Zero setup app
 
-If you used the native Zero Setup app, follow its single status message and choose
-**Open Zero** when ready. It preserves existing tools and files. The first profile
-import or Java installation may need an editor or system approval step. Run App
-in Zero and confirm the greeting window. The ZIP/manual paths remain below.
+In the new Mac setup, choose **Set up Zero**, wait for the single status message,
+then choose **Open Zero**. It prepares Java, editor settings and extensions for you.
+If a Zero kit already exists, choose **Update Zero** only after reading the warning;
+your student project is kept. Later, double-click **Open Zero.command** in your
+home **Zero** folder to return to the configured editor. Choose **Run App** and
+confirm the greeting window. GitHub sign-in is needed only when sharing work.
+
+Windows native setup still guides any required tool or profile actions. The
+ZIP/manual paths remain below; they do not use the new Mac app's automation.
 
 ## Guided setup
 
@@ -36,7 +41,7 @@ work, not for running the first app. Sign in only when you are ready to upload.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows/Linux, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.6.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.7.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

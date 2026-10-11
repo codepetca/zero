@@ -22,6 +22,11 @@ ZIP contains the project, but not the Zero extension or optional profile; downlo
 the extension separately from **Other downloads** when needed. For the optional
 profile, download the **complete kit ZIP**.
 
+The next local Mac0.5.7 build removes manual profile and Java setup. Choose
+**Set up Zero**, wait, then **Open Zero** and **Run App**. Later use
+`~/Zero/Open Zero.command` to return to its separate editor configuration.
+This is not yet in the public0.5.6 download; see [native setup](INSTALLER.md).
+
 ## One-time setup
 
 The website labels each download’s version. **Mac setup 0.5.6** includes guided

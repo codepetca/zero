@@ -17,29 +17,39 @@ short status message, replacing the previous message as each step changes.
 Technical output is available only through **Details** in a separate window.
 There is no checklist, scrolling log or Terminal menu in the native flow.
 
-Setup checks existing tools before proposing changes. Choose a fresh writable
-kit folder; existing folders are never replaced. It handles one required item at
-a time, asks before installation or an external handoff, and checks the result
-before advancing. Compatible tools and existing profiles are reused. Git is
-optional for local running; GitHub and Pika remain separate.
+The next local Mac build (kit0.5.7) has a shorter flow:
 
-When setup needs a vendor installer or an editor action, it explains that step
-before opening the relevant application. System approval prompts remain visible;
-setup never enters passwords, silently elevates or installs a package manager.
-An unavailable or failed action leaves a clear retry/help state instead of
-claiming success. **Open Zero** is offered after required readiness checks pass;
-opening the editor is not proof that the first app runs. In Zero, use Run App
-and confirm the greeting window.
+1. Choose **Set up Zero**. If `~/Zero` already contains a Zero kit, confirm
+   **Update Zero** first; the existing student project is preserved.
+2. Setup prepares Java and the editor in the background, replacing its single
+   progress message as each step completes.
+3. Choose **Open Zero**, then **Run App** and confirm the greeting window.
 
-Supported background work includes tool checks, kit copying and approved extension
-installation into an existing Zero profile. VS Code's supported CLI cannot create
-or import that profile quietly: if it is absent, the main window guides its import
-one short instruction at a time. A **Copy profile path** button helps select the
-bundled file; **Check profile** verifies the result before continuing. Required
-instructions never depend on Details. Compatible existing profiles are preserved.
-Missing or incompatible VS Code and Java use explicit official-download handoffs
-with normal system approval. Native setup uses vendor handoffs for tools. Fully quit and
-reopen VS Code after changing Java or its environment, then check again.
+The initial setup/update choice authorizes the necessary downloads and local
+configuration. No profile import or Java environment editing is needed in this
+Mac flow. A failed download or check leaves a retry state and useful Details.
+Git and GitHub authentication remain separate from local running.
+
+Mac setup uses a private JDK21 and isolated VS Code user-data/extensions under
+`~/Library/Application Support/Zero`. It reuses a compatible installed VS Code,
+or installs a verified copy for Zero in that private directory. Downloads are
+pinned by URL and SHA256 in `setup/mac-downloads.json`; changed bytes are refused.
+Normal system Java, VS Code profiles and student source are preserved. Initial
+quiet settings are copied only when Zero's settings file is absent; later theme
+and editor choices are kept. This editor configuration is separate from a named
+Zero profile in an ordinary VS Code window. Use **Open Zero.command** in `~/Zero`
+to return to the configured editor after closing setup.
+
+The Mac native runtime is compiled into the app: students need no Python, Node,
+Homebrew or compiler to install. The installer does not enter passwords, elevate,
+change global environment variables, disable security prompts or enroll a device.
+Workspace trust and managed-device restrictions still apply. First-time Maven
+and JavaFX downloads occur when Run App builds the project.
+
+Windows native setup and ZIP/manual launchers retain their guided profile import
+and official-download handoffs. Compatible tools and existing profiles are reused.
+Physical Windows testing remains deferred. These platform paths are not described
+as having the new Mac automation.
 
 The extracted kit's shell launchers stay available as a manual fallback. Physical
 Windows testing remains deferred; cross-builds and fake tests do not prove its UI.
@@ -70,15 +80,16 @@ an existing student app to a new Java API or project build configuration.
 An access/copy failure offers Details and retry. Fix home folder access (or ask
 for help) before retrying; setup never silently falls back to another location.
 
-The public signed Mac0.5.6 installer still uses its original folder picker.
+The public signed Mac0.5.6 installer still uses its original folder picker and
+manual profile/tool guidance.
 These source changes need a new versioned, verified installer release before
 students receive them. ZIP launchers keep their current manual behavior.
 
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates
-`dist/installers/Zero-Setup-0.5.6-macos-development.dmg` and
-`dist/installers/Zero-Setup-0.5.6-windows-development.exe`. The measured
+`dist/installers/Zero-Setup-0.5.7-macos-development.dmg` and
+`dist/installers/Zero-Setup-0.5.7-windows-development.exe`. The measured
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -116,7 +127,7 @@ node scripts/verify-installers.mjs --platform macos --signed
 ```
 
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
-not a secret). A new signed candidate would be `Zero-Setup-0.5.6-macos.dmg`, measured in
+not a secret). A new signed candidate would be `Zero-Setup-0.5.7-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
 The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
 removes unsigned-development labels and shows only Zero Setup/version. Signed
@@ -199,7 +210,8 @@ On macOS, compile and run against disposable files/fake commands:
 mkdir -p .verification/native-installer/macos
 xcrun swiftc -O -target arm64-apple-macosx12.0 -D ZERO_SETUP_TESTS \
   -parse-as-library -framework AppKit -framework Foundation \
-  native-installer/macos/SetupCore.swift native-installer/macos/SetupWindow.swift \
+  native-installer/macos/SetupCore.swift native-installer/macos/MacRuntime.swift \
+  native-installer/macos/SetupWindow.swift \
   native-installer/macos/tests.swift \
   -o .verification/native-installer/macos/setup-tests
 .verification/native-installer/macos/setup-tests \

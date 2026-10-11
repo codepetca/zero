@@ -7,16 +7,18 @@ continues to be an ordinary editable Java project.
 
 ## Native setup
 
-Zero Setup uses one small fixed window with one replacing status message and a
-progress indicator. It checks first, preserves compatible tools, copies the kit to a fresh
-folder and guides one required action at a time. The normal native flow keeps checks and extension
-installation in its own window. Details are separate and optional; failed operations
-remain actionable rather than being reported as ready. See [native setup](INSTALLER.md).
-Windows testing remains deferred; the manual ZIP launchers below stay available.
-Missing tools use explicit official-download handoffs. A first-time Zero profile
-import has short guided steps in the main window, including Copy profile path and
-a real profile check. Only editor extensions install in the background after
-approval; operating-system installer prompts remain visible.
+The next local Mac0.5.7 setup uses **Set up Zero → Open Zero → Run App**.
+It uses `~/Zero`, asks before updating an existing kit, and preserves the student
+project. Background work uses one small window with a replacing status message.
+It automatically prepares a private verified JDK21, reuses compatible VS Code or
+installs a verified user-local copy, seeds separate Zero editor settings, and
+installs required extensions. No profile import or Java version selection is
+needed. Use `~/Zero/Open Zero.command` to reopen that configured editor.
+
+This shorter flow is local development work, not part of the public signed
+Mac0.5.6 download. Windows and ZIP/manual setup retain their existing guidance.
+Details and failures remain visible; GitHub sign-in comes later. See
+[native setup](INSTALLER.md) for isolation, downloads and platform limits.
 
 ## ZIP/manual student flow
 
@@ -45,7 +47,10 @@ process environment. If VS Code terminal settings override build/tool variables,
 setup reports Run readiness as unverified and explains which setting needs
 review; it does not change those settings or recommend its first-run action.
 Ordinary Run App remains available for a teacher/IT-reviewed configuration.
-Java and its compiler need compatible matching JDK17+ versions. A bad JAVA_HOME must not be hidden by a working PATH installation.
+Java and its compiler need compatible matching JDK17+ versions. In manual setup,
+a bad JAVA_HOME must not be hidden by a working PATH installation. The new native
+Mac launcher explicitly selects Zero’s private JDK only for its own editor and
+child processes; it does not repair or change the system JAVA_HOME.
 Git2.31+ is checked separately for optional sharing. Java editor support and the
 debugger are checked in the active VS Code profile; debugger absence does not
 block Run App. Installed extensions in another profile do not satisfy this check.
@@ -89,6 +94,6 @@ Primary references: [VS Code CLI](https://code.visualstudio.com/docs/configure/c
 Native wrappers embed the complete kit: a Windows EXE and a universal macOS app
 inside a DMG. Both use a small window with one replacing status line. The local
 Mac0.5.5 candidate is signed/notarized; Windows0.5.6 is an unsigned development
-candidate requiring a Windows trial. Both preserve existing projects and use a fresh
-writable folder. Keep the ZIP/manual path for managed machines; see
+candidate requiring a Windows trial. Both preserve existing student projects; the next native build uses the fixed
+home `Zero` folder with an update confirmation. Keep the ZIP/manual path for managed machines; see
 [installer direction](INSTALLER.md).
