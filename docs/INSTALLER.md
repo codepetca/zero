@@ -1,8 +1,9 @@
 # Native Zero Setup
 
 Zero Setup is a thin native wrapper around the guided setup scripts. The local
-0.5.5 development builds embed the complete kit; they are not published downloads
-and are not ready for classroom distribution until platform testing and signing.
+0.5.5 builds embed the complete kit. The local Mac candidate is Developer ID
+signed and notarized; it is not a published download. Fresh-machine and student
+flow testing remain outstanding.
 
 ## Mac student flow
 
@@ -49,7 +50,9 @@ can still leave owned staging, never permission to replace an existing project.
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
-The calmer Mac setup is a new local candidate. The prior signed/notarized 0.5.4
+The calmer 0.5.5 Mac candidate passed signing, notarization, artifact verification
+and a read-only existing-Mac check/copy smoke test. See VERIFICATION.md for exact
+source/hashes and untested flows. The prior signed/notarized 0.5.4
 DMG and receipt are preserved under `.verification/mac-signing/preserved-0.5.4/`;
 its verification does not cover changed setup behavior.
 Windows testing is explicitly deferred. To rebuild/check only Mac:
@@ -118,7 +121,8 @@ broken JAVA_HOME, unmanaged tools and failed repairs remain visible.
 The prior 0.5.4 candidate passed Developer ID signing, Apple notarization, staple
 validation and Gatekeeper CLI assessments. Its local existing-Mac smoke test
 passed native checks, folder protection/copy and JavaFX runtime. New 0.5.5 source
-and artifacts require their own verification; prior receipts do not cover them.
+and artifacts passed their own source-bound checks; prior receipts do not cover
+them. Real missing-tool installation and first-time profile import remain untested.
 
 Default development packages lack Developer ID/notarization or Authenticode signing.
 A compiler's ad-hoc Mach-O signature is not a distribution identity. Do not guide

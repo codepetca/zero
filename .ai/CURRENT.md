@@ -32,17 +32,26 @@ use deliberate official-download handoffs. First-time profile import is guided
 one short instruction at a time in the main window; actual CLI verification must
 pass. Existing projects/profiles/tools are preserved; Git remains optional.
 
-Feature commit9625801; base28e39a8. Independent GPT-6.1-Sol/high safety and compatibility
-reviews requested corrections: manual fallback nonzero return, native Homebrew
-privilege uncertainty, essential profile steps hidden in Details. Same worker
-calm_mac_setup owns five Mac/shell runtime/test files and is correcting them;
-coordinator owns docs/packaging/UI verification. Next: verify correction, commit,
-one targeted review, then signed/notarized0.5.5 and safe existing-Mac check.
-Initial checks:55 shell tests,87 native assertions,48 focused Node tests,
-configuration/kit parity/extracted compile, fake native busy/ready/failure UI.
-Review ledger .verification/calm-mac-setup/review-ledger.json:2launches,1initialwave,
-0targetedwaves/0fixbatches so far; max7launches/4fixbatches/60min from15:38Z.
-Weekly96% remaining at task start is account allowance, not attributable task cost.
+Completed source ceaff5f201fd4e04ed56dc6d80ea4743c292ef3b, clean signed build.
+One worker, two initial independent reviews and one targeted correction review:
+all3accepted findings resolved, no blockers. 62shell/108native/48focused Node checks,
+configuration, Intel typecheck, Bash syntax, ZIP/source/mode parity and extracted
+compile pass. Fake CUA busy/ready/failure/profile wizard verified. Actual signed
+app read-only auto-check/fresh copy matched126files/modes on owner ARM64 Mac;
+no installs/profile changes. No active writer/reviewer. Native test apps stopped,
+owned volume ejected. Evidence:docs/EVIDENCE.md and docs/VERIFICATION.md;
+ignored .verification/calm-mac-setup and build-macos-signed.json.
+Review budget used3launches/1initialwave/1targetedwave/1fixbatch; started15:38Z,
+targeted review~3min. Effective tokens/model/task cost unknown; weekly96% atstart
+account allowance. New ZIP regenerated/verified, local0.5.5 remains unpublished.
+
+New local690095-byte Zero-Setup-0.5.5-macos.dmg in dist/installers and Downloads:
+SHA256 bc98b496ff2077c8aee68b927411a1fee10011a52d2437a6cf57044a54204205.
+AppleAccepted139fb1a8-c095-46a1-a238-3ec5b33919a8, no issues; staple/Gatekeeper app
+and DMG plus signed verifier pass. Same existing signer/Keychain profile reused.
+Next useful validation: fresh Mac vendor/profile flow and novice usability;
+publication requires separate owner decision. Do not republish/regenerate a signed
+candidate without source-bound revalidation. Windows stays held.
 
 ## Preserved signing evidence and limits
 

@@ -362,3 +362,66 @@ missing-tool installations, a fresh Mac, physical Intel, restricted networks and
 novice usability remain untested. Prior Gatekeeper CLI acceptance and earlier
 isolated VS Code Run/autosave/default-build/Stop evidence remain applicable, but
 those editor flows were not rerun here. Windows stays deferred. No publication.
+
+## Calm Mac setup 0.5.5 — 2026-10-11
+
+Reviewed source `ceaff5f201fd4e04ed56dc6d80ea4743c292ef3b`, clean build;
+feature base28e39a8, initial9625801. Main AppKit window is fixed440×180 content
+(440×212 including titlebar), with one replacing short message, spinner,
+primary action and optional separate Details. Required first-time profile
+instructions appear in the main window, with explicit Copy profile path and
+actual Check profile. Missing VS Code/Java use deliberate official-download
+handoffs; only editor extensions install in the background after approval.
+Manual shell flow retained; native Homebrew execution removed. Existing compatible
+profiles/tools, fresh-folder protection, useful errors and readiness rechecks kept.
+
+One GPT-6.1-Sol/high implementation worker and two independent initial reviewers;
+manual-fallback exit, possible native Homebrew elevation and hidden essential
+profile directions were corrected in one batch. One targeted GPT-6.1-Sol/high
+review accepted all three corrections with no new findings. Complete initial
+coverage plus affected correction callers retained:3review launches,1initialwave,
+1targetedwave,1fixbatch; no redundant integration wave. Targeted review approximately
+3min; effective model/tokens/attributable cost unknown. Weekly96% remaining at
+start was account allowance. Source verification:62shelltests,108nativeassertions,
+48focused Node checks, configuration/syntax/contracts/links, Intel Swift typecheck,
+Bash syntax, ZIP/source/license/mode parity and extracted Maven compilation passed.
+
+Actual CUA fake-runner UI checks cover spinner/disabled action, status replacement,
+ready, separate Details, failure/retry, five visible profile steps, deliberate
+copy and Check profile before extension approval. Inputs/commands are disposable;
+this is not real installation or profile-import evidence. Actual final signed
+app ran on ARM64/macOS26.6.2, passed read-only auto-check and copied a fresh folder
+with spaces:all126bytes/modes match ZIP. Main status correctly requested editor
+support approval; that action was not selected. No host installs/profile/account
+changes or actual editor handoff. Native apps/processes/volume used for this test
+closed/stopped/ejected. UI captures remain440×212.
+
+Developer ID Application signing identityACE8EE40F3615C5062CBBD5F085E299E049BAE08,
+team88FT6QZJP8; universalARM64+x86_64 app targetsMac12, hardened runtime,
+secure timestamps, no entitlements. Existing credential/profile reused privately.
+Apple accepted job `139fb1a8-c095-46a1-a238-3ec5b33919a8`, no issues; submitted
+SHA256 `64e04046c0513200cec15b6686f38fdf1ff942cf86904f98afa7f38d79a04c3e`.
+Staple validation, actual Developer ID app/DMG signatures, Gatekeeper acceptance
+of both and full signed artifact verifier passed. Final690095-byte
+`Zero-Setup-0.5.5-macos.dmg` SHA256
+`bc98b496ff2077c8aee68b927411a1fee10011a52d2437a6cf57044a54204205`.
+Identical copy in `/Users/stew/Downloads/Zero-Setup-0.5.5-macos.dmg`.
+Regenerated237754-byte `dist/zero-bootstrap.zip` SHA256
+`f506e415711ef1041fc8ca368755b1c9575fb592b8f94112b0332facfada6d5b`.
+Previous0.5.4 signed/notarized DMG and receipt preserved, Downloads hash unchanged.
+
+Ignored receipts: `.verification/calm-mac-setup/` contains review-ledger.json,
+source-checks.json, ui-result.json, profile-step.jpg, signed-screen.jpg,
+signed-ui-result.json, notarization-{input,submit,log}.json and submitted-0.5.5.dmg;
+`dist/installers/build-macos-signed.json` binds source, kit, signer and final bytes.
+Shell result `.verification/native-installer/macos/shell-remediation-final.txt`.
+Source-bound isolated VS Code1.141 CLI evidence confirms absent profile cannot be
+quietly created/imported by extension-management commands; supported editor UI
+import stays manual. No internal profile storage manipulation.
+
+Untested: fresh-Mac/vendor tool installs, actual first-time profile import/trust,
+quarantined browser first-open, physical Intel/macOS12 runtime, restricted school
+networks and novice usability. Windows explicitly deferred. New starter runtime/
+editor Run was not rerun; unchanged earlier recorded evidence remains historical.
+No push, PR, merge, public release/deployment, host repairs, new certificate,
+account/Keychain policy changes or credential disclosure. Local candidate only.
