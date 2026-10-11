@@ -49,6 +49,13 @@ for (const [slug, source] of Object.entries(documentPaths))
     source,
     markdown: await readFile(resolve(root, source), "utf8"),
   };
+// Preserve links from immutable packaged lesson sources to the hosted setup guide.
+docs.starter.aliases = {
+  "student-template/README.md": {
+    "first-setup": "one-time-setup",
+    "your-repository-and-pika": "your-individual-workflow",
+  },
+};
 // Build-time allowlist only: no request ever reads arbitrary repository paths.
 const sources = {};
 async function collect(folder) {

@@ -657,3 +657,10 @@ packaged sources and installer bytes preserved. Targeted review follows correcte
 head;1initial launch/1fixbatch so far. No additional code findings or coverage gaps.
 Local browser confirmed fallback home/Learn/Other downloads0.5.3 labels/links;
 receipt `.verification/mac-publication/fallback-ui.jpg`.
+
+Targeted review turn2 at5245af2 completed: original version guidance resolved;
+one accepted P2 mapping regression removed legacy packaged starter links from
+hosted navigation. Corrected with explicit hosted source/anchor aliases for setup
+and Pika, preserving protected source. Related nonblocking P3 profile wording
+corrected: separate extension download, optional profile from complete ZIP.
+Ledger2review turns/1targetedwave before this second fixbatch.

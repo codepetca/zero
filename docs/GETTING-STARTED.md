@@ -19,7 +19,8 @@ If you need to import the Zero profile or install Java, it explains the handoff
 before opening the editor or official installer. Technical details are optional.
 If you chose the **complete kit ZIP**, follow the steps below. A starter-only
 ZIP contains the project, but not the Zero extension or optional profile; download
-those separately from **Other downloads** when needed.
+the extension separately from **Other downloads** when needed. For the optional
+profile, download the **complete kit ZIP**.
 
 ## One-time setup
 

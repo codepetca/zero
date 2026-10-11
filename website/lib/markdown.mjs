@@ -26,6 +26,13 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
     ([, doc]) => doc.source === key,
   );
   if (target) return documentHref(target[0]) + (fragment ? `#${fragment}` : "");
+  const alias = Object.entries(documents).find(
+    ([, doc]) => Object.hasOwn(doc.aliases ?? {}, key),
+  );
+  if (alias) {
+    const anchor = fragment ? alias[1].aliases[key][fragment] : "";
+    return documentHref(alias[0]) + (anchor ? `#${anchor}` : "");
+  }
   if (!fragment && Object.hasOwn(sources, key)) {
     const example = examples.find((item) => key === `student-template/examples/${item.id}/README.md`);
     if (example) return `/examples/${example.id}`;
