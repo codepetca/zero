@@ -49,7 +49,21 @@ jobs:
           npm run test:release
       - name: Extension and standalone starter tests
         run: npm test
+      - name: Configure virtual audio for media checks
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pulseaudio libasound2-plugins
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=zero_ci
+          pactl set-default-sink zero_ci
+          cat > "$RUNNER_TEMP/zero-asound.conf" <<'EOF'
+          </usr/share/alsa/alsa.conf>
+          pcm.!default { type pulse }
+          ctl.!default { type pulse }
+          EOF
       - name: Finite JavaFX example checks
+        env:
+          ALSA_CONFIG_PATH: ${{ runner.temp }}/zero-asound.conf
         run: xvfb-run -a python3 scripts/verify-examples.py
       - name: Website checks
         run: |
