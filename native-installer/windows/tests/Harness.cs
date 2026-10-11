@@ -1,9 +1,11 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ZeroSetup;
 
 internal static class Harness
@@ -47,6 +49,7 @@ internal static class Harness
         Directory.CreateDirectory(root);
         try
         {
+            TestCloseDuringPausedWork(root);
             string extracted = Path.Combine(root, "extracted");
             Directory.CreateDirectory(extracted);
             using (var archive = Archive()) KitFiles.Extract(archive, extracted, CancellationToken.None);
@@ -97,6 +100,17 @@ internal static class Harness
                 var info = FakeInfo(script);
                 var result = Processes.RunAsync(info, 2000, CancellationToken.None).GetAwaiter().GetResult();
                 Assert(result.ExitCode == 7 && result.Output.Contains("fixture output") && result.Output.Contains("fixture error"), "check nonzero/stdout/stderr");
+                File.WriteAllText(script, "sleep 4 &\nexit 0\n");
+                try
+                {
+                    result = Processes.RunAsync(FakeInfo(script), 3000, CancellationToken.None).GetAwaiter().GetResult();
+                    Assert(result.OutputIncomplete && result.ExitCode != 0 && result.Output.Contains("without complete output"), "incomplete check output cannot pass");
+                }
+                finally
+                {
+                    // Let the short-lived fixture child finish, including when an assertion fails.
+                    Thread.Sleep(2200);
+                }
                 File.WriteAllText(script, "exec sleep 10\n");
                 result = Processes.RunAsync(FakeInfo(script), 150, CancellationToken.None).GetAwaiter().GetResult();
                 Assert(result.TimedOut && result.ExitCode != 0, "check timeout");
@@ -122,6 +136,47 @@ internal static class Harness
         }
         catch (Exception error) { Console.Error.WriteLine(error); return 1; }
         finally { KitFiles.DeleteOwnedDirectory(root); }
+    }
+
+    private static void TestCloseDuringPausedWork(string root)
+    {
+        string temporary = Path.Combine(root, "close-gate-private");
+        string stage = Path.Combine(root, ".ZeroSetup-close-gate");
+        Directory.CreateDirectory(temporary);
+        var gate = new CloseGate();
+        gate.SetBusy(true);
+        using (var started = new ManualResetEventSlim())
+        using (var release = new ManualResetEventSlim())
+        using (var lifetime = new CancellationTokenSource())
+        {
+            var work = Task.Run(() =>
+            {
+                Directory.CreateDirectory(stage);
+                File.WriteAllText(Path.Combine(stage, "partial.txt"), "paused staging fixture");
+                started.Set();
+                try { if (!release.Wait(5000)) throw new Exception("Paused fixture was not released."); }
+                finally { KitFiles.DeleteOwnedDirectory(stage); }
+            });
+            try
+            {
+                Assert(started.Wait(3000), "paused work started");
+                var request = new CancelEventArgs();
+                Assert(!gate.TryClose(request, lifetime.Cancel) && request.Cancel, "active work prevents close");
+                Assert(!lifetime.IsCancellationRequested && Directory.Exists(stage), "deferred close keeps work alive");
+                release.Set();
+                work.GetAwaiter().GetResult();
+                gate.SetBusy(false);
+                Assert(!Directory.Exists(stage), "work cleanup completes before close allowed");
+                request = new CancelEventArgs();
+                Assert(gate.TryClose(request, () =>
+                {
+                    lifetime.Cancel();
+                    KitFiles.DeleteOwnedDirectory(temporary);
+                }) && !request.Cancel, "idle close allowed");
+                Assert(lifetime.IsCancellationRequested && !Directory.Exists(temporary), "idle close cancels and removes owned temporary files");
+            }
+            finally { release.Set(); work.GetAwaiter().GetResult(); }
+        }
     }
 
     private static ProcessStartInfo FakeInfo(string script)

@@ -13,6 +13,7 @@ namespace ZeroSetup
         public string Output;
         public bool Cancelled;
         public bool TimedOut;
+        public bool OutputIncomplete;
     }
 
     internal static class Processes
@@ -106,7 +107,12 @@ namespace ZeroSetup
                 var reads = Task.WhenAll(stdout, stderr);
                 if (await Task.WhenAny(reads, Task.Delay(2000)) == reads)
                     result.Output = (await stdout) + (await stderr);
-                else result.Output = "The check ended without complete output. Close any remaining tool-check process and check again.";
+                else
+                {
+                    result.OutputIncomplete = true;
+                    if (result.ExitCode == 0) result.ExitCode = 1;
+                    result.Output = "The check ended without complete output. Close any remaining tool-check process and check again.";
+                }
                 return result;
             }
         }

@@ -1,6 +1,21 @@
 import AppKit
 
-final class SetupWindow: NSWindowController {
+final class SetupApplication: NSObject, NSApplicationDelegate {
+    var setupWindow: SetupWindow?
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let resources = Bundle.main.resourceURL ?? Bundle.main.bundleURL.appendingPathComponent("Contents/Resources")
+        let controller = SetupController(kit: SetupKit(root: resources.appendingPathComponent("kit")))
+        setupWindow = SetupWindow(controller: controller)
+        setupWindow?.showWindow(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        setupWindow?.controller.mayExit() == false ? .terminateCancel : .terminateNow
+    }
+}
+
+final class SetupWindow: NSWindowController, NSWindowDelegate {
     let controller: SetupController
     private let summary = NSTextView()
     private let checkButton = NSButton(title: "Check laptop", target: nil, action: nil)
@@ -16,6 +31,7 @@ final class SetupWindow: NSWindowController {
         window.title = "Zero Setup — unsigned development build"
         window.minSize = NSSize(width: 630, height: 430)
         super.init(window: window)
+        window.delegate = self
         window.center()
         let root = NSView()
         root.translatesAutoresizingMaskIntoConstraints = false
@@ -75,6 +91,8 @@ final class SetupWindow: NSWindowController {
     }
 
     required init?(coder: NSCoder) { fatalError("Use init(controller:)") }
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool { controller.mayExit() }
 
     private func configure(_ button: NSButton, action: Selector) {
         button.bezelStyle = .rounded

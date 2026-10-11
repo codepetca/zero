@@ -48,6 +48,7 @@ for (const asset of receipt.artifacts) {
     const plist = JSON.parse(run('/usr/bin/plutil', ['-convert', 'json', '-o', '-', path.join(contents, 'Info.plist')]));
     assert.equal(plist.CFBundleShortVersionString, release.kitVersion);
     assert.equal(plist.CFBundleExecutable, 'ZeroSetup');
+    assert.ok(lstatSync(path.join(contents, 'MacOS/ZeroSetup')).mode & 0o111, 'Native app launcher must be executable');
     for (const arch of ['arm64', 'x86_64']) run('/usr/bin/lipo', [path.join(contents, 'MacOS/ZeroSetup'), '-verify_arch', arch]);
     const payload = path.join(contents, 'Resources/kit'), found = [];
     function walk(folder, prefix = '') {

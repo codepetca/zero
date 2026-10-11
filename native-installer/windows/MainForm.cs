@@ -18,9 +18,10 @@ namespace ZeroSetup
         private readonly Button continueSetup;
         private readonly Button openFolder;
         private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
+        private readonly CloseGate closeGate = new CloseGate();
         private string temporaryKit;
         private string placedKit;
-        private bool busy;
+        private bool busy { get { return closeGate.IsBusy; } }
 
         public MainForm()
         {
@@ -52,7 +53,12 @@ namespace ZeroSetup
             buttons.Controls.AddRange(new Control[] { check, setup, guide, continueSetup, openFolder });
             layout.Controls.Add(buttons);
             Controls.Add(layout);
-            FormClosing += (sender, args) => lifetime.Cancel();
+            FormClosing += (sender, args) =>
+            {
+                if (!closeGate.TryClose(args, lifetime.Cancel))
+                    MessageBox.Show(this, "Zero is still checking or copying files. Please wait for it to finish, then close this window.",
+                        "Zero Setup is working", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
             FormClosed += (sender, args) => KitFiles.DeleteOwnedDirectory(temporaryKit);
         }
 
@@ -79,7 +85,7 @@ namespace ZeroSetup
 
         private void SetBusy(bool value)
         {
-            busy = value;
+            closeGate.SetBusy(value);
             check.Enabled = setup.Enabled = guide.Enabled = continueSetup.Enabled = openFolder.Enabled = !value;
             UseWaitCursor = value;
         }
@@ -95,6 +101,7 @@ namespace ZeroSetup
                 CheckResult result = await Processes.CheckAsync(placedKit ?? temporaryKit, lifetime.Token);
                 if (IsDisposed) return;
                 string status = result.Cancelled ? "Check cancelled." : result.TimedOut ? "Check timed out after 3 minutes. Close any remaining tool check and try again." :
+                    result.OutputIncomplete ? "The check could not capture complete output. Check again before continuing." :
                     result.ExitCode == 0 ? "The setup checks passed. Run the first app to confirm its window." : "The check needs attention (exit " + result.ExitCode + ").";
                 summary.Text = status + "\r\n\r\n" + result.Output + (result.ExitCode == 0 ? "" : "\r\nIf PowerShell policy blocked the script, use Show guide and ask your teacher or IT. Setup does not change policy.");
                 check.Text = "Check again";

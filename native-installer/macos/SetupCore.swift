@@ -34,6 +34,13 @@ final class NativeCommandRunner: SetupCommandRunning {
                 DispatchQueue.main.async { completion(CommandResult(exitCode: nil, output: "", timedOut: false, launchError: "Could not capture the check output.")) }
                 return
             }
+            guard fcntl(descriptors[0], F_SETFL, O_NONBLOCK) == 0,
+                  fcntl(descriptors[0], F_SETFD, FD_CLOEXEC) == 0,
+                  fcntl(descriptors[1], F_SETFD, FD_CLOEXEC) == 0 else {
+                close(descriptors[0]); close(descriptors[1])
+                DispatchQueue.main.async { completion(CommandResult(exitCode: nil, output: "", timedOut: false, launchError: "Could not prepare bounded output capture.")) }
+                return
+            }
             var actions: posix_spawn_file_actions_t?
             var attributes: posix_spawnattr_t?
             posix_spawn_file_actions_init(&actions)
@@ -77,13 +84,16 @@ final class NativeCommandRunner: SetupCommandRunning {
             let readDescriptor = descriptors[0]
             DispatchQueue.global(qos: .utility).async {
                 var buffer = [UInt8](repeating: 0, count: 8192)
-                while true {
+                var reachedEOF = false
+                while output.canRead {
                     let count = read(readDescriptor, &buffer, buffer.count)
                     if count > 0 { output.append(buffer, count: count) }
                     else if count < 0 && errno == EINTR { continue }
-                    else { break }
+                    else if count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK) { usleep(10_000) }
+                    else { reachedEOF = count == 0; break }
                 }
                 close(readDescriptor)
+                output.finish(reachedEOF: reachedEOF)
                 reader.leave()
             }
             DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + timeout) {
@@ -98,11 +108,17 @@ final class NativeCommandRunner: SetupCommandRunning {
             // A failed tool may leave descendants holding the output pipe open.
             // This group belongs exclusively to this command, never to the app.
             kill(-pid, SIGKILL)
-            reader.wait()
+            // A detached descendant can retain stdout after leaving our group.
+            // Its pipe must not defeat the command timeout or the exit result.
+            output.beginDrain()
+            let drained = reader.wait(timeout: .now() + 1.25) == .success
+            output.stop()
+            let capture = output.snapshot()
             let exited = waited == pid && (status & 0x7f) == 0
             let result = CommandResult(exitCode: exited ? (status >> 8) & 0xff : nil,
-                                       output: output.text, timedOut: timedOut,
-                                       launchError: waited == -1 ? "Could not read the check result." : nil)
+                                       output: capture.text, timedOut: timedOut,
+                                       launchError: waited == -1 ? "Could not read the check result." :
+                                        (!drained || !capture.complete ? "Output capture was incomplete. Readiness is unverified; use Check again." : nil))
             DispatchQueue.main.async { completion(result) }
         }
     }
@@ -133,15 +149,37 @@ private final class ProbeState {
 }
 
 private final class ProbeOutput {
-    var bytes = Data()
-    var truncated = false
+    private let lock = NSLock()
+    private var bytes = Data()
+    private var truncated = false
+    private var reachedEOF = false
+    private var stopped = false
+    private var drainDeadline = TimeInterval.infinity
+    var canRead: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return !stopped && ProcessInfo.processInfo.systemUptime < drainDeadline
+    }
+    func beginDrain() {
+        lock.lock(); defer { lock.unlock() }
+        drainDeadline = ProcessInfo.processInfo.systemUptime + 1
+    }
+    func stop() {
+        lock.lock(); defer { lock.unlock() }
+        stopped = true
+    }
+    func finish(reachedEOF: Bool) {
+        lock.lock(); defer { lock.unlock() }
+        self.reachedEOF = reachedEOF
+    }
     func append(_ buffer: [UInt8], count: Int) {
+        lock.lock(); defer { lock.unlock() }
         let remaining = max(0, 512 * 1024 - bytes.count)
         bytes.append(contentsOf: buffer.prefix(min(count, remaining)))
         if count > remaining { truncated = true }
     }
-    var text: String {
-        String(decoding: bytes, as: UTF8.self) + (truncated ? "\n[Output truncated after 512 KiB.]" : "")
+    func snapshot() -> (text: String, complete: Bool) {
+        lock.lock(); defer { lock.unlock() }
+        return (String(decoding: bytes, as: UTF8.self) + (truncated ? "\n[Output truncated after 512 KiB.]" : ""), reachedEOF && !truncated)
     }
 }
 
@@ -254,7 +292,7 @@ final class SetupController {
     func check() {
         guard !busy else { return }
         do {
-            let command = try kit.checkCommand()
+            let command = try SetupKit(root: selectedFolder ?? kit.root).checkCommand()
             busy = true
             summary = "Checking this laptop… No installation is requested.\nThis check can take up to three minutes."
             changed?()
@@ -265,12 +303,21 @@ final class SetupController {
                 let heading: String
                 if result.timedOut { heading = "Check timed out. Readiness is unverified; use Check again." }
                 else if let error = result.launchError { heading = "Check could not finish: \(error). Readiness is unverified." }
-                else if result.succeeded { heading = "The bundled check reports ready for local Run. Open Zero and run the first app to confirm its window." }
+                else if result.succeeded { heading = "The kit check reports ready for local Run. Open Zero and run the first app to confirm its window." }
                 else { heading = "Check needs attention (\(result.exitCode.map { "exit \($0)" } ?? "process stopped")). Review the details below, then use Set up Zero for guided help." }
                 self.summary = heading + "\n\n" + result.output
                 self.changed?()
             }
         } catch { summary = error.localizedDescription; changed?() }
+    }
+
+    /// Both window-close and application-quit share this policy. Keep the owner
+    /// alive until an asynchronous check/copy/open completes; no cancellation.
+    func mayExit() -> Bool {
+        guard busy else { return true }
+        let message = "Please wait for the current check, copy or open request to finish before closing Zero Setup."
+        if !summary.hasPrefix(message) { summary = message + "\n\n" + summary; changed?() }
+        return false
     }
 
     func place(parent: URL?, name: String?) {

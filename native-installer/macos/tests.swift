@@ -1,14 +1,19 @@
 import AppKit
 import Foundation
+import Darwin
 
 #if ZERO_SETUP_TESTS
 private final class FakeRunner: SetupCommandRunning {
     var commands: [SetupCommand] = []
     var timeouts: [TimeInterval] = []
+    var paused = false
+    var pending: ((CommandResult) -> Void)?
     var result = CommandResult(exitCode: 0, output: "Zero setup check (profile: Zero)\nKit: complete\nVS Code: compatible\nJDK: ready\nZero profile extensions: ready\nGit: optional", timedOut: false, launchError: nil)
     func run(_ command: SetupCommand, timeout: TimeInterval, completion: @escaping (CommandResult) -> Void) {
-        commands.append(command); timeouts.append(timeout); completion(result)
+        commands.append(command); timeouts.append(timeout)
+        if paused { pending = completion } else { completion(result) }
     }
+    func finish() { let completion = pending; pending = nil; completion?(result) }
 }
 
 @main
@@ -45,6 +50,31 @@ struct SetupTests {
     }
 
     static func main() throws {
+        if let option = CommandLine.arguments.firstIndex(of: "--detached-pipe-child"), option + 1 < CommandLine.arguments.count {
+            guard setsid() >= 0 else { exit(2) }
+            try String(getpid()).write(toFile: CommandLine.arguments[option + 1], atomically: true, encoding: .utf8)
+            sleep(30)
+            return
+        }
+        if let option = CommandLine.arguments.firstIndex(of: "--detached-pipe-helper"), option + 1 < CommandLine.arguments.count {
+            let executable = URL(fileURLWithPath: CommandLine.arguments[0]).path
+            let pidFile = CommandLine.arguments[option + 1]
+            let arguments = [executable, "--detached-pipe-child", pidFile].map { strdup($0) } + [nil]
+            let environment = ProcessInfo.processInfo.environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
+            defer { arguments.forEach { free($0) }; environment.forEach { free($0) } }
+            var child: pid_t = 0
+            let launched = arguments.withUnsafeBufferPointer { argv in
+                environment.withUnsafeBufferPointer { env in
+                    posix_spawn(&child, executable, nil, nil, UnsafeMutablePointer(mutating: argv.baseAddress!), UnsafeMutablePointer(mutating: env.baseAddress!))
+                }
+            }
+            guard launched == 0 else { exit(2) }
+            let deadline = ProcessInfo.processInfo.systemUptime + 2
+            while !manager.fileExists(atPath: pidFile) && ProcessInfo.processInfo.systemUptime < deadline { usleep(10_000) }
+            guard manager.fileExists(atPath: pidFile) else { kill(child, SIGKILL); exit(2) }
+            print("parent exited; detached child holds pipe")
+            return
+        }
         let temporary = manager.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent("Zero native tests \(UUID().uuidString)")
         try manager.createDirectory(at: temporary, withIntermediateDirectories: true)
         defer { try? manager.removeItem(at: temporary) }
@@ -114,6 +144,42 @@ struct SetupTests {
         controller.continueSetup()
         try expect(fake.commands.last == SetupCommand(executable: "/usr/bin/open", arguments: ["-a", "Terminal", controller.selectedFolder!.appendingPathComponent("setup/Setup.command").path]), "Terminal uses separate argv")
         try expect(controller.summary.contains("does not confirm"), "open success is not installation success")
+        controller.check()
+        let copied = controller.selectedFolder!
+        try expect(fake.commands.last == SetupCommand(executable: "/bin/bash", arguments: [copied.appendingPathComponent("setup/setup.sh").path, "--check"]), "recheck probes copied kit")
+        for member in ["starter/pom.xml", "starter/mvnw"] {
+            let file = copied.appendingPathComponent(member)
+            let saved = try Data(contentsOf: file)
+            try manager.removeItem(at: file)
+            let commandCount = fake.commands.count
+            controller.check()
+            try expect(fake.commands.count == commandCount && controller.summary.contains(member) && !controller.summary.contains("reports ready"), "broken copied \(member) never reports readiness")
+            try saved.write(to: file)
+            if member == "starter/mvnw" { try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path) }
+        }
+
+        let app = NSApplication.shared
+        app.setActivationPolicy(.prohibited)
+        let pausedRunner = FakeRunner()
+        pausedRunner.paused = true
+        let pausedController = SetupController(kit: kit, runner: pausedRunner)
+        let pausedWindow = SetupWindow(controller: pausedController)
+        let delegate = SetupApplication()
+        delegate.setupWindow = pausedWindow
+        pausedController.check()
+        try expect(!pausedWindow.windowShouldClose(pausedWindow.window!), "window close rejected while check paused")
+        try expect(delegate.applicationShouldTerminate(app) == .terminateCancel, "application quit rejected while check paused")
+        try expect(pausedController.summary.contains("Please wait"), "shutdown rejection explains active work")
+        pausedRunner.finish()
+        try expect(pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "close and quit allowed after check finishes")
+        pausedController.place(parent: parent, name: "Paused copy")
+        try expect(!pausedController.mayExit(), "copy owns shutdown until completion")
+        try pump(until: { !pausedController.busy })
+        try expect(pausedController.mayExit(), "copy releases shutdown after completion")
+        pausedController.continueSetup()
+        try expect(!pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateCancel, "launch request owns window and app shutdown")
+        pausedRunner.finish()
+        try expect(pausedController.mayExit(), "launch completion releases shutdown")
 
         // Exercise the real runner only against disposable scripts, never tools.
         let fakeScript = temporary.appendingPathComponent("fake script ; $x.sh")
@@ -132,6 +198,18 @@ struct SetupTests {
         runner.run(SetupCommand(executable: "/no/such/executable", arguments: []), timeout: 1) { actual = $0 }
         try pump(until: { actual != nil })
         try expect(actual!.launchError != nil && !actual!.succeeded, "real spawn failure captured")
+        let descendantPIDFile = temporary.appendingPathComponent("detached-child.pid")
+        defer {
+            if let text = try? String(contentsOf: descendantPIDFile, encoding: .utf8), let pid = Int32(text) { kill(pid, SIGKILL) }
+        }
+        actual = nil
+        let detachedStarted = ProcessInfo.processInfo.systemUptime
+        runner.run(SetupCommand(executable: URL(fileURLWithPath: CommandLine.arguments[0]).path,
+                                arguments: ["--detached-pipe-helper", descendantPIDFile.path]), timeout: 2) { actual = $0 }
+        try pump(until: { actual != nil }, seconds: 4)
+        try expect(ProcessInfo.processInfo.systemUptime - detachedStarted < 3, "detached pipe capture completes promptly")
+        try expect(actual!.exitCode == 0 && actual!.launchError?.contains("capture was incomplete") == true && !actual!.succeeded,
+                   "detached pipe cannot turn zero exit into verified readiness")
         print("Mac native setup: \(passed) assertions passed (disposable files/fake tools; no installs, Terminal or accounts).")
 
         if let option = CommandLine.arguments.firstIndex(of: "--preview"), option + 1 < CommandLine.arguments.count {

@@ -21,7 +21,10 @@ and are not ready for classroom distribution until platform testing and signing.
 The app also offers **Show guide** and **Open folder**. The kit is placed in a
 student folder, not inside a read-only DMG or Program Files. No setup is performed
 as root. Cancellation/failure preserves existing work; partial staging is cleaned
-up. Recheck after repairs and restart when environment changes require it.
+up. Normal close/quit waits until the current check or copy has finished; a check
+has a bounded timeout. Forced process termination can still leave an owned hidden
+staging folder; it never authorizes replacing an existing project. Recheck after
+repairs and restart when environment changes require it.
 
 ## Local build
 
