@@ -14,8 +14,9 @@ tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/community` introduces Zero Community and links to
 component development/contributions. It does not run Java in the browser or add
-a student website account. Zero0.5.3 and Community0.1.3 are published; new local
-versions remain unpublished until an approved release.
+a student website account. The standalone Zero kit0.5.3, signed Mac setup0.5.6 and Community0.1.3 are
+published independently. New local versions remain unpublished until an approved
+release. Mac setup embeds kit0.5.6; the separate ZIP/starter/VSIX remain0.5.3.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract
@@ -94,14 +95,15 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   extensions; relevant terminal environment overrides leave Run readiness unverified. Git is optional for local Run. Checks are read-only; repair/install
   and the first app run are student choices. No silent elevation, package-manager
   installation, credential configuration or policy bypass. See [setup](SETUP.md).
-- Local native setup wrappers embed the complete kit: a universal macOS app/DMG
+- Native setup wrappers embed the complete kit: a universal macOS app/DMG
   and a Windows EXE. They check tools, place a fresh writable folder and explicitly
   guide setup while preserving existing projects. Both flows use a small fixed
   window with one replacing status line, hide technical logs under Details and
   install editor extensions in the background after explicit approval. Missing
   tools use vendor handoffs; first-time profile import gets one instruction at a
   time in the main window. The ZIP launchers retain their manual menus.
-  New candidates remain local/unpublished; see [native setup](INSTALLER.md).
+  Signed/notarized Mac0.5.6 is published; Windows remains a local unsigned
+  development build. See [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing
   the local VSIX and Java extensions in it. The standard build shortcut runs
