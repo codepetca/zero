@@ -28,10 +28,15 @@ Draft downloaded/hash verified before publication; unauthenticated public HTTP20
 bytes/hash and tag source verified. No rebuild, new signing/notarization or account
 changes. Sealed dist/candidates/mac-0.5.6-779d856f24c3 preserved.
 
-Website metadata branch codex/publish-mac-056 from merged main: promote only
-verified native URL/status and update maintainer status docs. Next: independent
-metadata review, website checks/CI, merge then verify live Vercel home chooser,
-Mac download and old kit fallback exact bytes. Do not call completion until live.
+Website metadata PR23 merged at7b0320e5eb3f84e695c305d8ac2b77b19c9d7745 after
+complete GPT-6-Luna/medium metadata review (1turn,0blockers) and successful
+CI38165240574. Production Vercel deployment succeeded for that exact merge.
+Live home Download Zero opens Learn's chooser; Mac primary and all three0.5.3
+alternatives HTTP200 with exact size/hash verified without authentication.
+Actual browser Mac button downloaded identical DMG; screenshot live-downloads.jpg.
+Authorized source/merge/publication/website goal complete. No active worker.
+Final completion receipt .verification/mac-publication/delivery.json.
+No further action queued; preserve Windows hold and immutable published assets.
 
 The separately published ZIP/starter/VSIX remain0.5.3, freshly verified without
 authentication and pinned in release/published-kit.json. Local kit/extension0.5.6

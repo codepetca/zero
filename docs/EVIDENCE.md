@@ -697,3 +697,34 @@ No Windows release, account/credential/security changes, Community edits or prim
 funding checkout changes. Physical Windows and fresh-machine/quarantine/Intel/
 macOS12/novice-use limits retained. Exact release/draft/tag/public receipts at
 `.verification/mac-publication/`; live deployment verification remains pending.
+
+## Completed production download rollout — 2026-10-11
+
+[Metadata PR23](https://github.com/codepetca/zero/pull/23) reviewed at
+a19e6133d175edb5e12ef957645ad33c8842ed45, merged7b0320e5eb3f84e695c305d8ac2b77b19c9d7745
+after [CI38165240574](https://github.com/codepetca/zero/actions/runs/38165240574).
+Independent mac_public_metadata_review/turn1 requested GPT-6-Luna/medium: complete
+six-file diff/receipt/caller review,0blockers; independently validated sealed
+manifest equality except status/URL and9targeted website tests. Existing product
+distribution labels were sufficient; optional repeated maintainer-state wording
+was not needed. Full36website tests/typecheck/build and root/diff checks passed.
+Metadata review1launch/1initialwave/0fixbatches; effective model/tokens unknown.
+
+Vercel production succeeded for exact7b0320e merge. Live
+[Download Zero](https://zero.codepet.ca/) opens `/learn#downloads`; Mac0.5.6 is
+primary and separately labelled0.5.3ZIP/starter/VSIX remain under Other downloads.
+All four real anchors retrieved without authentication: HTTP200, exact pinned
+sizes/SHA256. Actual CUA browser home→Download Zero→Download for Mac saved the
+691970-byte DMG with matching
+`4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d`.
+Download saved as `Zero-Setup-0.5.6-macos (1).dmg` beside the existing Downloads
+candidate; not launched again. Local preview tabs/servers cleaned up.
+Receipts/screenshot: `.verification/mac-publication/live-verification.json`,
+`browser-verification.json`, `production-deployment.json`, `live-downloads.jpg`
+and completed `delivery.json`. Coordinator checkout synchronized to remote main
+before this local completion-note commit; primary funding branch untouched.
+
+Authorized task complete. Existing candidate/public assets immutable; no extra
+kit/Windows publication, signing/notarization, credentials/account/security changes.
+Windows physical testing remains held; fresh-Mac vendor/quarantine, Intel/macOS12
+and novice classroom trials remain unverified. Greeting window remains owner-owned.
