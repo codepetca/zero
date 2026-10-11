@@ -1,6 +1,6 @@
 # Current state
 
-Updated 2026-10-10. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
+Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Historical receipts are evidence, not active work orders.
 
 ## Product and authority
@@ -64,12 +64,14 @@ receipt dist/installers/build-macos.json binds4b7058c. The superseded all-platfo
 receipt is archived under .verification/native-installer/build-all-b3551be.json.
 ZIP remains dist/zero-bootstrap.zip; Java sources/VSIX did not change this pass.
 
-Unsigned development build: Developer ID signing/notarization remain pending.
+Default development build remains unsigned. The separate Mac candidate is now
+Developer ID signed and verified; Apple notarization authentication is pending.
 Physical Intel execution, fresh-machine installs/repair prompts, profile-import/
 trust UI, school networks and novice use remain unverified. Windows testing is
 explicitly deferred; its earlier cross-build is not a Windows runtime claim.
-No push, PR, merge, release, deploy, signing-account access, host tool repair or
-credential changes are authorized for this local phase. See docs/INSTALLER.md.
+Current owner authorization covers local Mac signing and Apple notarization. No
+push/PR/merge/release/deploy, host tool repair, membership conversion or Windows
+testing is authorized for this phase. See docs/INSTALLER.md.
 
 
 ## Apple signing identity — 2026-10-11
@@ -92,3 +94,34 @@ Next phase is signing/notarization preparation with separately established
 notarization authentication. Do not infer publication authority. Windows testing
 remains deferred. Apple issuance proof: ignored
 .verification/mac-signing/certificate-issued.jpg; live certificate page retained.
+
+## Signed Mac candidate — 2026-10-11
+
+Reviewed source1cc84617c401f162f6dce0b85081fcfc87c8d648 creates explicit
+Mac-only signed builds, honest production UI labels and separate measured receipts.
+Artifact: dist/installers/Zero-Setup-0.5.4-macos.dmg; build-macos-signed.json
+records clean source, actual certificate SHA1/team and both architecture signatures.
+App and DMG use Developer ID Application: Stewart Chan (88FT6QZJP8), secure
+timestamps; app has hardened runtime and no entitlements. Exact kit unchanged.
+Signed app UI/read-only Check laptop completed successfully under hardened runtime;
+its attention result correctly reports the existing old/missing Zero profile. No
+repair/install/profile change occurred. Default unsigned artifact/receipt preserved.
+
+8 focused Node tests,67 native assertions, Intel Swift typecheck, configuration
+checks and unsigned/signed artifact verification pass. One GPT-6.1-Sol/high
+implementation worker and independent reviewer; full diff plus2targeted corrections,
+3review launches/2fix batches, final coverage complete with no unresolved findings.
+Real CLI checks resolved requirement-source and optional certificate-prefix syntax.
+No extra integration wave needed. Details in EVIDENCE/VERIFICATION; ignored ledger
+.verification/mac-signing/review-ledger.json. Effective model/token/time unavailable;
+weekly99% remaining at start is account allowance, not task cost.
+
+Notarized:false; no Apple submission/staple/Gatekeeper acceptance yet. Exact profile
+“Zero Notarization” is absent. Apple Account sign-in page and private local Terminal
+launcher are open for human app-specific-password creation/hidden entry. Do not read
+passwords, export keys, weaken Keychain/OS protections or publish. After user completes
+authentication, verify profile, submit this exact signed DMG, record submission ID,
+wait for Accepted, staple/validate, remeasure receipt and verify Gatekeeper. No
+rebuild needed unless source changes. Physical Intel/clean-machine testing still
+pending; Windows held. Business-conversion conversation was explicitly requested
+and created separately (01a12a95-bab5-7341-aa67-f7a7bc9da9c4); membership unchanged.

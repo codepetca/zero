@@ -247,3 +247,47 @@ Intel execution, fresh-machine installs, native Terminal/profile/trust interacti
 Gatekeeper/notarization, restricted networks and novice usability remain pending.
 Windows testing stays deferred. No publication or existing tool/profile/account/
 security-policy change; the Mac package is unsigned local development only.
+
+
+## Mac Developer ID signed candidate — 2026-10-11
+
+Owner authorized signing/notarization after certificate issuance. Local clean source
+1cc84617c401f162f6dce0b85081fcfc87c8d648 produced
+`dist/installers/Zero-Setup-0.5.4-macos.dmg` (682382 bytes, SHA256
+`c9644040203edde4eed4f303b14a4320c65d4fb2f99be352887352aff6fb9631`).
+Separate `build-macos-signed.json` records actual Developer ID Application signer
+ACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8, both universal
+architecture signatures and secure app/DMG timestamps. App has hardened runtime,
+no entitlements, production bundle ID and no unsigned labels. Original unsigned
+DMG/receipt and exact236725-byte kit ZIP are preserved. No publication occurred.
+
+Passed:8 focused packaging/signature tests;67 native harness assertions; Intel
+Swift typecheck; JS syntax/configuration/diff checks; old unsigned-artifact verifier;
+real signed build and signed verifier (strict Apple Developer ID chain, extracted
+leaf SHA1/team, both architectures, timestamps/runtime, all126kit files/permissions).
+Signed AppKit UI opened and real read-only Check laptop completed, correctly
+reporting available tools and old/missing Zero support. No repairs or profile/tool
+installation were attempted. Previous run/copy/editor evidence is reused only for
+unchanged behavior; full signed clean-machine setup has not been exercised.
+
+GPT-6.1-Sol/high implementation worker; independent GPT-6.1-Sol/high review of
+4d4f872..18b6527 plus18b6527..6711290 and6711290..1cc8461: complete, no
+unresolved findings. Reviewer caught literal requirement missing '='; actual first
+build caught optional certificate-prefix argument syntax after successfully signing
+the app. Both corrected and rechecked against the installed codesign manual;
+second actual build passes. Ledger:3review launches,1initial/2targeted waves,
+2fix batches, unchanged initial coverage reused, no added integration wave.
+Requested configuration known; effective model/tokens/attributable elapsed unknown.
+Weekly99% remaining at start is account-wide allowance, not task cost.
+
+Notarization remains pending human authentication: no profile named
+“Zero Notarization” exists in login Keychain. A private no-secret `.command`
+launcher opens Apple's secure notarytool password prompt; Apple Account sign-in
+page is retained for human credential creation. No password entered/read by Codex,
+no Keychain access relaxation, API key creation, Apple submission, staple or
+Gatekeeper acceptance is claimed. Finish authentication, submit exact DMG, wait
+for Accepted, staple/validate and remeasure before changing notarized:false.
+Physical Intel execution, fresh-machine installs/security prompts, profile import/
+trust, restricted networks and novice use remain unverified; Windows explicitly held.
+Primary funding branch and Community preserved. Separate requested business-account
+conversation is projectless; no membership or certificate change from that task.
