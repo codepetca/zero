@@ -40,7 +40,8 @@ Both accepted P2 authority-snapshot/publisher-doc findings are resolved; no new
 blockers. Five reviewer race checks passed in2.173seconds. Runtime source matches
 the reviewed Community6be28609; Zero1d37a702 is documentation only. Final receipt
 edits are coordinator-checked. GitHub main protection was independently read back
-after review; source changes and CODEOWNERS are local, pending human-reviewed merge.
+after review, then removed at the owner's explicit request. Source changes and
+CODEOWNERS are in owner-approved PR20/PR5; recover actual merge status from GitHub.
 No kit/library/extension version changes or new immutable releases are included.
 
 ## Historical verification

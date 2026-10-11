@@ -39,9 +39,18 @@ elapsed time and tokens stay unknown when unavailable. Account-wide allowance is
 not task cost. Put the final summary in tracked EVIDENCE/VERIFICATION; keep bulky
 logs, screenshots, binaries and caches ignored.
 
-## Human GitHub gate
+## GitHub branch policy
 
-Canonical `main` in both repositories requires an up-to-date PR, one current human
+Owner explicitly requested removal of branch protections in both repositories
+after approving Zero PR20 and Community PR5. Authenticated readback confirmed
+unprotected main branches and empty rulesets. The policy below is historical;
+main-protection.json is a retained settings snapshot, not active configuration.
+Do not apply it or re-enable protections without new owner authorization.
+Owner authorization, independent source review and proportionate checks remain
+required for agent merges. Community acceptance separately still requires the
+independent maintainer review enforced by its read-only helper.
+
+The former policy for canonical `main` in both repositories required an up-to-date PR, one current human
 approval, resolved review conversations and passing GitHub Actions checks (`review`
 in Zero; `check` in Community, app15368). Stale approvals are dismissed; approval
 must come from someone other than the most recent pusher. Rules apply to admins;

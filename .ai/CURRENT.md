@@ -26,8 +26,10 @@ and GitHub human-review enforcement. No live AI provider is being connected.
 The previous release authorization completed; it is not a standing release grant.
 No new kit release, student UI change, camera/HUD implementation or credential
 change is included. Owner now explicitly authorized PR publication and merge in both repositories.
-Merge must satisfy current GitHub human review/check protections; no bypass or
-impersonated approval. No new release/provider/credentials change is authorized.
+Owner subsequently explicitly requested removal of GitHub branch protections
+in both repositories and approved merging both source PRs. Protection removal
+was verified by authenticated404 readback and empty rulesets. No impersonated
+approval; no new release/provider/credentials change is authorized.
 
 ## Execution and ownership
 
@@ -41,11 +43,11 @@ impersonated approval. No new release/provider/credentials change is authorized.
   attributable tokens unknown. Weekly24% remaining at start is account-wide.
   Automatic DeepSeek remains paused by owner preference through 2026-12-31.
 - Status: local implementation accepted after independent initial+targeted review.
-  GitHub protection is live and authenticated readback verified for both main
-  branches. Reviewed source PRs are published: [Zero20](https://github.com/codepetca/zero/pull/20)
-  and [Community5](https://github.com/codepetca/zero-community/pull/5). Merge remains
-  subject to final-head CI and independent GitHub approval. Recover their actual
-  status from GitHub before acting; do not infer a merge from an open PR.
+  GitHub protection was applied, then removed at the owner's explicit request.
+  Reviewed source PRs are published: [Zero20](https://github.com/codepetca/zero/pull/20)
+  and [Community5](https://github.com/codepetca/zero-community/pull/5). Owner approved
+  their merges; verify final-head CI and recover their actual status from GitHub
+  before acting. Do not infer a merge from an open PR.
 
 ## Review and exit
 
@@ -58,19 +60,19 @@ Both accepted P2 findings are resolved; final targeted verdict has no blockers.
 No integration repeat: targeted review covers both corrections, unchanged initial
 coverage remains applicable. No new implementation review is needed for
 receipt-only publication status updates.
-GitHub rules require1current approval+strict canonical CI, including admins.
-CODEOWNERS selection takes effect after the source PR satisfies the human gate.
+GitHub branch protections are disabled by explicit owner decision. CODEOWNERS
+and main-protection.json do not enforce a gate or authorize re-enabling it.
 Exit met: regression tests cover changed policy/no-op CI and exact outbound AI bytes;
-current state/evidence links are valid; live main protection requires human approval
-and canonical passing CI without admin bypass; source changes independently reviewed.
+current state/evidence links are valid; source changes independently reviewed.
+The earlier live-protection exit criterion was superseded by the owner decision.
 
 ## Remaining limits and next product work
 
 No live AI quality/cost/provider test; no automated Community approval/publication.
 Physical Windows/Linux editor/setup, typing/choosers, audible device output,
 school restrictions and novice classroom use remain unverified.
-Next action: publish both reviewed source PRs, verify final-head CI and independent
-human approval, then merge when GitHub permits. Do not bypass the gate. Live advisory AI is
+Next action: verify final-head CI, merge both approved source PRs, and verify actual
+merged state. Do not re-enable protections without owner authorization. Live advisory AI is
 a separate future decision. Camera/scrolling world with fixed ScoreDisplay HUD is a later teaching slice,
 not an active implementation instruction. Read [AI workflow](../docs/AI-WORKFLOW.md)
 and [Development](../docs/DEVELOPMENT.md) before resuming.
