@@ -97,3 +97,22 @@ test('concurrent setup requests are ignored and cancellation releases guard',asy
   release();await first;
   vscode.window.showQuickPick=async () => undefined;await help();assert.equal(records.checks,2);
 });
+test('Setup reads terminal environment in displayed project scope and matching platform without recommending Run',async t => {
+  for (const [platform,key,environment] of [['darwin','osx',{JAVA_HOME:'/invalid'}],['win32','windows',{Java_Home:null}],['linux','linux',{PATH:'${env:PATH}'}]]) {
+    await t.test(platform,async () => {
+      const {records,vscode,options} = await fixture(['details']);
+      const reads=[];
+      vscode.Uri.file=fsPath => ({fsPath});
+      vscode.workspace={getConfiguration:(section,scope) => {reads.push({section,scope});return {get:(name,fallback) => {reads.push({name,fallback});return environment;}};}};
+      options.inspect=argumentsToInspect => inspectSetup({...argumentsToInspect,env:{},platform,checkProject:async () => {},execute:async command => ({stdout:command === 'git' ? 'git version 2.31.0' : command === 'javac' ? 'javac 17.0.12' : 'openjdk version "17.0.12"'})});
+      await createSetupHelp(vscode,options)();
+      assert.deepEqual(reads,[{section:'terminal.integrated',scope:{fsPath:'/student'}},{name:`env.${key}`,fallback:{}}]);
+      assert.ok(!records.picks[0].items.some(item => item.action === 'run'));
+      assert.match(records.picks[0].items[0].label,/Run environment unverified/);
+      assert.ok(records.lines.some(line => /Host-process Java tools/.test(line)));
+      assert.ok(records.lines.some(line => /Run environment unverified/.test(line)));
+      assert.ok(!records.lines.some(line => /Choose Run first app/.test(line)));
+      assert.deepEqual(records.runs,[]);assert.deepEqual(records.commands,[]);assert.deepEqual(records.urls,[]);
+    });
+  }
+});

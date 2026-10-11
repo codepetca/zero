@@ -90,8 +90,8 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   have setup help; GitHub sign-in does not block local running.
 - Guided setup checks existing tools on personal and school laptops. Kit launchers
   offer explicit installation/help actions; the in-editor native Setup Help picker
-  checks the effective build JDK/compiler, student files and current-profile Java
-  extensions. Git is optional for local Run. Checks are read-only; repair/install
+  checks the process JDK/compiler, student files and current-profile Java
+  extensions; relevant terminal environment overrides leave Run readiness unverified. Git is optional for local Run. Checks are read-only; repair/install
   and the first app run are student choices. No silent elevation, package-manager
   installation, credential configuration or policy bypass. See [setup](SETUP.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;

@@ -13,7 +13,7 @@ continues to be an ordinary editable Java project.
 3. Check existing installations. Choose installation/help only for missing or
    incompatible items. A working school/personal installation should be reused.
 4. Follow profile prompts, install Zero and Java extensions, and open starter.
-5. In Zero, use Setup help to check the effective project tools and current profile.
+5. In Zero, use Setup help to check project tools and the current profile.
    Choose Run first app and confirm that the separate greeting window opens.
 6. Start Lesson0. Set up GitHub later when ready to share work and submit in Pika.
 
@@ -26,8 +26,12 @@ policy globally, uninstall working tools or change account credentials.
 Installer permission prompts and school restrictions remain normal operating
 system decisions. Manual setup remains available when scripts are blocked.
 
-The extension checks the same JAVA_HOME precedence used by the Maven wrapper,
-or java/javac on PATH when JAVA_HOME is unset. Both need compatible matching
+The extension checks JAVA_HOME first, as the Maven wrapper does,
+or java/javac on PATH when JAVA_HOME is unset. These probes use the VS Code
+process environment. If VS Code terminal settings override build/tool variables,
+setup reports Run readiness as unverified and explains which setting needs
+review; it does not change those settings or recommend its first-run action.
+Ordinary Run App remains available for a teacher/IT-reviewed configuration. Both need compatible matching
 JDK17+ versions. A bad JAVA_HOME must not be hidden by a working PATH installation.
 Git2.31+ is checked separately for optional sharing. Java editor support and the
 debugger are checked in the active VS Code profile; debugger absence does not
@@ -38,7 +42,9 @@ selection. Java/Git repair opens an official installer page. Fully quit/reopen
 VS Code after installing tools or repairing environment variables, then Check
 again. Run first app uses the existing saved, clean-compile, native-window flow.
 A missing or malformed project, timeout, unparseable version or failed tool check
-must not be reported as ready. Checks do not execute the project's Maven build.
+must not be reported as ready. On macOS/Linux, the wrapper must also have
+execute permission; re-extract the complete kit or follow the reported local
+permission repair guidance. Checks do not execute the project's Maven build.
 
 GitHub sign-in, repository creation/connection and local Git name/email remain
 student steps when sharing starts. Upload simulation stays the default. Setup

@@ -26,6 +26,18 @@ async function checkProject(root, platform) {
     catch (error) {if (error.code !== 'ENOENT') throw error;}
     if (!isFile) throw new Error(`The student project needs ${name}. Extract the complete Zero kit, including hidden folders, and open its starter folder.`);
   }
+  if (platform !== 'win32') {
+    try {await fs.access(path.join(root,'mvnw'),fs.constants.X_OK);}
+    catch {throw new Error('The starter mvnw file is not executable. Re-extract the complete Zero kit preserving file permissions, or ask your teacher or IT to restore its execute permission.');}
+  }
+}
+
+function taskEnvironmentOverrides(environment,platform) {
+  if (!environment || typeof environment !== 'object') return [];
+  return Object.keys(environment).filter(key => {
+    const name = platform === 'win32' ? key.toUpperCase() : key;
+    return ['JAVA_HOME','PATH','PATHEXT','JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS','_JAVA_OPTIONS','M2_HOME'].includes(name) || /^(?:MAVEN_|MVNW_)/.test(name);
+  });
 }
 
 // Only fixed version arguments, no shell, bounded runtime/output. JAVA_HOME has
@@ -33,7 +45,8 @@ async function checkProject(root, platform) {
 // silently fall back to a different Java on PATH.
 async function inspectSetup(options) {
   const {project, execute = executeFile, env = process.env, platform = process.platform,
-    getExtension = () => undefined, checkProject:check = checkProject} = options;
+    getExtension = () => undefined, checkProject:check = checkProject,
+    getTaskEnvironment = () => ({})} = options;
   const paths = platform === 'win32' ? path.win32 : path;
   const home = platform === 'win32'
     ? Object.entries(env).find(([key]) => key.toUpperCase() === 'JAVA_HOME')?.[1]
@@ -65,28 +78,36 @@ async function inspectSetup(options) {
   let jdkDetail = jdkReady ? `JDK ${java.major} from ${source}` : `JDK 17+ with matching java and javac required (${source})`;
   if (!jdkReady && home) jdkDetail += '; repair JAVA_HOME if it points to an old or invalid JDK';
   if (java.major && javac.major && java.major !== javac.major) jdkDetail += `; java ${java.major} / javac ${javac.major} mismatch`;
+  let taskEnvironment = {verified:true,keys:[]};
+  if (studentProject.root) {
+    try {
+      const keys = taskEnvironmentOverrides(await getTaskEnvironment(studentProject.root,platform),platform);
+      if (keys.length) taskEnvironment = {verified:false,keys,text:`Run environment unverified: terminal environment overrides ${keys.join(', ')}. These host-process checks do not verify the Run task's Java or Maven environment. Review the project-scoped terminal.integrated.env setting with your teacher or IT; ordinary Run App remains available.`};
+    } catch {taskEnvironment = {verified:false,keys:[],text:'Run environment unverified: terminal environment settings could not be read. Review them with your teacher or IT; ordinary Run App remains available.'};}
+  }
   return {platform,source,java,javac,git,project:studentProject,extensions,jdkReady,gitReady,jdkDetail,
-    runReady:Boolean(jdkReady && studentProject.ok),editorReady:extensions[0].available};
+    taskEnvironment,runReady:Boolean(jdkReady && studentProject.ok && taskEnvironment.verified),editorReady:extensions[0].available};
 }
 
 function writeDetails(output,report,mode) {
   output.clear();
   output.appendLine('Zero setup — local Run App does not require Git or GitHub sign-in.');
-  output.appendLine(`VS Code: present. Java tools: ${report.source}.`);
+  output.appendLine(`VS Code: present. Host-process Java tools: ${report.source}.`);
   for (const name of ['java','javac','git']) output.appendLine(`${report[name].command}: ${report[name].text}`);
   output.appendLine(report.jdkDetail);
   output.appendLine(`Student project: ${report.project.text}`);
+  if (report.taskEnvironment && !report.taskEnvironment.verified) output.appendLine(report.taskEnvironment.text);
   for (const extension of report.extensions) output.appendLine(`${extension.id}: ${extension.available ? 'available in this profile' : 'missing or disabled in this profile'} — ${extension.purpose}`);
   output.appendLine(`${report.runReady ? 'Run prerequisites ready' : 'Run prerequisites need attention'}; ${report.gitReady ? 'Git 2.31+ available for optional sharing' : 'optional sharing needs Git 2.31+'}.`);
-  output.appendLine('Checks do not build the project or verify a JavaFX window. Choose Run first app, then confirm the separate app window opens. First builds need internet for Maven and JavaFX; read failures in the task terminal.');
+  output.appendLine(`Checks do not build the project or verify a JavaFX window. ${report.runReady ? 'Choose Run first app, then confirm the separate app window opens.' : 'Review setup issues before using Run App.'} First builds need internet for Maven and JavaFX; read failures in the task terminal.`);
   output.appendLine(`Upload mode: ${mode}. Simulation makes no Git changes. Live sharing also needs an optional native GitHub sign-in, a connected repository and your per-repository Git name/email. Zero does not change identity or credentials.`);
 }
 
 function checklist(report) {
   return [
-    {label:report.runReady ? '$(check) Run prerequisites ready' : '$(warning) Run prerequisites need attention', description:'Build and app window still need a first run',action:'details'},
+    {label:report.taskEnvironment?.verified === false ? '$(warning) Run environment unverified' : report.runReady ? '$(check) Run prerequisites ready' : '$(warning) Run prerequisites need attention', description:report.taskEnvironment?.verified === false ? report.taskEnvironment.text : 'Build and app window still need a first run',action:'details'},
     {label:'$(check) VS Code',description:'Already running — no reinstall needed',action:'details'},
-    {label:`${report.jdkReady ? '$(check)' : '$(warning)'} Java JDK`,description:report.jdkDetail,action:report.jdkReady ? 'details' : 'jdk'},
+    {label:`${report.jdkReady ? '$(check)' : '$(warning)'} Java JDK — host process`,description:report.jdkDetail,action:report.jdkReady ? 'details' : 'jdk'},
     {label:`${report.project.ok ? '$(check)' : '$(warning)'} Student project`,description:report.project.text,action:report.project.ok ? 'details' : 'project'},
     ...report.extensions.map(extension => ({label:`${extension.available ? '$(check)' : '$(warning)'} ${extension.name}`,description:extension.available ? `Available — ${extension.purpose}` : `Install or enable in this profile — ${extension.purpose}`,action:extension.available ? 'details' : extension.id})),
     {label:`${report.gitReady ? '$(check)' : '$(info)'} Git — optional sharing`,description:report.gitReady ? 'Git 2.31+ available; account/repository setup is separate' : 'Sharing incomplete — install or update Git 2.31+',action:report.gitReady ? 'details' : 'git'},
@@ -104,7 +125,11 @@ function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulati
     try {
       let report;
       const check = async () => {
-        report = await inspect({project,getExtension:id => vscode.extensions.getExtension(id)});
+        report = await inspect({project,getExtension:id => vscode.extensions.getExtension(id),
+          getTaskEnvironment:(root,platform) => {
+            const os = platform === 'win32' ? 'windows' : platform === 'darwin' ? 'osx' : 'linux';
+            return vscode.workspace.getConfiguration('terminal.integrated',vscode.Uri.file(root)).get(`env.${os}`,{});
+          }});
         writeDetails(output,report,uploadMode());
       };
       await check();
@@ -146,4 +171,4 @@ function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulati
   };
 }
 
-module.exports = {javaMajor,gitVersion,inspectSetup,checklist,createSetupHelp};
+module.exports = {javaMajor,gitVersion,inspectSetup,checklist,createSetupHelp,taskEnvironmentOverrides};

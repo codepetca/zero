@@ -34,8 +34,10 @@ GitHub sign-in/sharing is optional for local running; upload simulation stays de
 ## Execution and ownership
 
 Managed checkout: /Users/stew/.codex/worktrees/kit-integration/zero,
-branch codex/guided-setup, base1f2fd53c. Primary Zero contains unrelated funding
-work; do not reset, stash, overwrite or integrate it.
+branch codex/guided-setup, basecbd12ad1b67252f6c4c33fbbe22aa40052eb0791.
+Lesson12 PR21 merged before this branch; its game stages are preserved in the
+new local kit and are outside the setup feature delta. Primary Zero contains
+unrelated funding work; do not reset, stash, overwrite or integrate it.
 Coordinator owns packaging, release metadata, root docs, integration and checks.
 guided_setup_launcher: GPT-6.1-Sol/high, owns setup/ only.
 guided_setup_editor: GPT-6.1-Sol/medium, owns extension setup module, setup command
@@ -45,8 +47,10 @@ DeepSeek remains paused through2026-12-31. Do not create extra tasks/goals/autom
 
 ## Acceptance and current phase
 
-Implementation underway. Existing instructions/check outputs are not evidence
-that a physical clean machine installed tools. Require read-only checks with
+Implementation delivered at8032789; initial independent reviews completed.
+178 full-suite tests pass. Two accepted P2 findings are in one correction batch:
+POSIX wrapper execute permission and task-environment readiness uncertainty.
+Existing instructions/check outputs are not evidence that a physical clean machine installed tools. Require read-only checks with
 accurate JDK/compiler/version/project/profile readiness, explicit installs/repair,
 quoted paths, cancellation, optional Git, no user-settings/credential mutation,
 focused tests and extracted ZIP source/permissions/Maven compile verification.
@@ -55,6 +59,6 @@ before delivery. Never run installation tests against real host tools/accounts.
 
 Physical Windows/Linux classroom/personal setup, actual installers/permissions,
 network policy and novice usability remain unverified. Run-first-app stays explicit;
-version checks alone do not prove a native window works. Next: accept both worker
-outputs, verify and review, regenerate local ZIP, report limits. Publication is a
-separate user decision.
+Version checks alone do not prove a native window works. Next: verify the
+correction batch, complete one targeted review, regenerate the local ZIP and
+report limits. Publication is a separate user decision.

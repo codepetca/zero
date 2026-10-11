@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
-const {javaMajor,gitVersion,inspectSetup,checklist} = require('../src/setup');
+const {javaMajor,gitVersion,inspectSetup,checklist,taskEnvironmentOverrides} = require('../src/setup');
 
 const defaults = {
   env:{},platform:'darwin',project:async () => '/student',checkProject:async () => {},
@@ -82,6 +82,38 @@ test('checks actual project wrapper without executing builds', async t => {
   report = await inspectSetup(options);assert.equal(report.runReady,false);assert.match(report.project.text,/needs \.mvn\/wrapper\/maven-wrapper.properties.*hidden folders.*starter folder/);
   await fs.mkdir(path.join(root,'.mvn','wrapper'),{recursive:true});
   await fs.writeFile(path.join(root,'.mvn','wrapper','maven-wrapper.properties'),'distributionUrl=example');
+  await fs.chmod(path.join(root,'mvnw'),0o644);
+  report = await inspectSetup(options);assert.equal(report.runReady,false);assert.match(report.project.text,/not executable.*Re-extract.*permissions/);
+  await fs.chmod(path.join(root,'mvnw'),0o755);
   report = await inspectSetup(options); assert.equal(report.runReady,true);
   report = await inspectSetup({...options,platform:'win32'}); assert.equal(report.runReady,false);assert.match(report.project.text,/needs mvnw.cmd/);
+  await fs.writeFile(path.join(root,'mvnw.cmd'),'');
+  await fs.chmod(path.join(root,'mvnw'),0o644);
+  report = await inspectSetup({...options,platform:'win32'});assert.equal(report.runReady,true,'Windows needs wrapper existence, not POSIX execute permission');
+});
+test('relevant terminal overrides leave host results accurate but Run environment unverified',async t => {
+  for (const environment of [{JAVA_HOME:'/invalid'},{PATH:null},{JAVA_HOME:'${env:JAVA_HOME}'},{MAVEN_OPTS:'-invalid'},{JAVA_TOOL_OPTIONS:null},{JDK_JAVA_OPTIONS:'${config:jvm}'},{_JAVA_OPTIONS:''},{MVNW_REPOURL:'https://example.invalid'}]) {
+    await t.test(Object.keys(environment)[0]+': '+String(Object.values(environment)[0]),async () => {
+      const report = await inspectSetup({...defaults,getTaskEnvironment:async (root,platform) => {assert.equal(root,'/student');assert.equal(platform,'darwin');return environment;}});
+      assert.equal(report.jdkReady,true);assert.equal(report.runReady,false);assert.equal(report.taskEnvironment.verified,false);
+      assert.deepEqual(report.taskEnvironment.keys,Object.keys(environment));
+      assert.match(report.taskEnvironment.text,/host-process checks.*Run task.*ordinary Run App remains available/);
+      assert.ok(!checklist(report).some(item => item.action === 'run'));
+    });
+  }
+});
+test('good terminal override cannot rescue bad host Java; values are never applied or exposed',async () => {
+  const report = await inspectSetup({...defaults,execute:async command => command === 'java' ? {stdout:'java version "11.0.2"'} : defaults.execute(command),getTaskEnvironment:() => ({JAVA_HOME:'/good-secret-jdk'})});
+  assert.equal(report.jdkReady,false);assert.equal(report.runReady,false);assert.equal(report.taskEnvironment.verified,false);
+  assert.doesNotMatch(report.taskEnvironment.text,/good-secret-jdk/);
+});
+test('Windows terminal variable names are case insensitive; irrelevant settings preserve normal checks',async () => {
+  assert.deepEqual(taskEnvironmentOverrides({Java_Home:null,Path:'${env:PATH}',maven_opts:'-x'},'win32'),['Java_Home','Path','maven_opts']);
+  assert.deepEqual(taskEnvironmentOverrides({Java_Home:null,Path:'x',COLOR:'blue'},'darwin'),[]);
+  for (const environment of [undefined,null,{}, {COLOR:'blue'}]) {
+    const report = await inspectSetup({...defaults,getTaskEnvironment:() => environment});
+    assert.equal(report.runReady,true);assert.equal(report.taskEnvironment.verified,true);
+  }
+  const report = await inspectSetup({...defaults,getTaskEnvironment:() => {throw new Error('Configuration unavailable');}});
+  assert.equal(report.runReady,false);assert.match(report.taskEnvironment.text,/could not be read/);
 });
