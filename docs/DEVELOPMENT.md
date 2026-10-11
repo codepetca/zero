@@ -41,6 +41,16 @@ public asset URLs/checksums remain pinned to their release. See
 [release preparation and publication](RELEASING.md) for the one-command publisher
 and its read-only CI preparation workflow.
 
+Native development installers are built locally with `npm run package:installers`.
+This rebuilds and verifies the kit, then produces a universal macOS app/DMG and
+an AnyCPU Windows EXE in ignored `dist/installers/`. Platform-only builds use
+`node scripts/build-installers.mjs --platform macos` or `--platform windows`
+after packaging/verification. macOS requires Xcode command line tools and
+`hdiutil`; Windows cross-builds use the .NET SDK and the pinned build-only
+.NET Framework 4.8 reference package. Students need no .NET SDK. Run packaging
+tests with `npm run test:installers`; platform harness commands are in
+[INSTALLER.md](INSTALLER.md). No signing credentials or publication are involved.
+
 Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
 ignored readable copies into the starter; checks/packaging prepare them too.
 An edited generated copy is preserved and stops preparation rather than being

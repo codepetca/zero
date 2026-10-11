@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>ZeroSetup</AssemblyName>
+    <RootNamespace>ZeroSetup</RootNamespace>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>7.3</LangVersion>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <DebugType>none</DebugType>
+    <!-- The CLR4 header selects the installed Framework runtime. No private assemblies need redirects. -->
+    <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs;MainForm.cs;KitFiles.cs;Processes.cs" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
+    <EmbeddedResource Include="$(ZeroKitZip)" LogicalName="ZeroKit.zip" Condition="Exists('$(ZeroKitZip)')" />
+  </ItemGroup>
+  <Target Name="RequireKit" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(ZeroKitZip)')" Text="Pass /p:ZeroKitZip=/absolute/path/to/zero-bootstrap.zip" />
+  </Target>
+</Project>

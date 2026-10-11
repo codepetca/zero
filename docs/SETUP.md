@@ -73,7 +73,8 @@ Primary references: [VS Code CLI](https://code.visualstudio.com/docs/configure/c
 
 ## Installer packaging direction
 
-The native installer will wrap these checks and repair actions. Windows would
-use a per-user setup EXE; macOS would use a setup app inside a DMG. No native
-installer has been built or published yet. Keep the ZIP/manual path for managed
+Native development wrappers now reuse these checks and repair actions: a Windows
+EXE and a universal macOS app inside a DMG. They are local unsigned development
+builds, not published student downloads. Both require a fresh writable kit folder
+and explicit Continue setup; existing projects are preserved. Keep the ZIP/manual path for managed
 school machines. See [installer direction](INSTALLER.md).

@@ -20,7 +20,7 @@ merge confirmed404 unprotected and empty rulesets. Do not restore protections
 without new authorization. Community acceptance-helper review checks remain.
 No live AI provider. Old release/merge grants completed; no standing publication grant.
 
-## Local delivery and active setup reliability follow-up
+## Local delivery and active native setup packaging
 
 Owner asks better setup guidance, checking installed tools and installation help,
 for personal as well as school laptops. Implement locally: Windows/macOS launchers,
@@ -76,7 +76,19 @@ remaining at start is account-wide; effective models/tokens unknown. Native
 Windows/PowerShell, actual managed installs, profile interaction and novice use
 remain unverified. No host installations or publication occurred.
 
-Next: wrap the accepted checks in native installers per docs/INSTALLER.md.
-EXE/macOS app/DMG packages are not yet built. Source PR/merge, signing-account
+Active owner request: implement thin native wrappers per docs/INSTALLER.md,
+base d0311ea1827769110adbe86b5a66db83b85ed113, local only. macOS AppKit app
+in a universal DMG; Windows Forms AnyCPU EXE on .NET Framework 4.8. Both embed
+the measured complete kit, check existing tools without installation, require a
+fresh writable project folder, and explicitly continue into the accepted setup
+scripts. No silent policy bypass, existing-project overwrite or account changes.
+Writers: installer_macos owns native-installer/macos; installer_windows owns
+native-installer/windows, both GPT-6.1-Sol/high. Coordinator owns build tooling,
+docs, artifact integration and acceptance. Weekly20% remaining at phase start;
+account-wide, effective models/tokens unknown. DeepSeek still paused.
+Delivery gates: bounded fake/native backend checks, universal app/DMG and PE
+payload parity, independent risk-matched review, local development artifacts.
+Windows native UI/PowerShell and actual tool installation remain unverified.
+Packages are being built, not yet accepted. Source PR/merge, signing-account
 access and publication remain separate owner decisions. Do not infer authorization
 from completed older work. Local ZIP remains dist/zero-bootstrap.zip.
