@@ -27,13 +27,13 @@ and confirm the greeting window.
 
 Supported background work includes tool checks, kit copying and approved extension
 installation into an existing Zero profile. VS Code's supported CLI cannot create
-or import that profile quietly: if it is absent, setup provides an intentional
-editor/profile-file handoff and verifies the profile when the student returns.
-Compatible existing profiles are preserved; quiet settings remain an optional
-import before extensions. A missing JDK uses the official Temurin installer flow
-with normal macOS approval. Where existing Homebrew can manage VS Code without
-interactive elevation, an explicitly approved operation may run in the background;
-otherwise setup offers its official vendor flow. No hidden password prompt.
+or import that profile quietly: if it is absent, the main window guides its import
+one short instruction at a time. A **Copy profile path** button helps select the
+bundled file; **Check profile** verifies the result before continuing. Required
+instructions never depend on Details. Compatible existing profiles are preserved.
+Missing or incompatible VS Code and Java use explicit official-download handoffs
+with normal macOS approval. The native flow does not run Homebrew. Fully quit and
+reopen VS Code after changing Java or its environment, then check again.
 
 The extracted kit's shell launcher stays available as a manual fallback. Windows
 retains its existing wrapper and guided menu; Windows testing is deferred.
@@ -108,7 +108,8 @@ read the copied Setup.cmd guidance; managed policy remains authoritative.
 
 No new package manager, persistent agent or custom IDE engine is introduced.
 Compatible VS Code policy comes from canonical extension metadata. Manual shell
-scripts retain their explicit Homebrew/winget install-versus-update prompts; the Mac native flow approves fixed background actions in its own window.
+scripts retain their explicit Homebrew/winget install-versus-update prompts; the
+Mac native flow approves editor extension installation in its own window.
 The wrapper does not download and execute its own unverified installers. Unknown versions,
 broken JAVA_HOME, unmanaged tools and failed repairs remain visible.
 

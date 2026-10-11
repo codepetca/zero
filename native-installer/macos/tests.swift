@@ -105,15 +105,15 @@ struct SetupTests {
             let scenario = scenarioIndex.flatMap { $0 + 1 < CommandLine.arguments.count ? CommandLine.arguments[$0 + 1] : nil } ?? "profile"
             let fake = FakeRunner(); fake.useDynamic = true; fake.delay = 5
             switch scenario {
-            case "tools": fake.plan = "install"; fake.checkOutput = snapshot(["code": 0, "profile": 0, "zero": 0, "redhat": 0])
-            case "profile": fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0])
+            case "tools": fake.plan = "manual"; fake.checkOutput = snapshot(["code": 0, "profile": 0, "zero": 0, "redhat": 0])
+            case "profile", "profile-unfinished": fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0])
             case "extensions": fake.checkOutput = snapshot(["zero": 0, "redhat": 0])
             case "failure": fake.useDynamic = false; fake.result = CommandResult(exitCode: 42, output: "Fake network failure. No host changes.", timedOut: false, launchError: nil)
             default: fake.checkOutput = snapshot()
             }
             fake.onRun = { command in
-                if command.arguments.contains("--native-install") { fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]) }
-                if command.arguments.contains("--native-profile") { fake.checkOutput = snapshot(["zero": 0, "redhat": 0]) }
+                if command.executable == "/usr/bin/open" { fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]) }
+                if command.arguments.contains("--native-profile") && scenario != "profile-unfinished" { fake.checkOutput = snapshot(["zero": 0, "redhat": 0]) }
                 if command.arguments.contains("--native-extension") && command.arguments.contains("java") { fake.checkOutput = snapshot() }
             }
             let app = NSApplication.shared; app.setActivationPolicy(.regular)
@@ -203,22 +203,53 @@ struct SetupTests {
             if member == "starter/mvnw" { try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path) }
         }
         fake.useDynamic = true
-        fake.checkOutput = snapshot(["code": 0]); fake.plan = "install"
+        fake.checkOutput = snapshot(["code": 0]); fake.plan = "manual"
         controller.check()
-        try expect(controller.stage == .toolConsent("code", "install"), "missing Code needs fixed command consent")
-        let countBeforeConsent = fake.commands.count
-        controller.approve(false)
-        try expect(fake.commands.count == countBeforeConsent, "cancelled install consent launches nothing")
-        fake.onRun = { command in if command.arguments.contains("--native-install") { fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]) } }
+        try expect(controller.stage == .manualTool("code"), "missing Code uses explicit official download handoff")
+        let beforeDownload = fake.commands.count
         controller.approve(true)
-        try expect(controller.stage == .profileConsent, "approved tool install rechecks before profile")
-        try expect(fake.commands.contains { $0.arguments.suffix(4) == ["--native-install", "code", "install", "--approved"] }, "native consent bound to exact install")
-        controller.approve(false)
-        try expect(controller.stage == .profileConsent, "cancelled profile preserves stage")
-        controller.approve(true)
-        try expect(controller.stage == .profileWaiting, "profile handoff cannot claim import complete")
+        try expect(fake.commands.count == beforeDownload, "manual tool state cannot install anything")
         controller.primaryAction()
-        try expect(controller.stage == .profileConsent, "missing profile after handoff stays unready")
+        try expect(fake.commands.last == SetupCommand(executable: "/usr/bin/open", arguments: ["https://code.visualstudio.com/download"]) && controller.stage == .retry, "official browser handoff requires explicit action")
+        fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]); controller.check()
+        try expect(controller.stage == .profileConsent, "profile preparation waits until tools verified")
+        let beforeProfile = fake.commands.count
+        controller.approve(false)
+        try expect(controller.stage == .profileConsent && fake.commands.count == beforeProfile, "cancelled profile never opens editor")
+        controller.approve(true)
+        try expect(controller.stage == .profileStep(.commandPalette), "explicit open starts visible manual import guide")
+        try expect(fake.commands.last?.arguments.last == "--native-profile", "profile opener scoped to supported backend")
+        let wizardCommandCount = fake.commands.count
+        var visibleSteps = [controller.summary]
+        controller.primaryAction()
+        try expect(controller.stage == .profileStep(.importMenu), "wizard next reaches native import menu instructions")
+        visibleSteps.append(controller.summary)
+        controller.primaryAction()
+        try expect(controller.stage == .profileStep(.filePicker) && controller.primaryTitle == "Copy profile path", "wizard next explains Go to Folder before copying")
+        visibleSteps.append(controller.summary)
+        var copiedPath: String?
+        controller.primaryAction()
+        try expect(controller.stage == .profileStep(.filePicker), "generic Next cannot silently copy clipboard")
+        controller.copyProfilePath { copiedPath = $0; return false }
+        try expect(controller.stage == .profileStep(.filePicker), "failed copy stays on copy step")
+        controller.copyProfilePath { copiedPath = $0; return true }
+        try expect(copiedPath == copied.appendingPathComponent("optional/Zero.code-profile").path && controller.stage == .profileStep(.pastePath), "explicit copy uses exact kit profile path")
+        visibleSteps.append(controller.summary)
+        controller.primaryAction()
+        try expect(controller.stage == .profileStep(.create) && controller.primaryTitle == "Check profile", "last guide step names Create and Zero")
+        visibleSteps.append(controller.summary)
+        try expect(visibleSteps == ["Press ⌘⇧P; open Preferences: Open Profiles (UI).", "New Profile menu → Import Profile → Select File.", "Press ⌘⇧G in the file picker.", "Paste the path; press Return, then Open.", "Click Create; keep the profile name Zero."], "essential supported import instructions are visible in exact order")
+        for message in visibleSteps {
+            try expect(message.count < 60 && !message.contains("\n"), "each import instruction stays one short line")
+            let width = NSAttributedString(string: message, attributes: [.font: NSFont.systemFont(ofSize: 14)]).size().width
+            try expect(width <= 400, "each import instruction fits the default status width")
+        }
+        try expect(fake.commands.count == wizardCommandCount, "guide steps never claim import or run tools")
+        try expect(controller.canGoBack, "wizard can recover an omitted step")
+        controller.previousProfileStep()
+        try expect(controller.stage == .profileStep(.pastePath), "Back returns one guide step")
+        controller.primaryAction(); controller.primaryAction()
+        try expect(controller.stage == .profileStep(.create) && controller.summary.contains("not found"), "unfinished actual profile check stays unready without reopening editor")
         fake.checkOutput = snapshot(["zero": 0, "redhat": 0]); controller.check()
         try expect(controller.stage == .extensionConsent, "extension consent only after tools and profile")
         let beforeExtensions = fake.commands.count
@@ -247,11 +278,9 @@ struct SetupTests {
         try rejected("inconsistent readiness") { _ = try SetupSnapshot.parse(snapshot(["code": 0]).replacingOccurrences(of: "ready=0", with: "ready=1")) }
         try rejected("duplicate protocol keys") { _ = try SetupSnapshot.parse(snapshot().replacingOccurrences(of: "kit=1", with: "kit=1\nkit=1")) }
 
-        fake.checkOutput = snapshot(["code": 0]); fake.plan = "install"; controller.check()
-        fake.useDynamic = false; fake.result = CommandResult(exitCode: 0, output: "brew waiting", timedOut: true, launchError: nil)
-        controller.approve(true)
-        try expect(controller.stage == .manualTool("code") && controller.primaryTitle == "Open download page", "brew timeout offers deliberate vendor fallback")
-        try expect(controller.diagnostics.contains("timed out") || controller.diagnostics.contains("exceeded"), "brew timeout retained in details")
+        fake.plan = "manual"; fake.checkOutput = snapshot(["code": 0]); controller.check()
+        try expect(controller.stage == .manualTool("code"), "manual plan remains a useful state")
+        try expect(!fake.commands.contains { $0.arguments.contains("--native-install") }, "native controller never requests background system installation")
         let incompleteFake = FakeRunner()
         incompleteFake.result = CommandResult(exitCode: 0, output: snapshot(["kit": 0]), timedOut: false, launchError: nil)
         let incomplete = SetupController(kit: kit, runner: incompleteFake)

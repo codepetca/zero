@@ -14,7 +14,8 @@ function fixture(options = {}) {
   // Interactive tests bypass the TTY gate in this copied script, never in product source.
   writeFileSync(path.join(setup, 'setup.sh'), readFileSync(source, 'utf8')
     .replace('"/Applications/Visual Studio Code.app', '"' + root + '/System Applications/Visual Studio Code.app')
-    .replace('[ -w /Applications ]', '[ -w "' + root + '" ]')
+    .replace('[ -w /Applications ]', options.nonWritableApps ? 'false' : '[ -w "' + root + '" ]')
+    .replaceAll('/usr/libexec/java_home', root + '/missing-java-home-helper')
     .replace('[ ! -t 0 ]', options.interactive ? 'false' : '[ ! -t 0 ]'));
   writeFileSync(path.join(setup, 'kit.properties'), options.metadata ?? 'kitVersion=0.5.4\nextensionId=zero.zero\nvscodeMinimum=1.95.0\n');
   for (const name of ['zero-0.5.4.vsix', 'optional/Zero.code-profile', 'starter/zero.json', 'starter/pom.xml', 'starter/mvnw', 'starter/mvnw.cmd', 'starter/.mvn/wrapper/maven-wrapper.properties', 'starter/.vscode/tasks.json']) writeFileSync(path.join(root, name), '', {mode: 0o755});
@@ -31,13 +32,9 @@ function fixture(options = {}) {
   executable(jdk + '/bin', 'java', 'echo \'openjdk version "' + (options.java || '17.0.12') + '"\' >&2');
   if (options.compiler !== false) executable(jdk + '/bin', 'javac', 'echo "javac ' + (options.javac || options.java || '17.0.12') + '"');
   // A valid PATH JDK must not conceal an explicitly invalid JAVA_HOME.
-  for (const name of ['java', 'javac']) executable(bin, name, name === 'java' ? 'echo \'openjdk version "17.0.12"\' >&2' : 'echo "javac 17.0.12"');
-  for (const name of ['brew', 'xdg-open', 'open']) executable(bin, name, 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99');
+  for (const name of ['java', 'javac']) executable(bin, name, options.javaPathMissing ? 'exit 1' : name === 'java' ? 'echo \'openjdk version "17.0.12"\' >&2' : 'echo "javac 17.0.12"');
+  for (const name of (options.noBrew ? ['xdg-open', 'open'] : ['brew', 'xdg-open', 'open'])) executable(bin, name, 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99');
   if (options.brew) executable(bin, 'brew', `printf "brew %s\\n" "$*" >> "$PROBE_LOG"
-if [ "\${NONINTERACTIVE:-}" = 1 ]; then
-  printf 'NATIVE_ENV=%s:%s:%s\\n' "$NONINTERACTIVE" "$HOMEBREW_NO_AUTO_UPDATE" "$SUDO_ASKPASS" >> "$PROBE_LOG"
-  case "$*" in install*|upgrade*) if read -r unexpected; then echo HIDDEN_INPUT >> "$PROBE_LOG"; exit 99; fi ;; esac
-fi
 case "$*" in
  "list --versions --cask") ${options.brew === 'inventoryFailure' ? 'exit 2' : ['missing', 'installFailure'].includes(options.brew) ? ':' : 'echo "visual-studio-code 1.90.0"'} ;;
  "outdated --quiet --cask --greedy-auto-updates") ${options.brew === 'outdatedFailure' ? 'exit 2' : ['outdated', 'upgradeFailure'].includes(options.brew) ? 'echo visual-studio-code' : options.brew === 'unrelated' ? 'printf "other-cask\\nvisual-studio-code-insiders\\n"' : ':'} ;;
@@ -51,12 +48,12 @@ case "$*" in
  "upgrade --formula git") exit 0 ;;
  *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;
 esac`);
-  const environment = {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : jdk, PROBE_LOG: log};
+  const environment = {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : options.noHome ? '' : jdk, PROBE_LOG: log};
   return {root, log, runArgs(args) {
     const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), ...args], {env: environment, encoding: 'utf8', timeout: 10000});
     assert.equal(result.error, undefined); return result;
   }, run(input) {
-    const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), ...(input === undefined ? ['--check'] : [])], {env: {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : jdk, PROBE_LOG: log}, input, encoding: 'utf8', timeout: 10000});
+    const result = spawnSync('/bin/bash', [path.join(setup, 'setup.sh'), ...(input === undefined ? ['--check'] : [])], {env: {...process.env, PATH: bin + ':/usr/bin:/bin', HOME: root, JAVA_HOME: options.invalidHome ? path.join(root, 'missing JDK') : options.noHome ? '' : jdk, PROBE_LOG: log}, input, encoding: 'utf8', timeout: 10000});
     assert.equal(result.error, undefined);
     const commands = readFileSync(log, 'utf8');
     assert.doesNotMatch(commands, /UNEXPECTED_MUTATION|install-extension|new-window/);
@@ -163,30 +160,29 @@ for (const args of [
   finally { kit.cleanup(); }
 });
 for (const [name, options, expected] of [
-  ['compatible Code skipped before package-manager inventory', {mac: true, brew: 'outdated'}, 'skip'],
-  ['broken JAVA_HOME blocked before package-manager inventory', {mac: true, invalidHome: true, brew: 'outdated'}, 'blocked'],
-  ['missing managed Code plans fixed install', {mac: true, codeVersion: '1.90.0', brew: 'missing'}, 'install'],
-  ['outdated managed Code plans fixed upgrade', {mac: true, codeVersion: '1.90.0', brew: 'outdated'}, 'upgrade'],
-  ['current incompatible package uses manual vendor help', {mac: true, codeVersion: '1.90.0', brew: 'current'}, 'manual'],
+  ['compatible Code skips system-tool change', {mac: true, brew: 'outdated'}, 'skip'],
+  ['broken JAVA_HOME is blocked without inventory', {mac: true, invalidHome: true, brew: 'outdated'}, 'blocked'],
+  ['fresh Mac without Homebrew returns successful manual plan', {mac: true, code: false, noBrew: true}, 'manual'],
+  ['missing package returns manual plan', {mac: true, codeVersion: '1.90.0', brew: 'missing'}, 'manual'],
+  ['outdated package returns manual plan', {mac: true, codeVersion: '1.90.0', brew: 'outdated'}, 'manual'],
+  ['current incompatible package returns manual plan', {mac: true, codeVersion: '1.90.0', brew: 'current'}, 'manual'],
+  ['failed inventory cannot turn manual plan into retry', {mac: true, codeVersion: '1.90.0', brew: 'inventoryFailure'}, 'manual'],
+  ['failed outdated query cannot turn manual plan into retry', {mac: true, codeVersion: '1.90.0', brew: 'outdatedFailure'}, 'manual'],
+  ['nonwritable app directory cannot affect manual plan', {mac: true, codeVersion: '1.90.0', nonWritableApps: true}, 'manual'],
 ]) test(name, () => {
   const kit = fixture(options);
   try {
     const tool = options.invalidHome ? 'java' : 'code', result = kit.runArgs(['--native-plan', tool]);
     assert.equal(result.status, 0, result.stdout + result.stderr); assert.match(result.stdout, new RegExp('action=' + expected));
-    const commands = readFileSync(kit.log, 'utf8');
-    assert.doesNotMatch(commands, /brew (install|upgrade)|new-window|install-extension/);
-    if (['skip', 'blocked'].includes(expected)) assert.doesNotMatch(commands, /brew /);
+    assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew |new-window|install-extension/);
   } finally { kit.cleanup(); }
 });
-test('approved install proposal drift refuses mutation', () => {
-  const kit = fixture({mac: true, codeVersion: '1.90.0', brew: 'outdated'});
-  try { const result = kit.runArgs(['--native-install', 'code', 'install', '--approved']); assert.equal(result.status, 1); assert.match(result.stdout, /proposal changed/); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew (install|upgrade)/); }
-  finally { kit.cleanup(); }
-});
-test('native failed managed install preserves nonzero exit', () => {
-  const kit = fixture({mac: true, codeVersion: '1.90.0', brew: 'installFailure'});
-  try { const result = kit.runArgs(['--native-install', 'code', 'install', '--approved']); assert.equal(result.status, 43); assert.match(readFileSync(kit.log, 'utf8'), /brew install --cask visual-studio-code/); assert.match(readFileSync(kit.log, 'utf8'), /NATIVE_ENV=1:1:\/usr\/bin\/false/); assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /HIDDEN_INPUT/); }
-  finally { kit.cleanup(); }
+for (const options of [{brew: 'missing'}, {brew: 'outdated'}, {brew: 'current'}, {noBrew: true}]) test('native background installation is always rejected: ' + JSON.stringify(options), () => {
+  const kit = fixture({mac: true, codeVersion: '1.90.0', ...options});
+  try {
+    for (const operation of ['install', 'upgrade']) assert.equal(kit.runArgs(['--native-install', 'code', operation, '--approved']).status, 2);
+    assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew |install-extension|new-window/);
+  } finally { kit.cleanup(); }
 });
 test('compatible native extensions skipped in exact Zero profile', () => {
   const kit = fixture();
@@ -211,4 +207,14 @@ test('native open rechecks readiness and Git remains optional', () => {
     try { const result = kit.runArgs(['--native-open']); assert.equal(result.status, ready ? 0 : 1, result.stdout); const commands = readFileSync(kit.log, 'utf8'); if (ready) assert.match(commands, /--new-window --profile Zero .*starter/); else assert.doesNotMatch(commands, /new-window/); }
     finally { kit.cleanup(); }
   }
+});
+
+test('fresh Mac missing Java returns successful manual vendor plan', () => {
+  const kit = fixture({mac: true, noHome: true, javaPathMissing: true, noBrew: true});
+  try {
+    const result = kit.runArgs(['--native-plan', 'java']);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stdout, /action=manual/);
+    assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew |install|new-window/);
+  } finally { kit.cleanup(); }
 });

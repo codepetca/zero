@@ -32,6 +32,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     private let status = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
     private let primary = NSButton(title: "Please wait", target: nil, action: nil)
+    private let back = NSButton(title: "Back", target: nil, action: nil)
     private let details = NSButton(title: "Details…", target: nil, action: nil)
     private var diagnosticsWindow: NSWindowController?
 
@@ -51,8 +52,9 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         status.setAccessibilityLabel("Setup status")
         spinner.style = .spinning; spinner.controlSize = .small
         spinner.isDisplayedWhenStopped = false
-        for view in [status, spinner, primary, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
+        for view in [status, spinner, primary, back, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
         primary.bezelStyle = .rounded; primary.target = self; primary.action = #selector(primaryAction)
+        back.bezelStyle = .rounded; back.target = self; back.action = #selector(previousProfileStep)
         details.bezelStyle = .rounded; details.target = self; details.action = #selector(showDetails)
         NSLayoutConstraint.activate([
             spinner.centerXAnchor.constraint(equalTo: root.centerXAnchor),
@@ -64,6 +66,8 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
             status.heightAnchor.constraint(equalToConstant: 22),
             primary.topAnchor.constraint(equalTo: status.bottomAnchor, constant: 18),
             primary.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+            back.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 16),
+            back.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10),
             details.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
             details.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10)
         ])
@@ -74,6 +78,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool { controller.mayExit() }
     func refresh() {
         status.stringValue = controller.summary
+        back.isHidden = !controller.canGoBack
         primary.title = controller.primaryTitle; primary.isEnabled = !controller.busy
         if controller.busy { spinner.startAnimation(nil) } else { spinner.stopAnimation(nil) }
     }
@@ -81,11 +86,17 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         guard !controller.busy, window != nil else { return }
         if controller.stage == .chooseFolder { chooseFolder(); return }
         if controller.consent != nil {
-            let profileHandoff = controller.stage == .profileConsent
             controller.approve(true)
-            if profileHandoff { NSWorkspace.shared.activateFileViewerSelecting([controller.profileFile]) }
+        } else if controller.stage == .profileStep(.filePicker) {
+            controller.copyProfilePath { path in
+                let clipboard = NSPasteboard.general
+                clipboard.clearContents()
+                return clipboard.setString(path, forType: .string)
+            }
         } else { controller.primaryAction() }
     }
+
+    @objc private func previousProfileStep() { controller.previousProfileStep() }
 
     private func chooseFolder() {
         guard let window else { return }
@@ -120,7 +131,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         text.textContainerInset = NSSize(width: 12, height: 12)
         text.isHorizontallyResizable = false; text.isVerticallyResizable = true
         text.autoresizingMask = [.width]; text.textContainer?.widthTracksTextView = true
-        text.string = "\(controller.summary)\n\n\(controller.consent?.detail ?? "")\n\nProfile import: Command Palette > Preferences: Open Profiles (UI) > menu beside New Profile > Import Profile… > Select File…. Select \(controller.profileFile.path) and Create a profile named Zero. Return here and Continue.\n\n\(controller.diagnostics)\nGuide: \((controller.selectedFolder ?? controller.kit.root).appendingPathComponent("START-HERE.md").path)"
+        text.string = "\(controller.summary)\n\n\(controller.consent?.detail ?? "")\n\nProfile import: Command Palette > Preferences: Open Profiles (UI) > menu beside New Profile > Import Profile… > Select File…. Select \(controller.profileFile.path) and Create a profile named Zero. Return here and choose Check profile.\n\n\(controller.diagnostics)\nGuide: \((controller.selectedFolder ?? controller.kit.root).appendingPathComponent("START-HERE.md").path)"
         let scroll = NSScrollView(frame: detailWindow.contentLayoutRect)
         scroll.autoresizingMask = [.width, .height]
         scroll.hasVerticalScroller = true; scroll.documentView = text

@@ -327,9 +327,13 @@ private func protocolFields(_ output: String, start: String, end: String) throws
     return result
 }
 
+enum ProfileImportStep: Int, CaseIterable {
+    case commandPalette, importMenu, filePicker, pastePath, create
+}
+
 enum SetupStage: Equatable {
-    case checking, chooseFolder, toolConsent(String, String), manualTool(String), blockedJava
-    case profileConsent, profileWaiting, extensionConsent, ready, retry, opened
+    case checking, chooseFolder, manualTool(String), blockedJava
+    case profileConsent, profileStep(ProfileImportStep), extensionConsent, ready, retry, opened
 }
 
 final class SetupController {
@@ -340,8 +344,9 @@ final class SetupController {
     private(set) var hasChecked = false
     private(set) var stage: SetupStage = .checking
     private(set) var summary = "Checking your laptop…"
-    private(set) var diagnostics = "Git is optional for local apps. GitHub sign-in and sharing are separate.\n"
+    private(set) var diagnostics = "Git is optional for local apps. GitHub sign-in and sharing are separate.\nAfter changing Java, fully quit VS Code (⌘Q) and reopen it. A CLI check does not verify the Java environment in an already-running editor.\n"
     private var snapshot: SetupSnapshot?
+    private var profileImportStarted = false
     var changed: (() -> Void)?
 
     init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner()) { self.kit = kit; self.runner = runner }
@@ -350,11 +355,15 @@ final class SetupController {
         switch stage {
         case .checking: return "Please wait"
         case .chooseFolder: return "Choose folder…"
-        case .toolConsent(_, let operation): return operation == "upgrade" ? "Update VS Code…" : "Install VS Code…"
         case .manualTool: return "Open download page"
         case .blockedJava, .retry: return "Check again"
         case .profileConsent: return "Open VS Code"
-        case .profileWaiting: return "Continue"
+        case .profileStep(let step):
+            switch step {
+            case .filePicker: return "Copy profile path"
+            case .create: return "Check profile"
+            default: return "Next"
+            }
         case .extensionConsent: return "Install support"
         case .ready: return "Open Zero"
         case .opened: return "Open Zero again"
@@ -363,11 +372,8 @@ final class SetupController {
     var profileFile: URL { (selectedFolder ?? kit.root).appendingPathComponent("optional/Zero.code-profile") }
     var consent: (title: String, detail: String)? {
         switch stage {
-        case .toolConsent(_, let operation):
-            return (operation == "upgrade" ? "Update VS Code?" : "Install VS Code?",
-                    "Use your existing Homebrew to \(operation) Visual Studio Code?\n\nbrew \(operation) --cask visual-studio-code\n\nIf administrator permission or school policy blocks it, setup stops and offers the official download page.")
         case .profileConsent:
-            return ("Import the Zero profile", "VS Code needs one manual import. Open the Command Palette and choose Preferences: Open Profiles (UI). Use the menu beside New Profile > Import Profile… > Select File…. Choose the highlighted Zero.code-profile file, name it Zero, and choose Create.\n\nThis adds the supplied light theme and autosave settings in a separate profile. Your existing profiles are preserved. Return here and choose Continue afterward.")
+            return ("Import the Zero profile", "VS Code needs one manual import. Open the Command Palette and choose Preferences: Open Profiles (UI). Use the menu beside New Profile > Import Profile… > Select File…. Choose the supplied Zero.code-profile file, name it Zero, and choose Create.\n\nThis adds the supplied light theme and autosave settings in a separate profile. Your existing profiles are preserved. Follow the steps here, then choose Check profile.")
         case .extensionConsent:
             return ("Install Zero support?", "Install the bundled Zero extension and any missing Java language support (redhat.java) in the Zero profile? Java support downloads from the VS Code Marketplace. Compatible installed extensions are kept. Your other profiles and settings are preserved.")
         default: return nil
@@ -382,7 +388,7 @@ final class SetupController {
     private func fail(_ message: String, detail: String) {
         snapshot = nil; busy = false; record(detail); set(.retry, message)
     }
-    private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, onFailure: (() -> Void)? = nil, completion: @escaping (CommandResult) -> Void) {
+    private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, completion: @escaping (CommandResult) -> Void) {
         do {
             let current = SetupKit(root: selectedFolder ?? kit.root)
             try current.validate()
@@ -392,9 +398,9 @@ final class SetupController {
                 guard let self else { return }
                 self.busy = false
                 self.record("Action: \(arguments.joined(separator: " "))\nExit: \(result.exitCode.map(String.init) ?? "stopped")\n\(result.output)")
-                if result.timedOut { self.fail("Setup timed out. Try again.", detail: "Command exceeded \(timeout) seconds. Readiness is unverified."); onFailure?(); return }
-                if let error = result.launchError { self.fail("Setup could not finish. Try again.", detail: error); onFailure?(); return }
-                if !result.succeeded { self.fail("Setup needs attention. Try again.", detail: "Action failed. No readiness confirmed. Use Details for details."); onFailure?(); return }
+                if result.timedOut { self.fail("Setup timed out. Try again.", detail: "Command exceeded \(timeout) seconds. Readiness is unverified."); return }
+                if let error = result.launchError { self.fail("Setup could not finish. Try again.", detail: error); return }
+                if !result.succeeded { self.fail("Setup needs attention. Try again.", detail: "Action failed. No readiness confirmed. Use Details for details."); return }
                 completion(result)
             }
         } catch { fail("The kit needs attention. See Details.", detail: error.localizedDescription) }
@@ -424,7 +430,11 @@ final class SetupController {
             } else { plan("java") }
             return
         }
-        if !snapshot["profile"] { set(.profileConsent, "Import the Zero profile in VS Code."); return }
+        if !snapshot["profile"] {
+            if profileImportStarted { set(.profileStep(.create), "Zero profile not found. Finish Create, then check.") }
+            else { set(.profileConsent, "Import the Zero profile in VS Code.") }
+            return
+        }
         if !snapshot["zero"] || !snapshot["redhat"] { set(.extensionConsent, "Install Zero and Java editor support?"); return }
         guard snapshot.ready && selectedFolder != nil else { fail("Readiness is unverified. Try again.", detail: "Required check fields did not establish readiness."); return }
         set(.ready, "Zero is ready. Open it to begin.")
@@ -436,7 +446,6 @@ final class SetupController {
                 let fields = try protocolFields(result.output, start: "ZERO_PLAN_V1", end: "END_ZERO_PLAN")
                 guard fields.count == 1, let action = fields["action"] else { throw SetupFailure(message: "Invalid installation proposal.") }
                 switch action {
-                case "install" where tool == "code", "upgrade" where tool == "code": self.set(.toolConsent(tool, action), action == "upgrade" ? "Update VS Code with Homebrew?" : "Install VS Code with Homebrew?")
                 case "manual": self.set(.manualTool(tool), tool == "code" ? "Install VS Code, then check again." : "Install Java 17 or newer, then check again.")
                 case "blocked": self.fail("Setup needs help. See Details.", detail: "Tool setup is blocked by kit or environment configuration.")
                 case "skip": self.set(.retry, "Tools changed. Check again.")
@@ -449,10 +458,11 @@ final class SetupController {
     func approve(_ approved: Bool) {
         guard !busy, approved else { return }
         switch stage {
-        case .toolConsent(let tool, let operation):
-            run(["--native-install", tool, operation, "--approved"], status: operation == "upgrade" ? "Updating VS Code…" : "Installing VS Code…", timeout: 600, onFailure: { [weak self] in self?.set(.manualTool("code"), "VS Code installation stopped. Get help.") }) { [weak self] _ in self?.check() }
         case .profileConsent:
-            run(["--native-profile"], status: "Opening the profile import…", timeout: 30) { [weak self] _ in self?.set(.profileWaiting, "Import Zero in VS Code (Details for steps).") }
+            run(["--native-profile"], status: "Opening VS Code for profile import…", timeout: 30) { [weak self] _ in
+                self?.profileImportStarted = true
+                self?.showProfileStep(.commandPalette)
+            }
         case .extensionConsent:
             installExtensions()
         default: break
@@ -471,14 +481,27 @@ final class SetupController {
     func primaryAction() {
         guard !busy else { return }
         switch stage {
-        case .profileWaiting, .retry, .blockedJava: check()
+        case .retry, .blockedJava: check()
+        case .profileStep(let step):
+            switch step {
+            case .commandPalette: showProfileStep(.importMenu)
+            case .importMenu: showProfileStep(.filePicker)
+            case .pastePath: showProfileStep(.create)
+            case .create: check()
+            case .filePicker: break // Copy requires the explicit native clipboard action.
+            }
         case .manualTool(let tool):
             let url = tool == "code" ? "https://code.visualstudio.com/download" : "https://adoptium.net/temurin/releases/?version=17"
             busy = true; summary = tool == "code" ? "Opening the VS Code download page…" : "Opening the Java download page…"; changed?()
             runner.run(SetupCommand(executable: "/usr/bin/open", arguments: [url]), timeout: 15) { [weak self] result in
                 guard let self else { return }
                 self.busy = false; self.record(result.output)
-                if result.succeeded { self.set(.retry, "Finish installing, then check again.") }
+                if result.succeeded {
+                    if tool == "java" {
+                        self.record("After changing Java, fully quit VS Code (⌘Q) and reopen it so the editor receives the new environment. A CLI check does not verify an already-running editor's Java environment.")
+                        self.set(.retry, "Install Java; quit VS Code (⌘Q), then check again.")
+                    } else { self.set(.retry, "Finish installing VS Code, then check again.") }
+                }
                 else { self.fail("Could not open the download page.", detail: result.launchError ?? url) }
             }
         case .ready, .opened:
@@ -486,6 +509,36 @@ final class SetupController {
             run(["--native-open"], status: "Opening Zero…", timeout: 180) { [weak self] _ in self?.set(.opened, "In Zero, choose Run App to begin.") }
         default: break
         }
+    }
+    private func showProfileStep(_ step: ProfileImportStep) {
+        let message: String
+        switch step {
+        case .commandPalette: message = "Press ⌘⇧P; open Preferences: Open Profiles (UI)."
+        case .importMenu: message = "New Profile menu → Import Profile → Select File."
+        case .filePicker: message = "Press ⌘⇧G in the file picker."
+        case .pastePath: message = "Paste the path; press Return, then Open."
+        case .create: message = "Click Create; keep the profile name Zero."
+        }
+        set(.profileStep(step), message)
+    }
+    var canGoBack: Bool {
+        if case .profileStep(let step) = stage { return step != .commandPalette && !busy }
+        return false
+    }
+    func previousProfileStep() {
+        guard !busy, case .profileStep(let step) = stage,
+              let previous = ProfileImportStep(rawValue: step.rawValue - 1) else { return }
+        showProfileStep(previous)
+    }
+    /// Called only by the deliberate Copy profile path button. The UI owns the
+    /// public clipboard API; an unsuccessful copy leaves the step unchanged.
+    func copyProfilePath(_ copy: (String) -> Bool) {
+        guard !busy, stage == .profileStep(.filePicker) else { return }
+        do {
+            try SetupKit(root: selectedFolder ?? kit.root).validate()
+            guard copy(profileFile.path) else { record("Could not copy the profile path. Try Copy profile path again."); set(.profileStep(.filePicker), "Could not copy the path. Try again."); return }
+            showProfileStep(.pastePath)
+        } catch { fail("The profile file needs attention. See Details.", detail: error.localizedDescription) }
     }
     func mayExit() -> Bool {
         guard busy else { return true }

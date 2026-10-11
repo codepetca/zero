@@ -1,127 +1,61 @@
 # Current state
 
 Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
-Historical receipts are evidence, not active work orders.
+Historical receipts are evidence, not active work orders; see docs/EVIDENCE.md
+and docs/VERIFICATION.md.
 
 ## Product and authority
 
 Zero is a local VS Code extension/profile and ordinary Java/JavaFX teaching kit.
-Preserve explicit updates, minimal sidebar, student-owned GitHub repos and separate
-Pika links. No Code OSS fork. Public Zero0.5.3/Community0.1.3 unchanged;
-local kit/extension0.5.5, core0.1.1 unpublished. Upload simulation remains default.
-Community AI/CI cannot accept/recommend/publish; no live AI provider.
-Owner-requested removal of both main protections remains in effect; do not restore
-without new authorization. Old publication/merge grants are completed.
+Preserve explicit updates, minimal sidebar, student-owned repos and separate Pika
+links. No Code OSS fork. Published Zero0.5.3/Community0.1.3 unchanged; local kit/
+extension0.5.5 and core0.1.1 unpublished. Upload simulation remains default.
+Community AI/CI cannot accept/recommend/publish; no live AI provider. Owner-requested
+removal of both main protections remains in effect; do not restore unasked.
 
-Current owner authorization: calm Mac setup implementation, local signing, Apple
-notarization and local installer testing. Windows
-runtime testing explicitly held. No push/PR/merge/release/deploy, host tool repair,
-membership conversion, key export or OS/Keychain protection weakening authorized.
-A separate business-account conversation was explicitly requested and created:
-01a12a95-bab5-7341-aa67-f7a7bc9da9c4. Membership/certificate unchanged by it.
+Current authorization: calm Mac setup implementation, local signing, Apple
+notarization and local installer testing. Windows runtime testing held. No push,
+PR, merge, release, deployment, host tool repair, account changes, key export or
+security weakening authorized. Earlier publication grants are completed.
+Separate requested business-account conversation:01a12a95-bab5-7341-aa67-f7a7bc9da9c4.
 
-## Checkout and delivered source
+## Active checkout and delivery
 
-Managed /Users/stew/.codex/worktrees/kit-integration/zero, codex/guided-setup.
-Signed-build source1cc84617c401f162f6dce0b85081fcfc87c8d648, built clean.
-Native runtime correction4b7058c restores child signals; earlier runtimeb3551be.
-Primary /Users/stew/Repos/zero has unrelated funding work; preserve it.
-Community unchanged. Active writer calm_mac_setup owns Mac native setup and shell backend/tests. DeepSeek paused through
-2026-12-31. No tool-backed goal/task/automation created merely for orchestration.
+Worktree /Users/stew/.codex/worktrees/kit-integration/zero, codex/guided-setup.
+Primary /Users/stew/Repos/zero has unrelated funding work; preserve it. Community
+unchanged. DeepSeek paused through2026-12-31. No tool-backed goal/task/automation
+created merely for orchestration.
 
-## Signed Mac candidate
+Calm Mac window:440×180 content, one replacing line, spinner, primary action and
+optional separate Details. Checks and extensions run in background; system tools
+use deliberate official-download handoffs. First-time profile import is guided
+one short instruction at a time in the main window; actual CLI verification must
+pass. Existing projects/profiles/tools are preserved; Git remains optional.
 
-Apple issued approved Developer ID Application/G2 certificateRAAV6N44WD for
-Stewart Chan/team88FT6QZJP8. Valid login-Keychain signing identity SHA1
-ACE8EE40F3615C5062CBBD5F085E299E049BAE08. Key access scoped to codesign;
-plaintext staging key copies removed. Public CSR/certificate/recovery metadata
-remain outside Git under Library/Application Support/Zero Signing.
+Feature commit9625801; base28e39a8. Independent GPT-6.1-Sol/high safety and compatibility
+reviews requested corrections: manual fallback nonzero return, native Homebrew
+privilege uncertainty, essential profile steps hidden in Details. Same worker
+calm_mac_setup owns five Mac/shell runtime/test files and is correcting them;
+coordinator owns docs/packaging/UI verification. Next: verify correction, commit,
+one targeted review, then signed/notarized0.5.5 and safe existing-Mac check.
+Initial checks:55 shell tests,87 native assertions,48 focused Node tests,
+configuration/kit parity/extracted compile, fake native busy/ready/failure UI.
+Review ledger .verification/calm-mac-setup/review-ledger.json:2launches,1initialwave,
+0targetedwaves/0fixbatches so far; max7launches/4fixbatches/60min from15:38Z.
+Weekly96% remaining at task start is account allowance, not attributable task cost.
 
-Local dist/installers/Zero-Setup-0.5.4-macos.dmg is Developer ID signed,
-Apple accepted and ticket-stapled (submission4e9cb092-c188-4066-add4-726928ee0d16). Separate build-macos-signed.json binds actual signer/team,
-secure app/DMG timestamps, both architectures and exact unchanged kit. App uses
-hardened runtime, no entitlements and production bundleID ca.codepet.zero.setup.
-Default unsigned DMG/build-macos.json preserved. Signed app opened; real read-only
-Check laptop works, correctly reporting installed tools and old/missing Zero
-support. No repair, install or profile change occurred.
+## Preserved signing evidence and limits
 
-Passed:8 focused Node tests,67 native assertions, Intel Swift typecheck,
-configuration checks, unsigned/signed artifact verification and all126kit file/
-permission comparisons. One GPT-6.1-Sol/high implementation worker and independent
-reviewer: full9-file diff plus2targeted CLI argument corrections,3review launches/
-2fix batches, final review complete/no blockers. No extra integration wave needed.
-Effective model/token/time unavailable; weekly99% remaining at start is account
-allowance, not task cost. See EVIDENCE/VERIFICATION and ignored
-.verification/mac-signing/review-ledger.json for receipts.
+Prior signed/notarized0.5.4 is preserved in dist/installers, Downloads and
+.verification/mac-signing/preserved-0.5.4 (with kit/receipt). SHA256
+f211ae3963e9ff6bab20413e2a53601ada4d7eb215741d9e496dd1b656424c60;
+AppleAccepted job4e9cb092-c188-4066-add4-726928ee0d16, source1cc8461.
+Old checks do not cover0.5.5. Existing identity SHA1
+ACE8EE40F3615C5062CBBD5F085E299E049BAE08, team88FT6QZJP8; Keychain access scoped
+to codesign. Existing notarytool Keychain profile “Zero Notarization”; user entered
+its password privately. Do not read/export credentials or alter access policies.
 
-## Notarization and existing-Mac smoke test complete
-
-User created/entered the Apple app-specific password personally; notarytool profile
-“Zero Notarization” authenticated from local login Keychain. Codex did not read
-its value. Apple accepted submission4e9cb092-c188-4066-add4-726928ee0d16 with
-no issues; exact submitted SHA256 is bound in the signed receipt and Apple log.
-DMG ticket stapled/validated; final signed verifier passed all payload/signature
-checks and Gatekeeper assessment of both DMG and mounted app. Final684093-byte
-DMG SHA256 f211ae3963e9ff6bab20413e2a53601ada4d7eb215741d9e496dd1b656424c60.
-Same hash verified in /Users/stew/Downloads/Zero-Setup-0.5.4-macos.dmg.
-Ignored evidence: .verification/mac-signing/notarization-{submit,log,complete}.json;
-submitted pre-staple DMG preserved there. No public release or membership changes.
-
-Local signing/notarization and existing-Mac smoke test are complete. Finder launched
-the final Downloads DMG on ARM64/macOS26.6.2. Native check found Java21.0.1,
-Code1.141.0/Git2.54.0 and correctly flagged incomplete Zero/Java profile support.
-Picker cancel/overwrite guards passed; copied126files/modes matched ZIP, including
-paths with spaces. Continue launched exact copied Setup.command; Finder reveal
-passed. Separate read-only PTY menu exited1 for incomplete profile readiness.
-No host repair/install/profile change. Terminal GUI restriction retained.
-
-Copied starter compiled with JDK21 and fresh owned Maven caches. Temporary Main
-subclass verified showing JavaFX stage/visible Hello-world label and exited cleanly;
-probe removed, original4sources clean-compiled,126file/mode parity restored.
-JavaFX window was not available to native UI tool; runtime probe is not a visual
-observation. Signed DMG hash unchanged. Ignored local evidence:
-.verification/signed-mac-test-gu79ylnd/{result.json,javafx-probe.json,placed-kit.png}.
-Handled directly; no new implementation/review wave. Weekly98% remaining at test
-start is account allowance, not task cost. See EVIDENCE/VERIFICATION for details.
-
-Browser download attempt failed; no quarantined first-open path tested. Full fresh-
-Mac/tool-install/profile-import/trust/security prompts, physical Intel, restricted
-networks and novice use remain unverified; Windows held. Earlier isolated real
-VS Code Run/autosave/default-build/Stop checks apply historically, not rerun here.
-Next useful validation is a fresh Mac's downloaded setup and profile flow, followed
-by a separate publication decision. No runtime changes or publication in this test.
-Do not regenerate/publish candidate without revalidating bytes. See INSTALLER.md.
-
-## Calm Mac setup — implemented; independent review next
-
-Owner wants one fixed small window, spinner and one replacing status line;
-no scrolling logs/checklist or Terminal menu in the native Mac happy path.
-Preserve tool/version/JAVA_HOME checks, atomic fresh-folder copy, explicit install
-approvals, existing profiles, Git optional and separate GitHub. Background actions
-must recheck before claiming ready; unavailable automation gets a deliberate,
-plain-language handoff. Manual kit shell flow stays available; Windows held.
-Worker calm_mac_setup GPT-6.1-Sol/high owns native-installer/macos and shell backend/
-tests. Coordinator owns docs/version0.5.5, packaging/native UI evidence and review.
-Base28e39a8; primary funding/community untouched. Old0.5.4 signed/notarized bytes
-and receipts preserved under .verification/mac-signing/preserved-0.5.4.
-Acceptance: fake install/profile state tests, native fixed one-line behavior,
-actual isolated profile/extension flow when feasible, compiled ARM64/universal
-candidate and artifact/source parity. No actual host installs/profile repairs.
-Review budget max7launches/1initialwave/4targetedwaves/1integrationwave/4fixbatches,
-60minsession/30minreviewer; risk assigned after actual install boundary diff.
-Started2026-10-11T15:19:59Z; weekly96% remaining account-wide, task tokens unknown.
-No tool-backed goal/task/automation, publication or source push authorized.
-
-Worker delivered five assigned files; coordinator verified actual source and
-recompiled native harness:87assertions. Shell55tests, Intel typecheck, bash syntax
-pass. Coordinator configuration/48focused packaging/editor checks and packaged
-0.5.5kit parity/extracted Maven compile pass. Actual CUA fake-runner preview covers
-spinner/disabled action, Zero→Java status replacement, ready, separate Details,
-final fake editor request, failure/retry. All captures440×212incltitlebar; source
-content440×180 fixed/nonresizable. No real installs or profile changes. Evidence
-.verification/calm-mac-setup/ui-result.json, {installing,ready,failure}.jpg.
-First-time profile import and elevated Java install remain intentional external
-handoffs; supported CLI isolated-profile probes confirmed no quiet profile creation.
-Worker~15min elapsed; one source implementation, coordinator requested early
-corrections (same-window consent, fallback, incomplete kit, import directions,
-slow preview). No competing writers. Effective tokens/model unknown.
+Fresh-Mac installs, actual first-time profile import/trust, browser quarantine,
+physical Intel/Mac12, restricted networks and novice usability remain untested.
+Windows held. Earlier0.5.4 existing-Mac copy/JavaFX runtime and historical isolated
+VS Code Run/autosave/build/Stop are recorded in the evidence docs, not rerun claims.

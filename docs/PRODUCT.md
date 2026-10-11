@@ -98,8 +98,9 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   and a Windows EXE. They check tools, place a fresh writable folder and explicitly
   guide setup while preserving existing projects. The Mac flow uses a small fixed
   window with one replacing status line, hides technical logs under Details and
-  performs supported background actions after explicit approval. It pauses for
-  necessary vendor/editor handoffs. Windows retains its guided terminal menu.
+  installs editor extensions in the background after explicit approval. Missing
+  tools use vendor handoffs; first-time profile import gets one instruction at a
+  time in the main window. Windows retains its guided terminal menu.
   New candidates remain local/unpublished; see [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing

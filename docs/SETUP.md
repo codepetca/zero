@@ -13,6 +13,10 @@ folder and guides one required action at a time. The normal native Mac flow does
 not open a Terminal menu. Details are separate and optional; failed operations
 remain actionable rather than being reported as ready. See [native setup](INSTALLER.md).
 Windows testing remains deferred; the manual ZIP launchers below stay available.
+Missing tools use explicit official-download handoffs. A first-time Zero profile
+import has short guided steps in the main window, including Copy profile path and
+a real profile check. Only editor extensions install in the background after
+approval; operating-system installer prompts remain visible.
 
 ## ZIP/manual student flow
 

@@ -237,31 +237,21 @@ native_check() {
   printf '\nZERO_SETUP_V1\nkit=%s\ncode=%s\njava=%s\nprofile=%s\nzero=%s\nredhat=%s\njavaHomeBlocked=%s\nready=%s\nEND_ZERO_SETUP\n' "$KIT_OK" "$code_ok" "$JAVA_OK" "$PROFILE_OK" "$zero_ok" "$redhat_ok" "$home_blocked" "$readiness"
   # A completed check is successful even when work remains. Readiness is a field.
 }
-detect_brew() {
-  BREW=''
-  for candidate in "$(command -v brew 2>/dev/null || :)" /opt/homebrew/bin/brew /usr/local/bin/brew; do
-    if [ -n "$candidate" ] && [ -x "$candidate" ]; then BREW=$candidate; return; fi
-  done
-}
 native_plan() {
   PLAN=manual
+  detect_kit
+  [ "$KIT_OK" = 1 ] || { PLAN=blocked; return 0; }
   case "$1" in
-    code) detect_kit; detect_code; [ "$KIT_OK" = 1 ] || { PLAN=blocked; return; }
-      [ -z "$CODE" ] || { PLAN=skip; return; } ;;
-    java) detect_java; [ "$JAVA_OK" = 0 ] || { PLAN=skip; return; }
-      [ -z "${JAVA_HOME:-}" ] || { PLAN=blocked; return; }
-      # Temurin's macOS package needs administrator installation. Leave that to
-      # the normal vendor/OS flow, never a background password/sudo prompt.
-      return ;;
+    code) detect_code; [ -z "$CODE" ] || PLAN=skip ;;
+    java) detect_java
+      if [ "$JAVA_OK" = 1 ]; then PLAN=skip
+      elif [ -n "${JAVA_HOME:-}" ]; then PLAN=blocked; fi ;;
     *) return 2 ;;
   esac
-  [ "$OS" = Darwin ] || return
-  detect_brew
-  [ -n "$BREW" ] && [ -w /Applications ] || return
-  inventory=$(HOMEBREW_NO_AUTO_UPDATE=1 probe "$BREW" list --versions --cask) || return
-  if ! printf '%s\n' "$inventory" | awk '$1=="visual-studio-code" {found=1} END {exit !found}'; then PLAN=install; return; fi
-  outdated=$(HOMEBREW_NO_AUTO_UPDATE=1 probe "$BREW" outdated --quiet --cask --greedy-auto-updates) || return
-  if printf '%s\n' "$outdated" | awk '$0=="visual-studio-code" {found=1} END {exit !found}'; then PLAN=upgrade; fi
+  # Native setup cannot guarantee Homebrew's dependency/privilege behavior.
+  # All missing system tools use the deliberate official browser/OS handoff.
+  # Manual is a successful plan, including no-manager/permission/query failures.
+  return 0
 }
 if [ -n "$NATIVE_MODE" ]; then
   case "$NATIVE_MODE" in
@@ -271,14 +261,8 @@ if [ -n "$NATIVE_MODE" ]; then
       native_plan "$2" || exit 2
       printf '\nZERO_PLAN_V1\naction=%s\nEND_ZERO_PLAN\n' "$PLAN" ;;
     --native-install)
-      [ "$#" = 4 ] && [ "$4" = --approved ] && [ "$2" = code ] || exit 2
-      case "$3" in install|upgrade) ;; *) exit 2 ;; esac
-      native_plan "$2" || exit 2
-      if [ "$PLAN" = skip ]; then echo 'Compatible VS Code preserved.'; exit 0; fi
-      [ "$PLAN" = "$3" ] || { echo 'Installation proposal changed; check again before approving.'; exit 1; }
-      # Homebrew may fail for policy/elevation/network reasons. No Terminal,
-      # password collection or new package manager is introduced here.
-      NONINTERACTIVE=1 HOMEBREW_NO_AUTO_UPDATE=1 SUDO_ASKPASS=/usr/bin/false "$BREW" "$PLAN" --cask visual-studio-code </dev/null ;;
+      echo 'Native background system-tool installation is unavailable. Use the official download page.'
+      exit 2 ;;
     --native-extension)
       [ "$#" = 3 ] && [ "$3" = --approved ] || exit 2
       case "$2" in zero|java) ;; *) exit 2 ;; esac
