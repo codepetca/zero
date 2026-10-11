@@ -873,3 +873,46 @@ Public signed Mac0.5.6 and its sealed candidate remain unchanged. Local version0
 is unpublished. Primary funding checkout and Community remain untouched.
 Weekly87% remaining at start is account allowance, not task cost; effective model,
 attributable tokens/cost and coordinator active time are unknown. DeepSeek paused.
+
+
+## Signed Mac0.5.7 publication and website promotion — 2026-10-11
+
+Owner's “Do it” authorized signing/notarization, native publication and website
+update. Existing identity ACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8
+and private “Zero Notarization” profile reused; no certificate/credential changes.
+Clean a9fb1ed built the universal macOS12+ signed app/DMG. Apple accepted job
+3f1e1013-a4a3-4109-b6ae-999cb6881945, binding submitted SHA256
+1475fa2591a1172402f8ec0f7fbd7829be4cded4702aa8d841feea6909df4ca1.
+Staple validation, app/DMG signatures, actual Gatekeeper assessments and exact
+payload/permissions passed. Final899924-byte DMG SHA256
+ d639fc080670eb11fc03e63c56356c8da1603bf956e44d5b135511f52aa9ba1b.
+
+Initial Vercel preview caught oldnative0.5.6/currentkit0.5.7 schema mismatch.
+Correction aligned local native metadata to actual0.5.7 receipts, fixed version
+negative/assertion fixtures and changed download/sealed-note copy to the automatic
+Mac flow. No validator/trust guard relaxed. Fresh GPT-6.1-Sol/medium reviewed all
+six files a9fb1ed→f9a5ef2;0findings/blockers;9independent focused tests passed.
+Local36website tests/typecheck/build/root/2sealing checks passed. Prior accepted
+native/default-folder source coverage reused; no native/runtime changes in this
+release phase. Source PR24 merged at05951b2852039055891977b42ff9464736ab4a29 after
+CI38178772418 and Vercel preview succeeded. Primary funding checkout preserved.
+
+Candidate dist/candidates/mac-0.5.7-f9a5ef2bfcd3 sealed existing bytes without
+rebuilding; all10checksums/source-equivalence passed. Draft had one DMG and exact
+preparation source. Downloaded draft bytes matched before publication. Public
+https://github.com/codepetca/zero/releases/tag/setup-v0.5.7 now targetsf9a5ef2;
+unauthenticated publicHTTP200/exactsize/hash and tag source verified. Mac0.5.6
+and its candidate remain intact. Standalone ZIP/starter/VSIX stay0.5.3, Community
+0.1.3 unchanged. New native kit0.5.7 is not separately published.
+
+Actual local browser Download for Mac action targeted verified native route; an
+unauthenticated local retrieval matched the candidate bytes. Screenshot
+.verification/mac-057-release/local-downloads.png. Public metadata and hosted
+Mac/manual guidance promotion review/CI/deployment/live checks are pending.
+Remaining limits: clean Mac/vendor/quarantine/trust/novice flows, physical
+Intel/macOS12 and Windows, restricted networks. Windows physical testing held.
+Receipts .verification/mac-057-release/ and immutable candidate directory.
+Requested worker GPT-6-Luna/medium inventory and Sol/medium preparation review;
+effective model, per-turn tokens/cost and coordinator active time unknown.
+Weekly86% remaining at start is account allowance. DeepSeek paused; no new goal,
+task, automation, account changes or branch-protection changes.

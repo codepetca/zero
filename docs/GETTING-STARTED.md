@@ -1,36 +1,45 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. Extract the kit once to find `START-HERE.md`, the ready
-`starter/` folder, the versioned **Zero extension (.vsix)** and an `optional/`
-folder containing the profile and keyboard shortcuts. The separate starter-only
-ZIP is available from the website’s Other downloads.
-This MVP still needs physical
-Windows/Linux and novice classroom trials. A Mac teacher trial verified the
-native sign-in and repository upload path.
-See [verification evidence](VERIFICATION.md) for checks actually completed.
+separate JavaFX window. On a Mac, use **Zero Setup** for automatic setup.
+The **complete kit ZIP** is the manual alternative for Windows, Linux or a Mac;
+it includes the starter, extension, profile and keyboard shortcuts. A separate
+starter-only ZIP is available under **Other downloads**.
+See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
-## Zero setup app
+## Zero Setup for Mac
 
-If you chose **Zero Setup for Mac**, its app uses one small window with one
-status message at a time.
-It checks your tools, creates a fresh kit folder and guides any required actions.
-If you need to import the Zero profile or install Java, it explains the handoff
-before opening the editor or official installer. Technical details are optional.
-If you chose the **complete kit ZIP**, follow the steps below. A starter-only
-ZIP contains the project, but not the Zero extension or optional profile; download
-the extension separately from **Other downloads** when needed. For the optional
-profile, download the **complete kit ZIP**.
+The signed and notarized **Mac setup 0.5.7** prepares Zero with one small window
+and one changing progress message:
 
-The next local Mac0.5.7 build removes manual profile and Java setup. Choose
-**Set up Zero**, wait, then **Open Zero** and **Run App**. Later use
-`~/Zero/Open Zero.command` to return to its separate editor configuration.
-This is not yet in the public0.5.6 download; see [native setup](INSTALLER.md).
+1. Open Zero Setup and choose **Set up Zero**. It uses `~/Zero` automatically.
+   If that folder contains an existing Zero kit, confirm **Update Zero**;
+   your code, assets and saved projects are preserved.
+2. Wait while setup prepares Java and the editor. It reuses a compatible VS Code
+   or downloads a verified copy, then installs Zero and Java support in a separate
+   editor configuration. No profile import or Java configuration is needed.
+3. Choose **Open Zero**. Review the starter before granting workspace trust if
+   VS Code asks, then choose **Run App**. A separate window shows **Hello, world!**.
+   The first build needs internet for Maven and JavaFX.
+
+Later, open `~/Zero/Open Zero.command` to return to this configured editor.
+GitHub sign-in can wait until you want to share your work. Git must be available
+for repository work; use Setup help when you reach that step. You do not need
+Python, Node.js, Homebrew or a separate Maven/JavaFX installation.
+Technical output and useful errors are available through **Details**.
+Clean-machine security prompts, physical Intel/macOS12, Windows and novice
+classroom flows remain unverified; see [setup behaviour and limits](SETUP.md).
+
+If you chose the **complete kit ZIP**, follow the manual steps below. A
+starter-only ZIP contains the project, but not the Zero extension or optional
+profile; download the extension separately from **Other downloads** when needed.
+For the optional profile, download the **complete kit ZIP**.
 
 ## One-time setup
 
-The website labels each download’s version. **Mac setup 0.5.6** includes guided
-setup; the separately published **0.5.3 ZIP** uses the manual steps below.
+These steps apply to the separately published **0.5.3 ZIP** on Windows/Linux,
+or to optional manual setup on a Mac. Mac setup0.5.7 uses the automatic flow above.
+The website labels each download’s version.
 If your extracted complete kit includes a `setup/` folder, you may instead open
 `setup/Setup.cmd` on Windows or `setup/Setup.command` on macOS; on Linux run
 `bash setup/setup.sh`. Its checker reuses suitable installations, offers explicit
@@ -39,7 +48,7 @@ No Node.js or separate Maven is needed.
 Actual Windows installers, school policies and clean personal-machine installation
 remain unverified; see [setup behaviour and limits](SETUP.md).
 
-With the 0.5.6 extension, **Setup help** inside VS Code shows a native checklist
+With the 0.5.7 extension, **Setup help** inside VS Code shows a native checklist
 with **Check again**. Older extensions may show a simpler setup guide.
 Java editor/debugger repair uses VS Code's extension installer in the current
 profile. Java/Git repair opens an official download page and explains installation
@@ -63,7 +72,7 @@ confirm its JavaFX window, since tool detection is not a build test.
    **Extensions: Install Extensions** to install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). For the 0.5.3 ZIP this is `zero-0.5.3.vsix`;
-   Mac setup 0.5.6 includes `zero-0.5.6.vsix`. If you downloaded only the starter,
+   Mac setup0.5.7 installs its bundled `zero-0.5.7.vsix` automatically. If you downloaded only the starter,
    get the separately labelled Zero extension from **Other downloads**.
    Zero is not published in the Marketplace.
 3. Move or copy the kit's **starter folder** into your own location, outside any
