@@ -3,7 +3,7 @@
 Updated2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable history/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
-## Active Mac0.5.7 publication and website promotion
+## Completed Mac0.5.7 publication and website promotion
 
 Owner authorized signing/notarization, native publication and website update.
 Source PR24 merged at05951b2852039055891977b42ff9464736ab4a29 after reviewed
@@ -30,14 +30,26 @@ New flow Set up Zero→single progress line→Open Zero→Run App. Fixed ~/Zero,
 confirmed preservation updates, private Java21 and isolated editor configuration;
 Open Zero.command returns to it. GitHub remains separate. No Code OSS fork.
 
-Current checkout codex/publish-mac-057 carries public native metadata and updated
-hosted Mac/manual guides for independent review, PR/CI/merge and live verification.
-Receipts .verification/mac-057-release/; immutable candidate
+Website metadata PR25 merged atb9d0188e47ae0686890b4236f65ff1474fff4f9f after
+accepted e81091b, CI38179369934 and Vercel preview. Fresh Luna/medium eight-file
+review found one nonblocking stale paragraph; one targeted correction pass
+resolved it,0newissues. Production deployment7002564608 succeeded for that merge.
+Live home Download Zero opens Learn's chooser; Mac0.5.7 and all three0.5.3
+alternative anchors verified. Live Mac URL unauthenticatedHTTP200/exactbytes/hash
+passed; actual browser Mac button targets that URL. Local Mac guide expansion
+passed; live hosted guide contains the new automatic flow. Screenshot
+.verification/mac-057-release/live-downloads.png.
+
+Publication/website outcome complete. Current checkout codex/publish-mac-057 is
+synced to remote main's delivery commit; subsequent local receipt-only docs record
+completion without native/runtime changes. All delivery receipts
+.verification/mac-057-release/; immutable candidate
  dist/candidates/mac-0.5.7-f9a5ef2bfcd3/. Primary funding checkout untouched.
-No branch/account/security settings changed. Existing unprotected main policy stays.
-No tool-backed goal, separate task or automation created. Weekly86% remaining at
+Old0.5.6publicasset and sealed candidate hash rechecked unchanged. No branch,
+account or security settings changed. Existing unprotected main policy stays.
+No active workers, new goal, separate task or automation. Weekly86% remaining at
 start is account allowance; effective models/tokens/cost/active time unknown.
-DeepSeek remains paused through2026-12-31.
+DeepSeek remains paused through2026-12-31. No required release work remains.
 
 ## Limits
 

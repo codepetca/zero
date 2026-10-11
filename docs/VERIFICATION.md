@@ -794,7 +794,23 @@ and its candidate remain intact. Standalone ZIP/starter/VSIX stay0.5.3, Communit
 Actual local browser Download for Mac action targeted verified native route; an
 unauthenticated local retrieval matched the candidate bytes. Screenshot
 .verification/mac-057-release/local-downloads.png. Public metadata and hosted
-Mac/manual guidance promotion review/CI/deployment/live checks are pending.
+Mac/manual guidance PR25 merged atb9d0188e47ae0686890b4236f65ff1474fff4f9f after
+reviewed e81091b and successfulCI38179369934/Vercel preview. Fresh Luna/medium
+eight-file review05951b2→0e72a96 found1nonblockingP2 stale installer paragraph;
+correction0e72a96→e81091b and targeted review resolved it with0newissues. One
+reviewer launch/2turns/1initialwave/1targetedwave/1fixbatch for promotion; unchanged
+metadata/source coverage reused. Preparation used oneSol/medium launch/turn,
+1initialwave/0fixbatches. No repeated full integration review needed for the
+single documentation paragraph.
+
+Production deployment7002564608 succeeded for exact mergeb9d0188e. Live home,
+Learn chooser and setup guide returnedHTTP200. Actual browser Mac button points
+to the verified public0.5.7URL; unauthenticated retrieval of that live anchor
+matched899924bytes and sealedSHA256. All three alternative0.5.3anchors unchanged.
+Screenshot .verification/mac-057-release/live-downloads.png; live-verification.json
+binds deployment, pages and downloaded bytes. Previous public0.5.6asset and
+sealed candidate hash rechecked unchanged. Outcome complete; no native/runtime
+changes in final local receipt-only documentation. Temporary local server stopped.
 Remaining limits: clean Mac/vendor/quarantine/trust/novice flows, physical
 Intel/macOS12 and Windows, restricted networks. Windows physical testing held.
 Receipts .verification/mac-057-release/ and immutable candidate directory.
