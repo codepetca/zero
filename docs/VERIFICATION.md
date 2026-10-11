@@ -474,3 +474,27 @@ Not tested: missing-tool vendor installs on a fresh Mac, browser quarantine,
 physical Intel/macOS 12, restricted networks, novice usability or Windows. No
 GitHub connection/upload in this trial; test folder inside the worktree correctly
 blocked connection. Existing standard-build/autosave coverage remains historical.
+
+## Mac download and local release candidate — 2026-10-11
+
+Implementation `779d856f24c37f303842b1a14a8bdc30dd5fb415` independently reviewed
+against1ef5ceb: complete scope, no findings. Configuration/diff, website30tests/
+typecheck/build, new candidate/source2tests and existing publisher43tests passed.
+Actual browser landing/header navigation and Mac/ZIP/manual choices verified.
+Production HTTP verified exact DMG and3kit bytes; local-disabled and VERCEL=1
+redirected303, unknown Windows download404. Published URL promotion remains
+unperformed; no public native URL is authored.
+
+`npm run release:prepare:mac` completed on clean reviewed source, reusing existing
+artifacts. Kit/source/archive/Maven and signed DMG payload/Developer ID/staple/
+Gatekeeper verification passed. Sealed `dist/candidates/mac-0.5.6-779d856f24c3/`;
+all10SHA256SUMS entries and baseline artifact parity passed. Original built source
+7d8db9b and preparation source779d856 are separately recorded, with protected-source
+equivalence. Existing output refusal tested. No rebuild/signing/notarization upload.
+
+Receipts/screenshots and full artifact/review details: [EVIDENCE.md](EVIDENCE.md),
+`.verification/native-download/`. Owned preview tab/servers closed. Public website
+and0.5.3 downloads unchanged; PR/merge/publication/deployment not authorized here.
+Windows deferred; fresh-machine, browser quarantine and physical Intel/macOS12
+runtime gaps from the prior Mac trial remain. No new installer execution in this
+phase. Subsequent maintainer evidence edits preserve reviewed runtime/prep behavior.

@@ -13,34 +13,46 @@ local kit/extension0.5.6 and core0.1.1 are unpublished. Upload simulation remain
 default. Community AI/CI cannot accept/recommend/publish; no live provider.
 Owner-requested removal of main protections remains in effect; do not restore.
 
-Current authorization: add the tested Mac installer to the local website and
+Completed authorization: add the tested Mac installer to the local website and
 prepare its exact-byte release candidate. This does not authorize publication,
 push, PR, merge, deployment, host repairs, account/credential/Keychain changes,
 new signing, or security weakening. Earlier publication grants are completed.
 Physical Windows testing remains deferred; unsigned EXE stays out of student
 website downloads. Business-account conversation:01a12a95-bab5-7341-aa67-f7a7bc9da9c4.
 
-## Active checkout and phase
+## Completed local download phase
 
-Worktree /Users/stew/.codex/worktrees/kit-integration/zero, codex/guided-setup,
-base1ef5ceb. Primary /Users/stew/Repos/zero has unrelated funding work; preserve it.
-Community unchanged. DeepSeek paused through2026-12-31. No tool-backed goal,
-separate task or automation created merely for orchestration.
+Worktree /Users/stew/.codex/worktrees/kit-integration/zero, codex/guided-setup.
+Primary /Users/stew/Repos/zero funding work and Community preserved. DeepSeek
+paused through2026-12-31. No tool-backed goal/task/automation created for workflow.
 
-Coordinator owns integration, CURRENT and final evidence. One implementation
-worker mac_download_delivery (GPT-6.1-Sol/high, fresh context) owns website,
-Mac-only installer manifest/preparation modules/tests and their maintainer docs.
-Implementation worker delivered; no writer active. Coordinator will validate HTTP/
-browser behavior and seal only after independent source review. Exit criteria:
-minimal download choice, gated integrity-verified local DMG route, independent
-installer publication lifecycle without changing the three-asset kit publisher,
-exact-byte sealed candidate, tests/local browser trial and independent review.
-Weekly91% at start is account allowance; effective model/task cost unknown.
+Reviewed implementation779d856f24c37f303842b1a14a8bdc30dd5fb415, base1ef5ceb.
+One GPT-6.1-Sol/high implementation worker; one pre-review header-link correction.
+One independent GPT-6.1-Sol/high complete review: no findings. No worker active.
+Website30tests/typecheck/build, candidate/source2tests, existing43release guards,
+configuration/diff checks passed. Production HTTP verified exact DMG+3kit bytes,
+explicit local/disabled/VERCEL gates and unknown-platform404. Browser landing,
+header platform choice, Mac primary and ZIP/manual alternatives verified.
 
-Preserve the landing wordmark/sentence/two buttons. Available Mac setup leads
-Download Zero to Learn's download choice; Mac primary, ZIP/manual other downloads.
-No guessed public URLs. Separate future setup-v0.5.6 installer release preserves
-the existing v0.5.6 kit publisher. Prepare only; no rebuild/re-sign/notarize.
+The landing remains wordmark/sentence/two buttons. Available Mac setup leads
+Download Zero to Learn's download choice; ZIP/starter/VSIX under Other downloads.
+Strict native manifest is local with no public URL. Future setup-v0.5.6 remains
+separate from the unchanged three-asset v0.5.6 kit publisher. No Windows EXE link.
+
+Actual npm run release:prepare:mac passed clean/source-equivalence, kit/archive/
+Maven and actual signed DMG payload/signature/staple/Gatekeeper verification.
+Sealed existing bytes at dist/candidates/mac-0.5.6-779d856f24c3, including4artifacts,
+independent receipts, SOURCE/NOTES and SHA256SUMS; all10checksum entries pass.
+Preparation source779d856; original installer build7d8db9b, recorded separately.
+Existing artifacts preserved; no rebuild/re-sign/notarization/publication.
+Local preview apps/servers closed. Evidence .verification/native-download/ and
+tracked EVIDENCE/VERIFICATION. Approximately12min; weekly91% at start is account
+allowance, effective model/task tokens/cost unknown.
+
+Next decision: authorize source PR/merge and publication/deployment separately.
+Public0.5.3/Community0.1.3 and README download remain unchanged. Source equivalent
+maintainer receipt edits follow the reviewed preparation revision. Do not rebuild
+or replace the sealed candidate. Windows physical testing still held.
 
 ## Verified artifacts to reuse
 

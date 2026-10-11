@@ -566,3 +566,49 @@ usability. Windows physical testing stays deferred; EXE remains unsigned.
 No push, PR, merge, publication/deployment, new certificate, account/credential/
 Keychain policy changes or security weakening. Primary funding work and Community
 untouched. Local candidates only.
+
+## Mac download and exact-byte release preparation — 2026-10-11
+
+Reviewed base `1ef5ceb5a52ed956ca2c667852c7e8264af04f5f` → implementation
+`779d856f24c37f303842b1a14a8bdc30dd5fb415`. Added strict optional native manifest
+`release/installer.json`, independent local `setup-v0.5.6` lifecycle and a bounded,
+receipt/source/kit-verified Mac download route. Landing remains two actions; both
+landing and shared header open Learn's platform choice when Mac setup is available.
+Mac primary and ZIP/starter/VSIX alternatives verified through actual CUA browser.
+No unsigned Windows EXE offered. Existing three-asset kit publisher unchanged.
+
+One fresh-context GPT-6.1-Sol/high implementation worker; coordinator found one
+header-link integration correction before review. One independent GPT-6.1-Sol/high
+complete review accepted the exact head with zero findings; inspected complete
+diff/callers, independently verified clean source equivalence and actual DMG.
+Review1launch/1initialwave/0targetedwaves/0remediationbatches; no redundant review.
+Approximately12min delivery wall time; requested models/effort recorded, effective
+model/task tokens/cost unknown. Weekly91% at start was account allowance.
+
+Passed: configuration/diff, website typecheck/production build/30tests, candidate
+source/sealing2tests, unchanged publisher43guardtests. Production HTTP on owned
+ports3336–3338 verified exact DMG691970bytes/SHA256
+`4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d` and all3kit
+asset bytes/hashes. Disabled local flag and VERCEL=1 returned303 to Learn; unknown
+Windows route404. New native tests cover malformed/version/public-URL provenance,
+unsigned/dirty/rejected/unstapled receipts, kit/DMG tamper, bounds/symlink escape,
+protected/untracked source drift and no-overwrite sealing.
+
+Actual `npm run release:prepare:mac` ran after clean source commit and review.
+Kit/source/archive/mode/MIT/VSIX/extracted Maven verification and actual signed
+DMG payload, Developer ID signatures, staple and Gatekeeper checks passed.
+Candidate `dist/candidates/mac-0.5.6-779d856f24c3/` contains exact original DMG and
+three kit files, independent manifests/build receipt, candidate.json, SOURCE.txt,
+NOTES.md and SHA256SUMS. All10checksum entries passed; baseline originals and
+candidate copies compared equal. Built source7d8db9b and preparation source779d856
+recorded separately; protected native/runtime/packaged source equivalent. No
+regeneration, new signing or notarization upload. Candidate refuses existing
+output. Local browser tab and all owned preview servers closed.
+
+Ignored receipts/screenshot: `.verification/native-download/`. Existing public
+0.5.3/Community0.1.3 assets, README download and primary funding work preserved.
+Read-only GitHub checks found v0.5.6 and setup-v0.5.6 tags/releases absent at
+preparation time; recheck immediately before any later authorized publication.
+No push, PR, merge, release/publication/deployment, account/credential/security
+changes. Windows remains untested/deferred; fresh-Mac vendor/trust/quarantine,
+physical Intel/macOS12, restricted networks and novice usability limits remain.
