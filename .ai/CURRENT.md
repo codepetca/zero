@@ -25,8 +25,9 @@ publication evidence, trusted Community checks, exact AI request/schema validati
 and GitHub human-review enforcement. No live AI provider is being connected.
 The previous release authorization completed; it is not a standing release grant.
 No new kit release, student UI change, camera/HUD implementation or credential
-change is included. Source changes stay local until separately authorized for PR
-publication/merge. Repository branch-protection changes are authorized in this pass.
+change is included. Owner now explicitly authorized PR publication and merge in both repositories.
+Merge must satisfy current GitHub human review/check protections; no bypass or
+impersonated approval. No new release/provider/credentials change is authorized.
 
 ## Execution and ownership
 
@@ -41,7 +42,8 @@ publication/merge. Repository branch-protection changes are authorized in this p
   Automatic DeepSeek remains paused by owner preference through 2026-12-31.
 - Status: local implementation accepted after independent initial+targeted review.
   GitHub protection is live and authenticated readback verified for both main
-  branches. Source/CODEOWNERS remains local; no PR, push or merge was performed.
+  branches. Source PR publication is in progress. Merge remains subject to current human
+  approval and canonical CI. Implementation and review coverage are unchanged.
 
 ## Review and exit
 
@@ -52,9 +54,10 @@ GitHub review impersonation. Budget: at most7launches,1initialwave,4targetedwave
 Ledger:3review turns (2initial,1targeted),1initialwave,1targetedwave,1fix batch.
 Both accepted P2 findings are resolved; final targeted verdict has no blockers.
 No integration repeat: targeted review covers both corrections, unchanged initial
-coverage remains applicable. No source pushed.
+coverage remains applicable. No new implementation review is needed for
+receipt-only publication status updates.
 GitHub rules require1current approval+strict canonical CI, including admins.
-CODEOWNERS is local; named owner selection takes effect after human merge.
+CODEOWNERS selection takes effect after the source PR satisfies the human gate.
 Exit met: regression tests cover changed policy/no-op CI and exact outbound AI bytes;
 current state/evidence links are valid; live main protection requires human approval
 and canonical passing CI without admin bypass; source changes independently reviewed.
@@ -64,8 +67,8 @@ and canonical passing CI without admin bypass; source changes independently revi
 No live AI quality/cost/provider test; no automated Community approval/publication.
 Physical Windows/Linux editor/setup, typing/choosers, audible device output,
 school restrictions and novice classroom use remain unverified.
-Next action: source PR publication/merge requires owner authorization and the real
-human GitHub gate; do not impersonate approval or bypass it. Live advisory AI is
+Next action: publish both reviewed source PRs, verify final-head CI and independent
+human approval, then merge when GitHub permits. Do not bypass the gate. Live advisory AI is
 a separate future decision. Camera/scrolling world with fixed ScoreDisplay HUD is a later teaching slice,
 not an active implementation instruction. Read [AI workflow](../docs/AI-WORKFLOW.md)
 and [Development](../docs/DEVELOPMENT.md) before resuming.
