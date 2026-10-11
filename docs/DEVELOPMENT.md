@@ -29,11 +29,35 @@ Java build and finite GUI checks are documented in
 [the student starter](../student-template/README.md). Builds use the pinned
 project wrapper; do not require students to install Maven or Gradle globally.
 Packaging creates local artifacts in `dist/` and does not publish them.
+Guided setup is documented in [SETUP.md](SETUP.md). `npm test` includes launcher
+fake-tool tests; focused checks use `node --test setup/tests/setup.test.mjs` and
+`node --test extension/test/setup.test.js extension/test/setup-ui.test.js`.
+Windows native setup contracts use `node --test setup/tests/windows-native.test.mjs`.
+Set `ZERO_TEST_PWSH` to an existing test PowerShell executable to run its parser and
+mocked backend checks; otherwise those runtime checks are explicitly skipped.
+PowerShell 7 on a Mac is useful for these fakes but does not verify Windows
+PowerShell 5.1, policy, installers or WinForms. The net48/Mono backend harness is
+documented in [INSTALLER.md](INSTALLER.md); actual Windows testing remains separate.
+Do not run installer actions against developer tools/accounts as a test. The
+packaged kit generates setup metadata from the release definition, ships shell
+launchers with executable permissions and excludes maintainer setup tests.
 A published kit version is immutable: packaging refuses to overwrite it. Set a
 new local kit/extension version before building the next release. Existing
 public asset URLs/checksums remain pinned to their release. See
 [release preparation and publication](RELEASING.md) for the one-command publisher
 and its read-only CI preparation workflow.
+
+Native development installers are built locally with `npm run package:installers`.
+This rebuilds and verifies the kit, then produces a universal macOS app/DMG and
+an AnyCPU Windows EXE in ignored `dist/installers/`. Platform-only builds use
+`node scripts/build-installers.mjs --platform macos` or `--platform windows`
+after packaging/verification. macOS requires Xcode command line tools and
+`hdiutil`; Windows cross-builds use the .NET SDK and the pinned build-only
+.NET Framework 4.8 reference package. Students need no .NET SDK. Run packaging
+tests with `npm run test:installers`; platform harness commands are in
+[INSTALLER.md](INSTALLER.md). Default builds involve no signing credentials or publication. Explicit, separately
+authorized Mac signed-build commands and verification are in [INSTALLER.md](INSTALLER.md);
+signed mode reuses the existing kit and does not perform notarization.
 
 Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
 ignored readable copies into the starter; checks/packaging prepare them too.
@@ -55,7 +79,11 @@ npm test --prefix website
 npm run build --prefix website
 ```
 
-The current published kit uses verified GitHub release links. To preview a new
+The website uses the current kit when published, or the last verified published
+kit in `release/published-kit.json` while a newer kit remains local. The fallback
+is validated as published and no newer than the current version; its explicit
+GitHub URLs, sizes and hashes must first be checked without authentication. A
+missing fallback retains the availability explanation. To preview a new
 local version, set its release metadata to local, run `npm run package`, then
 start the website from the root with:
 
@@ -63,9 +91,26 @@ start the website from the root with:
 ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 ```
 
-An unpublished asset without the local preview flag leads to its availability
-explanation on Learn more. Published assets keep their verified public links
+Without the local preview flag, an unpublished kit uses the verified fallback
+when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
+The optional `release/installer.json` adds **Download for Mac** on Learn more.
+When that installer is published or local downloads are enabled, the landing
+Download Zero action opens the platform choices at `/learn#downloads`. The ZIP,
+starter and VSIX remain under Other downloads with their own kit version, even
+when Mac setup and the published ZIP are different versions. No unsigned Windows
+EXE is offered.
+Local native download verifies bounded exact bytes, clean signed/notarized build
+provenance and unchanged packaged/native source. `VERCEL` always disables local
+filesystem downloads even with the preview flag set. A hosted build reads only
+the authored manifest; it needs no `dist/` files or build receipt.
+
+After source review/commit, `npm run release:prepare:mac` seals the existing signed
+Mac artifact and three kit files locally without rebuilding. See
+[RELEASING.md](RELEASING.md) for clean-source requirements and the separate native
+publication plan. Focused checks: `npm run test:release:mac` and
+`node --test website/tests/installer.test.mjs`.
+
 The website prepares canonical docs/release content before development and build;
 generated snapshots and caches are ignored. Start here before later Vercel setup:
 Root Directory `website/`, with repository sources outside that directory included

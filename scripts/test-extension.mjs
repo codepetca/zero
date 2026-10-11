@@ -10,5 +10,8 @@ const directory = path.join(root, 'extension/test');
 const files = readdirSync(directory).filter(name => name.endsWith('.test.js'))
   .sort().map(name => path.join(directory, name));
 if (!files.length) throw new Error('No extension tests found.');
-const result = spawnSync(process.execPath, ['--test', path.join(root,'scripts/kit.test.mjs'), ...files], { cwd: root, stdio: 'inherit' });
+const setupDirectory = path.join(root, 'setup/tests');
+const setupFiles = readdirSync(setupDirectory).filter(name => name.endsWith('.test.mjs'))
+  .sort().map(name => path.join(setupDirectory, name));
+const result = spawnSync(process.execPath, ['--test', path.join(root,'scripts/kit.test.mjs'), ...setupFiles, ...files], { cwd: root, stdio: 'inherit' });
 process.exit(result.status ?? 1);

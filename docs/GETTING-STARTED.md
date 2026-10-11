@@ -2,14 +2,44 @@
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
 separate JavaFX window. Extract the kit once to find `START-HERE.md`, the ready
-`starter/` folder, `zero-0.5.3.vsix` and an `optional/` folder containing the profile
-and keyboard shortcuts. The separate starter-only ZIP is also available locally.
+`starter/` folder, the versioned **Zero extension (.vsix)** and an `optional/`
+folder containing the profile and keyboard shortcuts. The separate starter-only
+ZIP is available from the website’s Other downloads.
 This MVP still needs physical
 Windows/Linux and novice classroom trials. A Mac teacher trial verified the
 native sign-in and repository upload path.
 See [verification evidence](VERIFICATION.md) for checks actually completed.
 
+## Zero setup app
+
+If you chose **Zero Setup for Mac**, its app uses one small window with one
+status message at a time.
+It checks your tools, creates a fresh kit folder and guides any required actions.
+If you need to import the Zero profile or install Java, it explains the handoff
+before opening the editor or official installer. Technical details are optional.
+If you chose the **complete kit ZIP**, follow the steps below. A starter-only
+ZIP contains the project, but not the Zero extension or optional profile; download
+the extension separately from **Other downloads** when needed. For the optional
+profile, download the **complete kit ZIP**.
+
 ## One-time setup
+
+The website labels each download’s version. **Mac setup 0.5.6** includes guided
+setup; the separately published **0.5.3 ZIP** uses the manual steps below.
+If your extracted complete kit includes a `setup/` folder, you may instead open
+`setup/Setup.cmd` on Windows or `setup/Setup.command` on macOS; on Linux run
+`bash setup/setup.sh`. Its checker reuses suitable installations, offers explicit
+install/help actions and opens the starter. Keep the whole kit together.
+No Node.js or separate Maven is needed.
+Actual Windows installers, school policies and clean personal-machine installation
+remain unverified; see [setup behaviour and limits](SETUP.md).
+
+With the 0.5.6 extension, **Setup help** inside VS Code shows a native checklist
+with **Check again**. Older extensions may show a simpler setup guide.
+Java editor/debugger repair uses VS Code's extension installer in the current
+profile. Java/Git repair opens an official download page and explains installation
+and restarting VS Code. **Run first app** uses the usual save/build/launch flow;
+confirm its JavaFX window, since tool detection is not a build test.
 
 1. Install VS Code and a supported **JDK 17 or later**; install **Git 2.31 or newer** for repository
    work. JDK 17 was tested. Check `java -version`, `javac -version` and
@@ -23,11 +53,14 @@ See [verification evidence](VERIFICATION.md) for checks actually completed.
    contains settings only, defaults to light and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
-   **Use this Profile for Current Window**. In the chosen profile, install **zero-0.5.3.vsix** through
+   **Use this Profile for Current Window**. In the chosen profile, install the **Zero .vsix included with your downloaded kit** through
    **Extensions: Install from VSIX…** in the Command Palette, then use
    **Extensions: Install Extensions** to install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
-   (`vscjava.vscode-java-debug`). Zero is not published in the Marketplace.
+   (`vscjava.vscode-java-debug`). For the 0.5.3 ZIP this is `zero-0.5.3.vsix`;
+   Mac setup 0.5.6 includes `zero-0.5.6.vsix`. If you downloaded only the starter,
+   get the separately labelled Zero extension from **Other downloads**.
+   Zero is not published in the Marketplace.
 3. Move or copy the kit's **starter folder** into your own location, outside any
    other Git repository. For the separate starter-only ZIP, extract its
    **zero-starter folder** instead. Open that folder, rather than a single

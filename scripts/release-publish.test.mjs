@@ -139,6 +139,8 @@ async function fixture(t, changes = {}) {
   };
   const request = async url => {
     requests.push(url);
+    if (url === 'https://zero.codepet.ca/learn' && changes.choices) return {status: 200, text: async () => changes.choices(release.assets[0].browser_download_url), url: changes.choicesRedirect || url};
+    if (url.startsWith('https://zero.codepet.ca/') && changes.choices) return {status: 200, text: async () => `<a href="${changes.choicesHref || '/learn#downloads'}">Download Zero</a>`};
     if (url.startsWith('https://zero.codepet.ca/')) return {status: 200, text: async () => changes.staleSite ?
       `<script>"${release.assets[0].browser_download_url}"</script><a href="https://old.example/old.zip">Download Zero</a>` :
       `<a class="download" href="${release.assets[0].browser_download_url}"><span>Download Zero</span></a>`};
@@ -216,6 +218,31 @@ test('verify-only checks all public metadata/downloads and actual live anchor wi
   assert.ok(!f.calls.some(call => call.command === 'gh' && ['workflow', 'release', 'pr'].includes(call.args[0])));
   assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push', '-c', 'add', 'worktree'].includes(call.args[0])));
   assert.equal(f.requests.length, 5);
+});
+
+test('verify-only follows the same-site download choices and measures the exact kit anchor', async t => {
+  const f = await fixture(t, {existing:true, published:true, promoted:true,
+    choices: url => `<section id="downloads"><a href="https://example.com/setup.dmg">Download for Mac</a><details><a href="${url}">Complete kit ZIP 1.2.3 — Windows, Linux or manual setup</a></details></section>`});
+  assert.equal((await publishZero({version, verifyOnly:true}, f.dependencies)).phase, 'verified');
+  assert.ok(f.requests.includes('https://zero.codepet.ca/learn'));
+  assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 2);
+  assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push', '-c', 'add', 'worktree'].includes(call.args[0])));
+});
+
+for (const [label, changes, pattern] of [
+  ['stale kit', {choices: () => '<section id="downloads"><a href="https://old.example/old.zip">Complete kit ZIP 1.2.2</a></section>'}, /choices kit link is stale/],
+  ['script-only kit', {choices: url => `<section id="downloads"><script><a href="${url}">Complete kit ZIP</a></script></section>`}, /one kit candidate/],
+  ['data attribute instead of href', {choices: url => `<section id="downloads"><a data-href="${url}">Complete kit ZIP</a></section>`}, /one kit candidate/],
+  ['data attribute instead of section id', {choices: url => `<section data-id="downloads"><a href="${url}">Complete kit ZIP</a></section>`}, /one downloads section/],
+  ['kit outside section', {choices: url => `<a href="${url}">Complete kit ZIP</a><section id="downloads"></section>`}, /one kit candidate/],
+  ['duplicate kit', {choices: url => `<section id="downloads"><a href="${url}">Complete kit ZIP</a><a href="${url}">Complete kit ZIP</a></section>`}, /one kit candidate/],
+  ['missing section', {choices: () => '<p>No downloads</p>'}, /one downloads section/],
+  ['external choice link', {choicesHref:'https://evil.example/learn#downloads', choices: () => ''}, /download link is stale/],
+  ['external choice redirect', {choicesRedirect:'https://evil.example/learn', choices: () => ''}, /redirected outside/]
+]) test(`live download choices reject ${label}`, async t => {
+  const f = await fixture(t, {existing:true, published:true, promoted:true, ...changes});
+  await assert.rejects(publishZero({version, verifyOnly:true}, f.dependencies), pattern);
+  assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 1, 'Only prior independent public verification fetched the kit');
 });
 
 for (const [label, changes, pattern] of [

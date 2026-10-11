@@ -1,17 +1,23 @@
 import snapshot from '../.generated/content.json';
-import { releaseAssetHref } from './contracts.mjs';
+import { installerHref, landingDownloadHref, localDownloadsAllowed } from './installer.mjs';
+import { availableKitRelease, releaseAssetHref } from './contracts.mjs';
 export const release = snapshot.release as {
   schema: number; kitVersion: string; coreVersion: string;
   publication: { status: string; repository: string; tag: string };
   assets: Record<string, { filename: string; label: string; publicationStatus?: 'local' | 'published'; url?: string; sha256?: string; size?: number }>;
 };
+const publishedKit = snapshot.publishedKit as typeof release | null;
 export const docs: Record<string, { source: string; markdown: string }> = snapshot.docs;
 export function localDownloadsEnabled() {
   // Never enable a local filesystem download on Vercel, even if a flag was copied.
-  return process.env.ZERO_LOCAL_DOWNLOADS === '1' && !process.env.VERCEL;
+  return localDownloadsAllowed(process.env);
 }
 export function downloadHref(asset = 'kit') {
-  return releaseAssetHref(release, asset, localDownloadsEnabled());
+  const available = downloadableKit();
+  return available ? releaseAssetHref(available, asset, localDownloadsEnabled()) : '/learn#downloads';
+}
+export function downloadableKit(): typeof release | null {
+  return availableKitRelease(release, publishedKit, localDownloadsEnabled());
 }
 
 export const sources: Record<string,string> = snapshot.sources;
@@ -25,3 +31,7 @@ export type CommunityComponent = {
 export const communityPreview = snapshot.communityPreview as {
   version: string; components: CommunityComponent[];
 } | null;
+
+export const installer = snapshot.installer;
+export function macDownloadHref() { return installerHref(installer, localDownloadsEnabled()); }
+export function landingHref() { return landingDownloadHref(downloadHref(), installer, localDownloadsEnabled()); }

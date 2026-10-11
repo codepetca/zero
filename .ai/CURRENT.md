@@ -1,59 +1,99 @@
 # Current state
 
-Updated 2026-10-10. This is the operative snapshot; historical instructions and
-permissions in [the archive](../docs/history/ai-handoff-through-2026-10-10.md)
-are evidence, not current work orders.
+Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
+Historical phase records: docs/EVIDENCE.md and docs/VERIFICATION.md. They are
+verification receipts, not active work orders.
 
-## Product and delivery
+## Product and authority
 
-- Zero is the local VS Code extension/profile and ordinary Java/JavaFX teaching kit.
-  Preserve explicit object updates and the minimal sidebar; no Code OSS fork.
-- Zero **0.5.3** and Zero Community **0.1.3** are published. Website:
-  https://zero.codepet.ca/. Lessons 0–12 ship in the kit.
-- Published kit source: `c00e7a6d7e7d4bea9e14be821a1a75967fcf6d22`;
-  published Community source: `7d4fa181d07f320cc4a305f60636e81aab9a9bcb`.
-  Canonical branches are `codepetca/zero:main` and `codepetca/zero-community:main`.
-- Both Community health bars remain experimental MIT components without a named
-  maintainer. AI, CI and contributor receipts cannot accept or recommend them.
-- [Publication evidence](../docs/EVIDENCE.md) records sources, reviews, PRs,
-  CI and release links. [Verification](../docs/VERIFICATION.md) records limits.
+Zero is a local VS Code extension/profile and ordinary Java/JavaFX teaching kit.
+Keep explicit updates, minimal sidebar, student-owned repos and separate Pika
+links. No Code OSS fork. Published Zero0.5.3/Community0.1.3 remain unchanged;
+local kit/extension0.5.6 and core0.1.1 are unpublished. Upload simulation remains
+default. Community AI/CI cannot accept/recommend/publish; no live provider.
+Owner-requested removal of main protections remains in effect; do not restore.
 
-## Current authorized work
+Current authorization: source PR and merge, publish the exact signed Mac0.5.6
+installer, then update/deploy the website download and verify public bytes.
+No extra kit publication, new signing/notarization, account/credential/security
+changes. Windows physical testing stays held; unsigned EXE not offered.
+Business-account conversation:01a12a95-bab5-7341-aa67-f7a7bc9da9c4.
 
-Owner authorized implementing Lesson 12, publishing PR21 and merging it; the
-latest instruction is to retry the merge. No new release, credential change or
-branch-policy change is authorized here. Owner removed protections separately;
-normal GitHub merge remains subject to passing checks and independent source review.
-AI workflow hardening from [PR20](https://github.com/codepetca/zero/pull/20) is
-merged at `1f2fd53`; its reviewed policy and compact recovery docs are preserved.
+Current coordinator phase: preserve verified public0.5.3 ZIP/starter/VSIX as
+website fallback while adding Mac0.5.6, review/merge full guided-setup source,
+publish exact sealed DMG as setup-v0.5.6, verify unauthenticated bytes, promote
+only native metadata through reviewed PR and verify live Vercel deployment.
+Worker published_zip_fallback (GPT-6.1-Sol/high) delivered verified fallback and
+chooser compatibility; no writer active. Website34tests/typecheck/build, release53
+guards, Maccandidate2tests and root/diff checks pass. Coordinator owns review, Git,
+release and live verification. Primary funding branch/files untouched.
+Receipt .verification/mac-publication/delivery.json; weekly91% account allowance.
 
-## Execution and acceptance
+## Completed local download phase
 
-- Managed worktree: `codex/lesson-12-game`, implementation `8c9896d`, previous
-  final head `944ddfe`, current main integration base `1f2fd53`.
-- Lesson12 includes media, scrolling camera/fixed ScoreDisplay, platforms and
-  gravity, enemies/two levels, and a complete win/lose/restart game. Ordinary Java
-  framework, dependencies and immutable published release bytes remain unchanged.
-- Original independent GPT-6.1-Sol/high review covered all46files, no blockers.
-  Local native, ZIP, browser and website checks passed; original-head Linux CI
-  [38101600157](https://github.com/codepetca/zero/actions/runs/38101600157) passed.
-- Main integration conflicts only in CURRENT and VERIFICATION; retain compact
-  main guidance and archive Lesson12 phase detail. Review the documentation delta
-  and verify final-head CI before merging [PR21](https://github.com/codepetca/zero/pull/21).
-- Primary funding work and other managed checkouts remain untouched. One writer
-  per component. DeepSeek remains paused through2026-12-31. Usage/token telemetry
-  is unknown for this retry; the prior weekly23% remaining was account-wide.
-- [Lesson12 phase evidence](../docs/history/lesson12-through-2026-10-10.md),
-  [delivery index](../docs/EVIDENCE.md), and [verification](../docs/VERIFICATION.md)
-  retain review/check scope. No new implementation wave is planned.
+Worktree /Users/stew/.codex/worktrees/kit-integration/zero, codex/guided-setup.
+Primary /Users/stew/Repos/zero funding work and Community preserved. DeepSeek
+paused through2026-12-31. No tool-backed goal/task/automation created for workflow.
 
-## Remaining limits and next action
+Reviewed implementation779d856f24c37f303842b1a14a8bdc30dd5fb415, base1ef5ceb.
+One GPT-6.1-Sol/high implementation worker; one pre-review header-link correction.
+One independent GPT-6.1-Sol/high complete review: no findings. No worker active.
+Website30tests/typecheck/build, candidate/source2tests, existing43release guards,
+configuration/diff checks passed. Production HTTP verified exact DMG+3kit bytes,
+explicit local/disabled/VERCEL gates and unknown-platform404. Browser landing,
+header platform choice, Mac primary and ZIP/manual alternatives verified.
 
-No live AI provider or automatic Community approval. Physical Windows/Linux
-editor/setup, typing/choosers, audible device output, school restrictions and
-novice classroom use remain unverified; Linux virtual-display CI is verified.
-Next: finish documentation integration, verify current-head checks/review, merge
-PR21 normally and verify merged state. Published0.5.3 does not contain the new
-full-game stages; a new kit release requires separate authorization.
-Read [AI workflow](../docs/AI-WORKFLOW.md) and [Development](../docs/DEVELOPMENT.md)
-before resuming. Historical permissions are not standing grants.
+The landing remains wordmark/sentence/two buttons. Available Mac setup leads
+Download Zero to Learn's download choice; ZIP/starter/VSIX under Other downloads.
+Strict native manifest is local with no public URL. Future setup-v0.5.6 remains
+separate from the unchanged three-asset v0.5.6 kit publisher. No Windows EXE link.
+
+Actual npm run release:prepare:mac passed clean/source-equivalence, kit/archive/
+Maven and actual signed DMG payload/signature/staple/Gatekeeper verification.
+Sealed existing bytes at dist/candidates/mac-0.5.6-779d856f24c3, including4artifacts,
+independent receipts, SOURCE/NOTES and SHA256SUMS; all10checksum entries pass.
+Preparation source779d856; original installer build7d8db9b, recorded separately.
+Existing artifacts preserved; no rebuild/re-sign/notarization/publication.
+Local preview apps/servers closed. Evidence .verification/native-download/ and
+tracked EVIDENCE/VERIFICATION. Approximately12min; weekly91% at start is account
+allowance, effective model/task tokens/cost unknown.
+
+Source PR/merge and Mac publication/deployment are now authorized by the owner.
+Public0.5.3/Community0.1.3 and README download remain unchanged. Source equivalent
+maintainer receipt edits follow the reviewed preparation revision. Do not rebuild
+or replace the sealed candidate. Windows physical testing still held.
+
+## Verified artifacts to reuse
+
+Clean Mac build source7d8db9bead9bc61ed556810df5373cb2e14dde45; runtime unchanged
+from reviewed0.5.5. Signed universal macOS12+ candidate in dist/installers and
+Downloads: Zero-Setup-0.5.6-macos.dmg,691970bytes,SHA256
+4aba28b32da54fbd5fc8aa756dce4f33fbdc2fc02f6ad1c6089aff0bb088709d.
+AppleAccepted4ba0305b-a1de-4fc5-b4b1-4b7732e50a95; signature/payload/staple and
+Gatekeeper app/DMG checks passed. Existing signing identity/Keychain profile reused;
+no access/account changes. Prior Mac0.5.5 and0.5.4 artifacts preserved.
+
+Same exact kit as Windows:239274bytes,SHA256
+121aefb26c6fecfddba0cdadba3070ab34ee48b11e8ab90ec493519d7afe421f.
+Unsigned Windows development candidate295936bytes,SHA256
+6e375bd0e3dec5cbf9518662cc33a97fd855a1811357816305458d8fd1ce8bd5;
+AnyCPU/.NET4.8, reviewed source889e766, no physical Windows trial.
+
+Actual signed Mac trial after manual unlock: fresh copy126files/modes, supported
+Zero profile import into disposable official signed editor, approved isolated
+Zero/Java extensions, readiness, minimal sidebar/first lesson, unchanged Main
+Run and Stop passed. JDK17.0.14/JavaFX21.0.12. Separate finite probe confirmed
+showing Stage and Hello, world! label; CUA cannot visually inspect JavaFX window.
+Probe removed, original four-source compile/parity passed; owned apps/mount/server
+cleaned up, owner editor untouched. Later unchanged Main was relaunched through
+the wrapper for a fresh visual check; owner confirmed seeing Hello, world!.
+That greeting was left open for the owner to close; run receipt and owned PID
+are in .verification/mac-056/manual-greeting-run.json. No Git/account/upload trial.
+
+Public0.5.3 ZIP/starter/VSIX and local0.5.6 HTTP hashes verified; no native links
+existed before this phase. Remaining limits: fresh-Mac vendor installs/trust,
+browser quarantine, physical Intel/macOS12, restricted networks, novice usability,
+Windows. Receipts .verification/mac-056/, .verification/calm-windows-setup/,
+dist/installers/build-macos-signed.json and build-windows.json. New phase receipts
+under .verification/native-download/. Full prior source reviews/check counts and
+artifact provenance remain in EVIDENCE/VERIFICATION.

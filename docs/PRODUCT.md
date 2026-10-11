@@ -88,6 +88,20 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools
   have setup help; GitHub sign-in does not block local running.
+- Guided setup checks existing tools on personal and school laptops. Kit launchers
+  offer explicit installation/help actions; the in-editor native Setup Help picker
+  checks the process JDK/compiler, student files and current-profile Java
+  extensions; relevant terminal environment overrides leave Run readiness unverified. Git is optional for local Run. Checks are read-only; repair/install
+  and the first app run are student choices. No silent elevation, package-manager
+  installation, credential configuration or policy bypass. See [setup](SETUP.md).
+- Local native setup wrappers embed the complete kit: a universal macOS app/DMG
+  and a Windows EXE. They check tools, place a fresh writable folder and explicitly
+  guide setup while preserving existing projects. Both flows use a small fixed
+  window with one replacing status line, hide technical logs under Details and
+  install editor extensions in the background after explicit approval. Missing
+  tools use vendor handoffs; first-time profile import gets one instruction at a
+  time in the main window. The ZIP launchers retain their manual menus.
+  New candidates remain local/unpublished; see [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing
   the local VSIX and Java extensions in it. The standard build shortcut runs

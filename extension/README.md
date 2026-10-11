@@ -5,7 +5,7 @@ Open a student folder containing `zero.json`, or the kit with its
 webview, file tree, task and command APIs. Files open in the normal editor.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.4.0.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.5.4.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
@@ -152,3 +152,7 @@ Use the separate Component Workshop to edit/check trusted source and prepare
 a local packet. MIT-licensed experimental fixtures are not community-approved;
 public release and live AI remain unconfigured. Physical editor/Windows/Linux
 flows remain unverified.
+
+## Setup checklist
+
+**Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm a JavaFX window. No installation or account changes occur just by opening the checklist.

@@ -15,12 +15,19 @@ Zero**, then close the app window or terminate that task before running again.
 
 ## First setup
 
+If you downloaded the **complete kit**, use its `setup/Setup.cmd` (Windows) or
+`setup/Setup.command` (macOS), or `bash setup/setup.sh` (Linux), to check tools and
+follow install/open actions. Keep the complete kit extracted; the starter-only
+ZIP does not contain the launcher or Zero extension. You can use the steps below
+instead. Inside VS Code, **Zero: Setup Help** offers a checklist, repair actions
+and **Check again**. School IT can provide the tools before students start.
+
 1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
    Windows/Linux, **Command+Shift+P** on macOS) in your chosen profile. Use
-   **Extensions: Install from VSIX…** for the local **zero-0.5.3.vsix**, then
+   **Extensions: Install from VSIX…** for the local **zero-0.5.4.vsix**, then
    **Extensions: Install Extensions** for **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's

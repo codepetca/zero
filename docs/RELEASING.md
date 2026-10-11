@@ -1,7 +1,7 @@
 # Releasing Zero
 
 `release/kit.json` is the release source of truth. Published versions and their
-asset bytes are immutable. A release has exactly three public assets: the complete
+asset bytes are immutable. A kit release has exactly three public assets: the complete
 kit, standalone starter and versioned VSIX. Optional component archives stay local.
 The workflow prepares review artifacts with read-only GitHub permissions; it
 never creates a tag, release, deployment or account credential.
@@ -48,7 +48,10 @@ ID. Approval must satisfy main's GitHub protection rules, including approval of
 the latest push by another human. AI source review does not provide that approval;
 never weaken or bypass the gate. The resumed run merges the exact checked head
 through the normal PR path, then waits for Vercel's existing Git
-integration and checks the actual live landing-page kit link and downloaded bytes.
+integration and checks the actual live kit anchor and downloaded bytes. The
+landing action may link directly to the exact kit URL or to the same-site
+`/learn#downloads` chooser; the chooser must contain one exact kit anchor inside
+its downloads section. A URL in script/JSON does not establish a download link.
 It reports release/PR URLs and a completion message; it never edits credentials,
 account settings, branch rules or community artifacts.
 
@@ -146,3 +149,72 @@ Record the release URL, target commit, run ID, review verdict and public downloa
 verification in the short current handoff and tracked [evidence index](EVIDENCE.md).
 Keep logs/binaries ignored and archive phase detail. Future improvements start
 with another new local version.
+
+
+## Separate Mac installer candidate
+
+`release/installer.json` is the optional, strict native manifest. It describes
+only the measured universal Mac DMG and its original clean build source, embedded
+kit, signer and accepted notarization submission. Its independent tag is
+`setup-v0.5.6`; `v0.5.6` remains the three-asset kit release. The existing
+`release:publish` command and Linux CI preparation do not publish or rebuild native
+installers. The unsigned Windows EXE is never a website/student download.
+
+After committing and reviewing the download/preparation source, reuse the exact
+existing tested bytes on macOS:
+
+```sh
+npm run release:prepare:mac
+```
+
+This requires a clean committed checkout and the original installer build commit
+in local Git history. Native Mac, framework, extension, profile, launchers,
+student source and packaging inputs must be unchanged from that build. Website,
+maintainer docs and this preparation tooling can change independently. Preparation
+verifies the current kit/source/archive/Maven checks and actual signed DMG payload,
+Developer ID signatures, staple and Gatekeeper assessments without launching setup.
+It never rebuilds, signs, submits notarization or changes credentials.
+
+The new ignored `dist/candidates/mac-0.5.6-<preparation-commit-prefix>/` directory
+contains the exact DMG and three kit files, independent `installer.json`,
+`build-macos-signed.json` and `release.json` receipts, `candidate.json`, `SOURCE.txt`,
+`NOTES.md` and `SHA256SUMS`. Built installer source and preparation source are
+recorded separately, with the compared source paths. Existing output is a stop
+condition, including an empty directory. Use `-- --output <new-directory>` only
+for a separate immutable candidate; retain the old one. Linux CI cannot recreate
+Apple-notarized Mac bytes. This local preparation grants no publication authority.
+
+## Later authorized native publication
+
+Publication remains a separate owner decision after source review and candidate
+verification. From the sealed directory, first run `shasum -a 256 -c SHA256SUMS`
+and inspect both source revisions in `candidate.json`. Confirm `setup-v0.5.6` has
+no existing tag/release, and confirm the kit release plan separately. Do not use
+`release:publish` for the DMG or add it to the kit release. An explicitly authorized
+owner can create a native draft targeting the preparation source:
+
+```sh
+gh release create setup-v0.5.6 --repo codepetca/zero --target <preparation-commit> \
+  --draft --title 'Zero Setup 0.5.6 for Mac' --notes-file NOTES.md \
+  Zero-Setup-0.5.6-macos.dmg
+```
+
+Check the draft target and its single asset, download its bytes separately and
+compare the exact size/SHA256 with `installer.json`. Do not rebuild, use wildcards,
+replace assets, pass `--clobber`, or delete an existing release/tag. After explicit
+owner authorization, publish that verified draft through GitHub's release UI or
+`gh release edit setup-v0.5.6 --repo codepetca/zero --draft=false`.
+
+Read back the real public asset URL and download it without authentication; verify
+its exact size/hash against the sealed candidate. In a separately reviewed metadata
+change, set native `publication.status` to `published` and add that verified exact
+GitHub asset URL to `asset.url`. Keep the version, tag, digest, size, original source
+and signer unchanged. Local metadata has no public URL; never promote a guessed
+or inaccessible URL. Run website typecheck/tests/build and check the deployed
+Mac link/bytes after separately authorized metadata integration/deployment. The
+landing action then opens `/learn#downloads`, where students choose Mac setup or
+the ZIP for Windows/Linux/manual setup. Preserve the last independently verified
+published kit manifest in `release/published-kit.json` while the current kit is
+local; its three links retain their own version labels. Publishing Mac setup
+does not publish its bundled kit separately. Keep README's verified previous kit link
+until that kit's independent publication is complete.

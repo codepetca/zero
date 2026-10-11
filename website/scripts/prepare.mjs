@@ -8,7 +8,8 @@ import {
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
-import { validateManifest } from "../lib/contracts.mjs";
+import { validateInstallerManifest } from "../lib/installer.mjs";
+import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { validateCommunityManifest } from "../lib/community.mjs";
 import { communityPreview } from "../lib/community-preview.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,7 +34,7 @@ const documentPaths = {
   api: "student-template/API.md",
   beginner: "student-template/BEGINNER.md",
   style: "student-template/STYLE.md",
-  starter: "student-template/README.md",
+  starter: "docs/GETTING-STARTED.md",
   exercises: "student-template/EXERCISES.md",
   components: "docs/COMPONENTS.md",
   workshop: "component-workshop/README.md",
@@ -48,6 +49,13 @@ for (const [slug, source] of Object.entries(documentPaths))
     source,
     markdown: await readFile(resolve(root, source), "utf8"),
   };
+// Preserve links from immutable packaged lesson sources to the hosted setup guide.
+docs.starter.aliases = {
+  "student-template/README.md": {
+    "first-setup": "one-time-setup",
+    "your-repository-and-pika": "your-individual-workflow",
+  },
+};
 // Build-time allowlist only: no request ever reads arbitrary repository paths.
 const sources = {};
 async function collect(folder) {
@@ -79,6 +87,18 @@ for (const name of ["SimpleApp", "SketchApp"])
 const release = validateManifest(
   JSON.parse(await readFile(resolve(root, "release/kit.json"), "utf8")),
 );
+let publishedKit = null;
+try {
+  publishedKit = validatePublishedKit(JSON.parse(await readFile(resolve(root, "release/published-kit.json"), "utf8")), release);
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
+let installer = null;
+try {
+  installer = validateInstallerManifest(JSON.parse(await readFile(resolve(root, "release/installer.json"), "utf8")), release);
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
 const community = validateCommunityManifest(
   JSON.parse(await readFile(resolve(root, "release/community.json"), "utf8")),
 );
@@ -88,7 +108,7 @@ await mkdir(resolve(site, ".generated"), { recursive: true });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, publishedKit, installer, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

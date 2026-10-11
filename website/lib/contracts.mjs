@@ -22,3 +22,21 @@ export function releaseAssetHref(manifest, key, localDownloads = false) {
   if ((asset.publicationStatus ?? manifest.publication.status) === 'published' && asset.url) return asset.url;
   return localDownloads ? `/download/${key}` : '/learn#downloads';
 }
+export function validatePublishedKit(manifest, current) {
+  if (!manifest) return null;
+  validateManifest(manifest);
+  if (manifest.publication.status !== 'published') throw new Error('Fallback kit must be published.');
+  const version = manifest.kitVersion.split('.').map(Number);
+  const latest = current.kitVersion.split('.').map(Number);
+  const different = version.findIndex((part, index) => part !== latest[index]);
+  if (different !== -1 && version[different] > latest[different]) throw new Error('Fallback kit must not be newer than the current kit.');
+  return manifest;
+}
+/**
+ * @template T
+ * @param {T & { publication: { status: string } }} current
+ * @param {T | null} [published]
+ */
+export function availableKitRelease(current, published = null, localDownloads = false) {
+  return current.publication.status === 'published' || localDownloads ? current : published;
+}

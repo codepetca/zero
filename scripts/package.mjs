@@ -4,7 +4,7 @@ import path from 'node:path';
 import {zipSync, unzipSync} from 'fflate';
 import assert from 'node:assert/strict';
 import {coreSources, prepareStarter} from './prepare-starter.mjs';
-import {starterMembers} from './kit.mjs';
+import {starterMembers, setupMembers} from './kit.mjs';
 import {root, releaseDefinition, writeReleaseMetadata, verifiedExistingAssets} from './release.mjs';
 
 prepareStarter();
@@ -44,6 +44,7 @@ assert.deepEqual(starter['zero-starter/src/main/java/ScoreDisplay.java'], starte
 for (const name of coreSources) assert.deepEqual(starter[`zero-starter/src/main/java/zero/${name}`], new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
 assert.ok(!starter['zero-starter/src/main/java/zero/SmokeLauncher.java']);
 const kit = starterMembers(root, 'zero-kit/starter');
+Object.assign(kit, setupMembers(root, release));
 for (const [source, destination] of [
   ['LICENSE', 'LICENSE'],
   ['release/START-HERE.md', 'START-HERE.md'], [`dist/${vsix}`, vsix],

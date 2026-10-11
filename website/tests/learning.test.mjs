@@ -147,3 +147,18 @@ test("stage guides open the runnable example page and unknown guides stay unlink
   }
   assert.equal(resolveContentLink(source, "../examples/private/README.md", {}, {}), null);
 });
+
+test("legacy starter links retain hosted setup and Pika destinations after source remapping", () => {
+  const documents = {starter:{source:"docs/GETTING-STARTED.md",aliases:{"student-template/README.md":{
+    "first-setup":"one-time-setup", "your-repository-and-pika":"your-individual-workflow"
+  }}}};
+  assert.equal(resolveContentLink("student-template/lessons/README.md","../README.md#first-setup",documents,{}),"/docs/starter#one-time-setup");
+  assert.equal(resolveContentLink("student-template/lessons/README.md","../README.md#your-repository-and-pika",documents,{}),"/docs/starter#your-individual-workflow");
+  assert.equal(resolveContentLink("docs/PRODUCT.md","../student-template/README.md",documents,{}),"/docs/starter");
+  assert.equal(resolveContentLink("docs/DEVELOPMENT.md","../student-template/README.md",documents,{}),"/docs/starter");
+  assert.equal(resolveContentLink("docs/PRODUCT.md","../student-template/README.md#old-heading",documents,{}),"/docs/starter");
+  const prepare = readFileSync(new URL("../scripts/prepare.mjs",import.meta.url),"utf8");
+  assert.match(prepare,/docs\.starter\.aliases =/);
+  assert.match(prepare,/"first-setup": "one-time-setup"/);
+  assert.match(prepare,/"your-repository-and-pika": "your-individual-workflow"/);
+});
