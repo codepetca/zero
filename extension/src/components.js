@@ -192,7 +192,9 @@ function javaDeclarationText(input) {
       i += quote.length; result += ' ';
     } else result += translated[i++];
   }
-  return result;
+  // Java ignores these characters inside identifier names, including after
+  // Unicode escape translation. Compare the compiler's names without editing source.
+  return result.replace(/[\u0000-\u0008\u000e-\u001b\u007f-\u009f\p{Cf}]/gu, '');
 }
 async function projectFiles(root, catalog) {
   root = path.resolve(root);

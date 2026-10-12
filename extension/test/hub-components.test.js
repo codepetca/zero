@@ -79,7 +79,10 @@ test('legal spaced/commented/Unicode package syntax cannot mask installed classe
     'package zero /* note */ .\nui1; public class Hud {}',
     String.raw`package \u007aero.\u0075i1; public class Hud {}`,
     String.raw`// hidden line ending\u000apackage zero.ui1; public class Hud {}`,
-    String.raw`// hidden line ending\u000dpackage zero.ui1; public class Hud {}`
+    String.raw`// hidden line ending\u000dpackage zero.ui1; public class Hud {}`,
+    'package ze\u200bro.ui1; public class Hud {}',
+    String.raw`package ze\u200bro.ui1; public class H\u200bud {}`,
+    String.raw`package ze\u0000ro.ui1; public class Hud {}`
   ]) {
     await fs.writeFile(filename,source);await assert.rejects(hub.planChange(f.root,f.context,f.releases[0]),/shadows/,source);assert.equal(await fs.readFile(filename,'utf8'),source);
   }
