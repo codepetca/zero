@@ -1,6 +1,6 @@
 'use strict';
 const {createHash} = require('node:crypto');
-const {pomTools: {parseXml, single, value, allNodes, projectFiles}} = require('./components');
+const {parseXml, single, value, allNodes, projectFiles} = require('./project-pom');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const fail = message => {throw new Error(message);};
 const GROUP = 'ca.codepet.zero.library';

@@ -73,7 +73,7 @@ documentation; integration preserves the exact reviewed game/site/runtime source
 
 Zero0.5.3 and Community0.1.3 are published. The complete source/review/CI/PR/release
 index is [EVIDENCE.md](EVIDENCE.md); [release/kit.json](../release/kit.json) and
-[release/community.json](../release/community.json) preserve actual asset metadata.
+`release/community.json` (retired during consolidation) preserve actual asset metadata.
 Historical local-only status below the old handoff is superseded by this delivery.
 
 144extension/kit tests,24site tests,types/build, configuration/link checks and

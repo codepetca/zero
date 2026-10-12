@@ -107,4 +107,4 @@ changing the original no-argument constructor. You can propose your compatible
 improvement in the next lesson.
 
 Previous: [9. Collect the coins](09-coin-game.md). Next:
-[11. Share a component](11-community.md).
+[11. Share a component](11-zerohub.md).

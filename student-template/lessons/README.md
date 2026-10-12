@@ -18,7 +18,7 @@ Illustrations are drawings, not screenshots; native controls vary by platform.
 | [8](08-movement.md) | Movement and keys |
 | [9](09-coin-game.md) | Full game: collect coins |
 | [10](10-components.md) | Extract and reuse a component |
-| [11](11-community.md) | Share with Community |
+| [11](11-zerohub.md) | Share with ZeroHub |
 | [12](12-media.md) | Larger game: sprites, scrolling, platforms, levels and endings |
 
 ## Before each lesson
@@ -45,5 +45,5 @@ Try the stated checks. Save your change and its actual result.
 See [teacher notes](TEACHER.md) and the [API](../API.md) when needed.
 
 Coursework links go separately to [Pika](../README.md#your-repository-and-pika).
-Community contributions use Lesson 11.
+ZeroHub library sharings use Lesson 11.
 For controls in games and reusable views, read [UI and app/game flow](../UI.md).

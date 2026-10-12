@@ -1,6 +1,6 @@
 // Disposable developer demo. Local identity and fake storage never deploy by default.
 import http from 'node:http';
-import {mkdir,readFile,writeFile,realpath} from 'node:fs/promises';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {randomUUID} from 'node:crypto';
@@ -29,10 +29,10 @@ if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.u
   const stop=async()=>{if(stopping)return;stopping=true;await demo.stop();};
   process.on('SIGINT',()=>stop().finally(()=>process.exit(0)));process.on('SIGTERM',()=>stop().finally(()=>process.exit(0)));
   try {
-    if(take('--community-root')) {
+    if(args.includes('--starter-ui')) {
       const actor={id:'101',login:'zero-local-demo'};
       const reservation=await demo.hub.reserveLibrary(actor,{className:'ScoreDisplay',title:'Starter UI'});
-      const bundle=await starterUiBundle(await realpath(take('--community-root')),reservation.libraryId);
+      const bundle=await starterUiBundle(reservation.libraryId);
       if(take('--preview'))bundle.files['preview.png']=(await readFile(take('--preview'))).toString('base64');
       const submitted=await demo.hub.submit(actor,bundle);
       while(true) {
@@ -45,7 +45,7 @@ if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.u
         await new Promise(res=>setTimeout(res,500));
       }
     }
-    console.log('Disposable Zero hub at http://127.0.0.1:8788. Website: ZERO_HUB_URL=http://127.0.0.1:8788 npm run dev -- --port 3177');
+    console.log('Disposable ZeroHub at http://127.0.0.1:8788. Website: ZERO_HUB_URL=http://127.0.0.1:8788 npm run dev -- --port 3177');
     console.log(`Local test identity only. Database disappears on exit. Evidence: ${demo.output}`);
   } catch(error) {await stop();throw error;}
 }

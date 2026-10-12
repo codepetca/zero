@@ -17,9 +17,9 @@ export function HubPrepare() {
   useEffect(()=>{if(!job||!['queued','checking','checked','publishing','running','pending'].includes(job.status))return;let active=true;let timer:ReturnType<typeof setTimeout>;setPolling(true);const poll=async()=>{try{const data=await api(`submissions/${encodeURIComponent(job.id)}`);if(active){setJob(data);setError('');if(['queued','checking','checked','publishing','running','pending'].includes(data.status))timer=setTimeout(poll,2000);else setPolling(false);}}catch(error){if(active){setError(error instanceof Error?error.message:'Could not check submission.');setPolling(false);}}};timer=setTimeout(poll,2000);return()=>{active=false;clearTimeout(timer);};},[job]);
   async function action(run:()=>Promise<void>){setBusy(true);setError('');try{await run();}catch(error){setError(error instanceof Error?error.message:'Hub action failed.');}finally{setBusy(false);}}
   return <>
-    {session?.mode==='local'&&<p className="community-preview-note">Local test hub. Sign in uses the configured local developer identity. Uploads remain in this local service.</p>}
+    {session?.mode==='local'&&<p className="hub-note">Local test hub. Sign in uses the configured local developer identity. Uploads remain in this local service.</p>}
     {error&&<p className="hub-error" role="alert">{error}</p>}
-    {!session ? <p role="status">{error?'The library hub is unavailable. Existing community downloads still work.':'Connecting to the hub…'}</p> : !session.user ? <a className="button compact" href="/api/hub/auth/start">{session.mode==='local'?'Sign in to local test hub':'Sign in with GitHub'}</a> : <>
+    {!session ? <p role="status">{error?'ZeroHub is unavailable. Try again shortly.':'Connecting to the hub…'}</p> : !session.user ? <a className="button compact" href="/api/hub/auth/start">{session.mode==='local'?'Sign in to local test hub':'Sign in with GitHub'}</a> : <>
       <div className="resource-links"><p>Signed in as {session.user.login}</p><button className="text-button" disabled={busy} onClick={()=>action(async()=>{await api('logout',{});setSession(await api('session'));setBundle(null);setUpload(null);setJob(null);})}>Sign out</button></div>
       <section><h2>1. Prepare your library</h2><form className="hub-form" onSubmit={event=>{event.preventDefault();void action(async()=>{const result=await api('libraries',{className,title});validateUploadBundle(result.bundle);setBundle(result.bundle);});}}>
         <label htmlFor="class-name">Java class name</label><input id="class-name" required pattern="[A-Z][A-Za-z0-9]*" maxLength={64} value={className} onChange={event=>setClassName(event.target.value)} />
@@ -38,7 +38,7 @@ export function HubPrepare() {
         {job.report?.error&&<p className="hub-error">{job.report.error}</p>}
         {job.report?.checks&&<ul>{job.report.checks.map(check=><li key={check.id}>{check.passed?'Passed':'Failed'}: {checkLabel(check.id)}{!check.passed&&`: ${check.detail}`} </li>)}</ul>}
         {job.report?.platforms&&<p>Checked platforms: {job.report.platforms.join(', ')}</p>}
-        {publishedSubmission(job)&&job.release&&<p>Listed: {job.release.title} {job.release.version}. <a href="/community">View library components</a></p>}
+        {publishedSubmission(job)&&job.release&&<p>Listed: {job.release.title} {job.release.version}. <a href={`/hub?library=${encodeURIComponent(job.release.libraryId)}&version=${encodeURIComponent(job.release.version)}`}>View this library release</a></p>}
         {!polling&&<button className="text-button" disabled={busy} onClick={()=>action(async()=>{setJob(await api(`submissions/${encodeURIComponent(job.id)}`));})}>Refresh result</button>}
         <p className="fine-print">A failed or unavailable check does not publish your library. Fix the reported files and upload again. Once a version is published, use a new version for changes.</p>
       </section>}

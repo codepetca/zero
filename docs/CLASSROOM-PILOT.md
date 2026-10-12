@@ -92,4 +92,4 @@ needs unresolved proxy workarounds, input or state is unreliable, or students
 cannot explain their changes with reasonable teaching support. Resolve and repeat
 the failed steps; do not replace physical/student evidence with mocked results.
 Original Zero code uses the [MIT license](../LICENSE). Third-party notices
-remain separate; Zero Community artifact licensing is still unresolved.
+remain separate; ZeroHub/sample source uses MIT; public hub activation is pending.

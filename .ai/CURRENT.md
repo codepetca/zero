@@ -1,113 +1,31 @@
 # Current state
 
 Updated 2026-10-12. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
-Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
-## Active scope and authority
+## Active goal and authority
 
-Contributor follow-up completed locally at621a140: catalog, exact release and
-submission results show server-derived contributor:{githubId,login}. Cards link
-By @username to a validated GitHub URL. Stable identity follows the immutable
-submission owner; authenticated rename updates display without changing releases.
-18actual PostgreSQL,52website tests (1opt-in skip),7extension cases, types/build
-passed. Independent Sol/medium attribution review passed with full8file coverage,
-21focused tests and0blockers. Current checker-security gap remains separate.
-No community migration/archival is authorized; new hub uploads do not depend on
-that repo, but legacy releases/Workshop/Starter UI fixture still do. Recommended:
-keep legacy URLs/history, migrate maintained fixtures deliberately before archiving.
+Owner approved consolidating everything in codepetca/zero, naming the shared library ZeroHub and using /hub (not /zerohub). No existing student work/legacy compatibility needs preservation. Remove the old Community catalog/Workshop/admission workflow, move useful samples into Zero, verify the full local journey and retire the obsolete separate repository. Latest “Orchestrate the goal” resumes the prior Wait hold.
 
-Build the agreed generic community library hub locally. Zero remains ordinary
-Java with its small JavaFX library and minimal VS Code profile/extension.
-Students own GitHub repos and submit their links separately in Pika.
+Worktree /Users/stew/.codex/worktrees/kit-integration/zero, branch codex/app-game-tutorials; consolidation base bd8a50c. Primary /Users/stew/Repos/zero has unrelated funding work: preserve it. Local commits are allowed. No new Zero push, PR, merge, production deployment, OAuth/account setup or public library publication is authorized.
 
-Worktree: /Users/stew/.codex/worktrees/kit-integration/zero; branch
-codex/app-game-tutorials; hub base ed71f4d; latest code 621a140.
-Primary /Users/stew/Repos/zero contains unrelated funding work: preserve it.
-Community prototype worktree starter-ui-local/zero-community at d0a499b and
-canonical Community main are unchanged. No push, PR, merge, deployment, live
-OAuth/account provisioning or public component publication is authorized.
+Use the orchestrate workflow. Two bounded GPT-6.1 Sol/high writers: libraries/native fixture proofs; website routes/preparation/tests. Coordinator owns editor/shared helpers, packaging, docs, review and integration. Website writer stopped; library full-flow proof in progress. No recursive delegation or writer conflicts. DeepSeek remains paused; owner task-scoped workflow-budget waiver remains, without bypassing actual execution permissions or correctness gates.
 
-Owner waiver: “Override budget constraints and proceed.” Applied
-/Users/stew/.codex/skills/override-task-stops/SKILL.md to this task's agreed
-implementation, checks and independent review. Workflow review budgets and
-low-usage stops are waived through task completion or revocation. Preserve
-counters; provider execution limits, correctness gates and scope still apply.
-DeepSeek remains explicitly paused through 2026-12-31. No tool-backed goal,
-separate task or automation was created for orchestration.
+## Delivered and verifying
 
-## Delivered local build
+Website /hub and /hub/prepare replace every old Community page/catalog/static gateway/Workshop download without redirects. Backend /api/hub remains. One extension Browse ZeroHub entry replaces the legacy component menu. Shared POM/Java declaration checks were extracted unchanged into project-pom.js. Cross-platform process helper retained separately.
 
-hub/CONTRACT.md is the shared contract. PostgreSQL reserves short permanent
-library IDs such as ui7; imports use zero.ui7.Hud. Related classes share a library
-and exact immutable Maven version. Trusted offline checks and a separate
-publisher automatically list passing submissions locally, without routine
-maintainer acceptance. Contributor flags/receipts do not grant authority.
+Starter UI and health-bar sample bundles live in libraries/ with MIT notices and source provenance, not core. All native proofs/fixtures use internal paths, no sibling repository. Lesson11 and active docs describe prepare/download/edit/upload/automatic-check/list/Add/Update/Revert. Authenticated GitHub contributor credit, server IDs zero.uiN, exact versions and independent library histories remain.
 
-Website preparation, downloadable editable project, folder upload, check result,
-component discovery and exact-version inspection are implemented. The minimal
-Zero menu supports exact Add/Update/Revert with independent per-library history.
-First policy: self-contained JavaFX widgets exposing public Node view(); ordinary
-constructors/setters, API/changelog/MIT/PNG, behavior check and two consumers.
-No extra dependencies or general-purpose Java bundles in this first policy.
+Passing: configuration/syntax/doc links;175 root cases;61 focused editor/process/release cases; website38 pass2 optional skips/types/build; actual production HTTP2/2 including old-route404 and canonical wrapper bytes;18 actual PostgreSQL cases; rebuilt ZIP/VSIX and extracted Maven compile. Native library/full ZeroHub/browser integration acceptance still in progress.
 
-Docker recovered without resetting volumes or Docker.raw. Removed only generated
-Zero checker images and their reclaimable unshared build-cache graph; re-pulled
-the pinned base. All 23 prior services returned running/healthy where configured.
-Fixed actual Next hostname drift in login/ZIP Origin checks and bundled wrapper
-asset duplication. Fixed trusted JDK address initialization and Java identifier-
-ignorable source-shadow detection. All source writers/reviewers have stopped.
-Owned proof servers, temporary PostgreSQL databases and browser tab were stopped.
+Mac storage guard healthy:301GB cached initially,322GB fresh before builds (2GB estimate). Codex weekly70% remaining at start; account-wide not task cost. Token/cost/effective runtime configuration unknown.
 
-## Verification and review gates
+## Public readiness limits
 
-Latest checks: 254 root tests; configuration/contracts; 51 website tests with one
-opt-in HTTP test skipped by default; types/build; actual production HTTP ZIP test
-1/1; 17 real PostgreSQL cases reused for unchanged service; six actual Docker
-checker tests; 14 bounded JDK regression processes. All passed.
+The generic hub works locally; hosted GitHub OAuth, managed database/durable storage and dedicated checking workers are not configured/deployed. Local identity is zero-local-demo, not real GitHub. Candidate checker policy/module/security code unchanged by consolidation. Its prior required corrected security review remains incomplete after provider rejection; this migration's review cannot substitute for that gap or bypass the blocked assignment.
 
-Actual browser flow passed local sign-in, reservation, ZIP download, edited folder
-upload, automatic local listing, API/import/pin inspection and logout. Downloaded
-ZIP wrapper bytes matched canonical files and its edited preview ran on this Mac.
-Full hub proof passed failed submission -> corrected same version -> two immutable
-releases -> study/coin-game at 0.1.0 -> 0.1.1 -> 0.1.0 with JAR-origin/hash checks
-and actual extension Add/Update/Revert plans. Both apps also passed through the
-production Next Maven gateway with the tested artifact absent beforehand.
-Evidence: ignored .verification/hub-integration-recovered/receipt.json,
-hub-proxy-integration/gateway-receipt.json and hub-browser-recovery/.
+Physical Windows/Linux/Intel, novice input and manually installed VS Code hub flows remain untested. Native macOS ARM64 and Linux ARM64 checker tests cover only those environments. Installer changes/publication are outside consolidation.
 
-Cumulative independent-review ledger: nine reviewer turns/launches across hub and attribution; the hub had one initial
-full-diff wave, six targeted turns and five code fix batches; attribution used one
-bounded initial standard-risk review with no remediation. Initial Astra/high
-security + Sol/high architecture review at 973daf1 found five blockers; fixes
-committed 0bc6faa, d327fbe, d6023c8, 3b2f41a, 7d279a4. Sol/high compatibility correction
-review passed at 3b2f41a (one additional proven P2 fixed; final 21 focused tests plus
-8 scanner cases passed). The same Astra/high security reviewer failed three
-corrected-source attempts at the provider's possible-cybersecurity-risk filter.
-No alternate-provider bypass or independent checker-security acceptance exists.
-A final label-only compatibility review also passed at 7d279a4: readable check
-names replace internal success messages; failure details remain. Final actual
-component search/HUD/check-label browser proof is in hub-final-ui/checked-hud.jpg.
-This remains a required source-review gap; local tests are not a substitute.
-Implementation is working locally but is not declared accepted/public-ready.
+## Next
 
-Four implementation launches total: original Sol/high service and checker,
-Sol/medium website; new Sol/high login/download worker. Coordinator owns integration,
-contracts, docs/Git and native/browser/Maven proof. No recursive delegation or
-writer conflicts. Weekly account allowance was 76% at original start, 72% when
-waiver resumed; this is not attributable task cost. Effective configurations,
-tokens, costs and exact active coordinator/reviewer time are unknown.
-
-## Next and limits
-
-Obtain the missing independent checker security review through a permitted review
-path before source acceptance/public rollout. Respect the actual provider block;
-do not keep relaunching an unchanged rejected assignment or claim self-review as
-independent. No workflow-budget stop remains after the owner's waiver.
-
-Hosted activation is a separate authorized phase: GitHub OAuth, managed database,
-durable storage, dedicated hardened workers, quotas/backups/monitoring/removal.
-Vercel hosts Next; it cannot execute these Docker checks. Local identity is a test
-only. Physical Windows/Linux/Intel, novice/physical-input and manual installed
-VS Code hub flows remain untested; tested containers were Linux ARM64 and native
-consumers macOS ARM64. Existing public Mac setup 0.5.7, ZIP/VSIX 0.5.3 and legacy
-Community 0.1.3 remain unchanged. Installer/Windows work is outside this phase.
+Finish native/full-flow/browser verification, inspect complete fixed diff and obtain one independent consolidation review. Then retire the obsolete separate repository within owner authority, preserving valuable private/history state. Record exact evidence and limits in docs/EVIDENCE.md and docs/VERIFICATION.md.

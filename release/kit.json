@@ -19,11 +19,6 @@
     "extension": {
       "filename": "zero-0.5.7.vsix",
       "label": "Zero extension"
-    },
-    "components": {
-      "filename": "zero-components.zip",
-      "label": "Component Workshop kit",
-      "publicationStatus": "local"
     }
   }
 }

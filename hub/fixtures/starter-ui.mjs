@@ -1,9 +1,10 @@
 // Coordinator-owned dogfood fixture: ordinary bundled components, no core changes.
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {scaffoldBundle} from '../service/scaffold.mjs';
-export async function starterUiBundle(communityRoot,libraryId='ui1') {
-  const root=join(communityRoot,'packages/starter-ui');
+const root=fileURLToPath(new URL('../../libraries/starter-ui/',import.meta.url));
+export async function starterUiBundle(libraryId='ui1') {
   const base=scaffoldBundle({libraryId,className:'ScoreDisplay',title:'Starter UI'});
   const names=['StartScreen','Hud','ScoreDisplay'];
   base.descriptor={schema:1,libraryId,version:'0.1.0',title:'Starter UI',description:'Welcome screen, HUD and score display. App code owns the rules.',category:'ui',components:[
@@ -13,8 +14,8 @@ export async function starterUiBundle(communityRoot,libraryId='ui1') {
   ]};
   const files={...base.files};
   delete files[`src/zero/${libraryId}/ScoreDisplay.java`];
-  for(const name of names)files[`src/zero/${libraryId}/${name}.java`]=(await readFile(join(root,`src/main/java/zero/community/starterui/${name}.java`),'utf8')).replaceAll('zero.community.starterui',`zero.${libraryId}`);
-  files['checks/BehaviorCheck.java']=(await readFile(join(root,'checks/StarterUiCheck.java'),'utf8')).replaceAll('zero.community.starterui',`zero.${libraryId}`).replaceAll('StarterUiCheck','BehaviorCheck').replace('System.getenv("EXPECTED_STARTER_UI_JAR")','"/input/library.jar"');
+  for(const name of names)files[`src/zero/${libraryId}/${name}.java`]=(await readFile(join(root,`src/main/java/zero/starterui/${name}.java`),'utf8')).replaceAll('zero.starterui',`zero.${libraryId}`);
+  files['checks/BehaviorCheck.java']=(await readFile(join(root,'checks/StarterUiCheck.java'),'utf8')).replaceAll('zero.starterui',`zero.${libraryId}`).replaceAll('StarterUiCheck','BehaviorCheck').replace('System.getenv("EXPECTED_STARTER_UI_JAR")','"/input/library.jar"');
   for(const [key,score,title] of [['first',3,'Study app'],['second',10,'Coin game']])files[`examples/${key}/Main.java`]=`import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -53,7 +54,7 @@ public class Main extends Application {
     public static void main(String[] args) {launch(args);}
 }\n`;
   files['LICENSE']=await readFile(join(root,'LICENSE'),'utf8');
-  files['API.md']=(await readFile(join(root,'API.md'),'utf8')).replaceAll('zero.community.starterui',`zero.${libraryId}`);
+  files['API.md']=(await readFile(join(root,'API.md'),'utf8')).replaceAll('zero.starterui',`zero.${libraryId}`);
   files['CHANGELOG.md']='# Changelog\n\n## 0.1.0\n\nFirst local hub dogfood release. Namespace assigned by the hub.\n';
   // Initial fixture preview is explicitly illustrative; integration may replace it
   // with an actual native JavaFX snapshot before submitting.

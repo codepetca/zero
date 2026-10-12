@@ -12,7 +12,7 @@ export const repository = 'codepetca/zero';
 export const website = 'https://zero.codepet.ca';
 const workflow = 'release-review.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
-const definitionFiles = ['extension/package.json', 'framework/pom.xml', 'component-workshop/pom.xml'];
+const definitionFiles = ['extension/package.json', 'framework/pom.xml'];
 const promotionFiles = ['README.md', 'release/kit.json'];
 const packagedSources = ['extension', 'framework', 'student-template', 'profile', 'setup', 'LICENSE', 'release/START-HERE.md',
   'scripts/package.mjs', 'scripts/prepare-starter.mjs', 'scripts/kit.mjs', 'scripts/verify-kit.mjs'];
@@ -49,11 +49,10 @@ export function parseArguments(args) {
 
 export async function readDefinition(directory) {
   const release = json(await readFile(path.join(directory, 'release/kit.json')));
-  const [extension, core, workshop] = await Promise.all(definitionFiles.map(name => readFile(path.join(directory, name), 'utf8')));
+  const [extension, core] = await Promise.all(definitionFiles.map(name => readFile(path.join(directory, name), 'utf8')));
   assert.equal(release.schema, 1, 'Unsupported release definition.');
   assert.equal(json(extension).version, release.kitVersion, 'Extension version drift.');
   assert.ok(core.includes(`<artifactId>zero-core</artifactId>\n  <version>${release.coreVersion}</version>`), 'Canonical core version drift.');
-  assert.ok(workshop.includes(`<artifactId>zero-core</artifactId><version>${release.coreVersion}</version>`), 'Workshop core version drift.');
   for (const asset of Object.values(release.assets)) {
     assert.ok(asset.label && /^[a-zA-Z0-9][a-zA-Z0-9.-]*$/.test(asset.filename), 'Invalid asset definition.');
   }

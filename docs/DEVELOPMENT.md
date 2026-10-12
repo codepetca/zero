@@ -167,102 +167,21 @@ in quiz, practice and study, retaining the caption enhancement and existing
 no-argument constructor. Include meaningful behavior checks and a short explanation
 another student can follow; seek review before cohort adoption.
 
-Advanced contributions may introduce Java packages, interfaces or JavaFX properties
-when a concrete app needs them. Versioned Maven libraries, the portable Workshop and contribution admission are
-documented in [COMPONENTS.md](COMPONENTS.md). Public discovery and verified
-downloads are available at [Zero Community](https://zero.codepet.ca/community). Original Zero code uses
-[MIT](../LICENSE); upstream wrapper licenses/notices retain their own terms.
+Advanced contributions can introduce ordinary Java packages/interfaces when a concrete app needs them. Shared libraries and automated submission are described in [COMPONENTS.md](COMPONENTS.md). Original source uses [MIT](../LICENSE); upstream notices retain their terms.
 
-## Local component lifecycle
+## Maintained libraries and ZeroHub
 
-The separately versioned Starter UI prototype is in Zero Community's
-`packages/starter-ui/`. From Zero, run its trusted local proof with:
+All source is in Zero; no sibling repository is required:
 
 ```sh
-python3 scripts/verify-starter-ui.py --community-root /path/to/zero-community
+python3 scripts/verify-starter-ui.py
+python3 scripts/verify-health-bars.py
+npm run test:postgres --prefix hub
+node --test hub/checker/test/validation.test.mjs
+ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs
+npm run verify:hub -- --output .verification/hub-proof
 ```
 
-It builds/checks the three-class JAR and both package consumers using an isolated
-Maven cache. It does not use the current catalog, alter the default starter or
-publish. See [package boundaries and limitations](STARTER-UI-PACKAGE.md).
+The library proofs check the real JAR and native consumers. The ZeroHub integration proof checks failed/corrected submissions, immutable releases and Add/Update/Revert across both study/game consumers. Run [the local service and website](../hub/README.md) for browser prepare/download/upload/listing checks. Local identity is a demo, not GitHub OAuth.
 
-The sibling `../zero-community` checkout has its own source, Maven library,
-release-cycle proof and admission scripts. Its canonical source remote is
-[codepetca/zero-community](https://github.com/codepetca/zero-community).
-From the directory containing your Zero checkout, obtain the sibling with
-`git clone https://github.com/codepetca/zero-community.git`. Use the actual
-local checkout path with the commands below. GitHub hosts source. Historical verification uses local artifacts; public
-preparation is a separate step below.
-
-```sh
-npm run prepare:starter
-python3 ../zero-community/scripts/verify-release-cycle.py --zero-root "$PWD"
-node scripts/prepare-component-workshop.mjs ../zero-community
-node scripts/verify-components.mjs
-```
-
-`verify-components.mjs` checks add/update/revert with the actual extension engine
-and real Maven/JavaFX in a disposable project whose path includes spaces. It
-requires the release proof's cache for third-party downloads; tested community
-coordinates start absent. Generated evidence stays in `.verification/`.
-This historical preparation writes `component-legacy-catalog.json` only; it does
-not prepare the current Workshop. Prepare the public candidate below before
-running or packaging it.
-
-Zero 0.5.1 and later support current MIT catalogs in the installed extension.
-The immutable published 0.5.0 VSIX predates MIT catalog support and continues
-to support historical UNLICENSED catalogs. Contributors can use the current
-extension source in a VS Code extension development host (F5).
-
-Community catalog selection is explicit and local in Zero's view title (…) menu.
-The extension edits only managed POM blocks through the native undoable editor,
-refuses unsaved/drifted documents and preserves Java source. Add pins a version;
-Update/Revert confirm and run the app. Try uses trusted packaged example source
-and a separate temporary Maven cache, cleaned when its owned task ends. Maven
-remains the resolver; normal project runs use ordinary Maven settings/cache.
-
-Candidate compilation runs trusted local Java in the Workshop process with
-normal permissions; it is not an untrusted-submission sandbox. Admission validates
-packets without executing code. GitHub CI builds/checks source PRs with read-only permissions. A trusted
-owner-side helper checks independent current-head human maintain/admin approval
-and matching CI; an exported packet cannot establish that authority. The AI
-advisory interface has no live provider configured. See the community contribution/AI docs.
-
-
-## Public component preparation
-
-Public discovery defaults to https://zero.codepet.ca/community/catalog.json.
-The authored download source is the generated, reviewed release/community.json
-snapshot copied from source-bound community receipts. The website's fixed Maven
-gateway accepts only manifest paths and verifies full bounded bytes before serving.
-Components remain pinned; HTTPS POMs work on another machine without account access.
-A remembered local catalog can be selected explicitly through the components menu.
-
-Community maintainers prepare a clean committed 0.1.3 candidate with
-`python3 scripts/prepare-public-release.py --zero-root ../zero` in zero-community.
-The candidate preparer requires a clean committed community checkout and refuses
-to replace an existing candidate output. Reuse verified output for that exact
-revision, or use a fresh disposable checkout to verify preparation again.
-Then prepare, run and package the portable Workshop from Zero (the shipped
-Workshop files must also be committed):
-
-```sh
-node scripts/prepare-component-workshop.mjs ../zero-community --public
-node scripts/run-component-workshop.mjs
-npm run package:components
-```
-
-Run opens the native Workshop until you close it. Its
-`-Dzero.workshopCheck=true` JVM option runs the finite native-window harness.
-Packaging creates `dist/zero-community-workshop-0.1.3.zip`, containing source,
-Workshop and its pinned local artifacts/catalog. Extract the complete archive
-and open its `component-workshop/` subfolder. Students use the bundled Maven
-wrapper; they do not need maintainer Node/Python tooling.
-
-Preparation is local and cannot accept or publish. Verify source PRs, CI and
-independent review before intentionally publishing the exact release bytes. Import
-actual published asset URLs/sizes/SHA256s into the reviewed website snapshot; never
-replace an existing coordinate or rebuild historical fixtures with new notices.
-A public patch appends its version while retaining previously published records.
-Existing GitHub maintain/admin users own human acceptance; unreviewed work waits.
-No CI publishing credentials or AI acceptance is configured.
+ZeroHub platform code gets independent source review. Uploaded libraries use trusted automated minimum checks without routine maintainer acceptance. Do not run submitted commands on the host; candidate Java belongs in the isolated checker. Public hosting and the outstanding checker review are separate rollout gates.

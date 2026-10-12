@@ -40,9 +40,8 @@ const expectedStarter = starterMembers(root);
 assert.deepEqual(Object.keys(starter).sort(), Object.keys(expectedStarter).sort());
 for (const [name, [bytes]] of Object.entries(expectedStarter)) assert.deepEqual(starter[name], bytes, name);
 assert.deepEqual(starter['zero-starter/LICENSE'], license);
-assert.deepEqual(vsix['extension/media/component-example/zero/SimpleApp.java'], new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero/SimpleApp.java'))));
 const permissions = spawnSync('python3', ['-c', 'import sys,zipfile; z=zipfile.ZipFile(sys.argv[1]); names=["zero-kit/starter/mvnw","zero-kit/setup/Setup.command","zero-kit/setup/setup.sh"]; assert all((z.getinfo(n).external_attr>>16)&0o111 for n in names); assert all(not n.endswith(".zip") for n in z.namelist()); print("ZIP wrapper/setup executables and flat layout verified")', kitPath], {encoding:'utf8'});
 assert.equal(permissions.status, 0, permissions.stderr);
 const project = extractProject(kitBytes, 'zero-kit/starter', tmpdir());
 try {maven(project, ['-q', 'clean', 'compile']);} finally {rmSync(project, {recursive:true, force:true});}
-console.log('Measured release assets, exact MIT licenses in kit/starter/VSIX, SPDX manifest, flat ZIP bytes, canonical source parity, trusted VSIX source, executable wrapper and extracted Maven build passed.');
+console.log('Measured release assets, exact MIT licenses in kit/starter/VSIX, SPDX manifest, flat ZIP bytes, canonical source parity, executable wrapper and extracted Maven build passed.');

@@ -119,10 +119,10 @@ test('project ZIP checks canonical Origin against direct Host despite Next URL n
 test('normal local sign-in and OAuth callback redirect to frontend and retain session cookie',async()=>{
   for(const path of [['auth','start'],['auth','callback']]) {
     const request=new Request(origin+'/api/hub/'+path.join('/')+(path[1]==='callback'?'?code=code&state=state':''));
-    const response=await proxyHub(request,path,{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/community/prepare','Set-Cookie':'zero_hub_session=signed; Path=/api/hub; HttpOnly; SameSite=Lax'}})});
-    assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/community/prepare');assert.match(response.headers.get('set-cookie'),/zero_hub_session=signed/);
+    const response=await proxyHub(request,path,{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/hub/prepare','Set-Cookie':'zero_hub_session=signed; Path=/api/hub; HttpOnly; SameSite=Lax'}})});
+    assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/hub/prepare');assert.match(response.headers.get('set-cookie'),/zero_hub_session=signed/);
   }
-  for(const location of ['https://evil.example/community/prepare','/community/prepare?next=https://evil.example','/other']) {
+  for(const location of ['https://evil.example/hub/prepare','/hub/prepare?next=https://evil.example','/community','/community/prepare','/other']) {
     const response=await proxyHub(new Request(origin+'/api/hub/auth/start'),['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:location}})});assert.equal(response.status,502);
   }
 });
@@ -130,9 +130,9 @@ test('Next normalized request URL keeps sign-in on the browser cookie host',asyn
   const browserOrigin='http://127.0.0.1:3177';
   // Actual Next dev requests use localhost in Request.url despite this Host.
   const request=new Request('http://localhost:3177/api/hub/auth/start',{headers:{Host:'127.0.0.1:3177'}});
-  const response=await proxyHub(request,['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/community/prepare','Set-Cookie':'zero_hub_session=signed; Path=/api/hub; HttpOnly; SameSite=Lax'}})});
+  const response=await proxyHub(request,['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/hub/prepare','Set-Cookie':'zero_hub_session=signed; Path=/api/hub; HttpOnly; SameSite=Lax'}})});
   assert.equal(response.status,302);
-  assert.equal(response.headers.get('location'),'/community/prepare');
+  assert.equal(response.headers.get('location'),'/hub/prepare');
   assert.equal(new URL(response.headers.get('location'),browserOrigin).origin,browserOrigin);
   assert.match(response.headers.get('set-cookie'),/^zero_hub_session=signed; Path=\/api\/hub; HttpOnly/);
 });

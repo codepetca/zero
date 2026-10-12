@@ -109,8 +109,8 @@ test("the curriculum ends at twelve and routes two-digit lessons without truncat
   assert.equal(documentHref("lesson-11"), "/tutorials/11");
   assert.equal(isLessonDocumentId("lesson-11"), true);
   assert.equal(isLessonDocumentId("lesson-12"), true);
-  const documents = { "lesson-11": { source: "student-template/lessons/11-community.md" } };
-  assert.equal(resolveContentLink("student-template/lessons/10-components.md", "11-community.md#share", documents, {}), "/tutorials/11#share");
+  const documents = { "lesson-11": { source: "student-template/lessons/11-zerohub.md" } };
+  assert.equal(resolveContentLink("student-template/lessons/10-components.md", "11-zerohub.md#share", documents, {}), "/tutorials/11#share");
 });
 
 test("lesson media links use only the explicit build-time asset mapping", () => {

@@ -20,14 +20,12 @@ async function fixture(t, changes = {}) {
   await mkdir(path.join(template, 'release'), {recursive: true});
   await mkdir(path.join(template, 'extension/src'), {recursive: true});
   await mkdir(path.join(template, 'framework'), {recursive: true});
-  await mkdir(path.join(template, 'component-workshop'), {recursive: true});
   const definition = {schema: 1, kitVersion: version, coreVersion: '0.1.1', publication: {status: 'local', repository: 'codepetca/zero', tag: `v${version}`},
     assets: {kit: {filename: filenames[0], label: 'Kit'}, starter: {filename: filenames[1], label: 'Starter'},
       extension: {filename: filenames[2], label: 'Extension'}, components: {filename: 'zero-components.zip', label: 'Components', publicationStatus: 'local'}}};
   const manifest = JSON.stringify({version, license: 'MIT'}), license = 'MIT License\nfixture notice\n', js = 'module.exports = 42;\n';
   await Promise.all(Object.entries({'release/kit.json': JSON.stringify(definition, null, 2) + '\n', 'extension/package.json': manifest,
     'extension/src/extension.js': js, LICENSE: license, 'framework/pom.xml': '<artifactId>zero-core</artifactId>\n  <version>0.1.1</version>',
-    'component-workshop/pom.xml': '<artifactId>zero-core</artifactId><version>0.1.1</version>',
     'README.md': '# Zero\n[Download Zero 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)\nUnrelated source and learning changes stay.\n'})
     .map(([name, body]) => writeFile(path.join(template, name), body)));
   const bytes = [Buffer.from('reviewed kit bytes'), Buffer.from('reviewed starter bytes'), Buffer.from(zipSync({

@@ -82,7 +82,7 @@ code reviews, not authenticated GitHub human approvals.
 - Actual new-cache/empty-settings Maven gateway consumer passed native segmented
   health-bar checks; live browser Download Zero retrieved the measured ZIP.
 - Public artifact source of truth: [kit manifest](../release/kit.json) and
-  [Community manifest](../release/community.json). Published bytes are immutable.
+  historical `release/community.json` (retired). Published bytes are immutable.
 
 ## Independent source review coverage
 

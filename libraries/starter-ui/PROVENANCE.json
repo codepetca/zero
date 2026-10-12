@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "sourceRepository": "https://github.com/codepetca/zero-community",
+  "sourceCommit": "d0a499b5509b75564d8b6562ba766ab732e70032",
+  "sourceFilesSha256": {
+    "packages/starter-ui/API.md": "bd331dbadaa14ee19fc7eccb873f88900f3da1efca7014d46920408192a819aa",
+    "packages/starter-ui/LICENSE": "a5dd29be82a15cef2a75a71e73579c11b6789e8230fe4e499e989ff55bb4b5b5",
+    "packages/starter-ui/pom.xml": "47e1b4fffc8710dfd1bddeacf9073f7c8d3cc5f0a2d3d75f1a43ce8a1557a5cd",
+    "packages/starter-ui/README.md": "73b101eb100ace9fc04bec571d65a0763dde06c63a41e37a6773e07e05a7e395",
+    "packages/starter-ui/checks/StarterUiCheck.java": "ee3682b0092924fccf7b29ca61aca7299c7342da81b572147f4f9e381f33c952",
+    "packages/starter-ui/src/main/java/zero/community/starterui/StartScreen.java": "6dbf30a4c192136dd6d301931c88153921ae28b2c602b82cdcbca9d78a57f98c",
+    "packages/starter-ui/src/main/java/zero/community/starterui/Hud.java": "820339c34737cd608a2a23d3a2756b63dabe93f2b78d0183f95f509e488b0b95",
+    "packages/starter-ui/src/main/java/zero/community/starterui/ScoreDisplay.java": "9c0b096b8b65574f902a517591133737824cb3975ae8f25cf1dfe51f90678681",
+    "packages/starter-ui/src/main/resources/META-INF/LICENSE": "a5dd29be82a15cef2a75a71e73579c11b6789e8230fe4e499e989ff55bb4b5b5"
+  },
+  "changes": [
+    "Imported maintained source into the Zero repository.",
+    "Renamed Java package and local Maven coordinate; preserved original MIT notice.",
+    "Adapted documentation and verification to a single repository."
+  ],
+  "publication": "Local source only; no publication implied."
+}

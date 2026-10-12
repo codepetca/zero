@@ -1,76 +1,37 @@
 # Zero repository boundaries
 
-Zero is one product with separately built parts. The download website belongs
-to the product repository; it is not part of the student's Java application.
-The public source repositories are [Zero](https://github.com/codepetca/zero) and
-[Zero Community](https://github.com/codepetca/zero-community), owned by Codepet.
+[codepetca/zero](https://github.com/codepetca/zero) owns the whole product. ZeroHub is the shared-library feature at `zero.codepet.ca/hub`, not another source repository. Its services can deploy independently.
 
-## Where work belongs
+| Folder | Responsibility |
+| --- | --- |
+| `framework/` | Canonical ordinary Java SimpleApp/SketchApp library |
+| `extension/` | Minimal supported VS Code sidebar, Run/Stop, GitHub and ZeroHub actions |
+| `student-template/` | Standalone student app, tutorials and deliberately selected examples |
+| `libraries/` | Maintained sample libraries, their source, API, examples and checks |
+| `website/` | Minimal Next.js download page, learning material and ZeroHub interface |
+| `hub/` | ZeroHub service, PostgreSQL schema, isolated checker and separate publisher |
+| `profile/` | Optional editor settings and keybindings |
+| `release/`, `scripts/` | Compatible release definitions, assembly and verification |
+| `docs/` | Product contracts, development guidance and evidence |
 
-| Folder | Owns | Does not ship in the main student starter |
-| --- | --- | --- |
-| `website/` | Next.js front page, Learn more, Community entry point | Website source/runtime |
-| `extension/` | Supported VS Code sidebar, Run/Stop and individual Git workflow | Extension contributor tests/tooling |
-| `framework/` | Canonical SimpleApp/SketchApp source and core library build | Maintainer verification harness |
-| `student-template/` | Student app, assets, examples, exercises and Maven configuration | Build outputs and maintainer-only checks |
-| `hub/` | Local package service, PostgreSQL schema, isolated checker and fake Maven publication | Hub services, Docker and maintainer tools |
-| `component-workshop/` | Local component previews/checks and contribution preparation | Workshop belongs in the separate optional kit |
-| `profile/` | Optional editor settings and keybindings | No mandatory profile import |
-| `release/` | Authored compatible kit/core versions and asset names | No binaries or fabricated release receipts |
-| `scripts/` | Source assembly, integration verification and local packaging | Node/Python maintainer tools |
-| `docs/` | Maintained guides, product contracts, design and verification | Internal plans do not become app source |
+## Source and distribution
 
-## One canonical source
+Canonical framework classes live in `framework/src/main/java/zero/`. Preparation assembles readable copies into the standalone starter. Students can edit their own copies without maintainer tools. Examples stay outside compiled source until selected deliberately.
 
-Edit framework classes in `framework/src/main/java/zero/`. Maintainer preparation
-assembles ignored readable source copies into the starter. Downloads contain
-these files and are ordinary standalone Maven Java projects; students can edit
-their own copies without running Zero's maintainer tooling. Changing a downloaded
-copy does not silently change the upstream API.
+Maintained sample libraries live in this repo. Moving a useful sample here does not promote its API into core. The Starter UI bundle groups StartScreen, Hud and ScoreDisplay; health-bar alternatives demonstrate another related-class bundle.
 
-Keep contributor-only Java harnesses separate from shipped app source. Keep
-examples outside the default compiled app until the student deliberately chooses
-one. Existing ScoreDisplay extraction lessons remain readable examples;
-promoting a helper into core is a deliberate API decision, not a folder move.
+Student apps and library source belong in students' own GitHub repositories. Uploaded libraries do not become folders in Zero. ZeroHub stores contributor identities, reservations, submissions, reports, immutable release metadata and artifact bytes in its database/storage. GitHub hosts source; Maven resolves exact downloadable library versions.
 
-The website prepares content from maintained repository documentation and release
-metadata rather than maintaining a second API reference or setup guide. Generated
-content, source copies, caches and distribution files stay out of Git.
+Components expose ordinary Java methods and a JavaFX `Node view()`. Apps own rules and state, use independent component instances and explicitly update objects. No automatic registry, new language or app-within-app engine.
 
-## Source ownership versus component distribution
+## Runtime boundaries
 
-Zero Community owns component source, examples, tests, metadata and admission
-checks. Keep its checkout beside Zero for local Workshop development. Do not add
-it as a submodule or silently clone arbitrary branches into student apps.
+The website proxies the service through `/api/hub`. Candidate Java runs in bounded isolated workers without service credentials; a separate publisher validates the checked bytes without executing candidate code. One source repo does not imply one process or shared runtime permissions.
 
-An app consumes an exact Maven library version. Its own Java code owns rules and
-state and explicitly updates ordinary objects. Zero's extension can help select
-a dependency, but Maven resolves it. A GitHub source remote is not a configured
-public Maven repository. The public health-bar catalog currently covers one
-community library. A separately versioned local Starter UI prototype lives in
-Community `packages/starter-ui/`; it is not yet supported by that catalog or
-Workshop. See [the package proof](STARTER-UI-PACKAGE.md).
+The website deploys to Vercel, with Cloudflare DNS for `zero.codepet.ca`. Database, durable storage and checking workers are separate infrastructure. Student machines need no Node, Docker or ZeroHub server.
 
-The new local hub admits supported components through trusted automated checks
-without routine maintainer acceptance. Core promotion remains a separate source/API
-decision and review. Legacy health-bar acceptance helpers retain their existing
-behavior until deliberate migration. AI remains advisory. Pika coursework submission
-uses each student's own repository link and is a separate workflow.
+## Releases and checks
 
-## Releases and website deployment
+`release/kit.json` defines compatible kit/core versions and three kit assets. Packaging measures actual sizes/checksums in ignored `dist/release.json`. Verify extracted ZIP permissions, source parity and a real Maven build independently of website checks.
 
-`release/kit.json` records compatible versions, expected assets and publication
-status. Packaging creates actual sizes/checksums in ignored `dist/release.json`.
-The website distinguishes available local preview bytes from an unpublished
-public release. Preserve immutable coordinates when build metadata changes;
-a website wording change does not require a new Java kit.
-
-Each part has proportionate checks. Verify the assembled ZIP independently from
-the source workspace, including executable wrapper permissions and readable core
-source. A website build or HTTP response does not establish native Java behavior.
-
-Later, Vercel builds `website/` separately and Cloudflare manages `zero.codepet.ca`
-DNS. Include repository sources outside the Vercel Root Directory for build-time
-documentation/release preparation. The optional new hub service lives outside the student kit and has its own
-local authentication/database/checker proof. A student Node runtime or live AI
-service is not required. Hosted hub activation is a separate deployment milestone. See [the website plan](WEBSITE-PLAN.md) for rollout authority.
+ZeroHub has a local verified implementation; public activation requires authentication and hosted infrastructure plus the outstanding independent checker review. Native macOS ARM64 and Linux ARM64 checker evidence do not establish physical Windows/Linux or novice usability. See [development](DEVELOPMENT.md), [components](COMPONENTS.md) and [verification](VERIFICATION.md).

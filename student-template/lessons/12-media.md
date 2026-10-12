@@ -133,4 +133,4 @@ Restart after winning and collect a coin again. Click the canvas to resume keys.
 
 **Change:** change the win/loss message in Main; demonstrate both endings.
 
-Previous: [Share a component](11-community.md). Return to the [lesson index](README.md).
+Previous: [Share a component](11-zerohub.md). Return to the [lesson index](README.md).

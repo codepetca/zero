@@ -1,4 +1,4 @@
-# Local PostgreSQL hub service
+# ZeroHub PostgreSQL service
 
 This is a local integration implementation. It changes no existing catalog or
 published release and provisions no hosted database, object store or OAuth app.
@@ -104,6 +104,6 @@ endpoints supply the numeric identity; the access token stays transient. Session
 cookies (`zero_hub_session`, `zero_hub_oauth`) are HttpOnly/SameSite=Lax and Secure
 on HTTPS. Every mutation requires the active session, exact Origin and matching
 `X-Zero-CSRF`. Logout destroys that session. Sign-in redirects to
-`/community/prepare`. Production hosting, HTTPS/OAuth provisioning, rate limiting,
+`/hub/prepare`. Production hosting, HTTPS/OAuth provisioning, rate limiting,
 separate hosted worker roles and operational hardening remain separate deployment
 work; this local process is not a hosted service claim.

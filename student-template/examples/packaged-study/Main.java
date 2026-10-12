@@ -1,5 +1,5 @@
-import zero.community.starterui.StartScreen;
-import zero.community.starterui.Hud;
+import zero.starterui.StartScreen;
+import zero.starterui.Hud;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;

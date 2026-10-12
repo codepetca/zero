@@ -5,7 +5,7 @@ import {zipSync, unzipSync} from 'fflate';
 import assert from 'node:assert/strict';
 import {coreSources, prepareStarter} from './prepare-starter.mjs';
 import {starterMembers, setupMembers} from './kit.mjs';
-import {root, releaseDefinition, writeReleaseMetadata, verifiedExistingAssets} from './release.mjs';
+import {root, releaseDefinition, writeReleaseMetadata} from './release.mjs';
 
 prepareStarter();
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
@@ -14,14 +14,6 @@ copyFileSync(path.join(root, 'LICENSE'), path.join(root, 'extension/LICENSE'));
 const release = releaseDefinition(), dist = path.join(root, 'dist');
 if (release.publication.status === 'published') throw new Error('This kit version is published and immutable. Set a new local kit version before rebuilding release assets.');
 mkdirSync(dist, {recursive:true});
-const retained = verifiedExistingAssets().filter(key => key === 'components');
-const exampleAssets = path.join(root, 'extension/media/component-example');
-mkdirSync(path.join(exampleAssets, 'zero'), {recursive:true});
-// Trusted Try source comes directly from the canonical framework.
-copyFileSync(path.join(root, 'framework/src/main/java/zero/SimpleApp.java'), path.join(exampleAssets, 'zero/SimpleApp.java'));
-for (const name of ['mvnw', 'mvnw.cmd']) copyFileSync(path.join(root, 'student-template', name), path.join(exampleAssets, name));
-mkdirSync(path.join(exampleAssets, '.mvn/wrapper'), {recursive:true});
-for (const name of readdirSync(path.join(root, 'student-template/.mvn/wrapper'))) copyFileSync(path.join(root, 'student-template/.mvn/wrapper', name), path.join(exampleAssets, '.mvn/wrapper', name));
 const vsix = release.assets.extension.filename;
 const result = spawnSync(process.execPath, [path.join(root, 'node_modules/@vscode/vsce/vsce'),
   'package', '--no-dependencies', '--allow-missing-repository', '--out', path.join(dist, vsix)
@@ -59,5 +51,5 @@ assert.ok(combined['zero-kit/starter/src/main/java/Main.java']);
 assert.ok(combined[`zero-kit/${vsix}`]);
 assert.ok(!Object.keys(combined).some(key => key.endsWith('.zip')));
 for (const name of ['Zero.code-profile', 'optional-keybindings.json']) copyFileSync(path.join(root, 'profile', name), path.join(dist, name));
-writeReleaseMetadata(['kit', 'starter', 'extension', ...retained]);
+writeReleaseMetadata(['kit', 'starter', 'extension']);
 console.log(`Packaged flat zero-kit/ and standalone starter, ${vsix}, and measured dist/release.json locally.`);

@@ -13,9 +13,9 @@ import xml.etree.ElementTree as ET
 
 ZERO = Path(__file__).resolve().parent.parent
 VERSION = '0.1.0-prototype.1'
-COORDINATE = 'ca.codepet.zero.community:starter-ui:' + VERSION
+COORDINATE = 'ca.codepet.zero:starter-ui:' + VERSION
 NAMES = ('StartScreen', 'Hud', 'ScoreDisplay')
-PACKAGE = 'zero/community/starterui/'
+PACKAGE = 'zero/starterui/'
 ARTIFACT = 'starter-ui-' + VERSION
 NS = {'m': 'http://maven.apache.org/POM/4.0.0'}
 
@@ -43,13 +43,12 @@ def archive(path, expected):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--community-root', type=Path, required=True,
-                        help='Trusted owner-controlled local Community checkout (not an admission sandbox).')
+    parser.add_argument('--cache-from', type=Path,
+                        help='Copy an existing trusted Maven cache into the isolated evidence cache.')
     parser.add_argument('--output', type=Path, default=ZERO / '.verification/starter-ui',
                         help='Fresh evidence directory; existing paths are refused.')
     args = parser.parse_args()
-    community = args.community_root.resolve(strict=True)
-    module = community / 'packages/starter-ui'
+    module = ZERO / 'libraries/starter-ui'
     source_paths = [module / 'pom.xml', module / 'LICENSE', module / 'README.md', module / 'API.md',
                     module / 'checks/StarterUiCheck.java', module / 'src/main/resources/META-INF/LICENSE']
     source_paths += [module / ('src/main/java/' + PACKAGE + name + '.java') for name in NAMES]
@@ -74,12 +73,12 @@ def main():
     if pom.findtext('m:properties/m:maven.compiler.release', namespaces=NS) != '17':
         raise RuntimeError('Java release drift')
     license_bytes = (module / 'LICENSE').read_bytes()
-    if license_bytes != (community / 'LICENSE').read_bytes() or license_bytes != source_paths[5].read_bytes():
+    if license_bytes != (ZERO / 'LICENSE').read_bytes() or license_bytes != source_paths[5].read_bytes():
         raise RuntimeError('MIT notice drift')
     # Namespace is the sole source change from the separate educational copies.
     for name in NAMES:
         origin = 'shared' if name == 'ScoreDisplay' else 'composition-shared'
-        expected = b'package zero.community.starterui;\n\n' + (ZERO / f'student-template/examples/{origin}/{name}.java').read_bytes()
+        expected = b'package zero.starterui;\n\n' + (ZERO / f'student-template/examples/{origin}/{name}.java').read_bytes()
         if (module / ('src/main/java/' + PACKAGE + name + '.java')).read_bytes() != expected:
             raise RuntimeError(f'Educational behavior/source drift: {name}')
     output = args.output.absolute()
@@ -87,14 +86,16 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     output = output.resolve()
     cache = output / 'cache'
+    if args.cache_from:
+        shutil.copytree(args.cache_from.resolve(strict=True), cache)
     settings = output / 'settings.xml'
     settings.write_text('<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"/>\n')
     wrapper = ZERO / 'student-template' / ('mvnw.cmd' if os.name == 'nt' else 'mvnw')
     common = [wrapper, '-B', '-s', settings, '-gs', settings, f'-Dmaven.repo.local={cache}']
     started = time.monotonic()
-    hashes = {str(path.relative_to(community)): digest(path) for path in source_paths}
+    hashes = {str(path.relative_to(ZERO)): digest(path) for path in source_paths}
     source_digest = hashlib.sha256(json.dumps(hashes, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
-    metadata = 'META-INF/maven/ca.codepet.zero.community/starter-ui/'
+    metadata = 'META-INF/maven/ca.codepet.zero/starter-ui/'
     binary_files = {'META-INF/MANIFEST.MF', 'META-INF/LICENSE', metadata + 'pom.xml', metadata + 'pom.properties'}
     binary_files.update(PACKAGE + name + '.class' for name in NAMES)
     source_files = {'META-INF/MANIFEST.MF', 'META-INF/LICENSE', metadata + 'pom.xml', metadata + 'pom.properties'}
@@ -124,10 +125,10 @@ def main():
     if builds[0] != builds[1]:
         raise RuntimeError('Two clean builds were not reproducible')
     # Re-check exact source bytes after compilation before install/consumer execution.
-    if hashes != {str(path.relative_to(community)): digest(path) for path in source_paths}:
+    if hashes != {str(path.relative_to(ZERO)): digest(path) for path in source_paths}:
         raise RuntimeError('Source changed during verification')
     run(common + ['-f', output / 'build-1/pom.xml', 'install', '-DskipTests'], ZERO, output / 'install.log')
-    installed = cache / 'ca/codepet/zero/community/starter-ui' / VERSION / (ARTIFACT + '.jar')
+    installed = cache / 'ca/codepet/zero/starter-ui' / VERSION / (ARTIFACT + '.jar')
     installed_sources = installed.with_name(ARTIFACT + '-sources.jar')
     installed_pom = installed.with_suffix('.pom')
     if digest(installed) != builds[0]['binary'] or digest(installed_sources) != builds[0]['sources'] or installed_pom.read_bytes() != (module / 'pom.xml').read_bytes():
@@ -137,7 +138,7 @@ def main():
     java.mkdir(parents=True)
     shutil.copy2(module / 'checks/StarterUiCheck.java', java / 'StarterUiCheck.java')
     check_pom = (ZERO / 'student-template/pom.xml').read_text()
-    dependency = f'<dependency><groupId>ca.codepet.zero.community</groupId><artifactId>starter-ui</artifactId><version>{VERSION}</version></dependency>'
+    dependency = f'<dependency><groupId>ca.codepet.zero</groupId><artifactId>starter-ui</artifactId><version>{VERSION}</version></dependency>'
     (consumer / 'pom.xml').write_text(check_pom.replace('</dependencies>', dependency + '\n</dependencies>'))
     env = os.environ.copy()
     env['EXPECTED_STARTER_UI_JAR'] = str(installed)
@@ -145,17 +146,17 @@ def main():
         ZERO, output / 'finite-check.log', env, 'STARTER_UI_OK')
     run(['python3', ZERO / 'scripts/verify-examples.py', '--only', 'packaged-study', 'packaged-game',
          '--starter-ui-repository', cache, '--maven-settings', settings], ZERO, output / 'consumers.log', marker='All 2 selected GUI example checks passed')
-    if hashes != {str(path.relative_to(community)): digest(path) for path in source_paths}:
+    if hashes != {str(path.relative_to(ZERO)): digest(path) for path in source_paths}:
         raise RuntimeError('Source changed during consumer checks')
     receipt = {'schema': 1, 'status': 'local-verified', 'coordinate': COORDINATE,
-               'communityRoot': str(community), 'sourceState': 'working-tree', 'sourceFiles': hashes,
+               'zeroRoot': str(ZERO), 'module': 'libraries/starter-ui', 'sourceState': 'working-tree', 'sourceFiles': hashes,
                'sourceDigestSha256': source_digest, 'reproducibleBuilds': builds,
                'artifacts': {p.name: {'sha256': digest(p), 'bytes': p.stat().st_size} for p in artifacts.iterdir()},
                'installedJar': str(installed), 'checks': ['exact archives', 'canonical source binding', 'MIT notices',
                'two clean reproducible builds', 'installed JAR origin', 'finite JavaFX behavior', 'packaged-study', 'packaged-game'],
                'seconds': round(time.monotonic() - started, 2),
                'limits': ['trusted local Java execution', 'synthetic button actions', 'physical input untested',
-                          'Windows/Linux untested', 'no publication or Community admission']}
+                          'Windows/Linux untested', 'no publication or ZeroHub submission']}
     (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(f'STARTER_UI_VERIFIED {output / "receipt.json"}', flush=True)
 

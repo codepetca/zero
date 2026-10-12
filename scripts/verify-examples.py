@@ -424,18 +424,18 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
             main_class, marker = 'ExampleCheck', 'EXAMPLE_OK ' + kind
             check_source = harness.replace('CHECK', check).replace('KIND', kind)
             if kind.startswith('packaged-'):
-                namespace = f'zero.{args.hub_library_id}' if args.hub_library_id else 'zero.community.starterui'
+                namespace = f'zero.{args.hub_library_id}' if args.hub_library_id else 'zero.starterui'
                 check_source = f'import {namespace}.*;\n' + check_source
                 if args.hub_library_id:
                     main_file = dest/'src/main/java/Main.java'
-                    main_file.write_text(main_file.read_text().replace('zero.community.starterui', namespace))
+                    main_file.write_text(main_file.read_text().replace('zero.starterui', namespace))
         (dest/'src/main/java'/f'{main_class}.java').write_text(check_source)
         wrapper = 'mvnw.cmd' if os.name == 'nt' else './mvnw'
         extra = ['-s', str(args.maven_settings), '-gs', str(args.maven_settings)] if args.maven_settings else []
         run_env = None
         if kind.startswith('packaged-'):
             pom = dest/'pom.xml'
-            dependency = '<dependency><groupId>ca.codepet.zero.community</groupId><artifactId>starter-ui</artifactId><version>0.1.0-prototype.1</version></dependency>'
+            dependency = '<dependency><groupId>ca.codepet.zero</groupId><artifactId>starter-ui</artifactId><version>0.1.0-prototype.1</version></dependency>'
             if args.hub_library_id:
                 dependency = f'<dependency><groupId>ca.codepet.zero.library</groupId><artifactId>{args.hub_library_id}</artifactId><version>{args.hub_library_version}</version></dependency>'
                 from xml.sax.saxutils import escape
@@ -443,7 +443,7 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
                 pom.write_text(pom.read_text().replace('</project>', repository + '\n</project>'))
             pom.write_text(pom.read_text().replace('</dependencies>', dependency + '\n  </dependencies>', 1))
             extra.append(f'-Dmaven.repo.local={args.starter_ui_repository}')
-            artifact = args.starter_ui_repository/'ca/codepet/zero/community/starter-ui/0.1.0-prototype.1/starter-ui-0.1.0-prototype.1.jar'
+            artifact = args.starter_ui_repository/'ca/codepet/zero/starter-ui/0.1.0-prototype.1/starter-ui-0.1.0-prototype.1.jar'
             if args.hub_library_id:
                 artifact = args.starter_ui_repository/f'ca/codepet/zero/library/{args.hub_library_id}/{args.hub_library_version}/{args.hub_library_id}-{args.hub_library_version}.jar'
             if not args.hub_library_id and not artifact.is_file():

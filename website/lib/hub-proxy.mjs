@@ -28,7 +28,7 @@ function failure(message, status) { return Response.json({error: message}, {stat
 export async function proxyHub(request, parts, options = {}) {
   let destination;
   try { destination = hubDestination(options.destination ?? process.env.ZERO_HUB_URL); } catch { return failure('Hub configuration is invalid.', 503); }
-  if (!destination) return failure('Community hub is not configured. Existing community downloads remain available.', 503);
+  if (!destination) return failure('ZeroHub is not configured.', 503);
   const path = hubPath(parts, request.method);
   if (!path) return failure('Unknown hub endpoint.', 404);
   const target = new URL(`/api/hub/${path}`, destination);
@@ -63,7 +63,7 @@ export async function proxyHub(request, parts, options = {}) {
       // Next can normalize Request.url to localhost for a 127.0.0.1 visit.
       // Relative redirects retain the browser's host and its host-only cookies.
       if (location.origin === destination.origin && location.pathname.startsWith('/api/hub/')) output.set('Location', `${location.pathname}${location.search}`);
-      else if ([destination.origin,website.origin].includes(location.origin) && ['/community','/community/prepare'].includes(location.pathname) && !location.search && !location.hash && !location.username && !location.password) output.set('Location',location.pathname);
+      else if ([destination.origin,website.origin].includes(location.origin) && ['/hub','/hub/prepare'].includes(location.pathname) && !location.search && !location.hash && !location.username && !location.password) output.set('Location',location.pathname);
       else if (path === 'auth/start' && location.origin === 'https://github.com' && location.pathname === '/login/oauth/authorize' && !location.username && !location.password && !location.hash) output.set('Location',location.href);
       else return failure('Hub returned an unsafe redirect.', 502);
       return new Response(null, {status:upstream.status,headers:output});
@@ -77,6 +77,6 @@ export async function proxyHub(request, parts, options = {}) {
     if (preview && request.method !== 'HEAD' && upstream.ok && (bytes.length < 8 || ![137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v))) return failure('Hub preview is not a PNG.',502);
     output.set('Content-Type', preview && upstream.ok ? 'image/png' : type);
     return new Response(request.method === 'HEAD' ? null : bytes, {status:upstream.status,headers:output});
-  } catch { return failure('Community hub is unavailable. Try again shortly.',502); }
+  } catch { return failure('ZeroHub is unavailable. Try again shortly.',502); }
   finally { clearTimeout(timer); }
 }

@@ -225,7 +225,7 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
   function json(res,status,value) { res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}); res.end(JSON.stringify(value)); }
   async function oauthStart(req,res) {
     if (localUser) {
-      await openSession(res,localUser); res.writeHead(302,{Location:'/community/prepare','Cache-Control':'no-store'}); return res.end();
+      await openSession(res,localUser); res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); return res.end();
     }
     if (!oauth) throw problem(503,'GitHub authentication is not configured');
     const state=token(); const binding=token();
@@ -249,7 +249,7 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
     const user=await profile.json();
     if (!profile.ok || !Number.isSafeInteger(user.id) || user.id<1) throw problem(502,'GitHub identity verification failed');
     await openSession(res,identity(user));
-    res.writeHead(302,{Location:'/community/prepare','Cache-Control':'no-store'}); res.end();
+    res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); res.end();
   }
   async function serveArtifact(req,res,requestPath) {
     const {rows}=await pool.query('SELECT manifest FROM hub_releases');

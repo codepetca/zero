@@ -2,7 +2,7 @@ import {mkdirSync, writeFileSync, chmodSync, mkdtempSync} from 'node:fs';
 import path from 'node:path';
 import {unzipSync} from 'fflate';
 import {spawnSync} from 'node:child_process';
-import {processSpecification} from './workshop-process.mjs';
+import {processSpecification} from './process-specification.mjs';
 
 export function extractProject(archive, prefix, parent) {
   const directory = mkdtempSync(path.join(parent, 'zero extracted with spaces '));

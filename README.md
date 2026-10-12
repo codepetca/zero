@@ -31,8 +31,8 @@ The complete kit is a single ZIP; original Zero code is MIT licensed.
 - [Student/teacher setup](docs/GETTING-STARTED.md)
 - [Starter and example copy instructions](student-template/README.md)
 - [Student API](student-template/API.md)
-- [Component lifecycle and Workshop](docs/COMPONENTS.md)
-- [Zero Community: component source and contributions](https://github.com/codepetca/zero-community)
+- [ZeroHub components and libraries](docs/COMPONENTS.md)
+- [ZeroHub local run guide](hub/README.md)
 - [Product scope and contracts](docs/PRODUCT.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
 - [Release preparation and publication](docs/RELEASING.md)
@@ -53,13 +53,13 @@ profile. The sidebar also supports dark themes.
 
 ## Project layout
 
-- `website/`: Next.js download website, guided tutorials, examples, docs and Community.
+- `website/`: Next.js download website, guided tutorials, examples, docs and ZeroHub.
 - `extension/`: sidebar and commands using supported VS Code APIs.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`
   is the canonical component reused by quiz, practice and study apps.
-- `component-workshop/`: native preview, examples/API, explicit candidate build/checks
-  and local contribution export for the separate community library.
+- `hub/`: ZeroHub service, database, isolated checks and immutable Maven publication.
+- `libraries/`: maintained component bundles, API, examples and checks.
 - `framework/`: canonical Java source and core JAR build; readable source copies
   are assembled into the standalone student starter.
 - `profile/`: optional light settings profile and separate F6/F7 bindings.
@@ -74,12 +74,8 @@ Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
 `npm run package` creates local artifacts in `dist/`: `zero-0.5.7.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
-kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After preparing the committed public component candidate and Workshop with
-`--public` as described in [Development](docs/DEVELOPMENT.md),
-`npm run package:components` creates `zero-community-workshop-0.1.3.zip`.
-It contains the editable Workshop/source, one pinned community version and its
-verified local Maven repository. Historical update/revert verification is separate.
-These are experimental local artifacts; packaging does not publish them.
+kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile.
+ZeroHub projects are generated/downloaded through `/hub`; no separate Workshop kit or contribution repository is needed. See [Development](docs/DEVELOPMENT.md) for local library and full-flow checks. Local packaging does not publish.
 
 Maintainers approve a reviewed new version with `npm run release:publish -- --version 0.5.4`.
 The command checks, publishes verified files, updates the website through a checked PR
@@ -89,5 +85,4 @@ recovery and the read-only `--verify-only` option.
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
 Original Zero code is available under the [MIT license](LICENSE). Bundled
-upstream dependencies and wrapper notices retain their own terms. Zero Community
-original source is also MIT licensed; its experimental archive is not part of this release.
+upstream dependencies and wrapper notices retain their own terms. Migrated sample libraries retain their MIT notices.

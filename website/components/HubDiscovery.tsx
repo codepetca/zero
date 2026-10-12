@@ -13,8 +13,8 @@ export function HubDiscovery() {
   useEffect(()=>{let active=true; setOrigin(window.location.origin); fetch('/api/hub/catalog',{cache:'no-store'}).then(async response=>{const data=await response.json(); if(!response.ok) throw new Error(data.error || 'Hub unavailable.'); if(!Array.isArray(data.libraries)) throw new Error('Hub catalog is invalid.'); if(active)setCatalog(data);}).catch(error=>{if(active)setError(error.message);});return()=>{active=false;};},[]);
   return <section aria-labelledby="hub-components"><h2 id="hub-components">Library components</h2>
     {error ? <p className="fine-print" role="status">{error}</p> : !catalog ? <p role="status">Loading libraries…</p> : <>
-      {catalog.mode==='local' && <p className="community-preview-note">Local test hub. These libraries are published only to this local service.</p>}
-      {selection && <p className="community-preview-note">Exact release: {selection.library} · {selection.version}. <Link href="/community">Browse latest components</Link></p>}
+      {catalog.mode==='local' && <p className="hub-note">Local test hub. These libraries are published only to this local service.</p>}
+      {selection && <p className="hub-note">Exact release: {selection.library} · {selection.version}. <Link href="/hub">Browse latest components</Link></p>}
       {selection && !catalog.libraries.some(library=>library.status==='automatically-checked'&&library.libraryId===selection.library&&library.version===selection.version) && <p role="status">That exact checked release is unavailable. No newer release has been substituted.</p>}
       <div className="hub-form"><label htmlFor="component-search">Find a component</label><input id="component-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Name or description" /></div>
       <div className="component-choices">{(selectedLibraries(catalog.libraries,selection) as HubRelease[]).flatMap(library=>library.components.filter(component=>`${component.className} ${component.description} ${library.title}`.toLowerCase().includes(search.toLowerCase())).map(component=>{
@@ -27,6 +27,6 @@ export function HubDiscovery() {
       }))}</div>
       {!catalog.libraries.length && <p>No libraries have passed the local hub checks yet.</p>}
     </>}
-    <Link className="button secondary compact" href="/community/prepare">Make a library</Link>
+    <Link className="button secondary compact" href="/hub/prepare">Make a library</Link>
   </section>;
 }

@@ -8,8 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import zero.community.starterui.StartScreen;
-import zero.community.starterui.Hud;
+import zero.starterui.StartScreen;
+import zero.starterui.Hud;
 public class PreviewSnapshot extends Application {
     public void start(Stage stage) {
         try {

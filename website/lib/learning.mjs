@@ -89,10 +89,10 @@ export const lessons = [
   },
   {
     "id": "11",
-    "title": "Share with Community",
-    "description": "Check a component and propose a contribution.",
-    "topic": "Workshop, evidence, fork and pull request",
-    "doc": "workshop",
+    "title": "Share with ZeroHub",
+    "description": "Prepare a library and upload it for automatic checks.",
+    "topic": "Prepare, edit, upload, checks, exact releases",
+    "doc": "components",
     "anchor": ""
   },
   {
@@ -304,6 +304,7 @@ export const examples = [
   },
 ];
 export const quickLinks = [
+  { title: "ZeroHub", description: "Use and share small Java libraries.", href: "/hub" },
   {
     title: "Beginner toolkit",
     description: "Start with a small set for apps or games.",

@@ -19,7 +19,7 @@ Mac0.5.7 and standalone0.5.3 bytes remain immutable.
 | --- | --- | --- |
 | Label, Button, TextField, VBox, HBox, BorderPane | Native JavaFX, available now | Default UI vocabulary; use directly before adding wrappers. |
 | ScoreDisplay | Shared readable example, reused now | Show an app-owned number in a quiz and game; view/setScore convention. |
-| HealthBar / SegmentedHealthBar | Experimental Community0.1.3 | Display supplied health/energy; compare alternatives, explicitly pin versions. |
+| HealthBar / SegmentedHealthBar | Maintained sample library | Display supplied health/energy; compare alternatives, explicitly pin versions. |
 | Countdown | Proposed ordinary Java helper | Try a timed quiz and game before promotion; explicit update(seconds), reset and reading remaining time. |
 | Welcome/result panel | Proposed layout examples | First prove welcome→activity→result→restart in both projects; keep navigation rules in Main. |
 | Player, Coin, Camera | Existing ordinary game examples | Keep game-specific behavior in examples; promote only a demonstrated reusable contract. |
@@ -62,47 +62,8 @@ expecting its timer or game rules to stop.
 
 ## Component creation and contribution
 
-Lesson10 creates an ordinary source component and reuses it across the pair.
-The current Workshop previews/checks the two declared health bars; it is not yet a
-general custom-component builder. Lesson11 must describe that limit accurately.
-A later generic component workbench should create a source project with named
-examples, concise API, behavior checks and metadata, then use the existing
-maintainer-reviewed Community workflow. Keep student Pika submissions separate.
-No arbitrary source is silently installed and no teacher becomes default reviewer.
+Lesson10 extracts an ordinary source component and reuses it across the pair. Lesson11 prepares an assigned ZeroHub library project, runs its editable preview, develops API/checks/two consumers, uploads the folder and reads automatic results. Passing versions are listed without routine maintainer acceptance; Pika links stay separate.
 
-Next acceptance should be based on two real consumers, clear ownership, independent
-instances, reset/edge behavior, errors and a readable contribution example.
-Package updates remain explicit and version-pinned. Core promotion remains a
-maintainer decision after demonstrated usefulness.
+The Starter UI bundle groups StartScreen, Hud and ScoreDisplay. Main owns state/actions; callbacks connect views. Health-bar alternatives are another maintained bundle. Both live in `libraries/`, not core. See [package proof](STARTER-UI-PACKAGE.md).
 
-## Next component workbench
-
-Before extending the workbench, the owner selected an actual local Starter UI
-package consumed unchanged in the two apps. See [the package proof](STARTER-UI-PACKAGE.md).
-The three classes move together as one Maven artifact; consuming apps still own
-their rules. This separately versioned prototype is not yet in the public catalog
-or current health-bar Workshop.
-
-The local trial proved build→check→export→independent admission for the current
-health bars, including stale-evidence rejection and an edited-source rebuild.
-Admission means checked, not accepted or published. An arbitrary StartScreen is
-explicitly rejected by the current preview contract. Do not claim general authoring
-until that contract changes and is independently reviewed.
-
-The smallest proposed extension is a component project with:
-
-- One ordinary class or a small set of composed classes; no Application subclass.
-- Named preview examples for starting, updated and reset states, plus two complete consumers.
-- A short API card: constructor/configuration, input methods and outgoing actions.
-- A declared meaningful check entry point, source-bound report and contribution export.
-- The existing maintainer-reviewed source PR and immutable versioned-library release.
-
-Use familiar JavaFX vocabulary (Node/layout/button action). Inputs are methods;
-outgoing actions are supplied callbacks. Add typed callbacks/interfaces only when
-an example needs values, and teach them after the basic source reuse lesson.
-An entire app is a runnable consumer; its reusable screen/UI/model parts can be
-components. No automatic event bus, dependency injection or app-within-app system.
-Preserve pinned dependencies and source-bound checks. Trusted local preview has
-normal process permissions; remote submissions retain their existing CI boundary.
-Generic check execution needs a specific trust/verification design, not arbitrary
-contributor commands in the installed IDE. This next workbench is planned, not built.
+An entire app remains a runnable consumer; reusable UI/model parts can become components. No event bus, mandatory inheritance or app-within-app engine. First policy permits self-contained JavaFX widgets with `Node view()` and no additional library dependencies. Package updates remain explicit and pinned. Automatically checked describes the disclosed checks, not all correctness or usefulness.

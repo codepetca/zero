@@ -55,10 +55,10 @@ compares exactly with 5 and does not score. Both examples remain available.
 Ask students to trace one changed value and demonstrate a normal and repeat/reset
 check. Assess working behavior, understandable code and recorded results.
 
-## Community and readiness
+## ZeroHub and readiness
 
 Lesson 11 proposes a contribution; export/CI/AI do not accept or publish it.
-The current Workshop checks HealthBar, not arbitrary new components. Pika
+ZeroHub checks self-contained JavaFX widgets and two consumers; hosted activation is pending. Pika
 coursework submission stays separate. No credentials belong in evidence.
 
 Complete installation on school machines before teaching. Physical Windows/Linux,

@@ -7,17 +7,18 @@ Main keeps the question, scoring and session rules; Question remains app source.
 
 ## Run the local proof
 
-From the Zero source checkout, use the existing sibling Community source path:
+From the Zero source checkout, use the maintained library in `libraries/starter-ui`:
 
 ```sh
-python3 scripts/verify-starter-ui.py --community-root /path/to/zero-community
+python3 scripts/verify-starter-ui.py
 ```
 
 This builds the package and runs both consumers in disposable projects with an
 isolated Maven cache. It requires maintainer Python and a JDK, uses the bundled
 Maven wrapper and needs network access for first-time pinned dependencies.
 It does not change your app, install to your normal Maven cache or upload anything.
-The package is not yet in the public catalog or the student Workshop.
+The standalone coordinate is local and unpublished. ZeroHub uses its own reserved
+library coordinate for the same source.
 
 ## Exact consumer files
 
@@ -36,7 +37,7 @@ The generated proof POM adds this exact dependency:
 
 ```xml
 <dependency>
-  <groupId>ca.codepet.zero.community</groupId>
+  <groupId>ca.codepet.zero</groupId>
   <artifactId>starter-ui</artifactId>
   <version>0.1.0-prototype.1</version>
 </dependency>

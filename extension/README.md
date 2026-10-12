@@ -134,24 +134,13 @@ and their limits are recorded
 in the bundled `VERIFICATION.md`; physical Windows/Linux checks
 remain pending. Review focused changes before classroom adoption.
 
-## Local community prototype
+## ZeroHub libraries
 
-Open the Zero view title (…) menu for Components, or use the command palette.
-Choose the local kit's catalog.json; browse HealthBar, inspect its API, try the
-packaged example or add its pinned Maven library. Update/Revert show the exact
-version change, preserve Java source, save an undoable native POM edit and run.
-Dirty POMs, changed catalogs/documents/roots, incompatible projects and copied
-classes that shadow the dependency require correction before edits. These
-commands make no Git commit, upload, authentication or silent upgrade.
+Open the Zero view title (…) menu → Browse ZeroHub, or use the command palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
 
-Try runs trusted bundled source/wrapper in a temporary project/cache under the
-same owned Run/Stop lifecycle. Catalog example paths are descriptions, not code
-executed by Zero. The local catalog verifies artifacts but is not a public
-registry or security sandbox; Maven resolves project dependencies normally.
-Use the separate Component Workshop to edit/check trusted source and prepare
-a local packet. MIT-licensed experimental fixtures are not community-approved;
-public release and live AI remain unconfigured. Physical editor/Windows/Linux
-flows remain unverified.
+Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
+
+Library authors use `/hub/prepare` to download an editable preview project and upload it for automated checks. Public activation is pending; the configured local service uses an explicit demo identity. Physical installed-editor/Windows/Linux flows remain unverified.
 
 ## Setup checklist
 

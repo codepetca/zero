@@ -1,14 +1,10 @@
 # Zero component hub — local build
 
-This local hub adds a generic path alongside the published health-bar catalog.
-PostgreSQL stores library ownership, submissions, check reports and release
-manifests. An offline Docker worker builds/checks Java; a separate service operation
-publishes the exact checked bytes to a local immutable Maven repository. The
-existing public website/downloads and legacy Workshop remain unchanged.
+ZeroHub is the shared-library feature inside Zero. PostgreSQL stores ownership, submissions, reports and manifests; an isolated Docker checker builds Java and a separate publisher stores immutable Maven bytes. The site entry is `/hub`. There is no separate Community repository or Workshop/catalog path.
 
 ## Student flow
 
-1. Open Community → Make a library. Sign in; choose a Java class name and title.
+1. Open ZeroHub → Make a library. Sign in; choose a Java class name and title.
 2. Download the project. The hub supplies a short namespace such as `zero.ui7`.
    Extract it and open the folder in Zero's VS Code profile. The standard build
    shortcut runs the editable preview; Maven config and wrapper are included.
@@ -26,17 +22,9 @@ Credit comes from the authenticated account recorded with each submission, never
 an uploaded name or profile URL. The numeric account ID stays fixed; a later
 authenticated username change updates display credit without replacing releases.
 
-New hub submissions use the database and artifact store; they do not need a
-central contribution repository. `zero-community` currently preserves published
-health-bar releases, the legacy Workshop and the Starter UI dogfood fixture.
-It remains available while these dependencies are migrated deliberately. Existing
-release URLs and source/license history must be preserved if it is archived.
+Student library source stays in students' own repositories; uploaded versions live in the database/artifact store, not Zero's Git tree. Maintained sample bundles live in `libraries/`.
 
-On a configured hub, Zero's (…) → Browse hub libraries lets students inspect and
-Add an exact Maven dependency. Update accepts a newer compatible patch; Revert
-restores that library's preceding pin. The source stays editable, pins do not
-change automatically, and independent libraries keep separate history. Existing
-Browse components continues to use the legacy public catalog.
+Zero's (…) → Browse ZeroHub offers exact Add/Update/Revert, with independent per-library history. Installed pins change only through explicit action; ordinary Maven resolves the library.
 
 ## Developer run
 
@@ -58,22 +46,22 @@ npm ci
 ZERO_HUB_URL=http://127.0.0.1:8788 npm run dev -- --port 3177
 ```
 
-Visit `http://127.0.0.1:3177/community`. Local sign-in explicitly uses the test
+Visit `http://127.0.0.1:3177/hub`. Local sign-in explicitly uses the test
 identity `zero-local-demo`; it is not GitHub authentication. The test PostgreSQL
 container is temporary and disappears on exit. Object bytes live under the
 printed ignored proof directory. Ctrl+C stops the hub and database. A missing
 hub configuration leaves existing public downloads usable.
 
-Seed the actual Starter UI dogfood package using the matching Community checkout:
+Seed the actual Starter UI dogfood package from this repository:
 
 ```sh
 node hub/local.mjs --origin http://127.0.0.1:3177 \
-  --community-root /path/to/zero-community --output .verification/hub-demo
+  --starter-ui --output .verification/hub-demo
 ```
 
 A preview is illustrative unless replaced via `--preview /path/to/preview.png`.
 The coordinated proof used a native snapshot of the canonical Starter UI views.
-This local fixture does not rename or publish Community's earlier package.
+The fixture adapts maintained source to its reserved namespace; it does not publish the maintained sample.
 
 ## Verify
 
@@ -81,7 +69,7 @@ This local fixture does not rename or publish Community's earlier package.
 npm run test:postgres --prefix hub
 node --test hub/checker/test/validation.test.mjs
 ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs
-node scripts/verify-hub.mjs --community-root /path/to/zero-community \
+node scripts/verify-hub.mjs \
   --output .verification/hub-proof
 npm test
 npm test --prefix website

@@ -2,7 +2,7 @@
 
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
-continues through counters, objects, a study app, Community sharing and a larger
+continues through counters, objects, a study app, ZeroHub sharing and a larger
 game with your own media, scrolling, platforms, two levels and endings.
 Start by editing only `src/main/java/Main.java`.
 Run App opens a separate JavaFX window. Save changes, close or

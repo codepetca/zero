@@ -8,7 +8,6 @@ const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
 const {createTransport} = require('./transport');
-const {createComponentActions} = require('./component-actions');
 const {createHubActions} = require('./hub-actions');
 const {libraryLayout} = require('./library-files');
 const {createSetupHelp} = require('./setup');
@@ -110,7 +109,6 @@ function activate(context) {
     return task;
   }
   const taskFinishes = new Map();
-  const exampleDirectories = new Map();
   function track(active) {
     if (taskFinishes.has(active)) return;
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
@@ -122,11 +120,6 @@ function activate(context) {
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
     if (event.execution.task.definition.type === 'zero') track(event.execution);
   }), vscode.tasks.onDidEndTask(event => {
-    const temporary = exampleDirectories.get(event.execution);
-    if (temporary) {
-      exampleDirectories.delete(event.execution);
-      void fs.rm(temporary,{recursive:true,force:true}).catch(error=>output.appendLine(`Example cleanup: ${error.message}`));
-    }
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
     taskFinishes.delete(event.execution); finish();
@@ -363,30 +356,6 @@ function activate(context) {
   };
   const hubActions=createHubActions(vscode,{project,isBusy,setBusy:value=>{componentBusy=value;refresh();}});
   Object.assign(actions, hubActions.commands);
-  Object.assign(actions, createComponentActions(vscode,context,{
-    project,run:queuedRun,isBusy,setBusy:value=>{componentBusy=value;refresh();},browseHub:hubActions.browse,
-    captureRunGeneration:()=>runGeneration,
-    runExample:async(root,args,generation,didLaunch=()=>{})=>{
-      const launch = async()=>{
-        if (generation !== runGeneration) return false;
-        await stop();
-        if (generation !== runGeneration) return false;
-        const spec = core.runSpecification(root);
-        const execution = spec.shell
-          ? new vscode.ShellExecution({value:spec.command,quoting:vscode.ShellQuoting.Strong},args.map(value=>({value,quoting:vscode.ShellQuoting.Strong})),{cwd:root})
-          : new vscode.ProcessExecution(spec.command,args,{cwd:root});
-        const task = new vscode.Task({type:'zero',task:'run'},vscode.TaskScope.Workspace,'Try component','Zero',execution,'$zero-java');
-        task.presentationOptions={reveal:vscode.TaskRevealKind.Always,panel:vscode.TaskPanelKind.Dedicated,clear:true,focus:false};
-        pendingLaunch = vscode.tasks.executeTask(task).then(active=>{
-          exampleDirectories.set(active,root); didLaunch(); track(active); return active;
-        });
-        try {await pendingLaunch;} finally {pendingLaunch=undefined;}
-        if (generation !== runGeneration) {await stop(); return false;}
-        return true;
-      };
-      const result = runQueue.then(launch); runQueue=result.catch(()=>{}); return result;
-    }
-  }));
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
     try {await action();} catch(error) {state = error.message; refresh(); output.appendLine(error.message); vscode.window.showErrorMessage(`Zero: ${error.message}`);}
   }));

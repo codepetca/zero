@@ -2,7 +2,7 @@
 
 Coordinator owns this contract. Implementation owners: service (`hub/service/`,
 `hub/package*`, `hub/sql/`); checker (`hub/checker/`); website (`website/` hub additions).
-Existing health-bar catalog/endpoints/Workshop and published bytes stay unchanged.
+Maintained sample libraries live in Zero; old Community catalog/Workshop endpoints are removed.
 No deployment, live credentials, pushes or public releases are authorized.
 
 ## Transport and data
@@ -77,7 +77,7 @@ Release shape `{libraryId,version,title,description,category,components,namespac
  artifacts:{jar:{sha256,size,path},sources:{sha256,size,path},pom:{sha256,size,path}},
  preview:{sha256,size,path},api, changelog, status:'automatically-checked'}`.
 Repository URL is same-origin `/api/hub/maven`; UI shows exact POM and Java import.
-Legacy website routes remain live. Hub pages clearly mark local test mode.
+The frontend entry is /hub and preparation is /hub/prepare. Hub pages clearly mark local test mode.
 
 Service `createHub({pool,storageRoot,checker,origin,localIdentity?,oauth?})` returns
 HTTP handler/lifecycle API; exact exports may be coordinated by messages. Worker
@@ -91,7 +91,7 @@ Missing configuration fails closed; current public site may display hub unavaila
 ## Acceptance
 
 Actual PostgreSQL tests: ownership/session/CSRF, reservations, validation, forged or
-stale verdicts, byte/source drift, concurrent versions/retries; old endpoints pass.
+stale verdicts, byte/source drift, concurrent versions/retries.
 Actual Docker proof: Starter UI adapted to reserved namespace, successful JAR checks
 and both consumers; compile/test failure, timeout, network/host/credential isolation.
 Website: discovery by component, containing library, preview/API, prepare/upload/

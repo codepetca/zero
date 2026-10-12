@@ -88,24 +88,8 @@
         "title": "Zero: Finish Change"
       },
       {
-        "command": "zero.components",
-        "title": "Zero: Components"
-      },
-      {
-        "command": "zero.browseComponents",
-        "title": "Zero: Browse Components"
-      },
-      {
-        "command": "zero.updateComponents",
-        "title": "Zero: Update Community Library"
-      },
-      {
-        "command": "zero.revertComponents",
-        "title": "Zero: Revert Community Library"
-      },
-      {
         "command": "zero.browseHub",
-        "title": "Zero: Browse Hub Libraries"
+        "title": "Zero: Browse ZeroHub"
       }
     ],
     "viewsContainers": {
@@ -180,16 +164,16 @@
           "type": "string",
           "default": "https://zero.codepet.ca",
           "scope": "machine",
-          "markdownDescription": "Component hub origin. Public hub activation is pending. Developers may explicitly choose a loopback HTTP origin for local verification."
+          "markdownDescription": "ZeroHub origin. Public activation is pending. Developers may explicitly choose a loopback HTTP origin for local verification."
         }
       }
     },
     "menus": {
       "view/title": [
         {
-          "command": "zero.components",
+          "command": "zero.browseHub",
           "when": "view == zero.actions",
-          "group": "zero-components"
+          "group": "zero-hub"
         }
       ]
     }

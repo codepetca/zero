@@ -5,15 +5,15 @@ function createHubActions(vscode,host,options={}) {
   const hubOrigin=()=>hub.origin(vscode.workspace.getConfiguration('zero').get('hubOrigin','https://zero.codepet.ca'));
   async function browse() {
     const context=await hub.loadCatalog(hubOrigin(),options);
-    if(!context.catalog.libraries.length) {await vscode.window.showInformationMessage('No automatically checked hub libraries are available yet.');return;}
+    if(!context.catalog.libraries.length) {await vscode.window.showInformationMessage('No automatically checked ZeroHub libraries are available yet.');return;}
     const entries=[];
     for(const release of context.catalog.libraries)for(const component of release.components)
       entries.push({label:component.className,description:`${release.title} · ${release.version}${context.catalog.mode==='local'?' · Local test':''}`,detail:`import ${release.namespace}.${component.className};`,release,component});
-    const chosen=await vscode.window.showQuickPick(entries,{title:'Hub components',placeHolder:'Choose a component; its related classes share one library'});
+    const chosen=await vscode.window.showQuickPick(entries,{title:'ZeroHub',placeHolder:'Choose a component; its related classes share one library'});
     if(!chosen)return;
     const action=await vscode.window.showQuickPick([{label:'View library and checks',action:'view'},{label:`Add library ${chosen.release.version}`,action:'add'},{label:`Update to ${chosen.release.version}`,action:'update'},{label:`Revert to ${chosen.release.version}`,action:'revert'}],{title:chosen.label,placeHolder:'Exact version; no automatic upgrades'});
     if(!action)return;
-    if(action.action==='view') {await vscode.env.openExternal(vscode.Uri.parse(`${context.origin}/community?library=${chosen.release.libraryId}&version=${chosen.release.version}`));return;}
+    if(action.action==='view') {await vscode.env.openExternal(vscode.Uri.parse(`${context.origin}/hub?library=${chosen.release.libraryId}&version=${chosen.release.version}`));return;}
     if(vscode.workspace.isTrusted===false)throw new Error('Trust your project before changing dependencies.');
     const root=await host.project();
     const document=await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,'pom.xml')));

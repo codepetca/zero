@@ -66,13 +66,15 @@ Intentional font/brand deviations above are approved design choices.
 
 ## Interaction checks
 
-Learn more → Learn → Community and API reference verified in the browser.
+Learn more → Learn → the former library page and API reference were verified in the browser.
 Local Download Zero saved the actual ZIP; checksum compared with dist receipt.
 Production without preview flag explains unpublished availability.
-Mobile landing/Learn/Community do not overflow horizontally; landing targets
+Mobile landing/Learn/former library page do not overflow horizontally; landing targets
 are about 250×60px. Keyboard Tab shows a 3px purple focus outline.
 No browser warnings/errors observed. Public release and Vercel/DNS remain pending.
 
 Independent review caught a P2 section-link defect on supporting docs. Fixed
 heading IDs and URL fragments; the browser now follows exercises →
 `/docs/starter#try-an-example` and places Try an example at the viewport top.
+
+The historical browser checks above predate the ZeroHub route consolidation and do not verify the current /hub flow.

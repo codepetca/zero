@@ -104,8 +104,7 @@ The game reserves Hud space before the window opens.
 
 To build your own, start with one `view()`, a few explicit value setters and
 one supplied action. Try it in a second app before adding more configuration.
-The Workshop currently previews/checks its two health bars; it cannot yet export
-these new screen components for Community. See [the contribution plan](../docs/TUTORIAL-PLAN.md#next-component-workbench).
+ZeroHub supports related self-contained JavaFX widgets in one library, with a preview, API and two checked consumers. See [sharing a library](lessons/11-zerohub.md). Public activation is pending.
 
 Start with ordinary fields and methods rather than a new screen framework.
 

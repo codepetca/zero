@@ -9,14 +9,14 @@ play/win/reset state. Player and Coin remain app source; the package contains UI
 From the Zero source checkout:
 
 ```sh
-python3 scripts/verify-starter-ui.py --community-root /path/to/zero-community
+python3 scripts/verify-starter-ui.py
 ```
 
 The command builds/checks the library, then both consumers in disposable projects.
 It uses a fresh isolated Maven cache and the bundled wrapper. Maintainer Python,
 a JDK and first-time dependency network access are needed. Nothing is installed
-into your normal cache or uploaded. The public catalog and Workshop cannot add
-this prototype yet.
+into your normal cache or uploaded. The standalone coordinate is local and unpublished. ZeroHub uses its own
+reserved library coordinate for the same source.
 
 ## Exact consumer files
 
@@ -34,7 +34,7 @@ The proof adds the exact local dependency:
 
 ```xml
 <dependency>
-  <groupId>ca.codepet.zero.community</groupId>
+  <groupId>ca.codepet.zero</groupId>
   <artifactId>starter-ui</artifactId>
   <version>0.1.0-prototype.1</version>
 </dependency>

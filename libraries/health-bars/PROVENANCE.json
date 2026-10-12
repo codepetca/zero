@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "sourceRepository": "https://github.com/codepetca/zero-community",
+  "sourceCommit": "d0a499b5509b75564d8b6562ba766ab732e70032",
+  "sourceFilesSha256": {
+    "LICENSE": "a5dd29be82a15cef2a75a71e73579c11b6789e8230fe4e499e989ff55bb4b5b5",
+    "pom.xml": "4878b1c7de5d552c3a9f2fe69163665573ad3caa39bd1736ba3f20063e2f4bf3",
+    "src/main/java/zero/community/HealthBar.java": "c023d56668b9fa4eb5cd75a0f2be0221c250bc1f2e2b416d065a5f98bbbcb109",
+    "src/main/java/zero/community/SegmentedHealthBar.java": "b1d52e069f6b02493e8d1e95c67a2aefd162da3e176fe180c9f0e7f83b0a16cb",
+    "src/test/java/zero/community/SegmentedHealthBarTest.java": "abc9baf31d92da2c30bd0cc4b8f9b623b3a5ac914a59953041b23280130e5561",
+    "src/test/java/zero/community/HealthBarTest.java": "25438a70e3008ae664a2e8394fe2a5a0ccdae6381a5100b8b007e4f6294ce91d",
+    "examples/segmented-study/Main.java": "f42e40ce5b72d4d9c56a6aa2c2de14696d933660e777cd6fe76c7508420c7a0e",
+    "examples/study/Main.java": "bc112de6779923f9c8eedf3ef006216cd08c7c7c9bf6155ba1a2701dd5012d7f",
+    "examples/adventure/Main.java": "5d3362d67195952a61b1a7816647ed2eda51fe7083d3da29e53c652a3c82e2b7",
+    "examples/segmented-adventure/Main.java": "cad25b56667f0b8ed8aa0a51e4f921937154f73ec8726f1e40ffbaa390ae44a5",
+    "docs/HealthBar.md": "b8d75b41d2b477ce0954b3d6e834f53cd2d5f577eb1ee057ee90f564b15e4e80",
+    "docs/SegmentedHealthBar.md": "3750bb9b633938173b86a84c63670c088132a26a5c3f0c5ef7ec33d642f45abd"
+  },
+  "changes": [
+    "Imported maintained source into the Zero repository.",
+    "Renamed Java package and local Maven coordinate; preserved original MIT notice.",
+    "Adapted documentation and verification to a single repository."
+  ],
+  "publication": "Local source only; no publication implied."
+}

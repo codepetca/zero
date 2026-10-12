@@ -22,3 +22,24 @@ test('actual Next project ZIP preserves all canonical wrapper bytes',{skip:!webs
     assert.deepEqual(Buffer.from(entries[name]),canonical,`${name} preserves exact canonical bytes through Next`);
   }
 });
+
+
+test('actual Next exposes ZeroHub and retires the old page, catalogs and downloads', {skip:!website}, async()=>{
+  const origin=new URL(website);
+  assert.equal(website,origin.origin);
+  assert.equal(origin.protocol,'http:');
+  assert.ok(['127.0.0.1','localhost','[::1]'].includes(origin.hostname));
+  for(const [path,text] of [['/hub','Share it with others.'],['/hub/prepare','Make a library.']]) {
+    const response=await fetch(new URL(path,origin),{redirect:'manual',signal:AbortSignal.timeout(15000)});
+    assert.equal(response.status,200,path);
+    const html=await response.text();
+    assert.ok(html.includes(text),path);
+    assert.match(html, /href="\/hub"[^>]*aria-current="page"[^>]*>ZeroHub/);
+    assert.doesNotMatch(html, /href="\/community/);
+  }
+  for(const path of ['/community','/community/prepare','/community/catalog.json','/community/catalog-v2.json','/community/workshop','/community/maven/zero.jar','/download/components','/docs/workshop']) {
+    const response=await fetch(new URL(path,origin),{redirect:'manual',signal:AbortSignal.timeout(15000)});
+    assert.equal(response.status,404,path);
+    assert.equal(response.headers.get('location'),null,path);
+  }
+});
