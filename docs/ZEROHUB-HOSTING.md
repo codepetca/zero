@@ -117,8 +117,10 @@ transactional import into a freshly migrated empty database, preserving exact
 library/source/result/object/sequence identity while clearing temporary sign-in
 state. Trusted PostgreSQL17/18 schemas are pinned separately; archives contain no
 executable SQL. See [private operator backups](../hub/service/README.md#private-operator-backups).
-These local proofs do not establish hosted backups, off-provider encryption,
-retention, recurring execution or recovery/cutover timing. Those remain activation
+A read-only hosted Neon18 export using trusted prior018e3ab/format1 was restored
+into disposable local PostgreSQL18 and re-exported byte-for-byte, then upgraded
+locally through004/format2. This creates one private local copy, not an encrypted
+retention policy, recurring export or hosted recovery/cutover proof. Those remain activation
 requirements. Workers now default to finite batches; hosted triggers and one
 checking process remain unconfigured.
 
@@ -140,3 +142,21 @@ The owner's question about an independent review task is a clarification, not
 permission to repeat the provider-rejected checker assignment. A qualified
 external human can review that unchanged boundary without routine student
 acceptance work. No such reviewer or completed report is currently supplied.
+
+The next operating prerequisite is a bounded once-only aggregate health report
+and disabled daily repository health-test workflow, not a new student UI or
+public endpoint. It uses the restricted API identity in a read-only snapshot,
+reports existing-budget pressure/backlog/stale leases/infrastructure errors and
+keeps public logs to fixed warning codes. Ordinary failed student tests are not
+an infrastructure alarm. Object bytes are measured without enforcing proposed
+new quotas. Source is in progress and not yet accepted.
+
+The workflow is limited to this repository's approved `main`, with no PR trigger,
+an explicit disabled-by-default variable and separate operations environment.
+No environment/secret/enable variable is configured. After source review,
+deployment-branch policy and restricted login must be inspected before separately
+authorized setup/activation. Actual connectivity, failure notification delivery
+and schedule timing remain gates. GitHub's standard public-repository runners
+are free, but provider eligibility/schedule limits apply; this is a bounded test
+of this software project, not hosting for arbitrary uploaded Java. See
+[the operator health guide](../hub/service/README.md#aggregate-health-checks).

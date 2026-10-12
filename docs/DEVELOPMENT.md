@@ -179,6 +179,8 @@ python3 scripts/verify-health-bars.py
 npm run test:postgres --prefix hub
 ZERO_HUB_RELEASE_PG_MAJOR=17 npm run test:availability --prefix hub
 ZERO_HUB_RELEASE_PG_MAJOR=18 npm run test:availability --prefix hub
+ZERO_HUB_OPERATIONS_PG_MAJOR=17 npm run test:operations --prefix hub
+ZERO_HUB_OPERATIONS_PG_MAJOR=18 npm run test:operations --prefix hub
 node --test hub/checker/test/validation.test.mjs
 ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs
 npm run verify:hub -- --output .verification/hub-proof

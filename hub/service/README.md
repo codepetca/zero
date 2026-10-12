@@ -322,8 +322,10 @@ The command never drops/recreates databases/tables, assigns passwords/roles,
 starts a service, accepts commands from the archive or overwrites existing data.
 It uses transactional sequence replacement to preserve rollback and exact IDs.
 All restored users sign in again. Check source/object integrity and runtime-role
-permissions before any separately authorized cutover. No hosted restore or
-production backup has been performed by the local proof.
+permissions before any separately authorized cutover. A private hosted Neon18
+export using the trusted prior018e3ab/format1 code has been restored locally and
+re-exported byte-for-byte, then upgraded locally through004/format2. Production
+restore/cutover and scheduled encrypted retention have not been performed.
 
 Technical ceilings are128MiB per record,4GiB per archive,1million records and a
 15-minute between-operation deadline, with existing SQL/lock timeouts. These are
@@ -338,7 +340,9 @@ explicitly enabled). Full local proof:
 `ZERO_HUB_BACKUP_PG_TEST=1 ZERO_HUB_BACKUP_PG_MAJOR=17 npm run test:backup --prefix hub`,
 then the same with major18. Both use disposable pinned PostgreSQL images and
 inert data only; neither executes Java or opens a public service. Hosted Neon
-export/cutover, operational retention and recovery timing remain separate gates.
+export on the current000–003 production schema uses the trusted prior format1
+reader/writer; current format2 requires004. Hosted cutover, operational retention
+and recovery timing remain separate gates.
 
 The current archive is format2/000–004. Format1/000–003 is deliberately rejected
 by this reader because it lacks release events. If an older private archive needs
@@ -383,3 +387,61 @@ table, while the new API requires it. No hosted migration has been performed.
 Local tests use inert seeded data only:
 `ZERO_HUB_RELEASE_PG_MAJOR=17 npm run test:availability --prefix hub`, then18.
 These start disposable PostgreSQL fixtures and never run candidate Java.
+
+## Aggregate health checks
+
+`npm run monitor --prefix hub` is a once-only operator check, not a server or
+continuous poller. Use `ZERO_HUB_MONITOR_ENABLED=1` and only the restricted
+`ZERO_HUB_API_DATABASE_URL` in its private environment. Mixed database/OAuth/
+integration credentials and active worker/upload flags are refused. It verifies
+the actual API login, takes a read-only consistent snapshot and returns bounded
+aggregate metrics and fixed warning codes. It never changes jobs, leases,
+authentication or stored source and never calls the Java checker.
+
+Warnings cover80% pressure against existing global active/source/authentication
+budgets, queued or pending-publication submissions at least30minutes old, stale
+checking leases and at least5 recent infrastructure-error submissions in24hours.
+Age measures time since submission creation, not an invented transition time.
+An ordinary failed student test has no infrastructure error and does not trigger
+that warning. Stored object bytes are measured without adding an unapproved cap.
+Byte totals retain exact decimal precision. These reports are not a guarantee of
+free storage, traffic, database sleep or timely checking.
+
+The full report stays operator-local. `--alerts-only` emits only status and fixed
+warning codes for public CI logs, with no metrics, contributor identities,
+source, tokens, private reasons, report bodies or error text. Exit0 means no
+warning,2 means attention and1 means unavailable/configuration failure. The CLI
+has a30-second overall guard; it exits and does not retry or continuously poll.
+
+The prepared `.github/workflows/hub-health.yml` performs one daily software-health
+test on `codepetca/zero` `main` only. It has no PR trigger, read-only GitHub token,
+pinned actions, no persisted checkout credential, serialized jobs, a5-minute job
+bound and dependency installation with scripts disabled. The database credential
+is exposed only to the final alerts-only step. No report artifacts are uploaded.
+It is disabled unless the repository variable `ZERO_HUB_MONITOR_ENABLED` is1.
+
+After source acceptance and separately authorized configuration, the
+`zerohub-operations` GitHub environment needs the secret
+`ZERO_HUB_MONITOR_API_DATABASE_URL`, a distinct restricted API login, and a
+deployment-branch policy limited to approved `main`. Then set the repository
+enable variable. No secret, environment or variable has been configured here.
+No disabled/skipped run proves health. Warning/unavailable exits fail the job;
+GitHub can deliver existing workflow failure notifications according to the
+operator's settings. Delivery and the real scheduled run still need proof.
+
+Standard GitHub-hosted runners are free for public repositories under
+[GitHub's billing policy](https://docs.github.com/en/actions/concepts/billing-and-usage).
+This fixed test is for Zero's own software/database health; it is not a generic
+student execution backend. The applicable
+[Actions terms](https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features)
+still apply. Scheduled jobs can be delayed/dropped during load and public
+repository schedules can stop after60days without activity; they are not a
+real-time alert or uptime guarantee. Check
+[scheduled-workflow behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+and [notification settings](https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs)
+before activation. No separate mail, messaging provider or billing upgrade is
+introduced.
+
+Local inert proof: `ZERO_HUB_OPERATIONS_PG_MAJOR=17 npm run test:operations --prefix hub`,
+then18. Hosted connectivity, environment policy, notification delivery and
+on-demand checker scheduling remain unconfigured; public authoring stays closed.

@@ -62,6 +62,8 @@ jobs:
           ZERO_HUB_BACKUP_PG_TEST=1 ZERO_HUB_BACKUP_PG_MAJOR=18 npm run test:backup --prefix hub
           ZERO_HUB_RELEASE_PG_MAJOR=17 npm run test:availability --prefix hub
           ZERO_HUB_RELEASE_PG_MAJOR=18 npm run test:availability --prefix hub
+          ZERO_HUB_OPERATIONS_PG_MAJOR=17 npm run test:operations --prefix hub
+          ZERO_HUB_OPERATIONS_PG_MAJOR=18 npm run test:operations --prefix hub
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update
