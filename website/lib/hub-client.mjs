@@ -3,6 +3,12 @@ export function checkLabel(id) {
     behavior:'Behavior check', first:'First example', second:'Second example'};
   return Object.hasOwn(labels,id)?labels[id]:'Check';
 }
+export function contributorProfile(release) {
+  const contributor=release.contributor;
+  if(typeof contributor?.githubId!=='string' || !/^[1-9][0-9]{0,19}$/.test(contributor.githubId)
+    || typeof contributor.login!=='string' || !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(contributor.login))return null;
+  return {login:contributor.login,url:`https://github.com/${contributor.login}`};
+}
 export function previewPath(release) {
   const expected = `/api/hub/previews/${release.libraryId}/${release.version}.png`;
   return /^ui[1-9a-z][0-9a-z]*$/.test(release.libraryId) && /^\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?$/.test(release.version) && release.preview?.path === expected ? expected : null;

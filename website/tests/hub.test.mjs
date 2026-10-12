@@ -1,11 +1,16 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {hubDestination,hubPath,proxyHub,boundedBytes} from '../lib/hub-proxy.mjs';
-import {dependencySnippet,previewPath,latestLibraries,selectedLibraries,publishedSubmission,validateUploadBundle,folderBundle} from '../lib/hub-client.mjs';
+import {contributorProfile,dependencySnippet,previewPath,latestLibraries,selectedLibraries,publishedSubmission,validateUploadBundle,folderBundle} from '../lib/hub-client.mjs';
 const origin='http://localhost:3000';
 const release={libraryId:'ui1',namespace:'zero.ui1',version:'1.2.3',coordinate:{groupId:'ca.codepet.zero.library',artifactId:'ui1',version:'1.2.3'},preview:{path:'/api/hub/previews/ui1/1.2.3.png'}};
 const fixture=()=>({descriptor:{libraryId:'ui1',version:'1.0.0'},files:{'src/zero/ui1/Widget.java':'public class Widget {}','API.md':'Widget'}});
 const options={destination:'http://127.0.0.1:8788'};
+test('contributor credit uses validated account metadata and a fixed GitHub profile destination',()=>{
+  assert.deepEqual(contributorProfile({...release,contributor:{githubId:'101',login:'alice',profileUrl:'https://evil.example'}}),{login:'alice',url:'https://github.com/alice'});
+  assert.equal(contributorProfile(release),null);
+  for(const contributor of [{githubId:'101',login:'alice/path'},{githubId:'101',login:'<alice>'},{githubId:'0',login:'alice'},{githubId:101,login:'alice'}])assert.equal(contributorProfile({...release,contributor}),null);
+});
 test('fixed destination rejects credentials, paths and insecure remote origins',()=>{
   assert.equal(hubDestination(undefined),null);
   assert.equal(hubDestination('http://127.0.0.1:8788').origin,'http://127.0.0.1:8788');

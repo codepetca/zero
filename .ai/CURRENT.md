@@ -5,6 +5,13 @@ Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
 ## Active scope and authority
 
+Owner follow-up: add public contributor credit and explain whether zero-community
+is still needed. Credit is derived from authenticated numeric identity and current
+remembered login; uploads cannot choose it. No community-repository migration or
+archival is requested. Coordinator implements this small coherent metadata/UI change
+directly; an independent bounded attribution review follows. Existing checker
+security-review gap remains separate; waiver and no-public-action scope persist.
+
 Build the agreed generic community library hub locally. Zero remains ordinary
 Java with its small JavaFX library and minimal VS Code profile/extension.
 Students own GitHub repos and submit their links separately in Pika.

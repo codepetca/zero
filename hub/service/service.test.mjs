@@ -104,7 +104,7 @@ test('competing different sources for one version admit one immutable candidate'
 
 test('public submissions reject forged owner, verdict, artifact and undeclared source fields',async()=>{
   const actor=await signIn();const {bundle}=await reserve();
-  for(const field of ['owner','result','status','artifacts','publish']) {
+  for(const field of ['owner','contributor','result','status','artifacts','publish']) {
     const {response}=await request('/submissions',{method:'POST',cookie:actor.cookie,csrf:actor.csrf,body:{...bundle,[field]:{passed:true}}});assert.equal(response.status,400);
   }
   const foreign=structuredClone(bundle);foreign.files['pom.xml']='<project/>';await assert.rejects(hub.submit(alice,foreign),error=>error.status===400);
@@ -129,6 +129,24 @@ test('passing trusted result publishes immutable exact bytes; catalog retains ve
   assert.equal((await hub.submit(alice,bundle)).id,job.id);assert.equal(await hub.publishOnce(),false);
   await assert.rejects(pool.query('UPDATE hub_results SET passed=false WHERE submission_id=$1',[job.id]),/immutable/);
   await assert.rejects(pool.query('DELETE FROM hub_releases WHERE submission_id=$1',[job.id]),/immutable/);
+});
+
+test('public contributor follows authenticated numeric identity and rename without changing a release',async()=>{
+  const {bundle,libraryId}=await reserve();const job=await hub.submit(alice,bundle);await hub.drain();
+  const expected={githubId:alice.id,login:alice.login};
+  assert.deepEqual((await hub.catalog()).libraries[0].contributor,expected);
+  assert.deepEqual((await request(`/libraries/${libraryId}`)).value.contributor,expected);
+  assert.deepEqual((await hub.getSubmission(alice,job.id)).release.contributor,expected);
+  const stored=(await pool.query('SELECT manifest FROM hub_releases WHERE submission_id=$1',[job.id])).rows[0].manifest;
+  await assert.rejects(hub.submit({id:bob.id,login:alice.login},bundle),error=>error.status===403);
+  assert.deepEqual((await hub.catalog()).libraries[0].contributor,expected);
+  const renamed={id:alice.id,login:'renamed-alice'};
+  assert.equal((await hub.submit(renamed,bundle)).id,job.id);
+  const updated={githubId:alice.id,login:renamed.login};
+  assert.deepEqual((await hub.catalog()).libraries[0].contributor,updated);
+  assert.deepEqual((await request(`/libraries/${libraryId}?version=0.1.0`)).value.contributor,updated);
+  assert.deepEqual((await hub.getSubmission(renamed,job.id)).release.contributor,updated);
+  assert.deepEqual((await pool.query('SELECT manifest FROM hub_releases WHERE submission_id=$1',[job.id])).rows[0].manifest,stored);
 });
 
 test('publication transaction retry reuses already stored bytes without replacing a release',async()=>{

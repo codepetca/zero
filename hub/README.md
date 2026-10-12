@@ -21,6 +21,17 @@ immutable. Published versions cannot be replaced. Related components can share
 one library and one exact version. No GitHub username appears in Java imports.
 Students still submit coursework repository links separately in Pika.
 
+Library cards show **By @username**, linked to the contributor's GitHub profile.
+Credit comes from the authenticated account recorded with each submission, never
+an uploaded name or profile URL. The numeric account ID stays fixed; a later
+authenticated username change updates display credit without replacing releases.
+
+New hub submissions use the database and artifact store; they do not need a
+central contribution repository. `zero-community` currently preserves published
+health-bar releases, the legacy Workshop and the Starter UI dogfood fixture.
+It remains available while these dependencies are migrated deliberately. Existing
+release URLs and source/license history must be preserved if it is archived.
+
 On a configured hub, Zero's (…) → Browse hub libraries lets students inspect and
 Add an exact Maven dependency. Update accepts a newer compatible patch; Revert
 restores that library's preceding pin. The source stays editable, pins do not

@@ -10,6 +10,10 @@ No deployment, live credentials, pushes or public releases are authorized.
 Node ESM. PostgreSQL stores identities, reservations, immutable submissions/results
 and release manifests. Local fake publication stores immutable bytes outside Git.
 Stable GitHub numeric user ID owns a library; login is display text, not authority.
+Public releases include server-derived `contributor:{githubId,login}` from the
+immutable submission owner and remembered authenticated profile. Clients cannot
+supply credit. The login/profile link can follow an account rename; artifact,
+source and recorded numeric identity stay fixed. No database backfill is required.
 IDs are server-assigned `ui` plus a monotonically issued positive base36 number.
 Java namespace `zero.<id>`; Maven `ca.codepet.zero.library:<id>:<exact semver>`.
 
@@ -68,6 +72,7 @@ filesystem; clean containers/temp dirs on every exit. No execution in publisher.
 Every mutation requires session, exact Origin and X-Zero-CSRF token. No client
 owner/result/status/publishing parameters. No public checker/publisher endpoint.
 Release shape `{libraryId,version,title,description,category,components,namespace,
+ contributor:{githubId,login},
  coordinate:{groupId,artifactId,version},sourceDigest,checks,platforms,
  artifacts:{jar:{sha256,size,path},sources:{sha256,size,path},pom:{sha256,size,path}},
  preview:{sha256,size,path},api, changelog, status:'automatically-checked'}`.

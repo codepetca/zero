@@ -18,6 +18,10 @@ function identity(user) {
   if (!/^[1-9][0-9]{0,19}$/.test(id) || !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(user?.login ?? '')) throw problem(400,'Invalid GitHub identity');
   return {id,login:user.login};
 }
+function attributedRelease(row) {
+  const contributor=identity({id:row.contributor_id,login:row.contributor_login});
+  return {...row.manifest,contributor:{githubId:contributor.id,login:contributor.login}};
+}
 function object(value,keys) { return value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).every(key => keys.includes(key)) && keys.every(key => Object.hasOwn(value,key)); }
 function cookies(req) {
   const values = new Map();
@@ -85,6 +89,7 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
     return transaction(async client => {
       const {rows:[library]} = await client.query('SELECT owner_id FROM hub_libraries WHERE id=$1 FOR UPDATE',[snapshot.descriptor.libraryId]);
       if (!library || library.owner_id !== actor.id) throw problem(403,'This library belongs to another GitHub identity');
+      await rememberUser(client,actor);
       const {rows:[existing]} = await client.query("SELECT id,status,source_digest FROM hub_submissions WHERE library_id=$1 AND version=$2 ORDER BY (status <> 'failed') DESC, created_at DESC LIMIT 1",[snapshot.descriptor.libraryId,snapshot.descriptor.version]);
       if (existing?.source_digest === digest) return {id:existing.id,status:existing.status};
       if (existing && existing.status !== 'failed') throw problem(409,'This library version already has immutable source');
@@ -96,11 +101,14 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
   async function getSubmission(user,id) {
     const actor = identity(user);
     if (!/^[a-f0-9-]{36}$/.test(id)) throw problem(404,'Submission not found');
-    const {rows:[row]} = await pool.query('SELECT s.id,s.status,s.owner_id,s.error,r.report,l.manifest FROM hub_submissions s LEFT JOIN hub_results r ON r.submission_id=s.id LEFT JOIN hub_releases l ON l.submission_id=s.id WHERE s.id=$1',[id]);
+    const {rows:[row]} = await pool.query('SELECT s.id,s.status,s.owner_id,s.error,r.report,l.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_submissions s JOIN hub_users u ON u.github_id=s.owner_id LEFT JOIN hub_results r ON r.submission_id=s.id LEFT JOIN hub_releases l ON l.submission_id=s.id WHERE s.id=$1',[id]);
     if (!row || row.owner_id !== actor.id) throw problem(404,'Submission not found');
-    return {id:row.id,status:row.status,...(row.report ? {report:row.report}:{}),...(row.manifest ? {release:row.manifest}:{}),...(row.error ? {error:row.error}:{})};
+    return {id:row.id,status:row.status,...(row.report ? {report:row.report}:{}),...(row.manifest ? {release:attributedRelease(row)}:{}),...(row.error ? {error:row.error}:{})};
   }
-  async function catalog() { const {rows} = await pool.query('SELECT manifest FROM hub_releases ORDER BY created_at DESC,library_id,version'); return {mode,libraries:rows.map(row=>row.manifest)}; }
+  async function catalog() {
+    const {rows}=await pool.query('SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id ORDER BY r.created_at DESC,r.library_id,r.version');
+    return {mode,libraries:rows.map(attributedRelease)};
+  }
   async function workOnce() {
     const job = await transaction(async client => {
       await client.query("UPDATE hub_submissions SET status=CASE WHEN attempts>=3 THEN 'failed' ELSE 'queued' END,lease_token=NULL,lease_until=NULL,error='Checker interrupted; retry is bounded' WHERE status='checking' AND lease_until<now()");
@@ -270,8 +278,8 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
       const libraryMatch=route.match(/^\/api\/hub\/libraries\/(ui[1-9a-z][0-9a-z]*)$/);
       if (req.method==='GET' && libraryMatch) {
         const version=url.searchParams.get('version');
-        const {rows:[row]}=await pool.query('SELECT manifest FROM hub_releases WHERE library_id=$1 AND ($2::text IS NULL OR version=$2) ORDER BY created_at DESC LIMIT 1',[libraryMatch[1],version]);
-        if (!row) throw problem(404,'Library release not found'); return json(res,200,row.manifest);
+        const {rows:[row]}=await pool.query('SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id WHERE r.library_id=$1 AND ($2::text IS NULL OR r.version=$2) ORDER BY r.created_at DESC LIMIT 1',[libraryMatch[1],version]);
+        if (!row) throw problem(404,'Library release not found'); return json(res,200,attributedRelease(row));
       }
       const submissionMatch=route.match(/^\/api\/hub\/submissions\/([a-f0-9-]{36})$/);
       if (req.method==='GET' && submissionMatch) { const actor=await session(req); if (!actor) throw problem(401,'Sign in to GitHub first'); return json(res,200,await getSubmission(actor.user,submissionMatch[1])); }
