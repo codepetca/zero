@@ -121,3 +121,22 @@ publisherfixture ordering. NativeDocker/fullintegration remainpending. Atmost
 7launches/4fixbatches/60minsource-review session; runtimeenvironmentwork mustnot
 resetbudget. Effectiveconfigs/tokens/reviewerelapsedunknown; source frozenagain
 beforeoneAstra/high targetedfix review. No remoteauthorization.
+
+
+## Latest verification and review hold
+
+Correctioncommit0bc6faa recordsfixbatch1. TargetedAstra reviewturn failedprovider
+cyber-risk contentfilter; onepassive-defensive retryalsofailed, no alternateworker
+orprovider bypass. Ledger4launches (2initial,2failedtargeted),2targetedwaves,
+2fixbatches; independentcorrected-source acceptance remainspending. Budgetclock
+started07:49America/Toronto; no newreviewer/remediationafter08:49withoutexplicit
+ownerextension. Providerrejections are reported, not cleanreviews.
+
+Dockerrecovered; all23priorservices restoredhealthy. Broaderseparatecleanup has
+freedroom (notthis task'screditedsavings). Finalchecks254root/49website/types/build,
+17actualPostgreSQL/6purechecker+report passed. NativeDockerbuild nowfailsbecause
+cachedNoblebase'slibjvm.so is truncated fromdiskfull; scopedreclaimable unshared
+Noblebuildcache records are beingpruned/rebuilt, volumes preserved. Runtimeproof
+stillnotclaimed. Fixbatch2 beforebudgetend: stateless image-readinessApplication
+movedto hub.smoke, qualifiedJavaFXexportonlythatpackage; hub.policy state remains
+closed. ActualJDKstubtest updateddummyexportpackage andpassed. No publicaction.

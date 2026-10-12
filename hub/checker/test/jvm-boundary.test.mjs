@@ -29,6 +29,8 @@ async function setup() {
  await mkdir(join(dir,'policy-src'));
  const files=['module-info.java','JarTracker.java','TrustedRun.java'];
  for(const name of files)await copyFile(join(root,'hub/checker/image',name),join(dir,'policy-src',name));
+ await put(dir,'policy-src/SmokeStub.java','package hub.smoke; public final class SmokeStub {}');
+ files.push('SmokeStub.java');
  run=command('javac',['-proc:none','--release','17','--module-path',join(dir,'modules'),'-d',join(dir,'policy-classes'),...files.map(n=>join(dir,'policy-src',n))],dir);assert.equal(run.status,0,run.stderr);
  await put(dir,'agent.mf','Premain-Class: hub.policy.JarTracker\n\n');
  run=command('jar',['cfm',join(dir,'checker.jar'),join(dir,'agent.mf'),'-C',join(dir,'policy-classes'),'.'],dir);assert.equal(run.status,0,run.stderr);

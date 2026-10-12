@@ -7,4 +7,6 @@ module zero.hub.checker {
     requires jdk.compiler;
     // JVM agent startup invokes premain reflectively from this JDK module only.
     opens hub.policy to java.instrument;
+    // Only the stateless image-readiness Application is visible to JavaFX.
+    exports hub.smoke to javafx.graphics;
 }

@@ -126,3 +126,8 @@ fixed, trusted reproductions are not submitted source execution. This proves
 selected Java authority boundaries on that JDK, not JavaFX native behavior or
 total JVM/container security. Matching actual Docker regressions are authored
 but remain unrun until the coordinator authorizes Docker recovery.
+
+The stateless image-readiness Application is in a separate `hub.smoke` package,
+exported only to javafx.graphics for its public constructor/start callbacks.
+Observer/completion state remains in unexported `hub.policy`; its qualified
+java.instrument opening is limited to JVM agent startup.
