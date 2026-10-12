@@ -145,8 +145,8 @@ are in [cache removal](../hub/service/README.md#remove-cached-library-responses)
 VercelCLI54.17.2 accepted these two tags for the verified Zero project; public
 maintained JAR bytes stayed identical. Current deployed code predates tagging,
 and the before/after probe was MISS→HIT, so it proves operator permissions, not
-tagged cache-hit removal. Do not infer the activation gate is passed. New policy
-source awaits review/deployment; cached metadata/object withdrawal/expiry and
+tagged cache-hit removal. Do not infer the activation gate is passed. New tag source4077dd8 passed one independent Sol/high review with no findings
+and CI38318782410; deployment remains held; cached metadata/object withdrawal/expiry and
 client-copy limitations still need the specified hosted drill after other gates.
 
 The owner's question about an independent review task is a clarification, not
