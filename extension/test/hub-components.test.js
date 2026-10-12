@@ -19,7 +19,7 @@ async function fixture(t) {
     releases.push({libraryId:id,version,title:'UI',namespace:`zero.${id}`,coordinate:{groupId:'ca.codepet.zero.library',artifactId:id,version},status:'automatically-checked',components:[{className:'Hud'}],sourceDigest:'a'.repeat(64),artifacts});
   }
   const catalog={mode:'local',libraries:releases};
-  const fetcher=async url=>new Response(new URL(url).pathname==='/api/hub/catalog'?JSON.stringify(catalog):bytes.get(new URL(url).pathname));
+  const fetcher=async(url,options)=>{assert.equal(options.cache,'default');assert.equal(options.credentials,'omit');assert.equal(options.headers,undefined);return new Response(new URL(url).pathname==='/api/hub/catalog'?JSON.stringify(catalog):bytes.get(new URL(url).pathname));};
   const context=await hub.loadCatalog('http://127.0.0.1:3456',{fetcher});return{root,context,bytes,catalog,releases};
 }
 test('independent library pins preserve app source and unrelated library; Update/Revert only own blocks',async t=>{

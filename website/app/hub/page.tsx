@@ -4,7 +4,6 @@ import { HubDiscovery } from "@/components/HubDiscovery";
 import { Icon } from "@/components/Icon";
 import { PageHeader } from "@/components/PageHeader";
 export const metadata = { title: "ZeroHub" };
-export const dynamic = "force-dynamic";
 export default function Hub() {
   return <>
     <PageHeader active="ZeroHub" />

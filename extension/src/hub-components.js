@@ -14,7 +14,7 @@ function origin(input) {
   return url.origin;
 }
 async function readBytes(url, fetcher, limit, timeoutMs=15_000) {
-  const response = await fetcher(url,{redirect:'error',signal:AbortSignal.timeout(timeoutMs)});
+  const response = await fetcher(url,{redirect:'error',cache:'default',credentials:'omit',signal:AbortSignal.timeout(timeoutMs)});
   if (!response.ok || !response.body) fail('The component hub is unavailable. Your app has not changed.');
   const chunks=[]; let size=0;
   const reader=response.body.getReader();

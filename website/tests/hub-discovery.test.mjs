@@ -6,7 +6,7 @@ const origin='https://zero.codepet.ca';
 const release=(id='ui1',version='1.0.0')=>({libraryId:id,version,status:'automatically-checked'});
 test('discovery sends search and cursor to the server with cancellation; appends pages without duplicate cards',async()=>{
   const signal=new AbortController().signal;let called;
-  const page=await discoveryPage({search:'  Far word ',cursor:'abc',signal,fetcher:async(path,options)=>{called=path;assert.equal(options.signal,signal);return Response.json({mode:'production',libraries:[release('uiz')],nextCursor:null});}});
+  const page=await discoveryPage({search:'  Far word ',cursor:'abc',signal,fetcher:async(path,options)=>{called=path;assert.equal(options.signal,signal);assert.equal(options.cache,'default');assert.equal(options.credentials,'omit');assert.equal(options.headers,undefined);return Response.json({mode:'production',libraries:[release('uiz')],nextCursor:null});}});
   assert.equal(called,'/api/hub/catalog?q=Far+word&cursor=abc');assert.equal(page.libraries[0].libraryId,'uiz');
   const first={libraries:[release()],nextCursor:'abc'};
   assert.deepEqual(appendDiscoveryPage(first,page).libraries.map(r=>r.libraryId),['ui1','uiz']);
@@ -16,7 +16,7 @@ test('discovery sends search and cursor to the server with cancellation; appends
 });
 test('exact links fetch one immutable release plus separate capabilities, without scanning catalog',async()=>{
   const calls=[];
-  const page=await discoveryPage({selection:{library:'ui1',version:'1.0.0'},fetcher:async path=>{calls.push(path);return Response.json(path==='/api/hub/session'?{mode:'production',capabilities:{uploads:false}}:release());}});
+  const page=await discoveryPage({selection:{library:'ui1',version:'1.0.0'},fetcher:async(path,options)=>{calls.push(path);assert.equal(options.cache,path==='/api/hub/session'?'no-store':'default');assert.equal(options.credentials,path==='/api/hub/session'?'same-origin':'omit');return Response.json(path==='/api/hub/session'?{mode:'production',capabilities:{uploads:false}}:release());}});
   assert.deepEqual(calls,['/api/hub/libraries/ui1?version=1.0.0','/api/hub/session']);assert.equal(page.capabilities.uploads,false);assert.equal(page.nextCursor,null);assert.equal(page.libraries[0].version,'1.0.0');
   await assert.rejects(discoveryPage({selection:{library:'ui1',version:'1.0.0'},fetcher:async path=>Response.json(path==='/api/hub/session'?{}:release('ui1','1.0.1'))}),/No newer release/);
 });

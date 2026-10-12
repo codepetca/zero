@@ -19,6 +19,7 @@ import * as policy from '../../hub/checker/policy.mjs';
 import {hubPath} from './hub-proxy.mjs';
 import {readOnlyHubResponse, runtimeConfiguration} from './hub-runtime.mjs';
 import {mavenStream} from './hub-stream.mjs';
+import {publicHubKind,publicHubCacheHeaders} from './hub-cache.mjs';
 export {MAVEN_CHUNK_BYTES} from './hub-stream.mjs';
 
 export const INPUT_LIMIT=1024*1024;
@@ -166,6 +167,8 @@ export async function contributionHubResponse(request,parts,{env=process.env,han
     if(url.origin!==config.origin)return fail(400,'Invalid hub origin.');
     if(url.pathname!==`/api/hub/${path}`)return fail(400,'Invalid hub path.');
     query=canonicalQuery(url,path);headers=inputHeaders(request);
+    // Public representations never depend on a browser session or CSRF state.
+    if(publicHubKind(path,request.method))headers={accept:'application/json'};
   }catch{return fail(400,'Invalid hub request.');}
   if(request.signal.aborted)return fail(400,'Hub request was cancelled.');
   if(request.method==='POST')try {
@@ -209,7 +212,8 @@ export async function contributionHubResponse(request,parts,{env=process.env,han
     output.set('Content-Type',type);
     const length=values.get('content-length');
     if(length!==undefined){if(typeof length!=='string'||!/^\d+$/.test(length)||Number(length)>responseLimit||request.method!=='HEAD'&&Number(length)!==(bytes?.length??0))return unavailable();output.set('Content-Length',length);}
-    if(artifact&&status<300&&values.get('cache-control')==='public, max-age=31536000, immutable')output.set('Cache-Control','public, max-age=31536000, immutable');
+    const source=new Headers();for(const [name,value]of values)for(const item of Array.isArray(value)?value:[value])source.append(name,item);
+    publicHubCacheHeaders(output,{path,method:request.method,status,source});
     if(request.method==='GET'&&path.startsWith('maven/')&&status<300&&![204,205].includes(status)) {
       if(!bytes?.length)return unavailable();
       const verifiedBytes=bytes;bytes=null;

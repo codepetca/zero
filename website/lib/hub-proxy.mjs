@@ -1,4 +1,5 @@
 import {canonicalHubQuery} from '../../hub/service/catalog.mjs';
+import {publicHubKind,publicHubCacheHeaders} from './hub-cache.mjs';
 /** Server-only fixed-destination hub gateway. Never imported by client components. */
 export function hubDestination(value) {
   if (!value) return null;
@@ -45,6 +46,7 @@ export async function proxyHub(request, parts, options = {}) {
   for (const name of ['origin','x-zero-csrf']) { const value = request.headers.get(name); if (value) headers.set(name, value); }
   const cookies = (request.headers.get('cookie') || '').split(';').map(value=>value.trim()).filter(value=>/^(zero_hub_session|zero_hub_oauth)=/.test(value));
   if(cookies.length) headers.set('cookie',cookies.join('; '));
+  if(publicHubKind(path,request.method))for(const name of ['cookie','origin','x-zero-csrf'])headers.delete(name);
   headers.set('accept', 'application/json');
   let body;
   try {
@@ -79,6 +81,7 @@ export async function proxyHub(request, parts, options = {}) {
     const bytes = await boundedBytes(upstream.body, preview ? 256 * 1024 : 4 * 1024 * 1024);
     if (preview && request.method !== 'HEAD' && upstream.ok && (bytes.length < 8 || ![137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v))) return failure('Hub preview is not a PNG.',502);
     output.set('Content-Type', preview && upstream.ok ? 'image/png' : type);
+    publicHubCacheHeaders(output,{path,method:request.method,status:upstream.status,source:upstream.headers});
     return new Response(request.method === 'HEAD' ? null : bytes, {status:upstream.status,headers:output});
   } catch { return failure('ZeroHub is unavailable. Try again shortly.',502); }
   finally { clearTimeout(timer); }

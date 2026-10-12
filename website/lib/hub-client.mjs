@@ -99,10 +99,10 @@ export function catalogPath(search='',cursor=null) {
 }
 /** @param {{search?:string,cursor?:string|null,selection?:{library:string,version:string}|null,signal?:AbortSignal,fetcher?:typeof fetch}} [options] */
 export async function discoveryPage({search='',cursor=null,selection=null,signal,fetcher=fetch}={}) {
-  const read=async path=>{const response=await fetcher(path,{cache:'no-store',signal});const data=await response.json();if(!response.ok)throw new Error(selection&&response.status===404?'That exact checked release is unavailable. No newer release has been substituted.':data.error||'Hub unavailable.');return data;};
+  const read=async(path,session=false)=>{const response=await fetcher(path,{cache:session?'no-store':'default',credentials:session?'same-origin':'omit',signal});const data=await response.json();if(!response.ok)throw new Error(selection&&response.status===404?'That exact checked release is unavailable. No newer release has been substituted.':data.error||'Hub unavailable.');return data;};
   if(selection) {
     if(!/^ui[1-9a-z][0-9a-z]{0,11}$/.test(selection.library)||!/^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$/.test(selection.version))throw new Error('That exact checked release is unavailable. No newer release has been substituted.');
-    const [release,session]=await Promise.all([read(`/api/hub/libraries/${selection.library}?version=${selection.version}`),read('/api/hub/session')]);
+    const [release,session]=await Promise.all([read(`/api/hub/libraries/${selection.library}?version=${selection.version}`),read('/api/hub/session',true)]);
     if(release.libraryId!==selection.library||release.version!==selection.version||release.status!=='automatically-checked')throw new Error('That exact checked release is unavailable. No newer release has been substituted.');
     return {...session,libraries:[release],nextCursor:null};
   }

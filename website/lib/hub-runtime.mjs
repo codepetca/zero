@@ -8,6 +8,7 @@ import {verifyRole} from '../../hub/service/db-role.mjs';
 import * as policy from '../../hub/checker/policy.mjs';
 import {hubPath} from './hub-proxy.mjs';
 import {mavenStream} from './hub-stream.mjs';
+import {publicHubCacheHeaders} from './hub-cache.mjs';
 const JSON_LIMIT=4*1024*1024;
 const unavailable=()=>Response.json({error:'ZeroHub is unavailable. Try again shortly.'},{status:503,headers:{'Cache-Control':'no-store'}});
 // This process can read published bytes; it cannot run a checker or publisher.
@@ -40,13 +41,13 @@ async function configuredRuntime() {
 }
 export async function readOnlyHubResponse(request,parts,{handler}={}) {
   const path=hubPath(parts,request.method);
-  if(!path)return Response.json({error:'Unknown hub endpoint.'},{status:404});
+  if(!path)return Response.json({error:'Unknown hub endpoint.'},{status:404,headers:{'Cache-Control':'no-store'}});
   const url=new URL(request.url);
   // Authoring is closed even if a browser calls the endpoint directly.
   if(path.startsWith('auth/')||path.startsWith('submissions/')||['libraries','submissions','logout'].includes(path))
     return Response.json({error:'Library uploads are not open yet.'},{status:503,headers:{'Cache-Control':'no-store'}});
   let query;
-  try {query=canonicalHubQuery(url,path);}catch{return Response.json({error:'Unexpected hub query.'},{status:400});}
+  try {query=canonicalHubQuery(url,path);}catch{return Response.json({error:'Unexpected hub query.'},{status:400,headers:{'Cache-Control':'no-store'}});}
   try {
     const execute=handler??await configuredRuntime();
     const req=Readable.from([]);
@@ -62,11 +63,13 @@ export async function readOnlyHubResponse(request,parts,{handler}={}) {
     };
     await execute(req,res);
     if(!ended||failed)return unavailable();
+    const source=new Headers(headers);
     headers.delete('set-cookie'); // No browser session can be issued by this runtime.
     const responseLimit=status>=400||/^application\/json\b/i.test(headers.get('content-type')??'')?Math.min(outputLimit,JSON_LIMIT):outputLimit;
     if(bytes&&bytes.length>responseLimit)return unavailable();
     const length=headers.get('content-length');
     if(length!==null&&(!/^\d+$/.test(length)||Number(length)>responseLimit||request.method!=='HEAD'&&Number(length)!==(bytes?.length??0)))return unavailable();
+    publicHubCacheHeaders(headers,{path,method:request.method,status,source});
     if(request.method==='GET'&&path.startsWith('maven/')&&status>=200&&status<300&&![204,205].includes(status)) {
       if(!bytes?.length)return unavailable();
       const verifiedBytes=bytes;bytes=null;
