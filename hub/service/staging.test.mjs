@@ -43,6 +43,9 @@ test('runtime preserves URL TLS configuration and workers require explicit isola
   const pool=createRuntimePool('postgresql://test:test@localhost/test?sslmode=verify-full','hub_api');
   assert.equal(pool.options.max,5);assert.ok(pool.options.connectionString.endsWith('sslmode=verify-full'));assert.equal(pool.options.ssl,undefined);await pool.end();
   assert.throws(()=>createRuntimePool('postgresql://test:test@localhost/test?options=bad','hub_api'),/override/);
+  assert.throws(()=>createRuntimePool('postgresql://test:test@ep-example-pooler.us-east-1.aws.neon.tech/test?sslmode=verify-full','hub_api'),/direct Neon database URL/);
+  const direct=createRuntimePool('postgresql://test:test@ep-example.us-east-1.aws.neon.tech/test?sslmode=verify-full','hub_api');
+  assert.equal(direct.options.options,'-c role=hub_api -c statement_timeout=15000 -c search_path=public,pg_catalog');await direct.end();
   await assert.rejects(runWorker({kind:'checker',checker,env:{}}),/activation/);
   await assert.rejects(runWorker({kind:'publisher',checker,env:{ZERO_HUB_WORKERS_ENABLED:'1',ZERO_HUB_GITHUB_CLIENT_SECRET:'forbidden'}}),/OAuth/);
   await assert.rejects(runWorker({kind:'checker',checker,env:{ZERO_HUB_WORKERS_ENABLED:'1',ZERO_HUB_API_DATABASE_URL:'forbidden'}}),/own database/);

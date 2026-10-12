@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {readOnlyHubResponse} from '../lib/hub-runtime.mjs';
+import {readOnlyHubResponse,runtimeConfiguration} from '../lib/hub-runtime.mjs';
 const request=(path,method='GET')=>new Request(`https://zero.codepet.ca/api/hub/${path}`,{method,headers:{Cookie:'zero_hub_session=private; other=secret'}});
 test('embedded runtime closes authoring before database, cookies or body handling',async()=>{
   for(const[path,method]of [['auth/start','GET'],['auth/callback','GET'],['libraries','POST'],['submissions','POST'],['submissions/123','GET'],['logout','POST']]) {
@@ -19,4 +19,12 @@ test('invalid paths, queries, incomplete output and overlarge responses fail wit
   for(const handler of [async()=>{},async()=>{throw new Error('credential-value');},async(_,res)=>{res.writeHead(200);res.end(Buffer.alloc(4*1024*1024+1));}]) {
     const response=await readOnlyHubResponse(request('catalog'),['catalog'],{handler});assert.equal(response.status,503);assert.doesNotMatch(await response.text(),/credential-value/);
   }
+});
+
+test('runtime requires its restricted direct connection and never falls back to owner integration variables',()=>{
+ const origin='https://zero.codepet.ca';
+ assert.throws(()=>runtimeConfiguration({ZERO_HUB_ORIGIN:origin,ZERO_HUB_DATABASE_URL:'postgresql://owner:private@neon.example/db'}),/Restricted/);
+ assert.throws(()=>runtimeConfiguration({ZERO_HUB_ORIGIN:origin,ZERO_HUB_API_DATABASE_URL:'postgresql://api:private@ep-db-pooler.neon.tech/db'}),/direct/);
+ assert.throws(()=>runtimeConfiguration({ZERO_HUB_ORIGIN:'http://zero.codepet.ca',ZERO_HUB_API_DATABASE_URL:'postgresql://api:private@ep-db.neon.tech/db'}),/HTTPS/);
+ assert.equal(runtimeConfiguration({ZERO_HUB_ORIGIN:origin,ZERO_HUB_API_DATABASE_URL:'postgresql://api:private@ep-db.neon.tech/db'}).origin,origin);
 });

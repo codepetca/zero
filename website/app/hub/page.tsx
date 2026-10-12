@@ -18,7 +18,7 @@ export default function Hub() {
       <details className="reading-section">
         <summary><h2>Use a library in your app</h2><Icon name="chevron-down" /></summary>
         <div className="reading-section-body">
-          <p>In Zero, open the sidebar’s (…) menu to browse ZeroHub. Choose a component and add its exact library version. Its card shows the Java import, public API and an example.</p>
+          <p>Open Use this component on a card. Add its exact dependency to your app’s pom.xml, then use the shown Java import and example.</p>
           <p>Related components share one library dependency. Your Java stays editable, updates are explicit, and Revert restores your previous library version.</p>
           <Link href="/learn#downloads">Get Zero</Link>
         </div>

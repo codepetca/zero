@@ -8,6 +8,7 @@ export function createRuntimePool(connectionString,role) {
   let url;
   try {url=new URL(connectionString);} catch {throw configurationError('Invalid hub database URL');}
   if(!['postgres:','postgresql:'].includes(url.protocol)) throw configurationError('Use a PostgreSQL database URL');
+  if(url.hostname.endsWith('.neon.tech')&&url.hostname.split('.')[0].endsWith('-pooler'))throw configurationError('Use the direct Neon database URL (hostname without -pooler); this runtime requires session startup role and timeout options');
   if(url.searchParams.has('options')) throw configurationError('Database URL must not override runtime role options');
   // Keep URL sslmode/certificate semantics. Never inject ssl:{rejectUnauthorized:false}.
   const pool=new pg.Pool({connectionString,max:5,connectionTimeoutMillis:10000,idleTimeoutMillis:30000,options:`-c role=${role} -c statement_timeout=15000 -c search_path=public,pg_catalog`});

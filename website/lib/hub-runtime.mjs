@@ -16,15 +16,20 @@ export async function createReadOnlyRuntime(pool,origin) {
   await verifyRole(pool,'hub_api');
   return createHub({pool,storage:createPostgresStorage(pool),checker,origin,uploadsEnabled:false}).handler;
 }
+export function runtimeConfiguration(env=process.env) {
+  const connectionString=env.ZERO_HUB_API_DATABASE_URL;
+  const origin=env.ZERO_HUB_ORIGIN;
+  if(!connectionString || !origin)throw new Error('Restricted runtime database and exact public origin required');
+  const url=new URL(connectionString);
+  if(!['postgres:','postgresql:'].includes(url.protocol)||url.searchParams.has('options'))throw new Error('Invalid runtime database configuration');
+  if(url.hostname.split('.')[0].endsWith('-pooler'))throw new Error('Use a direct database URL with runtime role startup settings');
+  const publicOrigin=new URL(origin);
+  if(publicOrigin.origin!==origin||publicOrigin.protocol!=='https:')throw new Error('HTTPS public origin required');
+  return {connectionString,origin};
+}
 async function configuredRuntime() {
   if(!runtime) {
-    const connectionString=process.env.ZERO_HUB_API_DATABASE_URL;
-    const origin=process.env.ZERO_HUB_ORIGIN;
-    if(!connectionString || !origin)throw new Error('Restricted runtime database and exact public origin required');
-    const url=new URL(connectionString);
-    if(!['postgres:','postgresql:'].includes(url.protocol)||url.searchParams.has('options'))throw new Error('Invalid runtime database configuration');
-    const publicOrigin=new URL(origin);
-    if(publicOrigin.origin!==origin||publicOrigin.protocol!=='https:')throw new Error('HTTPS public origin required');
+    const {connectionString,origin}=runtimeConfiguration();
     const pool=new pg.Pool({connectionString,max:2,connectionTimeoutMillis:10000,idleTimeoutMillis:10000,options:'-c role=hub_api -c statement_timeout=15000 -c search_path=public,pg_catalog'});
     pool.on('error',()=>{}); // Return a sanitized HTTP failure, never credentials.
     runtime=createReadOnlyRuntime(pool,origin).catch(async error=>{runtime=undefined;await pool.end();throw error;});

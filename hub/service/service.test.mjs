@@ -339,3 +339,73 @@ test('distinct API/checker/publisher logins enforce actual PostgreSQL authority 
     await apiHub.stop();
   } finally {for(const principal of Object.values(principals))await principal.pool.end();}
 });
+
+test('runtime login validation rejects extra inherited/settable roles, direct grants and ownership',async()=>{
+  const {createRuntimePool,verifyRole}=await import('./runtime.mjs');
+  const {randomBytes}=await import('node:crypto');
+  const suffix=randomBytes(6).toString('hex');
+  const login=`zero_guard_login_${suffix}`,extra=`zero_guard_admin_${suffix}`;
+  const fn=`zero_guard_function_${suffix}`,table=`zero_guard_table_${suffix}`;
+  const password=randomBytes(24).toString('hex');
+  await pool.query(`CREATE ROLE ${login} LOGIN PASSWORD '${password}'`);
+  await pool.query(`GRANT hub_api TO ${login}`);
+  await pool.query(`CREATE ROLE ${extra} NOLOGIN`);
+  await pool.query(`GRANT INSERT ON hub_releases TO ${extra}`);
+  await pool.query(`CREATE FUNCTION public.${fn}() RETURNS integer LANGUAGE sql SECURITY DEFINER AS 'SELECT 1'`);
+  await pool.query(`REVOKE ALL ON FUNCTION public.${fn}() FROM PUBLIC`);
+  const {rows:[current]}=await pool.query('SELECT current_database() AS name');
+  const db=`"${current.name.replaceAll('"','""')}"`;
+  const url=new URL(database);url.username=login;url.password=password;
+  const runtime=createRuntimePool(url.href,'hub_api');
+  const rejected=()=>assert.rejects(verifyRole(runtime,'hub_api'),error=>error.code==='ZERO_HUB_CONFIG'&&/restricted role/.test(error.message));
+  async function badGrant(grant,revoke) {
+    await pool.query(grant);
+    try {await rejected();} finally {await pool.query(revoke);}
+    await verifyRole(runtime,'hub_api');
+  }
+  try {
+    await verifyRole(runtime,'hub_api');
+    for(const role of ['pg_write_all_data','pg_read_all_data']) {
+      await badGrant(`GRANT ${role} TO ${login}`,`REVOKE ${role} FROM ${login}`);
+    }
+    // A role reached transitively through the expected group is still forbidden.
+    await badGrant(`GRANT ${extra} TO hub_api`,`REVOKE ${extra} FROM hub_api`);
+    // NOINHERIT does not protect a connection that can explicitly SET ROLE.
+    await badGrant(`GRANT ${extra} TO ${login} WITH INHERIT FALSE, SET TRUE`,`REVOKE ${extra} FROM ${login}`);
+    await badGrant(`GRANT hub_api TO ${login} WITH ADMIN TRUE`,`REVOKE ADMIN OPTION FOR hub_api FROM ${login}`);
+    await badGrant(`GRANT INSERT ON hub_releases TO ${login}`,`REVOKE INSERT ON hub_releases FROM ${login}`);
+    await badGrant(`GRANT INSERT(manifest) ON hub_releases TO ${login}`,`REVOKE INSERT(manifest) ON hub_releases FROM ${login}`);
+    await badGrant(`GRANT CREATE ON SCHEMA public TO ${login}`,`REVOKE CREATE ON SCHEMA public FROM ${login}`);
+    await badGrant(`GRANT CREATE ON DATABASE ${db} TO ${login}`,`REVOKE CREATE ON DATABASE ${db} FROM ${login}`);
+    await badGrant(`GRANT EXECUTE ON FUNCTION public.${fn}() TO ${login}`,`REVOKE EXECUTE ON FUNCTION public.${fn}() FROM ${login}`);
+    await badGrant(`ALTER DEFAULT PRIVILEGES GRANT INSERT ON TABLES TO ${login}`,`ALTER DEFAULT PRIVILEGES REVOKE INSERT ON TABLES FROM ${login}`);
+    // CONNECT without delegation is the sole directly granted object exception.
+    await pool.query(`GRANT CONNECT ON DATABASE ${db} TO ${login}`);await verifyRole(runtime,'hub_api');
+    await badGrant(`GRANT CONNECT ON DATABASE ${db} TO ${login} WITH GRANT OPTION`,`REVOKE GRANT OPTION FOR CONNECT ON DATABASE ${db} FROM ${login}`);
+    await pool.query(`REVOKE CONNECT ON DATABASE ${db} FROM ${login}`);
+    await pool.query(`CREATE TABLE public.${table}(value integer)`);
+    await pool.query(`ALTER TABLE public.${table} OWNER TO ${login}`);
+    try {await rejected();} finally {await pool.query(`DROP TABLE public.${table}`);}
+    await verifyRole(runtime,'hub_api');
+    // Runtime groups have no ownership exceptions either; only migration owns.
+    await pool.query(`CREATE TABLE public.${table}(value integer)`);
+    await pool.query(`ALTER TABLE public.${table} OWNER TO hub_api`);
+    try {await rejected();} finally {await pool.query(`DROP TABLE public.${table}`);}
+    await verifyRole(runtime,'hub_api');
+    const client=await runtime.connect();
+    try {
+      await client.query('RESET ROLE');
+      assert.equal((await client.query("SELECT has_table_privilege(session_user,'hub_releases','INSERT') AS release,has_table_privilege(session_user,'hub_objects','INSERT') AS object")).rows[0].release,false);
+      await assert.rejects(client.query('INSERT INTO hub_objects(digest,size,bytes) VALUES($1,1,$2)',['a'.repeat(64),Buffer.from('x')]),error=>error.code==='42501');
+      await client.query('SET ROLE hub_api');
+    } finally {client.release();}
+    await verifyRole(runtime,'hub_api');
+  } finally {
+    await runtime.end();
+    await pool.query(`DROP FUNCTION public.${fn}()`);
+    await pool.query(`DROP OWNED BY ${extra}`);
+    await pool.query(`DROP ROLE ${extra}`);
+    await pool.query(`DROP OWNED BY ${login}`);
+    await pool.query(`DROP ROLE ${login}`);
+  }
+});

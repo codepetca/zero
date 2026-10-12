@@ -124,9 +124,16 @@ work; this local process is not a hosted service claim.
 `npm start --prefix hub` serves HTTP only. Its `pg` pool is bounded to 5 clients,
 with 10 second connection and 15 second statement timeouts. The URL's `sslmode`
 and certificate settings are retained; no verification-disabling SSL override is
-added. Runtime startup verifies the session login is not elevated, does not own
-the database, has no migration-owner membership and has only its own runtime
-role. A database-owner URL with `SET ROLE` is not credential separation.
+added. Neon pooled hostnames containing `-pooler` are refused: use a direct
+connection URL because the runtime establishes session role/timeout options.
+Runtime startup verifies the session login is not elevated and belongs only
+to its expected runtime group, including transitive and explicitly settable
+memberships. Extra predefined/custom roles, membership administration, owned
+objects and directly granted object privileges are refused. Direct CONNECT on
+the current database without grant option is the sole object-grant exception;
+normal PUBLIC defaults remain separate. Runtime authority belongs to the
+NOLOGIN group rather than direct LOGIN grants. A database-owner URL with
+`SET ROLE` is not credential separation.
 
 `ZERO_HUB_UPLOADS` defaults to disabled; only an explicit `1` enables authoring.
 Disabled catalog/session responses contain `capabilities:{uploads:false}`;
