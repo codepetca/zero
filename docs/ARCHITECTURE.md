@@ -13,6 +13,7 @@ The public source repositories are [Zero](https://github.com/codepetca/zero) and
 | `extension/` | Supported VS Code sidebar, Run/Stop and individual Git workflow | Extension contributor tests/tooling |
 | `framework/` | Canonical SimpleApp/SketchApp source and core library build | Maintainer verification harness |
 | `student-template/` | Student app, assets, examples, exercises and Maven configuration | Build outputs and maintainer-only checks |
+| `hub/` | Local package service, PostgreSQL schema, isolated checker and fake Maven publication | Hub services, Docker and maintainer tools |
 | `component-workshop/` | Local component previews/checks and contribution preparation | Workshop belongs in the separate optional kit |
 | `profile/` | Optional editor settings and keybindings | No mandatory profile import |
 | `release/` | Authored compatible kit/core versions and asset names | No binaries or fabricated release receipts |
@@ -50,8 +51,10 @@ community library. A separately versioned local Starter UI prototype lives in
 Community `packages/starter-ui/`; it is not yet supported by that catalog or
 Workshop. See [the package proof](STARTER-UI-PACKAGE.md).
 
-Community adoption and promotion into core require source-bound checks and
-independent appointed maintainers. AI remains advisory. Pika coursework submission
+The new local hub admits supported components through trusted automated checks
+without routine maintainer acceptance. Core promotion remains a separate source/API
+decision and review. Legacy health-bar acceptance helpers retain their existing
+behavior until deliberate migration. AI remains advisory. Pika coursework submission
 uses each student's own repository link and is a separate workflow.
 
 ## Releases and website deployment
@@ -68,6 +71,6 @@ source. A website build or HTTP response does not establish native Java behavior
 
 Later, Vercel builds `website/` separately and Cloudflare manages `zero.codepet.ca`
 DNS. Include repository sources outside the Vercel Root Directory for build-time
-documentation/release preparation. No website account system, student Node
-runtime, artifact-publishing backend or live AI service is required by this local
-MVP. See [the website plan](WEBSITE-PLAN.md) for rollout authority.
+documentation/release preparation. The optional new hub service lives outside the student kit and has its own
+local authentication/database/checker proof. A student Node runtime or live AI
+service is not required. Hosted hub activation is a separate deployment milestone. See [the website plan](WEBSITE-PLAN.md) for rollout authority.

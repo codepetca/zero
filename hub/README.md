@@ -1,0 +1,121 @@
+# Zero component hub — local build
+
+This local hub adds a generic path alongside the published health-bar catalog.
+PostgreSQL stores library ownership, submissions, check reports and release
+manifests. An offline Docker worker builds/checks Java; a separate service operation
+publishes the exact checked bytes to a local immutable Maven repository. The
+existing public website/downloads and legacy Workshop remain unchanged.
+
+## Student flow
+
+1. Open Community → Make a component. Sign in; choose a Java class name and title.
+2. Download the project. The hub supplies a short namespace such as `zero.ui7`.
+   Extract it and open the folder in Zero's VS Code profile. The standard build
+   shortcut runs the editable preview; Maven config and wrapper are included.
+3. Edit the component, its API card, tests, two examples and PNG preview. Upload
+   the project folder. Development/build files stay outside the submitted library.
+
+A passing version is listed automatically. A failed version stays unavailable;
+fix and resubmit the same unpublished version. Each submission/report remains
+immutable. Published versions cannot be replaced. Related components can share
+one library and one exact version. No GitHub username appears in Java imports.
+Students still submit coursework repository links separately in Pika.
+
+On a configured hub, Zero's (…) → Browse hub libraries lets students inspect and
+Add an exact Maven dependency. Update accepts a newer compatible patch; Revert
+restores that library's preceding pin. The source stays editable, pins do not
+change automatically, and independent libraries keep separate history. Existing
+Browse components continues to use the legacy public catalog.
+
+## Developer run
+
+Requires Node 22+, Docker and a graphical JDK17+ session for native app proof.
+These are maintainer tools, not new student prerequisites. No cloud resources or
+live credentials are created by these commands.
+
+```sh
+npm ci --prefix hub
+node hub/checker/build-image.mjs
+node hub/local.mjs --origin http://127.0.0.1:3177
+```
+
+In another terminal:
+
+```sh
+cd website
+npm ci
+ZERO_HUB_URL=http://127.0.0.1:8788 npm run dev -- --port 3177
+```
+
+Visit `http://127.0.0.1:3177/community`. Local sign-in explicitly uses the test
+identity `zero-local-demo`; it is not GitHub authentication. The test PostgreSQL
+container is temporary and disappears on exit. Object bytes live under the
+printed ignored proof directory. Ctrl+C stops the hub and database. A missing
+hub configuration leaves existing public downloads usable.
+
+Seed the actual Starter UI dogfood package using the matching Community checkout:
+
+```sh
+node hub/local.mjs --origin http://127.0.0.1:3177 \
+  --community-root /path/to/zero-community --output .verification/hub-demo
+```
+
+A preview is illustrative unless replaced via `--preview /path/to/preview.png`.
+The coordinated proof used a native snapshot of the canonical Starter UI views.
+This local fixture does not rename or publish Community's earlier package.
+
+## Verify
+
+```sh
+npm run test:postgres --prefix hub
+node --test hub/checker/test/validation.test.mjs
+ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs
+node scripts/verify-hub.mjs --community-root /path/to/zero-community \
+  --output .verification/hub-proof
+npm test
+npm test --prefix website
+npm run typecheck --prefix website
+npm run build --prefix website
+```
+
+The integration proof deliberately fails a submission, fixes/resubmits the same
+unpublished version, publishes two versions only to a local fake store, resolves
+0.1.0 → 0.1.1 → 0.1.0 through ordinary Maven and exercises both real study/game
+consumers with exact JAR-origin/hash checks. It also uses the extension's actual
+Add/Update/Revert engine and preserves immutable first-version metadata.
+
+## What is checked
+
+The first policy supports self-contained JavaFX widgets with `public Node view()`.
+No special superclass or framework registry. Constructors/setters stay ordinary
+Java. Third-party/transitive library dependencies and non-widget source bundles
+are outside this first policy. Java17 and JavaFX21.0.12 are pinned; submitted POMs,
+workflows, scripts, receipts and passing flags have no authority.
+
+The trusted checker verifies source/namespace/class boundaries, compilation,
+actual built-JAR API/origins, finite declared behavior and two consumers, complete
+MIT/API/changelog/PNG and exact source/artifact bindings. The public label is
+Automatically checked with actual scope/platforms. Contributor-authored tests can
+still be weak; these checks cannot prove usefulness, all behaviors or safety after
+installation. Components run with the student's application permissions.
+
+See [checker policy](checker/README.md), [service lifecycle](service/README.md)
+and [shared contract](CONTRACT.md). Root source changes still receive independent
+review; that is separate from automatic component admission.
+
+## Hosted activation is separate
+
+This is a local implementation, not an active public hub. Its full integration
+proof remains pending until the checker image can build/run on a working Docker
+engine. Database and website tests alone do not verify automatic publication. Hosted activation
+needs owner-authorized GitHub OAuth setup, a managed PostgreSQL database, durable
+artifact storage, and a dedicated hardened checker host. Vercel hosts the Next.js
+website; it does not run these Docker workers. The production service fails closed
+without configured authentication. Local identity mode is explicitly prohibited
+on production or non-loopback origins. No service token reaches candidate Java.
+
+Before a public launch, provision separate least-privilege worker/publisher roles,
+resource/queue/abuse quotas, backups, operational monitoring and reporting/removal.
+The local checker uses containers and a Java17 completion guard; that is not a
+claim of resistance to all JVM/native/kernel exploits. Linux ARM64 virtual-display
+checks do not establish native Windows/Linux AMD64 or novice/physical-input flows.

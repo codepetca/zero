@@ -1210,3 +1210,6 @@ pre code {
 @media(max-width:540px){.component-choice{padding:18px}.component-title{align-items:flex-start;flex-direction:column;gap:6px}}
 
 .segmented-health-preview>span.partial{background:linear-gradient(to right,var(--purple) 50%,#efedf5 50%)}
+
+/* Hub forms follow the community reading page. */
+.hub-form{display:grid;gap:10px;max-width:540px;margin:18px 0}.hub-form label{font-size:16px;font-weight:600}.hub-form input{width:100%;padding:12px;border:1px solid var(--outline);border-radius:4px;background:var(--pale);color:var(--ink);font:inherit;font-size:16px}.hub-form input:focus-visible{outline:3px solid var(--purple);outline-offset:3px}.hub-form .button{justify-self:start}.hub-form details label{display:block;margin:12px 0 6px}.hub-error{border-left:3px solid #a92b35;padding:10px 16px;background:var(--pale);overflow-wrap:anywhere}.hub-preview{display:block;max-width:100%;max-height:280px;object-fit:contain;object-position:left;margin:18px 0}.button:disabled,.text-button:disabled{opacity:.55;cursor:wait}.resource-links p{margin:0}

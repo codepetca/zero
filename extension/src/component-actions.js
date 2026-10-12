@@ -149,11 +149,12 @@ function createComponentActions(vscode, context, host, options = {}) {
   }
   async function menu() {
     const choice = await vscode.window.showQuickPick([
-      {label:'Browse components…',action:'browse'}, {label:'Update community library…',action:'update'},
+      {label:'Browse components…',action:'browse'}, {label:'Browse hub libraries…',action:'hub'}, {label:'Update community library…',action:'update'},
       {label:'Revert previous library version…',action:'revert'}, {label:'Choose a local catalog…',action:'catalog'},
       ...(context.workspaceState.get(remember) ? [{label:'Use public community catalog',action:'public'}] : [])
     ],{title:'Zero components',placeHolder:'Browse, try and use a Maven library'});
     if (choice?.action === 'browse') await browse();
+    else if (choice?.action === 'hub') await host.browseHub();
     else if (choice?.action === 'catalog') await catalog(true);
     else if (choice?.action === 'public') await context.workspaceState.update(remember,undefined);
     else if (choice) await change(choice.action);

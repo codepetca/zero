@@ -3,6 +3,40 @@
 Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
+## Active hub build — local vertical slice
+
+Owner says orchestrate the build. Coordinator implements the existing plan using
+hub/CONTRACT.md as the shared interface. Base ed71f4d; branch/worktree unchanged.
+Implementation authorized locally; no push/PR/merge/deploy/publication or live
+OAuth/account provisioning. Primary funding checkout and Community main preserved.
+Weekly76% remaining at start (account allowance, not task cost). DeepSeek paused.
+
+Delivered ownership: Sol/high hub_service owns hub/service, sql, package/lock;
+Sol/high hub_checker owns hub/checker; Sol/medium hub_website owns website.
+Service/website delivered; checker source ready, actual runtime proof pending.
+Service policy-digest/complete-gate hardening finished; all source writers stopped.
+17 expanded PostgreSQL cases await recovery; pure report3/3 passed. Trusted
+development ZIP scaffold compiled and native JavaFX label check passed on macOS
+ARM64 (hub-development-proof-fixed/native.log). Full hub proof still pending.
+Coordinator owns contracts, extension integration, fixtures, proof and docs/Git.
+No recursive delegation. Effective model/tokens/cost/active time unknown.
+First exit: real PostgreSQL reservations/ownership and immutable versions; offline
+Docker JavaFX build/check; useful failure reports; actual local listing/Maven
+consumer; simple website preparation/upload/discovery. Local fake publication
+only. Independent high-risk security and compatibility source review required.
+Hosted OAuth/database/storage/worker rollout remains an explicit later deployment.
+252 root tests, 47 website tests/types/build, 15 actual PostgreSQL tests and 3 pure
+checker validation tests pass. New extension engine/action tests are included.
+No Docker checker or integrated Maven-hub success yet: JavaFX ARM64 GLIBC/native
+requirements required a pinned Noble image; Docker VM then became read-only on
+this near-full Mac. Removed only regenerable npm cache/old Zero vendor binaries,
+keeping source/history/receipts/student files/user data/Docker volumes. Available
+host space rose from1175124KiB to2757500KiB. Docker still cannot create a container.
+Restart would interrupt running local Pika/Supabase: awaiting explicit owner reply,
+not restarting other services. No waiting period grants approval.
+Current proof commands: hub/README.md, scripts/verify-hub.mjs; generated image lock
+and bulky evidence ignored. Source review proceeds independently of engine recovery.
+
 ## Latest hub design decision
 
 Owner removes routine maintainer acceptance from the proposed public hub.

@@ -23,3 +23,6 @@ website/public/generated/
 website/next-env.d.ts
 
 .vercel/
+
+**/__pycache__/
+hub/checker/image-lock.json

@@ -102,6 +102,10 @@
       {
         "command": "zero.revertComponents",
         "title": "Zero: Revert Community Library"
+      },
+      {
+        "command": "zero.browseHub",
+        "title": "Zero: Browse Hub Libraries"
       }
     ],
     "viewsContainers": {
@@ -171,6 +175,12 @@
           "default": "simulation",
           "scope": "resource",
           "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using your VS Code GitHub sign-in. A local Git name/email identity is still required."
+        },
+        "zero.hubOrigin": {
+          "type": "string",
+          "default": "https://zero.codepet.ca",
+          "scope": "machine",
+          "markdownDescription": "Component hub origin. Public hub activation is pending. Developers may explicitly choose a loopback HTTP origin for local verification."
         }
       }
     },

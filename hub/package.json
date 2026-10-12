@@ -1,0 +1,8 @@
+{
+  "name": "zero-local-hub",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": { "start": "node service/server.mjs", "test:report": "node --test service/report.test.mjs", "test:service": "node --test service/service.test.mjs", "test:postgres": "node service/test-postgres.mjs" },
+  "dependencies": { "pg": "8.23.1" }
+}

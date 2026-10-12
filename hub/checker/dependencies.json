@@ -1,0 +1,34 @@
+{
+  "javafx-base-21.0.12-linux.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.12/javafx-base-21.0.12-linux.jar",
+    "sha256": "ac83213e343d734d7d315b4a850b309d8de4a4950c6e46497d8bc68e744b245d"
+  },
+  "javafx-graphics-21.0.12-linux.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-graphics/21.0.12/javafx-graphics-21.0.12-linux.jar",
+    "sha256": "200ee46c819d03811c736900cdfacb2047921313b261d93e52cdeef1eaf1ebb7"
+  },
+  "javafx-controls-21.0.12-linux.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.12/javafx-controls-21.0.12-linux.jar",
+    "sha256": "de5417dbb39920d19376073dbbe896b97cbd5a4e88d56cc6627ff0a32666dc04"
+  },
+  "javafx-swing-21.0.12-linux.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-swing/21.0.12/javafx-swing-21.0.12-linux.jar",
+    "sha256": "8ba36148dc4c01b40e632c657c6cb9ffd91bf7c4795e5a36bbf5ddb8713fa03d"
+  },
+  "javafx-base-21.0.12-linux-aarch64.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-base/21.0.12/javafx-base-21.0.12-linux-aarch64.jar",
+    "sha256": "e5fa1fc5d46f0e3222a67a3cea237566fe5617e7816529318bb7b3483a03f8ee"
+  },
+  "javafx-graphics-21.0.12-linux-aarch64.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-graphics/21.0.12/javafx-graphics-21.0.12-linux-aarch64.jar",
+    "sha256": "130ad00f2b38fdee4b4e2ba35ad7341d75ac1e7a956385652c2fb63bd557f1c4"
+  },
+  "javafx-controls-21.0.12-linux-aarch64.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-controls/21.0.12/javafx-controls-21.0.12-linux-aarch64.jar",
+    "sha256": "55bce633784b51e097775283fab7b3ccaa320aea611fb676115d594b1a1a46c5"
+  },
+  "javafx-swing-21.0.12-linux-aarch64.jar": {
+    "url": "https://repo.maven.apache.org/maven2/org/openjfx/javafx-swing/21.0.12/javafx-swing-21.0.12-linux-aarch64.jar",
+    "sha256": "a97f551f257f8158d9d415486f6c75c14e1a74f9e39a7480c6a34b0f44f04fea"
+  }
+}

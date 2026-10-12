@@ -9,6 +9,7 @@ const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
 const {createTransport} = require('./transport');
 const {createComponentActions} = require('./component-actions');
+const {createHubActions} = require('./hub-actions');
 const {createSetupHelp} = require('./setup');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
@@ -359,8 +360,10 @@ function activate(context) {
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
+  const hubActions=createHubActions(vscode,{project,isBusy,setBusy:value=>{componentBusy=value;refresh();}});
+  Object.assign(actions, hubActions.commands);
   Object.assign(actions, createComponentActions(vscode,context,{
-    project,run:queuedRun,isBusy,setBusy:value=>{componentBusy=value;refresh();},
+    project,run:queuedRun,isBusy,setBusy:value=>{componentBusy=value;refresh();},browseHub:hubActions.browse,
     captureRunGeneration:()=>runGeneration,
     runExample:async(root,args,generation,didLaunch=()=>{})=>{
       const launch = async()=>{

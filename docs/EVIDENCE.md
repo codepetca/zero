@@ -1083,3 +1083,39 @@ bars; general descriptor/check/preview and multiple-library discovery remain nex
 planned contracts. No Community admission/recommendation or public artifact install.
 Physical input, Windows/Linux/Intel, novice and restricted-network behavior untested;
 installer/physical Windows trial still held. Earlier published artifacts retained.
+
+
+## 2026-10-12 local generic hub build (integration pending)
+
+Base ed71f4d; worktree kit-integration/zero on codex/app-game-tutorials. Three
+bounded fresh-context implementation workers: Sol/high service, Sol/high checker,
+Sol/medium website. Each owned separate paths; coordinator owned contract,
+extension engine/actions, dogfood fixture, development/proof tooling and docs.
+3 implementation launches, service one bounded hardening follow-up; no Git/file
+ownership conflict. Requested configurations recorded; effective model, tokens,
+cost and coordinator active time unknown. Account weekly remaining76% at start,
+75% later; not attributable consumption. DeepSeek remained paused.
+
+Evidence: .verification/hub-root-tests.log (252 passed); hub-website-tests.log
+(47 passed), hub-website-types.log; website worker build passed. Service initial
+actual disposable PostgreSQL suite15passed/0skipped; expanded17cases after complete
+six-gate/current-policy-digest hardening await Docker recovery. Pure report3/3 and
+checker validation3/3 passed. Trusted downloaded development project compiled and
+opened/closed native JavaFX with actual label check under isolated Maven settings
+and cache: hub-development-proof-fixed/native.log. First harness typo corrected
+before passing rerun; this verifies the trusted scaffold, not arbitrary submission
+acceptance or VS Code mouse interactions. Native canonical Starter UI PNG rendered
+in hub-preview/preview.png; reused package's original Codepet MIT notice retained.
+
+Docker actual compiler/AST/artifact/API and selected failure paths ran, but no
+passing full widget check/isolation or integrated hub/Maven/browser flow yet.
+JavaFX ARM64 requires newer GLIBC/native dependencies; corrected fixed Noble image
+includes a trusted build-time finite readiness test. Near-full disk caused Docker
+VM/containerd filesystem read-only during image build. Removed only npm download
+cache and inactive old Zero vendor/editor binaries. Source/history/student files,
+user data/receipts/artifacts, Docker.raw and all volumes preserved. Free data-volume
+KiB rose1175124→2757500. Exact cleanup receipt: hub-disk-recovery.json. Docker write
+probe still failed. Restart permission requested because unrelated local Pika/
+Supabase containers run; no restart without reply. Source is ready for independent
+review, not declared accepted/public/student-ready. No push/PR/merge/deploy/live
+OAuth/credential/account changes or public component publication.

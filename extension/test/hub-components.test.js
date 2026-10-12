@@ -1,0 +1,73 @@
+'use strict';
+const test=require('node:test');const assert=require('node:assert/strict');
+const fs=require('node:fs/promises');const path=require('node:path');const os=require('node:os');
+const {createHash}=require('node:crypto');const hub=require('../src/hub-components');
+const hash=b=>createHash('sha256').update(b).digest('hex');
+async function fixture(t) {
+  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-hub-edit-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  await fs.copyFile(path.join(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));await fs.writeFile(path.join(root,'zero.json'),'{}');
+  await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'class Main {}');
+  const bytes=new Map();const releases=[];
+  for(const id of ['ui1','ui2'])for(const version of ['0.1.0','0.1.1']) {
+    const artifacts={};
+    for(const [kind,suffix] of Object.entries({jar:'.jar',sources:'-sources.jar',pom:'.pom'})) {
+      const url=`/api/hub/maven/ca/codepet/zero/library/${id}/${version}/${id}-${version}${suffix}`;
+      const b=Buffer.from(kind==='pom'?`<project><groupId>ca.codepet.zero.library</groupId><artifactId>${id}</artifactId><version>${version}</version><licenses><license><name>MIT</name></license></licenses><dependencies><dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>21.0.12</version></dependency></dependencies></project>`:`${id} ${version} ${kind}`);
+      artifacts[kind]={path:url,sha256:hash(b),size:b.length};bytes.set(url,b);
+    }
+    releases.push({libraryId:id,version,title:'UI',namespace:`zero.${id}`,coordinate:{groupId:'ca.codepet.zero.library',artifactId:id,version},status:'automatically-checked',components:[{className:'Hud'}],sourceDigest:'a'.repeat(64),artifacts});
+  }
+  const catalog={mode:'local',libraries:releases};
+  const fetcher=async url=>new Response(new URL(url).pathname==='/api/hub/catalog'?JSON.stringify(catalog):bytes.get(new URL(url).pathname));
+  const context=await hub.loadCatalog('http://127.0.0.1:3456',{fetcher});return{root,context,bytes,catalog,releases};
+}
+test('independent library pins preserve app source and unrelated library; Update/Revert only own blocks',async t=>{
+  const f=await fixture(t),pom=path.join(f.root,'pom.xml');
+  let plan=await hub.planChange(f.root,f.context,f.releases[0]);await fs.writeFile(pom,plan.afterText);
+  plan=await hub.planChange(f.root,f.context,f.releases[2]);await fs.writeFile(pom,plan.afterText);
+  plan=await hub.planChange(f.root,f.context,f.releases[1],{operation:'update'});await fs.writeFile(pom,plan.afterText);
+  assert.equal(plan.current,'0.1.0');assert.match(plan.afterText,/<artifactId>ui2<\/artifactId><version>0.1.0/);
+  plan=await hub.planChange(f.root,f.context,f.releases[0],{operation:'revert'});assert.equal(plan.previous,'0.1.0');assert.match(plan.afterText,/<artifactId>ui1<\/artifactId><version>0.1.0/);
+  assert.equal(await fs.readFile(path.join(f.root,'src/main/java/Main.java'),'utf8'),'class Main {}');
+});
+test('drifted bytes, forged paths, source shadows and edited POM fail closed',async t=>{
+  const f=await fixture(t);const plan=await hub.planChange(f.root,f.context,f.releases[0]);
+  await fs.appendFile(path.join(f.root,'pom.xml'),'<!-- unrelated new edit -->');await assert.rejects(hub.validatePlan(plan,f.context),/POM changed/);
+  f.bytes.set(f.releases[0].artifacts.jar.path,Buffer.from('different'));await assert.rejects(hub.planChange(f.root,f.context,f.releases[0]),/artifact changed/);
+  const forged=structuredClone(f.catalog);forged.libraries[0].artifacts.jar.path='/api/hub/maven/../../private';assert.throws(()=>hub.validateCatalog(forged),/artifact binding/);
+  await fs.writeFile(path.join(f.root,'src/main/java/Hud.java'),'package zero.ui1; public class Hud {}');await assert.rejects(hub.planChange(f.root,f.context,f.releases[0]),/shadows/);
+});
+test('invalid origins, manual dependencies, profiles, incomplete blocks and unsuitable update rejected',async t=>{
+  for(const url of ['http://example.com','https://user:password@example.com','https://example.com/private'])assert.throws(()=>hub.origin(url));
+  const f=await fixture(t),pom=path.join(f.root,'pom.xml');const original=await fs.readFile(pom,'utf8');
+  await fs.writeFile(pom,original.replace('</dependencies>','<dependency><groupId>ca.codepet.zero.library</groupId><artifactId>ui1</artifactId><version>0.1.0</version></dependency></dependencies>'));
+  await assert.rejects(hub.planChange(f.root,f.context,f.releases[0]),/manual/);
+  await fs.writeFile(pom,original.replace('</project>','<profiles></profiles></project>'));await assert.rejects(hub.planChange(f.root,f.context,f.releases[0]),/manual/);
+  await fs.writeFile(pom,original);const plan=await hub.planChange(f.root,f.context,f.releases[0]);await fs.writeFile(pom,plan.afterText.replace('Zero hub ui1 history: end','broken history marker'));await assert.rejects(hub.planChange(f.root,f.context,f.releases[1],{operation:'update'}),/block/);
+});
+const {createHubActions}=require('../src/hub-actions');
+async function commandFixture(t,{approval,dirty=false,drift=false,editAccepted=true}={}) {
+  const f=await fixture(t);let busy=false,edits=0,saves=0,picks=0;
+  const doc={isDirty:dirty,version:1,getText:()=>f.text,positionAt:x=>x,save:async()=>{saves++;await fs.writeFile(path.join(f.root,'pom.xml'),f.text);doc.isDirty=false;return true;}};
+  f.text=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');
+  const vscode={workspace:{isTrusted:true,getConfiguration:()=>({get:()=>f.context.origin}),openTextDocument:async()=>doc},Uri:{file:x=>x,parse:x=>x},Range:class{constructor(a,b){this.start=a;this.end=b;}},window:{
+    showQuickPick:async entries=>{picks++;return entries.find(e=>e.action==='add')||entries[0];},
+    showInformationMessage:async(_message,options)=>{if(options?.modal){if(drift)await fs.appendFile(path.join(f.root,'pom.xml'),'<!-- student edit -->');return approval;}},
+    showTextDocument:async()=>({edit:async callback=>{edits++;if(!editAccepted)return false;callback({replace:(_range,text)=>{f.text=text;doc.version++;doc.isDirty=true;}});return true;}})
+  }};
+  const actions=createHubActions(vscode,{project:async()=>f.root,isBusy:()=>busy,setBusy:x=>{busy=x;}},{fetcher:f.context.fetcher});
+  return{f,actions,doc,stats:()=>({busy,edits,saves,picks})};
+}
+test('hub native action cancellation, unsaved edits and review drift preserve student POM',async t=>{
+  for(const options of [{approval:undefined},{approval:'Apply',dirty:true},{approval:'Apply',drift:true}]) {
+    const c=await commandFixture(t,options);const before=c.f.text;
+    if(options.dirty||options.drift)await assert.rejects(c.actions.commands['zero.browseHub'](),/Save pom|POM changed/);
+    else await c.actions.commands['zero.browseHub']();
+    assert.equal(c.stats().edits,0);assert.equal(c.stats().saves,0);assert.equal(c.stats().busy,false);assert.equal(c.f.text,before);
+  }
+});
+test('hub native edit is saved only after approval; rejected versioned edit never saves',async t=>{
+  const rejected=await commandFixture(t,{approval:'Apply',editAccepted:false});await assert.rejects(rejected.actions.commands['zero.browseHub'](),/POM changed/);assert.equal(rejected.stats().saves,0);
+  const accepted=await commandFixture(t,{approval:'Apply'});await accepted.actions.commands['zero.browseHub']();
+  assert.equal(accepted.stats().edits,1);assert.equal(accepted.stats().saves,1);assert.equal(accepted.stats().busy,false);assert.match(accepted.f.text,/<artifactId>ui1<\/artifactId>/);
+});

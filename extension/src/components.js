@@ -326,4 +326,5 @@ async function verifyRelease(context, version) {
   });
   if (!mit) fail('The public release POM must declare the MIT license.');
 }
-module.exports = {loadCatalog, loadPublicCatalog, reloadCatalog, verifyRelease, readProject, prepareChange, validatePrepared};
+module.exports = {loadCatalog, loadPublicCatalog, reloadCatalog, verifyRelease, readProject, prepareChange, validatePrepared,
+  pomTools: {parseXml, single, value, allNodes, projectFiles}};
