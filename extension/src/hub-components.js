@@ -13,8 +13,8 @@ function origin(input) {
       !(url.protocol === 'https:' || (url.protocol === 'http:' && ['127.0.0.1','localhost','[::1]'].includes(url.hostname)))) fail('Choose an HTTPS hub origin, or an explicit loopback origin for local development.');
   return url.origin;
 }
-async function readBytes(url, fetcher, limit) {
-  const response = await fetcher(url,{redirect:'error',signal:AbortSignal.timeout(15_000)});
+async function readBytes(url, fetcher, limit, timeoutMs=15_000) {
+  const response = await fetcher(url,{redirect:'error',signal:AbortSignal.timeout(timeoutMs)});
   if (!response.ok || !response.body) fail('The component hub is unavailable. Your app has not changed.');
   const chunks=[]; let size=0;
   const reader=response.body.getReader();
@@ -47,18 +47,24 @@ function validateCatalog(catalog) {
   }
   return catalog;
 }
-async function loadCatalog(input,{fetcher=fetch}={}) {
+async function loadCatalog(input,{fetcher=fetch,now=()=>performance.now()}={}) {
   const hubOrigin=origin(input),pages=[],libraries=[],cursors=new Set();let cursor=null,catalog;
+  const started=now();let transferred=0;
   do {
+    const remaining=30_000-Math.ceil(now()-started);
+    if(remaining<=0)fail('Catalog download timed out. Browse the ZeroHub website for exact versions and manual Maven instructions.');
     const query=new URLSearchParams({history:'1'});if(cursor)query.set('cursor',cursor);
-    const bytes=await readBytes(`${hubOrigin}/api/hub/catalog?${query}`,fetcher,1024*1024);
+    const bytes=await readBytes(`${hubOrigin}/api/hub/catalog?${query}`,fetcher,4*1024*1024,Math.min(15_000,remaining));
+    transferred+=bytes.length;
+    if(transferred>16*1024*1024)fail('Catalog download exceeds 16 MiB. Browse the ZeroHub website for exact versions and manual Maven instructions.');
+    if(now()-started>=30_000)fail('Catalog download timed out. Browse the ZeroHub website for exact versions and manual Maven instructions.');
     const page=validateCatalog(JSON.parse(bytes.toString('utf8')));
     if(Object.hasOwn(page,'nextCursor')&&(page.libraries.length>20||!(page.nextCursor===null||typeof page.nextCursor==='string'&&/^[A-Za-z0-9_-]{1,512}$/.test(page.nextCursor))))fail('Invalid hub catalog page.');
     if(catalog&&(page.mode!==catalog.mode||JSON.stringify(page.capabilities)!==JSON.stringify(catalog.capabilities)))fail('The hub catalog changed. Browse again.');
     libraries.push(...page.libraries);pages.push(hash(bytes));catalog=page;
     cursor=page.nextCursor??null;
     if(libraries.length>500||cursor&&libraries.length>=500)fail('This hub has more than 500 releases. Browse the ZeroHub website for exact versions and manual Maven instructions.');
-    if(cursor&&page.libraries.length!==20)fail('Invalid hub catalog page. Browse the ZeroHub website.');
+    if(cursor&&!page.libraries.length)fail('Invalid hub catalog page. Browse the ZeroHub website.');
     if(cursor&&cursors.has(cursor))fail('The hub catalog did not advance. Browse the ZeroHub website.');
     if(cursor)cursors.add(cursor);
   }while(cursor);

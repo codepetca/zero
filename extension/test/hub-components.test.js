@@ -111,3 +111,16 @@ test('history traversal keeps exact pins across pages and rejects overflow or ch
   const overflow=async url=>{const start=Number(new URL(url).searchParams.get('cursor')??0);return Response.json({mode:'local',libraries:Array.from({length:20},(_,i)=>({...releases[0],version:`0.1.${start+i}`,coordinate:{...releases[0].coordinate,version:`0.1.${start+i}`},artifacts:Object.fromEntries(Object.entries(releases[0].artifacts).map(([kind,artifact])=>[kind,{...artifact,path:artifact.path.replaceAll('0.1.0',`0.1.${start+i}`)}]))})),nextCursor:String(start+20)});};
   await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:overflow}),/more than 500 releases.*website/);
 });
+
+test('byte-sized history pages preserve pins and total transfer/time budgets guide students to the website',async t=>{
+  const f=await fixture(t);
+  const release=i=>({...f.releases[0],version:`0.1.${i}`,coordinate:{...f.releases[0].coordinate,version:`0.1.${i}`},artifacts:Object.fromEntries(Object.entries(f.releases[0].artifacts).map(([kind,artifact])=>[kind,{...artifact,path:artifact.path.replaceAll('0.1.0',`0.1.${i}`)}]))});
+  const page=(i,last=false)=>({mode:'local',libraries:[release(i)],nextCursor:last?null:String(i+1)});
+  const context=await hub.loadCatalog(f.context.origin,{fetcher:async url=>{const i=Number(new URL(url).searchParams.get('cursor')??0);return Response.json(page(i,i===2));}});
+  assert.deepEqual(context.catalog.libraries.map(r=>r.version),['0.1.0','0.1.1','0.1.2']);
+  let count=0;
+  await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:async()=>{const value=page(count++);value.libraries[0].api='x'.repeat(1024*1024);return Response.json(value);}}),/exceeds 16 MiB.*website/);
+  assert.ok(count<=16);
+  let elapsed=0;
+  await assert.rejects(hub.loadCatalog(f.context.origin,{now:()=>elapsed,fetcher:async()=>{elapsed+=16000;return Response.json(page(count++));}}),/timed out.*website/);
+});

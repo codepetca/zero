@@ -1,5 +1,6 @@
 import {createHash} from 'node:crypto';
 export const CATALOG_PAGE_SIZE=20;
+export const CATALOG_PAGE_BYTES=2*1024*1024;
 const idPattern=/^ui[1-9a-z][0-9a-z]{0,11}$/;
 const versionPattern=/^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$/;
 const exactVersion=/^\d{1,9}\.\d{1,9}\.\d{1,9}(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?$/;
@@ -51,6 +52,13 @@ export async function catalogPage(pool,params,attribute) {
     OR EXISTS (SELECT 1 FROM jsonb_array_elements(r.manifest->'components') c WHERE strpos(lower(c->>'className'),$1)>0 OR strpos(lower(c->>'description'),$1)>0))
     AND (k.id IS NULL OR ${history?'(r.library_id COLLATE "C",r.numbers)>(k.id COLLATE "C",k.numbers)':'r.library_id COLLATE "C">k.id COLLATE "C"'})
   ORDER BY r.library_id COLLATE "C",r.numbers LIMIT $4`,[q,after?.[2]??null,after?.[3].split('.').map(Number)??null,CATALOG_PAGE_SIZE+1]);
-  const page=rows.slice(0,CATALOG_PAGE_SIZE);const last=page.at(-1);
-  return {libraries:page.map(attribute),nextCursor:rows.length>CATALOG_PAGE_SIZE?encodeCursor(scope,last.library_id,last.version):null};
+  const page=[];let bytes=1024; // Reserve space for mode, capabilities and cursor.
+  for(const row of rows.slice(0,CATALOG_PAGE_SIZE)) {
+    const release=attribute(row),size=Buffer.byteLength(JSON.stringify(release))+1;
+    if(bytes+size>CATALOG_PAGE_BYTES)break;
+    bytes+=size;page.push(release);
+  }
+  if(rows.length&&!page.length)throw Object.assign(new Error('Library metadata exceeds the catalog page limit'),{status:503});
+  const last=rows[page.length-1];
+  return {libraries:page,nextCursor:rows.length>page.length?encodeCursor(scope,last.library_id,last.version):null};
 }

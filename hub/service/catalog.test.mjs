@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {catalogQuery,catalogPage,canonicalHubQuery} from './catalog.mjs';
+import {catalogQuery,catalogPage,canonicalHubQuery,CATALOG_PAGE_BYTES} from './catalog.mjs';
 
 test('catalog grammar normalizes search, bounds text and rejects unknown, duplicate or cross-search cursors before SQL',async()=>{
   assert.equal(catalogQuery(new URLSearchParams('q=+HUD+')).query,'q=hud');
@@ -12,6 +12,18 @@ test('catalog grammar normalizes search, bounds text and rejects unknown, duplic
   assert.equal(catalogQuery(new URLSearchParams(`q=HUD&cursor=${page.nextCursor}`)).after[2],rows[19].library_id);
   for(const index of [2,3]){const value=JSON.parse(Buffer.from(page.nextCursor,'base64url'));value[index]=[value[index]];const cursor=Buffer.from(JSON.stringify(value)).toString('base64url');assert.throws(()=>catalogQuery(new URLSearchParams({q:'hud',cursor})),error=>error.status===400);}
 });
+test('long API notes produce byte-bounded pages without skipping a release',async()=>{
+  const rows=Array.from({length:23},(_,i)=>({library_id:'ui'+(i+1).toString(36),version:'1.0.0',manifest:{libraryId:'ui'+(i+1).toString(36),api:'a'.repeat(65536),changelog:'b'.repeat(65536)}})).sort((a,b)=>a.library_id.localeCompare(b.library_id));
+  const pool={query:async(_sql,args)=>({rows:rows.filter(row=>!args[1]||row.library_id>args[1]).slice(0,21)})};
+  let cursor=null;const collected=[];
+  do {
+    const page=await catalogPage(pool,new URLSearchParams(cursor?{cursor}:{}),row=>row.manifest);
+    assert.ok(page.libraries.length>0&&page.libraries.length<20);assert.ok(Buffer.byteLength(JSON.stringify(page))<CATALOG_PAGE_BYTES);
+    collected.push(...page.libraries.map(row=>row.libraryId));cursor=page.nextCursor;
+  }while(cursor);
+  assert.deepEqual(collected,rows.map(row=>row.library_id));
+});
+
 test('exact release grammar preserves old versions and rejects ambiguous or unbounded selections',()=>{
   assert.equal(canonicalHubQuery(new URL('https://zero.example/?version=1.0.0'),'libraries/ui1'),'?version=1.0.0');
   for(const query of ['version=latest','version=1.0.0&version=2.0.0','q=hud','version='+ '1'.repeat(200)+'.0.0'])assert.throws(()=>canonicalHubQuery(new URL('https://zero.example/?'+query),'libraries/ui1'),error=>error.status===400);
