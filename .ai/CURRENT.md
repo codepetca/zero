@@ -1,9 +1,36 @@
 # Current state
 
-Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
+Updated 2026-10-12. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
 ## Active hub build — local vertical slice
+
+Latest checkpoint: source d327fbe, saved locally; implementation is not accepted.
+Final checks passed: 254 root tests, 49 website tests/types/build, 17 actual
+PostgreSQL cases, six pure checker/report cases, 14 bounded JDK regression
+processes, and the trusted starter's native macOS JavaFX proof.
+The isolated Docker suite failed all six cases at image startup, and the full
+hub/Maven proof failed before a valid contribution could publish. Fresh BuildKit
+build/readiness succeeded, but Docker's loaded image contains a zero-byte
+/__cacert_entrypoint.sh and exits with an exec-format error. Removing and
+reloading only this generated checker image did not fix it. No volume reset,
+Docker.raw deletion or unrelated image removal was attempted.
+The owner's explicit restart request was executed with the official Docker CLI;
+all 23 existing services returned running, with all configured health checks
+healthy. Owned local hub/website proof servers and disposable database stopped.
+The local browser showed the preparation page, but sign-in did not visibly
+advance; browser reservation/upload/download flows remain unverified.
+Independent initial security and compatibility reviews found five blockers;
+two fix batches addressed them. Both targeted reviewer attempts were blocked
+by the provider's possible-cybersecurity-risk filter. Four reviewer launches
+total; the 60-minute review window elapsed at 08:49 Toronto. Do not continue
+source remediation/reviewer launches without an explicit budget extension;
+self-review does not satisfy the missing corrected-source independent pass.
+Next: recover a valid checker runtime without disturbing other Docker data,
+then run the actual checker, hub/Maven and browser flows; obtain independent
+review of the corrections within an explicitly extended review budget.
+No push, PR, merge, deployment or public package publication occurred.
+The older progress notes below are historical; this checkpoint governs status.
 
 Owner says orchestrate the build. Coordinator implements the existing plan using
 hub/CONTRACT.md as the shared interface. Base ed71f4d; branch/worktree unchanged.
@@ -49,8 +76,9 @@ Authenticated contributions passing a trusted automated minimum-standards checke
 will publish/list automatically. Short library IDs are hub-assigned; student
 imports use zero.ui7.Hud, owner/version remain metadata. Authoritative new design:
 docs/COMMUNITY-HUB-PLAN.md. Legacy helpers still implement human acceptance;
-the isolated generic checker/publisher and DB hub are not implemented. No source
-gate, remote setting, current artifact publication or repository merge changed.
+the isolated generic checker/publisher and DB hub are now implemented locally,
+with runtime and corrected-source review gates still incomplete. No remote
+setting, current artifact publication or repository merge changed.
 
 ## Completed local Starter UI package proof
 

@@ -1157,3 +1157,20 @@ short afterpriorfulldisk). Only reclaimableunsharedcache records tiedto exactNob
 base selectedforprune/rebuild; no volumes/globalDockerdatareset. Source-review
 60minclockstarts07:49; no additionalremediation/reviewerpast08:49withoutuser
 extension. Allholds/productionlimitations stayexplicit.
+
+2026-10-12 runtime/restart checkpoint, source d327fbe: fresh owned BuildKit
+builder built the pinned Noble checker and passed its image-build readiness
+probe. The default Docker runtime still exited 255 with an exec-format error;
+six actual Docker tests failed at startup, and verify-hub failed before valid
+publication. Extracting the loaded image's entrypoint showed zero bytes; its
+bash binary was ARM64 ELF. Removed/reloaded only this task's generated checker
+image from the fresh builder, with no improvement. Evidence remains ignored in
+.verification/hub-runtime-recovery/, hub-docker-checks-final.log and
+hub-integration-final.log. No image corruption repair or positive end-to-end
+proof is claimed. The latest explicit Docker restart completed through
+docker desktop restart --timeout 60; all 23 pre-existing services returned
+running and all configured health checks became healthy. Stopped this task's
+hub/website preview processes and disposable database. Browser local sign-in
+was clicked and returned HTTP302, but authenticated UI was not observed;
+interactive preparation/upload/download remains pending. No source edits or
+additional reviewer launches after the elapsed review budget; no public action.
