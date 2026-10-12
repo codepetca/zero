@@ -976,3 +976,62 @@ No push/PR/deploy. No novice trial, physical Windows/Linux/Intel proof or fresh
 installer test; those remain deferred. Current Workshop checks only its two declared
 health bars; general custom-component authoring/contribution needs a future pass.
 Evidence .verification/tutorial-pass/; design docs/TUTORIAL-PLAN.md.
+
+
+## Visual quick lessons, composition and local sharing trial — 2026-10-11
+
+Owner requested visual/minimal-reading lessons and an actual component-building/
+sharing trial, including composable HUD/start-screen parts. Local source
+6e32ecccb4f317e6b605fcbe9d23258229c3027d, baseline3f4a36792b52e229725f63125653900dee955128,
+47files. All13lessons now begin with standalone accessible target SVG illustrations,
+three actions and an observable checkpoint. Existing code/explanation retained;
+later lessons start with one runnable milestone. Illustrations are not screenshots
+and no novice completion time is claimed. Hosted intro appears before folded
+detail, with code anchors and fixed asset mapping. Desktop picture/actions share
+one grid;390px viewport stacks with no horizontal overflow. Local Markdown retains
+the assets. Actual browser code-link reveal, lesson10 and six-file composed-game
+copy page verified; screenshots .verification/visual-composition/lesson-1.png and
+lesson-1-mobile.png are local website proof, not public deployment.
+
+New composed-study/game reuse unchanged StartScreen/Hud source plus canonical
+ScoreDisplay and original Question/Player/Coin helpers. Hud contains ScoreDisplay;
+Main supplies actions and owns state/rules. Study switches native views. Game keeps
+canvas mounted, explicitly gates updates, reserves Hud room during setup, resets
+existing views and returns Scene keyboard focus ownership to canvas. Exact source
+sets compile. Fourteen finite actual JavaFX cases,38website tests, typecheck,
+production build, root and whitespace checks passed. New cases exercise menu/
+activity/completion/restart, duplicate score prevention, independent Hud actions,
+view identity, layout bounds and deterministic held-key movement. Physical input
+not demonstrated. Initial synthetic key-event movement failed twice because the
+native window was unfocused; harness now follows MovementCheck's deterministic
+held-input method, retains focus-owner checks, and explicitly labels this limit.
+One coordinator layout correction handled parsed whitespace before Done; regression
+check proves every lesson produces the visible quick-path wrapper.
+
+Separate Sol/medium worker copied trusted Community into ignored disposable
+fixtures: two reproducible builds,6JavaFX checks,4Maven consumers, native Workshop,
+baseline export and independent admission passed. Editing HealthBar caption
+rejected stale evidence; fresh CandidateBuild/export/independent admission passed.
+Packets report checked, communityReviewed=false/publishAllowed=false. Arbitrary
+StartScreen metadata is rejected by the current healthbar-only contract. Receipt
+.verification/component-flow-trial/receipt.json; commands/limits NOTES.md there.
+One fixture rerun created an omitted export parent; not a product defect. Real
+Community remains clean at31febf2f22228553e40e96abe92bcbbf83032815. Its contribution
+guide's eight-owned-file count and enforced-protection paragraph are stale;
+follow-up recorded rather than silently changing that repository. Generic component
+workbench remains planned in docs/TUTORIAL-PLAN.md, not claimed as built.
+
+Fresh GPT-6.1-Sol/medium independent reviewer inspected the complete47-file diff
+and immediate renderer/build/framework/shared-class contracts:0findings/blockers.
+Reused tied check/trial evidence, inspected both screenshots, independently checked
+fixed HEAD/clean tree and whitespace. One launch/initial wave,0fix batches,0targeted
+or integration waves; default7launch/4fix/60min caps retained. Three Sol/medium
+workers owned visual lessons, composition examples and disposable trial; coordinator
+owned web/harness/integration. No recursive delegation. Effective configurations,
+attributable tokens/cost and active time unknown; weekly81% remaining at start is
+account allowance. DeepSeek stays paused. No new goal/task/automation.
+
+Local source accepted and unpublished. No push/PR/deploy, core/dependency/version/
+installer/ZIP/Community/account changes. Physical input/DirectoryChooser, Windows/
+Linux/Intel, novice timing, public submission/maintainer acceptance/install remain
+unverified; installer trial held. Existing published releases retained.

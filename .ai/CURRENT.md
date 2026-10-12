@@ -3,7 +3,7 @@
 Updated2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable history/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
-## Active visual tutorials and composition pass
+## Completed local visual tutorials and composition pass
 
 Owner asks for images/minimal reading, local component sharing trial and composable
 HUD/start-screen examples. Branch codex/app-game-tutorials baseline3f4a367. No
@@ -30,7 +30,10 @@ StartScreen and supports only its two health bars. Two stale Community doc claim
 docs/TUTORIAL-PLAN.md, not implemented. Physical input/chooser, novice timing,
 Windows/Linux and public contribution/acceptance were not tested.
 
-Source verification complete; fresh independent full-diff review pending.
+Source 6e32ecccb4f317e6b605fcbe9d23258229c3027d independently reviewed:0findings/blockers,
+complete47-file coverage;1launch/initialwave,0fixbatches. Local pass complete.
+Next proposed work is the generic component workbench, including the two stale
+Community contribution-guide claims. No active workers or publication.
 
 ## Completed local app/game tutorial pass
 
