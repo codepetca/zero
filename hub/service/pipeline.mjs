@@ -5,12 +5,18 @@ import {validReport} from './report.mjs';
 import {transaction} from './database.mjs';
 const BASE='/api/hub';
 const GROUP='ca.codepet.zero.library';
+function selector(target) {
+  if(target===undefined)return [null,null];
+  if(!target||typeof target!=='object'||Array.isArray(target)||Object.keys(target).sort().join(',')!=='sourceDigest,submissionId'||typeof target.submissionId!=='string'||typeof target.sourceDigest!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(target.submissionId)||!/^[a-f0-9]{64}$/.test(target.sourceDigest))throw new Error('Provide an exact immutable submission ID and source digest');
+  return [target.submissionId,target.sourceDigest];
+}
 export function createPipeline({pool,storage,checker}) {
   const runTransaction=action=>transaction(pool,action);
-  async function workOnce() {
+  async function workOnce(target) {
+    const selected=selector(target);
     const job = await runTransaction(async client => {
-      await client.query("UPDATE hub_submissions SET status=CASE WHEN attempts>=3 THEN 'failed' ELSE 'queued' END,lease_token=NULL,lease_until=NULL,error='Checker interrupted; retry is bounded' WHERE status='checking' AND lease_until<now()");
-      const {rows:[row]} = await client.query("SELECT * FROM hub_submissions WHERE status='queued' ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1");
+      await client.query("UPDATE hub_submissions SET status=CASE WHEN attempts>=3 THEN 'failed' ELSE 'queued' END,lease_token=NULL,lease_until=NULL,error='Checker interrupted; retry is bounded' WHERE status='checking' AND lease_until<now() AND ($1::uuid IS NULL OR id=$1) AND ($2::text IS NULL OR source_digest=$2)",selected);
+      const {rows:[row]} = await client.query("SELECT * FROM hub_submissions WHERE status='queued' AND ($1::uuid IS NULL OR id=$1) AND ($2::text IS NULL OR source_digest=$2) ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1",selected);
       if (!row) return null;
       row.lease_token = randomUUID();
       await client.query("UPDATE hub_submissions SET status='checking',attempts=attempts+1,lease_token=$2,lease_until=now()+interval '10 minutes',error=NULL WHERE id=$1",[row.id,row.lease_token]);
@@ -36,9 +42,10 @@ export function createPipeline({pool,storage,checker}) {
     }
     return true;
   }
-  async function publishOnce() {
+  async function publishOnce(target) {
+    const selected=selector(target);
     return runTransaction(async client => {
-      const {rows:[row]} = await client.query("SELECT s.*,l.owner_id AS reserved_owner,r.source_digest AS result_digest,r.policy,r.policy_digest,r.passed,r.report,r.jar,r.sources,r.pom,r.artifact_hashes FROM hub_submissions s JOIN hub_libraries l ON l.id=s.library_id JOIN hub_results r ON r.submission_id=s.id WHERE s.status='checked' ORDER BY s.created_at FOR UPDATE OF s SKIP LOCKED LIMIT 1");
+      const {rows:[row]} = await client.query("SELECT s.*,l.owner_id AS reserved_owner,r.source_digest AS result_digest,r.policy,r.policy_digest,r.passed,r.report,r.jar,r.sources,r.pom,r.artifact_hashes FROM hub_submissions s JOIN hub_libraries l ON l.id=s.library_id JOIN hub_results r ON r.submission_id=s.id WHERE s.status='checked' AND ($1::uuid IS NULL OR s.id=$1) AND ($2::text IS NULL OR s.source_digest=$2) ORDER BY s.created_at FOR UPDATE OF s SKIP LOCKED LIMIT 1",selected);
       if (!row) return false;
       let manifest;
       let artifacts;

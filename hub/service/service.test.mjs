@@ -409,3 +409,27 @@ test('runtime login validation rejects extra inherited/settable roles, direct gr
     await pool.query(`DROP ROLE ${login}`);
   }
 });
+
+test('immutable pipeline target checks and publishes only its own job, with no unrelated lease recovery',async()=>{
+  const {createPipeline}=await import('./pipeline.mjs');
+  const {createStorage}=await import('./artifacts.mjs');
+  const early=await reserve(),chosen=await reserve(),expired=await reserve();
+  const first=await hub.submit(alice,early.bundle),second=await hub.submit(alice,chosen.bundle),third=await hub.submit(alice,expired.bundle);
+  const lease='11111111-1111-4111-8111-111111111111';
+  await pool.query("UPDATE hub_submissions SET status='checking',attempts=1,lease_token=$2,lease_until=now()-interval '1 second' WHERE id=$1",[third.id,lease]);
+  const checked=[];checker.checkSubmission=async bundle=>{checked.push(bundle.descriptor.libraryId);return passing(bundle);};
+  const pipeline=createPipeline({pool,storage:()=>createStorage(root),checker});
+  const target={submissionId:second.id,sourceDigest:trusted.sourceDigest(chosen.bundle)};
+  for(const invalid of [{submissionId:second.id},{sourceDigest:target.sourceDigest},{...target,owner:alice.id},null,{...target,submissionId:'invalid'},{...target,sourceDigest:'bad'}])await assert.rejects(pipeline.workOnce(invalid),/exact immutable/);
+  assert.equal(await pipeline.workOnce({...target,sourceDigest:'f'.repeat(64)}),false);assert.deepEqual(checked,[]);
+  assert.equal(await pipeline.workOnce(target),true);assert.deepEqual(checked,[chosen.libraryId]);
+  assert.equal((await hub.getSubmission(alice,first.id)).status,'queued');assert.equal((await hub.getSubmission(alice,third.id)).status,'checking');
+  assert.equal((await pool.query('SELECT lease_token FROM hub_submissions WHERE id=$1',[third.id])).rows[0].lease_token,lease);
+  await hub.workOnce(); // Create an earlier checked job for publication selection.
+  assert.equal((await hub.getSubmission(alice,first.id)).status,'checked');
+  assert.equal(await pipeline.publishOnce({...target,sourceDigest:'f'.repeat(64)}),false);
+  assert.equal(await pipeline.publishOnce(target),true);
+  assert.equal((await hub.getSubmission(alice,first.id)).status,'checked');assert.equal((await hub.getSubmission(alice,second.id)).status,'published');
+  assert.equal(await pipeline.publishOnce(target),false);
+  assert.deepEqual((await hub.catalog()).libraries.map(release=>release.libraryId),[chosen.libraryId]);
+});
