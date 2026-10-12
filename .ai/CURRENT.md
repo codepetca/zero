@@ -6,7 +6,7 @@ the contribution phase plan is docs/ZEROHUB-HOSTING.md.
 
 ## Goal, authority and holds
 
-The active persistent goal is public ZeroHub contributions: GitHub sign-in → prepare/upload ordinary Java libraries → automated minimum checks → immutable exact Maven publication with authenticated contributor credit. No routine teacher/maintainer package acceptance. Preserve ordinary Java, explicit updates, minimal VS Code/profile, student-owned GitHub repositories and separate Pika submission.
+The persistent goal is public ZeroHub contributions: GitHub sign-in → prepare/upload ordinary Java libraries → automated minimum checks → immutable exact Maven publication with authenticated contributor credit. No routine teacher/maintainer package acceptance. Preserve ordinary Java, explicit updates, minimal VS Code/profile, student-owned GitHub repositories and separate Pika submission.
 
 Owner authorized public ZeroHub, Neon through Vercel Marketplace, and implementation/pushes to the existing draft PR. Single codepetca/zero repository; zero-community retired with recovery bundle /Users/stew/.codex/archives/zero-community-20261012.bundle. Existing kit/installer0.5.7 is immutable; no new kit/signing/installer release in this phase.
 
@@ -39,7 +39,7 @@ Work only in /Users/stew/.codex/worktrees/kit-integration/zero, branch codex/app
 
 Accepted local admission/OAuth/adapter/streaming/polling/discovery through3b16089; cache source8dec22b; finite worker72576da; backup source018e3ab. Reviewed withdrawal source70264f7c6aab8bc9c08cc5d2cd8853dd1bb4f1ff pushed; CI38314558779 and receiptCI38314902391 passed. Prior receipt ae64c6e CI38312319015 passed; prior CI38310573906 and38309382997 passed. Source checks and local inert browser proofs are recorded in VERIFICATION. Worker per-invocation10-job cap is not global concurrency or wall-time control. Headers are not hosted CDN HIT/expiry or measured savings. Local backup proofs are not hosted retention/encryption/scheduled recovery.
 
-Cumulative independent reviewer turns43 includes3 historical provider-filter failures; the two withdrawal reviews are complete with no findings. Last backup wave2initial+1targeted/1fixbatch closed date-format defect; no unresolved backup finding. DeepSeek paused. Requested configurations known; effective models/tokens/cost/reviewer seconds unknown. Current account weekly60%remaining and storage317.7GBhealthy are shared readings, not task cost; no cleanup/restart/prune.
+Cumulative independent reviewer turns44 includes3 historical provider-filter failures; the two withdrawal reviews are complete with no findings. Last backup wave2initial+1targeted/1fixbatch closed date-format defect; no unresolved backup finding. DeepSeek paused. Requested configurations known; effective models/tokens/cost/reviewer seconds unknown. Current account weekly60%remaining and storage317.7GBhealthy are shared readings, not task cost; no cleanup/restart/prune.
 
 ## Accepted withdrawal work
 
@@ -68,3 +68,16 @@ Root is sole writer; no implementation worker. Bounded public library tag covers
 Root verified exact Zero project/team binding; CLI54.17.2 accepted native foreground deletion for zero-hub-library-ui1,zero-hub-catalog. Current deployed source predates tags; published maintained JAR6802bytes/SHA776310da0cd8dcff09a6374b61d906d2b34fa633bc603b15770e24963b9c433a identical before/after, observedMISS→HIT. This proves provider/operator access only, NOT taggedHIT removal, expiry or hosted withdrawal. Receipt ignored .verification/hub-controls/cache-removal-*/receipt.json. No credentials/data/schema/deployment/withdrawal changes; only requested ephemeral tag deletion. Native runbook documents event→delete→exact410/catalog verification and client-copy limits.
 
 Complete eight-file34c45eb5dbfc1f32fcede6f9aa30cf108735de6f..4077dd8ee4510cefb8ded9c88fd32c619097324b passed one independent GPT-6.1-Sol/high standard review with zero actionable findings. Reviewer read guidance, all changed files and immediate callers; seven isolated cache tests passed, actual PostgreSQL/website proof reused. Phase one actual turn/one initial wave/zero fixes; cumulative43 retains three historical provider-filter failures. Requested model/effort known; effective configuration/time/tokens unknown. Source pushed and CI38318782410 passed. Coordinator acceptance notes only follow source review. Keep draft/unmerged; actual tagged-withdrawal drill waits for reviewed deployment after existing gates. Lifetime-contributor policy is now settled; global/artifact/result numbers and external checker review remain missing; public authoring remains closed.
+
+## Accepted contribution-policy update
+
+Owner approved open contributions with no lifetime contributor cap and final
+Zero owner/maintainer authority over hosted content. Seven-file policy/plan delta
+7c1b7d4..b9c29e0 passed one complete GPT-6-Luna/medium documentation review with
+zero actionable findings; root configuration/doclinks and diffcheck passed.
+Reviewer reused root checks and independently passed reviewed-range diffcheck.
+One actual turn/one initial wave/zero fixes; cumulative44 preserves historical
+failures. Effective telemetry unknown. Only factual acceptance notes follow
+review. Runtime lifetime guards, archive/reclamation controls and public
+capabilities are unchanged; follow-up is explicit in ZEROHUB-PLAN.md. Prior
+receipt CI38320302912 passed at7c1b7d4. Keep PR26 draft; no merge/deployment.

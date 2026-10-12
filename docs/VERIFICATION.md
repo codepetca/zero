@@ -1101,3 +1101,15 @@ Read official Vercel purge/CLI contract and local54.17.2help; cache deletion avo
 
 
 Targeted-cache acceptance: complete eight-file34c45eb5dbfc1f32fcede6f9aa30cf108735de6f..4077dd8ee4510cefb8ded9c88fd32c619097324b passed independent GPT-6.1-Sol/high review with zero actionable findings. Reviewer inspected repository guidance, all changed files and immediate callers; seven isolated cache tests passed. Supplied actual PostgreSQL/website evidence reused. Public tag bounds/grouping/regeneration and private/error exclusions preserve TTLs, exact pins and byte integrity. Runbook project binding, event/deletion ordering, operator credential separation and client-copy caveats accepted. Phase one actual review turn/one initial wave/zero fix batches; cumulative43 includes three historical provider-filter failures. Requested model/effort known; effective configuration/reviewer seconds/tokens unknown. Source CI38318782410 passed. Only factual acceptance notes follow review. Native deletion receipt still establishes permissions only: deployed source lacks new tags, MISS→HIT did not prove tagged-hit removal. No deployment, schema004 migration, public authoring activation, main merge or generic checker acceptance. Storage policy remains unanswered; hosted cache withdrawal, backup policy, isolated execution and real OAuth remain incomplete.
+
+
+Contribution-policy docs atb9c29e01f3e4285a35763769c639d2e8becff105:
+root npm run check (configuration/syntax/contracts/local doclinks) and
+git diff --check passed. Complete seven-file7c1b7d4..b9c29e0 independent
+GPT-6-Luna/medium review: no actionable findings; reviewer range diffcheck
+passed and root checks reused. No functional surfaces changed, so Java,
+PostgreSQL, browser and installer tests were not repeated. This verifies
+policy/plan consistency only, not removal of runtime lifetime guards or
+deployed archive/removal controls. Previous CI38320302912 passed at7c1b7d4;
+new documentation CI is not yet verified. Full public-contribution goal
+remains blocked; source-checker/hosting gates are unchanged.

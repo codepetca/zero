@@ -1464,3 +1464,21 @@ Read official Vercel purge/CLI contract and local54.17.2help; cache deletion avo
 
 
 Targeted-cache acceptance: complete eight-file34c45eb5dbfc1f32fcede6f9aa30cf108735de6f..4077dd8ee4510cefb8ded9c88fd32c619097324b passed independent GPT-6.1-Sol/high review with zero actionable findings. Reviewer inspected repository guidance, all changed files and immediate callers; seven isolated cache tests passed. Supplied actual PostgreSQL/website evidence reused. Public tag bounds/grouping/regeneration and private/error exclusions preserve TTLs, exact pins and byte integrity. Runbook project binding, event/deletion ordering, operator credential separation and client-copy caveats accepted. Phase one actual review turn/one initial wave/zero fix batches; cumulative43 includes three historical provider-filter failures. Requested model/effort known; effective configuration/reviewer seconds/tokens unknown. Source CI38318782410 passed. Only factual acceptance notes follow review. Native deletion receipt still establishes permissions only: deployed source lacks new tags, MISS→HIT did not prove tagged-hit removal. No deployment, schema004 migration, public authoring activation, main merge or generic checker acceptance. Storage policy remains unanswered; hosted cache withdrawal, backup policy, isolated execution and real OAuth remain incomplete.
+
+
+## Open contribution and curation policy — 2026-10-12
+
+Owner approved no lifetime contributor storage/library-count quota and final
+Zero owner/designated-maintainer authority to archive, hide or remove hosted
+content. Canonical policy ZEROHUB-POLICY.md distinguishes discovery archiving,
+retained downloads where practical and deliberate byte reclamation; published
+coordinates stay reserved, pins do not change and MIT notices remain. Plan
+explicitly schedules removal of existing16MiB/account cumulative source and
+100lifetime reservation guards. New numeric artifact/global budgets remain
+undecided. Seven-file7c1b7d4..b9c29e0 documentation delta independently reviewed
+by requested GPT-6-Luna/medium, complete coverage/no actionable findings. Root
+configuration/doclinks/diffcheck passed; reviewer reused root checks and passed
+range diffcheck. One actual turn/one initial wave/zero fixes; cumulative44
+includes three older provider-filter failures. Effective config/time/tokens
+unknown. No runtime/schema/UI/credentials/Java/deployment/public-activation
+change; held checker review excluded. Acceptance notes only follow review.
