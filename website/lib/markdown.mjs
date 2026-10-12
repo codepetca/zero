@@ -91,13 +91,21 @@ export function foldSections({ lesson = false } = {}) {
       } else if (current) current.children[1].children.push(node);
       else intro.push(node);
     }
-    if (lesson && sections.length)
-      sections[0].children[1].children.unshift(...intro);
+    let lessonIntro = intro;
+    const blocks = intro.filter((node) => node.type !== "text" || node.value.trim());
+    const actions = blocks.findIndex((node) => node.type === "element" && node.tagName === "ol");
+    if (lesson && actions >= 0 && nodeText(blocks[actions + 1] ?? {}).startsWith("Done:")) {
+      lessonIntro = [{
+        type: "element", tagName: "div", properties: { className: ["lesson-quick-path"] },
+        children: blocks.slice(0, actions + 2),
+      }];
+      const extra = blocks.slice(actions + 2);
+      if (sections.length) sections[0].children[1].children.unshift(...extra);
+      else lessonIntro.push(...extra);
+    }
     tree.children = [
       ...(lesson
-        ? sections.length
-          ? []
-          : intro
+        ? lessonIntro
         : intro.some((n) => n.type === "element")
           ? [
               wrap(

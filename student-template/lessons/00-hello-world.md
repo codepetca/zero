@@ -1,5 +1,19 @@
 # 0. Hello, world!
 
+**A greeting you can change.**
+
+![Hello, Java! after saving and rerunning](visuals/00.svg)
+
+Target illustration: the greeting after your edit.
+
+1. Use the [safe switching steps](README.md#before-each-lesson), then open `src/main/java/Main.java`.
+2. Keep or copy the [complete program below](#code-and-explanation); click **Run App**.
+3. Change `Hello, world!` to `Hello, Java!`; **Save → Stop → Run App**.
+
+**Done:** The new window says **Hello, Java!**.
+
+## Code and explanation
+
 Open `src/main/java/Main.java`. In an older kit, replace the quiz with this
 program. This is the whole program:
 

@@ -23,7 +23,7 @@ test("folds parsed sections without splitting code, preserving unique deep-link 
   assert.match(html, /<h2 id="first-1">First/);
   assert.match(html, /<h3 id="nested">Nested/);
   assert.match(html, /<code class="language-java">## This is code/);
-  assert.ok(html.indexOf("Introduction.") > html.indexOf("<summary>"));
+  assert.ok(html.indexOf("Introduction.") < html.indexOf("<details"));
   assert.doesNotMatch(html, /<details[^>]*open/);
 });
 test("relative links preserve fragments and route only maintained documents or allowlisted sources", () => {
@@ -118,6 +118,38 @@ test("lesson media links use only the explicit build-time asset mapping", () => 
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/player.png", {}, {}, lessonAssets), "/generated/learning-assets/media-demo/player.png");
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/chime.wav", {}, {}, lessonAssets), "/generated/learning-assets/media-demo/chime.wav");
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
+});
+
+test("every lesson has a visible target illustration and quick checkpoint before folded details", () => {
+  for (const lesson of lessons) {
+    const name = String(lesson.id).padStart(2, "0");
+    const folder = new URL("../../student-template/lessons/", import.meta.url);
+    const file = readdirSync(folder).find((file) => file.startsWith(`${name}-`) && file.endsWith(".md"));
+    const markdown = readFileSync(new URL(file, folder), "utf8");
+    const html = renderToStaticMarkup(React.createElement(Markdown, {
+      remarkPlugins: [remarkGfm], rehypePlugins: [[foldSections, { lesson: true }]], children: markdown,
+    }));
+    const image = html.indexOf(`<img src="visuals/${name}.svg"`);
+    assert.match(html, /class="lesson-quick-path"/);
+    assert.ok(image >= 0 && image < html.indexOf("<details"), `Lesson ${name} target must be visible`);
+    assert.ok(html.indexOf("<ol>") < html.indexOf("<details"), `Lesson ${name} actions must be visible`);
+    assert.equal(resolveContentLink(`student-template/lessons/${file}`, `visuals/${name}.svg`, {}, {}, lessonAssets), `/generated/learning-assets/lessons/${name}.svg`);
+    const svg = readFileSync(new URL(`visuals/${name}.svg`, folder), "utf8");
+    assert.match(svg, /<title/);
+    assert.doesNotMatch(svg, /<script|<foreignObject|(?:href|src)="https?:\/\//);
+  }
+});
+
+test("composed examples supply the same shared screens and every ordinary helper", () => {
+  const shared = ["composition-shared/StartScreen.java", "composition-shared/Hud.java", "shared/ScoreDisplay.java"];
+  for (const id of ["composed-study", "composed-game"]) {
+    const example = examples.find((item) => item.id === id);
+    const helpers = id === "composed-study" ? ["study/Question.java"] : ["coin-game/Player.java", "coin-game/Coin.java"];
+    assert.deepEqual(example.files, [`${id}/Main.java`, ...helpers, ...shared]);
+    for (const file of example.files) assert.ok(readFileSync(new URL(`../../student-template/examples/${file}`, import.meta.url), "utf8").length);
+    const readme = readFileSync(new URL(`../../student-template/examples/${id}/README.md`, import.meta.url), "utf8");
+    assert.equal(resolveContentLink("student-template/UI.md", `examples/${id}/README.md`, {}, { [`student-template/examples/${id}/README.md`]: readme }), `/examples/${id}`);
+  }
 });
 
 test("Lesson 12 stages expose every runnable helper and reuse canonical assets", () => {

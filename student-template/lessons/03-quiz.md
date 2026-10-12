@@ -1,5 +1,19 @@
 # 3. A tiny quiz
 
+**Check one answer.**
+
+![Question What is 2 + 3?, answer 5, Check button, Correct! feedback](visuals/03.svg)
+
+Target illustration: a correct answer to the tiny quiz.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. Copy the [complete program below](#code-and-explanation) into `src/main/java/Main.java`; **Run App**.
+3. Type `4` and click **Check**; change it to `5` and check again.
+
+**Done:** Feedback changes from **Try again.** to **Correct!**.
+
+## Code and explanation
+
 Back up your work outside `src/`. Replace `src/main/java/Main.java`:
 
 ```java

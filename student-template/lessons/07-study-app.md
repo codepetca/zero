@@ -1,5 +1,17 @@
 # 7. Build a study app
 
+**First checkpoint: retry and score once.**
+
+![One integer division question with answer 3, disabled Check answer, correct feedback and Score: 1](visuals/07.svg)
+
+Target illustration: the first question answered correctly. More session stages follow.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. In [stage 1](#1-check-retry-score-once), copy Question and ScoreDisplay, then its complete Main; **Run App**.
+3. Try `4`, then ` 3 `. Click **Check answer** each time.
+
+**Done:** Wrong answers allow retry; the correct answer shows **Score: 1** and disables checking.
+
 Build from one question to a complete session.
 Previous: [Objects](06-objects.md).
 

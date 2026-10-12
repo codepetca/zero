@@ -1,5 +1,19 @@
 # 1. Say hello with a button
 
+**Make one click change a label.**
+
+![Hello, Java! above a Say hello button](visuals/01.svg)
+
+Target illustration: the label after clicking Say hello.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. Copy the [complete program below](#code-and-explanation) into `src/main/java/Main.java`; **Run App**.
+3. Click **Say hello**, then change the handler's greeting and **Save → Stop → Run App**.
+
+**Done:** Clicking **Say hello** shows your changed greeting.
+
+## Code and explanation
+
 Back up your work outside `src/`. Replace `src/main/java/Main.java`:
 
 ```java

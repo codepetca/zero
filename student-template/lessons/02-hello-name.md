@@ -1,5 +1,19 @@
 # 2. Greet by name
 
+**Type a name, then greet it.**
+
+![Hello, Sam! above a Sam input and Say hello button](visuals/02.svg)
+
+Target illustration: typing Sam and clicking Say hello.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. Copy the [complete program below](#code-and-explanation) into `src/main/java/Main.java`; **Run App**.
+3. Type `Sam`; click **Say hello**. Try your own name next.
+
+**Done:** The label says **Hello, Sam!**, then changes for your next name.
+
+## Code and explanation
+
 Back up your work outside `src/`. Replace `src/main/java/Main.java`:
 
 ```java

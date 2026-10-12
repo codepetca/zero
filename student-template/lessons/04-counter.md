@@ -1,5 +1,19 @@
 # 4. Count clicks
 
+**Make the number change.**
+
+![Counter showing 2 above a +1 button](visuals/04.svg)
+
+Target illustration: the counter after two clicks.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. Copy [click-counter Main.java](../examples/click-counter/Main.java) into `src/main/java/Main.java`; **Run App**.
+3. Click **+1** twice. Find the handler in the [code below](#code-and-explanation).
+
+**Done:** The label goes **0 → 1 → 2**.
+
+## Code and explanation
+
 Back up your work outside `src/`. Replace `src/main/java/Main.java` with
 [click-counter Main](../examples/click-counter/Main.java):
 

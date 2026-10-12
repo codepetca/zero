@@ -1,5 +1,17 @@
 # 11. Share a component
 
+**First checkpoint: check a local improvement.**
+
+![Build then check then export then source pull request, with separate human acceptance](visuals/11.svg)
+
+Target illustration: build → check → export → PR; separate human acceptance.
+
+1. [Open the complete extracted Workshop](#open-the-workshop); choose **HealthBar**.
+2. Back up HealthBar; make the [one-line caption change](#make-a-small-improvement).
+3. Choose **Build local source & check**. Try Full, Partial, Empty; **Run checks** and read the report.
+
+**Done:** Bold caption, unchanged values/fill, report read. Export/PR stages follow.
+
 Prepare a small HealthBar improvement for
 [Zero Community](https://zero.codepet.ca/community), then propose a source pull
 request. Coursework links in Pika stay separate.

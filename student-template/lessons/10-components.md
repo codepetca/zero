@@ -1,5 +1,17 @@
 # 10. Reuse one component in an app and a game
 
+**First checkpoint: run ScoreDisplay.**
+
+![The same ScoreDisplay.java source used in a study app and beneath a coin-game canvas](visuals/10.svg)
+
+Target illustration: separate instances in study and game.
+
+1. [Back up improved components and switch safely](README.md#before-each-lesson).
+2. Copy [stage 1's three files](#1-find-the-component-boundary); **Run App**.
+3. Answer `3`, choose **Restart**, then find `score.setScore(points)` in Main.
+
+**Done:** Score goes **1 → 0**. Reuse it beneath the canvas in stage 2.
+
 A component can be an ordinary Java object that presents part of an interface.
 Use the same ScoreDisplay source in your study app and coin game.
 

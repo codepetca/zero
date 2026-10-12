@@ -41,6 +41,11 @@ then reuses unchanged ScoreDisplay in the study app and coin game.
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. These sources remain unreleased; published kits
 keep their original bytes.
+The later local visual pass gives all thirteen lessons an always-visible target
+illustration, three actions and one checkpoint before detailed code. Optional
+composed-study/composed-game examples now demonstrate the same ordinary StartScreen
+and Hud classes in both app types. These are source examples, not core APIs or
+Community packages. Pause and a generic custom-component Workshop remain planned.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as

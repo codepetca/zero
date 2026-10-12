@@ -1,5 +1,17 @@
 # 9. Build a coin game
 
+**First checkpoint: add one coin.**
+
+![Blue player at 40,180 and a gold square at 220,180 on an AliceBlue canvas](visuals/09.svg)
+
+Target illustration: one gold square; collection comes next.
+
+1. Use the [safe switching steps](README.md#before-each-lesson) and Lesson 8's complete Main.
+2. Follow [stage 1](#1-add-one-coin): copy Player/Coin, add the coin field, setup and draw call.
+3. **Save → Stop → Run App**; click the canvas and move onto the gold square.
+
+**Done:** The gold square stays visible when touched. Score and Restart come later.
+
 Grow your moving square into a complete game: collect coins, score, win, restart.
 Previous: [Movement](08-movement.md).
 

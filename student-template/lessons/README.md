@@ -1,6 +1,9 @@
 # Build with Zero: Lessons 0–12
 
-Small steps first. Then build an app, games and a shared component.
+Start with the target illustration and three steps at the top of a lesson.
+Open the code and explanation when you need them. Lessons 7–12 begin with a
+first checkpoint; the remaining stages build toward the larger result.
+Illustrations are drawings, not screenshots; native controls vary by platform.
 
 | Lesson | Build |
 | --- | --- |
@@ -22,11 +25,16 @@ Small steps first. Then build an app, games and a shared component.
 
 Complete [setup](../README.md#first-setup). Local running needs no GitHub account.
 
-1. Stop. Back up Main and helper classes **outside `src/`**.
+1. Stop. Back up Main and helper classes **outside `src/`**. Include any
+   component improvements, such as your edited ScoreDisplay. Keep that backup
+   before replacing or removing source; the example shelf is unchanged.
 2. After backing up, remove the previous example's Main and unlisted helper Java
    files. Old helpers can require a different Player/Coin API. Copy only the listed
-   files into `src/main/java/`. Keep `zero/`, the wrappers,
-   `pom.xml` and `zero.json`. Use one Main at a time.
+   files into `src/main/java/`. Keep `src/main/java/zero/`, the wrappers,
+   `pom.xml`, `zero.json` and `.vscode/` build settings. Keep resources unless the
+   stage tells you to replace them. Use one Main at a time. When a lesson asks
+   you to reuse an improved component, retain that exact saved source rather
+   than replacing it with the unchanged example.
 3. **Run App**. After editing: **Save → Stop → Run App**.
 
 Click the canvas before using game keys. A running window does not reload edits.

@@ -1,5 +1,19 @@
 # 5. Add Reset with methods
 
+**Return the counter to zero.**
+
+![Counter showing 0 above +1 and Reset buttons](visuals/05.svg)
+
+Target illustration: the counter after Reset.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. Copy [reset-counter Main.java](../examples/reset-counter/Main.java) into `src/main/java/Main.java`; **Run App**.
+3. Click **+1** twice, **Reset**, then **+1**. Find the two methods in the [code below](#code-and-explanation).
+
+**Done:** The label goes **2 → 0 → 1**.
+
+## Code and explanation
+
 Back up your work outside `src/`. Replace `src/main/java/Main.java` with
 [reset-counter Main](../examples/reset-counter/Main.java):
 

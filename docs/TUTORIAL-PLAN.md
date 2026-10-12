@@ -30,6 +30,21 @@ objects once, update explicitly, and use separate instances in separate layouts.
 Prefer a small API explained with one complete example and then reused in a second
 context. Avoid mandatory inheritance and automatic discovery.
 
+## Visual quick paths and composed views
+
+Every lesson now starts with an authored target illustration, three actions and
+one observable checkpoint. Detailed code/explanation remains below. Later lessons
+start with one runnable stage; the whole study app or platformer is not advertised
+as a short task. These are teaching illustrations, not runtime screenshots; no
+novice completion times have been measured. Hosted quick paths stay visible before
+folded detail, and SVG targets also work in local Markdown.
+
+The new composed-study and composed-game examples reuse unchanged StartScreen and
+Hud source. Hud contains ScoreDisplay. Main provides Runnable actions and explicitly
+sets displayed values. The study example switches native views; the sketch keeps
+its canvas and gates update with playing. Both prove start→activity→completion→
+restart without introducing a component registry or core screen engine.
+
 ## Standard flow to grow toward
 
 App: welcome → activity → result → restart. Game: menu → playing → paused or
@@ -38,7 +53,8 @@ scenes. Introduce plain methods/booleans first; an enum can replace multiple fla
 when several states make it clearer. Actions belong to Main. Screen views own
 controls; simulation objects own their own data. Rendering does not award points.
 
-The current pair proves activity/completion/restart and playing/win/restart.
+The original pair proves activity/completion/restart and playing/win/restart;
+the composed variants add a Start screen. Pause/loss/menu return remain proposals.
 A menu/pause extension should show exactly what stops updating and how input
 returns to the canvas. An overlay needs a tested layout/input example before a
 beginner convenience method. Do not use inherited show to hide a sketch while
@@ -58,3 +74,29 @@ Next acceptance should be based on two real consumers, clear ownership, independ
 instances, reset/edge behavior, errors and a readable contribution example.
 Package updates remain explicit and version-pinned. Core promotion remains a
 maintainer decision after demonstrated usefulness.
+
+## Next component workbench
+
+The local trial proved build→check→export→independent admission for the current
+health bars, including stale-evidence rejection and an edited-source rebuild.
+Admission means checked, not accepted or published. An arbitrary StartScreen is
+explicitly rejected by the current preview contract. Do not claim general authoring
+until that contract changes and is independently reviewed.
+
+The smallest proposed extension is a component project with:
+
+- One ordinary class or a small set of composed classes; no Application subclass.
+- Named preview examples for starting, updated and reset states, plus two complete consumers.
+- A short API card: constructor/configuration, input methods and outgoing actions.
+- A declared meaningful check entry point, source-bound report and contribution export.
+- The existing maintainer-reviewed source PR and immutable versioned-library release.
+
+Use familiar JavaFX vocabulary (Node/layout/button action). Inputs are methods;
+outgoing actions are supplied callbacks. Add typed callbacks/interfaces only when
+an example needs values, and teach them after the basic source reuse lesson.
+An entire app is a runnable consumer; its reusable screen/UI/model parts can be
+components. No automatic event bus, dependency injection or app-within-app system.
+Preserve pinned dependencies and source-bound checks. Trusted local preview has
+normal process permissions; remote submissions retain their existing CI boundary.
+Generic check execution needs a specific trust/verification design, not arbitrary
+contributor commands in the installed IDE. This next workbench is planned, not built.

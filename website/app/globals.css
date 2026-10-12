@@ -432,6 +432,28 @@ h3 {
   font-size: 18px;
   line-height: 1.7;
 }
+.markdown .lesson-visual {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+}
+.lesson-quick-path {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 24px;
+  align-items: start;
+}
+.lesson-quick-path > p:first-child { grid-column: 1 / -1; }
+.lesson-quick-path > p:nth-child(2) { grid-column: 1; grid-row: 2; }
+.lesson-quick-path > p:nth-child(3) { grid-column: 1; grid-row: 3; font-size: 14px; color: var(--muted); }
+.lesson-quick-path > ol { grid-column: 2; grid-row: 2; }
+.lesson-quick-path > p:nth-child(5) { grid-column: 2; grid-row: 3; }
+.markdown .lesson-quick-path > p, .markdown .lesson-quick-path > ol { margin: 8px 0; }
+.lesson-quick-path { font-size: 16px; line-height: 1.5; }
+@media (max-width: 760px) {
+  .lesson-quick-path { display: block; }
+}
 .markdown h2 {
   font-size: 29px;
   margin: 38px 0 18px;

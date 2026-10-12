@@ -212,6 +212,70 @@ checks['coin-game-component'] = '''app.stop();
         require(stage.getScene().getFocusOwner() == app.canvas(), "Component game Restart returns canvas input");
         var other = new ScoreDisplay("Questions"); other.setScore(2);
         require(other.view() != display.view() && ((Label) other.view()).getText().equals("Questions: 2") && score.getText().equals("Score: 0"), "Shared class creates independent app views");'''
+checks['composed-study'] = '''var start = (StartScreen) field(app, "startScreen");
+        var hud = (Hud) field(app, "hud");
+        var activity = (javafx.scene.layout.VBox) field(app, "activity");
+        var root = (javafx.scene.layout.BorderPane) stage.getScene().getRoot();
+        var answer = (TextField) field(app, "answer");
+        var check = (Button) field(app, "check");
+        var next = (Button) field(app, "next");
+        var score = (Label) ((ScoreDisplay) field(hud, "score")).view();
+        require(root.getCenter() == start.view() && !(boolean) field(app, "playing"), "Start screen appears before activity");
+        answer.setText("3"); check.fire(); next.fire();
+        require((int) field(app, "points") == 0 && (int) field(app, "questionIndex") == 0, "Inactive session cannot score or advance");
+        button(start.view(), "Start").fire();
+        require(root.getCenter() == activity && activity.getChildren().contains(hud.view()), "Main connects shared views to activity");
+        require(answer.getText().isEmpty() && (boolean) field(app, "playing"), "Start resets input and rules");
+        answer.setText("wrong"); check.fire();
+        require(score.getText().equals("Score: 0") && !check.isDisabled() && next.isDisabled(), "Wrong answer permits retry without score");
+        for (String value : new String[]{"3", "true", "0"}) {
+            answer.setText(value); check.fire();
+            int points = (int) field(app, "points"); check.fire();
+            require((int) field(app, "points") == points, "Correct answer scores only once"); next.fire();
+        }
+        require((boolean) field(app, "finished") && !(boolean) field(app, "playing") && score.getText().equals("Score: 3"), "Session completion stops scoring");
+        button(hud.view(), "Restart").fire();
+        require(field(app, "hud") == hud && root.getCenter() == activity && score.getText().equals("Score: 0") && (int) field(app, "questionIndex") == 0, "Restart retains components and resets state");
+        answer.setText("3"); check.fire();
+        require(score.getText().equals("Score: 1"), "Restarted app can score again");
+        int[] calls = {0}; var other = new Hud(() -> calls[0]++); other.setScore(7);
+        button(other.view(), "Restart").fire();
+        require(calls[0] == 1 && other.view() != hud.view() && score.getText().equals("Score: 1"), "Component action is supplied and instances stay independent");'''
+checks['composed-game'] = '''app.stop();
+        var start = (StartScreen) field(app, "startScreen");
+        var hud = (Hud) field(app, "hud");
+        var player = (Player) field(app, "player");
+        var coins = (Coin[]) field(app, "coins");
+        var score = (Label) ((ScoreDisplay) field(hud, "score")).view();
+        require(app.layout().getCenter() == app.canvas() && app.layout().getLeft() == start.view() && !(boolean) field(app, "playing"), "Start panel preserves sketch canvas");
+        require(app.layout().getBottom() == hud.view() && hud.view().isDisabled(), "Initial layout reserves HUD space and disables Restart");
+        setDouble(player, "x", (double) field(coins[0], "x"));
+        setDouble(player, "y", (double) field(coins[0], "y")); app.update(0);
+        require((int) field(app, "points") == 0 && !coins[0].isCollected(), "Menu prevents scoring even while timer exists");
+        button(start.view(), "Start").fire();
+        player = (Player) field(app, "player"); coins = (Coin[]) field(app, "coins");
+        require(app.layout().getLeft() == null && app.layout().getBottom() == hud.view() && !hud.view().isDisabled() && (boolean) field(app, "playing"), "Start connects and enables same HUD");
+        require(stage.getScene().getFocusOwner() == app.canvas(), "Start returns keyboard focus to canvas");
+        app.layout().applyCss(); app.layout().layout();
+        require(hud.view().getBoundsInParent().getMaxY() <= stage.getScene().getHeight() + 1, "HUD fits initial scene after Start");
+        double x = (double) field(player, "x");
+        // Deterministic held input, like MovementCheck; native window focus is not a keyboard trial.
+        var heldField = SketchApp.class.getDeclaredField("keys"); heldField.setAccessible(true);
+        var heldKeys = (java.util.Set<KeyCode>) heldField.get(app);
+        heldKeys.add(KeyCode.RIGHT); app.update(0.1); heldKeys.clear();
+        require((double) field(player, "x") > x, "Active game explicitly updates from held direction");
+        for (Coin coin : coins) {
+            setDouble(player, "x", (double) field(coin, "x"));
+            setDouble(player, "y", (double) field(coin, "y")); app.update(0); app.update(0);
+        }
+        require((boolean) field(app, "won") && !(boolean) field(app, "playing") && score.getText().equals("Score: 3"), "Win stops game and reports three once-only coins");
+        x = (double) field(player, "x"); app.update(1);
+        require((double) field(player, "x") == x, "Finished game does not update simulation");
+        button(hud.view(), "Restart").fire();
+        require(field(app, "hud") == hud && field(app, "startScreen") == start && field(app, "player") != player && (boolean) field(app, "playing") && !(boolean) field(app, "won"), "Restart preserves views and resets gameplay objects");
+        require((int) field(app, "points") == 0 && score.getText().equals("Score: 0") && stage.getScene().getFocusOwner() == app.canvas(), "Restart clears score and returns focus");
+        for (Coin coin : (Coin[]) field(app, "coins")) require(!coin.isCollected(), "Fresh run restores every coin");
+        app.draw();'''
 standalone = {
     'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
     'scrolling-game': ('ScrollingGameCheck', 'SCROLLING_GAME_OK'),
@@ -308,12 +372,17 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
             shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):
             shutil.copy2(java, dest/'src/main/java'/java.name)
-        if kind in ('coin-game-controls', 'coin-game-component'):
+        if kind in ('coin-game-controls', 'coin-game-component', 'composed-game'):
             for helper in ['Player.java', 'Coin.java']:
                 shutil.copy2(source/'examples/coin-game'/helper, dest/'src/main/java'/helper)
+        if kind in ('composed-study', 'composed-game'):
+            for helper in ['StartScreen.java', 'Hud.java']:
+                shutil.copy2(source/'examples/composition-shared'/helper, dest/'src/main/java'/helper)
+        if kind == 'composed-study':
+            shutil.copy2(source/'examples/study/Question.java', dest/'src/main/java/Question.java')
         if kind in ('scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copytree(source/'examples/media-demo/resources', dest/'src/main/resources', dirs_exist_ok=True)
-        if kind in ('quiz', 'practice', 'study', 'coin-game-component', 'scrolling-game', 'platform-game', 'level-game', 'full-game'):
+        if kind in ('quiz', 'practice', 'study', 'coin-game-component', 'composed-study', 'composed-game', 'scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copy2(source/'examples/shared/ScoreDisplay.java', dest/'src/main/java/ScoreDisplay.java')
         if kind in standalone:
             main_class, marker = standalone[kind]

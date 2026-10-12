@@ -82,6 +82,31 @@ which Main calls explicitly. A data helper does not need a visual view.
 
 ## Name your program's flow
 
+Try [the composed study app](examples/composed-study/README.md) and
+[the composed coin game](examples/composed-game/README.md). They use the same
+ordinary [StartScreen and Hud classes](examples/composition-shared/README.md).
+These are optional source examples, not new core APIs or published packages.
+
+```java
+startScreen = new StartScreen("My app", "Choose Start.", () -> restart());
+hud = new Hud(() -> restart());
+hud.setScore(points);
+hud.setMessage("Ready!");
+```
+
+This is the connection: Main supplies a button action and sends values through
+methods. Hud itself contains ScoreDisplay, so components can contain other
+components. A whole screen is a reusable view too; it does not launch a second
+application. In the study app, Start changes the visible view. In the game,
+Start removes the side panel and enables play; the canvas stays mounted and
+`playing` explicitly gates updates. Both reuse their existing Hud on Restart.
+The game reserves Hud space before the window opens.
+
+To build your own, start with one `view()`, a few explicit value setters and
+one supplied action. Try it in a second app before adding more configuration.
+The Workshop currently previews/checks its two health bars; it cannot yet export
+these new screen components for Community. See [the contribution plan](../docs/TUTORIAL-PLAN.md#next-component-workbench).
+
 Start with ordinary fields and methods rather than a new screen framework.
 
 | Program | Current teaching flow | Main owns |

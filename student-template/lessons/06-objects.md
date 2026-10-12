@@ -1,5 +1,19 @@
 # 6. Use an ordinary object
 
+**Let Counter own the number.**
+
+![Counter showing 0 above +1 and Reset buttons, with a separate Counter object](visuals/06.svg)
+
+Target illustration: the same controls, now using a Counter object.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. Copy [Main.java](../examples/object-counter/Main.java) and [Counter.java](../examples/object-counter/Counter.java) into `src/main/java/`; **Run App**.
+3. Click **+1** twice, **Reset**, then **+1**. Find `counter.increment()` in the [code below](#code-and-explanation).
+
+**Done:** The label goes **2 → 0 → 1** with Main calling Counter.
+
+## Code and explanation
+
 Back up your work outside `src/`. Replace `src/main/java/Main.java` with
 [object-counter Main](../examples/object-counter/Main.java):
 

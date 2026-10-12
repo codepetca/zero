@@ -3,6 +3,35 @@
 Updated2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable history/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
+## Active visual tutorials and composition pass
+
+Owner asks for images/minimal reading, local component sharing trial and composable
+HUD/start-screen examples. Branch codex/app-game-tutorials baseline3f4a367. No
+publication/push/PR/Community edits/core/version/installer changes in this pass.
+Sol/medium workers: visual lesson quick paths, composed examples, and disposable
+Workshop trial (all delivered; no recursive delegation). Coordinator owns hosted
+renderer, harness, integration and review. DeepSeek paused; weekly81% remaining at
+start is account allowance, effective model/tokens/cost/active time unknown.
+
+All13lessons have accessible target SVG illustrations, three actions and an
+observable first checkpoint; detail remains folded on website. Local Markdown
+retains full sources. Composed-study/game reuse StartScreen/Hud/ScoreDisplay and
+Main-owned methods/state; game keeps canvas mounted and reserves HUD space.
+Fourteen finite JavaFX examples and38website tests/types/build/root passed.
+Local browser desktop/narrow quick path, code-anchor reveal and six-file composed
+game copy list verified. Evidence .verification/visual-composition/.
+
+Disposable Community source build/6checks/4Maven consumers, native Workshop, edited
+caption stale-receipt rejection/rebuild/fresh export/independent admission passed.
+Packets are checked, not accepted/published. Current Workshop explicitly rejects
+StartScreen and supports only its two health bars. Two stale Community doc claims
+(file count/protections) found; actual repo untouched. Trial evidence
+.verification/component-flow-trial/. Generic workbench is planned in
+docs/TUTORIAL-PLAN.md, not implemented. Physical input/chooser, novice timing,
+Windows/Linux and public contribution/acceptance were not tested.
+
+Source verification complete; fresh independent full-diff review pending.
+
 ## Completed local app/game tutorial pass
 
 Owner defers installer trial and requests easier tutorials, app/game/component

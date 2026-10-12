@@ -1,5 +1,17 @@
 # 12. Build a larger game
 
+**First checkpoint: show a sprite and play a sound.**
+
+![Purple robot on an AliceBlue canvas above Play sound and Plays: 2 controls](visuals/12.svg)
+
+Target illustration: the supplied robot after two sound clicks. Larger stages follow.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson).
+2. Copy Main and the two resources to the exact paths in [stage 1](#1-your-sprite-and-sound); **Run App**.
+3. Click **Play sound** twice; listen and watch the counter.
+
+**Done:** See the robot and **Plays: 2**; hear the chimes. The counter alone cannot check audio.
+
 Assets → scrolling → platforms → levels → win/lose. Run each stage first.
 
 ## Before each stage
