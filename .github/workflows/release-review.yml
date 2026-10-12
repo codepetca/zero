@@ -58,6 +58,8 @@ jobs:
         run: |
           npm run test:postgres --prefix hub
           node --test hub/service/artifact-route.test.mjs hub/service/catalog.test.mjs hub/service/catalog-postgres.test.mjs hub/service/session-cleanup.test.mjs hub/service/oauth-client.test.mjs hub/service/staging.test.mjs hub/service/vercel-integration.test.mjs
+          ZERO_HUB_BACKUP_PG_TEST=1 ZERO_HUB_BACKUP_PG_MAJOR=17 npm run test:backup --prefix hub
+          ZERO_HUB_BACKUP_PG_TEST=1 ZERO_HUB_BACKUP_PG_MAJOR=18 npm run test:backup --prefix hub
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update

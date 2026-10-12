@@ -289,3 +289,51 @@ uses distinct fresh LOGIN credentials and verifies cross-role denials, RESET ROL
 checker/publisher pipeline operation, immutable concurrent object retries,
 corruption rejection and HTTP-only health/public-artifact serving. These service
 fixtures do not claim Java execution or checker-security acceptance.
+
+
+## Private operator backups
+
+`npm run backup --prefix hub -- export /absolute/private/folder/snapshot.archive`
+uses a separately supplied `ZERO_HUB_BACKUP_DATABASE_URL` (or the sole migration
+URL) with `hub_migration_owner`. Keep the URL in a private operator environment,
+never arguments, Git, website variables or logs. The existing parent folder must
+be owned by the current user with mode700; output is exclusive mode600. Keep
+archives outside published artifacts and retain an independent private copy.
+They contain unpublished source and internal reports; they are not encrypted.
+The CLI prints only counts and a checksum. It refuses mixed runtime/OAuth/Neon
+integration credentials and active-service flags.
+
+Export takes a consistent snapshot of users, libraries, source/history, results,
+releases and stored bytes. Sessions and OAuth states are omitted. The fixed
+trusted schema fingerprint is versioned with the archive format; archives supply
+data only, never executable SQL. Known PostgreSQL17 and18 schemas are pinned
+separately; restore requires the archive's same-major schema. Exact timestamps, JSON numbers, bytes and
+sequence state are preserved. The checksum detects corruption, not malicious
+rewriting by someone who can replace both data and checksum.
+
+Restore is deliberately a separate operator operation: prepare a fresh database
+with the trusted000–003 migrations, keep services/workers closed, then supply only
+`ZERO_HUB_RESTORE_DATABASE_URL` and `ZERO_HUB_RESTORE_ENABLED=1` before running
+`npm run backup --prefix hub -- restore /absolute/private/folder/snapshot.archive`.
+Every Hub table, including authentication, must be empty and the sequence unused.
+The command never drops/recreates databases/tables, assigns passwords/roles,
+starts a service, accepts commands from the archive or overwrites existing data.
+It uses transactional sequence replacement to preserve rollback and exact IDs.
+All restored users sign in again. Check source/object integrity and runtime-role
+permissions before any separately authorized cutover. No hosted restore or
+production backup has been performed by the local proof.
+
+Technical ceilings are128MiB per record,4GiB per archive,1million records and a
+15-minute between-operation deadline, with existing SQL/lock timeouts. These are
+operator safety bounds, not approved student-library limits. Streamed records
+avoid loading whole tables/archives. Schema drift, malformed/extra/truncated
+records, bad hashes, unsafe sequence values, locks and occupied targets fail
+closed. Shared archives require a separately planned encryption, off-provider
+storage, retention and recovery policy before public uploads open.
+
+Fast checks: `npm run test:backup --prefix hub` (actual database suite skips unless
+explicitly enabled). Full local proof:
+`ZERO_HUB_BACKUP_PG_TEST=1 ZERO_HUB_BACKUP_PG_MAJOR=17 npm run test:backup --prefix hub`,
+then the same with major18. Both use disposable pinned PostgreSQL images and
+inert data only; neither executes Java or opens a public service. Hosted Neon
+export/cutover, operational retention and recovery timing remain separate gates.

@@ -13,6 +13,8 @@
     "migrate": "node service/migrate.mjs",
     "checker": "node service/checker.mjs",
     "publisher": "node service/publisher.mjs",
+    "backup": "node service/backup-cli.mjs",
+    "test:backup": "node --test service/backup.test.mjs service/backup-postgres.test.mjs",
     "test:staging": "node --test service/staging.test.mjs"
   },
   "dependencies": {

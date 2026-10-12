@@ -112,6 +112,16 @@ Deploy only a clean snapshot of the reviewed tracked source. `.vercelignore` exc
 
 Neon free-tier restore/compute/storage limits are not a backup policy. Before uploads open, establish independent private exports and test restore, expired-session cleanup, one concurrent checker, per-account/global queue/storage quotas, pagination, queue/error alerts, a kill switch and append-only withdrawal controls. Do not enable unlimited polling and assume an idle database still sleeps.
 
+Local operator backup/restore tooling uses consistent private data snapshots and
+transactional import into a freshly migrated empty database, preserving exact
+library/source/result/object/sequence identity while clearing temporary sign-in
+state. Trusted PostgreSQL17/18 schemas are pinned separately; archives contain no
+executable SQL. See [private operator backups](../hub/service/README.md#private-operator-backups).
+These local proofs do not establish hosted backups, off-provider encryption,
+retention, recurring execution or recovery/cutover timing. Those remain activation
+requirements. Workers now default to finite batches; hosted triggers and one
+checking process remain unconfigured.
+
 Local operating-control follow-up selects artifact releases by their primary key before verified stored-byte reads; malformed filenames cause noSQL. Status polling has one job/account budget,2–15second backoff,5-minute/25-attempt automatic cap,15-second response deadline, hidden/offline cancellation and one-shot manual Refresh. These are source/fixture checks, not hosted throughput/rate protection. Catalog discovery now returns at most20/2MiB per page, searches all latest releases and retains separately paginated immutable history. Exact release lookup remains available with uploads closed. The editor limits history downloads to500 releases/16MiB/30seconds; overflow gives website/manual instructions without truncating pins.
 
 Operating/discovery code through3b16089 has completed independent review and local verification. CI38303525610 and38304468383 passed earlier reviewed heads; CI38305503824 passed for3b16089. The local browser used inert fixture metadata/demo identity and no Java execution. Public deployment remains unchanged; result/artifact quotas, backup/restore, alerts, withdrawal, real OAuth and isolated-host acceptance remain prerequisites.

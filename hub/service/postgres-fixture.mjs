@@ -8,6 +8,9 @@ import path from 'node:path';
 import pg from 'pg';
 
 const IMAGE='postgres@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3';
+// Official PostgreSQL18.6 multi-platform manifest, resolved2026-10-12. This is
+// a disposable database image, never the held candidate-execution image.
+const IMAGE_18='postgres@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336';
 async function docker(args) {
   return new Promise((resolve,reject)=>{
     const child=spawn('docker',args,{stdio:['ignore','ignore','pipe']});
@@ -17,8 +20,9 @@ async function docker(args) {
   });
 }
 
-export async function startDisposablePostgres({port=15439}={}) {
+export async function startDisposablePostgres({port=15439,major=17}={}) {
   if (!Number.isSafeInteger(port) || port<1024 || port>65535) throw new Error('Choose a dedicated test port from 1024–65535');
+  if(![17,18].includes(major))throw new Error('Supported disposable database versions are17 and18');
   const temporary=await mkdtemp(path.join(os.tmpdir(),'zero-hub-pg-'));
   const name=`zero-hub-tests-${process.pid}-${randomBytes(4).toString('hex')}`;
   const password=randomBytes(32).toString('hex');
@@ -35,7 +39,7 @@ export async function startDisposablePostgres({port=15439}={}) {
     await rm(temporary,{recursive:true,force:true});
   }
   try {
-    await docker(['run','--detach','--rm','--name',name,'--publish',`127.0.0.1:${port}:5432`,'--env-file',envFile,'--tmpfs','/var/lib/postgresql/data:rw,noexec,nosuid,size=256m',IMAGE]);
+    await docker(['run','--detach','--rm','--name',name,'--publish',`127.0.0.1:${port}:5432`,'--env-file',envFile,'--env','PGDATA=/var/lib/postgresql/data','--tmpfs','/var/lib/postgresql/data:rw,noexec,nosuid,size=256m',major===18?IMAGE_18:IMAGE]);
     let ready=false;
     for(let attempt=0;attempt<60;attempt++) {
       try {await pool.query('SELECT 1');ready=true;}catch{}
