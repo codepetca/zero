@@ -57,7 +57,7 @@ jobs:
       - name: Hub admission, authentication and runtime checks
         run: |
           npm run test:postgres --prefix hub
-          node --test hub/service/artifact-route.test.mjs hub/service/session-cleanup.test.mjs hub/service/oauth-client.test.mjs hub/service/staging.test.mjs hub/service/vercel-integration.test.mjs
+          node --test hub/service/artifact-route.test.mjs hub/service/catalog.test.mjs hub/service/catalog-postgres.test.mjs hub/service/session-cleanup.test.mjs hub/service/oauth-client.test.mjs hub/service/staging.test.mjs hub/service/vercel-integration.test.mjs
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update

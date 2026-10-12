@@ -92,3 +92,29 @@ export function selectedLibraries(libraries, selection = null) {
   const checked=libraries.filter(library=>library.status==='automatically-checked');
   return selection ? checked.filter(library=>library.libraryId===selection.library&&library.version===selection.version) : latestLibraries(checked);
 }
+
+export function catalogPath(search='',cursor=null) {
+  const query=new URLSearchParams();if(search.trim())query.set('q',search.trim());if(cursor)query.set('cursor',cursor);
+  return '/api/hub/catalog'+(query.size?`?${query}`:'');
+}
+/** @param {{search?:string,cursor?:string|null,selection?:{library:string,version:string}|null,signal?:AbortSignal,fetcher?:typeof fetch}} [options] */
+export async function discoveryPage({search='',cursor=null,selection=null,signal,fetcher=fetch}={}) {
+  const read=async path=>{const response=await fetcher(path,{cache:'no-store',signal});const data=await response.json();if(!response.ok)throw new Error(selection&&response.status===404?'That exact checked release is unavailable. No newer release has been substituted.':data.error||'Hub unavailable.');return data;};
+  if(selection) {
+    if(!/^ui[1-9a-z][0-9a-z]{0,11}$/.test(selection.library)||!/^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$/.test(selection.version))throw new Error('That exact checked release is unavailable. No newer release has been substituted.');
+    const [release,session]=await Promise.all([read(`/api/hub/libraries/${selection.library}?version=${selection.version}`),read('/api/hub/session')]);
+    if(release.libraryId!==selection.library||release.version!==selection.version||release.status!=='automatically-checked')throw new Error('That exact checked release is unavailable. No newer release has been substituted.');
+    return {...session,libraries:[release],nextCursor:null};
+  }
+  const data=await read(catalogPath(search,cursor));
+  if(!Array.isArray(data.libraries)||data.libraries.length>20||!(data.nextCursor===null||typeof data.nextCursor==='string'&&/^[A-Za-z0-9_-]{1,512}$/.test(data.nextCursor)))throw new Error('Hub catalog is invalid.');
+  const ids=new Set();
+  for(const release of data.libraries){if(release.status!=='automatically-checked'||ids.has(release.libraryId))throw new Error('Hub catalog is invalid.');ids.add(release.libraryId);}
+  return data;
+}
+export function appendDiscoveryPage(previous,page) {
+  const ids=new Set(previous.libraries.map(release=>release.libraryId));
+  if(page.libraries.some(release=>ids.has(release.libraryId)))throw new Error('The hub catalog changed. Search again to refresh the results.');
+  if(page.nextCursor&&page.nextCursor===previous.nextCursor)throw new Error('Hub catalog did not advance.');
+  return {...page,libraries:[...previous.libraries,...page.libraries]};
+}

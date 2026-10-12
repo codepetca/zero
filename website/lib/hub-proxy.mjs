@@ -1,3 +1,4 @@
+import {canonicalHubQuery} from '../../hub/service/catalog.mjs';
 /** Server-only fixed-destination hub gateway. Never imported by client components. */
 export function hubDestination(value) {
   if (!value) return null;
@@ -37,7 +38,9 @@ export async function proxyHub(request, parts, options = {}) {
     for (const key of ['code','state','error','error_description']) if (query.has(key)) {
       const value = query.get(key); if (value.length > 2048) return failure('Invalid OAuth response.', 400); target.searchParams.set(key, value);
     }
-  } else if ([...query.keys()].length) return failure('Unexpected hub query.', 400);
+  } else {
+    try {target.search=canonicalHubQuery(new URL(request.url),path);}catch{return failure('Unexpected hub query.',400);}
+  }
   const headers = new Headers();
   for (const name of ['origin','x-zero-csrf']) { const value = request.headers.get(name); if (value) headers.set(name, value); }
   const cookies = (request.headers.get('cookie') || '').split(';').map(value=>value.trim()).filter(value=>/^(zero_hub_session|zero_hub_oauth)=/.test(value));

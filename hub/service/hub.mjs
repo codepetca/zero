@@ -7,6 +7,7 @@ import {lockAdmission,admitReservation,admitSubmission} from './admission.mjs';
 import {githubJson} from './oauth-client.mjs';
 import {admitOAuthStart,admitSession} from './auth-admission.mjs';
 import {artifactRoute} from './artifact-route.mjs';
+import {catalogPage,canonicalHubQuery} from './catalog.mjs';
 
 const BASE = '/api/hub';
 const GROUP = 'ca.codepet.zero.library';
@@ -110,9 +111,8 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
     if (!row || row.owner_id !== actor.id) throw problem(404,'Submission not found');
     return {id:row.id,status:row.status,...(row.report ? {report:row.report}:{}),...(row.manifest ? {release:attributedRelease(row)}:{}),...(row.error ? {error:row.error}:{})};
   }
-  async function catalog() {
-    const {rows}=await pool.query('SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id ORDER BY r.created_at DESC,r.library_id,r.version');
-    return {mode,capabilities:{uploads:uploadsEnabled},libraries:rows.map(attributedRelease)};
+  async function catalog(params=new URLSearchParams()) {
+    return {mode,capabilities:{uploads:uploadsEnabled},...await catalogPage(pool,params,attributedRelease)};
   }
   const {workOnce,publishOnce}=createPipeline({pool,storage,checker});
   async function drain({max=100}={}) {
@@ -230,12 +230,13 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
       if (req.method==='GET' && route===`${BASE}/session`) { const actor=await session(req); return json(res,200,{user:actor?.user??null,...(actor?{csrfToken:actor.csrfToken}:{}),mode,capabilities:{uploads:uploadsEnabled}}); }
       if (req.method==='GET' && route===`${BASE}/auth/start`) return await oauthStart(req,res);
       if (req.method==='GET' && route===`${BASE}/auth/callback`) return await oauthCallback(req,res,url);
-      if (['GET','HEAD'].includes(req.method) && route===`${BASE}/catalog`) return json(res,200,await catalog(),req.method==='HEAD');
+      if (['GET','HEAD'].includes(req.method) && route===`${BASE}/catalog`) return json(res,200,await catalog(url.searchParams),req.method==='HEAD');
       if (['GET','HEAD'].includes(req.method) && (route.startsWith(`${BASE}/maven/`) || route.startsWith(`${BASE}/previews/`))) return await serveArtifact(req,res,route);
       const libraryMatch=route.match(/^\/api\/hub\/libraries\/(ui[1-9a-z][0-9a-z]*)$/);
       if (['GET','HEAD'].includes(req.method) && libraryMatch) {
+        canonicalHubQuery(url,`libraries/${libraryMatch[1]}`);
         const version=url.searchParams.get('version');
-        const {rows:[row]}=await pool.query('SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id WHERE r.library_id=$1 AND ($2::text IS NULL OR r.version=$2) ORDER BY r.created_at DESC LIMIT 1',[libraryMatch[1],version]);
+        const {rows:[row]}=await pool.query("SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id WHERE r.library_id=$1 AND ($2::text IS NULL OR r.version=$2) ORDER BY string_to_array(r.version,'.')::int[] DESC LIMIT 1",[libraryMatch[1],version]);
         if (!row) throw problem(404,'Library release not found'); return json(res,200,attributedRelease(row),req.method==='HEAD');
       }
       const submissionMatch=route.match(/^\/api\/hub\/submissions\/([a-f0-9-]{36})$/);

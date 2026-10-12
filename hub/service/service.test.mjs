@@ -126,7 +126,7 @@ test('passing trusted result publishes immutable exact bytes; catalog retains ve
   }
   const head=await request(result.release.artifacts.jar.path.slice('/api/hub'.length),{method:'HEAD'});assert.equal(head.response.status,200);assert.equal(head.response.headers.get('content-length'),String(result.release.artifacts.jar.size));assert.equal(head.value.byteLength,0);
   const checksum=await request(result.release.artifacts.jar.path.slice('/api/hub'.length)+'.sha256');assert.equal(checksum.response.status,200);assert.equal(Buffer.from(checksum.value).toString().trim(),result.release.artifacts.jar.sha256);
-  const second=structuredClone(bundle);second.descriptor.version='0.2.0';await hub.submit(alice,second);await hub.drain();assert.equal((await hub.catalog()).libraries.length,2);
+  const second=structuredClone(bundle);second.descriptor.version='0.2.0';await hub.submit(alice,second);await hub.drain();assert.equal((await hub.catalog()).libraries.length,1);assert.equal((await hub.catalog(new URLSearchParams({history:'1'}))).libraries.length,2);
   assert.equal((await request(`/libraries/${bundle.descriptor.libraryId}?version=0.1.0`)).value.version,'0.1.0');
   assert.equal((await hub.submit(alice,bundle)).id,job.id);assert.equal(await hub.publishOnce(),false);
   await assert.rejects(pool.query('UPDATE hub_results SET passed=false WHERE submission_id=$1',[job.id]),/immutable/);

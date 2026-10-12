@@ -10,6 +10,7 @@
  * https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions
  */
 import pg from 'pg';
+import {canonicalHubQuery} from '../../hub/service/catalog.mjs';
 import {Readable} from 'node:stream';
 import {createHub} from '../../hub/service/hub.mjs';
 import {createPostgresStorage,MAX_OBJECT_BYTES} from '../../hub/service/postgres-storage.mjs';
@@ -60,6 +61,7 @@ async function configuredRuntime(config) {
 }
 
 function canonicalQuery(url,path) {
+  if(path!=='auth/callback')return canonicalHubQuery(url,path);
   if(url.search.length>8192)throw new Error('Invalid query');
   // GitHub includes error_uri on cancellation/error callbacks. It is bounded
   // data only: the controller ignores it, never follows or renders the URI.

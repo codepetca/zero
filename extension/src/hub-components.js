@@ -48,10 +48,22 @@ function validateCatalog(catalog) {
   return catalog;
 }
 async function loadCatalog(input,{fetcher=fetch}={}) {
-  const hubOrigin=origin(input);
-  const bytes=await readBytes(`${hubOrigin}/api/hub/catalog`,fetcher,1024*1024);
-  const catalog=validateCatalog(JSON.parse(bytes.toString('utf8')));
-  return {catalog,origin:hubOrigin,fingerprint:hash(bytes),fetcher};
+  const hubOrigin=origin(input),pages=[],libraries=[],cursors=new Set();let cursor=null,catalog;
+  do {
+    const query=new URLSearchParams({history:'1'});if(cursor)query.set('cursor',cursor);
+    const bytes=await readBytes(`${hubOrigin}/api/hub/catalog?${query}`,fetcher,1024*1024);
+    const page=validateCatalog(JSON.parse(bytes.toString('utf8')));
+    if(Object.hasOwn(page,'nextCursor')&&(page.libraries.length>20||!(page.nextCursor===null||typeof page.nextCursor==='string'&&/^[A-Za-z0-9_-]{1,512}$/.test(page.nextCursor))))fail('Invalid hub catalog page.');
+    if(catalog&&(page.mode!==catalog.mode||JSON.stringify(page.capabilities)!==JSON.stringify(catalog.capabilities)))fail('The hub catalog changed. Browse again.');
+    libraries.push(...page.libraries);pages.push(hash(bytes));catalog=page;
+    cursor=page.nextCursor??null;
+    if(libraries.length>500||cursor&&libraries.length>=500)fail('This hub has more than 500 releases. Browse the ZeroHub website for exact versions and manual Maven instructions.');
+    if(cursor&&page.libraries.length!==20)fail('Invalid hub catalog page. Browse the ZeroHub website.');
+    if(cursor&&cursors.has(cursor))fail('The hub catalog did not advance. Browse the ZeroHub website.');
+    if(cursor)cursors.add(cursor);
+  }while(cursor);
+  catalog=validateCatalog({...catalog,libraries,nextCursor:null});
+  return {catalog,origin:hubOrigin,fingerprint:hash(JSON.stringify(pages)),fetcher};
 }
 async function verifyRelease(context,release) {
   for(const kind of ['jar','sources','pom']) {

@@ -64,7 +64,8 @@ try {
   let plan=await editor.planChange(project,context,first);await writeFile(path.join(project,'pom.xml'),plan.afterText);
   plan=await editor.planChange(project,context,next,{operation:'update'});await writeFile(path.join(project,'pom.xml'),plan.afterText);
   plan=await editor.planChange(project,context,first,{operation:'revert'});await writeFile(path.join(project,'pom.xml'),plan.afterText);
-  assert.equal((await demo.hub.catalog()).libraries.find(r=>r.version==='0.1.0').sourceDigest,source0);
+  assert.equal((await demo.hub.catalog()).libraries[0].version,'0.1.1');
+  assert.equal((await demo.hub.catalog(new URLSearchParams('history=1'))).libraries.find(r=>r.version==='0.1.0').sourceDigest,source0);
   const receipt={mode:'local-fake-publication',sourceRepository:root,starterUiSource:path.join(root,'libraries/starter-ui'),failedSubmission:bad,release:first,patch:next,mavenConsumers:['study','coin-game'],versionsResolved:['0.1.0','0.1.1','0.1.0'],actualLoadedJarHashesVerified:true,extensionAddUpdateRevert:true,nativePlatform:process.platform+'-'+process.arch,elapsedSeconds:(Date.now()-started)/1000,limits:['Synthetic JavaFX actions; physical input/novice/Windows/Linux native desktop untested','GitHub OAuth and hosted database/storage/workers not configured or tested']};
   await writeFile(path.join(output,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(`HUB_INTEGRATION_OK: ${output}`);
 } finally {await demo.stop();}

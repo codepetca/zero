@@ -22,7 +22,7 @@ test('staging capability blocks authentication and authoring before any DB/OAuth
     assert.deepEqual(session,{user:null,mode:'production',capabilities:{uploads:false}});assert.equal(queries,0);
     for(const [method,route] of [['GET','/auth/start'],['GET','/auth/callback?state=x&code=x'],['POST','/logout'],['POST','/libraries'],['POST','/submissions'],['GET','/submissions/11111111-1111-4111-8111-111111111111']])assert.equal((await fetch(base+route,{method,redirect:'manual'})).status,503);
     assert.equal(queries,0);assert.equal(oauthCalls,0);
-    assert.deepEqual(await (await fetch(base+'/catalog')).json(),{mode:'production',capabilities:{uploads:false},libraries:[]});
+    assert.deepEqual(await (await fetch(base+'/catalog')).json(),{mode:'production',capabilities:{uploads:false},libraries:[],nextCursor:null});
     assert.equal(queries,1);
     await assert.rejects(hub.reserveLibrary({id:'1',login:'alice'},{className:'Display',title:'Display'}),error=>error.status===503);
   } finally {await new Promise(resolve=>server.close(resolve));await hub.stop();}

@@ -96,3 +96,18 @@ test('quiet Files view exposes downloaded library source and preview without arb
   const layout=await libraryLayout(f.root);assert.equal(layout.sources,path.join(f.root,'src/zero/ui1'));assert.equal(layout.preview,path.join(f.root,'src/Main.java'));assert.equal(layout.api,path.join(f.root,'API.md'));
   await fs.writeFile(path.join(f.root,'.zero-library.json'),JSON.stringify({schema:1,libraryId:'../outside'}));await assert.rejects(libraryLayout(f.root),/valid reserved ID/);
 });
+
+test('history traversal keeps exact pins across pages and rejects overflow or changed selections',async t=>{
+  const f=await fixture(t);const releases=Array.from({length:42},(_,i)=>({...f.releases[0],version:`0.1.${i}`,coordinate:{...f.releases[0].coordinate,version:`0.1.${i}`},artifacts:Object.fromEntries(Object.entries(f.releases[0].artifacts).map(([kind,artifact])=>[kind,{...artifact,path:artifact.path.replaceAll('0.1.0',`0.1.${i}`)}]))}));
+  const calls=[];let changed=false;
+  const fetcher=async url=>{
+    const query=new URL(url).searchParams;assert.equal(query.get('history'),'1');const start=Number(query.get('cursor')??0);calls.push(start);
+    const page=releases.slice(start,start+20);if(changed&&start===20)page[0]={...page[0],title:'Changed immutable selection'};
+    return Response.json({mode:'local',libraries:page,nextCursor:start+20<releases.length?String(start+20):null});
+  };
+  const context=await hub.loadCatalog(f.context.origin,{fetcher});assert.equal(context.catalog.libraries.length,42);assert.deepEqual(calls,[0,20,40]);assert.equal(context.catalog.libraries[0].version,'0.1.0');
+  changed=true;
+  await assert.rejects(hub.validatePlan({fingerprint:context.fingerprint},context),/catalog changed/);
+  const overflow=async url=>{const start=Number(new URL(url).searchParams.get('cursor')??0);return Response.json({mode:'local',libraries:Array.from({length:20},(_,i)=>({...releases[0],version:`0.1.${start+i}`,coordinate:{...releases[0].coordinate,version:`0.1.${start+i}`},artifacts:Object.fromEntries(Object.entries(releases[0].artifacts).map(([kind,artifact])=>[kind,{...artifact,path:artifact.path.replaceAll('0.1.0',`0.1.${start+i}`)}]))})),nextCursor:String(start+20)});};
+  await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:overflow}),/more than 500 releases.*website/);
+});

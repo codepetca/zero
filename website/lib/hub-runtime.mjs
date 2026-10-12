@@ -1,5 +1,6 @@
 /** Server-only read-only catalog runtime for Vercel-managed PostgreSQL. */
 import pg from 'pg';
+import {canonicalHubQuery} from '../../hub/service/catalog.mjs';
 import {Readable} from 'node:stream';
 import {createHub} from '../../hub/service/hub.mjs';
 import {createPostgresStorage,MAX_OBJECT_BYTES} from '../../hub/service/postgres-storage.mjs';
@@ -44,11 +45,12 @@ export async function readOnlyHubResponse(request,parts,{handler}={}) {
   // Authoring is closed even if a browser calls the endpoint directly.
   if(path.startsWith('auth/')||path.startsWith('submissions/')||['libraries','submissions','logout'].includes(path))
     return Response.json({error:'Library uploads are not open yet.'},{status:503,headers:{'Cache-Control':'no-store'}});
-  if(url.search)return Response.json({error:'Unexpected hub query.'},{status:400});
+  let query;
+  try {query=canonicalHubQuery(url,path);}catch{return Response.json({error:'Unexpected hub query.'},{status:400});}
   try {
     const execute=handler??await configuredRuntime();
     const req=Readable.from([]);
-    req.url=`/api/hub/${path}`;req.method=request.method;req.headers={};req.socket={remoteAddress:'127.0.0.1'};
+    req.url=`/api/hub/${path}${query}`;req.method=request.method;req.headers={};req.socket={remoteAddress:'127.0.0.1'};
     // Turning uploads off must preserve access to valid immutable stored objects.
     const outputLimit=path.startsWith('maven/')?MAX_OBJECT_BYTES:path.startsWith('previews/')?256*1024:JSON_LIMIT;
     const headers=new Headers();let status=200,bytes,ended=false,failed=false;
