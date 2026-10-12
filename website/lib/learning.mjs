@@ -212,6 +212,20 @@ export const examples = [
     lesson: "8",
   },
   {
+    id: "coin-game-controls",
+    title: "One coin with controls",
+    description: "Ordinary JavaFX score, message and Restart beneath a game canvas.",
+    files: ["coin-game-controls/Main.java", "coin-game/Player.java", "coin-game/Coin.java"],
+    lesson: "9",
+  },
+  {
+    id: "coin-game-component",
+    title: "Shared score in an app and game",
+    description: "Use the study app's unchanged ScoreDisplay beside the coin-game canvas.",
+    files: ["coin-game-component/Main.java", "coin-game/Player.java", "coin-game/Coin.java", "shared/ScoreDisplay.java"],
+    lesson: "10",
+  },
+  {
     id: "coin-game",
     title: "Collect the coins",
     description: "Collect three coins, win and restart.",

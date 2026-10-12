@@ -173,6 +173,45 @@ checks={
         app.draw();
         require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 100).equals(Color.WHITE), "Secondary button clears");'''
 }
+checks['coin-game-controls'] = '''app.stop();
+        var controls = (HBox) app.layout().getBottom();
+        var score = (Label) field(app, "score");
+        var player = (Player) field(app, "player");
+        var coin = (Coin) field(app, "coin");
+        require(app.layout().getCenter() == app.canvas() && controls.getChildren().contains(score), "Canvas and ordinary UI share one layout");
+        require(score.getText().equals("Score: 0 / 1"), "One-coin UI starts at zero");
+        setDouble(player, "x", (double) field(coin, "x"));
+        setDouble(player, "y", (double) field(coin, "y"));
+        app.update(0); app.update(0); app.draw();
+        require(score.getText().equals("Score: 1 / 1") && (int) field(app, "points") == 1 && coin.isCollected(), "Repeated contact scores once and updates existing control");
+        var restart = button(controls, "Restart");
+        restart.requestFocus(); restart.fire();
+        require(score == field(app, "score") && app.layout().getBottom() == controls, "Restart reuses UI objects");
+        require((int) field(app, "points") == 0 && !((Coin) field(app, "coin")).isCollected() && field(app, "player") != player, "Restart resets game data");
+        require(score.getText().equals("Score: 0 / 1") && stage.getScene().getFocusOwner() == app.canvas(), "Restart resets display and returns input to canvas");'''
+checks['coin-game-component'] = '''app.stop();
+        var controls = (HBox) app.layout().getBottom();
+        var display = (ScoreDisplay) field(app, "score");
+        var score = (Label) display.view();
+        var player = (Player) field(app, "player");
+        var coins = (Coin[]) field(app, "coins");
+        require(app.layout().getCenter() == app.canvas() && controls.getChildren().get(0) == display.view(), "Shared Node component sits beside canvas");
+        require(score.getText().equals("Score: 0") && ((Label) field(app, "goal")).getText().equals("Goal: 3 coins"), "Display and app-owned goal start correctly");
+        for (Coin coin : coins) {
+            setDouble(player, "x", (double) field(coin, "x"));
+            setDouble(player, "y", (double) field(coin, "y"));
+            app.update(0); app.update(0);
+        }
+        app.draw();
+        require((int) field(app, "points") == 3 && (boolean) field(app, "won") && score.getText().equals("Score: 3"), "All coins score once and win updates shared display");
+        var restart = button(controls, "Restart");
+        restart.requestFocus(); restart.fire();
+        require(field(app, "score") == display && display.view() == score && app.layout().getBottom() == controls, "Restart preserves component instance and native view");
+        require((int) field(app, "points") == 0 && !(boolean) field(app, "won") && score.getText().equals("Score: 0"), "Restart resets rules and presentation");
+        for (Coin coin : (Coin[]) field(app, "coins")) require(!coin.isCollected(), "Restart restores coins");
+        require(stage.getScene().getFocusOwner() == app.canvas(), "Component game Restart returns canvas input");
+        var other = new ScoreDisplay("Questions"); other.setScore(2);
+        require(other.view() != display.view() && ((Label) other.view()).getText().equals("Questions: 2") && score.getText().equals("Score: 0"), "Shared class creates independent app views");'''
 standalone = {
     'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
     'scrolling-game': ('ScrollingGameCheck', 'SCROLLING_GAME_OK'),
@@ -203,6 +242,11 @@ public class ExampleCheck extends Application {
         var field = object.getClass().getDeclaredField(name);
         field.setAccessible(true);
         return field.get(object);
+    }
+    static void setDouble(Object object, String name, double value) throws Exception {
+        var field = object.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        field.setDouble(object, value);
     }
     static void require(boolean value, String message) {
         if (!value) throw new AssertionError(message);
@@ -256,14 +300,20 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
     for kind, check in selected.items():
         dest = root / kind
         shutil.copytree(source, dest, ignore=shutil.ignore_patterns('target', 'examples'))
+        if kind != 'hello-world':
+            for previous in (dest/'src/main/java').glob('*.java'):
+                previous.unlink()
         resources = source/'examples'/kind/'resources'
         if resources.is_dir():
             shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):
             shutil.copy2(java, dest/'src/main/java'/java.name)
+        if kind in ('coin-game-controls', 'coin-game-component'):
+            for helper in ['Player.java', 'Coin.java']:
+                shutil.copy2(source/'examples/coin-game'/helper, dest/'src/main/java'/helper)
         if kind in ('scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copytree(source/'examples/media-demo/resources', dest/'src/main/resources', dirs_exist_ok=True)
-        if kind in ('quiz', 'practice', 'study', 'scrolling-game', 'platform-game', 'level-game', 'full-game'):
+        if kind in ('quiz', 'practice', 'study', 'coin-game-component', 'scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copy2(source/'examples/shared/ScoreDisplay.java', dest/'src/main/java/ScoreDisplay.java')
         if kind in standalone:
             main_class, marker = standalone[kind]

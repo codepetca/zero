@@ -7,7 +7,7 @@ request. Coursework links in Pika stay separate.
 ## Open the Workshop
 
 Download the portable Workshop from the Community page. Extract the **whole**
-`zero-community-workshop-0.1.2` folder and keep its three sibling folders together:
+`zero-community-workshop-0.1.3` folder and keep its three sibling folders together:
 `component-workshop/`, `zero-community/` and `component-repository/`.
 
 Open `component-workshop/` in VS Code. With JDK 17+ installed, run in its terminal:
@@ -17,8 +17,9 @@ Open `component-workshop/` in VS Code. With JDK 17+ installed, run in its termin
 ```
 
 Windows PowerShell: `.\mvnw.cmd compile javafx:run`.
-First-time dependency downloads need internet. The current Workshop edits,
-checks and exports **HealthBar only**; it cannot check Lesson 10's ScoreDisplay.
+First-time dependency downloads need internet. The current Workshop previews and checks HealthBar and SegmentedHealthBar.
+Choose **HealthBar** for this exercise. It does not yet check Lesson 10's
+ScoreDisplay or arbitrary new component types.
 
 Try Full, Partial, Empty and Custom caption. Read the Examples and API tabs.
 HealthBar displays a value supplied by Main; adventure and study own different

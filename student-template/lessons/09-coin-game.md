@@ -5,7 +5,8 @@ Previous: [Movement](08-movement.md).
 
 ## 1. Add one coin
 
-Start with Lesson 8's complete Main. Stop the app and save a copy outside `src/`.
+Start with Lesson 8's complete Main. Stop the app and back up Main and helpers
+outside `src/`. Remove unlisted helpers; keep `zero/`, Main and Player.
 Copy [coin-game Player.java](../examples/coin-game/Player.java) over your Player;
 it adds `touches(...)` to the movement code. Copy
 [Coin.java](../examples/coin-game/Coin.java) into `src/main/java/`.
@@ -48,24 +49,52 @@ leave and return: the score stays 1. Main owns `points`; Coin owns `collected`.
 The `!coin.isCollected()` check prevents a point on every frame, and Coin's
 `draw()` skips collected coins.
 
-## 3. Add more coins, win and restart
+## 3. Add native controls and Restart
 
-Replace Main with the complete [coin-game Main.java](../examples/coin-game/Main.java).
-Keep its [Player.java](../examples/coin-game/Player.java) and
-[Coin.java](../examples/coin-game/Coin.java). These are the exact three files
-copied into `src/main/java/`; no ScoreDisplay, resources or Maven changes are needed.
+Stop and back up your stage 2 outside `src/`. Keep only `zero/` and these three
+files in `src/main/java/`:
+
+| From | To |
+| --- | --- |
+| [coin-game-controls Main.java](../examples/coin-game-controls/Main.java) | `src/main/java/Main.java` |
+| [coin-game Player.java](../examples/coin-game/Player.java) | `src/main/java/Player.java` |
+| [Coin.java](../examples/coin-game/Coin.java) | `src/main/java/Coin.java` |
+
+Run this complete stage. There is still one coin. The score and message now
+appear in ordinary JavaFX Labels beneath the canvas, beside a Restart button.
+Collect the coin: score becomes 1, the coin disappears, and movement continues.
+Stay there, leave and return: the score stays 1.
+
+Read `setup()`: it creates the controls once, connects Restart's handler and
+places their HBox with `layout().setBottom(controls)`. SketchApp already hosts
+JavaFX controls around its canvas. Main explicitly changes the score Label
+when `points` changes; drawing the canvas does not update that Label for you.
+
+Choose Restart before collecting, then after collecting. Expect player (40, 180),
+the restored coin, score 0 and the original message. Collect again.
+`restart()` creates fresh Player and Coin objects and reuses the existing Labels.
+It calls `canvas().requestFocus()` so arrows return to the game after clicking
+the button. If keys are inactive after switching windows, click the canvas.
+Restart does not call `setup()` or build a second interface.
+
+## 4. Add more coins and win
+
+Stop and back up the one-coin stage outside `src/`. Replace Main with the complete
+[coin-game Main.java](../examples/coin-game/Main.java). Keep its
+[Player.java](../examples/coin-game/Player.java) and
+[Coin.java](../examples/coin-game/Coin.java). These are the exact three Java files
+alongside `zero/`; no ScoreDisplay, resources or Maven changes are needed.
 
 Run App. There are three coins. Read `restart()`: named Coin variables become
 the `Coin[]` array. In `update()`, the loop checks each object explicitly.
 When `points == coins.length`, `won` becomes true and movement stops.
-`draw()` still draws the scene. The score, message and Restart button use
-ordinary JavaFX controls beneath the canvas.
+`draw()` still draws the scene. The bottom controls are the same kind as stage 3.
 
 Collect one coin and choose Restart. Expect all three coins, the original player
 position, score 0 and the original message. Finish, then Restart and finish again.
 Restart creates fresh Player and Coin objects and resets both `points` and `won`.
 
-## 4. Make your own level
+## 5. Make your own level
 
 In `restart()`, add a fourth named variable before the array assignment:
 

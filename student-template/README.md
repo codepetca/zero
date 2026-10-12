@@ -145,7 +145,10 @@ The `examples/` shelf is outside compiled `src/`. Choose **one Main at a time**.
 Stop the app and save your current Main and helper classes outside `src/` (or in
 your own Git repository) before switching. Copy the files listed below into
 `src/main/java/`, replacing Main. Keep the `zero/` framework folder. Run as usual;
-no pom.xml or zero.json changes are needed. Unused helpers may be removed.
+no pom.xml or zero.json changes are needed. After backing up your work, remove
+the previous example's Main and unlisted helper Java files before copying the new
+set. Preserve `zero/`. Old helpers can depend on a different Player or Coin API
+and break compilation even when the new Main is correct.
 
 | Example | Exact files to copy | Try it |
 | --- | --- | --- |
@@ -156,6 +159,8 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | Click counter | `examples/click-counter/Main.java` | +1 counts clicks. See [Lesson 4](lessons/04-counter.md). |
 | Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. See [Lesson 5](lessons/05-methods.md). |
 | Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. See [Lesson 6](lessons/06-objects.md). |
+| One coin with controls | `examples/coin-game-controls/Main.java`, plus Player and Coin from `examples/coin-game/` | Native score/message/Restart beneath the canvas. See [Lesson 9](lessons/09-coin-game.md). |
+| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse the study app's display in a sketch. See [Lesson 10](lessons/10-components.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
 | Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
 | Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |

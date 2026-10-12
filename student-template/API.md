@@ -1,7 +1,7 @@
 # Zero app API
 
 New to Zero? Start with the [beginner toolkit](BEGINNER.md), then
-[make it look good](STYLE.md). This page is the complete reference; you can
+[make it look good](STYLE.md) and [UI and app/game flow](UI.md). This page is the complete reference; you can
 learn a small set first:
 
 | Build | Start with |

@@ -1,80 +1,75 @@
-# 10. Make a reusable component
+# 10. Reuse one component in an app and a game
 
-Use one ScoreDisplay class in two apps, then improve its presentation.
+A component can be an ordinary Java object that presents part of an interface.
+Use the same ScoreDisplay source in your study app and coin game.
 
-## Start with the display in Main
+## 1. Find the component boundary
 
-Back up [your coin game](09-coin-game.md) outside `src/`. Follow
-[the switching steps](README.md#before-each-lesson). Copy exactly:
+Stop the game and back up Main and helpers outside `src/`. Remove unlisted
+example helpers, preserving `zero/`. Copy these exact files:
 
 | From | To |
 | --- | --- |
-| [examples/quiz/Main.java](../examples/quiz/Main.java) | `src/main/java/Main.java` |
-| [examples/shared/ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
+| [study Main.java](../examples/study/Main.java) | `src/main/java/Main.java` |
+| [Question.java](../examples/study/Question.java) | `src/main/java/Question.java` |
+| [shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
 
-This is the **scored quiz**, with answer `42`. Run it unchanged: wrong answers
-keep `Score: 0`; `42` gives `Score: 10` and disables Check answer.
+Run the complete study app. A wrong answer keeps `Score: 0`; `3` gives `Score: 1`.
+Next moves to question 2. Restart returns to question 1 and `Score: 0`.
 
-In your copied Main, temporarily bring the display back into the app:
+Read [ScoreDisplay.java](../examples/shared/ScoreDisplay.java). Its constructor
+creates a Label. `setScore(int)` changes that Label; `view()` returns its node
+for Main to place in a layout. Main creates the display once in `setup()`, places
+`score.view()` in its VBox, and calls `score.setScore(points)` after changing
+points. Question holds question data; Main owns the retry, score and session rules.
 
-| Replace | With |
+`view()` is our example's ordinary method name, a useful convention for returning
+an interface node. JavaFX and Zero do not discover or register the object.
+ScoreDisplay is not a SimpleApp subclass: Main starts the app and places its node.
+The display's constructor and methods are the part another app needs to know.
+
+## 2. Use the same display beneath a game canvas
+
+Stop and back up the study source outside `src/`. Remove unlisted helpers,
+preserving `zero/`. Copy these exact files:
+
+| From | To |
 | --- | --- |
-| `private ScoreDisplay score;` | `private Label scoreLabel;` |
-| `score = new ScoreDisplay();` | `scoreLabel = new Label("Score: 0");` |
-| `score.view()` in the VBox | `scoreLabel` |
-| `score.setScore(points);` | `scoreLabel.setText("Score: " + points);` |
+| [coin-game-component Main.java](../examples/coin-game-component/Main.java) | `src/main/java/Main.java` |
+| [coin-game Player.java](../examples/coin-game/Player.java) | `src/main/java/Player.java` |
+| [coin-game Coin.java](../examples/coin-game/Coin.java) | `src/main/java/Coin.java` |
+| [the same shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
 
-Run: wrong answer keeps 0; `42` shows 10. Main now owns both the rule and display.
+Keep ScoreDisplay unchanged. Keep the framework, wrappers, `pom.xml` and
+`zero.json`; no resources or Maven changes are needed. Run App.
 
-## Extract the display
+Main now extends SketchApp. It creates the same `new ScoreDisplay()` once in
+`setup()` and puts `score.view()` in an HBox through `layout().setBottom(...)`.
+SketchApp provides the canvas and hosts ordinary JavaFX controls around it.
+The display does not need another app window or a different parent class.
 
-Create `src/main/java/ScoreDisplay.java` with this ordinary class:
+Main still owns `points` and calls `score.setScore(points)` after collection and
+Restart. A separate goal Label shows how many coins are needed; that goal and
+the win rule belong to the game. Player and Coin are unchanged Lesson 9 classes.
+Main explicitly updates Player and draws Player/Coins each frame. It updates
+ScoreDisplay only when points change.
 
-```java
-import javafx.scene.Node;
-import javafx.scene.control.Label;
+Check these results:
 
-public class ScoreDisplay {
-    private final Label label;
-    private final String caption;
+| Action | Expected |
+| --- | --- |
+| Start | `Score: 0`, `Goal: 3 coins` |
+| Collect one coin; stay there, leave and return | `Score: 1` throughout |
+| Restart during play | Score 0, all coins and original player position |
+| Collect all three | Score 3, win message and frozen movement |
+| Restart after winning; collect again | Score 0, then 1; movement resumes |
 
-    public ScoreDisplay() {
-        this("Score");
-    }
+Each running app creates its own ScoreDisplay instance. Reusing a class means
+using the same source to create objects; a JavaFX node can have only one parent.
+Restart reuses the display and controls and resets the game objects. It requests
+canvas focus so game keys resume; click the canvas after switching windows.
 
-    public ScoreDisplay(String caption) {
-        this.caption = caption;
-        label = new Label(caption + ": 0");
-    }
-
-    public void setScore(int points) {
-        label.setText(caption + ": " + points);
-    }
-
-    public Node view() {
-        return label;
-    }
-}
-```
-
-Restore the original scored quiz Main, reversing the four replacements above.
-Run the same checks. Main owns `points` and decides when to award them. After `points += 10`, Main
-calls `score.setScore(points)`. ScoreDisplay only displays the supplied number.
-`view()` gives Main the label to place in its VBox. No component parent class or
-registration is needed.
-
-## Reuse it
-
-Stop the quiz and back up its Main outside `src/`. Replace only
-`src/main/java/Main.java` with [examples/practice/Main.java](../examples/practice/Main.java).
-Keep the **same** ScoreDisplay file. Run the tracker: Complete, Complete, Reset,
-Complete should show `Completed: 1`, `2`, `0`, `1`.
-
-Here Main owns `completed` and explicitly calls `setScore(completed)` after each
-change. `new ScoreDisplay("Completed")` supplies a different caption. Each app
-creates its own instance; one JavaFX node can have only one parent.
-
-## Improve one thing
+## 3. Improve presentation and verify both uses
 
 In your copied `src/main/java/ScoreDisplay.java`, add this line immediately after
 `label = new Label(caption + ": 0");`:
@@ -83,24 +78,21 @@ In your copied `src/main/java/ScoreDisplay.java`, add this line immediately afte
 label.setStyle("-fx-font-weight: bold;");
 ```
 
-Keep both constructors, `view()` and `setScore(int)` unchanged. The quiz still
-needs `new ScoreDisplay()`. The tracker still needs its caption constructor.
-Save your improved class outside `src/`; keep the original example shelf intact.
+Keep both constructors, `view()` and `setScore(int)` unchanged. Save your improved
+class outside `src/`; keep the example shelf intact. Run the game checks above.
+Then stop, back up the game, remove Player/Coin and copy the study Main and
+Question from stage 1. Keep the same improved ScoreDisplay. Run the study checks:
+wrong answer → 0, `3` → 1, Restart → 0. Both apps should show bold scores.
 
-Run the tracker, then switch only Main back to the scored quiz. Use the exact
-same improved ScoreDisplay in both. Stop and run again after each edit.
+Explain why presentation changes belong in ScoreDisplay and scoring changes
+belong in Main. Record your actual results and OS. This source copy is a learning
+component; it is not an installed community library.
 
-| Check | Expected |
-| --- | --- |
-| Tracker starts | Bold `Completed: 0` |
-| Complete twice, Reset, Complete | Bold counts `1`, `2`, `0`, `1` |
-| Quiz starts; enter a wrong answer | Bold `Score: 0`; retry allowed |
-| Enter `42`; try to check again | Bold `Score: 10`; button disabled |
-| Stop and rerun quiz | `Score: 0`; button enabled |
-
-Record what happened and your OS. Explain which class owns each rule and why
-the same class works with two captions. Your source copy is a learning component;
-it is not an installed community library.
+For an optional extraction exercise, [EXERCISES.md](../EXERCISES.md) steps 3–5
+show moving the scored quiz's Label into ScoreDisplay and reusing it in the
+practice tracker. Its `new ScoreDisplay("Completed")` caption also works without
+changing the original no-argument constructor. You can propose your compatible
+improvement in the next lesson.
 
 Previous: [9. Collect the coins](09-coin-game.md). Next:
 [11. Share a component](11-community.md).

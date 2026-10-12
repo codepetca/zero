@@ -28,7 +28,8 @@ export function Example({ example, sources }) {
           <div className="reading-section-body">
             <p>
               Stop the app and save your current Main and helpers outside{" "}
-              <code>src/</code>. Copy the files shown below into the listed
+              <code>src/</code>. After backing up, remove the previous Main and helper
+              Java files that are not listed here. Copy the files shown below into the listed
               destinations in your standalone starter, creating resource folders
               when needed. Replace Main and the listed helpers. Keep the{" "}
               <code>zero/</code> framework folder and build files. If an older

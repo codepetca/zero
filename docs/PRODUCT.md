@@ -35,6 +35,12 @@ five runnable stages: media, camera/scoreboard, platforms/gravity, enemies/level
 and win/lose/restart. The examples remain ordinary Java classes; see
 [game systems](GAME-SYSTEMS.md).
 The scored quiz remains a later reuse example.
+The new local tutorial pass inserts one-coin native controls before arrays/win,
+then reuses unchanged ScoreDisplay in the study app and coin game.
+[UI and flow](../student-template/UI.md) explains controls/components in sketches;
+[the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
+welcome/result/countdown helpers. These sources remain unreleased; published kits
+keep their original bytes.
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as

@@ -23,7 +23,9 @@ Small steps first. Then build an app, games and a shared component.
 Complete [setup](../README.md#first-setup). Local running needs no GitHub account.
 
 1. Stop. Back up Main and helper classes **outside `src/`**.
-2. Copy only the listed files into `src/main/java/`. Keep `zero/`, the wrappers,
+2. After backing up, remove the previous example's Main and unlisted helper Java
+   files. Old helpers can require a different Player/Coin API. Copy only the listed
+   files into `src/main/java/`. Keep `zero/`, the wrappers,
    `pom.xml` and `zero.json`. Use one Main at a time.
 3. **Run App**. After editing: **Save → Stop → Run App**.
 
@@ -36,3 +38,4 @@ See [teacher notes](TEACHER.md) and the [API](../API.md) when needed.
 
 Coursework links go separately to [Pika](../README.md#your-repository-and-pika).
 Community contributions use Lesson 11.
+For controls in games and reusable views, read [UI and app/game flow](../UI.md).

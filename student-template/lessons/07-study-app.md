@@ -5,7 +5,8 @@ Previous: [Objects](06-objects.md).
 
 ## 1. Check, retry, score once
 
-Stop the app and save your previous source outside `src/`. Keep `src/main/java/zero/`.
+Stop the app and back up Main and helpers outside `src/`. Remove unlisted
+example helpers; keep `src/main/java/zero/`.
 Copy [Question.java](../examples/study/Question.java) and the unchanged
 [ScoreDisplay.java](../examples/shared/ScoreDisplay.java) into `src/main/java/`.
 Replace `src/main/java/Main.java` with this complete first stage:
@@ -71,17 +72,19 @@ trims spaces and ignores case; `answered` prevents duplicate scoring.
 
 ## 2. Add Next and completion
 
-Replace Main with the complete [study Main.java](../examples/study/Main.java).
-Keep Question and ScoreDisplay. In `setup()`, temporarily replace
-`HBox buttons = new HBox(12, check, next, restart);` with:
+Stop and back up your first stage outside `src/`. Keep only `zero/` and the
+three files for this app in `src/main/java/`:
 
-```java
-HBox buttons = new HBox(12, check, next);
-```
+| From | To |
+| --- | --- |
+| [study Main.java](../examples/study/Main.java) | `src/main/java/Main.java` |
+| [Question.java](../examples/study/Question.java) | `src/main/java/Question.java` |
+| [shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
 
-Save, Stop and Run App. This stage has three questions and no visible Restart.
-Try Next before answering: it stays disabled. Answer `3`, then Next; answer
-`true`, then Next; answer `0`, then Next. The app finishes with score 3.
+Copy the complete program unchanged, including its Restart button. Save, Stop
+and Run App. Try Next before answering: it stays disabled. Answer `3`, then Next;
+answer `true`, then Next; answer `0`, then Next. The app finishes with score 3
+and tells you to choose Restart.
 
 Read `checkAnswer()`, `nextQuestion()` and `showQuestion()` in Main.
 `Question[]` holds the data. `questionIndex` selects it; `points` counts correct
@@ -89,22 +92,22 @@ questions; `answered` locks one question; `finished` locks the completed session
 These are fields because several methods share them. Each Next clears the old
 answer and relocks Next until the new answer is correct.
 
-## 3. Add Restart
+## 3. Trace and test Restart
 
-Restore the complete button row:
+Keep the complete program from stage 2. Answer one question and choose Restart;
+finish all three and choose Restart again. Both times expect question 1, score 0,
+empty input and disabled Next. Try an incorrect answer, then `3` in the new
+session: the score becomes 1 again.
 
-```java
-HBox buttons = new HBox(12, check, next, restart);
-```
+Find the Restart handler in `setup()`: it calls `restartSession()`.
+That method resets the fields, updates ScoreDisplay and calls `showQuestion()`.
+The existing controls are reused. Restart does not call `setup()` or create a
+second interface. `showQuestion()` also requests focus for the answer field so
+you can type the next answer.
 
-Run again. Answer one question and Restart; finish all three and Restart again.
-Both times expect question 1, score 0, empty input and disabled Next.
-`restartSession()` resets the fields, updates ScoreDisplay and calls `showQuestion()`.
-
-The final three-file copy is [study Main.java](../examples/study/Main.java),
-[Question.java](../examples/study/Question.java) and
-[shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java), all in
-`src/main/java/`. No Maven or framework changes are needed.
+The final copy remains the three files above. No Maven or framework changes are
+needed. Main owns the points and session rules; `score.setScore(points)` explicitly
+updates the ordinary ScoreDisplay object.
 
 ## 4. Add your fourth question
 

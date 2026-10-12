@@ -3,6 +3,31 @@
 Updated2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable history/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
+## Active local app/game tutorial pass
+
+Owner defers installer trial and requests easier tutorials, app/game/component
+creation and UI conventions. Confirmed pair: study quiz and coin game.
+Current branch codex/app-game-tutorials baseline618fad209d9329815c7395660b31c1be967d6631.
+No push/PR/publication/version/installer/framework/Community changes authorized here.
+One Sol/medium audit/implementation worker delivered lessons7/9/10 and two complete
+Main/README variants; coordinator owns shared guides, teaching plan, web exposure
+and verification. Controls are ordinary JavaFX; SketchApp already extends SimpleApp.
+Source components use view() and explicit updates; no required component base.
+Welcome/pause/result/countdown remain proposals until demonstrated reuse.
+
+Corrections: exact switching removes unlisted helpers after backup, Hello-world
+starter guidance, visible Restart in study stages, native controls before game
+arrays/win, unchanged ScoreDisplay reused across study and game. Workshop lesson
+now accurately identifies0.1.3/two health bars and its custom-component limitation.
+Eight finite JavaFX examples (study, originalcoin, newcontrols, newcomponent,
+hello-world/button/name, movement) passed in disposable projects with exact copy
+lists. Reproduced old stale-Enemy compile failure; backup/exact-copy flow compiles.
+Final website36tests/types/build/root/diff passed. Actual local browser UI guide
+folds/links and complete game-controls source/copy lists passed. Independent review
+pending; no published artifact bytes or version metadata changed.
+Evidence .verification/tutorial-pass/; design docs/TUTORIAL-PLAN.md.
+Weekly82% remaining at start is account allowance; effective model/cost unknown.
+
 ## Completed Mac0.5.7 publication and website promotion
 
 Owner authorized signing/notarization, native publication and website update.

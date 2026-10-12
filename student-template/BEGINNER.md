@@ -4,11 +4,15 @@ Zero helps you make Java apps and games. Start with one of the two tracks below.
 Use ordinary Java fields, methods and objects to hold your app's state.
 You can learn more JavaFX when your project needs it.
 
-The starter opens with a small quiz. Keep it while you learn, or follow an
-example's copy instructions to replace it in a separate starter folder.
+The starter opens with **Hello, world!**. Start with [Lesson 0](lessons/00-hello-world.md),
+then follow an example's copy instructions to build your own app or game.
 Examples are outside `src/` until you copy them.
 If an older downloaded kit does not include these examples, the website's
 example pages show the complete files to copy into the same starter destinations.
+
+A SketchApp can host ordinary buttons, labels and component views around its canvas.
+It already inherits SimpleApp; create UI objects rather than a second application.
+See [UI and app/game flow](UI.md) for the shared pattern.
 
 ## Apps: controls that respond to events
 
