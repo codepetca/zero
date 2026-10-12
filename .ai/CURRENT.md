@@ -3,6 +3,16 @@
 Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
+## Latest hub design decision
+
+Owner removes routine maintainer acceptance from the proposed public hub.
+Authenticated contributions passing a trusted automated minimum-standards checker
+will publish/list automatically. Short library IDs are hub-assigned; student
+imports use zero.ui7.Hud, owner/version remain metadata. Authoritative new design:
+docs/COMMUNITY-HUB-PLAN.md. Legacy helpers still implement human acceptance;
+the isolated generic checker/publisher and DB hub are not implemented. No source
+gate, remote setting, current artifact publication or repository merge changed.
+
 ## Completed local Starter UI package proof
 
 Owner approved packaging the tested StartScreen, Hud and ScoreDisplay, consumed

@@ -227,6 +227,13 @@ upstream wrapper notices apply separately to the wrapper.
 
 ## Community alternatives and curated starting choices
 
+The owner now selects open contribution with trusted automated minimum-standard
+checks and automatic publication for the proposed database-backed hub, without
+routine maintainer acceptance. This supersedes the earlier proposed acceptance
+policy below for that new hub. Existing health-bar implementation remains on its
+legacy path until a separately reviewed migration. See [the hub plan](COMMUNITY-HUB-PLAN.md)
+for naming, checker scope, isolated execution and the separate trusted publisher.
+
 Community experiments can coexist in categories such as Health bars. Each has its
 own identity and explicit library-version availability. A reviewed catalog names
 one recommended exact version per category and shows it first, independently of
