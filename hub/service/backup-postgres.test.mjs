@@ -102,6 +102,21 @@ test('private backup PostgreSQL proof',{skip:process.env.ZERO_HUB_BACKUP_PG_TEST
       await target.end();await targetAdmin.end();await fixture.pool.query('DROP DATABASE zero_backup_target');await fixture.pool.query('CREATE DATABASE zero_backup_target');
       targetAdmin=new pg.Pool({connectionString:targetURL.href,max:2});await migrateDatabase(targetAdmin,{roles:true});target=createRuntimePool(targetOperatorURL.href,'hub_migration_owner');
     }
+    await t.test('differing source and target date styles and timezones preserve exact microsecond timestamps',async()=>{
+      await resetTarget();const expected=await snapshot(source);
+      const sourceClient=await source.connect(),targetClient=await target.connect();
+      const pinned=client=>({connect:async()=>({query:(...args)=>client.query(...args),release(){}})});
+      try {
+        await sourceClient.query("SET DateStyle='SQL, DMY'");await sourceClient.query("SET TIME ZONE 'America/Toronto'");
+        await targetClient.query("SET DateStyle='ISO, MDY'");await targetClient.query("SET TIME ZONE 'Pacific/Auckland'");
+        const styled=path.join(root,'styled.archive');
+        await exportBackup({pool:pinned(sourceClient),file:styled});
+        await restoreBackup({pool:pinned(targetClient),file:styled,enabled:true});
+      }finally {
+        for(const client of [sourceClient,targetClient]){await client.query("SET DateStyle='ISO, MDY'");await client.query("SET TIME ZONE 'UTC'");client.release();}
+      }
+      assert.deepEqual(await snapshot(target),expected);
+    });
     await t.test('unused false is_called state roundtrips exactly',async()=>{
       await resetTarget();await source.query("SELECT setval('hub_library_number',37,false)");
       const second=path.join(root,'false.archive');await exportBackup({pool:source,file:second});await restoreBackup({pool:target,file:second,enabled:true});

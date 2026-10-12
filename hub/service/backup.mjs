@@ -134,6 +134,9 @@ async function begin(pool,readOnly,action) {
     const {rows:[role]}=await client.query("SELECT rolcanlogin OR rolsuper OR rolcreaterole OR rolcreatedb OR rolreplication OR rolbypassrls AS elevated FROM pg_roles WHERE rolname='hub_migration_owner'");
     if(!role||role.elevated)fail();
     await client.query(readOnly?'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY':'BEGIN');
+    // Timestamp text must have one unambiguous format on both connections.
+    await client.query("SET LOCAL DateStyle='ISO, YMD'");
+    await client.query("SET LOCAL TIME ZONE 'UTC'");
     await client.query("SET LOCAL lock_timeout='3s'");
     await client.query("SET LOCAL idle_in_transaction_session_timeout='30s'");
     await client.query('SELECT pg_advisory_xact_lock(92104419)');

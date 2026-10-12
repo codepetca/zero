@@ -307,7 +307,9 @@ Export takes a consistent snapshot of users, libraries, source/history, results,
 releases and stored bytes. Sessions and OAuth states are omitted. The fixed
 trusted schema fingerprint is versioned with the archive format; archives supply
 data only, never executable SQL. Known PostgreSQL17 and18 schemas are pinned
-separately; restore requires the archive's same-major schema. Exact timestamps, JSON numbers, bytes and
+separately; restore requires the archive's same-major schema. Transactions use
+ISO/YMD dates and UTC so session settings cannot reinterpret timestamps.
+Exact timestamps, JSON numbers, bytes and
 sequence state are preserved. The checksum detects corruption, not malicious
 rewriting by someone who can replace both data and checksum.
 
