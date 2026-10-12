@@ -20,7 +20,7 @@ const MAX_PREVIEW=256*1024;
 export async function authenticatedGithubIdentity() {
   let profile;
   try {
-    const {stdout}=await execute('gh',['api','user','--jq','{id,login}'],{timeout:15000,maxBuffer:4096,encoding:'utf8'});
+    const {stdout}=await execute('gh',['api','--hostname','github.com','user','--jq','{id,login}'],{timeout:15000,maxBuffer:4096,encoding:'utf8'});
     profile=JSON.parse(stdout);
   } catch {throw configurationError('Authenticated GitHub identity unavailable; authenticate gh before bootstrap');}
   if(!Number.isSafeInteger(profile?.id)||profile.id<1||!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(profile?.login??''))throw configurationError('GitHub returned an invalid authenticated numeric identity');

@@ -38,20 +38,22 @@ test('maintained bundle has fixed version/source/classes/provenance and truthful
   assert.equal(bundle.files.LICENSE,await readFile(path.join(repo,'libraries/starter-ui/LICENSE'),'utf8'));
   for(const name of ['StartScreen','Hud','ScoreDisplay'])assert.equal(bundle.files[`src/zero/ui9/${name}.java`],(await readFile(path.join(repo,`libraries/starter-ui/src/main/java/zero/starterui/${name}.java`),'utf8')).replaceAll('zero.starterui','zero.ui9'));
 });
-test('actor comes only from bounded authenticated gh api user response',async()=>{
+test('actor comes from github.com even with a hostile GH_HOST override',async()=>{
   // Unit-only executable fixture; no live GitHub call or demo default in script.
   const temporary=await mkdtemp(path.join(os.tmpdir(),'zero-bootstrap-gh-'));
   const prior=process.env.PATH;
+  const priorHost=process.env.GH_HOST;
   try {
     process.env.PATH=temporary+path.delimiter+prior;
+    process.env.GH_HOST='school-enterprise.invalid';
     const stub=path.join(temporary,'gh');
     for(const [profile,valid] of [[{id:303,login:'fixture-maintainer'},true],[{id:'303',login:'fixture-maintainer'},false],[{id:0,login:'fixture-maintainer'},false],[{id:303,login:'bad login'},false]]) {
-      await writeFile(stub,`#!/bin/sh\nprintf '%s\\n' '${JSON.stringify(profile)}'\n`,{mode:0o700});
+      await writeFile(stub,`#!/bin/sh\nif [ "$1" != api ] || [ "$2" != --hostname ] || [ "$3" != github.com ] || [ "$4" != user ]; then exit 91; fi\nprintf '%s\\n' '${JSON.stringify(profile)}'\n`,{mode:0o700});
       if(valid)assert.deepEqual(await authenticatedGithubIdentity(),{id:'303',login:'fixture-maintainer'});
       else await assert.rejects(authenticatedGithubIdentity(),/authenticated numeric identity/);
     }
     await writeFile(stub,'#!/bin/sh\nexit 1\n',{mode:0o700});await assert.rejects(authenticatedGithubIdentity(),/Authenticated GitHub identity unavailable/);
-  } finally {process.env.PATH=prior;await rm(temporary,{recursive:true,force:true});}
+  } finally {process.env.PATH=prior;if(priorHost===undefined)delete process.env.GH_HOST;else process.env.GH_HOST=priorHost;await rm(temporary,{recursive:true,force:true});}
 });
 
 test('optional real maintained-source bootstrap uses three restricted logins, ignores other jobs and is idempotent',{skip:process.env.ZERO_HUB_BOOTSTRAP_DOCKER!=='1'},async()=>{
