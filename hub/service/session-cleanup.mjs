@@ -13,6 +13,10 @@ export async function pruneExpiredAuthentication(pool,{batchSize=500}={}) {
   return transaction(pool,async client=>{
     // Serialize cleanup batches without granting authentication-row UPDATE.
     await client.query('SELECT pg_advisory_xact_lock(92104422)');
+    // Share admission locks so inline expiry pruning and this job cannot take
+    // conflicting row-lock orders. Starts and session rotation take one each.
+    await client.query('SELECT pg_advisory_xact_lock(92104423)');
+    await client.query('SELECT pg_advisory_xact_lock(92104424)');
     const counts={};
     // Table and key names are fixed trusted identifiers, never request input.
     for(const [table,key,name] of [['hub_sessions','token_hash','sessions'],['hub_oauth_states','state_hash','oauthStates']]) {

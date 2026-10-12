@@ -1018,3 +1018,14 @@ Only local prerequisites are established. Public contribution activation, raw re
 - Root/diff checks passed. Separate correctness/compatibility reviews accepted ef03b13. Release CI includes these prerequisites and bounded cleanup; CI38297309531 passed for reviewed ef03b13, including backend, virtual-display JavaFX examples, website and packaging checks.
 
 No schema/grant change, real browser HTTPS/GitHub sign-in or hosted activation. Existing proxy timeout interaction remains untested in hosting. This does not satisfy the excluded generic checker review or complete the public contribution goal.
+
+
+## Embedded authoring adapter and authentication limits (2026-10-12)
+
+- `npm run test:postgres --prefix hub`:43 passes. New cases enforce concurrent state/session caps, bounded expired-row pruning, successful same-browser/account session rotation, failed-sign-in preservation and actual restricted-role grants. No new schema/grants or candidate execution.
+- `node --test hub/service/session-cleanup.test.mjs`:3 passes with state/session admission lock coordination.
+- `node --test hub/service/vercel-integration.test.mjs`:3 passes on dedicated disposable PostgreSQL15447, restricted API login, actual createHub/storage/Web bridge and fake GitHub provider. Signs in, prepares/queues/retries exact source, verifies numeric ownership, account/CSRF/origin boundaries, cancellation, logout and closed capability. Does not execute/publish queued source.
+- Website suite58 passes/2 optional skips, including15 adapter cases; types/build passed. Covers bounded request/response bytes, canonical routes/origin, header privacy, paired cookies, cancellation, redirected destinations, corrupt stored bytes and64KiB streamed Maven length/hash/cancellation up to16MiB.
+- Root/diff checks passed. CI invocation includes the new actual-role bridge test; newer-source hosted CI still pending.
+
+Real GitHub/HTTPS browser, Vercel streaming/payload behavior, hosted timing under load and full student execution/publication remain unproven. Public upload activation and the excluded generic checker acceptance are still held.

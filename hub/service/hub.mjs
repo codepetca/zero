@@ -5,6 +5,7 @@ import {transaction as runTransaction,migrateDatabase} from './database.mjs';
 import {scaffoldBundle} from './scaffold.mjs';
 import {lockAdmission,admitReservation,admitSubmission} from './admission.mjs';
 import {githubJson} from './oauth-client.mjs';
+import {admitOAuthStart,admitSession} from './auth-admission.mjs';
 
 const BASE = '/api/hub';
 const GROUP = 'ca.codepet.zero.library';
@@ -139,10 +140,14 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
     const values=previous===undefined?[]:Array.isArray(previous)?previous:[previous];
     res.setHeader('Set-Cookie',[...values,`${name}=${value}; Path=${BASE}; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure?'; Secure':''}`]);
   }
-  async function openSession(res,user) {
+  async function openSession(req,res,user) {
     const sessionToken=token();
+    const previous=cookies(req).get(COOKIE);
+    const previousHash=/^[a-f0-9]{64}$/.test(previous??'')?sha256(previous):null;
     await transaction(async client => {
-      const actor=await rememberUser(client,user);
+      const actor=identity(user);
+      await admitSession(client,actor.id,previousHash);
+      await rememberUser(client,actor);
       await client.query('INSERT INTO hub_sessions(token_hash,user_id,csrf_token,expires_at) VALUES($1,$2,$3,now()+interval \'8 hours\')',[sha256(sessionToken),actor.id,token()]);
     });
     setCookie(res,COOKIE,sessionToken,8*3600);
@@ -172,11 +177,14 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
   function json(res,status,value,head=false) { const bytes=Buffer.from(JSON.stringify(value)); res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Content-Length':bytes.length,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}); res.end(head?undefined:bytes); }
   async function oauthStart(req,res) {
     if (localUser) {
-      await openSession(res,localUser); res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); return res.end();
+      await openSession(req,res,localUser); res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); return res.end();
     }
     if (!oauth) throw problem(503,'GitHub authentication is not configured');
     const state=token(); const binding=token();
-    await pool.query('INSERT INTO hub_oauth_states(state_hash,binding_hash,expires_at) VALUES($1,$2,now()+interval \'10 minutes\')',[sha256(state),sha256(binding)]);
+    await transaction(async client=>{
+      await admitOAuthStart(client);
+      await client.query('INSERT INTO hub_oauth_states(state_hash,binding_hash,expires_at) VALUES($1,$2,now()+interval \'10 minutes\')',[sha256(state),sha256(binding)]);
+    });
     setCookie(res,STATE_COOKIE,binding,600);
     const target=new URL('https://github.com/login/oauth/authorize');
     target.searchParams.set('client_id',oauth.clientId); target.searchParams.set('redirect_uri',`${origin}${BASE}/auth/callback`); target.searchParams.set('state',state); target.searchParams.set('scope','read:user');
@@ -198,7 +206,7 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
     if (!Number.isSafeInteger(user.id) || user.id<1 || typeof user.login!=='string') throw problem(502,'GitHub identity verification failed');
     let actor;
     try {actor=identity(user);} catch {throw problem(502,'GitHub identity verification failed');}
-    await openSession(res,actor);
+    await openSession(req,res,actor);
     res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); res.end();
   }
   async function serveArtifact(req,res,requestPath) {

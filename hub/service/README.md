@@ -139,6 +139,26 @@ Release CI also runs these units, the actual disposable PostgreSQL admission and
 OAuth suite, bounded cleanup and staging checks. This does not execute submitted
 Java or complete the separate generic checker acceptance.
 
+Authentication admission separately caps1000 pending/2000 retained OAuth states,
+8 live sessions/account and10000 retained session rows. Transactions serialize
+their decisions and prune at most50/100 expired state/session rows. A successful
+same-browser sign-in retires that browser's previous token and inserts a fresh
+session atomically; failed/cancelled attempts retain valid sessions. The cleanup
+job shares both admission locks after its own job lock. These are record/storage
+bounds, not per-IP request rates or a cap on all historical users.
+
+The embedded authoring adapter's actual PostgreSQL proof uses a restricted login,
+fake GitHub provider and this command from the repository root:
+
+```sh
+node --test hub/service/vercel-integration.test.mjs
+```
+
+It uses its own disposable fixture on localhost15447, queues source without
+executing it and verifies preparation, exact retries, account boundaries,
+CSRF/origin, cancellation, logout and the closed capability. It is also in CI.
+It does not establish real hosted OAuth or accept the excluded execution gate.
+
 API admission uses a fixed shared policy before persisting new reservations or
 source. Transactions take one global advisory lock before row locks, so concurrent
 API instances cannot independently pass the same account/global allowance.

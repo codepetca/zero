@@ -10,6 +10,7 @@ import * as trusted from '../checker/runner.mjs';
 import {createHub} from './hub.mjs';
 import {validateArtifacts,sha256} from './artifacts.mjs';
 import {REQUIRED_GATES} from './report.mjs';
+import {AUTH_LIMITS} from './auth-admission.mjs';
 
 const database=process.env.ZERO_HUB_TEST_DATABASE;
 if (!database) throw new Error('Use npm run test:postgres for a disposable real PostgreSQL fixture');
@@ -338,7 +339,7 @@ test('OAuth account changes establish fresh profile identity, session and CSRF',
     const secondCookie=oauthSessionCookie(changed);const second=await session(secondCookie);
     assert.notEqual(secondCookie,firstCookie);assert.notEqual(second.csrfToken,first.csrfToken);
     assert.deepEqual(first.user,alice);assert.deepEqual(second.user,bob);assert.equal(calls.length,4);
-    assert.deepEqual((await session(firstCookie)).user,alice);
+    assert.equal((await session(firstCookie)).user,null,'Successful account change must retire this browser\'s old session');
     const cancelled=await callback(await start(),'error=access_denied',secondCookie);clearedOAuthCookie(cancelled);
     assert.deepEqual((await session(secondCookie)).user,bob);assert.equal(calls.length,4);
   });
@@ -568,4 +569,101 @@ test('immutable pipeline target checks and publishes only its own job, with no u
   assert.equal((await hub.getSubmission(alice,first.id)).status,'checked');assert.equal((await hub.getSubmission(alice,second.id)).status,'published');
   assert.equal(await pipeline.publishOnce(target),false);
   assert.deepEqual((await hub.catalog()).libraries.map(release=>release.libraryId),[chosen.libraryId]);
+});
+
+
+test('concurrent sign-ins stop at the account session cap, while same-browser rotation preserves capacity',async()=>{
+  const attempts=await Promise.all(Array.from({length:12},()=>request('/auth/start')));
+  const accepted=attempts.filter(item=>item.response.status===302);
+  const denied=attempts.filter(item=>item.response.status===429);
+  assert.equal(accepted.length,AUTH_LIMITS.liveSessionsPerAccount);assert.equal(denied.length,4);
+  assert.ok(denied.every(item=>/8 active sign-ins/.test(item.value.error)&&!item.response.headers.has('set-cookie')));
+  const oldCookie=accepted[0].response.headers.getSetCookie()[0].split(';')[0];
+  const rotated=await request('/auth/start',{cookie:oldCookie});assert.equal(rotated.response.status,302);
+  const newCookie=rotated.response.headers.getSetCookie()[0].split(';')[0];assert.notEqual(newCookie,oldCookie);
+  assert.equal((await request('/session',{cookie:oldCookie})).value.user,null);
+  assert.deepEqual((await request('/session',{cookie:newCookie})).value.user,alice);
+  const before=(await request('/session',{cookie:newCookie})).value;
+  const rejected=await request('/auth/start',{cookie:'zero_hub_session='+'f'.repeat(64)});assert.equal(rejected.response.status,429);
+  assert.deepEqual((await request('/session',{cookie:newCookie})).value,before);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,AUTH_LIMITS.liveSessionsPerAccount);
+});
+
+test('concurrent OAuth starts enforce the global pending-state cap without calling GitHub',async()=>{
+  await pool.query("INSERT INTO hub_oauth_states(state_hash,binding_hash,expires_at) SELECT 'seed-'||n,'binding',now()+interval '10 minutes' FROM generate_series(1,$1::int)n",[AUTH_LIMITS.pendingStates-1]);
+  await withOAuth(null,async({target,calls})=>{
+    const attempts=await Promise.all(Array.from({length:10},()=>fetch(target+'/auth/start',{redirect:'manual'})));
+    assert.equal(attempts.filter(item=>item.status===302).length,1);
+    assert.equal(attempts.filter(item=>item.status===429).length,9);
+    assert.equal(calls.length,0);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,AUTH_LIMITS.pendingStates);
+  });
+});
+
+test('authentication starts prune bounded expired records while live records remain',async()=>{
+  await pool.query("INSERT INTO hub_oauth_states(state_hash,binding_hash,expires_at) SELECT 'expired-'||n,'binding',now()-interval '1 hour' FROM generate_series(1,120)n");
+  await pool.query("INSERT INTO hub_oauth_states VALUES('live','binding',now()+interval '10 minutes')");
+  await withOAuth(null,async({start})=>{await start();});
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,122-AUTH_LIMITS.stateCleanupBatch);
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM hub_oauth_states WHERE state_hash='live'")).rows[0].n,1);
+  await pool.query("INSERT INTO hub_users(github_id,login) VALUES('303','seed')");
+  await pool.query("INSERT INTO hub_sessions(token_hash,user_id,csrf_token,expires_at) SELECT 'expired-'||n,'303','csrf',now()-interval '1 hour' FROM generate_series(1,150)n");
+  await pool.query("INSERT INTO hub_sessions VALUES('live','303','csrf',now()+interval '1 hour')");
+  assert.equal((await request('/auth/start')).response.status,302);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,152-AUTH_LIMITS.sessionCleanupBatch);
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM hub_sessions WHERE token_hash='live'")).rows[0].n,1);
+});
+
+test('retained authentication record budgets count expired history and refuse further growth',async()=>{
+  await pool.query("INSERT INTO hub_oauth_states(state_hash,binding_hash,expires_at) SELECT 'expired-'||n,'binding',now()-interval '1 hour' FROM generate_series(1,$1::int)n",[AUTH_LIMITS.retainedStates+AUTH_LIMITS.stateCleanupBatch]);
+  await withOAuth(null,async({target,calls})=>{
+    const response=await fetch(target+'/auth/start',{redirect:'manual'});assert.equal(response.status,429);
+    assert.equal(response.headers.get('set-cookie'),null);assert.equal(calls.length,0);
+  });
+  // Privileged fixture intentionally starts beyond the admitted cap. Rejection
+  // rolls the opportunistic prune back; the separate cleanup job can recover it.
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,AUTH_LIMITS.retainedStates+AUTH_LIMITS.stateCleanupBatch);
+  await pool.query("INSERT INTO hub_users(github_id,login) VALUES('303','seed')");
+  await pool.query("INSERT INTO hub_sessions(token_hash,user_id,csrf_token,expires_at) SELECT 'seed-'||n,'303','csrf',now()+interval '1 hour' FROM generate_series(1,$1::int)n",[AUTH_LIMITS.retainedSessions]);
+  const response=await request('/auth/start');assert.equal(response.response.status,429);assert.equal(response.response.headers.get('set-cookie'),null);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,AUTH_LIMITS.retainedSessions);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_users WHERE github_id=$1',[alice.id])).rows[0].n,0);
+});
+
+test('global session capacity serializes competing verified GitHub accounts',async()=>{
+  await pool.query("INSERT INTO hub_users(github_id,login) VALUES('303','seed')");
+  await pool.query("INSERT INTO hub_sessions(token_hash,user_id,csrf_token,expires_at) SELECT 'seed-'||n,'303','csrf',now()+interval '1 hour' FROM generate_series(1,$1::int)n",[AUTH_LIMITS.retainedSessions-1]);
+  let nextId=101;const accessToken=randomBytes(24).toString('hex');
+  await withOAuth(async url=>Response.json(url.endsWith('/access_token')?{access_token:accessToken,token_type:'bearer'}:{id:nextId++,login:'candidate'}),async({start,callback})=>{
+    const first=await start(),second=await start();
+    const results=await Promise.all([callback(first),callback(second)]);
+    assert.equal(results.filter(item=>item.status===302).length,1);assert.equal(results.filter(item=>item.status===429).length,1);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,AUTH_LIMITS.retainedSessions);
+  });
+});
+
+test('authentication admission and rotation use only existing restricted API grants',async()=>{
+  const {createRuntimePool,verifyRole}=await import('./runtime.mjs');
+  const {migrateDatabase}=await import('./database.mjs');
+  await migrateDatabase(pool,{roles:true});
+  const name='zero_auth_'+randomBytes(5).toString('hex'),password=randomBytes(32).toString('hex');
+  await pool.query(`CREATE ROLE ${name} LOGIN NOINHERIT PASSWORD '${password}'`);await pool.query(`GRANT hub_api TO ${name}`);
+  const url=new URL(database);url.username=name;url.password=password;
+  const api=createRuntimePool(url.href,'hub_api');await verifyRole(api,'hub_api');
+  const controlled=createHub({pool:api,storageRoot:root,checker,origin:'https://zero.example',oauth:{clientId:'test-id',clientSecret:'test-secret',fetch:async target=>Response.json(target.endsWith('/access_token')?{access_token:'test-token',token_type:'bearer'}:{id:101,login:'alice'})}});
+  const temporary=http.createServer(controlled.handler);await new Promise(resolve=>temporary.listen(0,'127.0.0.1',resolve));
+  const target=`http://127.0.0.1:${temporary.address().port}/api/hub`;
+  try {
+    async function login(existing) {
+      const start=await fetch(target+'/auth/start',{redirect:'manual'});assert.equal(start.status,302);
+      const state=new URL(start.headers.get('location')).searchParams.get('state');
+      const pending=start.headers.getSetCookie()[0].split(';')[0];
+      const result=await fetch(target+`/auth/callback?state=${state}&code=test`,{redirect:'manual',headers:{Cookie:[pending,existing].filter(Boolean).join('; ')}});
+      assert.equal(result.status,302);return oauthSessionCookie(result);
+    }
+    const old=await login(),fresh=await login(old);
+    assert.equal((await(await fetch(target+'/session',{headers:{Cookie:old}})).json()).user,null);
+    assert.deepEqual((await(await fetch(target+'/session',{headers:{Cookie:fresh}})).json()).user,alice);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,1);
+  } finally {await controlled.stop();await new Promise(resolve=>temporary.close(resolve));await api.end();await pool.query(`DROP OWNED BY ${name}`);await pool.query(`DROP ROLE ${name}`);}
 });

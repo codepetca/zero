@@ -20,7 +20,7 @@ applies to Zero's implementation, not each student's library.
 | Phase | Exit evidence | Current state |
 | --- | --- | --- |
 | Admission and authentication housekeeping | Concurrent requests cannot exceed account/global limits; duplicate exact-source requests still work; expired sign-in material is removed in bounded batches with restricted credentials. | Local checks/source review complete; public capability remains closed. |
-| Public API and GitHub identity | Review and test a bounded request/cookie adapter, OAuth success/cancellation/replay/account changes, and ownership checks. Register the production application and store credentials privately only after its settings and integration are reviewable. | Local OAuth hardening passed tests, source review and CI. App/hosted auth not provisioned or enabled. |
+| Public API and GitHub identity | Review and test a bounded request/cookie adapter, OAuth success/cancellation/replay/account changes, and ownership checks. Register the production application and store credentials privately only after its settings and integration are reviewable. | Local OAuth accepted; authoring adapter/authentication budgets pass local checks, pending phase review. App/hosted auth not provisioned or enabled. |
 | Isolated checking and publication | Obtain permitted independent checker acceptance; provision the execution host; verify candidate isolation, time/resource limits, one concurrent check, immutable image policy, role separation and separate publication. | Held by the existing review gap; no equivalent rejected review retries. |
 | Operations and student proof | Artifact/result storage limits, bounded catalog/polling, alerts, independent backup/restore, withdrawal controls and kill-switch proof; real sign-in through corrected/failed submission to published exact-version reuse. | Required before public contribution activation. |
 | Public activation | Reviewed source and required CI pass; deploy with uploads initially closed, verify production configuration, then explicitly activate and verify the full student journey. | Catalog stays available throughout; PR26 remains draft. |
@@ -36,10 +36,10 @@ Prepare GitHub application settings with name **ZeroHub**, homepage
 `https://zero.codepet.ca/hub` and callback
 `https://zero.codepet.ca/api/hub/auth/callback`. Use the existing `read:user`
 identity flow without repository/email scopes or storing GitHub access tokens.
-The local hardening phase adds S256 PKCE alongside the existing one-time
+The accepted local hardening phase adds S256 PKCE alongside the existing one-time
 state/browser binding, constrains upstream response sizes and deadlines, and
-clears temporary authentication material. These changes require phase review;
-they are not a claim of real hosted authentication. See
+clears temporary authentication material. This is not a claim of real hosted
+authentication. See
 [GitHub's authorization contract](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
 
 The existing Docker checker requires a deliberately configured Linux execution
@@ -71,6 +71,34 @@ Migration owner, API, checker and publisher use separate roles/logins. NOLOGIN g
 - `ZERO_HUB_URL`: optional existing fixed-destination proxy for local development or a separately reviewed full hosted service; not required by the embedded catalog.
 
 The embedded runtime uses bounded pools, no browser session/cookie forwarding, explicit unavailable checker/publisher functions and no runtime DDL/background workers. Read responses are capped at4MiB. It reuses the existing HTTP catalog/artifact contract; source edits remain ordinary Java and Maven versions stay exact.
+
+The new contribution adapter is a local prerequisite, not enabled in production.
+With `ZERO_HUB_UPLOADS` absent or0 it delegates to that existing read-only runtime.
+Explicit1 additionally requires the exact HTTPS origin, restricted API connection
+and OAuth configuration; known owner/other-role and prefixed integration variables
+are refused. It forwards only the two hub cookies, Origin and CSRF headers.
+Enabled origin aliases, ambiguous routes/queries, compressed/invalid JSON and
+cancelled requests are rejected before handler dispatch. POST input is1MiB with
+a5-second body deadline. Multiple session/temporary cookies are preserved.
+
+Next's declared lifecycle is60seconds; the authoring pool has2 connections,
+3-second acquisition and1.5-second SQL statements, allowing sequential15-second
+provider requests without racing a handler that may still be mutating. These
+tighter SQL deadlines can reject load and have not been measured on hosted Neon.
+JSON is bounded4MiB, previews256KiB, Maven16MiB. Validated Maven GET bytes stream
+in64KiB chunks after stored-byte verification, with cancellation releasing the
+buffer. Vercel recommends streaming when a response exceeds its buffered4.5MB
+limit; actual hosted streaming and HTTPS cookie/timeout proof remain required.
+See [Vercel's response-size guidance](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions).
+
+Authentication records have separate transaction-serialized budgets:1000 pending
+OAuth states,2000 retained states,8 live sessions/account and10000 retained
+sessions globally. Starts prune at most50 expired states; session creation prunes
+at most100 expired sessions. A successful sign-in rotates only this browser's
+previous session in the same transaction. Failed/cancelled sign-ins retain it.
+The separate cleanup job shares the state/session admission locks in a fixed
+order. These record bounds do not provide edge/IP request-rate protection or
+limit persistent users/artifacts; those remain operating requirements.
 
 Separate Node entrypoints prepare migrations, checking and publication. Workers require their own login, explicit enable flag and no OAuth/other-role environment credentials. The Docker runner still needs a deliberately provisioned Docker-compatible isolated host; a container-based deployment alone is not that host.
 

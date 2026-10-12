@@ -1376,3 +1376,17 @@ Astra/high correctness and Sol/high compatibility independently reviewed the ful
 
 
 Coordinator checkpoint: goal tool reported573250 aggregate tokens and1741 elapsed seconds at19:28UTC; input/output/cache and worker attribution were not exposed. Account weekly remaining changed67%→66% across this work, a shared reading rather than isolated cost. No savings or dollar estimate is inferred. Final handoff edits are receipts/phase status only; application code remains reviewed CI-passing ef03b13.
+
+
+## Embedded authoring adapter and authentication-record budgets (2026-10-12)
+
+Continuation of the same public contribution goal; previous turn classified progress (reviewed source, tests and CI). Starting sourcead04273. Sol/high writer delivered the bounded website adapter,15 focused tests and catch-all route only. Coordinator added transaction-serialized state/session budgets, same-browser successful session rotation, cleanup lock coordination, actual-role bridge proof and CI invocation. Existing primary funding work/public deployment/credentials remain untouched.
+
+Coordinator required three pre-review integration corrections: canonical enabled origin before cookie dispatch, prefixed Neon admin alias refusal and real64KiB streamed Maven bytes to honor Vercel's buffered4.5MB limit while preserving the16MiB stored-object contract. Worker delivered them; actual hosted streaming still unverified. One earlier worker fixture adjustment matched authentication count columns. Exact worker elapsed/effective model/tokens/cost unknown.
+
+Checks43 actual PostgreSQL service/admission/auth passes,3 cleanup passes,3 Web/Node bridge passes against an actual restricted login/fake provider,58 website passes/2 optional HTTP skips (15 adapter focused included), types/build, root/diff checks. Coordinator bridge fixture initially passed an unsplit auth/start path and expected503; corrected to actual route segments. No source implementation failure observed. All owned fixtures removed; Pika services untouched. No real GitHub, candidate Java execution, publication, migrations/host provisioning or activation.
+
+Separate phase source reviews planned: Astra/high correctness and Sol/high compatibility,2 initial turns/0 fix batches, default7launch/4fix bounds. Earlier22 cumulative reviewer turns preserved, including3 older provider-filter failures. Excluded checker acceptance remains held; new bridge review cannot substitute for it. Starting account weekly66% remaining and cached323.4GB healthy storage are shared readings, not isolated cost.
+
+
+Pre-review coordinator correction: a documentation script accidentally copied CURRENT over VERIFICATION. Full diff inspection caught the lost history before any push/reviewer launch; the exact ad04273 verification history was restored and only the new proof appended. The local phase commit was amended before sealing. No production or student state changed.
