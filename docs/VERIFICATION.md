@@ -1003,19 +1003,18 @@ Docs-only follow-up28f6e58 completed independent Luna/medium9-file review0blocke
 
 ## Public contribution prerequisites: admission and expired authentication (2026-10-12)
 
-- `npm run test:postgres --prefix hub`:31passes (21existing service,10new admission),0skips, disposable PostgreSQL. Includes race boundaries across connections/API instances, restricted API-role grants, rolling windows, ownership, exact retries, immutable conflicts, HTTP429/413 and retained failed-source byte caps. No candidate Java execution.
-- `node --test hub/service/session-cleanup.test.mjs`:3passes against a separate disposable PostgreSQL/restricted login; bounded removal, concurrent batches, live records retained, owner/mixed credential refusal. No hosted cleanup.
-- `node --test website/tests/hub-runtime.test.mjs hub/service/staging.test.mjs`:7passes; authoring stays closed before database/auth/body operations.
-- `npm run check` and `git diff --check`:passed.
+- `npm run test:postgres --prefix hub`:31 passes,0 skips against disposable PostgreSQL (21 existing service,10 new admission). Covers races across connections/API instances, restricted API-role grants, rolling windows, ownership, exact retries, immutable conflicts, HTTP429/413 and retained failed-source caps. No candidate Java execution.
+- `node --test hub/service/session-cleanup.test.mjs`:3 passes against a separate restricted-login fixture. Covers bounded removal, concurrent batches, live records and owner/mixed-credential refusal. No hosted cleanup.
+- `node --test website/tests/hub-runtime.test.mjs hub/service/staging.test.mjs`:7 passes; authoring stays closed before database/auth/body operations.
+- Root/diff checks passed. Reviewed source7ced199 passed GitHub CI38296142064.
 
-Only local prerequisites are established. Public sign-in/upload/check/publication, raw request and authentication admission limits, result/artifact storage budgets, catalog pagination, backups/restore, alerts and withdrawal controls remain rollout work. The older independent generic checker acceptance remains missing. No new desktop/novice/platform verification or installer publication occurred.
-
+Only local prerequisites are established. Public contribution activation, raw request/authentication admission, result/artifact budgets, pagination, backups/restore, alerts and withdrawal controls remain rollout work. Generic checker acceptance is missing. No new native/novice/platform proof or installer publication occurred.
 
 ## Local GitHub OAuth hardening (2026-10-12)
 
-- `npm run test:postgres --prefix hub`:37passes, including realPGone-timebrowserstate, exactPKCEchallenge/verifier, cancellation/replay, providerfailure, clear/sessioncookiepreservation andnumericidentity/accountchange. Providerresponses simulated; noGitHubrequest.
-- `node --test hub/service/oauth-client.test.mjs hub/service/staging.test.mjs`:7providerunits+3stagingpasses. Boundsdeclared/chunkedJSON, malformedstatus/JSON/profile, unreadbodycancellation and header/bodydeadlines.
-- `node --test website/tests/hub-runtime.test.mjs`:4passes; embeddedauthoringstillclosed.
-- Rootcheckanddiffcheckpassed. NoSQLgrant/schemachange orhostedactivation. ReleaseCI now includes these backend prerequisites plus bounded cleanup; hostedCI for this newer OAuthsource still needs verification afterreview/push.
+- `npm run test:postgres --prefix hub`:37 passes, including actual PostgreSQL state, exact PKCE pairing, cancellation/replay, provider failures, clear/session cookies and numeric identity/account changes. Provider responses simulated; no GitHub request.
+- `node --test hub/service/oauth-client.test.mjs hub/service/staging.test.mjs`:7 provider plus3 staging passes. Covers declared/chunked bounds, malformed/error responses, cancellation and header/body deadlines.
+- `node --test website/tests/hub-runtime.test.mjs`:4 passes; embedded authoring remains closed. Compatibility review additionally ran26 provider/website cases and pure cookie-forwarding probes.
+- Root/diff checks passed. Separate correctness/compatibility reviews accepted ef03b13. Release CI includes these prerequisites and bounded cleanup; CI38297309531 passed for reviewed ef03b13, including backend, virtual-display JavaFX examples, website and packaging checks.
 
-This is controlled-provider/local-database evidence, not browserHTTPS/realOAuthaccount/setup orpubliccontribution readiness.
+No schema/grant change, real browser HTTPS/GitHub sign-in or hosted activation. Existing proxy timeout interaction remains untested in hosting. This does not satisfy the excluded generic checker review or complete the public contribution goal.
