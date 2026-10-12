@@ -3,7 +3,7 @@
 Updated2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable history/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
-## Active local app/game tutorial pass
+## Completed local app/game tutorial pass
 
 Owner defers installer trial and requests easier tutorials, app/game/component
 creation and UI conventions. Confirmed pair: study quiz and coin game.
@@ -23,9 +23,13 @@ Eight finite JavaFX examples (study, originalcoin, newcontrols, newcomponent,
 hello-world/button/name, movement) passed in disposable projects with exact copy
 lists. Reproduced old stale-Enemy compile failure; backup/exact-copy flow compiles.
 Final website36tests/types/build/root/diff passed. Actual local browser UI guide
-folds/links and complete game-controls source/copy lists passed. Independent review
-pending; no published artifact bytes or version metadata changed.
-Evidence .verification/tutorial-pass/; design docs/TUTORIAL-PLAN.md.
+folds/links and final game-controls backup/exact-copy instructions passed. Fresh
+Sol/medium review of all20files at f2753a081d20c77ceb3b26c1e7b8e14707c497b6
+passed with0findings/blockers, one initial wave and no fix batches. Source is
+complete locally; no published artifact bytes or version metadata changed.
+Evidence .verification/tutorial-pass/; design docs/TUTORIAL-PLAN.md. Next proposed
+pass: ordinary welcome/result layouts and a Countdown proven in both consumers;
+generic custom-component Workshop remains future work. No active workers.
 Weekly82% remaining at start is account allowance; effective model/cost unknown.
 
 ## Completed Mac0.5.7 publication and website promotion

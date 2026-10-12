@@ -818,3 +818,47 @@ Requested worker GPT-6-Luna/medium inventory and Sol/medium preparation review;
 effective model, per-turn tokens/cost and coordinator active time unknown.
 Weekly86% remaining at start is account allowance. DeepSeek paused; no new goal,
 task, automation, account changes or branch-protection changes.
+
+
+## Local app/game tutorial pass — 2026-10-11
+
+Owner deferred installer trials and selected study quiz + coin game. Local branch
+codex/app-game-tutorials, baseline618fad209d9329815c7395660b31c1be967d6631,
+accepted source f2753a081d20c77ceb3b26c1e7b8e14707c497b6 (20files).
+Lessons7/9/10 now keep Restart visible, teach one-coin native controls before
+arrays/win and reuse unchanged ScoreDisplay across SimpleApp and SketchApp.
+Exact-copy switching backs up work outside src and removes unlisted helpers,
+preserving zero/build files. UI.md explains one app, native controls around the
+canvas, explicit updates, view ownership and focus; no nested SimpleApp. Beginner
+default and Workshop0.1.3/two-healthbar limits corrected. Proposed welcome/result,
+pause and Countdown helpers are distinguished from implemented APIs.
+
+Eight finite actual JavaFX checks passed in disposable projects: study, coin-game,
+coin-game-controls, coin-game-component, hello-world, hello-button, hello-name and
+movement. They verify score-once, reset, retained controls, independent views and
+canvas focus. Exact new source sets also compiled with Java17 target and pinned
+JavaFX21.0.12. Reproduced old full-game→coin-game failure from stale Enemy/touches;
+backup/remove-unlisted/exact-copy flow compiled. No student files touched.
+Website36tests/typecheck/production build and root/diff checks passed. Actual local
+browser verified UI guide navigation and final controls example backup/copy lists;
+screenshot .verification/tutorial-pass/local-ui-guide.png is local docs proof,
+not a game runtime screenshot or public deployment.
+
+Fresh GPT-6.1-Sol/medium reviewer inspected all20changed files and immediate
+framework/example/Workshop/source-routing contracts:0findings/blockers. Reused
+coordinator test receipts; independently checked frozen HEAD/clean tree, whitespace,
+generated source equality and example routes. No independent GUI rerun. One
+review launch/initial wave,0fix batches/targeted waves/integration waves; default
+7launch/4fix/60min caps retained. One Sol/medium audit/implementation worker;
+coordinator owned shared guides, website and verification. No recursive delegation.
+One unsupported example-name invocation rejected before tests; corrected once.
+Weekly82% remaining at start is account allowance. Effective models, attributable
+tokens/cost and active time unknown; DeepSeek remains paused.
+
+Local source complete and unpublished. No core/library/API, dependency, version,
+installer, ZIP, Community, account or remote changes. Existing Mac0.5.7 DMG hash
+rechecked unchanged: d639fc080670eb11fc03e63c56356c8da1603bf956e44d5b135511f52aa9ba1b.
+No push/PR/deploy. No novice trial, physical Windows/Linux/Intel proof or fresh
+installer test; those remain deferred. Current Workshop checks only its two declared
+health bars; general custom-component authoring/contribution needs a future pass.
+Evidence .verification/tutorial-pass/; design docs/TUTORIAL-PLAN.md.
