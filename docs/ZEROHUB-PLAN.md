@@ -5,7 +5,7 @@ checker enforces minimum standards; passing versions become available without
 maintainer acceptance. This replaces the earlier proposed human acceptance gate
 for the new hub. It does not authorize deployment, publication of current local
 artifacts, automatic source-repository merges or disabling existing implementation
-guards. The hub/checker/publisher are implemented and verified locally; hosted activation and the outstanding independent checker review remain separate gates.
+guards. The hub/checker/publisher are implemented and verified locally. The owner separately authorized the public catalog on 2026-10-12: it is available at https://zero.codepet.ca/hub through Vercel and Neon, with maintained Starter UI0.1.0. Public contribution activation and the outstanding independent checker review remain separate gates.
 
 ## Student identity and flow
 

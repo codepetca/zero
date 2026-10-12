@@ -32,6 +32,7 @@ The complete kit is a single ZIP; original Zero code is MIT licensed.
 - [Starter and example copy instructions](student-template/README.md)
 - [Student API](student-template/API.md)
 - [ZeroHub components and libraries](docs/COMPONENTS.md)
+- [Public ZeroHub catalog](https://zero.codepet.ca/hub)
 - [ZeroHub local run guide](hub/README.md)
 - [Product scope and contracts](docs/PRODUCT.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
@@ -75,7 +76,7 @@ Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run package` creates local artifacts in `dist/`: `zero-0.5.7.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile.
-ZeroHub projects are generated/downloaded through `/hub`; no separate Workshop kit or contribution repository is needed. See [Development](docs/DEVELOPMENT.md) for local library and full-flow checks. Local packaging does not publish.
+Browse published components at `/hub`. Library-project preparation and upload currently run in the configured local developer preview; public uploads remain closed. No separate Workshop kit or contribution repository is needed. See [Development](docs/DEVELOPMENT.md) for local library and full-flow checks. Local packaging does not publish.
 
 Maintainers approve a reviewed new version with `npm run release:publish -- --version 0.5.4`.
 The command checks, publishes verified files, updates the website through a checked PR

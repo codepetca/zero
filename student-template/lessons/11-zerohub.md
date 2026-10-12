@@ -4,13 +4,15 @@
 
 ![Prepare then build then upload then automatic checks](visuals/11.svg)
 
-1. Open [ZeroHub](https://zero.codepet.ca/hub), choose **Make a library**, sign in with GitHub, and choose a class name such as `ScorePanel`.
+The [public catalog](https://zero.codepet.ca/hub) is open for browsing and using libraries. Sharing is not open yet; this lesson uses a configured local developer preview provided by your teacher.
+
+1. Open that preview's ZeroHub page, choose **Make a library**, use its sign-in flow, and choose a class name such as `ScorePanel`.
 2. Download and extract the project. Open its folder in Zero and use **Run App**.
 3. Change the displayed greeting in your component, save and run again.
 
 **Done:** Your component appears in its preview window with your changed greeting.
 
-The public hub is not activated yet. These steps currently work in the configured local developer preview; your teacher will provide its address. A local demo account is not your GitHub identity.
+A local demo account is not your GitHub identity.
 
 ## What you received
 

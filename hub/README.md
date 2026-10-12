@@ -104,9 +104,9 @@ See [checker policy](checker/README.md), [service lifecycle](service/README.md)
 and [shared contract](CONTRACT.md). Root source changes still receive independent
 review; that is separate from automatic component admission.
 
-## Hosted activation is separate
+## Public catalog and contribution activation
 
-This is a local implementation, not an active public hub. The actual PostgreSQL,
+The read-only catalog is public at https://zero.codepet.ca/hub, backed by Neon provisioned through Vercel. Starter UI0.1.0 provides StartScreen, Hud and ScoreDisplay with contributor credit and exact Maven artifacts. Public authentication, reservations and uploads remain closed. The actual PostgreSQL,
 isolated JavaFX checker, automatic local publication, Maven consumers and
 Add/Update/Revert proof passed on 2026-10-12. A browser trial also passed local
 sign-in, project download, folder upload, listing and logout; the downloaded
@@ -115,14 +115,13 @@ verified locally. See [delivery evidence](../docs/EVIDENCE.md).
 
 Independent compatibility review passed, but corrected checker security review
 is still incomplete because the reviewer provider rejected that assignment.
-Passing tests do not replace that review or authorize public activation. Hosted activation
-needs owner-authorized GitHub OAuth setup, a managed PostgreSQL database, durable
-artifact storage, and a dedicated hardened checker host. Vercel hosts the Next.js
+Passing tests do not replace that review or authorize public candidate activation. Contribution activation
+still needs GitHub OAuth setup, a dedicated hardened checker host and operating controls. Restricted PostgreSQL roles and immutable artifact storage are configured in Neon. Vercel hosts the Next.js
 website; it does not run these Docker workers. The production service fails closed
 without configured authentication. Local identity mode is explicitly prohibited
 on production or non-loopback origins. No service token reaches candidate Java.
 
-Before a public launch, provision separate least-privilege worker/publisher roles,
+Before public uploads open, activate the isolated worker/publisher deployment and
 resource/queue/abuse quotas, backups, operational monitoring and reporting/removal.
 The local checker uses containers and a Java17 completion guard; that is not a
 claim of resistance to all JVM/native/kernel exploits. Linux ARM64 virtual-display

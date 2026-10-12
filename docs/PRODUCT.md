@@ -12,7 +12,7 @@ page has the Zero wordmark, one sentence, Download Zero and Learn more only.
 `/learn` is a compact learning hub with thirteen lessons (0–12), including full app/game
 tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
-available. `/hub` is the ZeroHub shared-library feature: find components, inspect exact versions and authenticated contributor credit, prepare a library and upload it for automated checks. The new hub works locally; public authentication/infrastructure are not activated. Existing kit/installer downloads have separate release records.
+available. `/hub` is the ZeroHub shared-library feature: find components, inspect exact versions and authenticated contributor credit, prepare a library and upload it for automated checks. The catalog is public at `https://zero.codepet.ca/hub`; contributor preparation/upload runs locally while public authentication and isolated checking remain closed. Existing kit/installer downloads have separate release records.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract
