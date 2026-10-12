@@ -149,7 +149,10 @@ public endpoint. It uses the restricted API identity in a read-only snapshot,
 reports existing-budget pressure/backlog/stale leases/infrastructure errors and
 keeps public logs to fixed warning codes. Ordinary failed student tests are not
 an infrastructure alarm. Object bytes are measured without enforcing proposed
-new quotas. Source is in progress and not yet accepted.
+new quotas. Source1cda139 passed complete independent Astra/high privacy and
+Sol/high compatibility reviews with no findings. A local Mac read-only report
+against existing hosted Neon/API credentials returned ok/no warnings in1463ms;
+this does not verify GitHub-runner connectivity or scheduled delivery.
 
 The workflow is limited to this repository's approved `main`, with no PR trigger,
 an explicit disabled-by-default variable and separate operations environment.

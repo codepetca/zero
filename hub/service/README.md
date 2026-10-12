@@ -400,7 +400,9 @@ authentication or stored source and never calls the Java checker.
 
 Warnings cover80% pressure against existing global active/source/authentication
 budgets, queued or pending-publication submissions at least30minutes old, stale
-checking leases and at least5 recent infrastructure-error submissions in24hours.
+checking leases and at least5 submissions created in the last24hours that
+currently have an infrastructure error. This counts submissions, not error
+events; an older job or cleared retry is not counted.
 Age measures time since submission creation, not an invented transition time.
 An ordinary failed student test has no infrastructure error and does not trigger
 that warning. Stored object bytes are measured without adding an unapproved cap.
@@ -443,5 +445,6 @@ before activation. No separate mail, messaging provider or billing upgrade is
 introduced.
 
 Local inert proof: `ZERO_HUB_OPERATIONS_PG_MAJOR=17 npm run test:operations --prefix hub`,
-then18. Hosted connectivity, environment policy, notification delivery and
-on-demand checker scheduling remain unconfigured; public authoring stays closed.
+then18. One read-only Mac-to-Neon report passed at1cda139 in1463ms with no warnings.
+GitHub-runner connectivity, environment policy, scheduled notification delivery
+and on-demand checker scheduling remain unverified; public authoring stays closed.
