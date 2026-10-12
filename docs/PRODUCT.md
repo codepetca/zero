@@ -46,6 +46,10 @@ illustration, three actions and one checkpoint before detailed code. Optional
 composed-study/composed-game examples now demonstrate the same ordinary StartScreen
 and Hud classes in both app types. These are source examples, not core APIs or
 Community packages. Pause and a generic custom-component Workshop remain planned.
+The next local proof packages those three UI classes in Zero Community's
+`packages/starter-ui/` as one independent Maven artifact. Two opt-in package
+consumers use the same JAR; the default starter, public catalog and health-bar
+Workshop remain unchanged. See [the local package proof](STARTER-UI-PACKAGE.md).
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as

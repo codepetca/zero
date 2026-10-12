@@ -77,6 +77,12 @@ maintainer decision after demonstrated usefulness.
 
 ## Next component workbench
 
+Before extending the workbench, the owner selected an actual local Starter UI
+package consumed unchanged in the two apps. See [the package proof](STARTER-UI-PACKAGE.md).
+The three classes move together as one Maven artifact; consuming apps still own
+their rules. This separately versioned prototype is not yet in the public catalog
+or current health-bar Workshop.
+
 The local trial proved build→check→export→independent admission for the current
 health bars, including stale-evidence rejection and an edited-source rebuild.
 Admission means checked, not accepted or published. An arbitrary StartScreen is

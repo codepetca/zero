@@ -45,7 +45,10 @@ it as a submodule or silently clone arbitrary branches into student apps.
 An app consumes an exact Maven library version. Its own Java code owns rules and
 state and explicitly updates ordinary objects. Zero's extension can help select
 a dependency, but Maven resolves it. A GitHub source remote is not a configured
-public Maven repository. Current catalog/artifacts remain local prototypes.
+public Maven repository. The public health-bar catalog currently covers one
+community library. A separately versioned local Starter UI prototype lives in
+Community `packages/starter-ui/`; it is not yet supported by that catalog or
+Workshop. See [the package proof](STARTER-UI-PACKAGE.md).
 
 Community adoption and promotion into core require source-bound checks and
 independent appointed maintainers. AI remains advisory. Pika coursework submission

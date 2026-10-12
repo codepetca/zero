@@ -175,6 +175,17 @@ downloads are available at [Zero Community](https://zero.codepet.ca/community). 
 
 ## Local component lifecycle
 
+The separately versioned Starter UI prototype is in Zero Community's
+`packages/starter-ui/`. From Zero, run its trusted local proof with:
+
+```sh
+python3 scripts/verify-starter-ui.py --community-root /path/to/zero-community
+```
+
+It builds/checks the three-class JAR and both package consumers using an isolated
+Maven cache. It does not use the current catalog, alter the default starter or
+publish. See [package boundaries and limitations](STARTER-UI-PACKAGE.md).
+
 The sibling `../zero-community` checkout has its own source, Maven library,
 release-cycle proof and admission scripts. Its canonical source remote is
 [codepetca/zero-community](https://github.com/codepetca/zero-community).

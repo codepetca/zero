@@ -276,6 +276,13 @@ checks['composed-game'] = '''app.stop();
         require((int) field(app, "points") == 0 && score.getText().equals("Score: 0") && stage.getScene().getFocusOwner() == app.canvas(), "Restart clears score and returns focus");
         for (Coin coin : (Coin[]) field(app, "coins")) require(!coin.isCollected(), "Fresh run restores every coin");
         app.draw();'''
+# The packaged consumers keep the same rules; exercise those rules through the JAR.
+jar_check = '''var origin = Hud.class.getProtectionDomain().getCodeSource().getLocation();
+        require(java.nio.file.Path.of(origin.toURI()).toRealPath().equals(java.nio.file.Path.of(System.getenv("EXPECTED_STARTER_UI_JAR")).toRealPath()), "Hud comes from the exact installed package JAR");
+        require(StartScreen.class.getProtectionDomain().getCodeSource().getLocation().equals(origin)
+                && ScoreDisplay.class.getProtectionDomain().getCodeSource().getLocation().equals(origin), "All three components come from one artifact");'''
+checks['packaged-study'] = checks['composed-study'] + jar_check
+checks['packaged-game'] = checks['composed-game'] + jar_check
 standalone = {
     'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
     'scrolling-game': ('ScrollingGameCheck', 'SCROLLING_GAME_OK'),
@@ -288,8 +295,18 @@ standalone = {
 checks.update({kind: None for kind in standalone})
 parser = argparse.ArgumentParser(description='Compile and check JavaFX examples in isolated projects.')
 parser.add_argument('--only', nargs='+', choices=list(checks), help='Run only the named examples.')
+parser.add_argument('--starter-ui-repository', type=Path, help='Isolated Maven local cache with the locally installed starter-ui prototype; required for packaged consumers.')
+parser.add_argument('--maven-settings', type=Path, help='Optional explicit Maven settings for isolated maintainer checks.')
 args = parser.parse_args()
-selected = {kind: checks[kind] for kind in args.only} if args.only else checks
+if args.maven_settings is not None:
+    if not args.maven_settings.is_file():
+        parser.error('--maven-settings must name an existing settings file.')
+    args.maven_settings = args.maven_settings.resolve()
+selected = {kind: checks[kind] for kind in args.only} if args.only else {kind: value for kind, value in checks.items() if not kind.startswith('packaged-')}
+if any(kind.startswith('packaged-') for kind in selected):
+    if args.starter_ui_repository is None or not args.starter_ui_repository.is_dir():
+        parser.error('Packaged consumers require --starter-ui-repository with the locally installed prototype cache.')
+    args.starter_ui_repository = args.starter_ui_repository.resolve()
 harness='''import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
@@ -372,13 +389,13 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
             shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):
             shutil.copy2(java, dest/'src/main/java'/java.name)
-        if kind in ('coin-game-controls', 'coin-game-component', 'composed-game'):
+        if kind in ('coin-game-controls', 'coin-game-component', 'composed-game', 'packaged-game'):
             for helper in ['Player.java', 'Coin.java']:
                 shutil.copy2(source/'examples/coin-game'/helper, dest/'src/main/java'/helper)
         if kind in ('composed-study', 'composed-game'):
             for helper in ['StartScreen.java', 'Hud.java']:
                 shutil.copy2(source/'examples/composition-shared'/helper, dest/'src/main/java'/helper)
-        if kind == 'composed-study':
+        if kind in ('composed-study', 'packaged-study'):
             shutil.copy2(source/'examples/study/Question.java', dest/'src/main/java/Question.java')
         if kind in ('scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copytree(source/'examples/media-demo/resources', dest/'src/main/resources', dirs_exist_ok=True)
@@ -390,11 +407,24 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
         else:
             main_class, marker = 'ExampleCheck', 'EXAMPLE_OK ' + kind
             check_source = harness.replace('CHECK', check).replace('KIND', kind)
+            if kind.startswith('packaged-'):
+                check_source = 'import zero.community.starterui.*;\n' + check_source
         (dest/'src/main/java'/f'{main_class}.java').write_text(check_source)
         wrapper = 'mvnw.cmd' if os.name == 'nt' else './mvnw'
+        extra = ['-s', str(args.maven_settings), '-gs', str(args.maven_settings)] if args.maven_settings else []
+        run_env = None
+        if kind.startswith('packaged-'):
+            pom = dest/'pom.xml'
+            dependency = '<dependency><groupId>ca.codepet.zero.community</groupId><artifactId>starter-ui</artifactId><version>0.1.0-prototype.1</version></dependency>'
+            pom.write_text(pom.read_text().replace('</dependencies>', dependency + '\n  </dependencies>', 1))
+            extra.append(f'-Dmaven.repo.local={args.starter_ui_repository}')
+            artifact = args.starter_ui_repository/'ca/codepet/zero/community/starter-ui/0.1.0-prototype.1/starter-ui-0.1.0-prototype.1.jar'
+            if not artifact.is_file():
+                parser.error('The starter-ui prototype JAR has not been installed in this cache.')
+            run_env = dict(os.environ, EXPECTED_STARTER_UI_JAR=str(artifact))
         before = time.monotonic()
-        result = subprocess.run([wrapper, '-B', f'-Dapp.mainClass={main_class}', 'clean', 'compile', 'javafx:run'],
-                                cwd=dest, capture_output=True, text=True, timeout=60)
+        result = subprocess.run([wrapper, *extra, '-B', f'-Dapp.mainClass={main_class}', 'clean', 'compile', 'javafx:run'],
+                                cwd=dest, env=run_env, capture_output=True, text=True, timeout=60)
         if result.returncode or marker not in result.stdout:
             print(result.stdout[-5000:], result.stderr, flush=True)
             raise SystemExit(result.returncode or 1)
