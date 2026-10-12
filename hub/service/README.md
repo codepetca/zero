@@ -121,6 +121,57 @@ work; this local process is not a hosted service claim.
 
 ## Hosted process separation
 
+API admission uses a fixed shared policy before persisting new reservations or
+source. Transactions take one global advisory lock before row locks, so concurrent
+API instances cannot independently pass the same account/global allowance.
+
+| Allowance | Limit |
+| --- | --- |
+| Active submissions, including queued/checking/checked | 2 per account;100 globally |
+| New submissions in a rolling24 hours, including failures | 20 per account |
+| New library reservations in a rolling24 hours | 10 per account |
+| Reserved libraries over the account lifetime | 100 per account |
+| Retained source JSONB text, including failed/published history | 16MiB per account;256MiB globally |
+
+Excess requests return a short429 message. Ownership remains bound to GitHub
+numeric ID; another login name cannot claim the allowance/library. Exact-source
+retries return their existing submission even at a limit, and changed source
+cannot overwrite a reserved version. The existing1MiB request bound remains.
+Rolling windows use the database clock. Source bytes use PostgreSQL's UTF-8
+JSONB text representation, including the preview and descriptor, rather than
+compressed on-disk size. These are API limits; direct administrator writes are
+outside them. They do not cover authentication rows, result/artifact/object bytes,
+database overhead, or replace later storage/retention controls. Published source
+is counted permanently; no automatic deletion or pin changes occur.
+
+`npm run test:postgres` now runs the service and admission suites serially against
+one disposable database. It does not execute submitted Java or contact a hosted
+database. Public uploads remain closed independently of passing these tests.
+
+Expired authentication housekeeping is a separate bounded operator job:
+
+```sh
+node service/session-cleanup.mjs
+```
+
+It requires `ZERO_HUB_CLEANUP_ENABLED=1` and only the restricted
+`ZERO_HUB_API_DATABASE_URL`; OAuth secrets and migration/checker/publisher URLs
+are refused. `ZERO_HUB_CLEANUP_BATCH` defaults to500 and must be1–1000. One
+transaction removes at most that many expired sessions and that many expired
+OAuth states, using a cleanup-only advisory lock without extra SQL grants. Live
+authentication, users, library records and immutable release history are retained.
+Output contains counts only. This command is not scheduled or run against the
+hosted database yet; scheduling and rate limits for creating authentication rows
+remain rollout requirements. Disposable real-role verification:
+
+```sh
+node --test service/session-cleanup.test.mjs
+```
+
+That test uses its own disposable PostgreSQL fixture on localhost15443, never a
+configured hosted database. See [the contribution rollout](../../docs/ZEROHUB-HOSTING.md)
+for phase exits and the outstanding public checker gate.
+
 `npm start --prefix hub` serves HTTP only. Its `pg` pool is bounded to 5 clients,
 with 10 second connection and 15 second statement timeouts. The URL's `sslmode`
 and certificate settings are retained; no verification-disabling SSL override is

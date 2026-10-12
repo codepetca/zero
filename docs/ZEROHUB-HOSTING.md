@@ -8,6 +8,53 @@ The first hosted stage is the catalog at `/hub`: previews, contributor credit, e
 
 Full contributor uploads require the still-outstanding independent checker acceptance, a separately hosted isolated execution environment, GitHub OAuth, quotas, monitoring, backup/removal controls and explicit worker activation. The earlier provider-rejected checker review is not replaced by this hosting review. Do not retry/bypass that assignment or describe closed staging as a fully operational contribution service.
 
+## Active contribution goal and sequence
+
+Owner set this goal on 2026-10-12: students sign in with GitHub, prepare and
+upload a component library, see clear minimum-check feedback, and receive an
+immutable Maven release with authenticated contributor credit when checks pass.
+Browsing, imports and exact version pins stay simple. No routine teacher or
+maintainer package acceptance is added. The source-development review below
+applies to Zero's implementation, not each student's library.
+
+| Phase | Exit evidence | Current state |
+| --- | --- | --- |
+| Admission and authentication housekeeping | Concurrent requests cannot exceed account/global limits; duplicate exact-source requests still work; expired sign-in material is removed in bounded batches with restricted credentials. | In development; public capability remains closed. |
+| Public API and GitHub identity | Review and test a bounded request/cookie adapter, OAuth success/cancellation/replay/account changes, and ownership checks. Register the production application and store credentials privately only after its settings and integration are reviewable. | Not provisioned or enabled. |
+| Isolated checking and publication | Obtain permitted independent checker acceptance; provision the execution host; verify candidate isolation, time/resource limits, one concurrent check, immutable image policy, role separation and separate publication. | Held by the existing review gap; no equivalent rejected review retries. |
+| Operations and student proof | Artifact/result storage limits, bounded catalog/polling, alerts, independent backup/restore, withdrawal controls and kill-switch proof; real sign-in through corrected/failed submission to published exact-version reuse. | Required before public contribution activation. |
+| Public activation | Reviewed source and required CI pass; deploy with uploads initially closed, verify production configuration, then explicitly activate and verify the full student journey. | Catalog stays available throughout; PR26 remains draft. |
+
+Vercel remains the web/API host and Vercel-managed Neon remains the database.
+Extend the existing server-side adapter deliberately for authoring; its present
+read-only behavior must remain the default. Submitted Java never runs in the web
+process. Keep checker and publisher credentials out of that process, and keep
+OAuth credentials out of workers. No additional database account connection or
+student repository permissions are needed.
+
+Prepare GitHub application settings with name **ZeroHub**, homepage
+`https://zero.codepet.ca/hub` and callback
+`https://zero.codepet.ca/api/hub/auth/callback`. Use the existing `read:user`
+identity flow without repository/email scopes or storing GitHub access tokens.
+Before enabling it, incorporate and test GitHub's supported S256 PKCE alongside
+the existing one-time state/browser binding; constrain upstream response sizes
+and clear temporary authentication material. These are planned integration
+requirements, not claims about the current OAuth implementation. See
+[GitHub's authorization contract](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
+
+The existing Docker checker requires a deliberately configured Linux execution
+host; it is not a drop-in Vercel Function or ordinary container service. Select
+and price the host after resolving the acceptance route, and present any paid
+provisioning for owner approval. A per-job VM design would require a new executor
+integration and its own review, not satisfy or bypass the old source gate. Fly's
+[isolation model](https://fly.io/security/) and
+[Machine API](https://docs.fly.io/machines/api/machines-resource) are options to
+evaluate at that point; no provider or paid host has been selected.
+
+The goal remains incomplete until the actual production contribution journey
+passes. Local tests, identity mocks, maintained seed publication and catalog-only
+deployment each establish their own narrower evidence.
+
 ## Database and credentials
 
 The `zerohub` Neon resource is created on Vercel Marketplace's free_v3 plan, region iad1, built-in Neon auth disabled. Vercel owns the resource connection and credential delivery. Existing pinned pg and PostgreSQL transactions/JSONB/BYTEA are retained. Immutable object bytes live in Neon initially; an object-store adapter can be introduced when justified by measured storage/traffic.

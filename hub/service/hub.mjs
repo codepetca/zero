@@ -3,6 +3,7 @@ import {sha256,createStorage} from './artifacts.mjs';
 import {createPipeline} from './pipeline.mjs';
 import {transaction as runTransaction,migrateDatabase} from './database.mjs';
 import {scaffoldBundle} from './scaffold.mjs';
+import {lockAdmission,admitReservation,admitSubmission} from './admission.mjs';
 
 const BASE = '/api/hub';
 const GROUP = 'ca.codepet.zero.library';
@@ -63,8 +64,11 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
   async function reserveLibrary(user,input) {
     if (!uploadsEnabled) throw problem(503,'Uploads are not available in this staging service');
     if (!object(input,['className','title']) || !/^[A-Z][A-Za-z0-9]{0,63}$/.test(input.className) || ['Application','Node','Main','BehaviorCheck','Label','String','Platform','Scene','StackPane','Stage','Exception','CountDownLatch','AtomicReference','Throwable','AssertionError'].includes(input.className) || typeof input.title !== 'string' || input.title.length < 1 || input.title.length > 120 || /[\x00-\x1f\x7f<>]/.test(input.title)) throw problem(400,'Provide a readable title and Java class name');
+    const actor=identity(user);
     return transaction(async client => {
-      const actor = await rememberUser(client,user);
+      await lockAdmission(client);
+      await admitReservation(client,actor.id);
+      await rememberUser(client,actor);
       const {rows:[number]} = await client.query("SELECT nextval('hub_library_number')::text AS n");
       const libraryId = 'ui' + BigInt(number.n).toString(36);
       await client.query('INSERT INTO hub_libraries(id,owner_id) VALUES($1,$2)',[libraryId,actor.id]);
@@ -82,12 +86,14 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
     const snapshot = JSON.parse(JSON.stringify(bundle));
     const digest = checker.sourceDigest(snapshot);
     return transaction(async client => {
+      await lockAdmission(client);
       const {rows:[library]} = await client.query('SELECT owner_id FROM hub_libraries WHERE id=$1 FOR UPDATE',[snapshot.descriptor.libraryId]);
       if (!library || library.owner_id !== actor.id) throw problem(403,'This library belongs to another GitHub identity');
       await rememberUser(client,actor);
       const {rows:[existing]} = await client.query("SELECT id,status,source_digest FROM hub_submissions WHERE library_id=$1 AND version=$2 ORDER BY (status <> 'failed') DESC, created_at DESC LIMIT 1",[snapshot.descriptor.libraryId,snapshot.descriptor.version]);
       if (existing?.source_digest === digest) return {id:existing.id,status:existing.status};
       if (existing && existing.status !== 'failed') throw problem(409,'This library version already has immutable source');
+      await admitSubmission(client,actor.id,snapshot);
       const id = randomUUID();
       await client.query('INSERT INTO hub_submissions(id,library_id,owner_id,version,bundle,source_digest,status) VALUES($1,$2,$3,$4,$5,$6,\'queued\')',[id,snapshot.descriptor.libraryId,actor.id,snapshot.descriptor.version,snapshot,digest]);
       return {id,status:'queued'};

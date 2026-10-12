@@ -999,3 +999,13 @@ Actual production maintained Starter UI ui1:0.1.0 published with authenticated c
 Public uploads, OAuth and hosted generic execution remain closed; operational quotas/backups/monitoring/removal and permitted independent checker acceptance are unfinished. No new installer/kit release or main merge. Mac synthetic UI actions and LinuxARM64 virtual-display checks do not prove physical/novice/Windows/Linuxdesktop/Intel use. Primary funding work and existing Pika services were preserved; owned local test server/databases stopped.
 
 Docs-only follow-up28f6e58 completed independent Luna/medium9-file review0blockers and GitHub CI. Promoted deployment dpl_EYggD2cbHDqFXpt1Jhto9uY3eMox includes the current-kit manual import guidance and closed-sharing lesson11 note. Coordinator verified their actual anonymous public responses and unchanged closed catalog; public-docs-receipt.json retained. Application code is unchanged from reviewed b0e7177; no extra native consumer run or checker acceptance was inferred from this docs deployment.
+
+
+## Public contribution prerequisites: admission and expired authentication (2026-10-12)
+
+- `npm run test:postgres --prefix hub`:31passes (21existing service,10new admission),0skips, disposable PostgreSQL. Includes race boundaries across connections/API instances, restricted API-role grants, rolling windows, ownership, exact retries, immutable conflicts, HTTP429/413 and retained failed-source byte caps. No candidate Java execution.
+- `node --test hub/service/session-cleanup.test.mjs`:3passes against a separate disposable PostgreSQL/restricted login; bounded removal, concurrent batches, live records retained, owner/mixed credential refusal. No hosted cleanup.
+- `node --test website/tests/hub-runtime.test.mjs hub/service/staging.test.mjs`:7passes; authoring stays closed before database/auth/body operations.
+- `npm run check` and `git diff --check`:passed.
+
+Only local prerequisites are established. Public sign-in/upload/check/publication, raw request and authentication admission limits, result/artifact storage budgets, catalog pagination, backups/restore, alerts and withdrawal controls remain rollout work. The older independent generic checker acceptance remains missing. No new desktop/novice/platform verification or installer publication occurred.
