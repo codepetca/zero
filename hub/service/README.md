@@ -151,7 +151,7 @@ database. Public uploads remain closed independently of passing these tests.
 Expired authentication housekeeping is a separate bounded operator job:
 
 ```sh
-node service/session-cleanup.mjs
+node hub/service/session-cleanup.mjs
 ```
 
 It requires `ZERO_HUB_CLEANUP_ENABLED=1` and only the restricted
@@ -165,7 +165,7 @@ hosted database yet; scheduling and rate limits for creating authentication rows
 remain rollout requirements. Disposable real-role verification:
 
 ```sh
-node --test service/session-cleanup.test.mjs
+node --test hub/service/session-cleanup.test.mjs
 ```
 
 That test uses its own disposable PostgreSQL fixture on localhost15443, never a
