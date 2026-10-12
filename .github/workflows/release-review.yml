@@ -31,6 +31,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
+            hub/package-lock.json
             website/package-lock.json
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
@@ -49,6 +50,11 @@ jobs:
           npm run test:release
       - name: Extension and standalone starter tests
         run: npm test
+      - name: Hub admission, authentication and runtime checks
+        run: |
+          npm ci --prefix hub
+          npm run test:postgres --prefix hub
+          node --test hub/service/session-cleanup.test.mjs hub/service/oauth-client.test.mjs hub/service/staging.test.mjs
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update

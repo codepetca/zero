@@ -1009,3 +1009,13 @@ Docs-only follow-up28f6e58 completed independent Luna/medium9-file review0blocke
 - `npm run check` and `git diff --check`:passed.
 
 Only local prerequisites are established. Public sign-in/upload/check/publication, raw request and authentication admission limits, result/artifact storage budgets, catalog pagination, backups/restore, alerts and withdrawal controls remain rollout work. The older independent generic checker acceptance remains missing. No new desktop/novice/platform verification or installer publication occurred.
+
+
+## Local GitHub OAuth hardening (2026-10-12)
+
+- `npm run test:postgres --prefix hub`:37passes, including realPGone-timebrowserstate, exactPKCEchallenge/verifier, cancellation/replay, providerfailure, clear/sessioncookiepreservation andnumericidentity/accountchange. Providerresponses simulated; noGitHubrequest.
+- `node --test hub/service/oauth-client.test.mjs hub/service/staging.test.mjs`:7providerunits+3stagingpasses. Boundsdeclared/chunkedJSON, malformedstatus/JSON/profile, unreadbodycancellation and header/bodydeadlines.
+- `node --test website/tests/hub-runtime.test.mjs`:4passes; embeddedauthoringstillclosed.
+- Rootcheckanddiffcheckpassed. NoSQLgrant/schemachange orhostedactivation. ReleaseCI now includes these backend prerequisites plus bounded cleanup; hostedCI for this newer OAuthsource still needs verification afterreview/push.
+
+This is controlled-provider/local-database evidence, not browserHTTPS/realOAuthaccount/setup orpubliccontribution readiness.

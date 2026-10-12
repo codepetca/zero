@@ -1,6 +1,7 @@
 import test, {before,after,beforeEach} from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import {createHash,randomBytes} from 'node:crypto';
 import {mkdtemp,rm,writeFile,chmod,readFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -233,18 +234,153 @@ test('publisher validates exact source, license and class artifact boundaries',a
   assert.throws(()=>validateArtifacts(bundle,{...good,jar:zip([['evil.class',Buffer.from('cafebabe0000003d','hex')],['META-INF/LICENSE',bundle.files.LICENSE]])},trusted.expectedPom),/undeclared/);
 });
 
-test('OAuth state is browser-bound, single-use, and profile numeric ID is server authority',async()=>{
-  let providerCalls=0;
-  const oauthHub=createHub({pool,storageRoot:root,checker,origin:'https://zero.example',oauth:{clientId:'local-test-id',clientSecret:'local-test-secret',fetch:async url=>{providerCalls++;return {ok:true,json:async()=>url.includes('/access_token')?{access_token:'test-token',token_type:'bearer'}:{id:101,login:'renamed-alice'}};}}});
+function oauthCookies(response) {return response.headers.getSetCookie();}
+function oauthSessionCookie(response) {
+  const cookie=oauthCookies(response).find(value=>value.startsWith('zero_hub_session='));
+  assert.ok(cookie,'A successful sign-in must issue a session cookie');return cookie.split(';')[0];
+}
+function clearedOAuthCookie(response) {
+  assert.ok(oauthCookies(response).includes('zero_hub_oauth=; Path=/api/hub; HttpOnly; SameSite=Lax; Max-Age=0; Secure'));
+}
+async function withOAuth(provider,action) {
+  const calls=[],accessToken=randomBytes(24).toString('hex');
+  const oauthHub=createHub({pool,storageRoot:root,checker,origin:'https://zero.example',oauth:{clientId:'local-test-id',clientSecret:'local-test-secret',fetch:async(url,options)=>{
+    calls.push({url,options});
+    return provider?provider(url,options):Response.json(url.endsWith('/access_token')?{access_token:accessToken,token_type:'bearer'}:{id:101,login:'renamed-alice'});
+  }}});
   const server=http.createServer(oauthHub.handler);await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const target=`http://127.0.0.1:${server.address().port}/api/hub`;
   try {
-    const start=await fetch(`${target}/auth/start`,{redirect:'manual'});assert.equal(start.status,302);const state=new URL(start.headers.get('location')).searchParams.get('state');const cookie=start.headers.get('set-cookie').split(';')[0];
-    assert.equal((await fetch(`${target}/auth/callback?state=${state}&code=sample`,{redirect:'manual'})).status,403);assert.equal(providerCalls,0);
-    const callback=await fetch(`${target}/auth/callback?state=${state}&code=sample`,{headers:{Cookie:cookie},redirect:'manual'});assert.equal(callback.status,302);assert.equal(providerCalls,2);
-    assert.equal((await fetch(`${target}/auth/callback?state=${state}&code=sample`,{headers:{Cookie:cookie},redirect:'manual'})).status,403);assert.equal(providerCalls,2);
-    const sessionCookie=callback.headers.get('set-cookie').split(';')[0];const signed=await (await fetch(`${target}/session`,{headers:{Cookie:sessionCookie}})).json();assert.deepEqual(signed.user,{id:'101',login:'renamed-alice'});
-    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,0);
+    const start=async()=>{
+      const response=await fetch(`${target}/auth/start`,{redirect:'manual'});assert.equal(response.status,302);
+      const authorize=new URL(response.headers.get('location'));
+      const cookie=oauthCookies(response)[0].split(';')[0];
+      return {response,authorize,state:authorize.searchParams.get('state'),cookie,binding:cookie.split('=')[1]};
+    };
+    const callback=({state,cookie},query='code=sample',existingCookie)=>fetch(`${target}/auth/callback?state=${state}&${query}`,{headers:cookie||existingCookie?{Cookie:[cookie,existingCookie].filter(Boolean).join('; ')}:{},redirect:'manual'});
+    const session=async cookie=>(await fetch(`${target}/session`,{headers:{Cookie:cookie}})).json();
+    await action({calls,start,callback,session,target});
   } finally {await new Promise(resolve=>server.close(resolve));await oauthHub.stop();}
+}
+
+test('OAuth PKCE pairs the exact browser binding with single-use state and server profile authority',async()=>{
+  await withOAuth(null,async({calls,start,callback,session})=>{
+    const first=await start(),other=await start();
+    assert.match(first.binding,/^[a-f0-9]{64}$/);
+    assert.equal(first.authorize.origin+first.authorize.pathname,'https://github.com/login/oauth/authorize');
+    assert.equal(first.authorize.searchParams.get('scope'),'read:user');
+    assert.equal(first.authorize.searchParams.get('redirect_uri'),'https://zero.example/api/hub/auth/callback');
+    assert.equal(first.authorize.searchParams.get('code_challenge_method'),'S256');
+    assert.equal(first.authorize.searchParams.get('code_challenge'),createHash('sha256').update(first.binding,'utf8').digest('base64url'));
+    const stored=(await pool.query('SELECT state_hash,binding_hash FROM hub_oauth_states WHERE state_hash=$1',[sha256(first.state)])).rows[0];
+    assert.deepEqual(stored,{state_hash:sha256(first.state),binding_hash:sha256(first.binding)});
+    for(const attempt of [{state:first.state},{state:first.state,cookie:other.cookie}]) {
+      const denied=await callback(attempt);assert.equal(denied.status,403);clearedOAuthCookie(denied);assert.equal(calls.length,0);
+    }
+    const result=await callback(first);assert.equal(result.status,302);assert.equal(calls.length,2);
+    assert.equal(calls[0].url,'https://github.com/login/oauth/access_token');assert.equal(calls[1].url,'https://api.github.com/user');
+    const exchange=JSON.parse(calls[0].options.body);
+    assert.equal(exchange.code_verifier,first.binding);assert.equal(exchange.code,'sample');assert.equal(exchange.redirect_uri,'https://zero.example/api/hub/auth/callback');
+    for(const {options} of calls){assert.equal(options.redirect,'error');assert.equal(options.signal instanceof AbortSignal,true);}
+    assert.equal(oauthCookies(result).length,2);clearedOAuthCookie(result);
+    const sessionCookie=oauthSessionCookie(result);
+    assert.ok(oauthCookies(result).every(value=>value.includes('Path=/api/hub; HttpOnly; SameSite=Lax;')&&value.endsWith('; Secure')));
+    assert.deepEqual((await session(sessionCookie)).user,{id:'101',login:'renamed-alice'});
+    const replay=await callback(first);assert.equal(replay.status,403);clearedOAuthCookie(replay);assert.equal(calls.length,2);
+    const cancelled=await callback(other,'error=access_denied');assert.equal(cancelled.status,403);clearedOAuthCookie(cancelled);assert.equal(calls.length,2);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,0);
+  });
+});
+
+test('OAuth cancellation and invalid callbacks clear only temporary material and preserve an existing session',async()=>{
+  await withOAuth(null,async({calls,start,callback,session})=>{
+    const signed=await callback(await start());const sessionCookie=oauthSessionCookie(signed);
+    for(const query of ['error=access_denied','',`code=${'x'.repeat(513)}`]) {
+      const pending=await start(),result=await callback(pending,query,sessionCookie);
+      assert.equal(result.status,403);clearedOAuthCookie(result);assert.equal(oauthCookies(result).length,1);
+      assert.deepEqual((await session(sessionCookie)).user,{id:'101',login:'renamed-alice'});
+      assert.equal((await callback(pending,'code=sample',sessionCookie)).status,403);
+    }
+    const invalid=await callback({state:'invalid',cookie:'zero_hub_oauth=invalid'},'code=sample',sessionCookie);
+    assert.equal(invalid.status,403);clearedOAuthCookie(invalid);assert.equal(oauthCookies(invalid).length,1);
+    assert.equal(calls.length,2);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,0);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,1);
+  });
+});
+
+test('expired OAuth state cannot exchange identity and still clears the browser binding',async()=>{
+  await withOAuth(null,async({calls,start,callback})=>{
+    const pending=await start();await pool.query("UPDATE hub_oauth_states SET expires_at=now()-interval '1 second' WHERE state_hash=$1",[sha256(pending.state)]);
+    const result=await callback(pending);assert.equal(result.status,403);clearedOAuthCookie(result);assert.equal(calls.length,0);
+  });
+});
+
+test('OAuth provider failure clears only temporary material while retaining the current session',async()=>{
+  let fail=false;const accessToken=randomBytes(24).toString('hex');
+  await withOAuth(async url=>{
+    if(fail)throw new Error('provider-private-detail');
+    return Response.json(url.endsWith('/access_token')?{access_token:accessToken,token_type:'bearer'}:{id:101,login:'alice'});
+  },async({calls,start,callback,session})=>{
+    const sessionCookie=oauthSessionCookie(await callback(await start()));const before=await session(sessionCookie);
+    fail=true;const pending=await start();const result=await callback(pending,'code=sample',sessionCookie);
+    assert.equal(result.status,502);assert.deepEqual(await result.json(),{error:'GitHub sign-in failed'});
+    clearedOAuthCookie(result);assert.equal(oauthCookies(result).length,1);assert.equal(calls.length,3);
+    assert.deepEqual(await session(sessionCookie),before);assert.equal((await callback(pending)).status,403);assert.equal(calls.length,3);
+  });
+});
+
+test('OAuth account changes establish fresh profile identity, session and CSRF',async()=>{
+  let profile={id:101,login:'alice'};const accessToken=randomBytes(24).toString('hex');
+  await withOAuth(async url=>Response.json(url.endsWith('/access_token')?{access_token:accessToken,token_type:'bearer'}:profile),async({calls,start,callback,session})=>{
+    const firstCookie=oauthSessionCookie(await callback(await start()));const first=await session(firstCookie);
+    profile={id:202,login:'bob'};
+    const changed=await callback(await start(),'code=sample',firstCookie);clearedOAuthCookie(changed);assert.equal(oauthCookies(changed).length,2);
+    const secondCookie=oauthSessionCookie(changed);const second=await session(secondCookie);
+    assert.notEqual(secondCookie,firstCookie);assert.notEqual(second.csrfToken,first.csrfToken);
+    assert.deepEqual(first.user,alice);assert.deepEqual(second.user,bob);assert.equal(calls.length,4);
+    assert.deepEqual((await session(firstCookie)).user,alice);
+    const cancelled=await callback(await start(),'error=access_denied',secondCookie);clearedOAuthCookie(cancelled);
+    assert.deepEqual((await session(secondCookie)).user,bob);assert.equal(calls.length,4);
+  });
+});
+
+test('malformed upstream OAuth credentials and profiles cannot create sessions or reflect payloads',async()=>{
+  const accessToken=randomBytes(24).toString('hex');
+  const credentials={access_token:accessToken,token_type:'bearer'};
+  const cases=[
+    {token:Response.json({error:'provider-private-detail'})},
+    {token:Response.json({...credentials,access_token:''})},
+    {token:Response.json({...credentials,token_type:12})},
+    {token:new Response('provider-private-detail')},
+    {profile:Response.json({id:'101',login:'alice'})},
+    {profile:Response.json({id:101,login:123})},
+    {profile:Response.json({id:Number.MAX_SAFE_INTEGER+1,login:'alice'})},
+    {profile:Response.json({id:101,login:'provider-private-detail/'})},
+    {profile:Response.json({error:'provider-private-detail'})},
+    {profile:Response.json(null)},
+    {profile:new Response('provider-private-detail',{status:500})},
+    {profile:new Response('',{status:302,headers:{Location:'https://unexpected.example'}})}
+  ];
+  for(const scenario of cases)await withOAuth(async url=>url.endsWith('/access_token')?scenario.token??Response.json(credentials):scenario.profile,async({calls,start,callback})=>{
+    const pending=await start(),result=await callback(pending);assert.equal(result.status,502);clearedOAuthCookie(result);
+    assert.equal(oauthCookies(result).length,1);assert.equal(calls.length,scenario.token?1:2);
+    assert.ok(['GitHub sign-in failed','GitHub identity verification failed'].includes((await result.json()).error));
+    assert.equal((await callback(pending)).status,403);assert.equal(calls.length,scenario.token?1:2);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,0);
+  });
+});
+
+test('OAuth rejects declared and streamed oversized token or profile responses',async()=>{
+  const accessToken=randomBytes(24).toString('hex');
+  for(const phase of ['token','profile'])for(const declared of [true,false]) {
+    const limit=phase==='token'?16*1024:64*1024;
+    const oversized=()=>declared?new Response('{}',{headers:{'Content-Length':String(limit+1)}}):new Response(new ReadableStream({start(controller){controller.enqueue(new Uint8Array(limit));controller.enqueue(new Uint8Array(1));controller.close();}}));
+    await withOAuth(async url=>url.endsWith('/access_token')?(phase==='token'?oversized():Response.json({access_token:accessToken,token_type:'bearer'})):oversized(),async({calls,start,callback})=>{
+      const pending=await start(),result=await callback(pending);assert.equal(result.status,502);clearedOAuthCookie(result);
+      assert.deepEqual(await result.json(),{error:'GitHub sign-in failed'});assert.equal(calls.length,phase==='token'?1:2);
+      assert.equal((await callback(pending)).status,403);assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_sessions')).rows[0].n,0);
+    });
+  }
 });
 
 // A disposable database administrator creates separate fixture LOGIN principals.

@@ -19,8 +19,8 @@ applies to Zero's implementation, not each student's library.
 
 | Phase | Exit evidence | Current state |
 | --- | --- | --- |
-| Admission and authentication housekeeping | Concurrent requests cannot exceed account/global limits; duplicate exact-source requests still work; expired sign-in material is removed in bounded batches with restricted credentials. | In development; public capability remains closed. |
-| Public API and GitHub identity | Review and test a bounded request/cookie adapter, OAuth success/cancellation/replay/account changes, and ownership checks. Register the production application and store credentials privately only after its settings and integration are reviewable. | Not provisioned or enabled. |
+| Admission and authentication housekeeping | Concurrent requests cannot exceed account/global limits; duplicate exact-source requests still work; expired sign-in material is removed in bounded batches with restricted credentials. | Local checks/source review complete; public capability remains closed. |
+| Public API and GitHub identity | Review and test a bounded request/cookie adapter, OAuth success/cancellation/replay/account changes, and ownership checks. Register the production application and store credentials privately only after its settings and integration are reviewable. | Local OAuth hardening verified; source review pending. App/hosted auth not provisioned or enabled. |
 | Isolated checking and publication | Obtain permitted independent checker acceptance; provision the execution host; verify candidate isolation, time/resource limits, one concurrent check, immutable image policy, role separation and separate publication. | Held by the existing review gap; no equivalent rejected review retries. |
 | Operations and student proof | Artifact/result storage limits, bounded catalog/polling, alerts, independent backup/restore, withdrawal controls and kill-switch proof; real sign-in through corrected/failed submission to published exact-version reuse. | Required before public contribution activation. |
 | Public activation | Reviewed source and required CI pass; deploy with uploads initially closed, verify production configuration, then explicitly activate and verify the full student journey. | Catalog stays available throughout; PR26 remains draft. |
@@ -36,10 +36,10 @@ Prepare GitHub application settings with name **ZeroHub**, homepage
 `https://zero.codepet.ca/hub` and callback
 `https://zero.codepet.ca/api/hub/auth/callback`. Use the existing `read:user`
 identity flow without repository/email scopes or storing GitHub access tokens.
-Before enabling it, incorporate and test GitHub's supported S256 PKCE alongside
-the existing one-time state/browser binding; constrain upstream response sizes
-and clear temporary authentication material. These are planned integration
-requirements, not claims about the current OAuth implementation. See
+The local hardening phase adds S256 PKCE alongside the existing one-time
+state/browser binding, constrains upstream response sizes and deadlines, and
+clears temporary authentication material. These changes require phase review;
+they are not a claim of real hosted authentication. See
 [GitHub's authorization contract](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
 
 The existing Docker checker requires a deliberately configured Linux execution

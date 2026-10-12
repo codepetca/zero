@@ -4,6 +4,7 @@ import {createPipeline} from './pipeline.mjs';
 import {transaction as runTransaction,migrateDatabase} from './database.mjs';
 import {scaffoldBundle} from './scaffold.mjs';
 import {lockAdmission,admitReservation,admitSubmission} from './admission.mjs';
+import {githubJson} from './oauth-client.mjs';
 
 const BASE = '/api/hub';
 const GROUP = 'ca.codepet.zero.library';
@@ -134,7 +135,9 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
   async function stop() { clearInterval(timer); timer=undefined; await active; }
 
   function setCookie(res,name,value,maxAge) {
-    res.setHeader('Set-Cookie',`${name}=${value}; Path=${BASE}; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure?'; Secure':''}`);
+    const previous=res.getHeader('Set-Cookie');
+    const values=previous===undefined?[]:Array.isArray(previous)?previous:[previous];
+    res.setHeader('Set-Cookie',[...values,`${name}=${value}; Path=${BASE}; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure?'; Secure':''}`]);
   }
   async function openSession(res,user) {
     const sessionToken=token();
@@ -177,22 +180,25 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
     setCookie(res,STATE_COOKIE,binding,600);
     const target=new URL('https://github.com/login/oauth/authorize');
     target.searchParams.set('client_id',oauth.clientId); target.searchParams.set('redirect_uri',`${origin}${BASE}/auth/callback`); target.searchParams.set('state',state); target.searchParams.set('scope','read:user');
+    target.searchParams.set('code_challenge',createHash('sha256').update(binding,'utf8').digest('base64url')); target.searchParams.set('code_challenge_method','S256');
     res.writeHead(302,{Location:target.href,'Cache-Control':'no-store'}); res.end();
   }
   async function oauthCallback(req,res,url) {
     if (!oauth || localUser) throw problem(503,'GitHub authentication is not configured');
+    setCookie(res,STATE_COOKIE,'',0);
     const state=url.searchParams.get('state'); const code=url.searchParams.get('code'); const binding=cookies(req).get(STATE_COOKIE);
-    if (!/^[a-f0-9]{64}$/.test(state??'') || !/^[a-f0-9]{64}$/.test(binding??'') || !code || code.length>512 || url.searchParams.has('error')) throw problem(403,'GitHub sign-in state is invalid');
+    if (!/^[a-f0-9]{64}$/.test(state??'') || !/^[a-f0-9]{64}$/.test(binding??'')) throw problem(403,'GitHub sign-in state is invalid');
     const {rowCount}=await pool.query('DELETE FROM hub_oauth_states WHERE state_hash=$1 AND binding_hash=$2 AND expires_at>now()',[sha256(state),sha256(binding)]);
     if (rowCount!==1) throw problem(403,'GitHub sign-in state expired or was already used');
+    if (!code || code.length>512 || url.searchParams.has('error')) throw problem(403,'GitHub sign-in was cancelled or invalid');
     const transport=oauth.fetch??fetch;
-    const response=await transport('https://github.com/login/oauth/access_token',{method:'POST',headers:{Accept:'application/json','Content-Type':'application/json'},body:JSON.stringify({client_id:oauth.clientId,client_secret:oauth.clientSecret,code,redirect_uri:`${origin}${BASE}/auth/callback`}),redirect:'error',signal:AbortSignal.timeout(15000)});
-    const credentials=await response.json();
-    if (!response.ok || typeof credentials.access_token!=='string' || credentials.access_token.length>2048 || credentials.error || credentials.token_type?.toLowerCase()!=='bearer') throw problem(502,'GitHub sign-in failed');
-    const profile=await transport('https://api.github.com/user',{headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${credentials.access_token}`,'User-Agent':'Zero-Hub','X-GitHub-Api-Version':'2022-11-28'},redirect:'error',signal:AbortSignal.timeout(15000)});
-    const user=await profile.json();
-    if (!profile.ok || !Number.isSafeInteger(user.id) || user.id<1) throw problem(502,'GitHub identity verification failed');
-    await openSession(res,identity(user));
+    const credentials=await githubJson(transport,'https://github.com/login/oauth/access_token',{method:'POST',headers:{Accept:'application/json','Content-Type':'application/json'},body:JSON.stringify({client_id:oauth.clientId,client_secret:oauth.clientSecret,code,code_verifier:binding,redirect_uri:`${origin}${BASE}/auth/callback`})},{maxBytes:16*1024});
+    if (typeof credentials.access_token!=='string' || !credentials.access_token || credentials.access_token.length>2048 || /\s/.test(credentials.access_token) || typeof credentials.token_type!=='string' || credentials.token_type.toLowerCase()!=='bearer') throw problem(502,'GitHub sign-in failed');
+    const user=await githubJson(transport,'https://api.github.com/user',{headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${credentials.access_token}`,'User-Agent':'Zero-Hub','X-GitHub-Api-Version':'2022-11-28'}},{maxBytes:64*1024});
+    if (!Number.isSafeInteger(user.id) || user.id<1 || typeof user.login!=='string') throw problem(502,'GitHub identity verification failed');
+    let actor;
+    try {actor=identity(user);} catch {throw problem(502,'GitHub identity verification failed');}
+    await openSession(res,actor);
     res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); res.end();
   }
   async function serveArtifact(req,res,requestPath) {

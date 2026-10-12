@@ -121,6 +121,24 @@ work; this local process is not a hosted service claim.
 
 ## Hosted process separation
 
+The existing local/tested GitHub flow now uses S256 PKCE from the random browser
+binding alongside one-time hashed state. Token exchange and identity responses
+are capped at16KiB and64KiB respectively; each15-second deadline includes headers
+and body reads. Provider payloads/tokens are never returned as error detail or
+persisted in the database. Callback cancellation, failure and success clear the
+temporary OAuth cookie; success also issues the separate session cookie. Existing
+valid sessions survive failed sign-ins. No production OAuth app or credentials
+have been configured; public auth remains closed. Focused tests use controlled
+provider responses rather than real GitHub:
+
+```sh
+node --test hub/service/oauth-client.test.mjs
+```
+
+Release CI also runs these units, the actual disposable PostgreSQL admission and
+OAuth suite, bounded cleanup and staging checks. This does not execute submitted
+Java or complete the separate generic checker acceptance.
+
 API admission uses a fixed shared policy before persisting new reservations or
 source. Transactions take one global advisory lock before row locks, so concurrent
 API instances cannot independently pass the same account/global allowance.
