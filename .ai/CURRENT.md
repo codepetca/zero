@@ -5,19 +5,23 @@ Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
 ## Active scope and authority
 
-Owner follow-up: add public contributor credit and explain whether zero-community
-is still needed. Credit is derived from authenticated numeric identity and current
-remembered login; uploads cannot choose it. No community-repository migration or
-archival is requested. Coordinator implements this small coherent metadata/UI change
-directly; an independent bounded attribution review follows. Existing checker
-security-review gap remains separate; waiver and no-public-action scope persist.
+Contributor follow-up completed locally at621a140: catalog, exact release and
+submission results show server-derived contributor:{githubId,login}. Cards link
+By @username to a validated GitHub URL. Stable identity follows the immutable
+submission owner; authenticated rename updates display without changing releases.
+18actual PostgreSQL,52website tests (1opt-in skip),7extension cases, types/build
+passed. Independent Sol/medium attribution review passed with full8file coverage,
+21focused tests and0blockers. Current checker-security gap remains separate.
+No community migration/archival is authorized; new hub uploads do not depend on
+that repo, but legacy releases/Workshop/Starter UI fixture still do. Recommended:
+keep legacy URLs/history, migrate maintained fixtures deliberately before archiving.
 
 Build the agreed generic community library hub locally. Zero remains ordinary
 Java with its small JavaFX library and minimal VS Code profile/extension.
 Students own GitHub repos and submit their links separately in Pika.
 
 Worktree: /Users/stew/.codex/worktrees/kit-integration/zero; branch
-codex/app-game-tutorials; hub base ed71f4d; latest code 7d279a4.
+codex/app-game-tutorials; hub base ed71f4d; latest code 621a140.
 Primary /Users/stew/Repos/zero contains unrelated funding work: preserve it.
 Community prototype worktree starter-ui-local/zero-community at d0a499b and
 canonical Community main are unchanged. No push, PR, merge, deployment, live
@@ -71,8 +75,9 @@ production Next Maven gateway with the tested artifact absent beforehand.
 Evidence: ignored .verification/hub-integration-recovered/receipt.json,
 hub-proxy-integration/gateway-receipt.json and hub-browser-recovery/.
 
-Cumulative independent-review ledger: eight reviewer turns/launches, one initial
-full-diff wave, six targeted turns, five code fix batches. Initial Astra/high
+Cumulative independent-review ledger: nine reviewer turns/launches across hub and attribution; the hub had one initial
+full-diff wave, six targeted turns and five code fix batches; attribution used one
+bounded initial standard-risk review with no remediation. Initial Astra/high
 security + Sol/high architecture review at 973daf1 found five blockers; fixes
 committed 0bc6faa, d327fbe, d6023c8, 3b2f41a, 7d279a4. Sol/high compatibility correction
 review passed at 3b2f41a (one additional proven P2 fixed; final 21 focused tests plus

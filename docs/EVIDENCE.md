@@ -1272,3 +1272,37 @@ Cumulative ledger now8reviewer turns/launches (2initial complete,3failed Astra,
 Waiver still applies; missing checker-security review unchanged. Backend/checker/
 Maven/native evidence at3b2f41a remains valid for unchanged code paths; label-only
 website types/tests/build verified separately. No public action.
+
+
+## Contributor attribution — 2026-10-12
+
+Owner requested By@GitHubaccount/profilelink and asked whether zero-community is
+still needed. Code621a140. Coordinator handled the coherent service/UI change;
+contracts before clients, no schema migration or submitted credit field. Public
+catalog/exact-version and owner-only job results derive contributor from immutable
+submission owner joined to the remembered authenticated user. Authorized submit
+refreshes login only after numeric owner check, even for duplicate source; current
+credit can follow a rename without changing any stored release. Frontend validates
+numeric ID/login and constructs only https://github.com/<login>; arbitrary supplied
+profile URLs have no authority. Existing releases need no backfill. Library IDs,
+imports and pinned artifacts do not change. New hub runtime needs no central
+community contribution repo; existing legacy releases/Workshop/dogfood fixtures
+still depend on zero-community. Archival/migration is recommendation only, not an
+owner instruction or an action taken.
+
+Actual PostgreSQL18/18 including rejected contributor fields, other-account denial,
+rename/current-public-credit and immutable stored-manifest preservation passed.
+Website52passed/1default opt-in HTTPskip, types/build passed; extension7/7passed.
+Native Docker publication of the existing three-class fixture produced contributor
+{githubId:'101',login:'zero-local-demo'}; actual CUA discovery showed By@ on all
+three classes and DOM href=https://github.com/zero-local-demo. Local test identity,
+not a live GitHub sign-in or verified real profile. Screenshot/proof in ignored
+hub-contributor-final/; earlier browser proof in hub-contributor-browser/.
+
+Independent standard-risk Sol/medium review51241fe->621a140 completed all8files
+and immediate schema/auth/publication/proxy/extension paths;0findings/blockers,
+21focused tests passed, unchanged-source evidence reused. Requested configrecorded,
+effective config/tokens/exactelapsed unknown. Ninth cumulative reviewer turn; no
+remediation or checker-source review attempted. That existing provider-blocked
+checker-security gap remains. No push/PR/merge/deploy/publication/account changes,
+community-repo alteration or primary-funding edits.
