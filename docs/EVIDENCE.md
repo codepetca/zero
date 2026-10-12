@@ -1035,3 +1035,51 @@ Local source accepted and unpublished. No push/PR/deploy, core/dependency/versio
 installer/ZIP/Community/account changes. Physical input/DirectoryChooser, Windows/
 Linux/Intel, novice timing, public submission/maintainer acceptance/install remain
 unverified; installer trial held. Existing published releases retained.
+
+
+## Local Starter UI package proof — 2026-10-11
+
+Owner approved the recommended local package before generic Workshop/catalog work.
+Accepted Zero e7b03d8ab37c9c3323e04462b705b993d2f2ba1b (base862c081), Community
+19e3544da52691c1d39492fb78ee9dd962898536 (base31febf2),23changed files total.
+Community packages/starter-ui owns three ordinary classes, namespace
+zero.community.starterui, coordinate ca.codepet.zero.community:starter-ui:0.1.0-prototype.1.
+Java17/JavaFX21.0.12, MIT; no core/Application/game classes or core dependency.
+Packaged-study/game preserve composed rules and differ only by imports, with exact
+ordinary helper lists. Default-package teaching sources remain untouched.
+No default POM/catalog/healthbar/admission/workflow/installer changes.
+
+Final proof .verification/starter ui accepted source/receipt.json passed in33.97s:
+two byte-identical clean binary/source builds; exact entries and current Java/POM/
+MIT bytes; installed-artifact equality; finite native JavaFX component/callback/
+independence/error checks and origin binding; both packaged consumers. Components
+loaded from the exact isolated-cache JAR, not copied source. Empty explicit user/
+global Maven settings apply to every package and consumer step; output paths with
+spaces work and existing outputs refuse replacement. Library artifact6539bytes
+SHA256 e0d1c551071c1ce2ab920a34f9932e1070536161d71a2ae053960c24fe5444a8;
+source JAR4661bytes SHA2563dfeab1bd0304c5040551ab433adf2753f5fed76d236ab6937ab7af379e4ac1f.
+POM2314bytes SHA25647e1b4fffc8710dfd1bddeacf9073f7c8d3cc5f0a2d3d75f1a43ce8a1557a5cd.
+Root rechecked all9module input hashes against final receipt. Baseline composed
+study/game/Hello-world finite checks,38website tests and root/diff checks pass.
+Public example shelf remains unchanged; packaged consumers are local maintainer
+proofs, not a downloadable student catalog option.
+
+One Sol/medium worker delivered module/check/tool; coordinator owned consumers,
+harness/integration/docs/Git. Initial wrapper-location mistake corrected before
+Maven; coordinator tightened child empty-settings propagation and removed local
+branch GitHub links before final proof. These were pre-review corrections. Final
+fresh Sol/medium reviewer inspected both full diffs and immediate dependencies,
+independently verified9module hashes/digest, archive/POM/license/source/artifact
+bytes/origins and namespace/import-only differences:0findings/blockers. Reused
+applicable native/build/test receipts; no repeated suite. One launch/initialwave,
+0review fixbatches/targeted/integration waves; default7launch/4fix/60min caps retained.
+Effective models/tokens/cost/active time unknown; account weekly80%remaining at start
+is not task cost. No recursive delegation, DeepSeek (paused), new goal/task/automation.
+
+Local source and JAR/source/POM accepted; no push/PR/publication/deploy/account or
+protection changes. Separate Community worktree/branch preserves canonical main;
+primary Zero funding checkout untouched. Current Workshop only supports health
+bars; general descriptor/check/preview and multiple-library discovery remain next
+planned contracts. No Community admission/recommendation or public artifact install.
+Physical input, Windows/Linux/Intel, novice and restricted-network behavior untested;
+installer/physical Windows trial still held. Earlier published artifacts retained.

@@ -3,7 +3,7 @@
 Updated 2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
-## Active local Starter UI package proof
+## Completed local Starter UI package proof
 
 Owner approved packaging the tested StartScreen, Hud and ScoreDisplay, consumed
 unchanged in study and coin-game examples, before generic Workshop/catalog work.
@@ -14,7 +14,7 @@ branch codex/starter-ui-local, base31febf2f22228553e40e96abe92bcbbf83032815.
 Coordinator owns integration/docs/state/Git. One Sol/medium worker delivered the
 module and proof tool; stopped. No recursive delegation. Weekly80% remaining at
 start is account allowance; effective model/tokens/cost/active time unknown.
-DeepSeek remains paused through2026-12-31. No new goal/task/automation.
+DeepSeek remains paused through2026-12-31. No new goal/task/automation. No active workers.
 
 Package ca.codepet.zero.community:starter-ui:0.1.0-prototype.1 contains three
 ordinary classes in zero.community.starterui, pinned Java17/JavaFX21.0.12, MIT.
@@ -22,7 +22,10 @@ No core dependency or Application/game classes. Default-package teaching sources
 remain separate. Packaged-study/game import the library; their Main owns rules.
 Build proof verifies two reproducible binary/source JARs, exact source/POM/license,
 finite behavior/origin and both consumers in a fresh isolated cache. Empty user/
-global Maven settings now apply to all steps. Source proof complete; fresh independent review pending. Final receipt is
+global Maven settings now apply to all steps. Source proof complete. Fresh Sol/medium review of both repositories passed with
+0findings/blockers, complete23-file coverage,1launch/initialwave/0fixbatches.
+Accepted Zero e7b03d8ab37c9c3323e04462b705b993d2f2ba1b and Community
+19e3544da52691c1d39492fb78ee9dd962898536. Final receipt is
 .verification/starter ui accepted source/receipt.json; prior settings trial is
 .verification/starter ui proof final/. Guide docs/STARTER-UI-PACKAGE.md.
 
