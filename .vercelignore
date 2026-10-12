@@ -1,0 +1,18 @@
+# Vercel CLI must never upload private local verification or credentials.
+.git
+.vercel
+.verification
+.env*
+**/.env*
+**/node_modules
+**/target
+dist
+extension/dist
+website/.next
+website/.generated
+website/public/generated
+website/tsconfig.tsbuildinfo
+hub/checker/image-lock.json
+*.log
+**/*.log
+**/__pycache__
