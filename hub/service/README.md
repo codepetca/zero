@@ -382,6 +382,46 @@ objects for3600s, browser objects for1year and Maven caches indefinitely. Hosted
 cache removal/purge proof is still required for activation; origin410 alone is
 not immediate global removal.
 
+### Remove cached library responses
+
+The local cache policy attaches `zero-hub-library-ui1` to every public
+metadata/artifact/checksum/preview response for libraryui1, across its versions.
+All catalog queries share `zero-hub-catalog`. Tags contain public coordinates
+only. Private/error responses have no tags; matching upstream tags are checked
+and regenerated, while unexpected/private/wildcard tags disable caching.
+The policy still requires deployment and a real cached-withdrawal drill.
+
+After committing the exact withdrawal, use the separately authenticated Vercel
+operator CLI. First inspect `.vercel/project.json`: Zero's project is
+`prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA`, team `team_jKbtHZ7k3VeEdJKdqf2GOToE`.
+Do not run from another project's checkout or pass credentials as arguments.
+Forlibraryui1, run from Zero's linked checkout:
+
+```sh
+vercel cache dangerously-delete --tag zero-hub-library-ui1,zero-hub-catalog --scope stewarts-projects-cc2722c4 --yes
+```
+
+Replace only the public library ID for another library. This removes cached
+responses, not stored releases or files, and affects matching Zero tags in both
+preview and production. Never use a wildcard. Ordinary `invalidate` can serve
+stale content during background refresh; deletion makes the next network request
+wait for the origin. See [Vercel's purge contract](https://vercel.com/docs/caching/cdn-cache/purge).
+The CLI uses the operator's existing Vercel session. Neither the website nor the
+checker/publisher gets this credential. A cache-command success alone is not a
+withdrawal result.
+
+After deletion, verify exact metadata and all artifact/checksum GET/HEAD paths
+return410/no-store, and the withdrawn coordinate is absent from catalog/history.
+The library may still show an older available version. Record failed/stale probes
+as incomplete removal. Restoration appends its event, repeats deletion and checks
+the original hashes. Browsers and local Maven copies still cannot be revoked.
+
+CLI54.17.2 accepted deletion of these two tags on the current Zero project, and
+the maintained JAR hash stayed identical. The current deployed source predates
+tagging, and the probe changed MISS→HIT, so this proves operator access only;
+it does not prove deletion of a tagged cached response or hosted withdrawal.
+No schema/data/deployment/credentials changed, and no release was withdrawn.
+
 Apply trusted004 before deploying the new API; the old API tolerates the added
 table, while the new API requires it. No hosted migration has been performed.
 Local tests use inert seeded data only:

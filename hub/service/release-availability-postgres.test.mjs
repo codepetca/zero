@@ -85,6 +85,7 @@ test('withdrawn preview, JAR, sources, POM and every checksum GET/HEAD return410
   const paths=[release.preview.path,...Object.values(release.artifacts).flatMap(artifact=>[artifact.path,artifact.path+'.sha1',artifact.path+'.sha256'])];
   for(const adapter of ['readonly','enabled','proxy'])for(const fullPath of paths)for(const method of ['GET','HEAD']) {
     const response=await call(fullPath.slice('/api/hub/'.length),method,adapter);assert.equal(response.status,410,`${adapter} ${method} ${fullPath}`);assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.equal(response.headers.get('vercel-cache-tag'),null);
     assert.equal(response.headers.get('set-cookie'),null);
     if(method==='GET')assert.deepEqual(await response.json(),{error:WITHDRAWN_MESSAGE});else assert.equal((await response.arrayBuffer()).byteLength,0);
   }
@@ -123,7 +124,7 @@ test('restoration resumes identical original bytes/hashes and never modifies imm
   assert.equal((await event('ui1','1.10.0','restored')).revision,2);
   const release=manifests.get('ui1:1.10.0');
   for(const artifact of [release.preview,...Object.values(release.artifacts)]) {
-    const response=await call(artifact.path.slice('/api/hub/'.length));assert.equal(response.status,200);assert.equal(hash(Buffer.from(await response.arrayBuffer())),artifact.sha256);
+    const response=await call(artifact.path.slice('/api/hub/'.length));assert.equal(response.status,200);assert.equal(response.headers.get('vercel-cache-tag'),'zero-hub-library-ui1');assert.equal(hash(Buffer.from(await response.arrayBuffer())),artifact.sha256);
     const stored=(await operator.query('SELECT bytes FROM hub_objects WHERE digest=$1',[artifact.sha256])).rows[0].bytes;assert.equal(hash(stored),artifact.sha256);
     await assert.rejects(operator.query('UPDATE hub_objects SET bytes=$2 WHERE digest=$1',[artifact.sha256,stored]),/immutable/);
   }

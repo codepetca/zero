@@ -138,6 +138,17 @@ No hosted migration or withdrawal has occurred. Existing metadata/object edge
 TTLs, browser immutable caching and local Maven copies prevent immediate global
 revocation; a verified hosting removal procedure remains a separate gate.
 
+Local public cache responses now carry a bounded library tag and a catalog tag,
+enabling targeted foreground deletion after an operator event. Existing privacy,
+TTL, exact-version and browser policies are retained. Runbook and native command
+are in [cache removal](../hub/service/README.md#remove-cached-library-responses).
+VercelCLI54.17.2 accepted these two tags for the verified Zero project; public
+maintained JAR bytes stayed identical. Current deployed code predates tagging,
+and the before/after probe was MISS→HIT, so it proves operator permissions, not
+tagged cache-hit removal. Do not infer the activation gate is passed. New policy
+source awaits review/deployment; cached metadata/object withdrawal/expiry and
+client-copy limitations still need the specified hosted drill after other gates.
+
 The owner's question about an independent review task is a clarification, not
 permission to repeat the provider-rejected checker assignment. A qualified
 external human can review that unchanged boundary without routine student
