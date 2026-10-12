@@ -18,11 +18,11 @@ const adapted=async(path,method,fields,status=200)=>{
 };
 test('only successful public GET/HEAD metadata and immutable objects opt into bounded edge TTLs',()=>{
   for(const method of ['GET','HEAD'])for(const path of ['catalog','libraries/ui1']) {
-    const output=publicHubCacheHeaders(new Headers(),{path,method,status:200,source:{'Content-Type':'application/json','Cache-Control':'no-store'}});
+    const output=publicHubCacheHeaders(new Headers(),{path,method,status:200,source:{'Content-Type':'application/json','Cache-Control':'no-store','Connection':'keep-alive','Keep-Alive':'timeout=5'}});
     cdn({headers:output},60);assert.equal(output.get('cache-control'),'public, max-age=0, must-revalidate');
   }
   for(const path of [artifact,'previews/ui1/1.0.0.png'])for(const method of ['GET','HEAD']) {
-    const output=publicHubCacheHeaders(new Headers(),{path,method,status:200,source:{'Content-Type':path===artifact?'application/java-archive':'image/png','Cache-Control':IMMUTABLE_BROWSER_CACHE}});
+    const output=publicHubCacheHeaders(new Headers(),{path,method,status:200,source:{'Content-Type':path===artifact?'application/java-archive':'image/png','Cache-Control':IMMUTABLE_BROWSER_CACHE,'Connection':'keep-alive','Keep-Alive':'timeout=5'}});
     cdn({headers:output},3600);assert.equal(output.get('cache-control'),IMMUTABLE_BROWSER_CACHE);
   }
 });
@@ -67,7 +67,7 @@ test('proxy ignores hostile upstream cache policy, strips public request cookies
     const response=await proxyHub(request(path),path.split('/'),{destination:'https://hub.example',fetch:async(_target,init)=>{
       if(path==='catalog')for(const name of ['cookie','origin','x-zero-csrf'])assert.equal(init.headers.get(name),null);
       else assert.match(init.headers.get('cookie'),/zero_hub_session/);
-      return Response.json({ok:true},{headers:{'Cache-Control':'public, s-maxage=31536000','CDN-Cache-Control':'public, max-age=31536000','Vercel-CDN-Cache-Control':'public, s-maxage=31536000'}});
+      return Response.json({ok:true},{headers:{'Cache-Control':'public, s-maxage=31536000','CDN-Cache-Control':'public, max-age=31536000','Vercel-CDN-Cache-Control':'public, s-maxage=31536000','Connection':'keep-alive','Keep-Alive':'timeout=5'}});
     }});
     if(path==='catalog')cdn(response,60);else noCache(response);
     assert.equal(response.headers.get('cdn-cache-control'),null);
@@ -77,7 +77,7 @@ test('proxy ignores hostile upstream cache policy, strips public request cookies
   }
   for(const method of ['GET','HEAD'])for(const path of [artifact,'previews/ui1/1.0.0.png']) {
     const preview=path.startsWith('previews');
-    const response=await proxyHub(request(path,method),path.split('/'),{destination:'https://hub.example',fetch:async()=>new Response(method==='HEAD'?null:preview?Buffer.from([137,80,78,71,13,10,26,10]):Buffer.from('jar'),{headers:{'Content-Type':preview?'image/png':'application/java-archive','Cache-Control':IMMUTABLE_BROWSER_CACHE}})});
+    const response=await proxyHub(request(path,method),path.split('/'),{destination:'https://hub.example',fetch:async()=>new Response(method==='HEAD'?null:preview?Buffer.from([137,80,78,71,13,10,26,10]):Buffer.from('jar'),{headers:{'Content-Type':preview?'image/png':'application/java-archive','Cache-Control':IMMUTABLE_BROWSER_CACHE,'Connection':'keep-alive','Keep-Alive':'timeout=5'}})});
     assert.equal(response.status,200);cdn(response,3600);assert.equal(response.headers.get('cache-control'),IMMUTABLE_BROWSER_CACHE);if(method==='HEAD')assert.equal(response.body,null);
   }
   const oversized=await proxyHub(request(artifact),artifact.split('/'),{destination:'https://hub.example',fetch:async()=>new Response(Buffer.alloc(4*1024*1024+1),{headers:{'Content-Type':'application/java-archive','Cache-Control':IMMUTABLE_BROWSER_CACHE}})});assert.equal(oversized.status,502);noCache(oversized);

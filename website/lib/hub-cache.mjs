@@ -1,10 +1,11 @@
 /** Bounded public edge caching; private routes never inherit upstream cache policy.
  * Vercel consumes this targeted header without changing browser artifact caching:
  * https://vercel.com/docs/caching/cache-control-headers
- * A future withdrawal needs an edge purge or must wait for this bounded TTL.
+ * A future withdrawal must address edge purge/stale behavior and existing
+ * immutable browser copies; CDN caching is best-effort, not a removal deadline.
  */
 export const IMMUTABLE_BROWSER_CACHE='public, max-age=31536000, immutable';
-const publicHeaders=new Set(['content-type','content-length','cache-control','cdn-cache-control','vercel-cdn-cache-control','x-content-type-options','etag','last-modified','date','server','connection','transfer-encoding','age','x-vercel-cache']);
+const publicHeaders=new Set(['content-type','content-length','cache-control','cdn-cache-control','vercel-cdn-cache-control','x-content-type-options','etag','last-modified','date','server','connection','keep-alive','transfer-encoding','age','x-vercel-cache']);
 const previewPath=/^previews\/ui[1-9a-z][0-9a-z]*\/\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?\.png$/;
 const mavenPath=/^maven\/ca\/codepet\/zero\/library\/ui[1-9a-z][0-9a-z]*\/\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?\/[A-Za-z0-9._-]+\.(jar|pom|sha256|sha1)$/;
 export function publicHubKind(path,method) {
