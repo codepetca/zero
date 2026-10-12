@@ -265,11 +265,23 @@ superuser.
 require explicit `ZERO_HUB_WORKERS_ENABLED=1`, refuse OAuth and other-role
 credentials, and expose no public listener. They import a pipeline module that
 has no OAuth/session/HTTP code. Publication imports pure validation, never the
-Docker runner. Worker ticks process one bounded job at a time. SIGINT/SIGTERM
+Docker runner. Workers default to `batch`: process at most10 jobs serially, then
+exit; an empty queue exits immediately without polling. The operator can set
+`ZERO_HUB_WORKER_MAX_JOBS` from1–100. This is a per-invocation budget, not a
+global checking quota or a wall-time guarantee. A future hosted scheduler must
+trigger new batches and enforce one checking process; none is configured yet.
+Explicit `ZERO_HUB_WORKER_MODE=continuous` retains interval polling for an
+operator who needs it, with `ZERO_HUB_WORKER_INTERVAL_MS` from100–60000
+(default1000). Continuous idle polling can keep Neon awake.
+SIGINT/SIGTERM
 stop new work, wake the interval and wait for the current bounded operation;
 shutdown has a 180second upper grace period. The checker Docker backend is
 unchanged and still requires a separately configured isolated execution host.
 No worker activation or candidate execution was performed for hosted staging.
+
+Focused lifecycle checks: `node --test hub/service/worker-runtime.test.mjs`.
+The actual-role empty-queue/batch-cap case also runs in `npm run test:postgres`
+against its disposable PostgreSQL fixture; no candidate Java executes.
 
 Verification: `npm run test:staging --prefix hub`, `npm run test:report --prefix
 hub`, and `npm run test:postgres --prefix hub`. The disposable PostgreSQL suite
