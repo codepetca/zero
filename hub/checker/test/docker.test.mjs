@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkSubmission } from '../runner.mjs';
 import { fixture } from './fixture.mjs';
+import {reflectionForgery,methodHandleForgery,unsafeDeputyForgery} from './forgeries.mjs';
 const enabled=process.env.ZERO_DOCKER_TEST==='1';
 async function checked(bundle, options={}) {const result=await checkSubmission(bundle,options);console.log(JSON.stringify({...result,artifacts:result.artifacts?Object.fromEntries(Object.entries(result.artifacts).map(([k,v])=>[k,v.length])):undefined}));return result;}
 test('actual fixed build and separate JavaFX checks use a reproducible JAR', {skip:!enabled},async()=>{
@@ -39,4 +40,14 @@ test('offline, nonroot, read-only image, bounded mount and no secrets/socket in 
   Platform.exit();
  } }`;
  const result=await checked(bundle);assert.equal(result.passed,true);
+});
+
+test('closed observer/completion module rejects nested-thread reflection and private method-handle forgery in both runtime stages',{skip:!enabled},async()=>{
+ for(const [path,name,id] of [['checks/BehaviorCheck.java','BehaviorCheck','behavior'],['examples/first/Main.java','Main','first']]) {
+  for(const attack of [reflectionForgery,methodHandleForgery,unsafeDeputyForgery]) {
+   const bundle=fixture();bundle.files[path]=attack(name);
+   const result=await checked(bundle);assert.equal(result.passed,false);assert.equal(result.checks.at(-1).id,id);
+   assert.match(result.checks.at(-1).detail,/Consumer never loaded a component/);
+  }
+ }
 });

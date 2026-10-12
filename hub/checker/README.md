@@ -16,7 +16,7 @@ JARs by SHA256. Candidate work has no network access and never pulls an image.
 ```sh
 node hub/checker/build-image.mjs           # native arm64/amd64
 node hub/checker/build-image.mjs amd64     # explicit alternative
-node --test hub/checker/test/validation.test.mjs
+node --test hub/checker/test/validation.test.mjs hub/checker/test/jvm-boundary.test.mjs
 ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs
 ```
 
@@ -61,7 +61,7 @@ The behavior check and each example compile with **only** the built JAR and
 JavaFX. A hub-owned launch wrapper executes them under Xvfb, waits for finite
 completion, detects uncaught errors, requires a component class to load from the
 exact JAR, and rejects premature `System.exit`, `Runtime.halt`, replacement of
-its guard and direct private-state reflection. The process's exit status and
+its guard and contributor private-state reflection. The observer and completion state live in the closed named JPMS module `zero.hub.checker`; it exports no packages and opens its package only to the JDK `java.instrument` module for premain startup. The same modular JAR is the agent and launcher, and both assert identical boot-layer module/class-loader identity. All contributor classes and threads remain outside that module. Arbitrary `java.lang.invoke` frames carry no permission; the supplemental guard allows only the exact JDK constructor path used to create ordinary lambdas. The process's exit status and
 parent-controlled timeout/output limits determine the result; stdout strings,
 submitted JSON receipts and flags have no verdict authority. The loader probe
 establishes actual JAR class use, not meaningful coverage of every component.
@@ -111,3 +111,18 @@ restart/recovery is held by the coordinator because unrelated containers are
 running. The generated prior `image-lock.json` is stale and the current checker
 fails closed against it. Rebuild and run all Docker tests plus the Starter UI
 integration after the authorized environment recovery before accepting this work.
+
+
+Batch-1 regression receipt: real macOS ARM64 Homebrew JDK17.0.14 ran the
+current trusted modular launcher/agent against minimal trusted JavaFX stubs.
+Both independently reported forgeries (nested `Main$Worker` reflection and
+`privateLookupIn`/static getter), plus a public JDK reflection-deputy/Unsafe
+attempt, were rejected for both `BehaviorCheck` and
+`Main`. Normal Application/lambda completion passed, observer package closure
+and agent/launcher module identity were checked in that same JVM, and premature
+exit/halt and absent-agent cases failed. Each Java process was limited to five
+seconds with bounded output and generated proof directories cleaned. These
+fixed, trusted reproductions are not submitted source execution. This proves
+selected Java authority boundaries on that JDK, not JavaFX native behavior or
+total JVM/container security. Matching actual Docker regressions are authored
+but remain unrun until the coordinator authorizes Docker recovery.

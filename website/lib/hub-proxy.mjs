@@ -11,7 +11,7 @@ export function hubPath(parts, method) {
   if (!Array.isArray(parts) || parts.some(p => !/^[A-Za-z0-9._-]+$/.test(p) || p === '.' || p === '..')) return null;
   const path = parts.join('/');
   const read = /^(catalog|session|auth\/(start|callback)|libraries\/ui[1-9a-z][0-9a-z]*|submissions\/[A-Za-z0-9_-]+|previews\/ui[1-9a-z][0-9a-z]*\/\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?\.png)$/;
-  const maven = /^maven\/ca\/codepet\/zero\/library\/ui[1-9a-z][0-9a-z]*\/\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?\/[A-Za-z0-9._-]+\.(jar|pom|sha256)$/;
+  const maven = /^maven\/ca\/codepet\/zero\/library\/ui[1-9a-z][0-9a-z]*\/\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?\/[A-Za-z0-9._-]+\.(jar|pom|sha256|sha1)$/;
   if ((method === 'GET' || method === 'HEAD') && (read.test(path) || maven.test(path))) return path;
   if (method === 'POST' && /^(libraries|submissions|logout)$/.test(path)) return path;
   return null;
@@ -61,7 +61,7 @@ export async function proxyHub(request, parts, options = {}) {
       const location = new URL(upstream.headers.get('location') || '', target);
       const website = new URL(request.url);
       if (location.origin === destination.origin && location.pathname.startsWith('/api/hub/')) output.set('Location', `${website.origin}${location.pathname}${location.search}`);
-      else if (location.origin === website.origin && ['/community','/community/prepare'].includes(location.pathname) && !location.search && !location.hash) output.set('Location',location.href);
+      else if ([destination.origin,website.origin].includes(location.origin) && ['/community','/community/prepare'].includes(location.pathname) && !location.search && !location.hash && !location.username && !location.password) output.set('Location',`${website.origin}${location.pathname}`);
       else if (path === 'auth/start' && location.origin === 'https://github.com' && location.pathname === '/login/oauth/authorize' && !location.username && !location.password && !location.hash) output.set('Location',location.href);
       else return failure('Hub returned an unsafe redirect.', 502);
       return new Response(null, {status:upstream.status,headers:output});

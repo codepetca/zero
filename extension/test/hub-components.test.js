@@ -12,8 +12,9 @@ async function fixture(t) {
     const artifacts={};
     for(const [kind,suffix] of Object.entries({jar:'.jar',sources:'-sources.jar',pom:'.pom'})) {
       const url=`/api/hub/maven/ca/codepet/zero/library/${id}/${version}/${id}-${version}${suffix}`;
-      const b=Buffer.from(kind==='pom'?`<project><groupId>ca.codepet.zero.library</groupId><artifactId>${id}</artifactId><version>${version}</version><licenses><license><name>MIT</name></license></licenses><dependencies><dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>21.0.12</version></dependency></dependencies></project>`:`${id} ${version} ${kind}`);
-      artifacts[kind]={path:url,sha256:hash(b),size:b.length};bytes.set(url,b);
+      const b=kind==='pom' ? (await import('../../hub/checker/policy.mjs')).expectedPom((await import('../../hub/service/scaffold.mjs')).scaffoldBundle({libraryId:id,className:'Hud',title:'UI'})).toString().replace('<version>0.1.0</version>',`<version>${version}</version>`) : `${id} ${version} ${kind}`;
+      const binary=Buffer.from(b);
+      artifacts[kind]={path:url,sha256:hash(binary),size:binary.length};bytes.set(url,binary);
     }
     releases.push({libraryId:id,version,title:'UI',namespace:`zero.${id}`,coordinate:{groupId:'ca.codepet.zero.library',artifactId:id,version},status:'automatically-checked',components:[{className:'Hud'}],sourceDigest:'a'.repeat(64),artifacts});
   }
@@ -70,4 +71,25 @@ test('hub native edit is saved only after approval; rejected versioned edit neve
   const rejected=await commandFixture(t,{approval:'Apply',editAccepted:false});await assert.rejects(rejected.actions.commands['zero.browseHub'](),/POM changed/);assert.equal(rejected.stats().saves,0);
   const accepted=await commandFixture(t,{approval:'Apply'});await accepted.actions.commands['zero.browseHub']();
   assert.equal(accepted.stats().edits,1);assert.equal(accepted.stats().saves,1);assert.equal(accepted.stats().busy,false);assert.match(accepted.f.text,/<artifactId>ui1<\/artifactId>/);
+});
+test('legal spaced/commented/Unicode package syntax cannot mask installed classes',async t=>{
+  const f=await fixture(t),filename=path.join(f.root,'src/main/java/Hud.java');
+  for(const source of [
+    'package zero . ui1; public class Hud {}',
+    'package zero /* note */ .\nui1; public class Hud {}',
+    String.raw`package \u007aero.\u0075i1; public class Hud {}`,
+    String.raw`// hidden line ending\u000apackage zero.ui1; public class Hud {}`,
+    String.raw`// hidden line ending\u000dpackage zero.ui1; public class Hud {}`
+  ]) {
+    await fs.writeFile(filename,source);await assert.rejects(hub.planChange(f.root,f.context,f.releases[0]),/shadows/,source);assert.equal(await fs.readFile(filename,'utf8'),source);
+  }
+  await fs.writeFile(filename,'class Other { String note="package zero.ui1; class Hud {}"; }');
+  await hub.planChange(f.root,f.context,f.releases[0]);
+});
+test('quiet Files view exposes downloaded library source and preview without arbitrary paths',async t=>{
+  const f=await fixture(t);const {libraryLayout}=require('../src/library-files');
+  assert.equal(await libraryLayout(f.root),null);
+  await fs.writeFile(path.join(f.root,'.zero-library.json'),JSON.stringify({schema:1,libraryId:'ui1'}));
+  const layout=await libraryLayout(f.root);assert.equal(layout.sources,path.join(f.root,'src/zero/ui1'));assert.equal(layout.preview,path.join(f.root,'src/Main.java'));assert.equal(layout.api,path.join(f.root,'API.md'));
+  await fs.writeFile(path.join(f.root,'.zero-library.json'),JSON.stringify({schema:1,libraryId:'../outside'}));await assert.rejects(libraryLayout(f.root),/valid reserved ID/);
 });

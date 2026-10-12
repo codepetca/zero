@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {hubDestination,hubPath,proxyHub,boundedBytes} from '../lib/hub-proxy.mjs';
-import {dependencySnippet,previewPath,latestLibraries,publishedSubmission,validateUploadBundle,folderBundle} from '../lib/hub-client.mjs';
+import {dependencySnippet,previewPath,latestLibraries,selectedLibraries,publishedSubmission,validateUploadBundle,folderBundle} from '../lib/hub-client.mjs';
 const origin='http://localhost:3000';
 const release={libraryId:'ui1',namespace:'zero.ui1',version:'1.2.3',coordinate:{groupId:'ca.codepet.zero.library',artifactId:'ui1',version:'1.2.3'},preview:{path:'/api/hub/previews/ui1/1.2.3.png'}};
 const fixture=()=>({descriptor:{libraryId:'ui1',version:'1.0.0'},files:{'src/zero/ui1/Widget.java':'public class Widget {}','API.md':'Widget'}});
@@ -78,4 +78,23 @@ test('failed, queued and unchecked submissions never get a listed-success result
   assert.equal(publishedSubmission({status:'published'}),null);
   assert.equal(publishedSubmission({status:'published',release:{...listed,status:'experimental'}}),null);
   assert.equal(publishedSubmission({status:'published',release:listed}),listed);
+});
+
+
+test('normal local sign-in and OAuth callback redirect to frontend and retain session cookie',async()=>{
+  for(const path of [['auth','start'],['auth','callback']]) {
+    const request=new Request(origin+'/api/hub/'+path.join('/')+(path[1]==='callback'?'?code=code&state=state':''));
+    const response=await proxyHub(request,path,{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/community/prepare','Set-Cookie':'zero_hub_session=signed; Path=/api/hub; HttpOnly; SameSite=Lax'}})});
+    assert.equal(response.status,302);assert.equal(response.headers.get('location'),origin+'/community/prepare');assert.match(response.headers.get('set-cookie'),/zero_hub_session=signed/);
+  }
+  for(const location of ['https://evil.example/community/prepare','/community/prepare?next=https://evil.example','/other']) {
+    const response=await proxyHub(new Request(origin+'/api/hub/auth/start'),['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:location}})});assert.equal(response.status,502);
+  }
+});
+test('exact inspection preserves old API/check/preview metadata and never substitutes latest',()=>{
+  const old={...release,status:'automatically-checked',version:'1.0.0',components:[{className:'OldHud',api:['void oldMethod()']}],checks:[{detail:'Old test'}],preview:{path:'/api/hub/previews/ui1/1.0.0.png'}};
+  const recent={...old,version:'1.0.1',components:[{className:'NewHud',api:['void newMethod()']}],checks:[{detail:'New test'}],preview:{path:'/api/hub/previews/ui1/1.0.1.png'}};
+  assert.deepEqual(selectedLibraries([old,recent],{library:'ui1',version:'1.0.0'}),[old]);
+  assert.deepEqual(selectedLibraries([old,recent]),[recent]);
+  assert.deepEqual(selectedLibraries([old,recent],{library:'ui1',version:'9.9.9'}),[]);
 });

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {Suspense} from "react";
 import { HubDiscovery } from "@/components/HubDiscovery";
 import { Icon } from "@/components/Icon";
 import { PageHeader } from "@/components/PageHeader";
@@ -27,7 +28,7 @@ export default function Community() {
           <h1>One useful piece.<br />Make it better together.</h1>
           <p className="lead">Small Java components you can use, understand and improve.</p>
         </div>
-        {process.env.ZERO_HUB_URL && <HubDiscovery />}
+        {process.env.ZERO_HUB_URL && <Suspense fallback={<p role="status">Loading libraries…</p>}><HubDiscovery /></Suspense>}
         {communityPreview && <p className="community-preview-note">Local preview: unpublished alternatives are shown below. Public downloads are unchanged.</p>}
         {!published && <p>Public downloads are being prepared.</p>}
         {groups.map(group => <section key={group.id} className="component-category" aria-labelledby={`category-${group.id}`}>

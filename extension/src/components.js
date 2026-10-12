@@ -167,6 +167,33 @@ function markers(text, parent, kind, required) {
   if (nodes.length !== 1 || text.slice(starts[0].end, nodes[0].start).trim() || text.slice(nodes[0].end, ends[0].start).trim()) fail('The managed community POM block is ambiguous.');
   return {start: starts[0].start, end: ends[0].end, node: nodes[0]};
 }
+// Java performs Unicode translation before recognizing comments or strings.
+// Declaration-only scanning never evaluates source and preserves the original file.
+function javaDeclarationText(input) {
+  let translated = '', trailingSlashes = 0, escaped = false;
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+    if (char === '\\' && (escaped || trailingSlashes % 2 === 0) && input[i + 1] === 'u') {
+      let end = i + 1; while (input[end] === 'u') end++;
+      const hex = input.slice(end, end + 4);
+      if (!/^[0-9a-fA-F]{4}$/.test(hex)) fail('Malformed Java Unicode escape. Fix the source before adding a library.');
+      const decoded = String.fromCharCode(parseInt(hex, 16));
+      translated += decoded; trailingSlashes = decoded === '\\' ? trailingSlashes + 1 : 0; escaped = true; i = end + 3;
+    } else { translated += char; trailingSlashes = char === '\\' ? trailingSlashes + 1 : 0; escaped = false; }
+  }
+  let result = '';
+  for (let i = 0; i < translated.length;) {
+    if (translated.startsWith('//', i)) { const relative = translated.slice(i + 2).search(/[\r\n]/); const end = relative < 0 ? -1 : i + 2 + relative; i = end < 0 ? translated.length : end; result += ' '; }
+    else if (translated.startsWith('/*', i)) { const end = translated.indexOf('*/', i + 2); if (end < 0) fail('Unclosed Java comment. Fix the source before adding a library.'); i = end + 2; result += ' '; }
+    else if (translated[i] === '"' || translated[i] === "'") {
+      const quote = translated.startsWith('"""', i) ? '"""' : translated[i]; i += quote.length;
+      while (i < translated.length && !translated.startsWith(quote, i)) i += translated[i] === '\\' ? 2 : 1;
+      if (i >= translated.length) fail('Unclosed Java string. Fix the source before adding a library.');
+      i += quote.length; result += ' ';
+    } else result += translated[i++];
+  }
+  return result;
+}
 async function projectFiles(root, catalog) {
   root = path.resolve(root);
   if (await fs.realpath(root) !== root || !(await fs.lstat(root)).isDirectory()) fail('Open the ordinary student project directory without symbolic links.');
@@ -183,8 +210,8 @@ async function projectFiles(root, catalog) {
       if (entry.isSymbolicLink()) fail('The student source tree contains a symbolic link. Use ordinary source files before adding the library.');
       if (entry.isDirectory()) await walk(filename);
       else if (entry.isFile() && entry.name.endsWith('.java')) {
-        const source = (await fs.readFile(filename, 'utf8')).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\r\n]*/g, ' ');
-        const packageName = /\bpackage\s+([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*;/.exec(source)?.[1];
+        const source = javaDeclarationText(await fs.readFile(filename, 'utf8'));
+        const packageName = /\bpackage\s+([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*;/.exec(source)?.[1]?.replace(/\s/g, '');
         for (const name of classes) {
           const simple = name.split('.').at(-1);
           if ((packageName === name.slice(0, -(simple.length + 1)) && new RegExp(`\\b(?:class|interface|enum|record)\\s+${simple}\\b`).test(source)) || filename.endsWith(path.join(...name.split('.')) + '.java')) fail(`A student source copy shadows ${name}. Keep your edits and move or rename the copy before using the Maven library.`);

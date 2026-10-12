@@ -3,7 +3,7 @@ RUN rm -f /etc/apt/sources.list.d/* && printf "deb https://snapshot.ubuntu.com/u
 ARG POLICY_DIGEST
 LABEL zero.policy="zero-widgets-v1" zero.policy-source=$POLICY_DIGEST
 COPY javafx/ /opt/javafx/
-COPY Boundary.java JarTracker.java TrustedRun.java FixedSmoke.java work.py /policy/
-RUN mkdir /policy/classes /opt/javafx/native && cd /opt/javafx/native && for f in /opt/javafx/*.jar; do jar xf "$f"; done && find . -type f ! -name '*.so' -delete && javac -proc:none --release 17 --module-path /opt/javafx --add-modules javafx.controls,javafx.swing -d /policy/classes /policy/*.java && printf 'Premain-Class: hub.policy.JarTracker\n\n' >/policy/agent.mf && jar cfm /policy/tracker.jar /policy/agent.mf -C /policy/classes hub/policy/JarTracker.class -C /policy/classes 'hub/policy/JarTracker$1.class' && timeout 15s xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24 -nolisten tcp" java -Djavafx.cachedir=/opt/javafx/native -Dprism.order=sw --module-path /opt/javafx --add-modules javafx.controls,javafx.swing -cp /policy/classes hub.policy.FixedSmoke && chmod -R a-w /policy /opt/javafx
+COPY Boundary.java JarTracker.java TrustedRun.java FixedSmoke.java module-info.java work.py /policy/
+RUN mkdir /policy/classes /opt/javafx/native && cd /opt/javafx/native && for f in /opt/javafx/*.jar; do jar xf "$f"; done && find . -type f ! -name '*.so' -delete && javac -proc:none --release 17 --module-path /opt/javafx --add-modules javafx.controls,javafx.swing -d /policy/classes /policy/*.java && printf 'Premain-Class: hub.policy.JarTracker\n\n' >/policy/agent.mf && jar cfm /policy/checker.jar /policy/agent.mf -C /policy/classes . && timeout 15s xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24 -nolisten tcp" java -Djavafx.cachedir=/opt/javafx/native -Dprism.order=sw --module-path /opt/javafx:/policy/checker.jar --module zero.hub.checker/hub.policy.FixedSmoke && chmod -R a-w /policy /opt/javafx
 USER 10001:10001
 WORKDIR /tmp

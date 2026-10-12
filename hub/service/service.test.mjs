@@ -117,7 +117,7 @@ test('public submissions reject forged owner, verdict, artifact and undeclared s
 test('passing trusted result publishes immutable exact bytes; catalog retains versions; retries no replacement',async()=>{
   const {bundle}=await reserve();const job=await hub.submit(alice,bundle);
   assert.equal(await hub.workOnce(),true);assert.equal((await hub.getSubmission(alice,job.id)).status,'checked');
-  assert.deepEqual(await Promise.all([hub.publishOnce(),hub.publishOnce()]),[true,false]);
+  assert.deepEqual((await Promise.all([hub.publishOnce(),hub.publishOnce()])).sort(),[false,true]);
   const result=await hub.getSubmission(alice,job.id);assert.equal(result.status,'published');assert.equal(result.release.status,'automatically-checked');
   for(const artifact of [...Object.values(result.release.artifacts),result.release.preview]) {
     const {response,value}=await request(artifact.path.slice('/api/hub'.length));assert.equal(response.status,200);assert.equal(sha256(Buffer.from(value)),artifact.sha256);

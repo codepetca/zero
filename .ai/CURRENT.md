@@ -32,8 +32,13 @@ requirements required a pinned Noble image; Docker VM then became read-only on
 this near-full Mac. Removed only regenerable npm cache/old Zero vendor binaries,
 keeping source/history/receipts/student files/user data/Docker volumes. Available
 host space rose from1175124KiB to2757500KiB. Docker still cannot create a container.
-Restart would interrupt running local Pika/Supabase: awaiting explicit owner reply,
-not restarting other services. No waiting period grants approval.
+Owner explicitly authorized Docker restart on2026-10-12. First restart restored
+all prior services, then imagebuild refilleddisk/read-only VM again. Build stopped;
+inactive Playwright downloads reclaimed (activebrowser/daemon retained). A separate
+Free Mac Disk Space task is active; broadercleanup is leftto that task. No volumes
+or unrelatedprojectfiles removed. Normalsecondrestart stalled; confirmedDocker
+backend had no VMdiskhandle, gracefultermination failed, backendterminated for
+restart under sameauthorization. Finalrecovery/free-spacecheck pending.
 Current proof commands: hub/README.md, scripts/verify-hub.mjs; generated image lock
 and bulky evidence ignored. Source review proceeds independently of engine recovery.
 
@@ -100,3 +105,19 @@ Standalone ZIP/starter/VSIX remain0.5.3; Community0.1.3 remains public/experimen
 No earlier publication authority carries into this local phase. Existing releases
 and sealed candidates are immutable. Installer/physical Windows trial remains held.
 Primary Zero funding checkout and canonical Community main are preserved.
+
+
+## Source review ledger — current build
+
+Initial high-risk wave: Astra/high security and Sol/high architecture, baseed71f4d
+→973daf1; completeassignedcoverage, changesrequired. 2launches/1initialwave.
+Accepted5findings: methodhandle/nested-thread verdictforgery, proxyloginredirect,
+MIT/POM contract, selectedolderrelease metadata, Java-source whitespace shadow.
+Fixbatch1 underway: closedJPMSobservermodule+realJDK17attack/lambda regressions;
+frontendredirect+cookie regression andexactrelease selection; extension usesactual
+trustedPOM andJavaUnicode/comment/string declarationpreflight. Coordinatoralso
+fixesquietFiles viewfor downloadedlibrarylayout andnondeterministicconcurrent
+publisherfixture ordering. NativeDocker/fullintegration remainpending. Atmost
+7launches/4fixbatches/60minsource-review session; runtimeenvironmentwork mustnot
+resetbudget. Effectiveconfigs/tokens/reviewerelapsedunknown; source frozenagain
+beforeoneAstra/high targetedfix review. No remoteauthorization.

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(fileURLToPath(import.meta.url));
 export const imageFiles = [
   'Dockerfile', 'Boundary.java', 'JarTracker.java', 'TrustedRun.java',
-  'FixedSmoke.java', 'work.py'
+  'FixedSmoke.java', 'module-info.java', 'work.py'
 ];
 
 /** Bind compiler, image pins and host acceptance logic to one trusted revision. */

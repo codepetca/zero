@@ -11,6 +11,7 @@ public final class TrustedRun {
   private static final AtomicBoolean uncaught = new AtomicBoolean();
   @SuppressWarnings("removal")
   public static void main(String[] args) throws Exception {
+    JarTracker.assertModuleIdentity();
     if (args[0].equals("api")) {
       for (int i = 1; i < args.length; i++) {
         Class<?> type = Class.forName(args[i], false, ClassLoader.getSystemClassLoader());
@@ -21,16 +22,42 @@ public final class TrustedRun {
       return;
     }
     Thread.setDefaultUncaughtExceptionHandler((thread, failure) -> { uncaught.set(true); failure.printStackTrace(); });
-    String candidatePrefix = args[2] + ".";
+    Module trusted = TrustedRun.class.getModule();
     System.setSecurityManager(new SecurityManager() {
+      private boolean trustedRequester(Class<?>[] context) {
+        for (Class<?> caller : context) {
+          Module module = caller.getModule();
+          if (module == trusted || module == Object.class.getModule()) continue;
+          // Only actual boot-layer JavaFX and agent-startup modules may perform internal reflection.
+          String name = module.getName();
+          if (name != null && ModuleLayer.boot().findModule(name).orElse(null) == module
+              && (name.startsWith("javafx.") || name.equals("java.instrument"))) return true;
+          return false;
+        }
+        return false;
+      }
+      private boolean lambdaConstructorBootstrap(Class<?>[] context) {
+        // Exact constructor-access request during JDK lambda creation. Arbitrary
+        // MethodHandles/privateLookupIn/LambdaForm frames confer no authority.
+        boolean constructor = false;
+        for (Class<?> caller : context) {
+          if (caller == java.lang.reflect.Constructor.class || caller == Class.class) constructor = true;
+          if (constructor && caller.getName().equals("java.lang.invoke.InnerClassLambdaMetafactory")
+              && caller.getModule() == Object.class.getModule()) return true;
+          if (caller.getModule() != trusted && caller.getModule() != Object.class.getModule()) return false;
+        }
+        return false;
+      }
       public void checkPermission(Permission permission) {
         String name = permission.getName();
-        if (permission instanceof RuntimePermission && (name.startsWith("exitVM") || name.equals("setSecurityManager") || name.equals("setDefaultUncaughtExceptionHandler"))) throw new SecurityException("Candidate cannot terminate or replace the trusted completion guard");
+        if (permission instanceof RuntimePermission && (name.startsWith("exitVM") || name.equals("setSecurityManager") || name.equals("setDefaultUncaughtExceptionHandler")))
+          throw new SecurityException("Candidate cannot terminate or replace the trusted completion guard");
+        if (permission instanceof RuntimePermission && name.equals("accessDeclaredMembers") && !trustedRequester(getClassContext()) && !lambdaConstructorBootstrap(getClassContext()))
+          throw new SecurityException("Candidate cannot inspect private JDK/guard implementation");
         if (permission instanceof java.lang.reflect.ReflectPermission && name.equals("suppressAccessChecks")) {
-          // JavaFX/JDK reflection remains available; direct contributor reflection cannot edit harness state.
-          boolean lambdaBootstrap = false;
-          for (Class<?> caller : getClassContext()) if (caller.getName().startsWith("java.lang.invoke.")) lambdaBootstrap = true;
-          if (!lambdaBootstrap) for (Class<?> caller : getClassContext()) if (caller.getName().equals("Main") || caller.getName().equals("BehaviorCheck") || caller.getName().startsWith(candidatePrefix)) throw new SecurityException("Candidate cannot access private harness state");
+          Class<?>[] context = getClassContext();
+          if (!trustedRequester(context) && !lambdaConstructorBootstrap(context))
+            throw new SecurityException("Candidate cannot suppress private access checks");
         }
       }
     });

@@ -73,3 +73,9 @@ export function latestLibraries(libraries) {
 export function publishedSubmission(job) {
   return job?.status === 'published' && job.release?.status === 'automatically-checked' ? job.release : null;
 }
+
+/** @param {Array<any>} libraries @param {{library:string,version:string}|null} [selection] */
+export function selectedLibraries(libraries, selection = null) {
+  const checked=libraries.filter(library=>library.status==='automatically-checked');
+  return selection ? checked.filter(library=>library.libraryId===selection.library&&library.version===selection.version) : latestLibraries(checked);
+}

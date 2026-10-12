@@ -66,7 +66,7 @@ async function verifyRelease(context,release) {
         if(dep.name!=='dependency' || value(single(dep,'groupId'))!=='org.openjfx' || !['javafx-controls','javafx-swing'].includes(value(single(dep,'artifactId'))) || value(single(dep,'version'))!=='21.0.12' || dep.children.length!==3) fail('Hub dependency policy is unsupported.');
       }
       const license=single(pom,'licenses');
-      if(!license.children.some(node=>node.name==='license' && value(single(node,'name'))==='MIT')) fail('The hub POM must declare MIT.');
+      if(!license.children.some(node=>node.name==='license' && ['MIT','MIT License'].includes(value(single(node,'name'))))) fail('The hub POM must declare MIT.');
     }
   }
 }
