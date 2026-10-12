@@ -21,6 +21,9 @@ public final class TrustedRun {
       }
       return;
     }
+    // Initialize the JDK's address implementation before candidate execution.
+    // Its first use needs internal constructor access; no network request occurs.
+    java.net.InetAddress.getLoopbackAddress();
     Thread.setDefaultUncaughtExceptionHandler((thread, failure) -> { uncaught.set(true); failure.printStackTrace(); });
     Module trusted = TrustedRun.class.getModule();
     System.setSecurityManager(new SecurityManager() {

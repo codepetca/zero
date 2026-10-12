@@ -5,6 +5,14 @@ Durable phase history: docs/EVIDENCE.md and docs/VERIFICATION.md.
 
 ## Active hub build — local vertical slice
 
+Owner waiver 2026-10-12: “Override budget constraints and proceed.” Applied
+override-task-stops to this task's agreed local hub implementation, checks and
+independent review. Workflow review/low-usage stops are waived; cumulative ledger
+continues at four launches/two targeted waves/two fix batches. Provider execution
+limits, paused DeepSeek, correctness gates and no-public-action scope remain.
+Coordinator owns Docker/runtime/integration; Sol/high hub_login_fix owns a bounded
+website local-session diagnosis and focused correction. No recursive delegation.
+
 Latest checkpoint: source d327fbe, saved locally; implementation is not accepted.
 Final checks passed: 254 root tests, 49 website tests/types/build, 17 actual
 PostgreSQL cases, six pure checker/report cases, 14 bounded JDK regression

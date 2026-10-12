@@ -40,7 +40,7 @@ export function HubPrepare() {
         {job.report?.platforms&&<p>Checked platforms: {job.report.platforms.join(', ')}</p>}
         {publishedSubmission(job)&&job.release&&<p>Listed: {job.release.title} {job.release.version}. <a href="/community">View library components</a></p>}
         {!polling&&<button className="text-button" disabled={busy} onClick={()=>action(async()=>{setJob(await api(`submissions/${encodeURIComponent(job.id)}`));})}>Refresh result</button>}
-        <p className="fine-print">A failed or unavailable check does not publish your library. Fix the reported files and upload again with a new version if the previous version was reserved.</p>
+        <p className="fine-print">A failed or unavailable check does not publish your library. Fix the reported files and upload again. Once a version is published, use a new version for changes.</p>
       </section>}
     </>}
   </>;

@@ -31,7 +31,7 @@ test('proxy enforces bytes, PNG and redirect boundaries',async()=>{
   const html=await proxyHub(request,['previews','ui1','1.2.3.png'],{...options,fetch:async()=>new Response('<script>bad</script>',{headers:{'Content-Type':'image/png'}})});assert.equal(html.status,502);
   const oversized=await proxyHub(new Request(origin+'/api/hub/submissions',{method:'POST',headers:{'Content-Type':'application/json'},body:'x'.repeat(1024*1024+1)}),['submissions'],options);assert.equal(oversized.status,413);
   const unsafe=await proxyHub(new Request(origin+'/api/hub/auth/start'),['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'https://evil.example/steal'}})});assert.equal(unsafe.status,502);
-  const safe=await proxyHub(new Request(origin+'/api/hub/auth/start'),['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/api/hub/auth/callback?state=abc'}})});assert.equal(safe.headers.get('location'),origin+'/api/hub/auth/callback?state=abc');
+  const safe=await proxyHub(new Request(origin+'/api/hub/auth/start'),['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/api/hub/auth/callback?state=abc'}})});assert.equal(safe.headers.get('location'),'/api/hub/auth/callback?state=abc');
   await assert.rejects(()=>boundedBytes(new Response('12345').body,4));
 });
 test('pinned snippets and preview refuse hostile catalog URLs and mismatched versions',()=>{
@@ -62,7 +62,11 @@ test('editable ZIP includes trusted runnable files and reconstructs an exact upl
   const zip=new Uint8Array(await response.arrayBuffer());const entries=unzipSync(zip);
   assert.match(strFromU8(entries['pom.xml']),/<sourceDirectory>src<\/sourceDirectory>/);
   assert.match(strFromU8(entries['src/Main.java']),/import zero.ui1.Widget;/);
-  assert.match(strFromU8(entries['mvnw']),/Maven/);
+  const {readFile}=await import('node:fs/promises');
+  for(const name of ['mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties']){
+    const canonical=await readFile(new URL('../../student-template/'+name,import.meta.url));
+    assert.deepEqual(Buffer.from(entries[name]),canonical,`${name} preserves exact canonical bytes`);
+  }
   const files=Object.entries(entries).map(([path,bytes])=>({webkitRelativePath:'project/'+path,size:bytes.length,text:async()=>strFromU8(bytes),arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}));
   assert.deepEqual(await folderBundle(files),bundle);
   // UNIX executable mode is retained on the wrapper's central-directory record.
@@ -80,16 +84,52 @@ test('failed, queued and unchecked submissions never get a listed-success result
   assert.equal(publishedSubmission({status:'published',release:listed}),listed);
 });
 
+test('project ZIP checks canonical Origin against direct Host despite Next URL normalization',async()=>{
+  const {projectResponse}=await import('../lib/hub-project.mjs');
+  const {scaffoldBundle}=await import('../../hub/service/scaffold.mjs');
+  const bundle=scaffoldBundle({libraryId:'ui1',className:'Widget',title:'My widget'});
+  const request=(url,headers)=>new Request(url+'/api/hub/project',{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(bundle)});
+  for(const [url,host,source]of [
+    ['http://localhost:3177','127.0.0.1:3177','http://127.0.0.1:3177'],
+    ['https://internal.example','zero.example','https://zero.example'],
+  ]){
+    const response=await projectResponse(request(url,{Host:host,Origin:source}));
+    assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'application/zip');
+  }
+  for(const headers of [
+    {Host:'127.0.0.1:3177',Origin:'https://evil.example'},
+    {Host:'127.0.0.1:3177',Origin:'http://localhost:3177'},
+    {Host:'127.0.0.1:3177',Origin:'https://127.0.0.1:3177'},
+    {Host:'127.0.0.1:3177',Origin:'http://127.0.0.1:3177/path'},
+    {Host:'127.0.0.1:3177',Origin:'null'},
+    {Host:'127.0.0.1:3177'},
+    {Host:'127.0.0.1:3177,evil.example',Origin:'http://127.0.0.1:3177'},
+    {Host:'user@127.0.0.1:3177',Origin:'http://127.0.0.1:3177'},
+    {Host:'127.0.0.1:3177/path',Origin:'http://127.0.0.1:3177'},
+    {Host:'127.0.0.1:3177',Origin:'http://evil.example','X-Forwarded-Host':'evil.example',Forwarded:'host=evil.example'},
+  ])assert.equal((await projectResponse(request('http://localhost:3177',headers))).status,403);
+});
+
 
 test('normal local sign-in and OAuth callback redirect to frontend and retain session cookie',async()=>{
   for(const path of [['auth','start'],['auth','callback']]) {
     const request=new Request(origin+'/api/hub/'+path.join('/')+(path[1]==='callback'?'?code=code&state=state':''));
     const response=await proxyHub(request,path,{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/community/prepare','Set-Cookie':'zero_hub_session=signed; Path=/api/hub; HttpOnly; SameSite=Lax'}})});
-    assert.equal(response.status,302);assert.equal(response.headers.get('location'),origin+'/community/prepare');assert.match(response.headers.get('set-cookie'),/zero_hub_session=signed/);
+    assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/community/prepare');assert.match(response.headers.get('set-cookie'),/zero_hub_session=signed/);
   }
   for(const location of ['https://evil.example/community/prepare','/community/prepare?next=https://evil.example','/other']) {
     const response=await proxyHub(new Request(origin+'/api/hub/auth/start'),['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:location}})});assert.equal(response.status,502);
   }
+});
+test('Next normalized request URL keeps sign-in on the browser cookie host',async()=>{
+  const browserOrigin='http://127.0.0.1:3177';
+  // Actual Next dev requests use localhost in Request.url despite this Host.
+  const request=new Request('http://localhost:3177/api/hub/auth/start',{headers:{Host:'127.0.0.1:3177'}});
+  const response=await proxyHub(request,['auth','start'],{...options,fetch:async()=>new Response(null,{status:302,headers:{Location:'/community/prepare','Set-Cookie':'zero_hub_session=signed; Path=/api/hub; HttpOnly; SameSite=Lax'}})});
+  assert.equal(response.status,302);
+  assert.equal(response.headers.get('location'),'/community/prepare');
+  assert.equal(new URL(response.headers.get('location'),browserOrigin).origin,browserOrigin);
+  assert.match(response.headers.get('set-cookie'),/^zero_hub_session=signed; Path=\/api\/hub; HttpOnly/);
 });
 test('exact inspection preserves old API/check/preview metadata and never substitutes latest',()=>{
   const old={...release,status:'automatically-checked',version:'1.0.0',components:[{className:'OldHud',api:['void oldMethod()']}],checks:[{detail:'Old test'}],preview:{path:'/api/hub/previews/ui1/1.0.0.png'}};

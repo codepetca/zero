@@ -60,8 +60,10 @@ export async function proxyHub(request, parts, options = {}) {
     if (upstream.status >= 300 && upstream.status < 400) {
       const location = new URL(upstream.headers.get('location') || '', target);
       const website = new URL(request.url);
-      if (location.origin === destination.origin && location.pathname.startsWith('/api/hub/')) output.set('Location', `${website.origin}${location.pathname}${location.search}`);
-      else if ([destination.origin,website.origin].includes(location.origin) && ['/community','/community/prepare'].includes(location.pathname) && !location.search && !location.hash && !location.username && !location.password) output.set('Location',`${website.origin}${location.pathname}`);
+      // Next can normalize Request.url to localhost for a 127.0.0.1 visit.
+      // Relative redirects retain the browser's host and its host-only cookies.
+      if (location.origin === destination.origin && location.pathname.startsWith('/api/hub/')) output.set('Location', `${location.pathname}${location.search}`);
+      else if ([destination.origin,website.origin].includes(location.origin) && ['/community','/community/prepare'].includes(location.pathname) && !location.search && !location.hash && !location.username && !location.password) output.set('Location',location.pathname);
       else if (path === 'auth/start' && location.origin === 'https://github.com' && location.pathname === '/login/oauth/authorize' && !location.username && !location.password && !location.hash) output.set('Location',location.href);
       else return failure('Hub returned an unsafe redirect.', 502);
       return new Response(null, {status:upstream.status,headers:output});

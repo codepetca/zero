@@ -4,13 +4,20 @@ import {fileURLToPath} from 'node:url';
 import {validateBundle} from './checker/policy.mjs';
 export const developmentPaths = ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',
   'src/Main.java','zero.json','.vscode/tasks.json','.vscode/settings.json'];
+// Literal URLs let Next trace each distinct trusted asset into its server build.
+// A dynamic URL can be rewritten to the same asset for all three wrapper files.
+const wrapperSources = {
+  'mvnw':new URL('../student-template/mvnw',import.meta.url),
+  'mvnw.cmd':new URL('../student-template/mvnw.cmd',import.meta.url),
+  '.mvn/wrapper/maven-wrapper.properties':new URL('../student-template/.mvn/wrapper/maven-wrapper.properties',import.meta.url),
+};
 export async function developmentFiles(bundle) {
   validateBundle(bundle);
   const {libraryId:id,components}=bundle.descriptor;
   const name=components[0].className;
   const files={};
-  for(const path of ['mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties'])
-    files[path]=await readFile(fileURLToPath(new URL(`../student-template/${path}`,import.meta.url)),'utf8');
+  for(const [path,url]of Object.entries(wrapperSources))
+    files[path]=await readFile(fileURLToPath(url),'utf8');
   files['pom.xml']=`<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion>
 <groupId>school.zero</groupId><artifactId>${id}-workshop</artifactId><version>1.0</version>
 <properties><maven.compiler.release>17</maven.compiler.release><javafx.version>21.0.12</javafx.version><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding></properties>

@@ -1,9 +1,22 @@
 import {zipSync,strToU8} from 'fflate';
 import {developmentFiles} from '../../hub/development-files.mjs';
 import {boundedBytes} from './hub-proxy.mjs';
+function sameWebsiteOrigin(request) {
+  try {
+    const website=new URL(request.url);
+    const origin=request.headers.get('origin');
+    const source=new URL(origin);
+    if(!['http:','https:'].includes(website.protocol) || origin!==source.origin)return false;
+    // Next may normalize the URL's hostname to localhost. The direct Host is
+    // the browser's destination authority; forwarded headers do not establish it.
+    const host=request.headers.get('host')??website.host;
+    if(!/^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?|\[[0-9A-Fa-f:.]+\])(?::[0-9]{1,5})?$/.test(host))return false;
+    return new URL(`${website.protocol}//${host}`).origin===origin;
+  }catch{return false;}
+}
 export async function projectResponse(request) {
   if(request.method!=='POST')return Response.json({error:'Use POST.'},{status:405});
-  if(request.headers.get('origin')!==new URL(request.url).origin)return Response.json({error:'Use this website to download a library project.'},{status:403});
+  if(!sameWebsiteOrigin(request))return Response.json({error:'Use this website to download a library project.'},{status:403});
   if(!request.headers.get('content-type')?.startsWith('application/json'))return Response.json({error:'Send a library bundle as JSON.'},{status:415});
   try {
     const bytes=await boundedBytes(request.body,1024*1024);
