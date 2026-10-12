@@ -30,7 +30,7 @@ A library can contain related classes such as Hud, ScoreDisplay and StartScreen.
 
 ## Check and upload
 
-Try your preview and run the project's documented checks. Keep application rules in the consumer: pass numbers with setters and actions with callbacks. Create separate instances when using the component in different layouts.
+Try your preview locally. After upload, the service compiles your library and runs BehaviorCheck plus both finite consumer examples; the downloaded project does not provide a local check-running task. Keep application rules in the consumer: pass numbers with setters and actions with callbacks. Create separate instances when using the component in different layouts.
 
 Return to **Make a library** and upload the project folder. The site submits source, documentation, tests, examples and the preview image; generated build output and development scripts are excluded.
 

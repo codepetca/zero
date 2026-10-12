@@ -57,7 +57,7 @@ check. Assess working behavior, understandable code and recorded results.
 
 ## ZeroHub and readiness
 
-Lesson 11 proposes a contribution; export/CI/AI do not accept or publish it.
+Lesson 11 prepares an ordinary Java library, uploads its source and reads trusted automatic checks. Passing versions are listed automatically; there is no routine maintainer acceptance step.
 ZeroHub checks self-contained JavaFX widgets and two consumers; hosted activation is pending. Pika
 coursework submission stays separate. No credentials belong in evidence.
 
