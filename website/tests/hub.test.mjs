@@ -143,3 +143,9 @@ test('exact inspection preserves old API/check/preview metadata and never substi
   assert.deepEqual(selectedLibraries([old,recent]),[recent]);
   assert.deepEqual(selectedLibraries([old,recent],{library:'ui1',version:'9.9.9'}),[]);
 });
+
+ test('uploads require an explicit enabled capability; missing or malformed capability stays closed', async()=>{
+  const {uploadsAvailable}=await import('../lib/hub-client.mjs');
+  for(const value of [null,{}, {capabilities:{}}, {capabilities:{uploads:false}}, {capabilities:{uploads:'true'}}]) assert.equal(uploadsAvailable(value),false);
+  assert.equal(uploadsAvailable({capabilities:{uploads:true}}),true);
+ });

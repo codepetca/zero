@@ -26,10 +26,10 @@ export default function Hub() {
       <details className="reading-section">
         <summary><h2>Share a library</h2><Icon name="chevron-down" /></summary>
         <div className="reading-section-body">
-          <p>Sign in with GitHub, reserve a library and download its editable project. Edit ordinary Java in VS Code, then upload the folder for automatic checks.</p>
+          <p>When uploads are open, sign in with GitHub, reserve a library and download its editable project. Edit ordinary Java in VS Code, then upload the folder for automatic checks.</p>
           <p>A passing release is listed with its contributor, exact version, API and preview. Failed checks show what to fix. Published versions stay unchanged; upload a new version for later improvements.</p>
           <p>The first libraries are self-contained JavaFX widgets with a public view() method, API notes, an MIT license, a PNG preview, a behavior check and two consumer examples. Coursework repository links still go separately to Pika.</p>
-          <div className="resource-links"><Link href="/hub/prepare">Make a library</Link><Link href="/tutorials/11">Sharing lesson</Link><Link href="/docs/components">Library guide</Link></div>
+          <div className="resource-links"><Link href="/tutorials/11">Sharing lesson</Link><Link href="/docs/components">Library guide</Link></div>
         </div>
       </details>
     </main>

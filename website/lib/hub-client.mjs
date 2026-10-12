@@ -1,3 +1,5 @@
+// Capability absence is closed: an older or unavailable backend cannot enable uploads.
+export function uploadsAvailable(value) { return value?.capabilities?.uploads === true; }
 export function checkLabel(id) {
   const labels={bundle:'Library files', 'fixed-build':'Java compilation', api:'Component API',
     behavior:'Behavior check', first:'First example', second:'Second example'};

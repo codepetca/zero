@@ -26,3 +26,5 @@ website/next-env.d.ts
 
 **/__pycache__/
 hub/checker/image-lock.json
+.vercel
+.env*

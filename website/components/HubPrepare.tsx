@@ -1,9 +1,10 @@
 'use client';
 import {useEffect,useState} from 'react';
-import {checkLabel,folderBundle,validateUploadBundle,publishedSubmission} from '@/lib/hub-client.mjs';
+import Link from 'next/link';
+import {checkLabel,folderBundle,validateUploadBundle,publishedSubmission,uploadsAvailable} from '@/lib/hub-client.mjs';
 import type {HubRelease} from './HubDiscovery';
 type Bundle = {descriptor:{libraryId:string;version:string;[key:string]:unknown};files:Record<string,string>};
-type Session = {mode:string;user:null|{id:string;login:string};csrfToken?:string};
+type Session = {mode:string;capabilities?:{uploads:boolean};user:null|{id:string;login:string};csrfToken?:string};
 type Job = {id:string;status:string;error?:string;report?:{checks?:{id:string;passed:boolean;detail:string}[];platforms?:string[];error?:string};release?:HubRelease};
 async function download(bundle:Bundle) {
   const response=await fetch('/api/hub/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(bundle)});
@@ -19,7 +20,7 @@ export function HubPrepare() {
   return <>
     {session?.mode==='local'&&<p className="hub-note">Local test hub. Sign in uses the configured local developer identity. Uploads remain in this local service.</p>}
     {error&&<p className="hub-error" role="alert">{error}</p>}
-    {!session ? <p role="status">{error?'ZeroHub is unavailable. Try again shortly.':'Connecting to the hub…'}</p> : !session.user ? <a className="button compact" href="/api/hub/auth/start">{session.mode==='local'?'Sign in to local test hub':'Sign in with GitHub'}</a> : <>
+    {!session ? <p role="status">{error?'ZeroHub is unavailable. Try again shortly.':'Connecting to the hub…'}</p> : !uploadsAvailable(session) ? <p role="status">Library uploads are not open yet. <Link href="/hub">Browse available libraries</Link>.</p> : !session.user ? <a className="button compact" href="/api/hub/auth/start">{session.mode==='local'?'Sign in to local test hub':'Sign in with GitHub'}</a> : <>
       <div className="resource-links"><p>Signed in as {session.user.login}</p><button className="text-button" disabled={busy} onClick={()=>action(async()=>{await api('logout',{});setSession(await api('session'));setBundle(null);setUpload(null);setJob(null);})}>Sign out</button></div>
       <section><h2>1. Prepare your library</h2><form className="hub-form" onSubmit={event=>{event.preventDefault();void action(async()=>{const result=await api('libraries',{className,title});validateUploadBundle(result.bundle);setBundle(result.bundle);});}}>
         <label htmlFor="class-name">Java class name</label><input id="class-name" required pattern="[A-Z][A-Za-z0-9]*" maxLength={64} value={className} onChange={event=>setClassName(event.target.value)} />

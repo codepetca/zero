@@ -1,8 +1,8 @@
 import {createHash, randomBytes, randomUUID, timingSafeEqual} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
-import {POLICY, sha256, validateArtifacts, createStorage} from './artifacts.mjs';
+import {sha256,createStorage} from './artifacts.mjs';
+import {createPipeline} from './pipeline.mjs';
+import {transaction as runTransaction,migrateDatabase} from './database.mjs';
 import {scaffoldBundle} from './scaffold.mjs';
-import {validReport} from './report.mjs';
 
 const BASE = '/api/hub';
 const GROUP = 'ca.codepet.zero.library';
@@ -35,10 +35,12 @@ function safeError(error) { return error?.status ? error.message : 'The hub coul
 function validationError(error) { return String(error?.message ?? 'Invalid source bundle').replace(/[\x00-\x1f\x7f]/g,' ').slice(0,512); }
 
 
-export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth}) {
+export function createHub({pool,storageRoot,storage:storageAdapter,checker,origin,localIdentity,oauth,uploadsEnabled=true}) {
+  if (typeof uploadsEnabled !== 'boolean') throw new Error('Uploads capability must be boolean');
+  if (storageAdapter && (typeof storageAdapter.read !== 'function' || typeof storageAdapter.put !== 'function')) throw new Error('Storage adapter requires read and put');
   const publicOrigin = new URL(origin);
   if (publicOrigin.origin !== origin || !['http:','https:'].includes(publicOrigin.protocol) || publicOrigin.username || publicOrigin.password) throw new Error('Configure an exact HTTP(S) hub origin');
-  if (!pool?.query || !pool?.connect || !storageRoot || !checker?.validateBundle || !checker?.sourceDigest || !checker?.checkSubmission || !checker?.expectedPom || typeof checker?.expectedPolicyDigest !== 'function') throw new Error('Hub database, storage and trusted checker configuration required');
+  if (!pool?.query || !pool?.connect || (!storageRoot && !storageAdapter) || !checker?.validateBundle || !checker?.sourceDigest || !checker?.checkSubmission || !checker?.expectedPom || typeof checker?.expectedPolicyDigest !== 'function') throw new Error('Hub database, storage and trusted checker configuration required');
   if (localIdentity && (!loopback(publicOrigin.hostname) || process.env.NODE_ENV === 'production')) throw new Error('Local identity is allowed only on an explicit loopback development origin');
   if (oauth && (!oauth.clientId || !oauth.clientSecret || publicOrigin.protocol !== 'https:')) throw new Error('OAuth requires credentials and an HTTPS origin');
   if (localIdentity && oauth) throw new Error('Choose either local identity or GitHub OAuth');
@@ -46,28 +48,20 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
   const localUser = localIdentity ? identity(localIdentity) : null;
   const secure = publicOrigin.protocol === 'https:';
   let storagePromise;
-  const storage = () => storagePromise ??= createStorage(storageRoot);
+  const storage = () => storagePromise ??= storageAdapter ? Promise.resolve(storageAdapter) : createStorage(storageRoot);
   let timer;
   let running = false;
   let active;
 
-  async function transaction(action) {
-    const client = await pool.connect();
-    try { await client.query('BEGIN'); const result = await action(client); await client.query('COMMIT'); return result; }
-    catch (error) { await client.query('ROLLBACK'); throw error; }
-    finally { client.release(); }
-  }
-  async function migrate() {
-    const sql = await readFile(new URL('../sql/001-hub.sql',import.meta.url),'utf8');
-    await transaction(async client => { await client.query('SELECT pg_advisory_xact_lock(92104419)'); await client.query(sql); });
-    await storage();
-  }
+  const transaction=action=>runTransaction(pool,action);
+  async function migrate() { await migrateDatabase(pool); await storage(); }
   async function rememberUser(client,user) {
     const actor = identity(user);
     await client.query('INSERT INTO hub_users(github_id,login) VALUES($1,$2) ON CONFLICT(github_id) DO UPDATE SET login=$2,updated_at=now()',[actor.id,actor.login]);
     return actor;
   }
   async function reserveLibrary(user,input) {
+    if (!uploadsEnabled) throw problem(503,'Uploads are not available in this staging service');
     if (!object(input,['className','title']) || !/^[A-Z][A-Za-z0-9]{0,63}$/.test(input.className) || ['Application','Node','Main','BehaviorCheck','Label','String','Platform','Scene','StackPane','Stage','Exception','CountDownLatch','AtomicReference','Throwable','AssertionError'].includes(input.className) || typeof input.title !== 'string' || input.title.length < 1 || input.title.length > 120 || /[\x00-\x1f\x7f<>]/.test(input.title)) throw problem(400,'Provide a readable title and Java class name');
     return transaction(async client => {
       const actor = await rememberUser(client,user);
@@ -80,6 +74,7 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
     });
   }
   async function submit(user,bundle) {
+    if (!uploadsEnabled) throw problem(503,'Uploads are not available in this staging service');
     const actor = identity(user);
     if (Buffer.byteLength(JSON.stringify(bundle)) > MAX_BODY) throw problem(413,'Submission exceeds 1 MiB');
     try { checker.validateBundle(bundle); } catch (error) { throw problem(400,validationError(error)); }
@@ -99,6 +94,7 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
     });
   }
   async function getSubmission(user,id) {
+    if (!uploadsEnabled) throw problem(503,'Uploads are not available in this staging service');
     const actor = identity(user);
     if (!/^[a-f0-9-]{36}$/.test(id)) throw problem(404,'Submission not found');
     const {rows:[row]} = await pool.query('SELECT s.id,s.status,s.owner_id,s.error,r.report,l.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_submissions s JOIN hub_users u ON u.github_id=s.owner_id LEFT JOIN hub_results r ON r.submission_id=s.id LEFT JOIN hub_releases l ON l.submission_id=s.id WHERE s.id=$1',[id]);
@@ -107,68 +103,9 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
   }
   async function catalog() {
     const {rows}=await pool.query('SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id ORDER BY r.created_at DESC,r.library_id,r.version');
-    return {mode,libraries:rows.map(attributedRelease)};
+    return {mode,capabilities:{uploads:uploadsEnabled},libraries:rows.map(attributedRelease)};
   }
-  async function workOnce() {
-    const job = await transaction(async client => {
-      await client.query("UPDATE hub_submissions SET status=CASE WHEN attempts>=3 THEN 'failed' ELSE 'queued' END,lease_token=NULL,lease_until=NULL,error='Checker interrupted; retry is bounded' WHERE status='checking' AND lease_until<now()");
-      const {rows:[row]} = await client.query("SELECT * FROM hub_submissions WHERE status='queued' ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1");
-      if (!row) return null;
-      row.lease_token = randomUUID();
-      await client.query("UPDATE hub_submissions SET status='checking',attempts=attempts+1,lease_token=$2,lease_until=now()+interval '10 minutes',error=NULL WHERE id=$1",[row.id,row.lease_token]);
-      return row;
-    });
-    if (!job) return false;
-    try {
-      checker.validateBundle(job.bundle);
-      if (checker.sourceDigest(job.bundle) !== job.source_digest) throw new Error('Immutable source digest mismatch');
-      const result = await checker.checkSubmission(job.bundle);
-      if (!validReport(result,job.source_digest,checker.expectedPolicyDigest())) throw new Error('Checker verdict does not match trusted policy/source');
-      const artifacts = result.passed ? result.artifacts : null;
-      const hashes = result.passed ? validateArtifacts(job.bundle,artifacts,checker.expectedPom) : null;
-      const report = {passed:result.passed,policy:POLICY,policyDigest:result.policyDigest,sourceDigest:job.source_digest,checks:result.checks,platforms:result.platforms};
-      await transaction(async client => {
-        const {rows:[current]} = await client.query('SELECT status,lease_token,source_digest FROM hub_submissions WHERE id=$1 FOR UPDATE',[job.id]);
-        if (current?.status !== 'checking' || current.lease_token !== job.lease_token || current.source_digest !== job.source_digest) return;
-        await client.query('INSERT INTO hub_results(submission_id,source_digest,policy,passed,report,jar,sources,pom,artifact_hashes,policy_digest) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[job.id,job.source_digest,POLICY,result.passed,report,artifacts?.jar,artifacts?.sources,artifacts?.pom,hashes,result.policyDigest]);
-        await client.query("UPDATE hub_submissions SET status=$2,lease_token=NULL,lease_until=NULL WHERE id=$1",[job.id,result.passed?'checked':'failed']);
-      });
-    } catch {
-      await pool.query("UPDATE hub_submissions SET status=CASE WHEN attempts>=3 THEN 'failed' ELSE 'queued' END,lease_token=NULL,lease_until=NULL,error='The trusted checker could not complete; bounded infrastructure retry' WHERE id=$1 AND status='checking' AND lease_token=$2",[job.id,job.lease_token]);
-    }
-    return true;
-  }
-  async function publishOnce() {
-    return transaction(async client => {
-      const {rows:[row]} = await client.query("SELECT s.*,l.owner_id AS reserved_owner,r.source_digest AS result_digest,r.policy,r.policy_digest,r.passed,r.report,r.jar,r.sources,r.pom,r.artifact_hashes FROM hub_submissions s JOIN hub_libraries l ON l.id=s.library_id JOIN hub_results r ON r.submission_id=s.id WHERE s.status='checked' ORDER BY s.created_at FOR UPDATE OF s SKIP LOCKED LIMIT 1");
-      if (!row) return false;
-      let manifest;
-      let artifacts;
-      try {
-        checker.validateBundle(row.bundle);
-        if (row.owner_id !== row.reserved_owner || row.library_id !== row.bundle.descriptor.libraryId || row.version !== row.bundle.descriptor.version || checker.sourceDigest(row.bundle) !== row.source_digest || row.result_digest !== row.source_digest || row.policy !== POLICY || !row.passed || row.policy_digest !== row.report.policyDigest || !validReport(row.report,row.source_digest,checker.expectedPolicyDigest()) || !row.report.passed) throw new Error('Internal verdict authority mismatch');
-        artifacts = {jar:row.jar,sources:row.sources,pom:row.pom};
-        const hashes = validateArtifacts(row.bundle,artifacts,checker.expectedPom);
-        for (const [kind,hash] of Object.entries(hashes)) {
-          if (hash.sha256 !== row.artifact_hashes?.[kind]?.sha256 || hash.size !== row.artifact_hashes?.[kind]?.size)
-            throw new Error('Artifact digest drift');
-        }
-        const {libraryId,version,title,description,category,components} = row.bundle.descriptor;
-        const directory = `${BASE}/maven/ca/codepet/zero/library/${libraryId}/${version}`;
-        manifest = {libraryId,version,title,description,category,components,namespace:`zero.${libraryId}`,coordinate:{groupId:GROUP,artifactId:libraryId,version},sourceDigest:row.source_digest,checks:row.report.checks,platforms:row.report.platforms,artifacts:Object.fromEntries(Object.entries(hashes).map(([kind,hash])=>[kind,{...hash,path:`${directory}/${libraryId}-${version}${kind==='sources'?'-sources.jar':kind==='jar'?'.jar':'.pom'}`} ])),preview:{sha256:sha256(Buffer.from(row.bundle.files['preview.png'],'base64')),size:Buffer.from(row.bundle.files['preview.png'],'base64').length,path:`${BASE}/previews/${libraryId}/${version}.png`},api:row.bundle.files['API.md'],changelog:row.bundle.files['CHANGELOG.md'],status:'automatically-checked'};
-      } catch {
-        await client.query("UPDATE hub_submissions SET status='failed',error='Publication integrity validation failed' WHERE id=$1",[row.id]);
-        return true;
-      }
-      // Only immutable bytes cross into storage; this stage never runs Java/config.
-      const bytes = await storage();
-      for (const artifact of Object.values(artifacts)) await bytes.put(artifact);
-      await bytes.put(Buffer.from(row.bundle.files['preview.png'],'base64'));
-      await client.query('INSERT INTO hub_releases(library_id,version,submission_id,manifest) VALUES($1,$2,$3,$4)',[row.library_id,row.version,row.id,manifest]);
-      await client.query("UPDATE hub_submissions SET status='published',error=NULL WHERE id=$1",[row.id]);
-      return true;
-    });
-  }
+  const {workOnce,publishOnce}=createPipeline({pool,storage,checker});
   async function drain({max=100}={}) {
     let operations=0;
     while (operations < max) {
@@ -202,6 +139,7 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
     setCookie(res,COOKIE,sessionToken,8*3600);
   }
   async function session(req) {
+    if (!uploadsEnabled) return null;
     if (!localUser && !oauth) return null;
     const sessionToken=cookies(req).get(COOKIE);
     if (!/^[a-f0-9]{64}$/.test(sessionToken??'')) return null;
@@ -222,7 +160,7 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
     for await (const part of req) { size+=part.length; if (size>MAX_BODY) throw problem(413,'Submission exceeds 1 MiB'); parts.push(part); }
     try { return JSON.parse(Buffer.concat(parts).toString('utf8')); } catch { throw problem(400,'Invalid JSON body'); }
   }
-  function json(res,status,value) { res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}); res.end(JSON.stringify(value)); }
+  function json(res,status,value,head=false) { const bytes=Buffer.from(JSON.stringify(value)); res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Content-Length':bytes.length,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}); res.end(head?undefined:bytes); }
   async function oauthStart(req,res) {
     if (localUser) {
       await openSession(res,localUser); res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); return res.end();
@@ -270,16 +208,17 @@ export function createHub({pool,storageRoot,checker,origin,localIdentity,oauth})
       if (localUser && !loopback(req.socket.remoteAddress)) throw problem(403,'Local developer identity is loopback-only');
       const url=new URL(req.url,origin);
       const route=url.pathname;
-      if (req.method==='GET' && route===`${BASE}/session`) { const actor=await session(req); return json(res,200,{user:actor?.user??null,...(actor?{csrfToken:actor.csrfToken}:{}),mode}); }
+      if (!uploadsEnabled && (route.startsWith(`${BASE}/auth/`) || route===`${BASE}/logout` || route.startsWith(`${BASE}/submissions`) || (req.method==='POST' && route===`${BASE}/libraries`))) throw problem(503,'Uploads and authentication are not available in this staging service');
+      if (req.method==='GET' && route===`${BASE}/session`) { const actor=await session(req); return json(res,200,{user:actor?.user??null,...(actor?{csrfToken:actor.csrfToken}:{}),mode,capabilities:{uploads:uploadsEnabled}}); }
       if (req.method==='GET' && route===`${BASE}/auth/start`) return await oauthStart(req,res);
       if (req.method==='GET' && route===`${BASE}/auth/callback`) return await oauthCallback(req,res,url);
-      if (req.method==='GET' && route===`${BASE}/catalog`) return json(res,200,await catalog());
+      if (['GET','HEAD'].includes(req.method) && route===`${BASE}/catalog`) return json(res,200,await catalog(),req.method==='HEAD');
       if (['GET','HEAD'].includes(req.method) && (route.startsWith(`${BASE}/maven/`) || route.startsWith(`${BASE}/previews/`))) return await serveArtifact(req,res,route);
       const libraryMatch=route.match(/^\/api\/hub\/libraries\/(ui[1-9a-z][0-9a-z]*)$/);
-      if (req.method==='GET' && libraryMatch) {
+      if (['GET','HEAD'].includes(req.method) && libraryMatch) {
         const version=url.searchParams.get('version');
         const {rows:[row]}=await pool.query('SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id WHERE r.library_id=$1 AND ($2::text IS NULL OR r.version=$2) ORDER BY r.created_at DESC LIMIT 1',[libraryMatch[1],version]);
-        if (!row) throw problem(404,'Library release not found'); return json(res,200,attributedRelease(row));
+        if (!row) throw problem(404,'Library release not found'); return json(res,200,attributedRelease(row),req.method==='HEAD');
       }
       const submissionMatch=route.match(/^\/api\/hub\/submissions\/([a-f0-9-]{36})$/);
       if (req.method==='GET' && submissionMatch) { const actor=await session(req); if (!actor) throw problem(401,'Sign in to GitHub first'); return json(res,200,await getSubmission(actor.user,submissionMatch[1])); }

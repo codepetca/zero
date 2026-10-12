@@ -1,0 +1,58 @@
+/** Server-only read-only catalog runtime for Vercel-managed PostgreSQL. */
+import pg from 'pg';
+import {Readable} from 'node:stream';
+import {createHub} from '../../hub/service/hub.mjs';
+import {createPostgresStorage} from '../../hub/service/postgres-storage.mjs';
+import {verifyRole} from '../../hub/service/db-role.mjs';
+import * as policy from '../../hub/checker/policy.mjs';
+import {hubPath} from './hub-proxy.mjs';
+const LIMIT=4*1024*1024;
+const unavailable=()=>Response.json({error:'ZeroHub is unavailable. Try again shortly.'},{status:503,headers:{'Cache-Control':'no-store'}});
+// This process can read published bytes; it cannot run a checker or publisher.
+const disabled=()=>{throw new Error('Checking and publication are unavailable in this HTTP runtime');};
+const checker={...policy,checkSubmission:async()=>disabled(),expectedPolicyDigest:disabled};
+let runtime;
+export async function createReadOnlyRuntime(pool,origin) {
+  await verifyRole(pool,'hub_api');
+  return createHub({pool,storage:createPostgresStorage(pool),checker,origin,uploadsEnabled:false}).handler;
+}
+async function configuredRuntime() {
+  if(!runtime) {
+    const connectionString=process.env.ZERO_HUB_API_DATABASE_URL;
+    const origin=process.env.ZERO_HUB_ORIGIN;
+    if(!connectionString || !origin)throw new Error('Restricted runtime database and exact public origin required');
+    const url=new URL(connectionString);
+    if(!['postgres:','postgresql:'].includes(url.protocol)||url.searchParams.has('options'))throw new Error('Invalid runtime database configuration');
+    const publicOrigin=new URL(origin);
+    if(publicOrigin.origin!==origin||publicOrigin.protocol!=='https:')throw new Error('HTTPS public origin required');
+    const pool=new pg.Pool({connectionString,max:2,connectionTimeoutMillis:10000,idleTimeoutMillis:10000,options:'-c role=hub_api -c statement_timeout=15000 -c search_path=public,pg_catalog'});
+    pool.on('error',()=>{}); // Return a sanitized HTTP failure, never credentials.
+    runtime=createReadOnlyRuntime(pool,origin).catch(async error=>{runtime=undefined;await pool.end();throw error;});
+  }
+  return runtime;
+}
+export async function readOnlyHubResponse(request,parts,{handler}={}) {
+  const path=hubPath(parts,request.method);
+  if(!path)return Response.json({error:'Unknown hub endpoint.'},{status:404});
+  const url=new URL(request.url);
+  // Authoring is closed even if a browser calls the endpoint directly.
+  if(path.startsWith('auth/')||path.startsWith('submissions/')||['libraries','submissions','logout'].includes(path))
+    return Response.json({error:'Library uploads are not open yet.'},{status:503,headers:{'Cache-Control':'no-store'}});
+  if(url.search)return Response.json({error:'Unexpected hub query.'},{status:400});
+  try {
+    const execute=handler??await configuredRuntime();
+    const req=Readable.from([]);
+    req.url=`/api/hub/${path}`;req.method=request.method;req.headers={};req.socket={remoteAddress:'127.0.0.1'};
+    const headers=new Headers();let status=200,bytes,ended=false,failed=false;
+    const res={headersSent:false,
+      setHeader(name,value){if(Array.isArray(value))for(const item of value)headers.append(name,String(item));else headers.set(name,String(value));},
+      writeHead(code,values={}){status=code;for(const[name,value]of Object.entries(values))this.setHeader(name,value);this.headersSent=true;return this;},
+      end(value){if(ended)throw new Error('Response already completed');bytes=value===undefined?null:Buffer.from(value);if(bytes&&bytes.length>LIMIT)throw new Error('Hub response exceeds its size limit');ended=true;},
+      destroy(){failed=true;}
+    };
+    await execute(req,res);
+    if(!ended||failed)return unavailable();
+    headers.delete('set-cookie'); // No browser session can be issued by this runtime.
+    return new Response(request.method==='HEAD'?null:bytes,{status,headers});
+  } catch {return unavailable();}
+}

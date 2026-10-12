@@ -2,11 +2,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {useSearchParams} from 'next/navigation';
-import {checkLabel, contributorProfile, dependencySnippet, previewPath, selectedLibraries } from '@/lib/hub-client.mjs';
+import {checkLabel, contributorProfile, dependencySnippet, previewPath, selectedLibraries, uploadsAvailable } from '@/lib/hub-client.mjs';
 export type HubComponent = {className:string;description:string;api:string[];usage:string};
 export type HubRelease = {status:'automatically-checked';libraryId:string;version:string;title:string;description:string;namespace:string;components:HubComponent[];platforms:string[];checks:{id:string;passed:boolean;detail:string}[];coordinate:{groupId:string;artifactId:string;version:string};preview:{path:string};contributor?:{githubId:string;login:string}};
 export function HubDiscovery() {
-  const [catalog,setCatalog] = useState<{mode:string;libraries:HubRelease[]} | null>(null);
+  const [catalog,setCatalog] = useState<{mode:string;capabilities?:{uploads:boolean};libraries:HubRelease[]} | null>(null);
   const query=useSearchParams();
   const selection=query.has('library')||query.has('version') ? {library:query.get('library')||'',version:query.get('version')||''}:null;
   const [error,setError] = useState(''); const [search,setSearch] = useState(''); const [origin,setOrigin]=useState('');
@@ -25,8 +25,8 @@ export function HubDiscovery() {
           <details><summary>Automatically checked</summary><p>Checked platforms: {library.platforms.join(', ') || 'No platform reported'}. Java 17 · JavaFX 21.0.12 · MIT.</p><ul>{library.checks.map(check=><li key={check.id}>{check.passed?'Passed':'Failed'}: {checkLabel(check.id)}{!check.passed&&`: ${check.detail}`} </li>)}</ul><p className="fine-print">These checks cover the declared APIs, source boundaries and two consumer apps. They do not establish every behavior or compatibility with other platforms.</p></details>
         </article>;
       }))}</div>
-      {!catalog.libraries.length && <p>No libraries have passed the local hub checks yet.</p>}
+      {!catalog.libraries.length && <p>No libraries are available yet.</p>}
     </>}
-    <Link className="button secondary compact" href="/hub/prepare">Make a library</Link>
+    {catalog && (uploadsAvailable(catalog) ? <Link className="button secondary compact" href="/hub/prepare">Make a library</Link> : <p className="fine-print" role="status">Library uploads are not open yet. You can browse and use available libraries.</p>)}
   </section>;
 }

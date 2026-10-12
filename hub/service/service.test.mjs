@@ -246,3 +246,96 @@ test('OAuth state is browser-bound, single-use, and profile numeric ID is server
     assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,0);
   } finally {await new Promise(resolve=>server.close(resolve));await oauthHub.stop();}
 });
+
+// A disposable database administrator creates separate fixture LOGIN principals.
+// RESET ROLE must still be restricted; startup SET ROLE alone is not isolation.
+test('distinct API/checker/publisher logins enforce actual PostgreSQL authority and durable publication',async()=>{
+  const {migrateDatabase}=await import('./database.mjs');
+  const {createPostgresStorage}=await import('./postgres-storage.mjs');
+  const {createRuntimePool,verifyRole}=await import('./runtime.mjs');
+  const {createPipeline}=await import('./pipeline.mjs');
+  const {randomBytes}=await import('node:crypto');
+  await pool.query(await readFile(new URL('../sql/000-roles.sql',import.meta.url),'utf8'));
+  await migrateDatabase(pool,{roles:true});
+  // Re-running through the NOLOGIN migration owner must work without superuser.
+  const migrationClient=await pool.connect();
+  try {await migrationClient.query('SET ROLE hub_migration_owner');await migrateDatabase({connect:async()=>({query:(...args)=>migrationClient.query(...args),release:()=>{}})},{roles:true});}
+  finally {await migrationClient.query('RESET ROLE');migrationClient.release();}
+  const principals={};
+  try {
+    for(const role of ['api','checker','publisher']) {
+      const name=`zero_fixture_${role}_${randomBytes(5).toString('hex')}`;
+      const password=randomBytes(24).toString('hex');
+      await pool.query(`CREATE ROLE ${name} LOGIN PASSWORD '${password}'`);
+      await pool.query(`GRANT hub_${role} TO ${name}`);
+      const url=new URL(database);url.username=name;url.password=password;
+      principals[role]={name,pool:createRuntimePool(url.href,`hub_${role}`)};
+      await verifyRole(principals[role].pool,`hub_${role}`);
+    }
+    const api=principals.api.pool,checking=principals.checker.pool,publishing=principals.publisher.pool;
+    const storage=createPostgresStorage(publishing);
+    const apiHub=createHub({pool:api,storage:createPostgresStorage(api),checker,origin,localIdentity:alice});
+    const {bundle}=await apiHub.reserveLibrary(alice,{className:'ValueDisplay',title:'Role proof'});
+    const job=await apiHub.submit(alice,bundle);
+    const denied=async(client,sql,args=[])=>assert.rejects(client.query(sql,args),error=>error.code==='42501'||/authority|immutable|transition|queue|finalize/.test(error.message));
+    await denied(api,"UPDATE hub_submissions SET status='published' WHERE id=$1",[job.id]);
+    await denied(api,'INSERT INTO hub_results(submission_id,source_digest,policy,policy_digest,passed,report) VALUES($1,$2,$3,$4,true,$5)',[job.id,trusted.sourceDigest(bundle),'zero-widgets-v1',trusted.expectedPolicyDigest(),{}]);
+    await denied(api,'INSERT INTO hub_releases(library_id,version,submission_id,manifest) VALUES($1,$2,$3,$4)',[bundle.descriptor.libraryId,'0.1.0',job.id,{}]);
+    await assert.rejects(createPostgresStorage(api).put(Buffer.from('forbidden')),error=>error.code==='42501');
+    const client=await api.connect();
+    try {await client.query('RESET ROLE');await denied(client,"INSERT INTO hub_objects(digest,size,bytes) VALUES($1,1,$2)",['a'.repeat(64),Buffer.from('x')]);}
+    finally {client.release();}
+    await denied(checking,"UPDATE hub_submissions SET status='published' WHERE id=$1",[job.id]);
+    await denied(checking,'INSERT INTO hub_releases(library_id,version,submission_id,manifest) VALUES($1,$2,$3,$4)',[bundle.descriptor.libraryId,'0.1.0',job.id,{}]);
+    await assert.rejects(createPostgresStorage(checking).put(Buffer.from('forbidden')),error=>error.code==='42501');
+    await denied(checking,'SELECT * FROM hub_oauth_states');
+    const resetChecker=await checking.connect();
+    try {await resetChecker.query('RESET ROLE');await denied(resetChecker,"UPDATE hub_submissions SET status='published' WHERE id=$1",[job.id]);}
+    finally {resetChecker.release();}
+    const checkPipeline=createPipeline({pool:checking,storage:()=>Promise.resolve(storage),checker});
+    assert.equal(await checkPipeline.workOnce(),true);
+    assert.equal((await apiHub.getSubmission(alice,job.id)).status,'checked');
+    await denied(publishing,'UPDATE hub_submissions SET lease_token=$2 WHERE id=$1',[job.id,'11111111-1111-4111-8111-111111111111']);
+    await denied(publishing,"UPDATE hub_submissions SET status='checking' WHERE id=$1",[job.id]);
+    await denied(publishing,'UPDATE hub_results SET passed=false WHERE submission_id=$1',[job.id]);
+    await denied(publishing,'SELECT * FROM hub_oauth_states');
+    const resetPublisher=await publishing.connect();
+    try {await resetPublisher.query('RESET ROLE');await denied(resetPublisher,"UPDATE hub_submissions SET status='checking' WHERE id=$1",[job.id]);}
+    finally {resetPublisher.release();}
+    await denied(publishing,'UPDATE hub_users SET login=$2 WHERE github_id=$1',[alice.id,'forged']);
+    const publishPipeline=createPipeline({pool:publishing,storage:()=>Promise.resolve(storage),checker});
+    assert.equal(await publishPipeline.publishOnce(),true);
+    const released=await apiHub.getSubmission(alice,job.id);
+    assert.equal(released.status,'published');assert.deepEqual(released.release.contributor,{githubId:alice.id,login:alice.login});
+    const artifact=released.release.artifacts.jar;
+    assert.equal(sha256(await createPostgresStorage(api).read(artifact.sha256,artifact.size)),artifact.sha256);
+    const {startHttpService}=await import('./server.mjs');
+    const portProbe=http.createServer();await new Promise(resolve=>portProbe.listen(0,'127.0.0.1',resolve));const port=portProbe.address().port;await new Promise(resolve=>portProbe.close(resolve));
+    const apiUrl=new URL(database);apiUrl.username=principals.api.name;
+    // Reuse the fixture credential solely within this test process.
+    apiUrl.password=new URL(api.options.connectionString).password;
+    const staged=await startHttpService({ZERO_HUB_ORIGIN:'https://zero.example',ZERO_HUB_PORT:String(port),ZERO_HUB_API_DATABASE_URL:apiUrl.href,ZERO_HUB_GITHUB_CLIENT_SECRET:'ignored-in-read-only-staging'});
+    const stagedBase=`http://127.0.0.1:${port}`;
+    try {
+      assert.deepEqual(await (await fetch(stagedBase+'/healthz')).json(),{ok:true,capabilities:{uploads:false}});
+      assert.equal((await (await fetch(stagedBase+'/api/hub/catalog')).json()).capabilities.uploads,false);
+      const catalogHead=await fetch(stagedBase+'/api/hub/catalog',{method:'HEAD'});assert.equal(catalogHead.status,200);assert.equal((await catalogHead.arrayBuffer()).byteLength,0);
+      const releaseHead=await fetch(stagedBase+'/api/hub/libraries/'+bundle.descriptor.libraryId,{method:'HEAD'});assert.equal(releaseHead.status,200);assert.equal((await releaseHead.arrayBuffer()).byteLength,0);
+      assert.deepEqual(await (await fetch(stagedBase+'/api/hub/session')).json(),{user:null,mode:'production',capabilities:{uploads:false}});
+      assert.equal((await fetch(stagedBase+'/api/hub/auth/start',{redirect:'manual'})).status,503);
+      const response=await fetch(stagedBase+artifact.path);assert.equal(response.status,200);assert.equal(sha256(Buffer.from(await response.arrayBuffer())),artifact.sha256);
+      assert.equal((await fetch(stagedBase+artifact.path,{method:'HEAD'})).headers.get('content-length'),String(artifact.size));
+    } finally {await staged.close();}
+    const bytes=Buffer.from('concurrent object');
+    const puts=await Promise.all(Array.from({length:8},()=>storage.put(bytes)));
+    assert.equal(new Set(puts.map(item=>item.sha256)).size,1);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hub_objects WHERE digest=$1',[sha256(bytes)])).rows[0].n,1);
+    await denied(publishing,'UPDATE hub_objects SET bytes=$2 WHERE digest=$1',[sha256(bytes),Buffer.from('drift')]);
+    // Administrator-only fixture corruption verifies every read rehashes bytes.
+    await pool.query('ALTER TABLE hub_objects DISABLE TRIGGER hub_object_immutable');
+    try {await pool.query('UPDATE hub_objects SET bytes=$2 WHERE digest=$1',[sha256(bytes),Buffer.alloc(bytes.length,120)]);}
+    finally {await pool.query('ALTER TABLE hub_objects ENABLE TRIGGER hub_object_immutable');}
+    await assert.rejects(storage.read(sha256(bytes),bytes.length),/integrity drift/);
+    await apiHub.stop();
+  } finally {for(const principal of Object.values(principals))await principal.pool.end();}
+});

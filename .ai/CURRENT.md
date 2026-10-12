@@ -2,6 +2,14 @@
 
 Updated 2026-10-12. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
 
+## Active public-hosting phase
+
+Owner now authorizes orchestrating public ZeroHub, chooses Neon PostgreSQL and requires Vercel Marketplace provisioning/connection (no separate Neon login). Earlier local-only publication hold is superseded for this phase; primary funding changes remain protected. Existing Vercel Zero project prj_b8dDCbuiF8uzVcXYMLghpWTAr4aA, team_jKbtHZ7k3VeEdJKdqf2GOToE. Free Neon resource zerohub store_7SDARpYdaZmRY4z3 was provisioned through Vercel. Separate expired Neon CLI sign-in cancelled at owner's instruction. No hosted migrations or candidate execution yet.
+
+First deployment target is read-only public catalog via Vercel + Neon, with authoring closed until the existing checker gate and hosted execution/operations are resolved. Prepare restricted DB/runtime roles and immutable storage; Vercel owner credentials stay development/migration only, production gets a distinct limited login. See docs/ZEROHUB-HOSTING.md. Do not claim catalog-only staging completes the full upload goal.
+
+Read-only Sol/high hosting blueprint completed; one Sol/high service writer delivered API/pipeline/migration separation, DB adapter/grants and19actual PostgreSQL+3staging+3report cases. Coordinator owns website read-only adapter/capabilities, Vercel/Neon integration, actual deployment, docs/review. Independent new-hosting reviews pending; old checker review remains separate, no retry/bypass.
+
 ## Delivered
 
 ZeroHub consolidation is locally complete and independently reviewed: code19eaad7, tutorial clarity3d21d0b. Brand ZeroHub, frontend /hub and /hub/prepare, backend /api/hub. Everything is maintained in codepetca/zero; old Community catalog/Workshop/admission/editor actions and extra ZIP are removed without compatibility redirects. Useful libraries live in libraries/ with ordinary Java, explicit updates, MIT and source provenance. Student uploads remain database/artifact storage, not source folders in Zero.
