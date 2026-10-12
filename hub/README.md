@@ -8,7 +8,7 @@ existing public website/downloads and legacy Workshop remain unchanged.
 
 ## Student flow
 
-1. Open Community → Make a component. Sign in; choose a Java class name and title.
+1. Open Community → Make a library. Sign in; choose a Java class name and title.
 2. Download the project. The hub supplies a short namespace such as `zero.ui7`.
    Extract it and open the folder in Zero's VS Code profile. The standard build
    shortcut runs the editable preview; Maven config and wrapper are included.
@@ -76,6 +76,8 @@ npm test
 npm test --prefix website
 npm run typecheck --prefix website
 npm run build --prefix website
+# With your already-running local Next dev or production server:
+ZERO_HUB_TEST_WEBSITE=http://127.0.0.1:3177 node --test website/tests/hub-http.test.mjs
 ```
 
 The integration proof deliberately fails a submission, fixes/resubmits the same
@@ -105,9 +107,16 @@ review; that is separate from automatic component admission.
 
 ## Hosted activation is separate
 
-This is a local implementation, not an active public hub. Its full integration
-proof remains pending until the checker image can build/run on a working Docker
-engine. Database and website tests alone do not verify automatic publication. Hosted activation
+This is a local implementation, not an active public hub. The actual PostgreSQL,
+isolated JavaFX checker, automatic local publication, Maven consumers and
+Add/Update/Revert proof passed on 2026-10-12. A browser trial also passed local
+sign-in, project download, folder upload, listing and logout; the downloaded
+project ran on macOS. Production Next ZIP bytes and Maven gateway consumers were
+verified locally. See [delivery evidence](../docs/EVIDENCE.md).
+
+Independent compatibility review passed, but corrected checker security review
+is still incomplete because the reviewer provider rejected that assignment.
+Passing tests do not replace that review or authorize public activation. Hosted activation
 needs owner-authorized GitHub OAuth setup, a managed PostgreSQL database, durable
 artifact storage, and a dedicated hardened checker host. Vercel hosts the Next.js
 website; it does not run these Docker workers. The production service fails closed

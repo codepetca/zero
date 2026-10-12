@@ -1174,3 +1174,101 @@ hub/website preview processes and disposable database. Browser local sign-in
 was clicked and returned HTTP302, but authenticated UI was not observed;
 interactive preparation/upload/download remains pending. No source edits or
 additional reviewer launches after the elapsed review budget; no public action.
+
+
+## 2026-10-12 resumed hub verification — local flow passed, review gap remains
+
+Owner explicitly instructed “Override budget constraints and proceed.” Applied
+personal override-task-stops to this coordinator's agreed local hub build;
+workflow review/low-usage stops waived, cumulative counters retained. Provider
+execution limits, paused DeepSeek, acceptance checks and no-public-action scope
+remain. Latest code3b2f41a; all source writers stopped.
+
+Docker recovered by removing only five task-generated checker images and their
+reclaimable, unshared cache graph (including child references that kept truncated
+base snapshots alive). All 23 existing services/volumes preserved. Fresh pinned
+Temurin17/Noble base and trusted readiness built successfully. Final image
+sha256:f82f24e1929bce3cc3c2c8ed69bc28a8fa3ca47ac6cd8b0a33e6712746bf437c,
+policy digest295c8e3a08f6266a828a7e7b5263915da3c6ecefccaf954f23459a6dcd76c9e3.
+First recovered Docker suite5/6 exposed a JDK address-class initialization blocked
+by the completion guard. Trusted pre-initialization performs no network request
+and does not relax candidate permissions. Final actual Docker suite6/6 passed,
+122.69s; JDK stub proof14 bounded cases passed. Logs hub-docker-checks-fixed.log
+and hub-jvm-recovery.log remain ignored.
+
+Sol/high login/download worker (one new launch, bounded follow-ups) reproduced
+three real Next issues that native tests missed: Request.url normalized localhost
+and lost the 127.0.0.1 login cookie on absolute return redirect; ZIP Origin check
+used that normalized hostname; dynamic asset URLs duplicated Unix launcher bytes
+into Windows/properties files. Fixed root-relative approved redirects, strict
+canonical Origin/direct Host validation ignoring forwarded authority, and literal
+trusted asset URLs. Actual Next sign-in/session/logout and hostile-origin failures
+verified; real ZIP files now equal canonical11790/8481/255 bytes. Added opt-in
+actual HTTP regression, not a unit-only assertion. Production build HTTP test1/1
+passed at3178. No real account/OAuth credentials or public submissions used.
+
+Actual CUA browser trial with disposable PostgreSQL/local actor: sign-in -> reserve
+ui1/ScoreDisplay -> download ZIP -> edit ordinary Java (label style) -> select
+extracted folder -> upload -> all six gates passed -> locally listed -> inspect
+import/API/exact Maven pin -> logout. Downloaded ZIP preserves executable mvnw;
+its edited JavaFX preview compiled and passed a native Mac window/label/style
+check. Source/artifacts/screenshots and ZIPs retained under ignored
+hub-browser-recovery/. Browser trial uses a one-class editable scaffold; it does
+not imply the separately composed three-class package is publicly published.
+Owned preview processes/database/browser tab stopped; task-created downloads moved
+out of Downloads into this evidence directory.
+
+Full local hub proof passed in91.93s: failed compile -> corrected same unpublished
+0.1.0 -> immutable0.1.0 and0.1.1 -> exact study/coin-game consumers at
+0.1.0 ->0.1.1 ->0.1.0, actual loaded JAR/hash checks, extension's actual
+Add/Update/Revert engine plans, preserved original metadata. Three-class package
+contains StartScreen/Hud/ScoreDisplay. Receipt:
+.verification/hub-integration-recovered/receipt.json. Separate actual production
+Next gateway proof fetched the previously absent ui1 artifact and ran both native
+apps; cached JAR SHA256776310da0cd8dcff09a6374b61d906d2b34fa633bc603b15770e24963b9c433a
+matches the checked release. Receipt hub-proxy-integration/gateway-receipt.json.
+All owned gateway servers/disposable database stopped.
+
+Final root254/254 (210.27s), configuration/contracts/syntax/docs links passed.
+Website51passed/1opt-in HTTP skipped by default, typecheck/build passed; HTTP test
+ran separately and passed in production. Prior17actual PostgreSQL cases reused
+for unchanged service; no need to rerun them solely for a newer timestamp.
+
+Cumulative review ledger:7 reviewer turns/launches (2 initial complete, 3 failed
+Astra correction attempts, 2 completed Sol compatibility turns),1 initial full
+wave,5 targeted turns,4 code fix batches. Existing Astra/high passive checker
+review still rejected by provider's possible-cybersecurity-risk filter atd6023c8;
+no alternate-provider bypass or accepted corrected security review. Fresh Sol/high
+compatibility reviewed973daf1->d6023c8,20focused tests, found one provenP2 Java
+identifier-ignorable source-shadow case (trusted javac17 compiled to colliding
+binary name). Fixed comparison normalization with source-preservation regression
+at3b2f41a. Targeted independent compatibility review passed: complete assigned
+coverage,21focused tests plus8scanner cases, no blockers; checker security was
+explicitly excluded and remains incomplete. Earlier security/publisher coverage
+at973daf1 cannot certify the changed checker. Tests/self-review do not substitute.
+
+Four implementation launches total across this build; one writer per component,
+no conflicts or recursive delegation. Requested model/effort documented; effective
+model/effort, per-turn tokens/cost and active coordinator/reviewer seconds unknown.
+Weekly remaining76% originally and72% when override resumed are account allowance,
+not attributable task spend. No new goal/task/automation, push/PR/merge/deploy,
+public artifact publication, account changes or primary funding edits.
+
+Working local implementation, not accepted/public-ready until the missing
+independent checker review is obtained through a permitted path. Hosted OAuth,
+managed DB/storage/hardened workers/abuse operations are separate rollout work.
+Physical Windows/Linux/Intel, manual installed-editor hub and novice/physical-input
+flows remain untested. Native proofmacOS ARM64; container policyLinux ARM64.
+
+
+Final student-facing polish7d279a4: use readable six-stage check labels while
+retaining failed compiler/runtime details. Sol/high independent label-only delta
+review3b2f41a->7d279a4 passed with complete assigned coverage,0findings; earlier
+compatibility coverage reused. Actual browser search for Hud and expanded checks
+passed against a freshly checked/listed three-class package. Screenshot
+.verification/hub-final-ui/checked-hud.jpg. All owned servers/database/tab stopped.
+Cumulative ledger now8reviewer turns/launches (2initial complete,3failed Astra,
+3completed compatibility),6targeted turns,5code fix batches including UI polish.
+Waiver still applies; missing checker-security review unchanged. Backend/checker/
+Maven/native evidence at3b2f41a remains valid for unchanged code paths; label-only
+website types/tests/build verified separately. No public action.
