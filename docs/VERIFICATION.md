@@ -1052,3 +1052,10 @@ Owned Next3107, fixture15455/HTTP4117, catalog15457 and isolated browser stopped
 
 
 Receipt checkpointffe0502 completed an independent Luna/medium4-file review with0actionable factual inconsistencies. Reviewer read only the allowed local UI receipt/counts, confirmed history and limits, and did not review unchanged code or execute tools against hosts. Actual newerturn8/cumulative30 includes historical provider failures; prior owner task-scoped budget waiver applied to this bounded docs pass only. Effective model/tokens/cost/time unknown. Source CI38305503824 passed for3b16089. Coordinator added this factual completion record; application code and public production remain unchanged. Latest receipt-only branch-head CI may run after push; full goal remains active.
+
+
+## Public caching follow-up — 2026-10-12
+
+Source8dec22b: worker53focused,77website passes/2existing optionalHTTPskips/types/build; coordinator18focused, correction5cache cases and final production build passed. Hub○static/APIƒdynamic. Astra/high privacy and Sol/high compatibility reviewed complete11-file initial source plus2-file Keep-Alive correction;0remaining findings. Four newreviewturns/cumulative34 preserves prior failures and checker hold.
+
+Actual local production-build browser proof uses current read-only handler with fake SQL and known maintained public metadata/PNG; no auth/database/Java. Verified exactui1:0.1.0 details/POM, client navigation to latest and no-match search. Seven GET/HEAD probes verify public metadata60-second and immutableobject3600-second Vercel policy, private/session/missing-release no-store; screenshot inspected. First attempt against older public deployment lacked new exact-query support and returned400; proof switched to current fixture. Ignored cache-static-receipt.json/output/playwright/cache-static-exact.png under .verification/hub-controls. Owned Next3108/HTTP4118/browser stopped. These headers are not hosted CDN HIT/expiry or measured savings. Nothing deployed, credentials/billing unchanged, no size-cap proposal implemented; full public contribution goal/old review hold remains unfinished.
