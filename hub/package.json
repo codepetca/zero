@@ -15,6 +15,8 @@
     "publisher": "node service/publisher.mjs",
     "backup": "node service/backup-cli.mjs",
     "test:backup": "node --test service/backup.test.mjs service/backup-postgres.test.mjs",
+    "release:availability": "node service/release-availability-cli.mjs",
+    "test:availability": "node --test service/release-availability.test.mjs service/release-availability-postgres.test.mjs",
     "test:staging": "node --test service/staging.test.mjs"
   },
   "dependencies": {

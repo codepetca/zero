@@ -22,6 +22,13 @@ async function fixture(t) {
   const fetcher=async(url,options)=>{assert.equal(options.cache,'default');assert.equal(options.credentials,'omit');assert.equal(options.headers,undefined);return new Response(new URL(url).pathname==='/api/hub/catalog'?JSON.stringify(catalog):bytes.get(new URL(url).pathname));};
   const context=await hub.loadCatalog('http://127.0.0.1:3456',{fetcher});return{root,context,bytes,catalog,releases};
 }
+test('withdrawal during artifact verification cancels the response and leaves the student POM intact',async t=>{
+  const {root,context,releases}=await fixture(t);
+  const before=await fs.readFile(path.join(root,'pom.xml'),'utf8');let cancelled=false;
+  const withdrawn={...context,fetcher:async()=>new Response(new ReadableStream({cancel(){cancelled=true;}}),{status:410})};
+  await assert.rejects(hub.verifyRelease(withdrawn,releases[0]),/withdrawn.*app has not changed/);
+  assert.equal(cancelled,true);assert.equal(await fs.readFile(path.join(root,'pom.xml'),'utf8'),before);
+});
 test('independent library pins preserve app source and unrelated library; Update/Revert only own blocks',async t=>{
   const f=await fixture(t),pom=path.join(f.root,'pom.xml');
   let plan=await hub.planChange(f.root,f.context,f.releases[0]);await fs.writeFile(pom,plan.afterText);

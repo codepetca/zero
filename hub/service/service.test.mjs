@@ -11,6 +11,7 @@ import {createHub} from './hub.mjs';
 import {validateArtifacts,sha256} from './artifacts.mjs';
 import {REQUIRED_GATES} from './report.mjs';
 import {AUTH_LIMITS} from './auth-admission.mjs';
+import {EXACT_ARTIFACT_SQL} from './release-availability.mjs';
 
 const database=process.env.ZERO_HUB_TEST_DATABASE;
 if (!database) throw new Error('Use npm run test:postgres for a disposable real PostgreSQL fixture');
@@ -155,7 +156,7 @@ test('closed downloads select only the named release and preserve every artifact
           assert.equal(bytes.toString(),createHash(checksum).update(await readFile(path.join(root,artifact.sha256))).digest('hex')+'\n');
         } else assert.equal(sha256(bytes),artifact.sha256);
         assert.equal(response.headers.get('set-cookie'),null);assert.equal(response.headers.get('cache-control'),'public, max-age=31536000, immutable');
-        assert.deepEqual(queries,[{sql:'SELECT manifest FROM hub_releases WHERE library_id=$1 AND version=$2 LIMIT 1',args:[bundle.descriptor.libraryId,'0.1.0']}]);
+        assert.deepEqual(queries,[{sql:EXACT_ARTIFACT_SQL,args:[bundle.descriptor.libraryId,'0.1.0']}]);
         const head=await fetch(url,{method:'HEAD'});assert.equal(head.status,200);assert.equal(head.headers.get('content-length'),String(bytes.length));assert.equal((await head.arrayBuffer()).byteLength,0);
       }
     }
@@ -164,7 +165,7 @@ test('closed downloads select only the named release and preserve every artifact
     }
     queries.length=0;
     const missing=released.artifacts.jar.path.replaceAll('0.1.0','9.9.9');assert.equal((await fetch(target+missing)).status,404);
-    assert.deepEqual(queries,[{sql:'SELECT manifest FROM hub_releases WHERE library_id=$1 AND version=$2 LIMIT 1',args:[bundle.descriptor.libraryId,'9.9.9']}]);
+    assert.deepEqual(queries,[{sql:EXACT_ARTIFACT_SQL,args:[bundle.descriptor.libraryId,'9.9.9']}]);
   } finally {await new Promise(resolve=>closedServer.close(resolve));await closed.stop();}
 });
 

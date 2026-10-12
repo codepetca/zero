@@ -22,7 +22,7 @@ applies to Zero's implementation, not each student's library.
 | Admission and authentication housekeeping | Concurrent requests cannot exceed account/global limits; duplicate exact-source requests still work; expired sign-in material is removed in bounded batches with restricted credentials. | Local checks/source review complete; public capability remains closed. |
 | Public API and GitHub identity | Review and test a bounded request/cookie adapter, OAuth success/cancellation/replay/account changes, and ownership checks. Register the production application and store credentials privately only after its settings and integration are reviewable. | Local OAuth and authoring adapter/authentication budgets passed source review and local checks and CI38300981955; closed-download follow-up reviewed and CI38302470684 passed. App/hosted auth not provisioned or enabled. |
 | Isolated checking and publication | Obtain permitted independent checker acceptance; provision the execution host; verify candidate isolation, time/resource limits, one concurrent check, immutable image policy, role separation and separate publication. | Held by the existing review gap; no equivalent rejected review retries. |
-| Operations and student proof | Artifact/result storage limits, bounded catalog/polling, alerts, independent backup/restore, withdrawal controls and kill-switch proof; real sign-in through corrected/failed submission to published exact-version reuse. | Exact artifact lookup and bounded polling are locally reviewed; bounded discovery is locally reviewed and verified. Artifact/result budgets, backup/restore, alerts, withdrawal and full hosted journey remain required. |
+| Operations and student proof | Artifact/result storage limits, bounded catalog/polling, alerts, independent backup/restore, withdrawal controls and kill-switch proof; real sign-in through corrected/failed submission to published exact-version reuse. | Exact lookup, bounded polling/discovery, finite workers and private backup tools are locally reviewed. Withdrawal/event-preserving backups are locally verified and awaiting review. Artifact/result budgets, hosted backup/cache-removal policy, alerts and full hosted journey remain required. |
 | Public activation | Reviewed source and required CI pass; deploy with uploads initially closed, verify production configuration, then explicitly activate and verify the full student journey. | Catalog stays available throughout; PR26 remains draft. |
 
 Vercel remains the web/API host and Vercel-managed Neon remains the database.
@@ -124,4 +124,19 @@ checking process remain unconfigured.
 
 Local operating-control follow-up selects artifact releases by their primary key before verified stored-byte reads; malformed filenames cause noSQL. Status polling has one job/account budget,2–15second backoff,5-minute/25-attempt automatic cap,15-second response deadline, hidden/offline cancellation and one-shot manual Refresh. These are source/fixture checks, not hosted throughput/rate protection. Catalog discovery now returns at most20/2MiB per page, searches all latest releases and retains separately paginated immutable history. Exact release lookup remains available with uploads closed. The editor limits history downloads to500 releases/16MiB/30seconds; overflow gives website/manual instructions without truncating pins.
 
-Operating/discovery code through3b16089 has completed independent review and local verification. CI38303525610 and38304468383 passed earlier reviewed heads; CI38305503824 passed for3b16089. The local browser used inert fixture metadata/demo identity and no Java execution. Public deployment remains unchanged; result/artifact quotas, backup/restore, alerts, withdrawal, real OAuth and isolated-host acceptance remain prerequisites.
+Operating/discovery code through3b16089 has completed independent review and local verification. CI38303525610 and38304468383 passed earlier reviewed heads; CI38305503824 passed for3b16089. Finite-worker CI38310573906 and backup CI38312319015 also passed. The local browser used inert fixture metadata/demo identity and no Java execution. Public deployment remains unchanged; result/artifact quotas, hosted backup/cache-removal policy, alerts, real OAuth and isolated-host acceptance remain prerequisites.
+
+Append-only release withdrawal is now locally verified on PostgreSQL17/18,
+awaiting independent review. The trusted004 migration must precede deployment
+of the new API and format2 backups preserve its private audit events. Exact
+withdrawn metadata/artifacts/checksums return410/no-store without stored-byte
+reads; listing omits them, restoration resumes identical hashes, and pins never
+change automatically. See [release availability](../hub/service/README.md#release-availability).
+No hosted migration or withdrawal has occurred. Existing metadata/object edge
+TTLs, browser immutable caching and local Maven copies prevent immediate global
+revocation; a verified hosting removal procedure remains a separate gate.
+
+The owner's question about an independent review task is a clarification, not
+permission to repeat the provider-rejected checker assignment. A qualified
+external human can review that unchanged boundary without routine student
+acceptance work. No such reviewer or completed report is currently supplied.

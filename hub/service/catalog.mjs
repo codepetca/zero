@@ -1,4 +1,5 @@
 import {createHash} from 'node:crypto';
+import {RELEASE_AVAILABLE_SQL} from './release-availability.mjs';
 export const CATALOG_PAGE_SIZE=20;
 export const CATALOG_PAGE_BYTES=2*1024*1024;
 const idPattern=/^ui[1-9a-z][0-9a-z]{0,11}$/;
@@ -42,7 +43,7 @@ export async function catalogPage(pool,params,attribute) {
   // searching so an old matching description cannot appear as a latest release.
   const {rows}=await pool.query(`WITH cursor_key AS (SELECT $2::text AS id,$3::int[] AS numbers), versions AS (
     SELECT r.*,string_to_array(r.version,'.')::int[] AS numbers
-    FROM hub_releases r
+    FROM hub_releases r WHERE ${RELEASE_AVAILABLE_SQL}
   ), selected AS (
     ${history?'SELECT * FROM versions':`SELECT DISTINCT ON (library_id COLLATE "C") * FROM versions ORDER BY library_id COLLATE "C",numbers DESC`}
   )

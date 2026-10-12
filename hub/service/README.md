@@ -304,7 +304,7 @@ The CLI prints only counts and a checksum. It refuses mixed runtime/OAuth/Neon
 integration credentials and active-service flags.
 
 Export takes a consistent snapshot of users, libraries, source/history, results,
-releases and stored bytes. Sessions and OAuth states are omitted. The fixed
+releases, stored bytes and private release-availability events. Sessions and OAuth states are omitted. The fixed
 trusted schema fingerprint is versioned with the archive format; archives supply
 data only, never executable SQL. Known PostgreSQL17 and18 schemas are pinned
 separately; restore requires the archive's same-major schema. Transactions use
@@ -314,7 +314,7 @@ sequence state are preserved. The checksum detects corruption, not malicious
 rewriting by someone who can replace both data and checksum.
 
 Restore is deliberately a separate operator operation: prepare a fresh database
-with the trusted000–003 migrations, keep services/workers closed, then supply only
+with the trusted000–004 migrations, keep services/workers closed, then supply only
 `ZERO_HUB_RESTORE_DATABASE_URL` and `ZERO_HUB_RESTORE_ENABLED=1` before running
 `npm run backup --prefix hub -- restore /absolute/private/folder/snapshot.archive`.
 Every Hub table, including authentication, must be empty and the sequence unused.
@@ -339,3 +339,47 @@ explicitly enabled). Full local proof:
 then the same with major18. Both use disposable pinned PostgreSQL images and
 inert data only; neither executes Java or opens a public service. Hosted Neon
 export/cutover, operational retention and recovery timing remain separate gates.
+
+The current archive is format2/000–004. Format1/000–003 is deliberately rejected
+by this reader because it lacks release events. If an older private archive needs
+recovery, use the trusted prior backup implementation at018e3ab against a fresh
+000–003 database, verify that restore, then apply004 before using the new API.
+Never delete events or change fingerprints to force an archive to import.
+
+## Release availability
+
+An operator can withdraw or restore one exact release without rewriting its
+manifest, report or bytes. Use a separate private operator environment containing
+only `ZERO_HUB_MIGRATION_DATABASE_URL` and
+`ZERO_HUB_RELEASE_EVENTS_ENABLED=1`; runtime/OAuth credentials and active-service
+flags are refused. Save a short single-line reason in an owned regular mode600
+file. The Unix operator CLI rejects symlinks, public files, invalid UTF-8 and
+reasons above8000bytes. Neither the path nor the reason is logged.
+
+```sh
+npm run release:availability --prefix hub -- --library ui1 --version 0.1.0 --action withdrawn --reason-file /absolute/private/reason.txt
+```
+
+Use `--action restored` for restoration. Each state change appends an immutable
+event with the authenticated database session as actor. Repeating the latest
+action adds no event. The API can read only coordinates, revision and action;
+private reasons/actors/timestamps and all event writes remain operator-only.
+Checker/publisher roles have no event access. This is an operating control, not
+a per-library acceptance step for teachers.
+
+At the origin, a withdrawn exact version returns410/no-store for metadata,
+preview, JAR, sources, POM and checksums, including HEAD. It is omitted from
+catalog/history/search; a latest lookup may show an older available version.
+Exact requests and installed Maven pins never substitute versions. Restoration
+serves the original hashes. An editor download failure leaves the app unchanged.
+
+This does not revoke existing copies: metadata can remain at the edge for60s,
+objects for3600s, browser objects for1year and Maven caches indefinitely. Hosted
+cache removal/purge proof is still required for activation; origin410 alone is
+not immediate global removal.
+
+Apply trusted004 before deploying the new API; the old API tolerates the added
+table, while the new API requires it. No hosted migration has been performed.
+Local tests use inert seeded data only:
+`ZERO_HUB_RELEASE_PG_MAJOR=17 npm run test:availability --prefix hub`, then18.
+These start disposable PostgreSQL fixtures and never run candidate Java.

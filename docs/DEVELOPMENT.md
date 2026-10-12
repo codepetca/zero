@@ -177,6 +177,8 @@ All source is in Zero; no sibling repository is required:
 python3 scripts/verify-starter-ui.py
 python3 scripts/verify-health-bars.py
 npm run test:postgres --prefix hub
+ZERO_HUB_RELEASE_PG_MAJOR=17 npm run test:availability --prefix hub
+ZERO_HUB_RELEASE_PG_MAJOR=18 npm run test:availability --prefix hub
 node --test hub/checker/test/validation.test.mjs
 ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs
 npm run verify:hub -- --output .verification/hub-proof
@@ -185,3 +187,7 @@ npm run verify:hub -- --output .verification/hub-proof
 The library proofs check the real JAR and native consumers. The ZeroHub integration proof checks failed/corrected submissions, immutable releases and Add/Update/Revert across both study/game consumers. Run [the local service and website](../hub/README.md) for browser prepare/download/upload/listing checks. Local identity is a demo, not GitHub OAuth.
 
 ZeroHub platform code gets independent source review. Uploaded libraries use trusted automated minimum checks without routine maintainer acceptance. Do not run submitted commands on the host; candidate Java belongs in the isolated checker. Public hosting and the outstanding checker review are separate rollout gates.
+
+Private backup/restore and release withdrawal are operator tools, documented in
+[the service guide](../hub/service/README.md#private-operator-backups). They are
+not student package acceptance or an alternative to the held checker review.

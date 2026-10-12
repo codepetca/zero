@@ -16,7 +16,8 @@ const tables=[
   ['hub_submissions',['id','library_id','owner_id','version','bundle','source_digest','status','attempts','lease_token','lease_until','error','created_at'],['text','text','text','text','json','text','text','int','text','time','text','time'],['id']],
   ['hub_results',['submission_id','source_digest','policy','policy_digest','passed','report','jar','sources','pom','artifact_hashes','created_at'],['text','text','text','text','bool','json','bytes','bytes','bytes','json','time'],['submission_id']],
   ['hub_releases',['library_id','version','submission_id','manifest','created_at'],['text','text','text','json','time'],['library_id','version']],
-  ['hub_objects',['digest','size','bytes','created_at'],['text','int','bytes','time'],['digest']]
+  ['hub_objects',['digest','size','bytes','created_at'],['text','int','bytes','time'],['digest']],
+  ['hub_release_events',['library_id','version','revision','action','reason','actor','created_at'],['text','text','int','text','text','text','time'],['library_id','version','revision']]
 ];
 const allTables=[...tables.map(t=>t[0]),'hub_sessions','hub_oauth_states'];
 const fixedNames=allTables.map(n=>`'${n}'`).join(',');
@@ -34,10 +35,10 @@ export const SCHEMA_SQL=`SELECT kind,name,definition FROM (
  UNION ALL SELECT 'sequence','hub_library_number',json_build_array(s.seqtypid::regtype::text,s.seqstart::text,s.seqincrement::text,s.seqmax::text,s.seqmin::text,s.seqcache::text,s.seqcycle)::text FROM pg_sequence s WHERE s.seqrelid='public.hub_library_number'::regclass
 ) schema ORDER BY kind COLLATE "C",name COLLATE "C",definition COLLATE "C"`;
 export const SCHEMA_FINGERPRINTS=Object.freeze({
-  17:'63180d0721790c1edc862932bcad88f1aa05f233d4b08484287952e1c2cf03f0',
+  17:'3d424b82c905b3efe76fb9f00c5619d42ad346d04d10355a72b1eb52df1972d8',
   // PostgreSQL18 additionally catalogs named NOT NULL constraints. Both hashes
-  // come from the same trusted000–003 migrations on pinned database fixtures.
-  18:'af4cd92b0bddfcd4e7b3cd0e36fe88409cc97d45376888b3847c6c7f328d42e3'
+  // come from the same trusted000–004 migrations on pinned database fixtures.
+  18:'97bf1d64ee8d802bd2ca60102a614f8e93939b2c10749adfc430296cbab622d4'
 });
 async function schema(client) {
   const {rows:[version]}=await client.query("SELECT current_setting('server_version_num')::int/10000 AS major");
@@ -45,7 +46,7 @@ async function schema(client) {
   const {rows}=await client.query(SCHEMA_SQL);
   if(hash(JSON.stringify(rows))!==expected)fail();return expected;
 }
-const archiveHeader=fingerprint=>['zero-hub-private-backup',1,'000-003',fingerprint,'auth-excluded'];
+const archiveHeader=fingerprint=>['zero-hub-private-backup',2,'000-004',fingerprint,'auth-excluded'];
 function budget(limits) {
   // Callers may lower ceilings for tests/operations, never expand them.
   const use={...ARCHIVE_LIMITS};
@@ -223,7 +224,7 @@ export async function restoreBackup({pool,file,enabled=false,limits}) {
         }
         if(!Array.isArray(record)||record.length!==3||record[0]!=='row'||!Number.isInteger(record[1])||record[1]<lastTable||record[1]>=tables.length)fail();
         const index=record[1],table=tables[index],row=values(table,record[2]);
-        const key=table[3].map(c=>row[table[1].indexOf(c)]);
+        const key=table[3].map(c=>{const i=table[1].indexOf(c),value=row[i];return table[2][i]==='int'&&Number.isInteger(value)?String(value):value;});
         if(key.some(v=>typeof v!=='string'))fail();
         if(index===lastTable&&lastKey){let compare=0;for(let k=0;k<key.length&&!compare;k++)compare=Buffer.compare(Buffer.from(key[k]),Buffer.from(lastKey[k]));if(compare<=0)fail();}
         lastTable=index;lastKey=key;

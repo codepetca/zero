@@ -8,6 +8,7 @@ import {githubJson} from './oauth-client.mjs';
 import {admitOAuthStart,admitSession} from './auth-admission.mjs';
 import {artifactRoute} from './artifact-route.mjs';
 import {catalogPage,canonicalHubQuery} from './catalog.mjs';
+import {EXACT_ARTIFACT_SQL,RELEASE_ACTION_SQL,RELEASE_AVAILABLE_SQL,WITHDRAWN_MESSAGE} from './release-availability.mjs';
 
 const BASE = '/api/hub';
 const GROUP = 'ca.codepet.zero.library';
@@ -213,7 +214,8 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
   async function serveArtifact(req,res,requestPath) {
     const route=artifactRoute(requestPath);
     if (!route) throw problem(404,'Artifact not found');
-    const {rows:[row]}=await pool.query('SELECT manifest FROM hub_releases WHERE library_id=$1 AND version=$2 LIMIT 1',[route.libraryId,route.version]);
+    const {rows:[row]}=await pool.query(EXACT_ARTIFACT_SQL,[route.libraryId,route.version]);
+    if(row?.release_action==='withdrawn')throw problem(410,WITHDRAWN_MESSAGE);
     const artifact=route.kind==='preview'?row?.manifest?.preview:row?.manifest?.artifacts?.[route.kind];
     if (!artifact || requestPath!==artifact.path+(route.checksum?`.${route.checksum}`:'')) throw problem(404,'Artifact not found');
     const original = await (await storage()).read(artifact.sha256,artifact.size);
@@ -236,7 +238,8 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
       if (['GET','HEAD'].includes(req.method) && libraryMatch) {
         canonicalHubQuery(url,`libraries/${libraryMatch[1]}`);
         const version=url.searchParams.get('version');
-        const {rows:[row]}=await pool.query("SELECT r.manifest,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id WHERE r.library_id=$1 AND ($2::text IS NULL OR r.version=$2) ORDER BY string_to_array(r.version,'.')::int[] DESC LIMIT 1",[libraryMatch[1],version]);
+        const {rows:[row]}=await pool.query(`SELECT r.manifest,${RELEASE_ACTION_SQL} AS release_action,u.github_id AS contributor_id,u.login AS contributor_login FROM hub_releases r JOIN hub_submissions s ON s.id=r.submission_id JOIN hub_users u ON u.github_id=s.owner_id WHERE r.library_id=$1 AND ($2::text IS NULL OR r.version=$2) AND ($2::text IS NOT NULL OR ${RELEASE_AVAILABLE_SQL}) ORDER BY string_to_array(r.version,'.')::int[] DESC LIMIT 1`,[libraryMatch[1],version]);
+        if(row?.release_action==='withdrawn')throw problem(410,WITHDRAWN_MESSAGE);
         if (!row) throw problem(404,'Library release not found'); return json(res,200,attributedRelease(row),req.method==='HEAD');
       }
       const submissionMatch=route.match(/^\/api\/hub\/submissions\/([a-f0-9-]{36})$/);
@@ -248,7 +251,7 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
         return json(res,route.endsWith('/libraries')?201:202,route.endsWith('/libraries')?await reserveLibrary(actor.user,input):await submit(actor.user,input));
       }
       throw problem(404,'Hub endpoint not found');
-    } catch (error) { if (!res.headersSent) json(res,error.status??503,{error:safeError(error)}); else res.destroy(); }
+    } catch (error) { if (!res.headersSent) json(res,error.status??503,{error:safeError(error)},req.method==='HEAD'); else res.destroy(); }
   }
   return {handler,migrate,workOnce,publishOnce,drain,startWorkers,stop,reserveLibrary,submit,getSubmission,catalog};
 }

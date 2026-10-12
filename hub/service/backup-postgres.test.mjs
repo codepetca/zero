@@ -11,7 +11,7 @@ import {migrateDatabase} from './database.mjs';
 import {createRuntimePool} from './runtime.mjs';
 import {exportBackup,restoreBackup,SCHEMA_SQL,SCHEMA_FINGERPRINTS} from './backup.mjs';
 const sha=value=>createHash('sha256').update(value).digest('hex');
-const names=['hub_users','hub_libraries','hub_submissions','hub_results','hub_releases','hub_objects'];
+const names=['hub_users','hub_libraries','hub_submissions','hub_results','hub_releases','hub_objects','hub_release_events'];
 const id='11111111-1111-4111-8111-111111111111';
 async function snapshot(pool) {
   const data=[];
@@ -49,6 +49,7 @@ test('private backup PostgreSQL proof',{skip:process.env.ZERO_HUB_BACKUP_PG_TEST
     const bytes=Buffer.from([0,1,2,127,128,255,10,13]);
     await source.query('INSERT INTO hub_results(submission_id,source_digest,policy,policy_digest,passed,report,jar,sources,pom,artifact_hashes) VALUES($1,$2,$3,$4,true,$5,$6,$7,$8,$9)',[id,sha(bundle),'inert-policy',sha('inert-policy'),' {"inert":true,"large":9007199254740993}',bytes,Buffer.from('exact inert source'),Buffer.from('inert pom'),' {"jar":"'+sha(bytes)+'"}']);
     await source.query("INSERT INTO hub_releases(library_id,version,submission_id,manifest) VALUES('ui1','1.0.0',$1,$2)",[id,'{"contributor":{"githubId":"101","login":"OriginalOwner"},"version":"1.0.0"}']);
+    for(const [revision,action]of [[1,'withdrawn'],[2,'restored'],[10,'withdrawn']])await source.query("INSERT INTO hub_release_events(library_id,version,revision,action,reason,actor,created_at) VALUES('ui1','1.0.0',$1,$2,'inert private audit note','original-operator','2026-10-01 01:02:03.123456+00')",[revision,action]);
     await source.query('INSERT INTO hub_objects(digest,size,bytes) VALUES($1,$2,$3)',[sha(bytes),bytes.length,bytes]);
     await source.query("INSERT INTO hub_sessions VALUES('private-token','101','private-csrf','2030-01-01')");
     await source.query("INSERT INTO hub_oauth_states VALUES('private-state','private-binding','2030-01-01')");
@@ -57,7 +58,7 @@ test('private backup PostgreSQL proof',{skip:process.env.ZERO_HUB_BACKUP_PG_TEST
     await t.test('trusted schema fingerprint and private output permissions',async()=>{
       const major=Number(process.env.ZERO_HUB_BACKUP_PG_MAJOR??17);
       assert.equal(sha(JSON.stringify((await source.query(SCHEMA_SQL)).rows)),SCHEMA_FINGERPRINTS[major]);
-      const exported=await exportBackup({pool:source,file});assert.deepEqual(exported.counts,[1,1,4,1,1,1]);assert.match(exported.sha256,/^[a-f0-9]{64}$/);
+      const exported=await exportBackup({pool:source,file});assert.deepEqual(exported.counts,[1,1,4,1,1,1,3]);assert.match(exported.sha256,/^[a-f0-9]{64}$/);
       assert.equal((await stat(file)).mode&0o777,0o600);assert.equal((await stat(root)).mode&0o777,0o700);
       const archive=await readFile(file,'utf8');assert.equal(archive.includes('private-token'),false);assert.equal(archive.includes('private-state'),false);
       await assert.rejects(exportBackup({pool:source,file}));
@@ -72,7 +73,7 @@ test('private backup PostgreSQL proof',{skip:process.env.ZERO_HUB_BACKUP_PG_TEST
     }
     await t.test('malformed, truncated, cross-schema, unknown and corrupt binary archives roll back every row',async()=>{
       await malformed('truncated',text=>text.slice(0,text.lastIndexOf('\n',text.length-2)+1));
-      await malformed('bad-version',(_,r)=>{r[0][1]=2;return r.map(JSON.stringify).join('\n')+'\n';});
+      await malformed('bad-version',(_,r)=>{r[0][1]=1;return r.map(JSON.stringify).join('\n')+'\n';});
       await malformed('bad-schema',(_,r)=>{r[0][3]='0'.repeat(64);return r.map(JSON.stringify).join('\n')+'\n';});
       await malformed('cross-major',(_,r)=>{r[0][3]=SCHEMA_FINGERPRINTS[Number(process.env.ZERO_HUB_BACKUP_PG_MAJOR??17)===17?18:17];return r.map(JSON.stringify).join('\n')+'\n';});
       await malformed('bad-digest',(_,r)=>{r.at(-1)[3]='0'.repeat(64);return r.map(JSON.stringify).join('\n')+'\n';});
