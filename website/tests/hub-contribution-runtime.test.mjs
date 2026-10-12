@@ -40,6 +40,7 @@ test('runtime role guard precedes creation and rejects privilege mismatch',async
 });
 
 test('canonical routes and exact, bounded query allowlists reject ambiguity',async()=>{
+  for(const query of ['error_uri='+ 'x'.repeat(2049),'error_uri=one&error_uri=two'])assert.equal((await call('auth/callback?'+query,{},noCall)).status,400);
   for(const path of ['catalog?unknown=1','auth/start?state=1','auth/callback?state=1&state=2','auth/callback?code='+ 'x'.repeat(513),'auth/callback?error_description='+ 'x'.repeat(2049),'auth/callback?state=%00','libraries/ui1?version=latest','libraries/ui1?version=1.0.0&version=2.0.0'])assert.equal((await call(path,{},noCall)).status,400,path.slice(0,80));
   for(const parts of [['..'],['catalog/'],['catalog%2f'],['unknown']])assert.equal((await contributionHubResponse(request('catalog'),parts,{env,handler:noCall})).status,404);
   assert.equal((await contributionHubResponse(request('%63atalog'),['catalog'],{env,handler:noCall})).status,400);
@@ -109,7 +110,9 @@ test('actual hub handler receives session, CSRF mutations and OAuth cancellation
   const session=await call('session',{headers:{Cookie:`zero_hub_session=${token}`}},handler);assert.equal(session.status,200);assert.equal((await session.json()).csrfToken,csrf);
   const missing=await call('logout',{method:'POST',headers:{Cookie:`zero_hub_session=${token}`,'Content-Type':'application/json'},body:'{}'},handler);assert.equal(missing.status,403);assert.ok(!queries.some(sql=>sql.startsWith('DELETE FROM hub_sessions')));
   const logout=await call('logout',{method:'POST',headers:{Origin:origin,'X-Zero-CSRF':csrf,Cookie:`zero_hub_session=${token}`,'Content-Type':'application/json'},body:'{}'},handler);assert.equal(logout.status,200);assert.deepEqual(logout.headers.getSetCookie(),[cookie('zero_hub_session','')]);
-  const cancelled=await call('auth/callback?state='+token+'&error=access_denied',{headers:{Cookie:`zero_hub_oauth=${binding}`}},handler);assert.equal(cancelled.status,403);assert.deepEqual(cancelled.headers.getSetCookie(),[cookie('zero_hub_oauth','')]);
+  const cancelled=await call('auth/callback?state='+token+'&error=access_denied&error_description=Cancelled&error_uri='+encodeURIComponent('https://docs.github.com/apps/oauth-apps'),{headers:{Cookie:`zero_hub_oauth=${binding}`}},handler);assert.equal(cancelled.status,403);assert.deepEqual(cancelled.headers.getSetCookie(),[cookie('zero_hub_oauth','')]);
+  assert.ok(queries.some(sql=>sql.startsWith('DELETE FROM hub_oauth_states')));
+  assert.equal(cancelled.headers.get('location'),null);assert.doesNotMatch(await cancelled.text(),/docs\.github\.com/);
   const invalid=await call('auth/callback?state=invalid',{},handler);assert.equal(invalid.status,403);assert.deepEqual(invalid.headers.getSetCookie(),[cookie('zero_hub_oauth','')]);
 });
 

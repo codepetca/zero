@@ -106,3 +106,22 @@ test('turning capability off blocks queued writes and auth before any active han
   }
   assert.equal((await fixture.pool.query('SELECT count(*)::int AS n FROM hub_libraries')).rows[0].n,0);
 });
+
+test('documented GitHub cancellation parameters consume state and clear only the temporary cookie',async()=>{
+  const actor=await signIn();
+  const before=await(await call('session',actor)).json();
+  const started=await call('auth/start');
+  const pending=started.headers.getSetCookie()[0].split(';')[0];
+  const state=new URL(started.headers.get('location')).searchParams.get('state');
+  const uri=encodeURIComponent('https://docs.github.com/apps/oauth-apps/maintaining-oauth-apps/troubleshooting-authorization-request-errors');
+  const callback=`auth/callback?state=${state}&error=access_denied&error_description=The%20user%20denied%20access&error_uri=${uri}`;
+  const response=await call(callback,{cookie:pending+'; '+actor.cookie});
+  assert.equal(response.status,403);assert.equal(response.headers.get('location'),null);
+  assert.deepEqual(response.headers.getSetCookie(),['zero_hub_oauth=; Path=/api/hub; HttpOnly; SameSite=Lax; Max-Age=0; Secure']);
+  assert.doesNotMatch(await response.text(),/docs\.github\.com|test-secret|fake-provider-token/);
+  assert.equal((await fixture.pool.query('SELECT count(*)::int AS n FROM hub_oauth_states')).rows[0].n,0);
+  assert.deepEqual(await(await call('session',actor)).json(),before);
+  assert.equal(providerCalls,2,'Cancellation must not exchange credentials or request a profile');
+  const replay=await call(callback,{cookie:pending+'; '+actor.cookie});assert.equal(replay.status,403);
+  assert.deepEqual(await(await call('session',actor)).json(),before);
+});

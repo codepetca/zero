@@ -60,7 +60,9 @@ async function configuredRuntime(config) {
 
 function canonicalQuery(url,path) {
   if(url.search.length>8192)throw new Error('Invalid query');
-  const allowed=path==='auth/callback'?new Set(['code','state','error','error_description']):/^libraries\/ui[1-9a-z][0-9a-z]*$/.test(path)?new Set(['version']):new Set();
+  // GitHub includes error_uri on cancellation/error callbacks. It is bounded
+  // data only: the controller ignores it, never follows or renders the URI.
+  const allowed=path==='auth/callback'?new Set(['code','state','error','error_description','error_uri']):/^libraries\/ui[1-9a-z][0-9a-z]*$/.test(path)?new Set(['version']):new Set();
   const seen=new Set();
   for(const [name,value] of url.searchParams) {
     if(!allowed.has(name)||seen.has(name)||value.length>2048||/[\x00-\x1f\x7f]/.test(value))throw new Error('Invalid query');
