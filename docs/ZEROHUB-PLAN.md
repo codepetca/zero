@@ -7,6 +7,13 @@ for the new hub. It does not authorize deployment, publication of current local
 artifacts, automatic source-repository merges or disabling existing implementation
 guards. The hub/checker/publisher are implemented and verified locally. The owner separately authorized the public catalog on 2026-10-12: it is available at https://zero.codepet.ca/hub through Vercel and Neon, with maintained Starter UI0.1.0. Public contribution activation and the outstanding independent checker review remain separate gates.
 
+Owner decision, 2026-10-12: retain open automated contribution, reject a lifetime
+contributor storage or library-count cap, and give Zero's owners and designated
+maintainers final authority to archive or remove hosted content. The authoritative
+[contribution and curation policy](ZEROHUB-POLICY.md) distinguishes normal archiving
+from removal and retains the existing MIT contribution model. This policy update
+does not activate public uploads or change runtime admission yet.
+
 ## Student identity and flow
 
 Student chooses a component class name. The hub assigns a short permanent library
@@ -63,6 +70,35 @@ can summarize/explain findings; it is not required to grant publication authorit
 Usage signals, recommendations and reporting/deprecation can improve discovery
 after minimum compliance. Core/editor/framework repository changes retain their
 separate source review and owner-authorized publication workflow.
+
+## Curation and capacity follow-up
+
+1. Remove the local cumulative 16 MiB source-per-account guard and the 100
+   lifetime-library-reservations guard. Drop the proposed 10 MB contributor cap;
+   do not replace these with another lifetime contributor allowance. Retain
+   temporary request/rate/queue and per-upload execution controls.
+2. Select and enforce a shared capacity budget covering retained submissions,
+   results and stored objects, with actual database usage monitoring. Reserve
+   capacity for in-flight publication so concurrent work cannot overfill storage.
+   Pause new work when capacity is unavailable; do not automatically delete
+   published versions. The proposed 128 MB global and 1 MB complete-version
+   figures are not approved by the curation decision.
+3. Add owner/maintainer-only archiving with a clear direct-link status. Hide
+   archived content from normal discovery; retain exact downloads where
+   practical. Verify that it does not alter bytes, ownership or installed pins.
+4. Provide deliberate removal and reclamation with trusted operator authority,
+   a recorded actor/action and dependency-impact information where available.
+   Reuse existing withdrawal for denying reads where appropriate; it currently
+   retains all bytes and is not physical removal. Verify cache handling, useful
+   unavailable responses and permanent published-coordinate reservations.
+5. Use aggregate usage signals or reports to assist curation. Do not introduce
+   an automatic inactivity/deletion rule or per-library human admission queue.
+   Owners and designated maintainers retain final discretion.
+
+These items are planned, not delivered by saving the policy. Local source review,
+required tests and the existing hosted activation gates still apply. No new
+maintainer UI, role, deletion job, schema migration or public capability is added
+in this documentation change.
 
 ## Consolidation and next evidence
 

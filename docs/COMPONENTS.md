@@ -26,6 +26,19 @@ Several HUDs or health bars can coexist as separate libraries. A related set of 
 
 `libraries/starter-ui/` and `libraries/health-bars/` are maintained sample bundles, separate from core APIs. Starter UI is published as `ui1:0.1.0`; the health-bar bundle is not published in ZeroHub yet. Maintained source is never published merely by editing a folder. [Starter UI proof](STARTER-UI-PACKAGE.md) and [the hub contract](../hub/CONTRACT.md) describe the boundaries.
 
+## Open contribution and curation
+
+There is no lifetime contributor storage or library-count allowance in the
+approved product policy. Passing supported libraries publish automatically;
+Zero's owners and designated maintainers may later archive, hide or remove any
+content at their discretion, including unused or redundant libraries. Normal
+archiving hides discovery while preserving exact downloads where practical;
+removal may stop downloads. Neither silently changes installed versions.
+See [the policy](ZEROHUB-POLICY.md) and
+[implementation follow-up](ZEROHUB-PLAN.md#curation-and-capacity-follow-up).
+Current local lifetime admission guards remain pending removal; this is not a
+claim of deployed archive/removal controls.
+
 ## Current availability
 
 The public catalog supports browsing and exact Maven downloads. The complete contribution journey runs locally; public GitHub sign-in and uploads remain closed until the independent checker-security review, isolated hosted workers and operating controls are complete. Local demo identity is only a test. Pika assignment submission remains a separate repository-link workflow.

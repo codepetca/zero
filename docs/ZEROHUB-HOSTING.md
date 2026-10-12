@@ -17,6 +17,15 @@ Browsing, imports and exact version pins stay simple. No routine teacher or
 maintainer package acceptance is added. The source-development review below
 applies to Zero's implementation, not each student's library.
 
+The owner approved [open contribution and curation](ZEROHUB-POLICY.md) on
+2026-10-12. Drop lifetime per-contributor storage and library-count quotas; retain
+technical/rate/queue controls and a shared capacity safeguard. Owners and
+designated maintainers may archive or remove hosted content at their discretion.
+The existing local 16 MiB cumulative account-source and 100 lifetime-reservation
+guards must be removed in the planned follow-up. Archiving, physical reclamation
+and final global/artifact/result numbers are not implemented by this policy.
+See [the ordered follow-up](ZEROHUB-PLAN.md#curation-and-capacity-follow-up).
+
 | Phase | Exit evidence | Current state |
 | --- | --- | --- |
 | Admission and authentication housekeeping | Concurrent requests cannot exceed account/global limits; duplicate exact-source requests still work; expired sign-in material is removed in bounded batches with restricted credentials. | Local checks/source review complete; public capability remains closed. |
@@ -110,7 +119,7 @@ The maintainer-only `scripts/bootstrap-hub.mjs --preview <actual-preview.png>` p
 
 Deploy only a clean snapshot of the reviewed tracked source. `.vercelignore` excludes private verification, credentials and generated build caches; confirm the actual `vercel deploy --dry --format=json` source list before uploading. Production contains the API URL only, never bootstrap checker/publisher or migration credentials.
 
-Neon free-tier restore/compute/storage limits are not a backup policy. Before uploads open, establish independent private exports and test restore, expired-session cleanup, one concurrent checker, per-account/global queue/storage quotas, pagination, queue/error alerts, a kill switch and append-only withdrawal controls. Do not enable unlimited polling and assume an idle database still sleeps.
+Neon free-tier restore/compute/storage limits are not a backup policy. Before uploads open, establish independent private exports and test restore, expired-session cleanup, one concurrent checker, temporary per-account/global queue controls and shared storage capacity safeguards, pagination, queue/error alerts, a kill switch and append-only withdrawal controls. Do not enable unlimited polling and assume an idle database still sleeps.
 
 Local operator backup/restore tooling uses consistent private data snapshots and
 transactional import into a freshly migrated empty database, preserving exact

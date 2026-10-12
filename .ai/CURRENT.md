@@ -12,6 +12,19 @@ Owner authorized public ZeroHub, Neon through Vercel Marketplace, and implementa
 
 Public auth/reservations/uploads and generic workers stay closed. The earlier provider-rejected generic Java checker source review remains missing: do not retry/bypass its equivalent assignment, substitute self-tests/new unrelated reviews or claim acceptance. The owner's question whether this means another task was a clarification, not authorization to repeat it. No qualified external reviewer/report is supplied. Isolated execution host, real GitHub OAuth app credentials, global single-checker control and full hosted student journey remain unconfigured/unverified. Owner task-scoped budget waiver covers workflow/usage stops only, not correctness, execution or permissions.
 
+Owner policy decision2026-10-12: open automated contributions; no lifetime
+contributor storage or library-count allowance. The proposed10MB/account cap is
+rejected. Zero owners/designated maintainers have final authority to archive,
+hide or remove hosted content, including unused/redundant contributions.
+Canonical policy docs/ZEROHUB-POLICY.md; ordered follow-up docs/ZEROHUB-PLAN.md.
+Current runtime16MiB cumulative account-source and100lifetime reservations must
+be removed in follow-up; temporary rate/queue/technical controls and shared
+capacity remain. Archive normally hides discovery, removal may deny downloads
+and reclaim bytes; maintainers decide, no automatic inactivity deadline.
+Policy/plan docs only now: no runtime/schema/UI/capability change. Persistent
+public-contribution goal is blocked by existing launch inputs; this policy work
+is separately authorized. Never describe the policy as deployed controls.
+
 Owner wants free operation without traffic/compute plan upgrades. Vercel team verified active Hobby; Neon free_v3 through Vercel. No billing/paid hosting changes. Smaller library/total-storage numeric caps remain unapproved proposals; do not silently enforce them or promise unlimited free availability. Do not assume free GitHub Actions permits a generic execution backend.
 
 ## Public delivery
@@ -34,9 +47,9 @@ Sol/high writer delivered/stopped; coordinator owns all integration now. Append-
 
 Writer13availability cases/51 inherited PostgreSQL cases used inert/mock checks only. Coordinator added private-file guard/regression, scripts/CI/docs;14availability cases passed on EACH PostgreSQL17.11/18.6 (9actual-role cases+5unit/CLI). Updated backups16cases passed on EACH17/18 with private events. Coordinator14editor/catalog cases, configuration/doclinks,77website passes/2existing optional skips, types/build passed. All owned fixtures stopped. No candidate Java, hosted schema/operator actions or installed-editor release occurred.
 
-Astra/high privacy/authority and Sol/high compatibility/recovery completed the entire22-file ae64c6e..70264f7 delta: zero actionable findings,8 and19 isolated checks respectively. Reused root actual PostgreSQL17/18 and website proof; no runtime or old checker review. Two phase review turns/one initial wave/zero fix batches, cumulative40. Retain draft. Storage/result budgets await the pending product choice; health source is accepted; targeted cache-tag source is accepted, while remaining backup/removal policy and required hosted proof remain incomplete. The new question proposes1MB/version,10MB/contributor,128MBtotal; no answer/approval yet, so no new numeric limits implemented.
+Astra/high privacy/authority and Sol/high compatibility/recovery completed the entire22-file ae64c6e..70264f7 delta: zero actionable findings,8 and19 isolated checks respectively. Reused root actual PostgreSQL17/18 and website proof; no runtime or old checker review. Two phase review turns/one initial wave/zero fix batches, cumulative40. Retain draft. Storage/result budgets await the pending product choice; health source is accepted; targeted cache-tag source is accepted, while remaining backup/removal policy and required hosted proof remain incomplete. Owner chose discussion, then rejected lifetime contributor caps and approved curation. New complete-version/global numeric budgets remain undecided; no new numeric limits implemented.
 
-Origin withdrawal is not worldwide revocation: metadata edge60s, object edge3600s, browser objects1year, local Maven copies indefinite. The targeted native removal runbook is prepared; actual deployed tagged-cache withdrawal remains unproved. Windows/Linux/Intel/novice/manual editor, real OAuth/Neon streaming/CDN timing, isolated checking and full hosted contribution journey remain untested. Full goal is active and unfinished.
+Origin withdrawal is not worldwide revocation: metadata edge60s, object edge3600s, browser objects1year, local Maven copies indefinite. The targeted native removal runbook is prepared; actual deployed tagged-cache withdrawal remains unproved. Windows/Linux/Intel/novice/manual editor, real OAuth/Neon streaming/CDN timing, isolated checking and full hosted contribution journey remain untested. Full goal is blocked and unfinished.
 
 ## Accepted aggregate-health phase
 
@@ -54,4 +67,4 @@ Root is sole writer; no implementation worker. Bounded public library tag covers
 
 Root verified exact Zero project/team binding; CLI54.17.2 accepted native foreground deletion for zero-hub-library-ui1,zero-hub-catalog. Current deployed source predates tags; published maintained JAR6802bytes/SHA776310da0cd8dcff09a6374b61d906d2b34fa633bc603b15770e24963b9c433a identical before/after, observedMISS→HIT. This proves provider/operator access only, NOT taggedHIT removal, expiry or hosted withdrawal. Receipt ignored .verification/hub-controls/cache-removal-*/receipt.json. No credentials/data/schema/deployment/withdrawal changes; only requested ephemeral tag deletion. Native runbook documents event→delete→exact410/catalog verification and client-copy limits.
 
-Complete eight-file34c45eb5dbfc1f32fcede6f9aa30cf108735de6f..4077dd8ee4510cefb8ded9c88fd32c619097324b passed one independent GPT-6.1-Sol/high standard review with zero actionable findings. Reviewer read guidance, all changed files and immediate callers; seven isolated cache tests passed, actual PostgreSQL/website proof reused. Phase one actual turn/one initial wave/zero fixes; cumulative43 retains three historical provider-filter failures. Requested model/effort known; effective configuration/time/tokens unknown. Source pushed and CI38318782410 passed. Coordinator acceptance notes only follow source review. Keep draft/unmerged; actual tagged-withdrawal drill waits for reviewed deployment after existing gates. Storage choice remains unanswered, external checker review still missing; public authoring remains closed.
+Complete eight-file34c45eb5dbfc1f32fcede6f9aa30cf108735de6f..4077dd8ee4510cefb8ded9c88fd32c619097324b passed one independent GPT-6.1-Sol/high standard review with zero actionable findings. Reviewer read guidance, all changed files and immediate callers; seven isolated cache tests passed, actual PostgreSQL/website proof reused. Phase one actual turn/one initial wave/zero fixes; cumulative43 retains three historical provider-filter failures. Requested model/effort known; effective configuration/time/tokens unknown. Source pushed and CI38318782410 passed. Coordinator acceptance notes only follow source review. Keep draft/unmerged; actual tagged-withdrawal drill waits for reviewed deployment after existing gates. Lifetime-contributor policy is now settled; global/artifact/result numbers and external checker review remain missing; public authoring remains closed.

@@ -159,6 +159,14 @@ executing it and verifies preparation, exact retries, account boundaries,
 CSRF/origin, cancellation, logout and the closed capability. It is also in CI.
 It does not establish real hosted OAuth or accept the excluded execution gate.
 
+The following table describes current implementation, not the newly approved
+[open-contribution policy](../../docs/ZEROHUB-POLICY.md). The 16 MiB cumulative
+account-source allowance and 100 lifetime library reservations conflict with that
+policy and are scheduled for removal. Temporary rate/queue controls remain;
+shared retained-data capacity, archiving and physical reclamation need the
+[planned follow-up](../../docs/ZEROHUB-PLAN.md#curation-and-capacity-follow-up).
+No runtime admission code changes in this documentation update.
+
 API admission uses a fixed shared policy before persisting new reservations or
 source. Transactions take one global advisory lock before row locks, so concurrent
 API instances cannot independently pass the same account/global allowance.

@@ -66,7 +66,7 @@ preparation assembles editable copies into the standalone starter. Review shared
 in more than one app before cohort adoption. The extraction examples remain useful
 lessons; shared components now use the local ZeroHub versioned-library flow.
 
-The local ZeroHub flow consumes exact Maven library versions. Students develop a downloaded ordinary Java preview project, then upload source, API, tests and examples. Isolated automated checks and a separate publisher list passing immutable versions without routine maintainer approval. All platform and maintained sample source lives in Zero. See [component architecture](COMPONENTS.md).
+The local ZeroHub flow consumes exact Maven library versions. Students develop a downloaded ordinary Java preview project, then upload source, API, tests and examples. Isolated automated checks and a separate publisher list passing immutable versions without routine maintainer approval. All platform and maintained sample source lives in Zero. See [component architecture](COMPONENTS.md). ZeroHub keeps contributions open without a lifetime contributor storage or library-count allowance. Zero owners and designated maintainers have final authority to curate, archive or remove hosted content after publication; see [the contribution policy](ZEROHUB-POLICY.md). Technical checks and shared capacity controls remain.
 
 The first dogfooding pass deliberately uses the existing framework. App-specific
 navigation and question rules stay in Main; Question stores question data and
