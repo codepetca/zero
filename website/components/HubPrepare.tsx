@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
-import {folderBundle,validateUploadBundle,publishedSubmission} from '@/lib/hub-client.mjs';
+import {checkLabel,folderBundle,validateUploadBundle,publishedSubmission} from '@/lib/hub-client.mjs';
 import type {HubRelease} from './HubDiscovery';
 type Bundle = {descriptor:{libraryId:string;version:string;[key:string]:unknown};files:Record<string,string>};
 type Session = {mode:string;user:null|{id:string;login:string};csrfToken?:string};
@@ -36,7 +36,7 @@ export function HubPrepare() {
       {job&&<section aria-live="polite"><h2>3. Check result</h2><p>Submission <code>{job.id}</code>: <strong>{job.status}</strong>{polling?' · Checking status…':''}</p>
         {job.error&&<p className="hub-error">{job.error}</p>}
         {job.report?.error&&<p className="hub-error">{job.report.error}</p>}
-        {job.report?.checks&&<ul>{job.report.checks.map(check=><li key={check.id}>{check.passed?'Passed':'Failed'}: {check.detail}</li>)}</ul>}
+        {job.report?.checks&&<ul>{job.report.checks.map(check=><li key={check.id}>{check.passed?'Passed':'Failed'}: {checkLabel(check.id)}{!check.passed&&`: ${check.detail}`} </li>)}</ul>}
         {job.report?.platforms&&<p>Checked platforms: {job.report.platforms.join(', ')}</p>}
         {publishedSubmission(job)&&job.release&&<p>Listed: {job.release.title} {job.release.version}. <a href="/community">View library components</a></p>}
         {!polling&&<button className="text-button" disabled={busy} onClick={()=>action(async()=>{setJob(await api(`submissions/${encodeURIComponent(job.id)}`));})}>Refresh result</button>}

@@ -1,3 +1,8 @@
+export function checkLabel(id) {
+  const labels={bundle:'Library files', 'fixed-build':'Java compilation', api:'Component API',
+    behavior:'Behavior check', first:'First example', second:'Second example'};
+  return Object.hasOwn(labels,id)?labels[id]:'Check';
+}
 export function previewPath(release) {
   const expected = `/api/hub/previews/${release.libraryId}/${release.version}.png`;
   return /^ui[1-9a-z][0-9a-z]*$/.test(release.libraryId) && /^\d+\.\d+\.\d+(?:-[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*)?$/.test(release.version) && release.preview?.path === expected ? expected : null;

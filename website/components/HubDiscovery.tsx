@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {useSearchParams} from 'next/navigation';
-import { dependencySnippet, previewPath, selectedLibraries } from '@/lib/hub-client.mjs';
+import {checkLabel, dependencySnippet, previewPath, selectedLibraries } from '@/lib/hub-client.mjs';
 export type HubComponent = {className:string;description:string;api:string[];usage:string};
 export type HubRelease = {status:'automatically-checked';libraryId:string;version:string;title:string;description:string;namespace:string;components:HubComponent[];platforms:string[];checks:{id:string;passed:boolean;detail:string}[];coordinate:{groupId:string;artifactId:string;version:string};preview:{path:string}};
 export function HubDiscovery() {
@@ -22,7 +22,7 @@ export function HubDiscovery() {
         return <article className="component-choice" key={`${library.libraryId}-${component.className}`}><h3>{component.className}</h3><p>{component.description}</p><p className="component-meta">In {library.title} · {library.libraryId} · {library.version}</p>
           {preview && <img className="hub-preview" src={preview} alt={`${library.title} component preview`} loading="lazy" />}
           <details><summary>Use this component</summary><p>Add this exact library version to your app’s pom.xml. Components in this library share the same dependency.</p><pre><code>{snippet}</code></pre><pre><code>{`import ${library.namespace}.${component.className};\n\n${component.usage}`}</code></pre><pre><code>{component.api.join('\n')}</code></pre></details>
-          <details><summary>Automatically checked</summary><p>Checked platforms: {library.platforms.join(', ') || 'No platform reported'}. Java 17 · JavaFX 21.0.12 · MIT.</p><ul>{library.checks.map(check=><li key={check.id}>{check.passed?'Passed':'Failed'}: {check.detail}</li>)}</ul><p className="fine-print">These checks cover the declared APIs, source boundaries and two consumer apps. They do not establish every behavior or compatibility with other platforms.</p></details>
+          <details><summary>Automatically checked</summary><p>Checked platforms: {library.platforms.join(', ') || 'No platform reported'}. Java 17 · JavaFX 21.0.12 · MIT.</p><ul>{library.checks.map(check=><li key={check.id}>{check.passed?'Passed':'Failed'}: {checkLabel(check.id)}{!check.passed&&`: ${check.detail}`} </li>)}</ul><p className="fine-print">These checks cover the declared APIs, source boundaries and two consumer apps. They do not establish every behavior or compatibility with other platforms.</p></details>
         </article>;
       }))}</div>
       {!catalog.libraries.length && <p>No libraries have passed the local hub checks yet.</p>}
