@@ -17,11 +17,12 @@ import {verifyRole} from '../../hub/service/db-role.mjs';
 import * as policy from '../../hub/checker/policy.mjs';
 import {hubPath} from './hub-proxy.mjs';
 import {readOnlyHubResponse, runtimeConfiguration} from './hub-runtime.mjs';
+import {mavenStream} from './hub-stream.mjs';
+export {MAVEN_CHUNK_BYTES} from './hub-stream.mjs';
 
 export const INPUT_LIMIT=1024*1024;
 export const OUTPUT_LIMIT=4*1024*1024;
 export const BODY_TIMEOUT_MS=5000;
-export const MAVEN_CHUNK_BYTES=64*1024;
 const fail=(status,message)=>Response.json({error:message},{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const unavailable=()=>fail(503,'ZeroHub is unavailable. Try again shortly.');
 const disabled=()=>{throw new Error('Checking and publication are unavailable in this HTTP runtime');};
@@ -151,31 +152,6 @@ function safeRedirect(value,path,{origin,oauth}) {
   throw new Error('Unsafe redirect');
 }
 
-/** The service has already verified full stored size/digest before this runs.
- * Copy each small chunk so delivered chunks cannot retain the full stored object.
- * Zero queued chunks: reading controls pulls; completion/cancel drops the source.
- */
-function mavenStream(verifiedBytes,signal) {
-  let source=verifiedBytes,offset=0,onAbort;
-  verifiedBytes=null; // Keep only the releasable source reference in this closure.
-  const release=()=>{source=null;signal.removeEventListener('abort',onAbort);};
-  return new ReadableStream({
-    start(controller){
-      onAbort=()=>{release();controller.error(new Error('Hub transfer was cancelled.'));};
-      signal.addEventListener('abort',onAbort,{once:true});
-      if(signal.aborted)onAbort();
-    },
-    pull(controller){
-      if(!source)return;
-      const next=Math.min(offset+MAVEN_CHUNK_BYTES,source.length);
-      controller.enqueue(Uint8Array.from(source.subarray(offset,next)));
-      offset=next;
-      if(offset===source.length){release();controller.close();}
-    },
-    cancel(){release();}
-  },{highWaterMark:0});
-}
-
 export async function contributionHubResponse(request,parts,{env=process.env,handler,bodyTimeoutMs=BODY_TIMEOUT_MS}={}) {
   let config;
   try {config=contributionConfiguration(env);}catch{return unavailable();}
@@ -226,9 +202,11 @@ export async function contributionHubResponse(request,parts,{env=process.env,han
     const type=values.get('content-type');
     if(typeof type!=='string'||!(path.startsWith('previews/')&&status<300&&type==='image/png'||/^application\/json(?:;\s*charset=utf-8)?$/i.test(type)||artifact&&status<300&&/^(application\/(java-archive|octet-stream|xml)|text\/(plain|xml))(?:;\s*charset=utf-8)?$/i.test(type)))return unavailable();
     if(path.startsWith('previews/')&&status<300&&(type!=='image/png'||bytes&&request.method!=='HEAD'&&(bytes.length<8||![137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v))))return unavailable();
+    const responseLimit=/^application\/json\b/i.test(type)?Math.min(outputLimit,OUTPUT_LIMIT):outputLimit;
+    if(bytes&&bytes.length>responseLimit)return unavailable();
     output.set('Content-Type',type);
     const length=values.get('content-length');
-    if(length!==undefined){if(typeof length!=='string'||!/^\d+$/.test(length)||Number(length)>outputLimit||request.method!=='HEAD'&&Number(length)!==(bytes?.length??0))return unavailable();output.set('Content-Length',length);}
+    if(length!==undefined){if(typeof length!=='string'||!/^\d+$/.test(length)||Number(length)>responseLimit||request.method!=='HEAD'&&Number(length)!==(bytes?.length??0))return unavailable();output.set('Content-Length',length);}
     if(artifact&&status<300&&values.get('cache-control')==='public, max-age=31536000, immutable')output.set('Cache-Control','public, max-age=31536000, immutable');
     if(request.method==='GET'&&path.startsWith('maven/')&&status<300&&![204,205].includes(status)) {
       if(!bytes?.length)return unavailable();

@@ -140,26 +140,31 @@ test('enabled exact origin rejects aliases before reading cookies or POST bodies
   assert.equal((await contributionHubResponse(alias,['catalog'],{env:{ZERO_HUB_UPLOADS:'0'},handler:json})).status,200);
 });
 
-test('verified Maven streams bounded chunks with exact hashes, lengths and cancellation',async()=>{
+test('upload kill-switch preserves verified Maven hashes, bounds, cancellation and HEAD',async()=>{
   const path='maven/ca/codepet/zero/library/ui1/1.0.0/ui1-1.0.0.jar';
   const makeHandler=bytes=>(_,res)=>{res.writeHead(200,{'Content-Type':'application/java-archive','Content-Length':bytes.length,'Cache-Control':'public, max-age=31536000, immutable'});res.end(bytes);};
-  for(const size of [OUTPUT_LIMIT+123,MAX_OBJECT_BYTES]) {
-    const original=Buffer.alloc(size,42),expected=createHash('sha256').update(original).digest('hex');
-    const response=await call(path,{},makeHandler(original));
-    assert.equal(response.status,200);assert.equal(response.headers.get('content-length'),String(size));assert.match(response.headers.get('cache-control'),/immutable/);
-    const reader=response.body.getReader(),hash=createHash('sha256');let count=0,total=0;
-    for(;;){const {value,done}=await reader.read();if(done)break;assert.ok(value.byteLength>0&&value.byteLength<=MAVEN_CHUNK_BYTES);total+=value.byteLength;count++;hash.update(value);}
-    assert.ok(count>1);assert.equal(total,size);assert.equal(hash.digest('hex'),expected);
+  for(const flag of ['0','1']) {
+    const options={env:{...env,ZERO_HUB_UPLOADS:flag}};
+    for(const size of [OUTPUT_LIMIT+1,MAX_OBJECT_BYTES]) {
+      const original=Buffer.alloc(size,42),expected=createHash('sha256').update(original).digest('hex');
+      const response=await call(path,{},makeHandler(original),options);
+      assert.equal(response.status,200);assert.equal(response.headers.get('content-length'),String(size));assert.match(response.headers.get('cache-control'),/immutable/);
+      const reader=response.body.getReader(),hash=createHash('sha256');let count=0,total=0;
+      for(;;){const {value,done}=await reader.read();if(done)break;assert.ok(value.byteLength>0&&value.byteLength<=MAVEN_CHUNK_BYTES);total+=value.byteLength;count++;hash.update(value);}
+      assert.ok(count>1);assert.equal(total,size);assert.equal(hash.digest('hex'),expected);
+    }
+    const boundary=Buffer.alloc(MAX_OBJECT_BYTES,43);
+    const cancelled=await call(path,{},makeHandler(boundary),options);
+    const reader=cancelled.body.getReader();assert.equal((await reader.read()).value.byteLength,MAVEN_CHUNK_BYTES);
+    await reader.cancel();assert.equal((await reader.read()).done,true);
+    const abort=new AbortController();
+    const interrupted=await call(path,{signal:abort.signal},makeHandler(boundary),options);
+    const abortReader=interrupted.body.getReader();assert.equal((await abortReader.read()).value.byteLength,MAVEN_CHUNK_BYTES);abort.abort();
+    await assert.rejects(abortReader.read(),/cancelled/);
+    const head=await call(path,{method:'HEAD'},(_,res)=>{res.writeHead(200,{'Content-Type':'application/java-archive','Content-Length':MAX_OBJECT_BYTES});res.end();},options);assert.equal(head.body,null);assert.equal(head.headers.get('content-length'),String(MAX_OBJECT_BYTES));
+    assert.equal((await call(path,{},makeHandler(Buffer.alloc(MAX_OBJECT_BYTES+1)),options)).status,503);
+    assert.equal((await call(path,{method:'HEAD'},(_,res)=>{res.writeHead(200,{'Content-Length':MAX_OBJECT_BYTES+1,'Content-Type':'application/java-archive'});res.end();},options)).status,503);
   }
-  const boundary=Buffer.alloc(MAX_OBJECT_BYTES,43);
-  const cancelled=await call(path,{},makeHandler(boundary));
-  const reader=cancelled.body.getReader();assert.equal((await reader.read()).value.byteLength,MAVEN_CHUNK_BYTES);
-  await reader.cancel();assert.equal((await reader.read()).done,true);
-  const abort=new AbortController();
-  const interrupted=await call(path,{signal:abort.signal},makeHandler(boundary));
-  const abortReader=interrupted.body.getReader();assert.equal((await abortReader.read()).value.byteLength,MAVEN_CHUNK_BYTES);abort.abort();
-  await assert.rejects(abortReader.read(),/cancelled/);
-  const head=await call(path,{method:'HEAD'},(_,res)=>{res.writeHead(200,{'Content-Type':'application/java-archive','Content-Length':MAX_OBJECT_BYTES});res.end();});assert.equal(head.body,null);assert.equal(head.headers.get('content-length'),String(MAX_OBJECT_BYTES));
 });
 
 

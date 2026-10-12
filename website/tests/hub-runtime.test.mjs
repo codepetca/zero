@@ -4,7 +4,7 @@ import {readOnlyHubResponse,runtimeConfiguration} from '../lib/hub-runtime.mjs';
 const request=(path,method='GET')=>new Request(`https://zero.codepet.ca/api/hub/${path}`,{method,headers:{Cookie:'zero_hub_session=private; other=secret'}});
 test('embedded runtime closes authoring before database, cookies or body handling',async()=>{
   for(const[path,method]of [['auth/start','GET'],['auth/callback','GET'],['libraries','POST'],['submissions','POST'],['submissions/123','GET'],['logout','POST']]) {
-    const response=await readOnlyHubResponse(request(path,method),path.split('/'),{handler:()=>assert.fail('Authoring reached service')});assert.equal(response.status,503);
+    const response=await readOnlyHubResponse(request(path,method),path.split('/'),{handler:()=>assert.fail('Authoring reached service')});assert.equal(response.status,503);assert.equal(response.headers.get('set-cookie'),null);
   }
 });
 test('read-only Node adapter forwards only canonical path and preserves catalog and HEAD headers',async()=>{
@@ -27,4 +27,12 @@ test('runtime requires its restricted direct connection and never falls back to 
  assert.throws(()=>runtimeConfiguration({ZERO_HUB_ORIGIN:origin,ZERO_HUB_API_DATABASE_URL:'postgresql://api:private@ep-db-pooler.neon.tech/db'}),/direct/);
  assert.throws(()=>runtimeConfiguration({ZERO_HUB_ORIGIN:'http://zero.codepet.ca',ZERO_HUB_API_DATABASE_URL:'postgresql://api:private@ep-db.neon.tech/db'}),/HTTPS/);
  assert.equal(runtimeConfiguration({ZERO_HUB_ORIGIN:origin,ZERO_HUB_API_DATABASE_URL:'postgresql://api:private@ep-db.neon.tech/db'}).origin,origin);
+});
+
+
+test('read-only response limits follow JSON, preview and immutable Maven contracts',async()=>{
+  for(const [path,limit,type]of [['catalog',4*1024*1024,'application/json'],['previews/ui1/1.0.0.png',256*1024,'image/png'],['maven/ca/codepet/zero/library/ui1/1.0.0/ui1-1.0.0.jar',16*1024*1024,'application/java-archive'],['maven/ca/codepet/zero/library/ui1/1.0.0/ui1-1.0.0.jar',4*1024*1024,'application/json']]) {
+    const response=await readOnlyHubResponse(request(path),path.split('/'),{handler:(_,res)=>{res.writeHead(200,{'Content-Type':type,'Set-Cookie':'private'});res.end(Buffer.alloc(limit+1));}});
+    assert.equal(response.status,503);assert.equal(response.headers.get('set-cookie'),null);
+  }
 });
