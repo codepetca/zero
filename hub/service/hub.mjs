@@ -6,6 +6,7 @@ import {scaffoldBundle} from './scaffold.mjs';
 import {lockAdmission,admitReservation,admitSubmission} from './admission.mjs';
 import {githubJson} from './oauth-client.mjs';
 import {admitOAuthStart,admitSession} from './auth-admission.mjs';
+import {artifactRoute} from './artifact-route.mjs';
 
 const BASE = '/api/hub';
 const GROUP = 'ca.codepet.zero.library';
@@ -210,18 +211,15 @@ export function createHub({pool,storageRoot,storage:storageAdapter,checker,origi
     res.writeHead(302,{Location:'/hub/prepare','Cache-Control':'no-store'}); res.end();
   }
   async function serveArtifact(req,res,requestPath) {
-    const {rows}=await pool.query('SELECT manifest FROM hub_releases');
-    for (const {manifest} of rows) {
-      for (const [kind,artifact] of [...Object.entries(manifest.artifacts),['preview',manifest.preview]]) {
-        const checksum = kind !== 'preview' && (requestPath === artifact.path + '.sha256' ? 'sha256' : requestPath === artifact.path + '.sha1' ? 'sha1' : null);
-        if (artifact.path !== requestPath && !checksum) continue;
-        const original = await (await storage()).read(artifact.sha256,artifact.size);
-        const data = checksum ? Buffer.from(createHash(checksum).update(original).digest('hex') + '\n') : original;
-        res.writeHead(200,{'Content-Type':checksum?'text/plain; charset=utf-8':kind==='preview'?'image/png':kind==='pom'?'application/xml; charset=utf-8':'application/java-archive','Content-Length':data.length,'Cache-Control':'public, max-age=31536000, immutable','X-Content-Type-Options':'nosniff'});
-        return res.end(req.method === 'HEAD' ? undefined : data);
-      }
-    }
-    throw problem(404,'Artifact not found');
+    const route=artifactRoute(requestPath);
+    if (!route) throw problem(404,'Artifact not found');
+    const {rows:[row]}=await pool.query('SELECT manifest FROM hub_releases WHERE library_id=$1 AND version=$2 LIMIT 1',[route.libraryId,route.version]);
+    const artifact=route.kind==='preview'?row?.manifest?.preview:row?.manifest?.artifacts?.[route.kind];
+    if (!artifact || requestPath!==artifact.path+(route.checksum?`.${route.checksum}`:'')) throw problem(404,'Artifact not found');
+    const original = await (await storage()).read(artifact.sha256,artifact.size);
+    const data = route.checksum ? Buffer.from(createHash(route.checksum).update(original).digest('hex') + '\n') : original;
+    res.writeHead(200,{'Content-Type':route.checksum?'text/plain; charset=utf-8':route.kind==='preview'?'image/png':route.kind==='pom'?'application/xml; charset=utf-8':'application/java-archive','Content-Length':data.length,'Cache-Control':'public, max-age=31536000, immutable','X-Content-Type-Options':'nosniff'});
+    return res.end(req.method === 'HEAD' ? undefined : data);
   }
   async function handler(req,res) {
     try {

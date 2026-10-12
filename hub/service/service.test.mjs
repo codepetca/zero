@@ -133,6 +133,41 @@ test('passing trusted result publishes immutable exact bytes; catalog retains ve
   await assert.rejects(pool.query('DELETE FROM hub_releases WHERE submission_id=$1',[job.id]),/immutable/);
 });
 
+test('closed downloads select only the named release and preserve every artifact and checksum',async()=>{
+  const {bundle}=await reserve();
+  const job=await hub.submit(alice,bundle);await hub.drain();
+  const released=(await hub.getSubmission(alice,job.id)).release;
+  const next=structuredClone(bundle);next.descriptor.version='0.1.1';await hub.submit(alice,next);await hub.drain();
+  const other=await reserve(bob);await hub.submit(bob,other.bundle);await hub.drain();
+  const queries=[];
+  const boundedPool={query:async(sql,args)=>{queries.push({sql,args});return pool.query(sql,args);},connect:()=>pool.connect()};
+  const closed=createHub({pool:boundedPool,storageRoot:root,checker,origin,uploadsEnabled:false});
+  const closedServer=http.createServer(closed.handler);await new Promise(resolve=>closedServer.listen(0,'127.0.0.1',resolve));
+  const target=`http://127.0.0.1:${closedServer.address().port}`;
+  try {
+    for(const [kind,artifact] of [...Object.entries(released.artifacts),['preview',released.preview]]) {
+      for(const checksum of kind==='preview'?[null]:[null,'sha256','sha1']) {
+        queries.length=0;
+        const url=target+artifact.path+(checksum?'.'+checksum:'');
+        const response=await fetch(url);assert.equal(response.status,200);
+        const bytes=Buffer.from(await response.arrayBuffer());
+        if(checksum) {
+          assert.equal(bytes.toString(),createHash(checksum).update(await readFile(path.join(root,artifact.sha256))).digest('hex')+'\n');
+        } else assert.equal(sha256(bytes),artifact.sha256);
+        assert.equal(response.headers.get('set-cookie'),null);assert.equal(response.headers.get('cache-control'),'public, max-age=31536000, immutable');
+        assert.deepEqual(queries,[{sql:'SELECT manifest FROM hub_releases WHERE library_id=$1 AND version=$2 LIMIT 1',args:[bundle.descriptor.libraryId,'0.1.0']}]);
+        const head=await fetch(url,{method:'HEAD'});assert.equal(head.status,200);assert.equal(head.headers.get('content-length'),String(bytes.length));assert.equal((await head.arrayBuffer()).byteLength,0);
+      }
+    }
+    for(const url of [released.artifacts.jar.path.replace(/[^/]+$/,`other-0.1.0.jar`),released.artifacts.jar.path+'.zip',released.preview.path+'.sha256']) {
+      queries.length=0;assert.equal((await fetch(target+url)).status,404);assert.equal(queries.length,0);
+    }
+    queries.length=0;
+    const missing=released.artifacts.jar.path.replaceAll('0.1.0','9.9.9');assert.equal((await fetch(target+missing)).status,404);
+    assert.deepEqual(queries,[{sql:'SELECT manifest FROM hub_releases WHERE library_id=$1 AND version=$2 LIMIT 1',args:[bundle.descriptor.libraryId,'9.9.9']}]);
+  } finally {await new Promise(resolve=>closedServer.close(resolve));await closed.stop();}
+});
+
 test('public contributor follows authenticated numeric identity and rename without changing a release',async()=>{
   const {bundle,libraryId}=await reserve();const job=await hub.submit(alice,bundle);await hub.drain();
   const expected={githubId:alice.id,login:alice.login};

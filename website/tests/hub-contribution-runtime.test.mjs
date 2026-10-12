@@ -172,7 +172,7 @@ test('actual hub finishes stored size and digest verification before Maven strea
   const path='maven/ca/codepet/zero/library/ui1/1.0.0/ui1-1.0.0.jar';
   const original=Buffer.alloc(OUTPUT_LIMIT+99,44),digest=createHash('sha256').update(original).digest('hex');let corrupt=false;
   const manifest={artifacts:{jar:{path:'/api/hub/'+path,size:original.length,sha256:digest}},preview:{path:'/unused-preview',size:1,sha256:digest}};
-  const pool={query:async(sql)=>{if(sql==='SELECT manifest FROM hub_releases')return {rows:[{manifest}]};if(sql.startsWith('SELECT bytes FROM hub_objects'))return {rows:[{bytes:corrupt?Buffer.alloc(original.length,45):original}]};assert.fail('Unexpected database dispatch');},connect:async()=>assert.fail()};
+  const pool={query:async(sql,args)=>{if(sql==='SELECT manifest FROM hub_releases WHERE library_id=$1 AND version=$2 LIMIT 1'){assert.deepEqual(args,['ui1','1.0.0']);return {rows:[{manifest}]};}if(sql.startsWith('SELECT bytes FROM hub_objects'))return {rows:[{bytes:corrupt?Buffer.alloc(original.length,45):original}]};assert.fail('Unexpected database dispatch');},connect:async()=>assert.fail()};
   const handler=createHub({pool,storage:createPostgresStorage(pool),checker:{...policy,checkSubmission:async()=>assert.fail(),expectedPolicyDigest:()=>assert.fail()},origin,oauth:{clientId:'test-client',clientSecret:'test-secret'},uploadsEnabled:true}).handler;
   const response=await call(path,{},handler);assert.equal(response.status,200);assert.equal(createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'),digest);
   corrupt=true;
