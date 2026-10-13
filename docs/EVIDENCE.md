@@ -2430,3 +2430,16 @@ Strict native local9manifest validated; it stays on an unpublished candidate bra
 so main preserves published8Mac download. Measured metadata review/seal next.
 Mac interactive unlock question unanswered; no GUIretry,9publication or Windows
 trial claimed. Existing Keychain signer/notary profile reused, no credential changes.
+
+Independent measured-native Sol/medium reviewturn30 completed at3c0ed2e, no
+findings. Reviewer independently validated strictmanifest/source-equivalence,
+actual hashes/size/kit/signature/AppleSHA and ran read-only signedinstaller checks
+including botharchitecture signatures, payload/modes, staple and Gatekeeper.
+release:prepare:mac sealed exactsource/bytes atdist/candidates/mac-0.5.9-3c0ed2e24ae4;
+allSHA256SUMS pass. DraftPR41 retains localmanifest9 and is not to merge before
+publication/promoted URL; production stayspublishedMac8. Sourceb206 READY
+production exactmetadata verified; publicMac8/kit8 links remain.0.5.9 notpublished.
+RemainingMacwalkthrough needsmanualunlock; questionunanswered, no GUIretry.
+Candidatepreparation3c/sourcef7 are authoritative forpublishing, not final local
+handoffHEAD. Fullgoal/providerhold persists. Detailed finalstate is ignored
+.verification/release-0.5.9/release-state.json.

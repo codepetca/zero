@@ -1623,3 +1623,9 @@ bytes/modes and Gatekeeper app/DMG CLI assessments. All receipts in ignored
 .verification/release-0.5.9/. Native local9manifest is not public/main metadata.
 No9release, native editor click-through or fresh-machine result claimed. Mac
 unlock reply is pending; physical Windows and student trials remain deferred.
+
+Candidate review30 independently passed metadata/source/hash and actualsigned
+verification. Sealedcandidate mac-0.5.9-3c0ed2e24ae4 and allchecksums pass.
+Nativecandidate draftPR41 is local/unmerged; public8downloads preserved on READY
+b206 production. No9release orphysicalMaceditorwalkthrough claimed. Manualunlock
+confirmation pending; Windows/studenttrials deferred.
