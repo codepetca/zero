@@ -1,5 +1,8 @@
 # Set up Zero
 
+This MVP supports Mac with Apple Silicon and Windows. Linux and Intel Macs are
+unsupported.
+
 The native Mac0.5.7 setup automatically prepares Java and a separate quiet editor.
 Use **Set up Zero**, then **Open Zero**; later use **Open Zero.command** in your
 home Zero folder. The instructions below describe the ZIP/manual launchers and
@@ -13,9 +16,6 @@ Documents. On a school laptop, your teacher or IT may need to install software.
 - **Windows:** double-click `Setup.cmd`.
 - **Mac:** double-click `Setup.command`. If macOS blocks the file, follow your
   school's approved process or ask your teacher. Do not disable security controls.
-- **Linux:** open a terminal in the extracted kit and run `bash setup/setup.sh`.
-  Setup checks your tools and links to official downloads. Your teacher/IT can
-  help choose your distribution's installation method.
 
 Setup first shows what is ready and what needs attention. Choose install help
 only for tools you need: a compatible **VS Code** and a **JDK 17 or newer** run your apps.
