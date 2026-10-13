@@ -1841,3 +1841,31 @@ Receipts sharing-registry-setup-receipt.json/sharing-registry-live-cas.json.
 Blob ETag/immutable delivery, backup restoration, actual Actions activation,
 installed-editor/physical Windows/novice trials remain outstanding. No Neon
 deletion or existing immutable asset mutation; full goal remains incomplete.
+
+
+### Targeted acceptance and real Blob proof — 2026-10-13
+
+Astra/high sharing_final_source_review completed all20files of
+e21673794d41e3451af0f80e1e1fe66dd87fc2b3..2ed7eb3a531e5a2c2fea32b8374e3de5730b2c39
+and immediate callers: no actionable findings, both cumulative blockers closed.
+Review inspected exact HEAD/clean tree/diff and reused relevant passed checks.
+Ledger8reviewturns/1initialwave/4targetedpasses/1cumulativewave/4fixbatches; effective
+configuration/reviewer token deltas/elapsed unknown. Unchanged cumulative coverage
+plus this complete delta covers source2ed7eb3; factual receipts follow.
+
+Owner completed Vercel passkey check in Chrome. Existing dedicated-store token
+read privately into ignored mode0600 file, hidden again in browser; no new account
+credential or website access grant. Actual pinned Blob adapter proved anonymous
+public bytes/API ETag agreement, identical retry, changed collision refusal, bad
+hash cleanup refusal, wrong conditional ETag deletion refusal, isolated inert
+backup restoration and completed-upload/lost-response recovery. Three owned
+staging objects (62bytes each) verified and conditionally removed. No final
+release/catalog bytes removed. Receipt sharing-blob-live-proof.json.
+
+Registry history Git bundle verified and restored into an isolated checkout with
+exact HEAD/state agreement (sequence1). Initial fixture restoration needed an
+explicit zero-sharing-registry branch because bundle HEAD is not the source
+remote default; corrected drill passed. Bundle/receipt remain private/ignored.
+This covers empty live registry and inert Blob bytes, not recovery of accepted
+contributions or all final referenced objects. Hosted Actions, actual game
+publication/editor/classroom and held library acceptance remain separate.
