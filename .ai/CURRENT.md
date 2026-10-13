@@ -43,9 +43,16 @@ Maven consumers Add/Update/Revert through scoped local HTTPS; actual JAR, behavi
 and source archive hashes verified. Browser fixtures cover discovery, recovery,
 exact links and mobile source correction. They do not prove live hosting.
 
-Review ledger: 3 launches, 1 initial wave, 1 targeted wave, 2 fix batches.
-Next: commit batch 2, targeted Astra/high review of its complete delta, final
-package and all-VSIX-source parity. Reuse unchanged initial review coverage.
+Reviewed implementation head: 79edd1ff4f9758c98726d8625f394f9e91668cc7.
+Astra/high targeted pass completed all 17 delta files and immediate interactions
+with no actionable findings; 19 independent focused inert checks passed. All
+three batch-2 blockers are resolved. Unchanged initial coverage is reused; an
+extra full review wave adds no identified coverage. Ledger: 4 reviewer turns,
+1 initial wave, 2 targeted waves, 2 fix batches. Package and verify:kit passed,
+including every VSIX source byte, harness/config parity and extracted Maven build.
+Next: authorized real-provider setup/proof and resolution of held managed library
+acceptance, then hosted backup restoration and the novice pilot. Local source is
+ready for owner review; no publication or live activation has occurred.
 Budget stops remain waived; actual generic-library provider rejection remains
 binding and excluded from replacement acceptance. Storage healthy ~341GB;
 weekly46% remaining is account-wide, not task cost. Worker token/effective-model
