@@ -6,8 +6,9 @@ This app responds to events; it has no update/draw loop.
 
 ## Copy and run
 
-Stop your current app and save Main and any helpers outside `src/` first. In a
-standalone Zero starter, copy these exact files:
+Follow the [safe switching steps](../../lessons/README.md#before-each-lesson):
+stop your current app, back up Main and helpers outside `src/`, then remove
+unlisted helper Java files. In a standalone Zero starter, copy these exact files:
 If your downloaded kit does not have this example, copy the complete Main and
 stylesheet shown on the website's [Hello, Java page](https://zero.codepet.ca/examples/hello-app)
 into these same destinations.
@@ -18,8 +19,7 @@ into these same destinations.
 | `examples/hello-app/theme.css` | `src/main/resources/hello-app/theme.css` (create the folder) |
 
 Keep the framework in `src/main/java/zero/`, the pinned build files and wrappers.
-The default quiz helper can stay; this example does not use it. Copying the CSS
-is required: the app gives an explicit startup error when it is missing.
+Copying the CSS is required: the app gives an explicit startup error when it is missing.
 Open the standalone starter folder in VS Code and click **Zero → Run App**, or
 run the following from that folder using a supported JDK 17+:
 
@@ -34,8 +34,8 @@ run the following from that folder using a supported JDK 17+:
 ```
 
 The first build needs internet for the pinned dependencies. Save edits and run
-again to rebuild. The example shelf is outside compiled source, so the default
-quiz remains unchanged until you copy another Main into your own project.
+again to rebuild. The example shelf is outside compiled source, so the starter's
+Hello, world! app remains unchanged until you copy another Main into your project.
 In a repository checkout, first run `node scripts/prepare-starter.mjs` from the
 repository root, then use a disposable copy of `student-template/`. An extracted
 starter already has its framework sources and needs no preparation or Node.js.
