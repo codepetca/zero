@@ -1,3 +1,4 @@
+import {prepareDesign} from '../design/prepare.mjs';
 import { readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -6,6 +7,7 @@ import {prepareStarter} from './prepare-starter.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
+prepareDesign();
 const directory = path.join(root, 'extension/test');
 const files = readdirSync(directory).filter(name => name.endsWith('.test.js'))
   .sort().map(name => path.join(directory, name));

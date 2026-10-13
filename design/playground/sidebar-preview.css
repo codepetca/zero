@@ -1,0 +1,102 @@
+body {
+  color:var(--zero-text);
+  background:var(--zero-page);
+  font-family:var(--zero-font);
+  font-size:var(--zero-font-size);
+  padding:12px;
+  margin:0;
+  line-height:1.5
+}
+* {
+  box-sizing:border-box
+}
+.evidence-label {
+  font-size:10px;
+  color:var(--zero-muted);
+  border-bottom:1px solid var(--zero-border);
+  padding-bottom:10px;
+  margin-bottom:8px;
+  overflow-wrap:anywhere
+}
+button {
+  font:inherit;
+  line-height:1.4;
+  white-space:normal;
+  border-radius:var(--zero-radius)
+}
+button.run {
+  background:var(--zero-accent);
+  color:var(--zero-on-accent)
+}
+button.run:hover {
+  filter:none;
+  background:var(--zero-accent-hover)
+}
+button.secondary {
+  background:var(--vscode-button-secondaryBackground,var(--zero-surface));
+  color:var(--vscode-button-secondaryForeground,var(--zero-text))
+}
+button:focus-visible {
+  outline:2px solid var(--zero-focus);
+  outline-offset:2px
+}
+.muted,.badge {
+  color:var(--zero-muted);
+  font-size:inherit
+}
+.status {
+  line-height:1.5;
+  overflow-wrap:anywhere
+}
+button.link,.repo-choice {
+  color:var(--zero-link);
+  font-size:inherit;
+  white-space:normal;
+  overflow:visible
+}
+button.link {
+  min-height:28px
+}
+.repository {
+  border-color:var(--zero-border)
+}
+.row {
+  display:flex;
+  gap:8px
+}
+.row button {
+  min-width:0
+}
+.account {
+  background:var(--vscode-badge-background,var(--zero-surface));
+  color:var(--vscode-badge-foreground,var(--zero-text))
+}
+#fixture-feedback {
+  overflow-wrap:anywhere;
+  font-size:inherit;
+  color:var(--zero-muted)
+}
+#fixture-feedback:empty {
+  display:none
+}
+body.vscode-high-contrast button,body.vscode-high-contrast-light button {
+  border:1px solid var(--zero-border)
+}
+@media(max-width:220px) {
+  .row {
+  flex-direction:column;
+  gap:0
+}
+
+}
+@media(forced-colors:active) {
+  button,button.run,button.secondary,button.link,button.account {
+  background:ButtonFace;
+  color:ButtonText;
+  border:1px solid ButtonText
+}
+.repository {
+  border-color:CanvasText
+}
+
+}

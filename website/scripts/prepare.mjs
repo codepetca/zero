@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
 import { validateInstallerManifest } from "../lib/installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
+import { prepareDesign } from "../../design/prepare.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -97,6 +98,7 @@ try {
   if (error.code !== 'ENOENT') throw error;
 }
 await mkdir(resolve(site, ".generated"), { recursive: true });
+await prepareDesign({ website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),

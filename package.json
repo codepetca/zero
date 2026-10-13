@@ -21,7 +21,8 @@
     "verify:kit": "node scripts/verify-kit.mjs",
     "verify:framework": "node scripts/verify-framework.mjs",
     "test:sharing": "node --test sharing/test/*.test.mjs",
-    "sharing": "node sharing/cli.mjs"
+    "sharing": "node sharing/cli.mjs",
+    "prepare:design": "node design/prepare.mjs"
   },
   "devDependencies": {
     "@vscode/vsce": "4.0.0",

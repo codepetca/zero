@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 export function ReaderNavigation({
   items,
@@ -10,6 +11,14 @@ export function ReaderNavigation({
   lesson?: boolean;
 }) {
   const router = useRouter();
+  const links = <nav aria-label={lesson ? "Lesson navigation" : "Documentation navigation"}>
+    {items.map((item) => (
+      <Link key={item.id} href={item.href}
+        aria-current={item.id === current ? "page" : undefined}>
+        {item.title}
+      </Link>
+    ))}
+  </nav>;
   return (
     <>
       <label className="mobile-reader-select-label">
@@ -32,22 +41,17 @@ export function ReaderNavigation({
           ))}
         </select>
       </label>
-      <details open className="reader-menu">
-        <summary>{lesson ? `Lessons ${items[0]?.id}–${items.at(-1)?.id}` : "Documentation"}</summary>
-        <nav
-          aria-label={lesson ? "Lesson navigation" : "Documentation navigation"}
-        >
-          {items.map((item) => (
-            <a
-              key={item.id}
-              href={item.href}
-              aria-current={item.id === current ? "page" : undefined}
-            >
-              {item.title}
-            </a>
-          ))}
-        </nav>
-      </details>
+      {lesson ? (
+        <div className="reader-menu lesson-menu">
+          <h2>Lessons {items[0]?.id}–{items.at(-1)?.id}</h2>
+          {links}
+        </div>
+      ) : (
+        <details open className="reader-menu">
+          <summary>Documentation</summary>
+          {links}
+        </details>
+      )}
     </>
   );
 }

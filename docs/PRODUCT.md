@@ -8,9 +8,17 @@ using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
-page has the Zero wordmark, one sentence, Download Zero and Learn more only.
-`/learn` is a compact learning hub with thirteen lessons (0–12), including full app/game
-tutorials, examples and docs.
+page has the shared app header, **Learn Java**, **Starting from zero.**, and two
+stacked buttons: **Download Zero** opens `/downloads`; **Start Learning** opens
+`/learn`. It uses the shared light/dark toggle and centered full-viewport layout.
+`/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
+are listed in the desktop sidebar; selecting one updates the reading pane and its
+bookmarkable `/tutorials/[lesson]` URL. Narrow screens use a lesson selector. `/downloads` is the separate platform download page;
+Download is a regular top-menu page, and platform buttons do not appear below tutorials.
+Tutorials and Downloads use one circular sun/moon button in the header to switch
+light/dark mode. The OS preference is the initial default; a chosen mode persists.
+These pages fill the viewport width and at least its height; longer lessons scroll.
+Downloads centers its heading and equal-width platform buttons in a vertical stack.
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.

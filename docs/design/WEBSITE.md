@@ -1,54 +1,35 @@
-# Selected website design and theme
+# Website design and theme
 
-Owner selected the **first ultra-minimal revision** on 2026-10-09.
-The canonical visual reference is [selected-landing.png](selected-landing.png).
-It is the centered Zero wordmark design, not the earlier download-first page
-containing a VS Code preview. Generated with the built-in ImageGen tool as a
-planning mockup; it is not an implemented website or a live download.
+Start with [shared design](../../design.md) and the canonical
+[UI and UX guidelines](../UI-UX-GUIDELINES.md). Current owner instructions
+supersede the original landing mockup.
 
-## Landing page contract
+## Current page contract — 2026-10-13
 
-- White page with a single centered group, slightly above the vertical midpoint.
-- Large lowercase **zero** wordmark with the purple Zero mark.
-- One sentence: **A simple kit for building Java apps.**
-- Two adjacent actions: **Download Zero** (solid purple, small download icon)
-  and **Learn more** (white, subtle outline).
-- No navigation, screenshots, app previews, numbered setup steps, feature
-  sections, workshop promotions or footer links on the landing page.
-- Learn more opens `/learn`, containing the supporting product information,
-  setup guide, API docs, GitHub/source links and Component Workshop information.
+Home (`/`) has the shared app header and a centered stack: **Learn Java**,
+**Starting from zero.**, **Download Zero** → `/downloads`, and **Start Learning**
+→ `/learn`. Use ordinary links and preserve visible keyboard focus.
+Tutorials opens lesson 0 directly, with all thirteen lessons in a desktop sidebar
+and a native lesson selector on narrow screens. Selecting updates the reading
+pane and bookmarkable lesson URL. Downloads is a separate page with a centered
+heading and stacked Mac/Windows platform actions; Download is a regular menu item.
 
-## Theme specification
+All three pages use shared light/dark semantic tokens and a circular header
+sun/moon toggle. Default to the OS preference until a mode is chosen, then save
+the choice. Header and main fill the available viewport; longer content scrolls
+normally. Keep320px reflow, contained code, mobile menu and comfortable targets.
+No extra promotional sections or download/version instructions are requested.
 
-These are implementation targets derived from the selected mockup, not measured
-pixel values or a claim that the image specifies a particular font.
+Hub and other website routes retain their own design/contracts. The native
+VSCode sidebar follows host colors/fonts/focus/high-contrast roles. LocalRun and
+useful errors remain independent of GitHub. Frozen0.5.8, signing, physicalWindows,
+publication/push/merge/deployment and credentials are outside this application.
 
-| Token | Target |
-| --- | --- |
-| Page | `#FFFFFF` |
-| Main text / wordmark | `#080E25` |
-| Supporting text | `#535C76` |
-| Purple accent / primary button | `#683BEF` |
-| Purple hover | `#5530CC` |
-| Secondary outline | `#ADB2CC` |
-| Keyboard focus | Visible purple outline, offset from the control |
-| Font | Native system sans-serif stack; no font download required |
-| Corners | About 6px on buttons |
+## Historical landing reference
 
-Use a bold wordmark, readable supporting text and generous whitespace. Avoid
-decorative gradients, shadows, panels and illustrations. Reuse the existing
-Zero brand asset when implementing; the generated mark is a visual reference.
-
-At narrow widths keep the same content, scale the wordmark, allow the sentence
-to wrap and stack the buttons if needed. Preserve comfortable touch targets and
-keyboard navigation. The approved website theme is light; a separate dark
-website concept or theme switch is outside this selected MVP. Zero's editor
-continues to support its existing user-selected VS Code themes.
-
-## Next delivery
-
-Build the local Next.js landing page and `/learn`, starting with a faithful
-responsive version of this reference. Keep public download availability tied to
-verified published release assets; do not invent a working 0.5 release URL.
-Verify the site locally before authorized Vercel/domain configuration.
-See [the website plan](../WEBSITE-PLAN.md) for architecture and rollout.
+The owner selected the first ultra-minimal image on2026-10-09:
+[selected-landing.png](selected-landing.png). It showed a centered Zero wordmark,
+one sentence and DownloadZero/Learnmore. It was an ImageGen planning mockup,
+not a live download. The owner replaced this layout on2026-10-13 with the app
+header and learning home above. Keep the original brand geometry and restrained
+white/purple identity; shared tokens are the current palette source.

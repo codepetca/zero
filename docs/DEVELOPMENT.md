@@ -94,9 +94,9 @@ ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 Without the local preview flag, an unpublished kit uses the verified fallback
 when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
-The optional `release/installer.json` adds **Download for Mac Silicon** on Learn more.
+The optional `release/installer.json` adds **Download for Mac Silicon** on the Download page.
 When that installer is published or local downloads are enabled, the landing
-Download Zero action opens the platform choices at `/learn#downloads`. Mac setup
+Download Zero action opens the platform choices at `/downloads`. Mac setup
 and the Windows complete-kit ZIP are the only visible download controls, with no
 extra instructions or version prose. The complete ZIP, starter and VSIX remain
 available on GitHub releases with their own kit version, even when Mac setup
@@ -183,3 +183,23 @@ student contributions remain in their existing game repositories.
 Run `npm run test:sharing` for registry, ZIP and immutable publication contracts. Native student integration tests run with `npm test`. See [the adoption plan](GITHUB-SHARING-PLAN.md), [shared contract](../sharing/CONTRACT.md) and [website configuration](../website/README.md). The former Hub service, database dependencies and upload/OAuth adapters are removed. Retained `hub/checker/` source is a disconnected held-acceptance reference, not a live service.
 
 Run `node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-new` for two real Maven consumers over scoped local HTTPS. Use a fresh output directory; no global trust is changed. Packaging reads reviewed `release/sharing.json` containing schema, catalogUrl, artifactOrigin and publisher policyRevision. Local and CI builds preserve its exact bytes; release/kit/native provenance checks reject stale or substituted settings. Environment overrides do not select release settings. Students receive verified settings with the kit, not manual hash-copy instructions.
+
+## Shared Learn and sidebar design
+
+`design/tokens.json` and `design/adapters.mjs` are the shared source. Run
+`npm run prepare:design` for local artifacts and `node design/prepare.mjs --check`
+to detect drift. Website preparation/build, root checks/tests/packaging and the
+VS Code development launch generate the required CSS automatically. Generated
+`website/.generated/learn-theme.css` and `extension/media/generated-theme.css`
+are ignored by Git; VSIX packaging includes the extension CSS. Do not edit these
+outputs or rebuild the frozen 0.5.8 artifacts to test styling.
+Home, Learn and Downloads share a circular header sun/moon light/dark toggle. The OS
+preference is the default until a mode is chosen; the choice persists. Hub retains its existing palette.
+Downloads live at `/downloads`. Download is a regular menu item. Old
+`/learn#downloads` links redirect there for compatibility.
+The sidebar uses native host colors/fonts/focus and high-contrast classes.
+
+Tutorials now opens lesson 0 directly at `/learn`, with all thirteen lessons in
+the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
+updates the reading pane and bookmarkable lesson URL; there is no overview landing.
+The tutorial reader shares the approved appearance controls with Downloads.

@@ -1,3 +1,7 @@
+import Link from "next/link";
+import { LearnTheme } from "@/app/learn/LearnTheme";
+import "../.generated/learn-theme.css";
+import "@/app/learn/learn.css";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
@@ -31,19 +35,18 @@ export function Document({ id, lesson = "" }) {
           title: doc.markdown.match(/^# (.+)$/m)?.[1] || id,
           href: documentHref(id),
         }));
-  return (
-    <>
-      <PageHeader active={lesson ? "Tutorials" : "Docs"} />
+  const header = <PageHeader active={lesson ? "Tutorials" : "Docs"} />;
+  const content = (
       <main
         id="page-content"
         tabIndex={-1}
         className="reader-layout compact-reader"
       >
         <aside className="reader-navigation">
-          <a className="back-link" href={lesson ? "/learn" : "/docs"}>
+          {!lesson && <a className="back-link" href="/docs">
             <Icon name="arrow-left" />
-            {lesson ? "All tutorials" : "All docs"}
-          </a>
+            All docs
+          </a>}
           <ReaderNavigation
             items={items}
             current={lesson || id}
@@ -115,21 +118,16 @@ export function Document({ id, lesson = "" }) {
               aria-label="Next and previous lessons"
             >
               {previous ? (
-                <a href={`/tutorials/${previous.id}`}>
+                <Link href={`/tutorials/${previous.id}`}>
                   <Icon name="arrow-left" />
                   {previous.title}
-                </a>
-              ) : (
-                <a href="/learn">
-                  <Icon name="arrow-left" />
-                  All tutorials
-                </a>
-              )}
+                </Link>
+              ) : <span />}
               {next ? (
-                <a className="button" href={`/tutorials/${next.id}`}>
+                <Link className="button" href={`/tutorials/${next.id}`}>
                   Next: {next.title}
                   <Icon name="arrow-right" />
-                </a>
+                </Link>
               ) : (
                 <a className="button" href="/examples">
                   Explore the examples
@@ -140,6 +138,8 @@ export function Document({ id, lesson = "" }) {
           )}
         </article>
       </main>
-    </>
   );
+  return lesson ? (
+    <LearnTheme active="Tutorials">{content}</LearnTheme>
+  ) : <>{header}{content}</>;
 }

@@ -1,6 +1,6 @@
 # Zero website
 
-Next.js App Router / TypeScript website for the Zero teaching kit and ZeroHub. The landing page keeps the wordmark, one sentence, Download Zero and Learn more. Java runs locally in VS Code.
+Next.js App Router / TypeScript website for the Zero teaching kit and ZeroHub. Home uses the shared app header, Learn Java / Starting from zero., Download Zero (`/downloads`) and Start Learning (`/learn`). Java runs locally in VS Code.
 
 Requires Node.js 22+. From this directory:
 
@@ -44,7 +44,7 @@ snapshot or an outage produces an honest unavailable state without fallback.
 
 ## Download states
 
-A published kit links directly to verified immutable GitHub assets. While the current kit remains local, optional `release/published-kit.json` provides the last verified public kit, starter and VSIX, with their own version labels. Preparation validates published state, exact URLs, sizes and hashes; fallback cannot be newer than the current kit. A missing fallback shows the availability explanation at `/learn#downloads`. Mac setup publication is independent of the ZIP version.
+A published kit links directly to verified immutable GitHub assets. While the current kit remains local, optional `release/published-kit.json` provides the last verified public kit, starter and VSIX, with their own version labels. Preparation validates published state, exact URLs, sizes and hashes; fallback cannot be newer than the current kit. A missing fallback shows the availability explanation at `/downloads`. Mac setup publication is independent of the ZIP version.
 
 To preview a new local version, package it from the repository root, then:
 
@@ -90,3 +90,8 @@ download integrity. Typecheck/build verifies packaging. Browser QA remains a
 separate check for mobile reflow, keyboard/focus and accessible states; builds
 and fixtures do not prove hosted artifact delivery, public publication or physical
 Windows setup.
+
+Tutorials now opens lesson 0 directly at `/learn`, with all thirteen lessons in
+the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
+updates the reading pane and bookmarkable lesson URL; there is no overview landing.
+The tutorial reader shares the approved appearance controls with Downloads.

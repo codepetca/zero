@@ -12,6 +12,10 @@ Check branch, HEAD, working changes and current authority before acting. CURRENT
 contains only operative state: outcome, active scope/holds, ownership, verification,
 next action and blockers. Read linked history only for a concrete recovery question.
 Old approvals, budgets and worker handles do not create new authority.
+For UI work, start with [shared design review](../design.md) and follow the
+canonical [UI and UX guidelines](UI-UX-GUIDELINES.md). Read the surface approval
+status before editing. Use the [playground](../design/playground/README.md) for
+shared visual proposals; local review does not approve production changes.
 
 One coordinator owns integration and acceptance. Delegate substantial independent
 work only when it reduces total effort; use a bounded brief with revision, owned

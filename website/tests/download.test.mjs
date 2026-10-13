@@ -61,8 +61,8 @@ test('all published kit downloads require their own immutable public receipt', (
   });
   validateManifest(published);
   assert.equal(releaseAssetHref(published, 'kit'), published.assets.kit.url);
-  assert.equal(releaseAssetHref(published, 'components', true), '/learn#downloads');
-  assert.equal(releaseAssetHref(published, '../kit', true), '/learn#downloads');
+  assert.equal(releaseAssetHref(published, 'components', true), '/downloads');
+  assert.equal(releaseAssetHref(published, '../kit', true), '/downloads');
   delete published.assets.starter.sha256;
   assert.throws(() => validateManifest(published), /Published starter requires/);
   published.assets.starter.sha256 = 'a'.repeat(64);

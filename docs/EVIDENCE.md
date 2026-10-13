@@ -2056,3 +2056,177 @@ to remain local. The fixture now validates authored metadata, then constructs an
 explicit local clone with no public URLs; existing published/fallback/missing tests
 retain their assertions. Production selection code is unchanged. Batched before
 final promotion review rather than weakening expected behavior.
+
+## 2026-10-13 — isolated shared-design review kit
+
+Base639da3173d6eed71869bdb1365f6ef67a6fafdbd in attached zero-design-review worktree.
+Delivered design.md, instruction routing, shared proposed light/dark tokens,
+native VSCode adapters and dependency-free local Learn/downloads+Ready/Error
+playground on3256. Production/release/Hub unchanged; owner visual approval pending.
+11design tests/diffcheckpass. In-app desktop/mobile320/390,narrow200/240sidebar,
+200%text,keyboard/focus/reflow/fixture/contrast evidence retained locally.
+Independent Sol/medium review fallback accepted one accessible Windowsmanual-setup
+label fix and final formatting/label delta; first Sol6.1 attempt at capacity.
+Actualhost/WebKit/Windows/400%zoom/assistive-tech limits remain. Details and effort:
+[review-kit verification](../design/playground/VERIFICATION.md).
+
+## 2026-10-13 — approved Learn/sidebar themes applied locally
+
+Owner accepted the shared design and explicitly authorized Learn/downloads and
+sidebar application. Source stays in zero-design-review frombase639da317.
+Learn System/Light/Dark is scoped through its own wrapper, including conditional
+body reflow; no shared tokens/chooser leak to Hub or landing. Platform links and
+13lessons retain real behavior. Sidebar now reads generated shared/native CSS
+inside its unchanged nonce-CSP; localRun/auth/state behavior remains unchanged.
+Build/test/F5/VSCE hooks regenerate CSS; driftcheck and vsce file-list pass.
+Release files/05.8version, Hubimplementation/globalstyles remain unchanged; no
+05.8artifact was rebuilt, pushed, merged, published or deployed.
+
+12design checks pass. Rootfullrepeat191pass/1optionalPWshskip, website94pass/
+2optionalHTTPskips, typecheck/build/configuration/diffcheck pass. Initial root run
+reported4failures without retained details; repeatcompleted with nofailures and
+full retained log. Cause is unknown; no claimed baselinefailure diagnosis.
+Actualin-appbrowser:light/dark1024/390/320, keyboarddisclosure/focus, lesson0link,
+choicepersistence,SystemOSdark, mobilemenu, Hub/landingisolation. FixedLearn-only
+320px minbodyoverflow:client305/scroll305. No browserconsoleerrors/warnings.
+Noactualrelease download, JavaRun, liveauth orupload was triggered.
+
+OfficialVSCode isolateduserdata/extensions/project activatedzero.zero;
+zero.sidebarShown=true in its disposable state. UItoolbound an ownerwindow rather
+than this host, so noactionswere taken in that window. Nativevisualthemes,
+WebKit,OSforcedcolors,real400%zoom andphysicalWindows remain unverified.
+Evidence/index/sourcehashes stay ignored under .verification/design-applied/;
+priorreview screenshots remain under .verification/design-review/.
+
+Onewebworker requestedGPT6Sol/medium delivered scopedUI; rootownedsidebar and
+buildintegration. One independentGPT6Sol/medium reviewer completedfullcode/docs
+scope, no blockingcodefinding; acceptedP2staleapprovaldoc corrected and targeted
+rechecked. Effectiveconfigs/tokensunknown. Reviewledger1launch,1initialwave,
+1targeteddocwave,1fixbatch; elapsedabout5minutes(manualestimate). Webdelegation
+roughly3minutes; coordinatorverification/integration roughly5minutes active
+(manualestimate), with longer broadtestwaits. Initialweekly94%remaining and
+healthy339GBfree are shared readings, not isolated taskcost. DeepSeekstayedpaused.
+
+## 2026-10-13 — separate Download page and regular navigation item
+
+Owner correction moved platform choices from Tutorials to `/downloads` and made
+Download a regular menu item. Approved light/dark themes and exact published
+Mac/Windows links remain. Landing/fallback destinations now open the page; legacy
+`/learn#downloads` links redirect, retaining Hub's existing Get Zero link. The
+playground has separate screen selection and synchronized fixture navigation.
+No release metadata, frozen0.5.8 artifacts or Hub feature source changed.
+
+17focused download tests and12design/playground checks pass; website94passes/
+2optionalHTTPskips, typecheck/build/diffcheck pass. Actual browser verified normal
+menu styling (no divider/margin, inactiveDownload weight400), noDownloads onLearn,
+legacyredirect, light/dark dedicated page, mobile menu and measured320px reflow.
+No actual release download occurred. Screenshots/logs stay ignored under
+.verification/download-page/. In-app viewport overrides/captures changed effective
+width during checks; files were named/renamed from measured CSS widths rather than
+requested sizes. Native/Windows/WebKit limits from the preceding phase remain.
+
+One GPT6Luna/medium read-only reviewer completed the bounded route/navigation/
+playground delta with no actionable findings;1launch1wave0fixbatches, about2minutes
+elapsed(manualestimate), effectiveconfig/tokensunknown. Coordinator handled the
+small implementation directly; preserved earlierreview coverage of unchanged code.
+
+## Direct tutorial reader — 2026-10-13
+
+Owner removed the Tutorials overview. `/learn` renders lesson 0 directly;
+`/tutorials/0`–`/tutorials/12` retain stable lesson URLs. The desktop lesson list
+is always visible, selecting an item updates the reading pane through Next links,
+and narrow screens retain the native lesson selector. Redundant All tutorials
+back links and first-lesson pagination loop were removed. Shared Learn themes
+now cover the lesson reader, including code and active navigation. Downloads,
+Hub source/contracts, extension source and frozen release assets were preserved.
+
+Current-delta checks: website94pass/2optionalHTTPskip, playground2pass, typecheck,
+production build, root configuration, design generation drift and diffcheck pass.
+Actual Next browser: desktop1536px light/dark, sidebar selection0→3, Back to0,
+keyboard Enter to12, mobile320/390px selector and contained code, disclosures,
+folded-section hash reveal, old `/learn#downloads` redirect and Docs wrapper isolation.
+No page horizontal overflow in measured narrow states. Playground lesson switching
+and320px/200%fixture text passed. Production200%text/400%zoom, WebKit and physical
+Windows remain unverified; no claim of comprehensive accessibility.
+
+Independent GPT-6.1Sol/medium reviewed all eight before/current file deltas,
+new SVG allowlist and direct callers: complete scope, no actionable findings.
+One initial review launch/wave, zero remediation batches. Requested model/effort
+recorded; effective model, worker elapsed/tokens and coordinator cost unknown.
+Weekly usage reading7%used; storage healthy338.8GBfree(cached). Coordinator
+implemented directly; one review worker, no editing conflicts/rework.
+Before snapshots and logs/screenshots are ignored in .verification/tutorial-reader*;
+preview http://127.0.0.1:3257/learn, review fixture3256 retained. All changes local.
+
+## Circular header theme toggle — 2026-10-13
+
+Owner replaced the Appearance selector with one circular header sun/moon button
+on Tutorials and Downloads. Accessible labels/tooltips name the next mode;
+OS preference is followed until a choice is saved. Existing storage key and old
+System preference remain compatible. Mobile header wraps for enlarged content.
+Native VSCode adaptation, Hub sources/contracts and frozen0.5.8 unchanged.
+
+Checks:94websitepasses2optionalHTTPskips,2fixturepasses,typecheck/build,root
+configuration,design drift/diffcheck pass. InitialJS inferred-null prop type failed
+typecheck/build; explicitJSDoc corrected it before review, final checks passed.
+Browser:1024px both modes,320px both controls/mobile menu, keyboardSpace, reload
+and lesson/Downloads persistence verified. Fixture320px200%text after wrapping
+measures305pxscroll/client width(no horizontal overflow). Production200%text,
+400%zoom,OS preference change,WebKit andphysicalWindows remain unverified.
+
+One GPT6.1Sol/medium reviewer: complete10filedelta + callers, no confirmed issue
+except enlarged-header verification concern. Coordinator accepted source width
+concern and applied oneCSSfixbatch; same reviewer completed targetedCSS review,
+no actionable findings. One launch, two review turns, no furtherwave; actualmodel
+telemetry,elapsed/tokens unknown. No worker edits/conflicts. All local/uncommitted;
+ignored snapshots/logs/screenshots .verification/theme-toggle*. Preview3257 retained.
+
+## Viewport-filling responsive shell — 2026-10-13
+
+Owner reported width/height did not expand. Removed the1200px centered caps
+from Learn/Downloads header and main; flex shell uses100dvh minimum height
+with100svh fallback, remaining main area grows, long lessons scroll naturally.
+Only authoredLearnCSS and fixturepreviewCSS changed. Build/design drift/diffcheck
+passed; existingJS/test results remain applicable and were not repeated.
+Actualbrowser:1600×1000Downloads header1600px/main908px ending at1000;
+1920×1080Tutorials main1920px/988px, rightpane1584px. Expandedlesson grows
+pageheight1568px; at320px content grows to2157px with client/scroll305px.
+390×844darkDownloads main760px ending at844. Mobile menu/toggle work.
+Fixture320px200%text client/scroll305px and ordinaryverticalscroll checked.
+
+Independent GPT6Luna/medium complete2filedelta and callers review: no actionable
+findings; one launch/initialwave,0fixbatches. Effective model, elapsed/token cost
+unknown; no conflicts/rework. Logs/screenshots/measurements ignored under
+.verification/responsive*. Hub,Docs,nativeextension and frozenrelease unchanged.
+Production200%text/400%zoom,WebKit,OS preference changes/physicalWindows remain
+unverified. Local preview3257/downloads retained; no publication or release work.
+
+## Centered Downloads and Chrome dev preview — 2026-10-13
+
+Owner requested centered, vertically stacked Downloads, then Chrome devserver.
+ScopedCSS centers heading/platform actions in the remaining viewport and stacks
+equal340px(max) buttons; narrow pages retain fluid width. Tutorial/header unchanged.
+Productionbuild/diffcheck passed; independentGPT6Luna/medium read-only2CSSdelta
+review complete, no actionable findings. One turn/initialwave,0fixbatches; effective
+model,elapsed/tokens unknown. Chrome1440×816 main fills remaining724px, buttons
+share550–890px x bounds, stacked with16px gap. Screenshot/logs ignored under
+.verification/centered-downloads*. Prior responsive/mobile coverage retained;
+latestcenteredmobile/200%text not separately repeated. No release/Hub changes.
+Devserver3257 running (npm run dev --prefix website -- --port3257); Chrome opened
+at/downloads and retained, replacing the prior production preview on the sameport.
+
+## Replacement learning home — 2026-10-13
+
+Owner superseded originallanding: `/` now sharedappheader + LearnJava + Starting
+fromzero. + DownloadZero→/downloads + StartLearning→/learn. Centeredstack shares
+light/dark and fullviewport; Hub/nativeextension/frozen0.5.8 untouched. Fixture
+adds Home selector/brandnavigation and allowlisted Home screen messaging.
+Typecheck/buildpass;94websitepass2optionalHTTPskip and2fixturepass. Initialsource
+CTAcount test assumedoldclasssuffix; adjustedexistingregex and rerunpassed.
+Design drift/diffcheck pass. Chromebothlinks/Back,keyboardEnter,light/dark and
+320×568mobilemenu/reflow checked; scroll/client320, buttons272pxwide/48pxhigh.
+One independentGPT6.1Sol/medium complete7filedelta/callers review: no actionable
+findings. One initialwave/launch,0remediationbatches; effective model/time/tokens
+unknown. Documentationnowmatchesownerreplacement. Screenshot/logs ignored
+.verification/home*. Devserver3257 andChromehome retained; no publication.
+Production200%text/400%zoom,WebKit/physicalWindows remain unverified.

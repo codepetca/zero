@@ -27,9 +27,9 @@ marks a preferred pattern with documented, task-specific exceptions.
 - MUST keep local Run independent of GitHub sign-in. Students own their
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
-- MUST preserve the approved white/purple landing: wordmark, one sentence,
-  Download Zero and Learn more. Supporting information belongs on `/learn`;
-  preserve the landing's minimal hierarchy without adding promotional sections.
+- MUST preserve the owner-approved home page: shared app header, Learn Java,
+  Starting from zero., Download Zero → `/downloads` and Start Learning → `/learn`.
+  Keep the centered stack and shared light/dark themes without promotional sections.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.
   Follow the editor's established controls, theme colors, keyboard behavior and
   native authentication/account flows. Retain light and dark editor support.
