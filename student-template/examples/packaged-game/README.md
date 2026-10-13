@@ -15,8 +15,8 @@ python3 scripts/verify-starter-ui.py
 The command builds/checks the library, then both consumers in disposable projects.
 It uses a fresh isolated Maven cache and the bundled wrapper. Maintainer Python,
 a JDK and first-time dependency network access are needed. Nothing is installed
-into your normal cache or uploaded. The standalone coordinate is local and unpublished. ZeroHub uses its own
-reserved library coordinate for the same source.
+into your normal cache or uploaded. The standalone coordinate is local and unpublished. Student contributions use
+their own repository-derived library coordinate.
 
 ## Exact consumer files
 

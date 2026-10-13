@@ -74,7 +74,8 @@ repository or enabling live uploads. Submit the repository link separately in Pi
 ## Use a ZeroHub component
 
 This kit includes automatic library setup. In Zero's (…) menu, choose
-**Browse ZeroHub**, pick a component, then choose **Add library → Apply**.
+**Libraries and Games → Browse libraries**, pick a component, then choose
+**Add library → Apply**.
 Zero sets up the library for your app. Use the component's Java import and
 example, then **Run App**. You do not need to edit the project setup file.
 

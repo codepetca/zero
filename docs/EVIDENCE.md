@@ -1802,3 +1802,42 @@ DeepSeek pause remain binding. Existing goal is incomplete; resumed impasse audi
 starts fresh. Prior ledger5reviewturns/1initialwave/3targetedpasses/3fixbatches.
 A cumulative active-source main-diff review is needed before merge because
 previous replacement review began4ed9cd4 rather than canonical main.
+
+### Cumulative review, remediation and live registry — 2026-10-13
+
+Two independent Sol/high reviews completed canonical mainb9d0188..e216737:
+active authority/security and student/architecture/site/packaging scopes. Two
+accepted P2 blockers: harness-only source changes escaped release freshness,
+and raw identifier-ignorable Java characters escaped package conflict scanning.
+No additional active-code blocker in the workflow/architecture scope; stale
+student command/documentation references corrected. Disconnected historical
+hub/checker source and held generic managed acceptance remain excluded.
+
+Bounded Sol/high writers stopped after delivery: release-publish/release-review
+now bind canonical harness bytes and harness-only Git history; authoring rejects
+raw ignorable controls/format characters before masking, without source rewriting.
+Coordinator release57/57 and actual source integration15/15 passed; root228pass/
+1PowerShellskip, package/source parity and extracted-kit verification passed.
+Publisher workflow now selects an explicitly reviewed operator policyRevision
+before checkout and validates actual Git HEAD/full config before credentials.
+Six inline workflow cases and full sharing44/44 passed; actionlint/diff clean.
+Routine metadata commits no longer rotate installed kit policy requirements.
+Ledger7reviewturns/1initialwave/3targetedpasses/1cumulativewave/4fixbatches before
+the next targeted review. Effective model/tokens/elapsed unknown where unexposed.
+
+Authorized dedicated Vercel public Blob store zero-sharing/store_fDVfHPCLeFGMg9ks
+created in IAD1, unlinked to any project. Existing codepet-labs store preserved.
+Metadata confirms public/zero bytes/projects[]. Owner must complete actual Vercel
+passkey reauthentication in Chrome before its publisher token can be read; no
+credential obtained, website token attached or publication performed yet.
+Private local operator receipts remain ignored and mode-restricted.
+
+Canonical codepetca/zero orphan zero-sharing-registry created with only
+registry/state.json, no source branch rewrite. Initial commitcd9c57b/stateblob
+71a9ae7; actual adapter fresh CAS accepted sequence1/blob9f735c0, stale CAS refused,
+read validation and anonymous fixed raw GitHub read passed. Empty requests/releases
+and null catalog preserved: this proves live Git semantics, not artifact delivery.
+Receipts sharing-registry-setup-receipt.json/sharing-registry-live-cas.json.
+Blob ETag/immutable delivery, backup restoration, actual Actions activation,
+installed-editor/physical Windows/novice trials remain outstanding. No Neon
+deletion or existing immutable asset mutation; full goal remains incomplete.

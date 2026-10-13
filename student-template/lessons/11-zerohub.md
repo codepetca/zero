@@ -7,7 +7,7 @@
 Use your existing game repository. A **library** supplies reusable Java classes; a **game project** gives someone an editable copy of your entire game.
 
 1. Make a useful component in your game and run it there first.
-2. Open Zero's (…) menu → **Libraries** → **Extract library**. Select complete classes, choose a short slug, and review source and import changes.
+2. Open Zero's (…) menu → **Libraries and Games** → **Extract library**. Select complete classes, choose a short slug, and review source and import changes.
 3. Keep application rules in Main. Give the library a behavior check, two small examples, API notes and a license. Run **Check library**.
 
 **Done:** Both examples use the same built library JAR and the checks pass. The generated checks intentionally need your own useful assertions.
@@ -22,7 +22,7 @@ The generated package comes from stable repository number and slug, for example 
 
 Upload completed files to your public GitHub repository first. **Share library** prepares a GitHub request for that exact uploaded commit. Review and submit the browser form. Local Check alone does not publish anything. Generic hosted library checking is not activated yet; your teacher will explain available paths in the classroom build.
 
-To share a whole game, choose **Games** → **Share game**. Fill in title, description, controls and license, then upload and request its exact version. A shared game is an editable project, not a Maven dependency. **Open project** extracts verified files into a new folder; run them only when you choose to. Remove private material before uploading a public repository.
+To share a whole game, choose **Libraries and Games** → **Share game**. Fill in title, description, controls and license, then upload and request its exact version. A shared game is an editable project, not a Maven dependency. **Open project** extracts verified files into a new folder; run them only when you choose to. Remove private material before uploading a public repository.
 
 ## Use a published library
 

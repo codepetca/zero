@@ -4,7 +4,9 @@ import {mkdtemp, mkdir, writeFile, readFile, rm, cp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {zipSync} from 'fflate';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {zipSync, unzipSync} from 'fflate';
 import {publishZero, parseArguments, promoteDefinition, verifyChecks, verifyPreparation} from './release-publish.mjs';
 
 const sha = 'a'.repeat(40), head = 'b'.repeat(40), mergedSha = 'c'.repeat(40);
@@ -12,30 +14,37 @@ const version = '1.2.3', runId = '123', uuid = 'fixture-request';
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const keys = ['kit', 'starter', 'extension'];
 const filenames = ['zero-bootstrap.zip', 'zero-starter.zip', `zero-${version}.vsix`];
+const harnessSource = 'sharing/harness/ZeroLibraryHarness.java';
+const harnessMedia = 'extension/media/sharing-harness/ZeroLibraryHarness.java';
+const harness = 'public class ZeroLibraryHarness {}\n';
+const exec = promisify(execFile);
 
 async function fixture(t, changes = {}) {
+  const sourceSha = changes.sourceSha || sha;
   const root = await mkdtemp(path.join(tmpdir(), 'zero-publisher-test-'));
   t.after(() => rm(root, {recursive: true, force: true}));
   const template = path.join(root, 'template');
   await mkdir(path.join(template, 'release'), {recursive: true});
   await mkdir(path.join(template, 'extension/src'), {recursive: true});
   await mkdir(path.join(template, 'framework'), {recursive: true});
+  await mkdir(path.join(template, 'sharing/harness'), {recursive: true});
   const definition = {schema: 1, kitVersion: version, coreVersion: '0.1.1', publication: {status: 'local', repository: 'codepetca/zero', tag: `v${version}`},
     assets: {kit: {filename: filenames[0], label: 'Kit'}, starter: {filename: filenames[1], label: 'Starter'},
       extension: {filename: filenames[2], label: 'Extension'}, components: {filename: 'zero-components.zip', label: 'Components', publicationStatus: 'local'}}};
   const manifest = JSON.stringify({version, license: 'MIT'}), license = 'MIT License\nfixture notice\n', js = 'module.exports = 42;\n';
   await Promise.all(Object.entries({'release/kit.json': JSON.stringify(definition, null, 2) + '\n', 'extension/package.json': manifest,
-    'extension/src/extension.js': js, LICENSE: license, 'framework/pom.xml': '<artifactId>zero-core</artifactId>\n  <version>0.1.1</version>',
+    'extension/src/extension.js': js, [harnessSource]: harness, LICENSE: license, 'framework/pom.xml': '<artifactId>zero-core</artifactId>\n  <version>0.1.1</version>',
     'README.md': '# Zero\n[Download Zero 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)\nUnrelated source and learning changes stay.\n'})
     .map(([name, body]) => writeFile(path.join(template, name), body)));
   const bytes = [Buffer.from('reviewed kit bytes'), Buffer.from('reviewed starter bytes'), Buffer.from(zipSync({
-    'extension/LICENSE.txt': Buffer.from(license), 'extension/src/extension.js': Buffer.from(js), 'extension/package.json': Buffer.from(manifest)}))];
+    'extension/LICENSE.txt': Buffer.from(license), 'extension/src/extension.js': Buffer.from(js), 'extension/package.json': Buffer.from(manifest),
+    [harnessMedia]: Buffer.from(harness)}))];
   const receipt = {...definition, assets: Object.fromEntries(keys.map((key, i) => [key, {...definition.assets[key], size: bytes[i].length, sha256: digest(bytes[i])}]))};
-  const release = {id: 7, tag_name: `v${version}`, target_commitish: sha, draft: true, prerelease: false,
+  const release = {id: 7, tag_name: `v${version}`, target_commitish: sourceSha, draft: true, prerelease: false,
     html_url: 'https://github.com/codepetca/zero/releases/tag/untagged-fixture123', assets: filenames.map((name, i) => ({
       id: i + 20, name, size: bytes[i].length, digest: `sha256:${digest(bytes[i])}`, state: 'uploaded',
       browser_download_url: `https://github.com/codepetca/zero/releases/download/untagged-fixture123/${name}`}))};
-  const prepared = {databaseId: Number(runId), workflowName: 'Release checks and preparation', event: 'workflow_dispatch', headSha: sha,
+  const prepared = {databaseId: Number(runId), workflowName: 'Release checks and preparation', event: 'workflow_dispatch', headSha: sourceSha,
     status: 'completed', conclusion: 'success', displayTitle: `Prepare Zero ${version} [${uuid}]`};
   const pr = {state: 'OPEN', headRefOid: head, baseRefName: 'main', isDraft: false, reviewDecision: '', reviewRequests: [], mergeStateStatus: 'CLEAN',
     statusCheckRollup: [{__typename: 'CheckRun', name: 'review', status: 'COMPLETED', conclusion: 'SUCCESS'}]};
@@ -64,7 +73,7 @@ async function fixture(t, changes = {}) {
     }
     if (command === 'git') {
       if (args[0] === 'clone') {await cp(template, args.at(-1), {recursive: true}); return output('');}
-      if (args[0] === 'rev-parse') return output(args[1] === 'HEAD' ? head : promoted ? mergedSha : sha);
+      if (args[0] === 'rev-parse') return output(args[1] === 'HEAD' ? head : promoted ? mergedSha : changes.mainSha || sourceSha);
       if (args[0] === 'worktree') {await cp(template, args[3], {recursive: true});
         // On resumed public metadata, the exact candidate still has the original local definition.
         await writeFile(path.join(args[3], 'release/kit.json'), JSON.stringify(definition, null, 2) + '\n');
@@ -87,7 +96,7 @@ async function fixture(t, changes = {}) {
         if (args[1] === 'user') return output({id: 999, login: 'fixture-owner'});
         const endpoint = args[1].replace('repos/codepetca/zero/', '');
         if (endpoint === 'releases') return output([exists ? [release] : []]);
-        if (endpoint === `git/ref/tags/v${version}`) return published ? output({object: {type: 'commit', sha}}) : notFound();
+        if (endpoint === `git/ref/tags/v${version}`) return published ? output({object: {type: 'commit', sha: sourceSha}}) : notFound();
         if (endpoint.startsWith('git/ref/heads/')) return changes.branchExists ? output({object: {sha: head}}) : notFound();
         if (endpoint === `actions/runs/${runId}`) return output({id: Number(runId), path: '.github/workflows/release-review.yml'});
         if (endpoint === 'releases/7') {
@@ -107,7 +116,7 @@ async function fixture(t, changes = {}) {
           const destination = args[args.indexOf('--dir') + 1];
           for (let i = 0; i < 3; i++) await writeFile(path.join(destination, filenames[i]), changes.corruptReview === i ? Buffer.from('corrupt') : bytes[i]);
           await writeFile(path.join(destination, 'release.json'), JSON.stringify(receipt));
-          await writeFile(path.join(destination, 'SOURCE.txt'), changes.sourceReceipt || `Repository: codepetca/zero\nCommit: ${sha}\nVersion: ${version}\nRun: ${runId}\n`);
+          await writeFile(path.join(destination, 'SOURCE.txt'), changes.sourceReceipt || `Repository: codepetca/zero\nCommit: ${sourceSha}\nVersion: ${version}\nRun: ${runId}\n`);
           await writeFile(path.join(destination, 'SHA256SUMS'), changes.checksums || keys.map(key => `${receipt.assets[key].sha256}  ${receipt.assets[key].filename}\n`).join(''));
           return output('');
         }
@@ -329,6 +338,67 @@ test('changed packaged Java/source stops before release publication', async t =>
   }});
   await assert.rejects(publishZero({version, runId}, f.dependencies), /Packaged source changed/);
   assert.ok(!f.calls.some(call => call.args[0] === 'release' || call.args.includes('PATCH')));
+});
+
+for (const missing of [false, true]) test(`downloaded review with ${missing ? 'missing' : 'stale'} harness stops before publication despite matching checksums`, async t => {
+  const f = await fixture(t, {modify: f => {
+    const members = unzipSync(f.bytes[2]);
+    if (missing) delete members[harnessMedia];
+    else members[harnessMedia] = Buffer.from('public class ZeroLibraryHarness { int stale; }\n');
+    f.bytes[2] = Buffer.from(zipSync(members));
+    f.receipt.assets.extension.size = f.bytes[2].length;
+    f.receipt.assets.extension.sha256 = digest(f.bytes[2]);
+  }});
+  await assert.rejects(publishZero({version, runId}, f.dependencies), /VSIX sharing harness drift/);
+  assert.ok(!f.calls.some(call => call.args[0] === 'release' || call.args.includes('PATCH') || call.args[0] === 'pr'));
+});
+
+for (const stage of ['selected main', 'latest main']) test(`a harness-only commit on ${stage} rejects an older successful supplied run`, async t => {
+  const history = await mkdtemp(path.join(tmpdir(), 'zero-harness-history-'));
+  t.after(() => rm(history, {recursive: true, force: true}));
+  const emptyConfig = path.join(history, 'fixture.gitconfig'), emptyHooks = path.join(history, 'fixture-hooks');
+  await writeFile(emptyConfig, '');
+  await mkdir(emptyHooks);
+  const git = args => exec('git', args, {cwd: history, env: {...process.env, GIT_CONFIG_GLOBAL: emptyConfig, GIT_CONFIG_SYSTEM: emptyConfig, GIT_CONFIG_NOSYSTEM: '1'}});
+  await git(['init', '--initial-branch=main']);
+  await mkdir(path.join(history, 'sharing/harness'), {recursive: true});
+  await writeFile(path.join(history, harnessSource), harness);
+  await git(['add', '--', harnessSource]);
+  const commit = () => git(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '-c', `core.hooksPath=${emptyHooks}`, '-c', 'commit.gpgsign=false', 'commit', '-m', 'Disposable harness fixture']);
+  await commit();
+  const before = (await git(['rev-parse', 'HEAD'])).stdout.trim();
+  await writeFile(path.join(history, harnessSource), 'public class ZeroLibraryHarness { int updated; }\n');
+  await git(['add', '--', harnessSource]);
+  await commit();
+  const after = (await git(['rev-parse', 'HEAD'])).stdout.trim();
+  assert.equal((await git(['diff', '--name-only', before, after])).stdout.trim(), harnessSource);
+  let fetched = false;
+  const f = await fixture(t, {existing: true, published: stage === 'latest main', sourceSha: before, mainSha: stage === 'selected main' ? after : before,
+    intercept: async (command, args, options, environment) => {
+      if (command !== 'git') return;
+      if (args[0] === 'clone' && stage === 'selected main') {
+        await cp(environment.template, args.at(-1), {recursive: true});
+        await writeFile(path.join(args.at(-1), harnessSource), await readFile(path.join(history, harnessSource)));
+        return '';
+      }
+      if (args[0] === 'fetch' && args[2] === 'main') {
+        fetched = true;
+        await writeFile(path.join(options.cwd, harnessSource), await readFile(path.join(history, harnessSource)));
+        return '';
+      }
+      if (args[0] === 'rev-parse' && args[1] === 'origin/main' && fetched) return after;
+      if (args[0] === 'merge-base' || (args[0] === 'diff' && args.includes('--'))) return (await git(args)).stdout;
+    }});
+  await assert.rejects(publishZero({version, runId}, f.dependencies), stage === 'selected main' ? /Packaged source changed since preparation/ : /Packaged source changed on latest main/);
+  const comparisons = f.calls.filter(call => call.command === 'git' && call.args[0] === 'diff' && call.args.includes('--'));
+  assert.equal(comparisons.at(-1).args[2], before);
+  assert.equal(comparisons.at(-1).args[3], after);
+  assert.ok(!f.calls.some(call => call.args[0] === 'push' || call.args[0] === 'pr'));
+  if (stage === 'selected main') assert.ok(!f.calls.some(call => call.args[0] === 'release' || call.args.includes('PATCH')));
+  else {
+    assert.equal(f.release.draft, false, 'The existing verified publication remains intact');
+    assert.ok(!f.calls.some(call => call.args[0] === 'release' || call.args.includes('PATCH')), 'Existing assets are never republished or replaced');
+  }
 });
 
 test('actual corrupt live kit times out after successful publication and metadata merge', async t => {

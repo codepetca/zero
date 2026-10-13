@@ -24,7 +24,8 @@ both consumers. A graphical JavaFX session is required. Re-running requires a
 fresh `--output` directory. Optional `--cache-from` copies an existing trusted
 Maven cache into the isolated cache to reuse pinned dependencies.
 
-ZeroHub's dogfood fixture imports these classes from this folder and assigns its
-reserved `zero.uiN` namespace. The proof does not publish or submit anything.
+These are maintained teaching examples in the readable `zero.starterui` package.
+Student libraries use their own repository-derived package and exact coordinate.
+The local proof does not publish or submit anything.
 Code is [MIT licensed](LICENSE). [PROVENANCE.json](PROVENANCE.json) preserves the
 original source revision and hashes.

@@ -12,7 +12,7 @@ Browse a library’s author, exact source commit, version, optional PNG preview 
 Java API on [ZeroHub](https://zero.codepet.ca/hub). Related classes come together
 as one library. The website never installs a dependency merely by displaying it.
 
-The replacement development extension uses native **Browse ZeroHub**, **Add
+The replacement development extension uses native **Browse Libraries**, **Add
 library**, **Apply**, **Update** and **Revert** controls. Add and Update preview
 managed Maven edits, preserve ordinary Java source and pin an exact version.
 Revert returns to that library’s previous pin; libraries keep independent

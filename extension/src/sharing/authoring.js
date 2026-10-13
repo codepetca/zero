@@ -57,6 +57,10 @@ async function javaFiles(root, directory) {
 // edits never disagree with the compiler's pre-lexing Unicode translation.
 function declaration(source, filename) {
   if (/\\u+[0-9a-fA-F]{4}/.test(source)) fail(`Unicode-escaped Java needs manual package preparation: ${filename}`);
+  // JLS 3.8 ignores these controls and Unicode format characters in identifiers.
+  // Refuse raw occurrences before comment/literal masking, without rewriting bytes
+  // or trusting this lightweight scanner to normalize Java identifier spellings.
+  if (/[\x00-\x08\x0e-\x1b\x7f-\x9f\p{Cf}]/u.test(source)) fail(`Hidden Java identifier-ignorable characters need manual source preparation: ${filename}. Remove the hidden characters before using generated library integration.`);
   const masked = source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, s => s.replace(/[^\r\n]/g, ' '));
   const packages = [...masked.matchAll(/\bpackage\s+([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*;/g)];
   if (packages.length > 1) fail(`Ambiguous package declaration: ${filename}`);

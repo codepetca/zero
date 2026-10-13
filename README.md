@@ -63,7 +63,8 @@ profile. The sidebar also supports dark themes.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`
   is the canonical component reused by quiz, practice and study apps.
-- `hub/`: ZeroHub service, database, isolated checks and immutable Maven publication.
+- `sharing/`: GitHub publication records, immutable artifact delivery and catalog.
+- `hub/checker/`: disconnected reference for the unresolved hosted-checker gate.
 - `libraries/`: maintained component bundles, API, examples and checks.
 - `framework/`: canonical Java source and core JAR build; readable source copies
   are assembled into the standalone student starter.

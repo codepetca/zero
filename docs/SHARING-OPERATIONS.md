@@ -33,8 +33,12 @@ The reviewed configuration has these fields:
 ```
 
 These uppercase values are placeholders, not valid runtime configuration. Use
-the actual store origin and 40-character lowercase source SHA. The workflow's
-configuration must match its checked-out source exactly. Keep
+the actual store origin and 40-character lowercase source SHA. Set the reviewed
+JSON as `ZERO_SHARING_CONFIG`. Its `policyRevision` selects the publisher checkout;
+the workflow validates the exact Git HEAD and full configuration before exposing
+publication credentials. Routine default-branch documentation or release metadata
+changes do not rotate this pin. Changing publisher policy/source requires an
+explicitly reviewed pin and matching student settings. Keep
 `ZERO_SHARING_GAME_PUBLICATION_ENABLED` absent/false until rollout checks pass;
 then deliberate activation requires both that variable and the validated config.
 Website settings are documented in [its README](../website/README.md).

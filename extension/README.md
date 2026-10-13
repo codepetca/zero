@@ -30,8 +30,10 @@ Commands: `zero.runApp`, `zero.stopApp`, `zero.uploadToGitHub`,
 `zero.githubAccount`, `zero.chooseRepository`,
 `zero.signInToGitHub`, `zero.createRepository`, `zero.connectRepository`,
 `zero.copyRepositoryLink`, `zero.showSetup` and
-`zero.showSidebar`. Component commands: `zero.components`, `zero.browseComponents`,
-`zero.updateComponents` and `zero.revertComponents`.
+`zero.showSidebar`. Sharing commands include `zero.sharingActions`,
+`zero.browseHub`, `zero.browseGames`, `zero.extractLibrary`, `zero.checkLibrary`,
+`zero.shareLibrary`, `zero.shareGame`, `zero.switchLibraryMode` and
+`zero.recoverLibraryChange`.
 
 ## Repository workflow
 
@@ -136,11 +138,11 @@ remain pending. Review focused changes before classroom adoption.
 
 ## ZeroHub libraries
 
-Open the Zero view title (…) menu → Browse ZeroHub, or use the command palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
+Open the Zero view title (…) menu → **Libraries and Games** → **Browse libraries**, or choose **Zero: Browse Libraries** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
 
 Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
 
-Library authors use `/hub/prepare` to download an editable preview project and upload it for automated checks. Public activation is pending; the configured local service uses an explicit demo identity. Physical installed-editor/Windows/Linux flows remain unverified.
+Library authors use **Extract library** inside their existing game repository, then **Check library** locally. Upload the source normally and choose **Share library** to prepare a GitHub request for the exact committed folder/version. `/hub/share` explains this flow and shows public request results. GitHub supplies the real personal-account identity; local Check does not grant hosted acceptance. Public library activation and physical installed-editor/Windows flows remain unverified.
 
 ## Setup checklist
 

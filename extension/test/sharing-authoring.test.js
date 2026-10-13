@@ -67,3 +67,38 @@ test('no overwriting, unsafe paths, source shadowing, source overrides or symlin
  await fs.symlink(path.join(root,'src/main/java/Health.java'),path.join(root,'src/main/java/Link.java')); await assert.rejects(previewExtraction(root,options()),/Symbolic links/); await fs.unlink(path.join(root,'src/main/java/Link.java'));
  const pom=await fs.readFile(path.join(root,'pom.xml'),'utf8'); await fs.writeFile(path.join(root,'pom.xml'),pom.replace('<build>','<build><sourceDirectory>elsewhere</sourceDirectory>')); await assert.rejects(previewExtraction(root,options()),/ordinary Zero source layout/);
 });
+test('extraction refuses hidden identifier characters before scanning or rewriting source',async t => {
+ for (const source of [
+  'package zero.con\u200Dtrib.r12345.health_bar; public class Health {}',
+  '// Hidden character: \u200D\npublic class Health {}',
+  '/* Hidden character: \u200D */\npublic class Health {}',
+  'public class Health { String label = "hidden\u200Dtext"; }',
+  'public class Health { char letter = \'\u200D\'; }',
+  'public class Health { String label = """\n hidden\u200Dtext\n """; }'
+ ]) {
+  const root=await fixture(t),filename=path.join(root,'src/main/java/Health.java'),pom=await fs.readFile(path.join(root,'pom.xml'),'utf8');
+  await fs.writeFile(filename,source);
+  await assert.rejects(previewExtraction(root,options()),/Hidden Java identifier-ignorable characters.*manual source preparation/);
+  assert.equal(await fs.readFile(filename,'utf8'),source); assert.equal(await fs.readFile(path.join(root,'pom.xml'),'utf8'),pom);
+  await assert.rejects(fs.access(path.join(root,'libraries/health-bar')));
+ }
+});
+test('hidden namespace source blocks both local and published mode changes without edits',async t => {
+ for (const mode of ['published','local']) for (const hidden of ['\u200D','\u0001','\u0085','\u{E0001}']) {
+  const root=await fixture(t); await applyPlan(await previewExtraction(root,options()));
+  if (mode==='local') await applyPlan(await previewMode(root,{slug:'health-bar',mode:'published',version:'1.0.0'}));
+  const source=`package zero.con${hidden}trib.r12345.health_bar; public class Copy {}`,filename=path.join(root,'src/main/java/Copy.java');
+  await fs.writeFile(filename,source);
+  const pom=await fs.readFile(path.join(root,'pom.xml'),'utf8'),state=await fs.readFile(path.join(root,'zero-libraries.json'),'utf8');
+  await assert.rejects(previewMode(root,{slug:'health-bar',mode,version:'1.0.0'}),/Hidden Java identifier-ignorable characters.*manual source preparation/);
+  assert.equal(await fs.readFile(filename,'utf8'),source); assert.equal(await fs.readFile(path.join(root,'pom.xml'),'utf8'),pom); assert.equal(await fs.readFile(path.join(root,'zero-libraries.json'),'utf8'),state);
+ }
+});
+test('ordinary Unicode comments and literals preserve package-edit offsets and Java whitespace',async t => {
+ const root=await fixture(t),source='// Caf\u00E9 \u{1F680}\r\n/* package ignored; */\r\npackage\told\f.\tname;\r\npublic class Health { String label = "\u5065\u5EB7"; char letter = \'\u00E9\'; }\r\n';
+ await fs.writeFile(path.join(root,'src/main/java/Health.java'),source);
+ const plan=await previewExtraction(root,options()),change=plan.changes.find(c=>c.path.endsWith('/health_bar/Health.java'));
+ assert.equal(plan.classes[0].from,'old.name.Health');
+ assert.equal(change.after,source.replace('package\told\f.\tname;','package zero.contrib.r12345.health_bar;'));
+ assert.equal(await fs.readFile(path.join(root,'src/main/java/Health.java'),'utf8'),source);
+});

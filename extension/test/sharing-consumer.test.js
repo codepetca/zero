@@ -47,6 +47,29 @@ test('root and local-library sources cannot shadow a binary; unsupported escapes
  await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository,descriptor,sources:['src/main/java/Health.java']}));await assert.rejects(consumer.planChange(f.root,f.context,f.releases[0]),/shadows/);
  const g=await fixture(t);await fs.writeFile(path.join(g.root,'src/main/java/Hud.java'),String.raw`package zero.\u0063ontrib.r12345.health_bar; class Hud {}`);await assert.rejects(consumer.planChange(g.root,g.context,g.releases[0]),/Unicode/);
 });
+test('Add rejects raw identifier-ignorable namespace spellings before artifact downloads or POM edits',async t=>{
+ const f=await fixture(t),filename=path.join(f.root,'src/main/java/Health.java'),pom=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');
+ for(const codePoint of [0x200D,0x0000,0x0008,0x000E,0x001B,0x007F,0x009F,0x0085,0x00AD,0x2060,0xFEFF,0xE0001]) {
+  const source=`package zero.con${String.fromCodePoint(codePoint)}trib.r12345.health_bar; public class Health {}`;
+  await fs.writeFile(filename,source);
+  await assert.rejects(consumer.planChange(f.root,f.context,f.releases[0],{operation:'add'}),/Hidden Java identifier-ignorable characters.*manual source preparation/,`U+${codePoint.toString(16).toUpperCase()}`);
+  assert.equal(await fs.readFile(filename,'utf8'),source); assert.equal(await fs.readFile(path.join(f.root,'pom.xml'),'utf8'),pom);
+ }
+ assert.deepEqual(f.calls,[f.settings.catalogUrl]);
+});
+test('Add and reviewed-plan validation also refuse hidden namespace copies in active local libraries',async t=>{
+ const f=await fixture(t);
+ await fs.writeFile(path.join(f.root,'src/main/java/Score.java'),'public class Score {}');
+ const descriptor={schema:1,kind:'library',slug:'score',version:'0.1.0',title:'Score',description:'Test helper',license:'MIT',libraryKind:'helper'};
+ await authoring.applyPlan(await authoring.previewExtraction(f.root,{repository,descriptor,sources:['src/main/java/Score.java']}));
+ const plan=await consumer.planChange(f.root,f.context,f.releases[0]);
+ const filename=path.join(f.root,'libraries/score/src/main/java/Health.java'),source='package zero.con\u200Dtrib.r12345.health_bar; public class Health {}';
+ await fs.writeFile(filename,source);
+ const pom=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');
+ await assert.rejects(consumer.planChange(f.root,f.context,f.releases[0],{operation:'add'}),/Hidden Java identifier-ignorable characters.*manual source preparation/);
+ await assert.rejects(consumer.validatePlan(plan,f.context),/Hidden Java identifier-ignorable characters.*manual source preparation/);
+ assert.equal(await fs.readFile(filename,'utf8'),source); assert.equal(await fs.readFile(path.join(f.root,'pom.xml'),'utf8'),pom);
+});
 
 test('published-mode repository uses standard Maven prefix and rejects altered repository or executable POM hooks',async t=>{
  const f=await fixture(t),text=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');
