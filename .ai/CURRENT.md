@@ -1,7 +1,7 @@
 # Current state
 
-Updated 2026-10-12/13. GitHub sharing clean replacement; tool-backed goal blocked after three
-consecutive verified impasse turns.
+Updated 2026-10-12/13. GitHub sharing clean replacement; push and draft-PR delivery approved
+2026-10-13. Full goal remains incomplete under the managed-library acceptance hold.
 
 ## Goal and authority
 
@@ -12,7 +12,9 @@ User authorized wholesale replacement, orchestration and task-scoped override
 of routine usage/review-budget stops. Actual provider/runtime rejection remains
 binding. Generic submitted-library acceptance was previously provider-rejected:
 no equivalent retry/bypass or public arbitrary Java execution. DeepSeek paused.
-No pushes, live publication, deploy, credentials or external resource changes yet.
+User replied Approved to the concrete push/draft-PR request on 2026-10-13.
+This grants branch push and draft PR creation, not merge, deployment, resource
+provisioning, public artifact release or retry of the held acceptance.
 
 ## Checkout and delivery
 
@@ -59,8 +61,8 @@ binding and excluded from replacement acceptance. Storage healthy ~341GB;
 weekly46% remaining is account-wide, not task cost. Worker token/effective-model
 telemetry unknown; no writer conflicts. No resets or paid resources used.
 
-Full goal is incomplete and blocked pending direct push/draft-PR authorization
-and resolution of the held managed-library acceptance. Actual GitHub/Blob
+Full goal is incomplete. Approved branch push/draft-PR delivery is in progress;
+held managed-library acceptance remains unresolved. Actual GitHub/Blob
 permissions and ETag/CAS behavior,
 public publication, hosted backup restoration, physical Windows, interactive
 VS Code and novice classroom trials are outstanding. No live activation or

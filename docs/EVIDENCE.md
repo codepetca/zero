@@ -1731,3 +1731,15 @@ backup restoration have not passed. No source push, PR publication, deployment,
 store provisioning, credential mutation, live publication or Neon deletion was
 performed. Full tool-backed goal remains incomplete; budget waiver grants no
 provider-rejection bypass or missing external-action permission.
+
+
+### Authorized draft publication — 2026-10-13
+
+Owner replied Approved to the exact request to push codex/github-sharing-adoption
+and open a draft PR. Authority covers those two actions; merge/deployment/resource
+provisioning/artifact release and held managed-library acceptance remain separate.
+Remote main remains b9d0188; existing draft PR26 remains on codex/app-game-tutorials
+at fa802d8. New branch contains the replacement plus inherited tutorial/kit work;
+replacement review scope starts at local4ed9cd4, not the cumulative main diff.
+Existing draft is not closed or changed. New PR targets canonical main and will
+state the cumulative scope and remaining gates explicitly.
