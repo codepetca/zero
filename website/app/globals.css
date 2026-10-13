@@ -1215,3 +1215,7 @@ pre code {
   overflow-wrap: anywhere;
   scroll-margin-top: 24px;
 }
+
+/* Direct GitHub account actions on the public Hub. */
+.reading .hub-account-actions { flex-wrap: wrap; gap: 12px; }
+.hub-account-actions .button { min-width: 0; max-width: 100%; margin: 0; white-space: normal; }

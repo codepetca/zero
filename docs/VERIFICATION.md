@@ -1521,3 +1521,17 @@ lesson reader with shared themes/client navigation. Fixture reflects the new
 Tutorials heading. Hub/release/sharing source remains identical to currentmain.
 Affected website checks and targeted integration review run on the new head;
 unchanged native/build-source coverage is retained, finalGitHubCI remains required.
+
+### ZeroHub GitHub account buttons — 2026-10-13
+
+ZeroHub replaces its explanatory paragraphs with Sign in to GitHub and Create
+GitHub account links styled as buttons, opening the official login/signup pages
+in a new tab. Website54 tests, typecheck, production build and diffcheck passed.
+Actual browser checks covered desktop,320px,390px, visible keyboard focus and
+Enter navigation to login; the signup action also opened GitHub's official page.
+No credentials or account forms were submitted. Native Zero sign-in remains in
+the sharing instructions; the public Hub does not detect browser account state.
+WebKit,200%text and400%zoom remain unverified. Release0.5.8 bytes, sharing admission
+holds and deferred physicalWindows/student trials are unaffected. The draft PR
+and its exact-head checks/source review record final publication status; the
+ignored `.verification/hub-account-buttons-delivery.json` retains delivery evidence.
