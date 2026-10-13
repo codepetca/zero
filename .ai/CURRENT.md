@@ -53,7 +53,9 @@ Fixture http://127.0.0.1:3256/. Latesthome:94websitepass2optionalHTTPskip,2fixtu
 ChromebothCTA routes, keyboardEnter, themes,320px menu/reflow checked. One
 GPT6.1Sol/medium review clear. Logs/captures .verification/home*, prior centered
 Downloads .verification/centered-downloads*.
-Owner may inspect. Integration/publication/release work needs separate authority.
+Integration is tracked in [PR34](https://github.com/codepetca/zero/pull/34).
+Owner authorized this PR and merge; inspect its GitHub state before repeating
+publication. Deployment/release work remains outside this design scope.
 Do not rebuild frozen0.5.8, redesignHub or alter other checkouts/private files.
 
 Upstream frozen0.5.8 is already published; keep its metadata and bytes unchanged.
@@ -64,11 +66,12 @@ its active worktree and separate authority are not this design task. DeepSeek pa
 
 Owner requests PR/main merge for the accumulated design. Branch is based on
 main60e629e, with only this task's patch; old source ancestry is excluded.
-Pinned dependencies refreshed. Website54 tests/typecheck/build and release64
-tests pass on integrated source. Full root/sharing checks run before acceptance.
+Pinned dependencies refreshed. Website54/typecheck/build, release64 and sharing45 tests pass on integrated
+source. Root suite passed243 tests with1 optionalPowerShell skip; design12 passed.
 New design tests now run in the root CI suite. No release/package artifacts built.
-Review risk: standard with interacting build/sidebar/web changes. One cumulative
-GPT6.1Sol/high review planned; maximum7launches,1initialwave,4fixbatches,60minutes.
-Prior component reviews remain evidence; new integration must pass its own gate.
+Review risk: standard with interacting build/sidebar/web changes. One cumulative GPT6.1Sol/high review completed base60e629e→b787743 with
+no actionable findings. Functional source remains that reviewed version; final
+documentation records acceptance. Required GitHubCI is the final merge gate.
+Prior component reviews remain evidence. Native/WebKit/Windows limits above apply.
 
 UpstreamPR33 Hub sign-in guidance was merged during integration and preserved.

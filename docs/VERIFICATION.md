@@ -1497,3 +1497,17 @@ verified publication. VSCE file listing includes generatedCSS/sidebarstyle witho
 building a VSIX. Prior Chrome evidence is retained; integrated browser check and
 one cumulative independentSol/high review complete the merge gate. Runtime
 telemetry/attributable costs unknown; storage healthy334GB and weekly9%used.
+
+### Integrated source acceptance — PR34
+
+Independent GPT6.1Sol/high complete58file review of60e629e→b787743: no
+actionable findings, no fixes. GeneratedCSS drift and diffcheck verified directly;
+release/sharing/Hub source have no delta. Root243pass/1optionalPowerShellskip,
+website54,sharing45,release64,design12,typecheck/build/configuration passed.
+Integrated Chrome verified Home→Downloads/currentpublished0.5.8 URLs and
+Home→lesson0/all13lessonnavigation. No artifact download or release rebuilding.
+Final metadata updates only these receipt/current files; functional code unchanged.
+[PR34](https://github.com/codepetca/zero/pull/34) records finalCI/merge state;
+inspect it before repeating publication. One initial review launch/turn; effective
+model/time/token telemetry unknown. Nativevisual/WebKit/physicalWindows/production
+200%text400%zoom remain unverified. No automatic claim of accessibility conformity.
