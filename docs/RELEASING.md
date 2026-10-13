@@ -41,12 +41,13 @@ It creates and verifies a draft targeting that source commit, publishes precisel
 the three main files, and retrieves each public download without authentication
 to check its bytes. It generates only `release/kit.json` and README's download
 label/link and opens the metadata PR. Pending checks can be polled, but required
-human review, outstanding review requests or a blocked merge stop the run and
-leave the exact published release and PR intact. Obtain the required independent
-human approval, then resume with the same version and successful preparation run
-ID. Approval must satisfy main's GitHub protection rules, including approval of
-the latest push by another human. AI source review does not provide that approval;
-never weaken or bypass the gate. The resumed run merges the exact checked head
+review, outstanding review requests or a blocked merge stop the run and
+leave the exact published release and PR intact. Satisfy the actual GitHub review
+or branch requirement, then resume with the same version and successful preparation
+run ID. Owner publication authority and independent source review remain required;
+AI review does not impersonate a human approval. The owner removed main's branch
+protections; do not re-enable or bypass account rules as part of releasing.
+The resumed run merges the exact checked head
 through the normal PR path, then waits for Vercel's existing Git
 integration and checks the actual live kit anchor and downloaded bytes. The
 landing action may link directly to the exact kit URL or to the same-site

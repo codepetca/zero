@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {zipSync, unzipSync} from 'fflate';
-import {publishZero, parseArguments, promoteDefinition, verifyChecks, verifyPreparation} from './release-publish.mjs';
+import {publishZero, parseArguments, promoteDefinition, promoteReadme, verifyChecks, verifyPreparation} from './release-publish.mjs';
 
 const sha = 'a'.repeat(40), head = 'b'.repeat(40), mergedSha = 'c'.repeat(40);
 const version = '1.2.3', runId = '123', uuid = 'fixture-request';
@@ -39,7 +39,7 @@ async function fixture(t, changes = {}) {
   const manifest = JSON.stringify({version, license: 'MIT'}), license = 'MIT License\nfixture notice\n', js = 'module.exports = 42;\n';
   await Promise.all(Object.entries({'release/kit.json': JSON.stringify(definition, null, 2) + '\n', 'extension/package.json': manifest,
     'extension/src/extension.js': js, [harnessSource]: harness, [sharingSource]: sharing, LICENSE: license, 'framework/pom.xml': '<artifactId>zero-core</artifactId>\n  <version>0.1.1</version>',
-    'README.md': '# Zero\n[Download Zero 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)\nUnrelated source and learning changes stay.\n'})
+    'README.md': '# Zero\n[Download for Windows — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)\nUnrelated source and learning changes stay.\n'})
     .map(([name, body]) => writeFile(path.join(template, name), body)));
   const bytes = [Buffer.from('reviewed kit bytes'), Buffer.from('reviewed starter bytes'), Buffer.from(zipSync({
     'extension/LICENSE.txt': Buffer.from(license), 'extension/src/extension.js': Buffer.from(js), 'extension/package.json': Buffer.from(manifest),
@@ -64,7 +64,7 @@ async function fixture(t, changes = {}) {
   if (promoted) {
     const metadata = promoteDefinition(definition, receipt, release.assets);
     await writeFile(path.join(template, 'release/kit.json'), JSON.stringify(metadata, null, 2) + '\n');
-    await writeFile(path.join(template, 'README.md'), `# Zero\n[Download Zero ${version}](${metadata.assets.kit.url})\n`);
+    await writeFile(path.join(template, 'README.md'), `# Zero\n[Download for Windows — complete kit ZIP ${version}](${metadata.assets.kit.url})\n`);
   }
   const environment = {definition, receipt, release, prepared, pr, bytes, calls, requests, logs, root, template};
   if (changes.modify) await changes.modify(environment);
@@ -90,7 +90,7 @@ async function fixture(t, changes = {}) {
           const promotedDefinition = promoteDefinition(definition, receipt, release.assets);
           if (name === 'release/kit.json') return output(JSON.stringify(promotedDefinition, null, 2) + '\n');
           if (name === 'README.md') return output((await readFile(path.join(options.cwd, name), 'utf8'))
-            .replace('[Download Zero 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Download Zero ${version}](${promotedDefinition.assets.kit.url})`));
+            .replace('[Download for Windows — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Download for Windows — complete kit ZIP ${version}](${promotedDefinition.assets.kit.url})`));
         }
         return output(await readFile(path.join(options.cwd, name), 'utf8'));
       }
@@ -141,7 +141,7 @@ async function fixture(t, changes = {}) {
             const metadata = promoteDefinition(definition, receipt, release.assets);
             await writeFile(path.join(root, 'temporary/source/release/kit.json'), JSON.stringify(metadata, null, 2) + '\n');
             const readmeFile = path.join(root, 'temporary/source/README.md');
-            await writeFile(readmeFile, (await readFile(readmeFile, 'utf8')).replace('[Download Zero 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Download Zero ${version}](${metadata.assets.kit.url})`));
+            await writeFile(readmeFile, (await readFile(readmeFile, 'utf8')).replace('[Download for Windows — complete kit ZIP 1.2.2](https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip)', `[Download for Windows — complete kit ZIP ${version}](${metadata.assets.kit.url})`));
           }
           pr.state = 'MERGED'; promoted = true; return output('');
         }
@@ -439,4 +439,17 @@ test('gating cannot accept green unrelated workflow, wrong head, skipped or miss
   assert.equal(verifyChecks({...pr, statusCheckRollup: []}, [run], head), false);
   assert.throws(() => verifyChecks({...pr, statusCheckRollup: [{status: 'COMPLETED', conclusion: 'SKIPPED'}]}, [run], head), /did not succeed/);
   assert.throws(() => verifyPreparation({...run, event: 'push'}, version, head), /manual workflow/);
+});
+
+
+test('README kit promotion preserves the independent Mac installer link and instructions', () => {
+  const mac = '[Download for Mac with Apple Silicon — setup 0.5.7](https://github.com/codepetca/zero/releases/download/setup-v0.5.7/Zero-Setup-0.5.7-macos.dmg)';
+  const kit = '[Download for Windows — complete kit ZIP 0.5.3](https://github.com/codepetca/zero/releases/download/v0.5.3/zero-bootstrap.zip)';
+  const before = `# Zero\n- ${mac}\n- ${kit}; follow START-HERE.md.\nOther source stays.\n`;
+  const url = 'https://github.com/codepetca/zero/releases/download/v0.5.8/zero-bootstrap.zip';
+  const after = promoteReadme(before, '0.5.8', url);
+  assert.equal(after, before.replace(kit, `[Download for Windows — complete kit ZIP 0.5.8](${url})`));
+  assert.equal(promoteReadme(after, '0.5.8', url), after);
+  assert.throws(() => promoteReadme(mac, '0.5.8', url), /exactly one Windows complete-kit link/);
+  assert.throws(() => promoteReadme(`${before}\n${kit}`, '0.5.8', url), /exactly one Windows complete-kit link/);
 });

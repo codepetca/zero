@@ -1972,3 +1972,87 @@ Canonical config bytes match standalone and embedded VSIX; deliberately missing
 legacy override input cannot replace canonical settings. No fresh native signed
 artifact/public kit or installed-editor result claimed yet. Writers stopped,
 independent source review pending. Existing0.5.7 installer remains unchanged.
+
+
+### Mac editor proof, integration and notarized release — 2026-10-13
+
+Astra/high completed80cb643..43ef73c canonical configuration/native freshness
+review clean. Sol/medium mac_picker_review completed43ef..94f2 matchOnDescription
+change clean (10 sharing-editor checks), then94f2..9eab main integration clean
+(27 setup/sharing checks). Main PR31 corrections are preserved exactly except the
+reviewed picker option. Source PR30 exact9eab917 passed CI38409187639 (4m17s) and
+Vercel preview, then normal merge created68d7f63 at14:02:05UTC. No review requests,
+threads, changes-requested reviews or merge rule remained. Primary checkout preserved.
+
+Actual MacRuntime.swift/SetupCore.swift configured a fresh explicit isolated home
+/private/tmp/z8-BrMpw6, downloaded/verified JDK21, reused official VS Code, installed
+Zero0.5.8/Java support and generated launcher. First proof CLI lacked Bundle resources
+and failed; corrected only the disposable Proof.app packaging, not product code.
+Installed configuration SHA0dbbf9a96daf51a8c08d62aaf4fc061ee273d1ee895e1cef88217584fb47e331
+matches canonical bytes. Native editor Run compiled/started JavaFX; human confirmed
+Hello, world! window. Native Stop ended owned Maven/game processes. Initial version
+search0.1.1 produced zero results; one supported picker option fixed it and installed
+94f2 actual UI produced one result. Cancel folder selection left starter; Open
+project created14 published source files with expected generated gitignore exclusions,
+0755wrapper/no inherited Git/no automatic run. New project opened in Restricted Mode.
+Integrated9eab installed VSIX matched source; explicit maintained-game Run compiled
+three files/started JavaFX; native Stop ended both owned processes. No student source
+was executed. Screenshots and runtime receipt remain private/ignored. Default-home
+fresh machine, physical Intel, Windows and student trials remain unproven/deferred.
+
+Earlier43ef notarized candidate4272883e was preserved privately before source changes.
+Final clean9eab signed universal candidate passed actual Developer ID signatures,
+payload/modes, Apple acceptance02eabd72-e76b-4254-9eb4-5932fdc5efc6, staple validation
+and DMG/mounted-app Gatekeeper. Local manifest preparatione6545b496243 binds original
+build9eab, embedded kit294299bytes SHA88a4c56efc4f2736123a107a73ac547be6508da81b1a371b6479a5e854345e01,
+final DMG947565bytes SHA28e9c237f0bf594d314c8f66d84b0653bf3d78cdca5facdaf190423f0e989395.
+Sol/medium reviewed complete measured manifest delta68d7..e6545 clean, matching
+actual bytes, clean source, signer and accepted Apple architecture tickets.
+Ledger14reviewturns/9source remediation or base-sync batches; waived task budgets
+persist. Effective configuration/tokens/reviewer time unknown where not exposed.
+
+release:prepare:mac verified and sealed exact bytes/source equivalence without
+rebuilding into dist/candidates/mac-0.5.8-e6545b496243; all SHA256SUMS passed.
+Authorized setup-v0.5.8 single-DMG draft targets exacte6545. Downloaded draft matched
+sealed candidate before publication; actual public asset downloaded anonymously and
+size/SHA verified. Release https://github.com/codepetca/zero/releases/tag/setup-v0.5.8.
+Private receipts sharing-mac-final-{public-proof,public-release,notary-submission,
+notary-log}.json and final verify/seal logs retained. No old public bytes replaced.
+Manual separate three-asset kit CI38410157579 targets merged68d7f63; its outcomes
+follow independently. Generic submitted-library executor acceptance remains held.
+
+
+Kit manual CI38410157579 completed successfully at exact68d7f63. Downloaded sealed
+SOURCE/SHA256SUMS and verifyReviewAssets established exact source, MIT/license,
+archive/config integrity. Created v0.5.8 draft; first immediate tags API read failed,
+so publication stopped. Existing draft411748620 was recovered by readback, validated
+same target/three filenames/digests, then all three draft downloads verified before
+publishing. No duplicate release/asset or replacement occurred. Actual public URLs
+for complete kit/starter/VSIX downloaded anonymously with exact receipts:
+kit294172bytes SHAf7a14bed51b16295532efd4efa9a6fd9c4bfa1e960e9fa0d41e82144b8650e6d;
+starter183188bytes SHA58a934a927510e6b78cd9590c56daae7dfb449584cc6628cb0b7111afb4b32f2;
+VSIX89078bytes SHAe00428211fa18e3ca9d75fc3a37b591a341e685167cea17b07efbbac1ec8c8d0.
+Public release https://github.com/codepetca/zero/releases/tag/v0.5.8. Native embedded
+local kit has its own sealed byte digest; no claim of CI container byte identity.
+Promotion uses verified actual GitHub URLs, preserving both source revisions and
+Mac signing/notary metadata. Prior native0.5.7/publickit0.5.3 assets remain untouched.
+
+
+Metadata promotion exposed a maintainer publisher defect: promoteReadme still
+required the former Download Zero link; current README has separate Mac and
+Windows links. Corrected the strict single Windows complete-kit selector; the
+independent Mac link/instructions remain untouched by kit promotion. Disposable
+publisher fixtures now use the actual canonical label; dedicated behavior check
+covers preservation, idempotency and missing/duplicate-link refusal. This is the
+next source remediation batch10; final fixed-head review/metadata merge/deployment
+receipt remains private .verification/sharing-mac-rollout-delivery.json. No packed
+student/native source is changed by this maintainer-tool correction; public assets
+remain immutable. Release docs now describe actual GitHub review requirements and
+the owner's existing removal of branch protection without changing account rules.
+
+Website verification exposed four state-fixture failures after real publication:
+local-preview/fallback tests read live current metadata and implicitly required it
+to remain local. The fixture now validates authored metadata, then constructs an
+explicit local clone with no public URLs; existing published/fallback/missing tests
+retain their assertions. Production selection code is unchanged. Batched before
+final promotion review rather than weakening expected behavior.

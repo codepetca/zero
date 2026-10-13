@@ -73,9 +73,9 @@ export function promoteDefinition(release, receipt, assets) {
 }
 
 export function promoteReadme(readme, version, url) {
-  const expression = /\[Download Zero [^\]\n]+\]\([^\)\n]+\)/g;
-  assert.equal([...readme.matchAll(expression)].length, 1, 'README must contain exactly one Download Zero link.');
-  return readme.replace(expression, `[Download Zero ${version}](${url})`);
+  const expression = /\[Download for Windows — complete kit ZIP [^\]\n]+\]\([^\)\n]+\)/g;
+  assert.equal([...readme.matchAll(expression)].length, 1, 'README must contain exactly one Windows complete-kit link.');
+  return readme.replace(expression, `[Download for Windows — complete kit ZIP ${version}](${url})`);
 }
 
 export function verifyRelease(release, receipt, sourceSha) {
