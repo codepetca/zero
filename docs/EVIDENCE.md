@@ -2366,3 +2366,30 @@ guides. Local unpublished VSIX142.42KB carries exact3scaffold bytes and Start
 project command; public0.5.8 was not repackaged. Source tree matches reviewed head.
 Full adoption remains held. Final local handoff commit is separate from delivered
 source; ignored `.verification/progressive-delivery.json` retains final telemetry.
+
+## Mac0.5.9 release preparation — 2026-10-13
+
+Owner said Proceed to Mac Start project/continue/reuse/rerun walkthrough then
+updated kit release; physical Windows/student trials deferred. Manual Mac unlock
+requested before GUI retry. Sol/medium bounded read-only preflight found publisher
+verified obsolete /learn#downloads and fallback still0.5.3. Coordinator supports
+current exact same-origin /downloads, preserving scoped section/one-kit anchor and
+public hash verification. Anonymous0.5.8 kit/starter/VSIX downloads match frozen
+manifest; they are now fallback while current0.5.9 is local. Old local kit/native
+receipt preserved before rebuild. No account/credential changes or old asset edits.
+
+Local checks: root256pass1skip116.97s; publisher66/release70; Mac seal2; installer8;
+website56/typecheck/build; actual package + verify-kit extracted Maven/source/modes/
+license parity. Two old website assertions initially failed (fallback0.5.3 and
+version-specific guide); updated to exact verified0.5.8 pins and included-VSIX
+guidance, then website56/build pass. Real publisher verify-only0.5.8 fetched actual
+public assets and current /downloads kit anchor successfully, without mutation.
+Native0.5.9 signing, walkthrough and publication remain pending. New native bytes
+required; seal before kit metadata promotion because native source guard includes
+release/kit.json. Runtime telemetry for preflight model/time/tokens unknown; usage
+85% remaining account-wide at start; storage329.4GB healthy/no cleanup.
+
+Review ledger: high risk due publisher completion guard; one initial wave with
+separate Sol/high correctness/network and packaging/compatibility reviewers.
+Cumulative prior25turns; upcoming26/27; no remediation yet. Standing task-scoped
+stop waiver persists; no provider/identity gate bypass.

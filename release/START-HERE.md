@@ -1,6 +1,6 @@
 # Start with Zero
 
-This kit contains Zero **0.5.8** for **Mac with Apple Silicon** and **Windows**.
+This kit contains Zero **0.5.9** for **Mac with Apple Silicon** and **Windows**.
 Linux and Intel Macs are unsupported.
 
 ## Zero setup app
@@ -43,7 +43,7 @@ work, not for running the first app. Sign in only when you are ready to upload.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.8.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.9.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
@@ -52,8 +52,12 @@ work, not for running the first app. Sign in only when you are ready to upload.
    together, including its hidden `.mvn` and `.vscode` folders.
 4. Open **starter/lessons/00-hello-world.md** (Lesson 0: Hello, world!), then
    `src/main/java/Main.java`. Use **Zero: Run App** to see **Hello, world!**.
-   Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.
-5. Continue with Lessons 1–12 in **starter/lessons/README.md**.
+   Change the greeting to **Hello, Java!**, then click Run App again.
+5. For the lessons, choose **Zero: Start project** and create **Greeting** once
+   for lessons 0–2. Create **Study** at lesson 3 and **Game** at lesson 8.
+   Keep the same project for each group's following lessons; click Run App again
+   after editing. These empty practice projects stay local. Read
+   **starter/lessons/README.md** or the online Tutorials for the next steps.
    **starter/README.md** covers running, examples and GitHub;
    **starter/API.md** describes the readable framework in your project.
 

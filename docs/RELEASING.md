@@ -51,7 +51,7 @@ The resumed run merges the exact checked head
 through the normal PR path, then waits for Vercel's existing Git
 integration and checks the actual live kit anchor and downloaded bytes. The
 landing action may link directly to the exact kit URL or to the same-site
-`/learn#downloads` chooser; the chooser must contain one exact kit anchor inside
+`/downloads` chooser (or the retained `/learn#downloads` path); the chooser must contain one exact kit anchor inside
 its downloads section. A URL in script/JSON does not establish a download link.
 It reports release/PR URLs and a completion message; it never edits credentials,
 account settings, branch rules or community artifacts.
@@ -213,7 +213,7 @@ GitHub asset URL to `asset.url`. Keep the version, tag, digest, size, original s
 and signer unchanged. Local metadata has no public URL; never promote a guessed
 or inaccessible URL. Run website typecheck/tests/build and check the deployed
 Mac link/bytes after separately authorized metadata integration/deployment. The
-landing action then opens `/learn#downloads`, where students choose Mac setup or
+landing action then opens `/downloads`, where students choose Mac setup or
 the ZIP for Windows/Linux/manual setup. Preserve the last independently verified
 published kit manifest in `release/published-kit.json` while the current kit is
 local; its three links retain their own version labels. Publishing Mac setup

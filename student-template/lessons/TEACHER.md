@@ -70,4 +70,4 @@ Supported targets are Apple Silicon Mac and Windows. Physical Windows, school
 restrictions and novice classroom trials are still pending; Linux and Intel Macs
 are unsupported. See the [pilot checklist](../../docs/CLASSROOM-PILOT.md).
 Published kits remain immutable; website project ZIPs work with the existing Run
-App command. Native Start project changes belong to the next kit release.
+App command. Native Start project is included in kits from0.5.9.

@@ -187,12 +187,14 @@ export async function publishZero(options, dependencies = {}) {
         assert.equal(links.length, 1, 'Live landing must have one Download Zero link.');
         let found = links[0][1].replace(/&amp;/g, '&');
         if (found !== kit.url) {
-          assert.ok(found === '/learn#downloads' || found === `${website}/learn#downloads`, 'Live download link is stale.');
-          const choices = await request(`${website}/learn`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
+          const page = found === '/downloads' || found === `${website}/downloads` ? '/downloads' :
+            found === '/learn#downloads' || found === `${website}/learn#downloads` ? '/learn' : null;
+          assert.ok(page, 'Live download link is stale.');
+          const choices = await request(`${website}${page}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
           assert.equal(choices.status, 200, 'Live download choices unavailable.');
           if (choices.url) {
             const destination = new URL(choices.url);
-            assert.ok(destination.origin === website && destination.pathname === '/learn', 'Live download choices redirected outside the expected page.');
+            assert.ok(destination.origin === website && destination.pathname === page, 'Live download choices redirected outside the expected page.');
           }
           const sections = [...visibleMarkup(await choices.text()).matchAll(/<section\b[^>]*\sid=["']downloads["'][^>]*>([\s\S]*?)<\/section\s*>/gi)];
           assert.equal(sections.length, 1, 'Live page must have one downloads section.');
