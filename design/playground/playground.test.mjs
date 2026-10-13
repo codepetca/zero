@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { readFileSync } from 'node:fs';
 import { handle } from './server.mjs';
 import { sidebarSource } from './sidebar-source.mjs';
 import { lessons } from '../../website/lib/learning.mjs';
@@ -23,7 +24,10 @@ test('review endpoints use source data and published fallback without exposing d
     assert.doesNotMatch(downloadHtml, /Learn Java|id="lessons"/);
     assert.match(downloadHtml, /Download for Mac Silicon/); assert.match(downloadHtml, /Download for Windows \(ZIP\)/);
     assert.match(downloadHtml, /aria-label="Download for Windows \(ZIP\), manual setup"/);
-    assert.match(downloadHtml, /data-source-url="https:\/\/github.com\/codepetca\/zero\/releases\/download\/v0.5.3\/zero-bootstrap.zip"/);
+    const authored = JSON.parse(readFileSync(new URL('../../release/kit.json', import.meta.url), 'utf8'));
+    const published = JSON.parse(readFileSync(new URL('../../release/published-kit.json', import.meta.url), 'utf8'));
+    const kit = authored.publication.status === 'published' ? authored : published;
+    assert.ok(downloadHtml.includes(`data-source-url="${kit.assets.kit.url}"`));
     assert.doesNotMatch(downloadHtml, /Linux|Windows.*\.exe|href="https:/);
     assert.equal((await fetch(`${origin}/download/installer`)).status,404);
     assert.equal((await fetch(`${origin}/`,{method:'POST'})).status,405);

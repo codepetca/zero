@@ -29,3 +29,12 @@ resolves the320px classic-scrollbar overflow. Shared generated outputs and packa
 file inclusion pass. An isolated official VSCode host activated Zero; native visual
 verification could not be safely bound and remains unclaimed. Application captures
 and logs are ignored under .verification/design-applied/.
+
+## Final owner revisions and main integration — 2026-10-13
+
+The owner replaced Home with the shared header and Learn Java / Starting from
+zero. copy, centered DownloadZero/StartLearning actions, separate centered
+Downloads and a direct lesson reader. Home now shares the approved themes.
+Original review-kit statements above describe the earlier phase. Main integration
+preserves already-published0.5.8 metadata/bytes and GitHub-sharing contracts;
+only the design patch is transplanted, excluding four unrelated branch commits.

@@ -2230,3 +2230,17 @@ findings. One initialwave/launch,0remediationbatches; effective model/time/token
 unknown. Documentationnowmatchesownerreplacement. Screenshot/logs ignored
 .verification/home*. Devserver3257 andChromehome retained; no publication.
 Production200%text/400%zoom,WebKit/physicalWindows remain unverified.
+
+## PR integration of shared design — 2026-10-13
+
+Owner authorized PR/main merge. The design patch was transplanted from isolated
+639da317 onto origin/main fee74a3; four unrelated local ancestry commits are
+excluded. Conflicts preserve upstream GitHub-sharing scripts/docs and published
+0.5.8 metadata/bytes. No Hub/sharing/release source delta; no release repackaging.
+Dependencies refreshed from pinned current lockfiles. Website54/typecheck/build,
+release64 tests passed; native/full sharing tests continue before final acceptance.
+Design tests are included in rootCI; fixture release expectation follows current
+verified publication. VSCE file listing includes generatedCSS/sidebarstyle without
+building a VSIX. Prior Chrome evidence is retained; integrated browser check and
+one cumulative independentSol/high review complete the merge gate. Runtime
+telemetry/attributable costs unknown; storage healthy334GB and weekly9%used.

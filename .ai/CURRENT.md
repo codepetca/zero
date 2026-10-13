@@ -59,3 +59,14 @@ Do not rebuild frozen0.5.8, redesignHub or alter other checkouts/private files.
 Upstream frozen0.5.8 is already published; keep its metadata and bytes unchanged.
 GitHub-sharing adoption state is retained in main fee74a3 and docs/EVIDENCE.md;
 its active worktree and separate authority are not this design task. DeepSeek paused.
+
+## PR integration and review ledger
+
+Owner requests PR/main merge for the accumulated design. Branch is based on
+origin/main fee74a3, with only this task's patch; old source ancestry is excluded.
+Pinned dependencies refreshed. Website54 tests/typecheck/build and release64
+tests pass on integrated source. Full root/sharing checks run before acceptance.
+New design tests now run in the root CI suite. No release/package artifacts built.
+Review risk: standard with interacting build/sidebar/web changes. One cumulative
+GPT6.1Sol/high review planned; maximum7launches,1initialwave,4fixbatches,60minutes.
+Prior component reviews remain evidence; new integration must pass its own gate.
