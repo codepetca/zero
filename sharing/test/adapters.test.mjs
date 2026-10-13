@@ -135,6 +135,23 @@ test('catalog CAS pointer cannot move backward from a stale builder and public r
   const report=formatPublicReport(Object.values(next.requests)[0]);assert.ok(!Object.hasOwn(report,'attempts'));assert.ok(!Object.hasOwn(report,'frozen'));
 });
 
+test('Blob verification selects stored representation instead of CDN compression with weak ETags',async()=>{
+  const blob=fakeBlob();
+  const fetcher=async(url,options)=>{
+    const response=await blob.fetcher(url,options);
+    if(response.ok&&options.headers['accept-encoding']!=='identity') {
+      return new Response(await response.arrayBuffer(),{headers:{etag:'W/'+response.headers.get('etag'),'content-encoding':'br'}});
+    }
+    return response;
+  };
+  const storage=new BlobStorage({sdk:blob.sdk,fetcher,token:'blob-fixture-token',artifactOrigin:origin});
+  const bytes=Buffer.from('Owned game-sized stored representation.\n'.repeat(500));
+  const expected=await storage.putImmutable('staging/representation/zip',bytes);
+  assert.deepEqual(await storage.verify(expected.path,expected),bytes);
+  storage.fetcher=async()=>new Response(bytes,{headers:{etag:'W/'+blob.objects.get(expected.path).etag}});
+  await assert.rejects(storage.verify(expected.path,expected),/stale or unavailable/);
+});
+
 test('Blob stale public bytes fail closed against origin metadata',async()=>{
   const blob=fakeBlob(),storage=new BlobStorage({sdk:blob.sdk,fetcher:blob.fetcher,token:'blob-fixture-token',artifactOrigin:origin});
   await storage.putImmutable('staging/item/bytes',Buffer.from('fresh'));

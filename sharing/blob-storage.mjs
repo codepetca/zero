@@ -17,7 +17,8 @@ async function readStream(stream, maximum) {
 
 /** Explicit SDK credentials and configured origin only. SDK 2.8.1 public get
  * ignores useCache:false. Origin API metadata plus nonce public GET must agree;
- * stale delivery fails closed instead of accepting cached metadata as bytes. */
+ * Select the stored representation so CDN compression cannot weaken its ETag.
+ * Stale delivery fails closed instead of accepting cached metadata as bytes. */
 export class BlobStorage {
   constructor({sdk,token,artifactOrigin,fetcher=fetch,maxBytes=104857600,timeoutMs=30000}) {
     if (!sdk?.put || !sdk?.head || !sdk?.del || !token || typeof token!=='string' || /[\r\n]/.test(token)) throw new Error('Explicit Blob SDK and publisher credential required');
@@ -31,7 +32,7 @@ export class BlobStorage {
     try{metadata=await this.sdk.head(this.url(key),this.options());}catch(error){if(this.sdk.BlobNotFoundError && error instanceof this.sdk.BlobNotFoundError)throw missing();throw new Error('Blob read unavailable');}
     if(metadata?.url!==this.url(key)||metadata.pathname!==key||typeof metadata.etag!=='string'||!Number.isSafeInteger(metadata.size)||metadata.size<1||metadata.size>this.maxBytes)throw new Error('Blob read metadata invalid');
     let response;
-    try{response=await this.fetcher(this.url(key)+'?zero_verify='+randomUUID(),{method:'GET',headers:{'cache-control':'no-cache, no-store'},cache:'no-store',redirect:'error',signal:AbortSignal.timeout(this.timeoutMs)});}catch{throw new Error('Blob public delivery unavailable');}
+    try{response=await this.fetcher(this.url(key)+'?zero_verify='+randomUUID(),{method:'GET',headers:{'cache-control':'no-cache, no-store','accept-encoding':'identity'},cache:'no-store',redirect:'error',signal:AbortSignal.timeout(this.timeoutMs)});}catch{throw new Error('Blob public delivery unavailable');}
     if(!response.ok||!response.body||response.headers.get('etag')!==metadata.etag)throw new Error('Blob public delivery is stale or unavailable');
     const bytes=await readStream(response.body,this.maxBytes);
     if(bytes.length!==metadata.size)throw new Error('Blob returned incomplete bytes');
