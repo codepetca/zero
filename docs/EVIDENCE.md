@@ -2244,3 +2244,25 @@ verified publication. VSCE file listing includes generatedCSS/sidebarstyle witho
 building a VSIX. Prior Chrome evidence is retained; integrated browser check and
 one cumulative independentSol/high review complete the merge gate. Runtime
 telemetry/attributable costs unknown; storage healthy334GB and weekly9%used.
+
+
+### Mac delivery and explicit GitHub sign-in guidance — 2026-10-13
+
+Sol/medium completed full nine-file metadata/tooling diff68d7..e33ba8b clean,
+reviewturn15/batches11. PR32 exacte33ba8b passed CI38412134933 (5m1s) and Vercel
+preview; normal merge createdfee74a3 at14:24:17UTC. Production READY sourcefee74a3
+serves actual Mac and kit0.5.8 anchors. Browser and anonymous live-native download
+match sealed DMG; release:publish --version0.5.8 --verify-only passed public assets
+and live kit bytes. Final private sharing-mac-rollout-delivery.json records actual
+results, remaining holds and deferred trials. No general publishing activation.
+
+Owner requested clear GitHub requirements for Hub. Existing Share captures a native
+Zero GitHub session and checks account/repository ownership before form dispatch;
+public discovery/consumption requires no session. Added visible Hub contribution
+note/link and Before you share steps: sign into GitHub in Zero, connect own public
+repository, upload committed work, use same account in browser form. Component
+guide matches. No new website authentication or changed credentials/permissions.
+Website typecheck/build passed. Actual local production browser Hub → See how to
+share navigation showed both sign-in locations and matching-account guidance.
+Screenshot output/playwright/hub-sign-in-prerequisites.png remains ignored. Fixed
+copy delta receives proportional independent review before authorized integration.

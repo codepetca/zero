@@ -2,7 +2,7 @@
 
 Updated2026-10-13. Work only /Users/stew/.codex/worktrees/zero-design-review/zero.
 Design patch isolated from639da317; integration branch codex/shared-web-sidebar-design
-based on current origin/main fee74a3. Four unrelated branch commits excluded.
+based on origin/main fee74a3, then merged main60e629e. Four unrelated branch commits excluded.
 Read design.md, docs/PRODUCT.md, docs/DEVELOPMENT.md, docs/UI-UX-GUIDELINES.md.
 
 ## Authority and delivery
@@ -63,10 +63,12 @@ its active worktree and separate authority are not this design task. DeepSeek pa
 ## PR integration and review ledger
 
 Owner requests PR/main merge for the accumulated design. Branch is based on
-origin/main fee74a3, with only this task's patch; old source ancestry is excluded.
+main60e629e, with only this task's patch; old source ancestry is excluded.
 Pinned dependencies refreshed. Website54 tests/typecheck/build and release64
 tests pass on integrated source. Full root/sharing checks run before acceptance.
 New design tests now run in the root CI suite. No release/package artifacts built.
 Review risk: standard with interacting build/sidebar/web changes. One cumulative
 GPT6.1Sol/high review planned; maximum7launches,1initialwave,4fixbatches,60minutes.
 Prior component reviews remain evidence; new integration must pass its own gate.
+
+UpstreamPR33 Hub sign-in guidance was merged during integration and preserved.
