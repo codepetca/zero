@@ -210,6 +210,7 @@ test("every tutorial offers a fresh local ZIP, with complete stage links allowli
   for (const suffix of ["10-game", "12-scrolling", "12-platforms", "12-levels", "12-full"]) {
     const url = `/generated/lessons/zero-lesson-${suffix}.zip`;
     assert.equal(resolveContentLink("student-template/lessons/12-media.md", url, {}, {}), url);
+    assert.equal(resolveContentLink("student-template/lessons/12-media.md", `https://zero.codepet.ca${url}`, {}, {}), url);
   }
   assert.equal(resolveContentLink("student-template/lessons/12-media.md", "/generated/lessons/other.zip", {}, {}), null);
 });
@@ -239,5 +240,6 @@ test("fresh lesson guide and stage links match the generated picker names", asyn
     const markdown = readFileSync(new URL(`../../student-template/lessons/${file}`, import.meta.url), "utf8");
     assert.ok(markdown.includes(projects.get(id)), `${id} picker title`);
     assert.ok(markdown.includes(`/generated/lessons/zero-lesson-${id}.zip`), `${id} ZIP link`);
+    assert.ok(markdown.includes(`https://zero.codepet.ca/generated/lessons/zero-lesson-${id}.zip`), `${id} works in local Markdown`);
   }
 });

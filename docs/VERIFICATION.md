@@ -1560,3 +1560,9 @@ native Start lesson/Run interactions are unverified; that window was unchanged.
 WebKit,200%text/400%zoom and physicalWindows/student trials remain unverified.
 Final independent review, exact-head CI and publication are recorded by the
 feature PR and ignored `.verification/local-lessons-delivery.json` receipt.
+
+
+The local-guide follow-up uses full Zero HTTPS addresses for stage ZIP links;
+the website resolver keeps those downloads on its own origin. This corrects
+local Markdown links without changing Java starters, editor behavior or release
+assets. The follow-up PR records its focused tests, independent review and CI.
