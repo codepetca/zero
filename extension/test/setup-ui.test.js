@@ -10,7 +10,7 @@ async function fixture(choices = [], overrides = {}) {
   const vscode = {
     window:{
       showQuickPick:async (items,options) => {records.picks.push({items,options});const action = choices.shift();return items.find(item => item.action === action);},
-      showInformationMessage:async text => {records.notices.push(text);},
+      showInformationMessage:async text => {records.notices.push(text);return overrides.notification;},
       showWarningMessage:async text => {records.warnings.push(text);}
     },
     commands:{executeCommand:async (...args) => {records.commands.push(args);if(overrides.installError)throw new Error('School policy');available.add(args[1]);}},
@@ -65,6 +65,16 @@ test('first build is only launched by user selection, rechecked and limited to e
   const {help,records} = await fixture(['run']);await help();
   assert.equal(records.checks,2);assert.deepEqual(records.runs,['/student']);
   assert.match(records.notices[0],/Confirm that the separate JavaFX window opens.*task terminal/);
+});
+test('Run first app launches without waiting for the explanatory notice to be dismissed',async t => {
+  let dismiss,timer;
+  const notification=new Promise(resolve=>{dismiss=resolve;});
+  t.after(()=>dismiss());
+  const {help,records}=await fixture(['run'],{notification});
+  const completed=await Promise.race([help().then(()=>true),new Promise(resolve=>{timer=setTimeout(()=>resolve(false),1000);})]).finally(()=>clearTimeout(timer));
+  assert.equal(completed,true,'The informational notice must not block the selected first run');
+  assert.equal(records.checks,2);assert.deepEqual(records.runs,['/student']);
+  await help();assert.equal(records.checks,3,'Setup guard must be released while the notice remains open');
 });
 test('project change or unavailable tools during picker recheck blocks first run',async () => {
   const {records,vscode,options} = await fixture(['run']);

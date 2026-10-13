@@ -149,7 +149,7 @@ function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulati
             continue;
           }
           if (!report.runReady) continue;
-          await vscode.window.showInformationMessage('Run App will save your files and build the app. First builds need internet. Confirm that the separate JavaFX window opens; if it fails, read the task terminal.');
+          void vscode.window.showInformationMessage('Run App will save your files and build the app. First builds need internet. Confirm that the separate JavaFX window opens; if it fails, read the task terminal.');
           await run(report.project.root); return;
         }
         if (EXTENSIONS.some(extension => extension.id === choice.action)) {
