@@ -1,8 +1,8 @@
 # Sharing operations
 
 Use [the adoption plan](GITHUB-SHARING-PLAN.md) and
-[shared contract](../sharing/CONTRACT.md). The current implementation is a local
-candidate. Generic library publication is closed pending the actual outstanding
+[shared contract](../sharing/CONTRACT.md). The replacement source is merged; public game delivery is proven while
+general publication remains disabled during Mac rollout. Generic library publication is closed pending the actual outstanding
 managed execution acceptance. The game path only packages source.
 
 ## Before activation
@@ -12,7 +12,9 @@ immutable collisions and cleanup with approved inert files. Provision the fixed
 `codepetca/zero` branch `zero-sharing-registry` and `registry/state.json` explicitly
 from `node sharing/cli.mjs setup` / `registrySetupDocument()`; the application
 never creates a branch or resets a missing registry. Its initial state contains
-no releases and an inbox cursor at page 1, offset 0.
+no releases and an inbox cursor at page 1, offset 0. Because this is a data-only
+branch, add `website/vercel.json` there with `git.deploymentEnabled: false` so
+registry commits do not trigger website builds. Keep that file in registry backups.
 
 Configure a dedicated publisher environment and selected public Blob store. Keep
 `ZERO_BLOB_TOKEN` private. GitHub's workflow token supplies registry write and
@@ -42,6 +44,10 @@ explicitly reviewed pin and matching student settings. Keep
 `ZERO_SHARING_GAME_PUBLICATION_ENABLED` absent/false until rollout checks pass;
 then deliberate activation requires both that variable and the validated config.
 Website settings are documented in [its README](../website/README.md).
+The kit reads checked `release/sharing.json` with the same public origin/policy and
+canonical website catalog URL. Review that file with publisher pin changes; its
+exact bytes are included in local/CI packages and verified before publication.
+It contains no publisher token.
 
 ## Dry runs and recovery
 

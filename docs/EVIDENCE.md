@@ -1907,3 +1907,68 @@ verified; real extractor wrote14files into a new isolated folder, wrapper0755 an
 no inherited Git. This is maintained structural delivery, not classroom/gameplay
 or installed-editor evidence. Receipts sharing-owned-game-{request,publication,
 consumption}.json; published immutable bytes retained.
+
+
+### Merged sharing source and managed game rollout — 2026-10-13
+
+Final CI38399857328 passed exact77d25c16a7a22266d2a5e4c520f3f91787ae09b2:
+root/release/sharing, real HTTPS Maven consumers, finite JavaFX examples, website
+types/tests/build and package/kit source verification. PR27 marked ready, clean
+head/checks/no review threads verified; normal head-bound merge created80cb643 at
+12:53:17UTC. Managed worktree fast-forwarded; unrelated funding checkout preserved.
+GitHub subsequently reports old draftPR26 merged by ancestor inclusion; its
+headfa802d8 unchanged, no direct action on that PR.
+
+Vercel production dpl_2wM5pjvehw1GwD7r9iRpLxvqVTqH ready at80cb643. Canonical
+anonymous catalog200 contains maintained game; real browser Games view displays
+exact source/contributor/license/project download. Screenshot sharing-live-hub.png.
+Registry-only website/vercel.json git.deploymentEnabled:false committed066970d;
+API confirms no deployment for guard/later registry commits, earlier errors retained.
+No main website build/branch protection change to suppress those data-only builds.
+
+Managed Actions38400799140 proved publisher source pinbeaaca4/actual HEAD/full
+configuration and existing-request intake. Processing was empty because release
+was already ready; do not count it as fresh managed publication. Maintained
+fixture descriptor0.1.1 committedc2525affd138cac991e4483ed6a8b7bdee161767; issue29
+binds that source/version. Fresh Actions38401271011 completed source retrieval,
+structural packaging, trusted evidence, actual Git ledger/Blob delivery and catalog
+publication: processing status available, no submitted Java executed. Both windows
+restored general publication flag/config false and verified it. Issue-triggered
+disabled job skipped as intended. Generic library acceptance unchanged/closed.
+
+Anonymous production reads initially retained coherent0.1.0 catalog briefly after
+publication; subsequent fixed-URL read displayed both versions. Raw GitHub advertises
+300s max-age; no-store website/catalog integrity remained unchanged. Record provider
+propagation latency in pilot; no pointer override or cache-busting fallback added.
+Latest sequence15 registry Git bundle restored exactly with deployment guard; two
+final game ZIPs and all three retained snapshot bytes/hash verified and isolated
+restore passed. Prior unchanged restoration reused after local hash checks. Live
+final objects retained. Receipts sharing-live-fresh-final-backup.json and
+sharing-managed-game-fresh-proof.json; files remain ignored/private.
+
+Owner confirmed Windows/students available later, explicitly after Mac completion.
+Mac-first phase now proceeds; these trials are deferred, never claimed passed.
+Sol/high mac_completion_check delivered a read-only bounded release assessment:
+local config input omitted from CI and not bound by downloaded-review verification.
+Next canonical public configuration/provenance correction and fresh isolated editor
+proof precede Mac0.5.8 signing/notarization/publication. Existing0.5.7 assets, Neon
+data/credentials and unrelated student projects remain preserved.
+
+
+### Configured Mac kit preparation — 2026-10-13
+
+Sol/high mac_kit_configuration delivered canonical public release/sharing.json
+and exact-byte package/kit/review binding, removing local-only environment override.
+Local and CI now share the reviewed origin/catalog/publisher pin. Both release
+freshness guards include config and its packaging helper. Source substitution,
+missing/stale/reformatted VSIX settings with coherent checksums are refused;
+configuration-only disposable Git main advancement refused at both guards.
+Release63/63 passed. Sol/high mac_completion_check separately added canonical
+config/helper/harness to native source equivalence; real disposable Git changes
+block preparation/serving and exact restoration restores eligibility. Worker13
+focused installer/seal checks passed; coordinator6 local-installer/Mac release
+checks, root check, actual package and extracted-kit verification passed.
+Canonical config bytes match standalone and embedded VSIX; deliberately missing
+legacy override input cannot replace canonical settings. No fresh native signed
+artifact/public kit or installed-editor result claimed yet. Writers stopped,
+independent source review pending. Existing0.5.7 installer remains unchanged.

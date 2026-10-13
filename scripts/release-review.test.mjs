@@ -5,7 +5,26 @@ import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {zipSync} from 'fflate';
-import {reviewPlan, assertUnpublished, verifyReviewAssets} from './release-review.mjs';
+import {reviewPlan, assertUnpublished, verifyReviewAssets, sharingConfigurationBytes} from './release-review.mjs';
+
+const sharingSettings = {schema: 1, catalogUrl: 'https://zero.codepet.ca/api/sharing/catalog',
+  artifactOrigin: 'https://fixture.public.blob.vercel-storage.com', policyRevision: 'a'.repeat(40)};
+const sharingBytes = new TextEncoder().encode(JSON.stringify(sharingSettings, null, 2) + '\n');
+
+test('release sharing settings preserve checked bytes and reject missing, closed or invalid source', () => {
+  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-release-sharing-'));
+  try {
+    mkdirSync(path.join(fixture, 'release'));
+    assert.throws(() => sharingConfigurationBytes(fixture), /ENOENT/);
+    writeFileSync(path.join(fixture, 'release/sharing.json'), sharingBytes);
+    assert.deepEqual(sharingConfigurationBytes(fixture), sharingBytes);
+    for (const value of [{...sharingSettings, artifactOrigin: '', policyRevision: ''},
+      {...sharingSettings, operatorToken: 'not-allowed'}, {...sharingSettings, policyRevision: 'unreviewed'}]) {
+      writeFileSync(path.join(fixture, 'release/sharing.json'), JSON.stringify(value));
+      assert.throws(() => sharingConfigurationBytes(fixture), /sharing configuration|reviewed policy/);
+    }
+  } finally {rmSync(fixture, {recursive: true, force: true});}
+});
 
 function definition() {
   return {kitVersion: '1.2.3', coreVersion: '0.1.1', publication: {
@@ -48,21 +67,24 @@ test('absence checks fail closed on existing tags, drafts and API errors', async
     'https://api.github.com/repos/codepetca/zero/releases/tags/v1.2.3']);
 });
 
-test('sealing rejects byte drift, stale source or harness, missing harness and an extra component asset', () => {
+test('sealing rejects byte drift, stale source, harness or sharing settings and an extra component asset', () => {
   const fixture = mkdtempSync(path.join(tmpdir(), 'zero-release-review-'));
   try {
     mkdirSync(path.join(fixture, 'extension/src'), {recursive: true});
     mkdirSync(path.join(fixture, 'sharing/harness'), {recursive: true});
+    mkdirSync(path.join(fixture, 'release'));
     const license = new TextEncoder().encode('MIT License\nfixture notice\n');
     const source = new TextEncoder().encode('module.exports = 42;\n');
     const harness = new TextEncoder().encode('public class ZeroLibraryHarness {}\n');
     writeFileSync(path.join(fixture, 'LICENSE'), license);
     writeFileSync(path.join(fixture, 'extension/src/extension.js'), source);
     writeFileSync(path.join(fixture, 'sharing/harness/ZeroLibraryHarness.java'), harness);
+    writeFileSync(path.join(fixture, 'release/sharing.json'), sharingBytes);
     writeFileSync(path.join(fixture, 'extension/package.json'), JSON.stringify({version: '1.2.3', license: 'MIT'}));
     const release = definition(), receipt = {...release, assets: {}};
     const members = {'extension/LICENSE.txt': license, 'extension/src/extension.js': source,
       'extension/media/sharing-harness/ZeroLibraryHarness.java': harness,
+      'extension/media/sharing-config.json': sharingBytes,
       'extension/package.json': new TextEncoder().encode(JSON.stringify({version: '1.2.3', license: 'MIT'}))};
     const vsix = zipSync(members);
     for (const key of ['kit', 'starter', 'extension']) {
@@ -96,6 +118,21 @@ test('sealing rejects byte drift, stale source or harness, missing harness and a
       save();
       assert.throws(() => verifyReviewAssets(fixture, release, fixture), /VSIX sharing harness drift/,
         'A valid archive checksum cannot establish canonical harness parity');
+    }
+    for (const changedSharing of [
+      new TextEncoder().encode(JSON.stringify({...sharingSettings, catalogUrl: 'https://wrong.example/catalog'})),
+      new TextEncoder().encode(JSON.stringify({...sharingSettings, policyRevision: 'b'.repeat(40)})),
+      new TextEncoder().encode(JSON.stringify(sharingSettings)), undefined]) {
+      const changedMembers = {...members};
+      if (changedSharing) changedMembers['extension/media/sharing-config.json'] = changedSharing;
+      else delete changedMembers['extension/media/sharing-config.json'];
+      const bytes = zipSync(changedMembers);
+      writeFileSync(path.join(fixture, release.assets.extension.filename), bytes);
+      receipt.assets.extension.size = bytes.length;
+      receipt.assets.extension.sha256 = createHash('sha256').update(bytes).digest('hex');
+      save();
+      assert.throws(() => verifyReviewAssets(fixture, release, fixture), /VSIX sharing configuration drift/,
+        'Matching ZIP hashes do not establish the exact checked sharing configuration');
     }
     receipt.assets.components = {filename: 'zero-components.zip'};
     save();
