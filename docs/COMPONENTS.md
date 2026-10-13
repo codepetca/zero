@@ -1,150 +1,131 @@
-# Components: build, use, improve
+# ZeroHub games, libraries and components
 
-This is the agreed architecture for the component lifecycle MVP. Implementation
-and actual verification progress live in [CURRENT](../.ai/CURRENT.md); the
-phase exit criteria live in [COMPONENT-PLAN](COMPONENT-PLAN.md).
+ZeroHub at `/hub` discovers complete editable games and reusable Java libraries.
+Students use one existing game repository owned by their personal GitHub account.
+Libraries live under `libraries/<name>/` inside that repository; sharing does not
+require another repository. Pika assignment submission remains a separate
+repository-link workflow.
 
-## Student API and responsibility
+## Use a library
 
-An app owns its rules and state. Native JavaFX controls/layouts remain available.
-SimpleApp runs settings/setup once; SketchApp adds explicit update/draw calls.
-The student calls methods on ordinary objects. A visual component may expose
-`view()` returning a Node; a data helper does not need a view. A sketch object
-may expose update/draw methods, called explicitly by the app. No required
-component parent, annotations, registry or reflection is introduced.
+Browse a library’s author, exact source commit, version, optional PNG preview and
+Java API on [ZeroHub](https://zero.codepet.ca/hub). Related classes come together
+as one library. The website never installs a dependency merely by displaying it.
 
-HealthBar demonstrates a small presentation object: the app chooses its health
-value and the component displays it. Construction configures maximum and caption;
-setHealth updates presentation. It does not decide damage, healing or game rules.
-Use separate instances for separate parents. Packages prevent library names from
-colliding with student classes; the student learns imports before library internals.
+The replacement development extension uses native **Browse Libraries**, **Add
+library**, **Apply**, **Update** and **Revert** controls. Add and Update preview
+managed Maven edits, preserve ordinary Java source and pin an exact version.
+Revert returns to that library’s previous pin; libraries keep independent
+histories. There are no automatic updates or silent substitutions. Public kit
+releases retain their original bytes and do not acquire these controls until a
+new kit is deliberately released.
 
-## Use a library, edit a development project
+### Manual setup for current downloads
 
-Accepted community components are distributed in one versioned Maven library
-initially. A component is a Java class; a distributed library may contain several
-components. The community source repository is
-[codepetca/zero-community](https://github.com/codepetca/zero-community), separate
-from [codepetca/zero](https://github.com/codepetca/zero). Clone them as siblings
-for the existing local Workshop commands. The original
-core ships readable in the starter during the local proof; no core binary
-migration is assumed without a demonstrated need.
+Open **Use this library → Manual Maven setup** on a library card. Merge the shown
+repository and dependency entries into the existing sections of your app’s
+`pom.xml`, then use the shown Java import and example. Add the dependency once
+for related classes in that library. Maven retrieves the exact listed version
+from the public immutable artifact store.
 
-Adding a component records an exact library version in the app's Maven project.
-Maven resolves the dependency; Zero does not implement a package resolver.
-Published versions must remain available and immutable. Never use floating
-versions, SNAPSHOTs or automatic downloads of unreviewed Git branches in a
-student starter. A catalog identifies component API, provenance, checks and the
-compatible library release, rather than promising independent component versions.
+Identity comes from the verified numeric GitHub repository ID and chosen slug.
+Repository `12345` and slug `health-bar` produce library ID
+`lib-r12345-health-bar`, namespace `zero.contrib.r12345.health_bar` and coordinate
+`ca.codepet.zero.contrib.r12345:health-bar:0.1.0`. Imports could include
+`zero.contrib.r12345.health_bar.HealthBar`; use the actual API on the card.
+Account/repository renames do not rename Java packages or Maven coordinates.
+GitHub contributor names provide credit, while numeric identities bind ownership.
+There is no server-assigned short-ID reservation.
 
-Students can inspect attached source/API and run examples locally. To improve a
-component, open its editable workshop project. Source copies used in an extraction
-lesson are learning exercises, not managed library installations. Do not silently
-overwrite a student's edited copy or shadow an installed class with the same name.
+Ordinary constructors, setters and callbacks connect components. Main owns
+navigation, game rules and explicit updates; widgets expose `Node view()` and
+ordinary helpers need no view, registration system or automatic lifecycle.
 
-## Update and revert
+## Open a game
 
-The project records the installed version. A new patch appears as an available
-update with its behavior change and compatibility. Applying it previews the
-dependency change, preserves unrelated edits, rebuilds and asks the student to
-try the app. Revert restores the recorded preceding dependency version, not a
-whole-source rollback. A failed build or cancelled review preserves source and
-offers recovery. Passing compilation is not proof of correct app behavior.
+Games are separate editable projects, never Maven dependencies. Inspect the
+controls, author, license and exact source before choosing **Download project**
+on the website or **Open project** in the replacement Zero editor. Zero verifies
+the listed ZIP’s size/hash and extracts into a new destination; it does not
+overwrite an existing project, configure the original author’s remote or run
+Java automatically. Review ordinary VS Code workspace trust before **Run App**.
+Connecting your own repository is a separate action. Preserve attribution and
+applicable licenses when making changes.
 
-No silent upgrade when opening an old assignment. Automatic compatible updates
-are deferred. Any future import uses a fixed trusted catalog and verifies release
-digests; arbitrary community text cannot specify commands or grant tool authority.
-The first Maven artifact repository is local for verification; public artifact
-hosting is a separate gate from the GitHub source remote.
-Downloads should eventually work without package-service credentials for students.
+The initial game policy validates and packages source. It does not execute the
+game or promise gameplay quality, safe execution or a native installer.
 
-## Workshop and community workflow
+## Develop and share from the existing repository
 
-One component project contains source, named runnable examples, API explanation,
-behavior checks and a small metadata file. The same files supply the local
-Workshop, check report, contribution packet and generated catalog page.
-Multiple states/examples do not substitute for reuse in two different apps.
-The workshop helps the student satisfy requirements before uploading their own
-repository or proposing community inclusion. Coursework submission in Pika stays
-separate; the teacher is not the default component reviewer.
+Use **Share game** for the root game and **Share library** for a library folder.
+Save authored title, description, license, exact version and preview selection in
+`zero-game.json` or `zero-library.json`; games also describe their controls.
+Zero derives identity and API metadata rather than asking students to copy a
+commit SHA or numeric repository ID into a browser form.
 
-Automation checks build, documented examples, declared dependencies, compatibility
-and behavior. AI can summarize gaps, draft explanations and propose fixes. AI
-feedback is advisory, tied to the reviewed source/version, and budgeted; it cannot
-approve itself, merge, publish, change credentials or run contributor instructions.
-Tests written by a contributor or AI do not establish independent usefulness.
-Untrusted code checks must not receive repository-write or AI credentials.
+For a library, preview extraction and package/import/build changes before moving
+selected classes and their helpers under `libraries/<name>/`. Keep recoverable
+source edits and prove the game still runs. **Develop local library** compiles
+the editable source roots; **Use published version** uses an exact Maven pin.
+The two modes are explicit and never silently fall back to local classes when
+an artifact is missing.
 
-Community maintainers accept useful, understandable components and own repair.
-Experimental, checked, community-reviewed and deprecated are distinct statuses.
-Unreviewed work waits for maintainers rather than falling back to the teacher.
-Catalog generation and releases are automated after acceptance. Popularity can
-prioritize review but cannot bypass checks. Promotion to Zero is a maintainer
-decision; after promotion Zero is canonical and the catalog links there.
+Choose **Check library** for local feedback on independent compilation, API/source
+boundaries, behavior checks and two finite examples using the actual JAR. The
+first policy uses Java 17, JavaFX 21.0.12 and a fixed dependency allowlist; it
+supports self-contained JavaFX widgets and ordinary Java helpers. Local feedback
+is not hosted publication authority.
 
-## Public-adoption decisions
+Upload source through the normal reviewed Git workflow. Share opens a prefilled
+form in the official Zero GitHub repository, frozen to the exact committed source
+folder and version. GitHub handles authentication; the website has no sign-in,
+folder-upload or reservation flow. Changing local files afterward does not
+change that request. The pilot requires public repositories owned by the
+requesting student’s personal account; private/organization/team publication
+needs a later policy.
 
-Original Zero Community source, including HealthBar, uses MIT. Contributions
-follow the repository’s MIT license and preserve upstream notices. Before public
-artifact releases, appoint maintainers and select an artifact host. Local HealthBar
-fixtures remain experimental; licensing does not make them reviewed community
-releases. Historical local catalogs may retain the previous UNLICENSED label. External GitHub/AI execution and physical Windows/Linux verification
-must be reported separately from local automated evidence.
+An accepted version’s source never changes. Correct failed unpublished source
+and submit its new commit; fixes to accepted releases use a new version.
+Contributor-supplied workflow results or claimed acceptance are not authority.
 
+## Publication and current limits
 
-## Public component pilot
+Small authoritative request, release and availability records live in a Git CAS
+ledger on the `zero-sharing-registry` branch of Zero. Immutable public Blob
+objects hold Maven files, source archives, game ZIPs and generated catalog
+snapshots. The Git ledger holds the current snapshot pointer. The website reads
+that fixed pointer and validates its exact artifact origin, digest and revision;
+there is no Neon database or website OAuth session on this read path.
 
-The first public library is planned as 0.1.2, containing HealthBar under MIT.
-Historical 0.1.0/0.1.1 local fixtures retain their original bytes. Public Browse
-uses the fixed Zero catalog and HTTPS Maven repository; explicit local catalogs
-remain available. The website checks each listed artifact's size/SHA256 before
-serving it. Exact dependency versions keep old assignments stable. One public
-version initially means Update/Revert become available after a real later fix.
+The automatic-publication design separates trusted checking from publication.
+Public library checking remains blocked by the unresolved checker acceptance
+gate. Moving execution to managed CI does not remove that gate. This local
+replacement does not activate public publication or prove a hosted candidate
+executor. A request alone is not an available release; failed or unavailable
+checks must never create one. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
+[sharing contract](../sharing/CONTRACT.md).
 
-Public source checks and publication are separate. The owner authorized an initial
-experimental release; it is not community-approved. Existing maintain/admin users
-of zero-community may accept contributions through independent, current-head
-GitHub review after CI. The owner-side check-github-acceptance.py helper reads
-GitHub directly and returns waiting unless that decision and current checks exist.
-It cannot approve, merge or publish. Contributor/AI/CI fields never grant authority.
+Automatically checked can only mean the disclosed accepted checks actually
+passed; it cannot establish every behavior, usefulness or safety when installed.
+Downloaded Java runs with the app’s permissions. Existing experiment artifacts
+are not migrated into this replacement catalog or treated as verified releases.
 
-The portable Workshop includes editable source and verified local core/community
-artifacts. Students preview/check/export with JDK and their wrapper, then propose
-a normal fork/PR; no Python or Node is required for the student flow. Maven remains
-the resolver. The first catalog contains one component, and no live AI service or
-new student account is introduced. Actual public availability follows the release
-receipts and website manifest; see VERIFICATION for delivery evidence.
+## Alternatives, samples and curation
 
+Several HUDs or health bars can coexist as separate libraries. Related classes
+can share one library. Combining alternatives, highlighting preferred choices
+and promoting APIs into core remain deliberate decisions; none silently changes
+installed pins.
 
-## Alternatives, recommendations and core
+`libraries/starter-ui/` and `libraries/health-bars/` are maintained local sample
+bundles, separate from core APIs. Editing them does not publish a replacement
+release. [Starter UI proof](STARTER-UI-PACKAGE.md) documents historical/local
+consumer evidence, rather than authority for this catalog.
 
-A component ID identifies an alternative; a version identifies an immutable Maven
-library release containing it. Plain HealthBar and SegmentedHealthBar can coexist
-in the same Health bars category and currently share one library artifact. Students
-install the library once, then use either class available in their pinned version.
-A second class may require an explicit library update; it never appears in older
-versions merely because the catalog lists it.
-
-The reviewed public manifest can name one starting recommendation per category,
-with an exact component ID, release version and short reason. Source contributions
-may describe their category and available releases; they cannot recommend themselves.
-Recommendation does not change check/review status, establish human acceptance,
-replace an installed pin or make a component part of core. Existing maintainers
-review recommendation changes through the normal maintained-source process; CI
-validates references and integrity, not subjective usefulness.
-
-Alternatives remain accessible. Students may deliberately choose another available
-version. Add uses that exact selection; Try uses a trusted packaged example for
-supported classes at the same version. Update is an explicit library action and
-Revert uses recorded prior version history. Related components move together while
-they share one Maven artifact. Separate independent packages can be introduced
-when real maintenance/dependency needs justify them; no bespoke resolver is added.
-
-Core stays small. Promotion requires stable APIs, clear teaching value, reusable
-examples and ongoing maintenance; it is a separate human decision and migration,
-not an automated winner selection. No component is promoted by this phase.
-
-The extended discovery endpoint is `/community/catalog-v2.json` (schema2).
-`/community/catalog.json` retains the original schema1 HealthBar view for released
-Zero0.5.2. Fixed Maven artifact URLs/hashes are the same; curation adds no executable
-source, credentials, automatic upload or custom package resolution.
+The approved product policy imposes no lifetime contributor storage or library
+count allowance. Technical bounds and shared capacity controls still apply.
+Zero’s owners and designated maintainers may curate, archive or withdraw content.
+A withdrawn release is visibly unavailable and cannot be added or downloaded
+through Zero; already installed local files are unchanged. Curation is separate
+from routine technical acceptance. See [the contribution policy](ZEROHUB-POLICY.md)
+and [development commands](DEVELOPMENT.md).

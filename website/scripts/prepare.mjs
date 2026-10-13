@@ -10,8 +10,6 @@ import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
 import { validateInstallerManifest } from "../lib/installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
-import { validateCommunityManifest } from "../lib/community.mjs";
-import { communityPreview } from "../lib/community-preview.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -28,16 +26,16 @@ const documentPaths = {
   "lesson-8": "student-template/lessons/08-movement.md",
   "lesson-9": "student-template/lessons/09-coin-game.md",
   "lesson-10": "student-template/lessons/10-components.md",
-  "lesson-11": "student-template/lessons/11-community.md",
+  "lesson-11": "student-template/lessons/11-zerohub.md",
   "lesson-12": "student-template/lessons/12-media.md",
   setup: "docs/GETTING-STARTED.md",
   api: "student-template/API.md",
   beginner: "student-template/BEGINNER.md",
   style: "student-template/STYLE.md",
+  ui: "student-template/UI.md",
   starter: "docs/GETTING-STARTED.md",
   exercises: "student-template/EXERCISES.md",
   components: "docs/COMPONENTS.md",
-  workshop: "component-workshop/README.md",
   verification: "docs/VERIFICATION.md",
   pilot: "docs/CLASSROOM-PILOT.md",
   development: "docs/DEVELOPMENT.md",
@@ -76,7 +74,6 @@ for (const file of [
   "student-template/zero.json",
   "LICENSE",
   "README.md",
-  "component-workshop/README.md",
 ])
   sources[file] = await readFile(resolve(root, file), "utf8");
 for (const name of ["SimpleApp", "SketchApp"])
@@ -99,16 +96,11 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
-const community = validateCommunityManifest(
-  JSON.parse(await readFile(resolve(root, "release/community.json"), "utf8")),
-);
-const previewEnabled = process.env.ZERO_COMMUNITY_PREVIEW === '1' && !process.env.VERCEL;
-const preview = communityPreview(previewEnabled ? JSON.parse(await readFile(resolve(root, '../zero-community/catalog/components.json'), 'utf8')) : null, community, {enabled:previewEnabled, hosted:Boolean(process.env.VERCEL)});
 await mkdir(resolve(site, ".generated"), { recursive: true });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, publishedKit, installer, community, communityPreview:preview, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, publishedKit, installer, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

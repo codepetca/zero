@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const core = require('../src/core');
 const {prepareUpload, uploadPrepared} = require('../src/github');
 async function project(t) {
@@ -60,6 +61,58 @@ test('review detects edited source even when porcelain status is unchanged', asy
   await fs.writeFile(path.join(root, 'Main.java'), 'class Main { int score; }\n');
   await assert.rejects(uploadPrepared(plan, 'Save', {run: mock.run}), /changed after review/);
   assert.ok(!mock.calls.some(args => args[0] === 'push' || args[0] === 'commit' || args.includes('add')));
+});
+async function binaryProject(t) {
+  const root = await project(t);
+  await fs.mkdir(path.join(root, 'assets'));
+  const filename = path.join(root, 'assets', 'picture.bin');
+  // Incompressible replacements make Git's binary patch exceed its 1 MiB
+  // command-output limit, even though only one reviewed path has changed.
+  await fs.writeFile(filename, crypto.randomBytes(1100000));
+  await core.git(root, ['add', '-A']);
+  await core.git(root, ['commit', '-m', 'Baseline asset']);
+  await fs.writeFile(filename, crypto.randomBytes(1100000));
+  return {root, filename};
+}
+test('tracked binary replacement larger than 1 MiB can be reviewed, committed and uploaded through mocked transport', async t => {
+  const {root, filename} = await binaryProject(t); const mock = transport();
+  const expectedBlob = await core.git(root, ['hash-object', '--', filename]);
+  const plan = await prepareUpload(root, mock.run);
+  assert.deepEqual(plan.changes, [{path: 'assets/picture.bin', kind: 'M'}]);
+  const result = await uploadPrepared(plan, 'Replace picture', {run: mock.run});
+  assert.equal(result.uploaded, true); assert.equal(result.committed, true);
+  assert.equal(await core.git(root, ['rev-parse', `${result.head}:assets/picture.bin`]), expectedBlob);
+  assert.equal(await core.git(root, ['status', '--porcelain=v1']), '');
+  assert.deepEqual(mock.calls.find(args => args[0] === 'push'), ['push', plan.remote, `${result.head}:refs/heads/main`]);
+  assert.deepEqual(mock.calls.find(args => args[0] === 'ls-remote'), ['ls-remote', '--heads', plan.remote, 'refs/heads/main']);
+  assert.ok(!mock.calls.some(args => args.includes('--binary')));
+});
+test('large binary review rejects working bytes, index-only content and mode drift with unchanged status', async t => {
+  for (const drift of ['working bytes', 'index only', 'working mode', 'index mode']) await t.test(drift, async t => {
+    if (drift === 'working mode' && process.platform === 'win32') { t.skip('Windows does not expose Unix executable file modes.'); return; }
+    const {root, filename} = await binaryProject(t); const mock = transport();
+    await core.git(root, ['config', '--local', 'core.filemode', 'true']);
+    await core.git(root, ['add', '--', 'assets/picture.bin']);
+    const workingBytes = crypto.randomBytes(1100000);
+    await fs.writeFile(filename, workingBytes);
+    const plan = await prepareUpload(root, mock.run);
+    assert.deepEqual(plan.changes, [{path: 'assets/picture.bin', kind: 'MM'}]);
+    if (drift === 'working bytes') await fs.writeFile(filename, crypto.randomBytes(1100000));
+    if (drift === 'index only') {
+      await fs.writeFile(filename, crypto.randomBytes(1100000));
+      await core.git(root, ['add', '--', 'assets/picture.bin']);
+      await fs.writeFile(filename, workingBytes);
+    }
+    if (drift === 'working mode') await fs.chmod(filename, 0o755);
+    if (drift === 'index mode') await core.git(root, ['update-index', '--chmod=+x', '--', 'assets/picture.bin']);
+    assert.equal(await core.git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all']), plan.status);
+    const changed = await prepareUpload(root, mock.run);
+    assert.notEqual(changed.fingerprint, plan.fingerprint);
+    if (drift.startsWith('index')) assert.equal(changed.contentFingerprint, plan.contentFingerprint);
+    mock.calls.length = 0;
+    await assert.rejects(uploadPrepared(plan, 'Replace picture', {run: mock.run}), /changed after review/);
+    assert.ok(!mock.calls.some(args => args.includes('add') || ['commit', 'push', 'ls-remote'].includes(args[0])));
+  });
 });
 test('remote, branch, operation, detached HEAD, nested repository and ignored staging are refused', async t => {
   const root = await project(t); const mock = transport();

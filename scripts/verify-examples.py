@@ -162,17 +162,167 @@ checks={
         ((Button) controls.getChildren().get(1)).fire();
         require((int) field(app, "count") == 0, "Reset changes count");
         require(((Label) field(app, "total")).getText().equals("Count: 0"), "Reset label");''',
-'drawing': '''mouse(app, MouseEvent.MOUSE_PRESSED, 100, 100, MouseButton.PRIMARY);
+'drawing': '''app.stop(); // Keep event sequences between deliberate frames, with no timer races.
+        mouse(app, MouseEvent.MOUSE_PRESSED, 100, 100, MouseButton.PRIMARY);
         app.draw();
-        mouse(app, MouseEvent.MOUSE_DRAGGED, 150, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 100, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_PRESSED, 200, 100, MouseButton.PRIMARY);
         app.draw();
-        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 100).equals(Color.DARKBLUE), "Drag paints line");
-        mouse(app, MouseEvent.MOUSE_RELEASED, 150, 100, MouseButton.PRIMARY);
+        var pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(100, 100).equals(Color.DARKBLUE)
+                && pixels.getColor(200, 100).equals(Color.DARKBLUE), "Separate presses paint their dots");
+        require(pixels.getColor(150, 100).equals(Color.WHITE), "Release between frames must separate strokes");
+        mouse(app, MouseEvent.MOUSE_RELEASED, 200, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_PRESSED, 300, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 300, 100, MouseButton.PRIMARY);
         app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(300, 100).equals(Color.DARKBLUE), "Click entirely between frames paints a dot");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 100, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 150, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 150, 200, MouseButton.PRIMARY);
+        app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 200).equals(Color.DARKBLUE), "Drag paints line without waiting for frames");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 100, 300, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, -10, 300, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 200, 300, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 200, 300, MouseButton.PRIMARY);
+        pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(100, 300).equals(Color.DARKBLUE)
+                && pixels.getColor(200, 300).equals(Color.DARKBLUE)
+                && pixels.getColor(150, 300).equals(Color.WHITE), "Leaving bounds breaks the stroke before re-entry");
+        mouse(app, MouseEvent.MOUSE_PRESSED, app.width(), 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, app.width(), 100, MouseButton.PRIMARY);
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(639, 100).equals(Color.WHITE), "Right boundary is outside the canvas");
+        mouse(app, MouseEvent.MOUSE_PRESSED, -10, 100, MouseButton.SECONDARY);
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 200).equals(Color.DARKBLUE), "Secondary press outside does not clear");
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 100, 100, MouseButton.SECONDARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 100, 100, MouseButton.SECONDARY);
+        app.draw();
+        pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(125, 200).equals(Color.WHITE)
+                && pixels.getColor(300, 100).equals(Color.WHITE), "Held secondary clears when dragged inside");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 400, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 400, 200, MouseButton.PRIMARY);
         mouse(app, MouseEvent.MOUSE_PRESSED, 100, 100, MouseButton.SECONDARY);
-        app.draw();
-        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 100).equals(Color.WHITE), "Secondary button clears");'''
+        mouse(app, MouseEvent.MOUSE_RELEASED, 100, 100, MouseButton.SECONDARY);
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(400, 200).equals(Color.WHITE), "Secondary click clears between frames");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 500, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 550, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 550, 200, MouseButton.PRIMARY);
+        pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(525, 200).equals(Color.DARKBLUE)
+                && pixels.getColor(450, 200).equals(Color.WHITE), "Painting after clear starts a fresh stroke");'''
 }
+checks['coin-game-controls'] = '''app.stop();
+        var controls = (HBox) app.layout().getBottom();
+        var score = (Label) field(app, "score");
+        var player = (Player) field(app, "player");
+        var coin = (Coin) field(app, "coin");
+        require(app.layout().getCenter() == app.canvas() && controls.getChildren().contains(score), "Canvas and ordinary UI share one layout");
+        require(score.getText().equals("Score: 0 / 1"), "One-coin UI starts at zero");
+        setDouble(player, "x", (double) field(coin, "x"));
+        setDouble(player, "y", (double) field(coin, "y"));
+        app.update(0); app.update(0); app.draw();
+        require(score.getText().equals("Score: 1 / 1") && (int) field(app, "points") == 1 && coin.isCollected(), "Repeated contact scores once and updates existing control");
+        var restart = button(controls, "Restart");
+        restart.requestFocus(); restart.fire();
+        require(score == field(app, "score") && app.layout().getBottom() == controls, "Restart reuses UI objects");
+        require((int) field(app, "points") == 0 && !((Coin) field(app, "coin")).isCollected() && field(app, "player") != player, "Restart resets game data");
+        require(score.getText().equals("Score: 0 / 1") && stage.getScene().getFocusOwner() == app.canvas(), "Restart resets display and returns input to canvas");'''
+checks['coin-game-component'] = '''app.stop();
+        var controls = (HBox) app.layout().getBottom();
+        var display = (ScoreDisplay) field(app, "score");
+        var score = (Label) display.view();
+        var player = (Player) field(app, "player");
+        var coins = (Coin[]) field(app, "coins");
+        require(app.layout().getCenter() == app.canvas() && controls.getChildren().get(0) == display.view(), "Shared Node component sits beside canvas");
+        require(score.getText().equals("Score: 0") && ((Label) field(app, "goal")).getText().equals("Goal: 3 coins"), "Display and app-owned goal start correctly");
+        for (Coin coin : coins) {
+            setDouble(player, "x", (double) field(coin, "x"));
+            setDouble(player, "y", (double) field(coin, "y"));
+            app.update(0); app.update(0);
+        }
+        app.draw();
+        require((int) field(app, "points") == 3 && (boolean) field(app, "won") && score.getText().equals("Score: 3"), "All coins score once and win updates shared display");
+        var restart = button(controls, "Restart");
+        restart.requestFocus(); restart.fire();
+        require(field(app, "score") == display && display.view() == score && app.layout().getBottom() == controls, "Restart preserves component instance and native view");
+        require((int) field(app, "points") == 0 && !(boolean) field(app, "won") && score.getText().equals("Score: 0"), "Restart resets rules and presentation");
+        for (Coin coin : (Coin[]) field(app, "coins")) require(!coin.isCollected(), "Restart restores coins");
+        require(stage.getScene().getFocusOwner() == app.canvas(), "Component game Restart returns canvas input");
+        var other = new ScoreDisplay("Questions"); other.setScore(2);
+        require(other.view() != display.view() && ((Label) other.view()).getText().equals("Questions: 2") && score.getText().equals("Score: 0"), "Shared class creates independent app views");'''
+checks['composed-study'] = '''var start = (StartScreen) field(app, "startScreen");
+        var hud = (Hud) field(app, "hud");
+        var activity = (javafx.scene.layout.VBox) field(app, "activity");
+        var root = (javafx.scene.layout.BorderPane) stage.getScene().getRoot();
+        var answer = (TextField) field(app, "answer");
+        var check = (Button) field(app, "check");
+        var next = (Button) field(app, "next");
+        var score = (Label) ((ScoreDisplay) field(hud, "score")).view();
+        require(root.getCenter() == start.view() && !(boolean) field(app, "playing"), "Start screen appears before activity");
+        answer.setText("3"); check.fire(); next.fire();
+        require((int) field(app, "points") == 0 && (int) field(app, "questionIndex") == 0, "Inactive session cannot score or advance");
+        button(start.view(), "Start").fire();
+        require(root.getCenter() == activity && activity.getChildren().contains(hud.view()), "Main connects shared views to activity");
+        require(answer.getText().isEmpty() && (boolean) field(app, "playing"), "Start resets input and rules");
+        answer.setText("wrong"); check.fire();
+        require(score.getText().equals("Score: 0") && !check.isDisabled() && next.isDisabled(), "Wrong answer permits retry without score");
+        for (String value : new String[]{"3", "true", "0"}) {
+            answer.setText(value); check.fire();
+            int points = (int) field(app, "points"); check.fire();
+            require((int) field(app, "points") == points, "Correct answer scores only once"); next.fire();
+        }
+        require((boolean) field(app, "finished") && !(boolean) field(app, "playing") && score.getText().equals("Score: 3"), "Session completion stops scoring");
+        button(hud.view(), "Restart").fire();
+        require(field(app, "hud") == hud && root.getCenter() == activity && score.getText().equals("Score: 0") && (int) field(app, "questionIndex") == 0, "Restart retains components and resets state");
+        answer.setText("3"); check.fire();
+        require(score.getText().equals("Score: 1"), "Restarted app can score again");
+        int[] calls = {0}; var other = new Hud(() -> calls[0]++); other.setScore(7);
+        button(other.view(), "Restart").fire();
+        require(calls[0] == 1 && other.view() != hud.view() && score.getText().equals("Score: 1"), "Component action is supplied and instances stay independent");'''
+checks['composed-game'] = '''app.stop();
+        var start = (StartScreen) field(app, "startScreen");
+        var hud = (Hud) field(app, "hud");
+        var player = (Player) field(app, "player");
+        var coins = (Coin[]) field(app, "coins");
+        var score = (Label) ((ScoreDisplay) field(hud, "score")).view();
+        require(app.layout().getCenter() == app.canvas() && app.layout().getLeft() == start.view() && !(boolean) field(app, "playing"), "Start panel preserves sketch canvas");
+        require(app.layout().getBottom() == hud.view() && hud.view().isDisabled(), "Initial layout reserves HUD space and disables Restart");
+        setDouble(player, "x", (double) field(coins[0], "x"));
+        setDouble(player, "y", (double) field(coins[0], "y")); app.update(0);
+        require((int) field(app, "points") == 0 && !coins[0].isCollected(), "Menu prevents scoring even while timer exists");
+        button(start.view(), "Start").fire();
+        player = (Player) field(app, "player"); coins = (Coin[]) field(app, "coins");
+        require(app.layout().getLeft() == null && app.layout().getBottom() == hud.view() && !hud.view().isDisabled() && (boolean) field(app, "playing"), "Start connects and enables same HUD");
+        require(stage.getScene().getFocusOwner() == app.canvas(), "Start returns keyboard focus to canvas");
+        app.layout().applyCss(); app.layout().layout();
+        require(hud.view().getBoundsInParent().getMaxY() <= stage.getScene().getHeight() + 1, "HUD fits initial scene after Start");
+        double x = (double) field(player, "x");
+        // Deterministic held input, like MovementCheck; native window focus is not a keyboard trial.
+        var heldField = SketchApp.class.getDeclaredField("keys"); heldField.setAccessible(true);
+        var heldKeys = (java.util.Set<KeyCode>) heldField.get(app);
+        heldKeys.add(KeyCode.RIGHT); app.update(0.1); heldKeys.clear();
+        require((double) field(player, "x") > x, "Active game explicitly updates from held direction");
+        for (Coin coin : coins) {
+            setDouble(player, "x", (double) field(coin, "x"));
+            setDouble(player, "y", (double) field(coin, "y")); app.update(0); app.update(0);
+        }
+        require((boolean) field(app, "won") && !(boolean) field(app, "playing") && score.getText().equals("Score: 3"), "Win stops game and reports three once-only coins");
+        x = (double) field(player, "x"); app.update(1);
+        require((double) field(player, "x") == x, "Finished game does not update simulation");
+        button(hud.view(), "Restart").fire();
+        require(field(app, "hud") == hud && field(app, "startScreen") == start && field(app, "player") != player && (boolean) field(app, "playing") && !(boolean) field(app, "won"), "Restart preserves views and resets gameplay objects");
+        require((int) field(app, "points") == 0 && score.getText().equals("Score: 0") && stage.getScene().getFocusOwner() == app.canvas(), "Restart clears score and returns focus");
+        for (Coin coin : (Coin[]) field(app, "coins")) require(!coin.isCollected(), "Fresh run restores every coin");
+        app.draw();'''
+# The packaged consumers keep the same rules; exercise those rules through the JAR.
+jar_check = '''var origin = Hud.class.getProtectionDomain().getCodeSource().getLocation();
+        require(java.nio.file.Path.of(origin.toURI()).toRealPath().equals(java.nio.file.Path.of(System.getenv("EXPECTED_STARTER_UI_JAR")).toRealPath()), "Hud comes from the exact installed package JAR");
+        require(StartScreen.class.getProtectionDomain().getCodeSource().getLocation().equals(origin)
+                && ScoreDisplay.class.getProtectionDomain().getCodeSource().getLocation().equals(origin), "All three components come from one artifact");'''
+checks['packaged-study'] = checks['composed-study'] + jar_check
+checks['packaged-game'] = checks['composed-game'] + jar_check
 standalone = {
     'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
     'scrolling-game': ('ScrollingGameCheck', 'SCROLLING_GAME_OK'),
@@ -185,8 +335,18 @@ standalone = {
 checks.update({kind: None for kind in standalone})
 parser = argparse.ArgumentParser(description='Compile and check JavaFX examples in isolated projects.')
 parser.add_argument('--only', nargs='+', choices=list(checks), help='Run only the named examples.')
+parser.add_argument('--starter-ui-repository', type=Path, help='Isolated Maven local cache with the locally installed starter-ui prototype; required for packaged consumers.')
+parser.add_argument('--maven-settings', type=Path, help='Optional explicit Maven settings for isolated maintainer checks.')
 args = parser.parse_args()
-selected = {kind: checks[kind] for kind in args.only} if args.only else checks
+if args.maven_settings is not None:
+    if not args.maven_settings.is_file():
+        parser.error('--maven-settings must name an existing settings file.')
+    args.maven_settings = args.maven_settings.resolve()
+selected = {kind: checks[kind] for kind in args.only} if args.only else {kind: value for kind, value in checks.items() if not kind.startswith('packaged-')}
+if any(kind.startswith('packaged-') for kind in selected):
+    if args.starter_ui_repository is None or not args.starter_ui_repository.is_dir():
+        parser.error('Packaged consumers require --starter-ui-repository with the locally installed prototype cache.')
+    args.starter_ui_repository = args.starter_ui_repository.resolve()
 harness='''import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
@@ -203,6 +363,11 @@ public class ExampleCheck extends Application {
         var field = object.getClass().getDeclaredField(name);
         field.setAccessible(true);
         return field.get(object);
+    }
+    static void setDouble(Object object, String name, double value) throws Exception {
+        var field = object.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        field.setDouble(object, value);
     }
     static void require(boolean value, String message) {
         if (!value) throw new AssertionError(message);
@@ -256,14 +421,25 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
     for kind, check in selected.items():
         dest = root / kind
         shutil.copytree(source, dest, ignore=shutil.ignore_patterns('target', 'examples'))
+        if kind != 'hello-world':
+            for previous in (dest/'src/main/java').glob('*.java'):
+                previous.unlink()
         resources = source/'examples'/kind/'resources'
         if resources.is_dir():
             shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):
             shutil.copy2(java, dest/'src/main/java'/java.name)
+        if kind in ('coin-game-controls', 'coin-game-component', 'composed-game', 'packaged-game'):
+            for helper in ['Player.java', 'Coin.java']:
+                shutil.copy2(source/'examples/coin-game'/helper, dest/'src/main/java'/helper)
+        if kind in ('composed-study', 'composed-game'):
+            for helper in ['StartScreen.java', 'Hud.java']:
+                shutil.copy2(source/'examples/composition-shared'/helper, dest/'src/main/java'/helper)
+        if kind in ('composed-study', 'packaged-study'):
+            shutil.copy2(source/'examples/study/Question.java', dest/'src/main/java/Question.java')
         if kind in ('scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copytree(source/'examples/media-demo/resources', dest/'src/main/resources', dirs_exist_ok=True)
-        if kind in ('quiz', 'practice', 'study', 'scrolling-game', 'platform-game', 'level-game', 'full-game'):
+        if kind in ('quiz', 'practice', 'study', 'coin-game-component', 'composed-study', 'composed-game', 'scrolling-game', 'platform-game', 'level-game', 'full-game'):
             shutil.copy2(source/'examples/shared/ScoreDisplay.java', dest/'src/main/java/ScoreDisplay.java')
         if kind in standalone:
             main_class, marker = standalone[kind]
@@ -271,11 +447,25 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
         else:
             main_class, marker = 'ExampleCheck', 'EXAMPLE_OK ' + kind
             check_source = harness.replace('CHECK', check).replace('KIND', kind)
+            if kind.startswith('packaged-'):
+                namespace = 'zero.starterui'
+                check_source = f'import {namespace}.*;\n' + check_source
         (dest/'src/main/java'/f'{main_class}.java').write_text(check_source)
         wrapper = 'mvnw.cmd' if os.name == 'nt' else './mvnw'
+        extra = ['-s', str(args.maven_settings), '-gs', str(args.maven_settings)] if args.maven_settings else []
+        run_env = None
+        if kind.startswith('packaged-'):
+            pom = dest/'pom.xml'
+            dependency = '<dependency><groupId>ca.codepet.zero</groupId><artifactId>starter-ui</artifactId><version>0.1.0-prototype.1</version></dependency>'
+            pom.write_text(pom.read_text().replace('</dependencies>', dependency + '\n  </dependencies>', 1))
+            extra.append(f'-Dmaven.repo.local={args.starter_ui_repository}')
+            artifact = args.starter_ui_repository/'ca/codepet/zero/starter-ui/0.1.0-prototype.1/starter-ui-0.1.0-prototype.1.jar'
+            if not artifact.is_file():
+                parser.error('The starter-ui prototype JAR has not been installed in this cache.')
+            run_env = dict(os.environ, EXPECTED_STARTER_UI_JAR=str(artifact))
         before = time.monotonic()
-        result = subprocess.run([wrapper, '-B', f'-Dapp.mainClass={main_class}', 'clean', 'compile', 'javafx:run'],
-                                cwd=dest, capture_output=True, text=True, timeout=60)
+        result = subprocess.run([wrapper, *extra, '-B', f'-Dapp.mainClass={main_class}', 'clean', 'compile', 'javafx:run'],
+                                cwd=dest, env=run_env, capture_output=True, text=True, timeout=60)
         if result.returncode or marker not in result.stdout:
             print(result.stdout[-5000:], result.stderr, flush=True)
             raise SystemExit(result.returncode or 1)

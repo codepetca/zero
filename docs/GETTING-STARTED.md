@@ -1,10 +1,13 @@
 # Getting started with Zero
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. On a Mac, use **Zero Setup** for automatic setup.
-The **complete kit ZIP** is the manual alternative for Windows, Linux or a Mac;
+separate JavaFX window. This MVP targets **Mac with Apple Silicon** and
+**Windows**; Linux and Intel Macs are unsupported. On a supported Mac, use
+**Zero Setup** for automatic setup. Windows is offered alongside Mac as the
+published **complete kit ZIP** for manual setup; the Windows native EXE is not
+published. The ZIP is also a manual alternative for a supported Mac;
 it includes the starter, extension, profile and keyboard shortcuts. A separate
-starter-only ZIP is available under **Other downloads**.
+starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
 ## Zero Setup for Mac
@@ -27,22 +30,23 @@ GitHub sign-in can wait until you want to share your work. Git must be available
 for repository work; use Setup help when you reach that step. You do not need
 Python, Node.js, Homebrew or a separate Maven/JavaFX installation.
 Technical output and useful errors are available through **Details**.
-Clean-machine security prompts, physical Intel/macOS12, Windows and novice
-classroom flows remain unverified; see [setup behaviour and limits](SETUP.md).
+Clean-machine security prompts, physical Windows and novice classroom flows
+remain unverified; see [setup behaviour and limits](SETUP.md).
 
 If you chose the **complete kit ZIP**, follow the manual steps below. A
 starter-only ZIP contains the project, but not the Zero extension or optional
-profile; download the extension separately from **Other downloads** when needed.
+profile; download the extension separately from [GitHub releases](https://github.com/codepetca/zero/releases) when needed.
 For the optional profile, download the **complete kit ZIP**.
 
 ## One-time setup
 
-These steps apply to the separately published **0.5.3 ZIP** on Windows/Linux,
-or to optional manual setup on a Mac. Mac setup0.5.7 uses the automatic flow above.
-The website labels each download’s version.
+These steps apply to the separately published **0.5.3 ZIP** on Windows,
+or to optional manual setup on a Mac with Apple Silicon. Mac setup0.5.7 uses
+the automatic flow above.
+The downloaded filename and release page identify the version.
 If your extracted complete kit includes a `setup/` folder, you may instead open
-`setup/Setup.cmd` on Windows or `setup/Setup.command` on macOS; on Linux run
-`bash setup/setup.sh`. Its checker reuses suitable installations, offers explicit
+`setup/Setup.cmd` on Windows or `setup/Setup.command` on a supported Mac.
+Its checker reuses suitable installations, offers explicit
 install/help actions and opens the starter. Keep the whole kit together.
 No Node.js or separate Maven is needed.
 Actual Windows installers, school policies and clean personal-machine installation
@@ -60,8 +64,9 @@ confirm its JavaFX window, since tool detection is not a build test.
    `git --version` in a new terminal, then restart VS Code. The Java extension's
    runtime does not replace your project's build JDK; follow its setup help if
    it needs a newer editor JDK. The normal platform-specific Java extension bundles
-   its tooling runtime on supported Windows/macOS/Linux platforms. Universal
-   builds and other platforms currently need a Java 25+ tooling JDK; see the
+   its tooling runtime on the relevant Windows/macOS platforms. Dependency support
+   for other platforms does not expand Zero's MVP support. Universal extension
+   builds currently need a Java 25+ tooling JDK; see the
    [Java extension setup](https://github.com/redhat-developer/vscode-java#quick-start).
 2. Optionally import **optional/Zero.code-profile first** through VS Code Profiles. It
    contains settings only, defaults to light and enables 500 ms autosave.
@@ -73,7 +78,7 @@ confirm its JavaFX window, since tool detection is not a build test.
    by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). For the 0.5.3 ZIP this is `zero-0.5.3.vsix`;
    Mac setup0.5.7 installs its bundled `zero-0.5.7.vsix` automatically. If you downloaded only the starter,
-   get the separately labelled Zero extension from **Other downloads**.
+   get the separately labelled Zero extension from [GitHub releases](https://github.com/codepetca/zero/releases).
    Zero is not published in the Marketplace.
 3. Move or copy the kit's **starter folder** into your own location, outside any
    other Git repository. For the separate starter-only ZIP, extract its
@@ -83,7 +88,7 @@ confirm its JavaFX window, since tool detection is not a build test.
 4. Open the starter's `lessons/00-hello-world.md` for **Lesson 0: Hello, world!**.
    Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
    The first build needs internet to download Maven and JavaFX. Students do not
-   need Node.js, global Maven or a separate JavaFX installation. On macOS/Linux,
+   need Node.js, global Maven or a separate JavaFX installation. On a supported Mac,
    a ZIP that loses executable permissions may need `chmod +x mvnw` once.
    Record school proxy/firewall problems with your teacher; do not place
    credentials in the project to work around them.
@@ -107,7 +112,7 @@ button that changes the greeting. [Lesson 2](../student-template/lessons/02-hell
 adds a name field. [Lesson 3](../student-template/lessons/03-quiz.md) checks **2 + 3**.
 Try a wrong answer, then **5**.
 Continue through [Lessons 4–12](../student-template/lessons/README.md): counters,
-objects, a complete study app, a coin game, Community sharing and a larger
+objects, a complete study app, a coin game, ZeroHub sharing and a larger
 platformer with your own sprites and sounds.
 
 Try the practice tracker to reuse ScoreDisplay. Try animation, keyboard or
@@ -117,7 +122,7 @@ controls. Follow the extracted starter's `README.md` for exact copy instructions
 choose one example at a time and keep alternatives outside compiled `src/`.
 
 With the profile, autosave runs after 500 ms. **Run App** also saves files, cleans
-and compiles the project, and restarts the app. Use **Ctrl+Shift+B** on Windows/Linux
+and compiles the project, and restarts the app. Use **Ctrl+Shift+B** on Windows
 or **Cmd+Shift+B** on macOS for the same default build task. There is no hot reload.
 **Stop** ends the owned run; the app lives in its own native window.
 
@@ -216,7 +221,7 @@ does not upload code, establish that the remote is current or submit in Pika.
 
 Use the [classroom pilot checklist](CLASSROOM-PILOT.md) on a student machine.
 A Mac teacher trial verified native sign-in and a private repository upload.
-Physical Windows/Linux, school restrictions and novice trials remain unverified;
+Physical Windows, school restrictions and novice trials remain unverified;
 automated authentication and transport checks continue to use mocks.
 
 For a contribution, propose one readable helper or example, explain how to try

@@ -8,10 +8,8 @@ export function releaseDefinition() {
   const release = JSON.parse(readFileSync(path.join(root, 'release/kit.json'), 'utf8'));
   const extension = JSON.parse(readFileSync(path.join(root, 'extension/package.json'), 'utf8'));
   const pom = readFileSync(path.join(root, 'framework/pom.xml'), 'utf8');
-  const workshop = readFileSync(path.join(root, 'component-workshop/pom.xml'), 'utf8');
   if (release.schema !== 1 || release.kitVersion !== extension.version ||
       !pom.includes(`<artifactId>zero-core</artifactId>\n  <version>${release.coreVersion}</version>`) ||
-      !workshop.includes(`<artifactId>zero-core</artifactId><version>${release.coreVersion}</version>`) ||
       release.assets.extension.filename !== `zero-${release.kitVersion}.vsix`) {
     throw new Error('Release definition, extension version and canonical core POM must agree.');
   }

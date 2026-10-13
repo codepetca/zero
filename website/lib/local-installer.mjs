@@ -51,6 +51,7 @@ export function verifyInstallerSource(root, revision, {clean = false} = {}) {
 export async function verifiedLocalInstaller(root, manifest, kitManifest, {checkSource = true} = {}) {
   validateInstallerManifest(manifest, kitManifest);
   assert.ok(manifest, 'No Mac installer manifest');
+  assert.equal(manifest.kitVersion, kitManifest.kitVersion, 'Local installer must match the current kit version');
   const receiptBytes = await boundedFile(root, 'dist/installers/build-macos-signed.json', 128 * 1024);
   const receipt = JSON.parse(receiptBytes.toString());
   assert.equal(receipt.schema, 1); assert.equal(receipt.kitVersion, manifest.kitVersion);

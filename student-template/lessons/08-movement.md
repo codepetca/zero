@@ -1,5 +1,17 @@
 # 8. Move a player
 
+**First checkpoint: move the square.**
+
+![Cornflower-blue player at 40,180 on an AliceBlue canvas, with the arrow-key instruction](visuals/08.svg)
+
+Target illustration: the starting player, before moving.
+
+1. Follow the [safe switching steps](README.md#before-each-lesson); copy Player and Main from [stage 1](#1-draw-a-square).
+2. Add the complete `update(...)` method from [stage 2](#2-read-keys-and-update); **Save → Stop → Run App**.
+3. Click the canvas, hold **Right**, then release it.
+
+**Done:** Hold Right: the square moves. Release: it stops. More checks follow.
+
 Build a canvas app with an ordinary Player object.
 Previous: [Study app](07-study-app.md).
 

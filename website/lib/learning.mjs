@@ -89,10 +89,10 @@ export const lessons = [
   },
   {
     "id": "11",
-    "title": "Share with Community",
-    "description": "Check a component and propose a contribution.",
-    "topic": "Workshop, evidence, fork and pull request",
-    "doc": "workshop",
+    "title": "Share with ZeroHub",
+    "description": "Prepare a library and upload it for automatic checks.",
+    "topic": "Prepare, edit, upload, checks, exact releases",
+    "doc": "components",
     "anchor": ""
   },
   {
@@ -106,6 +106,10 @@ export const lessons = [
 ];
 // Fixed teaching assets copied from canonical source at build time.
 export const lessonAssets = {
+  ...Object.fromEntries(Array.from({ length: 13 }, (_, id) => {
+    const name = String(id).padStart(2, "0");
+    return [`student-template/lessons/visuals/${name}.svg`, `/generated/learning-assets/lessons/${name}.svg`];
+  })),
   "student-template/examples/media-demo/resources/media-demo/player.png": "/generated/learning-assets/media-demo/player.png",
   "student-template/examples/media-demo/resources/media-demo/chime.wav": "/generated/learning-assets/media-demo/chime.wav",
 };
@@ -128,6 +132,20 @@ const gameStages = [
   { id: "full-game", title: "Robot platformer", description: "Collect every coin across two levels, avoid enemies and restart after winning or losing.", helpers: ["Camera", "Player", "Coin", "Platform", "Enemy", "Level"] },
 ];
 export const examples = [
+  {
+    id: "composed-study",
+    title: "Study app with shared screens",
+    description: "Connect a StartScreen and Hud to ordinary study-session methods.",
+    files: ["composed-study/Main.java", "study/Question.java", "composition-shared/StartScreen.java", "composition-shared/Hud.java", "shared/ScoreDisplay.java"],
+    guide: "ui",
+  },
+  {
+    id: "composed-game",
+    title: "Coin game with shared screens",
+    description: "Reuse the study app's StartScreen and Hud beside a canvas, with explicit play state.",
+    files: ["composed-game/Main.java", "coin-game/Player.java", "coin-game/Coin.java", "composition-shared/StartScreen.java", "composition-shared/Hud.java", "shared/ScoreDisplay.java"],
+    guide: "ui",
+  },
   ...gameStages.map(({ id, title, description, helpers }) => ({
     id, title, description,
     files: [`${id}/Main.java`, ...helpers.map((name) => `${id}/${name}.java`), "shared/ScoreDisplay.java"],
@@ -212,6 +230,20 @@ export const examples = [
     lesson: "8",
   },
   {
+    id: "coin-game-controls",
+    title: "One coin with controls",
+    description: "Ordinary JavaFX score, message and Restart beneath a game canvas.",
+    files: ["coin-game-controls/Main.java", "coin-game/Player.java", "coin-game/Coin.java"],
+    lesson: "9",
+  },
+  {
+    id: "coin-game-component",
+    title: "Shared score in an app and game",
+    description: "Use the study app's unchanged ScoreDisplay beside the coin-game canvas.",
+    files: ["coin-game-component/Main.java", "coin-game/Player.java", "coin-game/Coin.java", "shared/ScoreDisplay.java"],
+    lesson: "10",
+  },
+  {
     id: "coin-game",
     title: "Collect the coins",
     description: "Collect three coins, win and restart.",
@@ -272,6 +304,7 @@ export const examples = [
   },
 ];
 export const quickLinks = [
+  { title: "ZeroHub", description: "Use and share small Java libraries.", href: "/hub" },
   {
     title: "Beginner toolkit",
     description: "Start with a small set for apps or games.",

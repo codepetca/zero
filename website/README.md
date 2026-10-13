@@ -1,6 +1,6 @@
 # Zero website
 
-Local Next.js App Router / TypeScript site, using the selected light system-font design. No account, database, live catalog or website Java runtime.
+Next.js App Router / TypeScript website for the Zero teaching kit and ZeroHub. The landing page keeps the wordmark, one sentence, Download Zero and Learn more. Java runs locally in VS Code.
 
 Requires Node.js 22+. From this directory:
 
@@ -12,51 +12,81 @@ npm run build
 npm run dev -- --port 3000
 ```
 
-The package's preparation step reads `../release/kit.json`, all six maintained lessons, teacher notes and the setup/API/product/Workshop docs. It writes ignored `.generated/content.json` and `public/generated/` assets. Re-run preparation/restart after changing canonical docs. Those snapshots let the supporting pages work before source documentation is published. The logo paths are the supplied `extension/media/zero.svg`, with the approved purple colour; the download icon comes from Bootstrap Icons. Bootstrap Icons also supply the navigation and disclosure icons.
+Preparation reads release metadata and canonical repository documents, lessons and teaching media. It writes ignored `.generated/content.json` and `public/generated/` assets. Re-run preparation/restart after changing canonical docs. Builds need the Zero repository sources outside `website/`; no sibling repository is required. The supplied logo paths come from `extension/media/zero.svg`, with the approved purple colour. Bootstrap Icons supply navigation, disclosure and download icons.
 
 ## Learning routes
 
-`/learn` is the compact six-lesson hub. `/tutorials/1` through `/tutorials/6` render the maintained lesson Markdown with collapsed sections, Expand all / Collapse all, related docs and previous/next navigation. Section fragments open the enclosing disclosure, including repeated clicks on the current fragment. `/docs` lists every maintained guide; `/docs/[slug]` uses the same folding reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` lists seven apps; each `/examples/[slug]` includes exact copy/run instructions and folded Java files.
+`/learn` lists thirteen lessons (0–12), docs, examples and a ZeroHub link. `/tutorials/[lesson]` renders the maintained lesson Markdown with collapsed sections, Expand all / Collapse all, related docs and previous/next navigation. Section fragments open their enclosing disclosure. `/docs` and `/docs/[slug]` share the folding reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` show exact copy/run instructions and ordinary Java source.
 
-Markdown renders on the server. The browser receives only the current route's rendered content and small navigation/folding controllers, rather than every document and source file. The canonical Markdown files are read without edits. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer; unlisted files remain labeled source references. Unknown, absolute, traversal and repeated source query values return 404. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path.
+Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, absolute, traversal and repeated source query values return 404. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
 
-The build-time source allowlist includes regular Java/Markdown files in `student-template/examples/` and Markdown in `docs/`, all reader documents, `student-template/pom.xml`, `student-template/zero.json`, the root LICENSE/README, Workshop README, and the two canonical framework Java files exposed under their student-kit paths. Symlink entries are skipped during collection. Generated content/assets remain ignored. No live Java execution, auth, new dependencies or source-write API is added.
+## ZeroHub
 
-The home page keeps the existing wordmark and two actions. Community retains its maintained content and availability limits, with longer explanations inside disclosures and direct source/contribution links.
+`/hub` discovers separate editable games and reusable Java libraries. Cards show
+exact versions, verified GitHub contributor identity, pinned source commits,
+optional previews and artifact size/hash details. `?kind=library&id=lib-r12345-health-bar&version=0.1.0`
+inspects one exact release without substituting another. Games offer **Download
+project** into a separate folder; libraries expose Java usage/API and manual
+Maven instructions. Browsing does not install a dependency or run Java.
+
+`/hub/share` explains native Zero **Share game**, **Share library** and **Check
+library** commands and official GitHub publication forms. Students use their own
+existing game repository with optional `libraries/<name>/` folders. There is no
+website OAuth, reservation, folder-upload, submission queue or Neon database.
+Public publication remains inactive while its operating and checker gates are
+unresolved. A local fixture or successful website build does not publish a release.
+
+The only sharing API is read-only `GET /api/sharing/catalog`. It returns the
+validated catalog, never registry request or operational state. The server uses
+the pure schema from `extension/src/sharing/contracts.js`; include that source
+in website builds. Missing configuration, an uninitialized pointer, an invalid
+snapshot or an outage produces an honest unavailable state without fallback.
 
 ## Download states
 
-The current published kit links directly to its verified GitHub release assets in development and production, including when the local preview flag is enabled. While the current kit remains local, the optional `../release/published-kit.json` preserves the last verified public kit, starter and VSIX with their own version labels. Preparation requires a published fallback no newer than the current kit, with explicit versioned URLs, sizes and hashes. Verify those public bytes without authentication before authoring the fallback. A missing fallback retains the availability explanation at `/learn#downloads`. Explicit local preview selects the current kit instead; `/download/*` always verifies that current kit. Mac setup publication is independent and does not change the ZIP version.
+A published kit links directly to verified immutable GitHub assets. While the current kit remains local, optional `release/published-kit.json` provides the last verified public kit, starter and VSIX, with their own version labels. Preparation validates published state, exact URLs, sizes and hashes; fallback cannot be newer than the current kit. A missing fallback shows the availability explanation at `/learn#downloads`. Mac setup publication is independent of the ZIP version.
 
-To preview a **new local version**, first set its release metadata to local and package it from the repository root, then:
+To preview a new local version, package it from the repository root, then:
 
 ```sh
 ZERO_LOCAL_DOWNLOADS=1 npm run dev -- --port 3000
 ```
 
-`/download/kit`, `/download/starter`, `/download/extension` and `/download/components` allow only authored filenames. They verify the current receipt's versions, publication metadata, label, size and SHA-256 against actual `dist/` bytes on every request. Optional components require their own successful package receipt. A stale/missing/tampered package fails closed with a useful 503. No kit binaries enter `public/` or Git. The flag is refused on Vercel; production is normally run without it. Production-build local testing can explicitly enable it with `ZERO_LOCAL_DOWNLOADS=1 npm start`.
+`/download/kit`, `/download/starter` and `/download/extension` verify authored filenames, receipt versions, sizes and SHA-256 against `dist/` on every request. Local Mac setup additionally checks its signed/notarized provenance and unchanged source. Stale, missing or tampered artifacts fail closed. Binaries stay out of `public/` and Git. Vercel always disables local filesystem downloads. Published assets retain their public links even with the preview flag.
 
-A `publication.status: published` requires explicit immutable GitHub URLs matching the authored repository/version/filename, plus verified sizes and SHA-256 values for the kit, starter and extension. Preparation fails if these are absent. Assets inherit the release status unless they set `publicationStatus` to `local` or `published`. The optional components asset can stay `publicationStatus: local` while the main three are published; a local asset must have no public URL. Its download link leads to `/learn#downloads` in production and works only in an explicitly enabled local preview with verified packaged bytes. Publication and URL availability must be independently verified before authoring a published state.
+## Hosting and verification
 
-## Vercel hosting
+The existing Vercel Root Directory is `website/`, with repository sources outside
+that directory included for build preparation. Install/build commands are `npm ci`
+and `npm run build`, using Node.js 22.x. Keep `ZERO_LOCAL_DOWNLOADS` unset for
+hosted builds. GitHub Releases host existing kit downloads.
 
-The live site is https://zero.codepet.ca, deployed from `codepetca/zero` on Vercel. The project Root Directory is `website/`; **Include source files outside of the Root Directory in the Build Step** is enabled so preparation can read canonical release/docs and media. Install/build commands are `npm ci` and `npm run build`, with Node.js 22.x selected. Main deploys to production and Git branches receive previews. Keep `ZERO_LOCAL_DOWNLOADS` unset on Vercel. GitHub Release assets host downloads.
+The sharing catalog's current pointer lives in the Git CAS ledger at
+`registry/state.json` on the public `zero-sharing-registry` branch of
+`codepetca/zero`. Immutable Blob objects hold generated JSON snapshots and release
+artifacts. The website consumes this pointer; it does not overwrite a Blob
+current-pointer object or claim Blob provides compare-and-swap.
 
-Cloudflare supplies the DNS-only CNAME recommended by Vercel; Vercel serves HTTPS. Release and deployment receipts are in the maintained verification record. Do not rebuild or replace published release bytes; prepare a new local kit version first.
+Configure `ZERO_SHARING_ARTIFACT_ORIGIN` as the exact HTTPS Blob origin, without
+a path, query or fragment. Select exactly one source:
 
-Browser interaction and design QA are recorded separately by the coordinator. A build is not proof of browser behavior or native Windows/Linux student setup.
+- `ZERO_SHARING_REGISTRY_URL=https://raw.githubusercontent.com/codepetca/zero/zero-sharing-registry/registry/state.json`
+  for the canonical Git ledger. No other registry URL is accepted.
+- `ZERO_SHARING_CATALOG_URL=<fixed HTTPS immutable JSON snapshot URL>` for a
+  direct staging snapshot. This is an alternative, never an outage fallback.
 
+Registry responses are capped at 8 MiB; snapshots at 4 MiB. Both fetches share
+one 8-second deadline and reject redirects. The registry pointer must use the
+configured artifact origin, a digest-named snapshot path, a valid sequence and
+revision. The reader verifies SHA-256 against that path, optional size/hash fields,
+the catalog schema and matching registry revision. The browser request has its
+own 10-second deadline. Public deployment, artifact publication, branch creation
+and resource provisioning require separate authorization; these settings do not
+activate the blocked library checker.
 
-From the repository root, preview unpublished alternatives from the canonical
-sibling `../zero-community/catalog/components.json`:
-
-```sh
-ZERO_COMMUNITY_PREVIEW=1 npm run dev --prefix website -- --port 3014
-```
-
-The Community page labels those alternatives Unpublished and offers no public
-download. Published entries and download receipts still come from reviewed
-`release/community.json`. The preview is disabled on Vercel regardless of the
-flag. It never changes catalog/Maven/Workshop responses or recommends a candidate.
-The extended catalog is `/community/catalog-v2.json`; `/community/catalog.json`
-keeps the original schema1 HealthBar shape for released Zero0.5.2 installations.
+Tests cover exact-version selection, separated game/library behavior, fixed
+source/origin boundaries, snapshot integrity, bounds, outages, timeouts and kit
+download integrity. Typecheck/build verifies packaging. Browser QA remains a
+separate check for mobile reflow, keyboard/focus and accessible states; builds
+and fixtures do not prove hosted artifact delivery, public publication or physical
+Windows setup.

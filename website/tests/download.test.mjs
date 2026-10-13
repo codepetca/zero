@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { verifiedLocalAsset } from '../lib/local-download.mjs';
 import { validateManifest, releaseAssetHref } from '../lib/contracts.mjs';
-const manifest = { schema: 1, kitVersion: '0.5.0', coreVersion: '0.1.1', publication: { status: 'local', repository: 'codepetca/zero', tag: 'v0.5.0' }, assets: Object.fromEntries(['kit', 'starter', 'extension', 'components'].map(key => [key, { filename: `${key}.zip`, label: key }])) };
+const manifest = { schema: 1, kitVersion: '0.5.0', coreVersion: '0.1.1', publication: { status: 'local', repository: 'codepetca/zero', tag: 'v0.5.0' }, assets: Object.fromEntries(['kit', 'starter', 'extension'].map(key => [key, { filename: `${key}.zip`, label: key }])) };
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'zero-download-'));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -24,7 +24,7 @@ test('serves precisely receipted bytes and refuses unknown keys', async t => {
   await assert.rejects(verifiedLocalAsset(root, '../kit.zip', manifest), /Unknown/);
   await assert.rejects(verifiedLocalAsset(root, 'constructor', manifest), /Unknown/);
 });
-test('refuses modified bytes, stale receipts and unbuilt optional components', async t => {
+test('refuses modified bytes and stale receipts', async t => {
   const { root, receipt } = await fixture(t);
   await writeFile(join(root, 'dist', 'kit.zip'), 'modified fixture archive');
   await assert.rejects(verifiedLocalAsset(root, 'kit', manifest), /integrity/);
@@ -33,7 +33,6 @@ test('refuses modified bytes, stale receipts and unbuilt optional components', a
   await assert.rejects(verifiedLocalAsset(root, 'kit', manifest), /current kit/);
   receipt.coreVersion = '0.1.1';
   await writeFile(join(root, 'dist', 'release.json'), JSON.stringify(receipt));
-  await assert.rejects(verifiedLocalAsset(root, 'components', manifest), /verified receipt/);
 });
 test('refuses symlinked assets outside dist', async t => {
   const { root, bytes } = await fixture(t);
@@ -53,28 +52,23 @@ test('published state requires explicit exact GitHub version URLs and integrity'
   published.assets.kit.filename = '../kit.zip';
   assert.throws(() => validateManifest(published), /Invalid kit/);
 });
-test('published main downloads can hold optional components locally without a public URL', () => {
+test('all published kit downloads require their own immutable public receipt', () => {
   const published = structuredClone(manifest);
   published.publication.status = 'published';
-  published.assets.components.publicationStatus = 'local';
-  for (const key of ['kit', 'starter', 'extension']) {
-    const asset = published.assets[key];
-    Object.assign(asset, { url: `https://github.com/codepetca/zero/releases/download/v0.5.0/${asset.filename}`, size: 1, sha256: 'a'.repeat(64) });
-  }
+  for (const asset of Object.values(published.assets)) Object.assign(asset, {
+    url: `https://github.com/codepetca/zero/releases/download/v0.5.0/${asset.filename}`,
+    size: 1, sha256: 'a'.repeat(64),
+  });
   validateManifest(published);
   assert.equal(releaseAssetHref(published, 'kit'), published.assets.kit.url);
-  assert.equal(releaseAssetHref(published, 'components'), '/learn#downloads');
-  assert.equal(releaseAssetHref(published, 'components', true), '/download/components');
-  assert.equal(releaseAssetHref(published, '../components', true), '/learn#downloads');
-  published.assets.components.url = 'https://github.com/codepetca/zero/releases/download/v0.5.0/components.zip';
-  assert.throws(() => validateManifest(published), /Local components must not have a public URL/);
-  delete published.assets.components.url;
+  assert.equal(releaseAssetHref(published, 'components', true), '/learn#downloads');
+  assert.equal(releaseAssetHref(published, '../kit', true), '/learn#downloads');
   delete published.assets.starter.sha256;
   assert.throws(() => validateManifest(published), /Published starter requires/);
   published.assets.starter.sha256 = 'a'.repeat(64);
   published.assets.starter.publicationStatus = 'local';
   assert.throws(() => validateManifest(published), /requires published starter/);
   delete published.assets.starter.publicationStatus;
-  published.assets.components.publicationStatus = 'held';
-  assert.throws(() => validateManifest(published), /Invalid components publication status/);
+  published.assets.extension.publicationStatus = 'held';
+  assert.throws(() => validateManifest(published), /Invalid extension publication status/);
 });

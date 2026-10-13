@@ -1,0 +1,74 @@
+name: Sharing game publication
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# GitHub pending runs are not a durable queue. The registry and periodic inbox
+# reconciliation retain work after a replaced event or interrupted run.
+concurrency:
+  group: zero-sharing-games
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: vars.ZERO_SHARING_GAME_PUBLICATION_ENABLED == 'true'
+    environment: zero-sharing-publisher
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      # Only operator configuration selects publisher source. Workflow/docs or
+      # release metadata commits do not rotate the policy shipped in a kit.
+      - name: Select the reviewed publisher source before checkout
+        id: source
+        env:
+          ZERO_SHARING_CONFIG: ${{ vars.ZERO_SHARING_CONFIG }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {appendFileSync} from 'node:fs';
+          const config = JSON.parse(process.env.ZERO_SHARING_CONFIG || '{}');
+          if (!config || typeof config.policyRevision !== 'string' || !/^[a-f0-9]{40}$/.test(config.policyRevision) || config.gamePublicationEnabled !== true) {
+            throw new Error('Game publication requires an enabled operator configuration with an exact reviewed source SHA');
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, `source_sha=${config.policyRevision}\n`);
+          NODE
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.source.outputs.source_sha }}
+          persist-credentials: false
+      - name: Install trusted pinned publisher dependencies
+        run: npm ci --ignore-scripts
+      - name: Validate operator configuration against this exact source revision
+        env:
+          ZERO_SHARING_CONFIG: ${{ vars.ZERO_SHARING_CONFIG }}
+          ZERO_TRUSTED_SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {validatePlatformConfig} from './sharing/cli.mjs';
+          const config = validatePlatformConfig(JSON.parse(process.env.ZERO_SHARING_CONFIG || '{}'));
+          const selected = process.env.ZERO_TRUSTED_SOURCE_SHA;
+          const actual = execFileSync('git', ['rev-parse', 'HEAD'], {encoding:'utf8'}).trim();
+          if (!config.gamePublicationEnabled || !/^[a-f0-9]{40}$/.test(selected || '') || config.policyRevision !== selected || actual !== selected) {
+            throw new Error('Game publication requires configuration and checkout for the exact reviewed source');
+          }
+          writeFileSync(process.env.RUNNER_TEMP + '/zero-sharing-config.json', JSON.stringify(config), {mode:0o600});
+          NODE
+      - name: Reconcile GitHub requests and interrupted immutable delivery
+        env:
+          ZERO_REGISTRY_TOKEN: ${{ github.token }}
+          ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
+          ZERO_BLOB_TOKEN: ${{ secrets.ZERO_BLOB_TOKEN }}
+        run: node sharing/cli.mjs reconcile --config "$RUNNER_TEMP/zero-sharing-config.json" --execute --role publisher

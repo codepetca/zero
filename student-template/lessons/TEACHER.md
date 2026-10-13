@@ -3,6 +3,9 @@
 Use [the lesson index](README.md). Lessons 0–6 are short steps. Lessons 7 and 9
 are full tutorials; Lesson 12 builds a larger game in five stages. Spread their
 stages across sessions as needed.
+Use the visible target and Done check for a first pass, then open the detailed
+steps as needed. The illustrations show intended source behavior; they are not
+native-window screenshots. First checkpoints do not cover every later stage.
 Pacing is a planning guide, not classroom-trial evidence.
 
 ## Check each step
@@ -19,7 +22,7 @@ Pacing is a planning guide, not classroom-trial evidence.
 | 7 | Retry, correct answer, Next, completion and Restart work; each question scores once |
 | 8 | Held arrows move the player; edges keep the whole square inside |
 | 9 | Each coin scores once; collecting all wins; Restart restores player, coins and score |
-| 10 | The same display class works in the scored quiz and practice tracker |
+| 10 | The same ScoreDisplay source works in study and coin game; each app owns an instance |
 | 11 | A contribution has source, API, examples, checks and independent review |
 | 12 | Assets work; camera scrolls with fixed HUD; jump/collisions work; two levels bank score; loss/win freeze and Restart resets everything |
 
@@ -52,10 +55,10 @@ compares exactly with 5 and does not score. Both examples remain available.
 Ask students to trace one changed value and demonstrate a normal and repeat/reset
 check. Assess working behavior, understandable code and recorded results.
 
-## Community and readiness
+## ZeroHub and readiness
 
-Lesson 11 proposes a contribution; export/CI/AI do not accept or publish it.
-The current Workshop checks HealthBar, not arbitrary new components. Pika
+Lesson 11 prepares an ordinary Java library, uploads its source and reads trusted automatic checks. Passing versions are listed automatically; there is no routine maintainer acceptance step.
+ZeroHub checks self-contained JavaFX widgets and two consumers; hosted activation is pending. Pika
 coursework submission stays separate. No credentials belong in evidence.
 
 Complete installation on school machines before teaching. Physical Windows/Linux,

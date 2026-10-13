@@ -12,11 +12,12 @@ page has the Zero wordmark, one sentence, Download Zero and Learn more only.
 `/learn` is a compact learning hub with thirteen lessons (0–12), including full app/game
 tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
-available. `/community` introduces Zero Community and links to
-component development/contributions. It does not run Java in the browser or add
-a student website account. The standalone Zero kit0.5.3, signed Mac setup0.5.7 and Community0.1.3 are
-published independently. New local versions remain unpublished until an approved
-release. Mac setup embeds kit0.5.7; the separate ZIP/starter/VSIX remain0.5.3.
+available. `/hub` is ZeroHub: discover separate editable games and reusable
+libraries, inspect exact versions, source and verified GitHub contributor identity.
+`/hub/share` explains native Zero Share commands and official GitHub forms. The
+local replacement has no website sign-in, reservation or folder-upload service.
+Public publication remains inactive; library candidate execution still needs its
+outstanding acceptance. Existing kit/installer downloads have separate release records.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract
@@ -29,12 +30,22 @@ practises Run, change the greeting and rerun; Lesson 1 adds one button
 that changes the greeting; Lesson 2 adds a name field; Lesson 3 checks one answer
 with if/else and feedback. Lessons 4–6 add counter state, reset methods and
 ordinary objects; 7 builds a study app; 8 teaches movement; 9 builds a coin game.
-Lessons 10–11 cover component extraction/reuse and proposing a Community
-contribution. Lesson 12 grows sprites and short sound effects into a two-level platformer in
+Lessons 10–11 cover component extraction/reuse and sharing a ZeroHub library. Lesson 12 grows sprites and short sound effects into a two-level platformer in
 five runnable stages: media, camera/scoreboard, platforms/gravity, enemies/levels,
 and win/lose/restart. The examples remain ordinary Java classes; see
 [game systems](GAME-SYSTEMS.md).
 The scored quiz remains a later reuse example.
+The new local tutorial pass inserts one-coin native controls before arrays/win,
+then reuses unchanged ScoreDisplay in the study app and coin game.
+[UI and flow](../student-template/UI.md) explains controls/components in sketches;
+[the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
+welcome/result/countdown helpers. These sources remain unreleased; published kits
+keep their original bytes.
+The later local visual pass gives all thirteen lessons an always-visible target
+illustration, three actions and one checkpoint before detailed code. Optional
+composed-study/composed-game examples now demonstrate the same ordinary StartScreen
+and Hud classes in both app types. These are source examples, not core APIs or
+ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).
 
 `zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as
@@ -58,15 +69,36 @@ See the [starter](../student-template/README.md) for exact files and exercises.
 Canonical framework source lives in `framework/src/main/java/zero/`; maintainer
 preparation assembles editable copies into the standalone starter. Review shared improvements
 in more than one app before cohort adoption. The extraction examples remain useful
-lessons; community components now have a separate local versioned-library prototype.
+lessons; shared components now use the local ZeroHub versioned-library flow.
 
-The local component MVP consumes community components as pinned Maven libraries.
-Core source and extraction lessons remain readable; installed community libraries
-are developed separately in a Component Workshop. A separate local community
-repository proves install/fix/update/revert before public distribution. See
-[component architecture](COMPONENTS.md) and [the active execution plan](COMPONENT-PLAN.md)
-for the contract and local acceptance criteria. Automated checks, advisory AI
-and community maintainers should minimize routine teacher administration.
+ZeroHub uses one existing public game repository owned by the student's personal
+GitHub account. Optional libraries live in `libraries/<name>/` in that same
+repository. Share game freezes the root project; Share library freezes its
+committed folder and exact version. Native Zero controls reuse authored
+`zero-game.json`/`zero-library.json` settings, derive identity, preview source and
+open the official GitHub form. Normal Git upload and separate Pika submission
+remain unchanged. Local changes after the selected commit are not part of a request.
+
+Games are complete editable projects opened separately into new destinations,
+never library dependencies. Downloaded Java is not automatically run; ordinary
+VS Code workspace trust and Run App remain student choices. Game packaging checks
+do not promise safe execution, gameplay quality or native installers.
+
+Libraries use exact Maven pins with deliberate Add, Update and Revert. Widgets
+and ordinary helpers retain ordinary Java APIs; Main explicitly owns state and
+updates. Develop local library and Use published version are distinct modes.
+Check library supplies local compilation/API/behavior/two-consumer feedback;
+local feedback is not public acceptance. Trusted checking and a separate publisher
+are the intended automatic publication path, without routine maintainer approval,
+but the unresolved library checker acceptance gate remains binding.
+
+The replacement uses a Git CAS registry ledger and immutable public Blob artifacts
+with generated catalog snapshots, not Neon or website OAuth. Accepted versions
+never change source. ZeroHub keeps contributions open without lifetime contributor
+storage or library-count allowances; technical bounds and shared capacity controls
+remain. Owners and designated maintainers retain curation/withdrawal authority.
+See [component architecture](COMPONENTS.md), [the adoption plan](GITHUB-SHARING-PLAN.md)
+and [the contribution policy](ZEROHUB-POLICY.md).
 
 The first dogfooding pass deliberately uses the existing framework. App-specific
 navigation and question rules stay in Main; Question stores question data and
@@ -203,20 +235,28 @@ JDK 17+ for builds. JDK 17 was tested; editor runtime requirements may differ.
 
 See [VERIFICATION.md](VERIFICATION.md) for actual local checks and their scope.
 A Mac teacher trial verified native authentication and a private repository
-upload. Physical Windows/Linux, school restrictions and novice classroom pilots
-still need verification. First-time builds need
-internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
+upload. The current MVP targets Mac with Apple Silicon and Windows; Linux and
+Intel Macs are unsupported. Windows uses the published complete-kit ZIP for
+manual setup; its native EXE remains unpublished. Physical Windows, school
+restrictions and novice classroom pilots still need verification. Retained
+universal/cross-platform artifacts and historical checks do not expand support.
+First-time builds need internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before
 cohort adoption. Original Zero code uses the [MIT license](../LICENSE);
 upstream wrapper notices apply separately to the wrapper.
 
 
-## Community alternatives and curated starting choices
+## ZeroHub alternatives and core promotion
 
-Community experiments can coexist in categories such as Health bars. Each has its
-own identity and explicit library-version availability. A reviewed catalog names
-one recommended exact version per category and shows it first, independently of
-Experimental/check/review status. Recommendations do not change installed pins
-or move code into core. Core promotion is an occasional human decision based on
-stable APIs, teaching value and maintenance. Plain and segmented health bars prove
-this locally while sharing one Maven library; independent package support follows
-only a concrete need. Website developer preview is opt-in and never hosted.
+Multiple component libraries can coexist. Related classes share a library and
+exact version; individual classes remain discoverable. Verified numeric GitHub
+repository IDs and permanent slugs determine stable identities: repository 12345
+and `health-bar` yield `lib-r12345-health-bar`, imports such as
+`zero.contrib.r12345.health_bar.HealthBar` and Maven coordinate
+`ca.codepet.zero.contrib.r12345:health-bar:0.1.0`. Account/repository renames do not
+change packages or coordinates. Contributor credit follows verified GitHub identity.
+No automatic updates, package renames or merging of alternatives.
+
+Preferred choices and promotion into core remain deliberate future decisions
+based on usefulness, API stability and maintenance. They do not change installed
+pins. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
+[single-repo boundaries](ARCHITECTURE.md).

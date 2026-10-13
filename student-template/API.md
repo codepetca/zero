@@ -1,7 +1,7 @@
 # Zero app API
 
 New to Zero? Start with the [beginner toolkit](BEGINNER.md), then
-[make it look good](STYLE.md). This page is the complete reference; you can
+[make it look good](STYLE.md) and [UI and app/game flow](UI.md). This page is the complete reference; you can
 learn a small set first:
 
 | Build | Start with |
@@ -273,5 +273,4 @@ such as `/player.png` keep working.
 
 The source starter includes JavaFX controls, graphics and media. Persistence,
 FXML and web need their own dependencies. AudioClip is ordinary JavaFX, not a Zero
-helper. Versioned community components and a workshop are being developed
-separately; they do not change this core API or require a component base class.
+helper. ZeroHub provides exact-version shared libraries through ordinary Java imports; it does not change this core API or require a component base class. Public activation is pending.

@@ -29,7 +29,7 @@ const docGroups = [
       [
         "lesson-guide",
         "Lesson guide",
-        "Twelve lessons, app and game tutorials, and Community sharing.",
+        "Thirteen lessons, app and game tutorials, and ZeroHub sharing.",
       ],
       [
         "pilot",
@@ -42,8 +42,7 @@ const docGroups = [
     title: "About Zero",
     items: [
       ["product", "How Zero works", ""],
-      ["components", "Component architecture", ""],
-      ["workshop", "Workshop guide", ""],
+      ["components", "ZeroHub library guide", ""],
       ["development", "Local development", ""],
       ["verification", "Verification record", ""],
     ],

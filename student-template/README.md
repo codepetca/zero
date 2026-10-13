@@ -2,12 +2,12 @@
 
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
-continues through counters, objects, a study app, Community sharing and a larger
+continues through counters, objects, a study app, ZeroHub sharing and a larger
 game with your own media, scrolling, platforms, two levels and endings.
 Start by editing only `src/main/java/Main.java`.
 Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
-**Ctrl+Shift+B** on Windows/Linux or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
+**Ctrl+Shift+B** on Windows or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
 The default build task is **Zero: Run App**, owned by the extension so its Stop
 button can stop it. Without the extension, use **Tasks: Run Task → Run App without
@@ -15,8 +15,17 @@ Zero**, then close the app window or terminate that task before running again.
 
 ## First setup
 
-If you downloaded the **complete kit**, use its `setup/Setup.cmd` (Windows) or
-`setup/Setup.command` (macOS), or `bash setup/setup.sh` (Linux), to check tools and
+This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
+Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
+native Windows EXE is not published. Physical Windows/classroom verification
+remains pending, so the support target is not a claim of completed testing.
+
+If you used **Download for Mac**, setup already prepares the Zero editor and
+Java tools. Use **Open Zero.command** in your Zero folder to return to that
+editor. The manual steps below are for the ZIP downloads.
+
+If your **complete kit** includes a `setup/` folder, use its `setup/Setup.cmd` (Windows) or
+`setup/Setup.command` (Mac with Apple Silicon) to check tools and
 follow install/open actions. Keep the complete kit extracted; the starter-only
 ZIP does not contain the launcher or Zero extension. You can use the steps below
 instead. Inside VS Code, **Zero: Setup Help** offers a checklist, repair actions
@@ -26,8 +35,9 @@ and **Check again**. School IT can provide the tools before students start.
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
-   Windows/Linux, **Command+Shift+P** on macOS) in your chosen profile. Use
-   **Extensions: Install from VSIX…** for the local **zero-0.5.4.vsix**, then
+   Windows, **Command+Shift+P** on macOS) in your chosen profile. Use
+   **Extensions: Install from VSIX…** and select the Zero **.vsix** file supplied
+   beside `starter/` in your complete kit, then
    **Extensions: Install Extensions** for **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
@@ -45,7 +55,7 @@ and **Check again**. School IT can provide the tools before students start.
 Terminal equivalent, from this folder:
 
 ```sh
-# macOS / Linux
+# Mac with Apple Silicon
 ./mvnw clean compile javafx:run
 ```
 
@@ -54,10 +64,11 @@ Terminal equivalent, from this folder:
 .\mvnw.cmd clean compile javafx:run
 ```
 
-If a copied ZIP loses the executable permission on macOS/Linux, run
-`chmod +x mvnw` once. JavaFX 21 requires macOS 11+; Linux requires a working
-GUI session and GTK 3.8+. Windows and Linux execution still need classroom
-verification; this prototype was checked on macOS arm64.
+If a copied ZIP loses the executable permission on a supported Mac, run
+`chmod +x mvnw` once. The native Mac setup requires macOS 12+; JavaFX 21 itself
+requires macOS 11+. Windows execution still needs classroom verification;
+this prototype was checked on macOS arm64. Retained Linux wrappers and Intel
+artifact code do not make those platforms supported in this MVP.
 
 ## Make something
 
@@ -145,7 +156,10 @@ The `examples/` shelf is outside compiled `src/`. Choose **one Main at a time**.
 Stop the app and save your current Main and helper classes outside `src/` (or in
 your own Git repository) before switching. Copy the files listed below into
 `src/main/java/`, replacing Main. Keep the `zero/` framework folder. Run as usual;
-no pom.xml or zero.json changes are needed. Unused helpers may be removed.
+no pom.xml or zero.json changes are needed. After backing up your work, remove
+the previous example's Main and unlisted helper Java files before copying the new
+set. Preserve `zero/`. Old helpers can depend on a different Player or Coin API
+and break compilation even when the new Main is correct.
 
 | Example | Exact files to copy | Try it |
 | --- | --- | --- |
@@ -156,6 +170,10 @@ no pom.xml or zero.json changes are needed. Unused helpers may be removed.
 | Click counter | `examples/click-counter/Main.java` | +1 counts clicks. See [Lesson 4](lessons/04-counter.md). |
 | Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. See [Lesson 5](lessons/05-methods.md). |
 | Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. See [Lesson 6](lessons/06-objects.md). |
+| One coin with controls | `examples/coin-game-controls/Main.java`, plus Player and Coin from `examples/coin-game/` | Native score/message/Restart beneath the canvas. See [Lesson 9](lessons/09-coin-game.md). |
+| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse the study app's display in a sketch. See [Lesson 10](lessons/10-components.md). |
+| Composed study app | Main from `examples/composed-study/`, Question from `examples/study/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Start, answer questions, finish and restart using shared views. [Exact copy list](examples/composed-study/README.md). |
+| Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
 | Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
 | Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |

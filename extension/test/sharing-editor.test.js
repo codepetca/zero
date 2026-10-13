@@ -1,0 +1,89 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
+const {createSharingEditor,importEdits}=require('../src/sharing/editor');const authoring=require('../src/sharing/authoring');
+const repository={id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'};
+async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40),owner='7'}={}) {
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-editor-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'public class Main { Health health = new Health(); }');await fs.writeFile(path.join(root,'src/main/java/Health.java'),'public class Health {}');
+ const descriptor={schema:1,kind:'game',slug:'game',version:'0.1.0',title:'Game',description:'Finite fixture',controls:'Keys',license:'MIT'};await fs.writeFile(path.join(root,'zero-game.json'),JSON.stringify(descriptor,null,2)+'\n');
+ let busy=false;const opened=[],gitCalls=[],messages=[];let sources=0,edits=0,saves=0,stagedPlan;
+ const vscode={Uri:{file:fsPath=>({fsPath}),parse:x=>x},Range:class{},ProgressLocation:{Notification:1},workspace:{isTrusted:true,textDocuments:dirty?[{isDirty:true,uri:{fsPath:path.join(root,'src/main/java/Main.java')}}]:[],openTextDocument:async uri=>({uri,getText:()=>'',version:1,isDirty:false}),getConfiguration:()=>({get:(key,fallback)=>key==='sharingPolicyRevision'?policy:fallback})},env:{openExternal:async url=>{opened.push(url);return true;}},commands:{executeCommand:async()=>{}},window:{
+ showInputBox:async options=>options.title==='Library name'?'health-bar':options.title==='Library title'?'Health':options.title==='Library description'?'An ordinary helper':options.value||'description',
+ showQuickPick:async entries=>entries[0]?.path?[entries.find(e=>e.label==='Health')]:entries.find(e=>e.kind==='helper')||entries[0],
+ showInformationMessage:async(message,options)=>{messages.push(message);if(options?.modal){if(drift&&message.startsWith('Extract'))await fs.appendFile(path.join(root,'src/main/java/Health.java'),'// newer');return approval;}},
+ showTextDocument:async()=>{},withProgress:async(_opts,callback)=>callback({report(){}},{onCancellationRequested:()=>({dispose(){}})})
+ }};
+ const host={project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student'},revision:1}),assertCurrent:async()=>{}}};
+ const git=async(_root,args)=>{gitCalls.push(args);if(args[0]==='rev-parse')return args[1]==='--show-toplevel'?root:'a'.repeat(40);if(args[0]==='remote')return repository.url+'.git';if(args[0]==='status')return '';if(args[0]==='show')return JSON.stringify(descriptor);throw new Error('Unexpected Git action');};
+ const reader=()=>({authenticatedUser:async()=>({githubId:owner,login:'student'}),repository:async()=>({...repository,visibility:'public',ownerType:'User'}),source:async()=>{sources++;return {};}});
+ const api={...authoring,applyPlan:async plan=>{stagedPlan=plan;return authoring.applyPlan(plan);}};
+ const editor=createSharingEditor(vscode,host,{git,reader,authoring:api});return {root,editor,vscode,host,git,reader,opened,gitCalls,messages,stats:()=>({busy,sources,edits,saves,stagedPlan})};
+}
+test('Share opens a fully prefilled frozen GitHub form; never commits, pushes or sends an issue',async t=>{
+ const f=await fixture(t,{approval:'Open GitHub form'});await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);const url=new URL(f.opened[0]);assert.equal(url.pathname,'/codepetca/zero/issues/new');assert.match(url.searchParams.get('body'),new RegExp('a'.repeat(40)));assert.equal(f.stats().sources,1);assert.ok(f.gitCalls.every(args=>['rev-parse','remote','status','show'].includes(args[0])));assert.equal(f.stats().busy,false);
+});
+test('cancelled Share, inactive policy and mismatched authenticated owner never open a form',async t=>{
+ const cancelled=await fixture(t);await cancelled.editor.commands['zero.shareGame']();assert.equal(cancelled.opened.length,0);
+ const inactive=await fixture(t,{policy:''});await assert.rejects(inactive.editor.commands['zero.shareGame'](),/active reviewed policy/);assert.equal(inactive.gitCalls.length,0);
+ const other=await fixture(t,{owner:'8',approval:'Open GitHub form'});await assert.rejects(other.editor.commands['zero.shareGame'](),/personal GitHub account/);assert.equal(other.opened.length,0);
+});
+test('extraction cancellation, unsaved changes and source drift preserve files; explicit import and ignore are previewed',async t=>{
+ for(const opts of [{},{dirty:true,approval:'Apply'},{drift:true,approval:'Apply'}]) {
+  const f=await fixture(t,opts);if(opts.dirty||opts.drift)await assert.rejects(f.editor.commands['zero.extractLibrary'](),/Save your project|changed after preview/);else await f.editor.commands['zero.extractLibrary']();
+  await fs.access(path.join(f.root,'src/main/java/Health.java'));assert.equal(f.stats().busy,false);await assert.rejects(fs.access(path.join(f.root,'.gitignore')));
+ }
+ const applied=await fixture(t,{approval:'Apply'});await applied.editor.commands['zero.extractLibrary']();assert.match(await fs.readFile(path.join(applied.root,'src/main/java/Main.java'),'utf8'),/import zero.contrib.r12345.health_bar.Health;/);assert.match(await fs.readFile(path.join(applied.root,'.gitignore'),'utf8'),/\.zero-sharing-recovery\//);assert.ok(applied.stats().stagedPlan.changes.some(c=>c.path==='.gitignore'));assert.equal(applied.stats().busy,false);
+});
+test('direct import rewriting preserves strings/comments and complex qualified references take manual path',async t=>{
+ const f=await fixture(t);await fs.writeFile(path.join(f.root,'src/main/java/Health.java'),'package game; public class Health {}');
+ await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'import game.Health; public class Main { Health h; String text="import game.Health;"; /* import game.Health; */ }');
+ const edits=await importEdits(f.root,['src/main/java/Health.java'],'zero.contrib.r12345.health_bar');assert.match(edits[0].after,/import zero.contrib.r12345.health_bar.Health;/);assert.match(edits[0].after,/String text="import game.Health;"/);assert.match(edits[0].after,/\/\* import game.Health; \*\//);
+ await fs.writeFile(path.join(f.root,'src/main/java/Main.java'),'public class Main { game.Health h; }');await assert.rejects(importEdits(f.root,['src/main/java/Health.java'],'zero.contrib.r12345.health_bar'),/manual package\/import/);
+});
+
+test('native Add applies one undoable reviewed POM edit; cancellation and document drift do not save',async t=>{
+ for(const scenario of ['apply','cancel','drift']) {
+  const f=await fixture(t,{approval:scenario==='cancel'?undefined:'Apply'}),before=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');let edits=0,saves=0,text=before;
+  const release={status:'available',kind:'library',id:'lib-r12345-health-bar',version:'0.1.0',title:'Health',description:'Fixture',contributor:{login:'student'},namespace:'zero.contrib.r12345.health_bar'};
+  const document={version:1,isDirty:false,getText:()=>text,positionAt:x=>x,save:async()=>{saves++;await fs.writeFile(path.join(f.root,'pom.xml'),text);document.isDirty=false;return true;}};
+  f.vscode.workspace.openTextDocument=async()=>document;f.vscode.window.showTextDocument=async()=>({edit:async callback=>{edits++;callback({replace:(_,newText)=>{text=newText;document.version++;document.isDirty=true;}});return true;}});
+  const api={loadCatalog:async()=>({catalog:{releases:[release]}}),planChange:async()=>({root:f.root,beforeText:before,afterText:before+'<!-- exact pin -->',release,current:null}),validatePlan:async()=>{if(scenario==='drift')document.version++;}};
+  const editor=createSharingEditor(f.vscode,f.host,{consumer:api});if(scenario==='drift')await assert.rejects(editor.commands['zero.browseHub'](),/POM changed/);else await editor.commands['zero.browseHub']();
+  assert.equal(edits,scenario==='apply'?1:0);assert.equal(saves,scenario==='apply'?1:0);assert.equal(f.stats().busy,false);
+ }
+});
+test('game Open verifies selected bytes, requests a new destination and opens a separate window without running',async t=>{
+ const f=await fixture(t,{approval:'Open project'}),destination=path.join(f.root,'opened-game'),calls=[];
+ const bytes=Buffer.from('finite archive fixture'),release={status:'available',kind:'game',id:'game-r12345-game',version:'1.0.0',title:'Game',description:'Fixture',contributor:{login:'student'},artifacts:{zip:{sha256:authoring.hash(bytes)}}};
+ f.vscode.window.showSaveDialog=async()=>({fsPath:destination});f.vscode.commands.executeCommand=async(...args)=>calls.push(args);
+ const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async()=>({catalog:{releases:[release]}}),downloadGame:async(_context,selected)=>{assert.equal(selected,release);return bytes;}},archive:{extractGamePackage:async options=>{assert.equal(options.bytes,bytes);assert.equal(options.destination,destination);assert.equal(options.expectedSha256,authoring.hash(bytes));await fs.mkdir(destination);}}});
+ await editor.commands['zero.openProject']();assert.equal(calls.length,1);assert.equal(calls[0][0],'vscode.openFolder');assert.deepEqual(calls[0][2],{forceNewWindow:true});assert.equal(f.stats().busy,false);
+});
+test('native recovery restores a reviewed extraction while keeping private receipt ignores',async t=>{
+ const f=await fixture(t,{approval:'Apply'});await f.editor.commands['zero.extractLibrary']();f.vscode.window.showInformationMessage=async()=> 'Restore originals';await f.editor.commands['zero.recoverLibraryChange']();
+ await fs.access(path.join(f.root,'src/main/java/Health.java'));assert.equal(await fs.readFile(path.join(f.root,'.zero-sharing-recovery/.gitignore'),'utf8'),'*\n');await assert.rejects(fs.access(path.join(f.root,'.gitignore')));assert.equal(f.stats().busy,false);
+});
+
+test('explicit scoped settings precede bundled operator configuration and real manifest defaults',async t=>{
+ const manifest=require('../package.json').contributes.configuration.properties,bundle={catalogUrl:'https://operator.example/catalog.json',artifactOrigin:'https://artifacts.example',policyRevision:'e'.repeat(40)};
+ for(const overrides of [null,{level:'globalValue',catalog:'https://global.example/catalog.json',origin:'https://global-files.example'},{level:'workspaceValue',catalog:'https://workspace.example/catalog.json',origin:'https://workspace-files.example'},{level:'workspaceFolderValue',catalog:'https://folder.example/catalog.json',origin:'https://folder-files.example'}]) {
+  const f=await fixture(t);let observed,resource;f.vscode.workspace.workspaceFolders=[{uri:{fsPath:f.root}}];
+  f.vscode.workspace.getConfiguration=(_section,uri)=>{resource=uri;return {get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(overrides?{[overrides.level]:key==='sharingCatalogUrl'?overrides.catalog:key==='sharingArtifactOrigin'?overrides.origin:'f'.repeat(40)}:{})})};};
+  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();
+  assert.equal(observed.catalogUrl,overrides?.catalog||bundle.catalogUrl);assert.equal(observed.artifactOrigin,overrides?.origin||bundle.artifactOrigin);assert.equal(resource.fsPath,f.root);
+ }
+ const f=await fixture(t);let observed;f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,globalValue:key==='sharingCatalogUrl'?'https://global.example/catalog.json':key==='sharingArtifactOrigin'?'https://global-files.example':undefined,workspaceValue:key==='sharingCatalogUrl'?'https://workspace.example/catalog.json':undefined,workspaceFolderValue:key==='sharingCatalogUrl'?'https://folder.example/catalog.json':undefined})});
+ const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();assert.equal(observed.catalogUrl,'https://folder.example/catalog.json');assert.equal(observed.artifactOrigin,'https://global-files.example');
+});
+test('explicit empty operator settings disable bundled activation; policy uses same precedence',async t=>{
+ const manifest=require('../package.json').contributes.configuration.properties,bundle={catalogUrl:'https://operator.example/catalog.json',artifactOrigin:'https://artifacts.example',policyRevision:'e'.repeat(40)},f=await fixture(t);let observed;
+ f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(['sharingArtifactOrigin','sharingPolicyRevision'].includes(key)?{globalValue:''}:{})})});
+ const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();assert.equal(observed.artifactOrigin,'');await assert.rejects(editor.commands['zero.shareGame'](),/active reviewed policy/);assert.equal(f.gitCalls.length,0);
+});
+
+test('Share policy revision follows bundled settings until explicitly overridden',async t=>{
+ const manifest=require('../package.json').contributes.configuration.properties,bundle={catalogUrl:'https://operator.example/catalog.json',artifactOrigin:'https://artifacts.example',policyRevision:'e'.repeat(40)};
+ for(const override of [undefined,'f'.repeat(40)]) {
+  const f=await fixture(t,{approval:'Open GitHub form'});f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(key==='sharingPolicyRevision'&&override!==undefined?{globalValue:'d'.repeat(40),workspaceValue:'c'.repeat(40),workspaceFolderValue:override}:{})})});
+  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,git:f.git,reader:f.reader});await editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);const body=new URL(f.opened[0]).searchParams.get('body');const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(body)[1]);assert.equal(request.policyRevision,override||bundle.policyRevision);
+ }
+});

@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -88,20 +88,49 @@
         "title": "Zero: Finish Change"
       },
       {
-        "command": "zero.components",
-        "title": "Zero: Components"
+        "command": "zero.sharingActions",
+        "title": "Zero: Libraries and Games",
+        "icon": "$(library)"
       },
       {
-        "command": "zero.browseComponents",
-        "title": "Zero: Browse Components"
+        "command": "zero.browseHub",
+        "title": "Zero: Browse Libraries"
       },
       {
-        "command": "zero.updateComponents",
-        "title": "Zero: Update Community Library"
+        "command": "zero.browseGames",
+        "title": "Zero: Browse Games"
       },
       {
-        "command": "zero.revertComponents",
-        "title": "Zero: Revert Community Library"
+        "command": "zero.openProject",
+        "title": "Zero: Open Shared Project"
+      },
+      {
+        "command": "zero.extractLibrary",
+        "title": "Zero: Extract Library"
+      },
+      {
+        "command": "zero.checkLibrary",
+        "title": "Zero: Check Library"
+      },
+      {
+        "command": "zero.shareLibrary",
+        "title": "Zero: Share Library"
+      },
+      {
+        "command": "zero.shareGame",
+        "title": "Zero: Share Game"
+      },
+      {
+        "command": "zero.switchLibraryMode",
+        "title": "Zero: Develop Local Library / Use Published Version"
+      },
+      {
+        "command": "zero.recoverLibraryChange",
+        "title": "Zero: Recover Library Change"
+      },
+      {
+        "command": "zero.editSharingDetails",
+        "title": "Zero: Edit Sharing Details"
       }
     ],
     "viewsContainers": {
@@ -171,15 +200,33 @@
           "default": "simulation",
           "scope": "resource",
           "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using your VS Code GitHub sign-in. A local Git name/email identity is still required."
+        },
+        "zero.sharingCatalogUrl": {
+          "type": "string",
+          "default": "https://zero.codepet.ca/api/sharing/catalog",
+          "scope": "machine",
+          "markdownDescription": "Exact generated games/library catalog URL. Public activation is pending; explicit loopback URLs support local verification."
+        },
+        "zero.sharingArtifactOrigin": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Operator-configured immutable public artifact origin. Blank keeps public downloads unavailable until storage acceptance."
+        },
+        "zero.sharingPolicyRevision": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Operator-configured reviewed policy revision, stamped by an accepted kit release. Blank keeps publication forms disabled."
         }
       }
     },
     "menus": {
       "view/title": [
         {
-          "command": "zero.components",
+          "command": "zero.sharingActions",
           "when": "view == zero.actions",
-          "group": "zero-components"
+          "group": "zero-sharing"
         }
       ]
     }

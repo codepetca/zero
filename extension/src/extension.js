@@ -8,7 +8,9 @@ const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
 const {createTransport} = require('./transport');
-const {createComponentActions} = require('./component-actions');
+const {createSharingEditor} = require('./sharing/editor');
+const {readKitConfiguration} = require('./sharing/configuration');
+const {libraryLayout} = require('./library-files');
 const {createSetupHelp} = require('./setup');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
@@ -108,7 +110,6 @@ function activate(context) {
     return task;
   }
   const taskFinishes = new Map();
-  const exampleDirectories = new Map();
   function track(active) {
     if (taskFinishes.has(active)) return;
     if (execution && execution !== active) {stoppedTasks.add(execution); execution.terminate();}
@@ -120,11 +121,6 @@ function activate(context) {
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
     if (event.execution.task.definition.type === 'zero') track(event.execution);
   }), vscode.tasks.onDidEndTask(event => {
-    const temporary = exampleDirectories.get(event.execution);
-    if (temporary) {
-      exampleDirectories.delete(event.execution);
-      void fs.rm(temporary,{recursive:true,force:true}).catch(error=>output.appendLine(`Example cleanup: ${error.message}`));
-    }
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
     taskFinishes.delete(event.execution); finish();
@@ -359,30 +355,9 @@ function activate(context) {
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
-  Object.assign(actions, createComponentActions(vscode,context,{
-    project,run:queuedRun,isBusy,setBusy:value=>{componentBusy=value;refresh();},
-    captureRunGeneration:()=>runGeneration,
-    runExample:async(root,args,generation,didLaunch=()=>{})=>{
-      const launch = async()=>{
-        if (generation !== runGeneration) return false;
-        await stop();
-        if (generation !== runGeneration) return false;
-        const spec = core.runSpecification(root);
-        const execution = spec.shell
-          ? new vscode.ShellExecution({value:spec.command,quoting:vscode.ShellQuoting.Strong},args.map(value=>({value,quoting:vscode.ShellQuoting.Strong})),{cwd:root})
-          : new vscode.ProcessExecution(spec.command,args,{cwd:root});
-        const task = new vscode.Task({type:'zero',task:'run'},vscode.TaskScope.Workspace,'Try component','Zero',execution,'$zero-java');
-        task.presentationOptions={reveal:vscode.TaskRevealKind.Always,panel:vscode.TaskPanelKind.Dedicated,clear:true,focus:false};
-        pendingLaunch = vscode.tasks.executeTask(task).then(active=>{
-          exampleDirectories.set(active,root); didLaunch(); track(active); return active;
-        });
-        try {await pendingLaunch;} finally {pendingLaunch=undefined;}
-        if (generation !== runGeneration) {await stop(); return false;}
-        return true;
-      };
-      const result = runQueue.then(launch); runQueue=result.catch(()=>{}); return result;
-    }
-  }));
+  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
+  Object.assign(actions, sharing.commands);
+  context.subscriptions.push(...sharing.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
     try {await action();} catch(error) {state = error.message; refresh(); output.appendLine(error.message); vscode.window.showErrorMessage(`Zero: ${error.message}`);}
   }));
@@ -424,12 +399,22 @@ function activate(context) {
       try {
         const root = entry ? entry.uri.fsPath : await project();
         const visible = async (directory, omit = []) => (await fs.readdir(directory, {withFileTypes:true}))
-          .filter(child => !['.git','target','node_modules','.DS_Store', ...omit].includes(child.name) && !child.isSymbolicLink())
+          .filter(child => !['.git','target','node_modules','.DS_Store','.zero-sharing-recovery', ...omit].includes(child.name) && !child.isSymbolicLink())
           .sort((a,b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name))
           .map(child => ({uri:vscode.Uri.file(path.join(directory, child.name)), directory:child.isDirectory()}));
         if (entry) return visible(root, entry.projectFiles ? ['src','README.md'] : []);
+        const library=await libraryLayout(root);
+        const nested=await fs.lstat(path.join(root,'libraries')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+        if(library) return [
+          ...await visible(library.sources),
+          {uri:vscode.Uri.file(library.readme),directory:false},
+          {label:'Examples',uri:vscode.Uri.file(library.examples),directory:true},
+          {label:'Checks',uri:vscode.Uri.file(library.checks),directory:true},
+          {label:'Project files',uri:vscode.Uri.file(root),directory:true,projectFiles:true}
+        ];
         return [
           ...await visible(path.join(root, 'src/main/java'), ['zero']),
+          ...(nested?.isDirectory()&&!nested.isSymbolicLink()?[{label:'Libraries',uri:vscode.Uri.file(path.join(root,'libraries')),directory:true}]:[]),
           {label:'Resources', uri:vscode.Uri.file(path.join(root,'src/main/resources')), directory:true},
           {label:'Toolkit', uri:vscode.Uri.file(path.join(root,'src/main/java/zero')), directory:true},
           {uri:vscode.Uri.file(path.join(root,'README.md')), directory:false},
@@ -440,7 +425,7 @@ function activate(context) {
   };
   context.subscriptions.push(output, changes, vscode.window.registerTreeDataProvider('zero.files', files));
   const watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
+  for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git|\.zero-sharing-recovery)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
     if (!projectRoot) return;

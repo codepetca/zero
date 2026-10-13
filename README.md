@@ -18,21 +18,26 @@ Run App saves, rebuilds and restarts. **Upload, Start and Finish default to simu
 The individual flow is Start a change → Upload changes → Finish change into main.
 The opt-in live path reviews changes and uses VS Code's native GitHub session.
 A Mac teacher trial verified real sign-in/create/connect/cancel/upload/copy-link.
-Physical Windows/Linux and novice student trials remain unverified; see the
+The current MVP targets Mac with Apple Silicon and Windows; Linux and Intel Macs
+are unsupported. Physical Windows and novice student trials remain unverified; see the
 [verification record](docs/VERIFICATION.md) for checks actually performed.
 
 ## Download Zero
 
-[Download Zero 0.5.3](https://github.com/codepetca/zero/releases/download/v0.5.3/zero-bootstrap.zip) and follow `START-HERE.md`.
-The complete kit is a single ZIP; original Zero code is MIT licensed.
+- [Download for Mac with Apple Silicon — setup 0.5.7](https://github.com/codepetca/zero/releases/download/setup-v0.5.7/Zero-Setup-0.5.7-macos.dmg)
+- [Download for Windows — complete kit ZIP 0.5.3](https://github.com/codepetca/zero/releases/download/v0.5.3/zero-bootstrap.zip); follow `START-HERE.md` for manual setup.
+
+The Windows native EXE is not published. The complete kit is a single ZIP;
+original Zero code is MIT licensed.
 
 ## Start here
 
 - [Student/teacher setup](docs/GETTING-STARTED.md)
 - [Starter and example copy instructions](student-template/README.md)
 - [Student API](student-template/API.md)
-- [Component lifecycle and Workshop](docs/COMPONENTS.md)
-- [Zero Community: component source and contributions](https://github.com/codepetca/zero-community)
+- [ZeroHub components and libraries](docs/COMPONENTS.md)
+- [Public ZeroHub catalog](https://zero.codepet.ca/hub)
+- [ZeroHub local run guide](hub/README.md)
 - [Product scope and contracts](docs/PRODUCT.md)
 - [Development and contributions](docs/DEVELOPMENT.md)
 - [Release preparation and publication](docs/RELEASING.md)
@@ -44,22 +49,23 @@ The complete kit is a single ZIP; original Zero code is MIT licensed.
 
 Students need VS Code and a supported JDK 17+; Git 2.31+ and browser authentication
 are needed for repository work. They do not need Node.js or global Maven.
-The next local Mac0.5.7 setup prepares a private Java runtime and a separate
-quiet editor automatically; use its Open Zero launcher to return. The public
-Mac0.5.6 download still has guided manual setup. See [native setup](docs/INSTALLER.md).
+The published Mac0.5.7 setup prepares a private Java runtime and a separate
+quiet editor automatically; use its Open Zero launcher to return. Windows uses
+the complete-kit ZIP with manual setup. See [native setup](docs/INSTALLER.md).
 The optional settings-only profile for ZIP/manual setup defaults to light, with 500 ms autosave.
 Import it before installing the local Zero VSIX and Java extensions in that
 profile. The sidebar also supports dark themes.
 
 ## Project layout
 
-- `website/`: Next.js download website, guided tutorials, examples, docs and Community.
+- `website/`: Next.js download website, guided tutorials, examples, docs and ZeroHub.
 - `extension/`: sidebar and commands using supported VS Code APIs.
 - `student-template/`: standalone Maven project, readable framework source and
   alternative examples outside compiled `src/`; `examples/shared/ScoreDisplay.java`
   is the canonical component reused by quiz, practice and study apps.
-- `component-workshop/`: native preview, examples/API, explicit candidate build/checks
-  and local contribution export for the separate community library.
+- `sharing/`: GitHub publication records, immutable artifact delivery and catalog.
+- `hub/checker/`: disconnected reference for the unresolved hosted-checker gate.
+- `libraries/`: maintained component bundles, API, examples and checks.
 - `framework/`: canonical Java source and core JAR build; readable source copies
   are assembled into the standalone student starter.
 - `profile/`: optional light settings profile and separate F6/F7 bindings.
@@ -72,14 +78,10 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.7.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.8.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
-kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile. After preparing the committed public component candidate and Workshop with
-`--public` as described in [Development](docs/DEVELOPMENT.md),
-`npm run package:components` creates `zero-community-workshop-0.1.3.zip`.
-It contains the editable Workshop/source, one pinned community version and its
-verified local Maven repository. Historical update/revert verification is separate.
-These are experimental local artifacts; packaging does not publish them.
+kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile.
+Browse games and exact library versions at `/hub`. Students share from their existing public game repository, with reusable classes under `libraries/<slug>/`. The new native tools and GitHub registry are local development code; hosted library checking remains closed. See [the adoption plan](docs/GITHUB-SHARING-PLAN.md) and [Development](docs/DEVELOPMENT.md). Local packaging does not publish.
 
 Maintainers approve a reviewed new version with `npm run release:publish -- --version 0.5.4`.
 The command checks, publishes verified files, updates the website through a checked PR
@@ -89,5 +91,4 @@ recovery and the read-only `--verify-only` option.
 Start contributions with one understandable helper, example or useful error.
 Try a shared change in two apps and seek review before a cohort adopts it.
 Original Zero code is available under the [MIT license](LICENSE). Bundled
-upstream dependencies and wrapper notices retain their own terms. Zero Community
-original source is also MIT licensed; its experimental archive is not part of this release.
+upstream dependencies and wrapper notices retain their own terms. Migrated sample libraries retain their MIT notices.

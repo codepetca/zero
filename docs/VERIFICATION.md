@@ -73,7 +73,7 @@ documentation; integration preserves the exact reviewed game/site/runtime source
 
 Zero0.5.3 and Community0.1.3 are published. The complete source/review/CI/PR/release
 index is [EVIDENCE.md](EVIDENCE.md); [release/kit.json](../release/kit.json) and
-[release/community.json](../release/community.json) preserve actual asset metadata.
+`release/community.json` (retired during consolidation) preserve actual asset metadata.
 Historical local-only status below the old handoff is superseded by this delivery.
 
 144extension/kit tests,24site tests,types/build, configuration/link checks and
@@ -794,7 +794,23 @@ and its candidate remain intact. Standalone ZIP/starter/VSIX stay0.5.3, Communit
 Actual local browser Download for Mac action targeted verified native route; an
 unauthenticated local retrieval matched the candidate bytes. Screenshot
 .verification/mac-057-release/local-downloads.png. Public metadata and hosted
-Mac/manual guidance promotion review/CI/deployment/live checks are pending.
+Mac/manual guidance PR25 merged atb9d0188e47ae0686890b4236f65ff1474fff4f9f after
+reviewed e81091b and successfulCI38179369934/Vercel preview. Fresh Luna/medium
+eight-file review05951b2→0e72a96 found1nonblockingP2 stale installer paragraph;
+correction0e72a96→e81091b and targeted review resolved it with0newissues. One
+reviewer launch/2turns/1initialwave/1targetedwave/1fixbatch for promotion; unchanged
+metadata/source coverage reused. Preparation used oneSol/medium launch/turn,
+1initialwave/0fixbatches. No repeated full integration review needed for the
+single documentation paragraph.
+
+Production deployment7002564608 succeeded for exact mergeb9d0188e. Live home,
+Learn chooser and setup guide returnedHTTP200. Actual browser Mac button points
+to the verified public0.5.7URL; unauthenticated retrieval of that live anchor
+matched899924bytes and sealedSHA256. All three alternative0.5.3anchors unchanged.
+Screenshot .verification/mac-057-release/live-downloads.png; live-verification.json
+binds deployment, pages and downloaded bytes. Previous public0.5.6asset and
+sealed candidate hash rechecked unchanged. Outcome complete; no native/runtime
+changes in final local receipt-only documentation. Temporary local server stopped.
 Remaining limits: clean Mac/vendor/quarantine/trust/novice flows, physical
 Intel/macOS12 and Windows, restricted networks. Windows physical testing held.
 Receipts .verification/mac-057-release/ and immutable candidate directory.
@@ -802,3 +818,494 @@ Requested worker GPT-6-Luna/medium inventory and Sol/medium preparation review;
 effective model, per-turn tokens/cost and coordinator active time unknown.
 Weekly86% remaining at start is account allowance. DeepSeek paused; no new goal,
 task, automation, account changes or branch-protection changes.
+
+
+## Local app/game tutorial pass — 2026-10-11
+
+Owner deferred installer trials and selected study quiz + coin game. Local branch
+codex/app-game-tutorials, baseline618fad209d9329815c7395660b31c1be967d6631,
+accepted source f2753a081d20c77ceb3b26c1e7b8e14707c497b6 (20files).
+Lessons7/9/10 now keep Restart visible, teach one-coin native controls before
+arrays/win and reuse unchanged ScoreDisplay across SimpleApp and SketchApp.
+Exact-copy switching backs up work outside src and removes unlisted helpers,
+preserving zero/build files. UI.md explains one app, native controls around the
+canvas, explicit updates, view ownership and focus; no nested SimpleApp. Beginner
+default and Workshop0.1.3/two-healthbar limits corrected. Proposed welcome/result,
+pause and Countdown helpers are distinguished from implemented APIs.
+
+Eight finite actual JavaFX checks passed in disposable projects: study, coin-game,
+coin-game-controls, coin-game-component, hello-world, hello-button, hello-name and
+movement. They verify score-once, reset, retained controls, independent views and
+canvas focus. Exact new source sets also compiled with Java17 target and pinned
+JavaFX21.0.12. Reproduced old full-game→coin-game failure from stale Enemy/touches;
+backup/remove-unlisted/exact-copy flow compiled. No student files touched.
+Website36tests/typecheck/production build and root/diff checks passed. Actual local
+browser verified UI guide navigation and final controls example backup/copy lists;
+screenshot .verification/tutorial-pass/local-ui-guide.png is local docs proof,
+not a game runtime screenshot or public deployment.
+
+Fresh GPT-6.1-Sol/medium reviewer inspected all20changed files and immediate
+framework/example/Workshop/source-routing contracts:0findings/blockers. Reused
+coordinator test receipts; independently checked frozen HEAD/clean tree, whitespace,
+generated source equality and example routes. No independent GUI rerun. One
+review launch/initial wave,0fix batches/targeted waves/integration waves; default
+7launch/4fix/60min caps retained. One Sol/medium audit/implementation worker;
+coordinator owned shared guides, website and verification. No recursive delegation.
+One unsupported example-name invocation rejected before tests; corrected once.
+Weekly82% remaining at start is account allowance. Effective models, attributable
+tokens/cost and active time unknown; DeepSeek remains paused.
+
+Local source complete and unpublished. No core/library/API, dependency, version,
+installer, ZIP, Community, account or remote changes. Existing Mac0.5.7 DMG hash
+rechecked unchanged: d639fc080670eb11fc03e63c56356c8da1603bf956e44d5b135511f52aa9ba1b.
+No push/PR/deploy. No novice trial, physical Windows/Linux/Intel proof or fresh
+installer test; those remain deferred. Current Workshop checks only its two declared
+health bars; general custom-component authoring/contribution needs a future pass.
+Evidence .verification/tutorial-pass/; design docs/TUTORIAL-PLAN.md.
+
+
+## Visual quick lessons, composition and local sharing trial — 2026-10-11
+
+Owner requested visual/minimal-reading lessons and an actual component-building/
+sharing trial, including composable HUD/start-screen parts. Local source
+6e32ecccb4f317e6b605fcbe9d23258229c3027d, baseline3f4a36792b52e229725f63125653900dee955128,
+47files. All13lessons now begin with standalone accessible target SVG illustrations,
+three actions and an observable checkpoint. Existing code/explanation retained;
+later lessons start with one runnable milestone. Illustrations are not screenshots
+and no novice completion time is claimed. Hosted intro appears before folded
+detail, with code anchors and fixed asset mapping. Desktop picture/actions share
+one grid;390px viewport stacks with no horizontal overflow. Local Markdown retains
+the assets. Actual browser code-link reveal, lesson10 and six-file composed-game
+copy page verified; screenshots .verification/visual-composition/lesson-1.png and
+lesson-1-mobile.png are local website proof, not public deployment.
+
+New composed-study/game reuse unchanged StartScreen/Hud source plus canonical
+ScoreDisplay and original Question/Player/Coin helpers. Hud contains ScoreDisplay;
+Main supplies actions and owns state/rules. Study switches native views. Game keeps
+canvas mounted, explicitly gates updates, reserves Hud room during setup, resets
+existing views and returns Scene keyboard focus ownership to canvas. Exact source
+sets compile. Fourteen finite actual JavaFX cases,38website tests, typecheck,
+production build, root and whitespace checks passed. New cases exercise menu/
+activity/completion/restart, duplicate score prevention, independent Hud actions,
+view identity, layout bounds and deterministic held-key movement. Physical input
+not demonstrated. Initial synthetic key-event movement failed twice because the
+native window was unfocused; harness now follows MovementCheck's deterministic
+held-input method, retains focus-owner checks, and explicitly labels this limit.
+One coordinator layout correction handled parsed whitespace before Done; regression
+check proves every lesson produces the visible quick-path wrapper.
+
+Separate Sol/medium worker copied trusted Community into ignored disposable
+fixtures: two reproducible builds,6JavaFX checks,4Maven consumers, native Workshop,
+baseline export and independent admission passed. Editing HealthBar caption
+rejected stale evidence; fresh CandidateBuild/export/independent admission passed.
+Packets report checked, communityReviewed=false/publishAllowed=false. Arbitrary
+StartScreen metadata is rejected by the current healthbar-only contract. Receipt
+.verification/component-flow-trial/receipt.json; commands/limits NOTES.md there.
+One fixture rerun created an omitted export parent; not a product defect. Real
+Community remains clean at31febf2f22228553e40e96abe92bcbbf83032815. Its contribution
+guide's eight-owned-file count and enforced-protection paragraph are stale;
+follow-up recorded rather than silently changing that repository. Generic component
+workbench remains planned in docs/TUTORIAL-PLAN.md, not claimed as built.
+
+Fresh GPT-6.1-Sol/medium independent reviewer inspected the complete47-file diff
+and immediate renderer/build/framework/shared-class contracts:0findings/blockers.
+Reused tied check/trial evidence, inspected both screenshots, independently checked
+fixed HEAD/clean tree and whitespace. One launch/initial wave,0fix batches,0targeted
+or integration waves; default7launch/4fix/60min caps retained. Three Sol/medium
+workers owned visual lessons, composition examples and disposable trial; coordinator
+owned web/harness/integration. No recursive delegation. Effective configurations,
+attributable tokens/cost and active time unknown; weekly81% remaining at start is
+account allowance. DeepSeek stays paused. No new goal/task/automation.
+
+Local source accepted and unpublished. No push/PR/deploy, core/dependency/version/
+installer/ZIP/Community/account changes. Physical input/DirectoryChooser, Windows/
+Linux/Intel, novice timing, public submission/maintainer acceptance/install remain
+unverified; installer trial held. Existing published releases retained.
+
+
+## Local Starter UI package proof — 2026-10-11
+
+Owner approved the recommended local package before generic Workshop/catalog work.
+Accepted Zero e7b03d8ab37c9c3323e04462b705b993d2f2ba1b (base862c081), Community
+19e3544da52691c1d39492fb78ee9dd962898536 (base31febf2),23changed files total.
+Community packages/starter-ui owns three ordinary classes, namespace
+zero.community.starterui, coordinate ca.codepet.zero.community:starter-ui:0.1.0-prototype.1.
+Java17/JavaFX21.0.12, MIT; no core/Application/game classes or core dependency.
+Packaged-study/game preserve composed rules and differ only by imports, with exact
+ordinary helper lists. Default-package teaching sources remain untouched.
+No default POM/catalog/healthbar/admission/workflow/installer changes.
+
+Final proof .verification/starter ui accepted source/receipt.json passed in33.97s:
+two byte-identical clean binary/source builds; exact entries and current Java/POM/
+MIT bytes; installed-artifact equality; finite native JavaFX component/callback/
+independence/error checks and origin binding; both packaged consumers. Components
+loaded from the exact isolated-cache JAR, not copied source. Empty explicit user/
+global Maven settings apply to every package and consumer step; output paths with
+spaces work and existing outputs refuse replacement. Library artifact6539bytes
+SHA256 e0d1c551071c1ce2ab920a34f9932e1070536161d71a2ae053960c24fe5444a8;
+source JAR4661bytes SHA2563dfeab1bd0304c5040551ab433adf2753f5fed76d236ab6937ab7af379e4ac1f.
+POM2314bytes SHA25647e1b4fffc8710dfd1bddeacf9073f7c8d3cc5f0a2d3d75f1a43ce8a1557a5cd.
+Root rechecked all9module input hashes against final receipt. Baseline composed
+study/game/Hello-world finite checks,38website tests and root/diff checks pass.
+Public example shelf remains unchanged; packaged consumers are local maintainer
+proofs, not a downloadable student catalog option.
+
+One Sol/medium worker delivered module/check/tool; coordinator owned consumers,
+harness/integration/docs/Git. Initial wrapper-location mistake corrected before
+Maven; coordinator tightened child empty-settings propagation and removed local
+branch GitHub links before final proof. These were pre-review corrections. Final
+fresh Sol/medium reviewer inspected both full diffs and immediate dependencies,
+independently verified9module hashes/digest, archive/POM/license/source/artifact
+bytes/origins and namespace/import-only differences:0findings/blockers. Reused
+applicable native/build/test receipts; no repeated suite. One launch/initialwave,
+0review fixbatches/targeted/integration waves; default7launch/4fix/60min caps retained.
+Effective models/tokens/cost/active time unknown; account weekly80%remaining at start
+is not task cost. No recursive delegation, DeepSeek (paused), new goal/task/automation.
+
+Local source and JAR/source/POM accepted; no push/PR/publication/deploy/account or
+protection changes. Separate Community worktree/branch preserves canonical main;
+primary Zero funding checkout untouched. Current Workshop only supports health
+bars; general descriptor/check/preview and multiple-library discovery remain next
+planned contracts. No Community admission/recommendation or public artifact install.
+Physical input, Windows/Linux/Intel, novice and restricted-network behavior untested;
+installer/physical Windows trial still held. Earlier published artifacts retained.
+
+## ZeroHub consolidation — 2026-10-12
+
+Owner approved one Zero repository, ZeroHub branding and `/hub`, removal of the old Community workflow without legacy compatibility, and retirement after verification. Source commit19eaad79835ee0f7c4a6f0e4499c6053bff60d1a; two tutorial sentence corrections3d21d0bf4d5c9ea1b2ea468670a61083ca8f91b6.
+
+Moved maintained Starter UI and health-bar bundles into libraries/ with MIT notices and source provenance. Single-repo namespaces zero.starterui/zero.healthbars remain separate from assigned ZeroHub namespaces zero.uiN. Removed Workshop, old catalog/static Maven routes, legacy editor actions and component ZIP dependencies. Extracted surviving POM/scanner/process helpers unchanged. Website route /hub; auth returns /hub/prepare; backend /api/hub preserved.
+
+Passing evidence: configuration/syntax/command/doclink checks;175 root tests;61 focused editor/process/release checks; website38pass2opt-in skips/types/build; actual productionHTTP2/2 (canonical wrapper bytes, /hub navigation and retired route404s);18 actual PostgreSQL cases; rebuilt ZIP/VSIX/extracted Maven compile. Retired tests covered only deleted behavior; scanner/version/edit and process checks remain.
+
+Ignored native receipts: .verification/zerohub-starter-internal/receipt.json (18.37s; two reproducible builds, source/notices, checks, both real JAR consumers); zerohub-health-bars-final/receipt.json (6retained tests,2expected mutant failures,4native consumers/JAR origins); zerohub-internal-full/receipt.json (47.064s; failed/corrected same version, immutable0.1.0/0.1.1, actual extension Add/Update/Revert, both apps0.1.0→0.1.1→0.1.0 and artifact hashes). Existing pinned checker image/policy reused, unchanged.
+
+Browser receipt .verification/zerohub-consolidation-browser/receipt.json records actual sign-in at /hub/prepare, reservationui2, ZIP download, edited-folder upload, automatic local listing, credit/profile, import/pin/check details and logout. Listed UI/screenshots overview.jpg and listed.jpg visually inspected. The downloaded edited preview ran on macOS (ZEROHUB_DOWNLOADED_PREVIEW_OK). Production Next Maven gateway proof zerohub-consolidation-proxy/receipt.json began without hub coordinates, resolved exact published JAR hash and ran native packaged-study/game. This is local fake publication with demo identity101/zero-local-demo, not hosted OAuth or public release.
+
+Independent GPT-6.1 Sol/high consolidation review turn1 completed the full142path19eaad7diff with0P0/P1/P2 blockers. It confirmed nine helper functions byte-identical, exact packaged source, removed dependencies/routes, source/license/proof consistency and unchanged Origin/cookie/session/CSRF bounds. TwoP3 wording nits fixed together; turn2 reviewed19eaad7→3d21d0b and closed both with no new findings. Prior unchanged coverage retained; no redundant review wave. Cumulative hub/contributor/consolidation reviewer turns11 (including3earlier provider-filter failures); consolidation2turns,1small docs correction, no implementation rework or writer conflict. Two new bounded source workers Sol/high (libraries, website), coordinator integration/browser/Git. Effective runtime configuration, tokens/cost and coordinator active time unknown. Weekly remaining70% at phase start is account-wide, not task cost.
+
+Remote retirement: gh repo delete codepetca/zero-community --yes succeeded; authenticated subsequent repository lookup returnedHTTP404. Complete21ref history verified in /Users/stew/.codex/archives/zero-community-20261012.bundle. Original local source checkouts retained solely as recovery material; no product dependency remains. Zero was not pushed, PR'd, merged or deployed. Primary funding changes untouched. Owned test browser/server/PostgreSQL resources stopped; all23existing Pika/Supabase containers remain running/healthy where configured. Storage guard301GBcached then322GBfresh healthy; no cleanup/restart/pruning.
+
+Limits: generic checker-security source review still incomplete after earlier provider rejection; this consolidation review does not substitute or bypass it. Hosted OAuth/database/storage/worker provisioning and rollout remain separate. Physical Windows/Linux/Intel, novice/manual installed-editor flows untested. No installer rebuild/signing/publication in this phase.
+
+## Public read-only ZeroHub — 2026-10-12
+
+Reviewed source b0e7177686d68b9b4ce7ba039e0c062a0b3d2c74 is deployed on Vercel (dpl_5ZCSuaG1w3XZWL4D2PjrigEBSATJ) and promoted to https://zero.codepet.ca/hub. Draft PR26 remains unmerged because the excluded generic checker review is incomplete. Neon was provisioned through Vercel, then reviewed schema/storage and distinct minimal SQL logins were installed. Production has only its restricted API URL and closed embedded-runtime settings; admin/bootstrap credentials stay private and out of deployment inputs.
+
+Passing checks:21actual PostgreSQL authority/integrity/selection cases;5bootstrap unit cases/1optional skipped by default plus separately executed real maintained-source Docker proof;43website cases/2optional HTTPskips; types/build/root checks. Hosting5independent review turns resolved2blocking findings (runtime role escalation, github.com identity binding) with no remaining assigned hosting findings. Earlier checker-source gate is unchanged.
+
+Actual production maintained Starter UI ui1:0.1.0 published with authenticated contributor4050555/armorup, three components and all6checks passed on LinuxARM64. Exact repeat reused immutable bytes. Anonymous catalog/credit, all4artifact byte hashes and HEAD, anonymous session, closed authoring503 and current/retired page statuses passed. Browser search, imports/pin/API/check details/profile/previews passed. Actual public Maven JAR hash matched cache; both study/game finite native checks passed on this Mac. Proof paths and exact review/deployment receipts are in [EVIDENCE.md](EVIDENCE.md).
+
+Public uploads, OAuth and hosted generic execution remain closed; operational quotas/backups/monitoring/removal and permitted independent checker acceptance are unfinished. No new installer/kit release or main merge. Mac synthetic UI actions and LinuxARM64 virtual-display checks do not prove physical/novice/Windows/Linuxdesktop/Intel use. Primary funding work and existing Pika services were preserved; owned local test server/databases stopped.
+
+Docs-only follow-up28f6e58 completed independent Luna/medium9-file review0blockers and GitHub CI. Promoted deployment dpl_EYggD2cbHDqFXpt1Jhto9uY3eMox includes the current-kit manual import guidance and closed-sharing lesson11 note. Coordinator verified their actual anonymous public responses and unchanged closed catalog; public-docs-receipt.json retained. Application code is unchanged from reviewed b0e7177; no extra native consumer run or checker acceptance was inferred from this docs deployment.
+
+
+## Public contribution prerequisites: admission and expired authentication (2026-10-12)
+
+- `npm run test:postgres --prefix hub`:31 passes,0 skips against disposable PostgreSQL (21 existing service,10 new admission). Covers races across connections/API instances, restricted API-role grants, rolling windows, ownership, exact retries, immutable conflicts, HTTP429/413 and retained failed-source caps. No candidate Java execution.
+- `node --test hub/service/session-cleanup.test.mjs`:3 passes against a separate restricted-login fixture. Covers bounded removal, concurrent batches, live records and owner/mixed-credential refusal. No hosted cleanup.
+- `node --test website/tests/hub-runtime.test.mjs hub/service/staging.test.mjs`:7 passes; authoring stays closed before database/auth/body operations.
+- Root/diff checks passed. Reviewed source7ced199 passed GitHub CI38296142064.
+
+Only local prerequisites are established. Public contribution activation, raw request/authentication admission, result/artifact budgets, pagination, backups/restore, alerts and withdrawal controls remain rollout work. Generic checker acceptance is missing. No new native/novice/platform proof or installer publication occurred.
+
+## Local GitHub OAuth hardening (2026-10-12)
+
+- `npm run test:postgres --prefix hub`:37 passes, including actual PostgreSQL state, exact PKCE pairing, cancellation/replay, provider failures, clear/session cookies and numeric identity/account changes. Provider responses simulated; no GitHub request.
+- `node --test hub/service/oauth-client.test.mjs hub/service/staging.test.mjs`:7 provider plus3 staging passes. Covers declared/chunked bounds, malformed/error responses, cancellation and header/body deadlines.
+- `node --test website/tests/hub-runtime.test.mjs`:4 passes; embedded authoring remains closed. Compatibility review additionally ran26 provider/website cases and pure cookie-forwarding probes.
+- Root/diff checks passed. Separate correctness/compatibility reviews accepted ef03b13. Release CI includes these prerequisites and bounded cleanup; CI38297309531 passed for reviewed ef03b13, including backend, virtual-display JavaFX examples, website and packaging checks.
+
+No schema/grant change, real browser HTTPS/GitHub sign-in or hosted activation. Existing proxy timeout interaction remains untested in hosting. This does not satisfy the excluded generic checker review or complete the public contribution goal.
+
+
+## Embedded authoring adapter and authentication limits (2026-10-12)
+
+- `npm run test:postgres --prefix hub`:43 passes. New cases enforce concurrent state/session caps, bounded expired-row pruning, successful same-browser/account session rotation, failed-sign-in preservation and actual restricted-role grants. No new schema/grants or candidate execution.
+- `node --test hub/service/session-cleanup.test.mjs`:3 passes with state/session admission lock coordination.
+- `node --test hub/service/vercel-integration.test.mjs`:3 passes on dedicated disposable PostgreSQL15447, restricted API login, actual createHub/storage/Web bridge and fake GitHub provider. Signs in, prepares/queues/retries exact source, verifies numeric ownership, account/CSRF/origin boundaries, cancellation, logout and closed capability. Does not execute/publish queued source.
+- Website suite58 passes/2 optional skips, including15 adapter cases; types/build passed. Covers bounded request/response bytes, canonical routes/origin, header privacy, paired cookies, cancellation, redirected destinations, corrupt stored bytes and64KiB streamed Maven length/hash/cancellation up to16MiB.
+- Root/diff checks passed. CI invocation includes the new actual-role bridge test; newer-source hosted CI still pending.
+
+Real GitHub/HTTPS browser, Vercel streaming/payload behavior, hosted timing under load and full student execution/publication remain unproven. Public upload activation and the excluded generic checker acceptance are still held.
+
+
+Embedded adapter correction11d7c5e:15 focused cases and4 actual restricted-role bridge cases passed. GitHub cancellation with error_uri consumes state, clears only the temporary cookie, keeps the current session, neither follows nor reflects the URI, makes no provider exchange and rejects replay. Correctness/full compatibility plus targeted closure cover the final application source. CI38300981955 passed for11d7c5e. This does not establish real OAuth/HTTPS/streaming or the excluded checker gate.
+
+
+Closed-download correction fcd5f63:59 website passes/2 optional HTTP skips,20 focused runtime cases, types/build/diff passed. Independent reviewer ran35 focused cases and6 actual-service/storage fake-SQL probes; exact16MiB bytes/hash/HEAD, bounded chunks, cookie stripping, cancellation and invalid stored/declared bytes passed with uploads closed. Separate streaming/helper review covers the5-file delta; CI38302470684 passed forfcd5f63, including backend, JavaFX, website and packaging checks. No new hosted streaming/OAuth/Java execution evidence and no checker acceptance inferred.
+
+
+Operating controls atabb529f:44 actual PostgreSQL cases pass, including exact old-release artifact/checksum/preview downloads through the closed service, HEAD/cache, malformed routes beforeSQL and missing-coordinate bounded lookup. Seventeen parser/adapter and9poll scheduler cases passed. Independent complete9-file review found0actionable defects and ran11isolated route/poll tests. Worker typecheck passed before the discovery writer; combined website build and local browser lifecycle proof subsequently passed as recorded below; CI38303525610 passed forabb529f. No Java candidate execution, real GitHub/OAuth/production activation or excluded checker acceptance.
+
+
+## Bounded operating controls and discovery — 2026-10-12
+
+Sources089da50/abb529f implement exact artifact lookup and bounded status polling; complete9-file Sol/high review found0defects and independently passed11 isolated parser/poll tests. CI38303525610 passed. Discovery writer Sol/high based089da50 delivered14 owned files, coordinator addedCI and one maintained-proof history assertion. Self-corrections: SQL quotes/parameter typing andTypeScript cursor/null inference. No writer conflict, production operation or candidate execution.44 existing PostgreSQL plus5 new restricted PostgreSQL cases passed, with27libraries/54releases;15 focused catalog/discovery/editor cases and72 website cases/2optional skips/types/build/root passed. Full16-file Sol/high review acceptedfa15c92 with0findings and15 independent focused passes; CI38304468383 passed.
+
+Coordinator reproduced20 allowed64KiB API/changelog-note records producing2,622,823bytes against the old1MiB editor-page bound. Correction3b16089 byte-limits pages to2MiB with actual-returned-row cursors, permits nonempty shorter pages, and bounds editor traversal to500releases/16MiB/30seconds.17 focused cases and5 actual restricted PostgreSQL cases passed; website72pass/2optional skips/types/build/root checks passed. Root177 tests passed forfa15; focused delta tests cover byte changes without repeating unchanged native work. Complete4-file targeted Sol/high review accepted3b16089 with0blocking findings and17 independent focused passes. Newer review turn7, cumulative29 preserves3 older provider failures. Requested model/effort known; effective config/tokens/cost/review time unknown. Source pushed; CI38305503824 passed for3b16089. Default newer7-turn review ledger retained; the owner's earlier task-scoped workflow-budget waiver authorizes a further bounded receipt-doc pass, not bypassing source/execution/hosting gates.
+
+Playwright local browser proof atfa15:23 inert administrator-seeded library manifests, real disposable PostgreSQL and loopback demo identity, checker/publisher disabled. Verified first20/Show more, search of library24 beyond the first page, oldui2:0.1.0 exact POM/import versus latest0.1.1, missing9.9.9 refusal and client navigation. Queued-only upload showed offline pause and five-minute stop:21 automatic requests from2.019to291.087seconds after submit, one later manual Refresh, no new request during the observed12.268seconds before logout; longer non-restart covered by fake-clock cases. Screenshots visually inspected: search.png, exact-old.png, poll-paused.png, poll-stopped.png under ignored .verification/hub-controls/output/playwright, receipt.json and counts retained. Initial today's-date seed exhausted the demo's daily quota; fixture recreated with dated historical inserts, with a SQL quote correction before restart. Initial receipt's15second assumption replaced by the actual12.3second observation. Product source unchanged by fixture corrections. Expected favicon/missing-version HTTP404s only; no runtime UI exception observed.
+
+Owned Next3107, fixture15455/HTTP4117, catalog15457 and isolated browser stopped. Existing Pika services, public deliverable browser and primary funding work untouched. No real GitHub, hosted timing/streaming, candidate checks/publication, new installer/kit, schema/credentials/paid host/main merge or deployment. Goal remains active; missing checker acceptance and full operating/hosted journey gates persist.
+
+
+Receipt checkpointffe0502 completed an independent Luna/medium4-file review with0actionable factual inconsistencies. Reviewer read only the allowed local UI receipt/counts, confirmed history and limits, and did not review unchanged code or execute tools against hosts. Actual newerturn8/cumulative30 includes historical provider failures; prior owner task-scoped budget waiver applied to this bounded docs pass only. Effective model/tokens/cost/time unknown. Source CI38305503824 passed for3b16089. Coordinator added this factual completion record; application code and public production remain unchanged. Latest receipt-only branch-head CI may run after push; full goal remains active.
+
+
+## Public caching follow-up — 2026-10-12
+
+Source8dec22b: worker53focused,77website passes/2existing optionalHTTPskips/types/build; coordinator18focused, correction5cache cases and final production build passed. Hub○static/APIƒdynamic. Astra/high privacy and Sol/high compatibility reviewed complete11-file initial source plus2-file Keep-Alive correction;0remaining findings. Four newreviewturns/cumulative34 preserves prior failures and checker hold.
+
+Actual local production-build browser proof uses current read-only handler with fake SQL and known maintained public metadata/PNG; no auth/database/Java. Verified exactui1:0.1.0 details/POM, client navigation to latest and no-match search. Seven GET/HEAD probes verify public metadata60-second and immutableobject3600-second Vercel policy, private/session/missing-release no-store; screenshot inspected. First attempt against older public deployment lacked new exact-query support and returned400; proof switched to current fixture. Ignored cache-static-receipt.json/output/playwright/cache-static-exact.png under .verification/hub-controls. Owned Next3108/HTTP4118/browser stopped. These headers are not hosted CDN HIT/expiry or measured savings. Nothing deployed, credentials/billing unchanged, no size-cap proposal implemented; full public contribution goal/old review hold remains unfinished.
+
+
+## Finite worker lifecycle — 2026-10-12
+
+Cache checkpoint CI38309382997 passed for6198f73; public deployment unchanged. New source72576da makes Node workers default to finite batches, exiting empty or after10 processed jobs; explicit continuous mode retains old polling. Configurable1–100 is a per-invocation technical cap, not a global submission quota or clock guarantee. No role/activation/checker engine changes. Nine initial staging/unit cases and7 final lifecycle cases passed; actual restricted PostgreSQL17 accounts proved empty checker/publisher exit with0 retained connections and inert invalid-source retry stopping at2 attempts, no Java execution. Owned fixture15463 stopped. Source adds serialized lifecycle suite to existing PostgreSQL CI harness. Independent Sol/high complete4-file review found0findings,6 purecases passed/1 actual-PG case deliberately skipped while reusing root actual proof. One newreviewturn/cumulative35 including earlier3 provider failures,0fixes; effective model/tokens/cost/time unknown. Physical signals/180second shutdown, hosted trigger/concurrency and Neon18 lifecycle timing untested. No worker/deployment/credentials/host changes; generic checker acceptance remains held. Backup writer is independent/new-file-only and its moving code is not yet accepted. Fresh318GB healthy storage/weekly62%remaining are shared readings, not task cost.
+
+
+## Private backup/restore prerequisites — 2026-10-12
+
+Lifecycle CI38310573906 passed fordfc61f6; cache CI38309382997 passed earlier. Sol/high writer from6198 delivered4newbackupfiles,15PG17 cases including11actualsubtests, fixed fixture-only Mac /var path, trigger enablement/function ownership fingerprint and pre-transfer row-width bound. No source conflict. Coordinator found end sequence outside digest; worker correction includes trailer payload, BigInt ID floor and bad/rehashed unsafe sequence regressions. Root integrated package/CI/docs and pinned official PostgreSQL18.6 indexsha74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336 afterregistry inspection. Initial18 proof failed exactschema hash; actual17/18 metadata comparison showed only38 namedNOTNULLconstraints added by18. Separate known fingerprints preserve closed drift/cross-major behavior. Root15cases passed onEACH17.11/18.6 before source review; rootconfiguration/doclinks passed. No installer/website/native/candidate execution reruns needed for operator-only data code.
+
+Full9-file Astra/high privacy andSol/high compatibility at74f7d7a found one deduplicated date-format issue (P2/P1): ::text timestamps inherit DateStyle/TimeZone. Root added differing SQL/DMY Toronto versus ISO/MDY Auckland regression, which failed import before correction. Transaction-local ISO/YMD+UTC correction018e3ab then passed16cases onEACHPostgreSQL17.11/18.6, preserving full row digests/microseconds, private modes, exact JSON bigint/bytes/source/credit/history, unused/called sequence, rollback/trailer/binary failures, snapshots, locked/occupied targets and role/schema refusal. Sol/high complete3-file targeted closure accepted fix with0newfindings;3isolatedunitpasses/1PGsuite intentionally skipped, root actualproof reused. Backup review3turns/2initial+1targeted/1fixbatch; cumulative38 includes3earlier provider filter failures. Earlier task-scoped workflowbudget waiver does not bypass generic checker/hosting gates. Requestedconfigs known; effective models/tokens/cost/reviewer seconds unknown. RootREADME patch with assumed header failed harmlessly, then appended atverified file; no content lost. All ownedtestfixtures stopped; nohosted backup/cutover/encryption/retention/schedule, credentials/paidhost/publicworker/deployment/merge or new student-size cap. Current plan and operating gaps remain explicit. Starting weekly62%remaining, healthy321GBcached then318GBfresh/2GBrequired fordatabaseimage are account/system readings, not attributable cost. Primary funding/Pika/private materials preserved; no cleanup/restart/prune.
+
+
+## Release availability and event-preserving backups — 2026-10-12
+
+Previous backup receipt ae64c6e passed CI38312319015. Sol/high withdrawal writer delivered against that base, then stopped: trusted004 append-only events with private reason/session-user actor; exact origin metadata, preview, JAR, sources, POM/checksum GET/HEAD410 before byte reads; latest/search/history filtering and identical-hash restoration. Runtime API has only four event-column reads; checker/publisher no event access. No new credentials, public moderation endpoint, candidate execution or pin substitution. Writer13availability cases and51inherited PostgreSQL cases passed with inert/mock checks. Coordinator inspected source and added private reason-file mode600/ownership/no-follow/nonregular/byte/UTF8 refusal plus regression, major-selectable fixtures, package/CI and docs. Final14availability cases passed on EACH17.11/18.6 (9actual PostgreSQL role/route/concurrency/CLI cases+5unit/CLI).
+
+Coordinator updated backup format2/000–004 to include seven persistent tables, preserving private reason/actor/microsecond timestamps/revisions1,2,10. Derived schema hashes from actual trusted004 fixtures:17 has114schema records/3d424b82c905b3efe76fb9f00c5619d42ad346d04d10355a72b1eb52df1972d8;18 has159records/97bf1d64ee8d802bd2ca60102a614f8e93939b2c10749adfc430296cbab622d4. Closed schema/version checks retained.16backup cases passed on EACH17/18, including full row digests, private events and existing date/sequence/rollback checks. Format1 rejected deliberately; trusted prior018e3ab/000–003 recovery then004 documented. No real legacy archive was generated or migrated.
+
+Coordinator14editor/catalog cases, configuration/doclinks,77website passes/2existing optional HTTP skips, types/build passed. Earlier unchanged DOM/browser/native checks reused; new real410 paths proved through read-only/enabled/proxy adapters, and editor fake withdrawal leaves POM intact. No new VSIX/kit/installer, interactive installed-editor or physical Windows/Linux proof. Owned15469/15471/15461fixtures stopped; Pika/primary funding/private materials preserved. Public deployment/schema000–003 unchanged; no hosted operator/backup/purge. Edge metadata60s/object3600s, browser1year and indefinite local Maven caches mean origin410 is not global revocation. Public authoring stays closed; old provider-rejected checker review remains unresolved. New source awaits bounded two-reviewer independent phase against ae64c6e; prior cumulative38 includes3historical failures. Weekly60%remaining/317.7GBhealthy are shared readings; effective config/tokens/cost/time unknown. New numeric student quotas remain unapproved.
+
+Withdrawal acceptance: complete22-file ae64c6e31385b1125bb2e558c2ca160c87220bf7..70264f7c6aab8bc9c08cc5d2cd8853dd1bb4f1ff independently reviewed by Astra/high privacy/authority and Sol/high compatibility/recovery, zero actionable findings. Reviewer8 and19 isolated tests passed respectively; supplied root PostgreSQL17/18/website proof reused without services/DB/Java/credential actions. Phase2actualturns/oneinitialwave/zerofixbatches; cumulative40 retains3historical failures. Effective model/tokens/cost/reviewer seconds unknown. Hosted migration/operator/purge/recovery timing, genuine legacyformat1→004 recovery and installed-editor/physical OS remain unverified. Source pushed to draftPR26; CI38314558779 pending at this record. Only factual acceptance/next-action docs changed after source review. No public activation or old checker acceptance. New1MB/version,10MB/contributor,128MBtotal policy question remains unanswered/unimplemented.
+
+
+## Hosted-data recovery and aggregate health — 2026-10-12
+
+Withdrawal sourceCI38314558779 at70264f7 and receiptCI38314902391 at2018c6a both passed. Root completed read-only actual Neon18 export with trusted independently accepted018e3ab format1/000003 backup code/current unchanged runtime role setup, solely existing private operator credential. Snapshot78023bytes, persistentcounts[1,1,1,1,1,4], SHA3f30961c352eba3b2006b5404c2063da30af0bf8884b46faa1b03e1a53790241. Restored into disposable local pinned PostgreSQL18 and re-exported byte-for-byte; locally migrated004 and exported format2, counts[1,1,1,1,1,4,0], SHA24d80523a1a0a358d8c6bb60b43259a03b6a932f54f1ef9f0e24327a26cdcaa3. Temporary authentication empty/excluded. This closes the real schema/legacy-format migration drill gap with actual maintained data, not a productionrestore/cutover or encrypted retention schedule. Private700root/600archives/receipt under ignored .verification/hub-controls/private-neon-recovery-*; no values/source/URLs logged. Generic pinned pg SSL-version warning contained no credentials. Fixture15475 stopped; no production mutation, account change or Java execution.
+
+Sol/high operations writer delivered four new files from2018c6a and stopped. One read-only consistent aggregate SQL report, fixed16metrics/9warningcodes/exact decimal byte accounting; existing global budget pressure, submission-age/stale leases/recent infra-error counts only. Ordinary failed student verdict excluded. No schema/grant/queue/source/lease/auth mutations. CLI --alerts-only omits all counters/content, fixed failures,0/2/1 exits and30s watchdog. Writer13tests passed on EACH17/18 (4actual-role+9unit), plus9unit after final mixed-env/cleanup hardening. One fixture-only correction replaced sorting full205MiBsource JSON with sorted in-database row digests after tmpfs exhaustion; compressible inert data only, no Java. Root9unit, configuration/doclinks and actionlint passed; full source review pending at this record. Prepared main-only/canonical-repo/explicit-flag daily health-test workflow has pinned actions, contentsread, no checkout credential, no install scripts, no PR trigger, final-step-only API secret, codes-only logs/no artifacts, one concurrency group and5min timeout. No GitHub environment/secret/variable or hosted alert activation. Actual schedule/notification/hosted latency remains unverified; current size-limit question unanswered.
+
+Operations acceptance: complete13-file2018c6a8716228f96fb891bfc8c577c5f718bae6..1cda139325102a78cd809dd206274e3d5a9155ca passed independent Astra/high privacy/credential and Sol/high compatibility reviews with zero actionable findings. Each reviewer9unit/actionlint/diffcheck passed, reused actualPG17/18 proof, and read only the allowed private recovery receipt to confirm hashes/counts/oldschema/localupgrade. Phase2actualturns/oneinitialwave/zerofixbatches; cumulative42 includes3olderfilter failures. Measurement caveat clarified in docs: current errored submissions created within24h, not24herror-event count; application source unchanged. Root then ran accepted monitor once locally against existing hosted Neon/API credentials: ok/no alerts,1463ms; private700directory/600receipt under ignored .verification/hub-controls/private-hosted-health-*, no metric/source/URL/credential log or production mutation. Only Mac-to-Neon connectivity is proved; GitHub-runner/environment/secret/notification/schedule remain unconfigured/unverified. No hosted worker, account/billing changes, main merge or public activation. Source1cda139 pushed to draftPR26; CI38316464144 running at record. Only factual acceptance/measurement/proof docs follow source review. Requested configs known; effective config/review seconds/tokens/cost unknown. Fresh317.55GB healthy storage/1GBroom check, no cleanup/prune/restart. Prior goal turn was progress (withdrawal source accepted/pushed); this turn completes operations source acceptance and actual hosted read-only export/recovery/health evidence.
+
+
+## Targeted public cache-removal prerequisite — 2026-10-12
+
+Prior health sourceCI38316464144 and receiptCI38317306712 passed. Root coherent change adds only bounded public cache tags: library ID groups metadata/allversions/artifacts/checksums/previews, separate catalog tag groups alllisting queries. Regeneration only after existing public/status/header/type checks; matching own-upstream tag allowed, unrelated/private/wildcard tags fail no-store and are never forwarded. Private/error output tags erased. Existing TTL/browser/exact-byte/pin/API authority policy unchanged. Root7cache cases,14availability cases onactualPG17 (including alladapter410untagged and restored200samehash/librarytag),79websitepasses/2existing optionalHTTPskips/types/build passed. No SQL/schema/role changes; earlier17/18SQL/native/DOM evidence reused; fixture15469stopped. Source not reviewed/deployed at this record.
+
+Read official Vercel purge/CLI contract and local54.17.2help; cache deletion avoids stale-once softinvalidation. Verified .vercel projectprj_b8dDCbuiF8uzVcXYMLghpWTAr4aA/team_jKbtHZ7k3VeEdJKdqf2GOToE. Native targeted deletion of zero-hub-library-ui1,zero-hub-catalog accepted under existing scoped operator session. Maintained ui1:0.1.0 JAR unchanged6802bytes/SHA776310da0cd8dcff09a6374b61d906d2b34fa633bc603b15770e24963b9c433a; MISSbefore/HITafter. Current publicb0e7177 source predates tags: this testspermissions/control acceptance only, not removal of a cached tagged response, propagation/expiry or hosted withdrawal. Private receipt under ignored cache-removal-*; no wildcard/globalpurge, upload/auth/worker activation, credential/data/schema/deployment or version mutation. Runbook future event→tagdelete→exact410/catalogchecks, restore→samehash and browser/Maven localcopies limits. Full objective unfinished; new quotas remain unapproved and old rejectedcheckerreview still held. Single Sol/high standard complete review planned; cumulative42 until actuallaunch.
+
+
+Targeted-cache acceptance: complete eight-file34c45eb5dbfc1f32fcede6f9aa30cf108735de6f..4077dd8ee4510cefb8ded9c88fd32c619097324b passed independent GPT-6.1-Sol/high review with zero actionable findings. Reviewer inspected repository guidance, all changed files and immediate callers; seven isolated cache tests passed. Supplied actual PostgreSQL/website evidence reused. Public tag bounds/grouping/regeneration and private/error exclusions preserve TTLs, exact pins and byte integrity. Runbook project binding, event/deletion ordering, operator credential separation and client-copy caveats accepted. Phase one actual review turn/one initial wave/zero fix batches; cumulative43 includes three historical provider-filter failures. Requested model/effort known; effective configuration/reviewer seconds/tokens unknown. Source CI38318782410 passed. Only factual acceptance notes follow review. Native deletion receipt still establishes permissions only: deployed source lacks new tags, MISS→HIT did not prove tagged-hit removal. No deployment, schema004 migration, public authoring activation, main merge or generic checker acceptance. Storage policy remains unanswered; hosted cache withdrawal, backup policy, isolated execution and real OAuth remain incomplete.
+
+
+Contribution-policy docs atb9c29e01f3e4285a35763769c639d2e8becff105:
+root npm run check (configuration/syntax/contracts/local doclinks) and
+git diff --check passed. Complete seven-file7c1b7d4..b9c29e0 independent
+GPT-6-Luna/medium review: no actionable findings; reviewer range diffcheck
+passed and root checks reused. No functional surfaces changed, so Java,
+PostgreSQL, browser and installer tests were not repeated. This verifies
+policy/plan consistency only, not removal of runtime lifetime guards or
+deployed archive/removal controls. Previous CI38320302912 passed at7c1b7d4;
+new documentation CI is not yet verified. Full public-contribution goal
+remains blocked; source-checker/hosting gates are unchanged.
+
+
+## Lifetime-cap removal and student-flow proof — 2026-10-12
+
+Current local delta from192d700 removes lifetime account-source/library-count
+guards only; temporary daily/active and shared source budgets remain. Root actual
+PG17 service/admission/worker suite51passes and PG18 admission10passes include
+concurrent requests, ownership, exact retries and actual restricted API access
+beyond100libraries/16MiB. First PG17 run50/51: a test attempted to update immutable
+reservation timestamps; fixture corrected without changing runtime authority.
+91websitepasses/2optionalHTTPskips, actualNextHTTP2passes, types/build/configuration/
+doclinks/diffcheck passed. UI helper tests cover terminal hydration, invalid URLs,
+15s timeout, stale/aborted requests, file re-selection, one-use UUID-only sign-in
+return and unavailable storage. No schema/role/credential/capability change.
+
+Actual Playwright browser against owned Next3112/HTTP4122/disposablePG15482 with
+simulated results: local sign-in, prepare HealthBar/ui1, download real ZIP, native
+directory selection, failed upload, identical failed repeat with report, edit
+API notes/reselect same folder, simulated publication, identical published repeat
+with exact link, reload recovery, signout/anonymous bookmark/no private result,
+signin/automatic result return/empty sessionStorage marker, new0.1.1 version and
+exact component card. Three simulated checks; no candidate Java executed by this
+fixture. Closed-sharing banner was verified before cards using an intercepted
+local catalog capability. Expanded card initially widened390px page to437px;
+final320pxpage320/390pxpage375, code scroll remains within card. Screenshots in
+ignored output/playwright/zero-journey-*. All owned fixtures/browser stopped.
+
+Browser ZIP's fixed generated source compiled via its wrapper on Mac/JDK17. A
+coordinator-owned finite harness called the generated Main, verified greeting
+Label/stage, rendered480x240 PNG and closed. Harness initially used nonexistent
+Scene.lookupAll; corrected to root.lookupAll. JavaFX classpath/CGDisplayLink
+warnings occurred, but render/assertions/exit succeeded and PNG was inspected.
+No arbitrary source or checker was executed. This is local trusted preview proof,
+not isolated checking or actual VS Code button/clean-machine verification.
+Known maintained StarterUI exact public Maven/native consumer evidence remains
+separate and unchanged. Public OAuth→studentchecking→publication→fresh shipped
+kit Add/Update/Revert remains unproved; launch/old-checker gates remain. Archive
+work is explicitly deferred. New policy caps were not silently selected.
+
+
+## Integrated MVP and live native catalog compatibility — 2026-10-12
+
+Root integration185tests passed; website94passes/2optionalHTTPskips and actual
+NextHTTP2passes, typecheck/build/configuration, finite drawing native check passed.
+Actual Chromium integratedHub expanded StartScreen/manual instructions at320px:
+pagewidth320, codewidth234 with contained scrolling. Screenshot inspected at
+ignored output/playwright/zero-mvp-mobile.png. Owned browser/Next3108/HTTP4118
+stopped. One favicon404; no product JS exception observed. No WebKit/physical
+Windows/fresh-installed-editor or complete accessibility claim.
+
+Native client14focused tests passed, including full legacy history Add/Update/
+Revert, complete-shape refusal, later-page/status/byte/total-deadline protection.
+Real production history query400 reproduced; corrected client loaded the plain
+complete public history, verified maintained ui1:0.1.0 metadata and exact
+JAR/sources/POM bytes/coordinates/dependencies. No Java ran in this check.
+Current shipped kits still lack new native integration; updated local candidate
+and installed-editor trial remain next. Public contributions remain closed.
+
+
+Root real public dependency plan applied to a disposable consumer, revalidated
+fingerprint/POM and exact bytes. Maven actually fetched ui1:0.1.0 POM/JAR and
+compiled ordinary imports of StartScreen/Hud. Finite maintained native app
+asserted Start→message→Restart and closed. First temporary harness launch lacked
+JavaFX modules; explicit pinned module path corrected it. CGDisplayLink warnings
+remained, assertions/exit passed. Other dependencies used existing Maven cache;
+this does not prove a fresh machine or actual installed VS Code UI. No arbitrary
+Java candidate/checker ran. Integration review accepted13fa3d2; public gates remain.
+
+
+Local0.5.8 sourceed5242c accepted independent candidate review. Package/extracted
+starter/allVSIX-source proof and candidate website94+2optional/skips/build,
+root188+1PowerShellskip/release53/installer8/Macrelease2 passed. Root7installer/
+config checks and four frozen artifact hashes independently passed. ActualZIP
+WindowsMono228checks pass extraction/versionmetadata/savepreservation; PE/CLR/
+exactembeddedZIP check passes on unsigned developmentEXE. This is cross-platform
+backend proof, not actualWindows/WinForms/PowerShell5.1 or signing.
+
+ActualMacCLI install0.5.8 and workspaceContains activation proved using copied
+kitsettings and isolated profile/extensions. Initial longprofilepath IPC failure
+corrected to short private/tmp; no productcodechange. Native app-control couldn't
+select the separate test process, so installed Browse/Add/Apply/Run buttons remain
+unverified. Ownedprocess77146 stopped; existingCodeprofiles/studentwork untouched.
+Frozenkit/VSIX/unsignedWindowsEXE stay local; publicdownloads/capabilities unchanged.
+Rootbaseline CI38327689796 passedfa802d8; post-version/docs GitHub CI has not run: candidate stays local.
+
+## GitHub sharing candidate — 2026-10-12/13
+
+Local replacement removes database/OAuth runtime and uses GitHub frozen requests,
+Git CAS metadata and immutable public Blob artifacts. Generic library execution
+stays closed; game structural packaging never runs candidate source.
+
+210root checks passed, one portable PowerShell runtime check skipped. Registry23,
+website38, types/build and affected editor/configuration18 checks passed. Local
+HTTPS consumption proves two real Maven projects at1.0.0→1.0.1→1.0.0, loaded JAR
+hash/version and source archive hashes. VSIX harness/configuration and extracted
+kit verify. See [receipts and limits](EVIDENCE.md).
+
+Independent source review and hosted rollout remain pending. Fakes and local HTTPS
+prove neither real provider permissions/ETag behavior nor arbitrary candidate
+isolation. Interactive VS Code source attachment, physical Windows and novice
+classroom trials remain untested. Public release bytes and deployment unchanged.
+
+### Remediation candidate
+
+Two completed independent Sol/high reviews requested7unique blocking corrections
+and one sample-doc correction at c3b9465. All are fixed in one batch. New public
+request lookup is read-only and links only matching accepted/catalog releases.
+Root215pass/1portablePSskip, registry31pass, GitHub8pass and localCheck11pass;
+website46pass/types/build plus9focused result checks. Actual POSIX process-group
+cancellation passed; Windows tree termination remains mocked. Targeted review and
+final packaged-source verification are pending at this entry. No live rollout.
+
+
+### Targeted review and remediation batch 2 — 2026-10-13
+
+Astra/high `sharing_remediation_review/turn1` completed the 31-file
+c3b9465..8f00bca delta and immediate interaction boundaries. Three accepted
+blockers: unbounded recursive POM property expansion, rename-induced duplicate
+request fingerprints, and vague public source-failure results. Prior seven
+initial findings appear resolved; held generic Java acceptance was excluded.
+
+Batch 2 implements bounded memoized property resolution (128 properties,
+depth32,4096 UTF8 bytes/value,262144 total work), numeric-identity recovery that
+preserves frozen metadata, and shared typed source corrections with fixed
+messages and validated file paths. Raw provider/candidate messages are omitted
+from new ledger attempts, public results and CLI reports. Source failure and
+infrastructure retry statuses stay distinct.
+
+Coordinator registry38pass (~36.2s), source-diagnostic1pass, website50pass,
+typecheck/production build and configuration/syntax/link checks pass. Worker
+independently ran the affected39checks (~34.3s). Existing222rootpass/1portable
+PowerShellskip and real two-project HTTPS Maven proof remain valid for unchanged
+consumption/cancellation code. Browser/mobile inert fixture confirms specific
+missing-license correction and file rendering; screenshot inspected at ignored
+output/playwright/sharing-source-correction-mobile.png. Browser and Next server
+stopped. Baseline favicon404/preload warnings, no new runtime exception observed.
+
+Review ledger before next targeted pass:3launches/1initialwave/1targetedwave/
+2fixbatches. Scope/model requested Astra/high; effective model and attributable
+worker tokens/elapsed time unavailable. Accountweekly46%remaining is shared;
+storage cached healthy341GB. No paid resources, resets, external writes, or
+retries around the held provider rejection. Fixed-head review and final packaged
+source verification remain next. Full hosted/pilot objective is incomplete.
+
+
+### Fixed-head acceptance and final local packaging — 2026-10-13
+
+`sharing_remediation_review/turn2`, requested Astra/high, completed exact
+79edd1ff4f9758c98726d8625f394f9e91668cc7 and its entire17-file delta from8f00bca,
+plus immediate interactions. Clean verdict, no actionable findings; all three
+previous blockers resolved. Independently ran19focused inert regressions, all
+passed. Reused unchanged initial scope and coordinator suite evidence. Effective
+model, turn token deltas and elapsed seconds unavailable. Ledger4reviewerturns,
+1initialwave/2targetedwaves/2fixbatches; no equivalent held-executor review.
+
+Final npm run package and npm run verify:kit passed at that unchanged source:
+all extension source bytes equal the VSIX, canonical Check harness and disabled
+operator configuration match, measured assets/license/flatZIP/executable wrapper
+checks and extracted Maven build pass. Local kit0.5.8 complete ZIP hash
+ e7888dcd89bf23efb002660dbf39aee0ab7148d65befd3f83da0605075e32140;
+VSIX hash153d15851e7a675c743145aceedd0f97bab3118b7e763115ae537b6a364c0d3d.
+Ignored logs .verification/sharing-batch2-{package,kit}.log and dist/release.json.
+Subsequent handoff-only documentation does not change reviewed source bytes.
+
+Local phases2/3 and fixture-backed consumption integration have evidence. Phase4
+real provider/execution acceptance, phase6novice pilot and phase7hosted release/
+backup restoration have not passed. No source push, PR publication, deployment,
+store provisioning, credential mutation, live publication or Neon deletion was
+performed. Full tool-backed goal remains incomplete; budget waiver grants no
+provider-rejection bypass or missing external-action permission.
+
+
+### PR27 corrected-head CI acceptance — 2026-10-13
+
+PR https://github.com/codepetca/zero/pull/27 remains draft, source6851aa7.
+Sol/medium sharing_ci_fix_review completed all3files of555e7d5..6851aa7 plus
+script cleanup/failure paths and callers; clean, no findings. Syntax/whitespace
+checks independently passed; readonly-JDK21.898s proof receipt inspected/reused.
+Effective model/worker token deltas and elapsed time unknown. Ledger5reviewturns,
+1initialwave/3targetedpasses/3fixbatches; existing task budget waiver persists.
+
+Corrected CI https://github.com/codepetca/zero/actions/runs/38380415688 succeeded
+at exact6851aa7a84fd5fc6a4d1ac684baf14a3dee9f057,10:00:48–10:05:55UTC.
+Ubuntu24.04/Temurin17: root223pass/1PowerShellskip, release53pass, registry38pass,
+real HTTPS two-consumer Add/Update/Revert, finite JavaFX examples, website50pass/
+types/build, final kit/VSIX source parity/extracted Maven build and artifact
+receipts upload passed. Vercel source-head preview checks also passed.
+Ignored logs sharing-pr27-corrected-ci.log/watch.log and goal audit retain details.
+Subsequent tracked handoff is documentation only and preserves reviewed source.
+
+Action runtime Node20/setup-java-v4 deprecation warnings are nonblocking; current
+job succeeded. No broad support/interactive classroom or managed execution claim.
+Full goal still lacks live GitHub/Blob semantics, hosted immutable publication/
+backup restoration, approved generic library execution, physical Windows,
+installed-editor and novice pilot. No merge, production deployment, provisioning,
+credentials mutation, public release or database deletion was performed.

@@ -1,48 +1,75 @@
 # Current state
 
-Updated2026-10-11. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
-Durable history/evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
+Updated 2026-10-13. GitHub sharing replacement delivered as
+[draft PR27](https://github.com/codepetca/zero/pull/27). Full adoption is incomplete.
 
-## Active Mac0.5.7 publication and website promotion
+## Goal and authority
 
-Owner authorized signing/notarization, native publication and website update.
-Source PR24 merged at05951b2852039055891977b42ff9464736ab4a29 after reviewed
-f9a5ef2, successful CI38178772418 and Vercel preview. Native/runtime source was
-independently reviewed earlier;189native/247root/228Windowsfakes, bothMaccompiles,
-real vendor assets/editor Run/Stop/autosave/defaultbuild passed. Source-review
-corrections resolved all prior blockers; Windows physical testing remains held.
+Implement [the adoption plan](../docs/GITHUB-SHARING-PLAN.md): one student game
+repository with optional libraries, local Check/Share/Add/Update/Revert and game
+Open, GitHub records, immutable public artifacts, Vercel and no Neon dependency.
+Owner approved wholesale replacement and task-scoped usage/review-budget waiver,
+then explicitly approved branch push and draft PR creation. Those actions are
+complete. Owner subsequently instructed: Override all approvals to get this goal
+done. This authorizes remaining goal-scoped merge/rollout/provisioning/release
+actions under correctness and preservation requirements; do not ask again for
+these approval gates. Actual provider rejection and immutable-byte protection
+remain binding. Retirement follows verified inventory/backup/restore, not blind
+resource deletion.
+Generic submitted-library acceptance remains provider-rejected; no equivalent
+retry/bypass or arbitrary public Java execution. DeepSeek remains paused.
 
-Existing Developer ID identity and “Zero Notarization” Keychain profile reused.
-Apple accepted3f1e1013-a4a3-4109-b6ae-999cb6881945; no new credentials/certificate.
-Signed/notarized/stapled universal macOS12+ DMG899924bytes,SHA256
- d639fc080670eb11fc03e63c56356c8da1603bf956e44d5b135511f52aa9ba1b.
-Built clean a9fb1edb406e1882cb6c0f1528c0c0e6b5eadd8f; sealed preparation
-f9a5ef2bfcd36cc678203f0d457e917d014ce271. Native/runtime/packaged sources equivalent.
-All10sealedchecksums and actual signatures/Gatekeeper/payload passed.
-Fresh Sol/medium six-file preparation review passed with9focused website tests;
-36website tests/typecheck/build/root/sealing checks passed. No trust guard relaxed.
+## Delivery and verification
 
-setup-v0.5.7 is now public with exactly one DMG. Draft bytes matched sealed
-candidate; unauthenticated HTTP200/hash and actual tag source verified. Old0.5.6
-and sealed candidate remain unchanged. Standalone ZIP/starter/VSIX stay0.5.3;
-current bundled kit0.5.7 is not separately published. Community0.1.3 untouched.
-New flow Set up Zero→single progress line→Open Zero→Run App. Fixed ~/Zero,
-confirmed preservation updates, private Java21 and isolated editor configuration;
-Open Zero.command returns to it. GitHub remains separate. No Code OSS fork.
+Worktree /Users/stew/.codex/worktrees/github-sharing-adoption/zero;
+branch codex/github-sharing-adoption, original replacement base4ed9cd4.
+Other tasks remain untouched. PR targets main and includes inherited tutorial/kit
+work; existing draft PR26 is unchanged. Two cumulative Sol/high reviews completed
+the active main-b9d0188..e216737 source scope. Two accepted P2 blockers received
+release provenance and Java source guards; targeted Astra/high batch review at2ed7eb3 is complete and clean.
+Subsequent test-fixture correctionace983e (Sol/medium) and Blob stored-byte
+representation correctionbeaaca4 (Astra/high) are independently clean.
 
-Current checkout codex/publish-mac-057 carries public native metadata and updated
-hosted Mac/manual guides for independent review, PR/CI/merge and live verification.
-Receipts .verification/mac-057-release/; immutable candidate
- dist/candidates/mac-0.5.7-f9a5ef2bfcd3/. Primary funding checkout untouched.
-No branch/account/security settings changed. Existing unprotected main policy stays.
-No tool-backed goal, separate task or automation created. Weekly86% remaining at
-start is account allowance; effective models/tokens/cost/active time unknown.
-DeepSeek remains paused through2026-12-31.
+Implementation79edd1f is clean under two initial independent reviews and targeted
+remediation. CI correction6851aa7 is clean under Sol/medium delta review; it makes
+only the disposable proof truststore writable. Source JDK hash/mode preserved.
+Review ledger10turns/1initialwave/6targetedpasses/1cumulativewave/6fixbatches;
+Batch5 makes fixture history independent of shallow CI; batch6 requests identity
+encoding for exact Blob ETags, preserving strict verification.
+Model/token/elapsed
+telemetry unavailable where not exposed. No equivalent held-executor review.
 
-## Limits
+[CI38380415688](https://github.com/codepetca/zero/actions/runs/38380415688)
+passed at6851aa7 on Ubuntu24.04/Temurin17: root223pass/1PowerShellskip,
+release53pass, registry38pass, real two-consumer HTTPS Maven proof, finite JavaFX
+examples, website50pass/types/build, kit/VSIX source parity and extracted Maven
+build. Vercel preview checks passed. The original readonly-truststore CI failure
+was fixed and reviewed. Subsequent handoff changes are documentation only.
+Current local checks: root228pass/1PowerShellskip, release57pass, focused source
+guards15pass, package and extracted-kit verification passed. Workflow sharing
+checks44/44 and actionlint passed; final adapter18/18 and depth-one workflow6/6
+passed. CI7b0d5b8 failed only fixture history; corrected-head CI is required.
+Dedicated public Blob store zero-sharing created unlinked to the website. Owner completed Vercel passkey reauthentication in Chrome; existing publisher
+credential is stored only in ignored private local storage. Real inert Blob proof
+passed ETag/public-byte agreement, immutable collision/idempotency, uncertain
+upload recovery, isolated backup/restore and verified conditional cleanup. Live canonical registry creation and fresh/stale CAS
+proof passed, including anonymous Git reads. No release records were fabricated. Maintainer-owned repository
+armorup/zero-sharing-proof and issue28 exercised actual commit-bound game
+publication, anonymous18104byte ZIP/hash retrieval and fresh extraction of14files
+with executable wrapper/no inherited Git/no Java execution. General publication
+remains disabled; GitHub publisher environment is main-only. Website received
+public registry/origin settings only; old credentials/resources preserved.
+Detailed receipts and limits: [EVIDENCE](../docs/EVIDENCE.md) and
+[VERIFICATION](../docs/VERIFICATION.md). All delegates stopped.
 
-No clean physical Mac vendor/quarantine/trust/novice trial, Intel/macOS12 execution,
-restricted-network or physical Windows proof. Real editor test used a short fixture
-alias for VS Code IPC; trust granted only to its verified disposable starter.
-No protection disabled. Hard kill may leave owned staging; final settings remain
-absent or complete. Development installers are not public student downloads.
+## Remaining gates
+
+Game publication workflow and bundled operator settings remain disabled. Local
+Check executes students' own trusted source, not managed hosted acceptance.
+Next: push final reviewed source, exact-head CI and authorized merge; then actual
+managed game workflow/Vercel rollout proof. Publisher pinbeaaca4. Applicable managed-library acceptance remains held. Verify
+actual GitHub/Blob permissions and ETag/CAS behavior,
+public immutable Maven/game delivery and backup restoration, then installed-editor,
+physical Windows and novice classroom trials. Linux CI proves its maintained
+fixtures, not general Linux product support or classroom usability.
+Full tool-backed goal remains incomplete; preserve this worktree and reviewed code.

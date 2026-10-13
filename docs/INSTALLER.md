@@ -89,8 +89,8 @@ ZIP launchers keep their current manual behavior.
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates
-`dist/installers/Zero-Setup-0.5.7-macos-development.dmg` and
-`dist/installers/Zero-Setup-0.5.7-windows-development.exe`. The measured
+`dist/installers/Zero-Setup-0.5.8-macos-development.dmg` and
+`dist/installers/Zero-Setup-0.5.8-windows-development.exe`. The measured
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -128,7 +128,7 @@ node scripts/verify-installers.mjs --platform macos --signed
 ```
 
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
-not a secret). A new signed candidate would be `Zero-Setup-0.5.7-macos.dmg`, measured in
+not a secret). A new signed candidate would be `Zero-Setup-0.5.8-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
 The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
 removes unsigned-development labels and shows only Zero Setup/version. Signed

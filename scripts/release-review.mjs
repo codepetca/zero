@@ -79,6 +79,8 @@ export function verifyReviewAssets(directory, release, sourceRoot = root) {
   }
   verifySources('extension/src');
   assert.deepEqual(Object.keys(vsix).filter(name => name.startsWith('extension/src/') && !name.endsWith('/')).sort(), sourceNames.sort(), 'Unexpected VSIX source.');
+  assert.deepEqual(vsix['extension/media/sharing-harness/ZeroLibraryHarness.java'],
+    new Uint8Array(readFileSync(path.join(sourceRoot, 'sharing/harness/ZeroLibraryHarness.java'))), 'VSIX sharing harness drift.');
   return sums.join('\n') + '\n';
 }
 

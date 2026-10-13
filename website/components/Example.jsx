@@ -28,7 +28,8 @@ export function Example({ example, sources }) {
           <div className="reading-section-body">
             <p>
               Stop the app and save your current Main and helpers outside{" "}
-              <code>src/</code>. Copy the files shown below into the listed
+              <code>src/</code>. After backing up, remove the previous Main and helper
+              Java files that are not listed here. Copy the files shown below into the listed
               destinations in your standalone starter, creating resource folders
               when needed. Replace Main and the listed helpers. Keep the{" "}
               <code>zero/</code> framework folder and build files. If an older
@@ -47,12 +48,12 @@ export function Example({ example, sources }) {
             {files.some(({ file }) => file.endsWith("chime.wav")) && <p>Older kits need the pinned javafx-media dependency from Lesson 12.</p>}
             <p>
               Run App to rebuild.{" "}
-              {["keyboard", "animation", "drawing", "reach-the-coin", "movement", "coin-game", "scrolling-game", "platform-game", "level-game", "full-game"].includes(id) &&
+              {["keyboard", "animation", "drawing", "reach-the-coin", "movement", "coin-game", "coin-game-controls", "coin-game-component", "composed-game", "scrolling-game", "platform-game", "level-game", "full-game"].includes(id) &&
                 "Click the canvas before testing input."}{" "}
               These examples run in VS Code, in a separate JavaFX window.
             </p>
             <a className="button" href={example.guide ? `/docs/${example.guide}` : `/tutorials/${example.lesson}`}>
-              {example.guide ? "Open beginner toolkit" : "Open related lesson"} <Icon name="arrow-right" />
+              {example.guide ? "Open related guide" : "Open related lesson"} <Icon name="arrow-right" />
             </a>
           </div>
         </details>

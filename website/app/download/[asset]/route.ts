@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export async function GET(_request: Request, { params }: { params: Promise<{ asset: string }> }) {
   const { asset } = await params;
-  if (!['kit', 'starter', 'extension', 'components', 'installer'].includes(asset)) return new Response('Unknown download.', { status: 404 });
+  if (!['kit', 'starter', 'extension', 'installer'].includes(asset)) return new Response('Unknown download.', { status: 404 });
   if (!localDownloadsEnabled()) return new Response(null, { status: 303, headers: { Location: '/learn#downloads', 'Cache-Control': 'no-store' } });
   try {
     const { bytes, asset: receipt } = await (asset === 'installer' ? verifiedLocalInstaller(resolve(process.cwd(), '..'), installer, release) : verifiedLocalAsset(resolve(process.cwd(), '..'), asset, release));

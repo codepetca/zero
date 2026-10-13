@@ -63,6 +63,12 @@ export function Document({ id, lesson = "" }) {
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[[foldSections, { lesson: !!lesson }]]}
               components={{
+                img: ({ src, alt }) => {
+                  const target = resolveContentLink(doc.source, src, {}, {}, lessonAssets);
+                  return target && Object.values(lessonAssets).includes(target) ? (
+                    <img className="lesson-visual" src={target} alt={alt || "Lesson target illustration"} />
+                  ) : <span className="source-note">{alt}</span>;
+                },
                 summary: ({ children }) => (
                   <summary>
                     {children}

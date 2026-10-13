@@ -48,18 +48,23 @@ test('absence checks fail closed on existing tags, drafts and API errors', async
     'https://api.github.com/repos/codepetca/zero/releases/tags/v1.2.3']);
 });
 
-test('sealing rejects byte drift, stale packaged source and an extra component asset', () => {
+test('sealing rejects byte drift, stale source or harness, missing harness and an extra component asset', () => {
   const fixture = mkdtempSync(path.join(tmpdir(), 'zero-release-review-'));
   try {
     mkdirSync(path.join(fixture, 'extension/src'), {recursive: true});
+    mkdirSync(path.join(fixture, 'sharing/harness'), {recursive: true});
     const license = new TextEncoder().encode('MIT License\nfixture notice\n');
     const source = new TextEncoder().encode('module.exports = 42;\n');
+    const harness = new TextEncoder().encode('public class ZeroLibraryHarness {}\n');
     writeFileSync(path.join(fixture, 'LICENSE'), license);
     writeFileSync(path.join(fixture, 'extension/src/extension.js'), source);
+    writeFileSync(path.join(fixture, 'sharing/harness/ZeroLibraryHarness.java'), harness);
     writeFileSync(path.join(fixture, 'extension/package.json'), JSON.stringify({version: '1.2.3', license: 'MIT'}));
     const release = definition(), receipt = {...release, assets: {}};
-    const vsix = zipSync({'extension/LICENSE.txt': license, 'extension/src/extension.js': source,
-      'extension/package.json': new TextEncoder().encode(JSON.stringify({version: '1.2.3', license: 'MIT'}))});
+    const members = {'extension/LICENSE.txt': license, 'extension/src/extension.js': source,
+      'extension/media/sharing-harness/ZeroLibraryHarness.java': harness,
+      'extension/package.json': new TextEncoder().encode(JSON.stringify({version: '1.2.3', license: 'MIT'}))};
+    const vsix = zipSync(members);
     for (const key of ['kit', 'starter', 'extension']) {
       const bytes = key === 'extension' ? vsix : new TextEncoder().encode(key);
       const filename = release.assets[key].filename;
@@ -77,6 +82,21 @@ test('sealing rejects byte drift, stale packaged source and an extra component a
     writeFileSync(path.join(fixture, 'extension/src/extension.js'), 'new source');
     assert.throws(() => verifyReviewAssets(fixture, release, fixture), /VSIX source drift/);
     writeFileSync(path.join(fixture, 'extension/src/extension.js'), source);
+    writeFileSync(path.join(fixture, 'sharing/harness/ZeroLibraryHarness.java'), 'public class ZeroLibraryHarness { int changed; }\n');
+    assert.throws(() => verifyReviewAssets(fixture, release, fixture), /VSIX sharing harness drift/);
+    writeFileSync(path.join(fixture, 'sharing/harness/ZeroLibraryHarness.java'), harness);
+    for (const changedHarness of [new TextEncoder().encode('stale harness\n'), undefined]) {
+      const changedMembers = {...members};
+      if (changedHarness) changedMembers['extension/media/sharing-harness/ZeroLibraryHarness.java'] = changedHarness;
+      else delete changedMembers['extension/media/sharing-harness/ZeroLibraryHarness.java'];
+      const bytes = zipSync(changedMembers);
+      writeFileSync(path.join(fixture, release.assets.extension.filename), bytes);
+      receipt.assets.extension.size = bytes.length;
+      receipt.assets.extension.sha256 = createHash('sha256').update(bytes).digest('hex');
+      save();
+      assert.throws(() => verifyReviewAssets(fixture, release, fixture), /VSIX sharing harness drift/,
+        'A valid archive checksum cannot establish canonical harness parity');
+    }
     receipt.assets.components = {filename: 'zero-components.zip'};
     save();
     assert.throws(() => verifyReviewAssets(fixture, release, fixture), /three public assets/);
