@@ -216,7 +216,7 @@ function createSharingEditor(vscode,host,options={}) {
   const context=await api.consumer.loadCatalog(settings(),{fetcher:options.fetcher});
   const releases=context.catalog.releases.filter(r=>r.status==='available'&&(!kind||r.kind===kind));
   if(!releases.length){await vscode.window.showInformationMessage(`No shared ${kind==='game'?'games':'libraries'} are available yet.`);return;}
-  const picked=await vscode.window.showQuickPick(releases.map(release=>({label:release.title,description:`${release.version} · ${release.contributor.login} · ${release.kind}`,detail:release.description,release})),{title:kind==='game'?'Shared games':'Shared libraries',placeHolder:'Choose an exact version'});if(!picked)return;
+  const picked=await vscode.window.showQuickPick(releases.map(release=>({label:release.title,description:`${release.version} · ${release.contributor.login} · ${release.kind}`,detail:release.description,release})),{title:kind==='game'?'Shared games':'Shared libraries',placeHolder:'Choose an exact version',matchOnDescription:true});if(!picked)return;
   if(picked.release.kind==='game')return openGame(context,picked.release);
   const action=await vscode.window.showQuickPick([{label:'Add library',operation:'add'},{label:'Update to this exact version',operation:'update'},{label:'Revert to the recorded previous version',operation:'revert'}],{title:picked.release.title});if(action)await applyDependency(await host.project(),context,picked.release,action.operation);
  }
