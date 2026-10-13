@@ -15,13 +15,12 @@ work. 12 downloads only optional PNG/WAV, with fallback and advanced continuatio
 Maintainer checkpoints are outside downloadable scaffolds. Local-only/Git safeguards
 remain; existing student folders are never replaced. Run App again handles reruns.
 
-Implementation verified locally; independent review/delivery next. App/game writers delivered revised
+Implementation verified locally; full review completed, guidance delta/delivery next. App/game writers delivered revised
 lessons and compileable checkpoints. Controls writer delivered native Start project,
 three-project bundle allowlist and website start/continue flow. Coordinator owns
 shared scaffold generator, docs, checks and delivery. Finite maintainer checkpoint
 verification worker owns harness, progression script and CI step. No public executor
-work is authorized by these checks. Next: independent full diff
-review, source PR/main merge and website deployment within existing authorization.
+work is authorized by these checks. Next: targeted guidance review, exact-head CI, source PR/main merge and website deployment within existing authorization.
 
 Frozen published 0.5.8 assets remain unchanged. Native Start project is next-kit
 source, not a newly published kit; website ZIPs use the published Run App. Native
@@ -36,5 +35,6 @@ fixture verification. Effective model/tokens unknown. Account usage at start was
 13% weekly used (87% remaining), not attributable task cost; storage healthy329.6GB.
 Local root256pass1skip, website56, sharing45, generator6/playground2; three starts
 compile and16finite checkpoint variants pass. HTTP proof13pages/3ZIPs/2media files.
-Prior review turns23; new independent review not yet launched. Evidence/history in
+Full Sol/high review turn24 complete at4c7ee9c with no blockers; one P2 guidance
+fix batch makes complete examples separate-copy experiments. Targeted turn25 next. Evidence/history in
 EVIDENCE.md and VERIFICATION.md; detailed current logs are ignored .verification/.

@@ -2347,7 +2347,11 @@ metadata correction, no overlapping file edits/conflicts. Verification details
 are in VERIFICATION.md; ignored logs preserve complete output.
 
 Review ledger: standard risk (continuing state/curriculum + create/continue UI);
-one full-diff Sol/high reviewer planned, maximum30minutes. Prior adoption review
-turns23; this feature's first review will be turn24. Standing user stop waiver
+one full-diff Sol/high reviewer completed at head4c7ee9c, no blockers. One P2
+example-guidance inconsistency accepted: references still directed replacement
+and six README links pointed to removed ZIPs. One fix batch makes references
+explicit and runs full examples only in a separate copy. Targeted low-risk
+Luna/medium guidance review follows; unchanged code coverage is reused. Prior adoption review
+turns23; this feature's initial review is turn24; targeted guidance review is turn25. Standing user stop waiver
 persists; no execution/security gate overridden. No new goal/task/automation.
 Full adoption remains held; this feature does not satisfy public executor acceptance.
