@@ -2415,3 +2415,18 @@ code blocker. Minor P3 native runbook must distinguish current published8manifes
 from planned9tag. Second docs-only batch corrects that wording; fast targeted
 turn29 checks factual delta, reusing source/manifest/parser coverage. No final
 full-wave repetition justified because docs do not change implementation behavior.
+
+Source PR40 mergedb206eb3 after exactf7c7335 CI38484256871 passed394s and normal
+match-head merge; no review threads/changes-requested. Full tree equal reviewed
+head. Initial reviews26/27, targeted28 (P1 fixes), Luna/medium29 complete docs
+delta/no findings;2batches total. Actual finalsource9kit package/verify passed.
+Signed universal Mac9 from cleanf7c7335 source passed configured existing signer
+ACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8 and exactpayload.
+Apple Accepted1d3eeebf-c779-45b4-8aa2-2de5745eaeab; logSHA matches retained
+pre-staple input. Staple/signatures/eachpayloadbyte+mode/GatekeeperDMG+app passed.
+Final DMG1009678bytes SHA4e331a8cbd611d48ce56fc5ca865a5032c0fe04c42ed6d32da093d96ada4b596;
+embedded kit352744bytes SHA919ad3916d4263c0cf2d33f90d06c683294797c5cd02e66619df20de2c2a1a6f.
+Strict native local9manifest validated; it stays on an unpublished candidate branch
+so main preserves published8Mac download. Measured metadata review/seal next.
+Mac interactive unlock question unanswered; no GUIretry,9publication or Windows
+trial claimed. Existing Keychain signer/notary profile reused, no credential changes.

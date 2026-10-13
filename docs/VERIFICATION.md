@@ -1607,3 +1607,19 @@ and all4lesson-linked advanced reference pages use separate-copy guidance. Recei
 is ignored `.verification/progressive-production-proof.json`; final integrated
 receipt is `.verification/progressive-delivery.json`. No new interactive browser
 or native Mac click-through claim. Physical Windows/novice trials remain deferred.
+
+## Mac0.5.9 candidate preparation — 2026-10-13
+
+Source PR40 mergedb206eb3 with exactf7c7335 CI38484256871 passed394s, including
+packaging/kit source parity and finite progression. Local checks root256pass1skip,
+release86 (publisher82), website56/typecheck/build, Mac seal2/installer8 passed.
+Real read-only verification of public0.5.8 assets/current Downloads path passed
+after hidden/template/origin corrections; old frozen files were preserved.
+
+New signed universal9DMG is clean-sourcef7c7335. Apple accepted submission
+1d3eeebf-c779-45b4-8aa2-2de5745eaeab; inputSHA matches Apple log. Stapled
+artifact passed actual signature chains/both architectures, exact kit payload
+bytes/modes and Gatekeeper app/DMG CLI assessments. All receipts in ignored
+.verification/release-0.5.9/. Native local9manifest is not public/main metadata.
+No9release, native editor click-through or fresh-machine result claimed. Mac
+unlock reply is pending; physical Windows and student trials remain deferred.

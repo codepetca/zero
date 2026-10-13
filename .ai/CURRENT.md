@@ -53,3 +53,17 @@ verified metadata/normal PR merge and live exact-download proof. Generic submitt
 public executor remains held; general game publication disabled; Neon retained.
 Full adoption not complete. No new goal/task/automation. Evidence history in
 EVIDENCE.md/VERIFICATION.md and ignored release-0.5.9 receipts.
+
+Source PR40 mergedb206eb376b39d2a8298f1b184dd9bda0bca47061 after exactf7c7335
+CI38484256871 success (394s), no open review threads/rules. Tree equals reviewed
+head. Now local branchcodex/mac-0-5-9-candidate holds measured native local9
+metadata; do not merge local native metadata to main before publication because
+it would hide the existing Mac download. Main still serves publishednative8.
+New signed native9 cleanbuildsourcef7c7335 passed Apple Accepted submission
+1d3eeebf-c779-45b4-8aa2-2de5745eaeab; log matches pre-staple inputSHA. Staple,
+actual signatures/payload/modes and Gatekeeper DMG/app checks passed. Proposed
+manifest strict validation passed. Next: independent measured metadata review,
+seal local candidate; manual Mac walkthrough still blocked awaiting unlock reply.
+No9release published. Source review cumulative29turns (26/27initial,28security
+remediation,29docs final),2batches. Candidate review turn30next. Current detailed
+state in ignored .verification/release-0.5.9/release-state.json.
