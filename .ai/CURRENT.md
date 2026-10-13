@@ -1,6 +1,7 @@
 # Current state
 
-Updated 2026-10-12/13. GitHub sharing clean replacement, active tool-backed goal.
+Updated 2026-10-12/13. GitHub sharing clean replacement; tool-backed goal blocked after three
+consecutive verified impasse turns.
 
 ## Goal and authority
 
@@ -58,7 +59,9 @@ binding and excluded from replacement acceptance. Storage healthy ~341GB;
 weekly46% remaining is account-wide, not task cost. Worker token/effective-model
 telemetry unknown; no writer conflicts. No resets or paid resources used.
 
-Full goal remains active. Actual GitHub/Blob permissions and ETag/CAS behavior,
+Full goal is incomplete and blocked pending direct push/draft-PR authorization
+and resolution of the held managed-library acceptance. Actual GitHub/Blob
+permissions and ETag/CAS behavior,
 public publication, hosted backup restoration, physical Windows, interactive
 VS Code and novice classroom trials are outstanding. No live activation or
 external writes are authorized by local verification. Preserve this worktree.
