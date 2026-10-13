@@ -42,7 +42,7 @@ change Main's paths too. Adjust its 96×96 drawing or `sound.setVolume(0.25)`
 
 ## 2. A scrolling world and fixed score
 
-[Start Scrolling world](/generated/lessons/zero-lesson-12-scrolling.zip).
+[Start Scrolling world](https://zero.codepet.ca/generated/lessons/zero-lesson-12-scrolling.zip).
 It includes Main, Camera, Player, Coin, unchanged ScoreDisplay and both resources.
 See [scrolling-game](../examples/scrolling-game/README.md) for the complete file list.
 
@@ -63,7 +63,7 @@ Reach both world edges.
 
 ## 3. Gravity, platforms and collisions
 
-[Start Platforms and gravity](/generated/lessons/zero-lesson-12-platforms.zip).
+[Start Platforms and gravity](https://zero.codepet.ca/generated/lessons/zero-lesson-12-platforms.zip).
 It includes Main, Camera, Player, Coin, Platform, unchanged ScoreDisplay and both
 resources. See [platform-game](../examples/platform-game/README.md).
 
@@ -82,7 +82,7 @@ through a landing: no extra jump. Fall into a gap: the stage resets.
 
 ## 4. Enemies and two levels
 
-[Start Enemies and levels](/generated/lessons/zero-lesson-12-levels.zip).
+[Start Enemies and levels](https://zero.codepet.ca/generated/lessons/zero-lesson-12-levels.zip).
 It includes Main, Camera, Player, Coin, Platform, Level, Enemy, unchanged
 ScoreDisplay and both resources. See [level-game](../examples/level-game/README.md).
 
@@ -103,7 +103,7 @@ coins and lose only its unbanked points. Finish level 2: begin a fresh two-level
 
 ## 5. Win, lose and restart
 
-[Start Win, lose and restart](/generated/lessons/zero-lesson-12-full.zip).
+[Start Win, lose and restart](https://zero.codepet.ca/generated/lessons/zero-lesson-12-full.zip).
 It includes Main, Camera, Player, Coin, Platform, Level, Enemy, unchanged
 ScoreDisplay and both resources. See [full-game](../examples/full-game/README.md).
 

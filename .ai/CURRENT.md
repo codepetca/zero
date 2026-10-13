@@ -1,47 +1,36 @@
 # Current state — fresh local lesson projects
 
-Updated 2026-10-13. Coordinator worktree:
+Updated2026-10-13. Coordinator worktree:
 `/Users/stew/.codex/worktrees/github-sharing-adoption/zero`.
-Branch `codex/local-lesson-projects`, base main `cf7d42f`.
 Read design.md, PRODUCT.md, DEVELOPMENT.md and UI-UX-GUIDELINES.md.
 
-## Outcome and authority
+Owner selected option2: Start lesson, fresh local projects, no switching chores,
+one-click rerun, sample practice kept off GitHub. Source PR/main merge and website
+deployment authorized in this task. Frozen published0.5.8 assets stay unchanged;
+the new editor command has an unpublished local VSIX candidate, not a kit release.
 
-Owner requested option 2: Start lesson creates a fresh project, normal lessons
-have no safe switching chores, rerunning is one Run App click, sample projects
-stay local and off GitHub. Prior source PR/main merge and website deployment
-permission continues for this implementation. Generated student folders/ZIPs
-are ignored build/runtime output; maintained teaching source remains in Zero.
-Frozen published 0.5.8 assets and manifests stay unchanged. This work prepares
-an unpublished VSIX candidate; it does not replace the installed released kit.
+[PR37](https://github.com/codepetca/zero/pull/37) merged at5fade4f after full65file
+Sol/high review and targeted two-file review. Both low-severity findings fixed.
+Exact-head CI38451438023 passed. Production served13 Start lesson controls and18
+ZIPs whose full source/resource bytes, local markers and wrapper0755 were verified.
+The follow-up branch codex/local-lesson-download-links makes stage ZIP URLs usable
+in local Markdown while preserving same-origin web downloads. Its PR/CI must
+establish final source acceptance; unchanged editor/source coverage is retained.
 
-## Implementation and ownership
+One generator supplies13 lessons plusfive stages. Native creation never replaces
+existing folders and rejects all open Zero roots/Git ancestors. Local markers,
+all-files Git ignore, disabled workspace Git and command/service guards block
+Zero publication of practice projects. Own student game workflows are unchanged.
+Lessons say Start lesson→open fresh folder→Run App; rerun is Run App again.
 
-One shared generator supplies 13 lessons plus five game/stage variants.
-Website downloads a complete ZIP; native Start lesson exclusively creates a
-new folder outside Git/current-project roots and opens a new editor window.
-Each practice project ignores all files in Git, disables workspace Git and is
-marked local-only. Command and service guards block Zero upload/repository/
-sharing actions. Existing student-owned projects retain their normal workflow.
-Coordinator owns generator/build hooks/integration; two Sol/medium workers
-completed disjoint editor and website/lesson changes. No live GitHub student
-action, account change or student-code upload was performed.
-
-## Verification and next
-
-All 18 generated projects compiled. Generator5, website56, root254pass1optional
-PowerShellskip, sharing45, typecheck/build/configuration/drift/diff checks passed.
-Browser desktop1280,320/390px, dark/light, lesson selection, keyboard download
-and stage disclosure/download checked. Downloaded ZIP bytes match the generator;
-wrapper mode0755 and local marker verified. VSIX contains18 starters.
-Native materialization/command guards are tested with temporary folders/mock
-host. Mac UI connector selected an unrelated window, which was left unchanged;
-actual native Start lesson/Run interaction remains unverified. WebKit,200%text,
-400%zoom, physical Windows and student trials remain pending.
-Next: independent final-head review, exact-head CI, normal merge and production
-ZIP/button verification. Detailed receipts/logs stay in ignored .verification.
+Verification: all18 generated projects compiled, root254pass1optionalPowerShell
+skip, website56/sharing45/generator5, typecheck/build/config/diff passed. Browser
+1280/320/390 light/dark, lesson selection, keyboard downloads/disclosures checked.
+Native materialization/commands use real temporary folders and mocked VSCode.
+Native click-through is unverified: connector selected unrelated window, then Mac
+locked. WebKit,200%text/400%zoom, physicalWindows/student trials remain pending.
+Detailed history in EVIDENCE/VERIFICATION and ignored local-lessons receipts.
 
 Generic library executor acceptance remains held after provider rejection;
-general game publication remains disabled. Neon resources remain retained.
-DeepSeek remains paused. Earlier sharing/release evidence lives in EVIDENCE.md
-and VERIFICATION.md; full adoption is not complete merely from this feature.
+general game publication stays disabled. Neon resources retained. DeepSeek paused.
+Full adoption is not complete merely because this source/website feature landed.

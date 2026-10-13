@@ -42,7 +42,7 @@ The display's constructor and methods are the part another app needs to know.
 ## 2. Use the same display beneath a game canvas
 
 For the game, choose **Reuse the component in a game** under **Zero: Start lesson**
-or download its [fresh project](/generated/lessons/zero-lesson-10-game.zip).
+or download its [fresh project](https://zero.codepet.ca/generated/lessons/zero-lesson-10-game.zip).
 Open that folder separately and click **Run App**. It contains:
 
 | From | To |

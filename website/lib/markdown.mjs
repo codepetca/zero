@@ -15,9 +15,10 @@ export function documentHref(id) {
     : `/docs/${id}`;
 }
 export function resolveContentLink(source, href, documents, sources, assets = {}) {
+  const lessonDownload = href?.match(/^(?:https:\/\/zero\.codepet\.ca)?(\/generated\/lessons\/zero-lesson-(?:[0-9]|1[0-2]|10-game|12-(?:scrolling|platforms|levels|full))\.zip)$/);
+  if (lessonDownload) return lessonDownload[1];
   if (!href || href.startsWith("#") || /^(https?:|mailto:)/.test(href))
     return href;
-  if (/^\/generated\/lessons\/zero-lesson-(?:[0-9]|1[0-2]|10-game|12-(?:scrolling|platforms|levels|full))\.zip$/.test(href)) return href;
   const [file, fragment] = href.split("#");
   const key = path.posix.normalize(
     path.posix.join(path.posix.dirname(source), file),
