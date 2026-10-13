@@ -15,6 +15,11 @@ Add pins a version. Update supports a newer compatible patch; Revert uses that l
 ## Make and share in the local developer preview
 
 Sign into ZeroHub with GitHub, choose a class name/title and download the assigned library project. Open it in Zero, run the editable preview and develop source, API, changelog, MIT notice, PNG, behavior checks and two finite consumer examples. Upload the folder; generated build files do not become submission authority.
+The ZIP includes a short README that stays local. Save the submission-result
+link to recover after reload or sign-in. Re-select the same folder after fixing
+a failed unpublished version; identical uploads recover the existing report or
+exact release. Run App previews the component; it does not run the submitted
+behavior check and two examples locally.
 
 Trusted isolated checks validate namespace/API, compile the library and execute declared checks/consumers using its actual JAR. The separate publisher validates source/policy/artifact bindings and lists passing immutable versions automatically. Contributors cannot provide another user's attribution or their own acceptance verdict. Failed unpublished versions can be corrected and resubmitted; listed versions require a new version for fixes.
 
@@ -36,8 +41,8 @@ archiving hides discovery while preserving exact downloads where practical;
 removal may stop downloads. Neither silently changes installed versions.
 See [the policy](ZEROHUB-POLICY.md) and
 [implementation follow-up](ZEROHUB-PLAN.md#curation-and-capacity-follow-up).
-Current local lifetime admission guards remain pending removal; this is not a
-claim of deployed archive/removal controls.
+Current local admission no longer has lifetime contributor guards. Archiving
+and removal are deferred; neither is claimed as a deployed control.
 
 ## Current availability
 

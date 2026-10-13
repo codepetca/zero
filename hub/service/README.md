@@ -159,13 +159,12 @@ executing it and verifies preparation, exact retries, account boundaries,
 CSRF/origin, cancellation, logout and the closed capability. It is also in CI.
 It does not establish real hosted OAuth or accept the excluded execution gate.
 
-The following table describes current implementation, not the newly approved
-[open-contribution policy](../../docs/ZEROHUB-POLICY.md). The 16 MiB cumulative
-account-source allowance and 100 lifetime library reservations conflict with that
-policy and are scheduled for removal. Temporary rate/queue controls remain;
-shared retained-data capacity, archiving and physical reclamation need the
-[planned follow-up](../../docs/ZEROHUB-PLAN.md#curation-and-capacity-follow-up).
-No runtime admission code changes in this documentation update.
+Current local admission implements the approved
+[open-contribution policy](../../docs/ZEROHUB-POLICY.md): no lifetime account-source
+or library-reservation allowance. Temporary rate/queue controls and a shared
+retained-source budget remain. Shared result/object capacity and later archiving
+or physical reclamation are separate operating work. Public uploads remain
+closed under the existing hosting requirements.
 
 API admission uses a fixed shared policy before persisting new reservations or
 source. Transactions take one global advisory lock before row locks, so concurrent
@@ -176,8 +175,7 @@ API instances cannot independently pass the same account/global allowance.
 | Active submissions, including queued/checking/checked | 2 per account;100 globally |
 | New submissions in a rolling24 hours, including failures | 20 per account |
 | New library reservations in a rolling24 hours | 10 per account |
-| Reserved libraries over the account lifetime | 100 per account |
-| Retained source JSONB text, including failed/published history | 16MiB per account;256MiB globally |
+| Retained source JSONB text, including failed/published history | 256MiB globally; no lifetime contributor allowance |
 
 Excess requests return a short429 message. Ownership remains bound to GitHub
 numeric ID; another login name cannot claim the allowance/library. Exact-source

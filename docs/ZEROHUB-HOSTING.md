@@ -21,9 +21,11 @@ The owner approved [open contribution and curation](ZEROHUB-POLICY.md) on
 2026-10-12. Drop lifetime per-contributor storage and library-count quotas; retain
 technical/rate/queue controls and a shared capacity safeguard. Owners and
 designated maintainers may archive or remove hosted content at their discretion.
-The existing local 16 MiB cumulative account-source and 100 lifetime-reservation
-guards must be removed in the planned follow-up. Archiving, physical reclamation
-and final global/artifact/result numbers are not implemented by this policy.
+Local source removes the 16 MiB cumulative account-source and 100 lifetime
+reservation guards, retaining temporary rate/queue controls and the existing
+shared source budget. Archiving/removal are deferred by the owner's next
+instruction to prioritize proving the student flow. Final global/artifact/result
+numbers and hosted activation remain separate requirements.
 See [the ordered follow-up](ZEROHUB-PLAN.md#curation-and-capacity-follow-up).
 
 | Phase | Exit evidence | Current state |

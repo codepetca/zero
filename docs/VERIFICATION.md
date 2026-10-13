@@ -1113,3 +1113,41 @@ policy/plan consistency only, not removal of runtime lifetime guards or
 deployed archive/removal controls. Previous CI38320302912 passed at7c1b7d4;
 new documentation CI is not yet verified. Full public-contribution goal
 remains blocked; source-checker/hosting gates are unchanged.
+
+
+## Lifetime-cap removal and student-flow proof — 2026-10-12
+
+Current local delta from192d700 removes lifetime account-source/library-count
+guards only; temporary daily/active and shared source budgets remain. Root actual
+PG17 service/admission/worker suite51passes and PG18 admission10passes include
+concurrent requests, ownership, exact retries and actual restricted API access
+beyond100libraries/16MiB. First PG17 run50/51: a test attempted to update immutable
+reservation timestamps; fixture corrected without changing runtime authority.
+91websitepasses/2optionalHTTPskips, actualNextHTTP2passes, types/build/configuration/
+doclinks/diffcheck passed. UI helper tests cover terminal hydration, invalid URLs,
+15s timeout, stale/aborted requests, file re-selection, one-use UUID-only sign-in
+return and unavailable storage. No schema/role/credential/capability change.
+
+Actual Playwright browser against owned Next3112/HTTP4122/disposablePG15482 with
+simulated results: local sign-in, prepare HealthBar/ui1, download real ZIP, native
+directory selection, failed upload, identical failed repeat with report, edit
+API notes/reselect same folder, simulated publication, identical published repeat
+with exact link, reload recovery, signout/anonymous bookmark/no private result,
+signin/automatic result return/empty sessionStorage marker, new0.1.1 version and
+exact component card. Three simulated checks; no candidate Java executed by this
+fixture. Closed-sharing banner was verified before cards using an intercepted
+local catalog capability. Expanded card initially widened390px page to437px;
+final320pxpage320/390pxpage375, code scroll remains within card. Screenshots in
+ignored output/playwright/zero-journey-*. All owned fixtures/browser stopped.
+
+Browser ZIP's fixed generated source compiled via its wrapper on Mac/JDK17. A
+coordinator-owned finite harness called the generated Main, verified greeting
+Label/stage, rendered480x240 PNG and closed. Harness initially used nonexistent
+Scene.lookupAll; corrected to root.lookupAll. JavaFX classpath/CGDisplayLink
+warnings occurred, but render/assertions/exit succeeded and PNG was inspected.
+No arbitrary source or checker was executed. This is local trusted preview proof,
+not isolated checking or actual VS Code button/clean-machine verification.
+Known maintained StarterUI exact public Maven/native consumer evidence remains
+separate and unchanged. Public OAuth→studentchecking→publication→fresh shipped
+kit Add/Update/Revert remains unproved; launch/old-checker gates remain. Archive
+work is explicitly deferred. New policy caps were not silently selected.

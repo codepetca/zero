@@ -41,6 +41,7 @@ export function HubDiscovery() {
       {selection && <p className="hub-note">Exact release: {selection.library} · {selection.version}. <Link href="/hub">Browse latest components</Link></p>}
     {!catalog && message ? <p className="fine-print" role="status">{message}</p> : !catalog ? <p role="status">Loading libraries…</p> : <>
       {catalog.mode==='local' && <p className="hub-note">Local test hub. These libraries are published only to this local service.</p>}
+      {uploadsAvailable(catalog) ? <Link className="button secondary compact" href="/hub/prepare">Make a library</Link> : <p className="fine-print" role="status">Library uploads are not open yet. You can browse and use available libraries.</p>}
       <div className="component-choices">{catalog.libraries.flatMap(library=>library.components.map(component=>{
         const preview=previewPath(library),contributor=contributorProfile(library); let snippet=''; try{snippet=origin ? dependencySnippet(library,origin):'';}catch{return null;}
         return <article className="component-choice" key={`${library.libraryId}-${library.version}-${component.className}`}><h3>{component.className}</h3><p>{component.description}</p><p className="component-meta">In {library.title} · {library.libraryId} · {library.version}{contributor&&<> · <a href={contributor.url}>By @{contributor.login}</a></>}</p>
@@ -53,6 +54,5 @@ export function HubDiscovery() {
       {message && <p role="status">{message}</p>}
       {catalog.nextCursor && <button className="button secondary compact" onClick={()=>more.current()} disabled={loadingMore}>{loadingMore?'Loading…':'Show more'}</button>}
     </>}
-    {catalog && (uploadsAvailable(catalog) ? <Link className="button secondary compact" href="/hub/prepare">Make a library</Link> : <p className="fine-print" role="status">Library uploads are not open yet. You can browse and use available libraries.</p>)}
   </section>;
 }

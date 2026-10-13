@@ -1482,3 +1482,23 @@ range diffcheck. One actual turn/one initial wave/zero fixes; cumulative44
 includes three older provider-filter failures. Effective config/time/tokens
 unknown. No runtime/schema/UI/credentials/Java/deployment/public-activation
 change; held checker review excluded. Acceptance notes only follow review.
+
+
+## Lifetime caps and contribution journey — 2026-10-12
+
+Owner instructed removal now, archiving later, and user-flow proof. Root removed
+local lifetime16MiB-source/100library guards without replacing them;51PG17 and
+10PG18 admission cases passed, including restricted-role threshold regressions.
+Sol/medium bounded read-only workflow audit found terminal duplicate-result,
+reload recovery and same-folder correction gaps, then delivered/stopped a bounded
+UI/helper writer assignment. Root integrated pending-poll serialization, generated
+README/ZIP roundtrip and observed mobile overflow/availability fixes.91website
+passes/2optionalHTTPskips, actualNextHTTP2passes/types/build/root checks passed.
+Actual inert browser journey and trusted fixed-preview native compile/render
+proof are recorded in VERIFICATION; neither accepts the held generic checker or
+proves full hosted/student/installed-editor operation. Primary/Pika unchanged,
+all owned fixtures stopped, no deployment/credentials/release changes. Current
+delta awaits independent review. Requested workerSol/medium; actual time/tokens
+unknown. One fixture timestamp and one temporary harness method error corrected
+without product-authority changes. Human cross-thread coordination verified;
+reviewed MVP source integration is queued with distinct path/release ownership.

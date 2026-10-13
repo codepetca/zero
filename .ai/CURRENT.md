@@ -1,83 +1,97 @@
 # Current state
 
-Updated 2026-10-12. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before edits.
-Detailed delivery/review history is in docs/EVIDENCE.md and docs/VERIFICATION.md;
-the contribution phase plan is docs/ZEROHUB-HOSTING.md.
+Updated 2026-10-12. Read docs/PRODUCT.md and docs/DEVELOPMENT.md before code edits.
+Historical source/review/test receipts: docs/EVIDENCE.md and docs/VERIFICATION.md.
+Public contribution sequence: docs/ZEROHUB-HOSTING.md.
 
-## Goal, authority and holds
+## Outcome and holds
 
-The persistent goal is public ZeroHub contributions: GitHub sign-in → prepare/upload ordinary Java libraries → automated minimum checks → immutable exact Maven publication with authenticated contributor credit. No routine teacher/maintainer package acceptance. Preserve ordinary Java, explicit updates, minimal VS Code/profile, student-owned GitHub repositories and separate Pika submission.
+The persistent goal is full public ZeroHub contributions: GitHub sign-in,
+prepare/upload ordinary Java libraries, automated minimum-check feedback,
+immutable exact Maven publication and authenticated contributor credit. Ordinary
+Java, explicit updates, minimal VS Code/profile and student-owned repositories
+remain; Pika submission is separate. No routine maintainer package acceptance.
 
-Owner authorized public ZeroHub, Neon through Vercel Marketplace, and implementation/pushes to the existing draft PR. Single codepetca/zero repository; zero-community retired with recovery bundle /Users/stew/.codex/archives/zero-community-20261012.bundle. Existing kit/installer0.5.7 is immutable; no new kit/signing/installer release in this phase.
+That goal is tool-marked blocked, not complete. Public auth/reservations/uploads
+and generic workers stay closed. The earlier provider-rejected generic Java
+checker review is missing: no equivalent retry/provider/task bypass, no self-test
+or unrelated review substituted for acceptance. No external reviewer/report is
+supplied. Isolated execution host, real OAuth configuration, global single-checker
+control and full hosted student proof remain missing. Main merge/deployment and
+schema004 activation stay held. Owner budget waiver covers workflow/usage stops
+only. DeepSeek remains paused. No candidate Java ran in the current UI fixture.
 
-Public auth/reservations/uploads and generic workers stay closed. The earlier provider-rejected generic Java checker source review remains missing: do not retry/bypass its equivalent assignment, substitute self-tests/new unrelated reviews or claim acceptance. The owner's question whether this means another task was a clarification, not authorization to repeat it. No qualified external reviewer/report is supplied. Isolated execution host, real GitHub OAuth app credentials, global single-checker control and full hosted student journey remain unconfigured/unverified. Owner task-scoped budget waiver covers workflow/usage stops only, not correctness, execution or permissions.
+## Latest owner scope and local work
 
-Owner policy decision2026-10-12: open automated contributions; no lifetime
-contributor storage or library-count allowance. The proposed10MB/account cap is
-rejected. Zero owners/designated maintainers have final authority to archive,
-hide or remove hosted content, including unused/redundant contributions.
-Canonical policy docs/ZEROHUB-POLICY.md; ordered follow-up docs/ZEROHUB-PLAN.md.
-Current runtime16MiB cumulative account-source and100lifetime reservations must
-be removed in follow-up; temporary rate/queue/technical controls and shared
-capacity remain. Archive normally hides discovery, removal may deny downloads
-and reclaim bytes; maintainers decide, no automatic inactivity deadline.
-Policy/plan docs only now: no runtime/schema/UI/capability change. Persistent
-public-contribution goal is blocked by existing launch inputs; this policy work
-is separately authorized. Never describe the policy as deployed controls.
+Owner approved docs/ZEROHUB-POLICY.md: open automated contributions, no lifetime
+contributor storage/library-count allowance; Zero owners/designated maintainers
+may archive, hide or remove content at their discretion. MIT notices remain.
+Latest instruction: remove caps, defer archiving and prove the student journey.
 
-Owner wants free operation without traffic/compute plan upgrades. Vercel team verified active Hobby; Neon free_v3 through Vercel. No billing/paid hosting changes. Smaller library/total-storage numeric caps remain unapproved proposals; do not silently enforce them or promise unlimited free availability. Do not assume free GitHub Actions permits a generic execution backend.
+Local source now removes16MiB cumulative account-source and100lifetime library
+reservations, retaining daily/active/technical controls and shared256MiB source
+budget. No replacement lifetime allowance or newly selected numeric result/object
+budget. New1MB complete-version/128MBglobal proposals remain unapproved. Global
+result/object/database/traffic controls still need completion; free plans do not
+promise unlimited availability. Archiving/reclamation is deferred, not delivered.
 
-## Public delivery
+Root owns all cap/flow integration now; Sol/medium audit/UI writer stopped. UI fixes
+include terminal-repeat report/release hydration, same-folder reselection,
+UUID-only result links, reload/sign-in recovery and generated local README.
+Only one pending UUID is briefly held in per-tab sessionStorage, then consumed;
+no source/report/account/token persistence. Owner-only result reads remain.
+Pending jobs retain existing polling rather than a parallel hydration read.
+Mobile card overflow is corrected; closed-sharing status precedes cards.
+Current implementation delta awaits independent source acceptance.
 
-Catalog https://zero.codepet.ca/hub remains available: Starter UI ui1:0.1.0 (StartScreen/Hud/ScoreDisplay), numeric GitHub4050555/armorup credit. Known maintained source passed checks; no untrusted public candidate ran. Exact immutable rerun and Mac study/game consumers verified earlier. Public app b0e7177686d68b9b4ce7ba039e0c062a0b3d2c74 plus availability docs28f6e589bb7eb443330025de4fbbd9e782dd9b47, deployment dpl_EYggD2cbHDqFXpt1Jhto9uY3eMox. No newer source deployed.
+Root51backend tests on actualPG17 and10admission tests on actualPG18 passed,
+including restricted API access beyond former caps, concurrent rate/queue/global
+limits and ownership.91websitepasses/2optionalHTTPskips, actualNextHTTP2passes,
+typecheck/build/configuration/doclinks/diffcheck passed. Inert actual browser:
+prepare/download/folder upload, failed/exact-repeat/correction/published repeat,
+reload, signed-out bookmark→signin recovery, new version and exact card passed.
+320px pagewidth320;390px pagewidth375 with code scrolling inside cards. Local
+fixed generated preview compiled/rendered480x240/closed on Mac/JDK17; temporary
+harness warnings and corrections are in VERIFICATION. Hosted OAuth/arbitrary
+checking/publication and installed-editor journey are not proved by these checks.
+All owned browser/Next3112/HTTP4122/PG15481–15483 fixtures stopped.
 
-Vercel production has only restricted API URL/EMBEDDED/exact ORIGIN. Administrator integration is development-only; separate bootstrap/checker/publisher/operator material stays private and ignored. Neon PostgreSQL18 schema000–003 installed,004 not applied. API/checker/publisher distinct NOINHERIT logins/roles. Clean tracked deployment snapshots and actual source-list audit are required; private credentials/caches never upload.
+## Public and checkout state
 
-## Checkout and accepted prerequisites
+Work only /Users/stew/.codex/worktrees/kit-integration/zero, branch
+codex/app-game-tutorials, draft https://github.com/codepetca/zero/pull/26.
+Preserve unrelated primary funding changes, private/ignored material and Pika.
+Known catalog https://zero.codepet.ca/hub: maintainedStarterUIui1:0.1.0,
+GitHub4050555/armorup. Public sourceb0e7177 plusdocs28f6e58; no newer deployment.
+Vercel Hobby/Neon free_v3 via Marketplace; production has restricted API/origin/
+embedded config only, PostgreSQL18schema000–003. No admin/checker/publisher/OAuth
+credential or candidate execution in Vercel. Development/operator material stays
+private and ignored. Clean tracked deploy snapshot/source-list audit required.
 
-Work only in /Users/stew/.codex/worktrees/kit-integration/zero, branch codex/app-game-tutorials, draft https://github.com/codepetca/zero/pull/26. Keep draft/unmerged. Preserve unrelated primary /Users/stew/Repos/zero funding changes and private/ignored files. Pika services untouched.
+Local accepted prerequisites include OAuth/API/polling/discovery3b16089, cache
+8dec22b, finite workers72576da, backups018e3ab, withdrawal70264f7, health1cda139,
+cache-tags4077dd8 and policyb9c29e0. Last cumulative reviewer turns44 includes
+three historical filter failures. Requested configs known; effective time/tokens
+unknown. Acceptance history lives in EVIDENCE/VERIFICATION, not this handoff.
+Source CI38318782410 and receiptCI38320302912 passed. Private actual hosted
+read-only backup/local recovery and health proofs exist; schedule/encrypted
+retention/hosted tagged-withdrawal proof remain incomplete. Native Vercel tag
+removal permission was verified, not cached-hit removal on undeployed new tags.
 
-Accepted local admission/OAuth/adapter/streaming/polling/discovery through3b16089; cache source8dec22b; finite worker72576da; backup source018e3ab. Reviewed withdrawal source70264f7c6aab8bc9c08cc5d2cd8853dd1bb4f1ff pushed; CI38314558779 and receiptCI38314902391 passed. Prior receipt ae64c6e CI38312319015 passed; prior CI38310573906 and38309382997 passed. Source checks and local inert browser proofs are recorded in VERIFICATION. Worker per-invocation10-job cap is not global concurrency or wall-time control. Headers are not hosted CDN HIT/expiry or measured savings. Local backup proofs are not hosted retention/encryption/scheduled recovery.
+## Coordinated MVP candidate
 
-Cumulative independent reviewer turns44 includes3 historical provider-filter failures; the two withdrawal reviews are complete with no findings. Last backup wave2initial+1targeted/1fixbatch closed date-format defect; no unresolved backup finding. DeepSeek paused. Requested configurations known; effective models/tokens/cost/reviewer seconds unknown. Current account weekly60%remaining and storage317.7GBhealthy are shared readings, not task cost; no cleanup/restart/prune.
+Human authorization to coordinate was verified in thread
+01a131bf-7277-7750-b704-a4b6f796c236 (Audit MVP Goal and Release Readiness).
+Root owns integration of reviewed SOURCE-only fa15c920..57909be and later
+58aab804 fallback fix; do not import the other task's CURRENT/evidence snapshots.
+Other task owns installer.mjs/local-installer.mjs/installer.test.mjs and separately
+reserved setup/README.md; no overlapping writer. Source integration is queued
+until current cap/flow delta is sealed. Agree one release-version/manifest/package
+writer only after accepted integrated SHA. No release version or artifact changed.
+Public Mac0.5.7/WindowsZIP0.5.3 lack the new Add/Update/Revert command; a new kit is
+required before claiming that shipped-editor flow. Physical Windows is explicitly
+owner-deferred; local contract/Mono evidence is not PC testing. No publishing,
+signing, credential change or public activation is inferred from coordination.
 
-## Accepted withdrawal work
-
-Sol/high writer delivered/stopped; coordinator owns all integration now. Append-only004 release events, operator CLI and catalog/artifact410 controls are locally verified and independently accepted at70264f7, not deployed. API receives only four event columns; checker/publisher none. Private reason/actor audit, exact pins/original hashes preserved; restoration resumes identical bytes. Backup format2/000–004 now includes event history, with separately derived known17/18 fingerprints. Prior format1 deliberately rejected; recovery procedure in service README.
-
-Writer13availability cases/51 inherited PostgreSQL cases used inert/mock checks only. Coordinator added private-file guard/regression, scripts/CI/docs;14availability cases passed on EACH PostgreSQL17.11/18.6 (9actual-role cases+5unit/CLI). Updated backups16cases passed on EACH17/18 with private events. Coordinator14editor/catalog cases, configuration/doclinks,77website passes/2existing optional skips, types/build passed. All owned fixtures stopped. No candidate Java, hosted schema/operator actions or installed-editor release occurred.
-
-Astra/high privacy/authority and Sol/high compatibility/recovery completed the entire22-file ae64c6e..70264f7 delta: zero actionable findings,8 and19 isolated checks respectively. Reused root actual PostgreSQL17/18 and website proof; no runtime or old checker review. Two phase review turns/one initial wave/zero fix batches, cumulative40. Retain draft. Storage/result budgets await the pending product choice; health source is accepted; targeted cache-tag source is accepted, while remaining backup/removal policy and required hosted proof remain incomplete. Owner chose discussion, then rejected lifetime contributor caps and approved curation. New complete-version/global numeric budgets remain undecided; no new numeric limits implemented.
-
-Origin withdrawal is not worldwide revocation: metadata edge60s, object edge3600s, browser objects1year, local Maven copies indefinite. The targeted native removal runbook is prepared; actual deployed tagged-cache withdrawal remains unproved. Windows/Linux/Intel/novice/manual editor, real OAuth/Neon streaming/CDN timing, isolated checking and full hosted contribution journey remain untested. Full goal is blocked and unfinished.
-
-## Accepted aggregate-health phase
-
-Sol/high writer delivered/stopped four new operations files at2018c6a. Root owns integration, package/CI/workflow/docs; no other writer active. Once-only restricted-API read-only aggregates,16metrics/exact byte strings/fixed codes; existing budget pressure only,30min submission age/stale leases/5infra-error jobs in24h. Ordinary failed verdicts excluded. CLI full local report or --alerts-only;0/2/1 exits and30s standalone guard. Writer13cases passed on EACH17/18 (4actual-role+9unit), final credential/cleanup hardening9unit; root9unit/configuration/actionlint passed. Test-only tmpfs snapshot failure corrected to in-database row digests; no SQL/schema/role/old-checker changes. No cap proposals implemented.
-
-Root prepared disabled daily GitHub software-health-test workflow: main/canonicalrepo only, explicit variable1/operations environment, pinned actions/contentsread/ignoreinstall scripts/secret finalstep only, codes-only public logs, no report artifact, serial/5min. No hosted environment/secret/variable/activation or notification sending occurred. Provider schedule/policy/notification settings need actual rollout proof; this is not a student execution backend. Complete13-file2018c6a..1cda139 Astra/high privacy/credential and Sol/high compatibility reviews accepted with zero actionable findings; each9unit/actionlint/diffcheck passed and reused actualPG proof. Phase2actualturns/oneinitialwave/zerofixes; cumulative42 includes3historical failures. Source1cda139 pushed; CI38316464144 and receiptCI38317306712 passed. Coordinator acceptance docs only follow code review. Next: retain draft/verify CI; remaining storage/result limits await product choice, checker acceptance/host/auth need existing gates, backup/removal policy and hosted monitor delivery remain incomplete.
-
-Actual read-only hosted backup proof completed with trusted018e3ab format1/000003 code and current runtime: Neon18 archive78023bytes, counts[1,1,1,1,1,4], SHA3f30961c352eba3b2006b5404c2063da30af0bf8884b46faa1b03e1a53790241. Disposable local18 restore/re-export identical bytes; local004 migration and format2 export counts[1,1,1,1,1,4,0], SHA24d80523a1a0a358d8c6bb60b43259a03b6a932f54f1ef9f0e24327a26cdcaa3. Private700directory/600archives and receipt retained in ignored .verification/hub-controls/private-neon-recovery-*. Fixture15475 stopped. Production data/schema/credentials unchanged; no Java, productionrestore/cutover/encryption/retention/schedule. One independent local copy exists, not a complete backup policy. pg emitted generic pinned-version SSL warning without credential details; no source/URL logged.
-
-Actual accepted read-only health source1cda139 was called once locally against existing hosted Neon/restricted API credentials, ok/no alerts in1463ms. No values/URLs/source logged; full private aggregate receipt saved under ignored private-hosted-health-* with700directory/600file. No production data/credentials/configuration changed. This is Mac-to-Neon proof only, not GitHub-runner secret/environment policy, schedule or notification delivery. Infrastructure metric counts currently errored submissions CREATED within24h, not error events within24h; docs clarified this unchanged reviewed behavior. Goal unfinished; public authoring/worker/oldchecker hold unchanged.
-
-## Accepted targeted-cache-tag source
-
-Root is sole writer; no implementation worker. Bounded public library tag covers exact/default metadata, all versions/artifacts/checksums/previews; catalog has separate tag. Generated from public ID only, never private identity. Source matching tag allowed/regenerated; mismatched/private/wildcard tags and private/error responses disable caching and lose tags. Source/browser/TTL/SQL/pins unchanged. Seven cache cases,14actual availability cases onPG17,79website passes/2existingoptional skips/types/build passed; unchanged SQLPG18 and DOM/native coverage reused. Owned15469fixture stopped. No source deployed or schema004 applied.
-
-Root verified exact Zero project/team binding; CLI54.17.2 accepted native foreground deletion for zero-hub-library-ui1,zero-hub-catalog. Current deployed source predates tags; published maintained JAR6802bytes/SHA776310da0cd8dcff09a6374b61d906d2b34fa633bc603b15770e24963b9c433a identical before/after, observedMISS→HIT. This proves provider/operator access only, NOT taggedHIT removal, expiry or hosted withdrawal. Receipt ignored .verification/hub-controls/cache-removal-*/receipt.json. No credentials/data/schema/deployment/withdrawal changes; only requested ephemeral tag deletion. Native runbook documents event→delete→exact410/catalog verification and client-copy limits.
-
-Complete eight-file34c45eb5dbfc1f32fcede6f9aa30cf108735de6f..4077dd8ee4510cefb8ded9c88fd32c619097324b passed one independent GPT-6.1-Sol/high standard review with zero actionable findings. Reviewer read guidance, all changed files and immediate callers; seven isolated cache tests passed, actual PostgreSQL/website proof reused. Phase one actual turn/one initial wave/zero fixes; cumulative43 retains three historical provider-filter failures. Requested model/effort known; effective configuration/time/tokens unknown. Source pushed and CI38318782410 passed. Coordinator acceptance notes only follow source review. Keep draft/unmerged; actual tagged-withdrawal drill waits for reviewed deployment after existing gates. Lifetime-contributor policy is now settled; global/artifact/result numbers and external checker review remain missing; public authoring remains closed.
-
-## Accepted contribution-policy update
-
-Owner approved open contributions with no lifetime contributor cap and final
-Zero owner/maintainer authority over hosted content. Seven-file policy/plan delta
-7c1b7d4..b9c29e0 passed one complete GPT-6-Luna/medium documentation review with
-zero actionable findings; root configuration/doclinks and diffcheck passed.
-Reviewer reused root checks and independently passed reviewed-range diffcheck.
-One actual turn/one initial wave/zero fixes; cumulative44 preserves historical
-failures. Effective telemetry unknown. Only factual acceptance notes follow
-review. Runtime lifetime guards, archive/reclamation controls and public
-capabilities are unchanged; follow-up is explicit in ZEROHUB-PLAN.md. Prior
-receipt CI38320302912 passed at7c1b7d4. Keep PR26 draft; no merge/deployment.
+Most recent account weekly55%remaining and healthy317GB free are shared readings,
+not task cost. No cleanup, Docker restart/prune or production writes occurred.

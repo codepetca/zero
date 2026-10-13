@@ -57,10 +57,11 @@ availability. New artifact/result/global numeric budgets remain to be selected.
 
 This is the approved product policy, not a claim that its controls are deployed.
 The public catalog is available; public sign-in and uploads remain closed under
-the existing checker-review and hosting requirements. Current local admission
-still enforces a 16 MiB cumulative source allowance and 100 lifetime library
-reservations per account. Remove both in the implementation follow-up; do not
-replace them with another permanent contributor quota.
+the existing checker-review and hosting requirements. Local admission now has no
+cumulative contributor-source or lifetime library-reservation allowance. Temporary
+rate/queue controls and the existing shared source budget remain. Archiving and
+physical reclamation are deferred; no new permanent contributor quota replaces
+the removed guards.
 
 Existing append-only release withdrawal can deny exact-version reads, but does
 not implement discovery-only archiving or physical data reclamation. Those need

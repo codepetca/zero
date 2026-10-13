@@ -36,7 +36,7 @@ export function validateUploadBundle(bundle) {
   if (new TextEncoder().encode(JSON.stringify(bundle)).length > 1024 * 1024) throw new Error('Submission exceeds 1 MiB.');
   return bundle;
 }
-export const developmentPaths = ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','src/Main.java','zero.json','.vscode/tasks.json','.vscode/settings.json'];
+export const developmentPaths = ['README.md','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','src/Main.java','zero.json','.vscode/tasks.json','.vscode/settings.json'];
 export async function folderBundle(files) {
   if (!files.length) throw new Error('Choose the library folder, containing at most 65 files including .zero-library.json.');
   const paths = new Map(); const root = files[0].webkitRelativePath.split('/')[0];

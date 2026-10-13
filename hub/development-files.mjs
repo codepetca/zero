@@ -2,7 +2,7 @@
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {validateBundle} from './checker/policy.mjs';
-export const developmentPaths = ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',
+export const developmentPaths = ['README.md','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties',
   'src/Main.java','zero.json','.vscode/tasks.json','.vscode/settings.json'];
 // Literal URLs let Next trace each distinct trusted asset into its server build.
 // A dynamic URL can be rewritten to the same asset for all three wrapper files.
@@ -40,6 +40,34 @@ public class Main extends Application {
     }
     public static void main(String[] args) { launch(args); }
 }\n`;
+  files['README.md']=`# ${id}: your editable library
+
+1. Extract this ZIP. Open this folder in VS Code with Zero and choose Run App.
+   The preview uses your ordinary Java class in src/zero/${id}/${name}.java.
+2. Edit the class and src/Main.java to try it. Keep API.md, CHANGELOG.md,
+   checks/BehaviorCheck.java and both examples up to date. Keep preview.png a PNG.
+3. Visit https://zero.codepet.ca/hub/prepare, sign in, choose this same folder and
+   Upload for checks. You do not need to prepare a new library each time.
+4. Read the result. Fix an unpublished failed version and choose the same folder
+   again. After publication, change the version in .zero-library.json for fixes.
+   Save the result link on the website to return to your submission.
+
+Keep .zero-library.json: it records the library ID, version and component API.
+For another class, add its source under src/zero/${id}/ and its component entry
+in that descriptor. The downloaded reservation belongs to its GitHub account.
+
+Run App is an editable preview. It does not run the uploaded behavior check or
+both consumer examples; those are checked by the hub before publication.
+
+Only the descriptor, declared library classes, API/changelog/license, PNG,
+behavior check and examples are uploaded. README.md, preview Main, Maven/editor
+files, target and .git stay local. Do not upload the ZIP itself.
+
+Use the exact dependency and Java import on your published component card to
+reuse it in an app. Updating another version does not change existing apps.
+
+Public uploads may still be closed while ZeroHub's hosting is being completed.
+`;
   files['zero.json']=JSON.stringify({name:`${id} library preview`},null,2)+'\n';
   files['.vscode/tasks.json']=JSON.stringify({version:'2.0.0',tasks:[{label:'Run App',type:'zero',task:'run',group:{kind:'build',isDefault:true},problemMatcher:'$zero-java'}]},null,2)+'\n';
   files['.vscode/settings.json']=JSON.stringify({'files.autoSave':'afterDelay','files.autoSaveDelay':500,'java.configuration.updateBuildConfiguration':'automatic'},null,2)+'\n';

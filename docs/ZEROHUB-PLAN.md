@@ -73,10 +73,11 @@ separate source review and owner-authorized publication workflow.
 
 ## Curation and capacity follow-up
 
-1. Remove the local cumulative 16 MiB source-per-account guard and the 100
-   lifetime-library-reservations guard. Drop the proposed 10 MB contributor cap;
-   do not replace these with another lifetime contributor allowance. Retain
-   temporary request/rate/queue and per-upload execution controls.
+1. Local implementation removes the cumulative 16 MiB source-per-account guard
+   and the 100 lifetime-library-reservations guard. No 10 MB contributor cap or
+   replacement lifetime allowance is introduced. Temporary request/rate/queue
+   and per-upload execution controls remain. Verify concurrent requests and
+   restricted-role access beyond the former thresholds before source acceptance.
 2. Select and enforce a shared capacity budget covering retained submissions,
    results and stored objects, with actual database usage monitoring. Reserve
    capacity for in-flight publication so concurrent work cannot overfill storage.
@@ -95,7 +96,14 @@ separate source review and owner-authorized publication workflow.
    an automatic inactivity/deletion rule or per-library human admission queue.
    Owners and designated maintainers retain final discretion.
 
-These items are planned, not delivered by saving the policy. Local source review,
+Owner's next instruction prioritizes lifetime-cap removal and the complete
+student journey; archiving/removal can come later. Cap removal is now implemented
+locally. Verify prepare/download/folder selection, clear failed/corrected/exact
+repeat feedback, bookmark/reload/sign-in recovery and exact component reuse.
+Keep simulated UI/backend proof, maintained native consumers and genuine hosted
+OAuth/checking proof distinct. The latter remains held by existing launch gaps.
+
+Archiving and physical reclamation remain planned. Local source review,
 required tests and the existing hosted activation gates still apply. No new
 maintainer UI, role, deletion job, schema migration or public capability is added
 in this documentation change.

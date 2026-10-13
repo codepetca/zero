@@ -80,13 +80,17 @@ test('parallel reservations across hub instances stop at 10 per account in rolli
   outcomes(next,5);assert.equal(await count('hub_libraries'),26);
 });
 
-test('reservation lifetime cap stays at 100 while database-clock rolling windows expire',async()=>{
+test('contributors can reserve beyond 100 lifetime libraries while rolling limits still apply',async()=>{
   await pool.query('INSERT INTO hub_users(github_id,login) VALUES($1,$2)',[alice.id,alice.login]);
-  await pool.query("INSERT INTO hub_libraries(id,owner_id,created_at) SELECT 'uiold'||n,$1,now()-interval '25 hours' FROM generate_series(1,99)n",[alice.id]);
-  const attempts=await Promise.allSettled(Array.from({length:8},()=>reserve()));outcomes(attempts,1);
-  assert.equal(await count('hub_libraries'),100);
-  await denied(reserve({...alice,login:'renamed'}));
-  assert.equal((await pool.query('SELECT login FROM hub_users WHERE github_id=$1',[alice.id])).rows[0].login,'alice');
+  await pool.query("INSERT INTO hub_libraries(id,owner_id,created_at) SELECT 'uiold'||n,$1,now()-interval '25 hours' FROM generate_series(1,100)n",[alice.id]);
+  const renamed={...alice,login:'renamed'};
+  const next=await reserve(renamed);
+  assert.ok(next.libraryId);assert.equal(await count('hub_libraries'),101);
+  const attempts=await Promise.allSettled(Array.from({length:12},(_,n)=>reserve(renamed,n%2?hub:otherHub)));
+  outcomes(attempts,limits.reservationsPer24Hours-1);
+  assert.equal(await count('hub_libraries'),110);
+  await denied(reserve(renamed));
+  assert.equal((await pool.query('SELECT login FROM hub_users WHERE github_id=$1',[alice.id])).rows[0].login,'renamed');
 });
 
 test('parallel new submissions across libraries stop at two active jobs; all active stages count',async()=>{
@@ -143,22 +147,24 @@ test('exact-source retry and immutable conflict work at active/daily limits with
   assert.equal(await count('hub_submissions'),20);
 });
 
-test('failed retained sources enforce exact 16 MiB boundary and concurrent candidates cannot overshoot',async()=>{
+test('contributors can submit beyond the former 16 MiB source allowance without weakening active limits or ownership',async()=>{
   const {bundle,libraryId}=await reserve();const candidates=[version(bundle,1),version(bundle,2)];
-  // Versions have equal encoded length; exactly one fits before the boundary.
+  const formerAccountLimit=16*1024*1024;
   const size=await bundleBytes(candidates[0]);assert.equal(await bundleBytes(candidates[1]),size);
-  await sourceHistory(alice,libraryId,limits.sourceBytesPerAccount-size);
+  await sourceHistory(alice,libraryId,formerAccountLimit);
   const before=await count('hub_submissions');
   const attempts=await Promise.allSettled(candidates.map((source,n)=>(n?otherHub:hub).submit(alice,source)));
-  outcomes(attempts,1);assert.equal(await sourceBytes(alice.id),limits.sourceBytesPerAccount);assert.equal(await count('hub_submissions'),before+1);
-  const winner=candidates[attempts.findIndex(item=>item.status==='fulfilled')];
-  const job=attempts.find(item=>item.status==='fulfilled').value;
-  const stored=(await pool.query('SELECT bundle,source_digest FROM hub_submissions WHERE id=$1',[job.id])).rows[0];
-  assert.deepEqual(await hub.submit(alice,winner),job);
+  outcomes(attempts,2);
+  assert.equal(await sourceBytes(alice.id),formerAccountLimit+2*size);
+  assert.equal(await count('hub_submissions'),before+2);
+  const stored=(await pool.query('SELECT bundle,source_digest FROM hub_submissions WHERE id=$1',[attempts[0].value.id])).rows[0];
+  for(let n=0;n<2;n++)assert.deepEqual(await hub.submit({...alice,login:'renamed'},candidates[n]),attempts[n].value);
   await denied(hub.submit(alice,version(bundle,3)));
-  assert.deepEqual((await pool.query('SELECT bundle,source_digest FROM hub_submissions WHERE id=$1',[job.id])).rows[0],stored);
-  // Another identity cannot claim the library or erase the source budget.
-  await assert.rejects(hub.submit(bob,winner),error=>error.status===403);
+  await assert.rejects(hub.submit(bob,candidates[0]),error=>error.status===403);
+  assert.deepEqual((await pool.query('SELECT bundle,source_digest FROM hub_submissions WHERE id=$1',[attempts[0].value.id])).rows[0],stored);
+  await pool.query("UPDATE hub_submissions SET status='failed' WHERE status='queued'");
+  assert.equal((await otherHub.submit(alice,version(bundle,3))).status,'queued');
+  assert.ok(await sourceBytes(alice.id)>formerAccountLimit);
   const foreign=await reserve(bob);assert.equal((await hub.submit(bob,foreign.bundle)).status,'queued');
 });
 
@@ -208,10 +214,13 @@ test('actual restricted API login can enforce shared admission without additiona
   try {
     await verifyRole(api,'hub_api');
     const prepared=await reserve(alice,service);
+    await pool.query("INSERT INTO hub_libraries(id,owner_id,created_at) SELECT 'uiroleold'||n,$1,now()-interval '25 hours' FROM generate_series(1,100)n",[alice.id]);
+    await sourceHistory(alice,prepared.libraryId,16*1024*1024);
     const attempts=await Promise.allSettled(Array.from({length:8},(_,n)=>service.submit(alice,version(prepared.bundle,n))));
     outcomes(attempts,2);assert.equal(await queued(),2);
+    assert.ok(await sourceBytes(alice.id)>16*1024*1024);
     await assert.rejects(service.submit(bob,prepared.bundle),error=>error.status===403);
     const reservations=await Promise.allSettled(Array.from({length:15},()=>reserve(alice,service)));
-    outcomes(reservations,9);assert.equal(await count('hub_libraries'),10);
+    outcomes(reservations,9);assert.equal(await count('hub_libraries'),110);
   } finally {await service.stop();await api.end();await pool.query(`DROP OWNED BY ${name}`);await pool.query(`DROP ROLE ${name}`);}
 });
