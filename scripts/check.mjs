@@ -32,6 +32,7 @@ for (const command of ['zero.runApp', 'zero.stopApp', 'zero.uploadToGitHub', 'ze
 assert.ok(existsSync(path.join(root, manifest.main.startsWith('./')
   ? 'extension/' + manifest.main.slice(2) : 'extension/' + manifest.main)));
 json('student-template/zero.json');
+assert.equal(json('student-template/.vscode/settings.json')['java.configuration.updateBuildConfiguration'], 'automatic', 'Student library changes must refresh the Java classpath without a manual prompt');
 const tasks = json('student-template/.vscode/tasks.json');
 assert.ok(tasks.tasks.some(task => task.group?.kind === 'build' && task.group.isDefault), 'Default build task missing');
 for (const relative of ['student-template/.vscode/tasks.json', '.vscode/tasks.json']) {
