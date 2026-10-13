@@ -66,14 +66,15 @@ test('local practice blocks Git service entry points before Git or network calls
 
 test('local practice commands stop before authentication, saves, Git or external pages', async t => {
   const Module=require('node:module');
-  const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),Buffer.from(sample().projects[0].files[0].content,'base64'));
-  const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0;
+  const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),Buffer.from(sample().projects[0].files[0].content,'base64'));await fs.writeFile(path.join(root,'mvnw'),'');
+  const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0,launches=0;
   const disposable=()=>({dispose(){}});
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return null;},onDidChangeSessions:disposable},
     workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable,textDocuments:[]},
     window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showErrorMessage:async text=>{errors.push(text);},showInformationMessage:async()=>{},showQuickPick:async()=>{throw new Error('picker opened');}},
-    tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},
+    tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable,executeTask:async task=>{launches++;return {task,terminate(){}};}},
+    Task:class{constructor(definition,scope,name,source,execution){Object.assign(this,{definition,scope,name,source,execution});}},TaskScope:{Workspace:1},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:1},ProcessExecution:class{constructor(command,args){Object.assign(this,{command,args});}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
     env:{openExternal:async()=>{external++;return true;}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
@@ -85,17 +86,25 @@ test('local practice commands stop before authentication, saves, Git or external
     await commands.get(id)();assert.match(errors.at(-1),/local lesson practice/i,id);
   }
   assert.equal(saves,0);assert.equal(external,0);assert.equal(authCalls,1,'Only activation may inspect native sign-in silently');
+  await fs.writeFile(path.join(root,'zero.json'),'{broken');
+  await commands.get('zero.openFirstLesson')();
+  assert.match(errors.at(-1),/zero\.json is damaged.*Restore its lesson marker.*start a fresh lesson/i);
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,lessonId:0}));
+  await commands.get('zero.openFirstLesson')();assert.match(errors.at(-1),/no valid lessonId.*Restore its lesson marker/i);
+  await fs.writeFile(path.join(root,'zero.json'),'{broken');
+  await commands.get('zero.shareGame')();assert.match(errors.at(-1),/local lesson practice/i);
+  await commands.get('zero.runApp')();assert.equal(saves,1);assert.equal(launches,1);
 });
 
 test('Start lesson works without a workspace and opens only the freshly created folder in a new window', async t => {
   const Module=require('node:module'),root=await temporary(t),media=path.join(root,'media');await fs.mkdir(media);
   await fs.writeFile(path.join(media,'lesson-projects.json'),JSON.stringify(sample()));
-  const commands=new Map(),opened=[];let choose=false,save=false;
+  const commands=new Map(),opened=[],errors=[];let choose=false,save=false,destination=path.join(root,'new-lesson'),onSave;
   const disposable=()=>({dispose(){}});
   const vscode={
     authentication:{getSession:async()=>null,onDidChangeSessions:disposable},
     workspace:{workspaceFolders:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async items=>choose?items[0]:undefined,showSaveDialog:async()=>save?{fsPath:path.join(root,'new-lesson')}:undefined,showErrorMessage:async text=>{throw new Error(text);}},
+    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async items=>choose?items[0]:undefined,showSaveDialog:async()=>{onSave?.();return save?{fsPath:destination}:undefined;},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{opened.push(args);}},
     Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
@@ -108,5 +117,16 @@ test('Start lesson works without a workspace and opens only the freshly created 
   save=true;await commands.get('zero.startLesson')();
   assert.equal(await lessons.isLocalPractice(path.join(root,'new-lesson')),true);
   assert.deepEqual(opened.at(-1),['vscode.openFolder',{fsPath:path.join(root,'new-lesson')},true]);
+  assert.equal(opened.filter(call=>call[0]==='vscode.openFolder').length,1);
+  const first=path.join(root,'first'),second=path.join(root,'second'),third=path.join(root,'third');
+  for (const directory of [first,second,third]) {await fs.mkdir(directory);await fs.writeFile(path.join(directory,'zero.json'),'{}');}
+  vscode.workspace.workspaceFolders=[{uri:{fsPath:first}},{uri:{fsPath:second}}];
+  destination=path.join(second,'nested');onSave=undefined;
+  await commands.get('zero.startLesson')();assert.match(errors.at(-1),/outside the current student project/);
+  await assert.rejects(fs.stat(destination),/ENOENT/);
+  onSave=()=>{vscode.workspace.workspaceFolders=[{uri:{fsPath:third}}];};
+  await commands.get('zero.startLesson')();assert.match(errors.at(-1),/outside the current student project/,'Initial roots remain guarded after workspace change');
+  vscode.workspace.workspaceFolders=[{uri:{fsPath:first}}];destination=path.join(third,'nested');
+  await commands.get('zero.startLesson')();assert.match(errors.at(-1),/outside the current student project/,'Newly opened roots are guarded at creation time');
   assert.equal(opened.filter(call=>call[0]==='vscode.openFolder').length,1);
 });

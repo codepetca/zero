@@ -43,14 +43,30 @@ function activate(context) {
     localPractice = await lessonProjects.isLocalPractice(projectRoot);
     return projectRoot;
   };
+  async function openProjectRoots() {
+    const roots = new Set();
+    for (const folder of vscode.workspace.workspaceFolders || []) {
+      for (const candidate of [folder.uri.fsPath, path.join(folder.uri.fsPath, 'student-template')]) {
+        try {
+          if ((await fs.stat(path.join(candidate, 'zero.json'))).isFile()) roots.add(await fs.realpath(candidate));
+        } catch (error) {if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') throw error;}
+      }
+    }
+    return roots;
+  }
   const refresh = () => { if (view) render(view.webview); };
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     let filename;
     // Older kits start with the quiz; preserve their first-lesson entry point.
     const practice = await lessonProjects.isLocalPractice(root);
-    const marker = practice ? JSON.parse(await fs.readFile(path.join(root, 'zero.json'), 'utf8')) : null;
-    const lessonPrefix = marker ? `${String(marker.lessonId).split('-')[0].padStart(2,'0')}-` : '';
+    let marker = null;
+    if (practice) {
+      try {marker = JSON.parse(await fs.readFile(path.join(root, 'zero.json'), 'utf8'));}
+      catch {throw new Error('This lesson project’s zero.json is damaged. Restore its lesson marker or start a fresh lesson to open the guide. Local Run still works; GitHub sharing stays blocked.');}
+      if (!marker || typeof marker.lessonId !== 'string' || !/^(?:[0-9]|1[0-2])(?:-[a-z]+)?$/.test(marker.lessonId)) throw new Error('This lesson project’s zero.json has no valid lessonId. Restore its lesson marker or start a fresh lesson to open the guide.');
+    }
+    const lessonPrefix = marker ? `${marker.lessonId.split('-')[0].padStart(2,'0')}-` : '';
     const lessonNames = practice
       ? (await fs.readdir(path.join(root, 'lessons')).catch(() => [])).filter(name => name.startsWith(lessonPrefix) && name.endsWith('.md')).sort()
       : ['00-hello-world.md', '01-quiz.md'];
@@ -322,12 +338,15 @@ function activate(context) {
       await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
     },
     'zero.startLesson': async () => {
+      const initialRoots = await openProjectRoots();
+      if (projectRoot) initialRoots.add(projectRoot);
       const projects = await lessonProjects.loadBundle(context.extensionPath || path.resolve(__dirname,'..'));
       const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lesson ${item.lesson} · local practice`, project:item})), {title:'Start lesson', placeHolder:'Choose a fresh practice project'});
       if (!choice) return;
       const destination = await vscode.window.showSaveDialog({title:'Choose a new lesson folder',saveLabel:'Create lesson',defaultUri:vscode.Uri.file(path.join(require('node:os').homedir(),choice.project.folder))});
       if (!destination) return;
-      const root = await lessonProjects.createLessonProject(choice.project,destination.fsPath,{forbiddenRoots:projectRoot ? [projectRoot] : []});
+      const roots = new Set([...initialRoots, ...await openProjectRoots()]);
+      const root = await lessonProjects.createLessonProject(choice.project,destination.fsPath,{forbiddenRoots:[...roots]});
       await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),true);
     },
     'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),
