@@ -5,8 +5,21 @@
       "type": "zero",
       "task": "run",
       "label": "Zero: Run App",
-      "group": { "kind": "build", "isDefault": true },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "problemMatcher": "$zero-java"
+    },
+    {
+      "label": "Zero: Prepare design",
+      "type": "process",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/design/prepare.mjs",
+        "--extension"
+      ],
+      "problemMatcher": []
     }
   ]
 }

@@ -1,3 +1,7 @@
+import Link from "next/link";
+import { LearnTheme } from "@/app/learn/LearnTheme";
+import "../.generated/learn-theme.css";
+import "@/app/learn/learn.css";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
@@ -31,9 +35,8 @@ export function Document({ id, lesson = "" }) {
           title: doc.markdown.match(/^# (.+)$/m)?.[1] || id,
           href: documentHref(id),
         }));
-  return (
-    <>
-      <PageHeader active={lesson ? "Tutorials" : "Docs"} />
+  const header = <PageHeader active={lesson ? "Tutorials" : "Docs"} />;
+  const content = (
       <main
         id="page-content"
         tabIndex={-1}
@@ -109,10 +112,10 @@ export function Document({ id, lesson = "" }) {
               aria-label="Next lesson"
             >
               {next ? (
-                <a className="button" href={`/tutorials/${next.id}`}>
+                <Link className="button" href={`/tutorials/${next.id}`}>
                   Next: {next.title}
                   <Icon name="arrow-right" />
-                </a>
+                </Link>
               ) : (
                 <a className="button" href="/examples">
                   Explore the examples
@@ -123,6 +126,8 @@ export function Document({ id, lesson = "" }) {
           )}
         </article>
       </main>
-    </>
   );
+  return lesson ? (
+    <LearnTheme active="Tutorials">{content}</LearnTheme>
+  ) : <>{header}{content}</>;
 }

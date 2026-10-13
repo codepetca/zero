@@ -1,62 +1,6 @@
-import { PageHeader } from "@/components/PageHeader";
-import { Icon } from "@/components/Icon";
-import { lessons, quickLinks } from "@/lib/learning.mjs";
-import { Downloads } from "@/components/Downloads";
-export const metadata = { title: "Learn Java" };
+import { Document } from "@/components/Document";
+export const metadata = { title: "Hello, world! · Tutorials" };
 export const dynamic = "force-dynamic";
 export default function Learn() {
-  return (
-    <>
-      <PageHeader active="Tutorials" />
-      <main id="page-content" tabIndex={-1} className="hub">
-        <div className="hub-intro">
-          <h1>Tutorials</h1>
-          <h2 className="page-subtitle">Learn Java</h2>
-          <p className="hub-lead">Starting from zero.</p>
-          <div className="hub-actions">
-            <a className="button" href="/tutorials/0">
-              Start lesson 0
-            </a>
-          </div>
-        </div>
-        <div className="hub-columns">
-          <section aria-labelledby="lessons-title">
-            <h2 id="lessons-title">Lessons</h2>
-            <ol className="lesson-list">
-              {lessons.map((lesson) => (
-                <li key={lesson.id}>
-                  <details className="lesson-preview">
-                    <summary>
-                      <span className="lesson-number">{lesson.id}</span>
-                      <h3>{lesson.title}</h3>
-                      <Icon name="chevron-down" />
-                    </summary>
-                    <div className="lesson-preview-body">
-                      <p>{lesson.description}</p>
-                      <p className="lesson-topic">{lesson.topic}</p>
-                      <a href={`/tutorials/${lesson.id}`}>
-                        Open lesson {lesson.id} <Icon name="arrow-right" />
-                      </a>
-                    </div>
-                  </details>
-                </li>
-              ))}
-            </ol>
-          </section>
-          <aside className="quick-links" aria-labelledby="quick-title">
-            <h2 id="quick-title">Docs & help</h2>
-            {quickLinks.map((link) => (
-              <a className="quick-link" key={link.title} href={link.href}>
-                <div>
-                  <h3>{link.title}</h3>
-                </div>
-                <Icon name="chevron-right" />
-              </a>
-            ))}
-          </aside>
-        </div>
-        <Downloads />
-      </main>
-    </>
-  );
+  return <Document id="lesson-0" lesson="0" />;
 }

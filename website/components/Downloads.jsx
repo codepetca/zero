@@ -8,7 +8,7 @@ export function Downloads() {
     <section className="download-section" id="downloads" aria-label="Downloads">
       <div className="hub-actions">
         {mac && <a className="button primary compact" href={mac}><DownloadIcon />Download for Mac Silicon{installer.publication.status === 'local' && ' (local preview)'}</a>}
-        {kit && <a className="button primary compact" href={downloadHref()}><DownloadIcon />Download for Windows (ZIP){kit.publication.status === 'local' && ' (local preview)'}</a>}
+        {kit && <a className="button primary compact" href={downloadHref()} aria-label={`Download for Windows (ZIP), manual setup${kit.publication.status === 'local' ? ', local preview' : ''}`}><DownloadIcon />Download for Windows (ZIP){kit.publication.status === 'local' && ' (local preview)'}</a>}
       </div>
     </section>
   );

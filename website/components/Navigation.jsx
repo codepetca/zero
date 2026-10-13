@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Brand } from "./Brand";
 import { Icon } from "./Icon";
-export function Navigation({ active = "", downloadUrl }) {
+/** @param {{ active?: string, actions?: import("react").ReactNode }} props */
+export function Navigation({ active = "", actions = null }) {
   const [menu, setMenu] = useState(false);
   return (
     <header className="site-header">
@@ -26,6 +27,7 @@ export function Navigation({ active = "", downloadUrl }) {
           ["Docs", "/docs"],
           ["Examples", "/examples"],
           ["ZeroHub", "/hub"],
+          ["Download", "/downloads"],
         ].map(([name, href]) => (
           <a
             key={name}
@@ -35,10 +37,8 @@ export function Navigation({ active = "", downloadUrl }) {
             {name}
           </a>
         ))}
-        <a className="nav-download" href={downloadUrl}>
-          Download
-        </a>
       </nav>
+      {actions}
     </header>
   );
 }

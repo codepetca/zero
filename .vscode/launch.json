@@ -8,7 +8,8 @@
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/extension",
         "${workspaceFolder}/student-template"
-      ]
+      ],
+      "preLaunchTask": "Zero: Prepare design"
     }
   ]
 }

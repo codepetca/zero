@@ -1,0 +1,87 @@
+/* Shared layout for Zero's webview. Colors/fonts remain host-owned. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: var(--zero-space-3);
+  background: var(--zero-page);
+  color: var(--zero-text);
+  font-family: var(--zero-font);
+  font-size: var(--zero-font-size);
+  line-height: 1.5;
+}
+button {
+  width: 100%;
+  margin-top: var(--zero-space-2);
+  padding: 9px 8px;
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: var(--zero-radius);
+  background: var(--zero-accent);
+  color: var(--zero-on-accent);
+  font: inherit;
+  line-height: 1.4;
+  white-space: normal;
+  cursor: pointer;
+}
+button:hover { background: var(--zero-accent-hover); }
+button:focus-visible { outline: 2px solid var(--zero-focus); outline-offset: 2px; }
+button:disabled { opacity: .45; cursor: default; }
+button.secondary {
+  color: var(--vscode-button-secondaryForeground, var(--zero-text));
+  background: var(--vscode-button-secondaryBackground, var(--zero-surface));
+}
+button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground, var(--zero-surface)); }
+.row { display: flex; gap: var(--zero-space-2); }
+.row .run { flex: 2; min-width: 0; }
+.row .secondary { flex: 1; min-width: 0; }
+.muted, .badge { color: var(--zero-muted); font-size: inherit; }
+.status { margin: 10px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.badge { margin: 6px 0; }
+.repository { padding-top: var(--zero-space-3); margin-top: var(--zero-space-3); border-top: 1px solid var(--zero-border); }
+button.link {
+  padding: 4px 0;
+  margin: 0;
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--zero-link);
+  text-align: left;
+  font-size: inherit;
+}
+button.link:hover, .repo-choice:hover { text-decoration: underline; }
+.github-header { display: flex; align-items: center; justify-content: space-between; gap: var(--zero-space-2); }
+.account {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vscode-badge-background, var(--zero-surface));
+  color: var(--vscode-badge-foreground, var(--zero-text));
+  font-weight: 600;
+}
+.account:hover { background: var(--vscode-badge-background, var(--zero-surface)); }
+.account svg { width: 16px; height: 16px; fill: currentColor; }
+.repo-choice {
+  display: block;
+  padding: 5px 0;
+  margin: 8px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--zero-link);
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.repo-choice:hover { background: transparent; }
+body.vscode-high-contrast button, body.vscode-high-contrast-light button { border: 1px solid var(--zero-border); }
+@media (max-width: 220px) { .row { flex-direction: column; gap: 0; } }
+@media (forced-colors: active) {
+  button, button.secondary, button.link, button.account, button.repo-choice {
+    background: ButtonFace; color: ButtonText; border: 1px solid ButtonText;
+  }
+  .repository { border-color: CanvasText; }
+}

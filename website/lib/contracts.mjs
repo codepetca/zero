@@ -18,9 +18,9 @@ export function validateManifest(manifest) {
 }
 export function releaseAssetHref(manifest, key, localDownloads = false) {
   const asset = manifest.assets[key];
-  if (!assetKeys.includes(key) || !asset) return '/learn#downloads';
+  if (!assetKeys.includes(key) || !asset) return '/downloads';
   if ((asset.publicationStatus ?? manifest.publication.status) === 'published' && asset.url) return asset.url;
-  return localDownloads ? `/download/${key}` : '/learn#downloads';
+  return localDownloads ? `/download/${key}` : '/downloads';
 }
 export function validatePublishedKit(manifest, current) {
   if (!manifest) return null;

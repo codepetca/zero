@@ -1,3 +1,4 @@
+import {prepareDesign} from '../design/prepare.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -8,6 +9,7 @@ import {releaseDefinition} from './release.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
+prepareDesign();
 releaseDefinition();
 function json(relative) { return JSON.parse(readFileSync(path.join(root, relative), 'utf8')); }
 function files(directory) {

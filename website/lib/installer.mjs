@@ -38,8 +38,8 @@ export function installerHref(manifest, local = false) {
   if (manifest.publication.status === 'published') return manifest.asset.url;
   return local ? '/download/installer' : null;
 }
-export function landingDownloadHref(kitHref, manifest, local = false) {
-  return installerHref(manifest, local) ? '/learn#downloads' : kitHref;
+export function landingDownloadHref(_kitHref, _manifest, _local = false) {
+  return '/downloads';
 }
 export function localDownloadsAllowed(env) {
   return env.ZERO_LOCAL_DOWNLOADS === '1' && !env.VERCEL;

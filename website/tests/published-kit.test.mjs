@@ -63,7 +63,7 @@ test('current publication and explicit local preview take precedence, hosted fla
   assert.equal(availableKitRelease(published,fallback),published);
   assert.equal(availableKitRelease(published,fallback,true),published);
   assert.equal(availableKitRelease(current,fallback,localDownloadsAllowed({ZERO_LOCAL_DOWNLOADS:'1',VERCEL:'1'})),fallback);
-  assert.equal(landingDownloadHref(releaseAssetHref(fallback,'kit'),native),fallback.assets.kit.url);
+  assert.equal(landingDownloadHref(releaseAssetHref(fallback,'kit'),native),'/downloads');
 });
 test('downloads show only supported platform buttons with exact published URLs', async () => {
   const publishedNative={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
@@ -75,7 +75,7 @@ test('downloads show only supported platform buttons with exact published URLs',
   assert.equal((html.match(/<a /g)||[]).length,2);
   assert.doesNotMatch(html,/<p[ >]|<h[1-6][ >]|<details[ >]|<summary[ >]/);
   assert.doesNotMatch(html,/Zero Setup|Other downloads|local preview|href="\/download\/|\.exe/);
-  assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/learn#downloads');
+  assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/downloads');
 });
 test('local, published, fallback and missing states offer only available verified platform buttons', async () => {
   const local=await render(current,fallback,native,true);
@@ -101,7 +101,7 @@ test('local, published, fallback and missing states offer only available verifie
   assert.match(route,/verifiedLocalAsset\([^\n]+asset, release\)/);
   assert.doesNotMatch(route,/publishedKit|downloadableKit/);
   const home=await readFile(new URL('../app/page.tsx',import.meta.url),'utf8');
-  assert.equal((home.match(/className="button /g)||[]).length,2);
+  assert.equal((home.match(/className="button(?: [^"]+)?"/g)||[]).length,2);
 });
 
 test('hosted starter and setup share download-aware guidance rather than packaged version assumptions', async () => {
