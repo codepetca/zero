@@ -172,27 +172,14 @@ another student can follow; seek review before cohort adoption.
 
 Advanced contributions can introduce ordinary Java packages/interfaces when a concrete app needs them. Shared libraries and automated submission are described in [COMPONENTS.md](COMPONENTS.md). Original source uses [MIT](../LICENSE); upstream notices retain their terms.
 
-## Maintained libraries and ZeroHub
+## Maintained libraries
 
-All source is in Zero; no sibling repository is required:
+`python3 scripts/verify-starter-ui.py` and `python3 scripts/verify-health-bars.py`
+verify maintained sample JARs and their consumers. Sample source remains in Zero;
+student contributions remain in their existing game repositories.
 
-```sh
-python3 scripts/verify-starter-ui.py
-python3 scripts/verify-health-bars.py
-npm run test:postgres --prefix hub
-ZERO_HUB_RELEASE_PG_MAJOR=17 npm run test:availability --prefix hub
-ZERO_HUB_RELEASE_PG_MAJOR=18 npm run test:availability --prefix hub
-ZERO_HUB_OPERATIONS_PG_MAJOR=17 npm run test:operations --prefix hub
-ZERO_HUB_OPERATIONS_PG_MAJOR=18 npm run test:operations --prefix hub
-node --test hub/checker/test/validation.test.mjs
-ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs
-npm run verify:hub -- --output .verification/hub-proof
-```
+## GitHub sharing
 
-The library proofs check the real JAR and native consumers. The ZeroHub integration proof checks failed/corrected submissions, immutable releases and Add/Update/Revert across both study/game consumers. Run [the local service and website](../hub/README.md) for browser prepare/download/upload/listing checks. Local identity is a demo, not GitHub OAuth.
+Run `npm run test:sharing` for registry, ZIP and immutable publication contracts. Native student integration tests run with `npm test`. See [the adoption plan](GITHUB-SHARING-PLAN.md), [shared contract](../sharing/CONTRACT.md) and [website configuration](../website/README.md). The former Hub service, database dependencies and upload/OAuth adapters are removed. Retained `hub/checker/` source is a disconnected held-acceptance reference, not a live service.
 
-ZeroHub platform code gets independent source review. Uploaded libraries use trusted automated minimum checks without routine maintainer acceptance. Do not run submitted commands on the host; candidate Java belongs in the isolated checker. Public hosting and the outstanding checker review are separate rollout gates.
-
-Private backup/restore and release withdrawal are operator tools, documented in
-[the service guide](../hub/service/README.md#private-operator-backups). They are
-not student package acceptance or an alternative to the held checker review.
+Run `node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-new` for two real Maven consumers over scoped local HTTPS. Use a fresh output directory; no global trust is changed. Packaging accepts an explicit `ZERO_SHARING_KIT_CONFIG` JSON path containing schema, catalogUrl, artifactOrigin and reviewed policyRevision. Otherwise it resets bundled sharing settings to closed defaults. Students receive verified settings with the kit, not manual hash-copy instructions.

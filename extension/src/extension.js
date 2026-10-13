@@ -8,7 +8,8 @@ const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
 const {createTransport} = require('./transport');
-const {createHubActions} = require('./hub-actions');
+const {createSharingEditor} = require('./sharing/editor');
+const {readKitConfiguration} = require('./sharing/configuration');
 const {libraryLayout} = require('./library-files');
 const {createSetupHelp} = require('./setup');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -354,8 +355,9 @@ function activate(context) {
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
-  const hubActions=createHubActions(vscode,{project,isBusy,setBusy:value=>{componentBusy=value;refresh();}});
-  Object.assign(actions, hubActions.commands);
+  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
+  Object.assign(actions, sharing.commands);
+  context.subscriptions.push(...sharing.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
     try {await action();} catch(error) {state = error.message; refresh(); output.appendLine(error.message); vscode.window.showErrorMessage(`Zero: ${error.message}`);}
   }));
@@ -397,21 +399,22 @@ function activate(context) {
       try {
         const root = entry ? entry.uri.fsPath : await project();
         const visible = async (directory, omit = []) => (await fs.readdir(directory, {withFileTypes:true}))
-          .filter(child => !['.git','target','node_modules','.DS_Store', ...omit].includes(child.name) && !child.isSymbolicLink())
+          .filter(child => !['.git','target','node_modules','.DS_Store','.zero-sharing-recovery', ...omit].includes(child.name) && !child.isSymbolicLink())
           .sort((a,b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name))
           .map(child => ({uri:vscode.Uri.file(path.join(directory, child.name)), directory:child.isDirectory()}));
         if (entry) return visible(root, entry.projectFiles ? ['src','README.md'] : []);
         const library=await libraryLayout(root);
+        const nested=await fs.lstat(path.join(root,'libraries')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
         if(library) return [
           ...await visible(library.sources),
-          {label:'Preview',uri:vscode.Uri.file(library.preview),directory:false},
-          {uri:vscode.Uri.file(library.api),directory:false},
+          {uri:vscode.Uri.file(library.readme),directory:false},
           {label:'Examples',uri:vscode.Uri.file(library.examples),directory:true},
           {label:'Checks',uri:vscode.Uri.file(library.checks),directory:true},
           {label:'Project files',uri:vscode.Uri.file(root),directory:true,projectFiles:true}
         ];
         return [
           ...await visible(path.join(root, 'src/main/java'), ['zero']),
+          ...(nested?.isDirectory()&&!nested.isSymbolicLink()?[{label:'Libraries',uri:vscode.Uri.file(path.join(root,'libraries')),directory:true}]:[]),
           {label:'Resources', uri:vscode.Uri.file(path.join(root,'src/main/resources')), directory:true},
           {label:'Toolkit', uri:vscode.Uri.file(path.join(root,'src/main/java/zero')), directory:true},
           {uri:vscode.Uri.file(path.join(root,'README.md')), directory:false},
@@ -422,7 +425,7 @@ function activate(context) {
   };
   context.subscriptions.push(output, changes, vscode.window.registerTreeDataProvider('zero.files', files));
   const watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
+  for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git|\.zero-sharing-recovery)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
     if (!projectRoot) return;

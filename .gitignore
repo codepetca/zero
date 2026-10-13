@@ -28,3 +28,9 @@ website/next-env.d.ts
 hub/checker/image-lock.json
 .vercel
 .env*
+
+extension/media/sharing-harness/
+extension/media/sharing-config.json
+**/.zero-sharing-recovery/
+output/playwright/
+.playwright-cli/

@@ -1197,3 +1197,20 @@ select the separate test process, so installed Browse/Add/Apply/Run buttons rema
 unverified. Ownedprocess77146 stopped; existingCodeprofiles/studentwork untouched.
 Frozenkit/VSIX/unsignedWindowsEXE stay local; publicdownloads/capabilities unchanged.
 Rootbaseline CI38327689796 passedfa802d8; post-version/docs GitHub CI has not run: candidate stays local.
+
+## GitHub sharing candidate — 2026-10-12/13
+
+Local replacement removes database/OAuth runtime and uses GitHub frozen requests,
+Git CAS metadata and immutable public Blob artifacts. Generic library execution
+stays closed; game structural packaging never runs candidate source.
+
+210root checks passed, one portable PowerShell runtime check skipped. Registry23,
+website38, types/build and affected editor/configuration18 checks passed. Local
+HTTPS consumption proves two real Maven projects at1.0.0→1.0.1→1.0.0, loaded JAR
+hash/version and source archive hashes. VSIX harness/configuration and extracted
+kit verify. See [receipts and limits](EVIDENCE.md).
+
+Independent source review and hosted rollout remain pending. Fakes and local HTTPS
+prove neither real provider permissions/ETag behavior nor arbitrary candidate
+isolation. Interactive VS Code source attachment, physical Windows and novice
+classroom trials remain untested. Public release bytes and deployment unchanged.

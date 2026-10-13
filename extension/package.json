@@ -88,8 +88,49 @@
         "title": "Zero: Finish Change"
       },
       {
+        "command": "zero.sharingActions",
+        "title": "Zero: Libraries and Games",
+        "icon": "$(library)"
+      },
+      {
         "command": "zero.browseHub",
-        "title": "Zero: Browse ZeroHub"
+        "title": "Zero: Browse Libraries"
+      },
+      {
+        "command": "zero.browseGames",
+        "title": "Zero: Browse Games"
+      },
+      {
+        "command": "zero.openProject",
+        "title": "Zero: Open Shared Project"
+      },
+      {
+        "command": "zero.extractLibrary",
+        "title": "Zero: Extract Library"
+      },
+      {
+        "command": "zero.checkLibrary",
+        "title": "Zero: Check Library"
+      },
+      {
+        "command": "zero.shareLibrary",
+        "title": "Zero: Share Library"
+      },
+      {
+        "command": "zero.shareGame",
+        "title": "Zero: Share Game"
+      },
+      {
+        "command": "zero.switchLibraryMode",
+        "title": "Zero: Develop Local Library / Use Published Version"
+      },
+      {
+        "command": "zero.recoverLibraryChange",
+        "title": "Zero: Recover Library Change"
+      },
+      {
+        "command": "zero.editSharingDetails",
+        "title": "Zero: Edit Sharing Details"
       }
     ],
     "viewsContainers": {
@@ -160,20 +201,32 @@
           "scope": "resource",
           "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using your VS Code GitHub sign-in. A local Git name/email identity is still required."
         },
-        "zero.hubOrigin": {
+        "zero.sharingCatalogUrl": {
           "type": "string",
-          "default": "https://zero.codepet.ca",
+          "default": "https://zero.codepet.ca/api/sharing/catalog",
           "scope": "machine",
-          "markdownDescription": "ZeroHub origin. Public activation is pending. Developers may explicitly choose a loopback HTTP origin for local verification."
+          "markdownDescription": "Exact generated games/library catalog URL. Public activation is pending; explicit loopback URLs support local verification."
+        },
+        "zero.sharingArtifactOrigin": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Operator-configured immutable public artifact origin. Blank keeps public downloads unavailable until storage acceptance."
+        },
+        "zero.sharingPolicyRevision": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Operator-configured reviewed policy revision, stamped by an accepted kit release. Blank keeps publication forms disabled."
         }
       }
     },
     "menus": {
       "view/title": [
         {
-          "command": "zero.browseHub",
+          "command": "zero.sharingActions",
           "when": "view == zero.actions",
-          "group": "zero-hub"
+          "group": "zero-sharing"
         }
       ]
     }

@@ -336,24 +336,8 @@ checks.update({kind: None for kind in standalone})
 parser = argparse.ArgumentParser(description='Compile and check JavaFX examples in isolated projects.')
 parser.add_argument('--only', nargs='+', choices=list(checks), help='Run only the named examples.')
 parser.add_argument('--starter-ui-repository', type=Path, help='Isolated Maven local cache with the locally installed starter-ui prototype; required for packaged consumers.')
-parser.add_argument('--hub-library-id', help='Explicit hub library ID for packaged study/game dogfood checks.')
-parser.add_argument('--hub-library-version', help='Exact hub library version.')
-parser.add_argument('--hub-repository-url', help='Explicit HTTPS or loopback Maven hub repository.')
 parser.add_argument('--maven-settings', type=Path, help='Optional explicit Maven settings for isolated maintainer checks.')
 args = parser.parse_args()
-if any([args.hub_library_id, args.hub_library_version, args.hub_repository_url]):
-    import re
-    from urllib.parse import urlparse
-    if not all([args.hub_library_id, args.hub_library_version, args.hub_repository_url]):
-        parser.error('All three --hub-* options are required together.')
-    url = urlparse(args.hub_repository_url)
-    if (not re.fullmatch(r'ui[1-9a-z][0-9a-z]{0,11}', args.hub_library_id)
-            or not re.fullmatch(r'(0|[1-9]\d{0,8})\.(0|[1-9]\d{0,8})\.(0|[1-9]\d{0,8})', args.hub_library_version)
-            or url.username or url.password or url.query or url.fragment or url.path != '/api/hub/maven'
-            or not (url.scheme == 'https' or (url.scheme == 'http' and url.hostname in ('127.0.0.1', 'localhost', '::1')))):
-        parser.error('Use a reserved short ID, exact version and HTTPS/loopback /api/hub/maven URL.')
-    if not args.only or any(kind not in ('packaged-study', 'packaged-game') for kind in args.only):
-        parser.error('Hub proof requires explicit --only packaged-study and/or packaged-game.')
 if args.maven_settings is not None:
     if not args.maven_settings.is_file():
         parser.error('--maven-settings must name an existing settings file.')
@@ -464,11 +448,8 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
             main_class, marker = 'ExampleCheck', 'EXAMPLE_OK ' + kind
             check_source = harness.replace('CHECK', check).replace('KIND', kind)
             if kind.startswith('packaged-'):
-                namespace = f'zero.{args.hub_library_id}' if args.hub_library_id else 'zero.starterui'
+                namespace = 'zero.starterui'
                 check_source = f'import {namespace}.*;\n' + check_source
-                if args.hub_library_id:
-                    main_file = dest/'src/main/java/Main.java'
-                    main_file.write_text(main_file.read_text().replace('zero.starterui', namespace))
         (dest/'src/main/java'/f'{main_class}.java').write_text(check_source)
         wrapper = 'mvnw.cmd' if os.name == 'nt' else './mvnw'
         extra = ['-s', str(args.maven_settings), '-gs', str(args.maven_settings)] if args.maven_settings else []
@@ -476,17 +457,10 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
         if kind.startswith('packaged-'):
             pom = dest/'pom.xml'
             dependency = '<dependency><groupId>ca.codepet.zero</groupId><artifactId>starter-ui</artifactId><version>0.1.0-prototype.1</version></dependency>'
-            if args.hub_library_id:
-                dependency = f'<dependency><groupId>ca.codepet.zero.library</groupId><artifactId>{args.hub_library_id}</artifactId><version>{args.hub_library_version}</version></dependency>'
-                from xml.sax.saxutils import escape
-                repository = f'<repositories><repository><id>zero-hub-proof</id><url>{escape(args.hub_repository_url)}</url><snapshots><enabled>false</enabled></snapshots></repository></repositories>'
-                pom.write_text(pom.read_text().replace('</project>', repository + '\n</project>'))
             pom.write_text(pom.read_text().replace('</dependencies>', dependency + '\n  </dependencies>', 1))
             extra.append(f'-Dmaven.repo.local={args.starter_ui_repository}')
             artifact = args.starter_ui_repository/'ca/codepet/zero/starter-ui/0.1.0-prototype.1/starter-ui-0.1.0-prototype.1.jar'
-            if args.hub_library_id:
-                artifact = args.starter_ui_repository/f'ca/codepet/zero/library/{args.hub_library_id}/{args.hub_library_version}/{args.hub_library_id}-{args.hub_library_version}.jar'
-            if not args.hub_library_id and not artifact.is_file():
+            if not artifact.is_file():
                 parser.error('The starter-ui prototype JAR has not been installed in this cache.')
             run_env = dict(os.environ, EXPECTED_STARTER_UI_JAR=str(artifact))
         before = time.monotonic()

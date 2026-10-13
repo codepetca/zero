@@ -20,10 +20,14 @@
     "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs",
     "verify:kit": "node scripts/verify-kit.mjs",
     "verify:framework": "node scripts/verify-framework.mjs",
-    "verify:hub": "node scripts/verify-hub.mjs"
+    "test:sharing": "node --test sharing/test/*.test.mjs",
+    "sharing": "node sharing/cli.mjs"
   },
   "devDependencies": {
     "@vscode/vsce": "4.0.0",
     "fflate": "0.8.3"
+  },
+  "dependencies": {
+    "@vercel/blob": "2.8.1"
   }
 }

@@ -1,37 +1,22 @@
 # Zero repository boundaries
 
-[codepetca/zero](https://github.com/codepetca/zero) owns the whole product. ZeroHub is the shared-library feature at `zero.codepet.ca/hub`, not another source repository. Its services can deploy independently.
+[codepetca/zero](https://github.com/codepetca/zero) owns the teaching kit and sharing platform. Students own their game repositories. They can extract related classes into `libraries/<slug>/` in that same repository, or share a whole game as an editable project.
 
 | Folder | Responsibility |
 | --- | --- |
-| `framework/` | Canonical ordinary Java SimpleApp/SketchApp library |
-| `extension/` | Minimal supported VS Code sidebar, Run/Stop, GitHub and ZeroHub actions |
-| `student-template/` | Standalone student app, tutorials and deliberately selected examples |
-| `libraries/` | Maintained sample libraries, their source, API, examples and checks |
-| `website/` | Minimal Next.js download page, learning material and ZeroHub interface |
-| `hub/` | ZeroHub service, PostgreSQL schema, isolated checker and separate publisher |
-| `profile/` | Optional editor settings and keybindings |
-| `release/`, `scripts/` | Compatible release definitions, assembly and verification |
-| `docs/` | Product contracts, development guidance and evidence |
+| `framework/` | Ordinary Java SimpleApp and SketchApp |
+| `extension/` | Supported VS Code Run, GitHub and sharing tools |
+| `student-template/` | Standalone Maven project, lessons and examples |
+| `libraries/` | Maintained sample source, examples and checks |
+| `sharing/` | GitHub intake, durable registry, immutable publication and game packaging |
+| `website/` | Vercel download, learning and public catalog pages |
+| `hub/checker/` | Disconnected former checker reference; no active publication authority |
+| `profile/`, `release/`, `scripts/` | Editor settings, release definitions and verification |
 
-## Source and distribution
+The dedicated GitHub branch `zero-sharing-registry` stores `registry/state.json`, updated with Git blob compare-and-swap. Issue events are hints; reconciliation discovers requests again. Numeric repository and owner IDs bind source ownership; exact commits freeze submissions. Library IDs and Java namespaces derive from repository ID and slug, so account renames do not rename imports. Publication stages bytes before reserving an exact version, then delivers immutable Maven or game ZIP paths and a content-addressed catalog. Interrupted delivery resumes without replacing accepted bytes.
 
-Canonical framework classes live in `framework/src/main/java/zero/`. Preparation assembles readable copies into the standalone starter. Students can edit their own copies without maintainer tools. Examples stay outside compiled source until selected deliberately.
+Vercel serves the website. Its read-only catalog route reads the fixed public Git registry and verifies the immutable catalog from public Blob storage. There is no database, custom website account, OAuth application or artifact proxy. Students need VS Code, Java and the project's Maven wrapper; no Node or Docker. The existing Maven starter remains to avoid introducing a second build tool.
 
-Maintained sample libraries live in this repo. Moving a useful sample here does not promote its API into core. The Starter UI bundle groups StartScreen, Hud and ScoreDisplay; health-bar alternatives demonstrate another related-class bundle.
+Local library Check runs the student's own code on their computer. It builds a JAR with a generated POM and runs behavior checks and two examples against that JAR. Local success does not authorize remote execution or publication. Generic submitted-library execution remains closed pending the outstanding independent checker acceptance. Game sharing packages validated source without executing it; opening a game extracts into a new folder without running it.
 
-Student apps and library source belong in students' own GitHub repositories. Uploaded libraries do not become folders in Zero. ZeroHub stores contributor identities, reservations, submissions, reports, immutable release metadata and artifact bytes in its database/storage. GitHub hosts source; Maven resolves exact downloadable library versions.
-
-Components expose ordinary Java methods and a JavaFX `Node view()`. Apps own rules and state, use independent component instances and explicitly update objects. No automatic registry, new language or app-within-app engine.
-
-## Runtime boundaries
-
-The website proxies the service through `/api/hub`. Candidate Java runs in bounded isolated workers without service credentials; a separate publisher validates the checked bytes without executing candidate code. One source repo does not imply one process or shared runtime permissions.
-
-The website deploys to Vercel, with Cloudflare DNS for `zero.codepet.ca`. Database, durable storage and checking workers are separate infrastructure. Student machines need no Node, Docker or ZeroHub server.
-
-## Releases and checks
-
-`release/kit.json` defines compatible kit/core versions and three kit assets. Packaging measures actual sizes/checksums in ignored `dist/release.json`. Verify extracted ZIP permissions, source parity and a real Maven build independently of website checks.
-
-ZeroHub has a local verified implementation; public activation requires authentication and hosted infrastructure plus the outstanding independent checker review. Native macOS ARM64 and Linux ARM64 checker evidence do not establish physical Windows/Linux or novice usability. See [development](DEVELOPMENT.md), [components](COMPONENTS.md) and [verification](VERIFICATION.md).
+See [the adoption plan](GITHUB-SHARING-PLAN.md) and [actual verification](VERIFICATION.md).

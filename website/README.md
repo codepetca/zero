@@ -22,13 +22,25 @@ Markdown renders on the server. The browser receives the current route's rendere
 
 ## ZeroHub
 
-`/hub` discovers checked library components, shows validated GitHub contributor credit, public APIs, preview PNGs, check results and exact Maven pins. `?library=ui1&version=1.0.0` inspects an exact release and never substitutes a newer version. `/hub/prepare` supports sign-in, reservation, editable project download, edited folder upload and automatic check results. Library source stays ordinary Java; coursework links still go separately to Pika.
+`/hub` discovers separate editable games and reusable Java libraries. Cards show
+exact versions, verified GitHub contributor identity, pinned source commits,
+optional previews and artifact size/hash details. `?kind=library&id=lib-r12345-health-bar&version=0.1.0`
+inspects one exact release without substituting another. Games offer **Download
+project** into a separate folder; libraries expose Java usage/API and manual
+Maven instructions. Browsing does not install a dependency or run Java.
 
-Set `ZERO_HUB_URL` to the configured service's fixed HTTPS origin or a loopback HTTP origin for local work. The server-only `/api/hub/[...path]` proxy preserves the narrowly scoped session cookies, CSRF and Origin checks. Its path/method, redirect, response-type and byte-limit allowlists remain enforced. Missing or unavailable service configuration shows a useful message. Authentication and publishing belong to the separate hub service; the website holds no service credentials.
+`/hub/share` explains native Zero **Share game**, **Share library** and **Check
+library** commands and official GitHub publication forms. Students use their own
+existing game repository with optional `libraries/<name>/` folders. There is no
+website OAuth, reservation, folder-upload, submission queue or Neon database.
+Public publication remains inactive while its operating and checker gates are
+unresolved. A local fixture or successful website build does not publish a release.
 
-`POST /api/hub/project` validates a library bundle and returns a trusted editable project ZIP. It preserves the exact canonical Maven wrapper files, including executable mode, from this repository. Local POM, preview Main, wrapper and editor files are excluded when students upload the edited folder. Its shared runtime packaging contracts are `hub/development-files.mjs`, `hub/contract.mjs` and the canonical `student-template/` wrapper files; include these repository sources in the website build.
-
-Backend `/api/hub` routes and `ZERO_HUB_*` configuration names are internal contracts. The frontend exposes `/hub` and `/hub/prepare`; retired catalog, portable workshop and static Maven gateway routes have been removed.
+The only sharing API is read-only `GET /api/sharing/catalog`. It returns the
+validated catalog, never registry request or operational state. The server uses
+the pure schema from `extension/src/sharing/contracts.js`; include that source
+in website builds. Missing configuration, an uninitialized pointer, an invalid
+snapshot or an outage produces an honest unavailable state without fallback.
 
 ## Download states
 
@@ -44,6 +56,37 @@ ZERO_LOCAL_DOWNLOADS=1 npm run dev -- --port 3000
 
 ## Hosting and verification
 
-The existing hosting configuration uses Vercel Root Directory `website/`, with source files outside the Root Directory included for build preparation. Install/build commands are `npm ci` and `npm run build`, with Node.js 22.x. Keep `ZERO_LOCAL_DOWNLOADS` unset for hosted builds. GitHub Releases host kit downloads. Deployment, publication, live OAuth and account provisioning require separate authorization.
+The existing Vercel Root Directory is `website/`, with repository sources outside
+that directory included for build preparation. Install/build commands are `npm ci`
+and `npm run build`, using Node.js 22.x. Keep `ZERO_LOCAL_DOWNLOADS` unset for
+hosted builds. GitHub Releases host existing kit downloads.
 
-Tests cover exact-version discovery, contributor links, project wrapper bytes, upload boundaries, proxy authentication/redirect/Origin behavior and download integrity. The optional actual HTTP ZIP test runs against an already-owned loopback server using `ZERO_HUB_TEST_WEBSITE`. A build does not prove interactive browser behavior or native Windows/Linux setup.
+The sharing catalog's current pointer lives in the Git CAS ledger at
+`registry/state.json` on the public `zero-sharing-registry` branch of
+`codepetca/zero`. Immutable Blob objects hold generated JSON snapshots and release
+artifacts. The website consumes this pointer; it does not overwrite a Blob
+current-pointer object or claim Blob provides compare-and-swap.
+
+Configure `ZERO_SHARING_ARTIFACT_ORIGIN` as the exact HTTPS Blob origin, without
+a path, query or fragment. Select exactly one source:
+
+- `ZERO_SHARING_REGISTRY_URL=https://raw.githubusercontent.com/codepetca/zero/zero-sharing-registry/registry/state.json`
+  for the canonical Git ledger. No other registry URL is accepted.
+- `ZERO_SHARING_CATALOG_URL=<fixed HTTPS immutable JSON snapshot URL>` for a
+  direct staging snapshot. This is an alternative, never an outage fallback.
+
+Registry responses are capped at 8 MiB; snapshots at 4 MiB. Both fetches share
+one 8-second deadline and reject redirects. The registry pointer must use the
+configured artifact origin, a digest-named snapshot path, a valid sequence and
+revision. The reader verifies SHA-256 against that path, optional size/hash fields,
+the catalog schema and matching registry revision. The browser request has its
+own 10-second deadline. Public deployment, artifact publication, branch creation
+and resource provisioning require separate authorization; these settings do not
+activate the blocked library checker.
+
+Tests cover exact-version selection, separated game/library behavior, fixed
+source/origin boundaries, snapshot integrity, bounds, outages, timeouts and kit
+download integrity. Typecheck/build verifies packaging. Browser QA remains a
+separate check for mobile reflow, keyboard/focus and accessible states; builds
+and fixtures do not prove hosted artifact delivery, public publication or physical
+Windows setup.

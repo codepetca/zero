@@ -1599,3 +1599,39 @@ turn to46priorrootturns, includes3historical filter failures, does not count reu
 peer baseline coverage again. Effective model/time/tokens unknown. Candidate
 version/source/assets remain local, not pushed or published; draftPR/sourceCI
 currently stop atfa802d8. Factual receipts do not weaken any held launch gate.
+
+## GitHub sharing replacement — implementation candidate, 2026-10-12/13
+
+Isolated `codex/github-sharing-adoption`, base `4ed9cd4`. User requested full
+implementation, wholesale replacement and task-scoped waiver of routine
+usage/review-budget stops. No actual provider rejection is waived. Generic
+library execution remains closed behind its previously rejected acceptance.
+Three bounded Sol delegates: authoring and registry high, website medium;
+coordinator integrated contracts, cleanup, packaging and workflow. One writer per
+component, no Git conflicts. Effective worker tokens/cost unknown; earlier 50%
+weekly remaining is account-wide. Fresh storage ~342GB, no task cleanup needed.
+
+Root suite210pass/1portablePowerShellskip (~111s), registry23pass (~38s),
+website38pass/types/build, contracts/editor/configuration18pass. Real local Check
+builds helper/widget JARs with two finite examples; local/published roots compile.
+Native editor fakes cover cancellation/drift/undoable POM edits/new-folder game
+opening/recovery. They do not establish interactive VS Code or physical Windows.
+
+`node scripts/verify-sharing-consumers.mjs` passed21.216s: two independent Maven
+projects each Add1.0.0→Update1.0.1→Revert1.0.0. Six fresh library resolutions over
+local HTTPS, actual code-source JAR/hash/behavior verified, contributed namespace
+removed from cache before each build, no local library classes, Maven source
+archives hash-verified. Node/Maven trust scoped to child processes with disposable
+cert/truststore; global trust unchanged. Ignored receipt/logs under
+`.verification/sharing-consumers/`. No public hosted or managed-executor claim.
+
+VSIX0.5.8 bundles the canonical Java Check harness and disabled operator settings;
+packaging and extracted-kit verification passed. Browser Playwright fixtures
+check discovery kinds, expanded usage and search misses, with desktop/mobile
+screenshots under ignored `output/playwright/`. Publication workflow remains off
+until reviewed exact source and operator configuration. No push, deploy, public
+publication, credential mutation or hosted data deletion performed.
+
+Independent implementation review pending; generic held checker acceptance is
+excluded and stays unresolved. Live GitHub/Blob ETag and permissions, hosted
+journey, Windows and novice pilot remain outstanding rollout evidence.

@@ -31,7 +31,6 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            hub/package-lock.json
             website/package-lock.json
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
@@ -40,7 +39,6 @@ jobs:
       - name: Install pinned dependencies
         run: |
           npm ci
-          npm ci --prefix hub
           npm ci --prefix website
       - name: Check version and immutable release boundary
         id: release
@@ -54,16 +52,8 @@ jobs:
           npm run test:release
       - name: Extension and standalone starter tests
         run: npm test
-      - name: Hub admission, authentication and runtime checks
-        run: |
-          npm run test:postgres --prefix hub
-          node --test hub/service/artifact-route.test.mjs hub/service/catalog.test.mjs hub/service/catalog-postgres.test.mjs hub/service/session-cleanup.test.mjs hub/service/oauth-client.test.mjs hub/service/staging.test.mjs hub/service/vercel-integration.test.mjs
-          ZERO_HUB_BACKUP_PG_TEST=1 ZERO_HUB_BACKUP_PG_MAJOR=17 npm run test:backup --prefix hub
-          ZERO_HUB_BACKUP_PG_TEST=1 ZERO_HUB_BACKUP_PG_MAJOR=18 npm run test:backup --prefix hub
-          ZERO_HUB_RELEASE_PG_MAJOR=17 npm run test:availability --prefix hub
-          ZERO_HUB_RELEASE_PG_MAJOR=18 npm run test:availability --prefix hub
-          ZERO_HUB_OPERATIONS_PG_MAJOR=17 npm run test:operations --prefix hub
-          ZERO_HUB_OPERATIONS_PG_MAJOR=18 npm run test:operations --prefix hub
+      - name: GitHub registry and immutable publication contracts
+        run: npm run test:sharing
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update

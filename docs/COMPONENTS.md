@@ -1,57 +1,131 @@
-# ZeroHub libraries and components
+# ZeroHub games, libraries and components
 
-ZeroHub is Zero's shared-library feature at `/hub`. All platform source is maintained in Zero. Student authors keep their library source in their own repositories; uploads and immutable artifacts live in ZeroHub storage.
+ZeroHub at `/hub` discovers complete editable games and reusable Java libraries.
+Students use one existing game repository owned by their personal GitHub account.
+Libraries live under `libraries/<name>/` inside that repository; sharing does not
+require another repository. Pika assignment submission remains a separate
+repository-link workflow.
 
-## Use a component
+## Use a library
 
-Browse a component's preview, example, GitHub contributor and checked platform at [ZeroHub](https://zero.codepet.ca/hub). Related components come together as one library.
+Browse a library’s author, exact source commit, version, optional PNG preview and
+Java API on [ZeroHub](https://zero.codepet.ca/hub). Related classes come together
+as one library. The website never installs a dependency merely by displaying it.
 
-Automatic setup is coming in the next Zero update. With the locally built development extension, open Zero's (…) menu → **Browse ZeroHub**, choose a component, select **Add library**, then **Apply**. Zero handles library setup. Use the component's Java import and example, then **Run App**. You choose when to **Update**; **Revert** returns to your previous version.
-
-The development extension edits only managed Maven dependency/repository/history blocks through the native undoable editor. It refuses unsaved or drifted POMs and source copies that shadow installed classes.
+The replacement development extension uses native **Browse ZeroHub**, **Add
+library**, **Apply**, **Update** and **Revert** controls. Add and Update preview
+managed Maven edits, preserve ordinary Java source and pin an exact version.
+Revert returns to that library’s previous pin; libraries keep independent
+histories. There are no automatic updates or silent substitutions. Public kit
+releases retain their original bytes and do not acquire these controls until a
+new kit is deliberately released.
 
 ### Manual setup for current downloads
 
-Current public downloads do not include automatic library setup. On a component card, open **Use this component → Manual setup for current downloads**. Add the shown entry to your app's `pom.xml`, then use the shown Java import and example. Add the entry once for related components in the same library. You can instead wait for the Zero update; the website does not install a library into your app when you browse a card.
+Open **Use this library → Manual Maven setup** on a library card. Merge the shown
+repository and dependency entries into the existing sections of your app’s
+`pom.xml`, then use the shown Java import and example. Add the dependency once
+for related classes in that library. Maven retrieves the exact listed version
+from the public immutable artifact store.
 
-A reserved library `ui7` provides imports such as `zero.ui7.Hud` and exact coordinates `ca.codepet.zero.library:ui7:0.1.0`. IDs are assigned by the server; GitHub usernames are attribution, not package names. Use the actual import/API on the card. Ordinary constructors, setters and callbacks connect components; apps own navigation and rules.
+Identity comes from the verified numeric GitHub repository ID and chosen slug.
+Repository `12345` and slug `health-bar` produce library ID
+`lib-r12345-health-bar`, namespace `zero.contrib.r12345.health_bar` and coordinate
+`ca.codepet.zero.contrib.r12345:health-bar:0.1.0`. Imports could include
+`zero.contrib.r12345.health_bar.HealthBar`; use the actual API on the card.
+Account/repository renames do not rename Java packages or Maven coordinates.
+GitHub contributor names provide credit, while numeric identities bind ownership.
+There is no server-assigned short-ID reservation.
 
-Add pins a version. Update supports a newer compatible patch; Revert uses that library's previous pin. Separate libraries keep independent histories. No automatic updates or silent source replacement.
+Ordinary constructors, setters and callbacks connect components. Main owns
+navigation, game rules and explicit updates; widgets expose `Node view()` and
+ordinary helpers need no view, registration system or automatic lifecycle.
 
-## Make and share in the local developer preview
+## Open a game
 
-Sign into ZeroHub with GitHub, choose a class name/title and download the assigned library project. Open it in Zero, run the editable preview and develop source, API, changelog, MIT notice, PNG, behavior checks and two finite consumer examples. Upload the folder; generated build files do not become submission authority.
-The ZIP includes a short README that stays local. Save the submission-result
-link to recover after reload or sign-in. Re-select the same folder after fixing
-a failed unpublished version; identical uploads recover the existing report or
-exact release. Run App previews the component; it does not run the submitted
-behavior check and two examples locally.
+Games are separate editable projects, never Maven dependencies. Inspect the
+controls, author, license and exact source before choosing **Download project**
+on the website or **Open project** in the replacement Zero editor. Zero verifies
+the listed ZIP’s size/hash and extracts into a new destination; it does not
+overwrite an existing project, configure the original author’s remote or run
+Java automatically. Review ordinary VS Code workspace trust before **Run App**.
+Connecting your own repository is a separate action. Preserve attribution and
+applicable licenses when making changes.
 
-Trusted isolated checks validate namespace/API, compile the library and execute declared checks/consumers using its actual JAR. The separate publisher validates source/policy/artifact bindings and lists passing immutable versions automatically. Contributors cannot provide another user's attribution or their own acceptance verdict. Failed unpublished versions can be corrected and resubmitted; listed versions require a new version for fixes.
+The initial game policy validates and packages source. It does not execute the
+game or promise gameplay quality, safe execution or a native installer.
 
-The first policy supports self-contained JavaFX widgets exposing `public Node view()`, with Java17/JavaFX21.0.12 and no extra library dependencies. Automatically checked means the disclosed checks passed on the recorded platform; it cannot prove all behavior, usefulness or safety when installed. Downloaded components run with the app's permissions.
+## Develop and share from the existing repository
 
-## Alternatives and core
+Use **Share game** for the root game and **Share library** for a library folder.
+Save authored title, description, license, exact version and preview selection in
+`zero-game.json` or `zero-library.json`; games also describe their controls.
+Zero derives identity and API metadata rather than asking students to copy a
+commit SHA or numeric repository ID into a browser form.
 
-Several HUDs or health bars can coexist as separate libraries. A related set of classes can share one library. Combining independent libraries is a deliberate new API/release decision, not an automatic rename of existing imports. Highlighting preferred choices and core promotion remain future deliberate decisions; they do not alter installed pins.
+For a library, preview extraction and package/import/build changes before moving
+selected classes and their helpers under `libraries/<name>/`. Keep recoverable
+source edits and prove the game still runs. **Develop local library** compiles
+the editable source roots; **Use published version** uses an exact Maven pin.
+The two modes are explicit and never silently fall back to local classes when
+an artifact is missing.
 
-`libraries/starter-ui/` and `libraries/health-bars/` are maintained sample bundles, separate from core APIs. Starter UI is published as `ui1:0.1.0`; the health-bar bundle is not published in ZeroHub yet. Maintained source is never published merely by editing a folder. [Starter UI proof](STARTER-UI-PACKAGE.md) and [the hub contract](../hub/CONTRACT.md) describe the boundaries.
+Choose **Check library** for local feedback on independent compilation, API/source
+boundaries, behavior checks and two finite examples using the actual JAR. The
+first policy uses Java 17, JavaFX 21.0.12 and a fixed dependency allowlist; it
+supports self-contained JavaFX widgets and ordinary Java helpers. Local feedback
+is not hosted publication authority.
 
-## Open contribution and curation
+Upload source through the normal reviewed Git workflow. Share opens a prefilled
+form in the official Zero GitHub repository, frozen to the exact committed source
+folder and version. GitHub handles authentication; the website has no sign-in,
+folder-upload or reservation flow. Changing local files afterward does not
+change that request. The pilot requires public repositories owned by the
+requesting student’s personal account; private/organization/team publication
+needs a later policy.
 
-There is no lifetime contributor storage or library-count allowance in the
-approved product policy. Passing supported libraries publish automatically;
-Zero's owners and designated maintainers may later archive, hide or remove any
-content at their discretion, including unused or redundant libraries. Normal
-archiving hides discovery while preserving exact downloads where practical;
-removal may stop downloads. Neither silently changes installed versions.
-See [the policy](ZEROHUB-POLICY.md) and
-[implementation follow-up](ZEROHUB-PLAN.md#curation-and-capacity-follow-up).
-Current local admission no longer has lifetime contributor guards. Archiving
-and removal are deferred; neither is claimed as a deployed control.
+An accepted version’s source never changes. Correct failed unpublished source
+and submit its new commit; fixes to accepted releases use a new version.
+Contributor-supplied workflow results or claimed acceptance are not authority.
 
-## Current availability
+## Publication and current limits
 
-The public catalog supports browsing and exact Maven downloads. The complete contribution journey runs locally; public GitHub sign-in and uploads remain closed until the independent checker-security review, isolated hosted workers and operating controls are complete. Local demo identity is only a test. Pika assignment submission remains a separate repository-link workflow.
+Small authoritative request, release and availability records live in a Git CAS
+ledger on the `zero-sharing-registry` branch of Zero. Immutable public Blob
+objects hold Maven files, source archives, game ZIPs and generated catalog
+snapshots. The Git ledger holds the current snapshot pointer. The website reads
+that fixed pointer and validates its exact artifact origin, digest and revision;
+there is no Neon database or website OAuth session on this read path.
 
-See [lesson 11](../student-template/lessons/11-zerohub.md), [development commands](DEVELOPMENT.md) and [ZeroHub run guide](../hub/README.md).
+The automatic-publication design separates trusted checking from publication.
+Public library checking remains blocked by the unresolved checker acceptance
+gate. Moving execution to managed CI does not remove that gate. This local
+replacement does not activate public publication or prove a hosted candidate
+executor. A request alone is not an available release; failed or unavailable
+checks must never create one. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
+[sharing contract](../sharing/CONTRACT.md).
+
+Automatically checked can only mean the disclosed accepted checks actually
+passed; it cannot establish every behavior, usefulness or safety when installed.
+Downloaded Java runs with the app’s permissions. Existing experiment artifacts
+are not migrated into this replacement catalog or treated as verified releases.
+
+## Alternatives, samples and curation
+
+Several HUDs or health bars can coexist as separate libraries. Related classes
+can share one library. Combining alternatives, highlighting preferred choices
+and promoting APIs into core remain deliberate decisions; none silently changes
+installed pins.
+
+`libraries/starter-ui/` and `libraries/health-bars/` are maintained local sample
+bundles, separate from core APIs. Editing them does not publish a replacement
+release. [Starter UI proof](STARTER-UI-PACKAGE.md) documents historical/local
+consumer evidence, rather than authority for this catalog.
+
+The approved product policy imposes no lifetime contributor storage or library
+count allowance. Technical bounds and shared capacity controls still apply.
+Zero’s owners and designated maintainers may curate, archive or withdraw content.
+A withdrawn release is visibly unavailable and cannot be added or downloaded
+through Zero; already installed local files are unchanged. Curation is separate
+from routine technical acceptance. See [the contribution policy](ZEROHUB-POLICY.md)
+and [development commands](DEVELOPMENT.md).

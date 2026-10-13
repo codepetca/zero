@@ -1,0 +1,57 @@
+name: Sharing game publication
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# GitHub pending runs are not a durable queue. The registry and periodic inbox
+# reconciliation retain work after a replaced event or interrupted run.
+concurrency:
+  group: zero-sharing-games
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: vars.ZERO_SHARING_GAME_PUBLICATION_ENABLED == 'true'
+    environment: zero-sharing-publisher
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install trusted pinned publisher dependencies
+        run: npm ci --ignore-scripts
+      - name: Validate operator configuration against this exact source revision
+        env:
+          ZERO_SHARING_CONFIG: ${{ vars.ZERO_SHARING_CONFIG }}
+          ZERO_TRUSTED_SOURCE_SHA: ${{ github.workflow_sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          import {validatePlatformConfig} from './sharing/cli.mjs';
+          const config = validatePlatformConfig(JSON.parse(process.env.ZERO_SHARING_CONFIG || '{}'));
+          if (!config.gamePublicationEnabled || config.policyRevision !== process.env.ZERO_TRUSTED_SOURCE_SHA) {
+            throw new Error('Game publication requires configuration for the exact reviewed workflow source');
+          }
+          writeFileSync(process.env.RUNNER_TEMP + '/zero-sharing-config.json', JSON.stringify(config), {mode:0o600});
+          NODE
+      - name: Reconcile GitHub requests and interrupted immutable delivery
+        env:
+          ZERO_REGISTRY_TOKEN: ${{ github.token }}
+          ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
+          ZERO_BLOB_TOKEN: ${{ secrets.ZERO_BLOB_TOKEN }}
+        run: node sharing/cli.mjs reconcile --config "$RUNNER_TEMP/zero-sharing-config.json" --execute --role publisher

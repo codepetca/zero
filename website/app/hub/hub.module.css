@@ -1,0 +1,9 @@
+.catalog { min-width: 0; overflow-wrap: anywhere; }
+.navigation { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+.navigation a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--outline); border-radius: 6px; font: inherit; background: white; }
+.navigation a[aria-current="page"] { color: var(--ink); border-color: var(--purple); font-weight: 600; }
+.navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.card { min-width: 0; }
+.card a { overflow-wrap: anywhere; }
+.metadata { color: var(--muted); font-size: 16px; }
+.hash { overflow-wrap: anywhere; }

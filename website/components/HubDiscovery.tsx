@@ -1,58 +1,60 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {checkLabel, contributorProfile, dependencySnippet, previewPath, discoveryPage, appendDiscoveryPage, uploadsAvailable } from '@/lib/hub-client.mjs';
-export type HubComponent = {className:string;description:string;api:string[];usage:string};
-export type HubRelease = {status:'automatically-checked';libraryId:string;version:string;title:string;description:string;namespace:string;components:HubComponent[];platforms:string[];checks:{id:string;passed:boolean;detail:string}[];coordinate:{groupId:string;artifactId:string;version:string};preview:{path:string};contributor?:{githubId:string;login:string}};
+import {dependencySnippet, releaseLink, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
+import styles from '@/app/hub/hub.module.css';
+type Artifact = {url:string; size:number; sha256:string};
+type Component = {className:string; description:string; usage:string; api:string[]};
+type Release = {kind:'library'|'game'; id:string; version:string; title:string; description:string; license:string; status:string; libraryKind?:string; namespace?:string; controls?:string; components?:Component[]; contributor:{login:string; githubId:string}; repository:{url:string}; source:{commit:string; folder:string; sha256:string}; coordinate?:{groupId:string;artifactId:string;version:string}; artifacts:{zip?:Artifact;jar?:Artifact;sources?:Artifact;pom?:Artifact;preview?:Artifact}};
+type Catalog = {schema:number;revision:string;releases:Release[]};
 export function HubDiscovery() {
-  type Catalog={mode:string;capabilities?:{uploads:boolean};libraries:HubRelease[];nextCursor:string|null};
-  const [result,setResult] = useState<{key:string;catalog:Catalog}|null>(null);
-  const query=useSearchParams();
-  const library=query.get('library')||'',version=query.get('version')||'';
-  const exact=query.has('library')||query.has('version');
-  const selection=exact?{library,version}:null;
-  const [error,setError] = useState<{key:string;message:string}|null>(null);
-  const [search,setSearch] = useState(''); const [origin,setOrigin]=useState('');
-  const [loadingMore,setLoadingMore]=useState(false);
-  const more=useRef<()=>void>(()=>{});
-  const key=JSON.stringify([exact,library,version,exact?'':search]);
-  const catalog=result?.key===key?result.catalog:null;
-  const message=error?.key===key?error.message:'';
-  useEffect(()=>{
-    const abort=new AbortController();let active=true,busy=false,current:Catalog|null=null;
-    setOrigin(window.location.origin);setError(null);setLoadingMore(false);
-    const load=async(cursor:string|null=null)=>{
-      if(busy)return;busy=true;if(cursor)setLoadingMore(true);
-      try {
-        const page=await discoveryPage({search,selection:exact?{library,version}:null,cursor,signal:abort.signal}) as Catalog;
-        if(!active)return;
-        const combined:Catalog=cursor&&current?appendDiscoveryPage(current,page):page;
-        current=combined;setResult({key,catalog:combined});setError(null);
-      }catch(error){if(active)setError({key,message:error instanceof Error?error.message:'Hub unavailable.'});}
-      finally{busy=false;if(active)setLoadingMore(false);}
-    };
-    more.current=()=>{if(current?.nextCursor)void load(current.nextCursor);};
-    const timer=setTimeout(()=>void load(),exact||!search?0:300);
-    return()=>{active=false;clearTimeout(timer);abort.abort();more.current=()=>{};};
-  },[key,exact,library,version,search]);
-  return <section aria-labelledby="hub-components"><h2 id="hub-components">Library components</h2>
-      {!selection && <div className="hub-form"><label htmlFor="component-search">Find a component</label><input id="component-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Name or description" maxLength={200} /></div>}
-      {selection && <p className="hub-note">Exact release: {selection.library} · {selection.version}. <Link href="/hub">Browse latest components</Link></p>}
-    {!catalog && message ? <p className="fine-print" role="status">{message}</p> : !catalog ? <p role="status">Loading libraries…</p> : <>
-      {catalog.mode==='local' && <p className="hub-note">Local test hub. These libraries are published only to this local service.</p>}
-      {uploadsAvailable(catalog) ? <Link className="button secondary compact" href="/hub/prepare">Make a library</Link> : <p className="fine-print" role="status">Library uploads are not open yet. You can browse and use available libraries.</p>}
-      <div className="component-choices">{catalog.libraries.flatMap(library=>library.components.map(component=>{
-        const preview=previewPath(library),contributor=contributorProfile(library); let snippet=''; try{snippet=origin ? dependencySnippet(library,origin):'';}catch{return null;}
-        return <article className="component-choice" key={`${library.libraryId}-${library.version}-${component.className}`}><h3>{component.className}</h3><p>{component.description}</p><p className="component-meta">In {library.title} · {library.libraryId} · {library.version}{contributor&&<> · <a href={contributor.url}>By @{contributor.login}</a></>}</p>
-          {preview && <img className="hub-preview" src={preview} alt={`${library.title} component preview`} loading="lazy" />}
-          <details><summary>Use this component</summary><p>Automatic setup is coming in the next Zero update. In that version, open Zero’s (…) menu → Browse ZeroHub, choose this component, then select Add library and Apply. Zero handles the library setup.</p><p>Use this Java example, then choose Run App.</p><pre><code>{`import ${library.namespace}.${component.className};\n\n${component.usage}`}</code></pre><pre><code>{component.api.join('\n')}</code></pre><details><summary>Manual setup for current downloads</summary><p>Current downloads need this entry in your app’s pom.xml. Add it once for all components in this library, then use the Java example above.</p><pre><code>{snippet}</code></pre></details></details>
-          <details><summary>Automatically checked</summary><p>Checked platforms: {library.platforms.join(', ') || 'No platform reported'}. Java 17 · JavaFX 21.0.12 · MIT.</p><ul>{library.checks.map(check=><li key={check.id}>{check.passed?'Passed':'Failed'}: {checkLabel(check.id)}{!check.passed&&`: ${check.detail}`} </li>)}</ul><p className="fine-print">These checks cover the declared APIs, source boundaries and two consumer apps. They do not establish every behavior or compatibility with other platforms.</p></details>
-        </article>;
-      }))}</div>
-      {!catalog.libraries.length && !selection && <p>{search.trim()?'No components match this search.':'No libraries are available yet.'}</p>}
-      {message && <p role="status">{message}</p>}
-      {catalog.nextCursor && <button className="button secondary compact" onClick={()=>more.current()} disabled={loadingMore}>{loadingMore?'Loading…':'Show more'}</button>}
+  const query = useSearchParams();
+  const requestedKind = query.get('kind') || 'library';
+  const kind = requestedKind === 'game' ? 'game' : 'library';
+  const id = query.get('id') || '', version = query.get('version') || '';
+  const [catalog, setCatalog] = useState<Catalog|null>(null);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController(); let active = true;
+    const timer = setTimeout(() => controller.abort(), 10000);
+    setCatalog(null); setError('');
+    void fetch('/api/sharing/catalog', {cache:'no-store', redirect:'error', signal:controller.signal}).then(async response => {
+      if (!response.ok) throw new Error('ZeroHub is unavailable. Try again shortly.');
+      const data = await response.json();
+      if (active) setCatalog(data);
+    }).catch(() => {if (active) setError('ZeroHub is unavailable. Try again shortly.');}).finally(() => clearTimeout(timer));
+    return () => {active = false; clearTimeout(timer); controller.abort();};
+  }, [retry]);
+  let releases:Release[] = [], selectionError = '';
+  if (catalog) try {
+    if (!['game','library'].includes(requestedKind)) throw new Error('Choose games or libraries.');
+    releases = selectReleases(catalog, {kind, search, id, version}) as Release[];
+  } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
+  return <section className={styles.catalog} aria-labelledby="sharing-heading">
+    <h2 id="sharing-heading">Browse {kind === 'game' ? 'games' : 'libraries'}</h2>
+    <nav className={styles.navigation} aria-label="ZeroHub catalog"><Link href="/hub?kind=game" aria-current={kind==='game'?'page':undefined}>Games</Link><Link href="/hub?kind=library" aria-current={kind==='library'?'page':undefined}>Libraries</Link><Link href="/hub/share">Share your work</Link></nav>
+    {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'games':'libraries'}</Link></p> : <div className="hub-form"><label htmlFor="sharing-search">Find {kind==='game'?'a game':'a library'}</label><input id="sharing-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="Title, author or description" /></div>}
+    {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'games':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
+      <p className="fine-print">{kind==='game'?'Games are editable source projects. Download into a new folder and open separately in VS Code. Source packaging does not establish gameplay quality or safe execution.':'Libraries use exact Maven versions. You choose when to Add, Update or Revert in Zero; browsing does not change your project.'}</p>
+      {!releases.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? 'No releases match this search.' : `No ${kind==='game'?'games':'libraries'} are available yet.`}</p>}
+      <div className="component-choices">{releases.map(release=><article className={`component-choice ${styles.card}`} key={`${release.id}/${release.version}`}>
+        <h3><Link href={releaseLink(release)}>{release.title}</Link></h3><p>{release.description}</p>
+        <p className={styles.metadata}>{release.id} · Version {release.version} · <a href={`https://github.com/${release.contributor.login}`}>@{release.contributor.login}</a> · {release.license}</p>
+        {release.artifacts.preview && <img className="hub-preview" src={release.artifacts.preview.url} alt={`${release.title} preview`} loading="lazy" />}
+        <p><a href={sourceLink(release)}>View exact source on GitHub</a></p>
+        {release.status !== 'available' ? <p role="status">This release was withdrawn and cannot be downloaded or added. Your existing local files have not changed.</p> : release.kind === 'game' ? <>
+          <p><strong>Controls:</strong> {release.controls}</p><a className="button primary compact" href={release.artifacts.zip?.url}>Download project</a><p className="fine-print">Extract into a new folder, then open that folder in VS Code. Review workspace trust before choosing Run App. This is a separate project.</p>
+        </> : <details><summary>Use this library</summary>
+          <p>{release.libraryKind==='widget'?'JavaFX widget':'Java helper'} · Java 17 · JavaFX 21.0.12</p><p>In Zero, choose Browse ZeroHub, select this exact library version, then Add library and Apply. Use the Java example and choose Run App.</p>
+          {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4><p>{component.description}</p><pre><code>{`import ${component.className};\n\n${component.usage}`}</code></pre><details><summary>Public API</summary><pre><code>{component.api.join('\n')}</code></pre></details></div>)}
+          {!release.components?.length && <p>Read the exact source for this library’s Java API and examples. Namespace: <code>{release.namespace}</code>.</p>}
+          <details><summary>Manual Maven setup</summary><p>Merge these repository and dependency entries into the existing sections of your project’s pom.xml. Keep the exact version.</p><pre><code>{dependencySnippet(release)}</code></pre><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.sources?.url}>Download sources</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
+        </details>}
+        <details><summary>Release details</summary><p>Source commit: <code>{release.source.commit}</code></p><p className={styles.hash}>Source SHA-256: <code>{release.source.sha256}</code></p>{Object.entries(release.artifacts).filter(([name])=>name!=='preview').map(([name, artifact])=><p className={styles.hash} key={name}>{name}: {artifact.size.toLocaleString()} bytes · SHA-256 <code>{artifact.sha256}</code></p>)}</details>
+      </article>)}</div>
     </>}
   </section>;
 }

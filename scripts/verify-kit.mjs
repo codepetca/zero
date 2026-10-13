@@ -35,6 +35,8 @@ const vsix = unzipSync(readFileSync(path.join(root, 'dist', release.assets.exten
 // vsce normalizes the extension's LICENSE filename to LICENSE.txt in the VSIX.
 assert.deepEqual(vsix['extension/LICENSE.txt'], license);
 assert.equal(JSON.parse(new TextDecoder().decode(vsix['extension/package.json'])).license, 'MIT');
+assert.deepEqual(vsix['extension/media/sharing-harness/ZeroLibraryHarness.java'],new Uint8Array(readFileSync(path.join(root,'sharing/harness/ZeroLibraryHarness.java'))));
+assert.deepEqual(vsix['extension/media/sharing-config.json'],new Uint8Array(readFileSync(path.join(root,'extension/media/sharing-config.json'))));
 const starter = unzipSync(readFileSync(path.join(root, 'dist', release.assets.starter.filename)));
 const expectedStarter = starterMembers(root);
 assert.deepEqual(Object.keys(starter).sort(), Object.keys(expectedStarter).sort());

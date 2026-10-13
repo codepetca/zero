@@ -12,7 +12,12 @@ page has the Zero wordmark, one sentence, Download Zero and Learn more only.
 `/learn` is a compact learning hub with thirteen lessons (0–12), including full app/game
 tutorials, examples and docs.
 Tutorial steps and reference sections expand when requested; full guides remain
-available. `/hub` is the ZeroHub shared-library feature: find components, inspect exact versions and authenticated contributor credit, prepare a library and upload it for automated checks. The catalog is public at `https://zero.codepet.ca/hub`; contributor preparation/upload runs locally while public authentication and isolated checking remain closed. Existing kit/installer downloads have separate release records.
+available. `/hub` is ZeroHub: discover separate editable games and reusable
+libraries, inspect exact versions, source and verified GitHub contributor identity.
+`/hub/share` explains native Zero Share commands and official GitHub forms. The
+local replacement has no website sign-in, reservation or folder-upload service.
+Public publication remains inactive; library candidate execution still needs its
+outstanding acceptance. Existing kit/installer downloads have separate release records.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract
@@ -66,7 +71,34 @@ preparation assembles editable copies into the standalone starter. Review shared
 in more than one app before cohort adoption. The extraction examples remain useful
 lessons; shared components now use the local ZeroHub versioned-library flow.
 
-The local ZeroHub flow consumes exact Maven library versions. Students develop a downloaded ordinary Java preview project, then upload source, API, tests and examples. Isolated automated checks and a separate publisher list passing immutable versions without routine maintainer approval. All platform and maintained sample source lives in Zero. See [component architecture](COMPONENTS.md). ZeroHub keeps contributions open without a lifetime contributor storage or library-count allowance. Zero owners and designated maintainers have final authority to curate, archive or remove hosted content after publication; see [the contribution policy](ZEROHUB-POLICY.md). Technical checks and shared capacity controls remain.
+ZeroHub uses one existing public game repository owned by the student's personal
+GitHub account. Optional libraries live in `libraries/<name>/` in that same
+repository. Share game freezes the root project; Share library freezes its
+committed folder and exact version. Native Zero controls reuse authored
+`zero-game.json`/`zero-library.json` settings, derive identity, preview source and
+open the official GitHub form. Normal Git upload and separate Pika submission
+remain unchanged. Local changes after the selected commit are not part of a request.
+
+Games are complete editable projects opened separately into new destinations,
+never library dependencies. Downloaded Java is not automatically run; ordinary
+VS Code workspace trust and Run App remain student choices. Game packaging checks
+do not promise safe execution, gameplay quality or native installers.
+
+Libraries use exact Maven pins with deliberate Add, Update and Revert. Widgets
+and ordinary helpers retain ordinary Java APIs; Main explicitly owns state and
+updates. Develop local library and Use published version are distinct modes.
+Check library supplies local compilation/API/behavior/two-consumer feedback;
+local feedback is not public acceptance. Trusted checking and a separate publisher
+are the intended automatic publication path, without routine maintainer approval,
+but the unresolved library checker acceptance gate remains binding.
+
+The replacement uses a Git CAS registry ledger and immutable public Blob artifacts
+with generated catalog snapshots, not Neon or website OAuth. Accepted versions
+never change source. ZeroHub keeps contributions open without lifetime contributor
+storage or library-count allowances; technical bounds and shared capacity controls
+remain. Owners and designated maintainers retain curation/withdrawal authority.
+See [component architecture](COMPONENTS.md), [the adoption plan](GITHUB-SHARING-PLAN.md)
+and [the contribution policy](ZEROHUB-POLICY.md).
 
 The first dogfooding pass deliberately uses the existing framework. App-specific
 navigation and question rules stay in Main; Question stores question data and
@@ -215,6 +247,16 @@ upstream wrapper notices apply separately to the wrapper.
 
 ## ZeroHub alternatives and core promotion
 
-Multiple component libraries can coexist. Related classes share a library and exact version; individual classes remain discoverable. Server-assigned short IDs determine imports such as `zero.ui7.Hud`; authenticated GitHub identities provide contributor credit. No automatic updates, package renames or merging of alternatives.
+Multiple component libraries can coexist. Related classes share a library and
+exact version; individual classes remain discoverable. Verified numeric GitHub
+repository IDs and permanent slugs determine stable identities: repository 12345
+and `health-bar` yield `lib-r12345-health-bar`, imports such as
+`zero.contrib.r12345.health_bar.HealthBar` and Maven coordinate
+`ca.codepet.zero.contrib.r12345:health-bar:0.1.0`. Account/repository renames do not
+change packages or coordinates. Contributor credit follows verified GitHub identity.
+No automatic updates, package renames or merging of alternatives.
 
-Preferred choices and promotion into core remain deliberate future decisions based on usefulness, API stability and maintenance. They do not change installed pins. See [the ZeroHub plan](ZEROHUB-PLAN.md) and [single-repo boundaries](ARCHITECTURE.md).
+Preferred choices and promotion into core remain deliberate future decisions
+based on usefulness, API stability and maintenance. They do not change installed
+pins. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
+[single-repo boundaries](ARCHITECTURE.md).

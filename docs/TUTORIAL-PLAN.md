@@ -62,7 +62,7 @@ expecting its timer or game rules to stop.
 
 ## Component creation and contribution
 
-Lesson10 extracts an ordinary source component and reuses it across the pair. Lesson11 prepares an assigned ZeroHub library project, runs its editable preview, develops API/checks/two consumers, uploads the folder and reads automatic results. Passing versions are listed without routine maintainer acceptance; Pika links stay separate.
+Lesson10 extracts an ordinary source component and reuses it across the pair. Lesson11 extracts a library inside the existing game repository, develops API/checks/two consumers, checks locally and prepares an exact-commit GitHub request. Whole games are shared separately as editable projects. Passing versions are listed without routine maintainer acceptance; Pika links stay separate.
 
 The Starter UI bundle groups StartScreen, Hud and ScoreDisplay. Main owns state/actions; callbacks connect views. Health-bar alternatives are another maintained bundle. Both live in `libraries/`, not core. See [package proof](STARTER-UI-PACKAGE.md).
 
