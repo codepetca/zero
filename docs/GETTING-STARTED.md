@@ -12,7 +12,7 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Zero Setup for Mac
 
-The signed and notarized **Mac setup 0.5.7** prepares Zero with one small window
+The signed and notarized **current Mac setup** prepares Zero with one small window
 and one changing progress message:
 
 1. Open Zero Setup and choose **Set up Zero**. It uses `~/Zero` automatically.
@@ -40,8 +40,8 @@ For the optional profile, download the **complete kit ZIP**.
 
 ## One-time setup
 
-These steps apply to the separately published **0.5.3 ZIP** on Windows,
-or to optional manual setup on a Mac with Apple Silicon. Mac setup0.5.7 uses
+These steps apply to the **complete kit ZIP** on Windows,
+or to optional manual setup on a Mac with Apple Silicon. Native Mac setup uses
 the automatic flow above.
 The downloaded filename and release page identify the version.
 If your extracted complete kit includes a `setup/` folder, you may instead open
@@ -52,7 +52,7 @@ No Node.js or separate Maven is needed.
 Actual Windows installers, school policies and clean personal-machine installation
 remain unverified; see [setup behaviour and limits](SETUP.md).
 
-With the 0.5.7 extension, **Setup help** inside VS Code shows a native checklist
+With the current extension, **Setup help** inside VS Code shows a native checklist
 with **Check again**. Older extensions may show a simpler setup guide.
 Java editor/debugger repair uses VS Code's extension installer in the current
 profile. Java/Git repair opens an official download page and explains installation
@@ -76,8 +76,9 @@ confirm its JavaFX window, since tool detection is not a build test.
    **Extensions: Install from VSIX…** in the Command Palette, then use
    **Extensions: Install Extensions** to install **Language Support for Java
    by Red Hat** (`redhat.java`) and **Debugger for Java**
-   (`vscjava.vscode-java-debug`). For the 0.5.3 ZIP this is `zero-0.5.3.vsix`;
-   Mac setup0.5.7 installs its bundled `zero-0.5.7.vsix` automatically. If you downloaded only the starter,
+   (`vscjava.vscode-java-debug`). Use the versioned Zero VSIX included with your
+   downloaded kit; native Mac setup installs its bundled extension automatically.
+   If you downloaded only the starter,
    get the separately labelled Zero extension from [GitHub releases](https://github.com/codepetca/zero/releases).
    Zero is not published in the Marketplace.
 3. Move or copy the kit's **starter folder** into your own location, outside any
@@ -107,9 +108,9 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-The website ZIPs work with the published extension's **Run App**. The current
-source extension also has **Zero: Start project**; that command is not in the
-frozen published kit. Practice projects stay local. Create a separate original
+The website ZIPs work with the published extension's **Run App**. Kits from **0.5.9** also provide **Zero: Start project** in the Command Palette
+to create the same three scaffolds without a website ZIP. Older kits use the
+website project downloads. Practice projects stay local. Create a separate original
 project if you want a GitHub repository or ZeroHub contribution. Read
 [the lesson guide](../student-template/lessons/README.md) for the three groups.
 

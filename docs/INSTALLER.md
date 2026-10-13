@@ -1,11 +1,11 @@
 # Native Zero Setup
 
 Zero Setup uses a native Mac runtime; Windows wraps the guided setup scripts. Signed,
-notarized Mac0.5.7 is published at [setup-v0.5.7](https://github.com/codepetca/zero/releases/tag/setup-v0.5.7)
-and embeds the complete0.5.7 kit. Windows development installers remain local
+notarized Mac0.5.8 is published at [setup-v0.5.8](https://github.com/codepetca/zero/releases/tag/setup-v0.5.8)
+and embeds the complete0.5.8 kit. The0.5.9 candidate is prepared separately. Windows development installers remain local
 and unsigned; they are excluded from student downloads. Previous Mac releases
 are preserved.
-The website offers Mac setup alongside the separately verified0.5.3 ZIP.
+The website offers Mac setup alongside the separately verified published kit ZIP.
 The independent native manifest and exact-byte sealing/publication procedure
 are documented in [RELEASING.md](RELEASING.md).
 An isolated Mac trial passed verified vendor assets, automatic editor support,
@@ -18,7 +18,7 @@ short status message, replacing the previous message as each step changes.
 Technical output is available only through **Details** in a separate window.
 There is no checklist, scrolling log or Terminal menu in the native flow.
 
-The published Mac build (kit0.5.7) has this flow:
+The published Mac build (kit0.5.8) has this flow:
 
 1. Choose **Set up Zero**. If `~/Zero` already contains a Zero kit, confirm
    **Update Zero** first; the existing student project is preserved.
@@ -89,8 +89,8 @@ ZIP launchers keep their current manual behavior.
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates
-`dist/installers/Zero-Setup-0.5.8-macos-development.dmg` and
-`dist/installers/Zero-Setup-0.5.8-windows-development.exe`. The measured
+`dist/installers/Zero-Setup-0.5.9-macos-development.dmg` and
+`dist/installers/Zero-Setup-0.5.9-windows-development.exe`. The measured
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -128,7 +128,7 @@ node scripts/verify-installers.mjs --platform macos --signed
 ```
 
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
-not a secret). A new signed candidate would be `Zero-Setup-0.5.8-macos.dmg`, measured in
+not a secret). A new signed candidate would be `Zero-Setup-0.5.9-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
 The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
 removes unsigned-development labels and shows only Zero Setup/version. Signed

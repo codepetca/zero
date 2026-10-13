@@ -1595,3 +1595,15 @@ Native command tests use a mocked VS Code host and real temporary folders.
 Physical Windows, WebKit/accessibility interaction and novice trials remain pending.
 Frozen0.5.8 release assets were not rebuilt or published. General contribution
 executor hold is unchanged; the new harness executes only finite maintainer fixtures.
+
+Final delivery: [PR39](https://github.com/codepetca/zero/pull/39), merged
+57abf85d0bd42c4649a5a0e55117498f16e5005b. Exact reviewed-headc5c553f
+[CI38480021493](https://github.com/codepetca/zero/actions/runs/38480021493)
+passed394s, including the finite progression harness on CI's Linux display/audio
+environment. The production deployment is READY and reports exact57abf85 source.
+Live zero.codepet.ca checks match local bytes for3minimal project ZIPs (13files
+each) and2-file optional assets; all13pages have correct start/continue guidance
+and all4lesson-linked advanced reference pages use separate-copy guidance. Receipt
+is ignored `.verification/progressive-production-proof.json`; final integrated
+receipt is `.verification/progressive-delivery.json`. No new interactive browser
+or native Mac click-through claim. Physical Windows/novice trials remain deferred.

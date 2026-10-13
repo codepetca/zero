@@ -7,6 +7,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {publicKeys, reviewPlan, verifyReviewAssets} from './release-review.mjs';
+import {downloadPage} from './release-download-page.mjs';
 
 export const repository = 'codepetca/zero';
 export const website = 'https://zero.codepet.ca';
@@ -179,27 +180,30 @@ export async function publishZero(options, dependencies = {}) {
       try {
         const response = await request(`${website}/?zero_release=${encodeURIComponent(options.version)}&check=${now()}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
         assert.equal(response.status, 200, 'Live landing page unavailable.');
-        const visibleMarkup = html => html.replace(/<!--[\s\S]*?-->|<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
-        const anchors = html => [...visibleMarkup(html).matchAll(/<a\b[^>]*\shref=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)];
-        const html = await response.text();
-        const links = anchors(html)
-          .filter(match => /Download(?:\s|<[^>]*>)*Zero/i.test(match[2].replace(/<[^>]*>/g, ' ')));
+        if (response.url) {
+          const destination = new URL(response.url);
+          assert.ok(destination.origin === website && destination.pathname === '/', 'Live landing redirected outside the expected page.');
+        }
+        const links = downloadPage(await response.text()).anchors.filter(anchor => /Download\s+Zero/i.test(anchor.text));
         assert.equal(links.length, 1, 'Live landing must have one Download Zero link.');
-        let found = links[0][1].replace(/&amp;/g, '&');
+        let found = links[0].href;
         if (found !== kit.url) {
-          assert.ok(found === '/learn#downloads' || found === `${website}/learn#downloads`, 'Live download link is stale.');
-          const choices = await request(`${website}/learn`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
+          const page = found === '/downloads' || found === `${website}/downloads` ? '/downloads' :
+            found === '/learn#downloads' || found === `${website}/learn#downloads` ? '/learn' : null;
+          assert.ok(page, 'Live download link is stale.');
+          const choices = await request(`${website}${page}`, {signal: AbortSignal.timeout(30000), headers: {'Cache-Control': 'no-cache'}});
           assert.equal(choices.status, 200, 'Live download choices unavailable.');
           if (choices.url) {
             const destination = new URL(choices.url);
-            assert.ok(destination.origin === website && destination.pathname === '/learn', 'Live download choices redirected outside the expected page.');
+            assert.ok(destination.origin === website && destination.pathname === page, 'Live download choices redirected outside the expected page.');
           }
-          const sections = [...visibleMarkup(await choices.text()).matchAll(/<section\b[^>]*\sid=["']downloads["'][^>]*>([\s\S]*?)<\/section\s*>/gi)];
+          const sections = downloadPage(await choices.text()).sections;
           assert.equal(sections.length, 1, 'Live page must have one downloads section.');
-          const candidates = anchors(sections[0][1]).filter(match =>
-            /Complete\s+kit\s+ZIP|Download\s+Zero/i.test(match[2].replace(/<[^>]*>/g, ' ')) || /(?:^|\/)zero-bootstrap\.zip(?:[?#]|$)/i.test(match[1]) || match[1].replace(/&amp;/g, '&') === kit.url);
+          const candidates = sections[0].anchors.filter(anchor =>
+            /Complete\s+kit\s+ZIP|Download\s+Zero|Download\s+for\s+Windows\s*\(ZIP\)/i.test(anchor.text) ||
+            /(?:^|\/)zero-bootstrap\.zip(?:[?#]|$)/i.test(anchor.href) || anchor.href === kit.url);
           assert.equal(candidates.length, 1, 'Live downloads must have one kit candidate.');
-          found = candidates[0][1].replace(/&amp;/g, '&');
+          found = candidates[0].href;
           assert.equal(found, kit.url, 'Live download choices kit link is stale.');
         }
         // Fetch the exact public kit anchor found on the live page and measure it.

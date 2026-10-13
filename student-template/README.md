@@ -2,12 +2,11 @@
 
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
-continues through counters, objects, a study app, ZeroHub sharing and a larger
-game with your own media, scrolling, platforms, two levels and endings.
-Start by editing only `src/main/java/Main.java`. For another lesson, download
-its fresh project from the tutorial page, unzip it into a separate folder and
-open that folder in VS Code. Sample projects are local practice; use your own
-separate game repository for coursework or GitHub sharing.
+uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
+Choose **Zero: Start project** to create each once, then keep its folder and add
+to your own code in later lessons. Each practice scaffold contains an empty Main
+and build/framework setup. Practice stays local; coursework and GitHub sharing
+use a separate original project.
 Run App opens a separate JavaFX window. After editing, click Run App again;
 Zero saves your files and stops the previous run before rebuilding. The default build shortcut is
 **Ctrl+Shift+B** on Windows or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
@@ -75,20 +74,21 @@ artifact code do not make those platforms supported in this MVP.
 
 ## Make something
 
-Start with [Lesson 0](lessons/00-hello-world.md): click Run App to see
-**Hello, world!**, change the greeting, then click Run App again.
-Next, [Lesson 1](lessons/01-hello-button.md) adds a button that changes the
-greeting. [Lesson 2](lessons/02-hello-name.md) reads your name.
-[Lesson 3](lessons/03-quiz.md) checks one answer with `if`.
+Use the installed starter's **Run App** once to check setup: it opens a short
+Hello, world! demonstration. Then choose **Zero: Start project → Greeting app**
+to begin [Lesson 0](lessons/00-hello-world.md) with your own empty Main. Write the
+label, then continue lessons 1 and 2 in that same Greeting folder.
 
-Zero opens the first lesson's preview once per project when the editor is empty.
-Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
-Zero run offers **Show Problems** to reach source errors.
+Create **Study quiz** at lesson 3 and continue it through lesson 7. Create
+**Coin game** at lesson 8 and continue it through lesson 12. Lesson 10 reopens
+Study and Game to reuse your own class. Lesson 12's only optional download is
+an image/sound ZIP; your own assets or drawing fallback work too.
 
-Then follow the [remaining lessons](lessons/README.md) or the small
-[beginner toolkit](BEGINNER.md). Choose an app or game,
-run a complete example, then try three small changes. The
-[appearance guide](STYLE.md) covers fonts, colours, layouts and an editable theme.
+**Zero: Open First Lesson** opens the project's first online lesson. The website sidebar
+lets you choose your next lesson. A failed Run offers **Show Problems**.
+See the [lesson guide](lessons/README.md) or optional [beginner toolkit](BEGINNER.md).
+Complete examples are separate references; run them only in their own local copy.
+The [appearance guide](STYLE.md) covers fonts, colours, layouts and editable styles.
 
 The default is a short greeting with a single Label. Lesson 3 uses a tiny quiz
 with `if`/`else` and feedback. The later scored quiz teaches fields, objects and

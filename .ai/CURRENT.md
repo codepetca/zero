@@ -1,40 +1,55 @@
-# Current state — three continuing learning projects
+# Current state — Mac 0.5.9 release preparation
 
-Updated 2026-10-13. Coordinator worktree:
+Updated2026-10-13. Worktree:
 `/Users/stew/.codex/worktrees/github-sharing-adoption/zero`, branch
-`codex/three-progressive-projects`, based on main 68e880b (PRs 37/38).
+`codex/release-0-5-9`, based on merged main57abf85 plus local handoff6cd62b7.
 Read design.md, PRODUCT.md, DEVELOPMENT.md and UI-UX-GUIDELINES.md.
 
-Owner asked to minimize downloads and combine the lessons. New scope supersedes
-the 18 fresh lesson/stage projects: Greeting 0–2, Study 3–7, Game 8–12.
-Three minimal scaffolds contain empty Main + pinned build/framework setup only;
-no finished app, helpers, lessons or assets. Students write and extend their code.
-Start buttons at 0/3/8; continuation guidance thereafter; 10 reopens Study + Game.
-11 practises compatible API changes locally and separates optional original sharing
-work. 12 downloads only optional PNG/WAV, with fallback and advanced continuations.
-Maintainer checkpoints are outside downloadable scaffolds. Local-only/Git safeguards
-remain; existing student folders are never replaced. Run App again handles reruns.
+Owner's “Proceed” authorizes the Mac Start project/continue/reuse/rerun walkthrough
+then an updated kit/native release.0.5.9 and setup-v0.5.9 tags/releases are absent.
+Native GUI previously stopped at Mac lock. Manual unlock question is pending;
+do not retry/bypass before owner confirms. Windows/student trials stay deferred.
+Sign/notarize new owned bytes with existing identity/profile only; no credential
+or account changes. Frozen0.5.8 assets must remain unchanged.
 
-Implementation verified locally; full review completed, guidance delta/delivery next. App/game writers delivered revised
-lessons and compileable checkpoints. Controls writer delivered native Start project,
-three-project bundle allowlist and website start/continue flow. Coordinator owns
-shared scaffold generator, docs, checks and delivery. Finite maintainer checkpoint
-verification worker owns harness, progression script and CI step. No public executor
-work is authorized by these checks. Next: targeted guidance review, exact-head CI, source PR/main merge and website deployment within existing authorization.
+Three-project lessons are live (PR39, merge57abf85): Greeting0–2, Study3–7,
+Game8–12, empty scaffolds, optional media-only ZIP, local practice off GitHub.
+0.5.9 prepares the installed Start project command with those same3scaffolds.
+Completed checkpoints remain outside student practice downloads. Keep Run App
+reruns and ordinary Java/explicit updates. Original sharing work stays separate.
 
-Frozen published 0.5.8 assets remain unchanged. Native Start project is next-kit
-source, not a newly published kit; website ZIPs use the published Run App. Native
-click-through remains unverified after Mac lock; do not retry or bypass. Physical
-Windows and student trials remain deferred. Generic library executor acceptance
-remains held after provider rejection; general game publication stays disabled.
-Neon resources are retained; DeepSeek is paused. Full adoption remains incomplete.
+Coordinator owns versioning/packaging/publication. Sol/medium read-only preflight
+completed: stale publisher /learn chooser and0.5.3 fallback identified. Fixed
+verification for current /downloads while retaining exact origin/page/section/
+anchor/hash checks; fallback now anonymously verified0.5.8. All old public bytes
+and old local signed kit/receipt preserved under ignored .verification/release-0.5.9/.
+Student setup guides now use3continuing projects and included versioned VSIXs.
+Current kit0.5.9 remains local; public Mac/ZIP links continue0.5.8 until publication.
 
-Delegation: Sol/high app and game writers, Sol/medium controls writer; all bounded
-same-worktree ownership with no Git/account actions. App writer now owns finite
-fixture verification. Effective model/tokens unknown. Account usage at start was
-13% weekly used (87% remaining), not attributable task cost; storage healthy329.6GB.
-Local root256pass1skip, website56, sharing45, generator6/playground2; three starts
-compile and16finite checkpoint variants pass. HTTP proof13pages/3ZIPs/2media files.
-Full Sol/high review turn24 complete at4c7ee9c with no blockers; one P2 guidance
-fix batch makes complete examples separate-copy experiments. Targeted turn25 next. Evidence/history in
-EVIDENCE.md and VERIFICATION.md; detailed current logs are ignored .verification/.
+Checks: config/docs links; root256pass1optionalPowerShellskip; release70;
+Mac seal2; installer8; website56/typecheck/build; actual package and extracted kit
+Maven/source/license/mode verification. Read-only publisher verified current
+public0.5.8 assets and actual /downloads anchor end-to-end. Two old website tests
+were updated for exact verified0.5.8 pins/version-neutral setup guidance. No Mac
+interactive or new signed native result claimed. Review risk high due publisher completion gate. Initial Sol/high turns26/27
+completed: two P1 network verification gaps (hidden/template anchors and landing
+redirect origin), P2 native runbook old tags, P3 README old Mac version accepted.
+One batched fix uses pinned existing parse5 8.0.1 HTML semantics, checks landing
+origin/path, recognizes Windows ZIP label and corrects measured0.5.9 runbook.
+Publisher82/release86 pass; real verify-only0.5.8 passes after corrections.
+Unsigned current Mac0.5.9 build/payload/modes passed; no GUI/signing claim.
+Targeted Sol/high turn28 completed at67d05af: both P1 gaps resolved, no code
+blockers. One P3 planned-tag wording fixed in a docs-only second batch; fast
+targeted turn29 next. Unchanged initial source coverage reused. Effective
+models/tokens/worker times unknown; starting weekly remaining85% is account-wide,
+storage329.4GB healthy. Task-scoped usage/review-stop waiver persists, not execution
+or identity gates. DeepSeek remains paused.
+
+Next: independent review + exact-head CI/source integration; rebuild clean current
+kit; new signed/notarized Mac bytes; local measured native manifest and seal while
+kit is local (release/kit.json is a protected native source); Mac walkthrough must
+pass before publishing. Then three-asset kit and independent single-DMG release,
+verified metadata/normal PR merge and live exact-download proof. Generic submitted
+public executor remains held; general game publication disabled; Neon retained.
+Full adoption not complete. No new goal/task/automation. Evidence history in
+EVIDENCE.md/VERIFICATION.md and ignored release-0.5.9 receipts.

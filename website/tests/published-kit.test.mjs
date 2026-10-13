@@ -35,14 +35,14 @@ export function Downloads()`);
 test('fallback preserves exact published versions, filenames, digests and explicit URLs', () => {
   validateManifest(current);
   assert.equal(validatePublishedKit(fallback, current), fallback);
-  assert.equal(fallback.kitVersion, '0.5.3');
+  assert.equal(fallback.kitVersion, '0.5.8');
   for (const [key, size, sha256] of [
-    ['kit',177939,'304096a6b2f2dade288baadfdfaacc59bff9f753836697fa3fd66640d837dc6f'],
-    ['starter',111219,'166b53ee2bd4a0a037477aceddca6c9e7720cdc1aa341ce2a1bdd27437923126'],
-    ['extension',65267,'337d7c7b3aa14a4b2f436214c2b9034f004b11860a3bcee14142b2c72639662f']]) {
+    ['kit',294172,'f7a14bed51b16295532efd4efa9a6fd9c4bfa1e960e9fa0d41e82144b8650e6d'],
+    ['starter',183188,'58a934a927510e6b78cd9590c56daae7dfb449584cc6628cb0b7111afb4b32f2'],
+    ['extension',89078,'e00428211fa18e3ca9d75fc3a37b591a341e685167cea17b07efbbac1ec8c8d0']]) {
     assert.equal(fallback.assets[key].size,size);
     assert.equal(fallback.assets[key].sha256,sha256);
-    assert.equal(releaseAssetHref(fallback,key),`https://github.com/codepetca/zero/releases/download/v0.5.3/${fallback.assets[key].filename}`);
+    assert.equal(releaseAssetHref(fallback,key),`https://github.com/codepetca/zero/releases/download/v0.5.8/${fallback.assets[key].filename}`);
   }
   assert.equal(validatePublishedKit(null,current),null);
   assert.throws(() => validatePublishedKit(current,current), /must be published/);
@@ -111,5 +111,5 @@ test('hosted starter and setup share download-aware guidance rather than package
   const guide=await readFile(new URL('../../docs/GETTING-STARTED.md',import.meta.url),'utf8');
   assert.match(guide,/Zero \.vsix included with your downloaded kit/);
   assert.match(guide,/If your extracted complete kit includes a `setup\/` folder/);
-  assert.match(guide,/For the 0\.5\.3 ZIP this is `zero-0\.5\.3\.vsix`/);
+  assert.match(guide,/Use the versioned Zero VSIX included with your/);
 });

@@ -19,8 +19,8 @@ Lesson 12's larger game stages are optional extensions of the same Game project.
 
 Complete [setup](../README.md#first-setup). At lessons **0, 3 and 8**, use the
 **Start project** button on the tutorial page. Unzip the small project and open
-its folder in VS Code. A current development extension also offers
-**Zero: Start project**; published older kits use the website ZIPs.
+its folder in VS Code. Kits from **0.5.9** also offer **Zero: Start project** in the Command Palette;
+older kits use the website ZIPs.
 
 Each starter has an empty runnable `Main.java` and the build/framework setup.
 The first run opens a blank window or canvas. You write the controls, game objects

@@ -49,7 +49,7 @@ original Zero code is MIT licensed.
 
 Students need VS Code and a supported JDK 17+; Git 2.31+ and browser authentication
 are needed for repository work. They do not need Node.js or global Maven.
-The published Mac0.5.7 setup prepares a private Java runtime and a separate
+The published Mac0.5.8 setup prepares a private Java runtime and a separate
 quiet editor automatically; use its Open Zero launcher to return. Windows uses
 the complete-kit ZIP with manual setup. See [native setup](docs/INSTALLER.md).
 The optional settings-only profile for ZIP/manual setup defaults to light, with 500 ms autosave.
@@ -78,7 +78,7 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.8.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.9.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile.
 Browse games and exact library versions at `/hub`. Students share from their existing public game repository, with reusable classes under `libraries/<slug>/`. The new native tools and GitHub registry are local development code; hosted library checking remains closed. See [the adoption plan](docs/GITHUB-SHARING-PLAN.md) and [Development](docs/DEVELOPMENT.md). Local packaging does not publish.

@@ -2355,3 +2355,63 @@ Luna/medium guidance review follows; unchanged code coverage is reused. Prior ad
 turns23; this feature's initial review is turn24; targeted guidance review is turn25. Standing user stop waiver
 persists; no execution/security gate overridden. No new goal/task/automation.
 Full adoption remains held; this feature does not satisfy public executor acceptance.
+
+Delivery receipt: PR39 merged57abf85; exact-head CI38480021493 passed394s for
+c5c553f. Full review turn24 (Sol/high,4c7ee9c) complete with no blockers/one P2;
+one batch fixed it; targeted turn25 (Luna/medium,c5c553f) complete/no findings.
+No further behavioral changes. Final production is READY at
+zero-4j4af8jy3-stewarts-projects-cc2722c4.vercel.app with exact57abf85 metadata;
+zero.codepet.ca proof covers13pages/3ZIPs/2assets and4linked advanced-reference
+guides. Local unpublished VSIX142.42KB carries exact3scaffold bytes and Start
+project command; public0.5.8 was not repackaged. Source tree matches reviewed head.
+Full adoption remains held. Final local handoff commit is separate from delivered
+source; ignored `.verification/progressive-delivery.json` retains final telemetry.
+
+## Mac0.5.9 release preparation — 2026-10-13
+
+Owner said Proceed to Mac Start project/continue/reuse/rerun walkthrough then
+updated kit release; physical Windows/student trials deferred. Manual Mac unlock
+requested before GUI retry. Sol/medium bounded read-only preflight found publisher
+verified obsolete /learn#downloads and fallback still0.5.3. Coordinator supports
+current exact same-origin /downloads, preserving scoped section/one-kit anchor and
+public hash verification. Anonymous0.5.8 kit/starter/VSIX downloads match frozen
+manifest; they are now fallback while current0.5.9 is local. Old local kit/native
+receipt preserved before rebuild. No account/credential changes or old asset edits.
+
+Local checks: root256pass1skip116.97s; publisher66/release70; Mac seal2; installer8;
+website56/typecheck/build; actual package + verify-kit extracted Maven/source/modes/
+license parity. Two old website assertions initially failed (fallback0.5.3 and
+version-specific guide); updated to exact verified0.5.8 pins and included-VSIX
+guidance, then website56/build pass. Real publisher verify-only0.5.8 fetched actual
+public assets and current /downloads kit anchor successfully, without mutation.
+Native0.5.9 signing, walkthrough and publication remain pending. New native bytes
+required; seal before kit metadata promotion because native source guard includes
+release/kit.json. Runtime telemetry for preflight model/time/tokens unknown; usage
+85% remaining account-wide at start; storage329.4GB healthy/no cleanup.
+
+Review ledger: high risk due publisher completion guard; one initial wave with
+separate Sol/high correctness/network and packaging/compatibility reviewers.
+Cumulative prior25turns; upcoming26/27; no remediation yet. Standing task-scoped
+stop waiver persists; no provider/identity gate bypass.
+
+Initial source review turns26/27 completed atdca31b0 (Sol/high, separate network
+and packaging/compatibility). Accepted two P1 live-proof gaps: hidden/template
+exact kit link could mask visible stale Windows URL; externally redirected landing
+with relative link was resolved as though same-site. One batch adds parse5 8.0.1
+as a direct pinned maintainer dev dependency (already installed/locked transitively),
+parses eligible HTML anchors/ancestor hidden and inert semantics, recognizes the
+actual Windows ZIP label, and validates final landing origin/path. No computed-CSS
+visibility claim. Parser bounds markup2MiB. New16negative cases plus existing66
+pass82; release86. Real0.5.8 verify-only passes after correction. P2 native runbook
+0.5.6 tags and P3 README0.5.7 naming corrected for measured0.5.9 candidate/current8.
+Initial unsigned Mac0.5.9 artifact and read-only mounted payload/mode verification
+passed from clean dca31b0 source; it is a development artifact, not distributable
+signed evidence. Targeted turn28 will cover full correction delta; one fix batch.
+No native GUI retry, actual publication or new credential operation occurred.
+
+Targeted Sol/high turn28 completed at67d05af; inspected full correction delta,
+read-only parser reproduction and diff check. Both P1 issues resolved; no new
+code blocker. Minor P3 native runbook must distinguish current published8manifest
+from planned9tag. Second docs-only batch corrects that wording; fast targeted
+turn29 checks factual delta, reusing source/manifest/parser coverage. No final
+full-wave repetition justified because docs do not change implementation behavior.

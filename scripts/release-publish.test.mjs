@@ -151,8 +151,8 @@ async function fixture(t, changes = {}) {
   };
   const request = async url => {
     requests.push(url);
-    if (url === 'https://zero.codepet.ca/learn' && changes.choices) return {status: 200, text: async () => changes.choices(release.assets[0].browser_download_url), url: changes.choicesRedirect || url};
-    if (url.startsWith('https://zero.codepet.ca/') && changes.choices) return {status: 200, text: async () => `<a href="${changes.choicesHref || '/learn#downloads'}">Download Zero</a>`};
+    if (['https://zero.codepet.ca/learn','https://zero.codepet.ca/downloads'].includes(url) && changes.choices) return {status: 200, text: async () => changes.choices(release.assets[0].browser_download_url), url: changes.choicesRedirect || url};
+    if (url.startsWith('https://zero.codepet.ca/') && changes.choices) return {status: 200, url:changes.landingRedirect || url, text: async () => `<a href="${changes.choicesHref || '/learn#downloads'}">Download Zero</a>`};
     if (url.startsWith('https://zero.codepet.ca/')) return {status: 200, text: async () => changes.staleSite ?
       `<script>"${release.assets[0].browser_download_url}"</script><a href="https://old.example/old.zip">Download Zero</a>` :
       `<a class="download" href="${release.assets[0].browser_download_url}"><span>Download Zero</span></a>`};
@@ -239,6 +239,52 @@ test('verify-only follows the same-site download choices and measures the exact 
   assert.ok(f.requests.includes('https://zero.codepet.ca/learn'));
   assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length, 2);
   assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push', '-c', 'add', 'worktree'].includes(call.args[0])));
+});
+
+for (const href of ['/downloads','https://zero.codepet.ca/downloads']) {
+  test(`verify-only follows the current Downloads page from ${href}`, async t => {
+    const f = await fixture(t, {existing:true,published:true,promoted:true,choicesHref:href,
+      choices: url => `<main><h1>Download Zero</h1><section id="downloads"><a href="https://example.com/setup.dmg">Download for Mac Silicon</a><a href="${url}">Download for Windows (ZIP)</a></section></main>`});
+    assert.equal((await publishZero({version,verifyOnly:true},f.dependencies)).phase,'verified');
+    assert.ok(f.requests.includes('https://zero.codepet.ca/downloads'));
+    assert.ok(!f.requests.includes('https://zero.codepet.ca/learn'));
+    assert.equal(f.requests.filter(url => url === f.release.assets[0].browser_download_url).length,2);
+    assert.ok(!f.calls.some(call => call.args.includes('PATCH') || ['push','-c','add','worktree'].includes(call.args[0])));
+  });
+}
+for (const wrapper of ['template','div hidden','div hidden="false"','div inert','div aria-hidden="true"','div style="display: none"','div style="visibility:hidden"']) {
+  test(`modern download verification excludes ${wrapper} ancestors`,async t=>{
+    const close=wrapper.split(' ')[0];
+    const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',
+      choices:url=>`<section id="downloads"><a href="https://example.com/stale-kit.zip">Download for Windows (ZIP)</a><${wrapper}><a href="${url}">old placeholder</a></${close}></section>`});
+    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/choices kit link is stale/);
+    assert.equal(f.requests.filter(url=>url===f.release.assets[0].browser_download_url).length,1);
+  });
+  test(`modern download verification cannot use only a ${wrapper} kit`,async t=>{
+    const close=wrapper.split(' ')[0];
+    const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',
+      choices:url=>`<section id="downloads"><${wrapper}><a href="${url}">Download for Windows (ZIP)</a></${close}></section>`});
+    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/one kit candidate/);
+  });
+}
+for (const redirect of ['https://evil.example/','https://zero.codepet.ca/hub']) {
+  test(`live landing rejects redirect to ${redirect}`,async t=>{
+    const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',landingRedirect:redirect,
+      choices:url=>`<section id="downloads"><a href="${url}">Download for Windows (ZIP)</a></section>`});
+    await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),/landing redirected outside/);
+    assert.ok(!f.requests.includes('https://zero.codepet.ca/downloads'));
+  });
+}
+
+for (const [label,changes,pattern] of [
+  ['stale modern kit',{choices:()=>'<section id="downloads"><a href="https://github.com/codepetca/zero/releases/download/v1.2.2/zero-bootstrap.zip">Download for Windows (ZIP)</a></section>'},/choices kit link is stale/],
+  ['modern page redirect to Learn',{choices:()=>'',choicesRedirect:'https://zero.codepet.ca/learn'},/redirected outside/],
+  ['external modern page redirect',{choices:()=>'',choicesRedirect:'https://evil.example/downloads'},/redirected outside/],
+  ['modern duplicate kit',{choices:url=>`<section id="downloads"><a href="${url}">Download for Windows (ZIP)</a><a href="${url}">Download for Windows (ZIP)</a></section>`},/one kit candidate/],
+]) test(`modern live download choices reject ${label}`,async t=>{
+  const f=await fixture(t,{existing:true,published:true,promoted:true,choicesHref:'/downloads',...changes});
+  await assert.rejects(publishZero({version,verifyOnly:true},f.dependencies),pattern);
+  assert.equal(f.requests.filter(url=>url===f.release.assets[0].browser_download_url).length,1);
 });
 
 for (const [label, changes, pattern] of [
