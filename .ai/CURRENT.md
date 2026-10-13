@@ -1,40 +1,41 @@
-# Current state — three continuing learning projects
+# Current state — three continuing learning projects delivered
 
 Updated 2026-10-13. Coordinator worktree:
-`/Users/stew/.codex/worktrees/github-sharing-adoption/zero`, branch
-`codex/three-progressive-projects`, based on main 68e880b (PRs 37/38).
+`/Users/stew/.codex/worktrees/github-sharing-adoption/zero`.
 Read design.md, PRODUCT.md, DEVELOPMENT.md and UI-UX-GUIDELINES.md.
 
-Owner asked to minimize downloads and combine the lessons. New scope supersedes
-the 18 fresh lesson/stage projects: Greeting 0–2, Study 3–7, Game 8–12.
-Three minimal scaffolds contain empty Main + pinned build/framework setup only;
-no finished app, helpers, lessons or assets. Students write and extend their code.
-Start buttons at 0/3/8; continuation guidance thereafter; 10 reopens Study + Game.
-11 practises compatible API changes locally and separates optional original sharing
-work. 12 downloads only optional PNG/WAV, with fallback and advanced continuations.
-Maintainer checkpoints are outside downloadable scaffolds. Local-only/Git safeguards
-remain; existing student folders are never replaced. Run App again handles reruns.
+Owner asked to minimize downloads and combine lessons. Delivered three groups:
+Greeting0–2, Study3–7, Game8–12, plus optional separate original sharing work.
+Scaffolds contain only empty Main + pinned build/framework setup; students write
+and continue their code. Starts at0/3/8; continuation thereafter;10 reuses the
+student's ScoreDisplay in Study/Game;11 checks a compatible API locally;12 adds
+optional PNG/WAV and advanced same-game exercises. Maintainer checkpoints stay
+outside practice ZIPs. Complete references run only in separate copies. Existing
+folders and local-only/Git safeguards are preserved. Run App again handles reruns.
 
-Implementation verified locally; full review completed, guidance delta/delivery next. App/game writers delivered revised
-lessons and compileable checkpoints. Controls writer delivered native Start project,
-three-project bundle allowlist and website start/continue flow. Coordinator owns
-shared scaffold generator, docs, checks and delivery. Finite maintainer checkpoint
-verification worker owns harness, progression script and CI step. No public executor
-work is authorized by these checks. Next: targeted guidance review, exact-head CI, source PR/main merge and website deployment within existing authorization.
+[PR39](https://github.com/codepetca/zero/pull/39) merged at
+57abf85d0bd42c4649a5a0e55117498f16e5005b; reviewed headc5c553f. Exact-head
+[CI38480021493](https://github.com/codepetca/zero/actions/runs/38480021493) passed
+in394s. Production zero-4j4af8jy3-stewarts-projects-cc2722c4.vercel.app is READY
+with that exact merge source. zero.codepet.ca HTTP proof passed13pages,3empty ZIP
+full-byte inventories/markers/wrapper0755,2asset bytes, and4linked reference guides.
+Ignored `.verification/progressive-delivery.json` holds the compact final receipt.
+This final local handoff is recorded separately from the delivered source commit.
 
-Frozen published 0.5.8 assets remain unchanged. Native Start project is next-kit
-source, not a newly published kit; website ZIPs use the published Run App. Native
-click-through remains unverified after Mac lock; do not retry or bypass. Physical
-Windows and student trials remain deferred. Generic library executor acceptance
-remains held after provider rejection; general game publication stays disabled.
-Neon resources are retained; DeepSeek is paused. Full adoption remains incomplete.
+Local checks: root256pass1optionalPowerShellskip; website56/typecheck/build;
+sharing45; generator6/playground2; all3empty starters compile;16finite maintainer
+checkpoint variants pass, including12media absent/present. App/game Sol/high and
+controls Sol/medium writers delivered bounded assignments. Full Sol/high review
+turn24 found no blockers and one P2 reference-guidance issue; one fix batch and
+Luna/medium targeted turn25 resolved it. No integration conflict. Effective model,
+tokens and per-review elapsed telemetry unknown. Starting account weekly remaining
+87% is not task cost; storage329.6GB healthy. Prior adoption review turns23.
 
-Delegation: Sol/high app and game writers, Sol/medium controls writer; all bounded
-same-worktree ownership with no Git/account actions. App writer now owns finite
-fixture verification. Effective model/tokens unknown. Account usage at start was
-13% weekly used (87% remaining), not attributable task cost; storage healthy329.6GB.
-Local root256pass1skip, website56, sharing45, generator6/playground2; three starts
-compile and16finite checkpoint variants pass. HTTP proof13pages/3ZIPs/2media files.
-Full Sol/high review turn24 complete at4c7ee9c with no blockers; one P2 guidance
-fix batch makes complete examples separate-copy experiments. Targeted turn25 next. Evidence/history in
-EVIDENCE.md and VERIFICATION.md; detailed current logs are ignored .verification/.
+Frozen0.5.8 assets unchanged. Native Start project is unpublished next-kit source;
+local candidate `.verification/zero-three-projects.vsix` contains exact3scaffolds.
+Website ZIPs work with published Run App. Native click-through remains unverified
+after Mac lock; do not retry/bypass. Physical Windows/student trials deferred.
+Generic public executor acceptance remains held after provider rejection; general
+game publication disabled. Neon retained; DeepSeek paused. Full adoption remains
+incomplete. Continue only owner-directed next work; no new goal/task/automation
+was created. Detailed history is in EVIDENCE.md and VERIFICATION.md.
