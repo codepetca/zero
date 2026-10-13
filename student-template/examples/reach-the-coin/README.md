@@ -12,10 +12,12 @@ window, return and click the canvas again. Keys belong to the focused canvas.
 ## Copy and run
 
 Use a standalone Zero starter folder containing `pom.xml`, `mvnw`, `mvnw.cmd`
-and `src/`. Keep a copy of your current app first. Copy **only** this example's
+and `src/`. Follow the [safe switching steps](../../lessons/README.md#before-each-lesson):
+stop and back up Main and helpers outside `src/`, then remove unlisted helper Java
+files. Copy **only** this example's
 `Main.java` and `Player.java` into `src/main/java/`, replacing Main and any old
 Player. Keep `src/main/java/zero/` and the starter build files unchanged. This
-example needs no `ScoreDisplay.java`; that default quiz helper may stay there.
+example needs no `ScoreDisplay.java` or `Coin.java`.
 Do not mix in a Main or Player from another example.
 If your downloaded kit does not have this example, copy the complete files shown
 on the website's [Reach the coin page](https://zero.codepet.ca/examples/reach-the-coin)
@@ -37,7 +39,7 @@ Alternatively, open a terminal in that folder and run:
 A supported JDK 17+ is required. The first run needs internet to download the
 starter's pinned Maven and JavaFX dependencies. Close the game window to stop;
 save edits and run again to rebuild. This example remains outside `src/` until
-you copy it, so the starter's default quiz is unchanged.
+you copy it, so the starter's Hello, world! app is unchanged.
 
 For a repository checkout, run `node scripts/prepare-starter.mjs` from the
 repository root first to assemble the framework sources, then use a disposable

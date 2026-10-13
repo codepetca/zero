@@ -28,9 +28,11 @@ Complete [setup](../README.md#first-setup). Local running needs no GitHub accoun
 1. Stop. Back up Main and helper classes **outside `src/`**. Include any
    component improvements, such as your edited ScoreDisplay. Keep that backup
    before replacing or removing source; the example shelf is unchanged.
-2. After backing up, remove the previous example's Main and unlisted helper Java
-   files. Old helpers can require a different Player/Coin API. Copy only the listed
-   files into `src/main/java/`. Keep `src/main/java/zero/`, the wrappers,
+2. Keep Main when starting Lesson 0 or editing your current app. When switching
+   to a different example, replace Main with the lesson's complete program or the
+   example's listed Main file. After backing up, remove unlisted helper Java
+   files: old helpers can require a different Player/Coin API. Copy only the listed
+   helpers into `src/main/java/`. Keep `src/main/java/zero/`, the wrappers,
    `pom.xml`, `zero.json` and `.vscode/` build settings. Keep resources unless the
    stage tells you to replace them. Use one Main at a time. When a lesson asks
    you to reuse an improved component, retain that exact saved source rather
