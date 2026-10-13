@@ -5,8 +5,19 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {unzipSync} from 'fflate';
 import {root, releaseDefinition} from './release.mjs';
+import configuration from '../extension/src/sharing/configuration.js';
 
 export const publicKeys = ['kit', 'starter', 'extension'];
+
+// Release settings are public, reviewed source. Preserve their exact bytes so
+// an internally coherent archive cannot substitute stale generated settings.
+export function sharingConfigurationBytes(sourceRoot = root) {
+  const bytes = readFileSync(path.join(sourceRoot, 'release/sharing.json'));
+  assert.ok(bytes.length <= 4096, 'Release sharing configuration exceeds limits.');
+  const settings = configuration.validateKitConfiguration(JSON.parse(bytes.toString('utf8')));
+  assert.ok(settings.artifactOrigin && settings.policyRevision, 'Release sharing configuration must include the public origin and reviewed policy revision.');
+  return new Uint8Array(bytes);
+}
 
 export function reviewPlan(release, {manual = false, expectedVersion = '', repository} = {}) {
   assert.match(release.kitVersion, /^\d+\.\d+\.\d+$/, 'Use a new numeric kit version.');
@@ -81,6 +92,8 @@ export function verifyReviewAssets(directory, release, sourceRoot = root) {
   assert.deepEqual(Object.keys(vsix).filter(name => name.startsWith('extension/src/') && !name.endsWith('/')).sort(), sourceNames.sort(), 'Unexpected VSIX source.');
   assert.deepEqual(vsix['extension/media/sharing-harness/ZeroLibraryHarness.java'],
     new Uint8Array(readFileSync(path.join(sourceRoot, 'sharing/harness/ZeroLibraryHarness.java'))), 'VSIX sharing harness drift.');
+  assert.deepEqual(vsix['extension/media/sharing-config.json'],
+    sharingConfigurationBytes(sourceRoot), 'VSIX sharing configuration drift.');
   return sums.join('\n') + '\n';
 }
 

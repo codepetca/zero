@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {coreSources, prepareStarter} from './prepare-starter.mjs';
 import {starterMembers, setupMembers} from './kit.mjs';
 import {root, releaseDefinition, writeReleaseMetadata} from './release.mjs';
-import configuration from '../extension/src/sharing/configuration.js';
+import {sharingConfigurationBytes} from './release-review.mjs';
 
 prepareStarter();
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
@@ -15,11 +15,9 @@ copyFileSync(path.join(root, 'LICENSE'), path.join(root, 'extension/LICENSE'));
 const harnessDirectory = path.join(root, 'extension/media/sharing-harness');
 mkdirSync(harnessDirectory, {recursive:true});
 copyFileSync(path.join(root, 'sharing/harness/ZeroLibraryHarness.java'), path.join(harnessDirectory, 'ZeroLibraryHarness.java'));
-// Deliberate operator input is packaged into the verified kit; students do not
-// copy origins or policy hashes. Every build resets stale generated settings.
-const sharingConfiguration=configuration.validateKitConfiguration(process.env.ZERO_SHARING_KIT_CONFIG
-  ? JSON.parse(readFileSync(process.env.ZERO_SHARING_KIT_CONFIG,'utf8')) : configuration.DEFAULTS);
-writeFileSync(path.join(root,'extension/media/sharing-config.json'),JSON.stringify(sharingConfiguration)+'\n');
+// Local and CI packages use the same checked public source, preserving its
+// exact bytes and replacing any stale generated settings from an earlier build.
+writeFileSync(path.join(root,'extension/media/sharing-config.json'),sharingConfigurationBytes(root));
 const release = releaseDefinition(), dist = path.join(root, 'dist');
 if (release.publication.status === 'published') throw new Error('This kit version is published and immutable. Set a new local kit version before rebuilding release assets.');
 mkdirSync(dist, {recursive:true});

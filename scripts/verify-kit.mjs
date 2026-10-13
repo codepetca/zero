@@ -9,6 +9,7 @@ import {root, releaseDefinition} from './release.mjs';
 import {starterMembers, setupMembers} from './kit.mjs';
 import {coreSources} from './prepare-starter.mjs';
 import {extractProject, maven} from './verification-project.mjs';
+import {sharingConfigurationBytes} from './release-review.mjs';
 
 const release = releaseDefinition(), receipt = JSON.parse(readFileSync(path.join(root, 'dist/release.json'), 'utf8'));
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
@@ -45,7 +46,7 @@ verifyExtensionSource(path.join(root,'extension/src'));
 assert.deepEqual(vsix['extension/LICENSE.txt'], license);
 assert.equal(JSON.parse(new TextDecoder().decode(vsix['extension/package.json'])).license, 'MIT');
 assert.deepEqual(vsix['extension/media/sharing-harness/ZeroLibraryHarness.java'],new Uint8Array(readFileSync(path.join(root,'sharing/harness/ZeroLibraryHarness.java'))));
-assert.deepEqual(vsix['extension/media/sharing-config.json'],new Uint8Array(readFileSync(path.join(root,'extension/media/sharing-config.json'))));
+assert.deepEqual(vsix['extension/media/sharing-config.json'],sharingConfigurationBytes(root), 'VSIX sharing configuration drift.');
 const starter = unzipSync(readFileSync(path.join(root, 'dist', release.assets.starter.filename)));
 const expectedStarter = starterMembers(root);
 assert.deepEqual(Object.keys(starter).sort(), Object.keys(expectedStarter).sort());

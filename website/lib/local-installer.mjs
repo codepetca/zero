@@ -32,7 +32,7 @@ export async function boundedFile(root, relative, limit) {
     return buffer.subarray(0, total);
   } finally { await handle.close(); }
 }
-const sourcePaths = ['native-installer/macos', 'extension', 'framework', 'profile', 'setup', 'student-template', 'LICENSE', 'release/kit.json', 'release/START-HERE.md', 'scripts/build-installers.mjs', 'scripts/installer-signing.mjs', 'scripts/installer-payload.mjs', 'scripts/package.mjs', 'scripts/kit.mjs', 'scripts/release.mjs', 'scripts/prepare-starter.mjs', 'package-lock.json'];
+const sourcePaths = ['native-installer/macos', 'extension', 'framework', 'profile', 'setup', 'student-template', 'LICENSE', 'release/kit.json', 'release/sharing.json', 'release/START-HERE.md', 'sharing/harness/ZeroLibraryHarness.java', 'scripts/build-installers.mjs', 'scripts/installer-signing.mjs', 'scripts/installer-payload.mjs', 'scripts/package.mjs', 'scripts/release-review.mjs', 'scripts/kit.mjs', 'scripts/release.mjs', 'scripts/prepare-starter.mjs', 'package-lock.json'];
 export function gitRead(root, args) {
   const result = spawnSync('git', args, {cwd:root, encoding:'utf8', timeout:10000, maxBuffer:1024 * 1024});
   assert.equal(result.status, 0, result.error?.message || result.stderr || 'Git source check failed');
