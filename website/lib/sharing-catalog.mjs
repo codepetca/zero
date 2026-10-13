@@ -91,3 +91,22 @@ export async function readCatalog({env = process.env, fetchImpl = fetch, signal,
     clearTimeout(timer); signal?.removeEventListener('abort', abort);
   }
 }
+
+/** Fixed public origin only; caller supplies the shared deadline signal. */
+export async function readPublicRegistry({fetchImpl = fetch, signal = AbortSignal.timeout(CATALOG_TIMEOUT_MS)} = {}) {
+  const state = parse(await fetchBytes(REGISTRY_URL, REGISTRY_BYTES, fetchImpl, signal));
+  if (!state || state.schema !== 1 || !Number.isSafeInteger(state.sequence) || state.sequence < 0 ||
+      !state.requests || Array.isArray(state.requests) || typeof state.requests !== 'object' ||
+      !state.releases || Array.isArray(state.releases) || typeof state.releases !== 'object' ||
+      !Array.isArray(state.availability)) throw new Error('Invalid public registry.');
+  return state;
+}
+export async function readRegistryCatalog(state, {artifactOrigin, fetchImpl = fetch, signal = AbortSignal.timeout(CATALOG_TIMEOUT_MS)}) {
+  const pointer = catalogPointer(state, artifactOrigin);
+  const bytes = await fetchBytes(pointer.url, contracts.LIMITS.catalogBytes, fetchImpl, signal);
+  if (createHash('sha256').update(bytes).digest('hex') !== pointer.sha256 ||
+      pointer.size !== undefined && bytes.byteLength !== pointer.size) throw new Error('Invalid catalog integrity.');
+  const catalog = contracts.validateCatalog(parse(bytes), {artifactOrigin});
+  if (catalog.revision !== pointer.revision) throw new Error('Invalid catalog revision.');
+  return catalog;
+}

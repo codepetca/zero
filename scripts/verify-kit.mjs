@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync, rmSync} from 'node:fs';
+import {readFileSync, readdirSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
@@ -32,6 +32,15 @@ assert.deepEqual(kit[`zero-kit/${release.assets.extension.filename}`], new Uint8
 assert.ok(!Object.keys(kit).some(name => /\/website\/|SmokeLauncher|\.zip$|\/scripts\/|\/target\//.test(name)));
 for (const name of coreSources) assert.deepEqual(kit[`zero-kit/starter/src/main/java/zero/${name}`], new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
 const vsix = unzipSync(readFileSync(path.join(root, 'dist', release.assets.extension.filename)));
+function verifyExtensionSource(directory, relative='') {
+  for(const entry of readdirSync(directory,{withFileTypes:true})) {
+    assert.ok(!entry.isSymbolicLink(),'Extension source must not contain symlinks');
+    const name=relative?`${relative}/${entry.name}`:entry.name;
+    if(entry.isDirectory())verifyExtensionSource(path.join(directory,entry.name),name);
+    else assert.deepEqual(vsix[`extension/src/${name}`],new Uint8Array(readFileSync(path.join(directory,entry.name))),`Packaged extension source: ${name}`);
+  }
+}
+verifyExtensionSource(path.join(root,'extension/src'));
 // vsce normalizes the extension's LICENSE filename to LICENSE.txt in the VSIX.
 assert.deepEqual(vsix['extension/LICENSE.txt'], license);
 assert.equal(JSON.parse(new TextDecoder().decode(vsix['extension/package.json'])).license, 'MIT');

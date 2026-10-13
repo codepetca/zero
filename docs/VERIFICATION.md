@@ -1214,3 +1214,13 @@ Independent source review and hosted rollout remain pending. Fakes and local HTT
 prove neither real provider permissions/ETag behavior nor arbitrary candidate
 isolation. Interactive VS Code source attachment, physical Windows and novice
 classroom trials remain untested. Public release bytes and deployment unchanged.
+
+### Remediation candidate
+
+Two completed independent Sol/high reviews requested7unique blocking corrections
+and one sample-doc correction at c3b9465. All are fixed in one batch. New public
+request lookup is read-only and links only matching accepted/catalog releases.
+Root215pass/1portablePSskip, registry31pass, GitHub8pass and localCheck11pass;
+website46pass/types/build plus9focused result checks. Actual POSIX process-group
+cancellation passed; Windows tree termination remains mocked. Targeted review and
+final packaged-source verification are pending at this entry. No live rollout.

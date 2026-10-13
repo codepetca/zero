@@ -33,7 +33,7 @@ async function jsonResponse(response,maximum) {
 function createGitHubReader({fetcher=fetch,token,timeoutMs=15000}={}) {
   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>60000)fail('Invalid GitHub deadline.');
   async function read(path,{maximum=512*1024,signal}={}){
-    if((!path.startsWith('/repos/')&&path!=='/user')||/[\r\n#]/.test(path))fail('Unsupported GitHub API path.');
+    if((!path.startsWith('/repos/')&&!/^\/repositories\/[1-9][0-9]{0,19}$/.test(path)&&path!=='/user')||/[\r\n#]/.test(path))fail('Unsupported GitHub API path.');
     const headers={accept:'application/vnd.github+json','x-github-api-version':API_VERSION,'user-agent':'zero-sharing'};
     if(token)headers.authorization=`Bearer ${token}`;
     const timeout=AbortSignal.timeout(timeoutMs),combined=signal?AbortSignal.any([signal,timeout]):timeout;
@@ -47,11 +47,19 @@ function createGitHubReader({fetcher=fetch,token,timeoutMs=15000}={}) {
     if(user.type!=='User'||typeof user.login!=='string'||! /^[A-Za-z0-9-]+$/.test(user.login))fail('GitHub did not return a personal account.');
     return {githubId:githubId(user.id),login:user.login};
   }
-  async function repository(name,{signal}={}){
-    safeRepositoryName(name);const data=await read(`/repos/${name}`,{signal});
+  function repositoryMetadata(data){
     if(data.private!==false||data.visibility!=='public'||data.owner?.type!=='User')fail('Sharing currently supports public repositories in your personal account.');
     const result=contracts.validateRepository({id:githubId(data.id),ownerId:githubId(data.owner.id),owner:data.owner.login,name:data.name,url:data.html_url});
     return {...result,visibility:'public',ownerType:'User'};
+  }
+  async function repository(name,{signal}={}){
+    safeRepositoryName(name);return repositoryMetadata(await read(`/repos/${name}`,{signal}));
+  }
+  async function repositoryById(id,{signal}={}) {
+    if(typeof id!=='string'||! /^[1-9][0-9]{0,19}$/.test(id))fail('Use an exact numeric GitHub repository identity.');
+    const result=repositoryMetadata(await read(`/repositories/${id}`,{signal}));
+    if(result.id!==id)fail('GitHub returned a different repository identity.');
+    return result;
   }
   async function publicationIssue(number,{repository:destination='codepetca/zero',signal}={}){
     safeRepositoryName(destination);if(!Number.isSafeInteger(number)||number<1)fail('Invalid publication request number.');
@@ -64,7 +72,7 @@ function createGitHubReader({fetcher=fetch,token,timeoutMs=15000}={}) {
     if(candidate?.requester?.githubId!==requester.githubId)fail('Publication requester does not match the GitHub issue author.');
     // Pasted author fields are replaced by the author observed from GitHub.
     const supplied=contracts.validateRequest({...candidate,requester});
-    const resolved=await repository(`${supplied.repository.owner}/${supplied.repository.name}`,{signal});
+    const resolved=await repositoryById(supplied.repository.id,{signal});
     const {visibility,ownerType,...canonical}=resolved;
     if(canonical.id!==supplied.repository.id||canonical.ownerId!==requester.githubId)fail('Repository ownership changed or does not match this request.');
     const request=contracts.validateRequest({...supplied,repository:canonical});
@@ -78,9 +86,15 @@ function createGitHubReader({fetcher=fetch,token,timeoutMs=15000}={}) {
     for(const issue of issues){if(issue.pull_request)continue;if(!Number.isSafeInteger(issue.number)||issue.number<1)fail('GitHub returned an invalid issue number.');issueNumbers.push(issue.number);}
     return {issueNumbers,page,perPage,exhausted:issues.length<perPage};
   }
+  async function publicationIssueState(number,{signal}={}) {
+    if(!Number.isSafeInteger(number)||number<1)fail('Invalid publication request number.');
+    const issue=await read(`/repos/codepetca/zero/issues/${number}`,{maximum:contracts.LIMITS.metadataBytes*2,signal});
+    if(issue.pull_request||issue.number!==number||!['open','closed'].includes(issue.state)||issue.user?.type!=='User')fail('Use an ordinary student publication issue.');
+    return {issueId:String(number),issueState:issue.state,authenticatedActor:{githubId:githubId(issue.user.id),login:issue.user.login}};
+  }
   async function source(request,{signal}={}){
-    const checked=contracts.validateRequest(request),name=`${checked.repository.owner}/${checked.repository.name}`;
-    const resolved=await repository(name,{signal});
+    const checked=contracts.validateRequest(request);
+    const resolved=await repositoryById(checked.repository.id,{signal}),name=`${resolved.owner}/${resolved.name}`;
     if(resolved.id!==checked.repository.id||resolved.ownerId!==checked.requester.githubId)fail('Repository ownership changed before source retrieval.');
     const commit=await read(`/repos/${name}/git/commits/${checked.commit}`,{signal});
     if(commit.sha!==checked.commit||! /^[a-f0-9]{40}$/.test(commit.tree?.sha||''))fail('GitHub did not return the exact requested commit.');
@@ -114,6 +128,6 @@ function createGitHubReader({fetcher=fetch,token,timeoutMs=15000}={}) {
     const sourceDigest=sha(JSON.stringify(files.map(file=>({path:file.path,mode:file.mode,size:file.bytes.length,sha256:sha(file.bytes)}))));
     return {request:checked,repositoryMetadata:resolved,files,sourceDigest};
   }
-  return {authenticatedUser,repository,publicationIssue,publicationIssues,source};
+  return {authenticatedUser,repository,repositoryById,publicationIssue,publicationIssues,publicationIssueState,source};
 }
 module.exports={createGitHubReader,safeSourcePath,retainedSource};

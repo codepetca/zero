@@ -160,7 +160,7 @@ function publicationUrl(request,{repository='codepetca/zero'}={}) {
   const checked=validateRequest(request);
   if(! /^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(repository))fail('Invalid publication repository.');
   const query=new URLSearchParams({template:'sharing.md',title:`Share ${checked.kind}: ${checked.descriptor.title} ${checked.version}`,
-    body:`Zero publication request\n\n\`\`\`json\n${JSON.stringify(checked,null,2)}\n\`\`\`\n`});
+    body:`Check publication status at https://zero.codepet.ca/hub/share after submitting your request.\n\nZero publication request\n\n\`\`\`json\n${JSON.stringify(checked,null,2)}\n\`\`\`\n`});
   const url=`https://github.com/${repository}/issues/new?${query}`;
   if(url.length>12000)fail('Publication details are too large for the GitHub form.');return url;
 }

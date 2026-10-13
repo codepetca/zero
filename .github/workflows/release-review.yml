@@ -51,9 +51,11 @@ jobs:
           npm run check
           npm run test:release
       - name: Extension and standalone starter tests
-        run: npm test
+        run: xvfb-run -a npm test
       - name: GitHub registry and immutable publication contracts
         run: npm run test:sharing
+      - name: Exact Maven consumption over local HTTPS
+        run: node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-ci
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update

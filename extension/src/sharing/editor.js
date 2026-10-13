@@ -42,9 +42,20 @@ function createSharingEditor(vscode,host,options={}) {
   }
   for(const entry of files.values())diagnostics.set(entry.uri,entry.values);
  }
- const config=()=>vscode.workspace.getConfiguration('zero');
+ const config=()=>vscode.workspace.getConfiguration('zero',vscode.workspace.workspaceFolders?.[0]?.uri);
  const bundled=options.kitConfiguration||{};
- const settings=()=>({catalogUrl:config().get('sharingCatalogUrl','')||bundled.catalogUrl||'https://zero.codepet.ca/api/sharing/catalog',artifactOrigin:config().get('sharingArtifactOrigin','')||bundled.artifactOrigin||''});
+ function operatorSetting(key,bundledValue,fallback) {
+  const configuration=config(),inspected=configuration.inspect?.(key);
+  if(configuration.inspect) {
+   for(const level of ['workspaceFolderValue','workspaceValue','globalValue'])if(inspected?.[level]!==undefined)return inspected[level];
+   if(bundledValue!==undefined)return bundledValue;
+   return inspected?.defaultValue??configuration.get(key,fallback);
+  }
+  // Small hosts/mocks can omit inspect; explicit empty values still disable
+  // activation instead of silently falling back to an accepted bundled origin.
+  return configuration.get(key,undefined)??bundledValue??fallback;
+ }
+ const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundled.catalogUrl,'https://zero.codepet.ca/api/sharing/catalog'),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
  async function current(root){if(await host.project()!==root)fail('The project changed during review. Prepare this action again.');assertSaved(vscode,root);}
  async function busy(action){if(host.isBusy())return;host.setBusy(true);try{return await action();}finally{host.setBusy(false);}}
  async function pickLibrary(root){const libraries=await api.authoring.discoverLibraries(root);if(!libraries.length)fail('Extract a library from this game first.');const chosen=await vscode.window.showQuickPick(libraries.map(l=>({label:l.descriptor.title,description:`${l.slug} · ${l.mode} · ${l.descriptor.version}`,library:l})),{title:'Choose a library'});return chosen?.library;}
@@ -168,7 +179,7 @@ function createSharingEditor(vscode,host,options={}) {
   if(!descriptor)return;
   const requestedVersion=await input('Sharing version','Reuse the saved exact version, or enter the next version. Metadata changes must be uploaded separately.',descriptor.version,c.validateVersion);if(!requestedVersion)return;
   if(requestedVersion!==descriptor.version) { descriptor={...descriptor,version:requestedVersion};if(await saveDescriptor(root,filename,descriptor)===false)return; }
-  const policyRevision=config().get('sharingPolicyRevision','')||bundled.policyRevision||'';if(!/^[a-f0-9]{40}$/.test(policyRevision))fail('Sharing setup needs an active reviewed policy. This kit can prepare local libraries; public sharing is not active yet.');
+  const policyRevision=operatorSetting('sharingPolicyRevision',bundled.policyRevision,'');if(!/^[a-f0-9]{40}$/.test(policyRevision))fail('Sharing setup needs an active reviewed policy. This kit can prepare local libraries; public sharing is not active yet.');
   if((await api.git(root,['status','--porcelain','-z'])).length)fail('Upload changes through the reviewed GitHub action before sharing. Zero will not commit or upload from Share.');
   const resolved=await repository(root),commit=(await api.git(root,['rev-parse','HEAD'])).trim();
   if(!/^[a-f0-9]{40}$/.test(commit))fail('Upload your first committed version before sharing.');

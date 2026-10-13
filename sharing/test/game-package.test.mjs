@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, stat, readFile, readdir } from 'node:fs/promises';
+import { mkdtemp, rm, stat, readFile, readdir, mkdir, writeFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { zipSync } from 'fflate';
 import { readFileSync } from 'node:fs';
-import { buildGamePackage, inspectGamePackage, extractGamePackage } from '../game-package.mjs';
+import {minimalGameFiles} from './game-fixture.mjs';
+import authoring from '../../extension/src/sharing/authoring.js';
+import { buildGamePackage, inspectGamePackage, extractGamePackage, collectGameFiles } from '../game-package.mjs';
 
-const files=()=>Object.entries({'zero.json':'{}','pom.xml':'<project/>','mvnw':readFileSync(new URL('../../student-template/mvnw',import.meta.url)),'mvnw.cmd':readFileSync(new URL('../../student-template/mvnw.cmd',import.meta.url)),'.mvn/wrapper/maven-wrapper.properties':readFileSync(new URL('../../student-template/.mvn/wrapper/maven-wrapper.properties',import.meta.url)),'.vscode/tasks.json':'{"tasks":[{"type":"zero","task":"run"}]}','src/main/java/Main.java':'class Main {}','assets/coin.png':'asset bytes','src/main/resources/player sprite.png':'sprite bytes','zero-libraries.json':'{"schema":1,"libraries":[]}','libraries/health-bar/zero-library.json':'{}','libraries/health-bar/src/main/java/Health.java':'class Health {}','libraries/health-bar/src/test/java/HealthTest.java':'class HealthTest {}','libraries/health-bar/examples/first/Main.java':'class Main {}','libraries/health-bar/pom.xml':'<project/>','.git/config':'secret history','.env':'token','target/output.class':'build','unrelated/secret.txt':'private','setup.sh':'arbitrary script'}).map(([path,data])=>({path,data:Buffer.from(data)}));
+const files=()=>[...minimalGameFiles(),...Object.entries({'.vscode/tasks.json':'{"tasks":[{"type":"zero","task":"run"}]}','assets/coin.png':'asset bytes','src/main/resources/player sprite.png':'sprite bytes','zero-libraries.json':'{"schema":1,"libraries":[]}','libraries/health-bar/zero-library.json':'{}','libraries/health-bar/src/main/java/Health.java':'class Health {}','libraries/health-bar/src/test/java/HealthTest.java':'class HealthTest {}','libraries/health-bar/examples/first/Main.java':'class Main {}','.git/config':'secret history','.env':'token','target/output.class':'build','unrelated/secret.txt':'private','setup.sh':'arbitrary script'}).map(([path,data])=>({path,data:Buffer.from(data)})),{path:'libraries/health-bar/pom.xml',data:readFileSync(new URL('../../student-template/pom.xml',import.meta.url))},{path:'libraries/health-bar/LICENSE',data:readFileSync(new URL('../../student-template/LICENSE',import.meta.url))}];
 test('exact sorted deterministic ZIP preserves source/assets/library state and wrapper modes',async t=>{
   const first=buildGamePackage({files:files()}),second=buildGamePackage({files:files().reverse()});
   assert.deepEqual(first.bytes,second.bytes);assert.equal(first.sourceDigest,second.sourceDigest);
@@ -15,7 +17,7 @@ test('exact sorted deterministic ZIP preserves source/assets/library state and w
   assert.equal(inspected.find(file=>file.path==='mvnw').mode,0o100755);
   assert.ok(inspected.some(file=>file.path==='assets/coin.png'));assert.ok(inspected.some(file=>file.path==='zero-libraries.json'));
   assert.ok(inspected.some(file=>file.path==='src/main/resources/player sprite.png'));
-  assert.ok(!inspected.some(file=>file.path.startsWith('.git')||file.path==='.env'||file.path.startsWith('target/')||file.path.startsWith('unrelated/')));
+  assert.ok(!inspected.some(file=>file.path.startsWith('.git/')||file.path==='.env'||file.path.startsWith('target/')||file.path.startsWith('unrelated/')));
   const parent=await mkdtemp(path.join(os.tmpdir(),'zero-game-'));t.after(()=>rm(parent,{recursive:true,force:true}));
   // macOS /var -> /private/var: pass its real path as an explicit destination.
   const {realpath}=await import('node:fs/promises');const destination=path.join(await realpath(parent),'opened');
@@ -23,7 +25,60 @@ test('exact sorted deterministic ZIP preserves source/assets/library state and w
   assert.equal((await stat(path.join(destination,'mvnw'))).mode&0o777,0o755);
   assert.equal((await readFile(path.join(destination,'assets/coin.png'))).toString(),'asset bytes');
   assert.ok(!(await readdir(destination)).includes('.git'));
+  const ignore=(await readFile(path.join(destination,'.gitignore'))).toString();assert.match(ignore,/\*\*\/target\//);assert.match(ignore,/\.env\.\*/);assert.match(ignore,/\.zero\*/);
   await assert.rejects(extractGamePackage({bytes:first.bytes,destination}),/EEXIST/);
+});
+
+test('static game structure rejects broken markers/main/framework/POM/pins/licenses and unignore overrides',()=>{
+  const replace=(name,text)=>minimalGameFiles().map(file=>file.path===name?{...file,data:Buffer.from(text)}:file);
+  for(const marker of ['{',JSON.stringify({name:'Game',mainClass:'Missing'}),JSON.stringify({name:'Game',mainClass:'../Main'})])assert.throws(()=>buildGamePackage({files:replace('zero.json',marker)}));
+  assert.throws(()=>buildGamePackage({files:replace('src/main/java/Main.java','public class Main {}')}),/main method/);
+  assert.throws(()=>buildGamePackage({files:minimalGameFiles().filter(file=>file.path!=='src/main/java/zero/SketchApp.java')}),/SketchApp/);
+  assert.throws(()=>buildGamePackage({files:replace('LICENSE','MIT')}),/license/);
+  assert.throws(()=>buildGamePackage({files:replace('.gitignore','!target/\n!.env\n')}),/unignore/);
+  const pom=minimalGameFiles().find(file=>file.path==='pom.xml').data.toString();
+  for(const modified of [pom.replace('<maven.compiler.release>17','<maven.compiler.release>21'),pom.replace('21.0.12','21.0.13'),pom.replace('3.14.0','LATEST'),pom.replace('3.14.0','3.14.0-SNAPSHOT'),pom.replace('</project>','<profiles/></project>'),pom.replace('<modelVersion>4.0.0</modelVersion>','<modelVersion>4.0.0</modelVersion><parent/>'),'<project><broken></project>'])assert.throws(()=>buildGamePackage({files:replace('pom.xml',modified)}));
+  assert.doesNotThrow(()=>buildGamePackage({files:minimalGameFiles()}));
+});
+
+test('Open project refuses ancestor Git directories and worktree files before writing',async t=>{
+  const temporary=await mkdtemp(path.join(os.tmpdir(),'zero-git-ancestor-'));t.after(()=>rm(temporary,{recursive:true,force:true}));
+  const root=await realpath(temporary),bytes=buildGamePackage({files:minimalGameFiles()}).bytes;
+  for(const kind of ['directory','file']) {
+    const parent=path.join(root,kind);await mkdir(parent);
+    if(kind==='directory')await mkdir(path.join(parent,'.git'));else await writeFile(path.join(parent,'.git'),'gitdir: /fixture');
+    const nested=path.join(parent,'nested');await mkdir(nested);
+    const destination=path.join(nested,'opened');await assert.rejects(extractGamePackage({bytes,destination}),/outside existing Git/);
+    await assert.rejects(stat(destination),{code:'ENOENT'});
+  }
+});
+
+test('actual maintained starter and ordinary local/published library POM roots satisfy static snapshot checks',async()=>{
+  const root=new URL('../../student-template/',import.meta.url).pathname;
+  const source=await collectGameFiles(root);assert.doesNotThrow(()=>buildGamePackage({files:source}));
+  const pom=minimalGameFiles().find(file=>file.path==='pom.xml').data.toString();
+  const local=pom.replace('</plugins>','<plugin><groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId><version>3.6.1</version><executions><execution><id>zero-local-libraries</id><phase>generate-sources</phase><goals><goal>add-source</goal></goals><configuration><sources><source>libraries/health-bar/src/main/java</source></sources></configuration></execution></executions></plugin></plugins>');
+  const published=pom.replace('</dependencies>','<dependency><groupId>ca.codepet.zero.contrib.r11</groupId><artifactId>health-bar</artifactId><version>0.1.0</version></dependency></dependencies>');
+  for(const text of [local,published])assert.doesNotThrow(()=>buildGamePackage({files:minimalGameFiles().map(file=>file.path==='pom.xml'?{...file,data:Buffer.from(text)}:file)}));
+});
+
+test('actual local extraction and published mode retain a valid game snapshot and safe opened exclusions',async t=>{
+  const temporary=await realpath(await mkdtemp(path.join(os.tmpdir(),'zero-extracted-game-')));t.after(()=>rm(temporary,{recursive:true,force:true}));
+  const project=path.join(temporary,'project');await mkdir(project);
+  for(const file of minimalGameFiles()){const location=path.join(project,file.path);await mkdir(path.dirname(location),{recursive:true});await writeFile(location,file.data);}
+  await writeFile(path.join(project,'src/main/java/Health.java'),'public class Health { private final Range range = new Range(); public int value() { return range.value; } }');
+  await writeFile(path.join(project,'src/main/java/Range.java'),'final class Range { int value = 7; }');
+  const descriptor={schema:1,kind:'library',slug:'health-bar',version:'0.1.0',title:'Health bar',description:'A helper',license:'MIT',libraryKind:'helper'};
+  const repository={id:'11',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'};
+  await authoring.applyPlan(await authoring.previewExtraction(project,{repository,descriptor,sources:['src/main/java/Health.java','src/main/java/Range.java']}));
+  for(const mode of ['local','published']) {
+    if(mode==='published')await authoring.applyPlan(await authoring.previewMode(project,{slug:'health-bar',mode,version:'0.1.0'}));
+    const packageResult=buildGamePackage({files:await collectGameFiles(project)});
+    assert.ok(packageResult.files.some(file=>file.path==='libraries/health-bar/src/main/java/zero/contrib/r11/health_bar/Range.java'));
+    const destination=path.join(temporary,'opened-'+mode);await extractGamePackage({bytes:packageResult.bytes,destination});
+    const ignore=(await readFile(path.join(destination,'.gitignore'))).toString();assert.match(ignore,/\*\*\/target\//);assert.match(ignore,/\.env/);assert.match(ignore,/\.zero\*/);
+    assert.ok((await readFile(path.join(destination,'.mvn/wrapper/NOTICE'))).length>40);
+  }
 });
 test('path/link/collision/automatic task policy is applied before packing',()=>{
   for(const file of [{path:'../bad',data:Buffer.from('x')},{path:'assets/link.png',data:Buffer.from('x'),mode:'120000'},{path:'CON.txt',data:Buffer.from('x')},{path:'src/main/java/main.java',data:Buffer.from('x')}]) assert.throws(()=>buildGamePackage({files:[...files(),file]}));

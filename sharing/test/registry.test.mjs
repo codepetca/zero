@@ -60,6 +60,16 @@ test('immutable acceptance, concurrent duplicates and competing sources',async t
   assert.equal(generateCatalog((await f.registry.read()).state,{artifactOrigin:'http://127.0.0.1:8080'}).releases[0].status,'withdrawn');
 });
 
+test('accepted-version conflicts are source failures with a new-version correction',async t=>{
+  const f=await fixture(t),first=await f.ingest();
+  await f.service.publish({requestId:first.id,evidence:evidence(first),artifacts});
+  const other=await f.ingest(fixtureRequest(1,{commit:'c'.repeat(40)}));
+  await assert.rejects(f.service.publish({requestId:other.id,evidence:evidence(other),artifacts}),error=>error.kind==='source-failure'&&/use a new version/.test(error.message));
+  await f.service.reconcile({prepare:async record=>({evidence:evidence(record),artifacts})});
+  const state=(await f.registry.read()).state;
+  assert.equal(state.requests[other.id].status,'failed');assert.equal(Object.keys(state.releases).length,1);
+});
+
 test('forged receipts/hashes never stage or reserve a version',async t=>{
   const f=await fixture(t);const record=await f.ingest();
   await assert.rejects(f.service.publish({requestId:record.id,evidence:{...evidence(record),provenance:{fixture:false}},artifacts}),/verification/);
@@ -156,6 +166,6 @@ test('repository rename retains IDs while pre-acceptance source correction gets 
   const fixed=await f.ingest(fixtureRequest(1,{commit:'c'.repeat(40)}));
   f.service.resolveRepositoryMetadata=async()=>({...metadata(fixtureRequest()),owner:'renamed',name:'new-game',url:'https://github.com/renamed/new-game'});
   const accepted=await f.service.publish({requestId:fixed.id,evidence:evidence(fixed),artifacts});
-  assert.equal(accepted.release.id,'lib-r1-health-bar');assert.equal(accepted.release.repository.url,'https://github.com/renamed/new-game');
+  assert.equal(accepted.release.id,'lib-r1-health-bar');assert.equal(accepted.release.repository.url,'https://github.com/renamed/new-game');assert.equal(accepted.release.contributor.login,'renamed');
   assert.equal((await f.registry.read()).state.requests[failed.id].status,'failed');
 });

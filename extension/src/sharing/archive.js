@@ -1,11 +1,12 @@
 'use strict';
 
 // Shared packaged editor/backend archive policy. This code never runs a game.
-const { mkdir, writeFile, chmod, realpath, rm } = require('node:fs/promises');
+const { mkdir, writeFile, chmod, realpath, rm, lstat } = require('node:fs/promises');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { inflateRawSync } = require('node:zlib');
 const contracts = require('./contracts');
+const {validateGameStructure,SAFE_GITIGNORE}=require('./game-structure');
 const byteHash = bytes => createHash('sha256').update(bytes).digest('hex');
 
 const required = ['zero.json','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties'];
@@ -16,7 +17,7 @@ const TRUSTED_WRAPPER_HASHES = Object.freeze({
   'mvnw.cmd':'46eedb8419bd14fe70d5bb2916d7b6f51806e51b39d5b76a42610384ca929c1c',
   '.mvn/wrapper/maven-wrapper.properties':'bb0b8f16b2661c3676ed5a6a15f5b11d864460c4e77cfb50c583f54708f944e7'
 });
-const fixed = new Set([...required,'zero-game.json','zero-libraries.json','README.md','LICENSE','LICENSE.md','NOTICE','preview.png','.vscode/tasks.json','.vscode/extensions.json','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']);
+const fixed = new Set([...required,'.gitignore','zero-game.json','zero-libraries.json','README.md','LICENSE','LICENSE.md','NOTICE','preview.png','.vscode/tasks.json','.vscode/extensions.json','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE']);
 const resourceExtensions = /\.(png|jpe?g|gif|webp|wav|mp3|ogg|txt|json|csv|properties|xml|fxml|css|ttf|otf|md)$/i;
 function safeGamePath(value) {
   if (typeof value !== 'string' || value.length > 240 || value.includes('\\') || value.startsWith('/') || value.split('/').some(part => !/^[A-Za-z0-9_. -]{1,80}$/.test(part) || ['.','..'].includes(part) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part) || /[. ]$/.test(part) || part.startsWith(' '))) throw new Error('Unsafe game archive path');
@@ -65,6 +66,7 @@ function normalizeGameFiles(files) {
     const segments = file.path.split('/');
     for (let end = 1; end < segments.length; end++) if (includedPaths.has(segments.slice(0,end).join('/'))) throw new Error('Game file shadows another file directory');
   }
+  validateGameStructure(included);
   return included.sort((a,b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 }
 
@@ -127,6 +129,10 @@ async function extractGamePackage({bytes, destination, expectedSha256}) {
   // and inherited Git repositories are refused before writing any file.
   const parent = await realpath(path.dirname(absolute));
   if (parent !== path.resolve(path.dirname(absolute))) throw new Error('Destination parent must not contain symlinks');
+  for(let ancestor=parent;;ancestor=path.dirname(ancestor)) {
+    if(await lstat(path.join(ancestor,'.git')).catch(error=>{if(error.code==='ENOENT')return null;throw error;}))throw new Error('Open a shared game outside existing Git repositories');
+    if(path.dirname(ancestor)===ancestor)break;
+  }
   await mkdir(absolute);
   try {
     for (const file of files) {
@@ -135,8 +141,10 @@ async function extractGamePackage({bytes, destination, expectedSha256}) {
       await writeFile(target,file.data,{flag:'wx',mode:file.mode & 0o777});
       await chmod(target,file.mode & 0o777);
     }
+    const original=files.find(file=>file.path==='.gitignore')?.data||Buffer.alloc(0);
+    await writeFile(path.join(absolute,'.gitignore'),Buffer.concat([original,Buffer.from('\n# Zero downloaded project exclusions\n'+SAFE_GITIGNORE)]),{mode:0o644});
   } catch (error) { await rm(absolute,{recursive:true,force:true}); throw error; }
-  return {destination:absolute,files:files.map(file=>file.path)};
+  return {destination:absolute,files:files.map(file=>file.path),generatedFiles:['.gitignore']};
 }
 
 module.exports = {TRUSTED_WRAPPER_HASHES,safeGamePath,includeGamePath,normalizeGameFiles,inspectGamePackage,extractGamePackage};

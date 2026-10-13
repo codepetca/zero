@@ -1635,3 +1635,40 @@ publication, credential mutation or hosted data deletion performed.
 Independent implementation review pending; generic held checker acceptance is
 excluded and stays unresolved. Live GitHub/Blob ETag and permissions, hosted
 journey, Windows and novice pilot remain outstanding rollout evidence.
+
+### Replacement review and remediation batch 1
+
+Initial head `c3b946581446a38b6b07b64a4d04e62d997ccece`, base `4ed9cd4`.
+`sharing_platform_review/turn1` Sol/high completed new nonexecuting game/registry
+scope with4blockers: fresh queued closure, workflow-budget progress, inherited
+Git extraction and static game structure. `sharing_workflow_review/turn1`
+Sol/high completed student/build/website scope with3additional blockers: FX
+startup, bundled catalog precedence, game Git exclusions; stale sample guides
+nonblocking. Duplicate inherited-Git finding deduplicated. No generic held
+executor acceptance attempted. Effective configurations/tokens unknown.
+
+Batch1 resolves these together, with source-failure records before staticchecks,
+numeric-ID source recovery, per-item cursor checkpoints, queued-first/interleaved
+processing,15minute wall/30second source budgets, safe generated ignore rules,
+static main/framework/license/POM checks and explicit retry/withdraw/restore CLI.
+Coordinator additionally corrected authenticated credit after rename, classified
+accepted-version conflicts as source failures, and verified all packaged extension
+source bytes. A public request-result lookup was missing and is now implemented:
+fixed bounded Git reads,32relatedrecords max, no private attempts reflected,
+available link only after exact ledger/catalog agreement, cancel/manual retry.
+
+Root215pass/1portablePSskip (~111s), followed by new cancellation delta11pass
+(~15.8s). Actual owned resistant POSIX parent+child force-stop119ms; Windows
+fixed-system taskkill/dead-parent/retained-pipe/deadline cases are mocked. An
+unconfirmed stop retains temporary files and reports their path. Helper/JAR and
+Label/Button FX checks still pass. Registry31pass (~36s) plus final version-conflict
+correction check; GitHub8pass; website46pass/types/build before the small controlled
+version-conflict message delta (9focused result checks thereafter). Real two-
+project HTTPS proof remains valid for unchanged consumption code. Browser fixtures
+confirm requestURL validation and exact available links; mobile screenshots ignored.
+
+Review ledger:2launches/1initialwave/1fixbatch completed, targetedreview next.
+Default usage/review-budget stops waived; no provider/execution gate bypass.
+Current accountweekly47%remaining is shared, not task cost; no reset/credits used.
+Actual provider/public publication, physical Windows/interactive editor/novice
+trials, hosted backup restoration and held library acceptance still outstanding.

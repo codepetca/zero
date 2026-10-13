@@ -14,13 +14,13 @@ export function validatePlatformConfig(config) {
   return {...config};
 }
 export function parseArguments(argv) {
-  const commands=['setup','status','prepare','publish','reconcile','deliver'];
+  const commands=['setup','status','prepare','publish','reconcile','deliver','retry','withdraw','restore'];
   const options={command:argv[0]||'setup',execute:false};
   if(!commands.includes(options.command))throw new Error('Unknown sharing command');
   for(let index=1;index<argv.length;index++) {
     const flag=argv[index];
     if(flag==='--execute'){if(options.execute)throw new Error('Duplicate execution flag');options.execute=true;continue;}
-    const name={'--config':'config','--issue':'issue','--issues':'issues','--release':'release','--role':'role','--page':'page','--offset':'offset'}[flag];
+    const name={'--config':'config','--issue':'issue','--issues':'issues','--release':'release','--role':'role','--page':'page','--offset':'offset','--request':'request'}[flag];
     if(!name||options[name]!==undefined||!argv[index+1]||argv[index+1].startsWith('--'))throw new Error('Unsupported sharing argument');
     options[name]=argv[++index];
   }
@@ -29,7 +29,8 @@ export function parseArguments(argv) {
   for(const field of ['page','offset'])if(options[field]!==undefined){if(!/^[0-9]+$/.test(options[field]))throw new Error('Invalid bounded inbox continuation');options[field]=Number(options[field]);}
   if(options.execute && options.role!=='publisher')throw new Error('Execution requires the explicit publisher role');
   if(['prepare','publish'].includes(options.command)&&!options.issue)throw new Error('An exact issue number is required');
-  if(options.command==='deliver'&&!/^(game|library)\/(game|lib)-r[1-9][0-9]*-[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[0-9]+\.[0-9]+\.[0-9]+$/.test(options.release||''))throw new Error('An exact accepted release key is required');
+  if(['deliver','withdraw','restore'].includes(options.command)&&!/^(game|library)\/(game|lib)-r[1-9][0-9]*-[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[0-9]+\.[0-9]+\.[0-9]+$/.test(options.release||''))throw new Error('An exact accepted release key is required');
+  if(options.command==='retry'&&!/^[a-f0-9]{64}$/.test(options.request||''))throw new Error('An exact frozen request fingerprint is required');
   return options;
 }
 async function defaultDependencies(config,execute,environment) {
@@ -58,10 +59,12 @@ export async function runCli(argv,{loadConfig=async filename=>JSON.parse(await r
   }
   if(!options.execute) {
     if(options.command==='publish'){const result=await platform.prepareIssue(options.issue,{persist:false});return {mode:'dry-run',requestId:result.record.id,publicationEnabled:result.publicationEnabled,included:result.included};}
-    return {mode:'dry-run',action:options.command,issues:options.issues||[],releaseKey:options.release||null,status:await platform.readStatus()};
+    return {mode:'dry-run',action:options.command,issues:options.issues||[],releaseKey:options.release||null,requestId:options.request||null,status:await platform.readStatus()};
   }
   if(options.command==='publish'){const release=await platform.publishIssue(options.issue);return {status:release.delivery,release:release.release.id,version:release.release.version};}
   if(options.command==='deliver'){const release=await platform.deliverAccepted(options.release);return {status:release.delivery,release:release.release.id,version:release.release.version};}
+  if(options.command==='retry'){const record=await platform.retryPaused(options.request);return {requestId:record.id,status:record.status};}
+  if(['withdraw','restore'].includes(options.command)){const status=options.command==='withdraw'?'withdrawn':'available';await platform.setAvailability(options.release,status);return {releaseKey:options.release,status};}
   const result=await platform.reconcile({issueNumbers:options.issues,page:options.page,offset:options.offset});
   return {intake:result.intake,inbox:result.inbox,processing:result.processing.map(value=>({requestId:value.requestId,status:value.report?.status||(value.error?'retry-required':value.release?.delivery||value.status),message:value.error?value.report?.message||'Platform unavailable; request retained':undefined})).map(value=>Object.fromEntries(Object.entries(value).filter(([,field])=>field!==undefined)))};
 }

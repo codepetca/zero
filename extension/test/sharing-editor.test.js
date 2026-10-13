@@ -16,7 +16,7 @@ async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40)
  const git=async(_root,args)=>{gitCalls.push(args);if(args[0]==='rev-parse')return args[1]==='--show-toplevel'?root:'a'.repeat(40);if(args[0]==='remote')return repository.url+'.git';if(args[0]==='status')return '';if(args[0]==='show')return JSON.stringify(descriptor);throw new Error('Unexpected Git action');};
  const reader=()=>({authenticatedUser:async()=>({githubId:owner,login:'student'}),repository:async()=>({...repository,visibility:'public',ownerType:'User'}),source:async()=>{sources++;return {};}});
  const api={...authoring,applyPlan:async plan=>{stagedPlan=plan;return authoring.applyPlan(plan);}};
- const editor=createSharingEditor(vscode,host,{git,reader,authoring:api});return {root,editor,vscode,host,opened,gitCalls,messages,stats:()=>({busy,sources,edits,saves,stagedPlan})};
+ const editor=createSharingEditor(vscode,host,{git,reader,authoring:api});return {root,editor,vscode,host,git,reader,opened,gitCalls,messages,stats:()=>({busy,sources,edits,saves,stagedPlan})};
 }
 test('Share opens a fully prefilled frozen GitHub form; never commits, pushes or sends an issue',async t=>{
  const f=await fixture(t,{approval:'Open GitHub form'});await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);const url=new URL(f.opened[0]);assert.equal(url.pathname,'/codepetca/zero/issues/new');assert.match(url.searchParams.get('body'),new RegExp('a'.repeat(40)));assert.equal(f.stats().sources,1);assert.ok(f.gitCalls.every(args=>['rev-parse','remote','status','show'].includes(args[0])));assert.equal(f.stats().busy,false);
@@ -61,4 +61,29 @@ test('game Open verifies selected bytes, requests a new destination and opens a 
 test('native recovery restores a reviewed extraction while keeping private receipt ignores',async t=>{
  const f=await fixture(t,{approval:'Apply'});await f.editor.commands['zero.extractLibrary']();f.vscode.window.showInformationMessage=async()=> 'Restore originals';await f.editor.commands['zero.recoverLibraryChange']();
  await fs.access(path.join(f.root,'src/main/java/Health.java'));assert.equal(await fs.readFile(path.join(f.root,'.zero-sharing-recovery/.gitignore'),'utf8'),'*\n');await assert.rejects(fs.access(path.join(f.root,'.gitignore')));assert.equal(f.stats().busy,false);
+});
+
+test('explicit scoped settings precede bundled operator configuration and real manifest defaults',async t=>{
+ const manifest=require('../package.json').contributes.configuration.properties,bundle={catalogUrl:'https://operator.example/catalog.json',artifactOrigin:'https://artifacts.example',policyRevision:'e'.repeat(40)};
+ for(const overrides of [null,{level:'globalValue',catalog:'https://global.example/catalog.json',origin:'https://global-files.example'},{level:'workspaceValue',catalog:'https://workspace.example/catalog.json',origin:'https://workspace-files.example'},{level:'workspaceFolderValue',catalog:'https://folder.example/catalog.json',origin:'https://folder-files.example'}]) {
+  const f=await fixture(t);let observed,resource;f.vscode.workspace.workspaceFolders=[{uri:{fsPath:f.root}}];
+  f.vscode.workspace.getConfiguration=(_section,uri)=>{resource=uri;return {get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(overrides?{[overrides.level]:key==='sharingCatalogUrl'?overrides.catalog:key==='sharingArtifactOrigin'?overrides.origin:'f'.repeat(40)}:{})})};};
+  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();
+  assert.equal(observed.catalogUrl,overrides?.catalog||bundle.catalogUrl);assert.equal(observed.artifactOrigin,overrides?.origin||bundle.artifactOrigin);assert.equal(resource.fsPath,f.root);
+ }
+ const f=await fixture(t);let observed;f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,globalValue:key==='sharingCatalogUrl'?'https://global.example/catalog.json':key==='sharingArtifactOrigin'?'https://global-files.example':undefined,workspaceValue:key==='sharingCatalogUrl'?'https://workspace.example/catalog.json':undefined,workspaceFolderValue:key==='sharingCatalogUrl'?'https://folder.example/catalog.json':undefined})});
+ const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();assert.equal(observed.catalogUrl,'https://folder.example/catalog.json');assert.equal(observed.artifactOrigin,'https://global-files.example');
+});
+test('explicit empty operator settings disable bundled activation; policy uses same precedence',async t=>{
+ const manifest=require('../package.json').contributes.configuration.properties,bundle={catalogUrl:'https://operator.example/catalog.json',artifactOrigin:'https://artifacts.example',policyRevision:'e'.repeat(40)},f=await fixture(t);let observed;
+ f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(['sharingArtifactOrigin','sharingPolicyRevision'].includes(key)?{globalValue:''}:{})})});
+ const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,consumer:{loadCatalog:async settings=>{observed=settings;return {catalog:{releases:[]}};}}});await editor.commands['zero.browseHub']();assert.equal(observed.artifactOrigin,'');await assert.rejects(editor.commands['zero.shareGame'](),/active reviewed policy/);assert.equal(f.gitCalls.length,0);
+});
+
+test('Share policy revision follows bundled settings until explicitly overridden',async t=>{
+ const manifest=require('../package.json').contributes.configuration.properties,bundle={catalogUrl:'https://operator.example/catalog.json',artifactOrigin:'https://artifacts.example',policyRevision:'e'.repeat(40)};
+ for(const override of [undefined,'f'.repeat(40)]) {
+  const f=await fixture(t,{approval:'Open GitHub form'});f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(key==='sharingPolicyRevision'&&override!==undefined?{globalValue:'d'.repeat(40),workspaceValue:'c'.repeat(40),workspaceFolderValue:override}:{})})});
+  const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,git:f.git,reader:f.reader});await editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);const body=new URL(f.opened[0]).searchParams.get('body');const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(body)[1]);assert.equal(request.policyRevision,override||bundle.policyRevision);
+ }
 });

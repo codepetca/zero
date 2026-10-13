@@ -35,7 +35,17 @@ authoring owner, only scripts/verify-sharing-consumers.mjs. No real hosting proo
 Storage healthy ~342GB last fresh; accountweekly50%remaining earlier, not taskcost.
 Token and elapsed worker totals unavailable; no integration writer conflicts.
 Coordinator catches Maven /maven prefix, receipt privateignore and pausedinbox.
-Replacement review0 launches/0 waves/0 fix batches, defaults waived.
+Replacement review2 launches/1 initial wave/1 fix batch complete, defaults waived.
+Both Sol/high scopes completed at c3b9465 and requested changes: queued closure,
+intake deadlines/checkpoints, inherited Git, game structure/license/pins, FX
+toolkit startup, bundled configuration defaults, opened game Git exclusions.
+Duplicate inherited Git finding merged; stale sample docs corrected.
+Third bounded Sol/medium delivery added public request-result lookup (46website
+checks/types/build pass). All writers stopped. Additional cancellation bug fixed:
+owned POSIX session/group with escalation, Windows fixedtaskkill tree mocks,
+5s stopdeadline, uncertaintermination retains Check tempfiles. Version conflicts
+are source failures; current owner login credited at acceptance. Final targeted
+review and all-VSIX-source parity next. Weekly47% remaining current (account-wide).
 
 Next: fixed snapshot, two independent implementation reviews (game platform/
 registry authority and architecture/student integration), proof, package/verify,

@@ -13,11 +13,12 @@ function currentOwner(request, metadata) {
 }
 
 export class PublicationService {
-  constructor({registry, storage, artifactOrigin, verifyEvidence, resolveRepositoryMetadata, publishCatalog}) {
+  constructor({registry, storage, artifactOrigin, verifyEvidence, resolveRepositoryMetadata, publishCatalog, beforeAccept}) {
     if (!registry || !storage || typeof verifyEvidence !== 'function' || typeof resolveRepositoryMetadata !== 'function') throw new Error('Trusted registry, object store, evidence verifier and ownership resolver required');
     this.registry = registry; this.storage = storage; this.artifactOrigin = artifactOrigin;
     this.verifyEvidence = verifyEvidence; this.resolveRepositoryMetadata = resolveRepositoryMetadata;
     this.publishCatalog = publishCatalog;
+    this.beforeAccept=beforeAccept;
   }
   async publish({requestId, evidence, artifacts, components}) {
     const record = (await this.registry.read()).state.requests[requestId];
@@ -48,18 +49,19 @@ export class PublicationService {
       staged[kind] = stage;
     }
     if (Object.keys(evidence.artifacts || {}).sort().join(',') !== Object.keys(manifest).sort().join(',')) throw new Error('Evidence artifact set differs from publication');
-    const metadata = await this.resolveRepositoryMetadata(request.repository.id);
+    const metadata = await this.resolveRepositoryMetadata(request.repository.id,{requestId});
     currentOwner(request, metadata);
     const descriptor = request.descriptor;
     const release = {
       schema: 1, kind: ident.kind, id: ident.id, slug: ident.slug, version: request.version,
       title: descriptor.title, description: descriptor.description, license: descriptor.license,
       repository: contracts.validateRepository(Object.fromEntries(['id','ownerId','owner','name','url'].map(key => [key, metadata[key]]))),
-      contributor: {...request.requester}, source: {commit: request.commit, folder: request.folder, sha256: request.sourceDigest},
+      contributor: {githubId:request.requester.githubId,login:metadata.owner}, source: {commit: request.commit, folder: request.folder, sha256: request.sourceDigest},
       policyRevision: request.policyRevision, status: 'available', artifacts: manifest,
       ...(request.kind === 'library' ? {namespace: ident.namespace, coordinate: {...ident.coordinate, version: request.version}, libraryKind: descriptor.libraryKind, ...(components ? {components} : {})} : {controls: descriptor.controls})
     };
     contracts.validateRelease(release, {artifactOrigin: this.artifactOrigin});
+    if(this.beforeAccept)await this.beforeAccept({requestId,request:structuredClone(request)});
     const key = releaseKey(ident, request.version);
     await this.registry.update(state => {
       const live = state.requests[requestId];
@@ -67,7 +69,7 @@ export class PublicationService {
       const item = state.items[ident.id];
       if (item && !sameBinding(item, request)) throw new Error('Established owner/source binding changed; deliberate migration required');
       const existing = state.releases[key];
-      if (existing && (existing.requestId !== requestId || canonical(existing.release) !== canonical(release))) throw new Error('Immutable version conflict; use a new version');
+      if (existing && (existing.requestId !== requestId || canonical(existing.release) !== canonical(release))) throw Object.assign(new Error('Immutable version conflict; use a new version'),{kind:'source-failure'});
       if (!existing) {
         state.items[ident.id] = {kind: ident.kind, slug: ident.slug, repositoryId: request.repository.id, contributorId: request.requester.githubId, folder: request.folder};
         state.releases[key] = {requestId, release, staged, delivery: 'pending', evidenceDigest: digest(evidence)};

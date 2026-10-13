@@ -9,6 +9,8 @@ import { BlobStorage } from '../blob-storage.mjs';
 import { createSharingPlatform, LIBRARY_EXECUTION_GATE, publicError, formatPublicReport } from '../platform.mjs';
 import { runCli } from '../cli.mjs';
 import { inspectGamePackage } from '../game-package.mjs';
+import { reportAttempt } from '../requests.mjs';
+import {minimalGameFiles} from './game-fixture.mjs';
 
 const origin='https://fixture.public.blob.vercel-storage.com',policy='b'.repeat(40);
 const gitHash=bytes=>createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
@@ -51,7 +53,7 @@ function fakeGit({files=[],request,missing=false}={}) {
       }
       return json({type:'file',path:REGISTRY_PATH,size:bytes.length,sha,encoding:'base64',content:bytes.toString('base64')});
     }
-    if(endpoint==='/repos/student/game')return json(repository);
+    if(endpoint==='/repos/student/game'||endpoint==='/repositories/11')return json(repository);
     if(endpoint==='/repos/codepetca/zero/issues')return json([{number:1}]);
     if(endpoint==='/repos/codepetca/zero/issues/1')return json({number:1,state:'open',body:'```json\n'+JSON.stringify(request)+'\n```',user:{id:7,login:'student',type:'User'}});
     if(endpoint===`/repos/student/game/git/commits/${'a'.repeat(40)}`)return json({sha:'a'.repeat(40),tree:{sha:'c'.repeat(40)}});
@@ -65,8 +67,7 @@ const config={schema:1,repository:'codepetca/zero',registryBranch:REGISTRY_BRANC
 async function gameFixture() {
   const descriptor={schema:1,kind:'game',slug:'coin-game',version:'0.1.0',title:'Coin game',description:'Collect a coin',license:'MIT',controls:'Arrow keys'};
   const request={schema:1,kind:'game',slug:'coin-game',version:'0.1.0',repository:{id:'11',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},requester:{githubId:'7',login:'student'},commit:'a'.repeat(40),folder:'.',descriptor,policyRevision:policy};
-  const files=[{path:'zero-game.json',bytes:Buffer.from(JSON.stringify(descriptor))},{path:'zero.json',bytes:Buffer.from('{}')},{path:'pom.xml',bytes:Buffer.from('<project/>')},{path:'src/main/java/Main.java',bytes:Buffer.from('class Main {}')},{path:'LICENSE',bytes:Buffer.from('MIT')},{path:'assets/coin.png',bytes:Buffer.from('coin fixture')}];
-  for(const name of ['mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties'])files.push({path:name,bytes:await readFile(new URL('../../student-template/'+name,import.meta.url))});
+  const files=[...minimalGameFiles().map(file=>({path:file.path,bytes:file.data})),{path:'zero-game.json',bytes:Buffer.from(JSON.stringify(descriptor))},{path:'assets/coin.png',bytes:Buffer.from('coin fixture')}];
   const remote=fakeGit({files,request}),blob=fakeBlob();
   const registry=new FileRegistry({adapter:createGitHubRegistryAdapter({fetcher:remote.fetcher,token:'registry-fixture-token'}),maxRetries:8});
   const storage=new BlobStorage({sdk:blob.sdk,fetcher:blob.fetcher,token:'blob-fixture-token',artifactOrigin:origin});
@@ -113,7 +114,7 @@ test('real observed GitHub fixture pipeline packages game, recovers final failur
 test('library path has no active evidence/execute bypass and source descriptors cannot drift',async()=>{
   const f=await gameFixture();const observed=await f.reader.publicationIssue(1);const source=await f.reader.source(observed.request);
   const library={...observed.request,kind:'library',folder:'libraries/coin-game',descriptor:{...observed.request.descriptor,kind:'library',libraryKind:'widget'}};delete library.descriptor.controls;
-  const platform=createSharingPlatform({reader:{publicationIssue:async()=>({...observed,request:library}),source:async request=>({...source,files:[{path:'zero-library.json',bytes:Buffer.from(JSON.stringify(library.descriptor))}],request}),repository:f.reader.repository},registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+  const platform=createSharingPlatform({reader:{...f.reader,publicationIssue:async()=>({...observed,request:library}),source:async request=>({...source,files:[{path:'zero-library.json',bytes:Buffer.from(JSON.stringify(library.descriptor))}],request}),repository:f.reader.repository},registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
   await assert.rejects(platform.publishIssue(1),new RegExp(LIBRARY_EXECUTION_GATE));assert.equal(Object.keys(f.remote.state().releases).length,0);
   assert.equal(Object.values(f.remote.state().requests)[0].status,'paused');
   const wrong=createSharingPlatform({reader:{...f.reader,source:async()=>({...source,files:source.files.map(file=>file.path==='zero-game.json'?{...file,bytes:Buffer.from('{}')}:file)})},registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
@@ -161,10 +162,72 @@ test('bounded inbox listing omits PRs and exposes actionable continuation withou
 });
 
 test('observed closed issues cancel pending snapshots without withdrawing accepted releases',async()=>{
-  const f=await gameFixture();const observed=await f.reader.publicationIssue(1);const closedReader={...f.reader,publicationIssue:async()=>({...observed,issueState:'closed'})};
+  const f=await gameFixture();const observed=await f.reader.publicationIssue(1);const closedReader={...f.reader,publicationIssue:async()=>({...observed,issueState:'closed'}),publicationIssueState:async()=>({...observed,issueState:'closed'})};
   const prepared=await f.platform.prepareIssue(1,{persist:true});
   const closed=createSharingPlatform({reader:closedReader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
   await closed.reconcile({issueNumbers:[1]});assert.equal(f.remote.state().requests[prepared.record.id].status,'cancelled');assert.equal(Object.keys(f.remote.state().releases).length,0);
-  const g=await gameFixture();await g.platform.publishIssue(1);const acceptedClosed=createSharingPlatform({reader:{...g.reader,publicationIssue:async()=>({...await g.reader.publicationIssue(1),issueState:'closed'})},registry:g.registry,storage:g.storage,artifactOrigin:origin,policyRevision:policy});
+  const g=await gameFixture();await g.platform.publishIssue(1);const acceptedClosed=createSharingPlatform({reader:{...g.reader,publicationIssue:async()=>({...await g.reader.publicationIssue(1),issueState:'closed'}),publicationIssueState:async()=>({...await g.reader.publicationIssue(1),issueState:'closed'})},registry:g.registry,storage:g.storage,artifactOrigin:origin,policyRevision:policy});
   await acceptedClosed.reconcile({issueNumbers:[1]});assert.equal(Object.values(g.remote.state().requests)[0].status,'available');assert.equal(Object.values(g.remote.state().releases)[0].delivery,'ready');
+});
+
+test('queued requests recheck closure outside the current inbox page and immediately before acceptance',async()=>{
+  const f=await gameFixture();const prepared=await f.platform.prepareIssue(1,{persist:true});
+  const closed=createSharingPlatform({reader:{...f.reader,publicationIssues:async()=>({issueNumbers:[],exhausted:true}),publicationIssueState:async()=>({issueId:'1',issueState:'closed',authenticatedActor:{githubId:'7',login:'student'}})},registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+  await closed.reconcile();assert.equal(f.remote.state().requests[prepared.record.id].status,'cancelled');assert.equal(Object.keys(f.remote.state().releases).length,0);
+  const g=await gameFixture();let observations=0;
+  const changing=createSharingPlatform({reader:{...g.reader,publicationIssueState:async()=>({issueId:'1',issueState:++observations===1?'open':'closed',authenticatedActor:{githubId:'7',login:'student'}})},registry:g.registry,storage:g.storage,artifactOrigin:origin,policyRevision:policy});
+  await assert.rejects(changing.publishIssue(1),/closed/);assert.equal(Object.keys(g.remote.state().releases).length,0);assert.equal(Object.values(g.remote.state().requests)[0].status,'cancelled');
+  assert.ok([...g.blob.objects.keys()].every(key=>key.startsWith('staging/')));
+});
+
+test('source descriptor and malformed POM failures are durable public results before rejection',async()=>{
+  for(const broken of ['descriptor','pom']) {
+    const f=await gameFixture();
+    const reader={...f.reader,source:async(request,options)=>{const source=await f.reader.source(request,options);source.files=source.files.map(file=>file.path===(broken==='descriptor'?'zero-game.json':'pom.xml')?{...file,bytes:Buffer.from(broken==='descriptor'?JSON.stringify({...request.descriptor,title:'Mismatch'}):'<project><broken></project>')}:file);source.sourceDigest=digest(source.files.map(file=>({path:file.path,sha256:digest(file.bytes)})));return source;}};
+    const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+    await assert.rejects(platform.publishIssue(1));const state=f.remote.state();assert.equal(Object.values(state.requests)[0].status,'failed');assert.equal(Object.keys(state.releases).length,0);assert.equal(f.blob.objects.size,0);
+  }
+});
+
+test('slow 150-request intake checkpoints per item, survives interruption and eventually processes without blob rescans',async()=>{
+  const f=await gameFixture();let virtual=0,sourceReads=0,interrupted=false;
+  const requestFor=number=>({...f.request,version:`0.1.${number}`,commit:number.toString(16).padStart(40,'0'),descriptor:{...f.request.descriptor,version:`0.1.${number}`}});
+  const metadata={...f.request.repository,visibility:'public',ownerType:'User'};
+  const reader={...f.reader,
+    publicationIssues:async({page})=>({issueNumbers:Array.from({length:page===1?100:50},(_,index)=>(page-1)*100+index+1),exhausted:page===2}),
+    publicationIssue:async number=>{await f.reader.repository('student/game');return {issueId:String(number),issueState:'open',authenticatedActor:f.request.requester,repositoryMetadata:metadata,request:requestFor(number)};},
+    publicationIssueState:async number=>({issueId:String(number),issueState:'open',authenticatedActor:f.request.requester}),
+    source:async(request,{signal})=>{assert.ok(signal);virtual+=1000;sourceReads++;return {request,repositoryMetadata:metadata,sourceDigest:digest(request.commit),files:f.files.map(file=>file.path==='zero-game.json'?{...file,bytes:Buffer.from(JSON.stringify(request.descriptor))}:file)};}
+  };
+  const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy,now:()=>virtual,wallBudgetMs:10000,sourceTimeoutMs:1000});
+  const original=f.registry.compareAndSwap.bind(f.registry);
+  f.registry.compareAndSwap=async(revision,next)=>{const result=await original(revision,next);if(result&&!interrupted&&next.inbox.offset===7){interrupted=true;throw new Error('Simulated interruption after durable cursor commit');}return result;};
+  await assert.rejects(platform.reconcile(),/Simulated interruption/);assert.deepEqual(f.remote.state().inbox,{page:1,offset:7});assert.equal(Object.values(f.remote.state().requests).filter(record=>record.status==='available').length,6);
+  let runs=0;
+  while(Object.values(f.remote.state().requests).filter(record=>record.status==='available').length<150&&runs++<30)await platform.reconcile();
+  assert.equal(Object.values(f.remote.state().requests).filter(record=>record.status==='available').length,150);assert.deepEqual(f.remote.state().inbox,{page:1,offset:0});assert.ok(runs>1);assert.ok(sourceReads<=151);
+  const before=sourceReads;await platform.reconcile();assert.equal(sourceReads,before);
+});
+
+test('explicit operator CLI retries paused games and withdraws/restores without replacing bytes or versions',async()=>{
+  const f=await gameFixture();const {record}=await f.platform.prepareIssue(1,{persist:true});
+  await reportAttempt(f.registry,record.id,{kind:'infrastructure-failure',message:'Fixture outage',maxInfrastructureRetries:1});
+  const dependencies={loadConfig:async()=>({...config,gamePublicationEnabled:true}),createPlatform:async()=>f.platform,environment:{}};
+  const retryArgs=['retry','--config','fixture','--request',record.id];
+  assert.equal((await runCli(retryArgs,dependencies)).mode,'dry-run');assert.equal(f.remote.state().requests[record.id].status,'paused');
+  await assert.rejects(runCli([...retryArgs,'--execute'],dependencies),/publisher role/);
+  assert.equal((await runCli([...retryArgs,'--execute','--role','publisher'],dependencies)).status,'queued');
+  await f.platform.reconcile({issueNumbers:[]});const key='game/game-r11-coin-game/0.1.0',accepted=f.remote.state().releases[key],artifact=accepted.release.artifacts.zip,before=await f.storage.get(artifact.path);
+  await assert.rejects(runCli([...retryArgs,'--execute','--role','publisher'],dependencies),/Only infrastructure-paused/);
+  for(const command of ['withdraw','restore']) {
+    const args=[command,'--config','fixture','--release',key];
+    const stateBefore=f.remote.state();await runCli(args,dependencies);assert.deepEqual(f.remote.state(),stateBefore);
+    await runCli([...args,'--execute','--role','publisher'],dependencies);
+    const state=f.remote.state();assert.deepEqual(state.releases[key].release,accepted.release);assert.equal(state.releases[key].requestId,record.id);assert.deepEqual(await f.storage.get(artifact.path),before);
+    const catalog=JSON.parse((await f.storage.get(state.catalog.path)).toString());assert.equal(catalog.releases[0].status,command==='withdraw'?'withdrawn':'available');
+  }
+  const g=await gameFixture(),observed=await g.reader.publicationIssue(1),source=await g.reader.source(observed.request);
+  const library={...observed.request,kind:'library',folder:'libraries/coin-game',descriptor:{...observed.request.descriptor,kind:'library',libraryKind:'widget'}};delete library.descriptor.controls;
+  const held=createSharingPlatform({reader:{...g.reader,publicationIssue:async()=>({...observed,request:library}),source:async request=>({...source,files:[{path:'zero-library.json',bytes:Buffer.from(JSON.stringify(library.descriptor))}],request})},registry:g.registry,storage:g.storage,artifactOrigin:origin,policyRevision:policy});
+  await assert.rejects(held.publishIssue(1));const libraryRecord=Object.values(g.remote.state().requests)[0];await assert.rejects(held.retryPaused(libraryRecord.id),new RegExp(LIBRARY_EXECUTION_GATE));assert.equal(g.remote.state().requests[libraryRecord.id].status,'paused');
 });

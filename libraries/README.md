@@ -1,26 +1,31 @@
 # Maintained sample libraries
 
-These source bundles live in the Zero repository and remain separate from
-`framework/`. They use ordinary JavaFX objects and explicit app-owned updates.
+These bundles remain separate from `framework/` and use ordinary JavaFX objects
+with explicit app-owned updates.
 
-- [Starter UI](starter-ui/README.md): StartScreen, Hud and ScoreDisplay, reused
-  by the packaged study app and coin game and by the ZeroHub dogfood fixture.
-- [Health bars](health-bars/README.md): continuous and segmented health views,
-  with retained behavior tests and four adventure/study examples.
+- [Starter UI](starter-ui/README.md): StartScreen, Hud and ScoreDisplay, reused by
+  the packaged study app and coin game.
+- [Health bars](health-bars/README.md): continuous and segmented views, behavior
+  checks and four adventure/study examples.
 
-Each bundle preserves its MIT notice and imported source provenance. Local Maven
-coordinates and proofs are unpublished; ZeroHub assigns permanent library IDs
-and exact versions through its existing submission contract.
+Each retains its MIT notice and source provenance. Local prototype coordinates
+are unpublished; moving a sample into this repository does not publish it or
+promote its API into core. Student sharing uses numeric GitHub repository identity
+and a slug inside the existing game repository; see [components](../docs/COMPONENTS.md).
+The initial student policy requires a personal-owned public repository. These
+organization-owned maintained samples need a separately deliberate seed policy.
 
-The complete local ZeroHub proof uses the internal Starter UI source:
+Run maintained local proofs from the repository root:
 
 ```sh
-node scripts/verify-hub.mjs --output .verification/zerohub-proof
+python3 scripts/verify-starter-ui.py
+python3 scripts/verify-health-bars.py
+node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-new
 ```
 
-It requires the existing pinned checker image and local PostgreSQL tools. Optional
-`--cache-from /absolute/path/to/trusted/maven-cache` copies cached dependencies
-into the fresh proof cache and removes copied hub coordinates there, so the exact
-hub JARs still resolve anew. Optional `--preview /absolute/path/to/preview.png`
-uses an authored preview. No external source checkout is required. To seed the
-disposable developer server, run `node hub/local.mjs --starter-ui`.
+The last command uses two trusted generated helper releases and local HTTPS to
+prove exact Maven Add/Update/Revert and source archives. It requires a fresh
+output directory and scopes certificate trust to disposable child processes.
+No global trust, database, hosted candidate execution or public publication is
+part of these proofs. The former `hub/local.mjs` and `verify-hub.mjs` service is
+removed; retained checker references are historical and remain held.
