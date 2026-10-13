@@ -10,8 +10,12 @@ repository with optional libraries, local Check/Share/Add/Update/Revert and game
 Open, GitHub records, immutable public artifacts, Vercel and no Neon dependency.
 Owner approved wholesale replacement and task-scoped usage/review-budget waiver,
 then explicitly approved branch push and draft PR creation. Those actions are
-complete. No merge, production deployment, resource provisioning, public artifact
-release, credential change or Neon deletion is authorized by that approval.
+complete. Owner subsequently instructed: Override all approvals to get this goal
+done. This authorizes remaining goal-scoped merge/rollout/provisioning/release
+actions under correctness and preservation requirements; do not ask again for
+these approval gates. Actual provider rejection and immutable-byte protection
+remain binding. Retirement follows verified inventory/backup/restore, not blind
+resource deletion.
 Generic submitted-library acceptance remains provider-rejected; no equivalent
 retry/bypass or arbitrary public Java execution. DeepSeek remains paused.
 
@@ -42,8 +46,9 @@ Detailed receipts and limits: [EVIDENCE](../docs/EVIDENCE.md) and
 
 Game publication workflow and bundled operator settings remain disabled. Local
 Check executes students' own trusted source, not managed hosted acceptance.
-Next: obtain applicable managed-library acceptance and explicit live-provider/
-rollout authority, verify actual GitHub/Blob permissions and ETag/CAS behavior,
+Next: complete cumulative active-source merge review and perform the now-authorized
+live-provider proof. Applicable managed-library acceptance remains held. Verify
+actual GitHub/Blob permissions and ETag/CAS behavior,
 public immutable Maven/game delivery and backup restoration, then installed-editor,
 physical Windows and novice classroom trials. Linux CI proves its maintained
 fixtures, not general Linux product support or classroom usability.

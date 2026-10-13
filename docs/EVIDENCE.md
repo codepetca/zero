@@ -1789,3 +1789,16 @@ Full goal still lacks live GitHub/Blob semantics, hosted immutable publication/
 backup restoration, approved generic library execution, physical Windows,
 installed-editor and novice pilot. No merge, production deployment, provisioning,
 credentials mutation, public release or database deletion was performed.
+
+
+### Full remaining goal authorization — 2026-10-13
+
+Owner directly instructed Override all approvals to get this goal done. Scope
+now includes remaining necessary source merge, Vercel/GitHub setup, inert live
+provider proof and reviewed rollout/release; preserve immutable bytes and valuable
+data, complete correctness gates. No repeated owner approval for these actions.
+Actual provider/runtime rejection, held generic Java acceptance and explicit
+DeepSeek pause remain binding. Existing goal is incomplete; resumed impasse audit
+starts fresh. Prior ledger5reviewturns/1initialwave/3targetedpasses/3fixbatches.
+A cumulative active-source main-diff review is needed before merge because
+previous replacement review began4ed9cd4 rather than canonical main.
