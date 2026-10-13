@@ -2,7 +2,8 @@
 
 Updated 2026-10-13. GitHub sharing source merged in PR27 and configured Mac rollout
 in [PR30](https://github.com/codepetca/zero/pull/30). Mac/kit0.5.8 metadata merged
-in [PR32](https://github.com/codepetca/zero/pull/32), mainfee74a3d16ea1f3b50d225d802d4da34c86a0931.
+in [PR32](https://github.com/codepetca/zero/pull/32). GitHub guidance is live from
+[PR33](https://github.com/codepetca/zero/pull/33), main60e629ee867180d859052c747a6a678dfa3dad64.
 Full adoption remains incomplete.
 
 ## Goal, authority and holds
@@ -22,17 +23,19 @@ inventory/export/restore are verified. Primary funding checkout stays untouched.
 ## Delivery and verification
 
 Worktree /Users/stew/.codex/worktrees/github-sharing-adoption/zero;
-branch codex/hub-sign-in-guidance. Owner asks for clear GitHub prerequisites:
-Hub browse/download stays public; contribution requires the existing native Zero
-GitHub session and the same account on the browser publication form. Website and
-component guide copy now explain both locations before sharing. No authentication
-implementation or immutable kit/native bytes are changed.
+branch codex/section-heading-hierarchy. Owner requests large section-name headings,
+page topics as subtitles, no purple eyebrow labels or back controls. Website pages
+now use Tutorials/Docs/Examples/ZeroHub as h1; document/topic anchors remain on
+muted subtitles. Next lesson/top navigation/reader sidebar remain. GitHub guidance
+from PR33 is preserved: browsing public, contributions require native Zero GitHub
+session and matching browser account. No authentication implementation or immutable
+kit/native bytes are changed.
 Canonical release/sharing.json binds local/CI VSIX configuration and source
 freshness, including native serving/preparation. Astra/high reviewed80cb..43ef;
 Sol/medium targeted reviews covered43ef..94f2 picker and94f2..9eab main integration.
 PR31 already-reviewed workflow fixes are retained. PR30 exact9eab917 passed full
 CI38409187639 and Vercel preview, then normal merge created68d7f63.
-Ledger15 completed reviewturns,11source remediation/base-sync/tooling/test batches;
+Ledger16 completed reviewturns,11source remediation/base-sync/tooling/test batches;
 Mac promotion review and delivery are recorded in the private receipt. Prior ledger
 and scoped receipts in EVIDENCE. Effective model/tokens/time unknown where unexposed.
 

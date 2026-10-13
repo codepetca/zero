@@ -1200,3 +1200,18 @@ pre code {
 
 /* ZeroHub forms follow the reading page. */
 .hub-form{display:grid;gap:10px;max-width:540px;margin:18px 0}.hub-form label{font-size:16px;font-weight:600}.hub-form input{width:100%;padding:12px;border:1px solid var(--outline);border-radius:4px;background:var(--pale);color:var(--ink);font:inherit;font-size:16px}.hub-form input:focus-visible{outline:3px solid var(--purple);outline-offset:3px}.hub-form .button{justify-self:start}.hub-form details label{display:block;margin:12px 0 6px}.hub-error{border-left:3px solid #a92b35;padding:10px 16px;background:var(--pale);overflow-wrap:anywhere}.hub-preview{display:block;max-width:100%;max-height:280px;object-fit:contain;object-position:left;margin:18px 0}.button:disabled,.text-button:disabled{opacity:.55;cursor:wait}.resource-links p{margin:0}
+
+/* Section titles lead; page topics remain readable beneath them. */
+.reading .page-subtitle,
+.catalog .page-subtitle,
+.reader-content .page-subtitle,
+.hub .page-subtitle {
+  color: var(--muted);
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+  margin: 0 0 18px;
+  overflow-wrap: anywhere;
+  scroll-margin-top: 24px;
+}

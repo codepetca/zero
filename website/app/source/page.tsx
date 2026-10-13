@@ -13,11 +13,8 @@ export default async function Source({
     <>
       <PageHeader active="Examples" />
       <main id="page-content" tabIndex={-1} className="catalog source-page">
-        <a className="back-link" href="/examples">
-          ← Example apps
-        </a>
-        <p className="eyebrow">Readable source</p>
-        <h1>{file.split("/").pop()}</h1>
+        <h1>Examples</h1>
+        <h2 className="page-subtitle">{file.split("/").pop()}</h2>
         <p className="source-path">{file}</p>
         <p>
           This is a read-only view. Edit the copy in your local project, then

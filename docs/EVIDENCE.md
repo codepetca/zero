@@ -2078,3 +2078,22 @@ Website typecheck/build passed. Actual local production browser Hub → See how 
 share navigation showed both sign-in locations and matching-account guidance.
 Screenshot output/playwright/hub-sign-in-prerequisites.png remains ignored. Fixed
 copy delta receives proportional independent review before authorized integration.
+
+
+GitHub guidance PR33 exact1506231c passed CI38436995040 (5m17s), independent
+Luna/medium five-file review16 clean and Vercel preview. Normal merge60e629e is
+production READY. Actual public Hub → sharing navigation showed native GitHub
+sign-in, public browsing and matching browser account instructions; private delivery
+receipt hub-sign-in-guidance-delivery.json and live screenshot retained.
+
+Owner then requested large section headings/topic subtitles and removal of purple
+eyebrows/back options. Sol/medium section_heading_update delivered nine owned UI
+files without Git/publication actions. Tutorials/Docs/Examples/ZeroHub are primary
+h1s; muted topics retain original document anchor IDs. Explicit returns and previous
+lesson controls removed; Next/sidebar/top navigation and sign-in/download/form
+behavior preserved. Existing website typecheck,54tests and production build passed;
+no mirror tests or fixture changes. Coordinator read full diff, rendered nine
+representative local production routes (one h1 each/no eyebrow/back elements),
+verified original lesson anchor and exact public download URLs, and clicked Next
+from lesson0 to1 in the browser. Desktop Hub share screenshot inspected; no mobile
+viewport trial claimed. Fixed source receives proportional independent review.
