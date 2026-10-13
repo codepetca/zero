@@ -1,124 +1,113 @@
-# 12. Build a larger game
+# 12. Grow your Coin game
 
-**First checkpoint: show a sprite and play a sound.**
+**First checkpoint: your moving player becomes a sprite and a collected coin rings.**
 
-![Purple robot on an AliceBlue canvas above Play sound and Plays: 2 controls](visuals/12.svg)
+![The lesson 9 Coin game with a robot player, three coins and a native score below the canvas](visuals/12.svg)
 
-Target illustration: the supplied robot after two sound clicks. Larger stages follow.
+1. Reopen the **same Coin game** you wrote in lessons 8–11. Keep your Player, Coin, ScoreDisplay and Main.
+2. Optionally download the small [game assets ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip) and place `media-demo/player.png` and `media-demo/chime.wav` under `src/main/resources/`. You may use your own PNG and short WAV at those paths, or use the drawing route below without assets.
+3. Add the media fields and methods below, **Run App**, collect a coin, then Restart.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson).
-2. Open the included Main and two media resources in the fresh project; **Run App**.
-3. Click **Play sound** twice; listen and watch the counter.
+**Done:** With assets, the player is an image and each coin sounds once; without assets, the blue square remains playable. Score and Restart still work. This lesson changes your current project in place. It supplies no later stage project ZIPs.
 
-**Done:** See the robot and **Plays: 2**; hear the chimes. The counter alone cannot check audio.
+Previous: [Check a component](11-zerohub.md).
 
-Assets → scrolling → platforms → levels → win/lose. Run each stage first.
+## 1. Draw an image from Player
 
-## Before each stage
-
-Each stage has a fresh project. Download its ZIP below or choose the same stage
-under **Zero: Start lesson**. Open the new folder and click **Run App**. Click
-the canvas for game keys. Keep every stage local.
-
-## 1. Your sprite and sound
-
-The fresh Lesson 12 project already includes:
-
-| From | To |
-| --- | --- |
-| [media-demo/Main.java](../examples/media-demo/Main.java) | `src/main/java/Main.java` |
-| [player.png](../examples/media-demo/resources/media-demo/player.png) | `src/main/resources/media-demo/player.png` |
-| [chime.wav](../examples/media-demo/resources/media-demo/chime.wav) | `src/main/resources/media-demo/chime.wav` |
-
-**Check:** see the robot. Click **Play sound** twice: hear chimes; see `Plays: 2`.
-Each click replaces the effect. The counter cannot prove audibility; check device/volume.
-
-`setup()` loads Image/AudioClip once. Draw reuses the image; an action plays sound.
-Paths starting `/` begin at `src/main/resources/`. Resource errors name their path.
-
-**Change:** replace the PNG and short **16-bit PCM WAV**; rerun. Keep names or
-change Main's paths too. Adjust its 96×96 drawing or `sound.setVolume(0.25)`
-(volume 0–1). Keep these resources throughout; later players draw at 32×32.
-
-## 2. A scrolling world and fixed score
-
-[Start Scrolling world](https://zero.codepet.ca/generated/lessons/zero-lesson-12-scrolling.zip).
-It includes Main, Camera, Player, Coin, unchanged ScoreDisplay and both resources.
-See [scrolling-game](../examples/scrolling-game/README.md) for the complete file list.
-
-**A/D or Left/Right** moves. Canvas: 640×360; world: 1600×360. Camera.follow
-centres the view and clamps its offset:
+In your existing `Player.java`, add `import javafx.scene.image.Image;`. Keep its current `draw(...)` method for the no-assets route. Add a second method inside Player:
 
 ```java
-x = Math.max(0, Math.min(centreX - viewportWidth / 2,
-        Math.max(0, worldWidth - viewportWidth)));
+public void drawImage(SketchApp app, Image sprite) {
+    app.image(sprite, x, y, size, size);
+}
 ```
 
-Drawing subtracts this offset from world positions; native score/message stay fixed.
+This uses the same `x`, `y` and `size` as the blue square. Movement, touching coins and Restart still use one Player object. You can keep drawing your own shapes instead of using a PNG.
 
-**Check:** move right: scenery scrolls, HUD stays fixed. Each coin scores once.
-Reach both world edges.
+## 2. Load optional local resources once
 
-**Change:** adjust Camera.follow's `viewportWidth / 2`; compare scrolling.
-
-## 3. Gravity, platforms and collisions
-
-[Start Platforms and gravity](https://zero.codepet.ca/generated/lessons/zero-lesson-12-platforms.zip).
-It includes Main, Camera, Player, Coin, Platform, unchanged ScoreDisplay and both
-resources. See [platform-game](../examples/platform-game/README.md).
-
-**Space or Up** jumps on a new grounded press. Player uses steps of at most
-1/120 second, adds gravity, moves and resolves collisions:
+In Main, add imports for `javafx.scene.image.Image`, `javafx.scene.media.AudioClip` and `javafx.scene.media.MediaException`. Add these fields:
 
 ```java
-velocityY = Math.min(800, velocityY + 1200 * step);
-y += velocityY * step;
+private Image sprite;
+private AudioClip chime;
+private Label soundStatus;
+private int plays;
 ```
 
-**Check:** jump onto a platform, hit its underside and side, then land. Hold jump
-through a landing: no extra jump. Fall into a gap: the stage resets.
-
-**Change:** adjust gravity in Player, rerun and compare jump height and falling.
-
-## 4. Enemies and two levels
-
-[Start Enemies and levels](https://zero.codepet.ca/generated/lessons/zero-lesson-12-levels.zip).
-It includes Main, Camera, Player, Coin, Platform, Level, Enemy, unchanged
-ScoreDisplay and both resources. See [level-game](../examples/level-game/README.md).
-
-Level holds ordinary arrays of platforms, coins and enemies, for example:
+At the **start** of your existing `setup()`, before making the controls, add:
 
 ```java
-new Coin[] { new Coin(120, 268), new Coin(300, 198),
-    new Coin(850, 198), new Coin(1360, 268) }
+var imageFile = getClass().getResource("/media-demo/player.png");
+if (imageFile != null) sprite = loadImage("/media-demo/player.png");
+var soundFile = getClass().getResource("/media-demo/chime.wav");
+if (soundFile != null) {
+    try {
+        chime = new AudioClip(soundFile.toExternalForm());
+        chime.setVolume(0.25);
+    } catch (MediaException failure) {
+        throw new IllegalArgumentException(
+                "Cannot load sound: /media-demo/chime.wav", failure);
+    }
+}
 ```
 
-Collect every coin before touching the exit.
+The `/` starts at `src/main/resources/`. Missing optional files leave `sprite` and `chime` null so the drawn game still runs. An invalid image or sound reports its resource path. If you use your own files with different names, change these two paths to match. Run after adding the files; no asset download is needed to compile.
 
-**Check:** exit early: stay in the level. Finish level 1: enter level 2 with its
-score banked. Touch an enemy or fall: restart the current level, restore its
-coins and lose only its unbanked points. Finish level 2: begin a fresh two-level run.
+## 3. Play one chime per collection
 
-**Change:** move one platform or enemy in Level's arrays; rerun and test its effect.
-
-## 5. Win, lose and restart
-
-[Start Win, lose and restart](https://zero.codepet.ca/generated/lessons/zero-lesson-12-full.zip).
-It includes Main, Camera, Player, Coin, Platform, Level, Enemy, unchanged
-ScoreDisplay and both resources. See [full-game](../examples/full-game/README.md).
-
-Main owns playing/won/lost state. Its update begins:
+In `setup()`, after creating your score and message controls, add `soundStatus = new Label();`. In the **existing** `new HBox(...)`, add `soundStatus` between `score.view()` and `message`; keep the Restart button. In `restart()`, after resetting points, add:
 
 ```java
-if (won || lost) return;
+plays = 0;
+soundStatus.setText("Chimes: 0");
 ```
 
-Drawing continues. Native **Restart** creates a fresh run.
+Inside the coin collection block in `update()`, just after `score.setScore(points);`, add:
 
-**Check:** an enemy or fall shows a loss and freezes movement. Restart restores
-level 1, player, enemies, coins and zero score. Finish both levels: win and freeze.
-Restart after winning and collect a coin again. Click the canvas to resume keys.
+```java
+if (chime != null) {
+    chime.stop();
+    chime.play();
+    plays++;
+    soundStatus.setText("Chimes: " + plays);
+}
+```
 
-**Change:** change the win/loss message in Main; demonstrate both endings.
+At the end of `draw()`, replace `player.draw(this);` with:
 
-Previous: [Share a component](11-zerohub.md). Return to the [lesson index](README.md).
+```java
+if (sprite == null) player.draw(this);
+else player.drawImage(this, sprite);
+```
+
+Run App. Move over one coin and wait there: score and chime count rise once. Collect two more, then Restart. The count returns to 0 and all coins return. The counter shows that an audio action was requested; your ears, device volume and media support check actual sound. After you do the edits, compare with the media checkpoint's [Main.java](../../teaching/checkpoints/12/media/Main.java) and [Player.java](../../teaching/checkpoints/12/media/Player.java).
+
+## Optional stage 2: scroll a wider world
+
+Keep editing this folder. Add a new `Camera.java` class with a private `double x`, `double x()` getter, and this method:
+
+```java
+public void follow(double playerX, double viewportWidth, double worldWidth) {
+    x = Math.max(0, Math.min(playerX - viewportWidth / 2,
+            worldWidth - viewportWidth));
+}
+```
+
+Add `public double x() { return x; }` to Player. In Main add `private final double worldWidth = 1600;` and `private Camera camera;`. Create `camera = new Camera();` in `restart()` and move two coins farther away, for example x 840 and 1360. Pass `worldWidth` instead of `width()` to `player.update(...)`, then call `camera.follow(player.x(), width(), worldWidth);` after movement. To draw world objects, add overloads `Player.draw(SketchApp app, double cameraX)`, `Player.drawImage(SketchApp app, Image sprite, double cameraX)` and `Coin.draw(SketchApp app, double cameraX)`. In each, use `x - cameraX` for the image or rectangle's horizontal drawing coordinate; keep the original methods and collection positions unchanged. In Main's `draw()`, pass `camera.x()` to those new methods. Native ScoreDisplay and Restart stay outside the canvas and do not scroll. Check both world edges and collect a far coin. Compare your edits with the optional [scrolling checkpoint Main](../../teaching/checkpoints/12/scrolling/Main.java) and [Camera.java](../../teaching/checkpoints/12/scrolling/Camera.java), or the maintained [scrolling example](../examples/scrolling-game/README.md), then return to **your own code**.
+
+## Optional stage 3: platforms and gravity
+
+Continue the same game. Add a `Platform.java` with `x`, `y`, `width`, `height`, getters and `draw(SketchApp app, double cameraX)` that calls `app.rect(x - cameraX, y, width, height)`. Main owns `private Platform[] platforms;` and creates ground and ledges in `restart()`, for example `new Platform(0, 300, 600, 20)` and `new Platform(700, 240, 180, 20)`. Draw each platform before the coins and player.
+
+Move the coins near reachable ledges. In Player, add `private double velocityY; private boolean grounded = true;`. Keep the old `update(...)` for your top-down version. Add a new `updatePlatform(int horizontal, boolean jumpPressed, double seconds, double worldWidth, Platform[] platforms)` method. It moves x with the existing `speed`, clamps x to `worldWidth - size`, starts a jump only when `jumpPressed && grounded` (`velocityY = -460`), then on each frame applies `velocityY = Math.min(800, velocityY + 1200 * seconds); y += velocityY * seconds;`. Save the old bottom (`oldY + size`) before moving. When falling (`velocityY >= 0`), land only if the old bottom was at or above a platform top, the new bottom reaches it, and the player's horizontal range overlaps the platform. Landing sets `y = platform.y() - size`, `velocityY = 0`, `grounded = true`. Otherwise set `grounded = false`. In Main, replace only the movement call with `player.updatePlatform(horizontal, jumpPressed, seconds, worldWidth, platforms);`; compute a fresh Space press with a `private boolean jumpHeld` field so holding Space through landing does not jump again. After falling below the canvas, call `restart()` or show a loss. Test a landing, a gap, and a held jump. See the maintained [platform example](../examples/platform-game/README.md) for side and underside collision details if you extend this simple landing rule.
+
+## Optional stage 4: levels and enemies
+
+Add a `Level.java` that stores a `Platform[]`, `Coin[]`, spawn x/y and an exit x; its constructor creates the data for either level number 0 or 1. Main adds `private Level level; private int levelIndex;` and a `startLevel(int index)` method. That method sets `levelIndex = index`, constructs `level = new Level(index)` so coins are fresh, creates Player at `level.spawnX()`/`level.spawnY()`, assigns Main's `platforms` and `coins` from the new level, resets camera and displays the level number. `restart()` sets points and levelIndex to 0, then calls `startLevel(0)`. When every coin in the current level is collected and `player.x() >= level.exitX()`, call `startLevel(1)` from level 0; after level 1, enter the won state instead. Keep total score in Main and call `score.setScore(points)` when it changes. An optional `Enemy.java` can store x/y, move with an explicit `update(seconds)`, and expose `touches(Player)` using Player's existing contact method. Main owns an `Enemy[]`, explicitly updates/draws it, and decides whether a touch loses the current run. Check that entering a second level creates fresh coins and that the native score stays fixed while scenery moves. The maintained [level example](../examples/level-game/README.md) shows a complete reference with two levels.
+
+## Optional stage 5: endings and Restart
+
+Use `private boolean won; private boolean lost;` in Main. At the top of `update()`, use `if (won || lost) return;`; keep `draw()` running so the last scene and message remain visible. Finishing the last level sets won and a clear win message. Enemy contact or a fall sets lost and a clear loss message. In `restart()`, clear both flags, score and level index, then call `startLevel(0)` without creating controls again. Check win → frozen movement → Restart → first coin, and loss → frozen movement → Restart → first coin. The maintained [full-game source](../examples/full-game/README.md) is an advanced reference; inspect one method at a time and keep your own project and authored classes.
+
+These optional stages are larger exercises. Save a copy of your **own** project folder before an experiment if you want an easy way back; keep it local. Your study quiz and Coin game remain the two continuing practice projects, and an original shareable game is an optional separate fourth project. Return to the [lesson index](README.md).

@@ -1,48 +1,51 @@
-# 4. Count clicks
+# 4. Count quiz attempts
 
-**Make the number change.**
+**Count every press of Check.**
 
-![Counter showing 2 above a +1 button](visuals/04.svg)
+![Quiz with Attempts: 2 after two checks](visuals/04.svg)
 
-Target illustration: the counter after two clicks.
+Target illustration: the same quiz after two checks.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson).
-2. Open the included [click-counter Main.java](../examples/click-counter/Main.java); **Run App**.
-3. Click **+1** twice. Find the handler in the [code below](#code-and-explanation).
+1. Open your **Study** project from lesson 3. Keep its question and Check action.
+2. Add an `attempts` field and a label for it, then update both on each check.
+3. Click **Run App** and check twice, using any answers.
 
-**Done:** The label goes **0 → 1 → 2**.
+**Done:** The quiz shows **Attempts: 2** after two checks. Its answer feedback still works.
 
 ## Code and explanation
 
-The fresh project already contains this `src/main/java/Main.java`, matching [click-counter Main](../examples/click-counter/Main.java):
+In `Main`, above `setup()` and beside your `answer` and `feedback` fields, add:
 
 ```java
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
-import zero.SimpleApp;
-
-public class Main extends SimpleApp {
-    private int count = 0;
-
-    public void setup() {
-        var display = new Label("0");
-        var add = new Button("+1");
-        add.setOnAction(event -> {
-            count = count + 1;
-            display.setText("" + count);
-        });
-        var screen = new VBox(10, display, add);
-        show(screen);
-    }
-    public static void main(String[] args) { launch(args); }
-}
+private int attempts = 0;
+private Label attemptsLabel;
 ```
 
-1. **Run App** → **0**
-2. Click **+1** twice → **1**, **2**
-3. Change `count + 1` to `count + 2`; rerun → **0**, **2**, **4**
+In `setup()`, after `feedback = new Label("");`, create the new label:
 
-`count` stores the number between clicks. `setText` updates the label.
+```java
+attemptsLabel = new Label("Attempts: 0");
+```
 
-Next: [Lesson 5](05-methods.md).
+Add `attemptsLabel` as the **last** item in the existing `VBox`:
+
+```java
+show(new VBox(10, question, answer, check, feedback, attemptsLabel));
+```
+
+Inside the **existing** `check.setOnAction(...)` block, put these two lines
+*before* the `if` statement:
+
+```java
+attempts = attempts + 1;
+attemptsLabel.setText("Attempts: " + attempts);
+```
+
+`attempts` is a field because its value must survive from one click to the
+next. The label shows the current value; changing the number alone does not
+change the screen. Keep checking answers: two wrong attempts still show
+**Try again.**, and a correct answer still shows **Correct!**.
+
+If you need to compare your result, see the [completed lesson 4 checkpoint](../../teaching/checkpoints/4/Main.java).
+
+Next: [Add Reset with methods](05-methods.md).

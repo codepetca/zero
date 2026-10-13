@@ -1,42 +1,42 @@
 # Build with Zero: Lessons 0–12
 
-Start with the target illustration and three steps at the top of a lesson.
-Open the code and explanation when you need them. Lessons 7–12 begin with a
-first checkpoint; the remaining stages build toward the larger result.
-Illustrations are drawings, not screenshots; native controls vary by platform.
+Build **three projects**, adding to your own code across lessons. Start each
+project once. Keep the same folder for every lesson in that group.
+Illustrations show the intended result; native controls vary by platform.
 
-| Lesson | Build |
-| --- | --- |
-| [0](00-hello-world.md) | Hello, world! |
-| [1](01-hello-button.md) | Greeting button |
-| [2](02-hello-name.md) | Name input |
-| [3](03-quiz.md) | Tiny quiz |
-| [4](04-counter.md) | Click counter |
-| [5](05-methods.md) | Reset and methods |
-| [6](06-objects.md) | Counter object |
-| [7](07-study-app.md) | Full app: study quiz |
-| [8](08-movement.md) | Movement and keys |
-| [9](09-coin-game.md) | Full game: collect coins |
-| [10](10-components.md) | Extract and reuse a component |
-| [11](11-zerohub.md) | Share with ZeroHub |
-| [12](12-media.md) | Larger game: sprites, scrolling, platforms, levels and endings |
+| Project | Lessons | What grows |
+| --- | --- | --- |
+| Greeting app | [0](00-hello-world.md), [1](01-hello-button.md), [2](02-hello-name.md) | Label → button → name input |
+| Study quiz | [3](03-quiz.md), [4](04-counter.md), [5](05-methods.md), [6](06-objects.md), [7](07-study-app.md) | One question → attempts → reset methods → Counter object → question array and scoring |
+| Coin game | [8](08-movement.md), [9](09-coin-game.md), [10](10-components.md), [11](11-zerohub.md), [12](12-media.md) | Player → coins/win/restart → shared score display → optional media and larger world |
+
+Lesson 10 reopens both Study and Game to reuse the class you wrote. Lesson 11
+practises a compatible component change locally. Sharing is optional and uses
+an original project of your own, separate from these three practice folders.
+Lesson 12's larger game stages are optional extensions of the same Game project.
 
 ## Start a lesson
 
-Complete [setup](../README.md#first-setup). On the lesson page, click **Start lesson**.
-Unzip the project, open its folder in VS Code and click **Zero → Run App**.
-You can also choose **Zero: Start lesson** in the editor to create a fresh project.
-Click **Run App** again after editing; Zero saves and restarts the app. Click the
-canvas before using game keys.
+Complete [setup](../README.md#first-setup). At lessons **0, 3 and 8**, use the
+**Start project** button on the tutorial page. Unzip the small project and open
+its folder in VS Code. A current development extension also offers
+**Zero: Start project**; published older kits use the website ZIPs.
 
-Keep every lesson project local. Use your own separate game repository for
-coursework, Pika and actual ZeroHub sharing.
+Each starter has an empty runnable `Main.java` and the build/framework setup.
+The first run opens a blank window or canvas. You write the controls, game objects
+and logic as the lessons guide you. No finished app or helper classes are supplied.
 
-## Keep a small record
+For every following lesson, open the same project and continue your code. After
+editing, click **Run App again**. Click the canvas before using game keys.
+No project downloads or file switching are needed between lessons.
 
-Try the stated checks. Save your change and its actual result.
-See [teacher notes](TEACHER.md) and the [API](../API.md) when needed.
+The only optional lesson download is the [image and sound ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip)
+in lesson 12. You can use your own assets or keep the drawing fallback instead.
+Keep practice local; Zero's practice projects block repository and sharing actions.
 
-Coursework links go separately to [Pika](../README.md#your-repository-and-pika).
-ZeroHub library sharings use Lesson 11.
+## Check your work
+
+Try each Done check and record the result. Read [teacher notes](TEACHER.md) and
+[the API](../API.md) when needed. Coursework links from your own original repository
+go separately to [Pika](../README.md#your-repository-and-pika).
 For controls in games and reusable views, read [UI and app/game flow](../UI.md).

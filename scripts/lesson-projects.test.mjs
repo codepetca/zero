@@ -6,36 +6,35 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {unzipSync} from 'fflate';
-import {lessonProjects, lessonProjectZip, prepareLessonProjects} from './lesson-projects.mjs';
+import {lessonProjects, lessonProjectZip, prepareLessonProjects, gameAssetFiles} from './lesson-projects.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const bundle = lessonProjects(root);
 const content = (project, filename) => Buffer.from(project.files.find(file => file.path === filename).content, 'base64');
 
-test('all lesson and stage starters contain only their matching compiled classes', () => {
-  assert.equal(bundle.projects.length,18);
-  assert.equal(new Set(bundle.projects.map(project => project.id)).size,18);
-  const expected = {
-    '0':['Main'], '1':['Main'], '2':['Main'], '3':['Main'], '4':['Main'], '5':['Main'],
-    '6':['Counter','Main'], '7':['Main','Question','ScoreDisplay'], '8':['Main','Player'],
-    '9':['Coin','Main','Player'], '10':['Main','Question','ScoreDisplay'], '11':['Main','Question','ScoreDisplay'], '12':['Main'],
-    '10-game':['Coin','Main','Player','ScoreDisplay'], '12-scrolling':['Camera','Coin','Main','Player','ScoreDisplay'],
-    '12-platforms':['Camera','Coin','Main','Platform','Player','ScoreDisplay'],
-    '12-levels':['Camera','Coin','Enemy','Level','Main','Platform','Player','ScoreDisplay'],
-    '12-full':['Camera','Coin','Enemy','Level','Main','Platform','Player','ScoreDisplay'],
-  };
+test('three continuing projects cover every lesson without distributing solutions', () => {
+  assert.deepEqual(bundle.projects.map(project => project.id), ['greeting','study','game']);
+  const first = {greeting:'0',study:'3',game:'8'};
+  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java','src/main/java/zero/SimpleApp.java','src/main/java/zero/SketchApp.java','zero.json'].sort();
   for (const project of bundle.projects) {
-    const classes = project.files.filter(file => /^src\/main\/java\/[^/]+\.java$/.test(file.path)).map(file => path.basename(file.path,'.java')).sort();
-    assert.deepEqual(classes,expected[project.id],project.id);
-    assert.equal(new Set(project.files.map(file => file.path)).size,project.files.length);
-    assert.ok(project.files.every(file => !file.path.includes('..') && !file.path.startsWith('/') && !/^\.git\//.test(file.path)));
-    assert.ok(!project.files.some(file => /^(target\/|zero-game\.json|libraries\/)/.test(file.path)));
-    assert.equal(JSON.parse(content(project,'zero.json')).localOnly,true);
-    assert.equal(JSON.parse(content(project,'zero.json')).lessonId,project.id);
+    assert.deepEqual(project.files.map(file => file.path).sort(),expected);
+    const marker=JSON.parse(content(project,'zero.json'));
+    assert.equal(marker.localOnly,true);
+    assert.equal(marker.practiceProjectId,project.id);
+    assert.equal(marker.lessonId,first[project.id]);
     assert.equal(JSON.parse(content(project,'.vscode/settings.json'))['git.enabled'],false);
     assert.equal(project.files.find(file => file.path === 'mvnw').mode,0o755);
+    const main=content(project,'src/main/java/Main.java').toString();
+    assert.doesNotMatch(main,/new (Label|Button|Player|Coin|Counter|Question|ScoreDisplay)|show\(/);
+    assert.match(main,/void setup\(\)/);
+    assert.match(content(project,'README.md').toString(),/blank window or canvas/);
   }
-  assert.ok(!content(bundle.projects.find(p => p.id === '8'),'src/main/java/Main.java').toString().includes('void update('),'lesson8 starts before adding movement');
-  assert.ok(content(bundle.projects.find(p => p.id === '7'),'src/main/java/Main.java').toString().includes('private final Question question'),'lesson7 starts at one-question checkpoint');
+});
+test('optional asset archive contains only the two media resources', () => {
+  const files=gameAssetFiles(root);
+  assert.deepEqual(files.map(file=>file.path),['media-demo/player.png','media-demo/chime.wav']);
+  const extracted=unzipSync(lessonProjectZip({folder:'',files}));
+  for (const file of files) assert.deepEqual(Buffer.from(extracted[file.path]),readFileSync(path.join(root,'student-template/examples/media-demo/resources',file.path)));
+  assert.equal(Object.keys(extracted).length,2);
 });
 test('ZIPs round-trip every source byte and preserve runnable wrapper permissions', () => {
   for (const project of bundle.projects) {
@@ -71,5 +70,5 @@ test('website and native entry points receive the same maintained project bytes'
   prepareLessonProjects(root,{website:true,extension:true});
   const generated=JSON.parse(readFileSync(path.join(root,'extension/media/lesson-projects.json')));
   assert.deepEqual(generated,bundle);
-  for(const project of generated.projects) assert.deepEqual(readFileSync(path.join(root,`website/public/generated/lessons/${project.folder}.zip`)),lessonProjectZip(project));
+  for(const project of generated.projects) assert.deepEqual(readFileSync(path.join(root,`website/public/generated/projects/${project.folder}.zip`)),lessonProjectZip(project));
 });

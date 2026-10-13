@@ -1,42 +1,44 @@
 # 1. Say hello with a button
 
-**Make one click change a label.**
+**Make a click change your greeting.**
 
-![Hello, Java! above a Say hello button](visuals/01.svg)
+![You did it! above a Say hello button](visuals/01.svg)
 
-Target illustration: the label after clicking Say hello.
+Target illustration: the label after clicking **Say hello**.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson).
-2. Open the [complete program below](#code-and-explanation) in `src/main/java/Main.java`; **Run App**.
-3. Click **Say hello**, then change the handler's greeting and **Run App**.
+1. Open your **Greeting** project from lesson 0. Keep its `Main.java`.
+2. Add a button and put both controls in a `VBox`. Click **Run App**.
+3. Click **Say hello** and watch the label change.
 
-**Done:** Clicking **Say hello** shows your changed greeting.
+**Done:** The label changes from **Hello, Java!** to **You did it!**.
 
 ## Code and explanation
 
-The fresh project already contains this `src/main/java/Main.java`:
+In `Main.java`, add two imports beside the `Label` import:
 
 ```java
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
-
-public class Main extends SimpleApp {
-    public void setup() {
-        var greeting = new Label("Hello, world!");
-        var button = new Button("Say hello");
-        button.setOnAction(event -> greeting.setText("Hello, Java!"));
-        var screen = new VBox(10, greeting, button);
-        show(screen);
-    }
-    public static void main(String[] args) { launch(args); }
-}
 ```
 
-1. **Run App**
-2. Click **Say hello**
-3. Change `"Hello, Java!"`
-4. **Run App**
+Keep your existing `greeting` line in `setup()`. After it, write:
 
-Next: [Lesson 2](02-hello-name.md).
+```java
+Button button = new Button("Say hello");
+button.setOnAction(event -> greeting.setText("You did it!"));
+```
+
+`VBox` stacks the label and button with 10 pixels between them. Replace only
+`show(greeting);` with:
+
+```java
+show(new VBox(10, greeting, button));
+```
+
+The button's action changes the **existing** label. The label must stay in
+`setup()` above the action so the action can use `greeting`.
+
+Try changing `You did it!` to your own short message and rerun. Keep this
+Greeting project for lesson 2.
+
+Next: [Greet by name](02-hello-name.md).

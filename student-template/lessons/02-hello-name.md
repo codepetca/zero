@@ -1,44 +1,47 @@
 # 2. Greet by name
 
-**Type a name, then greet it.**
+**Let someone type the greeting.**
 
 ![Hello, Sam! above a Sam input and Say hello button](visuals/02.svg)
 
-Target illustration: typing Sam and clicking Say hello.
+Target illustration: typing `Sam` and clicking **Say hello**.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson).
-2. Open the [complete program below](#code-and-explanation) in `src/main/java/Main.java`; **Run App**.
-3. Type `Sam`; click **Say hello**. Try your own name next.
+1. Open the **same Greeting project** you changed in lessons 0 and 1.
+2. Add a text field between the label and button. Change the button action to read it.
+3. Click **Run App**, type `Sam`, and click **Say hello**.
 
-**Done:** The label says **Hello, Sam!**, then changes for your next name.
+**Done:** The label says **Hello, Sam!**. Another name gives another greeting.
 
 ## Code and explanation
 
-The fresh project already contains this `src/main/java/Main.java`:
+Add this import beside your other JavaFX imports:
 
 ```java
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
-import zero.SimpleApp;
-
-public class Main extends SimpleApp {
-    public void setup() {
-        var greeting = new Label("Hello, world!");
-        var name = new TextField();
-        name.setPromptText("Your name");
-        var button = new Button("Say hello");
-        button.setOnAction(event -> greeting.setText("Hello, " + name.getText() + "!"));
-        var screen = new VBox(10, greeting, name, button);
-        show(screen);
-    }
-    public static void main(String[] args) { launch(args); }
-}
 ```
 
-1. **Run App**
-2. Type your name
-3. Click **Say hello**
+In `setup()`, after the `greeting` line and before the `button` line, write:
 
-Next: [Lesson 3](03-quiz.md).
+```java
+TextField name = new TextField();
+name.setPromptText("Your name");
+```
+
+Change the button's existing action to:
+
+```java
+button.setOnAction(event ->
+        greeting.setText("Hello, " + name.getText() + "!"));
+```
+
+Replace the `show(...)` line so the field appears between the other controls:
+
+```java
+show(new VBox(10, greeting, name, button));
+```
+
+`name.getText()` reads what is in the field **when the button is clicked**.
+Try your own name. You have now grown one project across three lessons. The
+next lesson starts a new **Study** project, which you will keep through lesson 7.
+
+Next: [Start a tiny quiz](03-quiz.md).

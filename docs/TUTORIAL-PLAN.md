@@ -4,14 +4,21 @@ Owner selected the study quiz and coin game for this local pass. Installer trial
 remain deferred. Preserve ordinary Java, native JavaFX terminology and explicit
 object updates. No new core API, engine, component registry or publication here.
 
-## First pass
+## Continuing project progression
 
-Fix example switching so old helpers cannot break a new Main. Correct Hello-world
-starter guidance and keep Restart visible in the complete study stage. Introduce
-native game controls before arrays/win logic. Reuse the unchanged ScoreDisplay in
-both SimpleApp and SketchApp, with complete copy lists and observable checks.
-See [UI and flow](../student-template/UI.md). New sources remain unreleased; public
-Mac0.5.7 and standalone0.5.3 bytes remain immutable.
+Create Greeting once for 0–2, Study once for 3–7, and Game once for 8–12.
+Each download supplies empty runnable Main and the pinned build/framework setup.
+Students author their controls and classes. The quiz gains attempts, reset methods,
+Counter, then questions/arrays/scoring. The game gains movement, coins/win/restart,
+then the student's ScoreDisplay extracted from Study. Lesson 11 checks a compatible
+API addition locally; GitHub sharing uses a separate original project. Lesson 12
+adds optional assets and camera; advanced platform/level/endings work stays in Game.
+No normal switching checklist or complete stage project downloads remain.
+
+Completed source checkpoints are in `teaching/checkpoints`, outside scaffolds.
+Optional full examples remain a reference shelf. See [the lesson index](../student-template/lessons/README.md).
+Published kit assets remain immutable. The website serves the new scaffolds for
+existing Run App; native Start project belongs to the next kit.
 
 ## Component shortlist
 

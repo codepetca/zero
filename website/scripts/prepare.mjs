@@ -69,6 +69,7 @@ async function collect(folder) {
   }
 }
 await collect("student-template/examples");
+await collect("teaching/checkpoints");
 await collect("docs");
 for (const doc of Object.values(docs)) sources[doc.source] = doc.markdown;
 for (const file of [

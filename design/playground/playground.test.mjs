@@ -48,7 +48,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(error,/Main.java, line 8: add a semicolon/);
   assert.match(error,/zero.showProblems/);
   const practice = sidebarSource('practice');
-  assert.match(practice,/zero.startLesson/);
+  assert.match(practice,/zero.startProject/);
   assert.match(practice,/Local practice · no GitHub sharing/);
   assert.doesNotMatch(practice,/data-command="zero\.(?:chooseRepository|uploadToGitHub|githubAccount)"/);
 });

@@ -1,63 +1,62 @@
 # 8. Move a player
 
-**First checkpoint: move the square.**
+**First checkpoint: a square you can move.**
 
-![Cornflower-blue player at 40,180 on an AliceBlue canvas, with the arrow-key instruction](visuals/08.svg)
+![A blue square on the canvas with an arrow showing movement](visuals/08.svg)
 
-Target illustration: the starting player, before moving.
+1. [Start the Coin game project](README.md#start-a-lesson) once. Its `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class.
+2. Write `Player.java` and fill in your existing Main methods below.
+3. **Run App**, click the canvas, then hold and release an arrow key.
 
-1. [Start a fresh Lesson 8 project](README.md#start-a-lesson) with Player and the [stage 1 Main](#1-draw-a-square) already in place.
-2. Add the complete `update(...)` method from [stage 2](#2-read-keys-and-update); **Run App**.
-3. Click the canvas, hold **Right**, then release it.
+**Done:** The square moves while a key is held and stops when released. Keep this folder for lessons 9–12. There is no new game download for the next lesson.
 
-**Done:** Hold Right: the square moves. Release: it stops. More checks follow.
+Previous: [Your study quiz](07-study-app.md).
 
-Build a canvas app with an ordinary Player object.
-Previous: [Study app](07-study-app.md).
+## 1. Write Player.java
 
-## 1. Draw a square
-
-The fresh project includes [movement Player.java](../examples/movement/Player.java).
-Its `src/main/java/Main.java` starts with:
+Create `src/main/java/Player.java`. Player owns position; Main decides when to update and draw it. Type this class, then try changing its color or speed:
 
 ```java
-import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import zero.SketchApp;
 
-public class Main extends SketchApp {
-    private Player player;
+public class Player {
+    private double x;
+    private double y;
+    private final double size = 24;
+    private final double speed = 180;
 
-    @Override public void settings() {
-        title("Move a square");
-        size(640, 400);
+    public Player(double startX, double startY) {
+        x = startX;
+        y = startY;
     }
 
-    @Override public void setup() {
-        player = new Player(40, 180);
+    public void update(int horizontal, int vertical, double seconds,
+                       double canvasWidth, double canvasHeight) {
+        x += horizontal * speed * seconds;
+        y += vertical * speed * seconds;
+        x = Math.max(0, Math.min(x, canvasWidth - size));
+        y = Math.max(0, Math.min(y, canvasHeight - size));
     }
 
-    @Override public void draw() {
-        background(Color.ALICEBLUE);
-        fill(Color.DARKSLATEGRAY);
-        textSize(20);
-        text("Click the canvas, then hold the arrow keys.", 20, 30);
-        player.draw(this);
+    public void draw(SketchApp app) {
+        app.fill(Color.CORNFLOWERBLUE);
+        app.rect(x, y, size, size);
     }
-
-    public static void main(String[] args) { launch(args); }
 }
 ```
 
-Run App. The square appears at x = 40, y = 180 and stays still.
-`SketchApp` calls `draw()` each frame. Main calls `player.draw(this)` explicitly;
-creating a Player does not make it move. `background(...)` clears the last frame.
+The `Math.max`/`Math.min` lines keep the whole square on screen. `x` and `y` are its top-left corner. At 180 pixels per second, a 0.05-second update moves 9 pixels.
 
-## 2. Read keys and update
+## 2. Connect Player to your existing Main
 
-Insert this complete method inside Main, before `draw()`:
+Add `import javafx.scene.input.KeyCode;` and `import javafx.scene.paint.Color;` above Main. Add `private Player player;` inside the class. Fill your starter's **existing** methods:
 
 ```java
+@Override public void setup() {
+    player = new Player(40, 180);
+}
+
 @Override public void update(double seconds) {
     int horizontal = 0;
     int vertical = 0;
@@ -67,36 +66,20 @@ Insert this complete method inside Main, before `draw()`:
     if (keyDown(KeyCode.DOWN)) vertical++;
     player.update(horizontal, vertical, seconds, width(), height());
 }
+
+@Override public void draw() {
+    background(Color.ALICEBLUE);
+    fill(Color.DARKSLATEGRAY);
+    textSize(20);
+    text("Click the canvas, then hold the arrow keys.", 20, 30);
+    player.draw(this);
+}
 ```
 
-Click Run App. Click the canvas, then try each arrow. Up decreases y;
-Down increases y. Separate `if` statements let diagonal keys work together and
-opposite keys cancel. Release the keys: movement stops.
+Keep the starter's `settings()` and `main(...)`. `SketchApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls Player. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
 
-Each frame calls `update(seconds)`, then `draw()`. In Player:
+## 3. Explore and check
 
-```java
-x += horizontal * speed * seconds;
-y += vertical * speed * seconds;
-```
+Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 9. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
 
-At speed 180, holding Right for a 0.05-second update moves 9 pixels.
-Frame durations vary. Diagonals move 180 pixels per second on each axis, so their
-overall speed is faster. Main reads input; Player owns position and movement.
-
-The complete result is [movement Main.java](../examples/movement/Main.java) plus
-[Player.java](../examples/movement/Player.java), both copied into `src/main/java/`.
-No Maven or framework changes are needed.
-
-## 3. Change and check
-
-In Player, change `speed` from 180 to 90. Run and compare. Restore 180.
-Then change `size` from 24 to 40. Test all four edges: the whole square stays
-inside the canvas. Its top-left x is limited from 0 to `width - size`; y from
-0 to `height - size`. Restore 24 before the next lesson.
-
-Try Left + Right, Right + Up, releasing all keys and switching to another window.
-Focus loss clears held keys; click the canvas to resume. Explain what happens if
-Main stops calling `player.update(...)` but continues calling `player.draw(this)`.
-
-Next: [Build a coin game](09-coin-game.md).
+After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 9](09-coin-game.md).

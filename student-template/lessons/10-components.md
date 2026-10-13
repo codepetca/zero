@@ -1,107 +1,58 @@
-# 10. Reuse one component in an app and a game
+# 10. Reuse the score display
 
-**First checkpoint: run ScoreDisplay.**
+**First checkpoint: one class works in two projects you already wrote.**
 
-![The same ScoreDisplay.java source used in a study app and beneath a coin-game canvas](visuals/10.svg)
+![One ScoreDisplay class copied between the study quiz and Coin game, with a separate instance in each](visuals/10.svg)
 
-Target illustration: separate instances in study and game.
+1. Reopen your **Study quiz** from lesson 7. Extract its `scoreLabel` into a class you write called `ScoreDisplay`.
+2. Reopen your **Coin game** from lesson 9. Copy only your `ScoreDisplay.java` into that project, then use it there.
+3. **Run App** in each project and check scoring and Restart.
 
-1. [Start a fresh Lesson 10 project](README.md#start-a-lesson).
-2. Open [stage 1's three files](#1-find-the-component-boundary) in the fresh project; **Run App**.
-3. Answer `3`, choose **Restart**, then find `score.setScore(points)` in Main.
+**Done:** The same student-authored class displays `Score: 0`, `Score: 1` and resets to 0 in both apps. These are still your two existing local practice projects; lesson 10 has no starter download.
 
-**Done:** Score goes **1 → 0**. Reuse it beneath the canvas in stage 2.
+Previous: [Build a coin game](09-coin-game.md).
 
-A component can be an ordinary Java object that presents part of an interface.
-Use the same ScoreDisplay source in your study app and coin game.
+## 1. Extract the display from your study quiz
 
-## 1. Find the component boundary
-
-The fresh Lesson 10 project already contains these exact files:
-
-| From | To |
-| --- | --- |
-| [study Main.java](../examples/study/Main.java) | `src/main/java/Main.java` |
-| [Question.java](../examples/study/Question.java) | `src/main/java/Question.java` |
-| [shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
-
-Run the complete study app. A wrong answer keeps `Score: 0`; `3` gives `Score: 1`.
-Next moves to question 2. Restart returns to question 1 and `Score: 0`.
-
-Read [ScoreDisplay.java](../examples/shared/ScoreDisplay.java). Its constructor
-creates a Label. `setScore(int)` changes that Label; `view()` returns its node
-for Main to place in a layout. Main creates the display once in `setup()`, places
-`score.view()` in its VBox, and calls `score.setScore(points)` after changing
-points. Question holds question data; Main owns the retry, score and session rules.
-
-`view()` is our example's ordinary method name, a useful convention for returning
-an interface node. JavaFX and Zero do not discover or register the object.
-ScoreDisplay is not a SimpleApp subclass: Main starts the app and places its node.
-The display's constructor and methods are the part another app needs to know.
-
-## 2. Use the same display beneath a game canvas
-
-For the game, choose **Reuse the component in a game** under **Zero: Start lesson**
-or download its [fresh project](https://zero.codepet.ca/generated/lessons/zero-lesson-10-game.zip).
-Open that folder separately and click **Run App**. It contains:
-
-| From | To |
-| --- | --- |
-| [coin-game-component Main.java](../examples/coin-game-component/Main.java) | `src/main/java/Main.java` |
-| [coin-game Player.java](../examples/coin-game/Player.java) | `src/main/java/Player.java` |
-| [coin-game Coin.java](../examples/coin-game/Coin.java) | `src/main/java/Coin.java` |
-| [the same shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
-
-Keep ScoreDisplay unchanged. Open the game project folder in VS Code and click Run App.
-
-Main now extends SketchApp. It creates the same `new ScoreDisplay()` once in
-`setup()` and puts `score.view()` in an HBox through `layout().setBottom(...)`.
-SketchApp provides the canvas and hosts ordinary JavaFX controls around it.
-The display does not need another app window or a different parent class.
-
-Main still owns `points` and calls `score.setScore(points)` after collection and
-Restart. A separate goal Label shows how many coins are needed; that goal and
-the win rule belong to the game. Player and Coin are unchanged Lesson 9 classes.
-Main explicitly updates Player and draws Player/Coins each frame. It updates
-ScoreDisplay only when points change.
-
-Check these results:
-
-| Action | Expected |
-| --- | --- |
-| Start | `Score: 0`, `Goal: 3 coins` |
-| Collect one coin; stay there, leave and return | `Score: 1` throughout |
-| Restart during play | Score 0, all coins and original player position |
-| Collect all three | Score 3, win message and frozen movement |
-| Restart after winning; collect again | Score 0, then 1; movement resumes |
-
-Each running app creates its own ScoreDisplay instance. Reusing a class means
-using the same source to create objects; a JavaFX node can have only one parent.
-Restart reuses the display and controls and resets the game objects. It requests
-canvas focus so game keys resume; click the canvas after switching windows.
-
-## 3. Improve presentation and verify both uses
-
-In your copied `src/main/java/ScoreDisplay.java`, add this line immediately after
-`label = new Label(caption + ": 0");`:
+Open the `src/main/java/Main.java` you wrote in lesson 7. Main owns `points`, and its `refreshStats()` currently sets `scoreLabel.setText("Score: " + points);`. Create `src/main/java/ScoreDisplay.java` in that **study** folder:
 
 ```java
-label.setStyle("-fx-font-weight: bold;");
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+
+public class ScoreDisplay {
+    private final Label label = new Label("Score: 0");
+
+    public void setScore(int points) {
+        label.setText("Score: " + points);
+    }
+
+    public Node view() {
+        return label;
+    }
+}
 ```
 
-Keep both constructors, `view()` and `setScore(int)` unchanged. Copy your improved class into both fresh Lesson 10 projects, then run the game
-checks above. Open the study project in its own VS Code window and run its checks:
-wrong answer → 0, `3` → 1, Restart → 0. Both apps should show bold scores.
+In study Main, change the field `private Label scoreLabel;` to `private ScoreDisplay score;`. In `setup()`, replace `scoreLabel = new Label();` with `score = new ScoreDisplay();` and place `score.view()` in the existing `VBox` where `scoreLabel` was. In `refreshStats()`, replace `scoreLabel.setText("Score: " + points);` with `score.setScore(points);`. Keep `points`, question rules, `Counter`, and Restart in Main. Run App: a wrong answer leaves score 0; answer `5` for the first question to reach 1; Restart returns to 0. The quiz has more questions; finish and restart it again.
 
-Explain why presentation changes belong in ScoreDisplay and scoring changes
-belong in Main. Record your actual results and OS. This source copy is a learning
-component; it is not an installed community library.
+The no-argument constructor creates one Label. `view()` returns its ordinary JavaFX Node for Main to place. `setScore(int)` changes its text. No framework registration, subclass or hidden update is involved.
 
-For an optional extraction exercise, [EXERCISES.md](../EXERCISES.md) steps 3–5
-show moving the scored quiz's Label into ScoreDisplay and reusing it in the
-practice tracker. Its `new ScoreDisplay("Completed")` caption also works without
-changing the original no-argument constructor. You can propose your compatible
-improvement in the next lesson.
+## 2. Use the same class in your Coin game
 
-Previous: [9. Collect the coins](09-coin-game.md). Next:
-[11. Share a component](11-zerohub.md).
+Copy **your own** `ScoreDisplay.java` from the study folder into your existing Coin game's `src/main/java/`. Do not copy a new Main or Player. In the game's Main, change `private Label scoreLabel;` to `private ScoreDisplay score;`. In `setup()`, use `score = new ScoreDisplay();` and replace `scoreLabel` in the existing `HBox` with `score.view()`. In `restart()` and after `points++`, change each `scoreLabel.setText("Score: " + points);` to `score.setScore(points);`. For the reset line `scoreLabel.setText("Score: 0");`, use `score.setScore(points);` after setting `points = 0`.
+
+Leave the message Label and game rules in Main. Run App: collect a coin and stay on it (`Score: 1`), Restart during play (`Score: 0`), collect all three (`Score: 3`), then Restart after winning. Each running app has its own ScoreDisplay object and JavaFX Label. A JavaFX Node belongs to one parent, so you reuse the **class source**, not one live Label across windows.
+
+## 3. Improve one class, then check both uses
+
+Add `label.setStyle("-fx-font-weight: bold;");` in ScoreDisplay's constructor. The field initializer above creates the Label, so write an explicit constructor after the field:
+
+```java
+public ScoreDisplay() {
+    label.setStyle("-fx-font-weight: bold;");
+}
+```
+
+Copy that one changed class into the other project. Run both. The score is bold in each, while all scoring and Restart behavior remains correct. If one project still looks unchanged, check which copy of `ScoreDisplay.java` you edited and rerun that project. After writing your own code, compare the [study Main](../../teaching/checkpoints/10/study/Main.java), [game Main](../../teaching/checkpoints/10/game/Main.java) and their identical [ScoreDisplay.java](../../teaching/checkpoints/10/study/ScoreDisplay.java).
+
+ScoreDisplay owns presentation; each Main owns its score and rules. In [lesson 11](11-zerohub.md), use this boundary to evaluate a component locally before sharing original work.

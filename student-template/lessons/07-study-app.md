@@ -1,135 +1,192 @@
 # 7. Build a study app
 
-**First checkpoint: retry and score once.**
+**Turn your quiz into a three-question session.**
 
-![One integer division question with answer 3, disabled Check answer, correct feedback and Score: 1](visuals/07.svg)
+![First question answered correctly, with Next ready and Score: 1](visuals/07.svg)
 
-Target illustration: the first question answered correctly. More session stages follow.
+Target illustration: question 1 answered correctly after one wrong try.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson).
-2. Open the included Main, Question and ScoreDisplay; **Run App**.
-3. Try `4`, then ` 3 `. Click **Check answer** each time.
+1. Open the **same Study project** from lessons 3–6. Keep its `Counter.java` and `Main.java`.
+2. Add a `Question` class and a small array of questions. Add Next, Restart and score controls to Main.
+3. Click **Run App**. Try a wrong answer, then a right answer; finish the three questions and restart.
 
-**Done:** Wrong answers allow retry; the correct answer shows **Score: 1** and disables checking.
+**Done:** A wrong answer allows retry. Each question adds at most one point; Next reaches the next question or completion; Restart returns to question 1 with score and attempts at zero.
 
-Build from one question to a complete session.
-Previous: [Objects](06-objects.md).
+## 1. Give each question its own data
 
-## 1. Check, retry, score once
-
-The fresh project includes [Question.java](../examples/study/Question.java) and the unchanged
-[ScoreDisplay.java](../examples/shared/ScoreDisplay.java). Its `src/main/java/Main.java` starts with this complete first stage:
+Create `src/main/java/Question.java` beside Main and Counter. Write this
+ordinary Java class. Its `accepts(...)` method ignores surrounding spaces and
+letter case, so ` TRUE ` can answer `true`.
 
 ```java
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+public class Question {
+    private final String prompt;
+    private final String answer;
+    private final String explanation;
 
-public class Main extends SimpleApp {
-    private final Question question = new Question(
-            "What is the value of 7 / 2 when both numbers are ints?", "3",
-            "Integer division drops the fractional part.");
-    private boolean answered;
-    private TextField answer;
-    private Label feedback;
-    private Button check;
-    private ScoreDisplay score;
-
-    @Override public void settings() {
-        title("One study question");
-        size(580, 340);
+    public Question(String prompt, String answer, String explanation) {
+        this.prompt = prompt;
+        this.answer = answer;
+        this.explanation = explanation;
     }
 
-    @Override public void setup() {
-        var prompt = new Label(question.prompt());
-        prompt.setWrapText(true);
-        answer = new TextField();
-        feedback = new Label();
-        feedback.setWrapText(true);
-        check = new Button("Check answer");
-        score = new ScoreDisplay();
-        check.setOnAction(event -> checkAnswer());
-        answer.setOnAction(event -> checkAnswer());
-        var screen = new VBox(12, prompt, answer, check, feedback, score.view());
-        screen.setPadding(new Insets(20));
-        show(screen);
+    public String prompt() { return prompt; }
+    public String explanation() { return explanation; }
+    public boolean accepts(String response) {
+        return answer.equalsIgnoreCase(response.trim());
     }
-
-    private void checkAnswer() {
-        if (answered) return;
-        if (question.accepts(answer.getText())) {
-            answered = true;
-            score.setScore(1);
-            feedback.setText("Correct! " + question.explanation());
-            answer.setDisable(true);
-            check.setDisable(true);
-        } else {
-            feedback.setText("Try again. You can retry without losing points.");
-        }
-    }
-
-    public static void main(String[] args) { launch(args); }
 }
 ```
 
-Run App. Predict, then test: blank → `4` → ` 3 ` → Check again.
-Wrong answers allow retry. Correct answers score once. `Question.accepts(...)`
-trims spaces and ignores case; `answered` prevents duplicate scoring.
+## 2. Add session state to your existing Main
 
-## 2. Add Next and completion
-
-For the complete session, update Main in this same project using the full
-[study Main.java](../examples/study/Main.java). Question and ScoreDisplay stay
-unchanged. The three app files are:
-
-| From | To |
-| --- | --- |
-| [study Main.java](../examples/study/Main.java) | `src/main/java/Main.java` |
-| [Question.java](../examples/study/Question.java) | `src/main/java/Question.java` |
-| [shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
-
-Copy the complete program unchanged, including its Restart button. Click Run App. Try Next before answering: it stays disabled. Answer `3`, then Next;
-answer `true`, then Next; answer `0`, then Next. The app finishes with score 3
-and tells you to choose Restart.
-
-Read `checkAnswer()`, `nextQuestion()` and `showQuestion()` in Main.
-`Question[]` holds the data. `questionIndex` selects it; `points` counts correct
-questions; `answered` locks one question; `finished` locks the completed session.
-These are fields because several methods share them. Each Next clears the old
-answer and relocks Next until the new answer is correct.
-
-## 3. Trace and test Restart
-
-Keep the complete program from stage 2. Answer one question and choose Restart;
-finish all three and choose Restart again. Both times expect question 1, score 0,
-empty input and disabled Next. Try an incorrect answer, then `3` in the new
-session: the score becomes 1 again.
-
-Find the Restart handler in `setup()`: it calls `restartSession()`.
-That method resets the fields, updates ScoreDisplay and calls `showQuestion()`.
-The existing controls are reused. Restart does not call `setup()` or create a
-second interface. `showQuestion()` also requests focus for the answer field so
-you can type the next answer.
-
-The final copy remains the three files above. No Maven or framework changes are
-needed. Main owns the points and session rules; `score.setScore(points)` explicitly
-updates the ordinary ScoreDisplay object.
-
-## 4. Add your fourth question
-
-In Main's `questions` array, put a comma after the third Question, then add:
+Keep the `Counter attempts`, `answer`, `feedback` and `attemptsLabel` fields.
+Add these fields beside them, above `setup()`:
 
 ```java
-new Question("What is 9 % 4?", "1", "The remainder after division is 1.")
+private final Question[] questions = {
+        new Question("What is 2 + 3?", "5", "2 + 3 equals 5."),
+        new Question("What is 9 % 4?", "1", "The remainder is 1."),
+        new Question("Is 2 < 3? (true or false)", "true", "2 is less than 3.")
+};
+private int questionIndex = 0;
+private int points = 0;
+private boolean answered = false;
+private boolean finished = false;
+private Label questionLabel;
+private Label scoreLabel;
+private Button check;
+private Button next;
+private Button restart;
 ```
 
-Keep the array's closing `};`. Run the whole session: `3`, ` TRUE `, `0`, `1`.
-Expect “Question 4 of 4”, then completion with score 4. Restart and try a wrong
-answer before finishing a second run. Replace the fourth prompt, answer and
-explanation together with your own question. `questions.length` makes navigation
-and the summary follow the new total.
+The array stores three ordinary Question objects. `questionIndex` selects one.
+`points` stays in Main because Main owns the quiz rules. `answered` stops a
+second point for the same question; `finished` stops checking after completion.
 
-Next: [Move a player](08-movement.md).
+In `setup()`, change the old local `Label question` to the field:
+
+```java
+questionLabel = new Label();
+```
+
+Change the old local `Button check` to `check = new Button("Check");`.
+Replace the old Reset button with two fields, and create a score label:
+
+```java
+next = new Button("Next");
+restart = new Button("Restart");
+scoreLabel = new Label();
+```
+
+Keep your `answer`, `feedback` and `attemptsLabel` creation lines. Replace
+the old Reset action and layout with these lines. Put `showQuestion()` and
+`refreshStats()` after `show(...)` so the existing controls are initialized:
+
+```java
+check.setOnAction(event -> checkAnswer());
+next.setOnAction(event -> nextQuestion());
+restart.setOnAction(event -> restartSession());
+show(new VBox(10, questionLabel, answer, check, next, restart,
+        feedback, attemptsLabel, scoreLabel));
+showQuestion();
+refreshStats();
+```
+
+There should be one `check.setOnAction(...)` line. Remove the old
+`reset.setOnAction(...)` and old `show(...)` line.
+
+## 3. Check once, then move forward
+
+Replace the old `checkAnswer()` method with this version. It still counts each
+try through your Counter from lesson 6:
+
+```java
+private void checkAnswer() {
+    if (answered || finished) return;
+    attempts.increment();
+    if (questions[questionIndex].accepts(answer.getText())) {
+        answered = true;
+        points = points + 1;
+        feedback.setText("Correct! " + questions[questionIndex].explanation());
+        check.setDisable(true);
+        next.setDisable(false);
+    } else {
+        feedback.setText("Try again.");
+    }
+    refreshStats();
+}
+```
+
+Add these methods below it, still inside Main:
+
+```java
+private void nextQuestion() {
+    if (!answered || finished) return;
+    if (questionIndex == questions.length - 1) {
+        finished = true;
+        questionLabel.setText("Finished! Score: " + points + " / " + questions.length);
+        answer.setDisable(true);
+        check.setDisable(true);
+        next.setDisable(true);
+        feedback.setText("Choose Restart to try again.");
+        return;
+    }
+    questionIndex = questionIndex + 1;
+    answered = false;
+    showQuestion();
+}
+
+private void showQuestion() {
+    questionLabel.setText("Question " + (questionIndex + 1) + " of "
+            + questions.length + ": " + questions[questionIndex].prompt());
+    answer.clear();
+    answer.setDisable(false);
+    check.setDisable(false);
+    next.setDisable(true);
+    feedback.setText("");
+}
+```
+
+At the last question, Next shows the completion message. At any new question,
+`showQuestion()` clears the previous answer and keeps Next disabled until the
+new answer is correct. The controls are reused; Main does not call `setup()`
+again.
+
+## 4. Restart and test the whole session
+
+Replace the old `resetQuiz()` with `restartSession()` and add `refreshStats()`:
+
+```java
+private void restartSession() {
+    questionIndex = 0;
+    points = 0;
+    answered = false;
+    finished = false;
+    attempts.reset();
+    showQuestion();
+    refreshStats();
+}
+
+private void refreshStats() {
+    attemptsLabel.setText("Attempts: " + attempts.value());
+    scoreLabel.setText("Score: " + points);
+}
+```
+
+Try `4`, then `5`: feedback changes, Attempts is 2, Score is 1, and Check is
+disabled. Click Next and answer `1`, then Next and answer ` TRUE `, then Next.
+The end says **Finished! Score: 3 / 3**. Restart; expect question 1, empty
+input, Attempts 0, Score 0 and disabled Next. After a correct
+answer, try Check again: the button is disabled and the score stays at 1.
+
+If you need to compare after making your edits, see the completed lesson 7
+[Main](../../teaching/checkpoints/7/Main.java),
+[Counter](../../teaching/checkpoints/7/Counter.java) and
+[Question](../../teaching/checkpoints/7/Question.java). They are reference
+checkpoints, not files you need to replace your project with.
+
+**Challenge:** Add a fourth `Question` to the array, including its answer and
+explanation. `questions.length` makes the labels and completion count adjust.
+
+Next: [Start a movement game](08-movement.md).

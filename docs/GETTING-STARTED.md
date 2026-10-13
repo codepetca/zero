@@ -95,31 +95,27 @@ confirm its JavaFX window, since tool detection is not a build test.
 
 ## Edit and run
 
-Start with [Lesson 0: Hello, world!](../student-template/lessons/00-hello-world.md)
-and follow the [lesson guide](../student-template/lessons/README.md).
-These files are also bundled in the starter's `lessons/` folder.
-Zero opens the first lesson's preview once per project when the editor is empty.
-Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
-Zero run offers **Show Problems** to reach source errors.
+Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
+click **Start Greeting project**, unzip it and open its folder in VS Code.
+The small scaffold starts with empty `setup()`; the first run is a blank window.
+Write your label following the lesson, then click **Run App again** after edits.
+Keep this folder for lessons 1 and 2 as you add a button and name field.
 
-Edit only `src/main/java/Main.java` to start. Run App shows **Hello, world!**.
-Change the greeting to **Hello, Java!**, then Save, Stop and Run App again.
-The older published 0.5.2 starter begins with the quiz; Lesson 0 includes the
-complete short program to replace it.
+At lesson 3, start **Study** once. Continue the same quiz through lesson 7,
+adding attempts, reset methods, Counter and Question objects. At lesson 8,
+start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Study
+and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
+an image and sound ZIP; your own assets or the drawing fallback also work.
 
-Continue to [Lesson 1](../student-template/lessons/01-hello-button.md) for a
-button that changes the greeting. [Lesson 2](../student-template/lessons/02-hello-name.md)
-adds a name field. [Lesson 3](../student-template/lessons/03-quiz.md) checks **2 + 3**.
-Try a wrong answer, then **5**.
-Continue through [Lessons 4–12](../student-template/lessons/README.md): counters,
-objects, a complete study app, a coin game, ZeroHub sharing and a larger
-platformer with your own sprites and sounds.
+The website ZIPs work with the published extension's **Run App**. The current
+source extension also has **Zero: Start project**; that command is not in the
+frozen published kit. Practice projects stay local. Create a separate original
+project if you want a GitHub repository or ZeroHub contribution. Read
+[the lesson guide](../student-template/lessons/README.md) for the three groups.
 
-Try the practice tracker to reuse ScoreDisplay. Try animation, keyboard or
-drawing to use `SketchApp`: it runs `update(seconds)` then `draw()` each frame;
-Main explicitly calls methods on Player or Mover. The counter uses native
-controls. Follow the extracted starter's `README.md` for exact copy instructions;
-choose one example at a time and keep alternatives outside compiled `src/`.
+The starter's example shelf remains optional reference. Try each independent
+example in its own local copy, following its exact file list; it is separate
+from the continuing lesson flow.
 
 With the profile, autosave runs after 500 ms. **Run App** also saves files, cleans
 and compiles the project, and restarts the app. Use **Ctrl+Shift+B** on Windows

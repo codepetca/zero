@@ -1,0 +1,27 @@
+import javafx.scene.paint.Color;
+import zero.SketchApp;
+
+/** A coin remembers whether it was collected; Main owns the score. */
+public class Coin {
+    private final double x;
+    private final double y;
+    private final double size = 24;
+    private boolean collected;
+
+    public Coin(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public boolean isCollected() { return collected; }
+
+    public boolean touches(Player player) { return player.touches(x, y, size); }
+
+    public void collect() { collected = true; }
+
+    public void draw(SketchApp app) {
+        if (collected) return;
+        app.fill(Color.GOLD);
+        app.rect(x, y, size, size);
+    }
+}

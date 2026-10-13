@@ -1,3 +1,5 @@
+import {projectForLesson, sampleGameAssets} from "../../teaching/projects.mjs";
+export {projectForLesson, sampleGameAssets};
 export const lessons = [
   {
     "id": "0",
@@ -33,24 +35,24 @@ export const lessons = [
   },
   {
     "id": "4",
-    "title": "Click counter",
-    "description": "Count each button click.",
-    "topic": "int, state, updating a label",
+    "title": "Count your attempts",
+    "description": "Track attempts in your study quiz.",
+    "topic": "int, attempts, updating feedback",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"
   },
   {
     "id": "5",
-    "title": "Reset and methods",
-    "description": "Give button actions their own methods.",
-    "topic": "Fields, methods, reset",
+    "title": "Reset your quiz",
+    "description": "Reset quiz state with a named method.",
+    "topic": "Fields, methods, reset quiz state",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"
   },
   {
     "id": "6",
-    "title": "Reusable objects",
-    "description": "Let an ordinary Counter own its number.",
+    "title": "Counter object",
+    "description": "Move the attempt count into an ordinary Counter object.",
     "topic": "Classes, constructors, object methods",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"
@@ -58,7 +60,7 @@ export const lessons = [
   {
     "id": "7",
     "title": "Study quiz",
-    "description": "Build a complete study app with Next and Restart.",
+    "description": "Add more questions, Next and Restart to your study quiz.",
     "topic": "Question objects, arrays, scoring, session state",
     "doc": "api",
     "anchor": "ordinary-javafx-and-reusable-objects"
