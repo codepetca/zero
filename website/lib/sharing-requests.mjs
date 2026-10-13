@@ -1,5 +1,6 @@
 import {createHash} from 'node:crypto';
 import contracts from '../../extension/src/sharing/contracts.js';
+import sourceDiagnostics from '../../extension/src/sharing/source-diagnostics.js';
 import {CATALOG_TIMEOUT_MS, readPublicRegistry, readRegistryCatalog} from './sharing-catalog.mjs';
 
 export function parseIssue(value) {
@@ -33,6 +34,7 @@ function summary(record, state, artifactOrigin) {
   if (!/^[a-f0-9]{64}$/.test(sourceDigest) || !/^[a-f0-9]{64}$/.test(record.id) ||
       createHash('sha256').update(canonical(record.frozen)).digest('hex') !== record.id ||
       !['queued','failed','cancelled','paused','delivery-pending','available'].includes(record.status)) throw new Error('Invalid request binding.');
+  const correction = sourceDiagnostics.publicCorrection(record);
   let status;
   if (record.releaseKey) {
     const origin = new URL(artifactOrigin);
@@ -49,11 +51,11 @@ function summary(record, state, artifactOrigin) {
     status = 'accepted-pending';
   } else if (record.status === 'available' || record.status === 'delivery-pending') throw new Error('Missing acceptance.');
   else if (record.status === 'cancelled') status = 'cancelled';
-  else if (record.status === 'failed') status = Array.isArray(record.attempts) && record.attempts.at(-1)?.kind==='source-failure' && record.attempts.at(-1)?.message==='Immutable version conflict; use a new version' ? 'version-conflict' : 'source-failure';
+  else if (record.status === 'failed') status = correction?.code === 'version-conflict' ? 'version-conflict' : 'source-failure';
   else if (frozen.kind === 'library') status = 'library-closed';
   else if (record.status === 'paused') status = 'paused';
   else status = record.infrastructureFailures > 0 ? 'retrying' : 'queued';
-  return {requestId:record.id,status,kind:frozen.kind,version:frozen.version,commit:frozen.commit,message:messages[status]};
+  return {requestId:record.id,status,kind:frozen.kind,version:frozen.version,commit:frozen.commit,message:messages[status],...(correction && !record.releaseKey ? {correction} : {})};
 }
 /** Only ledger-bound summaries leave this module; never operational attempts or frozen source metadata.
  * @param {string} issue

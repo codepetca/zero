@@ -169,3 +169,13 @@ test('repository rename retains IDs while pre-acceptance source correction gets 
   assert.equal(accepted.release.id,'lib-r1-health-bar');assert.equal(accepted.release.repository.url,'https://github.com/renamed/new-game');assert.equal(accepted.release.contributor.login,'renamed');
   assert.equal((await f.registry.read()).state.requests[failed.id].status,'failed');
 });
+
+test('stable source ingestion links renamed labels without changing frozen fingerprints, but source or actor changes remain distinct',async t=>{
+  const f=await fixture(t),original=await f.ingest();
+  const request=fixtureRequest(),renamed={...request,repository:{...request.repository,owner:'renamed',name:'new-game',url:'https://github.com/renamed/new-game'},requester:{...request.requester,login:'renamed'}};
+  const linked=await ingestRequest(f.registry,{issueId:'2',request:renamed,authenticatedActor:renamed.requester,repositoryMetadata:metadata(renamed),sourceDigest:original.frozen.sourceDigest});
+  assert.equal(linked.id,original.id);assert.deepEqual(linked.frozen,original.frozen);assert.deepEqual(linked.issueIds,['1','2']);
+  const other=await ingestRequest(f.registry,{issueId:'3',request:{...renamed,commit:'c'.repeat(40)},authenticatedActor:renamed.requester,repositoryMetadata:metadata(renamed),sourceDigest:digest('different source')});assert.notEqual(other.id,original.id);
+  const changed=await ingestRequest(f.registry,{issueId:'4',request:{...renamed,descriptor:{...renamed.descriptor,title:'Changed details'}},authenticatedActor:renamed.requester,repositoryMetadata:metadata(renamed),sourceDigest:original.frozen.sourceDigest});assert.notEqual(changed.id,original.id);
+  await assert.rejects(ingestRequest(f.registry,{issueId:'5',request:renamed,authenticatedActor:{githubId:'2',login:'other'},repositoryMetadata:metadata(renamed),sourceDigest:original.frozen.sourceDigest}),/actor/);
+});

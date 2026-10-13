@@ -12,11 +12,30 @@ function validatePom(input,{mainClass,requireJavafx=false}={}) {
   const project=parseXml(input),properties=single(project,'properties');
   const nodes=allNodes(project);
   if(nodes.some(node=>['parent','profiles','extensions','systemPath'].includes(node.name)))fail('Use the ordinary game POM without parent, profile, build-extension or system-path hooks');
+  if(properties.children.length>128)fail('Game POM property count exceeds the supported limit');
   const values=new Map(properties.children.map(node=>[node.name,value(node)]));
   if(values.size!==properties.children.length)fail('Game POM properties must be unique');
-  function resolve(input,seen=new Set()) {
-    return input.replace(/\$\{([^}]+)\}/g,(_,key)=>{if(!values.has(key)||seen.has(key))fail('Game POM uses an unresolved or cyclic property');return resolve(values.get(key),new Set([...seen,key]));});
+  // Candidate properties are a bounded data graph, not a recursive template
+  // engine. Memoize each node and reject before concatenating oversized output.
+  const memo=new Map(),active=new Set();let work=0;
+  function charge(amount){work+=amount;if(work>262144)fail('Game POM property expansion exceeds the supported total work limit');}
+  function property(key,depth){
+    if(depth>32)fail('Game POM property expansion exceeds the supported depth');
+    if(!values.has(key)||active.has(key))fail('Game POM uses an unresolved or cyclic property');
+    if(memo.has(key)){const result=memo.get(key);if(depth+result.height>32)fail('Game POM property expansion exceeds the supported depth');return result;}
+    active.add(key);const result=expand(values.get(key),depth);active.delete(key);memo.set(key,result);return result;
   }
+  function expand(input,depth=0) {
+    if(Buffer.byteLength(input)>4096)fail('Game POM property value exceeds the supported expansion limit');
+    charge(input.length);
+    const chunks=[];let size=0,offset=0,height=0;
+    function append(chunk){const bytes=Buffer.byteLength(chunk);if(size+bytes>4096)fail('Game POM property value exceeds the supported expansion limit');charge(chunk.length);size+=bytes;chunks.push(chunk);}
+    for(const match of input.matchAll(/\$\{([^}]+)\}/g)){append(input.slice(offset,match.index));const result=property(match[1],depth+1);append(result.value);height=Math.max(height,result.height+1);offset=match.index+match[0].length;}
+    if(depth+height>32)fail('Game POM property expansion exceeds the supported depth');
+    append(input.slice(offset));return {value:chunks.join(''),height};
+  }
+  const resolve=input=>expand(input).value;
+  for(const key of values.keys())property(key,0);
   if(resolve(value(single(properties,'maven.compiler.release')))!==JAVA_RELEASE)fail('Game POM must target Java '+JAVA_RELEASE);
   if(value(single(project,'modelVersion'))!=='4.0.0'||!value(single(project,'groupId'))||!value(single(project,'artifactId'))||!value(single(project,'version')))fail('Game POM must have ordinary project coordinates');
   const dependencies=allNodes(project).filter(node=>node.name==='dependency');

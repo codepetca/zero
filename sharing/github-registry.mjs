@@ -1,4 +1,5 @@
 import contracts from '../extension/src/sharing/contracts.js';
+import sourceDiagnostics from '../extension/src/sharing/source-diagnostics.js';
 import { createHash } from 'node:crypto';
 import { canonical, digest, initialState } from './registry.mjs';
 
@@ -23,7 +24,8 @@ export function validateRegistryState(state) {
     if (!/^[a-f0-9]{64}$/.test(id) || record.id !== id || digest(record.frozen) !== id || !/^[a-f0-9]{64}$/.test(sourceDigest) || !Array.isArray(record.issueIds) || record.issueIds.some(value=>! /^[1-9][0-9]*$/.test(value)) || !Array.isArray(record.attempts) || record.attempts.length > 32) throw new Error('Frozen registry request is invalid');
     if (Object.keys(record).some(key => !['id','frozen','issueIds','status','attempts','attemptCount','releaseKey','infrastructureFailures'].includes(key))||!['queued','failed','cancelled','paused','delivery-pending','available'].includes(record.status)) throw new Error('Unsupported request ledger field');
     for (const attempt of record.attempts) {
-      if (Object.keys(attempt).some(key => !['number','kind','message','diagnostics'].includes(key)) || Buffer.byteLength(JSON.stringify(attempt)) > 20000 || !['source-failure','infrastructure-failure','published'].includes(attempt.kind) || typeof attempt.message!=='string' || attempt.message.length>2000) throw new Error('Unsupported operational report');
+      if (Object.keys(attempt).some(key => !['number','kind','message','diagnostics','sourceDiagnostic'].includes(key)) || Buffer.byteLength(JSON.stringify(attempt)) > 20000 || !['source-failure','infrastructure-failure','published'].includes(attempt.kind) || typeof attempt.message!=='string' || attempt.message.length>2000) throw new Error('Unsupported operational report');
+      if(attempt.sourceDiagnostic!==undefined){if(attempt.kind!=='source-failure')throw new Error('Infrastructure reports cannot carry source corrections');sourceDiagnostics.validateSourceDiagnostic(attempt.sourceDiagnostic);}
       for(const diagnostic of attempt.diagnostics||[]) if(Object.keys(diagnostic).some(key=>!['file','line','message'].includes(key)))throw new Error('Unsupported diagnostic field');
     }
   }

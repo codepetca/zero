@@ -1672,3 +1672,35 @@ Default usage/review-budget stops waived; no provider/execution gate bypass.
 Current accountweekly47%remaining is shared, not task cost; no reset/credits used.
 Actual provider/public publication, physical Windows/interactive editor/novice
 trials, hosted backup restoration and held library acceptance still outstanding.
+
+
+### Targeted review and remediation batch 2 — 2026-10-13
+
+Astra/high `sharing_remediation_review/turn1` completed the 31-file
+c3b9465..8f00bca delta and immediate interaction boundaries. Three accepted
+blockers: unbounded recursive POM property expansion, rename-induced duplicate
+request fingerprints, and vague public source-failure results. Prior seven
+initial findings appear resolved; held generic Java acceptance was excluded.
+
+Batch 2 implements bounded memoized property resolution (128 properties,
+depth32,4096 UTF8 bytes/value,262144 total work), numeric-identity recovery that
+preserves frozen metadata, and shared typed source corrections with fixed
+messages and validated file paths. Raw provider/candidate messages are omitted
+from new ledger attempts, public results and CLI reports. Source failure and
+infrastructure retry statuses stay distinct.
+
+Coordinator registry38pass (~36.2s), source-diagnostic1pass, website50pass,
+typecheck/production build and configuration/syntax/link checks pass. Worker
+independently ran the affected39checks (~34.3s). Existing222rootpass/1portable
+PowerShellskip and real two-project HTTPS Maven proof remain valid for unchanged
+consumption/cancellation code. Browser/mobile inert fixture confirms specific
+missing-license correction and file rendering; screenshot inspected at ignored
+output/playwright/sharing-source-correction-mobile.png. Browser and Next server
+stopped. Baseline favicon404/preload warnings, no new runtime exception observed.
+
+Review ledger before next targeted pass:3launches/1initialwave/1targetedwave/
+2fixbatches. Scope/model requested Astra/high; effective model and attributable
+worker tokens/elapsed time unavailable. Accountweekly46%remaining is shared;
+storage cached healthy341GB. No paid resources, resets, external writes, or
+retries around the held provider rejection. Fixed-head review and final packaged
+source verification remain next. Full hosted/pilot objective is incomplete.

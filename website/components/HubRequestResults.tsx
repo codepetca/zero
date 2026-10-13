@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import {useEffect, useRef, useState, type FormEvent} from 'react';
-type Result = {requestId:string;status:string;kind:string;version:string;commit:string;message:string;releaseLink?:string};
+type Result = {requestId:string;status:string;kind:string;version:string;commit:string;message:string;releaseLink?:string;correction?:{code:string;file?:string;message:string}};
 type Results = {issue:string;results:Result[];message:string};
 function issueNumber(value:string) {
   const match = /^(?:https:\/\/github\.com\/codepetca\/zero\/issues\/|#)?([1-9][0-9]*)$/.exec(value.trim());
@@ -49,6 +49,7 @@ export function HubRequestResults() {
       {error && <p className="hub-error">{error}</p>}
       {data && <><p>Issue #{data.issue}: {data.message}</p>{data.results.map(result=><article key={result.requestId}>
         <h3>{result.kind==='game'?'Game':'Library'} · Version {result.version}</h3><p>{result.message}</p>
+        {result.correction && <div><p>{result.correction.message}</p>{result.correction.file && <p>Check <code style={{overflowWrap:'anywhere'}}>{result.correction.file}</code>.</p>}</div>}
         <p className="fine-print">Source commit: <code style={{overflowWrap:'anywhere'}}>{result.commit}</code></p>
         <details><summary>Request identity</summary><p><code style={{overflowWrap:'anywhere'}}>{result.requestId}</code></p></details>
         {result.releaseLink && <p><Link href={result.releaseLink}>View exact release</Link></p>}

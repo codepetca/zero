@@ -41,6 +41,21 @@ test('static game structure rejects broken markers/main/framework/POM/pins/licen
   assert.doesNotThrow(()=>buildGamePackage({files:minimalGameFiles()}));
 });
 
+test('POM property graphs reject doubling, cycles, excessive depth/count and oversized values before large allocation',()=>{
+  const base=minimalGameFiles(),pom=base.find(file=>file.path==='pom.xml').data.toString();
+  const withProperties=properties=>base.map(file=>file.path==='pom.xml'?{...file,data:Buffer.from(pom.replace('</properties>',properties+'</properties>'))}:file);
+  const chain=(count,double)=>'<p0>1</p0>'+Array.from({length:count},(_,index)=>`<p${index+1}>${'${p'+index+'}'}${double?'${p'+index+'}':''}</p${index+1}>`).join('');
+  const started=performance.now();
+  assert.throws(()=>buildGamePackage({files:withProperties(chain(35,true))}),/expansion limit/);
+  assert.ok(performance.now()-started<1000,'a 2KB acyclic doubling graph must reject promptly');
+  assert.throws(()=>buildGamePackage({files:withProperties('<a>${b}</a><b>${a}</b>')}),/cyclic/);
+  assert.throws(()=>buildGamePackage({files:withProperties(chain(40,false))}),/depth/);
+  assert.throws(()=>buildGamePackage({files:withProperties(Array.from({length:129},(_,index)=>`<p${index}>1</p${index}>`).join(''))}),/property count/);
+  assert.throws(()=>buildGamePackage({files:withProperties('<large>'+ 'x'.repeat(4097)+'</large>')}),/expansion limit/);
+  assert.throws(()=>buildGamePackage({files:withProperties(Array.from({length:60},(_,index)=>`<p${index}>${'x'.repeat(4096)}</p${index}>`).join(''))}),/total work limit/);
+  assert.doesNotThrow(()=>buildGamePackage({files:withProperties('<compilerVersion>3.14.0</compilerVersion><alias>${compilerVersion}</alias>')}));
+});
+
 test('Open project refuses ancestor Git directories and worktree files before writing',async t=>{
   const temporary=await mkdtemp(path.join(os.tmpdir(),'zero-git-ancestor-'));t.after(()=>rm(temporary,{recursive:true,force:true}));
   const root=await realpath(temporary),bytes=buildGamePackage({files:minimalGameFiles()}).bytes;

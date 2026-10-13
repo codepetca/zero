@@ -1,6 +1,7 @@
 import contracts from '../extension/src/sharing/contracts.js';
 import { canonical } from './registry.mjs';
-import { freezeRequest, ingestRequest, reportAttempt, cancelRequest, retryRequest } from './requests.mjs';
+import { freezeRequest, ingestRequest, reportAttempt, cancelRequest, retryRequest, sameStableRequest } from './requests.mjs';
+import sourceDiagnostics from '../extension/src/sharing/source-diagnostics.js';
 import { PublicationService } from './publication.mjs';
 import { buildGamePackage } from './game-package.mjs';
 import { byteHash } from './file-storage.mjs';
@@ -51,10 +52,8 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
       return {record:{id:null,frozen:observed.request,status:'closed',releaseKey:null},files:[],included:[],publicationEnabled:false};
     }
     if(observed.request.policyRevision!==policyRevision)throw sourceFailure('Request targets a different policy revision; prepare it again');
-    if(persist){
-      const known=Object.values((await registry.read()).state.requests).find(record=>{const {sourceDigest,...request}=record.frozen;return canonical(request)===canonical(observed.request);});
-      if(known){const record=await ingestRequest(registry,{...observed,sourceDigest:known.frozen.sourceDigest});return {record,files:null,included:[],publicationEnabled:record.frozen.kind==='game',cached:true};}
-    }
+    const known=Object.values((await registry.read()).state.requests).find(record=>sameStableRequest(record.frozen,observed.request,{includeSourceDigest:false}));
+    if(known){const record=persist?await ingestRequest(registry,{...observed,sourceDigest:known.frozen.sourceDigest}):structuredClone(known);return {record,files:null,included:[],publicationEnabled:record.frozen.kind==='game',cached:true};}
     const source=await reader.source(observed.request,{signal});
     const input={...observed,repositoryMetadata:source.repositoryMetadata,sourceDigest:source.sourceDigest};
     const frozen=freezeRequest(input);
@@ -65,12 +64,12 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     try{
       sourceDescriptor(observed.request,source.files);
       const included=observed.request.kind==='game'?buildGamePackage({files:source.files}).files.map(file=>file.path):[];
-      sourceCache.clear();sourceCache.set(frozen.id,source);
+      sourceCache.clear();sourceCache.set(record.id,source);
       return {record,files:source.files,included,publicationEnabled:observed.request.kind==='game'};
     }catch(error){
-      sourceCache.delete(frozen.id);
+      sourceCache.delete(record.id);
       const failure=error.kind==='source-failure'?error:sourceFailure(error.message);
-      if(persist)await reportAttempt(registry,frozen.id,{kind:'source-failure',message:publicError(failure)});
+      if(persist)await reportAttempt(registry,record.id,{kind:'source-failure',message:publicError(failure),sourceDiagnostic:sourceDiagnostics.diagnosticFromError(failure)});
       throw failure;
     }
   }
@@ -111,7 +110,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
         if(record.frozen.kind==='library')throw executionGate();
         return await service.publish({requestId:record.id,...await prepareRecord(record)});
       }catch(error){
-        if(record.id)await reportAttempt(registry,record.id,{kind:error.kind==='source-failure'?'source-failure':'infrastructure-failure',maxInfrastructureRetries:error.code==='EXECUTION_GATE'?1:3,message:publicError(error)});
+        if(record.id)await reportAttempt(registry,record.id,{kind:error.kind==='source-failure'?'source-failure':'infrastructure-failure',maxInfrastructureRetries:error.code==='EXECUTION_GATE'?1:3,message:publicError(error),...(error.kind==='source-failure'?{sourceDiagnostic:sourceDiagnostics.diagnosticFromError(error)}:{})});
         throw error;
       }finally{publicationBudgets.delete(record.id);sourceCache.delete(record.id);}
     },
@@ -138,7 +137,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
           const release=record.releaseKey?await service.deliver(record.releaseKey):await service.publish({requestId:record.id,...await prepareRecord(record)});
           processing.push({requestId:record.id,release});
         }catch(error){
-          await reportAttempt(registry,record.id,{kind:error.kind==='source-failure'?'source-failure':'infrastructure-failure',message:publicError(error),maxInfrastructureRetries:error.code==='EXECUTION_GATE'?1:3});
+          await reportAttempt(registry,record.id,{kind:error.kind==='source-failure'?'source-failure':'infrastructure-failure',message:publicError(error),maxInfrastructureRetries:error.code==='EXECUTION_GATE'?1:3,...(error.kind==='source-failure'?{sourceDiagnostic:sourceDiagnostics.diagnosticFromError(error)}:{})});
           processing.push({requestId:record.id,error:publicError(error)});
         }finally{publicationBudgets.delete(record.id);sourceCache.delete(record.id);}
       }
@@ -211,7 +210,8 @@ export function publicError(error) {
   return 'Platform unavailable; the durable request can be retried';
 }
 export function formatPublicReport(record) {
-  return {schema:1,requestId:record.id,status:record.status,kind:record.frozen.kind,version:record.frozen.version,commit:record.frozen.commit,releaseKey:record.releaseKey,message:record.releaseKey?'Publication accepted; delivery status is recorded separately':record.status==='failed'?'Source checks failed; correct source and submit its new commit':record.status==='paused'?'Publication paused; operator action is required':record.status==='cancelled'?'Publication request cancelled':'Request retained for processing'};
+  const correction=sourceDiagnostics.publicCorrection(record);
+  return {schema:1,requestId:record.id,status:record.status,kind:record.frozen.kind,version:record.frozen.version,commit:record.frozen.commit,releaseKey:record.releaseKey,...(correction?{correction}:{}),message:record.releaseKey?'Publication accepted; delivery status is recorded separately':record.status==='failed'?'Source checks failed; correct source and submit its new commit':record.status==='paused'?'Publication paused; operator action is required':record.status==='cancelled'?'Publication request cancelled':'Request retained for processing'};
 }
 export function platformSetupDocument() {
   return {schema:1,repository:REGISTRY_REPOSITORY,registryBranch:REGISTRY_BRANCH,registryPath:'registry/state.json',libraryExecution:'closed',automaticCreation:false,roles:{reader:['public GitHub read'],publisher:['dedicated registry branch contents write','selected public Blob store read/write']},credentialsInSource:false};

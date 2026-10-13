@@ -66,7 +66,7 @@ export async function runCli(argv,{loadConfig=async filename=>JSON.parse(await r
   if(options.command==='retry'){const record=await platform.retryPaused(options.request);return {requestId:record.id,status:record.status};}
   if(['withdraw','restore'].includes(options.command)){const status=options.command==='withdraw'?'withdrawn':'available';await platform.setAvailability(options.release,status);return {releaseKey:options.release,status};}
   const result=await platform.reconcile({issueNumbers:options.issues,page:options.page,offset:options.offset});
-  return {intake:result.intake,inbox:result.inbox,processing:result.processing.map(value=>({requestId:value.requestId,status:value.report?.status||(value.error?'retry-required':value.release?.delivery||value.status),message:value.error?value.report?.message||'Platform unavailable; request retained':undefined})).map(value=>Object.fromEntries(Object.entries(value).filter(([,field])=>field!==undefined)))};
+  return {intake:result.intake,inbox:result.inbox,processing:result.processing.map(value=>({requestId:value.requestId,status:value.report?.status||(value.error?'retry-required':value.release?.delivery||value.status),message:value.error?value.report?.message||'Platform unavailable; request retained':undefined,...(value.report?.correction?{correction:value.report.correction}:{})})).map(value=>Object.fromEntries(Object.entries(value).filter(([,field])=>field!==undefined)))};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href) {

@@ -39,7 +39,8 @@ function fakeBlob() {
 function fakeGit({files=[],request,missing=false}={}) {
   let bytes=Buffer.from(canonical(initialState())+'\n'),sha=gitHash(bytes);const calls=[];
   const blobs=new Map(files.map(file=>[gitHash(file.bytes),file.bytes]));
-  const repository={id:11,name:'game',html_url:'https://github.com/student/game',visibility:'public',private:false,owner:{id:7,login:'student',type:'User'}};
+  let repository={id:11,name:'game',html_url:'https://github.com/student/game',visibility:'public',private:false,owner:{id:7,login:'student',type:'User'}};
+  const issueNumbers=[1];
   const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}});
   const fetcher=async (url,options)=>{
     assert.ok(url.startsWith('https://api.github.com/'));assert.equal(options.redirect,'error');calls.push({url,options});
@@ -53,15 +54,17 @@ function fakeGit({files=[],request,missing=false}={}) {
       }
       return json({type:'file',path:REGISTRY_PATH,size:bytes.length,sha,encoding:'base64',content:bytes.toString('base64')});
     }
-    if(endpoint==='/repos/student/game'||endpoint==='/repositories/11')return json(repository);
-    if(endpoint==='/repos/codepetca/zero/issues')return json([{number:1}]);
-    if(endpoint==='/repos/codepetca/zero/issues/1')return json({number:1,state:'open',body:'```json\n'+JSON.stringify(request)+'\n```',user:{id:7,login:'student',type:'User'}});
-    if(endpoint===`/repos/student/game/git/commits/${'a'.repeat(40)}`)return json({sha:'a'.repeat(40),tree:{sha:'c'.repeat(40)}});
-    if(endpoint===`/repos/student/game/git/trees/${'c'.repeat(40)}`)return json({truncated:false,tree:files.map(file=>({path:file.path,type:'blob',mode:file.path==='mvnw'?'100755':'100644',size:file.bytes.length,sha:gitHash(file.bytes)}))});
+    const name=`${repository.owner.login}/${repository.name}`;
+    if(endpoint===`/repos/${name}`||endpoint==='/repositories/11')return json(repository);
+    if(endpoint==='/repos/codepetca/zero/issues')return json(issueNumbers.map(number=>({number})));
+    const issueNumber=Number(endpoint.split('/').at(-1));
+    if(endpoint.startsWith('/repos/codepetca/zero/issues/')&&issueNumbers.includes(issueNumber))return json({number:issueNumber,state:'open',body:'```json\n'+JSON.stringify(request)+'\n```',user:{id:7,login:repository.owner.login,type:'User'}});
+    if(endpoint===`/repos/${name}/git/commits/${'a'.repeat(40)}`)return json({sha:'a'.repeat(40),tree:{sha:'c'.repeat(40)}});
+    if(endpoint===`/repos/${name}/git/trees/${'c'.repeat(40)}`)return json({truncated:false,tree:files.map(file=>({path:file.path,type:'blob',mode:file.path==='mvnw'?'100755':'100644',size:file.bytes.length,sha:gitHash(file.bytes)}))});
     const blob=blobs.get(endpoint.split('/').at(-1));if(blob)return json({sha:gitHash(blob),size:blob.length,encoding:'base64',content:blob.toString('base64')});
     return json({},404);
   };
-  return {fetcher,calls,state:()=>JSON.parse(bytes.toString()),sha:()=>sha};
+  return {fetcher,calls,state:()=>JSON.parse(bytes.toString()),sha:()=>sha,addIssue:number=>issueNumbers.push(number),rename:()=>{repository={...repository,name:'new-game',html_url:'https://github.com/renamed/new-game',owner:{...repository.owner,login:'renamed'}};}};
 }
 const config={schema:1,repository:'codepetca/zero',registryBranch:REGISTRY_BRANCH,artifactOrigin:origin,policyRevision:policy,gamePublicationEnabled:false};
 async function gameFixture() {
@@ -187,6 +190,50 @@ test('source descriptor and malformed POM failures are durable public results be
     const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
     await assert.rejects(platform.publishIssue(1));const state=f.remote.state();assert.equal(Object.values(state.requests)[0].status,'failed');assert.equal(Object.keys(state.releases).length,0);assert.equal(f.blob.objects.size,0);
   }
+});
+
+test('actual numeric reader renames reuse immutable request/release labels in dry runs and rescans',async()=>{
+  const f=await gameFixture();await f.platform.publishIssue(1);
+  const before=f.remote.state(),id=Object.keys(before.requests)[0],key=Object.keys(before.releases)[0];
+  const blobReads=()=>f.remote.calls.filter(call=>call.url.includes('/git/blobs/')).length;
+  const initialReads=blobReads();f.remote.rename();
+  const dry=await f.platform.prepareIssue(1);assert.equal(dry.record.id,id);assert.equal(dry.cached,true);assert.deepEqual(f.remote.state(),before);
+  f.remote.addIssue(2);await f.platform.reconcile();await f.platform.publishIssue(1);
+  const after=f.remote.state();assert.equal(Object.keys(after.requests).length,1);assert.equal(Object.keys(after.releases).length,1);assert.deepEqual(after.requests[id].frozen,before.requests[id].frozen);assert.deepEqual(after.releases[key],before.releases[key]);assert.deepEqual(after.requests[id].issueIds,['1','2']);assert.equal(after.requests[id].status,'available');assert.equal(blobReads(),initialReads);
+});
+
+test('typed source corrections explain license/main/pin failures without returning raw private messages',async()=>{
+  for(const [file,change,code]of [['LICENSE',()=>Buffer.from('MIT'),'game-license'],['src/main/java/Main.java',()=>Buffer.from('public class Main {}'),'game-main'],['pom.xml',bytes=>Buffer.from(bytes.toString().replace('3.14.0','LATEST')),'game-pins']]) {
+    const f=await gameFixture();
+    const reader={...f.reader,source:async(request,options)=>{const source=await f.reader.source(request,options);source.files=source.files.map(entry=>entry.path===file?{...entry,bytes:change(entry.bytes)}:entry);source.sourceDigest=digest(source.files.map(entry=>({path:entry.path,sha256:digest(entry.bytes)})));return source;}};
+    const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});await assert.rejects(platform.publishIssue(1));
+    const record=Object.values(f.remote.state().requests)[0];assert.equal(record.status,'failed');assert.equal(record.attempts.at(-1).sourceDiagnostic.code,code);assert.equal(formatPublicReport(record).correction.code,code);validateRegistryState(f.remote.state());
+  }
+  const f=await gameFixture();const {record}=await f.platform.prepareIssue(1,{persist:true});
+  await reportAttempt(f.registry,record.id,{kind:'source-failure',message:'Bearer private-credential /private/path raw failure',diagnostics:[{file:'src/main/java/Main.java',line:2,message:'Bearer private-credential raw failure'}],sourceDiagnostic:{code:'game-main'}});
+  const report=formatPublicReport(f.remote.state().requests[record.id]);assert.equal(report.correction.code,'game-main');assert.doesNotMatch(JSON.stringify(report),/private-credential|private\/path|raw failure/);
+  assert.doesNotMatch(JSON.stringify(f.remote.state().requests[record.id].attempts),/private-credential|private\/path|raw failure/);
+  await assert.rejects(reportAttempt(f.registry,record.id,{kind:'infrastructure-failure',message:'outage',sourceDiagnostic:{code:'game-main'}}),/Only source failures/);
+  const corrupted=f.remote.state();corrupted.requests[record.id].attempts.at(-1).kind='infrastructure-failure';assert.throws(()=>validateRegistryState(corrupted),/Infrastructure reports/);
+});
+
+test('CLI passes only typed source corrections while preserving failed versus queued classifications',async()=>{
+  const f=await gameFixture();const {record}=await f.platform.prepareIssue(1,{persist:true});
+  const reader={...f.reader,source:async(request,options)=>{const source=await f.reader.source(request,options);source.files=source.files.map(file=>file.path==='LICENSE'?{...file,bytes:Buffer.from('MIT')}:file);return source;}};
+  const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+  const dependencies={loadConfig:async()=>({...config,gamePublicationEnabled:true}),createPlatform:async()=>platform,environment:{}};
+  const result=await runCli(['reconcile','--config','fixture','--issues','1','--execute','--role','publisher'],dependencies);assert.equal(result.processing[0].requestId,record.id);assert.equal(result.processing[0].status,'failed');assert.equal(result.processing[0].correction.code,'game-license');
+  const g=await gameFixture();await g.platform.prepareIssue(1,{persist:true});const unavailable=createSharingPlatform({reader:{...g.reader,source:async()=>{throw new Error('Bearer private-credential');}},registry:g.registry,storage:g.storage,artifactOrigin:origin,policyRevision:policy});
+  const infra=await runCli(['reconcile','--config','fixture','--issues','1','--execute','--role','publisher'],{...dependencies,createPlatform:async()=>unavailable});assert.equal(infra.processing[0].status,'queued');assert.equal(infra.processing[0].correction,undefined);assert.doesNotMatch(JSON.stringify(g.remote.state()),/private-credential/);
+});
+
+test('changed source for an accepted version records a typed version-conflict correction',async()=>{
+  const f=await gameFixture();await f.platform.publishIssue(1);f.remote.addIssue(2);
+  const request={...f.request,commit:'d'.repeat(40)};
+  const reader={...f.reader,publicationIssue:async()=>({...await f.reader.publicationIssue(2),request}),source:async()=>{const source=await f.reader.source(f.request);source.request=request;source.files=source.files.map(file=>file.path==='src/main/java/Main.java'?{...file,bytes:Buffer.concat([file.bytes,Buffer.from('\n// corrected source\n')])}:file);source.sourceDigest=digest(source.files.map(file=>({path:file.path,sha256:digest(file.bytes)})));return source;}};
+  const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+  await assert.rejects(platform.publishIssue(2),/Immutable version conflict/);
+  const state=f.remote.state(),failed=Object.values(state.requests).find(record=>record.status==='failed');assert.equal(Object.keys(state.releases).length,1);assert.equal(failed.attempts.at(-1).sourceDiagnostic.code,'version-conflict');assert.equal(formatPublicReport(failed).correction.code,'version-conflict');
 });
 
 test('slow 150-request intake checkpoints per item, survives interruption and eventually processes without blob rescans',async()=>{

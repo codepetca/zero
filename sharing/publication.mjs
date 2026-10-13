@@ -3,8 +3,10 @@ import contracts from '../extension/src/sharing/contracts.js';
 import { canonical, digest, releaseKey, appendAttempt } from './registry.mjs';
 import { byteHash } from './file-storage.mjs';
 import { reportAttempt } from './requests.mjs';
+import sourceDiagnostics from '../extension/src/sharing/source-diagnostics.js';
 
 const artifactKinds = {library: ['jar', 'sources', 'pom', 'preview'], game: ['zip', 'preview']};
+const stableRelease=release=>({...release,repository:{id:release.repository.id,ownerId:release.repository.ownerId},contributor:{githubId:release.contributor.githubId}});
 function sameBinding(item, request) {
   return item.repositoryId === request.repository.id && item.contributorId === request.requester.githubId && item.folder === request.folder && item.kind === request.kind && item.slug === request.slug;
 }
@@ -69,7 +71,7 @@ export class PublicationService {
       const item = state.items[ident.id];
       if (item && !sameBinding(item, request)) throw new Error('Established owner/source binding changed; deliberate migration required');
       const existing = state.releases[key];
-      if (existing && (existing.requestId !== requestId || canonical(existing.release) !== canonical(release))) throw Object.assign(new Error('Immutable version conflict; use a new version'),{kind:'source-failure'});
+      if (existing && (existing.requestId !== requestId || canonical(stableRelease(existing.release)) !== canonical(stableRelease(release)))) throw Object.assign(new Error('Immutable version conflict; use a new version'),{kind:'source-failure'});
       if (!existing) {
         state.items[ident.id] = {kind: ident.kind, slug: ident.slug, repositoryId: request.repository.id, contributorId: request.requester.githubId, folder: request.folder};
         state.releases[key] = {requestId, release, staged, delivery: 'pending', evidenceDigest: digest(evidence)};
@@ -175,7 +177,7 @@ export class PublicationService {
         else if (prepare) results.push({requestId: record.id, release: await this.publish({requestId: record.id, ...await prepare(structuredClone(record))})});
         else results.push({requestId: record.id, status: 'queued'});
       } catch (error) {
-        await reportAttempt(this.registry, record.id, {kind: error.kind === 'source-failure' ? 'source-failure' : 'infrastructure-failure', message: error.message.slice(0,2000)});
+        await reportAttempt(this.registry, record.id, {kind: error.kind === 'source-failure' ? 'source-failure' : 'infrastructure-failure', message: error.kind==='source-failure'?'Source checks failed; prepare a corrected request':'Platform unavailable; durable request retained',...(error.kind==='source-failure'?{sourceDiagnostic:sourceDiagnostics.diagnosticFromError(error)}:{})});
         results.push({requestId: record.id, error: error.message});
       }
     }

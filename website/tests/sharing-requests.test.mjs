@@ -50,12 +50,41 @@ test('accepted-pending is distinct from available; exact snapshot is required fo
   f.state.availability.push({key:f.record.releaseKey,status:'withdrawn'});snapshot=catalog(f.state,[{...release,status:'withdrawn'}]);
   data=await readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)});assert.equal(data.results[0].status,'withdrawn');assert.equal(data.results[0].releaseLink,undefined);
 });
-test('a used version has a specific correction without reflecting operational messages',async()=>{
-  const f=fixture();f.record.status='failed';f.record.attempts=[{kind:'source-failure',message:'Immutable version conflict; use a new version'}];
+test('a used version has typed correction without reflecting operational messages',async()=>{
+  const f=fixture();f.record.status='failed';f.record.attempts=[{kind:'source-failure',message:'operator secret',sourceDiagnostic:{code:'version-conflict'}}];
   const data=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});
   assert.equal(data.results[0].status,'version-conflict');assert.match(data.results[0].message,/Choose a new version/);
-  f.record.attempts[0].message='operator secret';
-  const hidden=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});assert.equal(hidden.results[0].status,'source-failure');assert.doesNotMatch(JSON.stringify(hidden),/operator secret/);
+  assert.match(data.results[0].correction.message,/Choose a new version/);assert.doesNotMatch(JSON.stringify(data),/operator secret/);
+  delete f.record.attempts[0].sourceDiagnostic;f.record.attempts[0].message='Immutable version conflict; use a new version';
+  const hidden=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});assert.equal(hidden.results[0].status,'source-failure');assert.equal(hidden.results[0].correction,undefined);
+});
+test('license, main and dependency failures give distinct defined corrections and supported paths',async()=>{
+  for(const [code,file,instruction] of [
+    ['game-license','LICENSE',/readable license and Maven wrapper notices/],
+    ['game-main','src/main/java/student/Main.java',/main Java file, its package and main method/],
+    ['game-pins',undefined,/exact dependency\/plugin releases, Java 17 and JavaFX 21\.0\.12/]
+  ]){
+    const f=fixture();f.record.status='failed';f.record.attempts=[{kind:'source-failure',message:'operator secret',diagnostics:[{file:'/private/operator/config',message:'private stack'}],sourceDiagnostic:{code,...(file?{file}:{})}}];
+    const data=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)}), result=data.results[0];
+    assert.equal(result.status,'source-failure');assert.equal(result.correction.code,code);assert.equal(result.correction.file,file);assert.match(result.correction.message,instruction);
+    assert.deepEqual(Object.keys(result.correction).sort(),file?['code','file','message']:['code','message']);
+    assert.doesNotMatch(JSON.stringify(data),/operator secret|private stack|private\/operator|diagnostics|sourceDiagnostic/);
+  }
+});
+test('only the latest typed source failure on a failed request exposes correction',async()=>{
+  for(const [status,kind,expected] of [['queued','source-failure','queued'],['paused','source-failure','paused'],['failed','infrastructure-failure','source-failure'],['cancelled','source-failure','cancelled']]){
+    const f=fixture();f.record.status=status;f.record.attempts=[{kind:'source-failure',sourceDiagnostic:{code:'game-license',file:'LICENSE'}},{kind,message:'operator secret',diagnostics:[{message:'private stack'}],sourceDiagnostic:{code:'game-main',file:'src/main/java/Main.java'}}];
+    const result=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});
+    assert.equal(result.results[0].status,expected);assert.equal(result.results[0].correction,undefined);assert.doesNotMatch(JSON.stringify(result),/operator secret|private stack|game-license|game-main|Main\.java/);
+  }
+  const f=fixture('library');f.record.status='paused';f.record.attempts=[{kind:'infrastructure-failure',message:'operator secret',sourceDiagnostic:{code:'game-license'}}];
+  const result=await readRequestResults('123',{env,fetchImpl:fetcher(f.state)});assert.equal(result.results[0].status,'library-closed');assert.equal(result.results[0].correction,undefined);
+});
+test('unknown typed codes and unsafe paths fail closed without reflecting their payload',async()=>{
+  for(const sourceDiagnostic of [{code:'unknown'},{code:'game-main',file:'/private/operator/config'},{code:'game-main',file:'src/main/java/../Secret.java'},{code:'game-main',file:'src/main/java/<script>.java'},{code:'game-pins',message:'operator secret'}]){
+    const f=fixture();f.record.status='failed';f.record.attempts=[{kind:'source-failure',sourceDiagnostic}];
+    await assert.rejects(readRequestResults('123',{env,fetchImpl:fetcher(f.state)}),/^Error: Invalid public source diagnostic(?: path)?\.$/);
+  }
 });
 test('reject mismatched frozen digest, selected issue binding, accepted request and source',async()=>{
   for(const change of [f=>f.record.frozen.commit='f'.repeat(40),f=>f.record.id='f'.repeat(64),f=>f.record.issueIds.push(123),f=>{accept(f);f.state.releases[f.record.releaseKey].requestId='f'.repeat(64);},f=>{const release=accept(f);release.source.commit='f'.repeat(40);}]){

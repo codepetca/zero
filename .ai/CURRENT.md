@@ -27,28 +27,31 @@ Kit bundles the Java harness and explicit operator settings; default is closed.
 
 ## Evidence and next work
 
-Root suite 210 passed / 1 platform skip (~111s). Website 38 passed, types/build
-passed. Registry foundation concurrency150 proof passed; latest combined suite
-running. Contracts/editor/configuration18 passed. Browser fixture interactions
-in progress; real Maven two-project Add/Update/Revert proof delegated to original
-authoring owner, only scripts/verify-sharing-consumers.mjs. No real hosting proof.
-Storage healthy ~342GB last fresh; accountweekly50%remaining earlier, not taskcost.
-Token and elapsed worker totals unavailable; no integration writer conflicts.
-Coordinator catches Maven /maven prefix, receipt privateignore and pausedinbox.
-Replacement review2 launches/1 initial wave/1 fix batch complete, defaults waived.
-Both Sol/high scopes completed at c3b9465 and requested changes: queued closure,
-intake deadlines/checkpoints, inherited Git, game structure/license/pins, FX
-toolkit startup, bundled configuration defaults, opened game Git exclusions.
-Duplicate inherited Git finding merged; stale sample docs corrected.
-Third bounded Sol/medium delivery added public request-result lookup (46website
-checks/types/build pass). All writers stopped. Additional cancellation bug fixed:
-owned POSIX session/group with escalation, Windows fixedtaskkill tree mocks,
-5s stopdeadline, uncertaintermination retains Check tempfiles. Version conflicts
-are source failures; current owner login credited at acceptance. Final targeted
-review and all-VSIX-source parity next. Weekly47% remaining current (account-wide).
+Commits c3b9465 and 8f00bca deliver the replacement and first remediation.
+Two Sol/high initial scopes found seven unique blockers, resolved in batch 1.
+Astra/high targeted review at 8f00bca found three further blockers: bounded POM
+property expansion, immutable request recovery after GitHub renames, and useful
+public source corrections. Batch 2 fixes these together. All writers stopped.
+Resolver limits are memoized and checked before concatenation; numeric identities
+reuse the original frozen record; fixed diagnostic codes/messages omit private
+error text. Registry/CLI and website consume the same correction contract.
 
-Next: fixed snapshot, two independent implementation reviews (game platform/
-registry authority and architecture/student integration), proof, package/verify,
-required checks, targeted fixes. Held generic library executor is excluded from
-new review acceptance. Physical Windows, actual VS Code/novice classroom and live
-provider rollout remain unverified. Full goal remains active, not complete.
+Latest unchanged root suite: 222 passed, one portable PowerShell skip (~113s).
+Batch 2 website: 50 passed, types/build passed; diagnostic unit passed. Registry
+and syntax checks completed; detailed receipts are in docs/EVIDENCE.md. Two real
+Maven consumers Add/Update/Revert through scoped local HTTPS; actual JAR, behavior,
+and source archive hashes verified. Browser fixtures cover discovery, recovery,
+exact links and mobile source correction. They do not prove live hosting.
+
+Review ledger: 3 launches, 1 initial wave, 1 targeted wave, 2 fix batches.
+Next: commit batch 2, targeted Astra/high review of its complete delta, final
+package and all-VSIX-source parity. Reuse unchanged initial review coverage.
+Budget stops remain waived; actual generic-library provider rejection remains
+binding and excluded from replacement acceptance. Storage healthy ~341GB;
+weekly46% remaining is account-wide, not task cost. Worker token/effective-model
+telemetry unknown; no writer conflicts. No resets or paid resources used.
+
+Full goal remains active. Actual GitHub/Blob permissions and ETag/CAS behavior,
+public publication, hosted backup restoration, physical Windows, interactive
+VS Code and novice classroom trials are outstanding. No live activation or
+external writes are authorized by local verification. Preserve this worktree.
