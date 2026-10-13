@@ -1502,3 +1502,31 @@ delta awaits independent review. Requested workerSol/medium; actual time/tokens
 unknown. One fixture timestamp and one temporary harness method error corrected
 without product-authority changes. Human cross-thread coordination verified;
 reviewed MVP source integration is queued with distinct path/release ownership.
+
+
+Cap/flow acceptance: full18-file192d700..b6e23cc independently reviewed by
+GPT-6.1-Sol/high, complete scope/no actionable findings;21focused helper/ZIP/poll
+cases independently passed. Supplied actualPG17/18/browser/native evidence reused.
+One actual review turn/initial wave/zero fix batches; cumulative45 includes three
+historical provider-filter failures. Effective model/time/tokens unknown. Held
+checker boundary excluded; no public activation/main merge acceptance inferred.
+
+## Coordinated MVP integration — 2026-10-12
+
+Integrated reviewed peer SOURCE-only patch fa15c920..57909be as8ceb45d,
+58aab804 installer fallback as35fe3e9 and ef0d953 setup guidance as6cedf89.
+20source paths reconciled; peer confirmed15byte-identical and5preserved newer
+root interactions. Patch SHAf127492a857a165d1ce3ba2af229de49d76cf1dcaadb0acdfe4012265b802ec4.
+No peer handoff/evidence snapshots imported. Root185tests, website94passes/
+2optionalHTTPskips, actualNextHTTP2passes, finite drawing/config/types/build passed.
+Current integrated320px card/manual expansion fits320px with contained code scroll.
+
+Actual deployed history query returned400. Sol/medium native client writer
+delivered strict first400-only full legacy history compatibility in two files,
+then stopped. Root14focused cases passed. Real public catalog and maintained
+ui1:0.1.0 exact JAR/sources/POM integrity verified, no Java executed. One legacy
+shape only, no latest-only fallback, same30s/byte/release bounds and exact pins.
+Final integration source review pending. No artifact/version/installer change,
+publication/deployment/schema/auth/account mutation. Physical Windows trial
+deferred by owner; local candidate packaging needs accepted integrated SHA and
+one explicitly reserved writer. Public checker/host/OAuth gates unchanged.

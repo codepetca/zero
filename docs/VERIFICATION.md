@@ -1151,3 +1151,22 @@ Known maintained StarterUI exact public Maven/native consumer evidence remains
 separate and unchanged. Public OAuth→studentchecking→publication→fresh shipped
 kit Add/Update/Revert remains unproved; launch/old-checker gates remain. Archive
 work is explicitly deferred. New policy caps were not silently selected.
+
+
+## Integrated MVP and live native catalog compatibility — 2026-10-12
+
+Root integration185tests passed; website94passes/2optionalHTTPskips and actual
+NextHTTP2passes, typecheck/build/configuration, finite drawing native check passed.
+Actual Chromium integratedHub expanded StartScreen/manual instructions at320px:
+pagewidth320, codewidth234 with contained scrolling. Screenshot inspected at
+ignored output/playwright/zero-mvp-mobile.png. Owned browser/Next3108/HTTP4118
+stopped. One favicon404; no product JS exception observed. No WebKit/physical
+Windows/fresh-installed-editor or complete accessibility claim.
+
+Native client14focused tests passed, including full legacy history Add/Update/
+Revert, complete-shape refusal, later-page/status/byte/total-deadline protection.
+Real production history query400 reproduced; corrected client loaded the plain
+complete public history, verified maintained ui1:0.1.0 metadata and exact
+JAR/sources/POM bytes/coordinates/dependencies. No Java ran in this check.
+Current shipped kits still lack new native integration; updated local candidate
+and installed-editor trial remain next. Public contributions remain closed.

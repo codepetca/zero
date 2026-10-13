@@ -131,3 +131,69 @@ test('byte-sized history pages preserve pins and total transfer/time budgets gui
   let elapsed=0;
   await assert.rejects(hub.loadCatalog(f.context.origin,{now:()=>elapsed,fetcher:async()=>{elapsed+=16000;return Response.json(page(count++));}}),/timed out.*website/);
 });
+
+test('first-page legacy history fallback preserves exact Add/Update/Revert and revalidates its fingerprint',async t=>{
+  const f=await fixture(t),calls=[];let changed=false,cancelled=0;
+  const fetcher=async(url,options)=>{
+    const request=new URL(url);assert.equal(request.origin,f.context.origin);assert.equal(options.redirect,'error');assert.equal(options.credentials,'omit');
+    if(request.pathname!=='/api/hub/catalog')return f.context.fetcher(url,options);
+    calls.push(request.search);
+    if(request.search)return new Response(new ReadableStream({cancel(){cancelled++;return new Promise(()=>{});}}),{status:400});
+    const catalog={...f.catalog,capabilities:{uploads:false}};
+    if(changed)catalog.libraries=catalog.libraries.map(release=>({...release,title:'Changed selection'}));
+    return Response.json(catalog);
+  };
+  const context=await hub.loadCatalog(f.context.origin,{fetcher});
+  assert.equal(cancelled,1);assert.deepEqual(calls,['?history=1','']);assert.equal(context.catalog.libraries.length,4);
+  const pom=path.join(f.root,'pom.xml');
+  let plan=await hub.planChange(f.root,context,context.catalog.libraries[0]);await hub.validatePlan(plan,context);await fs.writeFile(pom,plan.afterText);
+  plan=await hub.planChange(f.root,context,context.catalog.libraries[1],{operation:'update'});assert.equal(plan.current,'0.1.0');await fs.writeFile(pom,plan.afterText);
+  plan=await hub.planChange(f.root,context,context.catalog.libraries[0],{operation:'revert'});assert.equal(plan.previous,'0.1.0');assert.match(plan.afterText,/<artifactId>ui1<\/artifactId><version>0.1.0/);
+  changed=true;await assert.rejects(hub.validatePlan(plan,context),/catalog changed/);
+});
+test('fallback refuses latest-only/paginated or incomplete response shapes',async t=>{
+  const f=await fixture(t);
+  for(const payload of [
+    {...f.catalog,capabilities:{uploads:false},nextCursor:null},
+    {...f.catalog,capabilities:{uploads:false},nextCursor:'20'},
+    f.catalog,
+    {...f.catalog,capabilities:{}},
+  ]){
+    let calls=0;
+    await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:async()=>++calls===1?new Response('private upstream error',{status:400}):Response.json(payload)}),/complete release history/);
+    assert.equal(calls,2);
+  }
+});
+test('only a first-page 400 can fall back; other statuses, success errors and later-page failures cannot',async t=>{
+  const f=await fixture(t);
+  for(const status of [401,403,404,410,429,500,503]) {
+    let calls=0,cancelled=false;
+    await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:async()=>{calls++;return new Response(new ReadableStream({cancel(){cancelled=true;}}),{status});}}),/unavailable|withdrawn/);
+    assert.equal(calls,1);assert.equal(cancelled,true);
+  }
+  for(const payload of ['PRIVATE upstream body',JSON.stringify({...f.catalog,libraries:[{...f.releases[0],sourceDigest:'forged'}]})]){
+    let calls=0;await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:async()=>{calls++;return new Response(payload);}}),/Invalid/);assert.equal(calls,1);
+  }
+  let calls=0;
+  await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:async()=>++calls===1?Response.json({...f.catalog,libraries:[f.releases[0]],nextCursor:'next'}):new Response('error',{status:400})}),/unavailable/);
+  assert.equal(calls,2);
+  calls=0;
+  await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:async()=>{calls++;throw new Error('PRIVATE upstream URL https://secret.example');}}),error=>error.message==='The component hub is unavailable. Your app has not changed.');assert.equal(calls,1);
+});
+test('legacy retry shares the original total deadline and bounded byte read',async t=>{
+  const f=await fixture(t);
+  for(const firstElapsed of [16000,30000]){
+    let elapsed=0,calls=0;
+    await assert.rejects(hub.loadCatalog(f.context.origin,{now:()=>elapsed,fetcher:async()=>{
+      calls++;elapsed+=calls===1?firstElapsed:15000;
+      return calls===1?new Response('error',{status:400}):Response.json({...f.catalog,capabilities:{uploads:false}});
+    }}),/timed out.*website/);
+    assert.equal(calls,firstElapsed===30000?1:2);
+  }
+  let calls=0,cancelled=false;
+  await assert.rejects(hub.loadCatalog(f.context.origin,{fetcher:async()=>{
+    if(++calls===1)return new Response(null,{status:400});
+    return new Response(new ReadableStream({start(controller){controller.enqueue(new Uint8Array(4*1024*1024+1));},cancel(){cancelled=true;return new Promise(()=>{});}}));
+  }}),/response is too large/);
+  assert.equal(calls,2);assert.equal(cancelled,true);
+});

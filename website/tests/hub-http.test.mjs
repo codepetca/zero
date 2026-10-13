@@ -29,7 +29,7 @@ test('actual Next exposes ZeroHub and retires the old page, catalogs and downloa
   assert.equal(website,origin.origin);
   assert.equal(origin.protocol,'http:');
   assert.ok(['127.0.0.1','localhost','[::1]'].includes(origin.hostname));
-  for(const [path,text] of [['/hub','Share it with others.'],['/hub/prepare','Make a library.']]) {
+  for(const [path,text] of [['/hub','A library of components'],['/hub/prepare','Make a library.']]) {
     const response=await fetch(new URL(path,origin),{redirect:'manual',signal:AbortSignal.timeout(15000)});
     assert.equal(response.status,200,path);
     const html=await response.text();

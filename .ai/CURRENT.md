@@ -42,7 +42,10 @@ Only one pending UUID is briefly held in per-tab sessionStorage, then consumed;
 no source/report/account/token persistence. Owner-only result reads remain.
 Pending jobs retain existing polling rather than a parallel hydration read.
 Mobile card overflow is corrected; closed-sharing status precedes cards.
-Current implementation delta awaits independent source acceptance.
+Cap/flow source b6e23cc passed a complete independent Sol/high review with no
+actionable findings. Root integrated reviewed MVP source 8ceb45d, installer
+fallback 35fe3e9 and setup guidance 6cedf89. Native public catalog compatibility
+and HTTP heading correction await final integration review.
 
 Root51backend tests on actualPG17 and10admission tests on actualPG18 passed,
 including restricted API access beyond former caps, concurrent rate/queue/global
@@ -70,7 +73,7 @@ private and ignored. Clean tracked deploy snapshot/source-list audit required.
 
 Local accepted prerequisites include OAuth/API/polling/discovery3b16089, cache
 8dec22b, finite workers72576da, backups018e3ab, withdrawal70264f7, health1cda139,
-cache-tags4077dd8 and policyb9c29e0. Last cumulative reviewer turns44 includes
+cache-tags4077dd8 and policyb9c29e0. Last cumulative reviewer turns45 includes
 three historical filter failures. Requested configs known; effective time/tokens
 unknown. Acceptance history lives in EVIDENCE/VERIFICATION, not this handoff.
 Source CI38318782410 and receiptCI38320302912 passed. Private actual hosted
@@ -84,9 +87,7 @@ Human authorization to coordinate was verified in thread
 01a131bf-7277-7750-b704-a4b6f796c236 (Audit MVP Goal and Release Readiness).
 Root owns integration of reviewed SOURCE-only fa15c920..57909be and later
 58aab804 fallback fix; do not import the other task's CURRENT/evidence snapshots.
-Other task owns installer.mjs/local-installer.mjs/installer.test.mjs and separately
-reserved setup/README.md; no overlapping writer. Source integration is queued
-until current cap/flow delta is sealed. Agree one release-version/manifest/package
+Other source writers are stopped; root owns final source integration. Source integration is committed; final integration review is next. Agree one release-version/manifest/package
 writer only after accepted integrated SHA. No release version or artifact changed.
 Public Mac0.5.7/WindowsZIP0.5.3 lack the new Add/Update/Revert command; a new kit is
 required before claiming that shipped-editor flow. Physical Windows is explicitly
@@ -95,3 +96,15 @@ signing, credential change or public activation is inferred from coordination.
 
 Most recent account weekly55%remaining and healthy317GB free are shared readings,
 not task cost. No cleanup, Docker restart/prune or production writes occurred.
+
+## Latest integration proof
+
+Root185 extension/setup/Git tests passed, website94passes/2optionalHTTPskips,
+actualNextHTTP2passes, drawing finite native check and configuration passed.
+Final types/build and bounded native14cases passed. Integrated Hub card with
+expanded manual setup fits320px; long code scrolls within cards. Browser/Next3108/
+HTTP4118 stopped. Current deployed legacy catalog rejects history=1; native client
+now retries only first400 against the exact complete legacy shape and retains
+history/pins/integrity/time/byte bounds. Actual public catalog and maintained
+ui1:0.1.0 artifact/POM integrity verification succeeded; no Java executed.
+Fresh installed-editor/public authoring/full hosted journey remain unproved.
