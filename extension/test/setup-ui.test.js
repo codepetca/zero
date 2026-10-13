@@ -61,6 +61,20 @@ test('optional Git repair opens official page and never signs in or changes iden
   assert.match(records.notices[0],/Git 2.31.*Windows.*teacher or IT.*Fully quit and reopen/);
   assert.deepEqual(records.commands,[]);assert.deepEqual(records.runs,[]);
 });
+test('selected Java and Git download help opens without waiting for notice dismissal',async t => {
+  for(const [action,url,report] of [
+    ['jdk','https://adoptium.net/temurin/releases/?version=17&package=jdk',{jdkReady:false,runReady:false}],
+    ['git','https://git-scm.com/downloads/',{gitReady:false}]
+  ]) {
+    let dismiss,timer;
+    const notification=new Promise(resolve=>{dismiss=resolve;});
+    t.after(()=>dismiss());
+    const {help,records}=await fixture([action],{report,notification});
+    const completed=await Promise.race([help().then(()=>true),new Promise(resolve=>{timer=setTimeout(()=>resolve(false),1000);})]).finally(()=>clearTimeout(timer));
+    assert.equal(completed,true,'Selecting download help must not wait for its informational notice');
+    assert.deepEqual(records.urls,[url]);assert.deepEqual(records.commands,[]);assert.deepEqual(records.runs,[]);
+  }
+});
 test('first build is only launched by user selection, rechecked and limited to expected root',async () => {
   const {help,records} = await fixture(['run']);await help();
   assert.equal(records.checks,2);assert.deepEqual(records.runs,['/student']);
