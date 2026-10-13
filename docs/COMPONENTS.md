@@ -4,9 +4,15 @@ ZeroHub is Zero's shared-library feature at `/hub`. All platform source is maint
 
 ## Use a component
 
-Browse a component's preview, API, GitHub contributor and checked platform at [ZeroHub](https://zero.codepet.ca/hub). A library bundles related classes; discovery shows the classes. Open **Use this component**, add its exact dependency to your app's `pom.xml`, then use the shown Java import and example. Related components share the same dependency.
+Browse a component's preview, example, GitHub contributor and checked platform at [ZeroHub](https://zero.codepet.ca/hub). Related components come together as one library.
 
-The next, locally built extension adds (…) → Browse ZeroHub and Add/Update/Revert; current public downloads use the card instructions above. The development extension edits only managed Maven dependency/repository/history blocks through the native undoable editor. It refuses unsaved or drifted POMs and source copies that shadow installed classes.
+Automatic setup is coming in the next Zero update. With the locally built development extension, open Zero's (…) menu → **Browse ZeroHub**, choose a component, select **Add library**, then **Apply**. Zero handles library setup. Use the component's Java import and example, then **Run App**. You choose when to **Update**; **Revert** returns to your previous version.
+
+The development extension edits only managed Maven dependency/repository/history blocks through the native undoable editor. It refuses unsaved or drifted POMs and source copies that shadow installed classes.
+
+### Manual setup for current downloads
+
+Current public downloads do not include automatic library setup. On a component card, open **Use this component → Manual setup for current downloads**. Add the shown entry to your app's `pom.xml`, then use the shown Java import and example. Add the entry once for related components in the same library. You can instead wait for the Zero update; the website does not install a library into your app when you browse a card.
 
 A reserved library `ui7` provides imports such as `zero.ui7.Hud` and exact coordinates `ca.codepet.zero.library:ui7:0.1.0`. IDs are assigned by the server; GitHub usernames are attribution, not package names. Use the actual import/API on the card. Ordinary constructors, setters and callbacks connect components; apps own navigation and rules.
 

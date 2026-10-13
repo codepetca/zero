@@ -10,15 +10,11 @@ export default function Learn() {
       <PageHeader active="Tutorials" />
       <main id="page-content" tabIndex={-1} className="hub">
         <div className="hub-intro">
-          <p className="eyebrow">Learn with Zero</p>
-          <h1>Learn Java.</h1>
-          <p className="hub-lead">Start with Hello, world. Build from there.</p>
+          <h1>Learn Java</h1>
+          <p className="hub-lead">Starting from zero.</p>
           <div className="hub-actions">
             <a className="button" href="/tutorials/0">
               Start lesson 0
-            </a>
-            <a className="setup-link" href="/docs/setup">
-              New here? Set up Zero <Icon name="arrow-right" />
             </a>
           </div>
         </div>

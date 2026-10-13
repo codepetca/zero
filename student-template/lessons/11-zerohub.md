@@ -42,6 +42,10 @@ The label **Automatically checked** describes the checks and platform that ran. 
 
 ## Use it in another app
 
+The editor commands below require your teacher's locally built ZeroHub extension.
+With the current public downloads, follow the [library guide](https://zero.codepet.ca/docs/components#use-a-component)
+to add the exact dependency to `pom.xml` and use the shown Java import manually.
+
 In the other app, open Zero's (…) menu → **Browse ZeroHub**. Choose the component and **Add library**. Use the exact import shown on its card:
 
 ```java
@@ -50,7 +54,7 @@ import zero.ui7.ScorePanel;
 
 Run the second app. Maven retrieves the exact library version; you do not copy its source into your app.
 
-Once listed, a version cannot be replaced. Make fixes in a new version and explain them in CHANGELOG.md. Other students choose **Update** explicitly; **Revert** restores the preceding pin. Related classes share the library's version.
+Once listed, a version cannot be replaced. Make fixes in a new version and explain them in CHANGELOG.md. In the local extension, other students choose **Update** explicitly; **Revert** restores the preceding pin. Related classes share the library's version.
 
 Keep your library source in your own GitHub repository. Pika coursework submission still uses your repository link separately.
 

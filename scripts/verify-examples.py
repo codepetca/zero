@@ -162,16 +162,56 @@ checks={
         ((Button) controls.getChildren().get(1)).fire();
         require((int) field(app, "count") == 0, "Reset changes count");
         require(((Label) field(app, "total")).getText().equals("Count: 0"), "Reset label");''',
-'drawing': '''mouse(app, MouseEvent.MOUSE_PRESSED, 100, 100, MouseButton.PRIMARY);
+'drawing': '''app.stop(); // Keep event sequences between deliberate frames, with no timer races.
+        mouse(app, MouseEvent.MOUSE_PRESSED, 100, 100, MouseButton.PRIMARY);
         app.draw();
-        mouse(app, MouseEvent.MOUSE_DRAGGED, 150, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 100, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_PRESSED, 200, 100, MouseButton.PRIMARY);
         app.draw();
-        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 100).equals(Color.DARKBLUE), "Drag paints line");
-        mouse(app, MouseEvent.MOUSE_RELEASED, 150, 100, MouseButton.PRIMARY);
+        var pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(100, 100).equals(Color.DARKBLUE)
+                && pixels.getColor(200, 100).equals(Color.DARKBLUE), "Separate presses paint their dots");
+        require(pixels.getColor(150, 100).equals(Color.WHITE), "Release between frames must separate strokes");
+        mouse(app, MouseEvent.MOUSE_RELEASED, 200, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_PRESSED, 300, 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 300, 100, MouseButton.PRIMARY);
         app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(300, 100).equals(Color.DARKBLUE), "Click entirely between frames paints a dot");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 100, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 150, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 150, 200, MouseButton.PRIMARY);
+        app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 200).equals(Color.DARKBLUE), "Drag paints line without waiting for frames");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 100, 300, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, -10, 300, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 200, 300, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 200, 300, MouseButton.PRIMARY);
+        pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(100, 300).equals(Color.DARKBLUE)
+                && pixels.getColor(200, 300).equals(Color.DARKBLUE)
+                && pixels.getColor(150, 300).equals(Color.WHITE), "Leaving bounds breaks the stroke before re-entry");
+        mouse(app, MouseEvent.MOUSE_PRESSED, app.width(), 100, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, app.width(), 100, MouseButton.PRIMARY);
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(639, 100).equals(Color.WHITE), "Right boundary is outside the canvas");
+        mouse(app, MouseEvent.MOUSE_PRESSED, -10, 100, MouseButton.SECONDARY);
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 200).equals(Color.DARKBLUE), "Secondary press outside does not clear");
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 100, 100, MouseButton.SECONDARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 100, 100, MouseButton.SECONDARY);
+        app.draw();
+        pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(125, 200).equals(Color.WHITE)
+                && pixels.getColor(300, 100).equals(Color.WHITE), "Held secondary clears when dragged inside");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 400, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 400, 200, MouseButton.PRIMARY);
         mouse(app, MouseEvent.MOUSE_PRESSED, 100, 100, MouseButton.SECONDARY);
-        app.draw();
-        require(app.canvas().snapshot(null, null).getPixelReader().getColor(125, 100).equals(Color.WHITE), "Secondary button clears");'''
+        mouse(app, MouseEvent.MOUSE_RELEASED, 100, 100, MouseButton.SECONDARY);
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(400, 200).equals(Color.WHITE), "Secondary click clears between frames");
+        mouse(app, MouseEvent.MOUSE_PRESSED, 500, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_DRAGGED, 550, 200, MouseButton.PRIMARY);
+        mouse(app, MouseEvent.MOUSE_RELEASED, 550, 200, MouseButton.PRIMARY);
+        pixels = app.canvas().snapshot(null, null).getPixelReader();
+        require(pixels.getColor(525, 200).equals(Color.DARKBLUE)
+                && pixels.getColor(450, 200).equals(Color.WHITE), "Painting after clear starts a fresh stroke");'''
 }
 checks['coin-game-controls'] = '''app.stop();
         var controls = (HBox) app.layout().getBottom();

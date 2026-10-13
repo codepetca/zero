@@ -60,33 +60,38 @@ test('current publication and explicit local preview take precedence, hosted fla
   assert.equal(availableKitRelease(current,fallback,localDownloadsAllowed({ZERO_LOCAL_DOWNLOADS:'1',VERCEL:'1'})),fallback);
   assert.equal(landingDownloadHref(releaseAssetHref(fallback,'kit'),native),fallback.assets.kit.url);
 });
-test('downloads render their own kit versions alongside independently published Mac setup', async () => {
+test('downloads show only supported platform buttons with exact published URLs', async () => {
   const publishedNative={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
   const html=await render(current,fallback,publishedNative,false);
-  assert.ok(html.includes(`Zero Setup ${native.kitVersion} for Mac`));
-  assert.match(html,/Set up Zero.*~\/Zero.*automatically prepares Java.*your work is kept.*Open Zero and Run App.*GitHub sign-in can wait/);
-  assert.doesNotMatch(html,/choose a fresh project folder|guides the Zero profile import/);
-  assert.match(html,/Complete kit ZIP 0\.5\.3/);
-  assert.match(html,/Starter project 0\.5\.3/);
-  assert.match(html,/Zero extension 0\.5\.3/);
-  for (const key of ['kit','starter','extension']) assert.ok(html.includes(`href="${fallback.assets[key].url}"`));
+  assert.ok(html.includes(`href="${fallback.assets.kit.url}"`));
   assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
-  assert.doesNotMatch(html,/href="\/download\/|\.exe/);
+  assert.match(html,/Download for Mac Silicon<\/a>/);
+  assert.match(html,/Download for Windows \(ZIP\)<\/a>/);
+  assert.equal((html.match(/<a /g)||[]).length,2);
+  assert.doesNotMatch(html,/<p[ >]|<h[1-6][ >]|<details[ >]|<summary[ >]/);
+  assert.doesNotMatch(html,/Zero Setup|Other downloads|local preview|href="\/download\/|\.exe/);
   assert.equal(landingDownloadHref(fallback.assets.kit.url,publishedNative),'/learn#downloads');
 });
-test('local, published, fallback and missing states render accurate labels and availability', async () => {
-  assert.ok((await render(current,fallback,native,true)).includes(`Complete kit ZIP ${current.kitVersion}`));
-  assert.match(await render(current,fallback,native,false),/Download Zero 0\.5\.3/);
+test('local, published, fallback and missing states offer only available verified platform buttons', async () => {
+  const local=await render(current,fallback,native,true);
+  assert.match(local,/Download for Mac Silicon \(local preview\)/);
+  assert.match(local,/Download for Windows \(ZIP\) \(local preview\)/);
+  assert.match(local,/href="\/download\/kit"/);
+  const fallbackHtml=await render(current,fallback,native,false);
+  assert.match(fallbackHtml,/Download for Windows \(ZIP\)/);
+  assert.doesNotMatch(fallbackHtml,/Download for Mac Silicon|local preview/);
   const published=structuredClone(current);
   published.publication.status='published';
   for (const key of ['kit','starter','extension']) published.assets[key].url=`https://github.com/codepetca/zero/releases/download/v${published.kitVersion}/${published.assets[key].filename}`;
   const publishedHtml=await render(published,fallback,null,false);
-  assert.ok(publishedHtml.includes(`Download Zero ${current.kitVersion}`));
+  assert.ok(publishedHtml.includes('Download for Windows (ZIP)'));
   assert.ok(publishedHtml.includes(`href="${published.assets.kit.url}"`));
-  assert.doesNotMatch(publishedHtml,/0\.5\.3/);
-  const missing=await render(current,null,null,false);
-  assert.match(missing,/public kit download is not available yet/);
-  assert.doesNotMatch(missing,/href="\/download\//);
+  assert.doesNotMatch(publishedHtml,/0\.5\.3|local preview/);
+  assert.equal(await render(current,null,null,false),'');
+  const macOnly={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
+  const macOnlyHtml=await render(current,null,macOnly,false);
+  assert.match(macOnlyHtml,/Download for Mac Silicon/);
+  assert.doesNotMatch(macOnlyHtml,/Download for Windows/);
   const route=await readFile(new URL('../app/download/[asset]/route.ts',import.meta.url),'utf8');
   assert.match(route,/verifiedLocalAsset\([^\n]+asset, release\)/);
   assert.doesNotMatch(route,/publishedKit|downloadableKit/);

@@ -1,7 +1,11 @@
 # Guided student setup
 
-The signed Mac0.5.7 setup provides automatic Java/editor preparation for personal
-and school laptops. The independently published0.5.3 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
+The current MVP targets **Mac with Apple Silicon** and **Windows**. Linux and
+Intel Macs are unsupported. The signed Mac0.5.7 setup provides automatic
+Java/editor preparation for supported personal and school Macs. Windows uses
+the published complete-kit ZIP for manual setup; its native EXE is unpublished.
+Download choices show the Windows ZIP alongside Mac. The independently published
+0.5.3 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
 continues to be an ordinary editable Java project.
 
 ## Native setup
@@ -22,8 +26,9 @@ Details and failures remain visible; GitHub sign-in comes later. See
 ## ZIP/manual student flow
 
 1. Download and extract the complete kit.
-2. Open setup/Setup.cmd on Windows or setup/Setup.command on macOS. Linux uses
-   bash setup/setup.sh with manual tool-installation guidance.
+2. If the kit includes a `setup/` folder, open setup/Setup.cmd on Windows or
+   setup/Setup.command on a supported Mac. The published 0.5.3 ZIP uses the
+   [manual setup steps](GETTING-STARTED.md#one-time-setup).
 3. Check existing installations. Choose installation/help only for missing or
    incompatible items. A working school/personal installation should be reused.
 4. Follow profile prompts, install Zero and Java extensions, and open starter.
@@ -59,7 +64,7 @@ selection. Java/Git repair opens an official installer page. Fully quit/reopen
 VS Code after installing tools or repairing environment variables, then Check
 again. Run first app uses the existing saved, clean-compile, native-window flow.
 A missing or malformed project, timeout, unparseable version or failed tool check
-must not be reported as ready. On macOS/Linux, the wrapper must also have
+must not be reported as ready. On a supported Mac, the wrapper must also have
 execute permission; re-extract the complete kit or follow the reported local
 permission repair guidance. Checks do not execute the project's Maven build.
 
@@ -79,7 +84,8 @@ Record executed checks and platform gaps in docs/VERIFICATION.md.
 
 Physical clean-machine Windows/macOS installers, permission prompts, package
 manager availability, proxies/school policy and novice usability need separate
-verification. Linux tool installation stays manual. No unattended installer or
+verification. Retained Linux wrappers and universal Mac artifacts are legacy
+technical capabilities, not supported MVP setup paths. No unattended installer or
 fully automated school enrollment is claimed.
 
 Primary references: [VS Code CLI](https://code.visualstudio.com/docs/configure/command-line),

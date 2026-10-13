@@ -7,7 +7,7 @@ game with your own media, scrolling, platforms, two levels and endings.
 Start by editing only `src/main/java/Main.java`.
 Run App opens a separate JavaFX window. Save changes, close or
 Stop the old app, and Run App again to rebuild. The default build shortcut is
-**Ctrl+Shift+B** on Windows/Linux or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
+**Ctrl+Shift+B** on Windows or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
 The default build task is **Zero: Run App**, owned by the extension so its Stop
 button can stop it. Without the extension, use **Tasks: Run Task → Run App without
@@ -15,8 +15,17 @@ Zero**, then close the app window or terminate that task before running again.
 
 ## First setup
 
-If you downloaded the **complete kit**, use its `setup/Setup.cmd` (Windows) or
-`setup/Setup.command` (macOS), or `bash setup/setup.sh` (Linux), to check tools and
+This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
+Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
+native Windows EXE is not published. Physical Windows/classroom verification
+remains pending, so the support target is not a claim of completed testing.
+
+If you used **Download for Mac**, setup already prepares the Zero editor and
+Java tools. Use **Open Zero.command** in your Zero folder to return to that
+editor. The manual steps below are for the ZIP downloads.
+
+If your **complete kit** includes a `setup/` folder, use its `setup/Setup.cmd` (Windows) or
+`setup/Setup.command` (Mac with Apple Silicon) to check tools and
 follow install/open actions. Keep the complete kit extracted; the starter-only
 ZIP does not contain the launcher or Zero extension. You can use the steps below
 instead. Inside VS Code, **Zero: Setup Help** offers a checklist, repair actions
@@ -26,8 +35,9 @@ and **Check again**. School IT can provide the tools before students start.
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
-   Windows/Linux, **Command+Shift+P** on macOS) in your chosen profile. Use
-   **Extensions: Install from VSIX…** for the local **zero-0.5.4.vsix**, then
+   Windows, **Command+Shift+P** on macOS) in your chosen profile. Use
+   **Extensions: Install from VSIX…** and select the Zero **.vsix** file supplied
+   beside `starter/` in your complete kit, then
    **Extensions: Install Extensions** for **Language
    Support for Java by Red Hat** (`redhat.java`), and **Debugger for Java**
    (`vscjava.vscode-java-debug`). Follow the Java extension's
@@ -45,7 +55,7 @@ and **Check again**. School IT can provide the tools before students start.
 Terminal equivalent, from this folder:
 
 ```sh
-# macOS / Linux
+# Mac with Apple Silicon
 ./mvnw clean compile javafx:run
 ```
 
@@ -54,10 +64,11 @@ Terminal equivalent, from this folder:
 .\mvnw.cmd clean compile javafx:run
 ```
 
-If a copied ZIP loses the executable permission on macOS/Linux, run
-`chmod +x mvnw` once. JavaFX 21 requires macOS 11+; Linux requires a working
-GUI session and GTK 3.8+. Windows and Linux execution still need classroom
-verification; this prototype was checked on macOS arm64.
+If a copied ZIP loses the executable permission on a supported Mac, run
+`chmod +x mvnw` once. The native Mac setup requires macOS 12+; JavaFX 21 itself
+requires macOS 11+. Windows execution still needs classroom verification;
+this prototype was checked on macOS arm64. Retained Linux wrappers and Intel
+artifact code do not make those platforms supported in this MVP.
 
 ## Make something
 

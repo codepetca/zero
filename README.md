@@ -18,13 +18,17 @@ Run App saves, rebuilds and restarts. **Upload, Start and Finish default to simu
 The individual flow is Start a change → Upload changes → Finish change into main.
 The opt-in live path reviews changes and uses VS Code's native GitHub session.
 A Mac teacher trial verified real sign-in/create/connect/cancel/upload/copy-link.
-Physical Windows/Linux and novice student trials remain unverified; see the
+The current MVP targets Mac with Apple Silicon and Windows; Linux and Intel Macs
+are unsupported. Physical Windows and novice student trials remain unverified; see the
 [verification record](docs/VERIFICATION.md) for checks actually performed.
 
 ## Download Zero
 
-[Download Zero 0.5.3](https://github.com/codepetca/zero/releases/download/v0.5.3/zero-bootstrap.zip) and follow `START-HERE.md`.
-The complete kit is a single ZIP; original Zero code is MIT licensed.
+- [Download for Mac with Apple Silicon — setup 0.5.7](https://github.com/codepetca/zero/releases/download/setup-v0.5.7/Zero-Setup-0.5.7-macos.dmg)
+- [Download for Windows — complete kit ZIP 0.5.3](https://github.com/codepetca/zero/releases/download/v0.5.3/zero-bootstrap.zip); follow `START-HERE.md` for manual setup.
+
+The Windows native EXE is not published. The complete kit is a single ZIP;
+original Zero code is MIT licensed.
 
 ## Start here
 
@@ -45,9 +49,9 @@ The complete kit is a single ZIP; original Zero code is MIT licensed.
 
 Students need VS Code and a supported JDK 17+; Git 2.31+ and browser authentication
 are needed for repository work. They do not need Node.js or global Maven.
-The next local Mac0.5.7 setup prepares a private Java runtime and a separate
-quiet editor automatically; use its Open Zero launcher to return. The public
-Mac0.5.6 download still has guided manual setup. See [native setup](docs/INSTALLER.md).
+The published Mac0.5.7 setup prepares a private Java runtime and a separate
+quiet editor automatically; use its Open Zero launcher to return. Windows uses
+the complete-kit ZIP with manual setup. See [native setup](docs/INSTALLER.md).
 The optional settings-only profile for ZIP/manual setup defaults to light, with 500 ms autosave.
 Import it before installing the local Zero VSIX and Java extensions in that
 profile. The sidebar also supports dark themes.

@@ -94,12 +94,15 @@ ZERO_LOCAL_DOWNLOADS=1 npm run dev --prefix website
 Without the local preview flag, an unpublished kit uses the verified fallback
 when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
-The optional `release/installer.json` adds **Download for Mac** on Learn more.
+The optional `release/installer.json` adds **Download for Mac Silicon** on Learn more.
 When that installer is published or local downloads are enabled, the landing
-Download Zero action opens the platform choices at `/learn#downloads`. The ZIP,
-starter and VSIX remain under Other downloads with their own kit version, even
-when Mac setup and the published ZIP are different versions. No unsigned Windows
-EXE is offered.
+Download Zero action opens the platform choices at `/learn#downloads`. Mac setup
+and the Windows complete-kit ZIP are the only visible download controls, with no
+extra instructions or version prose. The complete ZIP, starter and VSIX remain
+available on GitHub releases with their own kit version, even when Mac setup
+and the published ZIP are different versions. Local-preview controls are labeled
+as such; unavailable platform buttons are omitted. No unsigned Windows
+EXE is offered. The current MVP supports Apple Silicon Macs and Windows.
 Local native download verifies bounded exact bytes, clean signed/notarized build
 provenance and unchanged packaged/native source. `VERCEL` always disables local
 filesystem downloads even with the preview flag set. A hosted build reads only
@@ -149,7 +152,7 @@ cover cancellation, operation serialization, source-control guidance and drift.
 
 Run `git diff --check` before handoff. Record checks actually performed in
 [VERIFICATION.md](VERIFICATION.md); configuration/ZIP checks alone do not prove
-editor behavior or a real upload. Physical Windows/Linux and novice pilots remain
+editor behavior or a real upload. Physical Windows and novice pilots remain
 pending. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) for a teacher-authorized trial.
 
 ## Dependencies and contributions

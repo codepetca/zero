@@ -1,7 +1,8 @@
 # Classroom pilot
 
 Use one student machine and one novice student before cohort adoption. This is
-a trial checklist, not completed evidence. Physical Windows/Linux, real native
+a trial checklist, not completed evidence. Current targets are Mac with Apple
+Silicon and Windows; Linux and Intel Macs are unsupported. Physical Windows, real native
 school restrictions and novice trials remain unverified. A Mac teacher trial
 verified native GitHub sign-in and a private upload; consult
 [VERIFICATION.md](VERIFICATION.md) and [GETTING-STARTED.md](GETTING-STARTED.md).

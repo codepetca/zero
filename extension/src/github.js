@@ -1,5 +1,6 @@
 'use strict';
 const fs = require('node:fs/promises');
+const {createReadStream} = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const core = require('./core');
@@ -77,17 +78,24 @@ async function inspect(project, run) {
     }
     try {
       const stat = await fs.lstat(absolute);
-      digest.update(filename).update('\0');
-      if (stat.isSymbolicLink()) digest.update(await fs.readlink(absolute));
-      else if (stat.isFile()) digest.update(await fs.readFile(absolute));
+      const content = crypto.createHash('sha256');
+      let type;
+      if (stat.isSymbolicLink()) { type = 'symlink'; content.update(await fs.readlink(absolute)); }
+      else if (stat.isFile()) {
+        type = 'file';
+        // Stream assets in bounded chunks; review memory must not grow with
+        // the size of a student's picture, audio file, or other resource.
+        for await (const chunk of createReadStream(absolute, {highWaterMark: 64 * 1024})) content.update(chunk);
+      }
       else throw new Error('Nested repositories or special files are not supported.');
-      digest.update(String(stat.mode));
+      digest.update(JSON.stringify([filename, type, stat.mode, content.digest('hex')])).update('\0');
     } catch (error) { if (error.code === 'ENOENT') continue; else throw error; }
-    digest.update('\0');
   }
   const contentFingerprint = digest.copy().digest('hex');
-  digest.update(await run(root, ['diff', '--binary']));
-  digest.update(await run(root, ['diff', '--cached', '--binary']));
+  // Index entries contain exact blob IDs, modes, stages and paths. Together
+  // with the working-byte hash and separately checked HEAD/status, they detect
+  // index-only edits without producing an asset-sized Git binary patch.
+  digest.update(JSON.stringify(entries));
   return {root, canonicalPage: repository.page, page: repository.page, remote: repository.remote, branch, head, status, changes, contentFingerprint, fingerprint: digest.digest('hex')};
 }
 async function prepareUpload(project, run = core.git) {
