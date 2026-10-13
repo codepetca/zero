@@ -27,12 +27,15 @@ Other tasks remain untouched. PR targets main and includes inherited tutorial/ki
 work; existing draft PR26 is unchanged. Two cumulative Sol/high reviews completed
 the active main-b9d0188..e216737 source scope. Two accepted P2 blockers received
 release provenance and Java source guards; targeted Astra/high batch review at2ed7eb3 is complete and clean.
+Subsequent test-fixture correctionace983e (Sol/medium) and Blob stored-byte
+representation correctionbeaaca4 (Astra/high) are independently clean.
 
 Implementation79edd1f is clean under two initial independent reviews and targeted
 remediation. CI correction6851aa7 is clean under Sol/medium delta review; it makes
 only the disposable proof truststore writable. Source JDK hash/mode preserved.
-Review ledger8turns/1initialwave/4targetedpasses/1cumulativewave/4fixbatches;
-the fourth batch includes those fixes, publisher source pinning and documentation.
+Review ledger10turns/1initialwave/6targetedpasses/1cumulativewave/6fixbatches;
+Batch5 makes fixture history independent of shallow CI; batch6 requests identity
+encoding for exact Blob ETags, preserving strict verification.
 Model/token/elapsed
 telemetry unavailable where not exposed. No equivalent held-executor review.
 
@@ -44,12 +47,18 @@ build. Vercel preview checks passed. The original readonly-truststore CI failure
 was fixed and reviewed. Subsequent handoff changes are documentation only.
 Current local checks: root228pass/1PowerShellskip, release57pass, focused source
 guards15pass, package and extracted-kit verification passed. Workflow sharing
-checks44/44 and actionlint passed; exact-head CI is the next source gate.
+checks44/44 and actionlint passed; final adapter18/18 and depth-one workflow6/6
+passed. CI7b0d5b8 failed only fixture history; corrected-head CI is required.
 Dedicated public Blob store zero-sharing created unlinked to the website. Owner completed Vercel passkey reauthentication in Chrome; existing publisher
 credential is stored only in ignored private local storage. Real inert Blob proof
 passed ETag/public-byte agreement, immutable collision/idempotency, uncertain
 upload recovery, isolated backup/restore and verified conditional cleanup. Live canonical registry creation and fresh/stale CAS
-proof passed, including anonymous Git reads. No release records were fabricated.
+proof passed, including anonymous Git reads. No release records were fabricated. Maintainer-owned repository
+armorup/zero-sharing-proof and issue28 exercised actual commit-bound game
+publication, anonymous18104byte ZIP/hash retrieval and fresh extraction of14files
+with executable wrapper/no inherited Git/no Java execution. General publication
+remains disabled; GitHub publisher environment is main-only. Website received
+public registry/origin settings only; old credentials/resources preserved.
 Detailed receipts and limits: [EVIDENCE](../docs/EVIDENCE.md) and
 [VERIFICATION](../docs/VERIFICATION.md). All delegates stopped.
 
@@ -57,8 +66,8 @@ Detailed receipts and limits: [EVIDENCE](../docs/EVIDENCE.md) and
 
 Game publication workflow and bundled operator settings remain disabled. Local
 Check executes students' own trusted source, not managed hosted acceptance.
-Next: push the reviewed batch, exact-head CI and authorized merge; then actual
-provider workflow/rollout proof. Applicable managed-library acceptance remains held. Verify
+Next: push final reviewed source, exact-head CI and authorized merge; then actual
+managed game workflow/Vercel rollout proof. Publisher pinbeaaca4. Applicable managed-library acceptance remains held. Verify
 actual GitHub/Blob permissions and ETag/CAS behavior,
 public immutable Maven/game delivery and backup restoration, then installed-editor,
 physical Windows and novice classroom trials. Linux CI proves its maintained

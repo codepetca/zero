@@ -1869,3 +1869,41 @@ remote default; corrected drill passed. Bundle/receipt remain private/ignored.
 This covers empty live registry and inert Blob bytes, not recovery of accepted
 contributions or all final referenced objects. Hosted Actions, actual game
 publication/editor/classroom and held library acceptance remain separate.
+
+
+### Shallow CI and real game delivery corrections — 2026-10-13
+
+CI38398124450 failed only new test fixture HEAD^/cleanup assumptions in its
+depth-one source checkout; root228pass/release57pass completed, subsequent gates
+not claimed passed. Sol/high writer corrected only workflow.test atace983e:
+metadata-only commit belongs to disposable clone, setup cleanup guarded. Normal
+and actual depth-one6/6 passed; injected early/late setup failures retained useful
+error/no residue. Sol/medium sharing_ci_fix_review completed7b0d5b8..ace983e,
+one-file delta/callers, clean; syntax/diff independently passed.
+
+Dedicated publisher environment configured main-branch-only with ZERO_BLOB_TOKEN,
+repository operator config/activation false. Website production received public
+origin/fixed Git ledger settings only; old Neon credentials/resources retained.
+Initial immutable empty catalog generated through actual publisher and Git CAS;
+anonymous website readCatalog verified its digest/revision.
+
+Maintainer-owned public armorup/zero-sharing-proof (numeric1417021749) committed
+14 maintained fixture files ate2e29dd6336d0bc98bbb2f806b6e934c79ca82dd, issue28
+requests exact source. First18104byte ZIP staging delivery failed closed because
+Vercel CDN negotiated Brotli and returned a weak ETag versus origin strong ETag.
+Direct identity-encoding GET returned exact strong ETag/no content transformation.
+Sourcebeaaca4 selects that stored representation; hash/size/exact ETag and guarded
+cleanup unchanged. New regression failed before fix; adapter18/18 after. Astra/high
+sharing_final_source_review completedace983e..beaaca4 plus immediate callers,
+clean/no findings. Ledger10turns/1initialwave/6targetedpasses/1cumulativewave/
+6fixbatches; effective config/worker token/time unavailable where unexposed.
+
+Previous unaccepted request cancelled through actual issue close/prepare; same
+issue reopened with corrected reviewed policy pinbeaaca4, source commit/version
+unchanged. Manual explicit publisher produced game-r1417021749-hello-game0.1.0
+ready; no hosted/general activation or Java execution. Anonymous catalog/digest
+and game18104byte SHA605e1cc52f855515395c87ac2ffcfb84acd2be23211d09eb554c9420f45d7a9a
+verified; real extractor wrote14files into a new isolated folder, wrapper0755 and
+no inherited Git. This is maintained structural delivery, not classroom/gameplay
+or installed-editor evidence. Receipts sharing-owned-game-{request,publication,
+consumption}.json; published immutable bytes retained.
