@@ -17,7 +17,7 @@ export function Document({ id, lesson = "" }) {
   const title =
     doc.markdown.match(/^# (.+)$/m)?.[1].replace(/^\d+\. /, "") ||
     "Documentation";
-  const { related, previous, next } = lessonNavigation(lesson);
+  const { related, next } = lessonNavigation(lesson);
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
@@ -40,10 +40,6 @@ export function Document({ id, lesson = "" }) {
         className="reader-layout compact-reader"
       >
         <aside className="reader-navigation">
-          <a className="back-link" href={lesson ? "/learn" : "/docs"}>
-            <Icon name="arrow-left" />
-            {lesson ? "All tutorials" : "All docs"}
-          </a>
           <ReaderNavigation
             items={items}
             current={lesson || id}
@@ -51,12 +47,10 @@ export function Document({ id, lesson = "" }) {
           />
         </aside>
         <article className="reader-content">
-          <p className="eyebrow">
-            {lesson ? `Tutorials / Lesson ${lesson}` : "Documentation"}
-          </p>
-          <h1 id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
-            {title}
-          </h1>
+          <h1>{lesson ? "Tutorials" : "Docs"}</h1>
+          <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
+            {lesson ? `Lesson ${lesson}: ${title}` : title}
+          </h2>
           {related && <p className="reader-subtitle">{related.description}</p>}
           <FoldingReader key={id}>
             <Markdown
@@ -112,19 +106,8 @@ export function Document({ id, lesson = "" }) {
           {lesson && (
             <nav
               className="lesson-pagination"
-              aria-label="Next and previous lessons"
+              aria-label="Next lesson"
             >
-              {previous ? (
-                <a href={`/tutorials/${previous.id}`}>
-                  <Icon name="arrow-left" />
-                  {previous.title}
-                </a>
-              ) : (
-                <a href="/learn">
-                  <Icon name="arrow-left" />
-                  All tutorials
-                </a>
-              )}
               {next ? (
                 <a className="button" href={`/tutorials/${next.id}`}>
                   Next: {next.title}

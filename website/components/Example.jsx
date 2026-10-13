@@ -13,12 +13,8 @@ export function Example({ example, sources }) {
     <>
       <PageHeader active="Examples" />
       <main id="page-content" tabIndex={-1} className="catalog example-detail">
-        <a className="back-link" href="/examples">
-          <Icon name="arrow-left" />
-          All examples
-        </a>
-        <p className="eyebrow">Example app</p>
-        <h1>{example.title}</h1>
+        <h1>Examples</h1>
+        <h2 className="page-subtitle">{example.title}</h2>
         <p className="catalog-lead">{example.description}</p>
         <details className="copy-guide reading-section">
           <summary>

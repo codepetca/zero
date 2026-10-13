@@ -53,8 +53,7 @@ export default function Docs() {
     <>
       <PageHeader active="Docs" />
       <main id="page-content" tabIndex={-1} className="catalog">
-        <p className="eyebrow">Documentation</p>
-        <h1>Docs.</h1>
+        <h1>Docs</h1>
         {docGroups.map((group) => (
           <section className="catalog-section" key={group.title}>
             <h2>{group.title}</h2>

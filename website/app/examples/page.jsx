@@ -7,8 +7,8 @@ export default function Examples() {
     <>
       <PageHeader active="Examples" />
       <main id="page-content" tabIndex={-1} className="catalog">
-        <p className="eyebrow">Example apps</p>
-        <h1>Pick an example.</h1>
+        <h1>Examples</h1>
+        <p className="catalog-lead">Pick an example.</p>
         <div className="examples-list">
           {examples.map((example) => (
             <a
