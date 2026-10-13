@@ -10,7 +10,7 @@ async function fixture(choices = [], overrides = {}) {
   const vscode = {
     window:{
       showQuickPick:async (items,options) => {records.picks.push({items,options});const action = choices.shift();return items.find(item => item.action === action);},
-      showInformationMessage:async text => {records.notices.push(text);},
+      showInformationMessage:async text => {records.notices.push(text);return overrides.notification;},
       showWarningMessage:async text => {records.warnings.push(text);}
     },
     commands:{executeCommand:async (...args) => {records.commands.push(args);if(overrides.installError)throw new Error('School policy');available.add(args[1]);}},
@@ -61,10 +61,34 @@ test('optional Git repair opens official page and never signs in or changes iden
   assert.match(records.notices[0],/Git 2.31.*Windows.*teacher or IT.*Fully quit and reopen/);
   assert.deepEqual(records.commands,[]);assert.deepEqual(records.runs,[]);
 });
+test('selected Java and Git download help opens without waiting for notice dismissal',async t => {
+  for(const [action,url,report] of [
+    ['jdk','https://adoptium.net/temurin/releases/?version=17&package=jdk',{jdkReady:false,runReady:false}],
+    ['git','https://git-scm.com/downloads/',{gitReady:false}]
+  ]) {
+    let dismiss,timer;
+    const notification=new Promise(resolve=>{dismiss=resolve;});
+    t.after(()=>dismiss());
+    const {help,records}=await fixture([action],{report,notification});
+    const completed=await Promise.race([help().then(()=>true),new Promise(resolve=>{timer=setTimeout(()=>resolve(false),1000);})]).finally(()=>clearTimeout(timer));
+    assert.equal(completed,true,'Selecting download help must not wait for its informational notice');
+    assert.deepEqual(records.urls,[url]);assert.deepEqual(records.commands,[]);assert.deepEqual(records.runs,[]);
+  }
+});
 test('first build is only launched by user selection, rechecked and limited to expected root',async () => {
   const {help,records} = await fixture(['run']);await help();
   assert.equal(records.checks,2);assert.deepEqual(records.runs,['/student']);
   assert.match(records.notices[0],/Confirm that the separate JavaFX window opens.*task terminal/);
+});
+test('Run first app launches without waiting for the explanatory notice to be dismissed',async t => {
+  let dismiss,timer;
+  const notification=new Promise(resolve=>{dismiss=resolve;});
+  t.after(()=>dismiss());
+  const {help,records}=await fixture(['run'],{notification});
+  const completed=await Promise.race([help().then(()=>true),new Promise(resolve=>{timer=setTimeout(()=>resolve(false),1000);})]).finally(()=>clearTimeout(timer));
+  assert.equal(completed,true,'The informational notice must not block the selected first run');
+  assert.equal(records.checks,2);assert.deepEqual(records.runs,['/student']);
+  await help();assert.equal(records.checks,3,'Setup guard must be released while the notice remains open');
 });
 test('project change or unavailable tools during picker recheck blocks first run',async () => {
   const {records,vscode,options} = await fixture(['run']);

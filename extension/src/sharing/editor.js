@@ -202,7 +202,7 @@ function createSharingEditor(vscode,host,options={}) {
   const editor=await vscode.window.showTextDocument(document,{preview:false});
   if(document.version!==version||document.isDirty||document.getText()!==plan.beforeText)fail('The POM changed during review.');
   if(!await editor.edit(edit=>edit.replace(new vscode.Range(document.positionAt(0),document.positionAt(plan.beforeText.length)),plan.afterText)))fail('The POM changed during the edit.');
-  if(!await document.save())fail('Save pom.xml or Undo before running the app.');await vscode.window.showInformationMessage(`${release.title} ${release.version} recorded. Import its classes and choose Run App.`);
+  if(!await document.save())fail('Save pom.xml or Undo before running the app.');void vscode.window.showInformationMessage(`${release.title} ${release.version} recorded. Import its classes and choose Run App.`);
  }
  async function openGame(context,release) {
   trusted(vscode);
@@ -215,7 +215,7 @@ function createSharingEditor(vscode,host,options={}) {
  async function browse(kind) {
   const context=await api.consumer.loadCatalog(settings(),{fetcher:options.fetcher});
   const releases=context.catalog.releases.filter(r=>r.status==='available'&&(!kind||r.kind===kind));
-  if(!releases.length){await vscode.window.showInformationMessage(`No shared ${kind==='game'?'games':'libraries'} are available yet.`);return;}
+  if(!releases.length){void vscode.window.showInformationMessage(`No shared ${kind==='game'?'games':'libraries'} are available yet.`);return;}
   const picked=await vscode.window.showQuickPick(releases.map(release=>({label:release.title,description:`${release.version} · ${release.contributor.login} · ${release.kind}`,detail:release.description,release})),{title:kind==='game'?'Shared games':'Shared libraries',placeHolder:'Choose an exact version'});if(!picked)return;
   if(picked.release.kind==='game')return openGame(context,picked.release);
   const action=await vscode.window.showQuickPick([{label:'Add library',operation:'add'},{label:'Update to this exact version',operation:'update'},{label:'Revert to the recorded previous version',operation:'revert'}],{title:picked.release.title});if(action)await applyDependency(await host.project(),context,picked.release,action.operation);

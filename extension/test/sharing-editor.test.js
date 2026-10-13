@@ -2,14 +2,14 @@
 const test=require('node:test'),assert=require('node:assert/strict');const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os');
 const {createSharingEditor,importEdits}=require('../src/sharing/editor');const authoring=require('../src/sharing/authoring');
 const repository={id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'};
-async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40),owner='7'}={}) {
+async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40),owner='7',notification}={}) {
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-editor-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'public class Main { Health health = new Health(); }');await fs.writeFile(path.join(root,'src/main/java/Health.java'),'public class Health {}');
  const descriptor={schema:1,kind:'game',slug:'game',version:'0.1.0',title:'Game',description:'Finite fixture',controls:'Keys',license:'MIT'};await fs.writeFile(path.join(root,'zero-game.json'),JSON.stringify(descriptor,null,2)+'\n');
  let busy=false;const opened=[],gitCalls=[],messages=[];let sources=0,edits=0,saves=0,stagedPlan;
  const vscode={Uri:{file:fsPath=>({fsPath}),parse:x=>x},Range:class{},ProgressLocation:{Notification:1},workspace:{isTrusted:true,textDocuments:dirty?[{isDirty:true,uri:{fsPath:path.join(root,'src/main/java/Main.java')}}]:[],openTextDocument:async uri=>({uri,getText:()=>'',version:1,isDirty:false}),getConfiguration:()=>({get:(key,fallback)=>key==='sharingPolicyRevision'?policy:fallback})},env:{openExternal:async url=>{opened.push(url);return true;}},commands:{executeCommand:async()=>{}},window:{
  showInputBox:async options=>options.title==='Library name'?'health-bar':options.title==='Library title'?'Health':options.title==='Library description'?'An ordinary helper':options.value||'description',
  showQuickPick:async entries=>entries[0]?.path?[entries.find(e=>e.label==='Health')]:entries.find(e=>e.kind==='helper')||entries[0],
- showInformationMessage:async(message,options)=>{messages.push(message);if(options?.modal){if(drift&&message.startsWith('Extract'))await fs.appendFile(path.join(root,'src/main/java/Health.java'),'// newer');return approval;}},
+ showInformationMessage:async(message,options)=>{messages.push(message);if(options?.modal){if(drift&&message.startsWith('Extract'))await fs.appendFile(path.join(root,'src/main/java/Health.java'),'// newer');return approval;}return notification;},
  showTextDocument:async()=>{},withProgress:async(_opts,callback)=>callback({report(){}},{onCancellationRequested:()=>({dispose(){}})})
  }};
  const host={project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student'},revision:1}),assertCurrent:async()=>{}}};
@@ -49,6 +49,21 @@ test('native Add applies one undoable reviewed POM edit; cancellation and docume
   const api={loadCatalog:async()=>({catalog:{releases:[release]}}),planChange:async()=>({root:f.root,beforeText:before,afterText:before+'<!-- exact pin -->',release,current:null}),validatePlan:async()=>{if(scenario==='drift')document.version++;}};
   const editor=createSharingEditor(f.vscode,f.host,{consumer:api});if(scenario==='drift')await assert.rejects(editor.commands['zero.browseHub'](),/POM changed/);else await editor.commands['zero.browseHub']();
   assert.equal(edits,scenario==='apply'?1:0);assert.equal(saves,scenario==='apply'?1:0);assert.equal(f.stats().busy,false);
+ }
+});
+test('undismissed Add and empty-catalog notices release the Zero command guard',async t=>{
+ for(const scenario of ['add','empty-library','empty-game']) {
+  let dismiss,timer;const notification=new Promise(resolve=>{dismiss=resolve;});t.after(()=>dismiss());
+  const f=await fixture(t,{approval:'Apply',notification}),before=await fs.readFile(path.join(f.root,'pom.xml'),'utf8');let text=before,edits=0,saves=0,loads=0;
+  const release={status:'available',kind:'library',id:'lib-r12345-health-bar',version:'0.1.0',title:'Health',description:'Fixture',contributor:{login:'student'},namespace:'zero.contrib.r12345.health_bar'};
+  const document={version:1,isDirty:false,getText:()=>text,positionAt:x=>x,save:async()=>{saves++;await fs.writeFile(path.join(f.root,'pom.xml'),text);document.isDirty=false;return true;}};
+  f.vscode.workspace.openTextDocument=async()=>document;f.vscode.window.showTextDocument=async()=>({edit:async callback=>{edits++;callback({replace:(_,newText)=>{text=newText;document.version++;document.isDirty=true;}});return true;}});
+  const api={loadCatalog:async()=>{loads++;return {catalog:{releases:scenario==='add'&&loads===1?[release]:[]}};},planChange:async()=>({root:f.root,beforeText:before,afterText:before+'<!-- exact pin -->',release,current:null}),validatePlan:async()=>{}};
+  const editor=createSharingEditor(f.vscode,f.host,{consumer:api}),command=scenario==='empty-game'?'zero.browseGames':'zero.browseHub';
+  const completed=await Promise.race([editor.commands[command]().then(()=>true),new Promise(resolve=>{timer=setTimeout(()=>resolve(false),1000);})]).finally(()=>clearTimeout(timer));
+  assert.equal(completed,true,'Informational notices must not block the completed command');assert.equal(f.stats().busy,false);
+  assert.equal(edits,scenario==='add'?1:0);assert.equal(saves,scenario==='add'?1:0);
+  await editor.commands[command]();assert.equal(loads,2,'Another command must start while the original notice remains open');assert.equal(f.stats().busy,false);
  }
 });
 test('game Open verifies selected bytes, requests a new destination and opens a separate window without running',async t=>{

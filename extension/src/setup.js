@@ -149,7 +149,7 @@ function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulati
             continue;
           }
           if (!report.runReady) continue;
-          await vscode.window.showInformationMessage('Run App will save your files and build the app. First builds need internet. Confirm that the separate JavaFX window opens; if it fails, read the task terminal.');
+          void vscode.window.showInformationMessage('Run App will save your files and build the app. First builds need internet. Confirm that the separate JavaFX window opens; if it fails, read the task terminal.');
           await run(report.project.root); return;
         }
         if (EXTENSIONS.some(extension => extension.id === choice.action)) {
@@ -163,7 +163,7 @@ function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulati
           const jdk = choice.action === 'jdk', url = jdk ? JDK_URL : GIT_URL;
           const platform = report.platform === 'win32' ? 'Windows' : report.platform === 'darwin' ? 'macOS' : 'Linux';
           const guidance = `${jdk ? 'Use a JDK 17 or newer (JDK, not JRE)' : 'Use Git 2.31 or newer'} for ${platform}. Keep a working school-provided installation. On a managed school laptop, ask your teacher or IT if installation is blocked. ${report.platform === 'linux' ? 'Follow the official Linux instructions manually. ' : 'Follow the official installer instructions. '}${jdk ? 'If JAVA_HOME is set, it must point to that JDK; otherwise java and javac must be on PATH. Ask IT to repair an old or invalid JAVA_HOME. ' : ''}Fully quit and reopen VS Code after installation or environment repair, then use Setup help → Check again.`;
-          await vscode.window.showInformationMessage(guidance);
+          void vscode.window.showInformationMessage(guidance);
           if (!(await vscode.env.openExternal(vscode.Uri.parse(url)))) await vscode.window.showWarningMessage(`Open ${url} in your browser. ${guidance}`);
         }
       }
