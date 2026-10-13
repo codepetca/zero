@@ -32,6 +32,7 @@ hub/checker/image-lock.json
 
 extension/media/sharing-harness/
 extension/media/sharing-config.json
+extension/media/lesson-projects.json
 **/.zero-sharing-recovery/
 output/playwright/
 .playwright-cli/

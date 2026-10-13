@@ -25,10 +25,9 @@ their own repository-derived library coordinate.
 - [Coin.java](../coin-game/Coin.java) → `src/main/java/Coin.java`.
 - Preserve the existing `zero/` framework source, wrapper and build files.
 
-Stop and back up Main and helpers outside `src/`. Remove unlisted example helpers
-only after backing up. Preserve resources/build files and save your edited source
-components; do not shadow the library with default-package Hud, StartScreen or
-ScoreDisplay classes.
+Use a fresh disposable copy of the starter for this package proof. Compile only
+the listed app files and `zero/`; remove the starter's default-package
+ScoreDisplay if present so it does not shadow the library.
 
 The proof adds the exact local dependency:
 

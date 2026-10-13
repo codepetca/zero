@@ -6,8 +6,8 @@
 
 Target illustration: the first question answered correctly. More session stages follow.
 
-1. Follow the [safe switching steps](README.md#before-each-lesson).
-2. In [stage 1](#1-check-retry-score-once), copy Question and ScoreDisplay, then its complete Main; **Run App**.
+1. [Start this lesson in a fresh project](README.md#start-a-lesson).
+2. Open the included Main, Question and ScoreDisplay; **Run App**.
 3. Try `4`, then ` 3 `. Click **Check answer** each time.
 
 **Done:** Wrong answers allow retry; the correct answer shows **Score: 1** and disables checking.
@@ -17,11 +17,8 @@ Previous: [Objects](06-objects.md).
 
 ## 1. Check, retry, score once
 
-Stop the app and back up Main and helpers outside `src/`. Remove unlisted
-example helpers; keep `src/main/java/zero/`.
-Copy [Question.java](../examples/study/Question.java) and the unchanged
-[ScoreDisplay.java](../examples/shared/ScoreDisplay.java) into `src/main/java/`.
-Replace `src/main/java/Main.java` with this complete first stage:
+The fresh project includes [Question.java](../examples/study/Question.java) and the unchanged
+[ScoreDisplay.java](../examples/shared/ScoreDisplay.java). Its `src/main/java/Main.java` starts with this complete first stage:
 
 ```java
 import javafx.geometry.Insets;
@@ -84,8 +81,9 @@ trims spaces and ignores case; `answered` prevents duplicate scoring.
 
 ## 2. Add Next and completion
 
-Stop and back up your first stage outside `src/`. Keep only `zero/` and the
-three files for this app in `src/main/java/`:
+For the complete session, update Main in this same project using the full
+[study Main.java](../examples/study/Main.java). Question and ScoreDisplay stay
+unchanged. The three app files are:
 
 | From | To |
 | --- | --- |
@@ -93,8 +91,7 @@ three files for this app in `src/main/java/`:
 | [Question.java](../examples/study/Question.java) | `src/main/java/Question.java` |
 | [shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
 
-Copy the complete program unchanged, including its Restart button. Save, Stop
-and Run App. Try Next before answering: it stays disabled. Answer `3`, then Next;
+Copy the complete program unchanged, including its Restart button. Click Run App. Try Next before answering: it stays disabled. Answer `3`, then Next;
 answer `true`, then Next; answer `0`, then Next. The app finishes with score 3
 and tells you to choose Restart.
 

@@ -1,33 +1,49 @@
-# 11. Share a library or game
+# 11. Reuse locally, then share your own work
 
-**First checkpoint: choose what another student should receive.**
+**First checkpoint: practise with an ordinary component.**
 
-![Prepare then build then upload then automatic checks](visuals/11.svg)
+![The same ordinary Java component used in two apps](visuals/11.svg)
 
-Use your existing game repository. A **library** supplies reusable Java classes; a **game project** gives someone an editable copy of your entire game.
+The [fresh Lesson 11 project](README.md#start-a-lesson) is a local study app with Main, Question and
+ScoreDisplay. Unzip it, open its folder in VS Code and click **Zero → Run App**.
+This sample stays on your computer. Do not upload it to GitHub or share it with
+ZeroHub.
 
-1. Make a useful component in your game and run it there first.
-2. Open Zero's (…) menu → **Libraries and Games** → **Extract library**. Select complete classes, choose a short slug, and review source and import changes.
-3. Keep application rules in Main. Give the library a behavior check, two small examples, API notes and a license. Run **Check library**.
+1. Find `score.setScore(points)` in Main and `setScore(int)` in ScoreDisplay.
+2. Change ScoreDisplay's label style, then click **Run App** again.
+3. Answer `3`, restart and confirm the score returns to zero with your style.
 
-**Done:** Both examples use the same built library JAR and the checks pass. The generated checks intentionally need your own useful assertions.
+**Done:** You can explain which code belongs in the reusable display and which
+scoring rules stay in Main.
 
-## Work in the same repository
+## Work on your own game
 
-Your library lives in `libraries/<slug>/`. Local mode compiles its editable source with your game. Published mode uses an exact Maven version. The editor reviews changes and supports recovery if extraction or a mode switch fails. Do not add a second copy of the same class to your game.
+When you have made a useful component in **your own separate game repository**,
+run and test it there first. A library supplies reusable Java classes; a game
+project gives another student an editable copy of your entire game. Keep the
+fresh lesson projects separate from this work.
 
-The generated package comes from stable repository number and slug, for example `zero.contrib.r12345.score_panel`. Use your actual generated package. Your GitHub username is credit, not part of the import.
+In your own game, **Libraries and Games → Extract library** can move
+complete classes into `libraries/<slug>/` in your own game. Review its source and
+import changes. Keep application rules in Main. Give the library useful behavior
+checks, two small consumers, API notes and a license; then run **Check library**.
+Local Check alone does not publish anything. Generic hosted library checking is
+not activated yet; your teacher will explain available paths in the classroom
+build.
 
-## Request sharing
+## Request sharing from your own repository
 
-Upload completed files to your public GitHub repository first. **Share library** prepares a GitHub request for that exact uploaded commit. Review and submit the browser form. Local Check alone does not publish anything. Generic hosted library checking is not activated yet; your teacher will explain available paths in the classroom build.
+If your teacher enables sharing, upload your completed **own game** to your
+public GitHub repository first. **Share library** prepares a request for that
+exact uploaded commit. Review and submit the browser form. To share your whole
+own game, choose **Share game**, supply its title, description, controls and
+license, then request its exact version. Shared games open into new editable
+folders; run them only when you choose to.
 
-To share a whole game, choose **Libraries and Games** → **Share game**. Fill in title, description, controls and license, then upload and request its exact version. A shared game is an editable project, not a Maven dependency. **Open project** extracts verified files into a new folder; run them only when you choose to. Remove private material before uploading a public repository.
+Browse [ZeroHub](https://zero.codepet.ca/hub) to choose a published library and
+exact version. **Add library** uses its pinned Maven JAR; Update and Revert are
+explicit. Published versions cannot be replaced. Coursework links go to Pika
+separately from any ZeroHub request.
 
-## Use a published library
-
-Browse the [Hub](https://zero.codepet.ca/hub), choose a library and exact version, then use **Add library** in Zero. Its card shows the import and usage. Maven fetches the JAR; you do not copy source into your app. **Update** is explicit, and **Revert** restores the previous managed pin.
-
-Published versions cannot be replaced. Fixes use a new version and changelog. Automatic checks do not establish every behavior or usefulness. Submit coursework separately through your repository link in Pika.
-
-Previous: [10. Make a reusable component](10-components.md). Next: [12. Sprites and sounds](12-media.md). [Lesson index](README.md).
+Previous: [10. Reuse a component](10-components.md). Next:
+[12. Build a platformer](12-media.md). [Lesson index](README.md).

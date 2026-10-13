@@ -5,10 +5,12 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import {prepareStarter} from './prepare-starter.mjs';
+import {prepareLessonProjects} from './lesson-projects.mjs';
 import {releaseDefinition} from './release.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
+prepareLessonProjects();
 prepareDesign();
 releaseDefinition();
 function json(relative) { return JSON.parse(readFileSync(path.join(root, relative), 'utf8')); }

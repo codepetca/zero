@@ -5,11 +5,13 @@ import path from 'node:path';
 import {zipSync, unzipSync} from 'fflate';
 import assert from 'node:assert/strict';
 import {coreSources, prepareStarter} from './prepare-starter.mjs';
+import {prepareLessonProjects} from './lesson-projects.mjs';
 import {starterMembers, setupMembers} from './kit.mjs';
 import {root, releaseDefinition, writeReleaseMetadata} from './release.mjs';
 import {sharingConfigurationBytes} from './release-review.mjs';
 
 prepareStarter();
+prepareLessonProjects();
 prepareDesign();
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
 // vsce packages its extension directory; retain the canonical license in every VSIX.

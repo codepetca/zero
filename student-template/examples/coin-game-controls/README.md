@@ -1,7 +1,6 @@
 # One coin and native controls
 
-Stop the app and back up Main and helpers outside `src/`. Remove unlisted
-example helpers from `src/main/java/`, preserving `zero/`. Copy these exact files:
+For this checkpoint, work in a fresh Lesson 9 project. The complete controls stage has these files:
 
 | From | To |
 | --- | --- |

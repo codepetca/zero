@@ -1,7 +1,6 @@
 # Coin game with the shared score display
 
-Stop the app and back up Main and helpers outside `src/`. Remove unlisted
-example helpers from `src/main/java/`, preserving `zero/`. Copy these exact files:
+Download the [fresh game component project](/generated/lessons/zero-lesson-10-game.zip), unzip it into its own folder, open it in VS Code and click **Zero → Run App**. Keep the sample local. It contains:
 
 | From | To |
 | --- | --- |

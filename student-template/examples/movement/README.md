@@ -1,9 +1,6 @@
 # Move a square
 
-Stop the app and save your current source outside `src/`. Copy **Main.java** and
-**Player.java** from this folder into `src/main/java/`, replacing Main and any
-old Player. Keep `src/main/java/zero/`. No Maven or resource changes are needed.
-Choose one example Main at a time. Run App and click the canvas before using arrows.
+To run the completed example, create a new local project from a fresh Zero starter and copy **Main.java** and **Player.java** into its `src/main/java/`. Keep this sample off GitHub. Click Run App, then click the canvas before using arrows.
 
 Main reads the arrows, calls Player.update, then calls Player.draw. Player keeps
 the 24 × 24 square inside the fixed 640 × 400 canvas. Its speed is 180 pixels per

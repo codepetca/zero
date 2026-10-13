@@ -80,8 +80,19 @@ ScoreDisplay source. No component/screen base
 class, registration system or new engine is required. Packages, interfaces,
 JavaFX properties and other JavaFX features remain available as later lessons.
 
-Examples live outside compiled source and are copied deliberately one at a time.
-See the [starter](../student-template/README.md) for exact files and exercises.
+Start lesson supplies a fresh local project with the matching Java classes and
+resources. On the website it downloads a ZIP; the editor command chooses a new
+folder and opens it in a separate window. Existing projects are never replaced.
+Lessons and larger stages share one maintained project generator; reference
+examples stay outside compiled source. Click Run App again after editing: Zero
+saves files, stops the previous process and rebuilds. Students do not manually
+back up, remove helper classes or preserve build files between lessons.
+Generated practice projects have a local-only marker, ignore all files in Git,
+disable the workspace Git integration and reject Zero repository/upload/sharing
+actions. Native creation rejects existing destinations and Git parent folders.
+They have no GitHub repository or server-side student state. Students create and
+share their own separate game projects; Lesson 11 practises component changes
+locally before explaining that separate workflow.
 Canonical framework source lives in `framework/src/main/java/zero/`; maintainer
 preparation assembles editable copies into the standalone starter. Review shared improvements
 in more than one app before cohort adoption. The extraction examples remain useful

@@ -24,13 +24,12 @@ out of the record.
 - Extract the starter outside another Git repository. Follow its `README.md`;
   keep hidden project folders and run the first dependency download.
 - Run the default Hello, world! app from the sidebar and standard build shortcut.
-  Follow Lesson 0: change the greeting, save, Stop and Run again. Confirm a
+  Follow Lesson 0: change the greeting, click Run App again. Confirm a
   separate window, repeated rebuild/restart and saved edits. Check profile
   autosave and a dark theme if used; try the optional F6/F7 only if installed.
 - Introduce one clear compile error. Open its source location from Problems,
   repair it and run again. Record whether a novice can use the error unaided.
-- Before testing the scored quiz, follow the starter's safe switching and exact
-  copy instructions for `examples/quiz/Main.java` and the shared ScoreDisplay.
+- Start Lesson 7 in a fresh local practice folder with its matching classes.
   Try blank/wrong/correct answers; confirm feedback, score and repeated-click
   behavior. Change the question or scoring rule and explain which code runs once
   and which runs on a click. Confirm normal text entry.

@@ -6,15 +6,15 @@
 
 Target illustration: typing Sam and clicking Say hello.
 
-1. Follow the [safe switching steps](README.md#before-each-lesson).
-2. Copy the [complete program below](#code-and-explanation) into `src/main/java/Main.java`; **Run App**.
+1. [Start this lesson in a fresh project](README.md#start-a-lesson).
+2. Open the [complete program below](#code-and-explanation) in `src/main/java/Main.java`; **Run App**.
 3. Type `Sam`; click **Say hello**. Try your own name next.
 
 **Done:** The label says **Hello, Sam!**, then changes for your next name.
 
 ## Code and explanation
 
-Back up your work outside `src/`. Replace `src/main/java/Main.java`:
+The fresh project already contains this `src/main/java/Main.java`:
 
 ```java
 import javafx.scene.control.Button;

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "prepare:starter": "node scripts/prepare-starter.mjs",
+    "prepare:lessons": "node scripts/lesson-projects.mjs",
     "check": "node scripts/check.mjs",
     "test": "node scripts/test-extension.mjs",
     "package": "node scripts/package.mjs",

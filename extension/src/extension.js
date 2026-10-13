@@ -4,6 +4,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const core = require('./core');
+const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
@@ -36,16 +37,40 @@ function activate(context) {
   const stoppedTasks = new WeakSet();
   const taskExitCodes = new WeakMap();
   let repository = 'No repository connected';
+  let localPractice = false;
   const project = async () => {
     projectRoot = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));
+    localPractice = await lessonProjects.isLocalPractice(projectRoot);
     return projectRoot;
   };
+  async function openProjectRoots() {
+    const roots = new Set();
+    for (const folder of vscode.workspace.workspaceFolders || []) {
+      for (const candidate of [folder.uri.fsPath, path.join(folder.uri.fsPath, 'student-template')]) {
+        try {
+          if ((await fs.stat(path.join(candidate, 'zero.json'))).isFile()) roots.add(await fs.realpath(candidate));
+        } catch (error) {if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') throw error;}
+      }
+    }
+    return roots;
+  }
   const refresh = () => { if (view) render(view.webview); };
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     let filename;
     // Older kits start with the quiz; preserve their first-lesson entry point.
-    for (const name of ['00-hello-world.md', '01-quiz.md']) {
+    const practice = await lessonProjects.isLocalPractice(root);
+    let marker = null;
+    if (practice) {
+      try {marker = JSON.parse(await fs.readFile(path.join(root, 'zero.json'), 'utf8'));}
+      catch {throw new Error('This lesson project’s zero.json is damaged. Restore its lesson marker or start a fresh lesson to open the guide. Local Run still works; GitHub sharing stays blocked.');}
+      if (!marker || typeof marker.lessonId !== 'string' || !/^(?:[0-9]|1[0-2])(?:-[a-z]+)?$/.test(marker.lessonId)) throw new Error('This lesson project’s zero.json has no valid lessonId. Restore its lesson marker or start a fresh lesson to open the guide.');
+    }
+    const lessonPrefix = marker ? `${marker.lessonId.split('-')[0].padStart(2,'0')}-` : '';
+    const lessonNames = practice
+      ? (await fs.readdir(path.join(root, 'lessons')).catch(() => [])).filter(name => name.startsWith(lessonPrefix) && name.endsWith('.md')).sort()
+      : ['00-hello-world.md', '01-quiz.md'];
+    for (const name of lessonNames) {
       const candidate = path.join(root, 'lessons', name);
       try {if ((await fs.stat(candidate)).isFile()) {filename = candidate; break;}}
       catch (error) {if (error.code !== 'ENOENT') throw error;}
@@ -54,6 +79,10 @@ function activate(context) {
     // A folder switch during preparation must not open another project's lesson.
     if (await project() !== root) return false;
     if (onlyWhenEmpty && hasOpenEditors()) return false;
+    if (practice) {
+      const main = path.join(root, 'src', 'main', 'java', 'Main.java');
+      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(main)), {preview:false});
+    }
     await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.file(filename));
     return true;
   }
@@ -76,10 +105,11 @@ function activate(context) {
     let nextRepository = 'No repository connected', nextBranch = '';
     try {
       const root = await project();
+      if (localPractice) {nextRepository = 'Local practice'; throw new Error('Local practice');}
       await core.assertRepositoryRoot(root);
       nextRepository = core.parseRepositoryUrl(await core.git(root, ['remote', 'get-url', 'origin'])).page;
       try {nextBranch = (await core.git(root, ['symbolic-ref', '--short', 'HEAD'])).trim();} catch {}
-    } catch (error) { nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'No repository connected'; }
+    } catch (error) { if (!localPractice) nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'No repository connected'; }
     if (generation === statusGeneration) {repository = nextRepository; branch = nextBranch; refresh();}
   }
   async function stop() {
@@ -190,6 +220,7 @@ function activate(context) {
     changing = true; refresh();
     try {
       const root = await project();
+      await lessonProjects.assertShareable(root);
       if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'Start a change' : 'Finish change'); return;}
       let name;
       if (kind === 'start') {
@@ -232,6 +263,7 @@ function activate(context) {
   const actions = {
     'zero.githubAccount': async () => {
       if (isBusy()) return;
+      await lessonProjects.assertShareable(await project());
       if (!auth.signedIn) return actions['zero.signInToGitHub']();
       const choice = await quickPick([
         {label:'Change GitHub account…', action:'change'},
@@ -251,6 +283,7 @@ function activate(context) {
     },
     'zero.chooseRepository': async () => {
       if (isBusy()) return;
+      await lessonProjects.assertShareable(await project());
       const connected = repository.startsWith('https://github.com/');
       const choice = await quickPick(connected ? [
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
@@ -269,6 +302,7 @@ function activate(context) {
     },
     'zero.signInToGitHub': async () => {
       if (isBusy()) return;
+      await lessonProjects.assertShareable(await project());
       signingIn = true; refresh();
       try {
         void vscode.window.showInformationMessage('VS Code will sign you into GitHub. Zero requests repository access (repo), including private repositories, so live uploads can use your chosen repository. VS Code stores the sign-in; Zero keeps no password or token file.');
@@ -278,6 +312,7 @@ function activate(context) {
     },
     'zero.createRepository': async () => {
       if (isBusy()) return;
+      await lessonProjects.assertShareable(await project());
       if (!auth.signedIn) throw new Error('Sign in to GitHub first.');
       void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose Connect a repo → Connect an existing repository.');
       if (!(await vscode.env.openExternal(vscode.Uri.parse('https://github.com/new')))) throw new Error('Could not open GitHub. Open https://github.com/new in your browser, create an empty repository, then connect its link.');
@@ -302,6 +337,18 @@ function activate(context) {
       if (!(await openFirstLesson(root))) throw new Error('This project has no bundled first lesson. Find the first lesson at https://zero.codepet.ca/learn.');
       await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
     },
+    'zero.startLesson': async () => {
+      const initialRoots = await openProjectRoots();
+      if (projectRoot) initialRoots.add(projectRoot);
+      const projects = await lessonProjects.loadBundle(context.extensionPath || path.resolve(__dirname,'..'));
+      const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lesson ${item.lesson} · local practice`, project:item})), {title:'Start lesson', placeHolder:'Choose a fresh practice project'});
+      if (!choice) return;
+      const destination = await vscode.window.showSaveDialog({title:'Choose a new lesson folder',saveLabel:'Create lesson',defaultUri:vscode.Uri.file(path.join(require('node:os').homedir(),choice.project.folder))});
+      if (!destination) return;
+      const roots = new Set([...initialRoots, ...await openProjectRoots()]);
+      const root = await lessonProjects.createLessonProject(choice.project,destination.fsPath,{forbiddenRoots:[...roots]});
+      await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),true);
+    },
     'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),
     'zero.showSidebar': async () => {
       await vscode.commands.executeCommand('workbench.view.extension.zero');
@@ -312,6 +359,7 @@ function activate(context) {
       uploading = true; refresh();
       try {
         const root = await project();
+        await lessonProjects.assertShareable(root);
         if (uploadMode(root) !== 'live') {
           const result = core.simulatedUpload();
           state = `${result.message} Nothing changed: no files saved, Git changes or sign-in.`; refresh();
@@ -339,6 +387,7 @@ function activate(context) {
       connecting = true; refresh();
       try {
         const root = await project();
+        await lessonProjects.assertShareable(root);
         const value = await vscode.window.showInputBox({title:'Connect your student repository', prompt:'Use your existing GitHub repository page URL. This changes only this project’s origin remote; no files are uploaded.', placeHolder:'https://github.com/you/your-app', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
         if (!value) return;
         if (await project() !== root) throw new Error('The student project changed. Connect the repository again.');
@@ -372,14 +421,15 @@ function activate(context) {
     const avatar = auth.signedIn ? escape(Array.from(accountName.trim())[0]?.toLocaleUpperCase() || '?')
       : '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></svg>';
     const repoName = connected ? repository.slice('https://github.com/'.length) : 'Connect a repo';
-    const githubActions = connected && auth.signedIn
+    const githubActions = !localPractice && connected && auth.signedIn
       ? `<button class="secondary" data-command="zero.uploadToGitHub" ${disabled}>Upload changes</button><p class="badge">${uploadMode() === 'live' ? 'Reviews files before a real upload' : 'SIMULATION — nothing will be changed'}</p>` : '';
-    const branchControl = connected && branch ? `<button class="repo-choice" data-command="zero.chooseBranch" title="${escape(`Current branch: ${branch}. Start or finish a change`)}" aria-label="${escape(`Current branch: ${branch}. Open change actions`)}" aria-haspopup="dialog" ${disabled}>${escape(branch)} ▾</button>` : '';
+    const branchControl = !localPractice && connected && branch ? `<button class="repo-choice" data-command="zero.chooseBranch" title="${escape(`Current branch: ${branch}. Start or finish a change`)}" aria-label="${escape(`Current branch: ${branch}. Open change actions`)}" aria-haspopup="dialog" ${disabled}>${escape(branch)} ▾</button>` : '';
     const repositoryWarning = !connected && repository !== 'No repository connected'
       ? `<p class="muted status">${escape(repository)}</p>` : '';
+    const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong><button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${avatar}</button></div><button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repo')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)}</button>${repositoryWarning}${branchControl}${githubActions}`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       ${sidebarStyles()}
-      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}<button class="link" data-command="zero.openFirstLesson">Open First Lesson</button><div class="repository"><div class="github-header"><strong>GitHub</strong><button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${avatar}</button></div><button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repo')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)}</button>${repositoryWarning}${branchControl}${githubActions}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}<button class="link" data-command="zero.startLesson">Start lesson</button><button class="link" data-command="zero.openFirstLesson">${localPractice ? 'Open lesson' : 'Open First Lesson'}</button><div class="repository">${githubPanel}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};

@@ -6,8 +6,8 @@
 
 Target illustration: separate instances in study and game.
 
-1. [Back up improved components and switch safely](README.md#before-each-lesson).
-2. Copy [stage 1's three files](#1-find-the-component-boundary); **Run App**.
+1. [Start a fresh Lesson 10 project](README.md#start-a-lesson).
+2. Open [stage 1's three files](#1-find-the-component-boundary) in the fresh project; **Run App**.
 3. Answer `3`, choose **Restart**, then find `score.setScore(points)` in Main.
 
 **Done:** Score goes **1 → 0**. Reuse it beneath the canvas in stage 2.
@@ -17,8 +17,7 @@ Use the same ScoreDisplay source in your study app and coin game.
 
 ## 1. Find the component boundary
 
-Stop the game and back up Main and helpers outside `src/`. Remove unlisted
-example helpers, preserving `zero/`. Copy these exact files:
+The fresh Lesson 10 project already contains these exact files:
 
 | From | To |
 | --- | --- |
@@ -42,8 +41,9 @@ The display's constructor and methods are the part another app needs to know.
 
 ## 2. Use the same display beneath a game canvas
 
-Stop and back up the study source outside `src/`. Remove unlisted helpers,
-preserving `zero/`. Copy these exact files:
+For the game, choose **Reuse the component in a game** under **Zero: Start lesson**
+or download its [fresh project](/generated/lessons/zero-lesson-10-game.zip).
+Open that folder separately and click **Run App**. It contains:
 
 | From | To |
 | --- | --- |
@@ -52,8 +52,7 @@ preserving `zero/`. Copy these exact files:
 | [coin-game Coin.java](../examples/coin-game/Coin.java) | `src/main/java/Coin.java` |
 | [the same shared ScoreDisplay.java](../examples/shared/ScoreDisplay.java) | `src/main/java/ScoreDisplay.java` |
 
-Keep ScoreDisplay unchanged. Keep the framework, wrappers, `pom.xml` and
-`zero.json`; no resources or Maven changes are needed. Run App.
+Keep ScoreDisplay unchanged. Open the game project folder in VS Code and click Run App.
 
 Main now extends SketchApp. It creates the same `new ScoreDisplay()` once in
 `setup()` and puts `score.view()` in an HBox through `layout().setBottom(...)`.
@@ -90,10 +89,8 @@ In your copied `src/main/java/ScoreDisplay.java`, add this line immediately afte
 label.setStyle("-fx-font-weight: bold;");
 ```
 
-Keep both constructors, `view()` and `setScore(int)` unchanged. Save your improved
-class outside `src/`; keep the example shelf intact. Run the game checks above.
-Then stop, back up the game, remove Player/Coin and copy the study Main and
-Question from stage 1. Keep the same improved ScoreDisplay. Run the study checks:
+Keep both constructors, `view()` and `setScore(int)` unchanged. Copy your improved class into both fresh Lesson 10 projects, then run the game
+checks above. Open the study project in its own VS Code window and run its checks:
 wrong answer → 0, `3` → 1, Restart → 0. Both apps should show bold scores.
 
 Explain why presentation changes belong in ScoreDisplay and scoring changes

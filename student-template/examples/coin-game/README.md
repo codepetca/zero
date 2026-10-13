@@ -1,9 +1,6 @@
 # Collect the coins
 
-Stop the app and save your current source outside `src/`. Copy **Main.java**,
-**Player.java** and **Coin.java** from this folder into `src/main/java/`, replacing
-Main and any old Player/Coin. Keep `src/main/java/zero/`. No Maven, shared component
-or resource changes are needed. Choose one example Main at a time.
+To run the completed example, create a new local project from a fresh Zero starter and copy **Main.java**, **Player.java** and **Coin.java** into its `src/main/java/`. Keep this sample off GitHub.
 
 Run App, click the canvas and move with arrows. Touch each gold square to collect
 it once. Collect all three to win; movement then stops. The ordinary JavaFX

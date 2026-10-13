@@ -12,9 +12,7 @@ window, return and click the canvas again. Keys belong to the focused canvas.
 ## Copy and run
 
 Use a standalone Zero starter folder containing `pom.xml`, `mvnw`, `mvnw.cmd`
-and `src/`. Follow the [safe switching steps](../../lessons/README.md#before-each-lesson):
-stop and back up Main and helpers outside `src/`, then remove unlisted helper Java
-files. Copy **only** this example's
+and `src/`. Start a fresh local project from a Zero starter. Copy **only** this example's
 `Main.java` and `Player.java` into `src/main/java/`, replacing Main and any old
 Player. Keep `src/main/java/zero/` and the starter build files unchanged. This
 example needs no `ScoreDisplay.java` or `Coin.java`.

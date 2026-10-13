@@ -278,6 +278,9 @@ body:has(.learn-theme) { min-width: 0; }
   background: var(--zero-surface);
   font-weight: 650;
 }
+.learn-theme .lesson-start { margin: var(--zero-space-4) 0 var(--zero-space-5); }
+.learn-theme .lesson-start .button { min-height: 48px; max-width: 100%; text-align: center; white-space: normal; }
+.learn-theme .lesson-start p { margin: var(--zero-space-3) 0 0; color: var(--zero-muted); }
 .learn-theme .reader-content { overflow-wrap: anywhere; }
 .learn-theme .reader-content h1 {
   margin: 0 0 var(--zero-space-3);

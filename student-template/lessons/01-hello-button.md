@@ -6,15 +6,15 @@
 
 Target illustration: the label after clicking Say hello.
 
-1. Follow the [safe switching steps](README.md#before-each-lesson).
-2. Copy the [complete program below](#code-and-explanation) into `src/main/java/Main.java`; **Run App**.
-3. Click **Say hello**, then change the handler's greeting and **Save → Stop → Run App**.
+1. [Start this lesson in a fresh project](README.md#start-a-lesson).
+2. Open the [complete program below](#code-and-explanation) in `src/main/java/Main.java`; **Run App**.
+3. Click **Say hello**, then change the handler's greeting and **Run App**.
 
 **Done:** Clicking **Say hello** shows your changed greeting.
 
 ## Code and explanation
 
-Back up your work outside `src/`. Replace `src/main/java/Main.java`:
+The fresh project already contains this `src/main/java/Main.java`:
 
 ```java
 import javafx.scene.control.Button;
@@ -37,6 +37,6 @@ public class Main extends SimpleApp {
 1. **Run App**
 2. Click **Say hello**
 3. Change `"Hello, Java!"`
-4. **Save → Stop → Run App**
+4. **Run App**
 
 Next: [Lesson 2](02-hello-name.md).

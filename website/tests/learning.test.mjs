@@ -194,3 +194,50 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
   assert.match(prepare,/"first-setup": "one-time-setup"/);
   assert.match(prepare,/"your-repository-and-pika": "your-individual-workflow"/);
 });
+
+test("every tutorial offers a fresh local ZIP, with complete stage links allowlisted", () => {
+  const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
+  const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
+  assert.match(document, /className="lesson-start"/);
+  assert.match(document, /zero-lesson-\$\{lesson\}\.zip/);
+  assert.match(document, /unzip it, open its folder in VS Code/);
+  assert.match(document, /keep the sample off GitHub/);
+  assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);
+  for (const lesson of lessons) {
+    const url = `/generated/lessons/zero-lesson-${lesson.id}.zip`;
+    assert.equal(resolveContentLink("student-template/lessons/README.md", url, {}, {}), url);
+  }
+  for (const suffix of ["10-game", "12-scrolling", "12-platforms", "12-levels", "12-full"]) {
+    const url = `/generated/lessons/zero-lesson-${suffix}.zip`;
+    assert.equal(resolveContentLink("student-template/lessons/12-media.md", url, {}, {}), url);
+  }
+  assert.equal(resolveContentLink("student-template/lessons/12-media.md", "/generated/lessons/other.zip", {}, {}), null);
+});
+
+test("fresh lesson guide and stage links match the generated picker names", async () => {
+  const { lessonProjects } = await import("../../scripts/lesson-projects.mjs");
+  const projects = new Map(lessonProjects().projects.map(({ id, title }) => [id, title]));
+  const guide = readFileSync(new URL("../../student-template/lessons/README.md", import.meta.url), "utf8");
+  assert.match(guide, /^## Start a lesson$/m);
+  assert.doesNotMatch(guide, /before-each-lesson|0\.5\.8|updated local Zero/);
+  for (const lesson of lessons) {
+    const prefix = `${String(lesson.id).padStart(2, "0")}-`;
+    const file = readdirSync(new URL("../../student-template/lessons/", import.meta.url)).find((name) => name.startsWith(prefix) && name.endsWith(".md"));
+    assert.ok(file, `lesson ${lesson.id} Markdown`);
+    const markdown = readFileSync(new URL(`../../student-template/lessons/${file}`, import.meta.url), "utf8");
+    assert.match(markdown, /README\.md#start-a-lesson/);
+    assert.doesNotMatch(markdown, /before-each-lesson/);
+  }
+  const stageGuides = [
+    ["10-game", "10-components.md"],
+    ["12-scrolling", "12-media.md"],
+    ["12-platforms", "12-media.md"],
+    ["12-levels", "12-media.md"],
+    ["12-full", "12-media.md"],
+  ];
+  for (const [id, file] of stageGuides) {
+    const markdown = readFileSync(new URL(`../../student-template/lessons/${file}`, import.meta.url), "utf8");
+    assert.ok(markdown.includes(projects.get(id)), `${id} picker title`);
+    assert.ok(markdown.includes(`/generated/lessons/zero-lesson-${id}.zip`), `${id} ZIP link`);
+  }
+});

@@ -21,25 +21,16 @@ Illustrations are drawings, not screenshots; native controls vary by platform.
 | [11](11-zerohub.md) | Share with ZeroHub |
 | [12](12-media.md) | Larger game: sprites, scrolling, platforms, levels and endings |
 
-## Before each lesson
+## Start a lesson
 
-Complete [setup](../README.md#first-setup). Local running needs no GitHub account.
+Complete [setup](../README.md#first-setup). On the lesson page, click **Start lesson**.
+Unzip the project, open its folder in VS Code and click **Zero → Run App**.
+You can also choose **Zero: Start lesson** in the editor to create a fresh project.
+Click **Run App** again after editing; Zero saves and restarts the app. Click the
+canvas before using game keys.
 
-1. Stop. Back up Main and helper classes **outside `src/`**. Include any
-   component improvements, such as your edited ScoreDisplay. Keep that backup
-   before replacing or removing source; the example shelf is unchanged.
-2. Keep Main when starting Lesson 0 or editing your current app. When switching
-   to a different example, replace Main with the lesson's complete program or the
-   example's listed Main file. After backing up, remove unlisted helper Java
-   files: old helpers can require a different Player/Coin API. Copy only the listed
-   helpers into `src/main/java/`. Keep `src/main/java/zero/`, the wrappers,
-   `pom.xml`, `zero.json` and `.vscode/` build settings. Keep resources unless the
-   stage tells you to replace them. Use one Main at a time. When a lesson asks
-   you to reuse an improved component, retain that exact saved source rather
-   than replacing it with the unchanged example.
-3. **Run App**. After editing: **Save → Stop → Run App**.
-
-Click the canvas before using game keys. A running window does not reload edits.
+Keep every lesson project local. Use your own separate game repository for
+coursework, Pika and actual ZeroHub sharing.
 
 ## Keep a small record
 
