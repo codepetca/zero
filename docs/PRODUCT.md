@@ -22,7 +22,13 @@ Downloads centers its heading and equal-width platform buttons in a vertical sta
 Tutorial steps and reference sections expand when requested; full guides remain
 available. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
-`/hub/share` explains native Zero Share commands and official GitHub forms. The
+`/hub/share` explains native Zero Share commands and official GitHub forms.
+Content pages use the navigation section name (Tutorials, Docs, Examples or ZeroHub)
+as the large main heading and the page topic beneath it as a muted subtitle.
+Purple eyebrow labels and back controls are removed; top navigation, reader
+sidebars and Next lesson remain available. Hub browsing/downloads are public;
+contribution instructions explicitly require GitHub sign-in in Zero and the same
+personal account for the browser publication form. The
 local replacement has no website sign-in, reservation or folder-upload service.
 Public publication remains inactive; library candidate execution still needs its
 outstanding acceptance. Existing kit/installer downloads have separate release records.

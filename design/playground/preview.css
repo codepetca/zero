@@ -429,3 +429,5 @@ h1 {
 .web-preview main.home-page { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
 .home-actions { width:min(100%,340px); display:flex; flex-direction:column; gap:var(--zero-space-4); }
 .home-actions .primary { width:100%; }
+
+.tutorial-content .page-subtitle { color:var(--zero-muted); font-size:clamp(24px,3vw,30px); font-weight:600; line-height:1.35; margin:0 0 18px; overflow-wrap:anywhere; }

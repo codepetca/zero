@@ -2280,3 +2280,32 @@ Final metadata updates only these receipt/current files; functional code unchang
 inspect it before repeating publication. One initial review launch/turn; effective
 model/time/token telemetry unknown. Nativevisual/WebKit/physicalWindows/production
 200%text400%zoom remain unverified. No automatic claim of accessibility conformity.
+
+
+GitHub guidance PR33 exact1506231c passed CI38436995040 (5m17s), independent
+Luna/medium five-file review16 clean and Vercel preview. Normal merge60e629e is
+production READY. Actual public Hub → sharing navigation showed native GitHub
+sign-in, public browsing and matching browser account instructions; private delivery
+receipt hub-sign-in-guidance-delivery.json and live screenshot retained.
+
+Owner then requested large section headings/topic subtitles and removal of purple
+eyebrows/back options. Sol/medium section_heading_update delivered nine owned UI
+files without Git/publication actions. Tutorials/Docs/Examples/ZeroHub are primary
+h1s; muted topics retain original document anchor IDs. Explicit returns and previous
+lesson controls removed; Next/sidebar/top navigation and sign-in/download/form
+behavior preserved. Existing website typecheck,54tests and production build passed;
+no mirror tests or fixture changes. Coordinator read full diff, rendered nine
+representative local production routes (one h1 each/no eyebrow/back elements),
+verified original lesson anchor and exact public download URLs, and clicked Next
+from lesson0 to1 in the browser. Desktop Hub share screenshot inspected; no mobile
+viewport trial claimed. Fixed source receives proportional independent review.
+
+### Main heading-hierarchy integration after merge race
+
+MainPR35 landed between final checks and the merge API call, causing a genuine
+conflict; PR34 was not merged. Reconciliation preserves current main section
+headings/subtitles and removal of back controls, while `/learn` stays the direct
+lesson reader with shared themes/client navigation. Fixture reflects the new
+Tutorials heading. Hub/release/sharing source remains identical to currentmain.
+Affected website checks and targeted integration review run on the new head;
+unchanged native/build-source coverage is retained, finalGitHubCI remains required.

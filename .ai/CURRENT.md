@@ -2,7 +2,7 @@
 
 Updated2026-10-13. Work only /Users/stew/.codex/worktrees/zero-design-review/zero.
 Design patch isolated from639da317; integration branch codex/shared-web-sidebar-design
-based on origin/main fee74a3, then merged main60e629e. Four unrelated branch commits excluded.
+based on origin/main fee74a3, then merged main60e629e and main2cc3844. Four unrelated branch commits excluded.
 Read design.md, docs/PRODUCT.md, docs/DEVELOPMENT.md, docs/UI-UX-GUIDELINES.md.
 
 ## Authority and delivery
@@ -70,8 +70,11 @@ Pinned dependencies refreshed. Website54/typecheck/build, release64 and sharing4
 source. Root suite passed243 tests with1 optionalPowerShell skip; design12 passed.
 New design tests now run in the root CI suite. No release/package artifacts built.
 Review risk: standard with interacting build/sidebar/web changes. One cumulative GPT6.1Sol/high review completed base60e629e→b787743 with
-no actionable findings. Functional source remains that reviewed version; final
-documentation records acceptance. Required GitHubCI is the final merge gate.
+no actionable findings. MainPR35 heading hierarchy was preserved after a merge conflict. Its conflict
+resolution needs targeted review and affected website checks; prior unchanged
+coverage remains valid. Required GitHubCI on the new head is the final gate.
 Prior component reviews remain evidence. Native/WebKit/Windows limits above apply.
 
 UpstreamPR33 Hub sign-in guidance was merged during integration and preserved.
+
+GitHub rejected the first merge after mainPR35 advanced the base; no merge occurred.

@@ -1511,3 +1511,13 @@ Final metadata updates only these receipt/current files; functional code unchang
 inspect it before repeating publication. One initial review launch/turn; effective
 model/time/token telemetry unknown. Nativevisual/WebKit/physicalWindows/production
 200%text400%zoom remain unverified. No automatic claim of accessibility conformity.
+
+### Main heading-hierarchy integration after merge race
+
+MainPR35 landed between final checks and the merge API call, causing a genuine
+conflict; PR34 was not merged. Reconciliation preserves current main section
+headings/subtitles and removal of back controls, while `/learn` stays the direct
+lesson reader with shared themes/client navigation. Fixture reflects the new
+Tutorials heading. Hub/release/sharing source remains identical to currentmain.
+Affected website checks and targeted integration review run on the new head;
+unchanged native/build-source coverage is retained, finalGitHubCI remains required.

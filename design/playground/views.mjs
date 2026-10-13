@@ -15,8 +15,8 @@ export function webView(theme, downloads, screen = "learn") {
 <nav aria-label="Lesson navigation">${lessons.map(lesson => `<a href="#lesson-${lesson.id}" data-lesson="${lesson.id}" ${lesson.id === '0' ? 'aria-current="page"' : ''}>${lesson.id}. ${escape(lesson.title)}</a>`).join('')}</nav>
 </aside>
 <article class="tutorial-content" tabindex="-1">${lessons.map(lesson => `<section id="lesson-${lesson.id}" data-lesson-content="${lesson.id}" ${lesson.id === '0' ? '' : 'hidden'}>
-<p class="topic">Tutorials / Lesson ${lesson.id}</p>
-<h1>${escape(lesson.title)}</h1>
+<h1>Tutorials</h1>
+<h2 class="page-subtitle">Lesson ${lesson.id}: ${escape(lesson.title)}</h2>
 <p>${escape(lesson.description)}</p>
 <img class="lesson-visual" src="/assets/lessons/${String(lesson.id).padStart(2,'0')}.svg" alt="Lesson ${lesson.id} target illustration">
 <p>${escape(lesson.topic)}</p>
