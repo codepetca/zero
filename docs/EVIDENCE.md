@@ -1743,3 +1743,23 @@ at fa802d8. New branch contains the replacement plus inherited tutorial/kit work
 replacement review scope starts at local4ed9cd4, not the cumulative main diff.
 Existing draft is not closed or changed. New PR targets canonical main and will
 state the cumulative scope and remaining gates explicitly.
+
+
+### Draft PR27 and Linux verification correction — 2026-10-13
+
+Approved branch pushed at555e7d5; draft https://github.com/codepetca/zero/pull/27
+created and attached. Existing PR26 unchanged. Vercel preview check passed; no
+manual deployment or contribution publication. GitHub secondary-limit response
+was honored with a cooldown before status retrieval. CI38379538095 terminal
+failure: root/registry/release guards passed, exact Maven proof stopped because
+Temurin cacerts copied as read-only and keytool could not write the disposable
+truststore. Remaining GUI/site/package steps were skipped, not claimed passed.
+
+Fix applies chmod0600 only to the temporary truststore copy. No global trust
+change; source JDK unaffected. Coordinator repeated the complete two-Maven-project
+Add/Update/Revert proof using an owned JDK-layout fixture with cacerts0444:
+six fresh JAR resolutions/behavior/hashes/source attachments passed; source store
+mode/hash stayed unchanged. Receipt .verification/sharing-consumers-readonlyjdk/
+receipt.json. Script limits now refer to other platforms rather than hard-coding
+Linux as untested regardless of its recorded platform. Syntax/diff checks pass.
+Bounded independent delta review and corrected-head CI remain pending at commit.

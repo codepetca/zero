@@ -118,13 +118,15 @@ async function main() {
  let output=path.join(root,'.verification/sharing-consumers'),cacheFrom=path.join(os.homedir(),'.m2/repository'),explicitHome;
  for(let i=2;i<process.argv.length;i++){const arg=process.argv[i],next=process.argv[++i];if(!next)fail('Each proof option needs a value.');if(arg==='--output')output=path.resolve(next);else if(arg==='--cache-from')cacheFrom=path.resolve(next);else if(arg==='--java-home')explicitHome=next;else fail(`Unknown proof option: ${arg}`);}
  const started=Date.now();await fs.mkdir(path.dirname(output),{recursive:true});await fs.mkdir(output);const out=await fs.realpath(output),temp=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-sharing-consumers-')));let server;
- const receipt={schema:1,status:'failed',transport:'local HTTPS fixture with scoped child-process trust',publicHttps:false,submittedCodeExecuted:false,globalTrustChanged:false,platform:{os:process.platform,arch:process.arch,node:process.version},limits:['Trusted finite generated helpers only','No managed checker acceptance or public publication','Physical Windows, Linux and VS Code interactive source navigation untested']};
+ const receipt={schema:1,status:'failed',transport:'local HTTPS fixture with scoped child-process trust',publicHttps:false,submittedCodeExecuted:false,globalTrustChanged:false,platform:{os:process.platform,arch:process.arch,node:process.version},limits:['Trusted finite generated helpers only','No managed checker acceptance or public publication','Other platforms and VS Code interactive source navigation untested']};
  try {
   const home=await javaHome(explicitHome);receipt.platform.java=(await run(tool(home,'java'),['-version'])).trim();receipt.platform.javaHome=home;
   const cache=path.join(temp,'repository');receipt.thirdPartyCacheBytes=await copyCache(cacheFrom,cache);
   const key=path.join(temp,'localhost.key'),cert=path.join(temp,'localhost.crt'),truststore=path.join(temp,'truststore');
   await run('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',key,'-out',cert,'-days','1','-subj','/CN=localhost','-addext','subjectAltName=DNS:localhost,IP:127.0.0.1'],{log:path.join(out,'certificate.log')});
   await fs.copyFile(path.join(home,'lib/security/cacerts'),truststore);
+  // CI JDKs can ship read-only cacerts. Only this disposable copy is writable.
+  await fs.chmod(truststore,0o600);
   await run(tool(home,'keytool'),['-importcert','-noprompt','-alias','zero-local-proof','-file',cert,'-keystore',truststore,'-storepass','changeit'],{log:path.join(out,'temporary-trust.log')});
   const built=await buildVersions(temp,home,out),requests=[];let catalog;
   server=https.createServer({key:await fs.readFile(key),cert:await fs.readFile(cert)},(req,res)=>{

@@ -54,14 +54,19 @@ extra full review wave adds no identified coverage. Ledger: 4 reviewer turns,
 1 initial wave, 2 targeted waves, 2 fix batches. Package and verify:kit passed,
 including every VSIX source byte, harness/config parity and extracted Maven build.
 Next: authorized real-provider setup/proof and resolution of held managed library
-acceptance, then hosted backup restoration and the novice pilot. Local source is
-ready for owner review; no publication or live activation has occurred.
+acceptance, then hosted backup restoration and the novice pilot. The owner-approved draft is published; no contribution publication or live
+activation has occurred.
 Budget stops remain waived; actual generic-library provider rejection remains
 binding and excluded from replacement acceptance. Storage healthy ~341GB;
 weekly46% remaining is account-wide, not task cost. Worker token/effective-model
 telemetry unknown; no writer conflicts. No resets or paid resources used.
 
-Full goal is incomplete. Approved branch push/draft-PR delivery is in progress;
+Full goal is incomplete. Branch pushed; [draft PR27](https://github.com/codepetca/zero/pull/27) is attached.
+Initial exact-head CI38379538095 passed Linux root/registry checks and failed
+when a copied read-only JDK truststore prevented local test-CA import. The fix
+makes only the disposable copy private/writable. Full two-consumer proof with
+a444source truststore passed; original source hash/mode unchanged. Targeted
+review and corrected-head CI are next;
 held managed-library acceptance remains unresolved. Actual GitHub/Blob
 permissions and ETag/CAS behavior,
 public publication, hosted backup restoration, physical Windows, interactive
