@@ -27,7 +27,9 @@ Content pages use the navigation section name (Tutorials, Docs, Examples or Zero
 as the large main heading and the page topic beneath it as a muted subtitle.
 Purple eyebrow labels and back controls are removed; top navigation, reader
 sidebars and Next lesson remain available. Hub browsing/downloads are public;
-contribution instructions explicitly require GitHub sign-in in Zero and the same
+its Sign in to GitHub and Create GitHub account buttons open GitHub's official
+pages in a new browser tab, without creating a Hub session or detecting account state.
+Contribution instructions explicitly require GitHub sign-in in Zero and the same
 personal account for the browser publication form. The
 local replacement has no website sign-in, reservation or folder-upload service.
 Public publication remains inactive; library candidate execution still needs its
