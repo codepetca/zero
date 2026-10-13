@@ -1,6 +1,11 @@
 # ZeroHub games, libraries and components
 
 ZeroHub at `/hub` discovers complete editable games and reusable Java libraries.
+Browse and download without signing in. To contribute, choose **Sign in to GitHub**
+in the Zero sidebar, connect your own public repository and upload your committed
+work. The publication form opens in your browser; use the same personal GitHub
+account there as in Zero. Browser sign-in and Zero sign-in are separate.
+
 Students use one existing game repository owned by their personal GitHub account.
 Libraries live under `libraries/<name>/` inside that repository; sharing does not
 require another repository. Pika assignment submission remains a separate

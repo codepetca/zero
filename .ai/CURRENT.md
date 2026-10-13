@@ -1,7 +1,8 @@
 # Current state
 
 Updated 2026-10-13. GitHub sharing source merged in PR27 and configured Mac rollout
-in [PR30](https://github.com/codepetca/zero/pull/30), main68d7f63ae0daaa7753e32c9edd374b93e3a8a4be.
+in [PR30](https://github.com/codepetca/zero/pull/30). Mac/kit0.5.8 metadata merged
+in [PR32](https://github.com/codepetca/zero/pull/32), mainfee74a3d16ea1f3b50d225d802d4da34c86a0931.
 Full adoption remains incomplete.
 
 ## Goal, authority and holds
@@ -21,15 +22,18 @@ inventory/export/restore are verified. Primary funding checkout stays untouched.
 ## Delivery and verification
 
 Worktree /Users/stew/.codex/worktrees/github-sharing-adoption/zero;
-branch codex/mac-0.5.8-release. Native preparation commite6545b496243 is pushed;
-published website metadata follows only verified public bytes.
+branch codex/hub-sign-in-guidance. Owner asks for clear GitHub prerequisites:
+Hub browse/download stays public; contribution requires the existing native Zero
+GitHub session and the same account on the browser publication form. Website and
+component guide copy now explain both locations before sharing. No authentication
+implementation or immutable kit/native bytes are changed.
 Canonical release/sharing.json binds local/CI VSIX configuration and source
 freshness, including native serving/preparation. Astra/high reviewed80cb..43ef;
 Sol/medium targeted reviews covered43ef..94f2 picker and94f2..9eab main integration.
 PR31 already-reviewed workflow fixes are retained. PR30 exact9eab917 passed full
 CI38409187639 and Vercel preview, then normal merge created68d7f63.
-Ledger14 completed reviewturns,9source remediation/base-sync batches; final
-promotion/publisher correction review is recorded in the delivery receipt. Prior ledger
+Ledger15 completed reviewturns,11source remediation/base-sync/tooling/test batches;
+Mac promotion review and delivery are recorded in the private receipt. Prior ledger
 and scoped receipts in EVIDENCE. Effective model/tokens/time unknown where unexposed.
 
 Physical Apple Silicon Mac: actual production runtime configured in a fresh
@@ -51,8 +55,9 @@ Draft download and anonymous public download match. Previous Mac0.5.7 and public
 kit0.5.3 remain immutable. Separate kit0.5.8 CI preparation38410157579 passed at68d7f63. Its three sealed
 assets were source/config/license verified, downloaded from the draft and public
 release anonymously with exact sizes/SHA. Native embedded ZIP and separately
-prepared CI kit have independently measured hashes. This branch promotes verified
-native/kit URLs. Final metadata PR/merge/deployment and live-link results are in
+prepared CI kit have independently measured hashes. Verified metadata is merged and Vercel production atfee74a3 is READY. Browser
+native/kit links and public bytes match; maintainer verify-only command passed.
+Final metadata PR/merge/deployment and live-link results are in
 private .verification/sharing-mac-rollout-delivery.json; inspect current GitHub
 state before repeating any publication. No release may be rebuilt or replaced.
 
