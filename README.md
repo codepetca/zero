@@ -49,7 +49,7 @@ original Zero code is MIT licensed.
 
 Students need VS Code and a supported JDK 17+; Git 2.31+ and browser authentication
 are needed for repository work. They do not need Node.js or global Maven.
-The published Mac0.5.7 setup prepares a private Java runtime and a separate
+The published Mac0.5.8 setup prepares a private Java runtime and a separate
 quiet editor automatically; use its Open Zero launcher to return. Windows uses
 the complete-kit ZIP with manual setup. See [native setup](docs/INSTALLER.md).
 The optional settings-only profile for ZIP/manual setup defaults to light, with 500 ms autosave.

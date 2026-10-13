@@ -2393,3 +2393,18 @@ Review ledger: high risk due publisher completion guard; one initial wave with
 separate Sol/high correctness/network and packaging/compatibility reviewers.
 Cumulative prior25turns; upcoming26/27; no remediation yet. Standing task-scoped
 stop waiver persists; no provider/identity gate bypass.
+
+Initial source review turns26/27 completed atdca31b0 (Sol/high, separate network
+and packaging/compatibility). Accepted two P1 live-proof gaps: hidden/template
+exact kit link could mask visible stale Windows URL; externally redirected landing
+with relative link was resolved as though same-site. One batch adds parse5 8.0.1
+as a direct pinned maintainer dev dependency (already installed/locked transitively),
+parses eligible HTML anchors/ancestor hidden and inert semantics, recognizes the
+actual Windows ZIP label, and validates final landing origin/path. No computed-CSS
+visibility claim. Parser bounds markup2MiB. New16negative cases plus existing66
+pass82; release86. Real0.5.8 verify-only passes after correction. P2 native runbook
+0.5.6 tags and P3 README0.5.7 naming corrected for measured0.5.9 candidate/current8.
+Initial unsigned Mac0.5.9 artifact and read-only mounted payload/mode verification
+passed from clean dca31b0 source; it is a development artifact, not distributable
+signed evidence. Targeted turn28 will cover full correction delta; one fix batch.
+No native GUI retry, actual publication or new credential operation occurred.

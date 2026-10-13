@@ -31,9 +31,14 @@ Mac seal2; installer8; website56/typecheck/build; actual package and extracted k
 Maven/source/license/mode verification. Read-only publisher verified current
 public0.5.8 assets and actual /downloads anchor end-to-end. Two old website tests
 were updated for exact verified0.5.8 pins/version-neutral setup guidance. No Mac
-interactive or new signed native result claimed. Review risk high due publisher
-completion gate; two independent Sol/high assignments next (network correctness,
-packaging/compatibility). Prior cumulative review turns25; next26/27. Effective
+interactive or new signed native result claimed. Review risk high due publisher completion gate. Initial Sol/high turns26/27
+completed: two P1 network verification gaps (hidden/template anchors and landing
+redirect origin), P2 native runbook old tags, P3 README old Mac version accepted.
+One batched fix uses pinned existing parse5 8.0.1 HTML semantics, checks landing
+origin/path, recognizes Windows ZIP label and corrects measured0.5.9 runbook.
+Publisher82/release86 pass; real verify-only0.5.8 passes after corrections.
+Unsigned current Mac0.5.9 build/payload/modes passed; no GUI/signing claim.
+Targeted Sol/high turn28 next; unchanged initial source coverage reused. Effective
 models/tokens/worker times unknown; starting weekly remaining85% is account-wide,
 storage329.4GB healthy. Task-scoped usage/review-stop waiver persists, not execution
 or identity gates. DeepSeek remains paused.
