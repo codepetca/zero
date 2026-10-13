@@ -156,7 +156,9 @@ component base class, scene routing, or object discovery.
 ## Try an example
 
 The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
-**Start lesson** on the tutorial page to get a complete fresh project. For another
+**Start project** at lessons 0, 3 and 8 to get an empty runnable scaffold. Keep
+the same Greeting, Study or Game folder for its following lessons. Students write
+their own controls and classes; lesson 12 offers only optional image/sound assets. For another
 example, make a fresh local copy of the starter and copy only that example's
 listed files into the new folder. Open the new folder in VS Code and click
 **Run App**. Keep these practice projects local; your own game repository is

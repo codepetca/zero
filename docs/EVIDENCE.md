@@ -2325,3 +2325,33 @@ the feature PR and ignored delivery receipt establish reviewed/merged revision.
 Generated student folders and payloads remain ignored and local; no credentials,
 GitHub sample repository or live student upload was created. Existing published
 0.5.8 assets remain immutable; no installer signing or release was performed.
+
+## Three continuing projects — 2026-10-13
+
+Owner asked for minimal downloads, 3–4 projects and combinable lessons. Adopted
+three local groups (Greeting0–2, Study3–7, Game8–12) plus optional original sharing
+project. Reworked attempts/reset/Counter lessons inside Study; extraction and reuse
+reopen existing projects; media/advanced stages continue Game. One generator gives
+web/native empty scaffold bytes, with maintained finite fixtures outside downloads.
+
+Bounded writers: requested Sol/high for app/game curriculum, Sol/medium for
+controls; fresh scoped briefs, one writer per component, no worker Git/account
+actions. All delivered and coordinator inspected source/contracts. App writer's
+second turn added finite checkpoint harness/CI verification and removed duplicated
+media bytes. Controls second turn corrected lesson6/example metadata and marker
+wording; focused12website/14extension tests passed. Coordinator handled generator,
+root tests/docs, HTTP proof and integration. Effective configurations/tokens and
+per-worker elapsed times unknown; 87% weekly allowance remaining at start is
+account-wide. Storage329.6GB healthy; no cleanup. Coordination rework: one bounded
+metadata correction, no overlapping file edits/conflicts. Verification details
+are in VERIFICATION.md; ignored logs preserve complete output.
+
+Review ledger: standard risk (continuing state/curriculum + create/continue UI);
+one full-diff Sol/high reviewer completed at head4c7ee9c, no blockers. One P2
+example-guidance inconsistency accepted: references still directed replacement
+and six README links pointed to removed ZIPs. One fix batch makes references
+explicit and runs full examples only in a separate copy. Targeted low-risk
+Luna/medium guidance review follows; unchanged code coverage is reused. Prior adoption review
+turns23; this feature's initial review is turn24; targeted guidance review is turn25. Standing user stop waiver
+persists; no execution/security gate overridden. No new goal/task/automation.
+Full adoption remains held; this feature does not satisfy public executor acceptance.

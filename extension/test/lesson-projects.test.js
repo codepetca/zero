@@ -8,15 +8,15 @@ const lessons = require('../src/lesson-projects');
 const core = require('../src/core');
 const github = require('../src/github');
 const workflow = require('../src/workflow');
-const sample = () => ({schema:1,projects:[{id:'0',lesson:'0',title:'Hello',folder:'zero-lesson-0',files:[
-  {path:'zero.json',content:Buffer.from(JSON.stringify({name:'Hello',templateVersion:'0.1.0',mainClass:'Main',localOnly:true,lessonId:'0'})).toString('base64'),mode:420},
+const sample = () => ({schema:1,projects:[['greeting','0','Greeting app'],['study','3','Study quiz'],['game','8','Coin game']].map(([id,lesson,title])=>({id,lesson,title,folder:`zero-project-${id}`,files:[
+  {path:'zero.json',content:Buffer.from(JSON.stringify({name:id,templateVersion:'0.1.0',mainClass:'Main',localOnly:true,practiceProjectId:id,lessonId:lesson})).toString('base64'),mode:420},
   {path:'.gitignore',content:Buffer.from('*\n').toString('base64'),mode:420},
   {path:'src/main/java/Main.java',content:Buffer.from('class Main {}\n').toString('base64'),mode:420}
-]}]});
+]}))});
 async function temporary(t){const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-lessons-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
 test('bundle validation rejects traversal, bad base64, duplicate paths and false practice marker', () => {
-  assert.equal(lessons.validateBundle(sample()).length,1);
-  for(const unsafe of ['../secret','/secret','a/../../secret','a\\secret','.git/config','CON.txt','a:stream','trailing.','a/aux','bad?name']) {
+  assert.equal(lessons.validateBundle(sample()).length,3);
+  for(const unsafe of ['../secret','/secret','a/../../secret','a\\secret','.git/config','CON.txt','a:stream','trailing.','a/aux','bad?name','examples/Main.java','src/main/java/Question.java','src/main/resources/media-demo/player.png']) {
     const bundle=sample();bundle.projects[0].files[2].path=unsafe;
     assert.throws(()=>lessons.validateBundle(bundle));
   }
@@ -24,6 +24,8 @@ test('bundle validation rejects traversal, bad base64, duplicate paths and false
   const duplicate=sample();duplicate.projects[0].files.push({...duplicate.projects[0].files[2]});assert.throws(()=>lessons.validateBundle(duplicate));
   const unignored=sample();unignored.projects[0].files[1].content=Buffer.from('*.class\n').toString('base64');assert.throws(()=>lessons.validateBundle(unignored));
   const marker=sample();marker.projects[0].files[0].content=Buffer.from('{"localOnly":false}').toString('base64');assert.throws(()=>lessons.validateBundle(marker));
+  const missing=sample();missing.projects.pop();assert.throws(()=>lessons.validateBundle(missing));
+  const wrongLesson=sample();wrongLesson.projects[1].lesson='4';assert.throws(()=>lessons.validateBundle(wrongLesson));
 });
 test('creates an exclusive local folder, preserves existing content, rejects symlinks and Git ancestors', async t => {
   const root=await temporary(t),project=lessons.validateBundle(sample())[0],target=path.join(root,'practice');
@@ -88,23 +90,23 @@ test('local practice commands stop before authentication, saves, Git or external
   assert.equal(saves,0);assert.equal(external,0);assert.equal(authCalls,1,'Only activation may inspect native sign-in silently');
   await fs.writeFile(path.join(root,'zero.json'),'{broken');
   await commands.get('zero.openFirstLesson')();
-  assert.match(errors.at(-1),/zero\.json is damaged.*Restore its lesson marker.*start a fresh lesson/i);
+  assert.match(errors.at(-1),/zero\.json is damaged.*Restore its project marker.*start a new project/i);
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,lessonId:0}));
-  await commands.get('zero.openFirstLesson')();assert.match(errors.at(-1),/no valid lessonId.*Restore its lesson marker/i);
+  await commands.get('zero.openFirstLesson')();assert.match(errors.at(-1),/no valid lessonId.*Restore its project marker/i);
   await fs.writeFile(path.join(root,'zero.json'),'{broken');
   await commands.get('zero.shareGame')();assert.match(errors.at(-1),/local lesson practice/i);
   await commands.get('zero.runApp')();assert.equal(saves,1);assert.equal(launches,1);
 });
 
-test('Start lesson works without a workspace and opens only the freshly created folder in a new window', async t => {
+test('Start project works without a workspace and opens only the freshly created folder in a new window', async t => {
   const Module=require('node:module'),root=await temporary(t),media=path.join(root,'media');await fs.mkdir(media);
   await fs.writeFile(path.join(media,'lesson-projects.json'),JSON.stringify(sample()));
-  const commands=new Map(),opened=[],errors=[];let choose=false,save=false,destination=path.join(root,'new-lesson'),onSave;
+  const commands=new Map(),opened=[],errors=[],pickers=[];let choose=false,save=false,destination=path.join(root,'new-lesson'),onSave;
   const disposable=()=>({dispose(){}});
   const vscode={
     authentication:{getSession:async()=>null,onDidChangeSessions:disposable},
     workspace:{workspaceFolders:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async items=>choose?items[0]:undefined,showSaveDialog:async()=>{onSave?.();return save?{fsPath:destination}:undefined;},showErrorMessage:async text=>{errors.push(text);}},
+    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async (items,options)=>{pickers.push({items,options});return choose?items[0]:undefined;},showSaveDialog:async()=>{onSave?.();return save?{fsPath:destination}:undefined;},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{opened.push(args);}},
     Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
@@ -112,9 +114,10 @@ test('Start lesson works without a workspace and opens only the freshly created 
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(item=>item.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:root});
-  await commands.get('zero.startLesson')();choose=true;await commands.get('zero.startLesson')();
+  await commands.get('zero.startProject')();choose=true;await commands.get('zero.startProject')();
+  assert.deepEqual(pickers.at(-1).items.map(({label,description})=>[label,description]),[['Greeting app','Lessons 0–2 · local practice'],['Study quiz','Lessons 3–7 · local practice'],['Coin game','Lessons 8–12 · local practice']]);
   await assert.rejects(fs.stat(path.join(root,'new-lesson')),/ENOENT/);
-  save=true;await commands.get('zero.startLesson')();
+  save=true;await commands.get('zero.startProject')();
   assert.equal(await lessons.isLocalPractice(path.join(root,'new-lesson')),true);
   assert.deepEqual(opened.at(-1),['vscode.openFolder',{fsPath:path.join(root,'new-lesson')},true]);
   assert.equal(opened.filter(call=>call[0]==='vscode.openFolder').length,1);
@@ -122,11 +125,11 @@ test('Start lesson works without a workspace and opens only the freshly created 
   for (const directory of [first,second,third]) {await fs.mkdir(directory);await fs.writeFile(path.join(directory,'zero.json'),'{}');}
   vscode.workspace.workspaceFolders=[{uri:{fsPath:first}},{uri:{fsPath:second}}];
   destination=path.join(second,'nested');onSave=undefined;
-  await commands.get('zero.startLesson')();assert.match(errors.at(-1),/outside the current student project/);
+  await commands.get('zero.startProject')();assert.match(errors.at(-1),/outside the current student project/);
   await assert.rejects(fs.stat(destination),/ENOENT/);
   onSave=()=>{vscode.workspace.workspaceFolders=[{uri:{fsPath:third}}];};
-  await commands.get('zero.startLesson')();assert.match(errors.at(-1),/outside the current student project/,'Initial roots remain guarded after workspace change');
+  await commands.get('zero.startProject')();assert.match(errors.at(-1),/outside the current student project/,'Initial roots remain guarded after workspace change');
   vscode.workspace.workspaceFolders=[{uri:{fsPath:first}}];destination=path.join(third,'nested');
-  await commands.get('zero.startLesson')();assert.match(errors.at(-1),/outside the current student project/,'Newly opened roots are guarded at creation time');
+  await commands.get('zero.startProject')();assert.match(errors.at(-1),/outside the current student project/,'Newly opened roots are guarded at creation time');
   assert.equal(opened.filter(call=>call[0]==='vscode.openFolder').length,1);
 });

@@ -23,13 +23,13 @@ export function Example({ example, sources }) {
           </summary>
           <div className="reading-section-body">
             <p>
-              Stop the app and save your current Main and helpers outside{" "}
-              <code>src/</code>. After backing up, remove the previous Main and helper
-              Java files that are not listed here. Copy the files shown below into the listed
-              destinations in your standalone starter, creating resource folders
-              when needed. Replace Main and the listed helpers. Keep the{" "}
-              <code>zero/</code> framework folder and build files. If an older
-              downloaded kit does not have these examples, use the source shown here.
+              These are complete reference examples. If you came from a lesson,
+              read the source below and add the idea to your own code in the same
+              lesson project. To run this entire example separately, make a new
+              local copy of the starter in another folder. Copy the listed files
+              only into that new copy, keeping its <code>zero/</code> framework
+              and build files. Open the separate folder in VS Code and Run App.
+              Keep your ongoing lesson project as it is.
             </p>
             <ul>
               {files.map(({ file, destination }) => (

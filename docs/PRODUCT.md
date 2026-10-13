@@ -41,14 +41,15 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 `zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
 `size(...)`; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
-The default app is a short Hello, world! window with one Label. Lesson 0
-practises Run, change the greeting and rerun; Lesson 1 adds one button
-that changes the greeting; Lesson 2 adds a name field; Lesson 3 checks one answer
-with if/else and feedback. Lessons 4–6 add counter state, reset methods and
-ordinary objects; 7 builds a study app; 8 teaches movement; 9 builds a coin game.
-Lessons 10–11 cover component extraction/reuse and sharing a ZeroHub library. Lesson 12 grows sprites and short sound effects into a two-level platformer in
-five runnable stages: media, camera/scoreboard, platforms/gravity, enemies/levels,
-and win/lose/restart. The examples remain ordinary Java classes; see
+The installed kit's default app shows Hello, world!; the learning projects start
+with empty runnable boilerplate. Lessons 0–2 grow one Greeting app from label to
+button to name input. Lessons 3–7 grow one Study quiz: answer feedback, attempts,
+reset methods, a Counter object, then Question objects/arrays and scoring. Lessons
+8–12 grow one Coin game with student-authored Player/Coin, win/restart, ScoreDisplay
+reuse, and optional media/scrolling. Lesson 10 reopens Study and Game to extract and
+reuse the student's display class. Lesson 11 practises compatible changes locally;
+sharing uses a separate original project. Lesson 12's platform/level/endings stages
+are optional continuations of the same game, with maintained references; see
 [game systems](GAME-SYSTEMS.md).
 The scored quiz remains a later reuse example.
 The new local tutorial pass inserts one-coin native controls before arrays/win,
@@ -80,19 +81,20 @@ ScoreDisplay source. No component/screen base
 class, registration system or new engine is required. Packages, interfaces,
 JavaFX properties and other JavaFX features remain available as later lessons.
 
-Start lesson supplies a fresh local project with the matching Java classes and
-resources. On the website it downloads a ZIP; the editor command chooses a new
-folder and opens it in a separate window. Existing projects are never replaced.
-Lessons and larger stages share one maintained project generator; reference
-examples stay outside compiled source. Click Run App again after editing: Zero
-saves files, stops the previous process and rebuilds. Students do not manually
-back up, remove helper classes or preserve build files between lessons.
-Generated practice projects have a local-only marker, ignore all files in Git,
-disable the workspace Git integration and reject Zero repository/upload/sharing
-actions. Native creation rejects existing destinations and Git parent folders.
-They have no GitHub repository or server-side student state. Students create and
-share their own separate game projects; Lesson 11 practises component changes
-locally before explaining that separate workflow.
+Start project supplies only empty Main boilerplate and build/framework setup.
+There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Website start
+buttons appear at 0, 3 and 8; later pages say to continue the existing project.
+The native Start project command chooses a new folder and opens a separate window;
+existing projects are never replaced. Completed teacher checkpoints and optional
+references stay outside scaffold ZIPs. Lesson 12 optionally downloads only two
+media resources; students may use their own assets or drawing fallback.
+Click Run App again after editing: Zero saves, stops the previous process and
+rebuilds. No normal lesson switching, source replacement or helper removal is needed.
+Practice projects have a local-only marker, ignore every file in Git, disable
+workspace Git and reject Zero repository/upload/sharing actions. Native creation
+rejects existing destinations and Git parent folders. They have no GitHub repository
+or server-side student state. Students can create a separate original project for
+coursework/sharing; lesson 11 keeps those paths explicit.
 Canonical framework source lives in `framework/src/main/java/zero/`; maintainer
 preparation assembles editable copies into the standalone starter. Review shared improvements
 in more than one app before cohort adoption. The extraction examples remain useful

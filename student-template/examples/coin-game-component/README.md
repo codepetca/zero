@@ -1,6 +1,12 @@
 # Coin game with the shared score display
 
-Download the [fresh game component project](/generated/lessons/zero-lesson-10-game.zip), unzip it into its own folder, open it in VS Code and click **Zero → Run App**. Keep the sample local. It contains:
+This is an optional complete source reference. For the continuing lessons,
+read one method at a time and add the idea to your own existing Game code.
+To run the whole reference, make a separate local copy of the starter in another
+folder and copy only the files listed below into that new copy. Open that folder
+in VS Code and click **Zero → Run App**. Keep your lesson project as it is; no
+complete example project ZIP is required. The reference files are:
+
 
 | From | To |
 | --- | --- |

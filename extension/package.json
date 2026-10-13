@@ -16,7 +16,7 @@
     "workspaceContains:zero.json",
     "workspaceContains:student-template/zero.json",
     "onTaskType:zero",
-    "onCommand:zero.startLesson"
+    "onCommand:zero.startProject"
   ],
   "scripts": {
     "test": "node --test",
@@ -27,8 +27,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "zero.startLesson",
-        "title": "Zero: Start Lesson"
+        "command": "zero.startProject",
+        "title": "Zero: Start Project"
       },
       {
         "command": "zero.githubAccount",

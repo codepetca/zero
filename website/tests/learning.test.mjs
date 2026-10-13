@@ -5,7 +5,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { lessons, lessonNavigation, isLessonDocumentId, lessonAssets, examples } from "../lib/learning.mjs";
+import { lessons, lessonNavigation, isLessonDocumentId, lessonAssets, examples, projectForLesson, sampleGameAssets } from "../lib/learning.mjs";
 import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
@@ -195,51 +195,41 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
   assert.match(prepare,/"your-repository-and-pika": "your-individual-workflow"/);
 });
 
-test("every tutorial offers a fresh local ZIP, with complete stage links allowlisted", () => {
+test("only three lessons start a project; subsequent lessons continue it", () => {
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
-  assert.match(document, /className="lesson-start"/);
-  assert.match(document, /zero-lesson-\$\{lesson\}\.zip/);
-  assert.match(document, /unzip it, open its folder in VS Code/);
-  assert.match(document, /keep the sample off GitHub/);
+  assert.match(document, /lesson === practiceProject.firstLesson/);
+  assert.match(document, /Continue your .*practiceProject.title.* project/);
+  assert.match(document, /start at lesson/);
+  assert.match(document, /lesson === "10"/);
+  assert.match(document, /lesson === "12"/);
   assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);
-  for (const lesson of lessons) {
-    const url = `/generated/lessons/zero-lesson-${lesson.id}.zip`;
-    assert.equal(resolveContentLink("student-template/lessons/README.md", url, {}, {}), url);
+  assert.match(prepare, /collect\("teaching\/checkpoints"\)/);
+  assert.deepEqual(lessons.filter(({id})=>projectForLesson(id)?.firstLesson===id).map(({id})=>id),["0","3","8"]);
+  for (const lesson of lessons) assert.ok(projectForLesson(lesson.id));
+  for (const id of ["greeting","study","game"]) {
+    const url = `/generated/projects/zero-project-${id}.zip`;
+    assert.equal(resolveContentLink("student-template/lessons/README.md",url,{},{}),url);
+    assert.equal(resolveContentLink("student-template/lessons/README.md",`https://zero.codepet.ca${url}`,{},{}),url);
   }
-  for (const suffix of ["10-game", "12-scrolling", "12-platforms", "12-levels", "12-full"]) {
-    const url = `/generated/lessons/zero-lesson-${suffix}.zip`;
-    assert.equal(resolveContentLink("student-template/lessons/12-media.md", url, {}, {}), url);
-    assert.equal(resolveContentLink("student-template/lessons/12-media.md", `https://zero.codepet.ca${url}`, {}, {}), url);
-  }
-  assert.equal(resolveContentLink("student-template/lessons/12-media.md", "/generated/lessons/other.zip", {}, {}), null);
+  assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/projects/zero-project-other.zip",{},{}),null);
+  assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/lessons/zero-lesson-10-game.zip",{},{}),null);
+  assert.equal(resolveContentLink("student-template/lessons/12-media.md",sampleGameAssets.href,{},{}),sampleGameAssets.href);
 });
 
-test("fresh lesson guide and stage links match the generated picker names", async () => {
-  const { lessonProjects } = await import("../../scripts/lesson-projects.mjs");
-  const projects = new Map(lessonProjects().projects.map(({ id, title }) => [id, title]));
-  const guide = readFileSync(new URL("../../student-template/lessons/README.md", import.meta.url), "utf8");
-  assert.match(guide, /^## Start a lesson$/m);
-  assert.doesNotMatch(guide, /before-each-lesson|0\.5\.8|updated local Zero/);
-  for (const lesson of lessons) {
-    const prefix = `${String(lesson.id).padStart(2, "0")}-`;
-    const file = readdirSync(new URL("../../student-template/lessons/", import.meta.url)).find((name) => name.startsWith(prefix) && name.endsWith(".md"));
-    assert.ok(file, `lesson ${lesson.id} Markdown`);
-    const markdown = readFileSync(new URL(`../../student-template/lessons/${file}`, import.meta.url), "utf8");
-    assert.match(markdown, /README\.md#start-a-lesson/);
-    assert.doesNotMatch(markdown, /before-each-lesson/);
-  }
-  const stageGuides = [
-    ["10-game", "10-components.md"],
-    ["12-scrolling", "12-media.md"],
-    ["12-platforms", "12-media.md"],
-    ["12-levels", "12-media.md"],
-    ["12-full", "12-media.md"],
-  ];
-  for (const [id, file] of stageGuides) {
-    const markdown = readFileSync(new URL(`../../student-template/lessons/${file}`, import.meta.url), "utf8");
-    assert.ok(markdown.includes(projects.get(id)), `${id} picker title`);
-    assert.ok(markdown.includes(`/generated/lessons/zero-lesson-${id}.zip`), `${id} ZIP link`);
-    assert.ok(markdown.includes(`https://zero.codepet.ca/generated/lessons/zero-lesson-${id}.zip`), `${id} works in local Markdown`);
+test("practice downloads contain foundations but no completed lesson examples", async () => {
+  const {lessonProjects} = await import("../../scripts/lesson-projects.mjs");
+  const bundle = lessonProjects();
+  assert.deepEqual(bundle.projects.map(({id})=>id),["greeting","study","game"]);
+  for (const project of bundle.projects) {
+    const paths = project.files.map(file=>file.path);
+    assert.ok(paths.includes("src/main/java/Main.java"),project.id);
+    assert.ok(paths.includes("zero.json"),project.id);
+    assert.ok(paths.includes("README.md"),project.id);
+    assert.ok(paths.every(path=>!path.startsWith("lessons/")&&!path.startsWith("examples/")&&!path.includes("checkpoints/")),project.id);
+    const java = paths.filter(path=>path.endsWith(".java"));
+    assert.ok(java.every(path=>path==="src/main/java/Main.java" || /^src\/main\/java\/zero\/(?:SimpleApp|SketchApp)\.java$/.test(path)),project.id);
+    const main = Buffer.from(project.files.find(file=>file.path==="src/main/java/Main.java").content,"base64").toString("utf8");
+    assert.doesNotMatch(main,/class (?:Question|Counter|Coin|Player|ScoreDisplay)/);
   }
 });

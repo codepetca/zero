@@ -1,7 +1,15 @@
 # My sprite and sound
 
-Download the [fresh Lesson 12 project](/generated/lessons/zero-lesson-12.zip), unzip it into its own folder and open it in VS Code. It already includes Main and both media resources. Keep this sample local.
-The fresh project includes JavaFX media.
+This is an optional complete source reference. In lesson 12, keep your existing
+Coin game and add media to your own code. You may download only the
+[image and sound ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip),
+use your own files, or keep the drawing fallback.
+
+To run this independent media demo, make a separate local copy of the starter.
+Copy this folder's `Main.java` into that copy's `src/main/java/`, and its two
+`resources/media-demo/` files into `src/main/resources/media-demo/`. The current
+starter already includes JavaFX media. Open the separate folder in VS Code;
+keep your ongoing lesson project as it is.
 
 Run App. A purple robot appears; Play sound triggers a short chime and increments
 Plays. Replace player.png and chime.wav with your own PNG and short PCM WAV, then

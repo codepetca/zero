@@ -1,49 +1,35 @@
-# 11. Reuse locally, then share your own work
+# 11. Check a component, then share original work
 
-**First checkpoint: practise with an ordinary component.**
+**First checkpoint: change ScoreDisplay in both of your projects.**
 
-![The same ordinary Java component used in two apps](visuals/11.svg)
+![A local ScoreDisplay class in a quiz and a Coin game, beside a separate original project for optional sharing](visuals/11.svg)
 
-The [fresh Lesson 11 project](README.md#start-a-lesson) is a local study app with Main, Question and
-ScoreDisplay. Unzip it, open its folder in VS Code and click **Zero → Run App**.
-This sample stays on your computer. Do not upload it to GitHub or share it with
-ZeroHub.
+1. Reopen the **Study quiz** and **Coin game** from lesson 10. There is no lesson 11 download.
+2. Give `ScoreDisplay` a small presentation change, copy that one class between your two local projects, and run both.
+3. Write down which methods a second app needs and which scoring decisions remain in each Main.
 
-1. Find `score.setScore(points)` in Main and `setScore(int)` in ScoreDisplay.
-2. Change ScoreDisplay's label style, then click **Run App** again.
-3. Answer `3`, restart and confirm the score returns to zero with your style.
+**Done:** Both apps display the changed score and still score and restart correctly. Local practice stays off GitHub. Sharing later uses a **separate original game project** you own.
 
-**Done:** You can explain which code belongs in the reusable display and which
-scoring rules stay in Main.
+Previous: [Reuse the score display](10-components.md).
 
-## Work on your own game
+## 1. Check the component locally
 
-When you have made a useful component in **your own separate game repository**,
-run and test it there first. A library supplies reusable Java classes; a game
-project gives another student an editable copy of your entire game. Keep the
-fresh lesson projects separate from this work.
+In `ScoreDisplay.java`, add a method so an app can change its label color without accessing the private Label:
 
-In your own game, **Libraries and Games → Extract library** can move
-complete classes into `libraries/<slug>/` in your own game. Review its source and
-import changes. Keep application rules in Main. Give the library useful behavior
-checks, two small consumers, API notes and a license; then run **Check library**.
-Local Check alone does not publish anything. Generic hosted library checking is
-not activated yet; your teacher will explain available paths in the classroom
-build.
+```java
+public void setColor(javafx.scene.paint.Color color) {
+    label.setTextFill(color);
+}
+```
 
-## Request sharing from your own repository
+In each Main's `setup()`, immediately after `score = new ScoreDisplay();`, add `score.setColor(javafx.scene.paint.Color.DARKSLATEBLUE);`. Keep the same `view()` and `setScore(int)` methods. Run both apps. In the study quiz, answer the first question, finish the quiz, then Restart. In the game, collect one coin, Restart, win, and Restart again. ScoreDisplay changes how a number appears; Main still decides when points change.
 
-If your teacher enables sharing, upload your completed **own game** to your
-public GitHub repository first. **Share library** prepares a request for that
-exact uploaded commit. Review and submit the browser form. To share your whole
-own game, choose **Share game**, supply its title, description, controls and
-license, then request its exact version. Shared games open into new editable
-folders; run them only when you choose to.
+If both projects compile after you copy this one class, you have a small two-consumer API check. Compare your [game Main](../../teaching/checkpoints/11/game/Main.java), [study Main](../../teaching/checkpoints/11/study/Main.java) and [ScoreDisplay.java](../../teaching/checkpoints/11/game/ScoreDisplay.java) with checkpoint 11. Record the API in a comment: `view()` gives Main a Node; `setScore(int)` displays Main's score; `setColor(Color)` changes presentation. A useful error or method name matters more than making a large library.
 
-Browse [ZeroHub](https://zero.codepet.ca/hub) to choose a published library and
-exact version. **Add library** uses its pinned Maven JAR; Update and Revert are
-explicit. Published versions cannot be replaced. Coursework links go to Pika
-separately from any ZeroHub request.
+## 2. Decide whether your original project has a reusable part
 
-Previous: [10. Reuse a component](10-components.md). Next:
-[12. Build a platformer](12-media.md). [Lesson index](README.md).
+These lesson projects are local practice. For an optional fourth project, create your **own separate game** and write an original helper that another app could use. Test it in your game and one small second consumer. Keep game rules in Main. In that original repository, **Libraries and Games → Extract library** can move complete classes into `libraries/<slug>/`; review the moved source and imports. Write API notes, a meaningful behavior check and license, then run **Check library** locally. Local Check reports on that version; it does not publish it. The generic hosted library checker remains unavailable pending acceptance, so do not describe a local pass as a ZeroHub listing.
+
+If your teacher enables sharing, use your own GitHub account and a separate original project. Upload that project's reviewed commit using the supported Zero workflow, then, when library acceptance is available, **Share library** prepares a request for that exact commit and opens the official browser form. Review before submitting. General game publication is also not yet available. Browse [ZeroHub](https://zero.codepet.ca/hub) for published exact versions; **Add library**, Update and Revert are deliberate choices. Coursework repository links are submitted in Pika separately.
+
+Continue growing your **same Coin game** with media in [lesson 12](12-media.md).

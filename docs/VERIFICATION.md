@@ -1566,3 +1566,32 @@ The local-guide follow-up uses full Zero HTTPS addresses for stage ZIP links;
 the website resolver keeps those downloads on its own origin. This corrects
 local Markdown links without changing Java starters, editor behavior or release
 assets. The follow-up PR records its focused tests, independent review and CI.
+
+## Three continuing projects — 2026-10-13
+
+Supersedes the 18 fresh lesson/stage scaffolds in the previous feature. Greeting
+0–2, Study3–7 and Game8–12 each start with empty Main + pinned build/framework
+setup. Three ZIPs are about14KB each; optional game assets are about10KB and contain
+only PNG/WAV. Maintainer checkpoint solutions remain outside practice downloads.
+
+Checks: root256pass +1optionalPowerShellskip (152.7s); website56pass, typecheck and
+production build; sharing45pass; generator6pass and playground2pass; configuration,
+syntax, documentation links and diff checks. Actual three generated starters
+compiled. Sixteen trusted maintainer fixture variants passed finite JavaFX behavior
+checks (~58s, worker result verified against harness/source): greeting mutation,
+quiz retries/attempts/reset, independent Counter/display instances, once scoring,
+Next/completion/Restart, movement clamps, coin once/win/Restart, setColor, camera
+and media absent/present. All16 also compiled independently. Optional advanced
+platform/level/endings remain guided reference exercises without new progressive
+checkpoint fixtures; unchanged maintained examples keep their existing coverage.
+
+Local production-server HTTP verification covered all13 tutorial pages, exact
+start-versus-continuation links, optional checkpoint sources, all three ZIP byte
+matches/13-file inventories/markers/wrapper0755, and the media ZIP's two exact
+canonical assets. Receipt: ignored `.verification/progressive-preview-proof.json`.
+This is HTTP/source verification, not a new browser interaction/screenshot proof.
+The Mac remains locked for native automation; click-through was not retried.
+Native command tests use a mocked VS Code host and real temporary folders.
+Physical Windows, WebKit/accessibility interaction and novice trials remain pending.
+Frozen0.5.8 release assets were not rebuilt or published. General contribution
+executor hold is unchanged; the new harness executes only finite maintainer fixtures.

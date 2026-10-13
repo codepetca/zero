@@ -1,60 +1,68 @@
 # 5. Add Reset with methods
 
-**Return the counter to zero.**
+**Give your quiz a fresh start.**
 
-![Counter showing 0 above +1 and Reset buttons](visuals/05.svg)
+![Quiz with Reset button and Attempts: 0](visuals/05.svg)
 
-Target illustration: the counter after Reset.
+Target illustration: your quiz just after clicking **Reset**.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson).
-2. Open the included [reset-counter Main.java](../examples/reset-counter/Main.java); **Run App**.
-3. Click **+1** twice, **Reset**, then **+1**. Find the two methods in the [code below](#code-and-explanation).
+1. Open the **same Study project** from lesson 4.
+2. Move the check code into `checkAnswer()`. Add `resetQuiz()` and a Reset button.
+3. Click **Run App**; check twice, click **Reset**, then check once more.
 
-**Done:** The label goes **2 → 0 → 1**.
+**Done:** The label goes **Attempts: 2 → 0 → 1**. Reset clears the answer and feedback.
 
 ## Code and explanation
 
-The fresh project already contains this `src/main/java/Main.java`, matching [reset-counter Main](../examples/reset-counter/Main.java):
+The answer, feedback and attempts labels are already fields, so your new
+methods can use them. In `setup()`, create a button beside `check`:
 
 ```java
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+Button reset = new Button("Reset");
+```
 
-public class Main extends SimpleApp {
-    private int count = 0;
-    private Label display;
+Replace the old `check.setOnAction(...)` block with two short actions:
 
-    public void setup() {
-        var countLabel = new Label("0");
-        display = countLabel;
-        var add = new Button("+1");
-        var reset = new Button("Reset");
-        add.setOnAction(event -> increment());
-        reset.setOnAction(event -> reset());
-        var screen = new VBox(10, display, add, reset);
-        show(screen);
+```java
+check.setOnAction(event -> checkAnswer());
+reset.setOnAction(event -> resetQuiz());
+```
+
+Put `reset` after `check` in the existing `VBox`:
+
+```java
+show(new VBox(10, question, answer, check, reset, feedback, attemptsLabel));
+```
+
+Below `setup()` but **inside** `Main`, write a named method with the code you
+removed from the old Check action:
+
+```java
+private void checkAnswer() {
+    attempts = attempts + 1;
+    attemptsLabel.setText("Attempts: " + attempts);
+    if (answer.getText().equals("5")) {
+        feedback.setText("Correct!");
+    } else {
+        feedback.setText("Try again.");
     }
-
-    private void increment() {
-        count = count + 1;
-        display.setText("" + count);
-    }
-
-    private void reset() {
-        count = 0;
-        display.setText("" + count);
-    }
-
-    public static void main(String[] args) { launch(args); }
 }
 ```
 
-1. **Run App**; click **+1** twice → **2**
-2. Click **Reset** → **0**; click **+1** → **1**
-3. Find `increment()` and `reset()`: each changes the number and the label
+Add a second method beside it:
 
-The fields `count` and `display` are available to both methods.
+```java
+private void resetQuiz() {
+    attempts = 0;
+    attemptsLabel.setText("Attempts: 0");
+    answer.clear();
+    feedback.setText("");
+}
+```
 
-Next: [Lesson 6](06-objects.md).
+Do not leave the old check block in `setup()`; there should be one Check
+handler. `checkAnswer()` and `resetQuiz()` name the two actions, and both
+change the state and the visible controls. For comparison after building,
+see the [completed lesson 5 checkpoint](../../teaching/checkpoints/5/Main.java).
+
+Next: [Make a Counter object](06-objects.md).

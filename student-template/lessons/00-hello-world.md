@@ -1,41 +1,37 @@
 # 0. Hello, world!
 
-**A greeting you can change.**
+**Make your first greeting.**
 
-![Hello, Java! after saving and rerunning](visuals/00.svg)
+![A window saying Hello, Java!](visuals/00.svg)
 
-Target illustration: the greeting after your edit.
+Target illustration: your greeting after you write it.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson), then open `src/main/java/Main.java`.
-2. Open the included [complete program below](#code-and-explanation); click **Run App**.
-3. Change `Hello, world!` to `Hello, Java!`; **Run App**.
+1. [Start Greeting project](README.md#start-a-lesson) once. Open `src/main/java/Main.java` in your **Greeting** project.
+2. Add a `Label` in `setup()` and show it. Click **Run App**.
+3. Change the words to `Hello, Java!` and click **Run App** again.
 
-**Done:** The new window says **Hello, Java!**.
+**Done:** The window says **Hello, Java!**.
 
 ## Code and explanation
 
-Open the fresh project's `src/main/java/Main.java`. It contains this
-program. This is the whole program:
+The new `Main.java` has `Main extends SimpleApp`, an empty `setup()` and a
+`main` method. Keep those lines. The empty setup opens a blank window, so your
+first control is yours to write. Add this import above `public class Main`:
 
 ```java
 import javafx.scene.control.Label;
-import zero.SimpleApp;
-
-public class Main extends SimpleApp {
-    public void setup() {
-        var greeting = new Label("Hello, world!");
-        show(greeting);
-    }
-    public static void main(String[] args) { launch(args); }
-}
 ```
 
-1. Click **Run App**. A separate window shows **Hello, world!**
-2. Change `"Hello, world!"` to `"Hello, Java!"`.
-3. Click **Run App** again. The window shows your new greeting.
+Inside the two braces of `setup()`, write:
 
-`greeting` names the label created by `new Label(...)`.
-`show(greeting)` puts it in the window.
-Keep the other lines as they are for now.
+```java
+Label greeting = new Label("Hello, world!");
+show(greeting);
+```
 
-Next: [Lesson 1 — Say hello with a button](01-hello-button.md).
+`new Label(...)` creates text. `show(greeting)` puts that label in the
+window. Run the app, then edit the quoted words to `Hello, Java!` and rerun.
+Keep this **same Greeting project** for lessons 1 and 2. You will add to this
+code rather than replace `Main.java`.
+
+Next: [Add a button](01-hello-button.md).

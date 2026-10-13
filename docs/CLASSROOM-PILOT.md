@@ -29,11 +29,13 @@ out of the record.
   autosave and a dark theme if used; try the optional F6/F7 only if installed.
 - Introduce one clear compile error. Open its source location from Problems,
   repair it and run again. Record whether a novice can use the error unaided.
-- Start Lesson 7 in a fresh local practice folder with its matching classes.
+- Create Study at lesson 3, then continue the same folder through lesson 7.
+  Confirm students can add Counter and Question themselves without downloading
+  helpers, restarting the project or removing previous work.
   Try blank/wrong/correct answers; confirm feedback, score and repeated-click
   behavior. Change the question or scoring rule and explain which code runs once
   and which runs on a click. Confirm normal text entry.
-- Follow the starter's copy instructions for animation and keyboard examples.
+- Create Game at lesson 8 and continue it through the coin game.
   Change Player or Mover behavior; identify the explicit object update/draw calls
   and distinguish frame code from setup. Verify movement, input focus and Stop.
 - Run practice with the unchanged canonical `examples/shared/ScoreDisplay.java`.

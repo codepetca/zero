@@ -1,75 +1,56 @@
-# 6. Use an ordinary object
+# 6. Let Counter own attempts
 
-**Let Counter own the number.**
+**Move one piece of quiz state into an ordinary object.**
 
-![Counter showing 0 above +1 and Reset buttons, with a separate Counter object](visuals/06.svg)
+![The quiz still shows Attempts: 0, now supplied by Counter](visuals/06.svg)
 
-Target illustration: the same controls, now using a Counter object.
+Target illustration: the same quiz after Reset, with its count stored in a `Counter` object.
 
-1. [Start this lesson in a fresh project](README.md#start-a-lesson).
-2. Open the included [Main.java](../examples/object-counter/Main.java) and [Counter.java](../examples/object-counter/Counter.java); **Run App**.
-3. Click **+1** twice, **Reset**, then **+1**. Find `counter.increment()` in the [code below](#code-and-explanation).
+1. Open your **Study project** from lesson 5. Keep its controls and methods.
+2. Write a `Counter` class, then change Main to call it for attempts.
+3. Click **Run App**; check twice, click **Reset**, then check again.
 
-**Done:** The label goes **2 → 0 → 1** with Main calling Counter.
+**Done:** Attempts goes **2 → 0 → 1**. Main asks Counter for the number.
 
 ## Code and explanation
 
-The fresh project already contains this `src/main/java/Main.java`, matching [object-counter Main](../examples/object-counter/Main.java):
-
-```java
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
-import zero.SimpleApp;
-
-public class Main extends SimpleApp {
-    private final Counter counter = new Counter();
-
-    public void setup() {
-        var display = new Label("" + counter.value());
-        var add = new Button("+1");
-        var reset = new Button("Reset");
-        add.setOnAction(event -> {
-            counter.increment();
-            display.setText("" + counter.value());
-        });
-        reset.setOnAction(event -> {
-            counter.reset();
-            display.setText("" + counter.value());
-        });
-        var screen = new VBox(10, display, add, reset);
-        show(screen);
-    }
-    public static void main(String[] args) { launch(args); }
-}
-```
-
-Create `src/main/java/Counter.java` from
-[Counter](../examples/object-counter/Counter.java):
+Create `src/main/java/Counter.java` beside `Main.java`. Write an ordinary class
+with one private number and three public methods:
 
 ```java
 public class Counter {
     private int count = 0;
 
-    public void increment() {
-        count = count + 1;
-    }
-
-    public void reset() {
-        count = 0;
-    }
-
-    public int value() {
-        return count;
-    }
+    public void increment() { count = count + 1; }
+    public void reset() { count = 0; }
+    public int value() { return count; }
 }
 ```
 
-1. **Run App**; click **+1** twice → **2**
-2. Click **Reset** → **0**; click **+1** → **1**
-3. Find `counter.increment()`, `counter.reset()` and `counter.value()` in Main
+No special framework registration is needed. In `Main`, replace the old field
+`private int attempts = 0;` with:
 
-Counter owns the number. Main calls its methods and updates the label.
-Counter is an ordinary Java class; it needs no registration.
+```java
+private final Counter attempts = new Counter();
+```
 
-Next: [Lesson 7](07-study-app.md).
+In `checkAnswer()`, replace the two attempt-counting lines with:
+
+```java
+attempts.increment();
+attemptsLabel.setText("Attempts: " + attempts.value());
+```
+
+In `resetQuiz()`, replace `attempts = 0;` and the next label update with:
+
+```java
+attempts.reset();
+attemptsLabel.setText("Attempts: " + attempts.value());
+```
+
+Keep the answer checking, buttons and layout from lesson 5. Counter owns the
+number; Main still explicitly updates the label. If you need to compare,
+see the completed [Main](../../teaching/checkpoints/6/Main.java) and
+[Counter](../../teaching/checkpoints/6/Counter.java) checkpoints.
+
+Next: [Grow the quiz into a study app](07-study-app.md).

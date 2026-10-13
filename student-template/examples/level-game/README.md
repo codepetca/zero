@@ -1,6 +1,12 @@
 # Level Game
 
-Download the [fresh level-game project](/generated/lessons/zero-lesson-12-levels.zip), unzip it into its own folder, open that folder in VS Code and click **Zero → Run App**. Keep this sample local. The project contains:
+This is an optional complete source reference. For the continuing lessons,
+read one method at a time and add the idea to your own existing Game code.
+To run the whole reference, make a separate local copy of the starter in another
+folder and copy only the files listed below into that new copy. Open that folder
+in VS Code and click **Zero → Run App**. Keep your lesson project as it is; no
+complete example project ZIP is required. The reference files are:
+
 
 - `Camera.java` → `src/main/java/Camera.java`
 - `Coin.java` → `src/main/java/Coin.java`
@@ -15,7 +21,7 @@ Download the [fresh level-game project](/generated/lessons/zero-lesson-12-levels
 
 The two assets are reused from media-demo, not duplicated in this folder. Main
 loads `/media-demo/player.png` and `/media-demo/chime.wav` once in setup; keep
-those resource paths. The fresh project includes the pinned JavaFX media dependency.
+those resource paths. The current starter includes the pinned JavaFX media dependency.
 
 Run App and click the canvas for keyboard focus. A/D or Left/Right move; Space or Up jumps once per press while grounded. Collect all four coins before each green exit. Red enemies patrol. Enemy contact or falling retries the current level, restoring its coins/patrols and removing its unbanked points; points from completed levels remain. Two ordinary Level objects hold different arrays. The second exit starts a fresh practice run at Score: 0.
 

@@ -2,7 +2,8 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const LESSON_IDS = new Set([...Array.from({length:13}, (_,i)=>String(i)), '10-game','12-scrolling','12-platforms','12-levels','12-full']);
+const PROJECT_LESSONS = new Map([['greeting','0'],['study','3'],['game','8']]);
+const PROJECT_FILES = new Set(['zero.json','.gitignore','README.md','LICENSE','pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.vscode/tasks.json','.vscode/settings.json','src/main/java/Main.java','src/main/java/zero/SimpleApp.java','src/main/java/zero/SketchApp.java']);
 const LOCAL_MESSAGE = 'This is local lesson practice. Create your own separate student project before using GitHub or sharing.';
 const isRecord = value => value && typeof value === 'object' && !Array.isArray(value);
 const MAX_FILES = 500, MAX_PROJECT_BYTES = 4 * 1024 * 1024, MAX_BUNDLE_BYTES = 32 * 1024 * 1024;
@@ -18,14 +19,14 @@ function decode(value) {
   return bytes;
 }
 function validateBundle(bundle) {
-  if (!isRecord(bundle) || bundle.schema !== 1 || !Array.isArray(bundle.projects) || bundle.projects.length > 32) throw new Error('The lesson bundle is unavailable or invalid. Reinstall the Zero extension.');
+  if (!isRecord(bundle) || bundle.schema !== 1 || !Array.isArray(bundle.projects) || bundle.projects.length !== PROJECT_LESSONS.size) throw new Error('The lesson bundle is unavailable or invalid. Reinstall the Zero extension.');
   const ids = new Set();
   return bundle.projects.map(project => {
-    if (!isRecord(project) || !LESSON_IDS.has(project.id) || ids.has(project.id) || typeof project.title !== 'string' || !project.title.trim() || !/^zero-lesson-[a-z0-9-]+$/.test(project.folder) || !/^(?:[0-9]|1[0-2])$/.test(project.lesson) || !Array.isArray(project.files) || !project.files.length || project.files.length > MAX_FILES) throw new Error('The lesson bundle contains an invalid project.');
+    if (!isRecord(project) || !PROJECT_LESSONS.has(project.id) || ids.has(project.id) || typeof project.title !== 'string' || !project.title.trim() || project.folder !== `zero-project-${project.id}` || project.lesson !== PROJECT_LESSONS.get(project.id) || !Array.isArray(project.files) || !project.files.length || project.files.length > MAX_FILES) throw new Error('The lesson bundle contains an invalid project.');
     ids.add(project.id);
     const files = new Set(); let marker = false, ignored = false, projectBytes = 0;
     const validated = project.files.map(file => {
-      if (!isRecord(file) || !safeRelative(file.path) || files.has(file.path) || ![420,493].includes(file.mode)) throw new Error('The lesson bundle contains an unsafe file path or mode.');
+      if (!isRecord(file) || !safeRelative(file.path) || !PROJECT_FILES.has(file.path) || files.has(file.path) || ![420,493].includes(file.mode)) throw new Error('The lesson bundle contains an unsafe file path or mode.');
       const portable = file.path.toLowerCase();
       if (files.has(portable)) throw new Error('The lesson bundle contains duplicate file paths.');
       files.add(portable);
@@ -38,7 +39,7 @@ function validateBundle(bundle) {
       }
       if (file.path === 'zero.json') {
         const parsed = JSON.parse(content.toString('utf8'));
-        if (parsed.localOnly !== true || parsed.lessonId !== project.id || parsed.mainClass !== 'Main' || parsed.templateVersion !== '0.1.0') throw new Error('The lesson bundle has an invalid local-practice marker.');
+        if (parsed.localOnly !== true || parsed.lessonId !== project.lesson || parsed.practiceProjectId !== project.id || parsed.mainClass !== 'Main' || parsed.templateVersion !== '0.1.0') throw new Error('The lesson bundle has an invalid local-practice marker.');
         marker = true;
       }
       return {path:file.path,content,mode:file.mode};
@@ -58,7 +59,7 @@ async function isLocalPractice(root) {
   const marker = await fs.readFile(path.join(root, 'zero.json'), 'utf8').catch(error => {if (error.code === 'ENOENT') return null; throw error;});
   if (marker === null) return false;
   let data; try {data = JSON.parse(marker);} catch {return true;}
-  return isRecord(data) && (data.localOnly === true || (LESSON_IDS.has(data.lessonId) && data.templateVersion === '0.1.0' && data.mainClass === 'Main'));
+  return isRecord(data) && (data.localOnly === true || PROJECT_LESSONS.has(data.practiceProjectId));
 }
 async function assertShareable(root) {if (await isLocalPractice(root)) throw new Error(LOCAL_MESSAGE);}
 async function assertOutsideGit(parent) {
@@ -84,7 +85,7 @@ async function createLessonProject(project, destination, {forbiddenRoots = []} =
   try {
     await fs.mkdir(target); createdDirs.push(target);
     for (const file of project.files) {
-      if (!safeRelative(file.path) || ![420,493].includes(file.mode) || !Buffer.isBuffer(file.content)) throw new Error('The lesson bundle contains an unsafe file.');
+      if (!safeRelative(file.path) || !PROJECT_FILES.has(file.path) || ![420,493].includes(file.mode) || !Buffer.isBuffer(file.content)) throw new Error('The lesson bundle contains an unsafe file.');
       const parts = file.path.split('/'); let directory = target;
       for (const part of parts.slice(0,-1)) {
         directory = path.join(directory,part);
