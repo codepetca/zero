@@ -45,7 +45,7 @@ Mobile card overflow is corrected; closed-sharing status precedes cards.
 Cap/flow source b6e23cc passed a complete independent Sol/high review with no
 actionable findings. Root integrated reviewed MVP source 8ceb45d, installer
 fallback 35fe3e9 and setup guidance 6cedf89. Native public catalog compatibility
-and HTTP heading correction await final integration review.
+and HTTP heading correction passed final integration review at13fa3d2.
 
 Root51backend tests on actualPG17 and10admission tests on actualPG18 passed,
 including restricted API access beyond former caps, concurrent rate/queue/global
@@ -73,7 +73,7 @@ private and ignored. Clean tracked deploy snapshot/source-list audit required.
 
 Local accepted prerequisites include OAuth/API/polling/discovery3b16089, cache
 8dec22b, finite workers72576da, backups018e3ab, withdrawal70264f7, health1cda139,
-cache-tags4077dd8 and policyb9c29e0. Last cumulative reviewer turns45 includes
+cache-tags4077dd8 and policyb9c29e0. Last cumulative reviewer turns46 includes
 three historical filter failures. Requested configs known; effective time/tokens
 unknown. Acceptance history lives in EVIDENCE/VERIFICATION, not this handoff.
 Source CI38318782410 and receiptCI38320302912 passed. Private actual hosted
@@ -87,7 +87,7 @@ Human authorization to coordinate was verified in thread
 01a131bf-7277-7750-b704-a4b6f796c236 (Audit MVP Goal and Release Readiness).
 Root owns integration of reviewed SOURCE-only fa15c920..57909be and later
 58aab804 fallback fix; do not import the other task's CURRENT/evidence snapshots.
-Other source writers are stopped; root owns final source integration. Source integration is committed; final integration review is next. Agree one release-version/manifest/package
+Other source writers are stopped; root owns final source integration. Source integration accepted at13fa3d2; local candidate packaging is next. Agree one release-version/manifest/package
 writer only after accepted integrated SHA. No release version or artifact changed.
 Public Mac0.5.7/WindowsZIP0.5.3 lack the new Add/Update/Revert command; a new kit is
 required before claiming that shipped-editor flow. Physical Windows is explicitly
@@ -108,3 +108,10 @@ now retries only first400 against the exact complete legacy shape and retains
 history/pins/integrity/time/byte bounds. Actual public catalog and maintained
 ui1:0.1.0 artifact/POM integrity verification succeeded; no Java executed.
 Fresh installed-editor/public authoring/full hosted journey remain unproved.
+
+Final integration30changed files b6e23cc..13fa3d2 passed independent Sol/high
+review with no actionable findings. Root applied real live ui1:0.1.0 dependency
+plan to a disposable app; Maven fetched exact public artifact and compile passed.
+Finite native maintained-consumer Start→app→Restart passed on Mac/JDK17. Harness
+first omitted JavaFX modules, then used pinned module path; CGDisplayLink warnings
+remained. No arbitrary candidate or checker ran, no installed-editor claim.

@@ -1170,3 +1170,13 @@ complete public history, verified maintained ui1:0.1.0 metadata and exact
 JAR/sources/POM bytes/coordinates/dependencies. No Java ran in this check.
 Current shipped kits still lack new native integration; updated local candidate
 and installed-editor trial remain next. Public contributions remain closed.
+
+
+Root real public dependency plan applied to a disposable consumer, revalidated
+fingerprint/POM and exact bytes. Maven actually fetched ui1:0.1.0 POM/JAR and
+compiled ordinary imports of StartScreen/Hud. Finite maintained native app
+asserted Start→message→Restart and closed. First temporary harness launch lacked
+JavaFX modules; explicit pinned module path corrected it. CGDisplayLink warnings
+remained, assertions/exit passed. Other dependencies used existing Maven cache;
+this does not prove a fresh machine or actual installed VS Code UI. No arbitrary
+Java candidate/checker ran. Integration review accepted13fa3d2; public gates remain.

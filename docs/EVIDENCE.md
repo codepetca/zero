@@ -1530,3 +1530,23 @@ Final integration source review pending. No artifact/version/installer change,
 publication/deployment/schema/auth/account mutation. Physical Windows trial
 deferred by owner; local candidate packaging needs accepted integrated SHA and
 one explicitly reserved writer. Public checker/host/OAuth gates unchanged.
+
+
+Integration acceptance: complete30-file b6e23ccf3a668ac9af93f96a922b598f6fef52d0..
+13fa3d2d115bc72a3f7483bff2b0813f71537318 reviewed by GPT-6.1-Sol/high,
+no actionable findings. Reviewer inspected full diff and immediate Git/catalog/
+download/tutorial/drawing callers, verified deployed legacy complete-history
+source contract, passed diffcheck and reused supplied focused/full proofs. One
+actual final integration turn; cumulative46 includes3historical filter failures.
+No remediation; effective model/time/tokens unknown. Held checker excluded.
+
+Root additionally applied the real live catalog's verified ui1:0.1.0 plan to a
+disposable Java app. Wrapper downloaded exact published POM/JAR; compile passed.
+Finite native Start→app-content→Restart assertions passed on Mac/JDK17, then
+closed. Temporary harness initially lacked JavaFX module launch flags; corrected
+with pinned modules, no product change. CGDisplayLink warnings remained. Trusted
+maintained sample only; existing Maven cache used for other dependencies. No
+arbitrary candidate/checker, real installed-editor action or clean-machine proof.
+Evidence under ignored .verification/hub-controls/live-client-consumer.
+No publication/mainmerge/deployment or activation. Factual receipt only follows
+accepted source. One isolated candidate package writer will be reserved next.
