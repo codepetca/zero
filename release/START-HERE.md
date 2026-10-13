@@ -1,5 +1,8 @@
 # Start with Zero
 
+This kit contains Zero **0.5.8** for **Mac with Apple Silicon** and **Windows**.
+Linux and Intel Macs are unsupported.
+
 ## Zero setup app
 
 In the new Mac setup, choose **Set up Zero**, wait for the single status message,
@@ -15,8 +18,7 @@ ZIP/manual paths remain below; they do not use the new Mac app's automation.
 ## Guided setup
 
 Extract the **whole ZIP** first. On Windows, double-click `setup/Setup.cmd`.
-On macOS, double-click `setup/Setup.command`. On Linux, run
-`bash setup/setup.sh` from the extracted kit folder.
+On a supported Mac, double-click `setup/Setup.command`.
 
 Setup checks your existing tools first. Choose an installation or help action
 only for items that need attention. It can help install missing tools through an
@@ -40,8 +42,8 @@ work, not for running the first app. Sign in only when you are ready to upload.
    for Maven and JavaFX downloads. Students do not need Node.js or global Maven.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
-   Palette (**Ctrl+Shift+P** on Windows/Linux, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.7.vsix** beside this
+   Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
+   **Extensions: Install from VSIX…** → select **zero-0.5.8.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
@@ -69,5 +71,16 @@ Running locally needs no GitHub account. Upload, Start and Finish default to
 simulation. Follow teacher visibility instructions before creating your own
 repository or enabling live uploads. Submit the repository link separately in Pika.
 
-The Component Workshop is a separate optional download. The starter already
-includes readable examples and editable ordinary Java framework source.
+## Use a ZeroHub component
+
+This kit includes automatic library setup. In Zero's (…) menu, choose
+**Browse ZeroHub**, pick a component, then choose **Add library → Apply**.
+Zero sets up the library for your app. Use the component's Java import and
+example, then **Run App**. You do not need to edit the project setup file.
+
+Choose **Update** when a newer compatible version is available; **Revert** returns
+to your preceding version. Existing app code is kept. Browsing and using public
+libraries needs no GitHub sign-in. Public library uploads are not open yet.
+
+The starter also includes readable examples and editable ordinary Java
+framework source.

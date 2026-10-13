@@ -9,7 +9,10 @@ import { verifiedLocalInstaller, boundedFile } from '../lib/local-installer.mjs'
 const kit = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
 const releaseInstaller = JSON.parse(await readFile(new URL('../../release/installer.json', import.meta.url)));
 const authored = structuredClone(releaseInstaller);
+authored.kitVersion = kit.kitVersion;
 authored.publication.status = 'local';
+authored.publication.tag = `setup-v${kit.kitVersion}`;
+authored.asset.filename = `Zero-Setup-${kit.kitVersion}-macos.dmg`;
 delete authored.asset.url;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function fixture(t) {
@@ -71,7 +74,10 @@ test('published Mac fallback keeps its own exact download across a newer local k
   validateInstallerManifest(publishedManifest('0.9.0'), {...kit, kitVersion:'0.10.0'});
   assert.throws(() => validateInstallerManifest(publishedManifest('0.10.0'), {...kit, kitVersion:'0.9.0'}), /newer/);
   assert.throws(() => validateInstallerManifest(publishedManifest('0.5.9007199254740993'), {...kit, kitVersion:'0.5.9007199254740992'}), /newer/);
-  assert.throws(() => validateInstallerManifest(authored, current), /local version/);
+  const olderLocal = structuredClone(published);
+  olderLocal.publication.status = 'local';
+  delete olderLocal.asset.url;
+  assert.throws(() => validateInstallerManifest(olderLocal, current), /local version/);
 });
 test('older published metadata retains version bindings and strict integrity guards', () => {
   const current = {...kit, kitVersion:'0.5.8'};
@@ -128,7 +134,7 @@ test('a valid published fallback cannot be served as the newer local candidate',
   published.publication.status = 'published';
   published.asset.url = `https://github.com/codepetca/zero/releases/download/${published.publication.tag}/${published.asset.filename}`;
   assert.deepEqual((await verifiedLocalInstaller(f.root, published, kit, {checkSource:false})).bytes, f.bytes);
-  const newer = {...kit, kitVersion:'0.5.8'};
+  const newer = {...kit, kitVersion:kit.kitVersion.replace(/\d+$/, patch => String(BigInt(patch) + 1n))};
   assert.equal(validateInstallerManifest(published, newer), published);
   await assert.rejects(verifiedLocalInstaller(f.root, published, newer, {checkSource:false}), /Local installer must match the current kit version/);
 });
