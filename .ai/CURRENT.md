@@ -1,74 +1,50 @@
 # Current state
 
-Updated 2026-10-12/13. GitHub sharing clean replacement; push and draft-PR delivery approved
-2026-10-13. Full goal remains incomplete under the managed-library acceptance hold.
+Updated 2026-10-13. GitHub sharing replacement delivered as
+[draft PR27](https://github.com/codepetca/zero/pull/27). Full adoption is incomplete.
 
 ## Goal and authority
 
-Implement [the full plan](../docs/GITHUB-SHARING-PLAN.md): existing student game
-repository, extracted libraries, native Check/Share/Add/Update/Revert and game
-Open, trusted GitHub registry, immutable public artifacts/catalog, Vercel, no Neon.
-User authorized wholesale replacement, orchestration and task-scoped override
-of routine usage/review-budget stops. Actual provider/runtime rejection remains
-binding. Generic submitted-library acceptance was previously provider-rejected:
-no equivalent retry/bypass or public arbitrary Java execution. DeepSeek paused.
-User replied Approved to the concrete push/draft-PR request on 2026-10-13.
-This grants branch push and draft PR creation, not merge, deployment, resource
-provisioning, public artifact release or retry of the held acceptance.
+Implement [the adoption plan](../docs/GITHUB-SHARING-PLAN.md): one student game
+repository with optional libraries, local Check/Share/Add/Update/Revert and game
+Open, GitHub records, immutable public artifacts, Vercel and no Neon dependency.
+Owner approved wholesale replacement and task-scoped usage/review-budget waiver,
+then explicitly approved branch push and draft PR creation. Those actions are
+complete. No merge, production deployment, resource provisioning, public artifact
+release, credential change or Neon deletion is authorized by that approval.
+Generic submitted-library acceptance remains provider-rejected; no equivalent
+retry/bypass or arbitrary public Java execution. DeepSeek remains paused.
 
-## Checkout and delivery
+## Delivery and verification
 
-Worktree `/Users/stew/.codex/worktrees/github-sharing-adoption/zero`, branch
-`codex/github-sharing-adoption`, base `4ed9cd4`. Other tasks remain untouched.
-Three implementation delegates: Sol/high registry + authoring, Sol/medium website.
-Delivered native integration, rollback/privacy, fixed-origin verified consumers,
-Git CAS adapter, public Blob adapter, game-only platform, cursor reconciliation,
-CLI and website. Coordinator removed former service/SQL/OAuth runtime and pg;
-retained disconnected `hub/checker/` reference for its unresolved gate.
-Game workflow is disabled until exact reviewed source/operator config is active.
-Kit bundles the Java harness and explicit operator settings; default is closed.
+Worktree /Users/stew/.codex/worktrees/github-sharing-adoption/zero;
+branch codex/github-sharing-adoption, original replacement base4ed9cd4.
+Other tasks remain untouched. PR targets main and includes inherited tutorial/kit
+work; existing draft PR26 is unchanged. Replacement review does not claim fresh
+review of the entire cumulative main diff.
 
-## Evidence and next work
+Implementation79edd1f is clean under two initial independent reviews and targeted
+remediation. CI correction6851aa7 is clean under Sol/medium delta review; it makes
+only the disposable proof truststore writable. Source JDK hash/mode preserved.
+Review ledger5turns/1initialwave/3targetedpasses/3fixbatches; model/token/elapsed
+telemetry unavailable where not exposed. No equivalent held-executor review.
 
-Commits c3b9465 and 8f00bca deliver the replacement and first remediation.
-Two Sol/high initial scopes found seven unique blockers, resolved in batch 1.
-Astra/high targeted review at 8f00bca found three further blockers: bounded POM
-property expansion, immutable request recovery after GitHub renames, and useful
-public source corrections. Batch 2 fixes these together. All writers stopped.
-Resolver limits are memoized and checked before concatenation; numeric identities
-reuse the original frozen record; fixed diagnostic codes/messages omit private
-error text. Registry/CLI and website consume the same correction contract.
+[CI38380415688](https://github.com/codepetca/zero/actions/runs/38380415688)
+passed at6851aa7 on Ubuntu24.04/Temurin17: root223pass/1PowerShellskip,
+release53pass, registry38pass, real two-consumer HTTPS Maven proof, finite JavaFX
+examples, website50pass/types/build, kit/VSIX source parity and extracted Maven
+build. Vercel preview checks passed. The original readonly-truststore CI failure
+was fixed and reviewed. Subsequent handoff changes are documentation only.
+Detailed receipts and limits: [EVIDENCE](../docs/EVIDENCE.md) and
+[VERIFICATION](../docs/VERIFICATION.md). All delegates stopped.
 
-Latest unchanged root suite: 222 passed, one portable PowerShell skip (~113s).
-Batch 2 website: 50 passed, types/build passed; diagnostic unit passed. Registry
-and syntax checks completed; detailed receipts are in docs/EVIDENCE.md. Two real
-Maven consumers Add/Update/Revert through scoped local HTTPS; actual JAR, behavior,
-and source archive hashes verified. Browser fixtures cover discovery, recovery,
-exact links and mobile source correction. They do not prove live hosting.
+## Remaining gates
 
-Reviewed implementation head: 79edd1ff4f9758c98726d8625f394f9e91668cc7.
-Astra/high targeted pass completed all 17 delta files and immediate interactions
-with no actionable findings; 19 independent focused inert checks passed. All
-three batch-2 blockers are resolved. Unchanged initial coverage is reused; an
-extra full review wave adds no identified coverage. Ledger: 4 reviewer turns,
-1 initial wave, 2 targeted waves, 2 fix batches. Package and verify:kit passed,
-including every VSIX source byte, harness/config parity and extracted Maven build.
-Next: authorized real-provider setup/proof and resolution of held managed library
-acceptance, then hosted backup restoration and the novice pilot. The owner-approved draft is published; no contribution publication or live
-activation has occurred.
-Budget stops remain waived; actual generic-library provider rejection remains
-binding and excluded from replacement acceptance. Storage healthy ~341GB;
-weekly46% remaining is account-wide, not task cost. Worker token/effective-model
-telemetry unknown; no writer conflicts. No resets or paid resources used.
-
-Full goal is incomplete. Branch pushed; [draft PR27](https://github.com/codepetca/zero/pull/27) is attached.
-Initial exact-head CI38379538095 passed Linux root/registry checks and failed
-when a copied read-only JDK truststore prevented local test-CA import. The fix
-makes only the disposable copy private/writable. Full two-consumer proof with
-a444source truststore passed; original source hash/mode unchanged. Targeted
-review and corrected-head CI are next;
-held managed-library acceptance remains unresolved. Actual GitHub/Blob
-permissions and ETag/CAS behavior,
-public publication, hosted backup restoration, physical Windows, interactive
-VS Code and novice classroom trials are outstanding. No live activation or
-external writes are authorized by local verification. Preserve this worktree.
+Game publication workflow and bundled operator settings remain disabled. Local
+Check executes students' own trusted source, not managed hosted acceptance.
+Next: obtain applicable managed-library acceptance and explicit live-provider/
+rollout authority, verify actual GitHub/Blob permissions and ETag/CAS behavior,
+public immutable Maven/game delivery and backup restoration, then installed-editor,
+physical Windows and novice classroom trials. Linux CI proves its maintained
+fixtures, not general Linux product support or classroom usability.
+Full tool-backed goal remains incomplete; preserve this worktree and reviewed code.

@@ -1763,3 +1763,29 @@ mode/hash stayed unchanged. Receipt .verification/sharing-consumers-readonlyjdk/
 receipt.json. Script limits now refer to other platforms rather than hard-coding
 Linux as untested regardless of its recorded platform. Syntax/diff checks pass.
 Bounded independent delta review and corrected-head CI remain pending at commit.
+
+
+### PR27 corrected-head CI acceptance — 2026-10-13
+
+PR https://github.com/codepetca/zero/pull/27 remains draft, source6851aa7.
+Sol/medium sharing_ci_fix_review completed all3files of555e7d5..6851aa7 plus
+script cleanup/failure paths and callers; clean, no findings. Syntax/whitespace
+checks independently passed; readonly-JDK21.898s proof receipt inspected/reused.
+Effective model/worker token deltas and elapsed time unknown. Ledger5reviewturns,
+1initialwave/3targetedpasses/3fixbatches; existing task budget waiver persists.
+
+Corrected CI https://github.com/codepetca/zero/actions/runs/38380415688 succeeded
+at exact6851aa7a84fd5fc6a4d1ac684baf14a3dee9f057,10:00:48–10:05:55UTC.
+Ubuntu24.04/Temurin17: root223pass/1PowerShellskip, release53pass, registry38pass,
+real HTTPS two-consumer Add/Update/Revert, finite JavaFX examples, website50pass/
+types/build, final kit/VSIX source parity/extracted Maven build and artifact
+receipts upload passed. Vercel source-head preview checks also passed.
+Ignored logs sharing-pr27-corrected-ci.log/watch.log and goal audit retain details.
+Subsequent tracked handoff is documentation only and preserves reviewed source.
+
+Action runtime Node20/setup-java-v4 deprecation warnings are nonblocking; current
+job succeeded. No broad support/interactive classroom or managed execution claim.
+Full goal still lacks live GitHub/Blob semantics, hosted immutable publication/
+backup restoration, approved generic library execution, physical Windows,
+installed-editor and novice pilot. No merge, production deployment, provisioning,
+credentials mutation, public release or database deletion was performed.
