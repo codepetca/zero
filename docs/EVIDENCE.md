@@ -1550,3 +1550,52 @@ arbitrary candidate/checker, real installed-editor action or clean-machine proof
 Evidence under ignored .verification/hub-controls/live-client-consumer.
 No publication/mainmerge/deployment or activation. Factual receipt only follows
 accepted source. One isolated candidate package writer will be reserved next.
+
+
+## Frozen local0.5.8 candidate and platform limits — 2026-10-12
+
+Owner-authorized cross-task coordinator delivered five reserved version/guidance/
+fixture files fa802d8..ed5242c86f1e6d36b58f3a034aada3f385ec7ea8. Source review
+reported complete clean Sol/medium;7installer cases independently passed. Only
+fixture metadata derives current version; production provenance guards/public
+Mac0.5.7 and published-kit manifests unchanged. First versioned website run had
+five fixture failures, corrected in reservedtestpath; final94passes/2optional
+skips/build and188rootpasses/1PowerShellskip,release53/installer8/Macrelease2
+passed. Root integrated by fastforward to exactsourceSHA, inspected fivefiledelta
+and passed7installer/config/diff checks. RootCI38327689796 already passed baseline
+fa802d8; new version receipt CI must be verified separately.
+
+Three frozen files under mvp-release-candidate/zero/dist/candidates/zero-0.5.8-ed5242c:
+completeZIP254480bytes/c5c52b38ac91ddf498e94eeb3bd2a5ee219ea43b47cccccb9d8b761cbff7552d;
+starter183587bytes/9bf52c9e557662ccd69975398990bd2ec1449f598b85dcbd3af1c94d881321b6;
+VSIX48149bytes/b0935bcd2389f98d25e139c4c678377adb39f312afdf9fb387fd50bcaf5c2c24.
+All extension source files match accepted source; extracted Maven/modes/licenses
+verified. Root independently matched all3hashes. Windows net48 harness0warnings/
+errors,Mono228checks with exactZIP extraction/update/save preservation passed.
+UnsignedEXE320512bytes/e8579246ae44557dcb9d15180208ef4b3d737167c8f4f49d07ccd2dc4c580d8e
+was crossbuilt/header/CLR/embedded-exactZIP verified and roothashmatched. Its
+sourceDirtyfalse/nativeWindowsTestedfalse/unsigned receipt and PC checklist remain
+under zero-0.5.8-windows-ed5242c. No repack/sign/publish/tag/mainmerge/deploy.
+
+Root isolated Mac install lists zero.zero@0.5.8 and exthostlog confirms activation
+workspaceContains:zero.json. Long ignored profile path exceeded macOS103char IPC
+socketlimit; corrected to short private/tmp path/copied kitsettings, no product
+change. Native app control binds older normal process63054 rather than owned
+new77146, so no actual installed Browse/Add/Apply/Run UI proof. Root stopped only
+owned77146 after exactcommand verification; normalprofiles/studentwork unchanged.
+Private local receipt under .verification/hub-controls/installed-editor-058.
+Physical Windows/WinForms/PowerShell5.1/WebKit/clean-machine/full hosted student
+journey remain unproved. Public contributions still closed, oldchecker review
+excluded. Candidate artifacts remain bound to ed5242c; later factual docs are
+not a repack or publication receipt.
+
+
+Candidate-review receipt peer-candidate/ed5242c/1: all5files plus immediate release
+contracts fa802d85e8fde5ca91035286bb770644a218edcd..
+ed5242c86f1e6d36b58f3a034aada3f385ec7ea8 independently covered by requested
+Sol/medium; complete/no actionable findings,7installer cases passed. One actual
+review turn/initial wave/zero remediation batches; cumulative47 adds this peer
+turn to46priorrootturns, includes3historical filter failures, does not count reused
+peer baseline coverage again. Effective model/time/tokens unknown. Candidate
+version/source/assets remain local, not pushed or published; draftPR/sourceCI
+currently stop atfa802d8. Factual receipts do not weaken any held launch gate.

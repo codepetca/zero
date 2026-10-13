@@ -1180,3 +1180,20 @@ JavaFX modules; explicit pinned module path corrected it. CGDisplayLink warnings
 remained, assertions/exit passed. Other dependencies used existing Maven cache;
 this does not prove a fresh machine or actual installed VS Code UI. No arbitrary
 Java candidate/checker ran. Integration review accepted13fa3d2; public gates remain.
+
+
+Local0.5.8 sourceed5242c accepted independent candidate review. Package/extracted
+starter/allVSIX-source proof and candidate website94+2optional/skips/build,
+root188+1PowerShellskip/release53/installer8/Macrelease2 passed. Root7installer/
+config checks and four frozen artifact hashes independently passed. ActualZIP
+WindowsMono228checks pass extraction/versionmetadata/savepreservation; PE/CLR/
+exactembeddedZIP check passes on unsigned developmentEXE. This is cross-platform
+backend proof, not actualWindows/WinForms/PowerShell5.1 or signing.
+
+ActualMacCLI install0.5.8 and workspaceContains activation proved using copied
+kitsettings and isolated profile/extensions. Initial longprofilepath IPC failure
+corrected to short private/tmp; no productcodechange. Native app-control couldn't
+select the separate test process, so installed Browse/Add/Apply/Run buttons remain
+unverified. Ownedprocess77146 stopped; existingCodeprofiles/studentwork untouched.
+Frozenkit/VSIX/unsignedWindowsEXE stay local; publicdownloads/capabilities unchanged.
+Rootbaseline CI38327689796 passedfa802d8; post-version/docs GitHub CI has not run: candidate stays local.
