@@ -31,17 +31,28 @@ function git(args, cwd = root) {
 }
 before(() => {
   sourceA = git(['rev-parse', 'HEAD']);
-  metadataB = git(['rev-parse', 'HEAD^']);
-  assert.notEqual(sourceA, metadataB);
   checkoutTemp = mkdtempSync(join(tmpdir(), 'zero-sharing-checkout-'));
   checkout = join(checkoutTemp, 'source');
-  // Local clone and real detached checkout: no network, new commits, or source execution.
+  // All history needed by this fixture belongs to this disposable local clone.
+  // CI may supply only HEAD; never require a parent commit from the project.
   git(['clone', '--quiet', '--shared', '--no-checkout', root, checkout]);
+  git(['checkout', '--quiet', '--detach', sourceA], checkout);
+  const metadataFile = '.zero-sharing-workflow-metadata';
+  writeFileSync(join(checkout, metadataFile), 'Disposable metadata update; publisher source unchanged.\n');
+  git(['add', '--', metadataFile], checkout);
+  git(['-c', 'user.name=Zero workflow fixture', '-c', 'user.email=fixture@example.invalid',
+    '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null',
+    'commit', '--quiet', '--no-verify', '-m', 'Disposable workflow metadata fixture'], checkout);
+  metadataB = git(['rev-parse', 'HEAD'], checkout);
+  assert.notEqual(sourceA, metadataB);
+  assert.equal(git(['diff', '--name-only', sourceA, metadataB], checkout), metadataFile);
   git(['checkout', '--quiet', '--detach', sourceA], checkout);
   // Reuse installed pinned JS dependencies without installation or SDK calls.
   symlinkSync(join(root, 'node_modules'), join(checkout, 'node_modules'), 'dir');
 });
-after(() => rmSync(checkoutTemp, {recursive:true, force:true}));
+after(() => {
+  if (checkoutTemp) rmSync(checkoutTemp, {recursive:true, force:true});
+});
 function config(overrides = {}) {
   return {schema:1, repository:'codepetca/zero', registryBranch:REGISTRY_BRANCH,
     artifactOrigin:'https://fixture.public.blob.vercel-storage.com',
