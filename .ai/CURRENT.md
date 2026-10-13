@@ -38,7 +38,9 @@ One batched fix uses pinned existing parse5 8.0.1 HTML semantics, checks landing
 origin/path, recognizes Windows ZIP label and corrects measured0.5.9 runbook.
 Publisher82/release86 pass; real verify-only0.5.8 passes after corrections.
 Unsigned current Mac0.5.9 build/payload/modes passed; no GUI/signing claim.
-Targeted Sol/high turn28 next; unchanged initial source coverage reused. Effective
+Targeted Sol/high turn28 completed at67d05af: both P1 gaps resolved, no code
+blockers. One P3 planned-tag wording fixed in a docs-only second batch; fast
+targeted turn29 next. Unchanged initial source coverage reused. Effective
 models/tokens/worker times unknown; starting weekly remaining85% is account-wide,
 storage329.4GB healthy. Task-scoped usage/review-stop waiver persists, not execution
 or identity gates. DeepSeek remains paused.

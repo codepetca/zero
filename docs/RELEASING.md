@@ -156,8 +156,10 @@ with another new local version.
 
 `release/installer.json` is the optional, strict native manifest. It describes
 only the measured universal Mac DMG and its original clean build source, embedded
-kit, signer and accepted notarization submission. Its independent tag is
-`setup-v0.5.9`; `v0.5.9` remains the three-asset kit release. The existing
+kit, signer and accepted notarization submission. It currently records the
+published0.5.8 installer. The planned0.5.9 candidate will use independent tag
+`setup-v0.5.9`; `v0.5.9` is the separate three-asset kit release. Update the native
+manifest only after measuring and verifying the new0.5.9 artifact. The existing
 `release:publish` command and Linux CI preparation do not publish or rebuild native
 installers. The unsigned Windows EXE is never a website/student download.
 

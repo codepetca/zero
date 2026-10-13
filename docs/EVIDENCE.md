@@ -2408,3 +2408,10 @@ Initial unsigned Mac0.5.9 artifact and read-only mounted payload/mode verificati
 passed from clean dca31b0 source; it is a development artifact, not distributable
 signed evidence. Targeted turn28 will cover full correction delta; one fix batch.
 No native GUI retry, actual publication or new credential operation occurred.
+
+Targeted Sol/high turn28 completed at67d05af; inspected full correction delta,
+read-only parser reproduction and diff check. Both P1 issues resolved; no new
+code blocker. Minor P3 native runbook must distinguish current published8manifest
+from planned9tag. Second docs-only batch corrects that wording; fast targeted
+turn29 checks factual delta, reusing source/manifest/parser coverage. No final
+full-wave repetition justified because docs do not change implementation behavior.
