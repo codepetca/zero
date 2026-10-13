@@ -6,7 +6,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
 import { availableKitRelease, releaseAssetHref, validateManifest, validatePublishedKit } from '../lib/contracts.mjs';
 import { installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
-const current = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
+const authored = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
+validateManifest(authored);
+// Exercise local and published states independently of the live release phase.
+const current = structuredClone(authored);
+current.publication.status = 'local';
+for (const asset of Object.values(current.assets)) delete asset.url;
 const fallback = JSON.parse(await readFile(new URL('../../release/published-kit.json', import.meta.url)));
 const native = JSON.parse(await readFile(new URL('../../release/installer.json', import.meta.url)));
 native.publication.status = 'local';

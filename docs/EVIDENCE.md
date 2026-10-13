@@ -2049,3 +2049,10 @@ receipt remains private .verification/sharing-mac-rollout-delivery.json. No pack
 student/native source is changed by this maintainer-tool correction; public assets
 remain immutable. Release docs now describe actual GitHub review requirements and
 the owner's existing removal of branch protection without changing account rules.
+
+Website verification exposed four state-fixture failures after real publication:
+local-preview/fallback tests read live current metadata and implicitly required it
+to remain local. The fixture now validates authored metadata, then constructs an
+explicit local clone with no public URLs; existing published/fallback/missing tests
+retain their assertions. Production selection code is unchanged. Batched before
+final promotion review rather than weakening expected behavior.
