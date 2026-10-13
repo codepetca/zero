@@ -1,9 +1,6 @@
 # Coin game with the same shared start and HUD views
 
-Stop the app. Back up Main and every helper, including edited components, outside
-`src/`. Remove unlisted example helpers from `src/main/java/`, preserving `zero/`.
-Keep build files, Maven wrappers, `pom.xml` and `zero.json`. Copy these exact
-files (paths are relative to the starter folder):
+Create a fresh local project from a Zero starter, separate from your other apps. Copy these exact files (paths are relative to the starter folder):
 
 | From | To |
 | --- | --- |

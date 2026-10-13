@@ -56,6 +56,8 @@ jobs:
         run: npm run test:sharing
       - name: Exact Maven consumption over local HTTPS
         run: node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-ci
+      - name: Fresh local lesson project builds
+        run: node scripts/verify-lesson-projects.mjs
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update

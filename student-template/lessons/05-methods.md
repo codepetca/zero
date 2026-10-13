@@ -6,16 +6,15 @@
 
 Target illustration: the counter after Reset.
 
-1. Follow the [safe switching steps](README.md#before-each-lesson).
-2. Copy [reset-counter Main.java](../examples/reset-counter/Main.java) into `src/main/java/Main.java`; **Run App**.
+1. [Start this lesson in a fresh project](README.md#start-a-lesson).
+2. Open the included [reset-counter Main.java](../examples/reset-counter/Main.java); **Run App**.
 3. Click **+1** twice, **Reset**, then **+1**. Find the two methods in the [code below](#code-and-explanation).
 
 **Done:** The label goes **2 → 0 → 1**.
 
 ## Code and explanation
 
-Back up your work outside `src/`. Replace `src/main/java/Main.java` with
-[reset-counter Main](../examples/reset-counter/Main.java):
+The fresh project already contains this `src/main/java/Main.java`, matching [reset-counter Main](../examples/reset-counter/Main.java):
 
 ```java
 import javafx.scene.control.Button;

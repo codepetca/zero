@@ -28,10 +28,9 @@ For the proof, copy only:
 - [Question.java](../study/Question.java) → `src/main/java/Question.java`.
 - The existing readable `zero/` framework source, wrapper and build files.
 
-Stop and back up your existing Main and helpers outside `src/` first. Remove
-unlisted example helpers only after backing up. Preserve `zero/`, resources and
-build files. Keep your edited source components in the backup; do not shadow the
-library with default-package Hud, StartScreen or ScoreDisplay classes.
+Use a fresh disposable copy of the starter for this package proof. Compile only
+the listed app files and `zero/`; remove the starter's default-package
+ScoreDisplay if present so it does not shadow the library.
 
 The generated proof POM adds this exact dependency:
 

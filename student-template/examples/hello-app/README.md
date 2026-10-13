@@ -6,9 +6,7 @@ This app responds to events; it has no update/draw loop.
 
 ## Copy and run
 
-Follow the [safe switching steps](../../lessons/README.md#before-each-lesson):
-stop your current app, back up Main and helpers outside `src/`, then remove
-unlisted helper Java files. In a standalone Zero starter, copy these exact files:
+Create a fresh local project from a standalone Zero starter. Copy these exact files into that separate folder:
 If your downloaded kit does not have this example, copy the complete Main and
 stylesheet shown on the website's [Hello, Java page](https://zero.codepet.ca/examples/hello-app)
 into these same destinations.

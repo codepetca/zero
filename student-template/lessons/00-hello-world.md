@@ -6,15 +6,15 @@
 
 Target illustration: the greeting after your edit.
 
-1. Use the [safe switching steps](README.md#before-each-lesson), then open `src/main/java/Main.java`.
-2. Keep or copy the [complete program below](#code-and-explanation); click **Run App**.
-3. Change `Hello, world!` to `Hello, Java!`; **Save → Stop → Run App**.
+1. [Start this lesson in a fresh project](README.md#start-a-lesson), then open `src/main/java/Main.java`.
+2. Open the included [complete program below](#code-and-explanation); click **Run App**.
+3. Change `Hello, world!` to `Hello, Java!`; **Run App**.
 
 **Done:** The new window says **Hello, Java!**.
 
 ## Code and explanation
 
-Open `src/main/java/Main.java`. In an older kit, replace the quiz with this
+Open the fresh project's `src/main/java/Main.java`. It contains this
 program. This is the whole program:
 
 ```java
@@ -32,7 +32,7 @@ public class Main extends SimpleApp {
 
 1. Click **Run App**. A separate window shows **Hello, world!**
 2. Change `"Hello, world!"` to `"Hello, Java!"`.
-3. Save, click **Stop**, then **Run App** again. The window shows your new greeting.
+3. Click **Run App** again. The window shows your new greeting.
 
 `greeting` names the label created by `new Label(...)`.
 `show(greeting)` puts it in the window.

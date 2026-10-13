@@ -45,9 +45,9 @@ compares exactly with 5 and does not score. Both examples remain available.
 
 ## Common fixes
 
-- Duplicate Main: back up outside `src/`, then copy only listed files.
+- Duplicate Main: open the fresh lesson project folder, which has one Main and only its matching helpers.
 - Missing class: check the lesson's complete copy list.
-- Old result: save, stop and rerun the compiled copy, not the example shelf.
+- Old result: click Run App again in the active lesson project; Zero saves and restarts it.
 - Keys inactive: click the canvas.
 - Repeated points: check the answered/collected guard.
 - Sharing a JavaFX node: create separate component instances for separate apps.

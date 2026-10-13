@@ -20,6 +20,19 @@
         "--extension"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "Zero: Prepare lessons",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/lesson-projects.mjs"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Zero: Prepare extension",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Zero: Prepare design", "Zero: Prepare lessons"],
+      "problemMatcher": []
     }
   ]
 }

@@ -4,6 +4,7 @@ const {createReadStream} = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const core = require('./core');
+const {assertShareable} = require('./lesson-projects');
 const reviewedPlans = new WeakSet();
 
 // Deliberately omit raw Git stderr: credential helpers can include private data.
@@ -99,6 +100,7 @@ async function inspect(project, run) {
   return {root, canonicalPage: repository.page, page: repository.page, remote: repository.remote, branch, head, status, changes, contentFingerprint, fingerprint: digest.digest('hex')};
 }
 async function prepareUpload(project, run = core.git) {
+  await assertShareable(project);
   const state = await inspect(project, run);
   const plan = Object.freeze({...state, changes: Object.freeze(state.changes.map(change => Object.freeze(change))), guards: Object.freeze({exactRoot: true, singleOrigin: true, sourceFingerprint: state.fingerprint}), summary: state.changes.length ? `${state.changes.length} changed path(s) to save on ${state.branch}` : `No file changes; upload branch ${state.branch}`});
   reviewedPlans.add(plan);
@@ -108,6 +110,7 @@ function sameReview(plan, current) {
   return ['root', 'remote', 'branch', 'head', 'status', 'fingerprint'].every(key => plan[key] === current[key]);
 }
 async function uploadPrepared(plan, message, {run = core.git, networkRun, beforeUpload = async () => {}, onProgress = () => {}} = {}) {
+  if (plan?.root) await assertShareable(plan.root);
   const network = networkRun || ((root, args) => execute(run, root, args, 'upload or confirm the GitHub branch'));
   if (!reviewedPlans.has(plan)) throw new Error('Review the project upload before continuing.');
   if (typeof message !== 'string' || !message.trim() || message.includes('\0')) throw new Error('Enter a short commit message describing your changes.');

@@ -4,6 +4,7 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const execute = promisify(execFile);
+const {assertShareable} = require('./lesson-projects');
 
 function parseRepositoryUrl(input) {
   if (typeof input !== 'string' || input !== input.trim()) throw new Error('Use an ordinary GitHub HTTPS repository URL.');
@@ -40,12 +41,14 @@ async function repositoryRoot(project, run = git) {
   }
 }
 async function assertRepositoryRoot(project, run = git) {
+  await assertShareable(project);
   const expected = await fs.realpath(project);
   const actual = await repositoryRoot(expected, run);
   if (actual !== expected) throw new Error(actual ? 'This project is inside a different Git repository. Open a standalone student copy before connecting.' : 'Connect a repository for this student project first.');
   return expected;
 }
 async function connectRepository(project, url, confirmReplacement, run = git) {
+  await assertShareable(project);
   const repository = parseRepositoryUrl(url);
   const expected = await fs.realpath(project);
   const existingRoot = await repositoryRoot(expected, run);

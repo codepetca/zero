@@ -55,6 +55,14 @@ export function Document({ id, lesson = "" }) {
             {lesson ? `Lesson ${lesson}: ${title}` : title}
           </h2>
           {related && <p className="reader-subtitle">{related.description}</p>}
+          {lesson && (
+            <section className="lesson-start" aria-label="Start this lesson">
+              <a className="button" href={`/generated/lessons/zero-lesson-${lesson}.zip`} download={`zero-lesson-${lesson}.zip`}>
+                Start lesson {lesson}
+              </a>
+              <p>Download the fresh project, unzip it, open its folder in VS Code, then click <strong>Zero → Run App</strong>. This is local practice; keep the sample off GitHub.</p>
+            </section>
+          )}
           <FoldingReader key={id}>
             <Markdown
               remarkPlugins={[remarkGfm]}
@@ -81,7 +89,7 @@ export function Document({ id, lesson = "" }) {
                     lessonAssets,
                   );
                   return target ? (
-                    <a href={target} download={Object.values(lessonAssets).includes(target) ? target.split("/").at(-1) : undefined}>{children}</a>
+                    <a href={target} download={Object.values(lessonAssets).includes(target) || target.startsWith("/generated/lessons/") ? target.split("/").at(-1) : undefined}>{children}</a>
                   ) : (
                     <span
                       className="source-note"

@@ -6,8 +6,8 @@
 
 Target illustration: the supplied robot after two sound clicks. Larger stages follow.
 
-1. Follow the [safe switching steps](README.md#before-each-lesson).
-2. Copy Main and the two resources to the exact paths in [stage 1](#1-your-sprite-and-sound); **Run App**.
+1. [Start this lesson in a fresh project](README.md#start-a-lesson).
+2. Open the included Main and two media resources in the fresh project; **Run App**.
 3. Click **Play sound** twice; listen and watch the counter.
 
 **Done:** See the robot and **Plays: 2**; hear the chimes. The counter alone cannot check audio.
@@ -16,31 +16,19 @@ Assets → scrolling → platforms → levels → win/lose. Run each stage first
 
 ## Before each stage
 
-Stop. Back up Main/helpers **outside `src/`**. Keep `zero/`, wrappers,
-`pom.xml` and `zero.json`. Copy listed Java files into `src/main/java/`, replacing
-old versions; remove unlisted helpers. Keep **one Main**.
-Save → Stop → Run App. Click the canvas for keys.
+Each stage has a fresh project. Download its ZIP below or choose the same stage
+under **Zero: Start lesson**. Open the new folder and click **Run App**. Click
+the canvas for game keys. Keep every stage local.
 
 ## 1. Your sprite and sound
 
-Create `src/main/resources/media-demo/`. Copy:
+The fresh Lesson 12 project already includes:
 
 | From | To |
 | --- | --- |
 | [media-demo/Main.java](../examples/media-demo/Main.java) | `src/main/java/Main.java` |
 | [player.png](../examples/media-demo/resources/media-demo/player.png) | `src/main/resources/media-demo/player.png` |
 | [chime.wav](../examples/media-demo/resources/media-demo/chime.wav) | `src/main/resources/media-demo/chime.wav` |
-
-The starter includes JavaFX media. Older kit: add this inside `pom.xml`'s
-`<dependencies>` **only if absent**; retain the pinned version:
-
-```xml
-<dependency>
-  <groupId>org.openjfx</groupId>
-  <artifactId>javafx-media</artifactId>
-  <version>${javafx.version}</version>
-</dependency>
-```
 
 **Check:** see the robot. Click **Play sound** twice: hear chimes; see `Plays: 2`.
 Each click replaces the effect. The counter cannot prove audibility; check device/volume.
@@ -54,9 +42,9 @@ change Main's paths too. Adjust its 96×96 drawing or `sound.setVolume(0.25)`
 
 ## 2. A scrolling world and fixed score
 
-From [scrolling-game](../examples/scrolling-game/README.md), copy **Main.java,
-Camera.java, Player.java and Coin.java**. Add unchanged
-[shared/ScoreDisplay.java](../examples/shared/ScoreDisplay.java). Keep both resources.
+[Start Scrolling world](/generated/lessons/zero-lesson-12-scrolling.zip).
+It includes Main, Camera, Player, Coin, unchanged ScoreDisplay and both resources.
+See [scrolling-game](../examples/scrolling-game/README.md) for the complete file list.
 
 **A/D or Left/Right** moves. Canvas: 640×360; world: 1600×360. Camera.follow
 centres the view and clamps its offset:
@@ -75,9 +63,9 @@ Reach both world edges.
 
 ## 3. Gravity, platforms and collisions
 
-From [platform-game](../examples/platform-game/README.md), replace **Main.java,
-Camera.java, Player.java and Coin.java**; add **Platform.java**. Keep unchanged
-**ScoreDisplay.java** and both resources.
+[Start Platforms and gravity](/generated/lessons/zero-lesson-12-platforms.zip).
+It includes Main, Camera, Player, Coin, Platform, unchanged ScoreDisplay and both
+resources. See [platform-game](../examples/platform-game/README.md).
 
 **Space or Up** jumps on a new grounded press. Player uses steps of at most
 1/120 second, adds gravity, moves and resolves collisions:
@@ -94,9 +82,9 @@ through a landing: no extra jump. Fall into a gap: the stage resets.
 
 ## 4. Enemies and two levels
 
-From [level-game](../examples/level-game/README.md), replace **Main.java,
-Camera.java, Player.java, Coin.java and Platform.java**; add **Level.java and
-Enemy.java**. Keep unchanged **ScoreDisplay.java** and both resources.
+[Start Enemies and levels](/generated/lessons/zero-lesson-12-levels.zip).
+It includes Main, Camera, Player, Coin, Platform, Level, Enemy, unchanged
+ScoreDisplay and both resources. See [level-game](../examples/level-game/README.md).
 
 Level holds ordinary arrays of platforms, coins and enemies, for example:
 
@@ -115,9 +103,9 @@ coins and lose only its unbanked points. Finish level 2: begin a fresh two-level
 
 ## 5. Win, lose and restart
 
-From [full-game](../examples/full-game/README.md), replace all seven files:
-**Main.java, Camera.java, Player.java, Coin.java, Platform.java, Level.java and
-Enemy.java**. Keep unchanged **ScoreDisplay.java** and both resources.
+[Start Win, lose and restart](/generated/lessons/zero-lesson-12-full.zip).
+It includes Main, Camera, Player, Coin, Platform, Level, Enemy, unchanged
+ScoreDisplay and both resources. See [full-game](../examples/full-game/README.md).
 
 Main owns playing/won/lost state. Its update begins:
 

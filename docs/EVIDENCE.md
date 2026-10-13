@@ -2309,3 +2309,19 @@ lesson reader with shared themes/client navigation. Fixture reflects the new
 Tutorials heading. Hub/release/sharing source remains identical to currentmain.
 Affected website checks and targeted integration review run on the new head;
 unchanged native/build-source coverage is retained, finalGitHubCI remains required.
+
+
+### Local lesson projects — implementation receipt
+
+Owner selected fresh local projects instead of manual example replacement.
+Coordinator built the shared generator/ZIPs and compilation verification;
+GPT6Sol/medium workers owned editor controls/guards and website/lesson wording
+separately. Effective model, elapsed worker time and attributable token/cost
+telemetry are unknown. Weekly account reading was89%remaining, not task cost.
+Integration corrected a source-list filter that included example checks and a
+renderer fixture missing the practice state; no independent-review remediation
+has occurred yet. Final checks and interactive limits are in VERIFICATION.md;
+the feature PR and ignored delivery receipt establish reviewed/merged revision.
+Generated student folders and payloads remain ignored and local; no credentials,
+GitHub sample repository or live student upload was created. Existing published
+0.5.8 assets remain immutable; no installer signing or release was performed.

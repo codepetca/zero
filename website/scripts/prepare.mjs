@@ -11,6 +11,7 @@ import { lessonAssets } from "../lib/learning.mjs";
 import { validateInstallerManifest } from "../lib/installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
+import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -99,6 +100,7 @@ try {
 }
 await mkdir(resolve(site, ".generated"), { recursive: true });
 await prepareDesign({ website: true, extension: false });
+prepareLessonProjects(root, { website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),

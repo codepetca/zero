@@ -2,6 +2,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const core = require('./core');
+const {assertShareable} = require('./lesson-projects');
 const {prepareUpload} = require('./github');
 const plans = new WeakSet();
 const shaPattern = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
@@ -87,6 +88,7 @@ function planFor(kind, current, extra) {
   return plan;
 }
 async function prepareStart(project, name, {run = core.git, networkRun} = {}) {
+  await assertShareable(project);
   networkRequired(networkRun);
   run = safeRunner(run);
   const current = await state(project, run);
@@ -99,6 +101,7 @@ async function prepareStart(project, name, {run = core.git, networkRun} = {}) {
   return planFor('start', current, {name, remoteMainHead, summary: `Update main from GitHub, then create ${name} from the completed main baseline.`});
 }
 async function prepareFinish(project, {run = core.git, networkRun} = {}) {
+  await assertShareable(project);
   networkRequired(networkRun);
   run = safeRunner(run);
   const current = await state(project, run);
@@ -141,6 +144,7 @@ function executorOptions(plan, kind, options) {
   return {beforeNetwork: async () => {}, onProgress: () => {}, ...options, run: safeRunner(options.run || core.git)};
 }
 async function startPrepared(plan, options = {}) {
+  await assertShareable(plan.root);
   const opts = executorOptions(plan, 'start', options);
   await ensureRemote(plan, opts);
   await fetchMain(plan, opts);
@@ -168,6 +172,7 @@ async function startPrepared(plan, options = {}) {
   return Object.freeze({branch: final.branch, head: final.head, page: plan.page});
 }
 async function finishPrepared(plan, options = {}) {
+  await assertShareable(plan.root);
   const opts = executorOptions(plan, 'finish', options);
   await ensureRemote(plan, opts);
   await fetchMain(plan, opts);
@@ -223,6 +228,7 @@ async function finishPrepared(plan, options = {}) {
   return Object.freeze({finished: true, branch: 'main', head: final.head, page: plan.page, finishedBranch: plan.branch});
 }
 async function deleteFinishedBranch(root, branch, expectedHead, {run = core.git} = {}) {
+  await assertShareable(root);
   run = safeRunner(run);
   if (!shaPattern.test(expectedHead) || typeof branch !== 'string' || branch === 'main' || !/^[a-zA-Z0-9][a-zA-Z0-9/_-]*$/.test(branch)) throw new Error('Choose the exact finished feature branch for local cleanup.');
   const current = await state(root, run);

@@ -4,9 +4,12 @@ Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 continues through counters, objects, a study app, ZeroHub sharing and a larger
 game with your own media, scrolling, platforms, two levels and endings.
-Start by editing only `src/main/java/Main.java`.
-Run App opens a separate JavaFX window. Save changes, close or
-Stop the old app, and Run App again to rebuild. The default build shortcut is
+Start by editing only `src/main/java/Main.java`. For another lesson, download
+its fresh project from the tutorial page, unzip it into a separate folder and
+open that folder in VS Code. Sample projects are local practice; use your own
+separate game repository for coursework or GitHub sharing.
+Run App opens a separate JavaFX window. After editing, click Run App again;
+Zero saves your files and stops the previous run before rebuilding. The default build shortcut is
 **Ctrl+Shift+B** on Windows or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
 The default build task is **Zero: Run App**, owned by the extension so its Stop
@@ -73,7 +76,7 @@ artifact code do not make those platforms supported in this MVP.
 ## Make something
 
 Start with [Lesson 0](lessons/00-hello-world.md): click Run App to see
-**Hello, world!**, change the greeting, then Save, Stop and Run App again.
+**Hello, world!**, change the greeting, then click Run App again.
 Next, [Lesson 1](lessons/01-hello-button.md) adds a button that changes the
 greeting. [Lesson 2](lessons/02-hello-name.md) reads your name.
 [Lesson 3](lessons/03-quiz.md) checks one answer with `if`.
@@ -152,14 +155,12 @@ component base class, scene routing, or object discovery.
 
 ## Try an example
 
-The `examples/` shelf is outside compiled `src/`. Choose **one Main at a time**.
-Stop the app and save your current Main and helper classes outside `src/` (or in
-your own Git repository) before switching. Copy the files listed below into
-`src/main/java/`, replacing Main. Keep the `zero/` framework folder. Run as usual;
-no pom.xml or zero.json changes are needed. After backing up your work, remove
-the previous example's Main and unlisted helper Java files before copying the new
-set. Preserve `zero/`. Old helpers can depend on a different Player or Coin API
-and break compilation even when the new Main is correct.
+The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
+**Start lesson** on the tutorial page to get a complete fresh project. For another
+example, make a fresh local copy of the starter and copy only that example's
+listed files into the new folder. Open the new folder in VS Code and click
+**Run App**. Keep these practice projects local; your own game repository is
+separate.
 
 | Example | Exact files to copy | Try it |
 | --- | --- | --- |

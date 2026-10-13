@@ -6,9 +6,9 @@
 
 Target illustration: one gold square; collection comes next.
 
-1. Use the [safe switching steps](README.md#before-each-lesson) and Lesson 8's complete Main.
-2. Follow [stage 1](#1-add-one-coin): copy Player/Coin, add the coin field, setup and draw call.
-3. **Save → Stop → Run App**; click the canvas and move onto the gold square.
+1. [Start a fresh Lesson 9 project](README.md#start-a-lesson) with Lesson 8's movement Main and Player already in place.
+2. Follow [stage 1](#1-add-one-coin): use the included Player and Coin, then add the coin field, setup and draw call.
+3. **Run App**; click the canvas and move onto the gold square.
 
 **Done:** The gold square stays visible when touched. Score and Restart come later.
 
@@ -17,12 +17,9 @@ Previous: [Movement](08-movement.md).
 
 ## 1. Add one coin
 
-Start with Lesson 8's complete Main. Stop the app and back up Main and helpers
-outside `src/`. Remove unlisted helpers; keep `zero/`, Main and Player.
-Copy [coin-game Player.java](../examples/coin-game/Player.java) over your Player;
-it adds `touches(...)` to the movement code. Copy
-[Coin.java](../examples/coin-game/Coin.java) into `src/main/java/`.
-Keep the framework folder and your movement Main.
+The fresh Lesson 9 project includes Lesson 8's complete movement Main and
+[coin-game Player.java](../examples/coin-game/Player.java), which adds `touches(...)`.
+It also includes [Coin.java](../examples/coin-game/Coin.java).
 
 Add `private Coin coin;` beside Main's Player field. Replace `setup()` with:
 
@@ -63,8 +60,8 @@ The `!coin.isCollected()` check prevents a point on every frame, and Coin's
 
 ## 3. Add native controls and Restart
 
-Stop and back up your stage 2 outside `src/`. Keep only `zero/` and these three
-files in `src/main/java/`:
+For the next stage, use the complete [controls Main.java](../examples/coin-game-controls/Main.java)
+in this same lesson project. Player and Coin stay the same. The three app files are:
 
 | From | To |
 | --- | --- |
@@ -91,7 +88,7 @@ Restart does not call `setup()` or build a second interface.
 
 ## 4. Add more coins and win
 
-Stop and back up the one-coin stage outside `src/`. Replace Main with the complete
+For the final game stage, update Main in this lesson project with the complete
 [coin-game Main.java](../examples/coin-game/Main.java). Keep its
 [Player.java](../examples/coin-game/Player.java) and
 [Coin.java](../examples/coin-game/Coin.java). These are the exact three Java files

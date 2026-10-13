@@ -1535,3 +1535,28 @@ WebKit,200%text and400%zoom remain unverified. Release0.5.8 bytes, sharing admis
 holds and deferred physicalWindows/student trials are unaffected. The draft PR
 and its exact-head checks/source review record final publication status; the
 ignored `.verification/hub-account-buttons-delivery.json` retains delivery evidence.
+
+
+### Fresh local lesson projects — 2026-10-13
+
+One generator supplies18 matching projects to web ZIPs and the editor's Start
+lesson picker. Normal lesson flow has no source-switching housekeeping; Run App
+already saves and restarts. Practice markers, all-files Git ignore, disabled
+workspace Git and native command/service guards keep Zero from publishing these
+samples. Native creation refuses existing paths, Git ancestors and nesting inside
+the current project. Rollback, cancellation and portable paths have focused tests.
+Lesson11 keeps practice local; actual sharing uses the student's own game.
+
+All18 generated source sets compiled. Generator5/root254pass1optionalPowerShell
+skip/website56/sharing45 tests, website typecheck/build, configuration and diff
+checks passed. One integrated renderer fixture needed its new practice state;
+the complete final suite passed after that correction. The unpublished VSIX
+contains all18 starters; published0.5.8 manifests and bytes are unchanged.
+Actual browser1280/320/390px, dark/light, lesson selection, keyboard download and
+stage disclosure/download passed. Download bytes matched generated ZIPs; marker
+and wrapper0755 verified. Native materialization and commands use real temporary
+folders and a mocked editor. The Mac connector selected an unrelated window, so
+native Start lesson/Run interactions are unverified; that window was unchanged.
+WebKit,200%text/400%zoom and physicalWindows/student trials remain unverified.
+Final independent review, exact-head CI and publication are recorded by the
+feature PR and ignored `.verification/local-lessons-delivery.json` receipt.

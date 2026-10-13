@@ -1,7 +1,6 @@
 # Java study session
 
-Stop your app and save your current Main and helpers outside `src/` before
-switching examples. Copy these exact files into `src/main/java/`:
+To run the complete study example, create a fresh local project from a Zero starter and copy these exact files into `src/main/java/`:
 
 - `examples/study/Main.java`
 - `examples/study/Question.java`

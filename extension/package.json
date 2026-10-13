@@ -15,16 +15,21 @@
   "activationEvents": [
     "workspaceContains:zero.json",
     "workspaceContains:student-template/zero.json",
-    "onTaskType:zero"
+    "onTaskType:zero",
+    "onCommand:zero.startLesson"
   ],
   "scripts": {
     "test": "node --test",
     "package": "vsce package --no-dependencies --allow-missing-repository",
-    "vscode:prepublish": "node ../design/prepare.mjs --extension",
-    "pretest": "node ../design/prepare.mjs --extension"
+    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension",
+    "pretest": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension"
   },
   "contributes": {
     "commands": [
+      {
+        "command": "zero.startLesson",
+        "title": "Zero: Start Lesson"
+      },
       {
         "command": "zero.githubAccount",
         "title": "Zero: GitHub Account"

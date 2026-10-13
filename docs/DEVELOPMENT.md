@@ -17,9 +17,11 @@ global Maven.
 ```sh
 npm ci
 npm run prepare:starter
+npm run prepare:lessons
 npm run check
 npm test
 python3 scripts/verify-examples.py
+node scripts/verify-lesson-projects.mjs
 npm run package
 npm run verify:kit
 npm run verify:framework
@@ -164,7 +166,8 @@ interfaces; SketchApp adds canvas animation. Keep explicit object updates and
 ordinary controls/layouts available rather than introducing a larger engine.
 
 Start with one readable helper, example or useful error. Put alternative examples
-outside compiled `src/` and document exactly which files students copy. For shared
+outside compiled `src/`; use the maintained lesson project generator for fresh
+local practice rather than destructive source replacement. For shared
 components, start from `examples/shared/ScoreDisplay.java`, test exact-copy reuse
 in quiz, practice and study, retaining the caption enhancement and existing
 no-argument constructor. Include meaningful behavior checks and a short explanation

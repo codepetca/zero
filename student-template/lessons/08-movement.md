@@ -6,8 +6,8 @@
 
 Target illustration: the starting player, before moving.
 
-1. Follow the [safe switching steps](README.md#before-each-lesson); copy Player and Main from [stage 1](#1-draw-a-square).
-2. Add the complete `update(...)` method from [stage 2](#2-read-keys-and-update); **Save → Stop → Run App**.
+1. [Start a fresh Lesson 8 project](README.md#start-a-lesson) with Player and the [stage 1 Main](#1-draw-a-square) already in place.
+2. Add the complete `update(...)` method from [stage 2](#2-read-keys-and-update); **Run App**.
 3. Click the canvas, hold **Right**, then release it.
 
 **Done:** Hold Right: the square moves. Release: it stops. More checks follow.
@@ -17,9 +17,8 @@ Previous: [Study app](07-study-app.md).
 
 ## 1. Draw a square
 
-Stop the app and save your previous source outside `src/`. Keep `src/main/java/zero/`.
-Copy [movement Player.java](../examples/movement/Player.java) into `src/main/java/`.
-Replace `src/main/java/Main.java` with:
+The fresh project includes [movement Player.java](../examples/movement/Player.java).
+Its `src/main/java/Main.java` starts with:
 
 ```java
 import javafx.scene.input.KeyCode;
@@ -70,7 +69,7 @@ Insert this complete method inside Main, before `draw()`:
 }
 ```
 
-Save, Stop and Run App. Click the canvas, then try each arrow. Up decreases y;
+Click Run App. Click the canvas, then try each arrow. Up decreases y;
 Down increases y. Separate `if` statements let diagonal keys work together and
 opposite keys cancel. Release the keys: movement stops.
 
