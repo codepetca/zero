@@ -1,2 +1,3 @@
-# Existing human repository administrators. Keep in sync with GitHub roles.
-* @armorup @stewchan
+# Automatic human review requests are disabled at the owner's request.
+# Source changes still require the independent review and checks documented in
+# docs/AI-WORKFLOW.md. Add a human reviewer only when explicitly requested.
