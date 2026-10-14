@@ -24,7 +24,7 @@ are unsupported. Physical Windows and novice student trials remain unverified; s
 
 ## Download Zero
 
-- [Download for Mac with Apple Silicon — setup 0.5.10](https://github.com/codepetca/zero/releases/download/setup-v0.5.10/Zero-Setup-0.5.10-macos.dmg)
+- [Download for Mac with Apple Silicon — setup 0.5.11](https://github.com/codepetca/zero/releases/download/setup-v0.5.11/Zero-Setup-0.5.11-macos.dmg)
 - [Download for Windows — complete kit ZIP 0.5.10](https://github.com/codepetca/zero/releases/download/v0.5.10/zero-bootstrap.zip); follow `START-HERE.md` for manual setup.
 
 The Windows native EXE is not published. The complete kit is a single ZIP;
