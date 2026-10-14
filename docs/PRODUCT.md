@@ -198,19 +198,19 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   prepare approved editor support in the background. Windows missing tools use
   vendor handoffs and profile import gets one instruction at a time. The ZIP
   launchers retain their manual menus.
-  The published Mac0.5.10 native flow automatically prepares a private verified
+  The published Mac0.5.11 native flow automatically prepares a private verified
   JDK21 and isolated Zero editor settings/extensions; compatible installed VS Code
   is reused or a verified private copy is downloaded. Manual profile import is
   removed from this Mac flow. Later editor choices and all student projects stay
   intact. Open Zero.command returns to this configured editor; ordinary VS Code
   profiles and Windows/ZIP setup remain separate.
-  Signed/notarized Mac0.5.10 is published; Windows remains a local unsigned
+  Signed/notarized Mac0.5.11 is published; Windows remains a local unsigned
   development build. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while
   preserving the entire student project; an unrelated folder named Zero is
-  refused. This simplification is unreleased; published Mac0.5.10 still asks
-  for Set up Zero and an existing-kit Update Zero confirmation.
+  refused. Previous Mac0.5.10 downloads retain their original Set up Zero and Update Zero
+  confirmations.
   See [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing

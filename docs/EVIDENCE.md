@@ -2703,3 +2703,34 @@ and final publication metadata still need separate review. Effective model/elaps
 tokens unknown; storage312GBhealthy and weekly71%remaining are shared readings.
 Source PR49 is draft; exact-head CI and Apple notarization/publication remain
 pending. No kit11three-asset publication, WindowsEXE or ZeroHub publication.
+
+### Mac0.5.11 exact-byte publication — 2026-10-14
+
+SourcePR49 merged8ef55c58e3c20914343e3513c9766ea18584f4c9 after exact reviewed
+0ba64ad CI38599250982 passed. Docs-only source review4 resolved P3 and retained
+unchanged runtime/version/fallback review coverage. Clean signed build2ec7f63,
+Apple Accepted0bb3044a-4deb-45cb-a3a8-819ba70e714c binds1008983-byte pre-staple
+SHA36904e653f2c5cf2558167a7dc09fe9ca50adda91078207b62ef31dd8cc48c5c; retained
+notarylog/codehashes, staple and actual Gatekeeper DMG/app pass. FinalDMG1010694
+bytes SHA15c09a7befa13c8aca4c791c7a9c532471ba07be5e3560793087e5fcef6ba544,
+embeddedkit355847bytes SHA697ef6ab33cd698d8ea0017aae9b0b7b6fe47bb44d51f1ab6a03789aa979002f.
+Candidate sealed at preparation53b9b06b5465918be9b0878334d41a1f8b464a43; every
+SHA256SUMS entry passes. Current3c3ca4e tree identical after main integration.
+
+Independent artifact_provenance/1 and artifact_compat/1 requested Sol/high, full
+assigned fixed3c3ca4e/candidate53 scopes complete with no findings. Provenance
+independently verified actual sealed app/DMG signatures, botharchitectures, secure
+timestamps/runtime/noentitlements, Apple input/codehash bindings, all156payload
+files/modes, staple and Gatekeeper. Compatibility verified source/archive/VSIX/
+core/MIT/modes/fallback/version/publication contracts and old10hash preservation.
+Initial artifact wave2launches,0remediation; no repeated broad tests. Effective
+models/elapsed/tokens unknown. Existing reviewed source/localchecks/exactCI reused.
+
+Native11tag/release absence checked immediately before creation. Draft targeted
+preparation53 with exactlyoneDMG; authenticated draftdownload matched reviewed
+bytes before deliberate publication. Public setup-v0.5.11 retains that target and
+singleasset; unauthenticated download independently matched finalsize/SHA. Kit11
+is not separately published; prior10native/threekit assets stay unchanged. Existing
+signer and Zero Notarization profile reused without credentials/account changes.
+Owner can download the new installer now; reviewed native-link promotion and
+production verification are the remaining delivery work.

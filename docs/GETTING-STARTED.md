@@ -12,17 +12,11 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Zero Setup for Mac
 
-Current local native source begins with **Preparing Zero…** and a progress bar, creates
-or updates the setup files in `~/Zero` automatically, then offers **Open Zero**.
-Student projects are kept. Details appears only if setup fails. This change has
-not been released; the published installer still uses the steps below.
+The signed and notarized **Mac setup 0.5.11** prepares Zero with one small window,
+one changing status message and a progress bar:
 
-The signed and notarized **current Mac setup** prepares Zero with one small window
-and one changing progress message:
-
-1. Open Zero Setup and choose **Set up Zero**. It uses `~/Zero` automatically.
-   If that folder contains an existing Zero kit, confirm **Update Zero**;
-   your code, assets and saved projects are preserved.
+1. Open Zero Setup. It automatically prepares `~/Zero`. A recognized existing
+   kit receives setup-file updates; your code, assets and saved projects are kept.
 2. Wait while setup prepares Java and the editor. It reuses a compatible VS Code
    or downloads a verified copy, then installs Zero and Java support in a separate
    editor configuration. No profile import or Java configuration is needed.
@@ -34,7 +28,7 @@ Later, open `~/Zero/Open Zero.command` to return to this configured editor.
 GitHub sign-in can wait until you want to share your work. Git must be available
 for repository work; use Setup help when you reach that step. You do not need
 Python, Node.js, Homebrew or a separate Maven/JavaFX installation.
-Technical output and useful errors are available through **Details**.
+If setup fails, **Details** shows technical output and useful errors.
 Clean-machine security prompts, physical Windows and novice classroom flows
 remain unverified; see [setup behaviour and limits](SETUP.md).
 

@@ -1,7 +1,7 @@
 # Guided student setup
 
 The current MVP targets **Mac with Apple Silicon** and **Windows**. Linux and
-Intel Macs are unsupported. The signed Mac0.5.10 setup provides automatic
+Intel Macs are unsupported. The signed Mac0.5.11 setup provides automatic
 Java/editor preparation for supported personal and school Macs. Windows uses
 the published complete-kit ZIP for manual setup; its native EXE is unpublished.
 Download choices show the Windows ZIP alongside Mac. The independently published
@@ -10,15 +10,11 @@ continues to be an ordinary editable Java project.
 
 ## Native setup
 
-Current local native source automatically prepares the home Zero folder,
-refreshing only setup files in a recognized existing kit. The Mac window starts
-with **Preparing Zero…** and a progress bar, then offers **Open Zero**. Details is
-hidden unless setup fails. This change is unreleased; published installers
-retain the prompts described below.
-
-The published Mac0.5.10 setup uses **Set up Zero → Open Zero → Run App**.
-It uses `~/Zero`, asks before updating an existing kit, and preserves the student
-project. Background work uses one small window with a replacing status message.
+The published Mac0.5.11 setup uses **Preparing Zero → Open Zero → Run App**.
+It automatically prepares `~/Zero`, refreshing only setup files in a recognized
+existing kit while preserving student projects. Its progress bar advances with
+completed stages and fills after readiness is verified. Details is hidden unless
+setup fails. Previous Mac0.5.10 downloads retain their setup/update prompts.
 It automatically prepares a private verified JDK21, reuses compatible VS Code or
 installs a verified user-local copy, seeds separate Zero editor settings, and
 installs required extensions. No profile import or Java version selection is
@@ -26,7 +22,7 @@ needed. Use `~/Zero/Open Zero.command` to reopen that configured editor.
 
 Mac0.5.6 remains available as a previous release with its older setup flow.
 Windows and ZIP/manual setup retain their existing guidance.
-Details and failures remain visible; GitHub sign-in comes later. See
+Failure details remain available; GitHub sign-in comes later. See
 [native setup](INSTALLER.md) for isolation, downloads and platform limits.
 
 ## ZIP/manual student flow
