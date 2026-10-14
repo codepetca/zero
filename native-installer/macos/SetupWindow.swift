@@ -51,6 +51,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         status.setAccessibilityLabel("Setup status")
         spinner.style = .spinning; spinner.controlSize = .small
         spinner.isDisplayedWhenStopped = false
+        spinner.setAccessibilityLabel("Preparation progress")
         for view in [status, spinner, primary, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
         primary.bezelStyle = .rounded; primary.target = self; primary.action = #selector(primaryAction)
         details.bezelStyle = .rounded; details.target = self; details.action = #selector(showDetails)
@@ -75,29 +76,13 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     func refresh() {
         status.stringValue = controller.summary
         primary.title = controller.primaryTitle; primary.isEnabled = !controller.busy
+        primary.isHidden = controller.busy || controller.stage == .checking
+        details.isHidden = controller.busy || controller.stage != .retry
         if controller.busy { spinner.startAnimation(nil) } else { spinner.stopAnimation(nil) }
     }
     @objc private func primaryAction() {
         guard !controller.busy, window != nil else { return }
-        if controller.stage == .updateConsent {
-            confirmUpdate()
-        } else {
-            controller.primaryAction()
-            if controller.stage == .updateConsent { confirmUpdate() }
-        }
-    }
-
-    private func confirmUpdate() {
-        guard let window, let consent = controller.consent else { return }
-        let warning = NSAlert()
-        warning.alertStyle = .warning
-        warning.messageText = consent.title
-        warning.informativeText = consent.detail
-        warning.addButton(withTitle: "Update Zero")
-        warning.addButton(withTitle: "Cancel")
-        warning.beginSheetModal(for: window) { [weak self] response in
-            self?.controller.approve(response == .alertFirstButtonReturn)
-        }
+        controller.primaryAction()
     }
 
     @objc private func showDetails() {
@@ -110,7 +95,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         text.textContainerInset = NSSize(width: 12, height: 12)
         text.isHorizontallyResizable = false; text.isVerticallyResizable = true
         text.autoresizingMask = [.width]; text.textContainer?.widthTracksTextView = true
-        text.string = "\(controller.summary)\n\n\(controller.consent?.detail ?? "")\n\n\(controller.diagnostics)\nGuide: \((controller.selectedFolder ?? controller.kit.root).appendingPathComponent("START-HERE.md").path)"
+        text.string = "\(controller.summary)\n\n\(controller.diagnostics)\nGuide: \((controller.selectedFolder ?? controller.kit.root).appendingPathComponent("START-HERE.md").path)"
         let scroll = NSScrollView(frame: detailWindow.contentLayoutRect)
         scroll.autoresizingMask = [.width, .height]
         scroll.hasVerticalScroller = true; scroll.documentView = text

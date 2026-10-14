@@ -5,9 +5,9 @@ Linux and Intel Macs are unsupported.
 
 ## Zero setup app
 
-In the new Mac setup, choose **Set up Zero**, wait for the single status message,
-then choose **Open Zero**. It prepares Java, editor settings and extensions for you.
-If a Zero kit already exists, choose **Update Zero** only after reading the warning;
+Open the Mac setup and wait while **Preparing Zero…** and its progress spinner
+prepare Java, editor settings and extensions. Then choose **Open Zero**.
+A recognized existing Zero kit receives only setup-file updates automatically;
 your student project is kept. Later, double-click **Open Zero.command** in your
 home **Zero** folder to return to the configured editor. Choose **Run App** and
 confirm the greeting window. GitHub sign-in is needed only when sharing work.

@@ -10,6 +10,12 @@ continues to be an ordinary editable Java project.
 
 ## Native setup
 
+Current local native source automatically prepares the home Zero folder,
+refreshing only setup files in a recognized existing kit. The Mac window starts
+with **Preparing Zero…** and a spinner, then offers **Open Zero**. Details is
+hidden unless setup fails. This change is unreleased; published installers
+retain the prompts described below.
+
 The published Mac0.5.7 setup uses **Set up Zero → Open Zero → Run App**.
 It uses `~/Zero`, asks before updating an existing kit, and preserves the student
 project. Background work uses one small window with a replacing status message.
