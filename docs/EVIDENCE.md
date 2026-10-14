@@ -2984,3 +2984,50 @@ anchors and active navigation derive from the smaller sticky clearance.
 Website typecheck/build and94tests pass. No API content or unrelated release,
 installer, funding or tutorial behavior changed. Publication follows the current
 Docs authorization; browser/review/CI/live receipt is recorded in the delivery PR.
+
+
+## Centered Zero DMG0.5.14 publication — 2026-10-14
+
+Owner explicitly authorized centered minimal Zero→Applications and preparation
+progress below text, then updatedDMG release. Source [PR59](https://github.com/codepetca/zero/pull/59)
+merged57a2f70d5f021681b1d8e4160b4e2252dfbf8979 after exacthead
+[CI38636537778](https://github.com/codepetca/zero/actions/runs/38636537778) passed.
+Independent Sol/high complete20file source reviewb913329/base50dc509,0findings;
+checked wheelhashes/SDKCF signatures/sourceguards/strictlayout code/callers. Measured
+interval afterinitialreads72sec, fullwall/tokens/effectiveconfig unknown. Native
+UILayoutf2b7791 priorLuna/medium review/250assertions reused unchanged. Current root
+259pass/1platformskip145sec;35focused checks,94website/type/build and package/extracted
+Maven passed. Concurrent APIbanner source/evidence retained frommain50dc509.
+
+Packagingworker Sol/high deliveredpinned ds_store1.3.3/mac_alias2.2.3 helpers,
+exacthiddenassets/records/nativealias/HFSautoopen verification. No AppleScript or
+FinderCLIautomation. Pre-review realCua caught owner-global footerbars changing
+visiblegeometry and cross-volume aliascollision. Authoredgeometrycorrected to660×446
+outer/128px icons159pt centers; actualfixture icon+label groupcentered in360ptcontent
+underobservedchrome. Ownerglobal preferences unchanged; fixedlayout can sit higher
+whenbars hidden. VersionedvolumeZero0.5.14 provedbackgroundaliascorrect whileoldZero
+mounted.24workerfocusedchecks plus16installer invalid-name assertions passed;
+tampercases rejected alteredpixels/records/alias/positions. FinalsignedFinderwindow
+notcaptured afterMaclocked. Native NSWorkspace actualsignedappiconread showedcorrect
+Zeroicon, no placeholder/prohibitionbadge. Evidence .verification/release-0.5.14/.
+
+Clean buildb913329b47471e0bf46a536bd835a641b95aed77; preparation/tagtarget
+ ec1d64a06e2bf54f6b0fd4169242cd841c726d2a (manifest-only delta; protectedsource also
+matchesmergedmain). Apple acceptedf4fb3c00-8b12-4b1c-a313-e1305281efa0 binding822550-byte
+inputSHA89f0a993c37be60b45555dc23abf0d3e47dea12865d28edbe49ac059018a6187.
+FinalstapledDMG824261 SHAabc44bdc86446139c7cd77d04b555b01fef13dc39b2bef251e0de1a56ae7b8f0.
+ExistingDeveloperID SHA1ACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8;
+no credentials changes. Two independent Sol/high complete artifactscopes passed:
+crypto~135sec, compatibility~240sec, effectiveconfig/tokensunknown. Actualbotharch
+signatures/hardened/noentitlements/timestamps/CDHashes/Appleticket,157payloadfiles/modes,
+layout/background/alias/HFS, plist/icon/guideVSIX14 and staple/Gatekeeper passed.
+Their mountactions serialized; both own mounts detached, sealedhashes unchanged.
+
+[Public setup-v0.5.14](https://github.com/codepetca/zero/releases/tag/setup-v0.5.14)
+containsoneZero-0.5.14-macos.dmg. Drafttarget/notes/asset and authenticatedredownload
+matched sealed candidate before promotion --latest=false. Actualtagtarget/publicAPI
+and unauthenticatedHTTP200 bytes matched finalsize/SHA before metadata promotion.
+Published13 and all earlierMac files remain immutable; Windowskit10 unchanged,
+kit14local, noWindowsEXE/kit/Hubpublication. Fresh-machine/macOS12/Intel/Windows,
+quarantinedfirstlaunch remain owner smoke-test limits. Reviewledger3launches,
+no reviewfixbatches; metadata reviewnext. Sealedcandidate mac-0.5.14-ec1d64a06e2b retained.

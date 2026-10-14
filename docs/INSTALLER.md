@@ -1,8 +1,8 @@
 # Native Zero Setup
 
 Zero Setup uses a native Mac runtime; Windows wraps the guided setup scripts. Signed,
-notarized Mac0.5.13 is published at [setup-v0.5.13](https://github.com/codepetca/zero/releases/tag/setup-v0.5.13)
-and embeds the complete0.5.13 kit. Windows development installers remain local
+notarized Mac0.5.14 is published at [setup-v0.5.14](https://github.com/codepetca/zero/releases/tag/setup-v0.5.14)
+and embeds the complete0.5.14 kit. Windows development installers remain local
 and unsigned; they are excluded from student downloads. Previous Mac releases
 are preserved.
 The website offers Mac setup alongside the separately verified published kit ZIP.
@@ -13,13 +13,13 @@ Open, Run/Stop, autosave and the standard build command. Fresh-machine tool inst
 
 ## Student flow
 
-Published Mac0.5.13 packages **Zero.app** with an **Applications** shortcut
-and drag instructions on its DMG. Earlier releases retain their original Zero Setup
-app and immutable bytes.
+Published Mac0.5.14 packages **Zero.app** with an **Applications** shortcut
+and a centered arrow layout on its DMG. Earlier releases retain their original
+apps and immutable bytes.
 
 1. Open the DMG and drag **Zero.app** into **Applications**.
 2. Open **Zero** from Applications. On first launch it shows **Preparing Zero…**
-   with a progress bar, prepares Java/editor support and `~/Zero`, and opens the
+   with a progress bar below the text, prepares Java/editor support and `~/Zero`, and opens the
    configured VS Code editor automatically.
 3. In the editor, review workspace trust if asked and choose **Run App**.
 
@@ -248,6 +248,7 @@ file/permission plus both binary architectures. It detaches afterward and never
 executes installer actions. DMG inspection requires macOS; use `--platform windows`
 with a matching platform-only build receipt to inspect only the Windows EXE.
 
-Current0.5.14 source adds a centered Finder layout with only Zero and Applications
+Published0.5.14 adds a centered Finder layout with only Zero and Applications
 icons/labels and an arrow. Preparation text and progress below form a centered
-group. Published13 retains its original plain DMG until14 is verified and released.
+group. Mac0.5.13 retains its original plain DMG. Finder chrome may follow user
+preferences; the installer does not change them.
