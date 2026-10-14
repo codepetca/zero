@@ -69,7 +69,7 @@ account/network trial. Current development checks mock authentication and transp
 - Click the connected repository name → Copy repository link; submit it separately in Pika and verify teacher access to
   a private repository. Zero does not submit assignments or change grades.
 
-- Upload the starting version on main. Click main → Start a change, cancel once
+- Upload the starting version on main. Choose New branch beside main, cancel once
   and verify the branch/files are unchanged; then create a named branch. Make
   and run a small app improvement, Upload changes to that branch, cancel Finish
   once, then review/approve Finish. Confirm the completed SHA and files on remote

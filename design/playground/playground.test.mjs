@@ -67,7 +67,7 @@ test('download review shows a published Mac fixture and omits a local Mac candid
 
 test('actual sidebar renderer retains local Run while signed out and useful Error recovery', async () => {
   const ready = sidebarSource();
-  assert.match(ready,/zero.runApp/); assert.match(ready,/Ready\./);
+  assert.match(ready,/zero.runApp/); assert.doesNotMatch(ready,/Ready to run/);
   assert.match(ready,/Sign in to GitHub/);
   assert.doesNotMatch(ready,/class="run"[^>]*disabled/);
   assert.doesNotMatch(ready,/Show Problems/);
@@ -75,7 +75,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(error,/Main.java, line 8: add a semicolon/);
   assert.match(error,/zero.showProblems/);
   const practice = sidebarSource('practice');
-  assert.match(practice,/zero.startProject/);
+  assert.match(practice,/zero.browseZeroHub/);
   assert.match(practice,/Local practice · no GitHub sharing/);
   assert.doesNotMatch(practice,/data-command="zero\.(?:chooseRepository|uploadToGitHub|githubAccount)"/);
 });

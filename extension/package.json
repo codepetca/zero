@@ -68,7 +68,8 @@
       },
       {
         "command": "zero.openFirstLesson",
-        "title": "Zero: Open First Lesson"
+        "title": "Zero: Open First Lesson",
+        "shortTitle": "Tutorials"
       },
       {
         "command": "zero.showProblems",
@@ -76,7 +77,8 @@
       },
       {
         "command": "zero.showSetup",
-        "title": "Zero: Setup Help"
+        "title": "Zero: Setup Help",
+        "shortTitle": "Setup help"
       },
       {
         "command": "zero.showSidebar",
@@ -88,7 +90,7 @@
       },
       {
         "command": "zero.startChange",
-        "title": "Zero: Start a Change"
+        "title": "Zero: New Branch"
       },
       {
         "command": "zero.finishChange",
@@ -138,6 +140,10 @@
       {
         "command": "zero.editSharingDetails",
         "title": "Zero: Edit Sharing Details"
+      },
+      {
+        "command": "zero.browseZeroHub",
+        "title": "Zero: Browse ZeroHub"
       }
     ],
     "viewsContainers": {
@@ -154,11 +160,8 @@
         {
           "type": "webview",
           "id": "zero.actions",
-          "name": "Your app"
-        },
-        {
-          "id": "zero.files",
-          "name": "Files"
+          "name": "Zero",
+          "icon": "media/zero.svg"
         }
       ]
     },
@@ -231,9 +234,14 @@
     "menus": {
       "view/title": [
         {
-          "command": "zero.sharingActions",
+          "command": "zero.openFirstLesson",
           "when": "view == zero.actions",
-          "group": "zero-sharing"
+          "group": "zero-help@1"
+        },
+        {
+          "command": "zero.showSetup",
+          "when": "view == zero.actions",
+          "group": "zero-help@2"
         }
       ]
     }

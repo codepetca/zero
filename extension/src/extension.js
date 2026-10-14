@@ -11,9 +11,9 @@ const {createAuthentication} = require('./authentication');
 const {createTransport} = require('./transport');
 const {createSharingEditor} = require('./sharing/editor');
 const {readKitConfiguration} = require('./sharing/configuration');
-const {libraryLayout} = require('./library-files');
 const {createSetupHelp} = require('./setup');
 const {sidebarStyles} = require('./sidebar-style');
+const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 function activate(context) {
@@ -32,7 +32,7 @@ function activate(context) {
   let projectRoot;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'simulation') : 'simulation';
   let runQueue = Promise.resolve();
-  let state = 'Ready to run';
+  let state = '';
   let buildFailed = false;
   const stoppedTasks = new WeakSet();
   const taskExitCodes = new WeakMap();
@@ -232,10 +232,10 @@ function activate(context) {
     try {
       const root = await project();
       await lessonProjects.assertShareable(root);
-      if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'Start a change' : 'Finish change'); return;}
+      if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : 'Finish change'); return;}
       let name;
       if (kind === 'start') {
-        name = await vscode.window.showInputBox({title:'Start a change', prompt:'Name your change using lowercase words and dashes.', placeHolder:'add-score', validateInput:value => /^[a-z0-9][a-z0-9-]*$/.test(value) ? undefined : 'Use lowercase letters, numbers and dashes, starting with a letter or number.'});
+        name = await vscode.window.showInputBox({title:'New branch', prompt:'Create a branch for your next feature. Use lowercase words and dashes.', placeHolder:'add-score', validateInput:value => /^[a-z0-9][a-z0-9-]*$/.test(value) ? undefined : 'Use lowercase letters, numbers and dashes, starting with a letter or number.'});
         if (!name) return;
         if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) throw new Error('Use lowercase letters, numbers and dashes for your change name.');
       }
@@ -248,8 +248,8 @@ function activate(context) {
       const plan = kind === 'start' ? await workflow.prepareStart(root, name, options) : await workflow.prepareFinish(root, options);
       if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review your change again.');
       const detail = `${plan.page}\nGitHub account: ${ticket.session.label}\nCurrent branch: ${plan.branch} (${plan.head})\nMain: ${plan.mainHead}\nLatest uploaded main: ${plan.remoteMainHead || 'none'}\n${plan.summary}\n\n${kind === 'start' ? `Update local main to the reviewed latest main, then start ${name}.` : `Merge ${plan.branch} into main and upload main to this repository.\n${(plan.changedPaths || []).join('\n')}\n\nRun your app before finishing. If main must first be incorporated into your change, run and check the app again before choosing Finish change again.`}`;
-      const button = kind === 'start' ? 'Start change' : 'Merge & Upload main';
-      const confirmed = await vscode.window.showInformationMessage(kind === 'start' ? 'Start this change?' : 'Finish this change?', {modal:true, detail}, button);
+      const button = kind === 'start' ? 'Create branch' : 'Merge & Upload main';
+      const confirmed = await vscode.window.showInformationMessage(kind === 'start' ? 'Create this branch?' : 'Finish this change?', {modal:true, detail}, button);
       if (confirmed !== button) return;
       if (await project() !== root) throw new Error('The student project changed. Review your change again.');
       await assertCurrent();
@@ -333,7 +333,7 @@ function activate(context) {
       await repositoryStatus();
       if (isBusy() || !branch || !repository.startsWith('https://github.com/')) return;
       const root = projectRoot, currentBranch = branch, currentRepository = repository;
-      const choice = await quickPick(currentBranch === 'main' ? [{label:'Start a change…', action:'start'}] : [{label:'Finish change…', action:'finish'}], {title:`${currentRepository} · ${currentBranch}`, placeHolder:'Choose a change action'});
+      const choice = await quickPick(currentBranch === 'main' ? [{label:'New branch…', action:'start'}] : [{label:'Finish change…', action:'finish'}], {title:`${currentRepository} · ${currentBranch}`, placeHolder:'Choose a change action'});
       if (isBusy() || !choice) return;
       await repositoryStatus();
       if (isBusy() || projectRoot !== root || branch !== currentBranch || repository !== currentRepository) return;
@@ -345,8 +345,11 @@ function activate(context) {
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
       const root = await project();
-      if (!(await openFirstLesson(root))) throw new Error('This project has no bundled first lesson. Find the first lesson at https://zero.codepet.ca/learn.');
-      await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
+      if (await openFirstLesson(root)) {
+        await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
+      } else if (!(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/learn')))) {
+        throw new Error('Could not open the first lesson. Open https://zero.codepet.ca/learn in your browser.');
+      }
     },
     'zero.startProject': async () => {
       const initialRoots = await openProjectRoots();
@@ -359,6 +362,18 @@ function activate(context) {
       const roots = new Set([...initialRoots, ...await openProjectRoots()]);
       const root = await lessonProjects.createLessonProject(choice.project,destination.fsPath,{forbiddenRoots:[...roots]});
       await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),true);
+    },
+    'zero.browseZeroHub': async () => {
+      if (isBusy()) return;
+      const choice = await quickPick([
+        {label:'Projects', description:'Browse complete examples and templates', action:'projects'},
+        {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'}
+      ], {title:'ZeroHub', placeHolder:'What would you like to browse?'});
+      if (isBusy()) return;
+      if (choice?.action === 'projects' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub?kind=example')))) {
+        throw new Error('Could not open ZeroHub. Open https://zero.codepet.ca/hub in your browser.');
+      }
+      if (choice?.action === 'libraries') await actions['zero.browseHub']();
     },
     'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),
     'zero.showSidebar': async () => {
@@ -424,69 +439,26 @@ function activate(context) {
   }));
   function render(webview) {
     const nonce = crypto.randomBytes(16).toString('hex');
-    const busy = isBusy();
-    const disabled = busy ? 'disabled' : '';
+    const disabled = isBusy() ? 'disabled' : '';
     const connected = repository.startsWith('https://github.com/');
-    const accountName = auth.accountLabel || '';
-    const accountTitle = auth.signedIn ? `Signed in as ${accountName}` : 'Sign in to GitHub';
-    const avatar = auth.signedIn ? escape(Array.from(accountName.trim())[0]?.toLocaleUpperCase() || '?')
-      : '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2z"/></svg>';
-    const repoName = connected ? repository.slice('https://github.com/'.length) : 'Connect a repo';
-    const githubActions = !localPractice && connected && auth.signedIn
-      ? `<button class="secondary" data-command="zero.uploadToGitHub" ${disabled}>Upload changes</button><p class="badge">${uploadMode() === 'live' ? 'Reviews files before a real upload' : 'SIMULATION — nothing will be changed'}</p>` : '';
-    const branchControl = !localPractice && connected && branch ? `<button class="repo-choice" data-command="zero.chooseBranch" title="${escape(`Current branch: ${branch}. Start or finish a change`)}" aria-label="${escape(`Current branch: ${branch}. Open change actions`)}" aria-haspopup="dialog" ${disabled}>${escape(branch)} ▾</button>` : '';
-    const repositoryWarning = !connected && repository !== 'No repository connected'
-      ? `<p class="muted status">${escape(repository)}</p>` : '';
-    const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong><button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${avatar}</button></div><button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repo')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)}</button>${repositoryWarning}${branchControl}${githubActions}`;
+    const accountTitle = auth.signedIn ? `Signed in as ${auth.accountLabel}` : 'Sign in to GitHub';
+    const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in'}</button>`;
+    const repoName = connected ? repository.slice('https://github.com/'.length) : 'Connect a repository';
+    const repoControl = auth.signedIn ? `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repository')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>` : '';
+    const branchControl = auth.signedIn && connected && branch ? `<div class="branch-row"><span class="branch" title="${escape(`Current branch: ${branch}`)}">${icon('GitBranch')}${escape(branch)}</span><button class="link change" data-command="${branch === 'main' ? 'zero.startChange' : 'zero.finishChange'}" ${disabled}>${branch === 'main' ? 'New branch' : 'Finish change'}</button></div>` : '';
+    const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Upload changes</button><p class="badge">${uploadMode() === 'live' ? 'Reviews changes before uploading' : 'Simulation — nothing will be uploaded'}</p>` : '';
+    const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
+    const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong>${account}</div>${repoControl}${repositoryWarning}${branchControl}${githubActions}`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       ${sidebarStyles()}
-      </style></head><body><div class="row"><button class="run" data-command="zero.runApp">▶ Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>■ Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}<button class="link" data-command="zero.startProject">Start project</button><button class="link" data-command="zero.openFirstLesson">${localPractice ? 'Open lesson guide' : 'Open First Lesson'}</button><div class="repository">${githubPanel}<button class="link" data-command="zero.showSetup">Setup help</button></div><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>${icon('Square')}Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${localPractice || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
     candidate.webview.onDidReceiveMessage(message => {if (message && Object.hasOwn(actions, message.command)) vscode.commands.executeCommand(message.command);}, undefined, context.subscriptions);
     candidate.onDidDispose(() => {view = undefined;}, undefined, context.subscriptions); refresh(); repositoryStatus();
   }}));
-  const changes = new vscode.EventEmitter();
-  const files = {
-    onDidChangeTreeData:changes.event,
-    getTreeItem:entry => {
-      const item = new vscode.TreeItem(entry.label || entry.uri, entry.directory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
-      item.resourceUri = entry.uri;
-      if (!entry.directory) item.command = {command:'vscode.open', title:'Open file', arguments:[entry.uri]};
-      return item;
-    },
-    getChildren:async entry => {
-      try {
-        const root = entry ? entry.uri.fsPath : await project();
-        const visible = async (directory, omit = []) => (await fs.readdir(directory, {withFileTypes:true}))
-          .filter(child => !['.git','target','node_modules','.DS_Store','.zero-sharing-recovery', ...omit].includes(child.name) && !child.isSymbolicLink())
-          .sort((a,b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name))
-          .map(child => ({uri:vscode.Uri.file(path.join(directory, child.name)), directory:child.isDirectory()}));
-        if (entry) return visible(root, entry.projectFiles ? ['src','README.md'] : []);
-        const library=await libraryLayout(root);
-        const nested=await fs.lstat(path.join(root,'libraries')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
-        if(library) return [
-          ...await visible(library.sources),
-          {uri:vscode.Uri.file(library.readme),directory:false},
-          {label:'Examples',uri:vscode.Uri.file(library.examples),directory:true},
-          {label:'Checks',uri:vscode.Uri.file(library.checks),directory:true},
-          {label:'Project files',uri:vscode.Uri.file(root),directory:true,projectFiles:true}
-        ];
-        return [
-          ...await visible(path.join(root, 'src/main/java'), ['zero']),
-          ...(nested?.isDirectory()&&!nested.isSymbolicLink()?[{label:'Libraries',uri:vscode.Uri.file(path.join(root,'libraries')),directory:true}]:[]),
-          {label:'Resources', uri:vscode.Uri.file(path.join(root,'src/main/resources')), directory:true},
-          {label:'Toolkit', uri:vscode.Uri.file(path.join(root,'src/main/java/zero')), directory:true},
-          {uri:vscode.Uri.file(path.join(root,'README.md')), directory:false},
-          {label:'Project files', uri:vscode.Uri.file(root), directory:true, projectFiles:true}
-        ];
-      } catch(error) {output.appendLine(`Files: ${error.message}`); return [];}
-    }
-  };
-  context.subscriptions.push(output, changes, vscode.window.registerTreeDataProvider('zero.files', files));
-  const watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git|\.zero-sharing-recovery)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
+  context.subscriptions.push(output);
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
     if (!projectRoot) return;
@@ -494,7 +466,7 @@ function activate(context) {
     if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus(); void introduceProject().catch(error => output.appendLine(`Getting started: ${error.message}`));}));
+  context.subscriptions.push(metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; repositoryStatus(); void introduceProject().catch(error => output.appendLine(`Getting started: ${error.message}`));}));
   context.subscriptions.push({dispose:() => {if (execution) execution.terminate();}});
   void introduceProject().catch(() => {});
 }
