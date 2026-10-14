@@ -12,7 +12,7 @@ continues to be an ordinary editable Java project.
 
 Current local native source automatically prepares the home Zero folder,
 refreshing only setup files in a recognized existing kit. The Mac window starts
-with **Preparing Zero…** and a spinner, then offers **Open Zero**. Details is
+with **Preparing Zero…** and a progress bar, then offers **Open Zero**. Details is
 hidden unless setup fails. This change is unreleased; published installers
 retain the prompts described below.
 

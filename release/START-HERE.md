@@ -5,7 +5,7 @@ Linux and Intel Macs are unsupported.
 
 ## Zero setup app
 
-Open the Mac setup and wait while **Preparing Zero…** and its progress spinner
+Open the Mac setup and wait while **Preparing Zero…** and its progress bar
 prepare Java, editor settings and extensions. Then choose **Open Zero**.
 A recognized existing Zero kit receives only setup-file updates automatically;
 your student project is kept. Later, double-click **Open Zero.command** in your

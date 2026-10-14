@@ -14,15 +14,18 @@ Open, Run/Stop, autosave and the standard build command. Fresh-machine tool inst
 ## Student flow
 
 The current native source starts automatically with **Preparing Zero…** and a
-progress spinner. It prepares `~/Zero` without a setup button or an update
+progress bar. It prepares `~/Zero` without a setup button or an update
 confirmation, then offers **Open Zero**. A recognized existing kit receives only
 setup-file updates; student projects are preserved. **Details** is hidden during
 normal preparation and completion, and available only when setup fails.
+The Mac bar advances with completed setup stages and fills only after the final
+readiness check; it does not estimate time or download percentages. Windows
+retains its existing animated progress bar.
 This source change is local and unreleased; the published Mac0.5.10 installer
 still has its original **Set up Zero** and **Update Zero** prompts.
 
 1. Open Zero Setup and wait while it prepares Java and the editor. Its small,
-   fixed-size window shows one changing status message and a progress spinner.
+   fixed-size window shows one changing status message and a progress bar.
 2. Choose **Open Zero**, then **Run App** and confirm the greeting window.
 
 Opening the setup app starts the necessary downloads and local configuration.

@@ -22,7 +22,8 @@ struct CommandResult {
     var succeeded: Bool { exitCode == 0 && !timedOut && launchError == nil }
 }
 
-protocol SetupCommandRunning {
+protocol SetupCommandRunning: AnyObject {
+    var progress: ((String) -> Void)? { get set }
     func run(_ command: SetupCommand, timeout: TimeInterval, completion: @escaping (CommandResult) -> Void)
 }
 
@@ -588,6 +589,9 @@ final class SetupController {
     let defaultLocation: DefaultSetupLocation
     private(set) var selectedFolder: URL?
     private(set) var busy = false
+    static let totalSteps = 9
+    private(set) var completedSteps = 0
+    private var configuring = false
     private(set) var hasChecked = false
     private(set) var stage: SetupStage = .checking
     private(set) var summary = "Preparing Zero…"
@@ -598,11 +602,17 @@ final class SetupController {
     init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner(),
          home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         self.kit = kit; self.runner = runner; defaultLocation = DefaultSetupLocation(home: home)
-        (runner as? NativeCommandRunner)?.progress = { [weak self] token in
-            let messages = ["java": "Preparing Java…", "editor": "Preparing Zero editor…", "settings": "Preparing Zero settings…", "zero": "Installing Zero support…", "redhat": "Installing Java support…", "verify": "Checking Zero is ready…"]
-            guard let self, self.busy, let message = messages[token] else { return }
-            self.summary = message; self.changed?()
-        }
+        runner.progress = { [weak self] token in self?.reportProgress(token) }
+    }
+
+    private func reportProgress(_ token: String) {
+        // Each token starts a stage after the preceding stages succeeded. Already
+        // installed extensions may skip tokens; verification confirms those steps.
+        let steps = ["java": (2, "Preparing Java…"), "editor": (3, "Preparing Zero editor…"),
+                     "settings": (4, "Preparing Zero settings…"), "zero": (5, "Installing Zero support…"),
+                     "redhat": (6, "Installing Java support…"), "verify": (7, "Checking Zero is ready…")]
+        guard busy, configuring, let (completed, message) = steps[token], completed >= completedSteps else { return }
+        completedSteps = completed; summary = message; changed?()
     }
 
 
@@ -620,7 +630,7 @@ final class SetupController {
         if diagnostics.utf8.count > 1024 * 1024 { diagnostics = String(diagnostics.suffix(512 * 1024)) }
     }
     private func fail(_ message: String, detail: String) {
-        snapshot = nil; busy = false; record(detail); set(.retry, message)
+        snapshot = nil; busy = false; configuring = false; record(detail); set(.retry, message)
     }
     private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, completion: @escaping (CommandResult) -> Void) {
         do {
@@ -642,13 +652,15 @@ final class SetupController {
     func check() {
         guard !busy else { return }
         snapshot = nil; stage = .checking
+        if selectedFolder == nil { completedSteps = 0 }
+        else if completedSteps == Self.totalSteps { completedSteps -= 1 }
         run(["--native-check"], status: "Preparing Zero…") { [weak self] result in
             guard let self else { return }
             self.hasChecked = true
             do {
                 self.snapshot = try SetupSnapshot.parse(result.output)
                 guard self.snapshot?["kit"] == true else { self.fail("The kit is incomplete. See Details.", detail: "Kit metadata or required files are incomplete."); return }
-                if self.selectedFolder == nil { self.prepareDefaultLocation(); return }
+                if self.selectedFolder == nil { self.completedSteps = 1; self.prepareDefaultLocation(); return }
                 self.advance()
             } catch { self.fail("The check was incomplete. Try again.", detail: error.localizedDescription) }
         }
@@ -661,6 +673,7 @@ final class SetupController {
             return
         }
         guard snapshot.ready && selectedFolder != nil else { fail("Readiness is unverified. Try again.", detail: "Required check fields did not establish readiness."); return }
+        completedSteps = Self.totalSteps
         set(.ready, "Zero is ready. Open it to begin.")
     }
     private func update(_ plan: KitUpdatePlan) {
@@ -696,7 +709,11 @@ final class SetupController {
         summary = "Please wait for setup to finish this step."; changed?(); return false
     }
     private func configure() {
-        run(["--native-install", "--approved"], status: "Preparing Zero editor and Java…", timeout: 3600) { [weak self] _ in self?.check() }
+        completedSteps = 2; configuring = true
+        run(["--native-install", "--approved"], status: "Preparing Zero editor and Java…", timeout: 3600) { [weak self] _ in
+            guard let self else { return }
+            self.configuring = false; self.completedSteps = 8; self.check()
+        }
     }
     private func prepareDefaultLocation() {
         do {

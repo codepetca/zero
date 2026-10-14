@@ -30,7 +30,7 @@ struct SetupBuildLabel {
 final class SetupWindow: NSWindowController, NSWindowDelegate {
     let controller: SetupController
     private let status = NSTextField(labelWithString: "")
-    private let spinner = NSProgressIndicator()
+    private let progress = NSProgressIndicator()
     private let primary = NSButton(title: "Please wait", target: nil, action: nil)
     private let details = NSButton(title: "Details…", target: nil, action: nil)
     private var diagnosticsWindow: NSWindowController?
@@ -49,17 +49,20 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         status.maximumNumberOfLines = 1
         status.lineBreakMode = .byTruncatingTail
         status.setAccessibilityLabel("Setup status")
-        spinner.style = .spinning; spinner.controlSize = .small
-        spinner.isDisplayedWhenStopped = false
-        spinner.setAccessibilityLabel("Preparation progress")
-        for view in [status, spinner, primary, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
+        progress.style = .bar; progress.controlSize = .small
+        progress.isIndeterminate = false
+        progress.minValue = 0; progress.maxValue = Double(SetupController.totalSteps)
+        progress.isDisplayedWhenStopped = true
+        progress.setAccessibilityLabel("Preparation progress")
+        for view in [status, progress, primary, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
         primary.bezelStyle = .rounded; primary.target = self; primary.action = #selector(primaryAction)
         details.bezelStyle = .rounded; details.target = self; details.action = #selector(showDetails)
         NSLayoutConstraint.activate([
-            spinner.centerXAnchor.constraint(equalTo: root.centerXAnchor),
-            spinner.topAnchor.constraint(equalTo: root.topAnchor, constant: 25),
-            spinner.widthAnchor.constraint(equalToConstant: 18), spinner.heightAnchor.constraint(equalToConstant: 18),
-            status.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: 16),
+            progress.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 60),
+            progress.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -60),
+            progress.topAnchor.constraint(equalTo: root.topAnchor, constant: 25),
+            progress.heightAnchor.constraint(equalToConstant: 8),
+            status.topAnchor.constraint(equalTo: progress.bottomAnchor, constant: 16),
             status.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 20),
             status.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -20),
             status.heightAnchor.constraint(equalToConstant: 22),
@@ -78,7 +81,14 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         primary.title = controller.primaryTitle; primary.isEnabled = !controller.busy
         primary.isHidden = controller.busy || controller.stage == .checking
         details.isHidden = controller.busy || controller.stage != .retry
-        if controller.busy { spinner.startAnimation(nil) } else { spinner.stopAnimation(nil) }
+        progress.isHidden = !controller.busy && controller.stage != .checking && controller.stage != .ready && controller.stage != .opened
+        let opening = controller.busy && controller.completedSteps == SetupController.totalSteps
+        if progress.isIndeterminate != opening {
+            progress.stopAnimation(nil)
+            progress.isIndeterminate = opening
+        }
+        if opening { progress.startAnimation(nil) }
+        else { progress.doubleValue = Double(controller.completedSteps) }
     }
     @objc private func primaryAction() {
         guard !controller.busy, window != nil else { return }

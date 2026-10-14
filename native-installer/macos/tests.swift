@@ -10,6 +10,7 @@ private func snapshot(_ overrides: [String: Int] = [:]) -> String {
     return "ZERO_SETUP_V1\n" + values.keys.sorted().map { "\($0)=\(values[$0]!)" }.joined(separator: "\n") + "\nEND_ZERO_SETUP\n"
 }
 private final class FakeRunner: SetupCommandRunning {
+    var progress: ((String) -> Void)?
     var commands: [SetupCommand] = []
     var timeouts: [TimeInterval] = []
     var paused = false
@@ -557,6 +558,35 @@ struct SetupTests {
         try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()
         try expect(pausedController.mayExit() && pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "copy, configure and recheck release shutdown after completion")
+        let progressHome = temporary.appendingPathComponent("progress home")
+        try manager.createDirectory(at: progressHome, withIntermediateDirectories: false)
+        let progressRunner = FakeRunner(); progressRunner.paused = true
+        let progressController = SetupController(kit: kit, runner: progressRunner, home: progressHome)
+        progressController.check()
+        try expect(progressController.completedSteps == 0, "preparation begins with an empty bar")
+        progressRunner.progress?("verify")
+        try expect(progressController.completedSteps == 0, "stage tokens outside configuration cannot advance progress")
+        progressRunner.finish()
+        try expect(progressController.completedSteps == 1, "successful initial check advances one step")
+        try pump(until: { progressRunner.pending != nil })
+        for (token, completed) in [("java", 2), ("editor", 3), ("settings", 4), ("zero", 5), ("redhat", 6), ("verify", 7)] {
+            progressRunner.progress?(token)
+            try expect(progressController.completedSteps == completed && completed < SetupController.totalSteps, "actual stage advances progress: \(token)")
+        }
+        progressRunner.progress?("editor"); progressRunner.progress?("unknown")
+        try expect(progressController.completedSteps == 7, "stale and unknown tokens do not change progress")
+        progressRunner.result = CommandResult(exitCode: 42, output: "injected verification failure", timedOut: false, launchError: nil)
+        progressRunner.finish()
+        try expect(progressController.stage == .retry && progressController.completedSteps == 7, "failure never fills the bar")
+        progressRunner.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
+        progressController.primaryAction()
+        try expect(progressController.completedSteps == 2, "retry resets progress to the prepared folder")
+        progressRunner.progress?("verify")
+        try expect(progressController.completedSteps == 7, "skipped installed components count before verification")
+        progressRunner.finish()
+        try expect(progressController.completedSteps == 8 && progressController.busy, "successful configuration waits for final readiness")
+        progressRunner.finish()
+        try expect(progressController.completedSteps == SetupController.totalSteps && progressController.stage == .ready, "only verified readiness fills the bar")
         // Exercise the real runner only against disposable scripts, never tools.
         let fakeScript = temporary.appendingPathComponent("fake script ; $x.sh")
         try "#!/bin/bash\nprintf 'captured output\\n'\nexit 7\n".write(to: fakeScript, atomically: true, encoding: .utf8)
@@ -640,8 +670,11 @@ struct SetupTests {
             let buttons = content.subviews.compactMap { $0 as? NSButton }
             let details = buttons.first { $0.title == "Details…" }!
             let primary = buttons.first { $0.title != "Details…" }!
+            let bar = content.subviews.compactMap { $0 as? NSProgressIndicator }.first!
             let output = URL(fileURLWithPath: CommandLine.arguments[option + 1])
             func render(_ destination: URL) throws {
+                // Let the native bar finish animating its value before caching pixels.
+                RunLoop.current.run(until: Date().addingTimeInterval(0.4))
                 content.layoutSubtreeIfNeeded()
                 guard let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds) else { throw SetupFailure(message: "Cannot render preview") }
                 NSAppearance(named: .aqua)?.performAsCurrentDrawingAppearance {
@@ -652,14 +685,22 @@ struct SetupTests {
             }
             previewController.check()
             try expect(previewController.summary == "Preparing Zero…" && primary.isHidden && details.isHidden, "preparation shows progress without buttons")
+            try expect(bar.style == .bar && !bar.isIndeterminate && !bar.isHidden && bar.doubleValue == 0, "native preparation uses an empty determinate bar")
             try render(output.deletingPathExtension().appendingPathExtension("preparing.png"))
+            previewRunner.finish()
+            try pump(until: { previewRunner.pending != nil })
+            previewRunner.progress?("editor")
+            try expect(bar.doubleValue == 3 && !bar.isIndeterminate, "bar reflects completed setup stages")
+            try render(output.deletingPathExtension().appendingPathExtension("progress.png"))
             previewRunner.paused = false; previewRunner.finish()
             try pump(until: { !previewController.busy })
             try expect(primary.title == "Open Zero" && !primary.isHidden && details.isHidden, "ready shows only Open Zero")
+            try expect(!bar.isHidden && bar.doubleValue == bar.maxValue, "ready bar is complete")
             try render(output)
             previewRunner.result = CommandResult(exitCode: 42, output: "Fake network failure; no host changes.", timedOut: false, launchError: nil)
             previewController.primaryAction()
             try expect(primary.title == "Try again" && !primary.isHidden && !details.isHidden, "failure retains retry and diagnostics")
+            try expect(bar.isHidden, "failure hides progress and keeps recovery controls")
             try render(output.deletingPathExtension().appendingPathExtension("failure.png"))
             print("Rendered preparing/ready/failure AppKit previews from fake checks: \(output.path)")
             print("Mac native setup including UI: \(passed) assertions passed.")
