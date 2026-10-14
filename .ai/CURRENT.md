@@ -15,8 +15,11 @@ website94 and package/extracted-kit checks passed. Actual VSCode1.141.2 restored
 second disposable workspace; GUI restoration/close-button not proven.
 
 Kit13 remains local; published Windowskit10 and all earlier native artifacts remain
-immutable. NoWindowsEXE/kit/Hub release or credentials changes. Current branch
-codex/publish-zero-app-0.5.13 promotes only measured public Mac metadata/docs.
-Next metadata review/CI/merge and live download-anchor/byte proof. Fresh-machine,
+immutable. NoWindowsEXE/kit/Hub release or credentials changes. MetadataPR57 merged638b76d after Sol/medium review and
+successful CI38625355070. Production deployment7075524218 succeeded for that merge;
+live downloads page has exact13Mac and unchanged10Windows anchors, both downloaded
+without authentication and size/SHA verified. Delivery complete. Current branch
+codex/zero-app-0.5.13-smoke-receipt retains the completion receipt locally for
+continuing owner smoke testing. Fresh-machine,
 quarantineUI/macOS12/Intel/physicalWindows remain untested; owner smoke test continues.
 Ignored sealed bytes/notary/build/live restoration evidence retained. No goal/chat/automation.
