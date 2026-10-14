@@ -2520,3 +2520,14 @@ Mac; no visible padding inspection claimed. Logs: `.verification/simple-app-padd
 Earlier sealed10candidate remains intact but predates this source change and must
 not publish as the updated candidate. Public0.5.9 stays immutable; Mac physical input
 check and Windows/student trials remain pending/deferred respectively.
+
+Source review39 (Sol/medium) completed the actual20file diff from upstream7c328667
+to598706e without findings; six lesson-project tests passed independently. Complete
+CI38494195492 passed exact598706e, including padding geometry/screen replacement,
+invalid values/lifecycle, arrow focus and all lesson/website/packaging checks. The
+initial briefing base4c was corrected to7c; upstream CODEOWNERS was outside this PR.
+New signed Mac10from clean598706e passed actual signatures/payload/staple/Gatekeeper
+and Apple Acceptedf469b2bf-5a39-424e-b29e-a0743b0061ea with retained input hash.
+Candidate review40/seal and physical Mac checks remain pending. Owned Study source
+was updated only after confirming it matched the original test files. PR44 remains
+draft for coupling new lesson API instructions with the compatible published kit.
