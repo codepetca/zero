@@ -2604,3 +2604,102 @@ Owned local servers/test tab closed; primary checkout and immutable artifacts pr
 This final factual delivery receipt changes no code after review. The owner
 authorized publishing it with the other tracked documentation; private logs and
 screenshots remain local.
+
+## Beginner native setup simplification — 2026-10-14
+
+Local branch `codex/setup-smoke-feedback`, base e7c32a2, implementation35daff3.
+Owner requested Preparing Zero wording/progress, removal of normal Details and
+automatic new-folder/setup-only existing-kit preparation. Both native controllers
+now proceed on launch and stop at explicit editor opening. Existing project
+preservation, unrelated-folder refusal, identity/race guards, backups, rollback
+and close gates remain. Failure retains Details and a deliberate retry. Windows
+profile/tool/extension actions stay explicit with their consequences in status.
+Published0.5.10 kit/installer metadata and immutable bytes were not changed.
+
+Verification: Mac Swift/AppKit188 assertions including automatic fresh/update,
+student source/assets/saves/Git/settings preservation, collision and race refusal,
+rollback, failure/retry and shutdown; native preparing/ready/failure views rendered
+and inspected. Safe fixtures only; no host tool installs or account changes.
+Windows full net48 app and harness build with0warnings/errors; Mono235 checks
+passed, including a real disposable setup-file update, backup and preservation.
+Coordinator inspected worker diff and independently reran235 checks. Windows
+Node backend contracts2pass; PowerShell runtime skipped. npm check, installer8
+tests, Mac release2tests and git diff --check passed. No complete installer was
+packaged; an optional older local archive lacked setup/Setup.ps1, so worker did
+not claim real-archive extraction coverage. Physical Windows/PowerShell5.1,
+fresh-machine install and novice interactive trials remain unverified.
+
+windows_setup: requested GPT-6.1Sol/medium, one component writer, delivered and
+verified. Coordinator owned Mac/docs/integration. Independent setup_review/1:
+requested GPT-6.1Sol/high, standard behavioral risk; complete fixed diff
+e7c32a2d6edf09366bedcf6ba3c49b654955d5b1→35daff3aab14c7a712f22262923dde43a0bae349
+and immediate placement/update/runtime/PowerShell/process/UI callers, no findings.
+Reviewer reused source-matched checks, ran whitespace verification and inspected
+AppKit previews. Ledger1launch/1initialwave/0remediation/0integrationwaves; no
+extra wave needed for unchanged reviewed source. Effective model/tokens/exact
+elapsed unknown. Initial harness fixtures assumed the old pause/consent sequence;
+updated to new automatic transitions before acceptance. No production rework or
+file conflicts. Weekly73%remaining at start and storage311GBhealthy are shared
+readings; attributable task usage unknown. DeepSeek pause retained. No push, PR,
+merge, release, signing, notarization or deployment in this scope.
+
+### Progress bar follow-up — 2026-10-14
+
+Owner requested a bar instead of the spinner. Source66abd8a replaces the Mac
+spinner with native determinate NSProgressIndicator.bar. Nine-stage completion
+comes from successful initial check/placement and runtime progress callbacks;
+existing components can skip stages, retry restarts at the prepared-folder stage,
+and only verified final readiness fills the bar. Opening remains explicit and
+uses the bar's indeterminate mode. Windows already uses an animated bar and
+was unchanged. No timers invent progress or estimate download/time percentages.
+
+Mac209 assertions passed, including callbacks, skipped/stale/unknown tokens,
+failure before completion, retry reset, final readiness and native control values.
+Configuration/syntax/command/docs check, Mac release2tests and whitespace pass.
+Offscreen empty/partial/complete/failure renders were inspected. Partial image
+shows roughly1/9 despite asserted3/9; cause remains unverified. Screenshot
+settling and avoiding repeated stopAnimation did not establish correct visible
+intermediate fill. CUA native inspection reported the Mac locked. Live intermediate
+fill and explicit Opening→completion need fake/disposable UI verification when
+available; no unlock, real installation, accounts or publication were attempted.
+Evidence stays ignored under .verification/setup-smoke-feedback/bar-preview*.png.
+
+setup_review/2 inherited Sol/high, complete targeted c7df1bc..66abd8a and runtime
+token/main-thread/callback/refresh/retry/readiness/Open/doc boundaries, no source
+findings or blockers; visual coverage gap recorded explicitly. Reused Mac209 and
+configuration checks, independently checked delta whitespace and four previews.
+This turn adds one targeted wave, no new reviewer launch/remediation/integration
+wave; prior unchanged review coverage reused. Effective model/time/tokens unknown.
+Coordinator handled the focused implementation; no additional implementation
+worker. Shared storage/usage readings reused; task attribution unknown.
+Published version0.5.10 and released bytes remain unchanged.
+
+## Mac setup 0.5.11 release preparation — 2026-10-14
+
+Owner explicitly authorized release for ongoing smoke testing. bar_live_check
+Sol/high used disposable fake operations and native CUA dark-theme inspection:
+visible/AX progress agreed at2/9,4/9,6/9,7/9, Readyfull, explicit Open busy and
+Open Zero again full. No production source correction required; offscreen partial
+cache mismatch was not reproduced visibly, exact mechanism unproven. Reproducible
+progress preview and opening assertions added; Mac211harness passed. Worker
+cleaned fixtures/fake app; no host installation/profile/account changes.
+
+Kit/extension0.5.11 is local, core0.1.2 unchanged. Public0.5.10 kit/starter/VSIX/DMG
+downloaded without authentication and exact original sizes/hashes checked;10kit
+fallback now pinned explicitly. No old bytes replaced, Windows ZIP stays10. Main
+documentation through3e6e3a3 integrated, preserving both append-only histories.
+Full Node259pass/1PowerShellskip, website79/typecheck/build, configuration, package
+and archive/source/mode/license/extracted-Maven checks pass. Windows235/native
+net48 evidence reused unchanged. New actual Mac signed build binds clean2ec7f63,
+private receipt and immutable pre-staple input retained under ignored release11
+evidence. Existing explicit signer/profile reused; no credentials configured.
+
+setup_review/3 inherited Sol/high reviewed679a644..2ec7f63/version/fallback/package/
+source interactions and reused prior runtime reviews, no blockers. Independent
+public10hash/fallback/oldnative/whitespace verification passed; one P3 stale README
+packaging output accepted and corrected, public download links preserved. This
+release-phase source review is one bounded targeted turn; notarized provenance
+and final publication metadata still need separate review. Effective model/elapsed/
+tokens unknown; storage312GBhealthy and weekly71%remaining are shared readings.
+Source PR49 is draft; exact-head CI and Apple notarization/publication remain
+pending. No kit11three-asset publication, WindowsEXE or ZeroHub publication.

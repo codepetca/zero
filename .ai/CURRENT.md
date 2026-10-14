@@ -1,32 +1,43 @@
-# Current state — grouped lessons and copy controls live
+# Current state — Mac setup 0.5.11 release in progress
 
-Updated 2026-10-14. Worktree `/Users/stew/.codex/worktrees/github-sharing-adoption/zero`,
-branch `codex/lesson-copy-verification-docs`. Website request complete: all13 lessons grouped
-under canonical Greeting app, Study quiz and Coin game headings, matching mobile
-optgroups; shared clickable code blocks with native keyboard Copy/status/errors in
-Tutorials/Docs/source/ZeroHub. PR47 merged at e7c32a2d6edf09366bedcf6ba3c49b654955d5b1.
-Final reviewed95f65c0 passed full CI38577467605; Vercel production7067809561 succeeded
-with exact merge source. Live zero.codepet.ca/learn visibly has groups/controls;
-genuine native paste matches live snippet exactly. Screenshots/logs/receipts:
-`.verification/lesson-groups-copy/`. Owned local servers and browser test tab closed.
+Updated 2026-10-14. Owner explicitly authorized release of the updated installer
+for continued smoke testing. Current task coordinates source integration, signed
+Mac build, existing-profile Apple notarization, exact-byte native publication and
+reviewed download-link deployment. No new credentials/account configuration or
+Windows EXE/ZeroHub publication. The three-asset kit0.5.11 stays local; Windows
+continues to download independently verified public kit0.5.10.
 
-Review42 (requested GPT-6.1 Sol/medium) completed14-file diff356ddf4..e56e30d,
-accepted one P2 caller-padding overlap. One CSS correction; review43 completed
-4-file e56e30d..95f65c0 delta/compiled CSS without findings. Initial coverage reused;
-one reviewer launch/two turns, one initial/one targeted wave, one fix batch. Tokens,
-effective configuration and reviewer elapsed unknown; account-wide78% weekly
-remaining at start is not task cost. Website typecheck79tests/build passed;
-real paste single/multiline/full source, Enter/Space, manual drag selection,
-desktop route/current link,390px selector and320px Copy spacing/page width,
-light/dark checks passed. Browser clipboard rejection was not forced.
+Worktree /Users/stew/.codex/worktrees/setup-smoke-feedback/zero, branch
+codex/setup-smoke-feedback. Main advanced only documentation through3e6e3a3;
+preserve it during integration. Primary funding and other active worktrees stay
+untouched. Runtime source35daff3/66abd8a has Preparing Zero, automatic fresh or
+recognized-kit setup-only update, failure-only Details and nine-stage Mac progress
+bar; student projects/other files/backups/race/rollback and explicit Open preserved.
+Prior independent setup_review1/2 found no source blockers. Weekly71% remaining;
+storage312GBhealthy, DeepSeek pause retained; attributable usage unknown.
 
-No framework/extension/kit source changed or frozen releases rebuilt. Mac0.5.10
-rollout completed previously; physical owner checks passed. Later mainPR45/46
-preserved. Primary checkout remains untouched. The owner requested publishing
-this final documentation record; it changes no application code. Preserve private
-receipts/artifacts; only the tracked Markdown record is included.
-Standing source push/PR/merge/deploy authority and task-stop waiver persist;
-execution/provider/identity controls remain binding. DeepSeek paused. Windows and
-student trials deferred. Generic public executor acceptance held, general game
-publication disabled, Neon retained; full GitHub adoption remains incomplete.
-No new goal/task/automation. Storage319GB healthy; no cleanup performed.
+bar_live_check Sol/high owns Mac tests only for safe fake progress verification;
+coordinator owns version/docs/release/signing/publication. Actual native dark-theme
+preview now verified visible intermediate progress and Ready→explicit Open→complete
+with fake operations. Offscreen caching discrepancy remains nonrepresentative of
+those visible fills; mechanism unproven. Final Mac211/Windows235 checks pass, along with Node259/1platformskip,
+website79/typecheck/build, packaging/archive/extracted-Maven and clean-source checks.
+Release-source review679a644..2ec7f63 complete/no blockers; one stale README
+packaging filename corrected. Signed universal Mac built from clean2ec7f63;
+exact pre-staple input preserved and Apple submission underway with existing profile.
+New local version0.5.11/VSIX prepared, core0.1.2 unchanged. Published kit10 fallback
+and all four current public artifacts downloaded unauthenticated and independently
+hashed; old native10 manifest retained until new candidate publication.
+
+Next: finish worker/checks, integrate latest main, commit clean build source,
+package/verify kit, sign universal Mac with existing explicit identity
+ACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8, submit through existing
+Zero Notarization profile, bind Accepted log to submitted bytes, staple/verify,
+seal candidate, independently review source/provenance, pass exact PR CI/merge,
+publish one setup-v0.5.11 DMG and promote verified native link. Previous source
+review budget remains historical; release review is bounded under AI-WORKFLOW.
+Fresh-machine installs, physical Windows and actual student-first-run flows remain
+unverified; user continues that smoke test after downloading. No old release
+bytes/tags are replaced. Generic public executor acceptance remains held, general
+game publication disabled and existing provider/identity controls remain binding.
+No new goal, separate chat or automation.

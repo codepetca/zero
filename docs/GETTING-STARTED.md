@@ -12,6 +12,11 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Zero Setup for Mac
 
+Current local native source begins with **Preparing Zero…** and a progress bar, creates
+or updates the setup files in `~/Zero` automatically, then offers **Open Zero**.
+Student projects are kept. Details appears only if setup fails. This change has
+not been released; the published installer still uses the steps below.
+
 The signed and notarized **current Mac setup** prepares Zero with one small window
 and one changing progress message:
 

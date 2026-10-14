@@ -10,6 +10,7 @@ private func snapshot(_ overrides: [String: Int] = [:]) -> String {
     return "ZERO_SETUP_V1\n" + values.keys.sorted().map { "\($0)=\(values[$0]!)" }.joined(separator: "\n") + "\nEND_ZERO_SETUP\n"
 }
 private final class FakeRunner: SetupCommandRunning {
+    var progress: ((String) -> Void)?
     var commands: [SetupCommand] = []
     var timeouts: [TimeInterval] = []
     var paused = false
@@ -119,6 +120,17 @@ struct SetupTests {
             default: fake.checkOutput = snapshot()
             }
             fake.onRun = { command in
+                if scenario == "progress" {
+                    fake.delay = command.arguments.contains("--native-install") ? 60 : 5
+                    if command.arguments.contains("--native-install") {
+                        for (index, token) in ["java", "editor", "settings", "zero", "redhat", "verify"].enumerated() {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index + 1) * 8) {
+                                fake.progress?(token)
+                                print("Safe fake progress: \(token)")
+                            }
+                        }
+                    }
+                }
                 if command.executable == "/usr/bin/open" { fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]) }
                 if command.arguments.contains("--native-profile") && scenario != "profile-unfinished" { fake.checkOutput = snapshot(["zero": 0, "redhat": 0]) }
                 if command.arguments.contains("--native-install") { fake.checkOutput = snapshot() }
@@ -137,7 +149,7 @@ struct SetupTests {
                 try "student save".write(to: existing.appendingPathComponent("starter/save.dat"), atomically: true, encoding: .utf8)
                 try "old setup".write(to: existing.appendingPathComponent("setup/README.md"), atomically: true, encoding: .utf8)
                 controller.check()
-            } else if scenario == "folder" { controller.check() }
+            } else if scenario == "folder" || scenario == "progress" { controller.check() }
             else { controller.place(parent: parent, name: "Preview kit") }
             print("Safe interactive preview scenario: \(scenario). All commands fake; folder \(temporary.path)")
             app.run()
@@ -194,19 +206,17 @@ struct SetupTests {
         try manager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: deniedHome.path)
         let emptyController = SetupController(kit: kit, runner: FakeRunner(), home: deniedHome)
         emptyController.check()
-        try expect(emptyController.summary == "Set up Zero; download any missing tools.", "fixed destination visible before action")
-        try expect(try manager.contentsOfDirectory(atPath: deniedHome.path).isEmpty, "check leaves empty home unchanged")
-        emptyController.primaryAction()
+        try expect(emptyController.summary == "Preparing your Zero folder…", "check automatically starts fixed-folder preparation")
         try expect(emptyController.busy && !emptyController.mayExit(), "fresh placement gates shutdown")
         try pump(until: { !emptyController.busy })
-        try expect(emptyController.stage == .ready && emptyController.selectedFolder?.lastPathComponent == "Zero", "primary creates fixed Zero and rechecks")
+        try expect(emptyController.stage == .ready && emptyController.selectedFolder?.lastPathComponent == "Zero", "launch creates fixed Zero and rechecks without another action")
         try rejected("fresh default race never auto updates") {
             _ = try kit.place(parent: defaultHome, name: "Zero") {
                 _ = try fixture(defaultHome.appendingPathComponent("Zero"))
                 try "race owner".write(to: defaultHome.appendingPathComponent("Zero/starter/Main.java"), atomically: true, encoding: .utf8)
             }
         }
-        try expect(try String(contentsOf: defaultHome.appendingPathComponent("Zero/starter/Main.java"), encoding: .utf8) == "race owner", "raced kit preserved until new confirmation")
+        try expect(try String(contentsOf: defaultHome.appendingPathComponent("Zero/starter/Main.java"), encoding: .utf8) == "race owner", "raced kit preserved until a deliberate retry")
         let existing = defaultHome.appendingPathComponent("Zero")
         let preserved = ["starter/Main.java", "starter/pom.xml", "starter/.vscode/tasks.json", "starter/.git/config", "starter/assets/art.png", "starter/saves/game.dat", "starter/src/main/java/zero/SimpleApp.java", "optional/Zero.code-profile", "optional/keybindings.json", "teacher-notes.txt", "zero-0.9.0.vsix"]
         for name in preserved {
@@ -220,21 +230,12 @@ struct SetupTests {
         let defaultFake = FakeRunner()
         let defaultController = SetupController(kit: kit, runner: defaultFake, home: defaultHome)
         defaultController.check()
-        try expect(defaultController.summary == "Set up Zero; download any missing tools." && defaultController.stage == .chooseFolder, "existing fixed folder shown before confirmation")
-        let beforeEntries = try manager.contentsOfDirectory(atPath: defaultHome.path)
-        defaultController.primaryAction()
-        try expect(defaultController.stage == .updateConsent && !defaultController.busy, "existing kit requires explicit confirmation")
-        try expect(defaultController.consent?.detail.contains("your code, assets and saved projects will be kept") == true, "overwrite confirmation explains preserved work")
+        try expect(defaultController.summary == "Preparing Zero…", "recognized kit automatically starts setup-only update")
         try expect(defaultFake.commands.count == 1 && defaultFake.commands[0].arguments[1] == kit.root.path, "no existing launcher executed before upgrade")
-        defaultController.approve(false)
-        try expect(defaultController.stage == .chooseFolder && defaultController.selectedFolder == nil, "cancel returns without selecting existing kit")
-        try expect(try manager.contentsOfDirectory(atPath: defaultHome.path) == beforeEntries, "cancel creates no backup or staging")
-        try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "old launcher", "cancel changes no setup files")
-        defaultController.primaryAction(); defaultController.approve(true)
         try expect(defaultController.busy && !defaultController.mayExit(), "update gates close")
         try pump(until: { !defaultController.busy })
-        try expect(defaultController.stage == .ready && defaultController.selectedFolder == existing, "confirmed update rechecks fixed kit")
-        try expect(defaultController.diagnostics.contains("Previous setup backup:"), "Details records permanent backup location")
+        try expect(defaultController.stage == .ready && defaultController.selectedFolder == existing, "automatic update rechecks fixed kit")
+        try expect(defaultController.diagnostics.contains("Previous setup backup:"), "diagnostics record permanent backup location")
         try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "fixture setup/README.md\n", "old setup refreshed from bundle")
         for name in preserved {
             try expect(try String(contentsOf: existing.appendingPathComponent(name), encoding: .utf8) == "student \(name)", "student file preserved: \(name)")
@@ -307,14 +308,14 @@ struct SetupTests {
             if kind == "file" { try "owned".write(to: target, atomically: true, encoding: .utf8) }
             if kind == "link" { try manager.createSymbolicLink(at: target, withDestinationURL: existing) }
             let refused = SetupController(kit: kit, runner: FakeRunner(), home: badHome)
-            refused.check(); refused.primaryAction()
-            try expect(refused.stage == .chooseFolder && refused.selectedFolder == nil && !refused.busy, "refuse unrelated \(kind)")
+            refused.check()
+            try expect(refused.stage == .retry && refused.selectedFolder == nil && !refused.busy, "refuse unrelated \(kind)")
             try expect(try manager.contentsOfDirectory(atPath: badHome.path) == ["Zero"], "refusal writes nothing")
             try manager.removeItem(at: target)
         }
         let unavailable = SetupController(kit: kit, runner: FakeRunner(), home: parentLink)
         unavailable.check()
-        try expect(unavailable.stage == .chooseFolder && unavailable.summary.contains("retry"), "unavailable default offers error details and retry")
+        try expect(unavailable.stage == .retry && unavailable.summary.contains("Details"), "unavailable default offers error details and retry")
         unavailable.primaryAction()
         try expect(!unavailable.busy && unavailable.selectedFolder == nil, "failed default never claims success or starts copying")
         try manager.removeItem(at: parentLink)
@@ -322,12 +323,6 @@ struct SetupTests {
         unavailable.primaryAction()
         try pump(until: { !unavailable.busy })
         try expect(unavailable.stage == .ready && unavailable.selectedFolder?.lastPathComponent == "Zero", "retry uses default after home is repaired")
-        let collisionController = SetupController(kit: kit, runner: FakeRunner(), home: defaultHome)
-        collisionController.check()
-        collisionController.place(parent: defaultHome, name: "Zero")
-        try pump(until: { !collisionController.busy })
-        try expect(collisionController.stage == .chooseFolder && collisionController.selectedFolder == nil, "failed placement returns to actionable folder stage")
-
         let fake = FakeRunner()
         let controller = SetupController(kit: kit, runner: fake, home: parent)
         try expect(fake.commands.isEmpty, "controller waits for launch-triggered check")
@@ -337,7 +332,10 @@ struct SetupTests {
         try expect(fake.commands.isEmpty, "initial action cannot launch editor")
         controller.check()
         try expect(fake.commands == [SetupCommand(executable: Bundle.main.executableURL!.path, arguments: ["--runtime", kit.root.path, "--native-check"])], "check uses fixed argv")
-        try expect(fake.timeouts == [180] && controller.stage == .chooseFolder, "read-only check precedes folder")
+        try expect(fake.timeouts == [180] && controller.busy, "read-only check leads directly to folder preparation")
+        try pump(until: { !controller.busy })
+        try expect(controller.stage == .ready && controller.selectedFolder == parent.appendingPathComponent("Zero"), "automatic install reaches ready without opening editor")
+        try expect(!fake.commands.contains { $0.arguments.contains("--native-open") }, "launch preparation never opens editor automatically")
         fake.result = CommandResult(exitCode: 0, output: "partial response", timedOut: false, launchError: nil)
         controller.check()
         try expect(controller.stage == .retry, "zero exit without complete response cannot ready")
@@ -348,10 +346,10 @@ struct SetupTests {
         controller.check()
         try expect(controller.stage == .retry && controller.diagnostics.contains("denied"), "spawn failure details separated")
         fake.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
-        controller.place(parent: parent, name: "Controller kit ; $x")
+        controller.primaryAction()
         try pump(until: { !controller.busy })
         try expect(controller.selectedFolder != nil && controller.stage == .ready, "placed complete kit ready only after recheck")
-        try expect(fake.commands.contains { $0.arguments.contains("--native-install") && $0.arguments.last == "--approved" }, "one initial action authorizes automatic scoped configuration")
+        try expect(fake.commands.contains { $0.arguments.contains("--native-install") && $0.arguments.last == "--approved" }, "launch prepares scoped configuration automatically")
         controller.primaryAction()
         try expect(fake.commands.last?.arguments.last == "--native-open" && controller.stage == .opened, "final Open Zero explicit")
         let copied = controller.selectedFolder!
@@ -563,15 +561,43 @@ struct SetupTests {
         try expect(pausedController.summary.contains("Please wait"), "shutdown rejection explains active work")
         pausedRunner.finish()
         try expect(!pausedWindow.window!.contentView!.subviews.contains { ($0 as? NSButton)?.title == "Change location…" }, "location button absent at default folder stage")
-        try expect(pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "close and quit allowed after check finishes")
-        pausedController.place(parent: parent, name: "Paused copy")
+        try expect(!pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateCancel, "shutdown stays gated as check enters automatic preparation")
         try expect(locationButton == nil, "no location button during placement")
         try expect(!pausedController.mayExit(), "copy owns shutdown until completion")
         try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()
         try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()
-        try expect(pausedController.mayExit(), "copy, configure and recheck release shutdown after completion")
+        try expect(pausedController.mayExit() && pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "copy, configure and recheck release shutdown after completion")
+        let progressHome = temporary.appendingPathComponent("progress home")
+        try manager.createDirectory(at: progressHome, withIntermediateDirectories: false)
+        let progressRunner = FakeRunner(); progressRunner.paused = true
+        let progressController = SetupController(kit: kit, runner: progressRunner, home: progressHome)
+        progressController.check()
+        try expect(progressController.completedSteps == 0, "preparation begins with an empty bar")
+        progressRunner.progress?("verify")
+        try expect(progressController.completedSteps == 0, "stage tokens outside configuration cannot advance progress")
+        progressRunner.finish()
+        try expect(progressController.completedSteps == 1, "successful initial check advances one step")
+        try pump(until: { progressRunner.pending != nil })
+        for (token, completed) in [("java", 2), ("editor", 3), ("settings", 4), ("zero", 5), ("redhat", 6), ("verify", 7)] {
+            progressRunner.progress?(token)
+            try expect(progressController.completedSteps == completed && completed < SetupController.totalSteps, "actual stage advances progress: \(token)")
+        }
+        progressRunner.progress?("editor"); progressRunner.progress?("unknown")
+        try expect(progressController.completedSteps == 7, "stale and unknown tokens do not change progress")
+        progressRunner.result = CommandResult(exitCode: 42, output: "injected verification failure", timedOut: false, launchError: nil)
+        progressRunner.finish()
+        try expect(progressController.stage == .retry && progressController.completedSteps == 7, "failure never fills the bar")
+        progressRunner.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
+        progressController.primaryAction()
+        try expect(progressController.completedSteps == 2, "retry resets progress to the prepared folder")
+        progressRunner.progress?("verify")
+        try expect(progressController.completedSteps == 7, "skipped installed components count before verification")
+        progressRunner.finish()
+        try expect(progressController.completedSteps == 8 && progressController.busy, "successful configuration waits for final readiness")
+        progressRunner.finish()
+        try expect(progressController.completedSteps == SetupController.totalSteps && progressController.stage == .ready, "only verified readiness fills the bar")
         // Exercise the real runner only against disposable scripts, never tools.
         let fakeScript = temporary.appendingPathComponent("fake script ; $x.sh")
         try "#!/bin/bash\nprintf 'captured output\\n'\nexit 7\n".write(to: fakeScript, atomically: true, encoding: .utf8)
@@ -643,22 +669,60 @@ struct SetupTests {
         if let option = CommandLine.arguments.firstIndex(of: "--preview"), option + 1 < CommandLine.arguments.count {
             let app = NSApplication.shared
             app.setActivationPolicy(.prohibited)
-            let previewController = SetupController(kit: kit, runner: FakeRunner(), home: parent)
-            previewController.place(parent: parent, name: "Preview ready")
-            try pump(until: { !previewController.busy })
+            let previewRunner = FakeRunner(); previewRunner.paused = true
+            let previewHome = temporary.appendingPathComponent("preview home")
+            try manager.createDirectory(at: previewHome, withIntermediateDirectories: false)
+            let previewController = SetupController(kit: kit, runner: previewRunner, home: previewHome)
             let window = SetupWindow(controller: previewController)
             window.window?.appearance = NSAppearance(named: .aqua)
             guard let content = window.window?.contentView else { throw SetupFailure(message: "No preview view") }
             content.wantsLayer = true
             content.layer?.backgroundColor = NSColor(calibratedWhite: 0.96, alpha: 1).cgColor
-            content.layoutSubtreeIfNeeded()
-            guard let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds) else { throw SetupFailure(message: "Cannot render preview") }
-            NSAppearance(named: .aqua)?.performAsCurrentDrawingAppearance {
-                content.cacheDisplay(in: content.bounds, to: bitmap)
+            let buttons = content.subviews.compactMap { $0 as? NSButton }
+            let details = buttons.first { $0.title == "Details…" }!
+            let primary = buttons.first { $0.title != "Details…" }!
+            let bar = content.subviews.compactMap { $0 as? NSProgressIndicator }.first!
+            let output = URL(fileURLWithPath: CommandLine.arguments[option + 1])
+            func render(_ destination: URL) throws {
+                // Allow queued layout/drawing work before caching the offscreen view.
+                // Verify visible fill with the interactive progress scenario instead.
+                RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+                content.layoutSubtreeIfNeeded()
+                guard let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds) else { throw SetupFailure(message: "Cannot render preview") }
+                NSAppearance(named: .aqua)?.performAsCurrentDrawingAppearance {
+                    content.cacheDisplay(in: content.bounds, to: bitmap)
+                }
+                guard let png = bitmap.representation(using: .png, properties: [:]) else { throw SetupFailure(message: "Cannot encode preview") }
+                try png.write(to: destination)
             }
-            guard let png = bitmap.representation(using: .png, properties: [:]) else { throw SetupFailure(message: "Cannot encode preview") }
-            try png.write(to: URL(fileURLWithPath: CommandLine.arguments[option + 1]))
-            print("Rendered AppKit preview from fake checks: \(CommandLine.arguments[option + 1])")
+            previewController.check()
+            try expect(previewController.summary == "Preparing Zero…" && primary.isHidden && details.isHidden, "preparation shows progress without buttons")
+            try expect(bar.style == .bar && !bar.isIndeterminate && !bar.isHidden && bar.doubleValue == 0, "native preparation uses an empty determinate bar")
+            try render(output.deletingPathExtension().appendingPathExtension("preparing.png"))
+            previewRunner.finish()
+            try pump(until: { previewRunner.pending != nil })
+            previewRunner.progress?("editor")
+            try expect(bar.doubleValue == 3 && !bar.isIndeterminate, "bar reflects completed setup stages")
+            try render(output.deletingPathExtension().appendingPathExtension("progress.png"))
+            previewRunner.paused = false; previewRunner.finish()
+            try pump(until: { !previewController.busy })
+            try expect(primary.title == "Open Zero" && !primary.isHidden && details.isHidden, "ready shows only Open Zero")
+            try expect(!bar.isHidden && bar.doubleValue == bar.maxValue, "ready bar is complete")
+            try render(output)
+            previewRunner.paused = true
+            previewController.primaryAction()
+            try expect(bar.isIndeterminate && !bar.isHidden && primary.isHidden, "opening shows a busy bar and prevents duplicate actions")
+            previewRunner.finish()
+            try expect(!bar.isIndeterminate && bar.doubleValue == bar.maxValue && primary.title == "Open Zero again" && !primary.isHidden,
+                       "completed opening restores a full bar and the repeat action")
+            previewRunner.paused = false
+            previewRunner.result = CommandResult(exitCode: 42, output: "Fake network failure; no host changes.", timedOut: false, launchError: nil)
+            previewController.primaryAction()
+            try expect(primary.title == "Try again" && !primary.isHidden && !details.isHidden, "failure retains retry and diagnostics")
+            try expect(bar.isHidden, "failure hides progress and keeps recovery controls")
+            try render(output.deletingPathExtension().appendingPathExtension("failure.png"))
+            print("Rendered preparing/ready/failure AppKit previews from fake checks: \(output.path)")
+            print("Mac native setup including UI: \(passed) assertions passed.")
         }
     }
 }

@@ -22,7 +22,8 @@ struct CommandResult {
     var succeeded: Bool { exitCode == 0 && !timedOut && launchError == nil }
 }
 
-protocol SetupCommandRunning {
+protocol SetupCommandRunning: AnyObject {
+    var progress: ((String) -> Void)? { get set }
     func run(_ command: SetupCommand, timeout: TimeInterval, completion: @escaping (CommandResult) -> Void)
 }
 
@@ -290,7 +291,7 @@ struct SetupKit {
         let destination = canonicalParent.appendingPathComponent(name, isDirectory: true)
         var info = stat()
         guard lstat(destination.path, &info) != 0 && errno == ENOENT else {
-            throw SetupFailure(message: "The Zero folder already exists. Review it and retry setup to confirm an update.")
+            throw SetupFailure(message: "The Zero folder already exists. Check it and retry setup.")
         }
         var template = Array(canonicalParent.appendingPathComponent(".zero-setup-XXXXXX").path.utf8CString)
         guard let temporaryPath = mkdtemp(&template) else {
@@ -309,7 +310,7 @@ struct SetupKit {
         }
         guard renameatx_np(AT_FDCWD, staging.path, parentFD, name, UInt32(RENAME_EXCL)) == 0 else {
             if errno == EEXIST || errno == ENOTEMPTY {
-                throw SetupFailure(message: "The Zero folder appeared during setup. It was preserved. Review it and retry to confirm an update.")
+                throw SetupFailure(message: "The Zero folder appeared during setup. It was preserved. Check it and retry setup.")
             }
             throw SetupFailure(message: "Could not place the kit: \(String(cString: strerror(errno))). Check your home folder permissions, then retry.")
         }
@@ -437,10 +438,10 @@ struct KitUpdatePlan {
     func recheck() throws {
         try recheckDirectories()
         for (name, old) in markerIdentities {
-            guard try Self.regular(destination.appendingPathComponent(name)) == old else { throw SetupFailure(message: "Your Zero kit changed after confirmation. Review it and try again.") }
+            guard try Self.regular(destination.appendingPathComponent(name)) == old else { throw SetupFailure(message: "Your Zero kit changed during preparation. Review it and try again.") }
         }
         for name in files {
-            guard try Self.identity(destination.appendingPathComponent(name)) == originals[name] else { throw SetupFailure(message: "Setup file \(name) changed after confirmation. Try again.") }
+            guard try Self.identity(destination.appendingPathComponent(name)) == originals[name] else { throw SetupFailure(message: "Setup file \(name) changed during preparation. Try again.") }
         }
     }
     /// Anchored directory handles prevent symlink ancestor replacement from
@@ -579,7 +580,7 @@ private func protocolFields(_ output: String, start: String, end: String) throws
 }
 
 enum SetupStage: Equatable {
-    case checking, chooseFolder, updateConsent, ready, retry, opened
+    case checking, ready, retry, opened
 }
 
 final class SetupController {
@@ -588,50 +589,48 @@ final class SetupController {
     let defaultLocation: DefaultSetupLocation
     private(set) var selectedFolder: URL?
     private(set) var busy = false
+    static let totalSteps = 9
+    private(set) var completedSteps = 0
+    private var configuring = false
     private(set) var hasChecked = false
     private(set) var stage: SetupStage = .checking
-    private(set) var summary = "Checking your laptop…"
+    private(set) var summary = "Preparing Zero…"
     private(set) var diagnostics = "Set up Zero prepares ~/Zero and a separate editor configuration in ~/Library/Application Support/Zero. Missing VS Code and JDK 21 are downloaded from official pinned URLs and verified. Zero and Java support are installed in that separate editor. Git is optional; GitHub sign-in and sharing are separate. Existing editor profiles and student files are preserved. Workspace trust and system security prompts remain yours to approve.\n"
     private var snapshot: SetupSnapshot?
-    private var pendingUpdate: KitUpdatePlan?
     var changed: (() -> Void)?
 
     init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner(),
          home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         self.kit = kit; self.runner = runner; defaultLocation = DefaultSetupLocation(home: home)
-        (runner as? NativeCommandRunner)?.progress = { [weak self] token in
-            let messages = ["java": "Preparing Java…", "editor": "Preparing Zero editor…", "settings": "Preparing Zero settings…", "zero": "Installing Zero support…", "redhat": "Installing Java support…", "verify": "Checking Zero is ready…"]
-            guard let self, self.busy, let message = messages[token] else { return }
-            self.summary = message; self.changed?()
-        }
+        runner.progress = { [weak self] token in self?.reportProgress(token) }
+    }
+
+    private func reportProgress(_ token: String) {
+        // Each token starts a stage after the preceding stages succeeded. Already
+        // installed extensions may skip tokens; verification confirms those steps.
+        let steps = ["java": (2, "Preparing Java…"), "editor": (3, "Preparing Zero editor…"),
+                     "settings": (4, "Preparing Zero settings…"), "zero": (5, "Installing Zero support…"),
+                     "redhat": (6, "Installing Java support…"), "verify": (7, "Checking Zero is ready…")]
+        guard busy, configuring, let (completed, message) = steps[token], completed >= completedSteps else { return }
+        completedSteps = completed; summary = message; changed?()
     }
 
 
     var primaryTitle: String {
         switch stage {
         case .checking: return "Please wait"
-        case .chooseFolder: return "Set up Zero"
-        case .updateConsent: return "Update Zero"
         case .retry: return "Try again"
         case .ready: return "Open Zero"
         case .opened: return "Open Zero again"
         }
     }
-    var consent: (title: String, detail: String)? {
-        switch stage {
-        case .updateConsent:
-            return ("Update the existing Zero folder?", "Setup files will be replaced; your code, assets and saved projects will be kept. Setup prepares a separate Zero editor and verified Java runtime, downloading missing tools and Java support.")
-        default: return nil
-        }
-    }
-
     private func set(_ next: SetupStage, _ message: String) { stage = next; summary = message; changed?() }
     private func record(_ text: String) {
         diagnostics += text + "\n"
         if diagnostics.utf8.count > 1024 * 1024 { diagnostics = String(diagnostics.suffix(512 * 1024)) }
     }
     private func fail(_ message: String, detail: String) {
-        snapshot = nil; busy = false; record(detail); set(.retry, message)
+        snapshot = nil; busy = false; configuring = false; record(detail); set(.retry, message)
     }
     private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, completion: @escaping (CommandResult) -> Void) {
         do {
@@ -653,13 +652,15 @@ final class SetupController {
     func check() {
         guard !busy else { return }
         snapshot = nil; stage = .checking
-        run(["--native-check"], status: "Checking your laptop…") { [weak self] result in
+        if selectedFolder == nil { completedSteps = 0 }
+        else if completedSteps == Self.totalSteps { completedSteps -= 1 }
+        run(["--native-check"], status: "Preparing Zero…") { [weak self] result in
             guard let self else { return }
             self.hasChecked = true
             do {
                 self.snapshot = try SetupSnapshot.parse(result.output)
                 guard self.snapshot?["kit"] == true else { self.fail("The kit is incomplete. See Details.", detail: "Kit metadata or required files are incomplete."); return }
-                if self.selectedFolder == nil { self.showDefaultLocation(); return }
+                if self.selectedFolder == nil { self.completedSteps = 1; self.prepareDefaultLocation(); return }
                 self.advance()
             } catch { self.fail("The check was incomplete. Try again.", detail: error.localizedDescription) }
         }
@@ -672,54 +673,29 @@ final class SetupController {
             return
         }
         guard snapshot.ready && selectedFolder != nil else { fail("Readiness is unverified. Try again.", detail: "Required check fields did not establish readiness."); return }
+        completedSteps = Self.totalSteps
         set(.ready, "Zero is ready. Open it to begin.")
     }
-    /// Consent is supplied only by a deliberate native confirmation button.
-    func approve(_ approved: Bool) {
-        guard !busy else { return }
-        if !approved {
-            if stage == .updateConsent { pendingUpdate = nil; showDefaultLocation() }
-            return
-        }
-        switch stage {
-        case .updateConsent:
-            guard let plan = pendingUpdate else { return }
-            pendingUpdate = nil
-            busy = true; summary = "Updating Zero setup files…"; changed?()
-            DispatchQueue.global(qos: .userInitiated).async { [self] in
-                let result = Result { try plan.update(from: kit) }
-                DispatchQueue.main.async {
-                    self.busy = false
-                    switch result {
-                    case .success(let backup):
-                        self.selectedFolder = plan.destination
-                        self.record("Kit folder: \(plan.destination.path)\nPrevious setup backup: \(backup.path)")
-                        self.configure()
-                    case .failure(let error):
-                        self.record(error.localizedDescription)
-                        self.set(.chooseFolder, "Could not update Zero. See Details, then retry.")
-                    }
+    private func update(_ plan: KitUpdatePlan) {
+        busy = true; summary = "Preparing Zero…"; changed?()
+        DispatchQueue.global(qos: .userInitiated).async { [self] in
+            let result = Result { try plan.update(from: kit) }
+            DispatchQueue.main.async {
+                self.busy = false
+                switch result {
+                case .success(let backup):
+                    self.selectedFolder = plan.destination
+                    self.record("Kit folder: \(plan.destination.path)\nPrevious setup backup: \(backup.path)")
+                    self.configure()
+                case .failure(let error):
+                    self.fail("Could not update Zero. Try again.", detail: error.localizedDescription)
                 }
             }
-        default: break
         }
     }
     func primaryAction() {
         guard !busy else { return }
         switch stage {
-        case .chooseFolder:
-            do {
-                let destination = try defaultLocation.destination()
-                if try DefaultSetupLocation.entryMode(destination) == nil {
-                    place(parent: defaultLocation.home, name: "Zero")
-                } else {
-                    pendingUpdate = try KitUpdatePlan(kit: kit, destination: destination)
-                    set(.updateConsent, "Update setup files in ~/Zero?")
-                }
-            } catch {
-                record(error.localizedDescription)
-                set(.chooseFolder, "Cannot use home. See Details, then retry.")
-            }
         case .retry:
             if selectedFolder != nil { configure() } else { check() }
         case .ready, .opened:
@@ -733,15 +709,24 @@ final class SetupController {
         summary = "Please wait for setup to finish this step."; changed?(); return false
     }
     private func configure() {
-        run(["--native-install", "--approved"], status: "Preparing Zero editor and Java…", timeout: 3600) { [weak self] _ in self?.check() }
+        completedSteps = 2; configuring = true
+        run(["--native-install", "--approved"], status: "Preparing Zero editor and Java…", timeout: 3600) { [weak self] _ in
+            guard let self else { return }
+            self.configuring = false; self.completedSteps = 8; self.check()
+        }
     }
-    private func showDefaultLocation() {
+    private func prepareDefaultLocation() {
         do {
-            _ = try defaultLocation.destination()
-            set(.chooseFolder, "Set up Zero; download any missing tools.")
+            let destination = try defaultLocation.destination()
+            if try DefaultSetupLocation.entryMode(destination) == nil {
+                place(parent: defaultLocation.home, name: "Zero")
+            } else {
+                // Only installer-owned files are refreshed. The update plan retains
+                // its identity/race checks, backups and complete project preservation.
+                update(try KitUpdatePlan(kit: kit, destination: destination))
+            }
         } catch {
-            record(error.localizedDescription)
-            set(.chooseFolder, "Cannot use home. See Details, then retry.")
+            fail("Cannot prepare ~/Zero. See Details for help.", detail: error.localizedDescription)
         }
     }
     func place(parent: URL?, name: String?) {
@@ -753,7 +738,7 @@ final class SetupController {
                 self.busy = false
                 switch result {
                 case .success(let folder): self.selectedFolder = folder; self.record("Kit folder: \(folder.path)"); self.configure()
-                case .failure(let error): self.record(error.localizedDescription); self.set(.chooseFolder, "Could not prepare Zero. See Details, then retry.")
+                case .failure(let error): self.fail("Could not prepare Zero. Try again.", detail: error.localizedDescription)
                 }
             }
         }

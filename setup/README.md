@@ -3,8 +3,10 @@
 This MVP supports Mac with Apple Silicon and Windows. Linux and Intel Macs are
 unsupported.
 
-The native Mac0.5.7 setup automatically prepares Java and a separate quiet editor.
-Use **Set up Zero**, then **Open Zero**; later use **Open Zero.command** in your
+The native Mac setup automatically prepares Java and a separate quiet editor.
+Current local source starts with **Preparing Zero…** and a progress bar, then
+**Open Zero**. Published installers still require **Set up Zero** and, for an
+existing kit, **Update Zero** first. Later use **Open Zero.command** in your
 home Zero folder. The instructions below describe the ZIP/manual launchers and
 Windows guidance. No manual profile import is needed in the new native Mac app.
 

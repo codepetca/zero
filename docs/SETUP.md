@@ -1,16 +1,22 @@
 # Guided student setup
 
 The current MVP targets **Mac with Apple Silicon** and **Windows**. Linux and
-Intel Macs are unsupported. The signed Mac0.5.7 setup provides automatic
+Intel Macs are unsupported. The signed Mac0.5.10 setup provides automatic
 Java/editor preparation for supported personal and school Macs. Windows uses
 the published complete-kit ZIP for manual setup; its native EXE is unpublished.
 Download choices show the Windows ZIP alongside Mac. The independently published
-0.5.3 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
+0.5.10 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
 continues to be an ordinary editable Java project.
 
 ## Native setup
 
-The published Mac0.5.7 setup uses **Set up Zero → Open Zero → Run App**.
+Current local native source automatically prepares the home Zero folder,
+refreshing only setup files in a recognized existing kit. The Mac window starts
+with **Preparing Zero…** and a progress bar, then offers **Open Zero**. Details is
+hidden unless setup fails. This change is unreleased; published installers
+retain the prompts described below.
+
+The published Mac0.5.10 setup uses **Set up Zero → Open Zero → Run App**.
 It uses `~/Zero`, asks before updating an existing kit, and preserves the student
 project. Background work uses one small window with a replacing status message.
 It automatically prepares a private verified JDK21, reuses compatible VS Code or

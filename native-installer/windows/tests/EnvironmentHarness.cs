@@ -121,7 +121,7 @@ internal static class EnvironmentHarness
         string fakeHome = Path.Combine(Directory.GetCurrentDirectory(), ".verification", "upgrade-default", "environment-home-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(fakeHome);
         var controller = new SetupController(backend, CancellationToken.None, () => fakeHome);
-        controller.Check().GetAwaiter().GetResult(); controller.PrimaryAction().GetAwaiter().GetResult();
+        controller.Check().GetAwaiter().GetResult();
         Assert(controller.Stage == SetupStage.ManualJava, "fresh fake machine initially lacks Java");
         controller.PrimaryAction().GetAwaiter().GetResult(); controller.Check().GetAwaiter().GetResult();
         Assert(controller.Stage == SetupStage.ExtensionConsent && backend.LastPath.Contains("new JDK"), "Check again after handoff sees new JDK without app restart");

@@ -32,7 +32,7 @@ namespace ZeroSetup
             status = new Label { Location = new Point(16, 52), Size = new Size(408, 24), TextAlign = ContentAlignment.MiddleCenter, AutoEllipsis = true, AccessibleName = "Setup status" };
             primary = new Button { Location = new Point(125, 92), Size = new Size(190, 30), Text = "Please wait" };
             back = new Button { Location = new Point(16, 145), Size = new Size(62, 25), Text = "Back", Visible = false };
-            details = new Button { Location = new Point(345, 145), Size = new Size(79, 25), Text = "Details…" };
+            details = new Button { Location = new Point(345, 145), Size = new Size(79, 25), Text = "Details…", Visible = false };
             Controls.AddRange(new Control[] { progress, status, primary, back, details });
             AcceptButton = primary;
             controller.Changed = RefreshStatus;
@@ -55,9 +55,11 @@ namespace ZeroSetup
             status.Text = controller.Summary;
             primary.Text = controller.PrimaryTitle;
             primary.Enabled = !controller.Busy;
+            primary.Visible = !controller.Busy && controller.Stage != SetupStage.Checking;
+            details.Visible = controller.CanShowDetails;
             back.Visible = controller.CanGoBack;
             back.Enabled = !controller.Busy;
-            progress.Visible = controller.Busy;
+            progress.Visible = controller.Busy || controller.Stage == SetupStage.Checking;
         }
         private async Task PrimaryAction()
         {
@@ -67,20 +69,7 @@ namespace ZeroSetup
                 controller.CopyProfilePath(path => { Clipboard.SetText(path); return true; });
                 return;
             }
-            await controller.PrimaryAction(ConfirmUpdate);
-        }
-        private bool ConfirmUpdate()
-        {
-            using (var dialog = new Form { Text = "Update Zero?", ClientSize = new Size(440, 150), FormBorderStyle = FormBorderStyle.FixedDialog,
-                MaximizeBox = false, MinimizeBox = false, StartPosition = FormStartPosition.CenterParent, Font = Font })
-            {
-                var warning = new Label { Location = new Point(20, 20), Size = new Size(400, 60), Text = "Setup files will be replaced. Your code, assets and saved projects will be kept.", AccessibleName = "Update warning" };
-                var update = new Button { Text = "Update Zero", Location = new Point(180, 100), Size = new Size(115, 30), DialogResult = DialogResult.OK };
-                var cancel = new Button { Text = "Cancel", Location = new Point(305, 100), Size = new Size(115, 30), DialogResult = DialogResult.Cancel };
-                dialog.Controls.AddRange(new Control[] { warning, update, cancel });
-                dialog.AcceptButton = cancel; dialog.CancelButton = cancel;
-                return dialog.ShowDialog(this) == DialogResult.OK;
-            }
+            await controller.PrimaryAction();
         }
         private void ShowDetails()
         {

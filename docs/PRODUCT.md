@@ -193,7 +193,8 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 - Native setup wrappers embed the complete kit: a universal macOS app/DMG
   and a Windows EXE. They check tools, place a fresh writable folder and explicitly
   guide setup while preserving existing projects. Both flows use a small fixed
-  window with one replacing status line, hide technical logs under Details and
+  window with one replacing status line and progress indicator, expose technical
+  logs under Details only if setup fails, and
   prepare approved editor support in the background. Windows missing tools use
   vendor handoffs and profile import gets one instruction at a time. The ZIP
   launchers retain their manual menus.
@@ -205,9 +206,11 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   profiles and Windows/ZIP setup remain separate.
   Signed/notarized Mac0.5.10 is published; Windows remains a local unsigned
   development build. Native setup uses a `Zero` folder
-  in the user’s home with no location/name picker. Re-running setup confirms an
-  update of installer files while preserving the entire student project; an
-  unrelated folder named Zero is refused.
+  in the user’s home with no location/name picker. Current native source starts
+  with Preparing Zero and automatically places or updates installer files while
+  preserving the entire student project; an unrelated folder named Zero is
+  refused. This simplification is unreleased; published Mac0.5.10 still asks
+  for Set up Zero and an existing-kit Update Zero confirmation.
   See [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing

@@ -13,23 +13,26 @@ Open, Run/Stop, autosave and the standard build command. Fresh-machine tool inst
 
 ## Student flow
 
-The setup window stays small and fixed in size. It shows a progress indicator and one
-short status message, replacing the previous message as each step changes.
-Technical output is available only through **Details** in a separate window.
-There is no checklist, scrolling log or Terminal menu in the native flow.
+The current native source starts automatically with **Preparing Zero…** and a
+progress bar. It prepares `~/Zero` without a setup button or an update
+confirmation, then offers **Open Zero**. A recognized existing kit receives only
+setup-file updates; student projects are preserved. **Details** is hidden during
+normal preparation and completion, and available only when setup fails.
+The Mac bar advances with completed setup stages and fills only after the final
+readiness check; it does not estimate time or download percentages. Windows
+retains its existing animated progress bar.
+This source change is local and unreleased; the published Mac0.5.10 installer
+still has its original **Set up Zero** and **Update Zero** prompts.
 
-The published Mac build (kit0.5.8) has this flow:
+1. Open Zero Setup and wait while it prepares Java and the editor. Its small,
+   fixed-size window shows one changing status message and a progress bar.
+2. Choose **Open Zero**, then **Run App** and confirm the greeting window.
 
-1. Choose **Set up Zero**. If `~/Zero` already contains a Zero kit, confirm
-   **Update Zero** first; the existing student project is preserved.
-2. Setup prepares Java and the editor in the background, replacing its single
-   progress message as each step completes.
-3. Choose **Open Zero**, then **Run App** and confirm the greeting window.
-
-The initial setup/update choice authorizes the necessary downloads and local
-configuration. No profile import or Java environment editing is needed in this
-Mac flow. A failed download or check leaves a retry state and useful Details.
-Git and GitHub authentication remain separate from local running.
+Opening the setup app starts the necessary downloads and local configuration.
+No profile import or Java environment editing is needed in this Mac flow.
+A failed download or check stops for **Try again**, with technical output available
+through **Details** in a separate window. Git and GitHub authentication remain
+separate from local running. The editor is never opened automatically.
 
 Mac setup uses a private JDK21 and isolated VS Code user-data/extensions under
 `~/Library/Application Support/Zero`. It reuses a compatible installed VS Code,
@@ -62,17 +65,16 @@ can still leave owned staging, never permission to replace an existing project.
 
 Native setup source uses only `~/Zero` on macOS and
 `%USERPROFILE%\Zero` on Windows. There is no location or name picker and no
-numbered replacement folder. A fresh install begins with **Set up Zero**.
+numbered replacement folder. Opening the current native setup starts preparation.
 
-When that folder already contains a recognizable Zero kit, setup asks:
-**“Update Zero? Setup files will be replaced. Your code, assets and saved projects
-will be kept.”** Choose **Update Zero** or **Cancel**. Cancelling leaves the kit
-untouched. Files, links and unrelated folders named Zero are refused rather than
-overwritten; resolve that conflict manually before retrying.
+When that folder already contains a recognizable Zero kit, setup refreshes its
+installer files automatically. Files, links and unrelated folders named Zero are
+refused rather than overwritten; resolve that conflict manually before retrying.
 
 An update refreshes only the bundled setup launchers/scripts, setup metadata,
 top-level guide/license and the current version’s Zero VSIX. Replaced setup files
-are backed up, with the backup location in Details. The entire `starter/` project,
+are backed up beside the Zero folder in `.zero-setup-backup-<id>`; the location
+is recorded in diagnostics and available through Details if setup fails. The entire `starter/` project,
 including source, framework copies, build files, editor settings, Git history,
 assets and saves, remains unchanged. Existing `optional/` profile/keybinding files,
 other files and older VSIXs remain unchanged too. Updating setup does not migrate
