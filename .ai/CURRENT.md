@@ -1,55 +1,49 @@
-# Current state — Mac 0.5.9 release preparation
+# Current state — Zero 0.5.9 published, download integration pending
 
-Updated2026-10-13. Worktree:
-`/Users/stew/.codex/worktrees/github-sharing-adoption/zero`, branch
-`codex/release-0-5-9`, based on merged main57abf85 plus local handoff6cd62b7.
-Read design.md, PRODUCT.md, DEVELOPMENT.md and UI-UX-GUIDELINES.md.
+Updated 2026-10-13. Worktree:
+`/Users/stew/.codex/worktrees/github-sharing-adoption/zero`;
+branch `codex/mac-0-5-9-candidate`. Read PRODUCT and DEVELOPMENT before changes.
 
-Owner's “Proceed” authorizes the Mac Start project/continue/reuse/rerun walkthrough
-then an updated kit/native release.0.5.9 and setup-v0.5.9 tags/releases are absent.
-Native GUI previously stopped at Mac lock. Manual unlock question is pending;
-do not retry/bypass before owner confirms. Windows/student trials stay deferred.
-Sign/notarize new owned bytes with existing identity/profile only; no credential
-or account changes. Frozen0.5.8 assets must remain unchanged.
+Owner authorized the Mac walkthrough and kit/native release. The owner confirmed
+manual unlock. Actual isolated Zero 0.5.9 editor created Greeting, Study and Game
+in separate windows with empty boilerplate and local-only/Git-disabled markers.
+Native Run started all three; Greeting Run again terminated the previous process
+and rebuilt its edits. Study and Game ran maintainer checkpoint 10 test inputs,
+reusing byte-identical ScoreDisplay. Greeting and Study were stopped through the
+sidebar. JavaFX windows are not exposed by the connector; a human visual question
+is pending. No visual interaction claim. JDK reused from verified private runtime;
+this was not a fresh-machine Java download trial. Normal user projects preserved.
 
-Three-project lessons are live (PR39, merge57abf85): Greeting0–2, Study3–7,
-Game8–12, empty scaffolds, optional media-only ZIP, local practice off GitHub.
-0.5.9 prepares the installed Start project command with those same3scaffolds.
-Completed checkpoints remain outside student practice downloads. Keep Run App
-reruns and ordinary Java/explicit updates. Original sharing work stays separate.
+Source [PR40](https://github.com/codepetca/zero/pull/40) merged at
+`b206eb376b39d2a8298f1b184dd9bda0bca47061`; reviewed head `f7c7335` passed exact
+CI38484256871. Signed/notarized immutable candidate sealed at
+`dist/candidates/mac-0.5.9-3c0ed2e24ae4/`; build source f7c7335, preparation source
+3c0ed2e. Developer ID, payload/modes, both architecture signatures, Apple Accepted
+receipt, staple and Gatekeeper passed. Existing signer and notary profile reused;
+no account or credential changes. Old 0.5.8 bytes remain immutable.
 
-Coordinator owns versioning/packaging/publication. Sol/medium read-only preflight
-completed: stale publisher /learn chooser and0.5.3 fallback identified. Fixed
-verification for current /downloads while retaining exact origin/page/section/
-anchor/hash checks; fallback now anonymously verified0.5.8. All old public bytes
-and old local signed kit/receipt preserved under ignored .verification/release-0.5.9/.
-Student setup guides now use3continuing projects and included versioned VSIXs.
-Current kit0.5.9 remains local; public Mac/ZIP links continue0.5.8 until publication.
+Published releases: [Mac setup](https://github.com/codepetca/zero/releases/tag/setup-v0.5.9)
+targets exact preparation3c0ed2e with one DMG; [kit](https://github.com/codepetca/zero/releases/tag/v0.5.9)
+targets exact reviewed buildf7c7335 with three assets. Draft downloads and anonymous
+public downloads matched every sealed hash and size. Main still serves 0.5.8 until
+reviewed metadata integration. Local kit/native manifests now promote only those
+verified URLs and bytes; fallback published-kit remains verified0.5.8.
 
-Checks: config/docs links; root256pass1optionalPowerShellskip; release70;
-Mac seal2; installer8; website56/typecheck/build; actual package and extracted kit
-Maven/source/license/mode verification. Read-only publisher verified current
-public0.5.8 assets and actual /downloads anchor end-to-end. Two old website tests
-were updated for exact verified0.5.8 pins/version-neutral setup guidance. No Mac
-interactive or new signed native result claimed. Review risk high due publisher completion gate. Initial Sol/high turns26/27
-completed: two P1 network verification gaps (hidden/template anchors and landing
-redirect origin), P2 native runbook old tags, P3 README old Mac version accepted.
-One batched fix uses pinned existing parse5 8.0.1 HTML semantics, checks landing
-origin/path, recognizes Windows ZIP label and corrects measured0.5.9 runbook.
-Publisher82/release86 pass; real verify-only0.5.8 passes after corrections.
-Unsigned current Mac0.5.9 build/payload/modes passed; no GUI/signing claim.
-Targeted Sol/high turn28 completed at67d05af: both P1 gaps resolved, no code
-blockers. One P3 planned-tag wording fixed in a docs-only second batch; fast
-targeted turn29 next. Unchanged initial source coverage reused. Effective
-models/tokens/worker times unknown; starting weekly remaining85% is account-wide,
-storage329.4GB healthy. Task-scoped usage/review-stop waiver persists, not execution
-or identity gates. DeepSeek remains paused.
+[Draft PR41](https://github.com/codepetca/zero/pull/41) will integrate release
+metadata, README links and verification records. Its initial CI failed a playground
+test that assumed every installer was published. Test-only correction c08d9cd has
+separate published/local fixture coverage; focused checks pass. Independent Luna/
+medium review31 found no issues. Corrected CI38487453531 is running; latest promotion
+requires independent delta review and exact-head CI before normal merge/deployment.
+Source reviews26–29 and measured native review30 are complete; two prior source fix
+batches plus one test-only batch. Cumulative reviewer turns31. Effective models,
+per-review tokens/time unknown; usage85% remaining account-wide at initial reading,
+storage327.7GB healthy/no cleanup. DeepSeek paused. Task stop waiver persists.
 
-Next: independent review + exact-head CI/source integration; rebuild clean current
-kit; new signed/notarized Mac bytes; local measured native manifest and seal while
-kit is local (release/kit.json is a protected native source); Mac walkthrough must
-pass before publishing. Then three-asset kit and independent single-DMG release,
-verified metadata/normal PR merge and live exact-download proof. Generic submitted
-public executor remains held; general game publication disabled; Neon retained.
-Full adoption not complete. No new goal/task/automation. Evidence history in
-EVIDENCE.md/VERIFICATION.md and ignored release-0.5.9 receipts.
+Next: verify promoted metadata/tests/build, review delta, push PR41, finish normal
+exact-head CI/merge, then verify Vercel and anonymous live Mac/ZIP downloads. Stop
+remaining owned Game process after collecting any human visual reply. Do not rebuild
+sealed or published assets. Logs/receipts/screenshots: `.verification/release-0.5.9/`.
+Physical Windows and student trials are deferred. Generic public executor acceptance
+remains held after provider rejections; general game publication disabled; Neon
+retained. Full GitHub adoption remains incomplete. No new goal/task/automation.

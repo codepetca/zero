@@ -4,6 +4,8 @@ import http from 'node:http';
 import { readFileSync } from 'node:fs';
 import { handle } from './server.mjs';
 import { sidebarSource } from './sidebar-source.mjs';
+import { webView } from './views.mjs';
+import { installerHref } from '../../website/lib/installer.mjs';
 import { lessons } from '../../website/lib/learning.mjs';
 
 test('review endpoints use source data and published fallback without exposing downloads or commands', async () => {
@@ -22,7 +24,14 @@ test('review endpoints use source data and published fallback without exposing d
     const downloadHtml = await (await fetch(`${origin}/web?theme=dark&screen=downloads`)).text();
     assert.match(downloadHtml, /Download Zero/);
     assert.doesNotMatch(downloadHtml, /Learn Java|id="lessons"/);
-    assert.match(downloadHtml, /Download for Mac Silicon/); assert.match(downloadHtml, /Download for Windows \(ZIP\)/);
+    const installer = JSON.parse(readFileSync(new URL('../../release/installer.json', import.meta.url), 'utf8'));
+    if (installer.publication.status === 'published') {
+      assert.match(downloadHtml, /Download for Mac Silicon/);
+      assert.ok(downloadHtml.includes(`data-source-url="${installer.asset.url}"`));
+    } else {
+      assert.doesNotMatch(downloadHtml, /Download for Mac Silicon|data-fixture="Mac setup download"/);
+    }
+    assert.match(downloadHtml, /Download for Windows \(ZIP\)/);
     assert.match(downloadHtml, /aria-label="Download for Windows \(ZIP\), manual setup"/);
     const authored = JSON.parse(readFileSync(new URL('../../release/kit.json', import.meta.url), 'utf8'));
     const published = JSON.parse(readFileSync(new URL('../../release/published-kit.json', import.meta.url), 'utf8'));
@@ -36,6 +45,24 @@ test('review endpoints use source data and published fallback without exposing d
     assert.match(brand,/#683bef/);
     assert.doesNotMatch(brand,/currentColor/);
   } finally { await new Promise(resolve=>server.close(resolve)); }
+});
+
+test('download review shows a published Mac fixture and omits a local Mac candidate', () => {
+  const authored = JSON.parse(readFileSync(new URL('../../release/installer.json', import.meta.url), 'utf8'));
+  const published = structuredClone(authored);
+  published.publication.status = 'published';
+  published.asset.url = `https://github.com/codepetca/zero/releases/download/${published.publication.tag}/${published.asset.filename}`;
+  const local = structuredClone(authored);
+  local.publication.status = 'local';
+  delete local.asset.url;
+  for (const theme of ['light', 'dark']) {
+    const publishedHtml = webView(theme, { mac: installerHref(published, false), windows: null }, 'downloads');
+    assert.match(publishedHtml, /Download for Mac Silicon/);
+    assert.ok(publishedHtml.includes(`data-source-url="${published.asset.url}"`));
+    assert.doesNotMatch(publishedHtml, /href="https:/);
+    const localHtml = webView(theme, { mac: installerHref(local, false), windows: null }, 'downloads');
+    assert.doesNotMatch(localHtml, /Download for Mac Silicon|data-fixture="Mac setup download"|\/download\/installer/);
+  }
 });
 
 test('actual sidebar renderer retains local Run while signed out and useful Error recovery', async () => {
