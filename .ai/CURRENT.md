@@ -18,9 +18,11 @@ source code without trimming or control text. Enter/Space Copy controls, desktop
 routing/current link, grouped390px selector, light/dark layout checked. Browser
 clipboard session API returned empty; actual native paste proved exact text.
 Browser failure fallback is source-inspected, not artificially forced. Logs:
-`.verification/lesson-groups-copy/`. Independent source review42 and PR/CI/production
-release remain next. New review session: standard risk, one Sol/medium reviewer,
-one initial wave, zero remediation batches; prior41 reviews are historical coverage.
+`.verification/lesson-groups-copy/`. DraftPR47 created/attached. Review42 completed exact356ddf4..e56e30d and immediate
+callers, with one accepted P2: caller padding overrides Copy row on ZeroHub. Shared
+selector strengthened in one correction batch; rebuild/browser spacing and targeted
+review43 remain next. New session: standard risk, Sol/medium, one initial wave, one
+remediation batch; prior41 reviews are historical. Effective telemetry unknown.
 
 Standing authorized source push/PR/merge/deploy and task-stop waiver persist;
 provider/identity controls remain binding. DeepSeek paused. Windows/student trials

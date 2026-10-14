@@ -1762,3 +1762,10 @@ Pinned npm ci resolved stale checkout dependencies; no dependency manifest chang
 No kit/framework/extension source or immutable0.5.10 artifacts changed.
 Independent review42, exact-head CI and production proof pending. Logs/screenshots:
 `.verification/lesson-groups-copy/`. Windows/student pilots remain deferred.
+
+Review42 (requested GPT-6.1 Sol/medium; effective configuration, elapsed and tokens
+unknown) completed the14-file diff356ddf4..e56e30d and immediate callers. Accepted
+one P2 layout blocker: existing reader/ZeroHub padding could override the Copy
+row. One CSS correction strengthens the shared selector; targeted review43 and
+a rebuilt browser spacing check follow. No other findings; one initial wave and
+one remediation batch. Prior41 reviewer turns remain historical, not new launches.
