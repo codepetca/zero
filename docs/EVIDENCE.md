@@ -2804,7 +2804,12 @@ Metadata promotion review artifact_compat/turn2 Sol/high completed full f1c5fac.
 and accepted one P2: GETTING-STARTED was still Mac11/manual Open Zero. The primary
 website setup/starter guide is now Mac12/automatic opening and retains workspace
 trust plus explicit Run App. No packaged/native source change: this guide is a
-website/maintainer document; the unchanged release/START-HERE remains ZIP/manual
-kit guidance. Other metadata binding/public bytes/fallback/native source passed.
+website/maintainer document. The immutable Mac12 payload still contains the prior
+START-HERE version11/Open Zero/VSIX prose. This is a recorded non-blocking
+documentation limitation for the requested native flow: automatic preparation
+uses validated kit12 metadata and opens the editor itself. Its manual fallback
+guide needs correction with a future new immutable kit/installer version; do not
+replace public12 bytes or claim that guide matches12. Other metadata binding/
+public bytes/fallback/native source passed.
 Metadata local checks79website tests/typecheck/build passed. Reviewer launch5,
 second fixbatch; correction review and exact-head PR52 CI/live proof pending.

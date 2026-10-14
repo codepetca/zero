@@ -32,3 +32,8 @@ No new credentials, Windows EXE, separate kit, Hub publication, goals/chats/auto
 Primary funding checkout/other worktrees untouched. Keep worktree/ignored candidate
 and .verification/release-0.5.12 receipts for continued smoke testing. Weekly70%
 remaining/storage311GBhealthy are shared readings; task cost unknown; DeepSeek paused.
+
+Known non-blocking limitation: bundled immutable START-HERE retains prior11
+version/Open/VSIX prose; native12 uses validated kit12 metadata and opens the
+editor automatically. Website primary guide corrected. Fix bundled guide in a
+future new immutable version; never replace12 public bytes.
