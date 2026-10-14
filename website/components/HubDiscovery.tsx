@@ -5,6 +5,7 @@ import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, releaseLink, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
+import {CodeBlock} from './CodeBlock';
 type Artifact = {url:string; size:number; sha256:string};
 type Component = {className:string; description:string; usage:string; api:string[]};
 type Release = {kind:'library'|'game'; id:string; version:string; title:string; description:string; license:string; status:string; libraryKind?:string; namespace?:string; controls?:string; components?:Component[]; contributor:{login:string; githubId:string}; repository:{url:string}; source:{commit:string; folder:string; sha256:string}; coordinate?:{groupId:string;artifactId:string;version:string}; artifacts:{zip?:Artifact;jar?:Artifact;sources?:Artifact;pom?:Artifact;preview?:Artifact}};
@@ -50,9 +51,9 @@ export function HubDiscovery() {
           <p><strong>Controls:</strong> {release.controls}</p><a className="button primary compact" href={release.artifacts.zip?.url}>Download project</a><p className="fine-print">Extract into a new folder, then open that folder in VS Code. Review workspace trust before choosing Run App. This is a separate project.</p>
         </> : <details><summary>Use this library</summary>
           <p>{release.libraryKind==='widget'?'JavaFX widget':'Java helper'} · Java 17 · JavaFX 21.0.12</p><p>In Zero, choose Browse ZeroHub, select this exact library version, then Add library and Apply. Use the Java example and choose Run App.</p>
-          {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4><p>{component.description}</p><pre><code>{`import ${component.className};\n\n${component.usage}`}</code></pre><details><summary>Public API</summary><pre><code>{component.api.join('\n')}</code></pre></details></div>)}
+          {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4><p>{component.description}</p><CodeBlock><code>{`import ${component.className};\n\n${component.usage}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
           {!release.components?.length && <p>Read the exact source for this library’s Java API and examples. Namespace: <code>{release.namespace}</code>.</p>}
-          <details><summary>Manual Maven setup</summary><p>Merge these repository and dependency entries into the existing sections of your project’s pom.xml. Keep the exact version.</p><pre><code>{dependencySnippet(release)}</code></pre><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.sources?.url}>Download sources</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
+          <details><summary>Manual Maven setup</summary><p>Merge these repository and dependency entries into the existing sections of your project’s pom.xml. Keep the exact version.</p><CodeBlock><code>{dependencySnippet(release)}</code></CodeBlock><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.sources?.url}>Download sources</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
         </details>}
         <details><summary>Release details</summary><p>Source commit: <code>{release.source.commit}</code></p><p className={styles.hash}>Source SHA-256: <code>{release.source.sha256}</code></p>{Object.entries(release.artifacts).filter(([name])=>name!=='preview').map(([name, artifact])=><p className={styles.hash} key={name}>{name}: {artifact.size.toLocaleString()} bytes · SHA-256 <code>{artifact.sha256}</code></p>)}</details>
       </article>)}</div>

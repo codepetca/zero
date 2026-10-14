@@ -2564,3 +2564,19 @@ used for byte checks/publication. No authority/credential change was needed.
 Promoted native/kit manifests and README use verified actual URLs; published9fallback
 is retained. Metadata review/final CI/merge/Vercel/live verification remain pending.
 Receipts: `.verification/release-0.5.10-publication/`. Windows/student trials deferred.
+
+## Grouped lessons and click-to-copy — 2026-10-14
+
+All thirteen tutorial links are grouped by canonical Greeting app, Study quiz and
+Coin game projects without disclosure controls; mobile uses matching optgroups.
+Shared code blocks in Tutorials/Docs, readable source and ZeroHub copy exact text
+and offer native keyboard Copy/status/error feedback. Selection remains available.
+Website typecheck,79 tests and production build passed. Real local browser paste
+verified exact single-line/multiline/source snippets (including indentation and
+trailing newline), Enter/Space controls and success feedback. Desktop routing and
+aria-current, grouped390px selector navigation to lesson10, page width, light/dark
+layout checked. Clipboard rejection fallback was inspected, not forced in browser.
+Pinned npm ci resolved stale checkout dependencies; no dependency manifest changed.
+No kit/framework/extension source or immutable0.5.10 artifacts changed.
+Independent review42, exact-head CI and production proof pending. Logs/screenshots:
+`.verification/lesson-groups-copy/`. Windows/student pilots remain deferred.
