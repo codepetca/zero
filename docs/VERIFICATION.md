@@ -1783,4 +1783,6 @@ succeeded from exact merge; Vercel URL zero-d1nevwrz4-stewarts-projects-cc2722c4
 Live zero.codepet.ca/learn shows groups/controls, and genuine native paste matches
 its multiline code exactly. Screenshot: `.verification/lesson-groups-copy/live-tutorials.png`.
 Owned local servers/test tab closed; primary checkout and immutable artifacts preserved.
-This final factual delivery receipt is local only; no code changed after review.
+This final factual delivery receipt changes no code after review. The owner
+authorized publishing it with the other tracked documentation; private logs and
+screenshots remain local.
