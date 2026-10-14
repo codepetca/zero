@@ -7,8 +7,10 @@ core0.1.2 and Windowskit10 unchanged. Primary/other worktrees untouched.
 
 Signed/notarized/stapled singleDMG setup-v0.5.14 released, tagprepec1d64a,
 builtb913329; exactpublicHTTP200824261bytes SHAabc44bdc86446139c7cd77d04b555b01fef13dc39b2bef251e0de1a56ae7b8f0.
-Two Sol/high artifact scopes passed; currentbranchcodex/publish-zero-dmg-0.5.14
-promotes measuredpublicmetadata/docs only. Next metadatareview/CI/merge/siteproof.
+Two Sol/high artifact scopes passed; metadataPR60 merged437ae7c after Sol/medium complete reviewcfd4d80 and
+CI38638590543 success. Production7077541352 succeeded; live14Mac/10Windows
+anchors and both linked HTTP200 size/SHA verified21:23:21UTC. Delivery complete;
+branchcodex/zero-dmg-0.5.14-smoke-receipt retains completion locally.
 Layout uses versionedvolZero0.5.14 to avoidoldermounteddisk backgroundaliascollision,
 strict hiddenDSStore/arrow/nativealias/HFSautoopen metadata. Maintainerhash-pinned
 Pythonhelper only; no Finderautomation/globalprefs changes. ActualCuafixturecenter
@@ -19,5 +21,5 @@ kit/extractedverificationpassed. Fresh-machine/macOS12/Intel/physicalWindows and
 quarantinedfirst-open interactiveflow remain untested; ownercontinuessmoketest.
 NoWindows/kit/Hubpublication or credentials changes. Sealed/privateevidence retained
 under dist/candidates/mac-0.5.14-ec1d64a06e2b and .verification/release-0.5.14/.
-No goal/task/automation. Currentreviewledger3launches source1/artifact2,0reviewfixes;
+No goal/task/automation. Reviewledger4launches source1/artifact2/metadata1,0reviewfixes;
 packagingimplementation required2pre-reviewgeometry/alias corrections.
