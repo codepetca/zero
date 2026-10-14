@@ -25,6 +25,10 @@ Windows and ZIP/manual setup retain their existing guidance.
 Failure details remain available; GitHub sign-in comes later. See
 [native setup](INSTALLER.md) for isolation, downloads and platform limits.
 
+Current0.5.12 native source also opens Zero automatically after final readiness.
+A failed opening offers Try again; later checks do not reopen it automatically.
+The student still chooses Run App.
+
 ## ZIP/manual student flow
 
 1. Download and extract the complete kit.

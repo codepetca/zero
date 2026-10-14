@@ -126,7 +126,7 @@ internal static class EnvironmentHarness
         controller.PrimaryAction().GetAwaiter().GetResult(); controller.Check().GetAwaiter().GetResult();
         Assert(controller.Stage == SetupStage.ExtensionConsent && backend.LastPath.Contains("new JDK"), "Check again after handoff sees new JDK without app restart");
         controller.PrimaryAction().GetAwaiter().GetResult();
-        Assert(controller.Stage == SetupStage.Ready && backend.LastPath.Contains("new JDK"), "extensions and final verification use refreshed child tools");
+        Assert(controller.Stage == SetupStage.Opened && backend.LastPath.Contains("new JDK"), "extensions and verified automatic launch use refreshed child tools");
         controller.PrimaryAction().GetAwaiter().GetResult();
         Assert(controller.Stage == SetupStage.Opened && backend.LastPath.Contains("new JDK"), "final Code open receives same refreshed child PATH");
         backend.Reader.Fail = true; controller.Check().GetAwaiter().GetResult();

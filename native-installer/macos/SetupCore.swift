@@ -592,6 +592,9 @@ final class SetupController {
     static let totalSteps = 9
     private(set) var completedSteps = 0
     private var configuring = false
+    private var automaticOpenAttempted = false
+    private var retryOpening = false
+    private var hasOpened = false
     private(set) var hasChecked = false
     private(set) var stage: SetupStage = .checking
     private(set) var summary = "Preparing Zero…"
@@ -669,12 +672,21 @@ final class SetupController {
         guard let snapshot else { return }
         guard snapshot["kit"] else { fail("The kit is incomplete. See Details.", detail: "Extract a complete Zero kit."); return }
         if !snapshot.ready {
+            retryOpening = false
             set(.retry, "Finish setup to prepare the editor and Java.")
             return
         }
         guard snapshot.ready && selectedFolder != nil else { fail("Readiness is unverified. Try again.", detail: "Required check fields did not establish readiness."); return }
         completedSteps = Self.totalSteps
-        set(.ready, "Zero is ready. Open it to begin.")
+        if !automaticOpenAttempted {
+            automaticOpenAttempted = true
+            openZero()
+        } else if retryOpening || !hasOpened {
+            retryOpening = true
+            set(.retry, "Zero is ready. Try again to open it.")
+        } else {
+            set(.opened, "In Zero, choose Run App to begin.")
+        }
     }
     private func update(_ plan: KitUpdatePlan) {
         busy = true; summary = "Preparing Zero…"; changed?()
@@ -697,11 +709,21 @@ final class SetupController {
         guard !busy else { return }
         switch stage {
         case .retry:
-            if selectedFolder != nil { configure() } else { check() }
+            if retryOpening { openZero() }
+            else if selectedFolder != nil { configure() } else { check() }
         case .ready, .opened:
-            // The backend rechecks immediately before launch, catching drift.
-            run(["--native-open"], status: "Opening Zero…", timeout: 180) { [weak self] _ in self?.set(.opened, "In Zero, choose Run App to begin.") }
+            openZero()
         default: break
+        }
+    }
+    private func openZero() {
+        // The backend rechecks immediately before launch, catching drift. A
+        // failed launch stays recoverable without repeating kit installation.
+        retryOpening = true
+        run(["--native-open"], status: "Opening Zero…", timeout: 180) { [weak self] _ in
+            self?.retryOpening = false
+            self?.hasOpened = true
+            self?.set(.opened, "In Zero, choose Run App to begin.")
         }
     }
     func mayExit() -> Bool {
