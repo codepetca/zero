@@ -2625,3 +2625,34 @@ updated to new automatic transitions before acceptance. No production rework or
 file conflicts. Weekly73%remaining at start and storage311GBhealthy are shared
 readings; attributable task usage unknown. DeepSeek pause retained. No push, PR,
 merge, release, signing, notarization or deployment in this scope.
+
+### Progress bar follow-up — 2026-10-14
+
+Owner requested a bar instead of the spinner. Source66abd8a replaces the Mac
+spinner with native determinate NSProgressIndicator.bar. Nine-stage completion
+comes from successful initial check/placement and runtime progress callbacks;
+existing components can skip stages, retry restarts at the prepared-folder stage,
+and only verified final readiness fills the bar. Opening remains explicit and
+uses the bar's indeterminate mode. Windows already uses an animated bar and
+was unchanged. No timers invent progress or estimate download/time percentages.
+
+Mac209 assertions passed, including callbacks, skipped/stale/unknown tokens,
+failure before completion, retry reset, final readiness and native control values.
+Configuration/syntax/command/docs check, Mac release2tests and whitespace pass.
+Offscreen empty/partial/complete/failure renders were inspected. Partial image
+shows roughly1/9 despite asserted3/9; cause remains unverified. Screenshot
+settling and avoiding repeated stopAnimation did not establish correct visible
+intermediate fill. CUA native inspection reported the Mac locked. Live intermediate
+fill and explicit Opening→completion need fake/disposable UI verification when
+available; no unlock, real installation, accounts or publication were attempted.
+Evidence stays ignored under .verification/setup-smoke-feedback/bar-preview*.png.
+
+setup_review/2 inherited Sol/high, complete targeted c7df1bc..66abd8a and runtime
+token/main-thread/callback/refresh/retry/readiness/Open/doc boundaries, no source
+findings or blockers; visual coverage gap recorded explicitly. Reused Mac209 and
+configuration checks, independently checked delta whitespace and four previews.
+This turn adds one targeted wave, no new reviewer launch/remediation/integration
+wave; prior unchanged review coverage reused. Effective model/time/tokens unknown.
+Coordinator handled the focused implementation; no additional implementation
+worker. Shared storage/usage readings reused; task attribution unknown.
+Published version0.5.10 and released bytes remain unchanged.
