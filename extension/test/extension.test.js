@@ -101,8 +101,12 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   };await settle(()=>authCalls.length>0 && /Sign in to GitHub/.test(webview.html));
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
-  assert.match(webview.html,/aria-hidden="true"/);assert.match(webview.html,/Connect a repo/);
+  assert.match(webview.html,/>Sign in<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);
   assert.ok(authCalls.every(call=>call.options.silent));
+  await commands.get('zero.browseZeroHub')();
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries']);
+  nextChoice='projects';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=example');
+  nextChoice=undefined;
   await commands.get('zero.chooseRepository')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['create','connect']);
   assert.equal(inputCount,0,'Cancelled repository menu has no input or mutation');
@@ -115,7 +119,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   await commands.get('zero.githubAccount')();assert.match(errors.at(-1),/Sign in to GitHub/);assert.equal(authCalls.at(-1).options.createIfNone,true);
   nextChoice='create';await commands.get('zero.chooseRepository')();assert.equal(opened.length,0,'Cancelled sign-in cannot open repository creation');
   session={id:'student-session',account:{id:'student',label:'student'},accessToken:'PRIVATE'};
-  await commands.get('zero.signInToGitHub')();assert.match(webview.html,/title="Signed in as student"/);assert.match(webview.html,/>S<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"|data-command="zero.signInToGitHub"/);
+  await commands.get('zero.signInToGitHub')();assert.match(webview.html,/title="Signed in as student"/);assert.match(webview.html,/>student<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"|data-command="zero.signInToGitHub"/);
   await commands.get('zero.chooseRepository')();assert.equal(opened[0].url,'https://github.com/new');assert.match(notices.at(-1),/empty GitHub repository/);assert.match(notices.at(-1),/README, .gitignore and license unselected/);
   nextChoice=undefined;await commands.get('zero.githubAccount')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['change','signOut']);
@@ -123,13 +127,21 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const dispatchCount=dispatched.length;nativeAccountsAvailable=false;await commands.get('zero.githubAccount')();
   assert.equal(dispatched.length,dispatchCount);assert.match(notices.at(-1),/Accounts menu.*Sign Out/,'Older editors get usable native sign-out guidance');nativeAccountsAvailable=true;
   nextChoice='change';await commands.get('zero.githubAccount')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
-  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Upload changes/.test(webview.html) && />student\/app<\/button>/.test(webview.html));
-  assert.match(webview.html,/Upload changes/);assert.match(webview.html,/>student\/app<\/button>/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
+  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Upload changes/.test(webview.html) && />student\/app /.test(webview.html));
+  assert.match(webview.html,/Upload changes/);assert.match(webview.html,/>student\/app /);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['copy','connect']);
   session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle(()=>webview.html.includes('&lt;img src=x onerror=&quot;bad&quot;&gt;'));
   assert.match(webview.html,/&lt;img src=x onerror=&quot;bad&quot;&gt;/);assert.doesNotMatch(webview.html,/<img|PRIVATE/,'Account labels must be escaped and tokens excluded');
   session=undefined;authEvent({provider:{id:'github'}});await settle(()=>/Sign in to GitHub/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
-  assert.match(webview.html,/>student\/app<\/button>/,'Connected repository stays visible after sign-out');
+  assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/,'Signed-out view only offers sign-in; local remote remains unchanged');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
+});
+
+test("one Zero view and its native overflow expose only Tutorials and Setup help",()=>{
+  const manifest=require("../package.json");
+  assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions"]);
+  assert.equal(manifest.contributes.views.zero[0].name,"Zero");
+  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.openFirstLesson","zero.showSetup"]);
+  assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
 });

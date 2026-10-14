@@ -160,17 +160,22 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-- A minimal VS Code sidebar offers Run App, Stop, files and setup help. GitHub's
-  header has a profile icon (account initial when signed in); hover reveals the
-  account name and click opens account actions. The repository row shows
-  owner/name or “Connect a repo”; its menu offers create/connect or copy/change.
-  The current branch opens Start a change (on main) or Finish change (on a change
-  branch). Upload changes and its simulation label stay visible for a signed-in
-  connected repo. There is one individual workflow; no team/PR mode.
+- One Zero view keeps Run App and Stop visible without an internal collapsible
+  section. Files use native Explorer. Idle status is empty; app progress/errors
+  appear when there is a message. GitHub shows Sign in or the selected username.
+  Signed-in students can connect a repository, see its branch, choose New branch
+  on main or Finish change on a feature branch, and Upload changes. Simulation
+  remains visibly labeled. ZeroHub offers Browse (project templates/examples on
+  the website, or native library browsing) and signed-in Share project; local practice
+  still blocks GitHub sharing. Tutorials and Setup help live in the native view
+  overflow; Copy repository link lives in the repository menu. Supported VS Code
+  user controls can still move/hide views. There is no team/PR mode.
 - Run saves files, cleans/compiles and opens a separate native JavaFX window.
   Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
 - The first lesson opens once per project when the editor is empty; Open First
-  Lesson in the sidebar or Command Palette reopens it. Existing projects without lessons still run.
+  Lesson in the view menu or Command Palette reopens it. An explicit command
+  opens the hosted tutorials when no bundled lesson exists; idle activation and
+  Run do not invoke that fallback. Start project remains in the Command Palette.
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools
   have setup help; GitHub sign-in does not block local running.
@@ -207,8 +212,7 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 ## Repository and upload contract
 
 Students sign in through VS Code's native GitHub authentication/browser flow.
-Zero identifies the selected account through the initial's hover/accessibility
-label. Clicking it offers Change GitHub Account and Sign out; Sign out opens
+Zero shows the selected account username in the sidebar. Clicking it offers Change GitHub Account and Sign out; Sign out opens
 VS Code's native Manage Accounts picker (or manual Accounts instructions on
 older editors), where the user chooses their GitHub account
 and signs out. Session changes still invalidate pending upload reviews. Zero has
@@ -233,7 +237,7 @@ manually; signing in does not configure commit identity.
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with a reviewed Upload changes on main.
-Click main → Start a change, name the branch, and review its creation. Start
+Choose New branch beside main, name it, and review its creation. New branch
 requires clean committed main and brings in remote main only by fast-forward;
 diverged histories require manual repair. Upload changes commits/pushes progress
 to the current branch. Run and check the app before finishing.

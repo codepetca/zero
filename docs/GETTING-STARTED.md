@@ -142,17 +142,16 @@ That clone already has Git history and its own origin: keep that repository,
 complete sign-in and identity setup below, and skip creating an empty repository.
 The empty-repository steps below apply to an extracted source ZIP:
 
-1. Click the profile icon beside **GitHub** in Zero and complete VS Code's native
-   browser authentication flow. It becomes the account's first letter; hover
-   or focus it to identify the account. Click it for **Change GitHub account…**
-   or **Sign out…**. Sign out opens VS Code Accounts; select the GitHub account
-   there and choose Sign Out. Canceling or
-   denying authentication leaves local running available; retry sign-in when ready.
-2. Choose **Connect a repo → Create a repository…**. This opens GitHub's new-repository
+1. Click **Sign in** beside **GitHub** in Zero and complete VS Code's native
+   browser authentication flow. The control shows your GitHub username after
+   sign-in; click it for **Change GitHub account…** or **Sign out…**. Sign out
+   opens VS Code Accounts, where you choose your account and Sign Out. Canceling
+   authentication leaves local Run available.
+2. Choose **Connect a repository → Create a repository…**. This opens GitHub's new-repository
    page. Create your **own empty repository**, leaving README, license and
    gitignore uninitialized to avoid a separate starting history. This workflow
    does not use GitHub Classroom.
-3. Return to **Connect a repo → Connect an existing repository…** and paste its
+3. Return to **Connect a repository → Connect an existing repository…** and paste its
    HTTPS page URL. Zero initializes
    Git in this standalone student folder if needed and adds its origin remote;
    it asks before replacing an existing origin. Connecting does not upload or
@@ -185,7 +184,7 @@ and files before **Commit & Upload**. This is the starting version.
 
 For each improvement:
 
-1. Click **main → Start a change**. Give it a short name such as `quiz-feedback`
+1. Click **New branch** beside `main`. Give it a short name such as `quiz-feedback`
    using lowercase letters, numbers and dashes. Review before creating the branch.
    Upload pending edits first. Zero updates main from GitHub when it can do so
    without combining separate histories, then creates the branch.

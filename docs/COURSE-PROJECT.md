@@ -51,7 +51,7 @@ on main. This is the alternative to creating and cloning from a template.
 
 1. Write one small task in your README or as a GitHub issue. State what someone
    should be able to do when it works.
-2. Choose **Start a change** and give the branch a descriptive name.
+2. Choose **New branch** (**Start a change** in older kits) and give it a descriptive name.
 3. Implement the feature and **Run App**. Check the usual result and one likely
    mistake or edge case. Update the README to describe the working feature.
 4. **Upload changes** with a commit message explaining the change. Read your

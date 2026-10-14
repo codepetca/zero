@@ -69,7 +69,7 @@ export function HubExamples({snapshot, project}: {snapshot: {starter: ExamplePro
             <li>{project.templateHref
               ? 'In Zero, connect your own cloned repository. Personalize the README and Upload those changes on main before starting a branch.'
               : 'Create an empty GitHub repository in your own account. In Zero, connect that repository and Upload the starting project to main.'}</li>
-            <li>Choose Start a change to create a branch for one small feature.</li>
+            <li>Choose New branch to create a branch for one small feature (Start a change in older kits).</li>
             <li>Edit your Java and update the README with what your project does. Run App and check the result.</li>
             <li>Upload changes with a commit message explaining what you changed.</li>
             <li>Finish change, check your files on GitHub main, then submit your own repository link in Pika.</li>

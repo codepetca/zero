@@ -1,8 +1,8 @@
-/* Shared layout for Zero's webview. Colors/fonts remain host-owned. */
+/* Shared hierarchy; theme, font and focus colors remain owned by VS Code. */
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  padding: var(--zero-space-3);
+  padding: 12px 16px;
   background: var(--zero-page);
   color: var(--zero-text);
   font-family: var(--zero-font);
@@ -11,17 +11,23 @@ body {
 }
 button {
   width: 100%;
-  margin-top: var(--zero-space-2);
-  padding: 9px 8px;
+  margin-top: 8px;
+  padding: 8px;
   border: 1px solid var(--vscode-button-border, transparent);
-  border-radius: var(--zero-radius);
+  border-radius: 3px;
   background: var(--zero-accent);
   color: var(--zero-on-accent);
   font: inherit;
   line-height: 1.4;
-  white-space: normal;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
+button svg { width: 16px; height: 16px; flex: none; }
 button:hover { background: var(--zero-accent-hover); }
 button:focus-visible { outline: 2px solid var(--zero-focus); outline-offset: 2px; }
 button:disabled { opacity: .45; cursor: default; }
@@ -30,55 +36,42 @@ button.secondary {
   background: var(--vscode-button-secondaryBackground, var(--zero-surface));
 }
 button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground, var(--zero-surface)); }
-.row { display: flex; gap: var(--zero-space-2); }
-.row .run { flex: 2; min-width: 0; }
-.row .secondary { flex: 1; min-width: 0; }
-.muted, .badge { color: var(--zero-muted); font-size: inherit; }
-.status { margin: 10px 0; line-height: 1.5; overflow-wrap: anywhere; }
-.badge { margin: 6px 0; }
-.repository { padding-top: var(--zero-space-3); margin-top: var(--zero-space-3); border-top: 1px solid var(--zero-border); }
-button.link {
+.main-controls { position: sticky; top: 0; background: var(--zero-page); padding-bottom: 14px; z-index: 1; }
+.row { display: flex; gap: 8px; }
+.row button { margin-top: 0; min-width: 0; }
+.row .run { flex: 2; }
+.row .secondary { flex: 1; }
+.muted, .badge { color: var(--zero-muted); }
+.status { margin: 9px 0 0; overflow-wrap: anywhere; }
+.status:empty { display: none; }
+.badge { margin: 7px 0 0; font-size: .92em; }
+.repository { padding: 18px 0; border-top: 1px solid var(--vscode-panel-border, var(--zero-border)); }
+.github-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+button.account, button.link, button.repo-choice {
+  border: 0;
+  background: transparent;
+  color: var(--zero-link);
+  text-align: left;
+  justify-content: flex-start;
   padding: 4px 0;
   margin: 0;
   min-height: 28px;
-  border: 0;
-  background: transparent;
-  color: var(--zero-link);
-  text-align: left;
-  font-size: inherit;
 }
-button.link:hover, .repo-choice:hover { text-decoration: underline; }
-.github-header { display: flex; align-items: center; justify-content: space-between; gap: var(--zero-space-2); }
-.account {
-  width: 28px;
-  height: 28px;
-  flex: none;
-  padding: 0;
-  margin: 0;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--vscode-badge-background, var(--zero-surface));
-  color: var(--vscode-badge-foreground, var(--zero-text));
-  font-weight: 600;
-}
-.account:hover { background: var(--vscode-badge-background, var(--zero-surface)); }
-.account svg { width: 16px; height: 16px; fill: currentColor; }
-.repo-choice {
-  display: block;
-  padding: 5px 0;
-  margin: 8px 0 0;
-  border: 0;
-  background: transparent;
-  color: var(--zero-link);
-  text-align: left;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.repo-choice:hover { background: transparent; }
+button.account { width: auto; min-width: 0; text-align: right; justify-content: flex-end; font-size: .92em; }
+button.account:hover, button.link:hover, button.repo-choice:hover { background: transparent; text-decoration: underline; }
+button.repo-choice { color: var(--zero-text); margin: 8px 0 5px; }
+.branch-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.branch { display: inline-flex; align-items: center; gap: 7px; min-width: 0; overflow-wrap: anywhere; color: var(--zero-muted); font-size: .92em; }
+.branch svg { width: 16px; height: 16px; flex: none; }
+button.change { width: auto; flex-shrink: 0; font-size: .92em; }
+button.share { margin-top: 7px; font-size: .92em; }
+button.upload, button.hub { margin-top: 10px; }
 body.vscode-high-contrast button, body.vscode-high-contrast-light button { border: 1px solid var(--zero-border); }
-@media (max-width: 220px) { .row { flex-direction: column; gap: 0; } }
+@media (max-width: 220px) {
+  .row, .branch-row { flex-direction: column; align-items: stretch; }
+  .row .secondary { margin-top: 6px; }
+  .branch-row { gap: 2px; }
+}
 @media (forced-colors: active) {
   button, button.secondary, button.link, button.account, button.repo-choice {
     background: ButtonFace; color: ButtonText; border: 1px solid ButtonText;

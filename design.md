@@ -12,7 +12,7 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 | --- | --- |
 | Home page with app header, Learn Java and two buttons | Owner-requested replacement 2026-10-13; shared light/dark themes. |
 | Shared Learn/downloads design in light and dark | Owner-approved 2026-10-13; applies to the tutorial reader and Downloads. |
-| Minimal editor sidebar Ready and Error states in light and dark | Owner-approved 2026-10-13; native VS Code theme adaptation remains required. |
+| Minimal editor sidebar in light and dark | Owner-approved 2026-10-13: one Run/Stop, GitHub and ZeroHub view; idle status hidden; Sign in/username; New branch; Tutorials/Setup overflow. Native VS Code adaptation remains required. |
 | Docs reader | Owner-requested 2026-10-13; direct setup with shared reader/sidebar and themes. |
 | ZeroHub examples | Owner-requested 2026-10-13; minimal original-project starter, four practice projects and three optional advanced projects; maintained complete downloads, real previews and source links; no Examples top-menu entry. |
 | Community Hub | Existing library/project contracts and publication behavior retained. |
@@ -102,3 +102,12 @@ Tutorials and Downloads use the full available screen width and at least its
 height. Remove the centered1200px shell cap; header stays at the top and main
 fills remaining height. Longer content grows normally with vertical scrolling.
 Keep narrow-screen wrapping, contained code and the mobile lesson/menu controls.
+
+## Minimal extension sidebar — owner approval, 2026-10-13
+
+Keep one continuous Zero view; use native Explorer for files. Run/Stop stays at
+the top. GitHub uses visible Sign in/username and New branch/Finish change beside
+the branch. ZeroHub has Browse and Share project. Tutorials and Setup help move
+to native overflow, Copy repository link stays in repository actions. Idle status
+is empty. Existing local-practice, native authentication, reviewed Git/sharing,
+simulation and published-release boundaries remain in force.

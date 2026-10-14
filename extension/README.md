@@ -2,7 +2,9 @@
 
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
-webview, file tree, task and command APIs. Files open in the normal editor.
+webview, task and command APIs. Files use native Explorer and open in the normal editor.
+The single Zero view keeps Run/Stop at the top; idle status is empty. Tutorials
+and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
 **zero-0.5.4.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
@@ -31,24 +33,21 @@ Commands: `zero.runApp`, `zero.stopApp`, `zero.uploadToGitHub`,
 `zero.signInToGitHub`, `zero.createRepository`, `zero.connectRepository`,
 `zero.copyRepositoryLink`, `zero.showSetup` and
 `zero.showSidebar`. Sharing commands include `zero.sharingActions`,
-`zero.browseHub`, `zero.browseGames`, `zero.extractLibrary`, `zero.checkLibrary`,
+`zero.browseZeroHub`, `zero.browseHub`, `zero.browseGames`, `zero.extractLibrary`, `zero.checkLibrary`,
 `zero.shareLibrary`, `zero.shareGame`, `zero.switchLibraryMode` and
 `zero.recoverLibraryChange`.
 
 ## Repository workflow
 
-The GitHub header has one profile button: a silhouette while signed out and the
-account's first letter while signed in. Its hover title/accessibility label names
-the account; click for **Change GitHub account…** or **Sign out…**. Sign out opens
-VS Code's native Manage Accounts picker; select the GitHub account and Sign Out
-there. Older editors without that command show instructions for their native
-Accounts menu instead.
-The repository row shows `owner/name`, or **Connect a repo**. Click for
-create/connect options when empty, or copy-link/change options when connected.
-The current branch opens **Start a change** on main or **Finish change** on a
-change branch. **Upload changes** and its explicit simulation/live label stay
-visible when signed in and connected. Run App works without sign-in. No team/PR
-controls or rebase interface are included.
+The GitHub header shows **Sign in** while signed out and the selected GitHub
+username while signed in. Click the username for **Change GitHub account…** or
+**Sign out…**; native VS Code Accounts owns sign-out and credentials.
+The signed-in repository row shows `owner/name`, or **Connect a repository**.
+Click it for create/connect or copy-link/change actions. **New branch** beside
+main creates a reviewed feature branch; **Finish change** beside a feature branch
+completes it into main. Upload and the simulation/live label remain separate.
+Local Run works without sign-in. Local-practice projects continue to block GitHub
+sharing. Native VS Code can move/hide views; Zero has no internal collapse control.
 
 Sign-in uses VS Code's built-in GitHub authentication provider. It requests
 `repo` access, including private repositories, so students can choose Public or
@@ -138,7 +137,7 @@ remain pending. Review focused changes before classroom adoption.
 
 ## ZeroHub libraries
 
-Open the Zero view title (…) menu → **Libraries and Games** → **Browse libraries**, or choose **Zero: Browse Libraries** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
+Choose **Browse ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command Palette. **Browse ZeroHub → Projects** opens complete examples/templates on the website. Signed-in students can use **Share project**; advanced library authoring remains under **Zero: Libraries and Games** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
 
 Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
 
