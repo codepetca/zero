@@ -2799,3 +2799,12 @@ Published with latest=false; kit12 stays local and Windowskit10/frozen releases
 remain unchanged. Actual public URL promoted in native metadata; website review,
 CI, metadata merge and live proof pending. Source/notes/artifact coverage reused
 for unchanged code; metadata delta gets bounded independent review.
+
+Metadata promotion review artifact_compat/turn2 Sol/high completed full f1c5fac..03fa646
+and accepted one P2: GETTING-STARTED was still Mac11/manual Open Zero. The primary
+website setup/starter guide is now Mac12/automatic opening and retains workspace
+trust plus explicit Run App. No packaged/native source change: this guide is a
+website/maintainer document; the unchanged release/START-HERE remains ZIP/manual
+kit guidance. Other metadata binding/public bytes/fallback/native source passed.
+Metadata local checks79website tests/typecheck/build passed. Reviewer launch5,
+second fixbatch; correction review and exact-head PR52 CI/live proof pending.

@@ -19,13 +19,15 @@ Actual signatures/156payload bytes+modes/staple/Gatekeeper app+DMG verified. Sea
 candidate dist/candidates/mac-0.5.12-36e46b6e25c4; earlier bytes/tags preserved.
 SourcePR51 mergedf1c5fac after exacteec8d05 CI38611795944 passed. Independent source
 Sol/medium initial+notesdelta clean; independent artifact_provenance/artifact_compat
-Sol/high complete fixed36e/hash reviews clean. Ledger4launches,1source initial,
+Sol/high complete fixed36e/hash reviews clean. Ledger5launches,1source initial,
 1source targeted,1two-reviewer artifact wave,1fixbatch; effective time/tokens unknown.
 
 Current worktree /Users/stew/.codex/worktrees/setup-smoke-feedback/zero on
 codex/setup-0.5.12-native. Main mergec086d14 changes receipt conflicts only; protected
-source still equals original build. Metadata now copies actual public URL and docs;
-next bounded metadata review/checks/PR/CI/merge and deployed live link/hash proof.
+source still equals original build. MetadataPR52 copies actual public URL and docs; Sol/high promotion review found
+stale Open Zero guidance in the primary beginner guide. Corrected GETTING-STARTED
+to12/automatic opening, preserving trust/Run App. Metadata79tests/typecheck/build
+passed; next targeted correction review/CI/merge and deployed live link/hash proof.
 No new credentials, Windows EXE, separate kit, Hub publication, goals/chats/automation.
 Primary funding checkout/other worktrees untouched. Keep worktree/ignored candidate
 and .verification/release-0.5.12 receipts for continued smoke testing. Weekly70%
