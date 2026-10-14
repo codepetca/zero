@@ -1,28 +1,22 @@
-# Current state — standard Mac app0.5.13 implementation
+# Current state — Zero Mac app0.5.13 release
 
-Updated2026-10-14. Owner explicitly asks standard Mac drag-to-Applications flow and
-updated DMG release for continued smoke testing. Worktree setup-smoke-feedback/zero,
-branchcodex/zero-app-0.5.13; primary funding/other worktrees untouched. Existing
-published12, Windowskit10 and older artifacts/tags must remain immutable.
+Updated2026-10-14. Owner authorized standard drag-to-Applications flow and updated
+DMG release for smoke testing. Worktree setup-smoke-feedback/zero; primary funding
+checkout and other worktrees untouched. SourcePR56 merged925f518 after independent
+Sol/high review and successful CI38623902449. NativeFiles/API docs main changes preserved.
 
-Coordinator owns native launch/controller/UI/tests, version/docs and integration.
-zero_app_package Sol/high owns packaging/identity/icon/manifest validation helpers;
-reported31focused tests and disposable icon/DMG mount checks passed, to verify.
-New Zero.app/ca.codepet.zero (development sibling) with real brand icon, Applications
-link and readable drag instructions. First launch prepares then opens starter and
-exits preparation app. Warm launch compares owned files/readiness, opens saved Zero
-session and avoids copies/backups; missing support repairs once. Backend fresh
-open check, failure retry, student Run App/trust and project preservation remain.
-Bundled/website guide updated for13 including correct VSIX name; last native12 link
-stays available until actual signed13 publication/proof. Kit13 local, core0.1.2 pinned.
-No Windows/kit/Hub release or credentials changes. bar_live_check Sol/high testing
-actual VSCode restoration using disposable isolated environment only; root builds
-fake/native harness. Weekly67%remaining/storage307GBhealthy; telemetry unknown,
-DeepSeek paused. Next integrate/tests/independent source review, clean signed build,
-notarize/seal/two artifact reviews, sourceCI/merge, exact-byte one-DMG publication,
-reviewed metadata/link promotion/CI/liveproof. No goal/chat/automation created.
+Signed/notarized/stapled Zero.app13 released as setup-v0.5.13, one exact DMG,
+tagtarget0d2bc64; built1c02dc6, sealed candidate mac-0.5.13-0d2bc64dac05.
+Public unauthenticated HTTP200 size1080826 SHA48d7b142fa3208b071518ef75ee746feccb140ea4dda192419189b73939ba621.
+Two independent Sol/high artifact reviews passed. First launch prepares with bar,
+automatically opens starter, closes preparation app; later Zero.app restores saved
+isolated editor session. Student work preserved. Mac250 assertions; Node259/1 skip;
+website94 and package/extracted-kit checks passed. Actual VSCode1.141.2 restored
+second disposable workspace; GUI restoration/close-button not proven.
 
-Concurrent main integration: retained approved API docs publication and native
-Files view from main3b97341. Their source/design/guide/evidence changes are preserved;
-installer PR56 excludes those already-main changes. Native launch code unchanged
-by main integration. Incoming handoff: # Current state — API docs publication  Updated2026-10-14. Owner authorized publishing the approved searchable API layout. Branch codex/publish-api-docs starts at current origin/main7e67ce0 and preserves current shared navigation/themes/code copy and all download/tutorial metadata. Website typecheck/build87tests pass; adapter covers42 current declarations. Funding draft remains only in the original checkout. Delivery/CI/live verification are recorded in the docs publication PR; no installer/binary release is included.
+Kit13 remains local; published Windowskit10 and all earlier native artifacts remain
+immutable. NoWindowsEXE/kit/Hub release or credentials changes. Current branch
+codex/publish-zero-app-0.5.13 promotes only measured public Mac metadata/docs.
+Next metadata review/CI/merge and live download-anchor/byte proof. Fresh-machine,
+quarantineUI/macOS12/Intel/physicalWindows remain untested; owner smoke test continues.
+Ignored sealed bytes/notary/build/live restoration evidence retained. No goal/chat/automation.

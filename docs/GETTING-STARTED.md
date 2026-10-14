@@ -12,8 +12,8 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Zero app for Mac
 
-Current Mac0.5.13 source uses the familiar drag-to-Applications flow. The last
-published Mac0.5.12 download retains its separate Zero Setup app until13 is released.
+Published Mac0.5.13 uses the familiar drag-to-Applications flow. Earlier downloads
+keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
 2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**

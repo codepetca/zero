@@ -2888,3 +2888,50 @@ current-main integration receives a fresh bounded Sol/medium review before merge
 Weekly67%remaining/storage307GBhealthy; task-attributable usage unknown.
 No installer/release binary build, credentials, funding publication or new goal.
 Publication/CI/deployment receipt will be recorded in the delivery PR.
+
+
+## Zero Mac app0.5.13 — standard installation, 2026-10-14
+
+Owner authorized drag Zero.app into Applications and release the new DMG. Source
+[PR56](https://github.com/codepetca/zero/pull/56) merged925f518 after exacthead1c02dc6
+[CI38623902449](https://github.com/codepetca/zero/actions/runs/38623902449) passed.
+Concurrent native Files/API docs changes retained; no protected source delta from
+built1c02 to mergedmain. Sol/high independent fullreview29273f1 and targeted
+integration292..1c02 complete, no blockers; one P3 old bundleID doc corrected.
+Targeted review ~180seconds; effective config/tokens unknown.
+
+Zero.app productionIDca.codepet.zero, brand icon, exact Applications symlink and
+INSTALL instructions. First launch prepares with progressbar and automatically
+hands off to the starter; success exits preparation app. Warm owned-file/readiness
+verification skips copies/backups and resumes isolated VSCode saved session;
+missing support repairs once. Student files, trust and Run App remain explicit.
+Mac native/fake/AppKit250 assertions passed; root Node259pass/1platformskip;
+focused packaging31; post-main sync extension3, website94/typecheck/build,
+package/extracted-kit verification passed. Disposable real VSCode1.141.2 reopened
+second workspace using only isolation args; isolated logs/state prove restoration.
+SIGTERM-only cleanup; CUA could not identify distinct process, so GUI restoration
+and native close-button behavior unproven. Evidence .verification/zero-app-0.5.13/.
+
+Clean signedbuild1c02dc6685554ebfc3ca7702a53637f0bbf596d9, sealedprep/tagtarget
+0d2bc64dac052672fcc57e3881f8d5a4766b5b0e; only manifest differs and all protected
+source remains equivalent. Existing DeveloperID SHA1ACE8EE40F3615C5062CBBD5F085E299E049BAE08,
+team88FT6QZJP8; no credentials changed. Apple accepted submission
+42825b40-6d18-4454-9a68-c846f7921047 binding1079115-byte inputSHA
+96d8047d27f990d0f713974e0da096cbcc05ec32e9a261d0fbe1c900efc7872e. Final staple
+DMG1080826bytes SHA48d7b142fa3208b071518ef75ee746feccb140ea4dda192419189b73939ba621.
+Actual strict app/botharchitectures/DMG signatures, CDHashes/ticket, noentitlements,
+payload157files/modes, volume/plist/icon, staple and Gatekeeper app+DMG passed.
+Two fresh Sol/high read-only artifact reviewers completed separate provenance and
+compatibility scopes with no blockers; provenance ~360seconds, compatibility
+elapsed telemetry unknown. Compatibility20focused tests passed. Own mounts cleaned.
+
+[Public setup-v0.5.13](https://github.com/codepetca/zero/releases/tag/setup-v0.5.13)
+contains exactly Zero-0.5.13-macos.dmg; draft target/asset/notes and authenticated
+redownload matched sealed bytes, then published --latest=false. Actual tag target,
+public API and unauthenticated HTTP200 download matched finalsize/SHA before this
+metadata promotion. Sealed candidate dist/candidates/mac-0.5.13-0d2bc64dac05 and
+private .verification/release-0.5.13 receipts retained. Earlier Mac releases and
+published Windowskit10 unchanged; kit13 local, no WindowsEXE/kit/Hub publication.
+Review ledger4launches source2/artifact2, one sourcefixbatch; metadata review next.
+Fresh-machine, quarantined GUI launch, macOS12 runtime, Intel and physical Windows
+remain unverified; owner continues novice smoke testing.
