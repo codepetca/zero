@@ -12,7 +12,6 @@ import {
   documentHref,
   slugify,
 } from "@/lib/markdown.mjs";
-import { PageHeader } from "./PageHeader";
 import { Icon } from "./Icon";
 import { FoldingReader } from "./FoldingReader";
 import { ReaderNavigation } from "./ReaderNavigation";
@@ -36,7 +35,6 @@ export function Document({ id, lesson = "" }) {
           title: doc.markdown.match(/^# (.+)$/m)?.[1] || id,
           href: documentHref(id),
         }));
-  const header = <PageHeader active={lesson ? "Tutorials" : "Docs"} />;
   const content = (
       <main
         id="page-content"
@@ -47,7 +45,7 @@ export function Document({ id, lesson = "" }) {
           <ReaderNavigation
             items={items}
             current={lesson || id}
-            lesson={!!lesson}
+            section={lesson ? "Tutorials" : "Docs"}
           />
         </aside>
         <article className="reader-content">
@@ -116,14 +114,11 @@ export function Document({ id, lesson = "" }) {
               {doc.markdown}
             </Markdown>
           </FoldingReader>
-          {related && (
+          {related && related.doc !== "api" && (
             <section className="compact-related" aria-label="Related docs">
               <a href={`/docs/${related.doc}#${related.anchor}`}>
-                {related.doc === "api"
-                  ? "Java API reference"
-                  : "Contribution guide"}
+                Contribution guide
               </a>
-              <a href="/examples">Example apps</a>
             </section>
           )}
           {lesson && (
@@ -137,8 +132,8 @@ export function Document({ id, lesson = "" }) {
                   <Icon name="arrow-right" />
                 </Link>
               ) : (
-                <a className="button" href="/examples">
-                  Explore the examples
+                <a className="button" href="/hub?kind=example">
+                  Explore projects
                   <Icon name="arrow-right" />
                 </a>
               )}
@@ -147,7 +142,5 @@ export function Document({ id, lesson = "" }) {
         </article>
       </main>
   );
-  return lesson ? (
-    <LearnTheme active="Tutorials">{content}</LearnTheme>
-  ) : <>{header}{content}</>;
+  return <LearnTheme active={lesson ? "Tutorials" : "Docs"}>{content}</LearnTheme>;
 }

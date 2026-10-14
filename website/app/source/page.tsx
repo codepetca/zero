@@ -11,9 +11,9 @@ export default async function Source({
   if (typeof file !== "string" || !Object.hasOwn(sources, file)) notFound();
   return (
     <>
-      <PageHeader active="Examples" />
+      <PageHeader active="Docs" />
       <main id="page-content" tabIndex={-1} className="catalog source-page">
-        <h1>Examples</h1>
+        <h1>Docs</h1>
         <h2 className="page-subtitle">{file.split("/").pop()}</h2>
         <p className="source-path">{file}</p>
         <p>

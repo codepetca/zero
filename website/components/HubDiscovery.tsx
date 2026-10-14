@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, releaseLink, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import styles from '@/app/hub/hub.module.css';
+import {HubNavigation} from './HubNavigation';
 type Artifact = {url:string; size:number; sha256:string};
 type Component = {className:string; description:string; usage:string; api:string[]};
 type Release = {kind:'library'|'game'; id:string; version:string; title:string; description:string; license:string; status:string; libraryKind?:string; namespace?:string; controls?:string; components?:Component[]; contributor:{login:string; githubId:string}; repository:{url:string}; source:{commit:string; folder:string; sha256:string}; coordinate?:{groupId:string;artifactId:string;version:string}; artifacts:{zip?:Artifact;jar?:Artifact;sources?:Artifact;pom?:Artifact;preview?:Artifact}};
@@ -35,7 +36,7 @@ export function HubDiscovery() {
   } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading">Browse {kind === 'game' ? 'games' : 'libraries'}</h2>
-    <nav className={styles.navigation} aria-label="ZeroHub catalog"><Link href="/hub?kind=game" aria-current={kind==='game'?'page':undefined}>Games</Link><Link href="/hub?kind=library" aria-current={kind==='library'?'page':undefined}>Libraries</Link><Link href="/hub/share">Share your work</Link></nav>
+    <HubNavigation active={kind} />
     {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'games':'libraries'}</Link></p> : <div className="hub-form"><label htmlFor="sharing-search">Find {kind==='game'?'a game':'a library'}</label><input id="sharing-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="Title, author or description" /></div>}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'games':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       <p className="fine-print">{kind==='game'?'Games are editable source projects. Download into a new folder and open separately in VS Code. Source packaging does not establish gameplay quality or safe execution.':'Libraries use exact Maven versions. You choose when to Add, Update or Revert in Zero; browsing does not change your project.'}</p>

@@ -24,7 +24,7 @@ test("folds parsed sections without splitting code, preserving unique deep-link 
   assert.match(html, /<h3 id="nested">Nested/);
   assert.match(html, /<code class="language-java">## This is code/);
   assert.ok(html.indexOf("Introduction.") < html.indexOf("<details"));
-  assert.doesNotMatch(html, /<details[^>]*open/);
+  assert.equal((html.match(/<details[^>]*open/g) || []).length, 2);
 });
 test("relative links preserve fragments and route only maintained documents or allowlisted sources", () => {
   const documents = {
@@ -81,6 +81,27 @@ test("relative links preserve fragments and route only maintained documents or a
     ),
     "https://example.com",
   );
+});
+
+test("the course guide renders a clickable local starter link while remaining usable as GitHub Markdown", () => {
+  const source = "docs/COURSE-PROJECT.md";
+  const markdown = readFileSync(new URL("../../docs/COURSE-PROJECT.md", import.meta.url), "utf8");
+  const html = renderToStaticMarkup(React.createElement(Markdown, {
+    components: {a: ({href, children}) => {
+      const target = resolveContentLink(source, href, {}, {});
+      return target ? React.createElement("a", {href: target}, children) : React.createElement("span", {}, children);
+    }}, children: markdown,
+  }));
+  assert.match(markdown, /\[minimal Zero starter\]\(https:\/\/zero\.codepet\.ca\/hub\?kind=example&example=zero-starter\)/);
+  assert.match(html, /<a href="\/hub\?kind=example&amp;example=zero-starter">minimal Zero starter<\/a>/);
+  assert.equal(resolveContentLink(source, "/hub?kind=example&example=zero-starter", {}, {}), "/hub?kind=example&example=zero-starter");
+  assert.equal(resolveContentLink(source, "/hub?kind=example&example=private", {}, {}), null);
+  assert.equal(resolveContentLink(source, "https://example.com/hub?kind=example&example=zero-starter", {}, {}), "https://example.com/hub?kind=example&example=zero-starter");
+  for (const id of ["hello-app", "study", "coin-game-component", "drawing"]) {
+    assert.match(html, new RegExp(`<a href="/hub\\?kind=example&amp;example=${id}">`));
+  }
+  assert.doesNotMatch(markdown, /https:\/\/github\.com\/codepetca\/zero-(?:starter|hello-java|study-session|coin-game|drawing-pad)(?:\/generate)?\)/);
+  assert.match(markdown, /Use template\*\* when that action is available/);
 });
 
 test("lesson navigation starts at zero and reaches the button, name then quiz without looping", () => {
@@ -148,7 +169,7 @@ test("composed examples supply the same shared screens and every ordinary helper
     assert.deepEqual(example.files, [`${id}/Main.java`, ...helpers, ...shared]);
     for (const file of example.files) assert.ok(readFileSync(new URL(`../../student-template/examples/${file}`, import.meta.url), "utf8").length);
     const readme = readFileSync(new URL(`../../student-template/examples/${id}/README.md`, import.meta.url), "utf8");
-    assert.equal(resolveContentLink("student-template/UI.md", `examples/${id}/README.md`, {}, { [`student-template/examples/${id}/README.md`]: readme }), `/examples/${id}`);
+    assert.equal(resolveContentLink("student-template/UI.md", `examples/${id}/README.md`, {}, { [`student-template/examples/${id}/README.md`]: readme }), `/hub?kind=example&example=${id}`);
   }
 });
 
@@ -174,7 +195,7 @@ test("stage guides open the runnable example page and unknown guides stay unlink
   const source = "student-template/lessons/12-media.md";
   for (const id of ["scrolling-game", "platform-game", "level-game", "full-game"]) {
     const key = `student-template/examples/${id}/README.md`;
-    assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, { [key]: "# Copy files" }), `/examples/${id}`);
+    assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, { [key]: "# Copy files" }), `/hub?kind=example&example=${id}`);
     assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, {}), null);
   }
   assert.equal(resolveContentLink(source, "../examples/private/README.md", {}, {}), null);

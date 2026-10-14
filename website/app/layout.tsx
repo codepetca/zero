@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "Zero — a simple Java kit", template: "%s — Zero" },

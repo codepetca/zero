@@ -15,7 +15,7 @@ export function Navigation({ active = "", actions = null }) {
         aria-controls="site-nav"
         onClick={() => setMenu(!menu)}
       >
-        <Icon name={menu ? "x-lg" : "list"} />
+        <Icon name={menu ? "x" : "menu"} />
       </button>
       <nav
         id="site-nav"
@@ -25,7 +25,6 @@ export function Navigation({ active = "", actions = null }) {
         {[
           ["Tutorials", "/learn"],
           ["Docs", "/docs"],
-          ["Examples", "/examples"],
           ["ZeroHub", "/hub"],
           ["Download", "/downloads"],
         ].map(([name, href]) => (

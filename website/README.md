@@ -12,17 +12,51 @@ npm run build
 npm run dev -- --port 3000
 ```
 
-Preparation reads release metadata and canonical repository documents, lessons and teaching media. It writes ignored `.generated/content.json` and `public/generated/` assets, including the three local practice project ZIPs and optional game media from the shared project manifest. Re-run preparation/restart after changing canonical docs. Builds need the Zero repository sources outside `website/`; no sibling repository is required. The supplied logo paths come from `extension/media/zero.svg`, with the approved purple colour. Bootstrap Icons supply navigation, disclosure and download icons.
+Preparation reads release metadata and canonical repository documents, lessons and teaching media. It writes ignored `.generated/content.json` and `public/generated/` assets, including the three local practice project ZIPs and optional game media from the shared project manifest. Re-run preparation/restart after changing canonical docs. Builds need the Zero repository sources outside `website/`; no sibling repository is required. The supplied logo paths come from `extension/media/zero.svg`, with the approved purple colour. Lucide SVGs supply navigation, disclosure, download and theme icons.
 
 ## Learning routes
 
-`/learn` opens Lesson 0. Lessons 0, 3 and 8 offer **Start project** downloads for the Greeting app, Study quiz and Coin game. Later lessons ask students to continue their existing project and link back to its starting lesson. Lesson 10 reopens both the Study quiz and Coin game; Lesson 12 offers an optional media-only ZIP. Unzip a starter, open its folder in VS Code and click Run App. These local practice projects stay off GitHub. The frozen 0.5.8 kit can run downloaded project ZIPs; the native Start Project command requires the updated local extension. Section fragments open their enclosing disclosure. `/docs` and `/docs/[slug]` share the folding reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` show exact copy/run instructions and ordinary Java source.
+`/learn` opens Lesson 0. Lessons 0, 3 and 8 offer **Start project** downloads for the Greeting app, Study quiz and Coin game. Later lessons ask students to continue their existing project and link back to its starting lesson. Lesson 10 reopens both the Study quiz and Coin game; Lesson 12 offers an optional media-only ZIP. Unzip a starter, open its folder in VS Code and click Run App. These local practice projects stay off GitHub. The frozen 0.5.8 kit can run downloaded project ZIPs; the native Start Project command requires the updated local extension. `/tutorials/[lesson]` renders the maintained lesson Markdown with all sections expanded by default, related docs and Next lesson navigation. Individual sections can still be collapsed, and section fragments open their enclosing disclosure. `/docs` opens the setup guide directly; `/docs/[slug]` shares that reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` redirect to the matching ZeroHub example view. Docs and ZeroHub examples share light/dark themes and labeled selectors on narrow screens.
 
-Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, traversal and repeated source query values return 404. The only absolute content links accepted are generated project ZIP paths for the three fixed project IDs and the optional game media ZIP. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, read-only lesson checkpoints, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
+Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, traversal and repeated source query values return 404. Allowed absolute content links are the three fixed project ZIPs, optional game media ZIP and publication-gated ZeroHub project routes. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, read-only lesson checkpoints, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
 
 ## ZeroHub
 
-`/hub` discovers separate editable games and reusable Java libraries. Cards show
+`/hub` opens the minimal starter for a student's original course project. The
+sidebar offers four practice projects and three optional advanced projects;
+nineteen intermediate checkpoints stay accessible through their existing URLs.
+The narrow-screen selector groups those same choices. Each of the 26 examples shows
+actual JavaFX preview images, a description and a complete source download. The
+minimal starter and four featured examples offer **Use template**, **Download ZIP**
+and their standalone GitHub repository links; the other entries retain **Get
+project** and canonical source links. Get project downloads a complete standalone Maven project with
+its Main, helpers, framework, resources, pinned wrapper and Run App configuration.
+Extract it into a new folder, open it in Zero and Run App; no source splicing is
+required. Sidebar selection uses `?kind=example&example=<id>`.
+`example=zero-starter` selects the minimal starter, which excludes lessons and
+example sources. The prepared snapshot contains a separate `starter` entry and
+all 26 `projects`. Guided downloads include a concrete change, README planning and
+the actual student-owned repository workflow. `/docs/course-project` distinguishes
+Zero's individual Finish change from GitHub pull request practice. Five public GitHub templates are recorded in `content/project-templates.json` with
+verified numeric repository IDs, main commits and trees. Preparation validates the
+complete publication snapshot before exposing template links. Empty metadata
+retains the source ZIP route; partial or invalid metadata fails preparation.
+`node scripts/prepare-project-templates.mjs` from the repository root prepares
+fresh explicit source inventories outside parent Git repositories; it never publishes.
+
+Preparation derives these first-party source ZIPs and their size/hash snapshot
+from the explicit maintained manifests, validates them against the shared project
+archive policy, and writes ignored `public/generated/example-projects/`,
+`.generated/example-projects.json` and `dist/example-projects/`. Required preview
+PNGs are tracked in `public/example-previews/`; regenerate them on macOS with
+`python3 scripts/capture-example-previews.py` after preparation. They are actual
+app Scene snapshots, including the two shared-screen started states and a real
+mouse stroke for Drawing pad. Capture output/receipts are ignored.
+
+`/hub?kind=game` and `?kind=library` retain community project/library discovery.
+Maintained examples are built from this repository; they do not fabricate an
+accepted community-registry release or alter native catalog/publication policy.
+Community cards show
 exact versions, verified GitHub contributor identity, pinned source commits,
 optional previews and artifact size/hash details. `?kind=library&id=lib-r12345-health-bar&version=0.1.0`
 inspects one exact release without substituting another. Games offer **Download
@@ -52,7 +86,7 @@ To preview a new local version, package it from the repository root, then:
 ZERO_LOCAL_DOWNLOADS=1 npm run dev -- --port 3000
 ```
 
-`/download/kit`, `/download/starter` and `/download/extension` verify authored filenames, receipt versions, sizes and SHA-256 against `dist/` on every request. Local Mac setup additionally checks its signed/notarized provenance and unchanged source. Stale, missing or tampered artifacts fail closed. Binaries stay out of `public/` and Git. Vercel always disables local filesystem downloads. Published assets retain their public links even with the preview flag.
+`/download/kit`, `/download/starter` and `/download/extension` verify authored filenames, receipt versions, sizes and SHA-256 against `dist/` on every request. Local Mac setup additionally checks its signed/notarized provenance and unchanged source. Stale, missing or tampered artifacts fail closed. Installer/kit binaries stay out of `public/` and Git; the generated example ZIPs contain editable source projects. Vercel always disables local filesystem downloads. Published assets retain their public links even with the preview flag.
 
 ## Hosting and verification
 
@@ -95,3 +129,8 @@ Tutorials now opens lesson 0 directly at `/learn`, with all thirteen lessons in
 the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
 updates the reading pane and bookmarkable lesson URL; there is no overview landing.
 The tutorial reader shares the approved appearance controls with Downloads.
+
+Website control icons use pinned `lucide-react` SVGs through `components/Icon.tsx`.
+Decorative icons inherit text color and remain hidden from assistive technology;
+controls retain their accessible labels. Zero branding and native VS Code icons
+are separate. The shared preview embeds matching licensed Lucide artwork.

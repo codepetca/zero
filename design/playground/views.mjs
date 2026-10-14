@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { lessons } from '../../website/lib/learning.mjs';
 import { sidebarSource } from './sidebar-source.mjs';
+const icons = Object.fromEntries(['download', 'sun', 'moon'].map(name =>
+  [name, readFileSync(new URL(`./assets/${name}.svg`, import.meta.url), 'utf8').trim()]));
 export const baseRevision = '639da3173d6eed71869bdb1365f6ef67a6fafdbd';
 export const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const head = (title, theme) => `<meta charset="utf-8">
@@ -26,8 +29,8 @@ export function webView(theme, downloads, screen = "learn") {
   const homeContent = `<div class="intro"><h1>Learn Java</h1><p class="lead">Starting from zero.</p></div>
 <div class="home-actions"><a class="primary" href="/web?screen=downloads&theme=${theme}" data-screen="downloads">Download Zero</a><a class="primary" href="/web?screen=learn&theme=${theme}" data-screen="learn">Start Learning</a></div>`;
   const downloadContent = `<section id="downloads" class="downloads" aria-label="Downloads">${downloads.mac ? `<button class="primary" data-fixture="Mac setup download" data-source-url="${escape(downloads.mac)}">
-<img src="/assets/download.svg" width="18" height="18" alt="">Download for Mac Silicon</button>` : ''}${downloads.windows ? `<button class="primary" data-fixture="Windows complete-kit ZIP download" aria-label="Download for Windows (ZIP), manual setup" data-source-url="${escape(downloads.windows)}">
-<img src="/assets/download.svg" width="18" height="18" alt="">Download for Windows (ZIP)</button>` : ''}</section>`;
+${icons.download}Download for Mac Silicon</button>` : ''}${downloads.windows ? `<button class="primary" data-fixture="Windows complete-kit ZIP download" aria-label="Download for Windows (ZIP), manual setup" data-source-url="${escape(downloads.windows)}">
+${icons.download}Download for Windows (ZIP)</button>` : ''}</section>`;
   return `<!doctype html>
 <html lang="en">
 <head>${head(screen === 'home' ? 'Zero · Home review' : screen === 'downloads' ? 'Zero · Downloads review' : 'Zero · Learn review', theme)}</head>
@@ -39,12 +42,11 @@ export function webView(theme, downloads, screen = "learn") {
 <nav aria-label="Main navigation">
 <a href="/web?screen=learn&theme=${theme}" data-screen="learn" ${screen === 'learn' ? 'aria-current="page"' : ''}>Tutorials</a>
 <button data-fixture="Docs navigation">Docs</button>
-<button data-fixture="Examples navigation">Examples</button>
 <button data-fixture="ZeroHub navigation (outside this review)">ZeroHub</button>
 <a href="/web?screen=downloads&theme=${theme}" data-screen="downloads" ${screen === 'downloads' ? 'aria-current="page"' : ''}>Download</a>
 </nav>
 <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to ${theme === 'dark' ? 'light' : 'dark'} mode" title="Switch to ${theme === 'dark' ? 'light' : 'dark'} mode">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${theme === 'dark' ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10l2 2M5 19l2-2M17 7l2-2"/>' : '<path d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"/>'}</svg>
+${icons[theme === 'dark' ? 'sun' : 'moon']}
 </button>
 </header>
 <main id="page-content" class="${screen === 'home' ? 'home-page' : screen === 'downloads' ? 'downloads-page' : ''}">

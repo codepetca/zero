@@ -78,7 +78,7 @@ body:has(.learn-theme) { min-width: 0; }
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid var(--zero-border);
+  border: 0;
   border-radius: 50%;
   background: var(--zero-page);
   color: var(--zero-text);
@@ -170,7 +170,7 @@ body:has(.learn-theme) { min-width: 0; }
   white-space: normal;
   line-height: 1.4;
 }
-.learn-theme .lesson-preview > summary > .bi { color: var(--zero-muted); }
+.learn-theme .lesson-preview > summary > .icon { color: var(--zero-muted); }
 .learn-theme .lesson-preview-body {
   padding: 0 8px 20px 56px;
   color: var(--zero-muted);
@@ -198,7 +198,7 @@ body:has(.learn-theme) { min-width: 0; }
   font-size: 1rem;
   line-height: 1.4;
 }
-.learn-theme .quick-link .bi { color: var(--zero-muted); }
+.learn-theme .quick-link .icon { color: var(--zero-muted); }
 .learn-theme .download-section {
   display: block;
   margin-top: 36px;
@@ -207,11 +207,7 @@ body:has(.learn-theme) { min-width: 0; }
 }
 .learn-theme .download-section .hub-actions { align-items: stretch; }
 .learn-theme .download-section .button { overflow-wrap: anywhere; }
-.learn-theme .download-icon { width: 18px; height: 18px; filter: brightness(0) invert(1); }
-.learn-theme[data-theme="dark"] .download-icon { filter: brightness(0); }
-@media (prefers-color-scheme: dark) {
-  .learn-theme[data-theme="system"] .download-icon { filter: brightness(0); }
-}
+.learn-theme .download-icon { width: 18px; height: 18px; }
 
 @media (max-width: 760px) {
   .learn-theme .site-header { padding: 20px var(--zero-space-5); }
@@ -297,6 +293,7 @@ body:has(.learn-theme) { min-width: 0; }
   color: var(--zero-on-accent);
 }
 .learn-theme .reader-layout .button:hover { background: var(--zero-accent-hover); }
+.learn-theme .lesson-pagination { justify-content: flex-end; }
 .learn-theme .mobile-reader-select {
   background: var(--zero-page);
   color: var(--zero-text);

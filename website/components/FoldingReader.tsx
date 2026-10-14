@@ -1,21 +1,8 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 export function FoldingReader({ children }: { children: ReactNode }) {
-  const root = useRef<HTMLDivElement>(null);
-  const [expanded, setExpanded] = useState(false);
-
   useEffect(() => {
-    const container = root.current;
-    const syncExpanded = () => {
-      const sections = container?.querySelectorAll<HTMLDetailsElement>(
-        "details.reading-section",
-      );
-      setExpanded(
-        !!sections?.length &&
-          Array.from(sections).every((section) => section.open),
-      );
-    };
     const reveal = () => {
       let anchor;
       try {
@@ -46,39 +33,14 @@ export function FoldingReader({ children }: { children: ReactNode }) {
       )
         reveal();
     };
-    container?.addEventListener("toggle", syncExpanded, true);
     reveal();
     window.addEventListener("hashchange", reveal);
     document.addEventListener("click", click);
     return () => {
-      container?.removeEventListener("toggle", syncExpanded, true);
       window.removeEventListener("hashchange", reveal);
       document.removeEventListener("click", click);
     };
   }, []);
 
-  const toggleAll = () => {
-    const open = !expanded;
-    root.current
-      ?.querySelectorAll<HTMLDetailsElement>("details.reading-section")
-      .forEach((section) => {
-        section.open = open;
-      });
-    setExpanded(open);
-  };
-  return (
-    <div className="markdown" ref={root}>
-      <div className="reading-controls">
-        <span>Tap a section to read more.</span>
-        <button
-          className="text-button"
-          aria-pressed={expanded}
-          onClick={toggleAll}
-        >
-          {expanded ? "Collapse all" : "Expand all"}
-        </button>
-      </div>
-      {children}
-    </div>
-  );
+  return <div className="markdown">{children}</div>;
 }
