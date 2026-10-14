@@ -1,51 +1,38 @@
-# Current state — Study padding follow-up; Mac release remains pending
+# Current state — Mac/kit 0.5.10 published; coupled website rollout pending
 
 Updated 2026-10-13. Worktree:
 `/Users/stew/.codex/worktrees/github-sharing-adoption/zero`, branch
-`codex/simple-app-padding`, based on main7c328667ea50dc5e53cda952168be454c58e5583 (includes upstream PR43).
-Owner authorized Mac testing/release and requested padding in the Study app with
-simple functionality inside SimpleApp. Normal student projects/accounts preserved.
+`codex/simple-app-padding`, based on main7c328667. Owner authorized Mac release and
+confirmed both physical checks: comfortable Study edge spacing and coin arrows
+before/after Restart. Native Run/rerun of owned Study/Game used exact canonical
+framework; previous Study process stopped. Normal projects/accounts preserved.
 
-New opt-in `padding(20)` in settings applies ordinary JavaFX Insets to the app root.
-Zero is the default; invalid negative/non-finite values and use outside settings
-have useful errors. Study checkpoint3–7 and10/11study retain this setting; the lesson3
-instructions introduce it, lesson7 keeps it, and the Study example/API/style guides
-use the same helper. Native harness asserts actual content bounds, remaining width,
-screen replacement and configuration errors; finite Study checks assert edge bounds.
-Local configuration check, finite checkpoints3/7/10study and Study example passed.
-Independent source review39 (Sol/medium) found no blockers. Exact head598706e
-passed full CI38494195492, including all native padding/input/error cases. PR44
-remains draft so new API lesson instructions and compatible published kit links
-can merge together. Owner unlocked the Mac; native editor UI reopened Study and Game in separate
-owned windows and clicked Run App. Both compiled/running JavaFX processes use
-current canonical SimpleApp/SketchApp. Study rerun stopped priorPID39412; new
-Study46141/Game43532. Owner visual Study-padding and coin-movement-before/after
-Restart question is pending; do not claim those physical observations.
+Source review39 (Sol/medium) completed20files without findings; exact598706e passed
+full CI38494195492, including native input/padding/lifecycle, finite teaching,
+website and packaging. Candidate review40 independently verified new Mac artifact,
+full payload/modes, universal signatures, provenance, exact notary input hash,
+staple/Gatekeeper and preserved9/superseded10 bytes; no blockers. Apple Accepted
+f469b2bf-5a39-424e-b29e-a0743b0061ea. Sealed candidate:
+`dist/candidates/mac-0.5.10-4c125da3b3cc/`, all checksums passed. No rebuild afterward.
 
-Mac/kit0.5.9 remain public and immutable. Arrow-focus fix PR42 is merged4c364367;
-reviewed0510source passed full CI38492387823. The owned coin game runs that fix;
-owner movement-before/after-Restart question still pending. The previous sealed10
-candidate `dist/candidates/mac-0.5.10-775e33daed41/` and metadata branch
-`codex/mac-0510-release` remain intact but predate this padding request. Review38
-verified that artifact/signature/payload/source/notary hash without findings. Apple
-Accepted5c813edd-1aae-4f63-8326-24a5edc4446d, staple/Gatekeeper passed. Preserve those
-bytes and receipts as superseded evidence; don't publish them as the updated10release.
+Actual public native setup-v0.5.10 targets preparation4c125da3b3cc217b878de6f7bc76a67aa07755a9
+and has one DMG. Public kitv0.5.10 targets build598706e50e61014551f64111bacc23e35dcbd364
+and has exactly three kit assets. Authenticated draft downloads and all four
+anonymous public downloads matched sealed size/SHA256; exact public tag commits
+verified. Both statuses/URLs are now promoted from actual public responses, without
+changing source/signing/notary/measurements. Published kit9fallback is preserved.
+README links10; docsPRODUCT names publishedMac10. Logs/metadata/public byte proof:
+`.verification/release-0.5.10-publication/`. Old releases/sealed candidates immutable.
 
-Kit/extension0.5.10 and core0.1.2 are still local/unpublished; retaining these versions
-is permitted for the updated candidate. Public Mac9manifest and kit9fallback remain.
-Fresh kit and signed Mac10built from clean reviewed598706e. Actual Apple submission
-f469b2bf-5a39-424e-b29e-a0743b0061ea is Accepted with exact retained input hash;
-staple/Gatekeeper, universal signatures and payload bytes/modes passed. Local native
-manifest is measured without public URL. Independent candidate review40 completed without findings. Sealed candidate
-`dist/candidates/mac-0.5.10-4c125da3b3cc/` passed every SHA256SUMS entry. Then physical Mac walkthrough/coin input result, separate exact native/kit
-publication, anonymous byte verification and reviewed promotion in PR44 with final
-metadata CI/merge/live proof. Keep new lessons coupled to a kit containing padding;
-no API unavailable in the public download should reach the live lessons first.
-Never overwrite sealed/published bytes. Logs: `.verification/simple-app-padding/`.
+Need inexpensive promoted metadata checks, one delta review41 (Sol/medium), commit/
+push in existing draftPR44, final exact-head CI/ready/normal merge and actual Vercel
+source/live downloads proof. New padding lesson instructions and compatible public
+kit metadata merge together. Production currently remains9 until this integration.
+No additional approval is needed within the owner-authorized Mac release scope.
 
-Reviews40 complete, source39 and candidate40 Sol/medium found no blockers. No padding remediation batches;
-briefing base corrected from4c to7c, with unrelated upstream CODEOWNERS excluded. Existing task stop waiver persists;
-no provider/identity bypass. Storage322GB healthy; no cleanup. DeepSeek paused.
-Physical Windows/student trials deferred. Generic public executor acceptance remains
-held, general game publication disabled, Neon retained; full adoption incomplete.
-No new tool-backed goal/task/automation. Keep this worktree and superseded receipts.
+Reviews40 complete; no padding remediation batches. Task stop waiver persists;
+provider/identity checks remain. Effective telemetry/tokens/per-worker elapsed
+unavailable. Storage322GB healthy, no cleanup. DeepSeek paused. Windows/student
+trials deferred. Generic public executor acceptance remains held; general game
+publication disabled, Neon retained; overall GitHub adoption incomplete. No new
+goal/task/automation. Keep this worktree and all receipts until scope finishes.

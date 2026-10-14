@@ -1736,3 +1736,13 @@ JavaFX windows are outside the connector's inspectable surfaces; owner visual
 padding and arrow-before/after-Restart answer remains pending. No physical pass is
 inferred from unlock or process launch. Receipt: `.verification/simple-app-padding/mac-runs.json`.
 No student repositories, accounts, public releases or sealed bytes changed.
+
+## Mac0.5.10 public-byte verification — 2026-10-13
+
+Owner confirmed padded Study appearance and coin arrow movement before/after Restart.
+Authenticated draft downloads matched all four sealed artifacts before publication.
+Public native setup-v0.5.10 targets exact preparation4c125da; kitv0.5.10 targets exact
+reviewed build598706e. Exact source tags/asset sets and all four unauthenticated public
+sizes/hashes passed. Promoted manifests/README copy actual verified URLs; no source,
+signer, notarization or measured bytes changed. Published9fallback/releases stay.
+Coupled PR44 metadata review/final CI/merge and Vercel/live proof remain pending.
