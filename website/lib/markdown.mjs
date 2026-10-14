@@ -1,5 +1,7 @@
 import path from "node:path";
 import { isLessonDocumentId, examples } from "./learning.mjs";
+import {courseStarterId, featuredProjectIds, projectHref} from "./project-curriculum.mjs";
+const projectGuideLinks = new Set([courseStarterId, ...featuredProjectIds].map(projectHref));
 export const slugify = (text) =>
   text
     .toLowerCase()
@@ -18,6 +20,11 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
   const lessonDownload = href?.match(/^(?:https:\/\/zero\.codepet\.ca)?(\/generated\/(?:projects\/zero-project-(?:greeting|study|game)|learning-assets\/game-assets)\.zip)$/);
   if (lessonDownload) return lessonDownload[1];
   if (href?.startsWith("/generated/") || href?.startsWith("https://zero.codepet.ca/generated/")) return null;
+  // Authored Hub links work on GitHub and use the local, publication-gated
+  // project pages on the website. Arbitrary root routes remain unlinked.
+  for (const projectLink of projectGuideLinks) {
+    if (href === projectLink || href === `https://zero.codepet.ca${projectLink}`) return projectLink;
+  }
   if (!href || href.startsWith("#") || /^(https?:|mailto:)/.test(href))
     return href;
   const [file, fragment] = href.split("#");
@@ -38,7 +45,7 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
   }
   if (!fragment && Object.hasOwn(sources, key)) {
     const example = examples.find((item) => key === `student-template/examples/${item.id}/README.md`);
-    if (example) return `/examples/${example.id}`;
+    if (example) return `/hub?kind=example&example=${example.id}`;
   }
   if (Object.hasOwn(sources, key))
     return (
@@ -64,13 +71,23 @@ export function foldSections({ lesson = false } = {}) {
       for (const child of node.children ?? []) visit(child);
     }
     visit(tree);
+    // The website footer replaces the source guide's closing lesson links.
+    const content = tree.children.filter((node) => !(
+      lesson && node.type === "element" && node.tagName === "p" &&
+      nodeText(node).startsWith("Target illustration:")
+    ));
+    const lastBlock = content.findLast((node) => node.type === "element");
+    if (
+      lesson && lastBlock?.tagName === "p" &&
+      /^(Next|Previous):\s/.test(nodeText(lastBlock))
+    ) content.splice(content.indexOf(lastBlock), 1);
     const sections = [],
       intro = [];
     let current;
     const wrap = (heading, body) => ({
       type: "element",
       tagName: "details",
-      properties: { className: ["reading-section"] },
+      properties: { className: ["reading-section"], open: true },
       children: [
         {
           type: "element",
@@ -86,7 +103,7 @@ export function foldSections({ lesson = false } = {}) {
         },
       ],
     });
-    for (const node of tree.children) {
+    for (const node of content) {
       if (node.type === "element" && node.tagName === "h1") continue;
       if (node.type === "element" && node.tagName === "h2") {
         current = wrap(node, []);

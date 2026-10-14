@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "templates": [
+    {
+      "id": "zero-starter",
+      "repository": "codepetca/zero-starter",
+      "repositoryId": 1418150992,
+      "visibility": "public",
+      "isTemplate": true,
+      "defaultBranch": "main",
+      "commit": "522fd1035902bbe9cf2c275d39367fb6f53f521a",
+      "tree": "744f6755c40ef805100875ee9488c498acde2403"
+    },
+    {
+      "id": "hello-app",
+      "repository": "codepetca/zero-hello-java",
+      "repositoryId": 1418151091,
+      "visibility": "public",
+      "isTemplate": true,
+      "defaultBranch": "main",
+      "commit": "bcd20e8a40c912c35093431db2d807f93b265fda",
+      "tree": "bd58d0fd8da1c7842994e1ac6b1d8a9460866eda"
+    },
+    {
+      "id": "study",
+      "repository": "codepetca/zero-study-session",
+      "repositoryId": 1418151196,
+      "visibility": "public",
+      "isTemplate": true,
+      "defaultBranch": "main",
+      "commit": "85863a50a3daa5ec9f4153edbbdc6f66bb61f958",
+      "tree": "cd07d2da8b10607b180dbfaee88ddcfed6e0dfa6"
+    },
+    {
+      "id": "coin-game-component",
+      "repository": "codepetca/zero-coin-game",
+      "repositoryId": 1418151288,
+      "visibility": "public",
+      "isTemplate": true,
+      "defaultBranch": "main",
+      "commit": "c8e77800f7fe5b007eb0795f1355fd0f553dd628",
+      "tree": "b1e051a2a0edd5d82f1ad6e16c2de6c35804dac8"
+    },
+    {
+      "id": "drawing",
+      "repository": "codepetca/zero-drawing-pad",
+      "repositoryId": 1418151381,
+      "visibility": "public",
+      "isTemplate": true,
+      "defaultBranch": "main",
+      "commit": "9cad48a9bf933ec78e0cda34e8f4ba9f39ab89fa",
+      "tree": "4fdd0f3df1a5e275d4bb2a8bb6755db4b7e57880"
+    }
+  ]
+}

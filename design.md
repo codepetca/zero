@@ -13,7 +13,9 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 | Home page with app header, Learn Java and two buttons | Owner-requested replacement 2026-10-13; shared light/dark themes. |
 | Shared Learn/downloads design in light and dark | Owner-approved 2026-10-13; applies to the tutorial reader and Downloads. |
 | Minimal editor sidebar Ready and Error states in light and dark | Owner-approved 2026-10-13; native VS Code theme adaptation remains required. |
-| Dark website theme beyond Home/Learn/Downloads | Outside the approved scope; Hub, Docs and Examples retain their existing designs. |
+| Docs reader | Owner-requested 2026-10-13; direct setup with shared reader/sidebar and themes. |
+| ZeroHub examples | Owner-requested 2026-10-13; minimal original-project starter, four practice projects and three optional advanced projects; maintained complete downloads, real previews and source links; no Examples top-menu entry. |
+| Community Hub | Existing library/project contracts and publication behavior retained. |
 
 Review the runnable [design playground](design/playground/README.md) before
 accepting a proposal. The playground is an isolated visual review surface;
@@ -39,7 +41,8 @@ those roles to each surface. The approved dark companion applies to Home, Learn 
   boundaries. Dark Learn surfaces use the paired semantic tokens. Keep corners
   modest (about 6px on web actions); avoid turning every paragraph into a card.
 - **Icons:** small, familiar icons support action labels, never replace essential
-  wording. Retain the existing Zero mark and use supported editor icon conventions.
+  wording. Use Lucide icons for website actions and controls, retaining the Zero
+  mark and supported native editor icon conventions.
 - **Focus:** visible focus is distinct from hover and selection. Web focus uses the
   reviewed focus token; editor focus follows host theme and high-contrast colors.
 - **Actions and errors:** maintain one dominant action per decision, restrained

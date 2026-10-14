@@ -12,6 +12,7 @@ import { validateInstallerManifest } from "../lib/installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
+import { prepareExampleProjects } from "../lib/example-projects.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -31,6 +32,7 @@ const documentPaths = {
   "lesson-11": "student-template/lessons/11-zerohub.md",
   "lesson-12": "student-template/lessons/12-media.md",
   setup: "docs/GETTING-STARTED.md",
+  "course-project": "docs/COURSE-PROJECT.md",
   api: "student-template/API.md",
   beginner: "student-template/BEGINNER.md",
   style: "student-template/STYLE.md",
@@ -116,10 +118,6 @@ await copyFile(
   resolve(root, "docs/design/actual-zero-editor.png"),
   resolve(site, "public/generated/editor.jpg"),
 );
-await copyFile(
-  resolve(site, "node_modules/bootstrap-icons/icons/download.svg"),
-  resolve(site, "public/generated/download.svg"),
-);
 console.log(
   `Prepared release ${release.kitVersion} and ${Object.keys(docs).length} canonical documents.`,
 );
@@ -129,3 +127,6 @@ for (const [source, url] of Object.entries(lessonAssets)) {
   await mkdir(dirname(output), { recursive: true });
   await copyFile(resolve(root, source), output);
 }
+
+const exampleProjects = await prepareExampleProjects({ root, requirePreviews: true });
+console.log(`Prepared the course starter and ${exampleProjects.projects.length} complete ZeroHub example projects.`);

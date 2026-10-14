@@ -137,14 +137,14 @@ export const examples = [
   {
     id: "composed-study",
     title: "Study app with shared screens",
-    description: "Connect a StartScreen and Hud to ordinary study-session methods.",
+    description: "A study quiz with a welcome screen, answer feedback, a score and restart.",
     files: ["composed-study/Main.java", "study/Question.java", "composition-shared/StartScreen.java", "composition-shared/Hud.java", "shared/ScoreDisplay.java"],
     guide: "ui",
   },
   {
     id: "composed-game",
     title: "Coin game with shared screens",
-    description: "Reuse the study app's StartScreen and Hud beside a canvas, with explicit play state.",
+    description: "A coin-collecting game with a welcome screen, score, winning and restart.",
     files: ["composed-game/Main.java", "coin-game/Player.java", "coin-game/Coin.java", "composition-shared/StartScreen.java", "composition-shared/Hud.java", "shared/ScoreDisplay.java"],
     guide: "ui",
   },
@@ -213,14 +213,14 @@ export const examples = [
   {
     id: "reset-counter",
     title: "Reset and methods",
-    description: "Named methods count and reset.",
+    description: "A click counter with increment and Reset buttons.",
     files: ["reset-counter/Main.java"],
     lesson: "5",
   },
   {
     id: "object-counter",
     title: "Counter object",
-    description: "An ordinary object owns the counter.",
+    description: "A resettable click counter backed by its own Counter class.",
     files: ["object-counter/Main.java", "object-counter/Counter.java"],
     lesson: "6",
   },
@@ -241,7 +241,7 @@ export const examples = [
   {
     id: "coin-game-component",
     title: "Shared score in an app and game",
-    description: "Use the study app's unchanged ScoreDisplay beside the coin-game canvas.",
+    description: "A coin-collecting game with a shared score display and restart controls.",
     files: ["coin-game-component/Main.java", "coin-game/Player.java", "coin-game/Coin.java", "shared/ScoreDisplay.java"],
     lesson: "10",
   },
@@ -280,7 +280,7 @@ export const examples = [
   {
     id: "animation",
     title: "Follow the mouse",
-    description: "An ordinary Player object follows a target.",
+    description: "A player follows the mouse around the canvas.",
     files: ["animation/Main.java", "animation/Player.java"],
     lesson: "8",
   },
@@ -328,9 +328,9 @@ export const quickLinks = [
     href: "/docs/api",
   },
   {
-    title: "Example apps",
-    description: "Browse the source and run an example locally.",
-    href: "/examples",
+    title: "Example projects",
+    description: "Get complete apps and games from ZeroHub.",
+    href: "/hub?kind=example",
   },
   {
     title: "For teachers",

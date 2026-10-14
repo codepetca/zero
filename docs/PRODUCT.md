@@ -15,15 +15,31 @@ stacked buttons: **Download Zero** opens `/downloads`; **Start Learning** opens
 are listed in the desktop sidebar; selecting one updates the reading pane and its
 bookmarkable `/tutorials/[lesson]` URL. Narrow screens use a lesson selector. `/downloads` is the separate platform download page;
 Download is a regular top-menu page, and platform buttons do not appear below tutorials.
+Docs opens its setup guide directly. Examples is a curated collection inside
+ZeroHub, with actual app images, a description, Get project and a repository link.
+ZeroHub starts with the minimal starter for an original course project. Four
+practice projects (Hello, Java; Study session; Collect the coins; Drawing pad)
+are featured, with three advanced projects optional. The other nineteen entries
+remain available through existing lesson/deep links rather than filling the
+initial picker. Students build one feature at a time in their own repository;
+GitHub/project workflow is part of the learning outcome. The primary distribution is five dedicated public GitHub template repositories.
+Students use a template to create their own repository, then clone their own copy.
+ZeroHub provides Use template, cloning instructions, a repository link and a
+Download ZIP alternative. ZIP users create and connect an empty own repository. See [the course project guide](COURSE-PROJECT.md).
+Each download is a complete runnable project with its Java, helpers, resources,
+framework and Maven wrapper. Open it in Zero and Run App without copying individual
+files. The top menu has no Examples entry; old Examples URLs forward to ZeroHub.
+Docs and ZeroHub examples use sidebar navigation, narrow-screen selectors and
+shared light/dark themes. Selection updates the content and bookmarkable URL.
 Tutorials and Downloads use one circular sun/moon button in the header to switch
 light/dark mode. The OS preference is the initial default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
-Tutorial steps and reference sections expand when requested; full guides remain
+Tutorial steps and reference sections are expanded by default; full guides remain
 available. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
-Content pages use the navigation section name (Tutorials, Docs, Examples or ZeroHub)
+Content pages use the navigation section name (Tutorials, Docs or ZeroHub)
 as the large main heading and the page topic beneath it as a muted subtitle.
 Purple eyebrow labels and back controls are removed; top navigation, reader
 sidebars and Next lesson remain available. Hub browsing/downloads are public;
@@ -98,6 +114,11 @@ workspace Git and reject Zero repository/upload/sharing actions. Native creation
 rejects existing destinations and Git parent folders. They have no GitHub repository
 or server-side student state. Students can create a separate original project for
 coursework/sharing; lesson 11 keeps those paths explicit.
+
+Canonical example sources live outside the starter's compiled source. ZeroHub
+assembles each into a complete standalone project from an explicit file/resource
+manifest. Tutorial exercises can still introduce source deliberately one lesson
+at a time. See the [starter](../student-template/README.md) for those exercises.
 Canonical framework source lives in `framework/src/main/java/zero/`; maintainer
 preparation assembles editable copies into the standalone starter. Review shared improvements
 in more than one app before cohort adoption. The extraction examples remain useful

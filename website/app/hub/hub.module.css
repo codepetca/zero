@@ -1,9 +1,41 @@
 .catalog { min-width: 0; overflow-wrap: anywhere; }
 .navigation { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
-.navigation a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--outline); border-radius: 6px; font: inherit; background: white; }
+.navigation a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; font: inherit; background: var(--zero-page, white); }
 .navigation a[aria-current="page"] { color: var(--ink); border-color: var(--purple); font-weight: 600; }
 .navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .card { min-width: 0; }
 .card a { overflow-wrap: anywhere; }
 .metadata { color: var(--muted); font-size: 16px; }
 .hash { overflow-wrap: anywhere; }
+.examples { min-width: 0; }
+.examples .navigation { margin: 0 0 28px; gap: 8px; }
+.examples .navigation a { font-size: 16px; text-decoration: none; }
+.previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); align-items: start; gap: 24px; margin: 28px 0; }
+.preview { display: block; width: auto; height: auto; max-width: 100%; max-height: 320px; object-fit: contain; border: 1px solid var(--zero-border); border-radius: 6px; }
+.projectActions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+.repositoryLink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.openInstruction { color: var(--zero-muted); margin: 16px 0 0; }
+.projectMenu nav { display: block; }
+.projectMenu nav > h2:not(:first-child) { margin-top: 28px; }
+.advancedProjects { margin-top: 24px; }
+.advancedProjects summary { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none; font-size: .9rem; }
+.advancedProjects summary::-webkit-details-marker { display: none; }
+.advancedProjects summary > svg { margin-left: auto; transition: transform .15s; }
+.advancedProjects[open] summary > svg { transform: rotate(180deg); }
+.optional { color: var(--zero-muted); }
+.starterDescription { max-width: 60ch; margin: 20px 0 28px; }
+.cloneInstructions { max-width: 68ch; margin-top: 28px; }
+.cloneInstructions ol { padding-left: 24px; }
+.cloneInstructions li + li { margin-top: 12px; }
+.cloneInstructions pre { overflow-x: auto; padding: 16px; border-radius: 6px; font-size: .9rem; }
+.checkpointNote { color: var(--zero-muted); max-width: 60ch; }
+.projectWorkflow { max-width: 68ch; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--zero-border); }
+.projectWorkflow h3 { margin-top: 0; }
+.projectWorkflow ol { padding-left: 24px; }
+.projectWorkflow li + li { margin-top: 12px; }
+.workflowHelp { color: var(--zero-muted); font-size: .9rem; }
+@media (prefers-reduced-motion: reduce) { .advancedProjects summary > svg { transition: none; } }
+@media (max-width: 480px) {
+  .examples .navigation a { padding: 8px 10px; }
+  .projectActions { align-items: flex-start; flex-direction: column; gap: 8px; }
+}

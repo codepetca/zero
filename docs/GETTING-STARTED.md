@@ -135,7 +135,12 @@ The sidebar supports dark themes too. To return to an imported profile, run
 ## Your GitHub repository
 
 Local running needs no GitHub sign-in. For sharing work, follow your teacher's
-privacy, visibility and account instructions:
+privacy, visibility and account instructions. If you used a ZeroHub GitHub template,
+create your own repository from it and clone **your repository** as described in
+[the course project guide](COURSE-PROJECT.md#create-your-own-repository-and-clone-it).
+That clone already has Git history and its own origin: keep that repository,
+complete sign-in and identity setup below, and skip creating an empty repository.
+The empty-repository steps below apply to an extracted source ZIP:
 
 1. Click the profile icon beside **GitHub** in Zero and complete VS Code's native
    browser authentication flow. It becomes the account's first letter; hover

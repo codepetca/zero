@@ -42,8 +42,9 @@ the editor shell. Fallback and high-contrast examples are also available.
 `design/tokens.json` is the single approved semantic source. Both adapters read it
 directly; there is no generated token copy to synchronize. Learn and the sidebar now consume deterministic generated CSS from these tokens.
 Use `node design/prepare.mjs --check` to detect generated-output drift. Layout spacing uses the shared scale with measured
-surface-specific sizes. Bootstrap Icons 1.13.2 supplies the existing download
-icon, vendored for this dependency-free preview with its MIT license in `assets/`.
+surface-specific sizes. Lucide React 1.56.0 supplies the website icons. The preview
+embeds its download, sun and moon SVGs from `assets/` with the upstream license,
+so preview checks need no React dependency. Icons inherit the control text color.
 
 Checks:
 

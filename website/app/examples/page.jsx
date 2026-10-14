@@ -1,29 +1,5 @@
-import { PageHeader } from "@/components/PageHeader";
-import { Icon } from "@/components/Icon";
-import { examples } from "@/lib/learning.mjs";
-export const metadata = { title: "Examples" };
+import { redirect } from "next/navigation";
+export const metadata = { title: "Examples · ZeroHub" };
 export default function Examples() {
-  return (
-    <>
-      <PageHeader active="Examples" />
-      <main id="page-content" tabIndex={-1} className="catalog">
-        <h1>Examples</h1>
-        <p className="catalog-lead">Pick an example.</p>
-        <div className="examples-list">
-          {examples.map((example) => (
-            <a
-              href={`/examples/${example.id}`}
-              className="catalog-row"
-              key={example.id}
-            >
-              <div>
-                <h2>{example.title}</h2>
-              </div>
-              <Icon name="chevron-right" />
-            </a>
-          ))}
-        </div>
-      </main>
-    </>
-  );
+  redirect("/hub?kind=example");
 }

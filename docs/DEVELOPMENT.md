@@ -198,7 +198,8 @@ VS Code development launch generate the required CSS automatically. Generated
 are ignored by Git; VSIX packaging includes the extension CSS. Do not edit these
 outputs or rebuild the frozen 0.5.8 artifacts to test styling.
 Home, Learn and Downloads share a circular header sun/moon light/dark toggle. The OS
-preference is the default until a mode is chosen; the choice persists. Hub retains its existing palette.
+preference is the default until a mode is chosen; the choice persists. ZeroHub
+examples and Docs use the same themes; community Hub views retain their palette.
 Downloads live at `/downloads`. Download is a regular menu item. Old
 `/learn#downloads` links redirect there for compatibility.
 The sidebar uses native host colors/fonts/focus and high-contrast classes.
@@ -207,3 +208,25 @@ Tutorials now opens lesson 0 directly at `/learn`, with all thirteen lessons in
 the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
 updates the reading pane and bookmarkable lesson URL; there is no overview landing.
 The tutorial reader shares the approved appearance controls with Downloads.
+
+Docs opens setup in the shared reader. Maintained examples now live in ZeroHub:
+`/hub` selects the minimal course starter (`zero-starter`);
+`?kind=example&example=<id>` selects another. The discovery curriculum lists four
+practice projects and three optional advanced projects separately from the full
+26-example inventory. Existing tutorial checkpoint URLs remain supported.
+`/examples` and `/examples/[slug]` redirect there. The top menu has no Examples entry.
+Website preparation generates the minimal starter and all 26 complete source projects, policy-inspected
+ZIPs and their metadata snapshot; it requires the tracked native app previews.
+`python3 scripts/capture-example-previews.py` captures disposable project copies
+on macOS. Generated packages/capture receipts remain ignored; previews are tracked.
+Tests: `node --test website/tests/example-projects.test.mjs`; website build/tests
+also cover the new paths. Native community catalog integration/publication policy
+is unchanged; first-party website downloads do not claim a registry release.
+The starter uses only canonical Main, framework and pinned build/config files;
+it excludes the lesson/example shelf. Guided READMEs cover student-owned GitHub
+repositories and Start/Upload/Finish; GitHub PR practice is separate. Five public GitHub template repositories are recorded in
+`website/content/project-templates.json`. To prepare fresh local template drafts,
+run `node scripts/prepare-project-templates.mjs`; publication remains a separate
+authorized action. Never copy the development repository or local private files.
+The five template links and cloning path are separate from the ZIP + empty-repo
+alternative; source ZIPs continue to build from canonical maintained manifests.

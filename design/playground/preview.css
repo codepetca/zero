@@ -405,7 +405,7 @@ h1 {
 
 .web-preview .site-header { display:grid; grid-template-columns:auto minmax(0,1fr) auto; }
 .web-preview .site-header nav { justify-content:flex-end; }
-.theme-toggle { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; border:1px solid var(--zero-border); border-radius:50%; background:var(--zero-page); color:var(--zero-text); }
+.theme-toggle { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; border:0; border-radius:50%; background:var(--zero-page); color:var(--zero-text); }
 .theme-toggle:hover { background:var(--zero-surface); }
 @media(max-width:760px) {
   .web-preview .site-header { display:flex; flex-wrap:wrap; }
