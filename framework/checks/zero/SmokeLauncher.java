@@ -105,6 +105,11 @@ public final class SmokeLauncher extends SketchApp {
                 failureStage = new Stage();
                 failing.start(failureStage);
             } else if (phase == 6) {
+                // Window-manager resize/configure events can outlast a few animation pulses.
+                if (uiStage.getScene().getWidth() <= 300 || uiField.getWidth() <= initialFieldWidth + 50) {
+                    phase = 5;
+                    return; // Require actual scene/layout growth before the watchdog expires.
+                }
                 require(uiStage.getScene().getWidth() > 300, "UI scene resizes");
                 require(uiField.getWidth() > initialFieldWidth + 50, "native layout grows with window");
                 uiApp.stop(); uiStage.close();
@@ -136,7 +141,7 @@ public final class SmokeLauncher extends SketchApp {
         require(uiStage.isResizable(), "UI window resizable");
         require(uiStage.getScene().getWidth() == 240, "initial UI content width");
         initialFieldWidth = uiField.getWidth();
-        uiStage.setWidth(uiStage.getWidth() + 80);
+        uiStage.setWidth(400);
         try { uiApp.size(10, 10); throw new AssertionError("late size accepted"); }
         catch (IllegalStateException expected) { require(expected.getMessage().contains("settings"), "useful size error"); }
     }
