@@ -39,7 +39,11 @@ public abstract class SketchApp extends SimpleApp {
         graphics = canvas.getGraphicsContext2D();
         layout = new BorderPane(canvas);
         canvas.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
-            if (canvas.isFocused()) keys.add(event.getCode());
+            if (canvas.isFocused()) {
+                keys.add(event.getCode());
+                // Arrow movement belongs to the canvas; Tab still reaches native controls.
+                if (event.getCode().isArrowKey()) event.consume();
+            }
         });
         canvas.focusedProperty().addListener((property, wasFocused, focused) -> {
             if (!focused) clearInput();

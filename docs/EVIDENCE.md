@@ -2483,3 +2483,24 @@ old releases and published-kit0.5.8 fallback remain intact. Integration/live-sit
 verification are pending separately; published assets do not establish that rollout.
 Ignored receipt directory: `.verification/release-0.5.9/`, including draft/public
 metadata, anonymous bytes, process records and native sidebar screenshot.
+
+
+## Mac 0.5.9 rollout and arrow-focus follow-up — 2026-10-13
+
+The owner confirmed the three JavaFX app windows appeared. Review32 (Sol/medium)
+completed the promoted metadata diff/callers and independently rechecked all four
+anonymous public hashes and both exact source tags, with no findings. Exact head
+c2fe164 passed CI38487839153; PR41 merged4d5526785b0458f36fe30005bba2742413b73b25.
+Production deployment7053217808 succeeded at that merge source. Real0.5.9 publisher
+verify-only passed public assets and live landing/Downloads kit bytes; the live
+Mac download separately matched its signed/notarized hash. All owned runs stopped.
+
+The owner then reported Down traversing from the coin canvas to Restart. New
+JavaFX regression reproduced that actual focus transfer before the fix. SketchApp
+now consumes arrow presses while its canvas is focused; Tab and focused native
+text-field caret input remain ordinary JavaFX behavior. Smoke reruns after the fix
+could not acquire foreground native-window focus (window=false with focus ownerCanvas);
+this is recorded as an incomplete local harness result. A bounded activation wait,
+virtual-display CI regression and owner fixed-game check are pending. The fixed
+source is running only in an owned test project; frozen published9bytes are unchanged.
+Kit/extension0.5.10 and core0.1.2 are new local versions, with verified9fallback.

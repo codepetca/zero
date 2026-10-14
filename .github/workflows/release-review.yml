@@ -58,6 +58,8 @@ jobs:
         run: node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-ci
       - name: Three local project builds
         run: node scripts/verify-lesson-projects.mjs
+      - name: Canvas and native control input checks
+        run: xvfb-run -a npm run verify:framework
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update
