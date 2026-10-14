@@ -68,6 +68,9 @@ ZeroHub releases. Pause remains planned. Maintained bundles now live in `librari
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as
 Player or Mover. Canvas input belongs to the focused canvas; controls can receive
 normal typing. The framework does not discover or automatically update objects.
+While the canvas is focused, arrow presses stay with game input instead of moving
+focus to a nearby control. Tab still moves focus to ordinary JavaFX controls;
+arrows in a focused text field keep their normal caret behavior.
 Useful startup errors explain invalid sizes and lifecycle misuse.
 
 The scored quiz and practice tracker reuse the canonical
