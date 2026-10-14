@@ -2734,3 +2734,25 @@ is not separately published; prior10native/threekit assets stay unchanged. Exist
 signer and Zero Notarization profile reused without credentials/account changes.
 Owner can download the new installer now; reviewed native-link promotion and
 production verification are the remaining delivery work.
+
+### Mac0.5.11 website delivery complete — 2026-10-14
+
+Targeted artifact_compat/2 Sol/high reviewed complete3c3ca4e..324ba1f promotion
+delta and immediate consumers, independently redownloaded exact public native
+bytes and validated all original provenance fields unchanged, Mac11/Windows10
+selection and current flow docs; no findings. Prior artifact/source coverage
+reused; one targeted wave, no remediation or added integration wave. Effective
+model/time/tokens unknown. Configuration, website79/typecheck/build pass.
+MetadataPR50 merged02b7dbdeb8e3c914f8a4dd07205199df07fc9552 after exact reviewed
+324ba1f CI38608750913 and real GitHub gates passed. Production deployment
+7072958600 succeeded from that merge. Live zero.codepet.ca/downloads has exactly
+one native11 asset anchor, preserves Windows10 and its actual linked native
+download independently matches sealed1010694-byte/SHA15c09a7befa13c8aca4c791c7a9c532471ba07be5e3560793087e5fcef6ba544.
+Local managed worktree integrated origin/main with exact tree equality before this
+final local evidence-only record. Public source/runtime changes are in PR49;
+verified native link/instructions in PR50; singleasset native release setup-v0.5.11
+remains immutable, kit11local and old public assets unchanged. Release task complete;
+keep sealed/ignored receipts and worktree for owner smoke-testing follow-up.
+No real installer launch against owner projects, first-machine setup or physical
+Windows was performed by the release automation. No new credentials, goals, chats
+or automations were created. Final private release-state/liveproof JSON retained.

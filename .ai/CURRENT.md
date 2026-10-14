@@ -1,4 +1,4 @@
-# Current state — Mac setup 0.5.11 published, website promotion pending
+# Current state — Mac setup 0.5.11 release complete
 
 Updated2026-10-14. Owner authorized updated installer release for continued smoke
  testing. Native GitHub release setup-v0.5.11 is public with exactly one DMG:
@@ -25,11 +25,16 @@ progress/Open; Mac211, Windows235, Node259/1platformskip, website79/typecheck/bu
 and extractedMaven/package checks passed. Source reviews3/4 clean at0ba64ad.
 Independent artifact_provenance and artifact_compat (Sol/high) completed fixed
 3c3ca4e/candidate53, no findings; first artifact wave2launches. Source/artifact
-coverage is reused; metadata promotion review/CI/liveproof remain. Telemetry unknown.
+coverage is reused; metadata promotion review/CI/liveproof are complete. Telemetry unknown.
 
-Current local edits promote verified nativeURL and update Mac11 instructions,
-retaining kit11local/Windows10fallback. Next: metadata checks/review, draftPR,
-exact-headCI/merge and production Mac link/publicbytes proof. Private JSON state
+MetadataPR50 merged02b7dbd after exact324ba1f CI38608750913 and targeted
+artifact_compat/2 review passed. Production deployment7072958600 succeeded from
+that merge; live Downloads contains the exact Mac11 anchor and unchanged Windows10
+link, and the linked native download matches the sealed size/SHA. Current runtime
+worktree tree matches origin/main; only this final local evidence record follows.
+Release complete; owner can continue smoke testing. Keep this worktree/ignored
+sealed bytes and private receipts for follow-up. This final record is local; public
+source, metadata and website delivery are already complete. Private JSON state
 .verification/release-0.5.11/release-state.json and receipts retained. Primary funding
 and other worktrees untouched. Storage312GBhealthy/weekly71% remaining are shared
  readings; task cost unknown. DeepSeek paused. Fresh-machine/physicalWindows/student
