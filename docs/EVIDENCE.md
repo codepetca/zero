@@ -2846,3 +2846,18 @@ replace public12 bytes or claim that guide matches12. Other metadata binding/
 public bytes/fallback/native source passed.
 Metadata local checks79website tests/typecheck/build passed. Reviewer launch5,
 second fixbatch; correction review and exact-head PR52 CI/live proof pending.
+
+## 2026-10-14 — searchable API publication candidate
+
+Owner approved the sidebar/method-entry mock, implementation and publication.
+Isolated branch codex/publish-api-docs starts at origin/main7e67ce0; the original
+funding checkout and draft remain untouched. Current main's navigation, themes,
+code-copy controls, tutorials and download/release metadata are preserved.
+API adapter covers42 declarations including padding; latest mixed API guide body
+is preserved as APP-GUIDE. Website typecheck/build and87tests pass.
+Requested data worker Sol/medium delivered four owned files in~3min (self-estimate),
+coordinator verified. Original implementation's review reused for unchanged source;
+current-main integration receives a fresh bounded Sol/medium review before merge.
+Weekly67%remaining/storage307GBhealthy; task-attributable usage unknown.
+No installer/release binary build, credentials, funding publication or new goal.
+Publication/CI/deployment receipt will be recorded in the delivery PR.

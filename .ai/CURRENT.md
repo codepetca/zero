@@ -1,4 +1,13 @@
-# Current state — automatic final opening delivered; website promotion pending
+# Current state — API docs publication
+
+Updated2026-10-14. Owner authorized publishing the approved searchable API layout.
+Branch codex/publish-api-docs starts at current origin/main7e67ce0 and preserves
+current shared navigation/themes/code copy and all download/tutorial metadata.
+Website typecheck/build87tests pass; adapter covers42 current declarations.
+Funding draft remains only in the original checkout. Delivery/CI/live verification
+are recorded in the docs publication PR; no installer/binary release is included.
+
+## Concurrent installer work — retained handoff
 
 Updated2026-10-14. Owner asks automatic final editor opening while continuing the
 explicitly authorized installer release. Signed/notarized Mac setup0.5.12 public:
