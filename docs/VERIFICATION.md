@@ -1717,3 +1717,11 @@ and Apple Acceptedf469b2bf-5a39-424e-b29e-a0743b0061ea with retained input hash.
 Candidate review40/seal and physical Mac checks remain pending. Owned Study source
 was updated only after confirming it matched the original test files. PR44 remains
 draft for coupling new lesson API instructions with the compatible published kit.
+
+Candidate review40 (Sol/medium) completed without blockers, independently verifying
+new actual universal signatures/payload bytes/modes, source equivalence, retained
+notary input hash, staple/Gatekeeper and preserved9/superseded10 hashes. Installer
+tests7/7passed. New candidate `dist/candidates/mac-0.5.10-4c125da3b3cc/` sealed exact
+598706e-built artifacts at preparation4c125da; every SHA256SUMS entry passed. Mac
+unlock/physical checks, exact public release bytes, promotion review/CI/merge/live
+proof remain. PR44 source is reviewed/CI-passed, but stays draft for coupled rollout.

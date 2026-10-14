@@ -33,14 +33,14 @@ is permitted for the updated candidate. Public Mac9manifest and kit9fallback rem
 Fresh kit and signed Mac10built from clean reviewed598706e. Actual Apple submission
 f469b2bf-5a39-424e-b29e-a0743b0061ea is Accepted with exact retained input hash;
 staple/Gatekeeper, universal signatures and payload bytes/modes passed. Local native
-manifest is measured without public URL. Need independent candidate review40 and
-clean seal. Then physical Mac walkthrough/coin input result, separate exact native/kit
+manifest is measured without public URL. Independent candidate review40 completed without findings. Sealed candidate
+`dist/candidates/mac-0.5.10-4c125da3b3cc/` passed every SHA256SUMS entry. Then physical Mac walkthrough/coin input result, separate exact native/kit
 publication, anonymous byte verification and reviewed promotion in PR44 with final
 metadata CI/merge/live proof. Keep new lessons coupled to a kit containing padding;
 no API unavailable in the public download should reach the live lessons first.
 Never overwrite sealed/published bytes. Logs: `.verification/simple-app-padding/`.
 
-Reviews39 complete; candidate40 planned Sol/medium. No padding remediation batches;
+Reviews40 complete, source39 and candidate40 Sol/medium found no blockers. No padding remediation batches;
 briefing base corrected from4c to7c, with unrelated upstream CODEOWNERS excluded. Existing task stop waiver persists;
 no provider/identity bypass. Storage322GB healthy; no cleanup. DeepSeek paused.
 Physical Windows/student trials deferred. Generic public executor acceptance remains
