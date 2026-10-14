@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { sources } from "@/lib/content";
 import { PageHeader } from "@/components/PageHeader";
+import { CodeBlock } from "@/components/CodeBlock";
 export const metadata = { title: "Readable source" };
 export default async function Source({
   searchParams,
@@ -20,9 +21,9 @@ export default async function Source({
           This is a read-only view. Edit the copy in your local project, then
           Run App.
         </p>
-        <pre>
+        <CodeBlock key={file}>
           <code>{sources[file]}</code>
-        </pre>
+        </CodeBlock>
       </main>
     </>
   );

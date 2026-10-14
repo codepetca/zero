@@ -5,7 +5,7 @@ import "@/app/learn/learn.css";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
-import { lessons, lessonNavigation, lessonAssets, projectForLesson, sampleGameAssets } from "@/lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, lessonAssets, projectForLesson, sampleGameAssets } from "@/lib/learning.mjs";
 import {
   foldSections,
   resolveContentLink,
@@ -15,6 +15,7 @@ import {
 import { Icon } from "./Icon";
 import { FoldingReader } from "./FoldingReader";
 import { ReaderNavigation } from "./ReaderNavigation";
+import { CodeBlock } from "./CodeBlock";
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
   const title =
@@ -46,6 +47,7 @@ export function Document({ id, lesson = "" }) {
             items={items}
             current={lesson || id}
             section={lesson ? "Tutorials" : "Docs"}
+            groups={lesson ? lessonGroups : undefined}
           />
         </aside>
         <article className="reader-content">
@@ -78,6 +80,7 @@ export function Document({ id, lesson = "" }) {
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[[foldSections, { lesson: !!lesson }]]}
               components={{
+                pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
                 img: ({ src, alt }) => {
                   const target = resolveContentLink(doc.source, src, {}, {}, lessonAssets);
                   return target && Object.values(lessonAssets).includes(target) ? (

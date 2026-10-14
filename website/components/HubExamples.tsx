@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {HubProjectNavigation} from './HubProjectNavigation';
 import {HubNavigation} from './HubNavigation';
 import {Icon} from './Icon';
+import {CodeBlock} from './CodeBlock';
 import {courseStarterId, projectGuide, projectNavigation, projectTitle} from '@/lib/project-curriculum.mjs';
 import '../.generated/learn-theme.css';
 import '@/app/learn/learn.css';
@@ -58,7 +59,7 @@ export function HubExamples({snapshot, project}: {snapshot: {starter: ExamplePro
             <li>In your new repository, choose Code → HTTPS and copy its URL. Clone it into a folder outside any other Git repository.</li>
           </ol>
           <p>In a terminal, replace the username and project name below with your own:</p>
-          <pre><code>{'git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git\ncd YOUR-PROJECT'}</code></pre>
+          <CodeBlock><code>{'git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git\ncd YOUR-PROJECT'}</code></CodeBlock>
           <p>Open that cloned folder in Zero and choose Run App. Your repository already contains the starting project on main.</p>
           <p className={styles.workflowHelp}>Using Download ZIP instead? Extract it into a new folder, then create and connect an empty repository in your own account and Upload the starting files.</p>
         </section> : <p className={styles.openInstruction}>Extract the project, open it in Zero, and choose Run App.</p>}

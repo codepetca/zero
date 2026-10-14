@@ -5,7 +5,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { lessons, lessonNavigation, isLessonDocumentId, lessonAssets, examples, projectForLesson, sampleGameAssets } from "../lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, isLessonDocumentId, lessonAssets, examples, projectForLesson, sampleGameAssets } from "../lib/learning.mjs";
 import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
@@ -117,6 +117,14 @@ test("lesson navigation starts at zero and reaches the button, name then quiz wi
   assert.equal(lessonNavigation("3").related.title, "A tiny quiz");
   assert.equal(lessonNavigation("12").next, undefined);
   assert.deepEqual(lessonNavigation(""), {});
+});
+
+test("quiet project groups retain every lesson once in reading order", () => {
+  assert.deepEqual(lessonGroups.map(group => group.title), ["Greeting app", "Study quiz", "Coin game"]);
+  assert.deepEqual(lessonGroups.flatMap(group => group.lessons), lessons.map(lesson => lesson.id));
+  for (const group of lessonGroups) {
+    for (const id of group.lessons) assert.equal(projectForLesson(id).id, group.id);
+  }
 });
 
 test("the curriculum ends at twelve and routes two-digit lessons without truncation", () => {

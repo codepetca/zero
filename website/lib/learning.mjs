@@ -1,5 +1,6 @@
-import {projectForLesson, sampleGameAssets} from "../../teaching/projects.mjs";
+import {practiceProjects, projectForLesson, sampleGameAssets} from "../../teaching/projects.mjs";
 export {projectForLesson, sampleGameAssets};
+export const lessonGroups = practiceProjects.map(({id, title, lessons}) => ({id, title, lessons}));
 export const lessons = [
   {
     "id": "0",

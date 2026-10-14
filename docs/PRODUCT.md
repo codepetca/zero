@@ -12,8 +12,13 @@ page has the shared app header, **Learn Java**, **Starting from zero.**, and two
 stacked buttons: **Download Zero** opens `/downloads`; **Start Learning** opens
 `/learn`. It uses the shared light/dark toggle and centered full-viewport layout.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
-are listed in the desktop sidebar; selecting one updates the reading pane and its
-bookmarkable `/tutorials/[lesson]` URL. Narrow screens use a lesson selector. `/downloads` is the separate platform download page;
+are listed under three quiet project headings (Greeting app, Study quiz and Coin
+game); selecting one updates the reading pane and its bookmarkable
+`/tutorials/[lesson]` URL. Narrow screens use a selector with the same groups.
+Code blocks in tutorials, docs, source views and ZeroHub copy their exact text when
+clicked, with a keyboard-accessible Copy button and success/failure feedback.
+Dragging to select text keeps manual copying available.
+`/downloads` is the separate platform download page;
 Download is a regular top-menu page, and platform buttons do not appear below tutorials.
 Docs opens its setup guide directly. Examples is a curated collection inside
 ZeroHub, with actual app images, a description, Get project and a repository link.

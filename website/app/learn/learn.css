@@ -267,6 +267,13 @@ body:has(.learn-theme) { min-width: 0; }
   line-height: 1.5;
   letter-spacing: .04em;
 }
+.learn-theme .lesson-navigation-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.learn-theme .lesson-navigation-group + .lesson-navigation-group { margin-top: 14px; }
+.learn-theme .lesson-navigation-group h2 { margin: 0 12px 2px; letter-spacing: normal; }
 .learn-theme .reader-menu nav a { color: var(--zero-muted); }
 .learn-theme .reader-menu nav a:hover { color: var(--zero-link); }
 .learn-theme .reader-menu nav a[aria-current="page"] {
