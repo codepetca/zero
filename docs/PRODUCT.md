@@ -165,8 +165,8 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-- One Zero view keeps Run App and Stop visible without an internal collapsible
-  section. Files use native Explorer. Idle status is empty; app progress/errors
+- A collapsible Zero view contains Run App, Stop, GitHub and ZeroHub. The separate
+  Files view keeps student Java, resources and project files beside the controls. Idle status is empty; app progress/errors
   appear when there is a message. GitHub shows Sign in or the selected username.
   Signed-in students can connect a repository, see its branch, choose New branch
   on main or Finish change on a feature branch, and Upload changes. Simulation

@@ -2,8 +2,8 @@
 
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
-webview, task and command APIs. Files use native Explorer and open in the normal editor.
-The single Zero view keeps Run/Stop at the top; idle status is empty. Tutorials
+webview, tree, task and command APIs. Files use Zero’s Files view or native Explorer
+and open in the normal editor. Zero’s controls are collapsible above Files; idle status is empty. Tutorials
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
@@ -47,7 +47,7 @@ Click it for create/connect or copy-link/change actions. **New branch** beside
 main creates a reviewed feature branch; **Finish change** beside a feature branch
 completes it into main. Upload and the simulation/live label remain separate.
 Local Run works without sign-in. Local-practice projects continue to block GitHub
-sharing. Native VS Code can move/hide views; Zero has no internal collapse control.
+sharing. Native VS Code owns collapse, move and hide controls for Zero and Files.
 
 Sign-in uses VS Code's built-in GitHub authentication provider. It requests
 `repo` access, including private repositories, so students can choose Public or
