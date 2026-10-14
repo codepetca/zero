@@ -2443,3 +2443,43 @@ RemainingMacwalkthrough needsmanualunlock; questionunanswered, no GUIretry.
 Candidatepreparation3c/sourcef7 are authoritative forpublishing, not final local
 handoffHEAD. Fullgoal/providerhold persists. Detailed finalstate is ignored
 .verification/release-0.5.9/release-state.json.
+
+
+## Mac 0.5.9 editor and publication — 2026-10-13
+
+After the owner confirmed manual unlock, native Mac setup code configured a fresh
+owned test home using the exact sealed kit and a previously verified private JDK.
+The supported editor CLI installed the versioned VSIX and official Java extensions;
+native readiness checks passed. This does not establish a fresh-machine JDK download.
+An official signed VS Code copy at a unique private path allowed precise UI targeting.
+Normal projects/profiles were preserved.
+
+Actual Start project created Greeting, Study and Game separately, with empty Main
+boilerplate, localOnly/project markers, all-files Git ignore and Git disabled. An
+automation Save As path mistake created the owned Greeting folder with a colon name;
+it was relocated into the private home and opened normally. The subsequent native
+Study/Game dialogs used Go to Folder correctly. Run App compiled and started all
+three JavaFX processes. Greeting Run again terminated its first PID and recompiled
+the edited Main in the same project. Study/Game used maintainer checkpoint10 test
+inputs in owned folders and the byte-identical ScoreDisplay (SHA256943b5904fb97d33e4486619a803f2c9d26a86dc280ee509c7eee9025490a2b86).
+Those completed inputs are not scaffold downloads. JavaFX windows are unavailable
+to the connector; human visual confirmation is pending, and scoring/input interaction
+is not claimed from this walkthrough. Existing finite progression tests cover behavior.
+Native Stop terminated Greeting/Study. Physical Windows and student trials deferred.
+
+The initial candidate metadata CI38485579583 failed one stale playground assertion
+requiring a published Mac link for local metadata. Test-only correction c08d9cd
+retains explicit published/local renderer cases; focused20checks pass. Independent
+review31 (Luna/medium, complete delta and callers) found no issues. No production
+selector or release guard changed. Prior measured native review30 remains applicable.
+
+The two authorized releases publish exact sealed bytes without rebuilding:
+setup-v0.5.9 targets preparation3c0ed2e24ae4b0f2d7046872f695f8db58d0c00d and
+contains only the signed/notarized DMG; v0.5.9 targets reviewed/CI-passed build
+f7c733509f547059155f23453cb5c54f20c0adbd and contains the three kit assets.
+Separate draft download and anonymous public download checks matched all four
+measured sizes/hashes. Metadata promotion copies only these verified public URLs;
+old releases and published-kit0.5.8 fallback remain intact. Integration/live-site
+verification are pending separately; published assets do not establish that rollout.
+Ignored receipt directory: `.verification/release-0.5.9/`, including draft/public
+metadata, anonymous bytes, process records and native sidebar screenshot.
