@@ -20,7 +20,11 @@ are reused; no extension/runtime code changed and no new unit tests mirror prose
 Published kit/DMG bytes remain immutable; bundled-guide improvements enter a
 future versioned release. No push, publication, deployment or credentials change.
 Native installation/editor interaction, physical Windows, real upload/Pika and
-screen-reader checks remain unverified. Independent source review is next.
+screen-reader checks remain unverified. Independent GPT6Luna/medium review
+`flow_fix_review/1` covered the complete `437ae7c..b059fef` diff and immediate
+callers: clean,0findings. One initial wave/launch,0review corrections; reviewer
+time/tokens unavailable. Later commit updates completion receipts only, inspected
+by coordinator; implementation/reviewed source is unchanged.
 
 ## Calm Windows setup — local 0.5.6, 2026-10-11
 
