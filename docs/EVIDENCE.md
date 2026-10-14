@@ -2673,3 +2673,33 @@ wave; prior unchanged review coverage reused. Effective model/time/tokens unknow
 Coordinator handled the focused implementation; no additional implementation
 worker. Shared storage/usage readings reused; task attribution unknown.
 Published version0.5.10 and released bytes remain unchanged.
+
+## Mac setup 0.5.11 release preparation — 2026-10-14
+
+Owner explicitly authorized release for ongoing smoke testing. bar_live_check
+Sol/high used disposable fake operations and native CUA dark-theme inspection:
+visible/AX progress agreed at2/9,4/9,6/9,7/9, Readyfull, explicit Open busy and
+Open Zero again full. No production source correction required; offscreen partial
+cache mismatch was not reproduced visibly, exact mechanism unproven. Reproducible
+progress preview and opening assertions added; Mac211harness passed. Worker
+cleaned fixtures/fake app; no host installation/profile/account changes.
+
+Kit/extension0.5.11 is local, core0.1.2 unchanged. Public0.5.10 kit/starter/VSIX/DMG
+downloaded without authentication and exact original sizes/hashes checked;10kit
+fallback now pinned explicitly. No old bytes replaced, Windows ZIP stays10. Main
+documentation through3e6e3a3 integrated, preserving both append-only histories.
+Full Node259pass/1PowerShellskip, website79/typecheck/build, configuration, package
+and archive/source/mode/license/extracted-Maven checks pass. Windows235/native
+net48 evidence reused unchanged. New actual Mac signed build binds clean2ec7f63,
+private receipt and immutable pre-staple input retained under ignored release11
+evidence. Existing explicit signer/profile reused; no credentials configured.
+
+setup_review/3 inherited Sol/high reviewed679a644..2ec7f63/version/fallback/package/
+source interactions and reused prior runtime reviews, no blockers. Independent
+public10hash/fallback/oldnative/whitespace verification passed; one P3 stale README
+packaging output accepted and corrected, public download links preserved. This
+release-phase source review is one bounded targeted turn; notarized provenance
+and final publication metadata still need separate review. Effective model/elapsed/
+tokens unknown; storage312GBhealthy and weekly71%remaining are shared readings.
+Source PR49 is draft; exact-head CI and Apple notarization/publication remain
+pending. No kit11three-asset publication, WindowsEXE or ZeroHub publication.

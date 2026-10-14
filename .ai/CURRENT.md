@@ -20,8 +20,11 @@ bar_live_check Sol/high owns Mac tests only for safe fake progress verification;
 coordinator owns version/docs/release/signing/publication. Actual native dark-theme
 preview now verified visible intermediate progress and Ready→explicit Open→complete
 with fake operations. Offscreen caching discrepancy remains nonrepresentative of
-those visible fills; mechanism unproven. Final harness receipt pending. Prior
-Mac209/Windows235 checks and source review remain; full Node/website checks running.
+those visible fills; mechanism unproven. Final Mac211/Windows235 checks pass, along with Node259/1platformskip,
+website79/typecheck/build, packaging/archive/extracted-Maven and clean-source checks.
+Release-source review679a644..2ec7f63 complete/no blockers; one stale README
+packaging filename corrected. Signed universal Mac built from clean2ec7f63;
+exact pre-staple input preserved and Apple submission underway with existing profile.
 New local version0.5.11/VSIX prepared, core0.1.2 unchanged. Published kit10 fallback
 and all four current public artifacts downloaded unauthenticated and independently
 hashed; old native10 manifest retained until new candidate publication.
