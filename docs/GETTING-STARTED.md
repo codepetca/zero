@@ -12,7 +12,7 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Zero Setup for Mac
 
-The signed and notarized **Mac setup 0.5.11** prepares Zero with one small window,
+The signed and notarized **Mac setup 0.5.12** prepares Zero with one small window,
 one changing status message and a progress bar:
 
 1. Open Zero Setup. It automatically prepares `~/Zero`. A recognized existing
@@ -20,8 +20,8 @@ one changing status message and a progress bar:
 2. Wait while setup prepares Java and the editor. It reuses a compatible VS Code
    or downloads a verified copy, then installs Zero and Java support in a separate
    editor configuration. No profile import or Java configuration is needed.
-3. Choose **Open Zero**. Review the starter before granting workspace trust if
-   VS Code asks, then choose **Run App**. A separate window shows **Hello, world!**.
+3. Zero opens automatically when setup finishes. Review the starter before granting
+   workspace trust if VS Code asks, then choose **Run App**. A separate window shows **Hello, world!**.
    The first build needs internet for Maven and JavaFX.
 
 Later, open `~/Zero/Open Zero.command` to return to this configured editor.
