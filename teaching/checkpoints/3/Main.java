@@ -8,6 +8,8 @@ public class Main extends SimpleApp {
     private TextField answer;
     private Label feedback;
 
+    @Override public void settings() { padding(20); }
+
     @Override public void setup() {
         Label question = new Label("What is 2 + 3?");
         answer = new TextField();

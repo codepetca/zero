@@ -6,7 +6,7 @@ learn a small set first:
 
 | Build | Start with |
 | --- | --- |
-| An app | `SimpleApp`: `settings()`, `setup()`, `size(...)`, `title(...)`, `show(...)`; ordinary `Label`, `Button`, `TextField`, `VBox`, `HBox`. |
+| An app | `SimpleApp`: `settings()`, `setup()`, `size(...)`, `title(...)`, `padding(...)`, `show(...)`; ordinary `Label`, `Button`, `TextField`, `VBox`, `HBox`. |
 | A game | `SketchApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
 | Improve appearance | JavaFX fonts, a few colours, spacing/padding and an editable stylesheet; canvas fonts through `graphics().setFont(...)`. |
 
@@ -39,7 +39,7 @@ Override these public methods; their default bodies do nothing:
 
 | Signature | When it runs / what to put here |
 | --- | --- |
-| `void settings()` | Once at startup, before the interface exists. Set the initial size and title. |
+| `void settings()` | Once at startup, before the interface exists. Set the initial size, title and edge padding. |
 | `void setup()` | Once after the root exists, before the window is shown. Build your controls and show them. |
 
 These public methods are `final` (call them; do not override them):
@@ -48,10 +48,11 @@ These public methods are `final` (call them; do not override them):
 | --- | --- |
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Both numbers must be positive and finite. Default: 800 × 500. |
 | `void title(String title)` | Set the window title inside `settings()` only. It must not be null. Default: `"Zero"`. |
+| `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a sketch keeps its fixed canvas size. |
 | `void show(Node content)` | Replace the root's centre with a non-null JavaFX node. Call in `setup()` or later in an event handler. |
 
-`size` and `title` throw `IllegalStateException` outside settings; invalid size
-throws `IllegalArgumentException`. `show` before startup throws
+`size`, `title` and `padding` throw `IllegalStateException` outside settings;
+invalid size or padding throws `IllegalArgumentException`. `show` before startup throws
 `IllegalStateException`; null title/content is rejected. These methods do not
 resize or retitle an already-open window.
 
@@ -67,6 +68,7 @@ public class Main extends SimpleApp {
     @Override public void settings() {
         title("Click counter");
         size(360, 220);
+        padding(20);
     }
 
     @Override public void setup() {

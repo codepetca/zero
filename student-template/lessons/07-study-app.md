@@ -40,7 +40,8 @@ public class Question {
 
 ## 2. Add session state to your existing Main
 
-Keep the `Counter attempts`, `answer`, `feedback` and `attemptsLabel` fields.
+Keep your `settings()` method with `padding(20)` from lesson 3, and the
+`Counter attempts`, `answer`, `feedback` and `attemptsLabel` fields.
 Add these fields beside them, above `setup()`:
 
 ```java

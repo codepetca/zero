@@ -1690,3 +1690,59 @@ this is recorded as an incomplete local harness result. A bounded activation wai
 virtual-display CI regression and owner fixed-game check are pending. The fixed
 source is running only in an owned test project; frozen published9bytes are unchanged.
 Kit/extension0.5.10 and core0.1.2 are new local versions, with verified9fallback.
+
+## SimpleApp edge padding and Study follow-up — 2026-10-13
+
+Owner requested space around the Study app and a simple framework helper. New
+`padding(double pixels)` inside settings applies ordinary JavaFX root Insets,
+with default0 and validation for negative/non-finite values and lifecycle misuse.
+Study checkpoints3–7/10study/11study and the Study example use20px; lesson3 introduces
+that single line and subsequent Study lessons retain it. API/beginner/style guides
+document edge space versus layout gaps. Native harness checks geometry, available
+width, replacing a screen and invalid settings; checkpoint checks inspect edge bounds.
+Local configuration check, finite JavaFX checkpoints3/7/10study and Study example
+passed. Source review/exact-head CI remain pending. Native editor access hit locked
+Mac; no visible padding inspection claimed. Logs: `.verification/simple-app-padding/`.
+Earlier sealed10candidate remains intact but predates this source change and must
+not publish as the updated candidate. Public0.5.9 stays immutable; Mac physical input
+check and Windows/student trials remain pending/deferred respectively.
+
+Source review39 (Sol/medium) completed the actual20file diff from upstream7c328667
+to598706e without findings; six lesson-project tests passed independently. Complete
+CI38494195492 passed exact598706e, including padding geometry/screen replacement,
+invalid values/lifecycle, arrow focus and all lesson/website/packaging checks. The
+initial briefing base4c was corrected to7c; upstream CODEOWNERS was outside this PR.
+New signed Mac10from clean598706e passed actual signatures/payload/staple/Gatekeeper
+and Apple Acceptedf469b2bf-5a39-424e-b29e-a0743b0061ea with retained input hash.
+Candidate review40/seal and physical Mac checks remain pending. Owned Study source
+was updated only after confirming it matched the original test files. PR44 remains
+draft for coupling new lesson API instructions with the compatible published kit.
+
+Candidate review40 (Sol/medium) completed without blockers, independently verifying
+new actual universal signatures/payload bytes/modes, source equivalence, retained
+notary input hash, staple/Gatekeeper and preserved9/superseded10 hashes. Installer
+tests7/7passed. New candidate `dist/candidates/mac-0.5.10-4c125da3b3cc/` sealed exact
+598706e-built artifacts at preparation4c125da; every SHA256SUMS entry passed. Mac
+unlock/physical checks, exact public release bytes, promotion review/CI/merge/live
+proof remain. PR44 source is reviewed/CI-passed, but stays draft for coupled rollout.
+
+## Mac walkthrough resumed after owner unlock — 2026-10-13
+
+Native UI reopened only the isolated Study/Game projects, dismissed the optional
+lesson-browser prompt and clicked Zero Run App in separate private editor windows.
+Study and Game both compiled/started with byte-identical current canonical framework
+sources. Study rerun stopped oldPID39412 and started46141; Game started43532.
+JavaFX windows are outside the connector's inspectable surfaces; owner visual
+padding and arrow-before/after-Restart answer remains pending. No physical pass is
+inferred from unlock or process launch. Receipt: `.verification/simple-app-padding/mac-runs.json`.
+No student repositories, accounts, public releases or sealed bytes changed.
+
+## Mac0.5.10 public-byte verification — 2026-10-13
+
+Owner confirmed padded Study appearance and coin arrow movement before/after Restart.
+Authenticated draft downloads matched all four sealed artifacts before publication.
+Public native setup-v0.5.10 targets exact preparation4c125da; kitv0.5.10 targets exact
+reviewed build598706e. Exact source tags/asset sets and all four unauthenticated public
+sizes/hashes passed. Promoted manifests/README copy actual verified URLs; no source,
+signer, notarization or measured bytes changed. Published9fallback/releases stay.
+Coupled PR44 metadata review/final CI/merge and Vercel/live proof remain pending.

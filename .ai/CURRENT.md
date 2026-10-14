@@ -1,46 +1,38 @@
-# Current state — Mac 0.5.9 live; arrow-focus patch 0.5.10 in progress
+# Current state — Mac/kit 0.5.10 published; coupled website rollout pending
 
 Updated 2026-10-13. Worktree:
 `/Users/stew/.codex/worktrees/github-sharing-adoption/zero`, branch
-`codex/canvas-arrow-focus`, based on main4d5526785b0458f36fe30005bba2742413b73b25.
-Owner authorized Mac testing and release; Windows/student trials remain deferred.
-Read PRODUCT/DEVELOPMENT before changes. Normal user projects/accounts preserved.
+`codex/simple-app-padding`, based on main7c328667. Owner authorized Mac release and
+confirmed both physical checks: comfortable Study edge spacing and coin arrows
+before/after Restart. Native Run/rerun of owned Study/Game used exact canonical
+framework; previous Study process stopped. Normal projects/accounts preserved.
 
-0.5.9 source PR40 and metadata PR41 are merged. Metadata headc2fe164 passed exact
-CI38487839153; independent review32 (Sol/medium) found no issues, including its
-own anonymous byte and source-tag checks. Production deployment7053217808 targets
-merge4d552678 and succeeded. Real publisher verify-only checked all public kit
-assets and live landing/Downloads kit bytes; a separate live Mac anchor/hash check
-passed. Native setup tagsetup-v0.5.9 targets preparation3c0ed2e; kitv0.5.9 targets
-reviewed buildf7c7335. All frozen bytes/signatures/notary receipts stay immutable.
-Native/sealed candidate and logs: `.verification/release-0.5.9/` and
-`dist/candidates/mac-0.5.9-3c0ed2e24ae4/`. Old mutable9outputs preserved separately.
+Source review39 (Sol/medium) completed20files without findings; exact598706e passed
+full CI38494195492, including native input/padding/lifecycle, finite teaching,
+website and packaging. Candidate review40 independently verified new Mac artifact,
+full payload/modes, universal signatures, provenance, exact notary input hash,
+staple/Gatekeeper and preserved9/superseded10 bytes; no blockers. Apple Accepted
+f469b2bf-5a39-424e-b29e-a0743b0061ea. Sealed candidate:
+`dist/candidates/mac-0.5.10-4c125da3b3cc/`, all checksums passed. No rebuild afterward.
 
-Actual isolated editor created three blank local projects, ran all three, reran
-edited Greeting and stopped its old process. Local-only/Git-disabled markers passed.
-Study/Game reused byte-identical maintainer ScoreDisplay test input. Owner confirmed
-all app windows appeared. Later owner reported Down moving focus onto Restart.
-That defect is reproduced by a real JavaFX regression: unconsumed canvas Down
-traverses to a native control. The framework fix consumes arrow presses only while
-canvas-focused; Tab/native text controls retain normal behavior. No new student API.
-Local fixed-game source was copied only to the owned test project and relaunched;
-owner movement-before/after-Restart question is pending. Local smoke reruns hit an
-inactive native window (focus ownerCanvas, window=false); bounded startup focus
-wait and virtual-display CI coverage are being checked. Do not claim those passes.
+Actual public native setup-v0.5.10 targets preparation4c125da3b3cc217b878de6f7bc76a67aa07755a9
+and has one DMG. Public kitv0.5.10 targets build598706e50e61014551f64111bacc23e35dcbd364
+and has exactly three kit assets. Authenticated draft downloads and all four
+anonymous public downloads matched sealed size/SHA256; exact public tag commits
+verified. Both statuses/URLs are now promoted from actual public responses, without
+changing source/signing/notary/measurements. Published kit9fallback is preserved.
+README links10; docsPRODUCT names publishedMac10. Logs/metadata/public byte proof:
+`.verification/release-0.5.10-publication/`. Old releases/sealed candidates immutable.
 
-New kit/extension0.5.10 and core0.1.2 are local, not published. Verified9kit now forms
-the fallback; published Mac9manifest/README links remain. Source changes are small:
-SketchApp arrow consumption, meaningful native-control regression, CI smoke command,
-versions/fallback and factual docs. Need checks, independent review33, draft source
-PR, exact-head CI/merge, clean kit10package, existing signer/notary/seal, then separate
-immutable releases and reviewed metadata integration/live proof. Reuse existing
-credentials only; do not rebuild or overwrite any9bytes. Current Mac editor path:
-`/private/tmp/zero-059-ui-ucf3zq61/Applications/Visual Studio Code.app`.
-Owned patched game `/private/tmp/zero-059-ui-ucf3zq61/zero-project-game` is running.
+Need inexpensive promoted metadata checks, one delta review41 (Sol/medium), commit/
+push in existing draftPR44, final exact-head CI/ready/normal merge and actual Vercel
+source/live downloads proof. New padding lesson instructions and compatible public
+kit metadata merge together. Production currently remains9 until this integration.
+No additional approval is needed within the owner-authorized Mac release scope.
 
-Cumulative reviews32, source correction batches2 plus preview-test correction1.
-Stop waiver remains; no provider/identity bypass. Requested models/efforts recorded;
-effective telemetry/tokens/time unknown. Storage321.4GB healthy; no cleanup. DeepSeek
-paused. Generic public executor remains held after provider rejections; general game
-publication disabled; Neon retained. Full GitHub adoption incomplete. No new goal,
-task or automation. Keep this worktree while the patch/adoption scope remains active.
+Reviews40 complete; no padding remediation batches. Task stop waiver persists;
+provider/identity checks remain. Effective telemetry/tokens/per-worker elapsed
+unavailable. Storage322GB healthy, no cleanup. DeepSeek paused. Windows/student
+trials deferred. Generic public executor acceptance remains held; general game
+publication disabled, Neon retained; overall GitHub adoption incomplete. No new
+goal/task/automation. Keep this worktree and all receipts until scope finishes.

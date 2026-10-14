@@ -39,7 +39,7 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 ## App and learning contract
 
 `zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
-`size(...)`; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
+`size(...)` and optional `padding(...)` around the content; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
 The installed kit's default app shows Hello, world!; the learning projects start
 with empty runnable boilerplate. Lessons 0–2 grow one Greeting app from label to
@@ -166,13 +166,13 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   prepare approved editor support in the background. Windows missing tools use
   vendor handoffs and profile import gets one instruction at a time. The ZIP
   launchers retain their manual menus.
-  The published Mac0.5.9 native flow automatically prepares a private verified
+  The published Mac0.5.10 native flow automatically prepares a private verified
   JDK21 and isolated Zero editor settings/extensions; compatible installed VS Code
   is reused or a verified private copy is downloaded. Manual profile import is
   removed from this Mac flow. Later editor choices and all student projects stay
   intact. Open Zero.command returns to this configured editor; ordinary VS Code
   profiles and Windows/ZIP setup remain separate.
-  Signed/notarized Mac0.5.9 is published; Windows remains a local unsigned
+  Signed/notarized Mac0.5.10 is published; Windows remains a local unsigned
   development build. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Re-running setup confirms an
   update of installer files while preserving the entire student project; an
