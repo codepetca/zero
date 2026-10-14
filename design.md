@@ -111,3 +111,11 @@ the branch. ZeroHub has Browse and Share project. Tutorials and Setup help move
 to native overflow, Copy repository link stays in repository actions. Idle status
 is empty. Existing local-practice, native authentication, reviewed Git/sharing,
 simulation and published-release boundaries remain in force.
+
+## Collapsible controls and file viewer — owner correction, 2026-10-14
+
+This supersedes the earlier single-view/non-collapsible arrangement. Restore the
+separate Files tree below a native collapsible Zero controls view. Keep Run/Stop,
+GitHub and ZeroHub together; collapsing Zero leaves Files accessible. Native
+Explorer remains available. Only simulation mode shows the static upload notice.
+Native themes, local-practice restrictions and existing command/review guards stay.

@@ -162,6 +162,11 @@
           "id": "zero.actions",
           "name": "Zero",
           "icon": "media/zero.svg"
+        },
+        {
+          "id": "zero.files",
+          "name": "Files",
+          "icon": "$(files)"
         }
       ]
     },
