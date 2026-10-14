@@ -2756,3 +2756,29 @@ keep sealed/ignored receipts and worktree for owner smoke-testing follow-up.
 No real installer launch against owner projects, first-machine setup or physical
 Windows was performed by the release automation. No new credentials, goals, chats
 or automations were created. Final private release-state/liveproof JSON retained.
+
+## Automatic final opening — Mac setup 0.5.12 preparation, 2026-10-14
+
+User requests automatic editor opening after final setup, continuing the authorized
+installer release for novice smoke testing. Native Mac/Windows launches once only
+after verified readiness, retains backend fresh checks, explicit failed-open retry,
+busy serialization and explicit student Run App. Mac220 fake/runtime/AppKit
+assertions, Windows247 fake harness checks and net48 app/harness builds (0warnings),
+Node259pass/1platformskip, config/package/extracted Maven checks passed. Live dark
+Mac fake UI reached Opening/completion without any primary click; prior happy-path
+UI coverage remains applicable after the added failed-launch state guard. No host
+installation, editor/profile/account changes. Physical Windows/fresh-machine
+installation remain unverified.
+
+Independent auto_open_review Sol/medium complete source02b7dbd..eec8d05 clean;
+targeted eec8d05..5c4b161 sealed-notes prose delta clean. 2launches,1initial wave,
+1targeted wave,1fix batch; effective config/time/tokens unknown. mac-release tests
+passed for changed prose template. SourcePR51 tracks eec8d05; notes follow with
+release metadata. Clean signed build5c4b161; existing signerACE8EE40F3615C5062CBBD5F085E299E049BAE08,
+team88FT6QZJP8. Actual Apple Accepted06920792-e314-40c8-8fa7-75986c3ec21e log
+binds submitted1011584bytes/SHA9a68b80f393e18b7f5cac8ed681d556a00ffc530eea67b4d327490713eee6f92;
+no issues. Actual staple/Gatekeeper app+DMG and signatures/payload checks passed.
+Final DMG1013295bytes/SHA9e1922ef96a2816fe739298fd0493bb1fd0970cb0d008de3873f8f211b2e6840.
+Candidate/CI/publication/metadata/live proof pending; public Mac11/Windowskit10
+remain unchanged. Receipts ignored under .verification/release-0.5.12. Weekly70%
+remaining/storage311GBhealthy are account/machine readings, not task cost.
