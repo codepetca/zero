@@ -142,6 +142,7 @@ public final class SmokeLauncher extends SketchApp {
         require(uiStage.getScene().getWidth() == 240, "initial UI content width");
         initialFieldWidth = uiField.getWidth();
         uiStage.setWidth(400);
+        uiStage.setHeight(240); // Submit both native dimensions together, including on GTK.
         try { uiApp.size(10, 10); throw new AssertionError("late size accepted"); }
         catch (IllegalStateException expected) { require(expected.getMessage().contains("settings"), "useful size error"); }
     }
