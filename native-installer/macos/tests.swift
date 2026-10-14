@@ -209,7 +209,7 @@ struct SetupTests {
         try expect(emptyController.summary == "Preparing your Zero folder…", "check automatically starts fixed-folder preparation")
         try expect(emptyController.busy && !emptyController.mayExit(), "fresh placement gates shutdown")
         try pump(until: { !emptyController.busy })
-        try expect(emptyController.stage == .ready && emptyController.selectedFolder?.lastPathComponent == "Zero", "launch creates fixed Zero and rechecks without another action")
+        try expect(emptyController.stage == .opened && emptyController.selectedFolder?.lastPathComponent == "Zero", "launch creates fixed Zero and rechecks without another action")
         try rejected("fresh default race never auto updates") {
             _ = try kit.place(parent: defaultHome, name: "Zero") {
                 _ = try fixture(defaultHome.appendingPathComponent("Zero"))
@@ -234,7 +234,7 @@ struct SetupTests {
         try expect(defaultFake.commands.count == 1 && defaultFake.commands[0].arguments[1] == kit.root.path, "no existing launcher executed before upgrade")
         try expect(defaultController.busy && !defaultController.mayExit(), "update gates close")
         try pump(until: { !defaultController.busy })
-        try expect(defaultController.stage == .ready && defaultController.selectedFolder == existing, "automatic update rechecks fixed kit")
+        try expect(defaultController.stage == .opened && defaultController.selectedFolder == existing, "automatic update rechecks fixed kit")
         try expect(defaultController.diagnostics.contains("Previous setup backup:"), "diagnostics record permanent backup location")
         try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "fixture setup/README.md\n", "old setup refreshed from bundle")
         for name in preserved {
@@ -322,7 +322,7 @@ struct SetupTests {
         try manager.createDirectory(at: parentLink, withIntermediateDirectories: false)
         unavailable.primaryAction()
         try pump(until: { !unavailable.busy })
-        try expect(unavailable.stage == .ready && unavailable.selectedFolder?.lastPathComponent == "Zero", "retry uses default after home is repaired")
+        try expect(unavailable.stage == .opened && unavailable.selectedFolder?.lastPathComponent == "Zero", "retry uses default after home is repaired")
         let fake = FakeRunner()
         let controller = SetupController(kit: kit, runner: fake, home: parent)
         try expect(fake.commands.isEmpty, "controller waits for launch-triggered check")
@@ -334,8 +334,8 @@ struct SetupTests {
         try expect(fake.commands == [SetupCommand(executable: Bundle.main.executableURL!.path, arguments: ["--runtime", kit.root.path, "--native-check"])], "check uses fixed argv")
         try expect(fake.timeouts == [180] && controller.busy, "read-only check leads directly to folder preparation")
         try pump(until: { !controller.busy })
-        try expect(controller.stage == .ready && controller.selectedFolder == parent.appendingPathComponent("Zero"), "automatic install reaches ready without opening editor")
-        try expect(!fake.commands.contains { $0.arguments.contains("--native-open") }, "launch preparation never opens editor automatically")
+        try expect(controller.stage == .opened && controller.selectedFolder == parent.appendingPathComponent("Zero"), "automatic install opens editor after verified readiness")
+        try expect(fake.commands.filter { $0.arguments.contains("--native-open") }.count == 1, "launch preparation opens editor exactly once")
         fake.result = CommandResult(exitCode: 0, output: "partial response", timedOut: false, launchError: nil)
         controller.check()
         try expect(controller.stage == .retry, "zero exit without complete response cannot ready")
@@ -348,12 +348,14 @@ struct SetupTests {
         fake.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
         controller.primaryAction()
         try pump(until: { !controller.busy })
-        try expect(controller.selectedFolder != nil && controller.stage == .ready, "placed complete kit ready only after recheck")
+        try expect(controller.selectedFolder != nil && controller.stage == .opened, "placed complete kit ready only after recheck")
         try expect(fake.commands.contains { $0.arguments.contains("--native-install") && $0.arguments.last == "--approved" }, "launch prepares scoped configuration automatically")
         controller.primaryAction()
-        try expect(fake.commands.last?.arguments.last == "--native-open" && controller.stage == .opened, "final Open Zero explicit")
+        try expect(fake.commands.last?.arguments.last == "--native-open" && controller.stage == .opened, "explicit repeat action opens Zero again")
         let copied = controller.selectedFolder!
+        let openedBeforeRecheck = fake.commands.filter { $0.arguments.contains("--native-open") }.count
         controller.check()
+        try expect(fake.commands.filter { $0.arguments.contains("--native-open") }.count == openedBeforeRecheck, "later readiness checks never automatically reopen Zero")
         try expect(fake.commands.last == SetupCommand(executable: Bundle.main.executableURL!.path, arguments: ["--runtime", copied.path, "--native-check"]), "recheck probes copied kit")
         for member in ["starter/pom.xml", "starter/mvnw"] {
             let file = copied.appendingPathComponent(member), saved = try Data(contentsOf: file)
@@ -373,7 +375,7 @@ struct SetupTests {
             if command.arguments.contains("--native-install") { fake.checkOutput = snapshot() }
         }
         controller.primaryAction()
-        try expect(controller.stage == .ready, "one setup action reaches verified readiness")
+        try expect(controller.stage == .opened, "one setup action reaches verified readiness")
         let tail = fake.commands.dropFirst(before).map { Array($0.arguments.dropFirst(2)) }
         try expect(tail == [["--native-install", "--approved"], ["--native-check"]], "configuration followed by exact readiness check")
         try expect(!fake.commands.contains { $0.executable == "/usr/bin/open" || $0.arguments.contains("--native-profile") || $0.arguments.contains("--native-extension") }, "no vendor, manual profile or separate support flow")
@@ -381,8 +383,11 @@ struct SetupTests {
         fake.result = CommandResult(exitCode: 42, output: "checksum mismatch", timedOut: false, launchError: nil)
         controller.primaryAction()
         try expect(controller.stage == .retry && !controller.summary.contains("ready"), "failed action never claims readiness")
-        fake.useDynamic = true; fake.checkOutput = snapshot(); controller.primaryAction()
-        try expect(controller.stage == .ready, "retry can recover safely")
+        fake.useDynamic = true; fake.checkOutput = snapshot()
+        let beforeOpenRetry = fake.commands.count
+        controller.primaryAction()
+        try expect(fake.commands.count == beforeOpenRetry + 1 && fake.commands.last?.arguments.last == "--native-open", "opening retry only calls the checked opener")
+        try expect(controller.stage == .opened, "failed opening retries safely without reinstalling")
         try rejected("inconsistent readiness") { _ = try SetupSnapshot.parse(snapshot(["code": 0]).replacingOccurrences(of: "ready=0", with: "ready=1")) }
         try rejected("duplicate protocol keys") { _ = try SetupSnapshot.parse(snapshot().replacingOccurrences(of: "kit=1", with: "kit=1\nkit=1")) }
 
@@ -392,6 +397,32 @@ struct SetupTests {
         incomplete.check()
         try expect(incomplete.stage == .retry && incomplete.selectedFolder == nil, "incomplete kit stops before folder prompt")
         try expect(!fake.commands.contains { $0.arguments.contains("Terminal") }, "fallback never opens Terminal")
+
+        let failedOpenHome = temporary.appendingPathComponent("failed first open home")
+        try manager.createDirectory(at: failedOpenHome, withIntermediateDirectories: false)
+        let failedOpenRunner = FakeRunner()
+        failedOpenRunner.onRun = { command in
+            if command.arguments.contains("--native-open") {
+                failedOpenRunner.result = CommandResult(exitCode: 42, output: "Fake editor launch failure", timedOut: false, launchError: nil)
+            }
+        }
+        let failedOpenController = SetupController(kit: kit, runner: failedOpenRunner, home: failedOpenHome)
+        failedOpenController.check()
+        try pump(until: { !failedOpenController.busy })
+        try expect(failedOpenController.stage == .retry && failedOpenRunner.commands.filter { $0.arguments.contains("--native-open") }.count == 1, "failed automatic opening offers retry and never loops")
+        failedOpenRunner.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
+        failedOpenRunner.onRun = nil
+        failedOpenController.check()
+        try expect(failedOpenController.stage == .retry && failedOpenRunner.commands.filter { $0.arguments.contains("--native-open") }.count == 1, "readiness recheck after failed opening waits for explicit retry")
+        failedOpenRunner.result = CommandResult(exitCode: 0, output: snapshot(["code": 0]), timedOut: false, launchError: nil)
+        failedOpenController.check()
+        try expect(failedOpenController.stage == .retry, "not-ready check after failed opening never claims completion")
+        failedOpenRunner.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
+        failedOpenController.check()
+        try expect(failedOpenController.stage == .retry, "readiness restored after failed opening still requires a successful launch")
+        let failedOpenCount = failedOpenRunner.commands.count
+        failedOpenController.primaryAction()
+        try expect(failedOpenController.stage == .opened && failedOpenRunner.commands.count == failedOpenCount + 1 && failedOpenRunner.commands.last?.arguments.last == "--native-open", "explicit retry opens without repeating installation")
 
         // Runtime work is fully disposable; downloaded bytes are replaced only
         // through a compile-time test hook, never a production environment switch.
@@ -568,7 +599,9 @@ struct SetupTests {
         pausedRunner.finish()
         try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()
-        try expect(pausedController.mayExit() && pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "copy, configure and recheck release shutdown after completion")
+        try expect(!pausedController.mayExit() && pausedRunner.commands.last?.arguments.last == "--native-open", "shutdown stays gated during automatic opening")
+        pausedRunner.finish()
+        try expect(pausedController.mayExit() && pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "copy, configure, recheck and automatic open release shutdown after completion")
         let progressHome = temporary.appendingPathComponent("progress home")
         try manager.createDirectory(at: progressHome, withIntermediateDirectories: false)
         let progressRunner = FakeRunner(); progressRunner.paused = true
@@ -597,7 +630,11 @@ struct SetupTests {
         progressRunner.finish()
         try expect(progressController.completedSteps == 8 && progressController.busy, "successful configuration waits for final readiness")
         progressRunner.finish()
-        try expect(progressController.completedSteps == SetupController.totalSteps && progressController.stage == .ready, "only verified readiness fills the bar")
+        try expect(progressController.completedSteps == SetupController.totalSteps && progressController.busy && progressRunner.commands.last?.arguments.last == "--native-open", "verified readiness fills the bar and automatically starts opening")
+        progressController.primaryAction(); progressController.check()
+        try expect(progressRunner.commands.filter { $0.arguments.contains("--native-open") }.count == 1, "busy opening ignores duplicate actions and checks")
+        progressRunner.finish()
+        try expect(progressController.stage == .opened && !progressController.busy, "only successful opening completes setup")
         // Exercise the real runner only against disposable scripts, never tools.
         let fakeScript = temporary.appendingPathComponent("fake script ; $x.sh")
         try "#!/bin/bash\nprintf 'captured output\\n'\nexit 7\n".write(to: fakeScript, atomically: true, encoding: .utf8)
@@ -704,17 +741,14 @@ struct SetupTests {
             previewRunner.progress?("editor")
             try expect(bar.doubleValue == 3 && !bar.isIndeterminate, "bar reflects completed setup stages")
             try render(output.deletingPathExtension().appendingPathExtension("progress.png"))
-            previewRunner.paused = false; previewRunner.finish()
-            try pump(until: { !previewController.busy })
-            try expect(primary.title == "Open Zero" && !primary.isHidden && details.isHidden, "ready shows only Open Zero")
-            try expect(!bar.isHidden && bar.doubleValue == bar.maxValue, "ready bar is complete")
-            try render(output)
-            previewRunner.paused = true
-            previewController.primaryAction()
-            try expect(bar.isIndeterminate && !bar.isHidden && primary.isHidden, "opening shows a busy bar and prevents duplicate actions")
+            previewRunner.finish() // Configuration completes; readiness check is pending.
+            previewRunner.finish() // Readiness completes; opening starts automatically.
+            try expect(bar.isIndeterminate && !bar.isHidden && primary.isHidden, "automatic opening shows a busy bar and prevents duplicate actions")
             previewRunner.finish()
             try expect(!bar.isIndeterminate && bar.doubleValue == bar.maxValue && primary.title == "Open Zero again" && !primary.isHidden,
                        "completed opening restores a full bar and the repeat action")
+            try expect(details.isHidden, "successful automatic opening keeps details hidden")
+            try render(output)
             previewRunner.paused = false
             previewRunner.result = CommandResult(exitCode: 42, output: "Fake network failure; no host changes.", timedOut: false, launchError: nil)
             previewController.primaryAction()

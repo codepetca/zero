@@ -62,6 +62,9 @@ namespace ZeroSetup
         private SetupSnapshot snapshot;
         private bool profileStarted;
         private bool needsAttention;
+        private bool automaticOpenAttempted;
+        private bool openNeedsRetry;
+        private bool opened;
         private KitFiles.KitTarget defaultTarget;
         public bool DefaultIsExisting { get { return defaultTarget != null && defaultTarget.Existing; } }
         public Action Changed;
@@ -87,6 +90,7 @@ namespace ZeroSetup
                     case SetupStage.ProfileStep: return Step == ProfileStep.FilePicker ? "Copy profile path" : Step == ProfileStep.Create ? "Check profile" : "Next";
                     case SetupStage.ExtensionConsent: return "Install support";
                     case SetupStage.Ready: return "Open Zero";
+                    case SetupStage.Retry: return openNeedsRetry ? "Try again" : "Check again";
                     case SetupStage.Opened: return "Open Zero again";
                     case SetupStage.Checking: return "Please wait";
                     default: return "Check again";
@@ -126,7 +130,7 @@ namespace ZeroSetup
             SetBusy(true, message);
             try { await backend.EnsureKit(cancellation); await work(); }
             catch (OperationCanceledException) { Fail("Setup cancelled. Check again.", "No readiness confirmed."); }
-            catch (Exception error) { Fail("Setup needs attention. See Details.", error.Message); }
+            catch (Exception error) { Fail(openNeedsRetry ? "Could not open Zero. Try again. See Details." : "Setup needs attention. See Details.", error.Message); }
             finally { SetBusy(false); }
         }
         public Task Check()
@@ -158,7 +162,15 @@ namespace ZeroSetup
             }
             if (!snapshot["zero"] || !snapshot["redhat"]) { Set(SetupStage.ExtensionConsent, "Install Zero and download Java editor support?"); return; }
             if (!snapshot["ready"] || SelectedFolder == null) { Fail("Readiness is unverified. Try again.", "Required fields did not establish readiness."); return; }
-            Set(SetupStage.Ready, "Zero is ready. Open it to begin.");
+            if (!automaticOpenAttempted)
+            {
+                // Mark before awaiting: failed launches never schedule an automatic loop.
+                automaticOpenAttempted = true;
+                await OpenCore();
+                return;
+            }
+            if (openNeedsRetry) { needsAttention = true; Set(SetupStage.Retry, "Could not open Zero. Try again."); return; }
+            Set(opened ? SetupStage.Opened : SetupStage.Ready, opened ? "In Zero, choose Run App to begin." : "Zero is ready. Open it to begin.");
         }
         private async Task Plan(string tool)
         {
@@ -193,13 +205,14 @@ namespace ZeroSetup
                 return;
             }
             // Recheck the installed copy rather than trusting the bundled check.
-            // No editor action is selected automatically after preparation.
+            // The verified copy advances to a single automatic editor launch.
             if (SelectedFolder == null) { Fail("Could not prepare Zero. See Details, then retry.", "The prepared folder was not confirmed."); return; }
             await CheckCore();
         }
         public Task PrimaryAction()
         {
             if (Busy) return Task.CompletedTask;
+            if (Stage == SetupStage.Retry && openNeedsRetry) return Operation("Opening Zero…", OpenCore);
             if (Stage == SetupStage.Retry || Stage == SetupStage.BlockedJava) return Check();
             if (Stage == SetupStage.ProfileStep)
             {
@@ -220,8 +233,18 @@ namespace ZeroSetup
                 bool java = Stage == SetupStage.ManualJava;
                 return Operation(java ? "Opening the Java download page…" : "Opening the VS Code download page…", async () => { Record(java ? "Official download: https://adoptium.net/temurin/releases/?version=17" : "Official download: https://code.visualstudio.com/download"); await backend.Download(java ? "https://adoptium.net/temurin/releases/?version=17" : "https://code.visualstudio.com/download", cancellation); Set(SetupStage.Retry, java ? "Install Java; close VS Code, then check again." : "Finish installing VS Code, then check again."); });
             }
-            if (Stage == SetupStage.Ready || Stage == SetupStage.Opened) return Operation("Opening Zero…", async () => { snapshot = null; await Run("open", null, false, Summary); Set(SetupStage.Opened, "In Zero, choose Run App to begin."); });
+            if (Stage == SetupStage.Ready || Stage == SetupStage.Opened) return Operation("Opening Zero…", OpenCore);
             return Task.CompletedTask;
+        }
+        private async Task OpenCore()
+        {
+            openNeedsRetry = true;
+            snapshot = null;
+            SetBusy(true, "Opening Zero…");
+            // NativeOpen performs its own fresh readiness check before launching.
+            await Run("open", null, false, Summary);
+            openNeedsRetry = false; opened = true;
+            Set(SetupStage.Opened, "In Zero, choose Run App to begin.");
         }
         private void ShowStep(ProfileStep step)
         {

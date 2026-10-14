@@ -28,6 +28,7 @@ internal static class ControllerHarness
         public bool RaceDefault;
         public string LastParent, LastName;
         public TaskCompletionSource<CheckResult> Pending;
+        public TaskCompletionSource<CheckResult> OpenPending;
         public readonly List<string> Calls = new List<string>();
         public Fake(string root) { Root = root; UserHome = Path.Combine(root, "home"); Directory.CreateDirectory(UserHome); Directory.CreateDirectory(Path.Combine(root, "optional")); File.WriteAllText(Path.Combine(root, "optional", "Zero.code-profile"), "fake"); }
         public Task EnsureKit(CancellationToken token) { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }
@@ -43,6 +44,7 @@ internal static class ControllerHarness
         {
             Calls.Add(action + ":" + target + ":" + approved);
             if (Pending != null) { var pending = Pending; Pending = null; return pending.Task; }
+            if (action == "open" && OpenPending != null) return OpenPending.Task;
             if (action == "check") return Task.FromResult(new CheckResult { ExitCode = 0, Output = State });
             if (action == "plan") return Task.FromResult(new CheckResult { ExitCode = 0, Output = "ZERO_PLAN_V1\naction=" + Plan + "\nEND_ZERO_PLAN\n" });
             return Task.FromResult(new CheckResult { ExitCode = (action == "extension" && FailExtensions) || (action == "open" && FailOpen) ? 44 : 0, Output = "fake action" });
@@ -59,27 +61,45 @@ internal static class ControllerHarness
         controller.Changed = () => statuses.Add(controller.Summary + ":" + controller.Busy);
         Assert(controller.Summary == "Preparing Zero…" && !controller.CanShowDetails, "initial preparation hides healthy details");
         Wait(controller.Check());
-        Assert(controller.Stage == SetupStage.Ready && controller.SelectedFolder == fake.Root, "startup automatically prepares fresh default then verifies readiness");
+        Assert(controller.Stage == SetupStage.Opened && controller.SelectedFolder == fake.Root, "startup automatically prepares fresh default then verifies readiness");
         Assert(controller.DefaultFolder == Path.Combine(fake.UserHome, "Zero") && fake.LastParent == fake.UserHome && fake.LastName == "Zero", "automatic preparation uses exact home default");
-        Assert(fake.Calls.SequenceEqual(new[] { "check::False", "copy", "check::False" }), "startup checks bundled and placed kit without consent or editor open");
+        Assert(fake.Calls.SequenceEqual(new[] { "check::False", "copy", "check::False", "open::False" }), "startup checks bundled and placed kit then opens once without consent");
         Assert(statuses.Any(value => value == "Preparing Zero…:True") && statuses.Last().EndsWith(":False"), "preparing progress stays busy until settled");
         Assert(!controller.CanShowDetails, "ready has no details action");
         Wait(controller.Check());
-        Assert(fake.Calls.Count(call => call == "copy") == 1 && controller.Stage == SetupStage.Ready, "later checks do not repeat preparation or open editor");
-        Assert(!fake.Calls.Any(call => call.StartsWith("profile") || call.StartsWith("extension") || call.StartsWith("download") || call.StartsWith("open")), "compatible setup preserved and editor remains explicit");
+        Assert(fake.Calls.Count(call => call == "copy") == 1 && controller.Stage == SetupStage.Opened, "later checks do not repeat preparation or open editor");
+        Assert(!fake.Calls.Any(call => call.StartsWith("profile") || call.StartsWith("extension") || call.StartsWith("download")), "compatible setup preserved");
+        Assert(fake.Calls.Count(call => call == "open::False") == 1, "later check never automatically reopens editor");
         fake.FailOpen = true; Wait(controller.PrimaryAction());
         Assert(controller.Stage == SetupStage.Retry && !controller.Summary.Contains("ready") && controller.CanShowDetails, "final backend reread failure cannot open and exposes details");
-        Wait(controller.Check()); fake.FailOpen = false; Wait(controller.PrimaryAction()); Assert(controller.Stage == SetupStage.Opened && !controller.CanShowDetails, "verified explicit open");
+        Wait(controller.Check()); Assert(controller.Stage == SetupStage.Retry && controller.PrimaryTitle == "Try again", "recheck retains failed-open recovery without auto launch");
+        int checksBeforeRetry = fake.Calls.Count(call => call.StartsWith("check"));
+        fake.FailOpen = false; Wait(controller.PrimaryAction()); Assert(controller.Stage == SetupStage.Opened && !controller.CanShowDetails, "verified explicit open retry");
+        Assert(fake.Calls.Count(call => call.StartsWith("check")) == checksBeforeRetry && fake.Calls.Count(call => call == "copy") == 1, "open retry delegates native recheck without reinstalling");
+        fake = new Fake(Path.Combine(root, "automatic-open-failure")); fake.FailOpen = true; controller = Controller(fake); Wait(controller.Check());
+        Assert(controller.Stage == SetupStage.Retry && controller.PrimaryTitle == "Try again" && fake.Calls.Count(call => call == "open::False") == 1, "first automatic open failure stops at explicit retry");
+        Wait(controller.Check()); Assert(fake.Calls.Count(call => call == "open::False") == 1 && controller.Stage == SetupStage.Retry, "failed auto open never repeats on later check");
+        fake.FailOpen = false; Wait(controller.PrimaryAction());
+        Assert(controller.Stage == SetupStage.Opened && fake.Calls.Count(call => call == "open::False") == 2 && fake.Calls.Count(call => call == "copy") == 1, "failed automatic open explicit retry opens without reinstall");
+        Wait(controller.Check()); Assert(fake.Calls.Count(call => call == "open::False") == 2, "successful retry suppresses later automatic launches");
+        Wait(controller.PrimaryAction()); Assert(fake.Calls.Count(call => call == "open::False") == 3, "successful setup still supports explicit reopen");
+        fake = new Fake(Path.Combine(root, "automatic-open-busy")); fake.OpenPending = new TaskCompletionSource<CheckResult>(); controller = Controller(fake);
+        var automaticOpening = controller.Check();
+        Assert(controller.Busy && controller.Summary == "Opening Zero…" && fake.Calls.Count(call => call == "open::False") == 1, "automatic open retains busy progress");
+        Wait(controller.PrimaryAction()); Wait(controller.Check());
+        Assert(fake.Calls.Count(call => call == "open::False") == 1 && fake.Calls.Count(call => call == "copy") == 1, "pending automatic open serializes other actions");
+        fake.OpenPending.SetResult(new CheckResult { ExitCode = 0, Output = "fake open" }); Wait(automaticOpening);
+        Assert(controller.Stage == SetupStage.Opened && !controller.Busy, "successful automatic open completes without consent");
         fake = new Fake(Path.Combine(root, "copy-failure")); fake.CopyFail = true; controller = Controller(fake); Wait(controller.Check());
         Assert(controller.Stage == SetupStage.Retry && controller.SelectedFolder == null && !controller.Busy && controller.CanShowDetails, "copy failure stops without ready or retry loop");
         Assert(fake.Calls.Count(call => call == "copy") == 1, "failed initial preparation attempted once");
         fake.CopyFail = false; Wait(controller.PrimaryAction());
-        Assert(controller.Stage == SetupStage.Ready && fake.Calls.Count(call => call == "copy") == 2, "explicit retry prepares once after repair");
+        Assert(controller.Stage == SetupStage.Opened && fake.Calls.Count(call => call == "copy") == 2, "explicit retry prepares once after repair");
         fake = new Fake(Path.Combine(root, "default-race")); fake.RaceDefault = true; controller = Controller(fake); Wait(controller.Check());
         Assert(controller.Stage == SetupStage.Retry && fake.Calls.Count(call => call == "copy") == 1, "race refuses occupied unrelated folder without automatic copy loop");
         Assert(File.ReadAllText(Path.Combine(fake.UserHome, "Zero", "keep.txt")) == "racing project", "race preserves occupied project");
         Wait(controller.PrimaryAction()); Assert(controller.Stage == SetupStage.Retry && fake.Calls.Count(call => call == "copy") == 1, "explicit retry refuses unrelated default without an alternative");
-        Directory.Delete(Path.Combine(fake.UserHome, "Zero"), true); Wait(controller.PrimaryAction()); Assert(fake.LastName == "Zero" && controller.Stage == SetupStage.Ready, "retry uses repaired exact default");
+        Directory.Delete(Path.Combine(fake.UserHome, "Zero"), true); Wait(controller.PrimaryAction()); Assert(fake.LastName == "Zero" && controller.Stage == SetupStage.Opened, "retry uses repaired exact default");
         fake = new Fake(Path.Combine(root, "default-collision")); Directory.CreateDirectory(Path.Combine(fake.UserHome, "Zero")); File.WriteAllText(Path.Combine(fake.UserHome, "Zero", "keep.txt"), "unrelated project"); controller = Controller(fake); Wait(controller.Check());
         Assert(controller.Stage == SetupStage.Retry && !fake.Calls.Contains("copy") && File.ReadAllText(Path.Combine(fake.UserHome, "Zero", "keep.txt")) == "unrelated project", "initial collision preserves unrelated project and never prepares it");
         fake = new Fake(Path.Combine(root, "automatic-update")); fake.RealPlacement = true;
@@ -89,16 +109,16 @@ internal static class ControllerHarness
         foreach (string relative in studentPaths) { string path = Path.Combine(existing, relative); Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, "student bytes: " + relative); }
         var before = studentPaths.ToDictionary(path => path, path => File.ReadAllBytes(Path.Combine(existing, path)));
         controller = Controller(fake); Wait(controller.Check());
-        Assert(controller.DefaultIsExisting && controller.Stage == SetupStage.Ready && controller.SelectedFolder == existing && fake.Calls.Count(call => call == "copy") == 1, "recognized kit updates automatically without consent");
+        Assert(controller.DefaultIsExisting && controller.Stage == SetupStage.Opened && controller.SelectedFolder == existing && fake.Calls.Count(call => call == "copy") == 1, "recognized kit updates automatically without consent");
         Assert(File.ReadAllText(Path.Combine(existing, "setup", "Setup.ps1")).StartsWith("0.5.6:"), "automatic update replaces setup runtime");
         foreach (string relative in studentPaths) Assert(File.ReadAllBytes(Path.Combine(existing, relative)).SequenceEqual(before[relative]), "automatic update preserves " + relative);
-        Assert(controller.Diagnostics.Contains("Setup runtime backup:") && !fake.Calls.Any(call => call.StartsWith("open")), "automatic update retains backup and does not open editor");
+        Assert(controller.Diagnostics.Contains("Setup runtime backup:") && fake.Calls.Count(call => call == "open::False") == 1, "automatic update retains backup and opens after verification");
         Wait(controller.Check()); Assert(fake.Calls.Count(call => call == "copy") == 1, "ready recheck never updates again");
         fake = new Fake(Path.Combine(root, "missing-home")); Directory.Delete(fake.UserHome); controller = Controller(fake); Wait(controller.Check());
         Assert(controller.Stage == SetupStage.Retry && controller.DefaultFolder == null && !fake.Calls.Contains("copy"), "unavailable home never copies or claims ready");
         Assert(controller.Summary.Contains("retry") && !controller.Summary.Contains("Change location"), "home error offers details and retry without chooser");
         Directory.CreateDirectory(fake.UserHome); Wait(controller.PrimaryAction());
-        Assert(controller.Stage == SetupStage.Ready && fake.LastParent == fake.UserHome && fake.LastName == "Zero", "retry uses default after home is repaired");
+        Assert(controller.Stage == SetupStage.Opened && fake.LastParent == fake.UserHome && fake.LastName == "Zero", "retry uses default after home is repaired");
         fake = new Fake(Path.Combine(root, "cancel-default")); using (var token = new CancellationTokenSource())
         {
             controller = Controller(fake, token.Token); var pending = new TaskCompletionSource<CheckResult>(); fake.Pending = pending; var checking = controller.Check(); token.Cancel(); pending.SetResult(new CheckResult { ExitCode = 0, Output = Snapshot() }); Wait(checking);
@@ -131,7 +151,8 @@ internal static class ControllerHarness
         fake.FailExtensions = false; Wait(controller.Check());
         Wait(controller.PrimaryAction()); Assert(controller.Stage == SetupStage.ExtensionConsent, "reported install success without actual readiness cannot ready");
         Assert(fake.Calls.Contains("extension:java:True") && fake.Calls.Last() == "check::False", "approved essential extensions followed by recheck");
-        fake.State = Snapshot(); Wait(controller.Check()); Assert(controller.Stage == SetupStage.Ready, "actual extension verification required");
+        Assert(!fake.Calls.Any(call => call.StartsWith("open")), "incomplete profile/extensions never launch editor");
+        fake.State = Snapshot(); Wait(controller.Check()); Assert(controller.Stage == SetupStage.Opened && fake.Calls.Last() == "open::False", "actual extension verification required before automatic launch");
         fake = new Fake(Path.Combine(root, "busy")); controller = Controller(fake); var paused = new TaskCompletionSource<CheckResult>(); fake.Pending = paused;
         var running = controller.Check(); Assert(controller.Busy, "pending check busy"); Wait(controller.PrimaryAction()); Wait(controller.Check()); Wait(controller.PrimaryAction());
         Assert(fake.Calls.Count == 1 && controller.Busy, "busy actions serialized");

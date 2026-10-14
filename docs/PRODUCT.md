@@ -209,7 +209,11 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while
   preserving the entire student project; an unrelated folder named Zero is
-  refused. Previous Mac0.5.10 downloads retain their original Set up Zero and Update Zero
+  refused. Current0.5.12 native source automatically opens the editor once after
+  final readiness verification, with an explicit retry if opening fails and no
+  repeated launch on later checks. The first student app run remains a choice.
+  Published Mac0.5.11 still offers Open Zero at completion.
+  Previous Mac0.5.10 downloads retain their original Set up Zero and Update Zero
   confirmations.
   See [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
