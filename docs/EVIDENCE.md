@@ -2504,3 +2504,19 @@ this is recorded as an incomplete local harness result. A bounded activation wai
 virtual-display CI regression and owner fixed-game check are pending. The fixed
 source is running only in an owned test project; frozen published9bytes are unchanged.
 Kit/extension0.5.10 and core0.1.2 are new local versions, with verified9fallback.
+
+## SimpleApp edge padding and Study follow-up — 2026-10-13
+
+Owner requested space around the Study app and a simple framework helper. New
+`padding(double pixels)` inside settings applies ordinary JavaFX root Insets,
+with default0 and validation for negative/non-finite values and lifecycle misuse.
+Study checkpoints3–7/10study/11study and the Study example use20px; lesson3 introduces
+that single line and subsequent Study lessons retain it. API/beginner/style guides
+document edge space versus layout gaps. Native harness checks geometry, available
+width, replacing a screen and invalid settings; checkpoint checks inspect edge bounds.
+Local configuration check, finite JavaFX checkpoints3/7/10study and Study example
+passed. Source review/exact-head CI remain pending. Native editor access hit locked
+Mac; no visible padding inspection claimed. Logs: `.verification/simple-app-padding/`.
+Earlier sealed10candidate remains intact but predates this source change and must
+not publish as the updated candidate. Public0.5.9 stays immutable; Mac physical input
+check and Windows/student trials remain pending/deferred respectively.

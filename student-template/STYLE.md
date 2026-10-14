@@ -24,6 +24,24 @@ Clear button labels, feedback near the action and visible keyboard focus help
 people use the app. Try Tab to reach each control and Space to activate a button.
 Keep a written win message in a game so colour alone does not communicate a win.
 
+## Space around the window
+
+In a `SimpleApp`, add `padding(20)` to `settings()` for 20 pixels of space on each
+edge. It applies to every screen you pass to `show(...)`. Keep the `VBox` or `HBox`
+spacing value for gaps between controls. Padding uses part of the window size,
+so choose a larger `size(...)` when the content needs more room.
+
+```java
+@Override public void settings() {
+    size(580, 340);
+    padding(20);
+}
+```
+
+JavaFX layouts still support `setPadding(new Insets(...))` when an individual
+container needs different padding. App and container padding add together;
+use one place for the outer margin.
+
 ## App appearance: a stylesheet
 
 Hello app supplies an editable `theme.css`. Copy it into your standalone starter

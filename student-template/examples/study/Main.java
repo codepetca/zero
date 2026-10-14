@@ -1,4 +1,3 @@
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -32,6 +31,7 @@ public class Main extends SimpleApp {
     @Override public void settings() {
         title("Java study session");
         size(580, 340);
+        padding(20);
     }
 
     @Override public void setup() {
@@ -52,7 +52,6 @@ public class Main extends SimpleApp {
         restart.setOnAction(event -> restartSession());
         HBox buttons = new HBox(12, check, next, restart);
         VBox screen = new VBox(12, progress, question, answer, buttons, feedback, score.view());
-        screen.setPadding(new Insets(20));
         show(screen);
         restartSession();
     }

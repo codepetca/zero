@@ -2,6 +2,7 @@ package zero;
 
 import java.util.Objects;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -16,6 +17,7 @@ public abstract class SimpleApp extends Application {
     private double appWidth = 800;
     private double appHeight = 500;
     private String appTitle = "Zero";
+    private double appPadding;
     private boolean configuring;
     private BorderPane root;
 
@@ -37,6 +39,15 @@ public abstract class SimpleApp extends Application {
         appTitle = Objects.requireNonNull(title, "Window title must not be null.");
     }
 
+    /** Initial space around all content, in pixels on each edge. Call inside settings(). */
+    public final void padding(double pixels) {
+        if (!configuring) throw new IllegalStateException("Call padding inside settings().");
+        if (!Double.isFinite(pixels) || pixels < 0) {
+            throw new IllegalArgumentException("Padding must be a non-negative finite number.");
+        }
+        appPadding = pixels;
+    }
+
     /** Display an ordinary JavaFX node after startup, usually inside setup(). */
     public final void show(Node content) {
         if (root == null) throw new IllegalStateException("Call show inside setup() or an event handler.");
@@ -55,6 +66,7 @@ public abstract class SimpleApp extends Application {
             configuring = true;
             try { settings(); } finally { configuring = false; }
             root = new BorderPane();
+            root.setPadding(new Insets(appPadding));
             root.setCenter(createContent());
             setup();
             // A sketch's extra controls need room beside its fixed canvas.

@@ -25,7 +25,8 @@ launch → settings() → setup() → show the window
                          respond to user events
 ```
 
-Override `settings()` once to call `size(width, height)` and `title("My app")`.
+Override `settings()` once to call `size(width, height)`, `title("My app")`
+and optionally `padding(20)` for space around the edges.
 Override `setup()` once to create controls, connect handlers and call
 `show(screen)`. Keep the example's `main` method to launch the app.
 There is no automatic `update()` or `draw()` callback in SimpleApp.

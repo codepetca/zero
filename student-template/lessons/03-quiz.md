@@ -32,6 +32,17 @@ private TextField answer;
 private Label feedback;
 ```
 
+Add this method inside `Main`, above `setup()`, to leave space around the window edges:
+
+```java
+@Override public void settings() {
+    padding(20);
+}
+```
+
+`padding(20)` leaves 20 pixels on every edge. Keep this method as you grow the Study app.
+The `10` in `new VBox(10, ...)` sets the gaps **between** controls.
+
 Inside `setup()`, write the controls and put them in the window:
 
 ```java

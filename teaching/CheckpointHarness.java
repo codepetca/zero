@@ -232,6 +232,12 @@ public class CheckpointHarness extends Application {
     }
 
     private static void check(Main app, Stage stage) throws Exception {
+        if (id.matches("[34567]") || id.endsWith("/study")) {
+            BorderPane root = (BorderPane) stage.getScene().getRoot();
+            require(root.getPadding().equals(new javafx.geometry.Insets(20)), "Study has 20px edge padding");
+            require(root.getCenter().getLayoutX() == 20 && root.getCenter().getLayoutY() == 20,
+                    "Study controls are inset from the window edges");
+        }
         if (id.matches("[012]")) checkGreeting(app, stage);
         else if (id.matches("[3456]")) checkSingleQuiz(app, stage);
         else if (id.equals("7") || id.equals("10/study") || id.equals("11/study")) checkStudy(app, stage);

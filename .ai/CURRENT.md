@@ -1,46 +1,39 @@
-# Current state — Mac 0.5.9 live; arrow-focus patch 0.5.10 in progress
+# Current state — Study padding follow-up; Mac release remains pending
 
 Updated 2026-10-13. Worktree:
 `/Users/stew/.codex/worktrees/github-sharing-adoption/zero`, branch
-`codex/canvas-arrow-focus`, based on main4d5526785b0458f36fe30005bba2742413b73b25.
-Owner authorized Mac testing and release; Windows/student trials remain deferred.
-Read PRODUCT/DEVELOPMENT before changes. Normal user projects/accounts preserved.
+`codex/simple-app-padding`, based on main4c3643673b4a460a3d5a1b6c5a6f38b06d08dcc0.
+Owner authorized Mac testing/release and requested padding in the Study app with
+simple functionality inside SimpleApp. Normal student projects/accounts preserved.
 
-0.5.9 source PR40 and metadata PR41 are merged. Metadata headc2fe164 passed exact
-CI38487839153; independent review32 (Sol/medium) found no issues, including its
-own anonymous byte and source-tag checks. Production deployment7053217808 targets
-merge4d552678 and succeeded. Real publisher verify-only checked all public kit
-assets and live landing/Downloads kit bytes; a separate live Mac anchor/hash check
-passed. Native setup tagsetup-v0.5.9 targets preparation3c0ed2e; kitv0.5.9 targets
-reviewed buildf7c7335. All frozen bytes/signatures/notary receipts stay immutable.
-Native/sealed candidate and logs: `.verification/release-0.5.9/` and
-`dist/candidates/mac-0.5.9-3c0ed2e24ae4/`. Old mutable9outputs preserved separately.
+New opt-in `padding(20)` in settings applies ordinary JavaFX Insets to the app root.
+Zero is the default; invalid negative/non-finite values and use outside settings
+have useful errors. Study checkpoint3–7 and10/11study retain this setting; the lesson3
+instructions introduce it, lesson7 keeps it, and the Study example/API/style guides
+use the same helper. Native harness asserts actual content bounds, remaining width,
+screen replacement and configuration errors; finite Study checks assert edge bounds.
+Local configuration check, finite checkpoints3/7/10study and Study example passed.
+Need one independent source review39, exact-head CI/merge. Native editor test hit
+locked Mac; do not bypass unlock or claim visible padded app inspected.
 
-Actual isolated editor created three blank local projects, ran all three, reran
-edited Greeting and stopped its old process. Local-only/Git-disabled markers passed.
-Study/Game reused byte-identical maintainer ScoreDisplay test input. Owner confirmed
-all app windows appeared. Later owner reported Down moving focus onto Restart.
-That defect is reproduced by a real JavaFX regression: unconsumed canvas Down
-traverses to a native control. The framework fix consumes arrow presses only while
-canvas-focused; Tab/native text controls retain normal behavior. No new student API.
-Local fixed-game source was copied only to the owned test project and relaunched;
-owner movement-before/after-Restart question is pending. Local smoke reruns hit an
-inactive native window (focus ownerCanvas, window=false); bounded startup focus
-wait and virtual-display CI coverage are being checked. Do not claim those passes.
+Mac/kit0.5.9 remain public and immutable. Arrow-focus fix PR42 is merged4c364367;
+reviewed0510source passed full CI38492387823. The owned coin game runs that fix;
+owner movement-before/after-Restart question still pending. The previous sealed10
+candidate `dist/candidates/mac-0.5.10-775e33daed41/` and metadata branch
+`codex/mac-0510-release` remain intact but predate this padding request. Review38
+verified that artifact/signature/payload/source/notary hash without findings. Apple
+Accepted5c813edd-1aae-4f63-8326-24a5edc4446d, staple/Gatekeeper passed. Preserve those
+bytes and receipts as superseded evidence; don't publish them as the updated10release.
 
-New kit/extension0.5.10 and core0.1.2 are local, not published. Verified9kit now forms
-the fallback; published Mac9manifest/README links remain. Source changes are small:
-SketchApp arrow consumption, meaningful native-control regression, CI smoke command,
-versions/fallback and factual docs. Need checks, independent review33, draft source
-PR, exact-head CI/merge, clean kit10package, existing signer/notary/seal, then separate
-immutable releases and reviewed metadata integration/live proof. Reuse existing
-credentials only; do not rebuild or overwrite any9bytes. Current Mac editor path:
-`/private/tmp/zero-059-ui-ucf3zq61/Applications/Visual Studio Code.app`.
-Owned patched game `/private/tmp/zero-059-ui-ucf3zq61/zero-project-game` is running.
+Kit/extension0.5.10 and core0.1.2 are still local/unpublished; retaining these versions
+is permitted for the updated candidate. Public Mac9manifest and kit9fallback remain.
+After source checks/merge and physical Mac checks, repackage/build/sign/notarize from
+clean reviewed final source, measure local native metadata, review/seal a new output,
+then separately publish exact native/kit assets, verify anonymously and promote via
+reviewed metadata CI/merge/live proof. Never overwrite sealed/published bytes.
 
-Cumulative reviews32, source correction batches2 plus preview-test correction1.
-Stop waiver remains; no provider/identity bypass. Requested models/efforts recorded;
-effective telemetry/tokens/time unknown. Storage321.4GB healthy; no cleanup. DeepSeek
-paused. Generic public executor remains held after provider rejections; general game
-publication disabled; Neon retained. Full GitHub adoption incomplete. No new goal,
-task or automation. Keep this worktree while the patch/adoption scope remains active.
+Reviews38 complete; source39 planned Sol/medium. Existing task stop waiver persists;
+no provider/identity bypass. Storage322GB healthy; no cleanup. DeepSeek paused.
+Physical Windows/student trials deferred. Generic public executor acceptance remains
+held, general game publication disabled, Neon retained; full adoption incomplete.
+No new tool-backed goal/task/automation. Keep this worktree and superseded receipts.

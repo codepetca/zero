@@ -24,6 +24,8 @@ public class Main extends SimpleApp {
     private Button next;
     private Button restart;
 
+    @Override public void settings() { padding(20); }
+
     @Override public void setup() {
         questionLabel = new Label();
         answer = new TextField();

@@ -130,7 +130,7 @@ public final class SmokeLauncher extends SketchApp {
         uiStage = new Stage();
         uiApp = new SimpleApp() {
             private boolean configured;
-            @Override public void settings() { configured = true; size(240, 160); title("UI lifecycle check"); }
+            @Override public void settings() { configured = true; size(240, 160); title("UI lifecycle check"); padding(12); }
             @Override public void setup() {
                 require(configured, "UI settings before setup");
                 uiField = new TextField();
@@ -140,13 +140,32 @@ public final class SmokeLauncher extends SketchApp {
         uiApp.start(uiStage);
         require(uiStage.isResizable(), "UI window resizable");
         require(uiStage.getScene().getWidth() == 240, "initial UI content width");
+        var root = (javafx.scene.layout.BorderPane) uiStage.getScene().getRoot();
+        require(root.getPadding().equals(new javafx.geometry.Insets(12)), "uniform UI edge padding");
+        require(root.getCenter().getLayoutX() == 12 && root.getCenter().getLayoutY() == 12,
+                "UI content is inset from the window edges");
+        require(uiField.getWidth() == 216, "padding reduces usable UI width without widening the window");
+        var replacement = new VBox(12, new Label("Replacement screen"), uiField);
+        uiApp.show(replacement);
+        root.applyCss();
+        root.layout();
+        require(replacement.getLayoutX() == 12 && replacement.getLayoutY() == 12,
+                "padding survives replacing the screen");
         initialFieldWidth = uiField.getWidth();
         uiStage.setWidth(400);
         uiStage.setHeight(240); // Submit both native dimensions together, including on GTK.
         try { uiApp.size(10, 10); throw new AssertionError("late size accepted"); }
         catch (IllegalStateException expected) { require(expected.getMessage().contains("settings"), "useful size error"); }
+        try { uiApp.padding(10); throw new AssertionError("late padding accepted"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().contains("settings"), "useful padding error"); }
     }
     private void verifyErrors() {
+        for (double value : new double[] {-1, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            Stage paddingStage = new Stage();
+            SimpleApp invalidPadding = new SimpleApp() { @Override public void settings() { padding(value); } };
+            try { invalidPadding.start(paddingStage); throw new AssertionError("invalid padding accepted: " + value); }
+            catch (IllegalArgumentException expected) { require(!paddingStage.isShowing(), "invalid padding leaves no window"); }
+        }
         Stage invalidStage = new Stage();
         SimpleApp invalid = new SimpleApp() { @Override public void settings() { size(Double.NaN, 100); } };
         try { invalid.start(invalidStage); throw new AssertionError("invalid size accepted"); }

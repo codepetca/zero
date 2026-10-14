@@ -10,6 +10,8 @@ public class Main extends SimpleApp {
     private Label feedback;
     private Label attemptsLabel;
 
+    @Override public void settings() { padding(20); }
+
     @Override public void setup() {
         Label question = new Label("What is 2 + 3?");
         answer = new TextField();
