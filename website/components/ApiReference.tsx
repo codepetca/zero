@@ -100,8 +100,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const headings = [...document.querySelectorAll<HTMLElement>('[data-api-entry]')];
-        const headerHeight = document.querySelector('.api-page .site-header')?.getBoundingClientRect().height ?? 93;
-        const anchorLine = window.matchMedia('(max-width: 760px)').matches ? 160 : headerHeight + 184;
+        const anchorLine = headings[0] ? Number.parseFloat(getComputedStyle(headings[0]).scrollMarginTop) + 16 : 0;
         const nearest = headings.filter(element => element.getClientRects().length > 0 && element.getBoundingClientRect().top <= anchorLine).at(-1);
         if (nearest) setActive(nearest.id);
       });
@@ -116,7 +115,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
   }
   function renderCategory(category: Category) {
     return <section className="api-category" id={category.id} key={category.id} tabIndex={-1}>
-      <div className="api-category-heading"><h2>{category.title}</h2><p>{category.description}</p></div>
+      <div className="api-category-heading"><h2>{category.title}</h2></div>
       {category.entries.map(entry => <article className="api-entry" id={entry.id} data-api-entry key={entry.id} tabIndex={-1}>
         <div className="api-method-title"><h3><a href={`#${entry.id}`} onClick={event => { event.preventDefault(); jump(entry.id); }}>{entry.name}()</a></h3><span className="api-owner">{entry.owner}</span></div>
         <div className="api-description"><RichText links={links}>{entry.description}</RichText></div>
