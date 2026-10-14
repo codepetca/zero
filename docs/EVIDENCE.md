@@ -2954,3 +2954,24 @@ Native release remains non-latest; latest kitv0.5.10 unchanged. Completion recei
 live-proof.json, production-status.json and linked bytes retained in ignored
 .verification/release-0.5.13. Primary checkout untouched; worktree retained for
 owner smoke testing. No further publication is required for this request.
+
+
+## Centered preparation status — local source, 2026-10-14
+
+Owner requested native preparation content centered and progress below text.
+Sourcef2b77910c09200c45140ccee5342d9596081a6b9 moves status/progress/primary into
+one centered vertical AppKit stack; hidden controls collapse, error Details remains
+available at the bottom right. Existing preview harness lookup follows stack views.
+No setup/controller/installation behavior changed. Drag only copies the application;
+first opening prepares support, later opening checks/repairs as needed and restores
+saved Zero editor state.
+
+Compiled native Mac test harness with AppKit/Foundation and ZERO_SETUP_TESTS;
+250assertions passed. Actual offscreen preparation/progress/error previews inspected;
+logs/images under ignored .verification/modal-layout/. Independent read-only reviewer
+requested GPT-6-Luna/medium, fixedbase275e40975803d3c514797ec0161c79d8294d684b to
+headf2b77910c09200c45140ccee5342d9596081a6b9, full2filediff and controller callers,
+UIguidance, stored tests/previews and diffcheck complete; no actionable blockers,
+under2min. Effective model/tokens unknown; one launch, nofix/rework, no redundant
+suite rerun. Local source only: published13DMG remains unchanged, no native rebuild,
+signing/notarization/upload/publication in this correction. Primary checkout untouched.
