@@ -1,22 +1,32 @@
-# Current state — automatic final opening, Mac setup 0.5.12 preparation
+# Current state — automatic final opening delivered; website promotion pending
 
-Updated2026-10-14. Owner asks to open Zero automatically at the final setup step;
-prior updated-installer publication authority carries forward for continued smoke
- testing. Mac/Windows native source opens once after final verified readiness,
-keeps backend recheck, offers an explicit failed-open retry without reinstalling,
-and prevents later checks/duplicate busy actions from reopening. Run App stays
-student-controlled. Published Mac11 and Windows kit10 remain available unchanged
-until new signed12 bytes are reviewed, public and verified. No credentials changed.
+Updated2026-10-14. Owner asks automatic final editor opening while continuing the
+explicitly authorized installer release. Signed/notarized Mac setup0.5.12 public:
+https://github.com/codepetca/zero/releases/download/setup-v0.5.12/Zero-Setup-0.5.12-macos.dmg
+1013295bytes/SHA2569e1922ef96a2816fe739298fd0493bb1fd0970cb0d008de3873f8f211b2e6840.
+Actual unauthenticated download matches sealed reviewed bytes; public tag targets
+preparation36e46b6. Exactly one DMG published, kit12 local and Windowskit10 unchanged.
 
-Worktree /Users/stew/.codex/worktrees/setup-smoke-feedback/zero. Primary funding
-checkout/other worktrees untouched. Mac220 fake/runtime/UI assertions pass;
-Windows247 harness checks and net48 app/harness builds pass, physical Windows and
-fresh-machine first-run testing remain unverified. Source eec8d05 and notes-only delta5c4b161 independently reviewed clean by Sol/medium;
-2launches,1initial+1targetedwave,1fixbatch. Clean build5c4b161 signed with existing
-identity, Apple Accepted06920792-e314-40c8-8fa7-75986c3ec21e; actual staple/Gatekeeper
-app+DMG/signatures/payload verification passed. Mac12 1013295bytes/SHA256
-9e1922ef96a2816fe739298fd0493bb1fd0970cb0d008de3873f8f211b2e6840.
-Next: seal/review exact artifact, sourcePR51 CI38611795944/merge, verified one-DMG
-publication and reviewed metadata promotion/live link proof. Version12 kit remains local; no native
-Windows/kit/Hub publication. Keep immutable earlier bytes and ignored receipts.
-Weekly70%remaining/storage311GBhealthy; task cost unknown; DeepSeek paused.
+Native setup opens once after final readiness, keeps backend fresh recheck, retries
+failed opening explicitly without reinstalling, serializes busy actions, and leaves
+Run App to student. Mac220/Windows247 fake harness checks, Node259pass/1platformskip,
+configuration/package/extracted Maven checks passed. Live dark fake UI completed
+without primary clicks. Physical Windows/fresh-machine first run unverified.
+
+Clean build5c4b161; existing signerACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8;
+Apple Accepted06920792-e314-40c8-8fa7-75986c3ec21e binds retained submitted input hash.
+Actual signatures/156payload bytes+modes/staple/Gatekeeper app+DMG verified. Sealed
+candidate dist/candidates/mac-0.5.12-36e46b6e25c4; earlier bytes/tags preserved.
+SourcePR51 mergedf1c5fac after exacteec8d05 CI38611795944 passed. Independent source
+Sol/medium initial+notesdelta clean; independent artifact_provenance/artifact_compat
+Sol/high complete fixed36e/hash reviews clean. Ledger4launches,1source initial,
+1source targeted,1two-reviewer artifact wave,1fixbatch; effective time/tokens unknown.
+
+Current worktree /Users/stew/.codex/worktrees/setup-smoke-feedback/zero on
+codex/setup-0.5.12-native. Main mergec086d14 changes receipt conflicts only; protected
+source still equals original build. Metadata now copies actual public URL and docs;
+next bounded metadata review/checks/PR/CI/merge and deployed live link/hash proof.
+No new credentials, Windows EXE, separate kit, Hub publication, goals/chats/automation.
+Primary funding checkout/other worktrees untouched. Keep worktree/ignored candidate
+and .verification/release-0.5.12 receipts for continued smoke testing. Weekly70%
+remaining/storage311GBhealthy are shared readings; task cost unknown; DeepSeek paused.

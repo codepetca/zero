@@ -1,8 +1,8 @@
 # Native Zero Setup
 
 Zero Setup uses a native Mac runtime; Windows wraps the guided setup scripts. Signed,
-notarized Mac0.5.11 is published at [setup-v0.5.11](https://github.com/codepetca/zero/releases/tag/setup-v0.5.11)
-and embeds the complete0.5.11 kit. Windows development installers remain local
+notarized Mac0.5.12 is published at [setup-v0.5.12](https://github.com/codepetca/zero/releases/tag/setup-v0.5.12)
+and embeds the complete0.5.12 kit. Windows development installers remain local
 and unsigned; they are excluded from student downloads. Previous Mac releases
 are preserved.
 The website offers Mac setup alongside the separately verified published kit ZIP.
@@ -13,7 +13,7 @@ Open, Run/Stop, autosave and the standard build command. Fresh-machine tool inst
 
 ## Student flow
 
-The current Mac0.5.12 native source starts automatically with **Preparing Zero…** and a
+The published Mac0.5.12 setup starts automatically with **Preparing Zero…** and a
 progress bar. It prepares `~/Zero` without a setup button or an update
 confirmation, then opens Zero automatically after verifying readiness. A recognized existing kit receives only
 setup-file updates; student projects are preserved. **Details** is hidden during

@@ -2782,3 +2782,20 @@ Final DMG1013295bytes/SHA9e1922ef96a2816fe739298fd0493bb1fd0970cb0d008de3873f8f2
 Candidate/CI/publication/metadata/live proof pending; public Mac11/Windowskit10
 remain unchanged. Receipts ignored under .verification/release-0.5.12. Weekly70%
 remaining/storage311GBhealthy are account/machine readings, not task cost.
+
+Mac12 release completion phase: sourcePR51 mergedf1c5fac2bf7386a7099500b2af2487006ccd0287
+after exacteec8d05 CI38611795944 passed. Artifact_provenance and artifact_compat
+Sol/high complete fixed36e/hash reviews passed with no blockers; actual sealed
+signatures, five notarization ticket code hashes, 156payload files/modes, package,
+source equivalence, fallback10 and preserved11 bytes checked. Candidate is
+dist/candidates/mac-0.5.12-36e46b6e25c4. Four reviewer turns total (sourceinitial,
+notesdelta, two artifact roles); effective time/tokens unknown. Receipt-only main
+mergec086d14 keeps protected source equal build5c4b161. Draft target/singleasset
+/download verified before authorized publication. Public setup-v0.5.12 targets
+36e46b6e25c492ecf9b0e7a6c342369c34094e14 and its sole DMG unauthenticated download
+matches1013295bytes/SHA9e1922ef96a2816fe739298fd0493bb1fd0970cb0d008de3873f8f211b2e6840.
+URL: https://github.com/codepetca/zero/releases/download/setup-v0.5.12/Zero-Setup-0.5.12-macos.dmg
+Published with latest=false; kit12 stays local and Windowskit10/frozen releases
+remain unchanged. Actual public URL promoted in native metadata; website review,
+CI, metadata merge and live proof pending. Source/notes/artifact coverage reused
+for unchanged code; metadata delta gets bounded independent review.
