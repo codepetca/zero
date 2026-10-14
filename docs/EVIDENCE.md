@@ -2587,3 +2587,20 @@ one P2 layout blocker: existing reader/ZeroHub padding could override the Copy
 row. One CSS correction strengthens the shared selector; targeted review43 and
 a rebuilt browser spacing check follow. No other findings; one initial wave and
 one remediation batch. Prior41 reviewer turns remain historical, not new launches.
+
+Targeted review43 (requested GPT-6.1 Sol/medium; effective model/time/tokens unknown)
+completed e56e30d..95f65c0 and emitted CSS without findings. Existing initial review
+coverage reused; one reviewer launch/two turns, one initial/one targeted wave, one
+fix batch. Rebuilt browser geometry confirms Copy above first code line in reading
+and clone callers, including320px with no page overflow. Manual drag selection
+keeps selected text and leaves clipboard intact.
+
+PR47 merged e7c32a2d6edf09366bedcf6ba3c49b654955d5b1 after exact reviewed95f65c0
+passed full CI38577467605 and all GitHub gates. Production deployment7067809561
+succeeded from exact merge; Vercel URL zero-d1nevwrz4-stewarts-projects-cc2722c4.vercel.app.
+Live zero.codepet.ca/learn shows groups/controls, and genuine native paste matches
+its multiline code exactly. Screenshot: `.verification/lesson-groups-copy/live-tutorials.png`.
+Owned local servers/test tab closed; primary checkout and immutable artifacts preserved.
+This final factual delivery receipt changes no code after review. The owner
+authorized publishing it with the other tracked documentation; private logs and
+screenshots remain local.
