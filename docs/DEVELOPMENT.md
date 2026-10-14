@@ -60,7 +60,20 @@ after packaging/verification. macOS requires Xcode command line tools and
 tests with `npm run test:installers`; platform harness commands are in
 [INSTALLER.md](INSTALLER.md). Default builds involve no signing credentials or publication. Explicit, separately
 authorized Mac signed-build commands and verification are in [INSTALLER.md](INSTALLER.md);
-signed mode reuses the existing kit and does not perform notarization.
+signed mode reuses the existing kit and does not perform notarization. Styled Mac DMGs from0.5.14
+also use a maintainer-only, hash-pinned Python helper for Finder metadata:
+
+```sh
+python3 -m venv .verification/native-installer/dmg-layout-venv
+.verification/native-installer/dmg-layout-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r scripts/mac-dmg-layout-requirements.txt
+```
+
+These dependencies stay in the ignored build environment; students need no Python.
+The builder writes the owned image's metadata without Finder automation. Actual
+Finder chrome can follow user preferences; inspect a real mounted image before
+accepting a layout. Production verification checks its hidden files, exact saved
+layout, background pixels, native background alias and HFS+ open-folder metadata.
+
 
 Framework contributors edit `framework/src/main/java/zero/`. Prepare assembles
 ignored readable copies into the starter; checks/packaging prepare them too.

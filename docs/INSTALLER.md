@@ -23,6 +23,9 @@ app and immutable bytes.
    configured VS Code editor automatically.
 3. In the editor, review workspace trust if asked and choose **Run App**.
 
+Dragging copies the application only. Java/editor preparation happens when Zero
+is opened for the first time; later openings verify and reuse the existing setup.
+
 The app stays in Applications as the launcher. Once VS Code opens, the preparation
 window closes. Eject the DMG after copying the app. Later launches compare only
 installer-owned files, verify readiness and restore the saved Zero editor session
@@ -94,8 +97,8 @@ ZIP launchers keep their current manual behavior.
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates
-`dist/installers/Zero-0.5.13-macos-development.dmg` and
-`dist/installers/Zero-Setup-0.5.13-windows-development.exe`. The measured
+`dist/installers/Zero-0.5.14-macos-development.dmg` and
+`dist/installers/Zero-Setup-0.5.14-windows-development.exe`. The measured
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -133,7 +136,7 @@ node scripts/verify-installers.mjs --platform macos --signed
 ```
 
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
-not a secret). A new signed candidate would be `Zero-0.5.13-macos.dmg`, measured in
+not a secret). A new signed candidate would be `Zero-0.5.14-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
 The current app bundle identifier is `ca.codepet.zero`; releases through0.5.12
 retain `ca.codepet.zero.setup`. Its explicit plist marker
@@ -244,3 +247,7 @@ ZIP and managed PE header, and mounts the DMG read-only to compare every bundled
 file/permission plus both binary architectures. It detaches afterward and never
 executes installer actions. DMG inspection requires macOS; use `--platform windows`
 with a matching platform-only build receipt to inspect only the Windows EXE.
+
+Current0.5.14 source adds a centered Finder layout with only Zero and Applications
+icons/labels and an arrow. Preparation text and progress below form a centered
+group. Published13 retains its original plain DMG until14 is verified and released.

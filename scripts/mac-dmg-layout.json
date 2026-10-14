@@ -1,0 +1,31 @@
+{
+  "windowBounds": "{{160, 120}, {660, 446}}",
+  "width": 660,
+  "height": 360,
+  "iconSize": 128,
+  "textSize": 16,
+  "iconLocations": {
+    "Zero.app": [
+      200,
+      159
+    ],
+    "Applications": [
+      460,
+      159
+    ]
+  },
+  "arrow": {
+    "start": [
+      305,
+      159
+    ],
+    "end": [
+      354,
+      159
+    ],
+    "head": 17,
+    "stroke": 7,
+    "gray": 125
+  },
+  "backgroundSha256": "65fc3b708016dd9cec9231d4775764db740bd97d5e510e5d439c638dd89c9d24"
+}

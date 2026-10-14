@@ -6,6 +6,7 @@ import {root, releaseDefinition} from './release.mjs';
 import {extractKit, kitEntries} from './installer-payload.mjs';
 import {buildMacIcon} from './mac-icon.mjs';
 import {macArtifactIdentity} from './mac-artifact.mjs';
+import {buildStyledMacDmg} from './mac-dmg-layout.mjs';
 import {macInstallInstructions, macDevelopmentNotice} from './mac-volume.mjs';
 import {installerOptions, installerPlist, signMacArtifact, verifyMacSignature} from './installer-signing.mjs';
 
@@ -44,7 +45,7 @@ if (platform !== 'windows') {
   writeFileSync(path.join(contents, 'Info.plist'), installerPlist(plist, release.kitVersion, signed));
   buildMacIcon(run, root, work, path.join(contents, 'Resources/Zero.icns'));
   symlinkSync('/Applications', path.join(volume, 'Applications'));
-  writeFileSync(path.join(volume, 'INSTALL.txt'), macInstallInstructions + (signed ? '' : macDevelopmentNotice));
+  if (!artifactIdentity.styled) writeFileSync(path.join(volume, 'INSTALL.txt'), macInstallInstructions + (signed ? '' : macDevelopmentNotice));
   const binaries = [];
   for (const arch of ['arm64', 'x86_64']) {
     const file = path.join(work, `ZeroSetup-${arch}`);
@@ -59,7 +60,8 @@ if (platform !== 'windows') {
     appSignature = verifyMacSignature(run, app, path.join(work, 'app-cert'), {app:true, identity});
   }
   const filename = artifactIdentity.filename, staged = path.join(work, filename);
-  run('/usr/bin/hdiutil', ['create', '-srcfolder', volume, '-volname', 'Zero', '-format', 'UDZO', staged]);
+  if (artifactIdentity.styled) buildStyledMacDmg(run, volume, work, staged, artifactIdentity.volumeName);
+  else run('/usr/bin/hdiutil', ['create', '-srcfolder', volume, '-volname', 'Zero', '-format', 'UDZO', staged]);
   run('/usr/bin/hdiutil', ['verify', staged]);
   let signing;
   if (signed) {
