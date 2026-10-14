@@ -2587,3 +2587,41 @@ one P2 layout blocker: existing reader/ZeroHub padding could override the Copy
 row. One CSS correction strengthens the shared selector; targeted review43 and
 a rebuilt browser spacing check follow. No other findings; one initial wave and
 one remediation batch. Prior41 reviewer turns remain historical, not new launches.
+
+## Beginner native setup simplification — 2026-10-14
+
+Local branch `codex/setup-smoke-feedback`, base e7c32a2, implementation35daff3.
+Owner requested Preparing Zero wording/progress, removal of normal Details and
+automatic new-folder/setup-only existing-kit preparation. Both native controllers
+now proceed on launch and stop at explicit editor opening. Existing project
+preservation, unrelated-folder refusal, identity/race guards, backups, rollback
+and close gates remain. Failure retains Details and a deliberate retry. Windows
+profile/tool/extension actions stay explicit with their consequences in status.
+Published0.5.10 kit/installer metadata and immutable bytes were not changed.
+
+Verification: Mac Swift/AppKit188 assertions including automatic fresh/update,
+student source/assets/saves/Git/settings preservation, collision and race refusal,
+rollback, failure/retry and shutdown; native preparing/ready/failure views rendered
+and inspected. Safe fixtures only; no host tool installs or account changes.
+Windows full net48 app and harness build with0warnings/errors; Mono235 checks
+passed, including a real disposable setup-file update, backup and preservation.
+Coordinator inspected worker diff and independently reran235 checks. Windows
+Node backend contracts2pass; PowerShell runtime skipped. npm check, installer8
+tests, Mac release2tests and git diff --check passed. No complete installer was
+packaged; an optional older local archive lacked setup/Setup.ps1, so worker did
+not claim real-archive extraction coverage. Physical Windows/PowerShell5.1,
+fresh-machine install and novice interactive trials remain unverified.
+
+windows_setup: requested GPT-6.1Sol/medium, one component writer, delivered and
+verified. Coordinator owned Mac/docs/integration. Independent setup_review/1:
+requested GPT-6.1Sol/high, standard behavioral risk; complete fixed diff
+e7c32a2d6edf09366bedcf6ba3c49b654955d5b1→35daff3aab14c7a712f22262923dde43a0bae349
+and immediate placement/update/runtime/PowerShell/process/UI callers, no findings.
+Reviewer reused source-matched checks, ran whitespace verification and inspected
+AppKit previews. Ledger1launch/1initialwave/0remediation/0integrationwaves; no
+extra wave needed for unchanged reviewed source. Effective model/tokens/exact
+elapsed unknown. Initial harness fixtures assumed the old pause/consent sequence;
+updated to new automatic transitions before acceptance. No production rework or
+file conflicts. Weekly73%remaining at start and storage311GBhealthy are shared
+readings; attributable task usage unknown. DeepSeek pause retained. No push, PR,
+merge, release, signing, notarization or deployment in this scope.
