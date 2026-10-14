@@ -24,7 +24,7 @@ are unsupported. Physical Windows and novice student trials remain unverified; s
 
 ## Download Zero
 
-- [Download for Mac with Apple Silicon — setup 0.5.12](https://github.com/codepetca/zero/releases/download/setup-v0.5.12/Zero-Setup-0.5.12-macos.dmg)
+- [Download for Mac with Apple Silicon — Zero 0.5.13](https://github.com/codepetca/zero/releases/download/setup-v0.5.13/Zero-0.5.13-macos.dmg)
 - [Download for Windows — complete kit ZIP 0.5.10](https://github.com/codepetca/zero/releases/download/v0.5.10/zero-bootstrap.zip); follow `START-HERE.md` for manual setup.
 
 The Windows native EXE is not published. The complete kit is a single ZIP;
@@ -49,8 +49,9 @@ original Zero code is MIT licensed.
 
 Students need VS Code and a supported JDK 17+; Git 2.31+ and browser authentication
 are needed for repository work. They do not need Node.js or global Maven.
-The published Mac0.5.12 setup prepares a private Java runtime and a separate
-quiet editor, then opens Zero automatically. Use its Open Zero launcher to return. Windows uses
+The published Mac0.5.13 app uses the familiar drag-to-Applications flow. Open Zero
+from Applications to prepare its private Java runtime and separate editor automatically.
+Later, open Zero again to restore your saved editor session. Windows uses
 the complete-kit ZIP with manual setup. See [native setup](docs/INSTALLER.md).
 The optional settings-only profile for ZIP/manual setup defaults to light, with 500 ms autosave.
 Import it before installing the local Zero VSIX and Java extensions in that
