@@ -12,7 +12,7 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Zero app for Mac
 
-Published Mac0.5.13 uses the familiar drag-to-Applications flow. Earlier downloads
+Published Mac0.5.14 uses the familiar drag-to-Applications flow. Earlier downloads
 keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
