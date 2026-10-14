@@ -138,9 +138,9 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });
 
-test("one Zero view and its native overflow expose only Tutorials and Setup help",()=>{
+test("Zero controls and Files remain separate native views with minimal overflow",()=>{
   const manifest=require("../package.json");
-  assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions"]);
+  assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions","zero.files"]);
   assert.equal(manifest.contributes.views.zero[0].name,"Zero");
   assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.openFirstLesson","zero.showSetup"]);
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");

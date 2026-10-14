@@ -1,4 +1,4 @@
-# Your course project
+# New Project
 
 Build a project around your own idea: a study tool, game, drawing app, simulation
 or another small interface. Start with the [minimal Zero starter](https://zero.codepet.ca/hub?kind=example&example=zero-starter).

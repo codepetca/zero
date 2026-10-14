@@ -13,6 +13,7 @@ const {createSharingEditor} = require('./sharing/editor');
 const {readKitConfiguration} = require('./sharing/configuration');
 const {createSetupHelp} = require('./setup');
 const {sidebarStyles} = require('./sidebar-style');
+const {libraryLayout} = require('./library-files');
 const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
@@ -446,7 +447,7 @@ function activate(context) {
     const repoName = connected ? repository.slice('https://github.com/'.length) : 'Connect a repository';
     const repoControl = auth.signedIn ? `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repository')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>` : '';
     const branchControl = auth.signedIn && connected && branch ? `<div class="branch-row"><span class="branch" title="${escape(`Current branch: ${branch}`)}">${icon('GitBranch')}${escape(branch)}</span><button class="link change" data-command="${branch === 'main' ? 'zero.startChange' : 'zero.finishChange'}" ${disabled}>${branch === 'main' ? 'New branch' : 'Finish change'}</button></div>` : '';
-    const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Upload changes</button><p class="badge">${uploadMode() === 'live' ? 'Reviews changes before uploading' : 'Simulation — nothing will be uploaded'}</p>` : '';
+    const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Upload changes</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong>${account}</div>${repoControl}${repositoryWarning}${branchControl}${githubActions}`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
@@ -458,7 +459,46 @@ function activate(context) {
     candidate.webview.onDidReceiveMessage(message => {if (message && Object.hasOwn(actions, message.command)) vscode.commands.executeCommand(message.command);}, undefined, context.subscriptions);
     candidate.onDidDispose(() => {view = undefined;}, undefined, context.subscriptions); refresh(); repositoryStatus();
   }}));
-  context.subscriptions.push(output);
+  const changes = new vscode.EventEmitter();
+  const files = {
+    onDidChangeTreeData:changes.event,
+    getTreeItem:entry => {
+      const item = new vscode.TreeItem(entry.label || entry.uri, entry.directory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
+      item.resourceUri = entry.uri;
+      if (!entry.directory) item.command = {command:'vscode.open', title:'Open file', arguments:[entry.uri]};
+      return item;
+    },
+    getChildren:async entry => {
+      try {
+        const root = entry ? entry.uri.fsPath : await project();
+        const visible = async (directory, omit = []) => (await fs.readdir(directory, {withFileTypes:true}))
+          .filter(child => !['.git','target','node_modules','.DS_Store','.zero-sharing-recovery', ...omit].includes(child.name) && !child.isSymbolicLink())
+          .sort((a,b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name))
+          .map(child => ({uri:vscode.Uri.file(path.join(directory, child.name)), directory:child.isDirectory()}));
+        if (entry) return visible(root, entry.projectFiles ? ['src','README.md'] : []);
+        const library=await libraryLayout(root);
+        const nested=await fs.lstat(path.join(root,'libraries')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+        if(library) return [
+          ...await visible(library.sources),
+          {uri:vscode.Uri.file(library.readme),directory:false},
+          {label:'Examples',uri:vscode.Uri.file(library.examples),directory:true},
+          {label:'Checks',uri:vscode.Uri.file(library.checks),directory:true},
+          {label:'Project files',uri:vscode.Uri.file(root),directory:true,projectFiles:true}
+        ];
+        return [
+          ...await visible(path.join(root, 'src/main/java'), ['zero']),
+          ...(nested?.isDirectory()&&!nested.isSymbolicLink()?[{label:'Libraries',uri:vscode.Uri.file(path.join(root,'libraries')),directory:true}]:[]),
+          {label:'Resources', uri:vscode.Uri.file(path.join(root,'src/main/resources')), directory:true},
+          {label:'Toolkit', uri:vscode.Uri.file(path.join(root,'src/main/java/zero')), directory:true},
+          {uri:vscode.Uri.file(path.join(root,'README.md')), directory:false},
+          {label:'Project files', uri:vscode.Uri.file(root), directory:true, projectFiles:true}
+        ];
+      } catch(error) {output.appendLine(`Files: ${error.message}`); return [];}
+    }
+  };
+  context.subscriptions.push(output, changes, vscode.window.registerTreeDataProvider('zero.files', files));
+  const watcher = vscode.workspace.createFileSystemWatcher('**/*');
+  for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git|\.zero-sharing-recovery)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
     if (!projectRoot) return;
@@ -466,7 +506,7 @@ function activate(context) {
     if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  context.subscriptions.push(metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; repositoryStatus(); void introduceProject().catch(error => output.appendLine(`Getting started: ${error.message}`));}));
+  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus(); void introduceProject().catch(error => output.appendLine(`Getting started: ${error.message}`));}));
   context.subscriptions.push({dispose:() => {if (execution) execution.terminate();}});
   void introduceProject().catch(() => {});
 }

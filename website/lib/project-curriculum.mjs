@@ -1,3 +1,5 @@
+import {templateDefinition} from "./project-templates.mjs";
+
 // Discovery is intentionally smaller than the canonical lesson/source inventory.
 // Existing checkpoint URLs and complete downloads remain available.
 export const courseStarterId = "zero-starter";
@@ -7,7 +9,7 @@ export const advancedProjectIds = Object.freeze(["composed-study", "composed-gam
 /** @type {Readonly<Record<string, {title: string, challenge: string}>>} */
 export const projectGuides = Object.freeze({
   "zero-starter": {
-    title: "Your course project",
+    title: "New Project",
     challenge: "Describe your own project idea in the README, then change the greeting into the first part of your interface.",
   },
   "hello-app": {
@@ -47,6 +49,15 @@ export function selectHubProject(snapshot, id) {
 
 export function projectNavigation(snapshot, current) {
   const item = project => ({id: project.id, title: projectTitle(project), href: projectHref(project.id)});
+  const starter = item(snapshot.starter);
+  // Generated template links exist only after publication validation. Keep the
+  // ZIP/instructions page as the fallback when no published template is present.
+  if (snapshot.starter.templateHref) {
+    const href = templateDefinition(courseStarterId).templateHref;
+    if (snapshot.starter.templateHref !== href) throw new Error("Invalid starter template link");
+    starter.href = href;
+    starter.external = true;
+  }
   const byId = new Map(snapshot.projects.map(project => [project.id, project]));
   const group = ids => ids.map(id => {
     const project = byId.get(id);
@@ -57,5 +68,5 @@ export function projectNavigation(snapshot, current) {
   const advanced = group(advancedProjectIds);
   const checkpoint = current.id !== courseStarterId
     && ![...featuredProjectIds, ...advancedProjectIds].includes(current.id) ? item(current) : null;
-  return {starter: item(snapshot.starter), featured, advanced, checkpoint};
+  return {starter, featured, advanced, checkpoint};
 }

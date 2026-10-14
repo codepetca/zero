@@ -34,6 +34,7 @@ const documentPaths = {
   setup: "docs/GETTING-STARTED.md",
   "course-project": "docs/COURSE-PROJECT.md",
   api: "student-template/API.md",
+  "app-guide": "student-template/APP-GUIDE.md",
   beginner: "student-template/BEGINNER.md",
   style: "student-template/STYLE.md",
   ui: "student-template/UI.md",

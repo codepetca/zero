@@ -13,7 +13,7 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 | Home page with app header, Learn Java and two buttons | Owner-requested replacement 2026-10-13; shared light/dark themes. |
 | Shared Learn/downloads design in light and dark | Owner-approved 2026-10-13; applies to the tutorial reader and Downloads. |
 | Minimal editor sidebar in light and dark | Owner-approved 2026-10-13: one Run/Stop, GitHub and ZeroHub view; idle status hidden; Sign in/username; New branch; Tutorials/Setup overflow. Native VS Code adaptation remains required. |
-| Docs reader | Owner-requested 2026-10-13; direct setup with shared reader/sidebar and themes. |
+| Docs reader | Owner-approved 2026-10-14 API mock: method/category sidebar, search and concise entries; preserve current shared navigation, themes and code copying. Setup and longer guides stay linked. |
 | ZeroHub examples | Owner-requested 2026-10-13; minimal original-project starter, four practice projects and three optional advanced projects; maintained complete downloads, real previews and source links; no Examples top-menu entry. |
 | Community Hub | Existing library/project contracts and publication behavior retained. |
 
@@ -111,3 +111,11 @@ the branch. ZeroHub has Browse and Share project. Tutorials and Setup help move
 to native overflow, Copy repository link stays in repository actions. Idle status
 is empty. Existing local-practice, native authentication, reviewed Git/sharing,
 simulation and published-release boundaries remain in force.
+
+## Collapsible controls and file viewer — owner correction, 2026-10-14
+
+This supersedes the earlier single-view/non-collapsible arrangement. Restore the
+separate Files tree below a native collapsible Zero controls view. Keep Run/Stop,
+GitHub and ZeroHub together; collapsing Zero leaves Files accessible. Native
+Explorer remains available. Only simulation mode shows the static upload notice.
+Native themes, local-practice restrictions and existing command/review guards stay.

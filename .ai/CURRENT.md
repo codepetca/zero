@@ -21,3 +21,8 @@ fake/native harness. Weekly67%remaining/storage307GBhealthy; telemetry unknown,
 DeepSeek paused. Next integrate/tests/independent source review, clean signed build,
 notarize/seal/two artifact reviews, sourceCI/merge, exact-byte one-DMG publication,
 reviewed metadata/link promotion/CI/liveproof. No goal/chat/automation created.
+
+Concurrent main integration: retained approved API docs publication and native
+Files view from main3b97341. Their source/design/guide/evidence changes are preserved;
+installer PR56 excludes those already-main changes. Native launch code unchanged
+by main integration. Incoming handoff: # Current state — API docs publication  Updated2026-10-14. Owner authorized publishing the approved searchable API layout. Branch codex/publish-api-docs starts at current origin/main7e67ce0 and preserves current shared navigation/themes/code copy and all download/tutorial metadata. Website typecheck/build87tests pass; adapter covers42 current declarations. Funding draft remains only in the original checkout. Delivery/CI/live verification are recorded in the docs publication PR; no installer/binary release is included.

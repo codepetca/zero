@@ -135,7 +135,8 @@ node scripts/verify-installers.mjs --platform macos --signed
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
 not a secret). A new signed candidate would be `Zero-0.5.13-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
-The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
+The current app bundle identifier is `ca.codepet.zero`; releases through0.5.12
+retain `ca.codepet.zero.setup`. Its explicit plist marker
 removes unsigned-development labels and shows only Zero/version. Signed
 mode requires macOS and explicit `--platform macos`; Windows remains deferred.
 
