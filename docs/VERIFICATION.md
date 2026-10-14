@@ -1,5 +1,27 @@
 # Verification
 
+## Five flow audit fixes — local, 2026-10-14
+
+Isolated worktree `fix-five-flow-issues/zero` starts at published `437ae7c`.
+Downloads and initial lessons link to setup; platform/version notes derive from
+available release metadata. Current repository/account/branch instructions match
+the sidebar, bundled README includes per-repository identity commands and a direct
+online guide, tutorial9 controls link targets its current heading, and sharing
+uses the shared light/dark wrapper with readable notice/form/code surfaces.
+
+Configuration/syntax/local-link check,94website tests, typecheck and production
+build pass. Browser verifies both setup links, the repaired heading target,
+Hub→Share dark-theme continuity and light switching,320px download/share reflow,
+mobile navigation and zero captured errors/warnings. Screenshots are ignored in
+`.verification/flow-fixes/`. Browser QA corrected one inherited light notice
+background before review. Unchanged editor259pass/1skip results from the audit
+are reused; no extension/runtime code changed and no new unit tests mirror prose.
+
+Published kit/DMG bytes remain immutable; bundled-guide improvements enter a
+future versioned release. No push, publication, deployment or credentials change.
+Native installation/editor interaction, physical Windows, real upload/Pika and
+screen-reader checks remain unverified. Independent source review is next.
+
 ## Calm Windows setup — local 0.5.6, 2026-10-11
 
 Final runtime source `889e76690b2cc10835d16b12c0b4c8fa1bd311c3` is independently

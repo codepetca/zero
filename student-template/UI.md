@@ -127,7 +127,7 @@ not extra APIs required by these tutorials.
 
 1. Run [the study app](lessons/07-study-app.md); check a wrong answer, advance,
    finish and restart.
-2. Run [one coin with controls](lessons/09-coin-game.md#3-add-native-controls-and-restart).
+2. Run [one coin with controls](lessons/09-coin-game.md#4-add-a-native-score-and-restart).
 3. Run [the shared score display lesson](lessons/10-components.md) in both the
    study app and coin game. Change its presentation once and try both again.
 

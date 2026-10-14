@@ -194,7 +194,7 @@ For each improvement:
 3. **Upload changes** to save a Git commit and upload progress to this branch.
    Describe what changed and review before **Commit & Upload**. You can repeat
    this while building; it does not yet add the change to main.
-4. Click the branch name → **Finish change**. Upload any pending edits first.
+4. Click **Finish change** beside the branch name. Upload any pending edits first.
    Check the preview before approving the merge and upload to main. If GitHub
    has newer main changes, Zero incorporates them into your change branch and
    pauses. Run the combined app, then choose Finish change again for a fresh

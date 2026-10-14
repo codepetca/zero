@@ -7,6 +7,8 @@ body:has(.learn-theme) { min-width: 0; }
   --purple: var(--zero-accent);
   --hover: var(--zero-accent-hover);
   --line: var(--zero-border);
+  --pale: var(--zero-surface);
+  --outline: var(--zero-border);
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -332,6 +334,17 @@ body:has(.learn-theme) { min-width: 0; }
 .learn-theme .downloads-page .download-section { width: min(100%, 340px); }
 .learn-theme .downloads-page .hub-actions { flex-direction: column; }
 .learn-theme .downloads-page .button { width: 100%; }
+.learn-theme .download-help { max-width: 40ch; margin-top: var(--zero-space-4); font-size: .9rem; color: var(--zero-muted); }
+.learn-theme .download-help p { margin: 0 0 var(--zero-space-2); }
+
+.learn-theme .reading { width: 100%; min-width: 0; }
+.learn-theme .reading section { border-color: var(--zero-border); }
+.learn-theme .reading .hub-note { background: var(--zero-surface); color: var(--zero-muted); }
+.learn-theme .reading code,
+.learn-theme .reading pre { background: var(--zero-surface); color: var(--zero-text); }
+.learn-theme .reading pre code { background: none; }
+.learn-theme .reading .primary { background: var(--zero-accent); border-color: var(--zero-accent); color: var(--zero-on-accent); }
+.learn-theme .reading .primary:hover { background: var(--zero-accent-hover); border-color: var(--zero-accent-hover); }
 
 .learn-theme .home-page {
   display: flex;
