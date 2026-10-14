@@ -1,5 +1,3 @@
-import { Document } from "@/components/Document";
-export const metadata = { title: "Getting started · Docs" };
-export default function Docs() {
-  return <Document id="setup" />;
-}
+import { ApiDocs } from '@/components/ApiDocs';
+export const metadata = { title: 'Zero API reference · Docs' };
+export default function Docs() { return <ApiDocs />; }
