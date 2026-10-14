@@ -120,6 +120,17 @@ struct SetupTests {
             default: fake.checkOutput = snapshot()
             }
             fake.onRun = { command in
+                if scenario == "progress" {
+                    fake.delay = command.arguments.contains("--native-install") ? 60 : 5
+                    if command.arguments.contains("--native-install") {
+                        for (index, token) in ["java", "editor", "settings", "zero", "redhat", "verify"].enumerated() {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index + 1) * 8) {
+                                fake.progress?(token)
+                                print("Safe fake progress: \(token)")
+                            }
+                        }
+                    }
+                }
                 if command.executable == "/usr/bin/open" { fake.checkOutput = snapshot(["profile": 0, "zero": 0, "redhat": 0]) }
                 if command.arguments.contains("--native-profile") && scenario != "profile-unfinished" { fake.checkOutput = snapshot(["zero": 0, "redhat": 0]) }
                 if command.arguments.contains("--native-install") { fake.checkOutput = snapshot() }
@@ -138,7 +149,7 @@ struct SetupTests {
                 try "student save".write(to: existing.appendingPathComponent("starter/save.dat"), atomically: true, encoding: .utf8)
                 try "old setup".write(to: existing.appendingPathComponent("setup/README.md"), atomically: true, encoding: .utf8)
                 controller.check()
-            } else if scenario == "folder" { controller.check() }
+            } else if scenario == "folder" || scenario == "progress" { controller.check() }
             else { controller.place(parent: parent, name: "Preview kit") }
             print("Safe interactive preview scenario: \(scenario). All commands fake; folder \(temporary.path)")
             app.run()
@@ -673,7 +684,8 @@ struct SetupTests {
             let bar = content.subviews.compactMap { $0 as? NSProgressIndicator }.first!
             let output = URL(fileURLWithPath: CommandLine.arguments[option + 1])
             func render(_ destination: URL) throws {
-                // Let the native bar finish animating its value before caching pixels.
+                // Allow queued layout/drawing work before caching the offscreen view.
+                // Verify visible fill with the interactive progress scenario instead.
                 RunLoop.current.run(until: Date().addingTimeInterval(0.4))
                 content.layoutSubtreeIfNeeded()
                 guard let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds) else { throw SetupFailure(message: "Cannot render preview") }
@@ -697,6 +709,13 @@ struct SetupTests {
             try expect(primary.title == "Open Zero" && !primary.isHidden && details.isHidden, "ready shows only Open Zero")
             try expect(!bar.isHidden && bar.doubleValue == bar.maxValue, "ready bar is complete")
             try render(output)
+            previewRunner.paused = true
+            previewController.primaryAction()
+            try expect(bar.isIndeterminate && !bar.isHidden && primary.isHidden, "opening shows a busy bar and prevents duplicate actions")
+            previewRunner.finish()
+            try expect(!bar.isIndeterminate && bar.doubleValue == bar.maxValue && primary.title == "Open Zero again" && !primary.isHidden,
+                       "completed opening restores a full bar and the repeat action")
+            previewRunner.paused = false
             previewRunner.result = CommandResult(exitCode: 42, output: "Fake network failure; no host changes.", timedOut: false, launchError: nil)
             previewController.primaryAction()
             try expect(primary.title == "Try again" && !primary.isHidden && !details.isHidden, "failure retains retry and diagnostics")

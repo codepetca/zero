@@ -1,6 +1,6 @@
 # Start with Zero
 
-This kit contains Zero **0.5.9** for **Mac with Apple Silicon** and **Windows**.
+This kit contains Zero **0.5.11** for **Mac with Apple Silicon** and **Windows**.
 Linux and Intel Macs are unsupported.
 
 ## Zero setup app
@@ -43,7 +43,7 @@ work, not for running the first app. Sign in only when you are ready to upload.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.9.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.11.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
