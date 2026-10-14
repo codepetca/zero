@@ -1,7 +1,7 @@
 # Minimal Zero sidebar delivery
 
 Owner approved the prototype and authorized separate extension and website PRs
-and merges on 2026-10-13. Base: main 5c4a3fd; published releases remain immutable.
+and merges on 2026-10-13. Initial base: main 5c4a3fd; rebased onto merged website PR45 (568d2d9); published releases remain immutable.
 
 One Zero view replaces Your app/Files: native Explorer handles files. Run/Stop
 stays at the top, with no internal collapse control and no idle Ready label.
@@ -31,5 +31,15 @@ Supported single-view contribution removes the internal accordion; users retain
 VS Code's view rearrangement/hiding controls. Windows/student live GitHub flows
 remain unverified. Frozen 0.5.8 and newer main release manifests are unchanged.
 
-Independent review and exact-head CI are required before merge; final receipt
-will be recorded in the coordinator handoff after delivery.
+Independent initial Sol/medium review: clean, complete 16-file scope and relevant
+callers at f6af241; installed VS Code source corroborates supported single-view
+container behavior, with native proof still absent. Website PR45 independently
+reviewed, green CI, merged568d2d9; automatic production deployment7055923363 is
+successful. Browser verified live starter route/template/clone controls before
+sidebar integration. Additive design table conflict resolved preserving both
+approvals; 16 integrated extension checks, 78 website tests and typecheck passed.
+Related course/Hub/generated README wording now says New branch and explains the
+older-kit Start a change label. Public template repositories are not rewritten.
+One integration correction batch; final delta review/CI receipt in coordinator
+handoff after merge. Requested Sol/medium, effective telemetry/time/tokens unknown.
+Account weekly19%used is not attributable effort; storage322GBhealthy, no cleanup.

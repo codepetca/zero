@@ -91,7 +91,7 @@ function templateWorkflow() {
    If edits are pending, use **Upload changes** on **main** before starting a
    change. Write a commit message, review your repository, branch and changed
    files, then confirm Commit & Upload.
-3. With clean committed main, click **main → Start a change** and review the new
+3. With clean committed main, choose **New branch** beside main (**Start a change** in older kits) and review the new
    branch. Edit the Java, choose **Run App**, and check the behavior you changed.
 4. **Upload changes** with an explanatory commit message. Review the destination
    and changed files. Upload any pending edits before finishing.
@@ -120,7 +120,7 @@ function repositoryWorkflow() {
    the default simulation makes no Git changes and uploads nothing.
 4. Use **Upload changes** on **main** for the initial project. Write a commit
    message, check the repository, branch and files, then confirm Commit & Upload.
-5. For an improvement, click **main → Start a change** and review the new branch.
+5. For an improvement, choose **New branch** beside main (**Start a change** in older kits) and review the new branch.
    Edit the Java, choose **Run App**, and check the behavior you changed.
 6. **Upload changes** with an explanatory commit message, such as "Add feedback
    after an incorrect answer". Review the destination and changed files.

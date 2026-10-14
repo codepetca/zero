@@ -239,7 +239,8 @@ test("starter and featured downloads give concrete changes and the actual indivi
     assert.match(readme, /zero\.uploadMode.*live/);
     assert.match(readme, /simulation makes no Git changes/);
     assert.match(readme, /Upload changes.*main/);
-    assert.match(readme, /Start a change/);
+    assert.match(readme, /New branch/);
+    assert.match(readme, /Start a change.*older kits/);
     assert.match(readme, /explanatory commit message/);
     assert.match(readme, /Finish change/);
     assert.match(readme, /GitHub's.*main.*branch/);
@@ -336,7 +337,8 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(readme, /signing in does\n   not configure commit identity/);
     assert.match(readme, /simulation makes no Git changes and uploads nothing/);
     assert.match(readme, /Upload changes.*main.*before starting a/);
-    assert.match(readme, /Start a change/);
+    assert.match(readme, /New branch/);
+    assert.match(readme, /Start a change.*older kits/);
     assert.match(readme, /Upload any pending edits before finishing/);
     assert.match(readme, /Finish merges into main directly; it does not create a pull request/);
     assert.match(readme, /link separately in Pika/);
