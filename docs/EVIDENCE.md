@@ -2539,3 +2539,14 @@ tests7/7passed. New candidate `dist/candidates/mac-0.5.10-4c125da3b3cc/` sealed 
 598706e-built artifacts at preparation4c125da; every SHA256SUMS entry passed. Mac
 unlock/physical checks, exact public release bytes, promotion review/CI/merge/live
 proof remain. PR44 source is reviewed/CI-passed, but stays draft for coupled rollout.
+
+## Mac walkthrough resumed after owner unlock — 2026-10-13
+
+Native UI reopened only the isolated Study/Game projects, dismissed the optional
+lesson-browser prompt and clicked Zero Run App in separate private editor windows.
+Study and Game both compiled/started with byte-identical current canonical framework
+sources. Study rerun stopped oldPID39412 and started46141; Game started43532.
+JavaFX windows are outside the connector's inspectable surfaces; owner visual
+padding and arrow-before/after-Restart answer remains pending. No physical pass is
+inferred from unlock or process launch. Receipt: `.verification/simple-app-padding/mac-runs.json`.
+No student repositories, accounts, public releases or sealed bytes changed.

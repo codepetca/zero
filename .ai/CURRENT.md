@@ -16,8 +16,11 @@ Local configuration check, finite checkpoints3/7/10study and Study example passe
 Independent source review39 (Sol/medium) found no blockers. Exact head598706e
 passed full CI38494195492, including all native padding/input/error cases. PR44
 remains draft so new API lesson instructions and compatible published kit links
-can merge together. Native editor test hit
-locked Mac; do not bypass unlock or claim visible padded app inspected.
+can merge together. Owner unlocked the Mac; native editor UI reopened Study and Game in separate
+owned windows and clicked Run App. Both compiled/running JavaFX processes use
+current canonical SimpleApp/SketchApp. Study rerun stopped priorPID39412; new
+Study46141/Game43532. Owner visual Study-padding and coin-movement-before/after
+Restart question is pending; do not claim those physical observations.
 
 Mac/kit0.5.9 remain public and immutable. Arrow-focus fix PR42 is merged4c364367;
 reviewed0510source passed full CI38492387823. The owned coin game runs that fix;
