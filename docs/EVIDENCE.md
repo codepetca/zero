@@ -2975,3 +2975,12 @@ UIguidance, stored tests/previews and diffcheck complete; no actionable blockers
 under2min. Effective model/tokens unknown; one launch, nofix/rework, no redundant
 suite rerun. Local source only: published13DMG remains unchanged, no native rebuild,
 signing/notarization/upload/publication in this correction. Primary checkout untouched.
+## 2026-10-14 — compact API section banners
+
+Owner requested smaller sticky category headers, no subtitles and a distinct
+background as a follow-up to the published Docs page. API sections now use22px
+desktop/18px phone headings with restrained theme-surface backgrounds. Method
+anchors and active navigation derive from the smaller sticky clearance.
+Website typecheck/build and94tests pass. No API content or unrelated release,
+installer, funding or tutorial behavior changed. Publication follows the current
+Docs authorization; browser/review/CI/live receipt is recorded in the delivery PR.
