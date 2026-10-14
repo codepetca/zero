@@ -2,13 +2,23 @@ import AppKit
 
 final class SetupApplication: NSObject, NSApplicationDelegate {
     var setupWindow: SetupWindow?
+    var handOff: () -> Void = { NSApp.terminate(nil) }
     func applicationDidFinishLaunching(_ notification: Notification) {
         let resources = Bundle.main.resourceURL ?? Bundle.main.bundleURL.appendingPathComponent("Contents/Resources")
         let controller = SetupController(kit: SetupKit(root: resources.appendingPathComponent("kit")))
+        start(controller)
+    }
+    func start(_ controller: SetupController) {
         setupWindow = SetupWindow(controller: controller)
+        controller.opened = { [weak self] in self?.handOff() }
         setupWindow?.showWindow(nil)
-        controller.check()
+        controller.launch()
         NSApp.activate(ignoringOtherApps: true)
+    }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        setupWindow?.showWindow(nil)
+        sender.activate(ignoringOtherApps: true)
+        return true
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
@@ -23,8 +33,8 @@ struct SetupBuildLabel {
         development = info["ZeroDevelopmentBuild"] as? Bool ?? true
         version = info["CFBundleShortVersionString"] as? String ?? ""
     }
-    var windowTitle: String { development ? "Zero Setup — unsigned development build" : "Zero Setup" }
-    var detail: String { development ? "Unsigned development build · local testing only" : "Zero Setup \(version)" }
+    var windowTitle: String { development ? "Zero — unsigned development build" : "Zero" }
+    var detail: String { development ? "Unsigned development build · local testing only" : "Zero \(version)" }
 }
 
 final class SetupWindow: NSWindowController, NSWindowDelegate {
@@ -98,7 +108,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     @objc private func showDetails() {
         let detailWindow = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 700, height: 460),
                                     styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
-        detailWindow.title = "Zero Setup Details"
+        detailWindow.title = "Zero Details"
         let text = NSTextView()
         text.isEditable = false; text.isSelectable = true
         text.font = .monospacedSystemFont(ofSize: 12, weight: .regular)

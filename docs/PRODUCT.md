@@ -217,6 +217,12 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   Published Mac0.5.11 still offers Open Zero at completion.
   Previous Mac0.5.10 downloads retain their original Set up Zero and Update Zero
   confirmations.
+  Current Mac0.5.13 source ships a persistent Zero.app with an Applications shortcut
+  on the DMG. Students drag Zero into Applications, open it for first preparation,
+  and use that app to reopen the isolated editor later. Successful handoff closes
+  the preparation window; healthy reopening verifies owned runtime/readiness and
+  restores the saved editor session without kit copies or backups. Student work
+  and later editor choices remain intact. The bundled guide is updated for13.
   See [native setup](INSTALLER.md).
 - An optional settings-only profile defaults to light with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing

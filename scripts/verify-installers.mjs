@@ -5,6 +5,8 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {root, releaseDefinition} from './release.mjs';
 import {kitEntries} from './installer-payload.mjs';
+import {macArtifactIdentity} from './mac-artifact.mjs';
+import {verifyMacVolume, verifyMacPlist} from './mac-volume.mjs';
 import {installerOptions, verifyMacSignature} from './installer-signing.mjs';
 
 const {platform, signed} = installerOptions(process.argv.slice(2), 'verify');
@@ -26,7 +28,8 @@ function command(command, args) {
 function run(executable, args) { return command(executable, args).stdout; }
 for (const asset of receipt.artifacts) {
   const suffix = asset.platform === 'windows' ? 'windows-development.exe' : `macos${signed ? '' : '-development'}.dmg`;
-  assert.equal(asset.filename, `Zero-Setup-${release.kitVersion}-${suffix}`);
+  const artifactIdentity = macArtifactIdentity(release.kitVersion, signed);
+  assert.equal(asset.filename, asset.platform === 'windows' ? `Zero-Setup-${release.kitVersion}-${suffix}` : artifactIdentity.filename);
   const file = path.join(directory, asset.filename), bytes = readFileSync(file);
   assert.equal(bytes.length, asset.size); assert.equal(sha256(bytes), asset.sha256);
   if (asset.platform === 'windows') {
@@ -47,12 +50,10 @@ for (const asset of receipt.artifacts) {
   let attached = false;
   try {
     run('/usr/bin/hdiutil', ['attach', '-readonly', '-nobrowse', '-mountpoint', mount, file]); attached = true;
-    const contents = path.join(mount, 'Zero Setup.app/Contents');
+    const app = verifyMacVolume(mount, artifactIdentity, signed);
+    const contents = path.join(app, 'Contents');
     const plist = JSON.parse(run('/usr/bin/plutil', ['-convert', 'json', '-o', '-', path.join(contents, 'Info.plist')]));
-    assert.equal(plist.CFBundleShortVersionString, release.kitVersion);
-    assert.equal(plist.CFBundleExecutable, 'ZeroSetup');
-    assert.equal(plist.CFBundleIdentifier, signed ? 'ca.codepet.zero.setup' : 'ca.codepet.zero.setup.development');
-    assert.equal(plist.ZeroDevelopmentBuild ?? true, !signed, 'Signed app requires explicit non-development marker');
+    verifyMacPlist(plist, artifactIdentity, release.kitVersion, signed, contents);
     assert.deepEqual(asset.architectures, ['arm64', 'x86_64']);
     assert.equal(asset.minimumOS, '12.0');
     assert.equal(plist.LSMinimumSystemVersion, '12.0');
@@ -81,8 +82,7 @@ for (const asset of receipt.artifacts) {
       const scratch = mkdtempSync(path.join(root, '.verification/native-installer/signature-'));
       try {
         const options = {identity:asset.signing.identitySha1, team:asset.signing.teamIdentifier};
-        const app = path.join(mount, 'Zero Setup.app');
-        const appSignature = verifyMacSignature(command, app, path.join(scratch, 'app'), {...options, app:true});
+        const appSignature = verifyMacSignature(command, app, path.join(scratch, 'app'), {...options, app:true, ...(artifactIdentity.legacy ? {legacyArtifact:{kitVersion:release.kitVersion, filename:asset.filename}} : {})});
         const dmgSignature = verifyMacSignature(command, file, path.join(scratch, 'dmg'), options);
         assert.deepEqual(appSignature, asset.signing.app);
         assert.deepEqual(dmgSignature, asset.signing.dmg);

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFileSync, rmSync} from 'node:fs';
 
+import {macArtifactIdentity} from './mac-artifact.mjs';
+
 export const developerIdRequirement = 'anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists';
 
 export function installerOptions(args, mode, host = process.platform) {
@@ -26,7 +28,7 @@ export function installerOptions(args, mode, host = process.platform) {
 export function installerPlist(template, version, signed) {
   for (const token of ['__KIT_VERSION__', '__BUNDLE_IDENTIFIER__', '__DEVELOPMENT_BUILD__']) assert.ok(template.includes(token), `Native plist must use ${token}`);
   return template.replaceAll('__KIT_VERSION__', version)
-    .replaceAll('__BUNDLE_IDENTIFIER__', signed ? 'ca.codepet.zero.setup' : 'ca.codepet.zero.setup.development')
+    .replaceAll('__BUNDLE_IDENTIFIER__', signed ? 'ca.codepet.zero' : 'ca.codepet.zero.development')
     .replaceAll('__DEVELOPMENT_BUILD__', signed ? 'false' : 'true');
 }
 
@@ -37,7 +39,16 @@ export function signMacArtifact(run, target, identity, app) {
 
 // All signature evidence comes from the verified artifact, never a Keychain query.
 // run returns separate stdout/stderr strings; certificate files are scoped to scratch.
-export function verifyMacSignature(run, target, scratchPrefix, {app = false, identity, team} = {}) {
+export function verifyMacSignature(run, target, scratchPrefix, {app = false, identity, team, legacyArtifact} = {}) {
+  let bundleIdentifier = 'ca.codepet.zero';
+  if (legacyArtifact !== undefined) {
+    assert.ok(app, 'Legacy identity applies only to app verification');
+    assert.deepEqual(Object.keys(legacyArtifact).sort(), ['filename', 'kitVersion']);
+    const legacy = macArtifactIdentity(legacyArtifact.kitVersion);
+    assert.ok(legacy.legacy, 'Only known legacy release generations may use the setup identifier');
+    assert.equal(legacyArtifact.filename, legacy.filename, 'Legacy app identity requires its exact artifact filename');
+    bundleIdentifier = legacy.bundleIdentifier;
+  }
   run('/usr/bin/codesign', ['--verify', '--strict', '--verbose=2', '-R', `=${developerIdRequirement}`, target]);
   const architectures = app ? ['arm64', 'x86_64'] : [null];
   const evidence = [];
@@ -51,7 +62,7 @@ export function verifyMacSignature(run, target, scratchPrefix, {app = false, ide
     assert.ok(authority?.startsWith('Developer ID Application: ') && authority.endsWith(`(${teamIdentifier})`), 'Developer ID Application authority');
     assert.ok(timestamp && timestamp !== 'none', 'Secure signing timestamp required');
     if (app) {
-      assert.equal(field('Identifier'), 'ca.codepet.zero.setup', 'Signed app bundle identifier');
+      assert.equal(field('Identifier'), bundleIdentifier, 'Signed app bundle identifier');
       assert.ok(/^CodeDirectory .*flags=0x[0-9a-f]+\([^\n]*\bruntime\b[^\n]*\)/mi.test(output), 'App hardened runtime required');
       const entitlements = run('/usr/bin/codesign', ['--display', '--entitlements', ':-', ...archArgs, target]);
       assert.equal(entitlements.stdout.trim(), '', 'App must not carry entitlements');

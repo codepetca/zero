@@ -49,6 +49,11 @@ struct MacRuntime {
     var jdk: URL { root.appendingPathComponent("runtime/jdk-" + assets["jdk"]!.sha256) }
     var editor: URL { root.appendingPathComponent("runtime/vscode-" + assets["vscode"]!.sha256) }
     var isolated: [String] { ["--user-data-dir", userData.path, "--extensions-dir", extensions.path] }
+    func editorArguments(resuming: Bool) -> [String] {
+        // With no folder/new-window argument VS Code restores its saved Zero
+        // session. The first launch explicitly opens the bundled starter.
+        isolated + (resuming ? [] : ["--new-window", kit.appendingPathComponent("starter").path])
+    }
     static func mkdir(_ url: URL) throws {
         if try KitUpdatePlan.identity(url) == nil {
             try mkdir(url.deletingLastPathComponent())
@@ -285,9 +290,9 @@ struct MacRuntime {
             switch Array(arguments.dropFirst()) {
             case ["--native-check"]: _ = try runtime.check()
             case ["--native-install", "--approved"]: try runtime.configure()
-            case ["--native-open"]:
+            case ["--native-open"], ["--native-resume"]:
                 guard try runtime.check(), let java = try runtime.javaHome(), let cli = try runtime.editorCLI(java) else { throw SetupFailure(message: "Readiness changed. Run setup again.") }
-                _ = try execute(cli.path, runtime.isolated + ["--new-window", runtime.kit.appendingPathComponent("starter").path], environment: runtime.environment(java))
+                _ = try execute(cli.path, runtime.editorArguments(resuming: arguments.last == "--native-resume"), environment: runtime.environment(java))
             default: throw SetupFailure(message: "Invalid native setup action.")
             }
             return 0

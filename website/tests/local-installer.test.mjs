@@ -21,6 +21,11 @@ async function fixture(t) {
   await writeFile(join(root, '.gitignore'), 'dist/\n');
   const inputs = {
     'release/sharing.json': '{"schema":1,"catalogUrl":"https://zero.codepet.ca/api/sharing/catalog","artifactOrigin":"https://fixture.public.blob.vercel-storage.com","policyRevision":"' + 'a'.repeat(40) + '"}\n',
+    'scripts/mac-artifact.mjs': '// artifact identity fixture\n',
+    'scripts/mac-icon.mjs': '// icon generator fixture\n',
+    'scripts/mac-volume.mjs': '// volume verifier fixture\n',
+    'extension/media/zero.svg': '<svg>original brand</svg>\n',
+    'design/tokens.json': '{"accent":"#683bef"}\n',
     'scripts/release-review.mjs': 'export const packageInput = "original";\n',
     'sharing/harness/ZeroLibraryHarness.java': '// Original packaged harness fixture\n',
   };
@@ -51,8 +56,8 @@ async function fixture(t) {
   return {root, inputs, manifest, kit, bytes, sourceRevision};
 }
 
-test('signed Mac preparation and serving reject changed sharing package inputs', async t => {
-  for (const name of ['release/sharing.json', 'scripts/release-review.mjs', 'sharing/harness/ZeroLibraryHarness.java']) {
+test('signed Mac preparation and serving reject changed package and app brand inputs', async t => {
+  for (const name of ['release/sharing.json', 'scripts/release-review.mjs', 'sharing/harness/ZeroLibraryHarness.java', 'scripts/mac-artifact.mjs', 'scripts/mac-icon.mjs', 'scripts/mac-volume.mjs', 'extension/media/zero.svg', 'design/tokens.json']) {
     await t.test(name, async t => {
       const f = await fixture(t);
       const read = () => verifiedLocalInstaller(f.root, f.manifest, f.kit);

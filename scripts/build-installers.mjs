@@ -1,9 +1,12 @@
-import {readFileSync, writeFileSync, mkdirSync, mkdtempSync, copyFileSync, rmSync, readdirSync} from 'node:fs';
+import {readFileSync, writeFileSync, mkdirSync, mkdtempSync, copyFileSync, rmSync, readdirSync, symlinkSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {root, releaseDefinition} from './release.mjs';
 import {extractKit, kitEntries} from './installer-payload.mjs';
+import {buildMacIcon} from './mac-icon.mjs';
+import {macArtifactIdentity} from './mac-artifact.mjs';
+import {macInstallInstructions, macDevelopmentNotice} from './mac-volume.mjs';
 import {installerOptions, installerPlist, signMacArtifact, verifyMacSignature} from './installer-signing.mjs';
 
 const {platform, identity, signed} = installerOptions(process.argv.slice(2), 'build');
@@ -31,12 +34,17 @@ function measure(filename, fields) {
 if (platform !== 'windows') {
   if (process.platform !== 'darwin') throw new Error('macOS DMG builds require macOS and Xcode command line tools');
   const source = path.join(root, 'native-installer/macos');
-  const volume = path.join(work, 'volume'), app = path.join(volume, 'Zero Setup.app');
+  const artifactIdentity = macArtifactIdentity(release.kitVersion, signed);
+  if (artifactIdentity.legacy) throw new Error('New Zero.app packaging requires a new kit version after 0.5.12');
+  const volume = path.join(work, 'volume'), app = path.join(volume, artifactIdentity.appName);
   const contents = path.join(app, 'Contents'), bin = path.join(contents, 'MacOS');
   mkdirSync(bin, {recursive:true});
   extractKit(kit, path.join(contents, 'Resources/kit'));
   const plist = readFileSync(path.join(source, 'Info.plist'), 'utf8');
   writeFileSync(path.join(contents, 'Info.plist'), installerPlist(plist, release.kitVersion, signed));
+  buildMacIcon(run, root, work, path.join(contents, 'Resources/Zero.icns'));
+  symlinkSync('/Applications', path.join(volume, 'Applications'));
+  writeFileSync(path.join(volume, 'INSTALL.txt'), macInstallInstructions + (signed ? '' : macDevelopmentNotice));
   const binaries = [];
   for (const arch of ['arm64', 'x86_64']) {
     const file = path.join(work, `ZeroSetup-${arch}`);
@@ -50,9 +58,8 @@ if (platform !== 'windows') {
     signMacArtifact(run, app, identity, true);
     appSignature = verifyMacSignature(run, app, path.join(work, 'app-cert'), {app:true, identity});
   }
-  if (!signed) writeFileSync(path.join(volume, 'DEVELOPMENT-BUILD.txt'), 'Zero Setup — local development build\nNot Developer ID signed or notarized. Not ready for classroom distribution.\nOpen Zero Setup, check your laptop, then choose a fresh writable project folder.\nInstall/repair actions require your explicit choice. GitHub setup is separate.\n');
-  const filename = `Zero-Setup-${release.kitVersion}-macos${signed ? '' : '-development'}.dmg`, staged = path.join(work, filename);
-  run('/usr/bin/hdiutil', ['create', '-srcfolder', volume, '-volname', signed ? 'Zero Setup' : 'Zero Setup (development)', '-format', 'UDZO', staged]);
+  const filename = artifactIdentity.filename, staged = path.join(work, filename);
+  run('/usr/bin/hdiutil', ['create', '-srcfolder', volume, '-volname', 'Zero', '-format', 'UDZO', staged]);
   run('/usr/bin/hdiutil', ['verify', staged]);
   let signing;
   if (signed) {

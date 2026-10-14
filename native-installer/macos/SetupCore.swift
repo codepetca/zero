@@ -444,6 +444,52 @@ struct KitUpdatePlan {
             guard try Self.identity(destination.appendingPathComponent(name)) == originals[name] else { throw SetupFailure(message: "Setup file \(name) changed during preparation. Try again.") }
         }
     }
+    /// Reopening a current installation is read-only. Compare only our fixed
+    /// runtime paths, through anchored handles; student files are never compared.
+    func matches(_ kit: SetupKit) throws -> Bool {
+        try recheck()
+        let rootFD = open(destination.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard rootFD >= 0 else { throw SetupFailure(message: "Cannot inspect your Zero folder.") }
+        defer { close(rootFD) }
+        let setupFD = openat(rootFD, "setup", O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard setupFD >= 0 else { throw SetupFailure(message: "Cannot inspect Zero's setup files.") }
+        defer { close(setupFD) }
+        var info = stat()
+        guard fstat(rootFD, &info) == 0, rootIdentity.sameDirectory(Identity(info)),
+              fstat(setupFD, &info) == 0, setupIdentity.sameDirectory(Identity(info)) else {
+            throw SetupFailure(message: "Your Zero folder changed. Try again.")
+        }
+        for name in files {
+            let bundled = kit.root.appendingPathComponent(name)
+            let source = try Self.regular(bundled)
+            guard let old = originals[name], old.size == source.size,
+                  old.mode & 0o777 == source.mode & 0o777 else { return false }
+            let parent = name.hasPrefix("setup/") ? setupFD : rootFD
+            let leaf = name.hasPrefix("setup/") ? String(name.dropFirst(6)) : name
+            let fileFD = openat(parent, leaf, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
+            guard fileFD >= 0 else { throw SetupFailure(message: "Cannot inspect \(name).") }
+            let handle = FileHandle(fileDescriptor: fileFD, closeOnDealloc: true)
+            guard fstat(fileFD, &info) == 0, Identity(info) == old else { throw SetupFailure(message: "Zero's setup files changed. Try again.") }
+            let sourceFD = open(bundled.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
+            guard sourceFD >= 0 else { throw SetupFailure(message: "Cannot inspect the bundled kit.") }
+            let reference = FileHandle(fileDescriptor: sourceFD, closeOnDealloc: true)
+            defer { try? reference.close() }
+            guard fstat(sourceFD, &info) == 0, Identity(info) == source else { throw SetupFailure(message: "The bundled kit changed. Open Zero again.") }
+            var remaining = source.size
+            while remaining > 0 {
+                let count = Int(min(remaining, 65536))
+                let actual = try handle.read(upToCount: count) ?? Data()
+                let expected = try reference.read(upToCount: count) ?? Data()
+                guard actual.count == count, expected.count == count, actual == expected else { return false }
+                remaining -= off_t(count)
+            }
+            guard fstat(fileFD, &info) == 0, Identity(info) == old,
+                  fstat(sourceFD, &info) == 0, Identity(info) == source,
+                  try Self.regular(bundled) == source else { throw SetupFailure(message: "Zero's setup files changed during checking. Try again.") }
+        }
+        try recheck()
+        return true
+    }
     /// Anchored directory handles prevent symlink ancestor replacement from
     /// redirecting writes. A directory flock serializes cooperating installers.
     func update(from kit: SetupKit, beforeCommit: (() throws -> Void)? = nil,
@@ -595,12 +641,15 @@ final class SetupController {
     private var automaticOpenAttempted = false
     private var retryOpening = false
     private var hasOpened = false
+    private var restoringSession = false
+    private var repairOnLaunch = false
     private(set) var hasChecked = false
     private(set) var stage: SetupStage = .checking
     private(set) var summary = "Preparing Zero…"
     private(set) var diagnostics = "Set up Zero prepares ~/Zero and a separate editor configuration in ~/Library/Application Support/Zero. Missing VS Code and JDK 21 are downloaded from official pinned URLs and verified. Zero and Java support are installed in that separate editor. Git is optional; GitHub sign-in and sharing are separate. Existing editor profiles and student files are preserved. Workspace trust and system security prompts remain yours to approve.\n"
     private var snapshot: SetupSnapshot?
     var changed: (() -> Void)?
+    var opened: (() -> Void)?
 
     init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner(),
          home: URL = FileManager.default.homeDirectoryForCurrentUser) {
@@ -652,18 +701,47 @@ final class SetupController {
             }
         } catch { fail("The kit needs attention. See Details.", detail: error.localizedDescription) }
     }
+    func launch() {
+        guard !busy, !hasChecked, selectedFolder == nil else { return }
+        busy = true; summary = "Opening Zero…"; changed?()
+        DispatchQueue.global(qos: .userInitiated).async { [self] in
+            let result = Result { () throws -> URL? in
+                try kit.validate()
+                let destination = try defaultLocation.destination()
+                guard try DefaultSetupLocation.entryMode(destination) != nil else { return nil }
+                let plan = try KitUpdatePlan(kit: kit, destination: destination)
+                return try plan.matches(kit) ? destination : nil
+            }
+            DispatchQueue.main.async {
+                self.busy = false
+                switch result {
+                case .success(let current):
+                    if let current {
+                        self.selectedFolder = current; self.restoringSession = true
+                        self.repairOnLaunch = true; self.completedSteps = 8
+                    }
+                    self.check()
+                case .failure(let error): self.fail("Cannot open Zero. See Details for help.", detail: error.localizedDescription)
+                }
+            }
+        }
+    }
     func check() {
         guard !busy else { return }
         snapshot = nil; stage = .checking
         if selectedFolder == nil { completedSteps = 0 }
         else if completedSteps == Self.totalSteps { completedSteps -= 1 }
-        run(["--native-check"], status: "Preparing Zero…") { [weak self] result in
+        run(["--native-check"], status: restoringSession ? "Opening Zero…" : "Preparing Zero…") { [weak self] result in
             guard let self else { return }
             self.hasChecked = true
             do {
                 self.snapshot = try SetupSnapshot.parse(result.output)
                 guard self.snapshot?["kit"] == true else { self.fail("The kit is incomplete. See Details.", detail: "Kit metadata or required files are incomplete."); return }
                 if self.selectedFolder == nil { self.completedSteps = 1; self.prepareDefaultLocation(); return }
+                if self.repairOnLaunch {
+                    self.repairOnLaunch = false
+                    if self.snapshot?.ready != true { self.configure(); return }
+                }
                 self.advance()
             } catch { self.fail("The check was incomplete. Try again.", detail: error.localizedDescription) }
         }
@@ -720,10 +798,11 @@ final class SetupController {
         // The backend rechecks immediately before launch, catching drift. A
         // failed launch stays recoverable without repeating kit installation.
         retryOpening = true
-        run(["--native-open"], status: "Opening Zero…", timeout: 180) { [weak self] _ in
+        run([restoringSession ? "--native-resume" : "--native-open"], status: "Opening Zero…", timeout: 180) { [weak self] _ in
             self?.retryOpening = false
             self?.hasOpened = true
             self?.set(.opened, "In Zero, choose Run App to begin.")
+            self?.opened?()
         }
     }
     func mayExit() -> Bool {

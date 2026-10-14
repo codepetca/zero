@@ -4,6 +4,7 @@ import { readFile, mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import {macArtifactIdentity} from '../../scripts/mac-artifact.mjs';
 import { validateInstallerManifest, installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
 import { verifiedLocalInstaller, boundedFile } from '../lib/local-installer.mjs';
 const kit = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
@@ -12,7 +13,7 @@ const authored = structuredClone(releaseInstaller);
 authored.kitVersion = kit.kitVersion;
 authored.publication.status = 'local';
 authored.publication.tag = `setup-v${kit.kitVersion}`;
-authored.asset.filename = `Zero-Setup-${kit.kitVersion}-macos.dmg`;
+authored.asset.filename = macArtifactIdentity(kit.kitVersion).filename;
 delete authored.asset.url;
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function fixture(t) {
@@ -55,7 +56,7 @@ function publishedManifest(version) {
   manifest.kitVersion = version;
   manifest.publication.status = 'published';
   manifest.publication.tag = `setup-v${version}`;
-  manifest.asset.filename = `Zero-Setup-${version}-macos.dmg`;
+  manifest.asset.filename = macArtifactIdentity(version).filename;
   manifest.asset.url = `https://github.com/codepetca/zero/releases/download/setup-v${version}/${manifest.asset.filename}`;
   return manifest;
 }
@@ -144,4 +145,18 @@ test('refuses tampered DMG, oversized files and symlink escapes before serving',
   await writeFile(file, Buffer.alloc(f.bytes.length+1)); await assert.rejects(read(), /bounded/);
   await rm(file); await writeFile(join(f.root,'outside.dmg'), f.bytes); await symlink(join(f.root,'outside.dmg'), file); await assert.rejects(read(), /Symlink/);
   await assert.rejects(boundedFile(f.root,'../outside.dmg',100), /Invalid/);
+});
+
+test('current app filename and legacy setup filename cannot be interchanged across release generations', () => {
+  const current = {...kit, kitVersion:'0.5.13'};
+  const modern = publishedManifest('0.5.13');
+  validateInstallerManifest(modern, current);
+  const legacy = publishedManifest('0.5.12');
+  validateInstallerManifest(legacy, current);
+  for (const manifest of [modern, legacy]) {
+    const invalid = structuredClone(manifest);
+    invalid.asset.filename = manifest === modern ? 'Zero-Setup-0.5.13-macos.dmg' : 'Zero-0.5.12-macos.dmg';
+    invalid.asset.url = `https://github.com/codepetca/zero/releases/download/${invalid.publication.tag}/${invalid.asset.filename}`;
+    assert.throws(() => validateInstallerManifest(invalid, current), /universal Mac DMG/);
+  }
 });

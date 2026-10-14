@@ -2847,6 +2847,33 @@ public bytes/fallback/native source passed.
 Metadata local checks79website tests/typecheck/build passed. Reviewer launch5,
 second fixbatch; correction review and exact-head PR52 CI/live proof pending.
 
+### Mac setup0.5.12 website delivery complete — 2026-10-14
+
+MetadataPR52 https://github.com/codepetca/zero/pull/52 merged
+7e67ce0b2476c2efd7d4630104ab5f7a36df69d7 after exactfbc0d32
+CI https://github.com/codepetca/zero/actions/runs/38614520529 attempt2 passed.
+Attempt1 timed out in unchanged real JavaFX Label/Button widget startup/checks;
+same-source rerun passed, no code/test weakening. Obsolete03fa CI cancelled after
+reviewed guide correction superseded it. Targeted artifact_compat/turn3 Sol/high
+complete03fa..fbc review passed; accepted guideP2 fixed, immutable bundled prior11
+prose documented non-blocking for normal native flow. All six reviewer turns
+complete; two fixbatches, effective reviewer times/tokens unknown. No extra
+integration wave: correction was docs only, existing source/artifact/full metadata
+coverage remained applicable and protected source was verified equivalent.
+
+Production deployment7073944148 succeeded from metadata merge7e67ce0.
+Live https://zero.codepet.ca/downloads contains exactly the actual Mac12 native
+anchor and unchanged Windowskit10 anchor. Unauthenticated downloads of both live
+links match1013295/SHA9e1922ef96a2816fe739298fd0493bb1fd0970cb0d008de3873f8f211b2e6840
+and354002/SHAf3582c031bd4e03dbe0a362d9bfd823b377ca579354b8ec434f32a98a95144cf.
+Private liveproof/release-state JSON complete, old sealed files preserved.
+Final integration97ac7efa281ce3f5e32bafde71df68fb816669b6 tree equals origin/main
+and protected source equals original5c build. Only this final receipt stays local;
+public source/metadata/download/website delivery complete. Keep active worktree and
+ignored bytes for owner smoke testing. No host installer/editor/profile/account
+changes, new credentials, goals, separate chats or automations. Physical Windows
+and fresh-machine actual opening remain unverified; legacy bundled guide needs
+a future immutable-version correction.
 ## 2026-10-14 — searchable API publication candidate
 
 Owner approved the sidebar/method-entry mock, implementation and publication.

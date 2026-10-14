@@ -13,28 +13,29 @@ Open, Run/Stop, autosave and the standard build command. Fresh-machine tool inst
 
 ## Student flow
 
-The published Mac0.5.12 setup starts automatically with **Preparing Zero…** and a
-progress bar. It prepares `~/Zero` without a setup button or an update
-confirmation, then opens Zero automatically after verifying readiness. A recognized existing kit receives only
-setup-file updates; student projects are preserved. **Details** is hidden during
-normal preparation and completion, and available only when setup fails.
-The Mac bar advances with completed setup stages and fills only after the final
-readiness check; it does not estimate time or download percentages. Windows
-retains its existing animated progress bar.
-Published Mac0.5.11 still requires **Open Zero** at the end.
-Previous Mac0.5.10 downloads retain their original **Set up Zero** and **Update Zero** prompts.
+Current Mac0.5.13 source packages **Zero.app** with an **Applications** shortcut
+and drag instructions on its DMG. Published Mac0.5.12 still provides Zero Setup;
+prior release bytes remain unchanged until the new app is published.
 
-1. Open Zero Setup and wait while it prepares Java and the editor. Its small,
-   fixed-size window shows one changing status message and a progress bar.
-2. When Zero opens, choose **Run App** and confirm the greeting window.
+1. Open the DMG and drag **Zero.app** into **Applications**.
+2. Open **Zero** from Applications. On first launch it shows **Preparing Zero…**
+   with a progress bar, prepares Java/editor support and `~/Zero`, and opens the
+   configured VS Code editor automatically.
+3. In the editor, review workspace trust if asked and choose **Run App**.
 
-Opening the setup app starts the necessary downloads and local configuration.
-No profile import or Java environment editing is needed in this Mac flow.
-A failed download or check stops for **Try again**, with technical output available
-through **Details** in a separate window. Git and GitHub authentication remain
-separate from local running. Opening happens once after readiness; a failed opening
-offers **Try again** without repeating installation. Later checks do not reopen
-the editor; **Open Zero again** remains available after a successful opening.
+The app stays in Applications as the launcher. Once VS Code opens, the preparation
+window closes. Eject the DMG after copying the app. Later launches compare only
+installer-owned files, verify readiness and restore the saved Zero editor session
+without copying or creating backups. Changed/older installer files use the guarded
+setup-only update, preserving the entire student project. Missing editor support
+is repaired once; failure retains Try again and Details rather than looping.
+
+Details is hidden during healthy preparation. The bar advances with completed
+stages and fills only after final readiness; it does not estimate download/time
+percentages. Opening retains a fresh backend check. First launch selects the
+starter; reopening lets VS Code restore its own isolated saved UI/workspace state.
+Git/GitHub and the first student app run remain separate choices. Windows and
+ZIP/manual launchers keep their existing guided flow and animated progress bar.
 
 Mac setup uses a private JDK21 and isolated VS Code user-data/extensions under
 `~/Library/Application Support/Zero`. It reuses a compatible installed VS Code,
@@ -43,8 +44,8 @@ pinned by URL and SHA256 in `setup/mac-downloads.json`; changed bytes are refuse
 Normal system Java, VS Code profiles and student source are preserved. Initial
 quiet settings are copied only when Zero's settings file is absent; later theme
 and editor choices are kept. This editor configuration is separate from a named
-Zero profile in an ordinary VS Code window. Use **Open Zero.command** in `~/Zero`
-to return to the configured editor after closing setup.
+Zero profile in an ordinary VS Code window. Open **Zero** in Applications to return to the configured editor.
+**Open Zero.command** remains an optional manual fallback.
 
 The Mac native runtime is compiled into the app: students need no Python, Node,
 Homebrew or compiler to install. The installer does not enter passwords, elevate,
@@ -93,8 +94,8 @@ ZIP launchers keep their current manual behavior.
 ## Local build
 
 `npm run package:installers` rebuilds/verifies the canonical kit and creates
-`dist/installers/Zero-Setup-0.5.12-macos-development.dmg` and
-`dist/installers/Zero-Setup-0.5.12-windows-development.exe`. The measured
+`dist/installers/Zero-0.5.13-macos-development.dmg` and
+`dist/installers/Zero-Setup-0.5.13-windows-development.exe`. The measured
 `build-all.json` records exact payload/artifact hashes and source revision.
 Platform-only commands are in [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -132,10 +133,11 @@ node scripts/verify-installers.mjs --platform macos --signed
 ```
 
 Replace the placeholder with the authorized certificate SHA1 (a public identifier,
-not a secret). A new signed candidate would be `Zero-Setup-0.5.12-macos.dmg`, measured in
+not a secret). A new signed candidate would be `Zero-0.5.13-macos.dmg`, measured in
 `build-macos-signed.json`. The development filename and receipt stay separate.
-The app bundle identifier is `ca.codepet.zero.setup`; its explicit plist marker
-removes unsigned-development labels and shows only Zero Setup/version. Signed
+The current app bundle identifier is `ca.codepet.zero`; releases through0.5.12
+retain `ca.codepet.zero.setup`. Its explicit plist marker
+removes unsigned-development labels and shows only Zero/version. Signed
 mode requires macOS and explicit `--platform macos`; Windows remains deferred.
 
 The builder signs the owned universal app with hardened runtime and a secure
