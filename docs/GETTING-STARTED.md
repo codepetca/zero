@@ -3,28 +3,31 @@
 Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
 separate JavaFX window. This MVP targets **Mac with Apple Silicon** and
 **Windows**; Linux and Intel Macs are unsupported. On a supported Mac, use
-**Zero Setup** for automatic setup. Windows is offered alongside Mac as the
+**Zero** for automatic setup. Windows is offered alongside Mac as the
 published **complete kit ZIP** for manual setup; the Windows native EXE is not
 published. The ZIP is also a manual alternative for a supported Mac;
 it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
-## Zero Setup for Mac
+## Zero app for Mac
 
-The signed and notarized **Mac setup 0.5.12** prepares Zero with one small window,
-one changing status message and a progress bar:
+Current Mac0.5.13 source uses the familiar drag-to-Applications flow. The last
+published Mac0.5.12 download retains its separate Zero Setup app until13 is released.
 
-1. Open Zero Setup. It automatically prepares `~/Zero`. A recognized existing
-   kit receives setup-file updates; your code, assets and saved projects are kept.
-2. Wait while setup prepares Java and the editor. It reuses a compatible VS Code
-   or downloads a verified copy, then installs Zero and Java support in a separate
-   editor configuration. No profile import or Java configuration is needed.
-3. Zero opens automatically when setup finishes. Review the starter before granting
-   workspace trust if VS Code asks, then choose **Run App**. A separate window shows **Hello, world!**.
-   The first build needs internet for Maven and JavaFX.
+1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
+2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**
+   and its progress bar prepare Java and the editor. A recognized existing kit
+   receives setup-file updates; your code, assets and saved projects are kept.
+3. Zero opens its configured VS Code editor automatically. Review the starter
+   before granting workspace trust if VS Code asks, then choose **Run App**.
+   A separate window shows **Hello, world!**. The first build needs internet for
+   Maven and JavaFX.
 
-Later, open `~/Zero/Open Zero.command` to return to this configured editor.
+You can eject the DMG after copying Zero. Later, open **Zero** from Applications
+or the Dock to return to the saved Zero editor session. Reopening checks readiness
+without repeating preparation when the current installation is ready.
+
 GitHub sign-in can wait until you want to share your work. Git must be available
 for repository work; use Setup help when you reach that step. You do not need
 Python, Node.js, Homebrew or a separate Maven/JavaFX installation.

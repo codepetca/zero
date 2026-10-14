@@ -78,7 +78,7 @@ and the distinction between source hosting and component artifact distribution.
 
 Contributors use Node.js 22+, JDK 17+, Git and VS Code. Run `npm ci`,
 `npm run check`, `npm test` and `python3 scripts/verify-examples.py`.
-`npm run package` creates local artifacts in `dist/`: `zero-0.5.12.vsix`,
+`npm run package` creates local artifacts in `dist/`: `zero-0.5.13.vsix`,
 `zero-starter.zip`, the profile and `zero-bootstrap.zip`. Extract the complete
 kit once to find `START-HERE.md`, `starter/`, the VSIX and optional profile.
 Browse games and exact library versions at `/hub`. Students share from their existing public game repository, with reusable classes under `libraries/<slug>/`. The new native tools and GitHub registry are local development code; hosted library checking remains closed. See [the adoption plan](docs/GITHUB-SHARING-PLAN.md) and [Development](docs/DEVELOPMENT.md). Local packaging does not publish.

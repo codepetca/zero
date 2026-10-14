@@ -1,3 +1,5 @@
+import {macArtifactIdentity} from '../../scripts/mac-artifact.mjs';
+
 // Native publication is independent of the three-asset kit release.
 export function validateInstallerManifest(manifest, kit) {
   if (!manifest) return null;
@@ -23,7 +25,7 @@ export function validateInstallerManifest(manifest, kit) {
     if (different !== -1 && published[different] > current[different]) fail('published version is newer than kit');
   }
   const asset = manifest.asset;
-  if (asset?.filename !== `Zero-Setup-${version}-macos.dmg` || asset.platform !== 'macos' || asset.minimumOS !== '12.0' || JSON.stringify(asset.architectures) !== JSON.stringify(['arm64', 'x86_64'])) fail('only the universal Mac DMG is supported');
+  if (asset?.filename !== macArtifactIdentity(version).filename || asset.platform !== 'macos' || asset.minimumOS !== '12.0' || JSON.stringify(asset.architectures) !== JSON.stringify(['arm64', 'x86_64'])) fail('only the universal Mac DMG is supported');
   for (const item of [asset, manifest.kit]) {
     if (!Number.isSafeInteger(item?.size) || item.size <= 0 || item.size > 128 * 1024 * 1024 || !/^[a-f0-9]{64}$/.test(item.sha256 || '')) fail('measured bounded size/digest required');
   }

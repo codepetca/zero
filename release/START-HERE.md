@@ -1,19 +1,24 @@
 # Start with Zero
 
-This kit contains Zero **0.5.11** for **Mac with Apple Silicon** and **Windows**.
+This kit contains Zero **0.5.13** for **Mac with Apple Silicon** and **Windows**.
 Linux and Intel Macs are unsupported.
 
-## Zero setup app
+## Zero app for Mac
 
-Open the Mac setup and wait while **Preparing Zero…** and its progress bar
-prepare Java, editor settings and extensions. Then choose **Open Zero**.
-A recognized existing Zero kit receives only setup-file updates automatically;
-your student project is kept. Later, double-click **Open Zero.command** in your
-home **Zero** folder to return to the configured editor. Choose **Run App** and
-confirm the greeting window. GitHub sign-in is needed only when sharing work.
+Open the downloaded DMG and drag **Zero.app** into **Applications**.
+Open **Zero** from Applications. The first launch shows **Preparing Zero…**
+with a progress bar while it prepares Java, editor settings and extensions.
+Zero then opens its configured VS Code editor automatically. Choose **Run App**
+and confirm the greeting window. GitHub sign-in is needed only when sharing work.
+
+After copying Zero into Applications, you can eject the DMG. Later, open **Zero**
+again from Applications or the Dock to return to your saved Zero editor session.
+A recognized existing Zero kit receives only setup-file updates; your code,
+assets and saved projects are kept. Normal reopening checks readiness without
+copying the kit again. If opening fails, **Try again** and **Details** provide help.
 
 Windows native setup still guides any required tool or profile actions. The
-ZIP/manual paths remain below; they do not use the new Mac app's automation.
+ZIP/manual paths remain below; they do not use the Mac app's automatic preparation.
 
 ## Guided setup
 
@@ -43,7 +48,7 @@ work, not for running the first app. Sign in only when you are ready to upload.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.11.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.13.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

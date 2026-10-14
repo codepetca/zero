@@ -11,7 +11,7 @@ application.delegate = delegate
 let menu = NSMenu()
 let appMenuItem = NSMenuItem()
 let appMenu = NSMenu()
-appMenu.addItem(withTitle: "Quit Zero Setup", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+appMenu.addItem(withTitle: "Quit Zero", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 appMenuItem.submenu = appMenu
 menu.addItem(appMenuItem)
 application.mainMenu = menu

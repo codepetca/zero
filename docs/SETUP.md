@@ -10,23 +10,18 @@ continues to be an ordinary editable Java project.
 
 ## Native setup
 
-The published Mac0.5.12 setup uses **Preparing Zero → Opening Zero → Run App**.
-Zero opens automatically after final readiness verification; choose Run App in the
-editor to begin. A failed opening offers Try again, and later checks do not reopen
-the editor automatically.
-It automatically prepares `~/Zero`, refreshing only setup files in a recognized
-existing kit while preserving student projects. Its progress bar advances with
-completed stages and fills after readiness is verified. Details is hidden unless
-setup fails. Previous Mac0.5.10 downloads retain their setup/update prompts.
-It automatically prepares a private verified JDK21, reuses compatible VS Code or
-installs a verified user-local copy, seeds separate Zero editor settings, and
-installs required extensions. No profile import or Java version selection is
-needed. Use `~/Zero/Open Zero.command` to reopen that configured editor.
+Current Mac0.5.13 source uses **drag Zero.app to Applications → open Zero → Run App**.
+First launch prepares `~/Zero`, private verified Java and a separate editor
+configuration, then opens the editor automatically. A recognized existing kit
+receives only setup-file updates while preserving student projects. The app
+closes its preparation window after handing off to VS Code. Later openings
+verify the current installation and restore the saved Zero editor session without
+recopying the kit. Failed opening offers Try again and Details.
 
-Mac0.5.6 remains available as a previous release with its older setup flow.
-Windows and ZIP/manual setup retain their existing guidance.
-Failure details remain available; GitHub sign-in comes later. See
-[native setup](INSTALLER.md) for isolation, downloads and platform limits.
+The published Mac0.5.12 download retains its earlier Zero Setup app until13 is
+released. Earlier immutable downloads stay unchanged. Windows and ZIP/manual
+setup retain their existing guidance. See [native app](INSTALLER.md) for isolation,
+downloads and platform limits.
 
 ## ZIP/manual student flow
 

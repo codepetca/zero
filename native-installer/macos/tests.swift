@@ -141,9 +141,14 @@ struct SetupTests {
             let delegate = SetupApplication(); delegate.setupWindow = window
             // No production launch delegate is installed: this harness exclusively
             // owns disposable fixtures and fake commands, including approvals.
-            window.window?.title = "Zero Setup — safe fake preview"
+            window.window?.title = "Zero — safe fake preview"
             window.showWindow(nil); app.activate(ignoringOtherApps: true)
-            if scenario == "update" {
+            if scenario == "resume" {
+                _ = try kit.place(parent: parent, name: "Zero")
+                controller.launch()
+            } else if scenario == "launch" {
+                controller.launch()
+            } else if scenario == "update" {
                 let existing = try kit.place(parent: parent, name: "Zero")
                 try "student code".write(to: existing.appendingPathComponent("starter/Main.java"), atomically: true, encoding: .utf8)
                 try "student save".write(to: existing.appendingPathComponent("starter/save.dat"), atomically: true, encoding: .utf8)
@@ -424,6 +429,64 @@ struct SetupTests {
         failedOpenController.primaryAction()
         try expect(failedOpenController.stage == .opened && failedOpenRunner.commands.count == failedOpenCount + 1 && failedOpenRunner.commands.last?.arguments.last == "--native-open", "explicit retry opens without repeating installation")
 
+        // The persistent app distinguishes first launch from reopening. Every
+        // filesystem action stays under these disposable homes; commands are fake.
+        let appHome = temporary.appendingPathComponent("app first launch home")
+        try manager.createDirectory(at: appHome, withIntermediateDirectories: false)
+        let firstRunner = FakeRunner()
+        let firstController = SetupController(kit: kit, runner: firstRunner, home: appHome)
+        var firstHandoffs = 0; firstController.opened = { firstHandoffs += 1 }
+        firstController.launch(); firstController.launch()
+        try pump(until: { !firstController.busy })
+        try expect(firstController.stage == .opened && firstHandoffs == 1, "first app launch prepares then hands off exactly once")
+        try expect(firstRunner.commands.map { $0.arguments.last! } == ["--native-check", "--approved", "--native-check", "--native-open"], "first launch checks, prepares and opens starter")
+        let appKit = appHome.appendingPathComponent("Zero")
+        let currentPlan = try KitUpdatePlan(kit: kit, destination: appKit)
+        try expect(try currentPlan.matches(kit), "copied runtime matches current app without writes")
+        try "my study project".write(to: appKit.appendingPathComponent("starter/Main.java"), atomically: true, encoding: .utf8)
+        let warmRunner = FakeRunner(); let warmController = SetupController(kit: kit, runner: warmRunner, home: appHome)
+        var warmHandoffs = 0; warmController.opened = { warmHandoffs += 1 }
+        let namesBeforeWarm = try manager.contentsOfDirectory(atPath: appHome.path)
+        warmController.launch(); warmController.launch()
+        try pump(until: { !warmController.busy })
+        try expect(warmController.stage == .opened && warmHandoffs == 1, "later app launch hands off exactly once")
+        try expect(warmRunner.commands.map { $0.arguments.last! } == ["--native-check", "--native-resume"], "later launch only checks readiness and resumes saved editor session")
+        try expect(try manager.contentsOfDirectory(atPath: appHome.path) == namesBeforeWarm, "later launch creates no backups or installation folders")
+        try expect(try String(contentsOf: appKit.appendingPathComponent("starter/Main.java")) == "my study project", "later launch preserves student source")
+        warmController.launch()
+        try expect(warmRunner.commands.count == 2 && warmHandoffs == 1, "same app instance never repeats handoff")
+        let repairRunner = FakeRunner(); repairRunner.useDynamic = true; repairRunner.checkOutput = snapshot(["zero": 0])
+        repairRunner.onRun = { command in if command.arguments.contains("--native-install") { repairRunner.checkOutput = snapshot() } }
+        let repairController = SetupController(kit: kit, runner: repairRunner, home: appHome)
+        repairController.launch(); try pump(until: { !repairController.busy })
+        try expect(repairController.stage == .opened && repairRunner.commands.map { $0.arguments.last! } == ["--native-check", "--approved", "--native-check", "--native-resume"], "missing editor support repairs once and resumes without recopying")
+        try expect(try manager.contentsOfDirectory(atPath: appHome.path) == namesBeforeWarm, "editor repair creates no kit backups")
+        let unfinishedRunner = FakeRunner(); unfinishedRunner.useDynamic = true; unfinishedRunner.checkOutput = snapshot(["zero": 0])
+        let unfinishedController = SetupController(kit: kit, runner: unfinishedRunner, home: appHome)
+        unfinishedController.launch(); try pump(until: { !unfinishedController.busy })
+        try expect(unfinishedController.stage == .retry && unfinishedRunner.commands.filter { $0.arguments.contains("--native-install") }.count == 1 && !unfinishedRunner.commands.contains { $0.arguments.contains("--native-resume") }, "incomplete repair cannot loop or hand off")
+        let resumeRunner = FakeRunner()
+        resumeRunner.onRun = { command in if command.arguments.contains("--native-resume") { resumeRunner.result = CommandResult(exitCode: 42, output: "Fake resume failure", timedOut: false, launchError: nil) } }
+        let resumeController = SetupController(kit: kit, runner: resumeRunner, home: appHome)
+        var resumeHandoffs = 0; resumeController.opened = { resumeHandoffs += 1 }
+        resumeController.launch(); try pump(until: { !resumeController.busy })
+        try expect(resumeController.stage == .retry && resumeHandoffs == 0, "failed saved-session opening keeps recovery window")
+        resumeRunner.onRun = nil; resumeRunner.result = CommandResult(exitCode: 0, output: snapshot(), timedOut: false, launchError: nil)
+        resumeController.primaryAction()
+        try expect(resumeController.stage == .opened && resumeHandoffs == 1 && resumeRunner.commands.last?.arguments.last == "--native-resume", "explicit resume retry hands off without reinstalling")
+        try "changed setup guide".write(to: appKit.appendingPathComponent("setup/README.md"), atomically: true, encoding: .utf8)
+        try expect(try !KitUpdatePlan(kit: kit, destination: appKit).matches(kit), "edited installer-owned runtime never uses warm path")
+        let updatedRunner = FakeRunner(); let updatedController = SetupController(kit: kit, runner: updatedRunner, home: appHome)
+        updatedController.launch(); try pump(until: { !updatedController.busy })
+        try expect(updatedController.stage == .opened && updatedRunner.commands.contains { $0.arguments.contains("--native-install") }, "changed owned runtime is updated before opening")
+        try expect(try String(contentsOf: appKit.appendingPathComponent("starter/Main.java")) == "my study project", "setup refresh keeps student project")
+        try expect(try manager.contentsOfDirectory(atPath: appHome.path).filter { $0.hasPrefix(".zero-setup-backup-") }.count == 1, "only actual setup-file refresh creates a backup")
+        let refusedAppHome = temporary.appendingPathComponent("unrelated app launch home")
+        try manager.createDirectory(at: refusedAppHome.appendingPathComponent("Zero"), withIntermediateDirectories: true)
+        let refusedAppRunner = FakeRunner(); let refusedApp = SetupController(kit: kit, runner: refusedAppRunner, home: refusedAppHome)
+        refusedApp.launch(); try pump(until: { !refusedApp.busy })
+        try expect(refusedApp.stage == .retry && refusedAppRunner.commands.isEmpty && refusedApp.selectedFolder == nil, "app refuses unrelated Zero folder without executing or overwriting")
+
         // Runtime work is fully disposable; downloaded bytes are replaced only
         // through a compile-time test hook, never a production environment switch.
         let runtimeKit = try fixture(temporary.appendingPathComponent("runtime kit"))
@@ -448,6 +511,9 @@ struct SetupTests {
             try JSONSerialization.data(withJSONObject: values).write(to: runtimeKit.root.appendingPathComponent("setup/mac-downloads.json"))
         }
         try manifest()
+        let argumentRuntime = try MacRuntime(kit: runtimeKit.root, home: temporary.appendingPathComponent("argument home"))
+        try expect(argumentRuntime.editorArguments(resuming: false) == argumentRuntime.isolated + ["--new-window", runtimeKit.root.appendingPathComponent("starter").path], "first runtime opening selects starter and separate Zero environment")
+        try expect(argumentRuntime.editorArguments(resuming: true) == argumentRuntime.isolated, "resume uses separate Zero environment and lets VS Code restore session")
         let runtimeHome = temporary.appendingPathComponent("private runtime home")
         try MacRuntime.mkdir(runtimeHome)
         var runtime = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)
@@ -572,8 +638,8 @@ struct SetupTests {
         let signedLabel = SetupBuildLabel(info: ["ZeroDevelopmentBuild": false, "CFBundleShortVersionString": "0.5.4"])
         try expect(developmentLabel.windowTitle.contains("unsigned development"), "development title is explicit")
         try expect(developmentLabel.detail.contains("local testing only"), "development detail is honest")
-        try expect(signedLabel.windowTitle == "Zero Setup", "signed title uses product name")
-        try expect(signedLabel.detail == "Zero Setup 0.5.4", "signed detail states version without notarization claim")
+        try expect(signedLabel.windowTitle == "Zero", "signed title uses product name")
+        try expect(signedLabel.detail == "Zero 0.5.4", "signed detail states version without notarization claim")
         try expect(SetupBuildLabel(info: [:]).development, "missing build marker defaults to development")
 
         let app = NSApplication.shared
@@ -602,6 +668,17 @@ struct SetupTests {
         try expect(!pausedController.mayExit() && pausedRunner.commands.last?.arguments.last == "--native-open", "shutdown stays gated during automatic opening")
         pausedRunner.finish()
         try expect(pausedController.mayExit() && pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "copy, configure, recheck and automatic open release shutdown after completion")
+        let handoffHome = temporary.appendingPathComponent("application delegate home")
+        try manager.createDirectory(at: handoffHome, withIntermediateDirectories: false)
+        let handoffRunner = FakeRunner()
+        let handoffController = SetupController(kit: kit, runner: handoffRunner, home: handoffHome)
+        let handoffDelegate = SetupApplication(); var handoffCount = 0
+        handoffDelegate.handOff = { handoffCount += 1 }
+        handoffDelegate.start(handoffController)
+        try pump(until: { !handoffController.busy })
+        try expect(handoffCount == 1 && handoffController.stage == .opened, "real application delegate wires successful launch to a single handoff")
+        try expect(handoffDelegate.applicationShouldTerminate(app) == .terminateNow, "completed handoff allows preparation app to exit")
+        handoffDelegate.setupWindow?.close()
         let progressHome = temporary.appendingPathComponent("progress home")
         try manager.createDirectory(at: progressHome, withIntermediateDirectories: false)
         let progressRunner = FakeRunner(); progressRunner.paused = true
