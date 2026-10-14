@@ -1,5 +1,38 @@
 # Delivery evidence index
 
+## Sidebar corrections and New Project — 2026-10-14
+
+Owner requested separate PRs for the pending extension and website changes:
+[extension PR54](https://github.com/codepetca/zero/pull/54) restores native
+collapsible Zero controls and the separate Files view, and keeps only the
+simulation upload notice. [website PR55](https://github.com/codepetca/zero/pull/55)
+replaces the starter heading/link with a New Project button that opens the
+published GitHub template directly on desktop and mobile. Example selection and
+bookmarked starter ZIP/clone instructions remain available; an unpublished
+starter falls back to its details page. No release manifests/assets or template
+repositories are changed.
+
+Both changes rebased cleanly onto main
+`7e67ce0b2476c2efd7d4630104ab5f7a36df69d7`, preserving the newer setup and release
+work. Independent GPT-6.1-Sol/medium source reviews covered the complete extension
+six-file delta through `3a301a727081e7dd71d954db431c0f8d5eca6eb4` and website
+nine-file delta through `16d158000074f3f4400b429a324286aca15ed962`, with no findings.
+Reviewers inspected immediate callers and lifecycle/routing/theme dependencies;
+effective configuration and attributable tokens are unknown. The subsequent
+integration and documentation delta is recorded with the final PR evidence.
+
+Local configuration/syntax/command/link checks, the full extension/kit suite
+(259 passed, one platform skip), 80 website tests, TypeScript checks and the
+Webpack production build passed. Default local Turbopack cannot resolve this
+worktree's symlinked dependencies. Desktop1024/mobile390 button rendering and
+anonymous GitHub template redirects were verified; no login or repository was
+created. Browser prototype controls and Files collapse were checked separately.
+Native VS Code theme/focus/collapse and interactive Files navigation, Windows,
+authenticated student repository creation and novice flows remain unverified.
+Logs, review receipts and screenshots are retained in ignored
+`.verification/pending-delivery/` and `.verification/sidebar/` of the delivery
+worktrees. CI and merge records are linked from the two PRs.
+
 ## Calm Windows setup 0.5.6 — local delivery, 2026-10-11
 
 Reviewed runtime source `889e76690b2cc10835d16b12c0b4c8fa1bd311c3`; base

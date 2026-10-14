@@ -4,33 +4,40 @@ import {useRouter} from 'next/navigation';
 import {Icon} from './Icon';
 import styles from '@/app/hub/hub.module.css';
 
-type Item = {id: string; title: string; href: string};
+type Item = {id: string; title: string; href: string; external?: boolean};
 export type ProjectNavigation = {starter: Item; featured: Item[]; advanced: Item[]; checkpoint: Item | null};
 
 export function HubProjectNavigation({navigation, current}: {navigation: ProjectNavigation; current: string}) {
   const router = useRouter();
-  const items = [navigation.starter, ...navigation.featured, ...navigation.advanced,
+  const items = [...navigation.featured, ...navigation.advanced,
     ...(navigation.checkpoint ? [navigation.checkpoint] : [])];
-  const link = (item: Item) => <Link key={item.id} href={item.href}
-    aria-current={item.id === current ? 'page' : undefined}>{item.title}</Link>;
+  const link = (item: Item) => item.external
+    ? <a key={item.id} href={item.href}>{item.title} <Icon name="arrow-right" /></a>
+    : <Link key={item.id} href={item.href}
+      aria-current={item.id === current ? 'page' : undefined}>{item.title}</Link>;
+  const newProject = <a className={`button secondary ${styles.newProject}`} href={navigation.starter.href}>
+    {navigation.starter.title} <Icon name="arrow-right" />
+  </a>;
   return <>
-    <label className="mobile-reader-select-label">
-      <span className="sr-only">Choose a project</span>
-      <select className="mobile-reader-select" aria-label="Choose a project" value={current}
+    <div className={styles.mobileProjectActions}>
+      {newProject}
+      <label>
+      <span className="sr-only">Choose an example</span>
+      <select className="mobile-reader-select" aria-label="Choose an example" value={items.some(item => item.id === current) ? current : ''}
         onChange={event => {
           const item = items.find(item => item.id === event.target.value);
           if (item) router.push(item.href);
         }}>
-        <optgroup label="Your own project"><option value={navigation.starter.id}>{navigation.starter.title}</option></optgroup>
+        <option value="" disabled>Explore examples</option>
         <optgroup label="Practice projects">{navigation.featured.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</optgroup>
         <optgroup label="Advanced (optional)">{navigation.advanced.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</optgroup>
         {navigation.checkpoint && <optgroup label="Tutorial checkpoint"><option value={navigation.checkpoint.id}>{navigation.checkpoint.title}</option></optgroup>}
       </select>
-    </label>
+      </label>
+    </div>
     <div className={`reader-menu lesson-menu ${styles.projectMenu}`}>
+      {newProject}
       <nav aria-label="Project navigation">
-        <h2>Your own project</h2>
-        {link(navigation.starter)}
         <h2>Practice projects</h2>
         {navigation.featured.map(link)}
         <details key={`advanced-${current}`} className={styles.advancedProjects}

@@ -30,8 +30,8 @@ async function sourceBytes(root, relative) {
 
 const courseStarter = {
   id: courseStarterId,
-  title: "Your course project",
-  description: "A minimal working Java starter for your own original course-project idea.",
+  title: "New Project",
+  description: "A minimal working Java starter for your own original app.",
   repositoryUrl: "https://github.com/codepetca/zero/tree/main/student-template",
 };
 
