@@ -64,20 +64,23 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
         progress.minValue = 0; progress.maxValue = Double(SetupController.totalSteps)
         progress.isDisplayedWhenStopped = true
         progress.setAccessibilityLabel("Preparation progress")
-        for view in [status, progress, primary, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
+        let content = NSStackView(views: [status, progress, primary])
+        content.orientation = .vertical
+        content.alignment = .centerX
+        content.spacing = 16
+        content.detachesHiddenViews = true
+        for view in [content, details] { view.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(view) }
+        for view in [status, progress, primary] { view.translatesAutoresizingMaskIntoConstraints = false }
         primary.bezelStyle = .rounded; primary.target = self; primary.action = #selector(primaryAction)
         details.bezelStyle = .rounded; details.target = self; details.action = #selector(showDetails)
         NSLayoutConstraint.activate([
-            progress.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 60),
-            progress.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -60),
-            progress.topAnchor.constraint(equalTo: root.topAnchor, constant: 25),
-            progress.heightAnchor.constraint(equalToConstant: 8),
-            status.topAnchor.constraint(equalTo: progress.bottomAnchor, constant: 16),
-            status.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 20),
-            status.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -20),
+            content.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+            content.centerYAnchor.constraint(equalTo: root.centerYAnchor),
+            content.widthAnchor.constraint(equalTo: root.widthAnchor, constant: -40),
+            status.widthAnchor.constraint(equalTo: content.widthAnchor),
             status.heightAnchor.constraint(equalToConstant: 22),
-            primary.topAnchor.constraint(equalTo: status.bottomAnchor, constant: 18),
-            primary.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+            progress.widthAnchor.constraint(equalTo: content.widthAnchor, constant: -80),
+            progress.heightAnchor.constraint(equalToConstant: 8),
             details.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -16),
             details.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -10)
         ])

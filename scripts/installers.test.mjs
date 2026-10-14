@@ -127,7 +127,7 @@ import {iconPng, verifyMacIcon} from './mac-icon.mjs';
 import {verifyMacVolume, verifyMacPlist, macInstallInstructions} from './mac-volume.mjs';
 
 test('Mac release generation binds conventional app and immutable legacy artifact identities', () => {
-  assert.deepEqual(macArtifactIdentity('0.5.13'), {legacy:false, filename:'Zero-0.5.13-macos.dmg', appName:'Zero.app', displayName:'Zero', bundleIdentifier:'ca.codepet.zero'});
+  assert.deepEqual(macArtifactIdentity('0.5.13'), {legacy:false, styled:false, filename:'Zero-0.5.13-macos.dmg', appName:'Zero.app', displayName:'Zero', bundleIdentifier:'ca.codepet.zero'});
   assert.equal(macArtifactIdentity('0.5.13', false).bundleIdentifier, 'ca.codepet.zero.development');
   assert.equal(macArtifactIdentity('0.5.13', false).filename, 'Zero-0.5.13-macos-development.dmg');
   assert.equal(macArtifactIdentity('0.5.12').filename, 'Zero-Setup-0.5.12-macos.dmg');
@@ -186,4 +186,71 @@ test('DMG verification permits exactly the app, owned instructions and an unfoll
     rmSync(path.join(folder, 'Applications'), {recursive:true}); symlinkSync('/Applications', path.join(folder, 'Applications'));
     rmSync(path.join(folder, 'INSTALL.txt')); symlinkSync('/does-not-exist', path.join(folder, 'INSTALL.txt')); assert.throws(() => verifyMacVolume(folder, identity, true), /regular/);
   } finally {rmSync(folder, {recursive:true, force:true});}
+});
+
+import {macDmgLayout, macArrowPng, verifyMacStyledFiles, verifyMacDmgLayout} from './mac-dmg-layout.mjs';
+
+test('styled images begin at14 while legacy and13 volume contracts remain immutable', () => {
+  for (const version of ['0.0.1', '0.4.99', '0.5.12', '0.5.13']) assert.equal(macArtifactIdentity(version).styled, false);
+  for (const version of ['0.5.14', '0.5.99', '0.6.0', '1.0.0']) {
+    const identity = macArtifactIdentity(version); assert.equal(identity.styled, true);
+    assert.equal(identity.volumeName, `Zero ${version}`); assert.equal(identity.displayName, 'Zero');
+  }
+  assert.equal(macArtifactIdentity('0.5.13').volumeName, undefined);
+  for (const name of [undefined, 'Zero', 'Zero 0.5.13', 'Zero ../0.5.14']) assert.throws(() => verifyMacDmgLayout('/unused', name), /Styled image|Invalid styled/);
+  const folder = mkdtempSync(path.join(tmpdir(), 'zero-styled-'));
+  try {
+    mkdirSync(path.join(folder, 'Zero.app'));
+    symlinkSync('/Applications', path.join(folder, 'Applications'));
+    writeFileSync(path.join(folder, 'INSTALL.txt'), macInstallInstructions);
+    assert.throws(() => verifyMacVolume(folder, macArtifactIdentity('0.5.14'), true), /Unexpected DMG contents/);
+    assert.equal(verifyMacVolume(folder, macArtifactIdentity('0.5.13'), true), path.join(folder, 'Zero.app'));
+    rmSync(path.join(folder, 'INSTALL.txt')); rmSync(path.join(folder, 'Applications'));
+    rmSync(path.join(folder, 'Zero.app'), {recursive:true}); mkdirSync(path.join(folder, 'Zero Setup.app'));
+    assert.equal(verifyMacVolume(folder, macArtifactIdentity('0.5.12'), true), path.join(folder, 'Zero Setup.app'));
+  } finally {rmSync(folder, {recursive:true, force:true});}
+});
+
+test('styled background is an arrow alone with reviewed native icon positions and labels below', () => {
+  assert.deepEqual(macDmgLayout.iconLocations, {'Zero.app':[200,159], Applications:[460,159]});
+  assert.equal(macDmgLayout.iconSize, 128); assert.equal(macDmgLayout.textSize, 16);
+  const png = macArrowPng(); assert.equal(png.readUInt32BE(16), 660); assert.equal(png.readUInt32BE(20), 360);
+  const rows = inflateSync(png.subarray(41, png.length - 16));
+  const pixel = (x, y) => [...rows.subarray(y * (660 * 4 + 1) + 1 + x * 4, y * (660 * 4 + 1) + 5 + x * 4)];
+  assert.deepEqual(pixel(330,159), [125,125,125,255]);
+  for (let y = 0; y < 360; y++) for (let x = 0; x < 660; x++) {
+    if (x < 298 || x > 361 || y < 135 || y > 183) assert.deepEqual(pixel(x,y), [255,255,255,255], 'No painted icons, labels or instructions');
+  }
+});
+
+test('styled hidden assets reject symlinks, oversized metadata, extra files and substituted background', () => {
+  const folder = mkdtempSync(path.join(tmpdir(), 'zero-layout-assets-'));
+  const background = path.join(folder, '.background'), ds = path.join(folder, '.DS_Store'), png = path.join(background, 'arrow.png');
+  try {
+    mkdirSync(background); writeFileSync(ds, 'metadata'); writeFileSync(png, macArrowPng());
+    verifyMacStyledFiles(folder);
+    writeFileSync(path.join(background, 'extra'), 'x'); assert.throws(() => verifyMacStyledFiles(folder), /Unexpected/); rmSync(path.join(background, 'extra'));
+    writeFileSync(png, Buffer.from('wrong')); assert.throws(() => verifyMacStyledFiles(folder), /deterministic/); writeFileSync(png, macArrowPng());
+    writeFileSync(ds, Buffer.alloc(65537)); assert.throws(() => verifyMacStyledFiles(folder), /bounded/);
+    rmSync(ds); symlinkSync(png, ds); assert.throws(() => verifyMacStyledFiles(folder), /regular/);
+    rmSync(ds); writeFileSync(ds, 'metadata'); rmSync(png); symlinkSync(ds,png); assert.throws(() => verifyMacStyledFiles(folder), /regular/);
+    rmSync(background,{recursive:true}); symlinkSync(folder,background); assert.throws(() => verifyMacStyledFiles(folder), /owned directory/);
+  } finally {rmSync(folder, {recursive:true, force:true});}
+});
+
+test('styled build writes Finder metadata on a mounted intermediate before conversion and signing', () => {
+  const build = readFileSync(new URL('./build-installers.mjs', import.meta.url), 'utf8');
+  const helper = readFileSync(new URL('./mac-dmg-layout.mjs', import.meta.url), 'utf8');
+  const python = readFileSync(new URL('./mac-dmg-layout.py', import.meta.url), 'utf8');
+  assert.ok(build.indexOf('buildStyledMacDmg(run') < build.indexOf('signMacArtifact(run, staged'));
+  assert.match(helper, /'UDRW'/); assert.match(helper, /'UDZO'/); assert.match(python, /volume_open_folder\(mount, write=True\)/);
+  assert.ok(helper.indexOf("'write', mount") < helper.indexOf("['convert', writable"));
+  assert.match(build, /buildStyledMacDmg\(run, volume, work, staged, artifactIdentity.volumeName\)/);
+  assert.match(helper, /'-volname', volumeName/);
+  assert.match(helper, /'--volume-name', volumeName/);
+  assert.match(python, /parsed.volume.name == volume_name/);
+  assert.match(python, /os\.path\.ismount/); assert.match(python, /resolve_alias\(alias\) == background\.resolve\(\)/);
+  for (const source of [build, helper, python]) assert.doesNotMatch(source, /osascript|System Events|tell application|AppleScript|open -a/);
+  const protectedSource = readFileSync(new URL('../website/lib/local-installer.mjs', import.meta.url), 'utf8');
+  for (const file of ['mac-dmg-layout.mjs', 'mac-dmg-layout.py', 'mac-dmg-layout.json', 'mac-dmg-layout-requirements.txt']) assert.ok(protectedSource.includes(`scripts/${file}`), `${file} must be protected by installer provenance`);
 });

@@ -49,7 +49,7 @@ for (const asset of receipt.artifacts) {
   const mount = mkdtempSync(path.join(root, '.verification/native-installer/mount-'));
   let attached = false;
   try {
-    run('/usr/bin/hdiutil', ['attach', '-readonly', '-nobrowse', '-mountpoint', mount, file]); attached = true;
+    run('/usr/bin/hdiutil', ['attach', '-readonly', '-nobrowse', '-noautoopen', '-mountpoint', mount, file]); attached = true;
     const app = verifyMacVolume(mount, artifactIdentity, signed);
     const contents = path.join(app, 'Contents');
     const plist = JSON.parse(run('/usr/bin/plutil', ['-convert', 'json', '-o', '-', path.join(contents, 'Info.plist')]));

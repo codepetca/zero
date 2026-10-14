@@ -2936,6 +2936,45 @@ Review ledger4launches source2/artifact2, one sourcefixbatch; metadata review ne
 Fresh-machine, quarantined GUI launch, macOS12 runtime, Intel and physical Windows
 remain unverified; owner continues novice smoke testing.
 
+
+Completion: metadata [PR57](https://github.com/codepetca/zero/pull/57) full8file
+review atc107b14 by independent Sol/medium passed ~180seconds with nofindings;
+protectedsource built/prep/base/head equivalent, public/sealed/kit hashesmatch,
+Windowsfallback10 unchanged. Website94tests/typecheck/build reused. Effective
+configuration/tokens unknown. Review total5launches, one sourcefixbatch; no blocking
+gaps beyond reported interactive/platform limits. Exacthead
+[CI38625355070](https://github.com/codepetca/zero/actions/runs/38625355070) passed;
+PR merged638b76dc3b0690440f340c4d0ad99f1e1c6fe8dd. Production deployment7075524218
+success verified for that merge. At2026-10-14T19:46:16Z the live
+[downloads page](https://zero.codepet.ca/downloads) contained exact13Mac and10Windows
+anchors. Both linked downloads retrieved unauthenticated HTTP200 and matched their
+manifest sizes/SHA: Mac1080826/48d7b142fa3208b071518ef75ee746feccb140ea4dda192419189b73939ba621;
+Windows354002/f3582c031bd4e03dbe0a362d9bfd823b377ca579354b8ec434f32a98a95144cf.
+Native release remains non-latest; latest kitv0.5.10 unchanged. Completion receipts
+live-proof.json, production-status.json and linked bytes retained in ignored
+.verification/release-0.5.13. Primary checkout untouched; worktree retained for
+owner smoke testing. No further publication is required for this request.
+
+
+## Centered preparation status — local source, 2026-10-14
+
+Owner requested native preparation content centered and progress below text.
+Sourcef2b77910c09200c45140ccee5342d9596081a6b9 moves status/progress/primary into
+one centered vertical AppKit stack; hidden controls collapse, error Details remains
+available at the bottom right. Existing preview harness lookup follows stack views.
+No setup/controller/installation behavior changed. Drag only copies the application;
+first opening prepares support, later opening checks/repairs as needed and restores
+saved Zero editor state.
+
+Compiled native Mac test harness with AppKit/Foundation and ZERO_SETUP_TESTS;
+250assertions passed. Actual offscreen preparation/progress/error previews inspected;
+logs/images under ignored .verification/modal-layout/. Independent read-only reviewer
+requested GPT-6-Luna/medium, fixedbase275e40975803d3c514797ec0161c79d8294d684b to
+headf2b77910c09200c45140ccee5342d9596081a6b9, full2filediff and controller callers,
+UIguidance, stored tests/previews and diffcheck complete; no actionable blockers,
+under2min. Effective model/tokens unknown; one launch, nofix/rework, no redundant
+suite rerun. Local source only: published13DMG remains unchanged, no native rebuild,
+signing/notarization/upload/publication in this correction. Primary checkout untouched.
 ## 2026-10-14 — compact API section banners
 
 Owner requested smaller sticky category headers, no subtitles and a distinct

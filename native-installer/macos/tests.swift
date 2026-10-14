@@ -792,10 +792,11 @@ struct SetupTests {
             guard let content = window.window?.contentView else { throw SetupFailure(message: "No preview view") }
             content.wantsLayer = true
             content.layer?.backgroundColor = NSColor(calibratedWhite: 0.96, alpha: 1).cgColor
-            let buttons = content.subviews.compactMap { $0 as? NSButton }
+            let controls = content.subviews.flatMap { ($0 as? NSStackView)?.views ?? [$0] }
+            let buttons = controls.compactMap { $0 as? NSButton }
             let details = buttons.first { $0.title == "Details…" }!
             let primary = buttons.first { $0.title != "Details…" }!
-            let bar = content.subviews.compactMap { $0 as? NSProgressIndicator }.first!
+            let bar = controls.compactMap { $0 as? NSProgressIndicator }.first!
             let output = URL(fileURLWithPath: CommandLine.arguments[option + 1])
             func render(_ destination: URL) throws {
                 // Allow queued layout/drawing work before caching the offscreen view.

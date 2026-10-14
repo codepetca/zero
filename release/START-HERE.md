@@ -1,13 +1,13 @@
 # Start with Zero
 
-This kit contains Zero **0.5.13** for **Mac with Apple Silicon** and **Windows**.
+This kit contains Zero **0.5.14** for **Mac with Apple Silicon** and **Windows**.
 Linux and Intel Macs are unsupported.
 
 ## Zero app for Mac
 
 Open the downloaded DMG and drag **Zero.app** into **Applications**.
 Open **Zero** from Applications. The first launch shows **Preparing Zero…**
-with a progress bar while it prepares Java, editor settings and extensions.
+with a progress bar below the text while it prepares Java, editor settings and extensions.
 Zero then opens its configured VS Code editor automatically. Choose **Run App**
 and confirm the greeting window. GitHub sign-in is needed only when sharing work.
 
@@ -48,7 +48,7 @@ work, not for running the first app. Sign in only when you are ready to upload.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.13.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.14.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
