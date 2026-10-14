@@ -64,7 +64,7 @@ export function HubExamples({snapshot, project}: {snapshot: {starter: ExamplePro
           <p className={styles.workflowHelp}>Using Download ZIP instead? Extract it into a new folder, then create and connect an empty repository in your own account and Upload the starting files.</p>
         </section> : <p className={styles.openInstruction}>Extract the project, open it in Zero, and choose Run App.</p>}
         {guide && <section className={styles.projectWorkflow} aria-labelledby="project-workflow-title">
-          <h3 id="project-workflow-title">{starter ? 'Build your course project' : 'Make it yours'}</h3>
+          <h3 id="project-workflow-title">{starter ? 'Build your project' : 'Make it yours'}</h3>
           <p>{guide.challenge}</p>
           <ol>
             <li>{project.templateHref

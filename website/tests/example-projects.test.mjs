@@ -94,7 +94,7 @@ test("preparation writes verified assets, complete local projects and canonical 
   assert.equal(snapshot.schema, 1);
   assert.equal(snapshot.projects.length, 26);
   assert.equal(snapshot.starter.id, courseStarterId);
-  assert.equal(snapshot.starter.title, "Your course project");
+  assert.equal(snapshot.starter.title, "New Project");
   assert.match(snapshot.starter.description, /minimal working Java starter.*original/i);
   assert.equal(snapshot.starter.repositoryUrl, "https://github.com/codepetca/zero/tree/main/student-template");
   assert.equal(snapshot.starter.projectHref, "/generated/example-projects/zero-starter.zip");
@@ -211,7 +211,7 @@ test("course starter contains canonical Main, shared scaffold and framework only
     ["LICENSE", "LICENSE"], ...scaffolding.map(file => [file, `student-template/${file}`]),
   ];
   for (const [destination, source] of sources) assert.deepEqual(files.get(destination).data, await readFile(path.join(directory, source)));
-  assert.deepEqual(JSON.parse(files.get("zero.json").data), {name: "Your course project", templateVersion: "0.1.0", mainClass: "Main"});
+  assert.deepEqual(JSON.parse(files.get("zero.json").data), {name: "New Project", templateVersion: "0.1.0", mainClass: "Main"});
   const readme = files.get("README.md").data.toString();
   assert.match(readme, /original idea/);
   assert.match(readme, /README.*title and introduction/);

@@ -39,3 +39,8 @@
   .examples .navigation a { padding: 8px 10px; }
   .projectActions { align-items: flex-start; flex-direction: column; gap: 8px; }
 }
+
+.newProject { width: 100%; margin-bottom: 12px; }
+
+.mobileProjectActions { display: none; }
+@media (max-width: 760px) { .mobileProjectActions { display: block; } }

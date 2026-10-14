@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {examples} from "../lib/learning.mjs";
 import {courseStarterId, featuredProjectIds, advancedProjectIds, projectNavigation, selectHubProject, projectGuide, projectTitle} from "../lib/project-curriculum.mjs";
 
-const snapshot = {starter: {id: courseStarterId, title: "Your course project"}, projects: examples};
+const snapshot = {starter: {id: courseStarterId, title: "New Project"}, projects: examples};
 
 test("the course picker offers an original-project starter, four distinct practice projects and three optional advanced projects", () => {
   const navigation = projectNavigation(snapshot, snapshot.starter);
@@ -38,4 +38,19 @@ test("all 26 canonical examples still resolve; only an explicitly selected tutor
 test("a missing retained project is a preparation error rather than a silently smaller curriculum", () => {
   const incomplete = {...snapshot, projects: examples.filter(project => project.id !== "study")};
   assert.throws(() => projectNavigation(incomplete, incomplete.starter), /Missing course project: study/);
+});
+
+
+test("New Project opens only the verified starter template, with an unpublished ZIP-guide fallback", () => {
+  const templateHref = "https://github.com/codepetca/zero-starter/generate";
+  const published = {...snapshot, starter: {...snapshot.starter, templateHref}};
+  const navigation = projectNavigation(published, examples[0]);
+  assert.equal(navigation.starter.title, "New Project");
+  assert.equal(navigation.starter.href, templateHref);
+  assert.equal(navigation.starter.external, true);
+  assert.equal(projectNavigation(snapshot, snapshot.starter).starter.href, "/hub?kind=example&example=zero-starter");
+  assert.equal(projectNavigation(snapshot, snapshot.starter).starter.external, undefined);
+  for (const href of ["https://github.com/someone/other/generate", "javascript:alert(1)"]) {
+    assert.throws(() => projectNavigation({...snapshot, starter: {...snapshot.starter, templateHref: href}}, snapshot.starter), /Invalid starter template link/);
+  }
 });
