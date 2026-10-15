@@ -3,13 +3,18 @@
 This MVP supports Mac with Apple Silicon and Windows. Linux and Intel Macs are
 unsupported.
 
-The native Mac setup automatically prepares Java and a separate quiet editor.
-Current local source starts with **Preparing Zero…** and a progress bar, then
-**Open Zero**. Published installers still require **Set up Zero** and, for an
-existing kit, **Update Zero** first. Later use **Open Zero.command** in your
-home Zero folder. The instructions below describe the ZIP/manual launchers and
-Windows guidance. No manual profile import is needed in the new native Mac app.
+For the published **Mac 0.5.14** app, open the DMG and drag **Zero.app** into
+**Applications**. Open Zero there: **Preparing Zero…** and a progress bar appear
+while it prepares Java and a separate configured editor, then the editor opens
+automatically. Reopen Zero from Applications or the Dock to return to your saved
+editor session. No manual profile import is needed in this native Mac flow.
 
+Older **Mac 0.5.10** downloads retain **Set up Zero** and **Update Zero** actions;
+**0.5.11** offers **Open Zero** after preparation. Those older kits use
+**Open Zero.command** in the home Zero folder for later launches. Follow the guide
+bundled with your downloaded version.
+
+The instructions below describe the **ZIP/manual launchers** and Windows setup.
 
 Extract the **whole** Zero kit first. Keep the `setup`, `starter` and `optional`
 folders beside the kit's Zero VSIX. Choose a folder you can write to, such as

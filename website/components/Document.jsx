@@ -63,7 +63,8 @@ export function Document({ id, lesson = "" }) {
                   <a className="button" href={`/generated/projects/zero-project-${practiceProject.id}.zip`} download={`zero-project-${practiceProject.id}.zip`}>
                     Start {practiceProject.title} project
                   </a>
-                  <p>This small download contains setup and an empty Main. Unzip it, open the folder in VS Code and write the code below. Click <strong>Zero → Run App</strong> to try it, then keep this same local project for later lessons.</p>
+                  <p>First time? <Link href="/docs/setup">Install Zero and complete setup</Link> before opening this project.</p>
+                  <p>This small download contains the project build files and an empty Main; it does not install Zero or Java. Unzip it, open the folder in your configured VS Code editor and write the code below. Click <strong>Zero → Run App</strong> to try it, then keep this same local project for later lessons.</p>
                 </>
               ) : (
                 <>

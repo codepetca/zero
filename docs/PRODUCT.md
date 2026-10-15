@@ -42,6 +42,9 @@ Tutorials and Downloads use one circular sun/moon button in the header to switch
 light/dark mode. The OS preference is the initial default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
+Concise platform/version requirements and a setup link appear below the buttons;
+initial lesson projects link to setup and clarify that the scaffold ZIP installs no tools.
+Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
 available. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
