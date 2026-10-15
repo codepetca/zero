@@ -8,6 +8,7 @@ const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
+const {selectUploadAuthentication} = require('./web-publish-upload-auth');
 const {createTransport} = require('./transport');
 const {createSharingEditor} = require('./sharing/editor');
 const {readKitConfiguration} = require('./sharing/configuration');
@@ -294,6 +295,7 @@ function activate(context) {
   async function uploadProject(uploadAuth = auth) {
       if (isBusy()) return;
       uploading = true; refresh();
+      let selectedAuth;
       try {
         const root = await project();
         await lessonProjects.assertShareable(root);
@@ -303,21 +305,27 @@ function activate(context) {
           void vscode.window.showWarningMessage(state);
           return;
         }
-        const ticket = await uploadAuth.capture();
+        const initialTicket = await uploadAuth.capture();
         if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
+        const assertCurrentProject=async()=>{
+          if(await project()!==root)throw new Error('The student project changed. Review the upload again.');
+          if(uploadMode(root)!=='live')throw new Error('Live uploads were disabled. Review the upload again.');
+        };
         const plan = await github.prepareUpload(root);
+        selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,provider:vscode.authentication,assertCurrentProject});
+        const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
         const message = await vscode.window.showInputBox({title:'Describe this version', prompt:'A commit saves a version in Git. Upload sends it to your connected GitHub repository.', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
         const detail = `${plan.page}\nGitHub account: ${ticket.session.label}\nBranch: ${plan.branch}\n${plan.summary}\n\n${plan.changes.map(change => `${change.kind}: ${change.path}`).join('\n')}\n\nIgnored files stay local. This will save a Git commit when files changed and upload your branch using your VS Code GitHub sign-in. Git still needs your repository name/email identity. Submit your repository link separately in Pika.`;
         const confirmed = await vscode.window.showInformationMessage('Upload this version to GitHub?', {modal:true, detail}, 'Commit & Upload');
         if (confirmed !== 'Commit & Upload') return;
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
-        const assertCurrent = () => uploadAuth.assertCurrent(ticket);
-        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => uploadAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
+        const assertCurrent = async () => {await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
+        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
         state = `Uploaded ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
         refresh(); await repositoryStatus();
         vscode.window.showInformationMessage(state);
-      } finally {await repositoryStatus(); uploading = false; refresh();}
+      } finally {selectedAuth?.dispose();await repositoryStatus(); uploading = false; refresh();}
   }
   const actions = {
     'zero.githubAccount': async () => {
