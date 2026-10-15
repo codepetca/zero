@@ -237,8 +237,8 @@ test("starter and featured downloads give concrete changes and the actual indivi
     assert.match(readme, /Connect a repo/);
     assert.match(readme, /per-repository name\/email identity/);
     assert.match(readme, /native GitHub sign-in/);
-    assert.match(readme, /zero\.uploadMode.*live/);
-    assert.match(readme, /simulation makes no Git changes/);
+    assert.match(readme, /GitHub actions are live by default/);
+    assert.doesNotMatch(readme, /zero\.uploadMode|default simulation/);
     assert.match(readme, /Upload changes.*main/);
     assert.match(readme, /New branch/);
     assert.match(readme, /Start a change.*older kits/);
@@ -336,7 +336,8 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(alternative, /own empty GitHub/);
     assert.match(readme, /per-repository name\/email identity manually/);
     assert.match(readme, /signing in does\n   not configure commit identity/);
-    assert.match(readme, /simulation makes no Git changes and uploads nothing/);
+    assert.match(readme, /GitHub actions are live by default/);
+    assert.match(readme, /nothing uploads automatically/);
     assert.match(readme, /Upload changes.*main.*before starting a/);
     assert.match(readme, /New branch/);
     assert.match(readme, /Start a change.*older kits/);

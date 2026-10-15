@@ -88,10 +88,10 @@ Its terminal equivalent inside starter is **./mvnw clean compile javafx:run**
 on Mac or **.\mvnw.cmd clean compile javafx:run** on Windows. This does not
 check whether your app can run in the browser.
 
-Running locally needs no GitHub account. Upload, Start and Finish default to
-simulation. Follow teacher visibility instructions before creating your own
-repository or enabling live uploads. Git **2.31+** and your own GitHub account
-are required for live upload and publishing. Submit the repository link
+Running locally needs no GitHub account. GitHub actions are live by default;
+nothing uploads automatically. Follow teacher visibility instructions, connect
+your own repository, then review and confirm each action. Tutorial projects stay
+local-only. Git **2.31+** and your own GitHub account are required for upload and publishing. Submit the repository link
 separately in Pika.
 
 ## Publish a playable app
@@ -102,7 +102,7 @@ Use the same GitHub account in Zero and any browser authorization. The first
 publish reviews the public destination, asks for GitHub workflow permission when
 needed, and uses the normal reviewed upload for its publishing files. The app and
 included assets will be public; your source repository keeps its visibility.
-Live mode must be enabled before publication; simulation changes no public site.
+Nothing is published until you choose Publish app and confirm the reviewed destination.
 
 Zero publishes the locally checked build. Wait for **Your playable game is live**,
 then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published

@@ -255,9 +255,9 @@
             "simulation",
             "live"
           ],
-          "default": "simulation",
+          "default": "live",
           "scope": "resource",
-          "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using your VS Code GitHub sign-in. A local Git name/email identity is still required."
+          "markdownDescription": "Live is the default. GitHub actions still require your explicit choice and review; uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Tutorial practice remains local-only in either mode."
         },
         "zero.sharingCatalogUrl": {
           "type": "string",

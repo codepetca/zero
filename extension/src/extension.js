@@ -43,7 +43,7 @@ function activate(context) {
   let statusGeneration = 0;
   const isBusy = () => uploading || connecting || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
-  const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'simulation') : 'simulation';
+  const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
   let state = '';
   let buildFailed = false;

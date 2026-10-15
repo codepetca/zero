@@ -262,9 +262,8 @@ GitHub session to its network operations without storing a token in your project
 or Git configuration. Account/session changes require a fresh upload review.
 Never put a password or token in Java source, the marker or README.
 
-**Upload, Start and Finish default to simulation: no Git state changes or upload.**
-To use the implemented real-upload path, set `"zero.uploadMode": "live"` in
-workspace settings. Upload changes saves files, asks for a commit message, then shows a
+**GitHub actions are live by default; nothing uploads automatically.**
+Upload changes saves files, asks for a commit message, then shows a
 modal review of your repository, branch and changed files. Check it before
 choosing **Commit & Upload**. This creates a local commit when needed and pushes
 with Git HTTPS transport using your native sign-in; ignored files stay local. A failed upload may
@@ -306,8 +305,8 @@ private. Zero does not submit assignments or change Pika grades.
 
 Use your own original project with Git **2.31+** and your own GitHub account.
 **Run App** and test it, then finish and upload the completed version on **main**.
-Choose **Publish app** in Zero’s **GitHub** section. Live mode must be enabled;
-simulation changes no public site. The first publish reviews the public Pages
+Choose **Publish app** in Zero’s **GitHub** section. Publishing requires a
+separate explicit confirmation. The first publish reviews the public Pages
 destination, prepares publishing files, and uses the reviewed upload flow.
 If VS Code requests workflow permission, use the same GitHub account as Zero.
 Confirm the uploaded version when asked. The app and included assets will be

@@ -37,7 +37,7 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   workflow.deleteFinishedBranch=async(...args)=>{deleted++;deletions.push(args);};
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return items.find(item=>item.action===choice);},showInputBox:async()=>input,
       showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;},
@@ -67,8 +67,8 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   await commands.get('zero.startChange')();await commands.get('zero.finishChange')();await commands.get('zero.uploadToGitHub')();
   assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.match(warnings[0],/nothing changed/);
   assert.doesNotMatch(webview.html,/data-command="zero.startChange"[^>]* disabled/);releaseWarning();warningGate=undefined;
-  mode='live';input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
-  input='add-score';confirm=undefined;await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,0);assert.match(reviews.at(-1).options.detail,/student\/app.*\nGitHub account: student/);
+  mode=undefined;input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
+  input='add-score';confirm=undefined;await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,0);assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(reviews.at(-1).options.detail,/student\/app.*\nGitHub account: student/);
   confirm='Create branch';await commands.get('zero.startChange')();assert.equal(executed,1);assert.match(webview.html,/add-score<\/span>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
   let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge & Upload main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1).text==='Finish this change?', 'Finish review should open');

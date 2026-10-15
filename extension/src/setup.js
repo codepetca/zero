@@ -117,7 +117,7 @@ function checklist(report) {
   ];
 }
 
-function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulation', inspect = inspectSetup}) {
+function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'live', inspect = inspectSetup}) {
   let busy = false;
   return async () => {
     if (busy) return;

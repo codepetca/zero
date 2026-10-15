@@ -192,10 +192,9 @@ during review, sign in as needed and review the upload again.
 ## Your individual workflow
 
 `main` holds completed work. A change branch holds your next improvement.
-**Upload changes defaults to simulation**: nothing is saved in Git or uploaded.
-Start and Finish also simulate without changing branches. To use real repository
-actions, set the workspace setting `"zero.uploadMode": "live"` when your teacher
-is ready for the trial. Local Run works in either mode.
+**GitHub actions are live by default.** Nothing uploads automatically: choose an
+action, review the account, repository, branch and files, then confirm it. Local
+Run needs no GitHub account. Tutorial practice projects stay local-only.
 
 For a new repository, **Upload changes once on main** to save and upload the
 starter. Enter a short commit message and check the account, repository, branch
@@ -242,7 +241,7 @@ does not upload code, establish that the remote is current or submit in Pika.
 In your own project, **Run App** and test the version you want other people to
 play. Finish your change and upload it on **main**, then choose **Publish app**
 in Zero’s **GitHub** section. Sign in and connect your own repository to enable
-it. Upload and Publish remain simulated until live mode is enabled.
+it. Publishing is a separate explicit action from uploading your source.
 
 The first publish reviews the public destination and prepares publishing files.
 If VS Code requests GitHub workflow permission, authorize the same account you

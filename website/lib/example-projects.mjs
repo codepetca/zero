@@ -83,10 +83,9 @@ function templateWorkflow() {
 
 1. Sign in through Zero's GitHub profile control using your personal account.
    Configure Git's per-repository name/email identity manually; signing in does
-   not configure commit identity. Real uploads require native GitHub sign-in and
-   **\`zero.uploadMode\`: \`live\`** in workspace settings. The default
-   simulation makes no Git changes and uploads nothing; Start and Finish also
-   simulate without changing branches.
+   not configure commit identity. Real uploads require native GitHub sign-in.
+   GitHub actions are live by default; nothing uploads automatically. Review
+   and confirm each action.
 2. Personalize this README with your project idea and a short change plan.
    If edits are pending, use **Upload changes** on **main** before starting a
    change. Write a commit message, review your repository, branch and changed
@@ -116,8 +115,8 @@ function repositoryWorkflow() {
    an existing repository…** with your own repository's HTTPS URL. Connection
    alone does not upload files.
 3. Configure Git's per-repository name/email identity. Real uploads require
-   native GitHub sign-in and **\`zero.uploadMode\`: \`live\`** in workspace settings;
-   the default simulation makes no Git changes and uploads nothing.
+   native GitHub sign-in. GitHub actions are live by default; nothing uploads
+   automatically. Review and confirm each action.
 4. Use **Upload changes** on **main** for the initial project. Write a commit
    message, check the repository, branch and files, then confirm Commit & Upload.
 5. For an improvement, choose **New branch** beside main (**Start a change** in older kits) and review the new branch.

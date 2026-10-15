@@ -4,9 +4,9 @@ const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:pa
 const core=require('../src/core'),github=require('../src/github');
 const {publishingFiles}=require('../src/web-publish-github');
 const disposable=()=>({dispose(){}});
-async function harness(t,{kit=true,workflowAvailable=true,cancel=false,workflowAccount='1',mode='live'}={}) {
+async function harness(t,{kit=true,workflowAvailable=true,cancel=false,workflowAccount='1',mode,confirm=true,practice=false}={}) {
   const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-upload-auth-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
-  await fs.writeFile(path.join(root,'zero.json'),'{}');
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify(practice?{localOnly:true}:{}));
   if(kit)for(const [name,bytes] of await publishingFiles()){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),bytes);}
   const commands=new Map(),calls=[],errors=[],notices=[],listeners=new Set();let saves=0,reviews=0,uploads=0,disposed=0,inputs=0,failPush=false;
   const originalGit=core.git,originalPrepare=github.prepareUpload,originalUpload=github.uploadPrepared;
@@ -19,8 +19,8 @@ async function harness(t,{kit=true,workflowAvailable=true,cancel=false,workflowA
     if(workflow&&!workflowAvailable){if(!options.createIfNone||cancel)return undefined;workflowAvailable=true;}
     return {id:workflow?'workflow-session':'repo-session',account:{id:workflow?workflowAccount:'1',label:'student'},accessToken:workflow?'WORKFLOW_TEST_ONLY':'REPO_TEST_ONLY',scopes:[...scopes]};
   },onDidChangeSessions:listener=>{listeners.add(listener);return {dispose(){disposed++;listeners.delete(listener);}};}},
-  workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-  window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>notices.push(text),showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal)return 'Commit & Upload';},showInputBox:async()=>{inputs++;return 'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
+  workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+  window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>notices.push(text),showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal&&confirm)return 'Commit & Upload';},showInputBox:async()=>{inputs++;return 'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
@@ -46,4 +46,23 @@ test('ordinary native uploads retain repository-only sessions',async t=>{
 });
 test('simulation skips managed kit authentication, saves and upload preparation',async t=>{
   const h=await harness(t,{mode:'simulation',workflowAvailable:false});const before=h.calls.length;await h.commands.get('zero.uploadToGitHub')();assert.equal(h.calls.length,before);assert.equal(h.saves,0);assert.equal(h.reviews,0);assert.equal(h.uploads,0);assert.equal(h.disposed,0);assert.match(h.notices.at(-1),/Simulation only/);
+});
+
+test('unset upload mode is live but activation and cancelled confirmation never upload',async t=>{
+  assert.equal(require('../package.json').contributes.configuration.properties['zero.uploadMode'].default,'live');
+  const h=await harness(t,{kit:false,confirm:false});
+  assert.equal(h.saves,0);assert.equal(h.reviews,0);assert.equal(h.uploads,0);
+  assert.ok(h.calls.every(call=>call.options.silent),'Activation only inspects existing sessions');
+  await h.commands.get('zero.uploadToGitHub')();
+  assert.equal(h.reviews,1,'Unset mode reaches the real review path');
+  assert.equal(h.inputs,1);assert.equal(h.uploads,0,'Cancelling review must not call commit/push');
+  assert.equal(h.errors.length,0);assert.ok(h.notices.includes('Upload this version to GitHub?'));
+});
+test('tutorial practice blocks GitHub actions even with the default live mode',async t=>{
+  const h=await harness(t,{kit:false,practice:true});const before=h.calls.length;
+  for(const id of ['zero.uploadToGitHub','zero.startChange','zero.finishChange','zero.publishWeb']) {
+    assert.equal(typeof h.commands.get(id),'function');await h.commands.get(id)();
+  }
+  assert.equal(h.errors.length,4);assert.ok(h.errors.every(text=>/local lesson practice/.test(text)));
+  assert.equal(h.calls.length,before);assert.equal(h.saves,0);assert.equal(h.reviews,0);assert.equal(h.uploads,0);
 });

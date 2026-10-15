@@ -57,7 +57,7 @@ username while signed in. Click the username for **Change GitHub account…** or
 The signed-in repository row shows `owner/name`, or **Connect a repository**.
 Click it for create/connect or copy-link/change actions. **New branch** beside
 main creates a reviewed feature branch; **Finish change** beside a feature branch
-completes it into main. Upload and the simulation/live label remain separate.
+completes it into main. Upload remains a separate reviewed action.
 Local Run works without sign-in. Local-practice projects continue to block GitHub
 sharing. Native VS Code owns collapse, move and hide controls for Zero and Files.
 
@@ -78,13 +78,15 @@ origin; replacement requires confirmation. Copy the starter outside the kit
 if it is nested inside another Git repository. Connecting is local and does
 not verify GitHub ownership, existence or permission.
 
-**Upload, Start and Finish default to simulation — nothing changed in Git or uploaded.**
-Upload, Start and Finish simulation do not save files, stage, commit, change
-branches, fetch, push or open sign-in. Workspace setting `"zero.uploadMode": "live"`
-enables live upload. After signing in, save files, enter a commit message and
+**GitHub actions are live by default; activation never uploads automatically.**
+After signing in and connecting your own repository, enter a commit message and
 review the account, repository, branch and changed paths. **Commit & Upload**
 stages reviewed changes, commits when needed, pushes and checks the remote
 branch. Ignored files stay local. A failed push may leave a local commit.
+Optional workspace setting `"zero.uploadMode": "simulation"` is available for
+testing: Upload, Start, Finish and Publish skip saves, Git mutations, authentication
+prompts and network actions. Explicit simulation settings are honored. Tutorial
+practice projects block GitHub actions in either mode.
 
 Upload the starting version once on main. For each improvement, start a named
 branch from clean committed main, edit/run, upload progress, then review Finish

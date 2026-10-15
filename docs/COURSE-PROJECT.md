@@ -34,8 +34,8 @@ The optional advanced projects can wait until you need their techniques.
    a change branch. Follow [repository setup](GETTING-STARTED.md#your-github-repository)
    for native sign-in, per-repository commit identity and access.
 
-Local Run App works without GitHub. For real uploads, set the workspace setting
-`"zero.uploadMode": "live"`; simulation does not upload files or change branches.
+Local Run App works without GitHub. GitHub actions are live by default; review
+and confirm each action before files are uploaded or changes are merged.
 Follow [the individual workflow](GETTING-STARTED.md#your-individual-workflow)
 when you are ready to upload. Students develop and submit their own repositories.
 

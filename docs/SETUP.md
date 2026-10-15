@@ -68,8 +68,9 @@ execute permission; re-extract the complete kit or follow the reported local
 permission repair guidance. Checks do not execute the project's Maven build.
 
 GitHub sign-in, repository creation/connection and local Git name/email remain
-student steps when sharing starts. Upload simulation stays the default. Setup
-does not opt into live uploads, create a repository or submit anything in Pika.
+student steps when sharing starts. GitHub actions default to live but still
+require explicit review and confirmation. Setup does not upload, publish, create
+a repository or submit anything in Pika. Tutorial practice stays local-only.
 
 ## Verification contract
 

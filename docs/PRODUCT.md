@@ -292,14 +292,16 @@ origin only in the exact standalone student Git root, with confirmation before
 replacing origin. It rejects nested projects. Connection is local: it does not
 verify remote ownership, existence or access and does not upload.
 
-`zero.uploadMode` defaults to `simulation`, which makes no Git changes and says
-nothing was uploaded. Start/Finish also simulate without saving files or changing
-branches. Opt-in `live` mode saves files, gathers a commit message
-and reviews repository, branch and changed files before confirmation. It stages
+`zero.uploadMode` defaults to `live`. Nothing uploads or publishes on activation,
+sign-in or connection alone. Upload saves files, gathers a commit message and
+reviews repository, branch and changed files before explicit confirmation. It stages
 reviewed changes, commits when needed and pushes the reviewed destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave
 a local commit. Ordinary per-repository Git name/email identity is configured
-manually; signing in does not configure commit identity.
+manually; signing in does not configure commit identity. Optional explicit
+`simulation` remains available for maintainer/teacher testing: Upload, Start,
+Finish and Publish simulate without saving files or performing Git/network actions.
+Tutorial projects remain local-only in either mode.
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with a reviewed Upload changes on main.
