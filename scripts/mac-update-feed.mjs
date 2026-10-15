@@ -91,6 +91,12 @@ export function validateMacUpdateFeed(manifest, config, installer, bytes, {allow
   verifyFeedContent(verifyFeedSignature(bytes,config.publicKey),manifest);
   return manifest;
 }
+export function selectFeedInstaller(manifest,current,published) {
+  if(manifest.publication.status==='local') return current;
+  if(current?.publication.status==='published' && current.kitVersion===manifest.kitVersion) return current;
+  assert.ok(published?.publication.status==='published' && published.kitVersion===manifest.kitVersion,'Retained public feed requires its verified published installer snapshot');
+  return published;
+}
 export function verifyUpdateArchive(bytes, manifest, config) {
   assert.equal(bytes.length,manifest.asset.size); assert.equal(hash(bytes),manifest.asset.sha256);
   verifyUpdateSignature(bytes,manifest.asset.edSignature,config.publicKey);

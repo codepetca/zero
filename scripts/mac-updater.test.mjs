@@ -4,10 +4,19 @@ import {mkdtempSync,writeFileSync,rmSync,mkdirSync,symlinkSync,readFileSync} fro
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {validateMacUpdaterConfig,sparklePin,updaterFeedURL,updaterEnabledForVersion,verifySparkleArchive,frameworkManifest,signSparkleFramework,sparkleComponents,verifyUpdaterPlist,acquireSparkle,copySparkleFramework,verifySparkleFramework,validateUpdaterReceipt,sha256} from './mac-updater.mjs';
+import {validateMacUpdaterConfig,sparklePin,updaterFeedURL,updaterEnabledForVersion,verifySparkleArchive,frameworkManifest,signSparkleFramework,sparkleComponents,verifyUpdaterPlist,acquireSparkle,copySparkleFramework,verifySparkleFramework,validateUpdaterReceipt,sha256,selectSparklePython} from './mac-updater.mjs';
 import {installerPlist} from './installer-signing.mjs';
 const config = {schema:1,buildNumber:2,feedURL:updaterFeedURL,publicKey:Buffer.alloc(32,1).toString('base64'),sparkle:{...sparklePin}};
 const run=(cmd,args)=>{const result=spawnSync(cmd,args,{encoding:'utf8',timeout:30000});assert.equal(result.status,0,result.stderr);return {stdout:result.stdout,stderr:result.stderr};};
+test('build selects a capable maintainer Python instead of assuming CLT extraction support',()=>{
+  const calls=[];
+  const probe=(command,args)=>{calls.push(command);assert.match(args[1],/3,12/);if(command!=='/opt/homebrew/bin/python3') throw new Error('Python lacks safe tar filter');};
+  assert.equal(selectSparklePython(probe,'/fixture',undefined),'/opt/homebrew/bin/python3');
+  assert.equal(calls.length,2);
+  assert.throws(()=>selectSparklePython(()=>{throw new Error('old Python');},'/fixture','/usr/bin/python3'),/Python 3.12/);
+  assert.throws(()=>selectSparklePython(probe,'/fixture','python3'),/absolute/);
+  assert.throws(()=>selectSparklePython(()=>{throw new Error('missing');},'/fixture',undefined),/ZERO_MAC_BUILD_PYTHON/);
+});
 test('updater manifest strictly pins dependency, HTTPS channel, public key and monotonic number domain',()=>{
   assert.equal(validateMacUpdaterConfig(config),config);
   for(const delta of [{schema:2},{buildNumber:1},{buildNumber:2.5},{buildNumber:'2'},{feedURL:'https://evil.example/appcast.xml'},{feedURL:'http://zero.codepet.ca/updates/macos/appcast.xml'},{publicKey:'secret'},{publicKey:Buffer.alloc(31).toString('base64')},{sparkle:{...sparklePin,sha256:'0'.repeat(64)}},{extra:true}]) assert.throws(()=>validateMacUpdaterConfig({...config,...delta}));

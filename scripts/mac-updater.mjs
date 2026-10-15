@@ -50,6 +50,17 @@ with tarfile.open(archive,'r:xz') as tar:
   assert not any(str(parent) in links for parent in p.parents)
  tar.extractall(destination, members=members, filter='data')
 `;
+export function selectSparklePython(run,root,configuredPython=process.env.ZERO_MAC_BUILD_PYTHON) {
+  if(configuredPython) assert.ok(path.isAbsolute(configuredPython),'ZERO_MAC_BUILD_PYTHON must be an absolute maintainer Python path');
+  const candidates=configuredPython ? [configuredPython] : [path.join(root,'.verification/native-installer/dmg-layout-venv/bin/python'),'/opt/homebrew/bin/python3','/usr/local/bin/python3','python3'];
+  for(const candidate of candidates) {
+    try {
+      run(candidate,['-c',"import sys,inspect,tarfile; assert sys.version_info >= (3,12); assert 'filter' in inspect.signature(tarfile.TarFile.extractall).parameters"]);
+      return candidate;
+    } catch { /* CLT Python and missing paths are not suitable extraction runtimes. */ }
+  }
+  throw new Error('Sparkle acquisition requires maintainer Python 3.12+ with safe tar extraction. Set ZERO_MAC_BUILD_PYTHON to its absolute path. Students do not need Python.');
+}
 export function acquireSparkle(run, root, config) {
   validateMacUpdaterConfig(config);
   const cache = path.join(root, '.verification/sparkle-cache', config.sparkle.sha256);
@@ -75,7 +86,7 @@ export function acquireSparkle(run, root, config) {
   // Re-extract authenticated bytes, so an altered old extraction can never enter a build.
   const directory = mkdtempSync(path.join(cache, 'distribution-'));
   try {
-    run('python3', ['-c', extractScript, archive, directory]);
+    run(selectSparklePython(run,root), ['-c', extractScript, archive, directory]);
     const framework = path.join(directory, 'Sparkle.framework');
     verifySparkleLayout(run, framework, config);
     const source = {...config.sparkle, frameworkManifestSha256:sha256(Buffer.from(JSON.stringify(frameworkManifest(framework))))};

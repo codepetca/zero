@@ -69,6 +69,11 @@ python3 -m venv .verification/native-installer/dmg-layout-venv
 ```
 
 These dependencies stay in the ignored build environment; students need no Python.
+Sparkle dependency extraction requires maintainer Python3.12+ with safe tar
+filters. The builder probes the existing DMG-layout virtual environment, then
+standard Homebrew/ambient interpreters, rejecting Apple's older CLT Python with
+a useful error. Set `ZERO_MAC_BUILD_PYTHON` to an explicit absolute Python3.12+
+path when needed; an explicit unsupported selection fails rather than falling back.
 The builder writes the owned image's metadata without Finder automation. Actual
 Finder chrome can follow user preferences; inspect a real mounted image before
 accepting a layout. Production verification checks its hidden files, exact saved

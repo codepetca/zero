@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign} from 'node:crypto';
-import {mkdtempSync,writeFileSync,readFileSync,rmSync,existsSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,readFileSync,rmSync,existsSync,mkdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createAppcast,hash,verifyFeedSignature,validateMacUpdateFeed,verifyUpdateArchive,publishedFeedResponse,verifyUpdateBuildOrder} from './mac-update-feed.mjs';
 import {sparklePin,updaterFeedURL} from './mac-updater.mjs';
+import {loadUpdateFeed} from '../website/lib/update-feed.mjs';
 
 function fixture() {
   const keys=generateKeyPairSync('ed25519'), bytes=Buffer.from('signed fixture DMG');
@@ -56,6 +57,26 @@ test('native releases advance immutable kit identity and build order together; a
   assert.throws(()=>verifyUpdateBuildOrder(f.config,'0.5.16',f.manifest),/increase/);
   assert.throws(()=>verifyUpdateBuildOrder(next,'0.5.15',f.manifest),/immutable/);
   assert.throws(()=>verifyUpdateBuildOrder(next,'0.5.14',f.manifest),/advance/);
+});
+test('website preparation retains the signed public feed while the next local installer is staged',async()=>{
+  const f=fixture(),root=mkdtempSync(join(tmpdir(),'zero-feed-staging-'));
+  try {
+    mkdirSync(join(root,'release'));
+    const kit=JSON.parse(readFileSync(new URL('../release/kit.json',import.meta.url)));
+    kit.kitVersion='0.5.16';kit.publication.tag='v0.5.16';kit.assets.extension.filename='zero-0.5.16.vsix';
+    const published=JSON.parse(readFileSync(new URL('../release/installer.json',import.meta.url)));
+    Object.assign(published,{kitVersion:'0.5.15',sourceRevision:f.manifest.sourceRevision,publication:{status:'published',repository:'codepetca/zero',tag:'setup-v0.5.15'}});
+    Object.assign(published.asset,Object.fromEntries(['filename','url','size','sha256'].map(key=>[key,f.manifest.asset[key]])));
+    const local=structuredClone(published);local.kitVersion='0.5.16';local.sourceRevision='b'.repeat(40);local.publication={status:'local',repository:'codepetca/zero',tag:'setup-v0.5.16'};
+    local.asset.filename='Zero-0.5.16-macos.dmg';delete local.asset.url;
+    for(const [name,value] of Object.entries({'mac-updater.json':{...f.config,buildNumber:3},'published-installer.json':published,'mac-update-feed.json':f.manifest})) writeFileSync(join(root,'release',name),JSON.stringify(value));
+    writeFileSync(join(root,'release/mac-appcast.xml'),f.feed);
+    assert.equal(await loadUpdateFeed(root,kit,local),f.feed.toString());
+    rmSync(join(root,'release/published-installer.json'));
+    await assert.rejects(loadUpdateFeed(root,kit,local),/published installer snapshot/);
+    published.sourceRevision='c'.repeat(40);writeFileSync(join(root,'release/published-installer.json'),JSON.stringify(published));
+    await assert.rejects(loadUpdateFeed(root,kit,local));
+  } finally {rmSync(root,{recursive:true,force:true});}
 });
 test('official pinned Sparkle signer produces a feed accepted by independent public-key verifier',{skip:process.platform!=='darwin' || !existsSync(new URL('../.verification/sparkle-2.10.0/bin/sign_update',import.meta.url))},()=>{
   const f=fixture(),root=mkdtempSync(join(tmpdir(),'zero-feed-test-'));

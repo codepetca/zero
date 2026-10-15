@@ -161,6 +161,13 @@ version. Never reuse a distributed native build number. The current published
 feed remains valid while a newer local version is prepared; release preparation
 checks both version and build ordering against it.
 
+Before changing `release/installer.json` to a newer local candidate, retain the
+last anonymously verified published native manifest in
+`release/published-installer.json`. Website preparation uses that independent
+snapshot to keep the existing signed public feed valid while a newer local
+installer is staged. On promotion, update the snapshot to the same verified
+published installer as the new feed; never label a local candidate published.
+
 After signing, notarization and stapling, commit the measured local native
 manifest. Then seal its final update signature and signed feed:
 
