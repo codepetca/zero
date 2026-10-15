@@ -70,7 +70,13 @@ function adaptJava(file, source, changes) {
   if (pkg === 'zero.web' || pkg.startsWith('zero.web.') || pkg === 'zero.exported') fail(file, 'package is reserved for browser export support.');
   let resourceBridge = false;
   for (let i = 0; i < ts.length; i++) {
-    // Only class-literal lookups are supported; no reflection or dynamic class resolution.
+    // The semantic gate admits this ordinary resource pattern, while rejecting
+    // other reflection. Preserve its actual runtime owner for package lookup.
+    if (ts.slice(i, i + 6).map(t => t.text).join('') === 'getClass().getResource(' && ts[i - 1]?.text !== '.') {
+      edits.push({ start: ts[i].start, end: ts[i + 5].end, text: 'zero.web.Resources.get(getClass(), ' });
+      resourceBridge = true;
+    }
+    // Class literals keep their declared owner rather than resolving a class name.
     if (ts[i].text === 'class' && ts[i - 1]?.text === '.' && ts[i + 1]?.text === '.' && ts[i + 2]?.text === 'getResource' && ts[i + 3]?.text === '(') {
       let begin = i - 2;
       while (begin >= 2 && ts[begin - 1].text === '.' && /^[A-Za-z_$]/.test(ts[begin - 2].text)) begin -= 2;
@@ -103,8 +109,13 @@ function adaptJava(file, source, changes) {
         for (let j = i; j < i + 7; j++) urlImportTokens.add(j);
       }
     }
+    const qualifiedUrlTokens = new Set();
     for (let i = 0; i < ts.length; i++) {
-      if (urlImportTokens.size && ts[i].text === 'URL' && !urlImportTokens.has(i)) edits.push({ start: ts[i].start, end: ts[i].end, text: 'ResourceURL' });
+      if (!urlImportTokens.has(i) && ts.slice(i, i + 5).map(t => t.text).join('') === 'java.net.URL') {
+        edits.push({ start: ts[i].start, end: ts[i + 4].end, text: 'zero.web.ResourceURL' });
+        for (let j = i; j < i + 5; j++) qualifiedUrlTokens.add(j);
+      }
+      if (urlImportTokens.size && ts[i].text === 'URL' && !urlImportTokens.has(i) && !qualifiedUrlTokens.has(i)) edits.push({ start: ts[i].start, end: ts[i].end, text: 'ResourceURL' });
     }
     changes.push(`${file}: mapped class resource lookup to the packaged resource manifest`);
   }

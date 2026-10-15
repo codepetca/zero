@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const core=require('../src/core');
 const {createGitHubPagesPublisher,pagesPublishWorkflow,publishingFiles}=require('../src/web-publish-github');
-async function fixture(t,{installed=true}={}) {
+async function fixture(t,{installed=true,publisherOptions={}}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-pages-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=args=>core.git(root,args);
   await git(['init','-b','main']);await git(['config','user.name','Test']);await git(['config','user.email','test@example.invalid']);await git(['remote','add','origin','https://github.com/student/game.git']);
@@ -16,10 +16,10 @@ async function fixture(t,{installed=true}={}) {
   await git(['add','.']);await git(['commit','-m','initial']);
   const head=await git(['rev-parse','HEAD']);
   let current=true,simulation=false,remoteHead=head,pages=installed?{build_type:'workflow',public:true,html_url:'https://student.github.io/game/'}:null;
-  let run={head_sha:head,path:'.github/workflows/zero-web.yml',event:'workflow_dispatch',head_branch:'main',repository:{full_name:'student/game'},status:'completed',conclusion:'success'};
+  let run={id:42,head_sha:head,path:'.github/workflows/zero-web.yml',event:'workflow_dispatch',head_branch:'main',repository:{id:12,full_name:'student/game'},status:'completed',conclusion:'success'};
   let marker=head+'\n42\n',publicStatus=200,dispatchStatus=200,createStatus=201;
-  let repo={full_name:'student/game',owner:{id:1,type:'User'},default_branch:'main',permissions:{push:true},private:false};
-  const calls=[];const session={accountId:'1',label:'student',accessToken:'TEST_SECRET',scopes:['repo','workflow']};
+  let repo={id:12,full_name:'student/game',owner:{id:1,type:'User'},default_branch:'main',permissions:{push:true},private:false};
+  let release,asset,afterUpload=async()=>{},assetPatch={},loseCreationResponse=false,listError=false;const calls=[];const session={accountId:'1',label:'student',accessToken:'TEST_SECRET',scopes:['repo','workflow']};
   const ticket={session};
   const authentication={capture:async()=>ticket,assertCurrent:async value=>{if(!current || value!==ticket)throw Error('Account changed');return session;},assertCurrentNow:value=>{if(!current || value!==ticket)throw Error('Account changed');return session;}};
   const response=(value,status=200)=>new Response(status===204?null:JSON.stringify(value),{status,headers:{'content-type':'application/json'}});
@@ -27,6 +27,7 @@ async function fixture(t,{installed=true}={}) {
     calls.push({url,options});assert.equal(options.redirect,'error');
     if(url.startsWith('https://student.github.io/') || url.startsWith('https://play.example.org/')){assert.equal(options.headers,undefined);return new Response(marker,{status:publicStatus});}
     assert.equal(options.headers.Authorization,'Bearer TEST_SECRET');assert.equal(options.headers['X-GitHub-Api-Version'],'2026-03-10');
+    if(url.startsWith('https://uploads.github.com/')) {asset={id:8,digest:'sha256:'+require('../src/web-publish-bundle').hash(options.body),size:options.body.length,state:'uploaded',name:'zero-web-bundle.json.gz',...assetPatch};await afterUpload();return response(asset,201);}
     const suffix=url.slice('https://api.github.com/repos/student/game'.length);
     if(suffix==='')return response(repo);
     if(suffix==='/git/ref/heads/main')return response({object:{sha:remoteHead}});
@@ -36,10 +37,18 @@ async function fixture(t,{installed=true}={}) {
     }
     if(suffix.endsWith('/dispatches'))return response({workflow_run_id:42},dispatchStatus);
     if(suffix==='/actions/runs/42')return response(run);
+    if(suffix==='/releases?per_page=100'){if(listError)throw Error('network failed');return response(release?[release]:[]);}
+    if(suffix==='/releases'){release={...JSON.parse(options.body),id:7,author:{id:1},upload_url:'https://uploads.github.com/repos/student/game/releases/7/assets{?name,label}'};if(loseCreationResponse){loseCreationResponse=false;throw Error('creation response lost');}return response(release,201);}
+    if(suffix==='/releases/7'){if(options.method==='DELETE'){release=undefined;return response(null,204);}return response(release||{},release?200:404);}
     assert.fail('Unexpected API '+url);
   };
-  const publisher=createGitHubPagesPublisher({authentication,fetch,files,isSimulation:()=>simulation});
-  return {root,git,head,files,publisher,calls,authentication,get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
+  const site=path.join(root,'.zero/web-export/site');await fs.mkdir(site,{recursive:true});await fs.writeFile(path.join(root,'.git/info/exclude'),'.zero/\n');
+  const data=[['index.html','<html></html>'],['app.js','window.app=true;'],['licenses/source-artifacts.json','{}']];
+  const outputFiles=[];for(const [name,value] of data){await fs.mkdir(path.dirname(path.join(site,name)),{recursive:true});await fs.writeFile(path.join(site,name),value);outputFiles.push({path:name,bytes:Buffer.byteLength(value),sha256:require('../src/web-publish-bundle').hash(Buffer.from(value))});}
+  const result={manifestPath:path.join(root,'.zero/web-export/manifest.json'),sitePath:site,sourceHash:'b'.repeat(64),profileHash:'c'.repeat(64)};await fs.writeFile(result.manifestPath,JSON.stringify({files:outputFiles}));
+  const localBuild=async()=>result;let validationError;const validateExport=async()=>{if(validationError)throw validationError;const siteFiles=[];for(const file of outputFiles)siteFiles.push({path:file.path,bytes:await fs.readFile(path.join(site,file.path))});if(siteFiles.some(file=>require('../src/web-publish-bundle').hash(file.bytes)!==outputFiles.find(output=>output.path===file.path).sha256))throw Error('browser output changed');return {...result,manifest:{files:outputFiles},siteFiles};};
+  const publisher=createGitHubPagesPublisher({authentication,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
+  return {root,git,head,files,publisher,calls,authentication,result,set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
@@ -48,7 +57,7 @@ test('simulation never looks up auth, reads repository, creates files or request
 test('clean uploaded main dispatches exact reviewed source and confirms actual public run marker without token',async t=>{
   const h=await fixture(t);const review=await h.publisher.review(h.root);assert.equal(review.setup,false);
   const pending=await h.publisher.publish(review);assert.equal(pending.status,'pending');assert.equal(pending.resume.runId,42);
-  const dispatch=h.calls.find(c=>c.url.endsWith('/dispatches'));assert.deepEqual(JSON.parse(dispatch.options.body),{ref:'main',inputs:{source_sha:h.head}});
+  const dispatch=h.calls.find(c=>c.url.endsWith('/dispatches'));const body=JSON.parse(dispatch.options.body);assert.equal(body.ref,'main');assert.equal(body.inputs.source_sha,h.head);assert.equal(body.inputs.release_id,'7');assert.equal(body.inputs.asset_id,'8');assert.match(body.inputs.bundle_sha256,/^[a-f0-9]{64}$/);
   assert.equal((await h.publisher.check(pending.resume)).status,'live');assert.equal((await h.publisher.check(pending.resume)).url,h.pages.html_url);
   assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending','Later updates reuse the configured destination');
 });
@@ -90,7 +99,7 @@ test('Pages creation denial provides one guided action and never changes reposit
   const post=h.calls.find(c=>c.options.method==='POST');assert.deepEqual(JSON.parse(post.options.body),{build_type:'workflow'});
 });
 test('generated workflow pins source, separates build and deployment privileges and leaves generated site out of Git',async()=>{
-  assert.match(pagesPublishWorkflow,/ref: \$\{\{ inputs.source_sha \}\}/);assert.match(pagesPublishWorkflow,/inputs.source_sha == github.sha/);assert.match(pagesPublishWorkflow,/\$GITHUB_RUN_ID/);assert.match(pagesPublishWorkflow,/zero-source-sha.txt/);
+  assert.match(pagesPublishWorkflow,/ref: \$\{\{ inputs.source_sha \}\}/);assert.match(pagesPublishWorkflow,/inputs.source_sha == github.sha/);assert.match(pagesPublishWorkflow,/ZERO_BUNDLE_SHA256/);assert.doesNotMatch(pagesPublishWorkflow,/setup-java|mvn|exportForWeb|Build the browser/);assert.match(pagesPublishWorkflow,/if: always\(\)/);
   const files=await publishingFiles(path.join(__dirname,'../src/web-export'));
   assert.ok(files.has('.github/workflows/zero-web.yml'));assert.ok(files.has('.zero-web/owner.json'));assert.ok([...files.keys()].every(name=>! /\.(jar|zip|class)$/.test(name)));
 });
@@ -172,4 +181,50 @@ test('simulation enabled during Pages response validation blocks public readines
   };
   await assert.rejects(h.publisher.check(pending.resume),/Live publishing is disabled/);
   assert.ok(h.calls.every(call=>!call.url.startsWith('https://student.github.io/')));
+});
+
+
+test('local validation failure never creates Pages, stages bytes or dispatches a workflow',async t=>{
+  const h=await fixture(t);h.pages=null;const reviewed=await h.publisher.review(h.root);h.validationError=Error('local source no longer matches uploaded HEAD');
+  await assert.rejects(h.publisher.publish(reviewed),/uploaded HEAD/);assert.ok(h.calls.every(call=>call.options.method==='GET'));
+});
+test('ignored output and source drift after upload remove temporary draft without dispatching',async t=>{
+  for(const output of [true,false]) {
+    const h=await fixture(t),reviewed=await h.publisher.review(h.root),stages=[];
+    h.afterUpload=()=>fs.writeFile(path.join(h.root,output?'.zero/web-export/site/app.js':'Changed.java'),'changed');
+    await assert.rejects(h.publisher.publish(reviewed,{onStaging:async value=>stages.push(value)}),/output changed|files changed/);
+    assert.ok(h.calls.some(call=>call.options.method==='DELETE'&&call.url.endsWith('/releases/7')));
+    assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));assert.equal(stages.at(-1),undefined);
+  }
+});
+test('cancellation after staging cleans the draft with bounded authorized cleanup and retains no new run',async t=>{
+  const h=await fixture(t),reviewed=await h.publisher.review(h.root),controller=new AbortController(),stages=[];
+  await assert.rejects(h.publisher.publish(reviewed,{signal:controller.signal,onProgress:message=>{if(message.startsWith('Deploying'))controller.abort();},onStaging:async value=>stages.push(value)}),/cancelled/);
+  assert.ok(h.calls.some(call=>call.options.method==='DELETE'));assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));assert.equal(stages.at(-1),undefined);
+});
+test('wrong staged asset digest is cleaned and a persisted predispatch receipt can retry cleanup',async t=>{
+  const h=await fixture(t),reviewed=await h.publisher.review(h.root);h.assetPatch={digest:'sha256:'+'0'.repeat(64)};let saved;
+  await assert.rejects(h.publisher.publish(reviewed,{onStaging:async value=>{if(value)saved=JSON.parse(JSON.stringify(value));}}),/exact app bundle/);
+  assert.ok(h.calls.some(call=>call.options.method==='DELETE'));await h.publisher.cleanup(h.root,saved);
+  assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));
+});
+
+
+test('lost creation response recovers only the pre-persisted exact draft before permitting another stage',async t=>{
+  const h=await fixture(t),reviewed=await h.publisher.review(h.root);let saved;h.loseCreationResponse=true;h.listError=true;
+  await assert.rejects(h.publisher.publish(reviewed,{onStaging:async value=>{if(value)saved=JSON.parse(JSON.stringify(value));}}),/cleanup is incomplete/);
+  assert.ok(saved.staging.tag.startsWith('zero-web-stage-'));assert.equal(saved.staging.releaseId,undefined);
+  const before=h.calls.filter(call=>call.options.method==='POST'&&call.url.endsWith('/releases')).length;
+  await assert.rejects(h.publisher.publish(reviewed),/could not be reached/);
+  assert.equal(h.calls.filter(call=>call.options.method==='POST'&&call.url.endsWith('/releases')).length,before,'An unresolved stage cannot accumulate new bundles');
+  h.listError=false;await h.publisher.cleanup(h.root,saved);
+  assert.ok(h.calls.some(call=>call.options.method==='DELETE'&&call.url.endsWith('/releases/7')));
+  assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending');
+});
+
+
+test('binary app upload has its own bounded slower-network timeout while API reads keep their short budget',async t=>{
+  const h=await fixture(t,{publisherOptions:{timeoutMs:10,uploadTimeoutMs:200}}),reviewed=await h.publisher.review(h.root);
+  h.afterUpload=async()=>{await new Promise(resolve=>setTimeout(resolve,30));const upload=h.calls.find(call=>call.url.startsWith('https://uploads.github.com/'));assert.equal(upload.options.signal.aborted,false);assert.equal(h.calls[0].options.signal.aborted,true);};
+  assert.equal((await h.publisher.publish(reviewed)).status,'pending');
 });

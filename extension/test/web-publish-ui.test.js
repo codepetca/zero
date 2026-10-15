@@ -111,3 +111,24 @@ test('an unavailable optional saved publication returns source-only while cancel
   drift.publisher.verifyLink=async()=>{drift.active='/other';throw Error('Unavailable');};
   await assert.rejects(drift.api.verifiedPublication('/student','a'.repeat(40)),/project changed/);assert.equal(drift.busy,false);
 });
+
+test('unresolved predispatch staging survives errors and is cleaned before a new review',async t=>{
+  const h=fixture(t),stage={sha:'a'.repeat(40),repository:'https://github.com/student/game',staging:{tag:'zero-web-stage-'+'b'.repeat(32)}};
+  h.choices.push('Publish game');h.publisher.publish=async(review,options)=>{await options.onStaging(stage);throw Error('creation response uncertain');};
+  await assert.rejects(h.api.publish(),/uncertain/);assert.deepEqual(h.stored.get('zero.webPublish.staging'),{root:'/student',value:stage});
+  let cleaned=false;h.publisher.cleanup=async(root,saved)=>{assert.equal(root,'/student');assert.deepEqual(saved,stage);cleaned=true;};
+  h.publisher.review=async()=>{assert.equal(cleaned,true);return {status:'action-required'};};
+  await h.api.publish();assert.equal(h.stored.has('zero.webPublish.staging'),false);
+});
+test('dispatch tracking persists before publish returns, so subsequent errors cannot start a duplicate run',async t=>{
+  const h=fixture(t),value={runId:42,sha:'a'.repeat(40),repository:'https://github.com/student/game'};
+  h.choices.push('Publish game');let count=0;h.publisher.publish=async(review,options)=>{count++;await options.onStaging({staging:{tag:'temporary'}});await options.onPending(value);throw Error('editor interrupted');};
+  await assert.rejects(h.api.publish(),/interrupted/);assert.deepEqual(h.stored.get('zero.webPublish.pending'),{root:'/student',value});assert.equal(h.stored.has('zero.webPublish.staging'),false);
+  h.publisher.restore=async(root,saved)=>{assert.deepEqual(saved,value);return {status:'live',resume:value,url:'https://student.github.io/game/',sha:value.sha};};
+  await h.api.publish();assert.equal(count,1);assert.equal(h.stored.has('zero.webPublish.pending'),false);
+});
+test('unsaved project documents must save before source review; cancelled saves do not publish',async t=>{
+  const h=fixture(t);h.vscode.workspace.textDocuments=[{isDirty:true}];let saved=0;h.vscode.workspace.saveAll=async()=>{saved++;return false;};
+  await assert.rejects(h.api.publish(),/Save your project/);assert.equal(saved,1);assert.equal(h.reviewed,0);assert.equal(h.published,0);
+  h.simulation=true;await h.api.publish();assert.equal(saved,1,'Simulation never saves editor buffers');
+});

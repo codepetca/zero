@@ -2,40 +2,79 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-// The deploy job receives Pages permissions; compiling student Java needs only read access.
+// The staging job handles data only. Pages credentials belong to the deploy job.
 const pagesWorkflow = `name: Publish Zero game
+run-name: Zero web \${{ inputs.source_sha }}
 on:
   workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Reviewed source commit
+        required: true
+        type: string
+      release_id:
+        description: Temporary draft release ID
+        required: true
+        type: string
+      stage_tag:
+        description: Exact temporary draft name
+        required: true
+        type: string
+      asset_id:
+        description: Exact locally built asset ID
+        required: true
+        type: string
+      profile_sha256:
+        description: Local compiler and compatibility profile digest
+        required: true
+        type: string
+      bundle_sha256:
+        description: Exact local bundle digest
+        required: true
+        type: string
 permissions:
   contents: read
 concurrency:
   group: zero-pages
   cancel-in-progress: false
 jobs:
-  build:
-    if: github.ref == 'refs/heads/main'
+  stage:
+    if: github.ref == 'refs/heads/main' && inputs.source_sha == github.sha
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GITHUB_TOKEN: \${{ github.token }}
+      ZERO_SOURCE_SHA: \${{ inputs.source_sha }}
+      ZERO_RELEASE_ID: \${{ inputs.release_id }}
+      ZERO_STAGE_TAG: \${{ inputs.stage_tag }}
+      ZERO_ASSET_ID: \${{ inputs.asset_id }}
+      ZERO_PROFILE_SHA256: \${{ inputs.profile_sha256 }}
+      ZERO_BUNDLE_SHA256: \${{ inputs.bundle_sha256 }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+          ref: \${{ inputs.source_sha }}
+          sparse-checkout: .zero-web
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
-      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
-        with:
-          distribution: temurin
-          java-version: '21'
-      - name: Build the browser game
+      - name: Validate the locally built app
         id: export
         run: node .zero-web/run.cjs
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
         with:
           path: \${{ steps.export.outputs.site }}
           retention-days: 1
+      - name: Remove temporary app bundle
+        if: always()
+        env:
+          ZERO_CLEANUP: 'true'
+        run: node .zero-web/run.cjs
   deploy:
-    needs: build
+    needs: stage
     runs-on: ubuntu-24.04
     permissions:
       pages: write
@@ -46,20 +85,6 @@ jobs:
     steps:
       - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
         id: deployment
-`;
-
-const runner = `'use strict';
-const path = require('node:path');
-const os = require('node:os');
-const fs = require('node:fs/promises');
-const {exportForWeb} = require('./tool');
-exportForWeb({projectRoot:process.cwd(),cacheRoot:path.join(process.env.RUNNER_TEMP || os.tmpdir(),'zero-web-cache'),onProgress:message=>console.log(message)}).then(async result=>{
-  if(process.env.GITHUB_OUTPUT) {
-    if(/[\\r\\n]/.test(result.sitePath)) throw new Error('Invalid export path');
-    await fs.appendFile(process.env.GITHUB_OUTPUT,'site='+result.sitePath+'\\n');
-  }
-  console.log('Web build ready. GitHub must finish the separate deployment before the game is published.');
-}).catch(error=>{console.error(error.message);process.exitCode=1;});
 `;
 
 function publishingGuide(repositoryPage) {
@@ -83,7 +108,7 @@ For itch.io, open https://itch.io/game/new in your own account. Choose **HTML**,
 
 The exported app includes its JavaScript, images, audio and runtime license/source material. It includes no Java installation or Maven compiler. Exporting replaces the last generated output in **.zero/web-export** and keeps it ignored by Git. A failed build preserves the last successful export. Compiler downloads are cached once per Zero installation.
 
-GitHub Pages rebuilds from Java and deploys an artifact; it does not commit generated game files into source history. The temporary deployment artifact expires after one day, while the live site remains available independently. GitHub retains its normal run/deployment history. Large image/audio assets usually dominate game size.
+Zero compiles and checks the browser app locally. GitHub Pages deploys those exact bytes; it does not commit generated game files into source history. A temporary draft release carries the app to Actions and is deleted after staging; interrupted cleanup is retried when you recheck. The deployment artifact expires after one day, while the live site remains available independently. GitHub retains its normal run/deployment history. Large image/audio assets usually dominate game size.
 
 Hosting references: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages and https://itch.io/docs/creators/html5
 `;
@@ -91,23 +116,9 @@ Hosting references: https://docs.github.com/en/pages/getting-started-with-github
 
 async function pagesFiles(engineRoot) {
   const files = new Map();
-  async function walk(directory,prefix='') {
-    for (const item of await fs.readdir(directory,{withFileTypes:true})) {
-      if (item.isSymbolicLink()) throw new Error('The bundled web exporter contains a symbolic link. Reinstall Zero.');
-      if (item.name.startsWith('.') || ['node_modules','target'].includes(item.name)) continue;
-      const relative = prefix ? prefix+'/'+item.name : item.name;
-      if (item.isDirectory()) await walk(path.join(directory,item.name),relative);
-      else if (item.isFile()) {
-        const data = await fs.readFile(path.join(directory,item.name));
-        if (data.length > 5*1024*1024 || /\.(?:jar|zip|class|log)$/i.test(item.name)) throw new Error('The bundled publishing kit must contain source and templates only.');
-        files.set('.zero-web/tool/'+relative,data);
-      }
-    }
-  }
-  await walk(engineRoot);
-  files.set('.zero-web/run.cjs',Buffer.from(runner));
-  // The publishing service replaces this intermediate template with its owned,
-  // version-pinned workflow during the reviewed setup transaction.
+  files.set('.zero-web/run.cjs',await fs.readFile(path.join(__dirname,'web-deploy-runner.cjs')));
+  files.set('.zero-web/web-publish-bundle.js',await fs.readFile(path.join(__dirname,'web-publish-bundle.js')));
+  // Generated app bytes are staged temporarily; only deployment source is tracked.
   files.set('.zero-web/publish.yml',Buffer.from(pagesWorkflow));
   files.set('.zero-web/README.md',Buffer.from(publishingGuide()));
   return files;

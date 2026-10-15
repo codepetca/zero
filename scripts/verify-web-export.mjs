@@ -121,6 +121,10 @@ async function fixture(name, example) {
       path.join(root, 'student-template/examples/shared/ScoreDisplay.java'),
       path.join(directory, 'src/main/java/ScoreDisplay.java')
     );
+  if (example === 'hello-app') {
+    await fs.mkdir(path.join(directory, 'src/main/resources/hello-app'), {recursive: true});
+    await fs.copyFile(path.join(root, 'student-template/examples/hello-app/theme.css'), path.join(directory, 'src/main/resources/hello-app/theme.css'));
+  }
   return directory;
 }
 const results = browserOnly
@@ -131,7 +135,8 @@ if (!browserOnly)
     ['helpers', null],
     ['quiz', 'quiz'],
     ['drawing', 'drawing'],
-    ['audio', null]
+    ['audio', null],
+    ['hello', 'hello-app']
   ]) {
     const project = await fixture(name, example);
     const result = await exportForWeb({
@@ -147,12 +152,12 @@ if (!browserOnly)
     JSON.stringify(results, null, 2) + '\n'
   );
 if (
-  results.length !== 4 ||
-  ['helpers', 'quiz', 'drawing', 'audio'].some(
+  results.length !== 5 ||
+  ['helpers', 'quiz', 'drawing', 'audio', 'hello'].some(
     (name) => !results.some((result) => result.name === name)
   )
 )
-  throw new Error('Build all four fixtures before using --browser-only.');
+  throw new Error('Build all five fixtures before using --browser-only.');
 if (browser) {
   const previews = [];
   try {
@@ -227,4 +232,4 @@ if (browser) {
     previews.forEach((item) => item.dispose());
   }
 }
-console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, and audio.');
+console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, and styled greeting.');

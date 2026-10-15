@@ -32,7 +32,7 @@ public class Main extends SketchApp {
 
     @Override public void setup() {
         sprite = loadImage("/media-demo/player.png");
-        sound = loadSound("/media-demo/chime.wav");
+        sound = loadEffect("/media-demo/chime.wav");
         sound.setVolume(0.25);
         score = new ScoreDisplay();
         message = new Label();
@@ -129,7 +129,7 @@ public class Main extends SketchApp {
         // ScoreDisplay and the message are native controls outside the canvas.
     }
 
-    private AudioClip loadSound(String path) {
+    private AudioClip loadEffect(String path) {
         var resource = getClass().getResource(path);
         if (resource == null) throw new IllegalArgumentException("Sound resource not found: " + path);
         try { return new AudioClip(resource.toExternalForm()); }

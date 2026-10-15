@@ -342,6 +342,22 @@ async (page) => {
   await page.waitForTimeout(100);
   check(await page.evaluate(before => window.__zeroCheck.draws === before, finalDraws), 'Non-persisted pagehide stops the SketchApp timer');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in audio fixture');
+  const styles=[];
+  page.on('response',response=>{if(response.url().endsWith('/hello-app/theme.css'))styles.push(response.status());});
+  await page.goto(urls.hello);
+  await page.getByRole('textbox').fill('Ada');
+  await page.getByRole('button',{name:'Say hello',exact:true}).click();
+  await visibleText('Hello, Ada!').waitFor();
+  check(true,'Ordinary styled greeting renders and handles text/button input');
+  await page.getByRole('textbox').fill('Grace');
+  await page.getByRole('textbox').press('Enter');
+  await visibleText('Hello, Grace!').waitFor();
+  check(true,'Ordinary TextField action handles Enter');
+  await page.getByRole('button',{name:'Start again',exact:true}).click();
+  await visibleText('Your greeting will appear here.').waitFor();
+  check(await page.getByRole('textbox').inputValue()==='','Greeting reset preserves ordinary object updates');
+  check(styles.includes(200),'Instance class resource lookup loads the packaged stylesheet',styles);
+  check((await page.evaluate(()=>window.__zeroCheck.errors)).length===0,'No JavaScript errors in styled greeting');
   return {
     status: 'passed',
     results,

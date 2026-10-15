@@ -174,6 +174,7 @@ test('invalid project cannot overwrite a previous exported site or student Java'
   const root = await temporary(t);
   await fs.mkdir(path.join(root, 'src/main/java'), { recursive: true });
   await fs.mkdir(path.join(root, '.zero/web-export/site'), { recursive: true });
+  await fs.mkdir(path.join(root, '.mvn/wrapper'), { recursive: true });
   const source = 'public class Main {}\n';
   await fs.writeFile(path.join(root, 'src/main/java/Main.java'), source);
   await fs.writeFile(
@@ -189,7 +190,7 @@ test('invalid project cannot overwrite a previous exported site or student Java'
       projectRoot: root,
       cacheRoot: path.join(path.dirname(root), path.basename(root) + '-cache')
     }),
-    /extra Maven libraries/
+    /Unsupported browser dependency/
   );
   assert.equal(
     await fs.readFile(
@@ -286,96 +287,28 @@ test('JavaFX control emulation, peers, registry and scrolling are locked and exp
   );
   assert.match(css, /webfx-kit-javafxcontrols-web/);
 });
-test(
-  'exports retain one diagnostic log and remove only their own temporary builds',
-  { skip: process.platform === 'win32' },
-  async (t) => {
-    const root = await temporary(t),
-      project = path.join(root, 'student'),
-      cache = path.join(root, 'cache');
-    await fs.mkdir(path.join(project, 'src/main/java'), { recursive: true });
-    await fs.mkdir(path.join(project, '.mvn/wrapper'), { recursive: true });
-    await fs.writeFile(
-      path.join(project, 'src/main/java/Main.java'),
-      'import javafx.application.Application; public class Main extends Application {}'
-    );
-    await fs.writeFile(path.join(project, 'pom.xml'), '<project/>');
-    await fs.writeFile(
-      path.join(project, '.mvn/wrapper/maven-wrapper.properties'),
-      'distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.11/apache-maven-3.9.11-bin.zip\ndistributionSha256Sum=0d7125e8c91097b36edb990ea5934e6c68b4440eef4ea96510a0f6815e7eeadb\n'
-    );
-    const wrapper = path.join(project, 'mvnw');
-    await fs.writeFile(
-      wrapper,
-      '#!/bin/sh\nmkdir -p target/zero-web-1.0.0/zero_web\nprintf index > target/zero-web-1.0.0/zero_web/index.html\nprintf loader > target/zero-web-1.0.0/zero_web/zero_web.nocache.js\nprintf compiled > target/zero-web-1.0.0/zero_web/test.cache.js\necho "Fixture compile passed"\n',
-      { mode: 0o755 }
-    );
-    // The real wrapper process/output transaction is exercised without network downloads.
-    const originalArtifacts = lock.webfx;
-    lock.webfx = [];
-    try {
-      const first = await exportForWeb({
-        projectRoot: project,
-        cacheRoot: cache
-      });
-      const second = await exportForWeb({
-        projectRoot: project,
-        cacheRoot: cache
-      });
-      assert.equal(first.logPath, second.logPath);
-      assert.match(
-        await fs.readFile(second.logPath, 'utf8'),
-        /Fixture compile passed/
-      );
-      assert.deepEqual(await fs.readdir(path.join(cache, 'builds')), []);
-      assert.equal((await fs.readdir(path.join(cache, 'logs'))).length, 1);
-      const previous = await fs.readFile(second.manifestPath);
-      await fs.writeFile(
-        wrapper,
-        '#!/bin/sh\necho "Fixture compile failed"\nexit 9\n',
-        { mode: 0o755 }
-      );
-      await assert.rejects(
-        exportForWeb({ projectRoot: project, cacheRoot: cache }),
-        (error) =>
-          error.logPath === first.logPath &&
-          error.message.includes('Maven exit 9')
-      );
-      assert.match(
-        await fs.readFile(first.logPath, 'utf8'),
-        /Fixture compile failed/
-      );
-      assert.deepEqual(await fs.readdir(path.join(cache, 'builds')), []);
-      assert.deepEqual(await fs.readFile(second.manifestPath), previous);
-      const controller = new AbortController();
-      await assert.rejects(
-        exportForWeb({
-          projectRoot: project,
-          cacheRoot: cache,
-          signal: controller.signal,
-          onProgress: (message) => {
-            if (message.startsWith('Compiling Java')) controller.abort();
-          }
-        }),
-        (error) =>
-          error.name === 'AbortError' && error.logPath === first.logPath
-      );
-      assert.deepEqual(await fs.readdir(path.join(cache, 'builds')), []);
-      assert.match(await fs.readFile(first.logPath, 'utf8'), /cancelled/);
-      await fs.unlink(first.logPath);
-      const protectedFile = path.join(root, 'private.txt');
-      await fs.writeFile(protectedFile, 'preserve');
-      await fs.symlink(protectedFile, first.logPath);
-      await assert.rejects(
-        exportForWeb({ projectRoot: project, cacheRoot: cache }),
-        /symbolic links/
-      );
-      assert.equal(await fs.readFile(protectedFile, 'utf8'), 'preserve');
-    } finally {
-      lock.webfx = originalArtifacts;
-    }
-  }
-);
+test('edited Maven wrappers and duplicate properties cannot fabricate a successful build', async (t) => {
+  const root = await temporary(t), project = path.join(root, 'student'), cache = path.join(root, 'cache');
+  await fs.mkdir(path.join(project, 'src/main/java'), { recursive: true });
+  await fs.mkdir(path.join(project, '.mvn/wrapper'), { recursive: true });
+  await fs.mkdir(path.join(project, '.zero/web-export/site'), { recursive: true });
+  await fs.writeFile(path.join(project, 'src/main/java/Main.java'), 'public class Main {}');
+  await fs.writeFile(path.join(project, 'pom.xml'), '<project/>');
+  await fs.writeFile(path.join(project, '.zero/web-export/site/index.html'), 'previous success');
+  const wrapperName = process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw';
+  const canonical = path.resolve(__dirname, '../../student-template');
+  const properties = await fs.readFile(path.join(canonical, '.mvn/wrapper/maven-wrapper.properties'));
+  await fs.writeFile(path.join(project, '.mvn/wrapper/maven-wrapper.properties'), properties);
+  await fs.writeFile(path.join(project, wrapperName), '#!/bin/sh\necho BUILD SUCCESS\n', { mode: 0o755 });
+  const options = { projectRoot: project, cacheRoot: cache };
+  await assert.rejects(exportForWeb(options), /reviewed pinned Maven wrapper/);
+  await fs.copyFile(path.join(canonical, wrapperName), path.join(project, wrapperName));
+  await fs.appendFile(path.join(project, '.mvn/wrapper/maven-wrapper.properties'), '\ndistributionUrl=https://example.invalid/other.zip\n');
+  await assert.rejects(exportForWeb(options), /reviewed pinned Maven wrapper/);
+  assert.equal(await fs.readFile(path.join(project, '.zero/web-export/site/index.html'), 'utf8'), 'previous success');
+  assert.equal((await fs.readdir(path.join(cache, 'logs'))).length, 1);
+  assert.deepEqual(await fs.readdir(path.join(cache, 'locks')), []);
+});
 test('pinned upstream mouse adapter uses standard DOM button masks in GWT super-source', async (t) => {
   const root = await temporary(t);
   await generateProject(

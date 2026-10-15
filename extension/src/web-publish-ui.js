@@ -3,7 +3,7 @@ const path = require('node:path');
 const {createAuthentication} = require('./authentication');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 
-function createWebPublishCommands(vscode,{project,authentication,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{project,authentication,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
   let workflowAuth;
   // No provider lookup or scope request happens until an explicit live command.
@@ -13,7 +13,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
     assertCurrentNow:ticket=>(workflowAuth || authentication).assertCurrentNow(ticket)
   };
   let root;
-  const publisher=publisherFactory({authentication:activeAuth,isSimulation:()=>!root || isSimulation(root),engineRoot});
+  const publisher=publisherFactory({authentication:activeAuth,isSimulation:()=>!root || isSimulation(root),engineRoot,cacheRoot,localBuild});
   async function stillCurrent(expected) {
     if(disposed || controller?.signal.aborted || await project()!==expected)throw new Error('The project changed or publishing was cancelled. Check GitHub Actions for any run already started.');
   }
@@ -46,6 +46,13 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
       const expected=root;
       let result,approvedReview;
+      const staged=workspaceState?.get('zero.webPublish.staging');
+      const pendingSaved=resume || workspaceState?.get('zero.webPublish.pending');
+      if(staged?.root===expected && pendingSaved?.root!==expected && publisher.cleanup) {
+        await publisher.cleanup(expected,staged.value);
+        await workspaceState?.update('zero.webPublish.staging',undefined);
+        await stillCurrent(expected);
+      }
       resume=resume || workspaceState?.get('zero.webPublish.pending');
       if(resume?.root===expected) {
         try {result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress});}
@@ -63,13 +70,17 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
         }
       }
       else {
+        if(vscode.workspace.textDocuments?.some(document=>document.isDirty)) {
+          if(!await vscode.workspace.saveAll(false))throw Error('Save your project before publishing its browser app.');
+          await stillCurrent(expected);
+        }
         let review=await publisher.review(expected,{signal:controller.signal});
         await stillCurrent(expected);
         if(review.status!=='review'){await showAction(review);return review;}
         const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
         const sameDestination=!review.setup && previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl;
         if(!sameDestination) {
-          const chosen=await vscode.window.showInformationMessage(review.setup?'Set up and publish this browser game?':'Publish this version of your browser game?',{modal:true,detail:`Public destination: ${review.publicUrl || (review.repository + ' → GitHub Pages')}\nAccount: ${review.account}\nSource: main at ${review.sha.slice(0,12)}\n${review.setup?'Adds compiler source and a publishing workflow, then uses Upload changes. VS Code may ask once for permission to create GitHub workflows. ':''}The playable page and included assets will be public. Repository visibility stays the same. GitHub Actions may use your account’s build allowance.`},review.setup?'Set up publishing':'Publish game');
+          const chosen=await vscode.window.showInformationMessage(review.setup?'Set up and publish this browser game?':'Publish this version of your browser game?',{modal:true,detail:`Public destination: ${review.publicUrl || (review.repository + ' → GitHub Pages')}\nAccount: ${review.account}\nSource: main at ${review.sha.slice(0,12)}\n${review.setup?'Adds deployment source and a publishing workflow, then uses Upload changes. VS Code may ask once for permission to create GitHub workflows. ':''}The playable page and included assets will be public. Repository visibility stays the same. Zero checks and builds locally; GitHub Actions uses your account’s deployment allowance.`},review.setup?'Set up publishing':'Publish game');
           if(!chosen || chosen!==(review.setup?'Set up publishing':'Publish game'))return;
         }
         await stillCurrent(expected);
@@ -103,7 +114,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
         }
         await stillCurrent(expected);
         approvedReview=review;
-        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress});
+        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress,onStaging:async value=>{await workspaceState?.update('zero.webPublish.staging',value?{root:expected,value}:undefined);},onPending:async value=>{resume={root:expected,value};await workspaceState?.update('zero.webPublish.pending',resume);await workspaceState?.update('zero.webPublish.staging',undefined);}});
       }
       result=await waitForDeployment(result,expected);
       await stillCurrent(expected);

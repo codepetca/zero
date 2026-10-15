@@ -8,7 +8,7 @@ const path = require('node:path');
 const core = require('../src/core');
 const github = require('../src/github');
 const disposable = () => ({dispose(){}});
-test('commands simulate upload without Git and share task ownership across shortcut, restart and stop', async t => {
+test('commands simulate upload without Git and explicit native diagnostic tasks retain restart and stop ownership', async t => {
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-extension-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
@@ -32,20 +32,20 @@ test('commands simulate upload without Git and share task ownership across short
   await commands.get('zero.publishWeb')();
   assert.equal(saved,0,'Simulated publishing must not save student files');
   assert.equal(mutations,0,'Simulated publishing must not change Git or setup files');
-  await commands.get('zero.runApp')();assert.equal(launches.length,1);assert.equal(saved,1);
+  await commands.get('zero.runNativeApp')();assert.equal(launches.length,1);assert.equal(saved,1);
   assert.deepEqual(launches[0].task.execution.args,['clean','compile','javafx:run']);assert.equal(launches[0].task.matcher,'$zero-java');
-  await commands.get('zero.runApp')();assert.equal(launches.length,2);
+  await commands.get('zero.runNativeApp')();assert.equal(launches.length,2);
   await commands.get('zero.stopApp')();
   assert.deepEqual(await provider.provideTasks(),[], 'Detected executable tasks would bypass the save/restart resolver');
-  const shortcut=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
+  const shortcut=await provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2});
   await vscode.tasks.executeTask(shortcut);assert.equal(saved,3);
-  const rerun=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
+  const rerun=await provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2});
   await vscode.tasks.executeTask(rerun);assert.equal(saved,4);
   await commands.get('zero.stopApp')();assert.equal(launches.length,4);
   let releaseSave;
   saveGate = new Promise(resolve => {releaseSave=resolve;});
-  const pendingRun = commands.get('zero.runApp')();
-  const queuedRun = commands.get('zero.runApp')();
+  const pendingRun = commands.get('zero.runNativeApp')();
+  const queuedRun = commands.get('zero.runNativeApp')();
   while(saved < 5) await new Promise(resolve => setImmediate(resolve));
   await commands.get('zero.stopApp')();
   releaseSave();

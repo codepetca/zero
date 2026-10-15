@@ -20,5 +20,7 @@ const setupFiles = readdirSync(setupDirectory).filter(name => name.endsWith('.te
 const designDirectory = path.join(root, 'design/tests');
 const designFiles = readdirSync(designDirectory).filter(name => name.endsWith('.test.mjs'))
   .sort().map(name => path.join(designDirectory, name));
-const result = spawnSync(process.execPath, ['--test', path.join(root,'scripts/kit.test.mjs'), path.join(root,'scripts/lesson-projects.test.mjs'), ...setupFiles, ...files, ...designFiles, path.join(root, 'design/playground/playground.test.mjs')], { cwd: root, stdio: 'inherit' });
+// Git fixtures and the local Java compatibility compiler are process-heavy.
+// Bound concurrent files so the full matrix leaves the editor responsive.
+const result = spawnSync(process.execPath, ['--test', '--test-concurrency=4', path.join(root,'scripts/kit.test.mjs'), path.join(root,'scripts/lesson-projects.test.mjs'), ...setupFiles, ...files, ...designFiles, path.join(root, 'design/playground/playground.test.mjs')], { cwd: root, stdio: 'inherit' });
 process.exit(result.status ?? 1);

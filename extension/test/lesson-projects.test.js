@@ -66,7 +66,7 @@ test('local practice blocks Git service entry points before Git or network calls
   assert.equal(calls,0);
 });
 
-test('local practice commands stop before authentication, saves, Git or external pages', async t => {
+test('local practice sharing commands stop before authentication, saves, Git or external pages; native diagnostic run remains local', async t => {
   const Module=require('node:module');
   const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),Buffer.from(sample().projects[0].files[0].content,'base64'));await fs.writeFile(path.join(root,'mvnw'),'');
   const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0,launches=0;
@@ -95,7 +95,7 @@ test('local practice commands stop before authentication, saves, Git or external
   await commands.get('zero.openFirstLesson')();assert.match(errors.at(-1),/no valid lessonId.*Restore its project marker/i);
   await fs.writeFile(path.join(root,'zero.json'),'{broken');
   await commands.get('zero.shareGame')();assert.match(errors.at(-1),/local lesson practice/i);
-  await commands.get('zero.runApp')();assert.equal(saves,1);assert.equal(launches,1);
+  await commands.get('zero.runNativeApp')();assert.equal(saves,1);assert.equal(launches,1);
 });
 
 test('Start project works without a workspace and opens only the freshly created folder in a new window', async t => {

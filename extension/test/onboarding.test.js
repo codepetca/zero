@@ -86,27 +86,27 @@ test('a tab opened during asynchronous lesson preparation is preserved', async t
   await f.commands.get('zero.openFirstLesson')();
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1);
 });
-test('lessonless projects run without opening a browser and explicitly open hosted Tutorials', async t=>{
+test('lessonless projects support explicit native diagnostic run and hosted Tutorials', async t=>{
   const f=await fixture(t,{lesson:false});
-  await f.commands.get('zero.runApp')();assert.equal(f.launches.length,1);
+  await f.commands.get('zero.runNativeApp')();assert.equal(f.launches.length,1);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
   await f.commands.get('zero.openFirstLesson')();assert.deepEqual(f.errors,[]);
   assert.deepEqual(f.calls.filter(([id])=>id==='openExternal').map(([,uri])=>uri.value),['https://zero.codepet.ca/learn']);
   assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
 });
-test('only failed owned tasks offer Problems; success and Stop are normal exits', async t=>{
+test('only failed owned native diagnostic tasks offer Problems; success and Stop are normal exits', async t=>{
   const f=await fixture(t,{lesson:false});
-  await f.commands.get('zero.runApp')();
+  await f.commands.get('zero.runNativeApp')();
   f.finish({task:{definition:{type:'other'}}},1);
   assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
   f.finish(f.launches.at(-1),1);
   assert.match(f.webview.html,/App ended with an error/);
   assert.match(f.webview.html,/data-command="zero.showProblems"/);
   await f.commands.get('zero.showProblems')();assert.equal(f.calls.at(-1)[0],'workbench.actions.view.problems');
-  await f.commands.get('zero.runApp')();assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
+  await f.commands.get('zero.runNativeApp')();assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
   f.finish(f.launches.at(-1),0);assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
-  await f.commands.get('zero.runApp')();await f.commands.get('zero.stopApp')();
+  await f.commands.get('zero.runNativeApp')();await f.commands.get('zero.stopApp')();
   assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
 });
 

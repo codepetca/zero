@@ -4,17 +4,18 @@ const path = require('node:path');
 const os = require('node:os');
 const core = require('./core');
 const {assertShareable} = require('./lesson-projects');
-const {createWebPreview} = require('./web-preview');
+const {createManagedWebPreview} = require('./web-run-preview');
 const {publishingGuide} = require('./web-publishing');
 
-function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,cacheRoot,engine,publish,previewFactory=createWebPreview,engineRoot=path.join(__dirname,'web-export')}) {
+function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,cacheRoot,publish,ensureValidatedExport,validateExport,openPreview,previewFactory=createManagedWebPreview,engineRoot=path.join(__dirname,'web-export')}) {
   let latest, preview, controller, disposed=false;
-  const build = options => (engine || require('./web-export')).exportForWeb(options);
+  const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
+  const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const current = async () => {
     const root = await project();
     if (!latest || latest.root !== root) throw new Error('Choose Export for web for this project first.');
-    await fs.access(latest.result.sitePath);
-    return latest;
+    const result=await validate({projectRoot:root,result:latest.result}) || latest.result;
+    return {root,result};
   };
   async function showGuide(root) {
     let page;
@@ -27,11 +28,10 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
   }
   async function previewLatest() {
     const {root,result}=await current();
+    if(openPreview){await openPreview(root,result);return;}
     if(preview)preview.dispose();
-    preview=await previewFactory(result.sitePath);
+    preview=await previewFactory(vscode,result.sitePath,{siteFiles:result.siteFiles});
     if(disposed || await project()!==root){preview.dispose();preview=undefined;return;}
-    const uri=vscode.Uri.parse(preview.url);
-    await vscode.env.openExternal(vscode.env.asExternalUri ? await vscode.env.asExternalUri(uri) : uri);
     setState('Local web preview open. Publish it to get a link other people can play.');
   }
   async function saveZip() {
@@ -85,7 +85,7 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
       result=vscode.window.withProgress
         ? await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Export for web',cancellable:true},operation)
         : await operation();
-      if(disposed || await project()!==root)return;
+      if(disposed || controller.signal.aborted || await project()!==root)return;
       latest={root,result};
       setState(`Web export ready${Number.isFinite(result.totalBytes) ? ` · ${(result.totalBytes/1_000_000).toFixed(1)} MB` : ''}. Preview before sharing.`);
     } catch(error) {

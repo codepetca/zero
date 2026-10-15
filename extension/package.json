@@ -53,6 +53,10 @@
         "title": "Zero: Run App"
       },
       {
+        "command": "zero.runNativeApp",
+        "title": "Zero: Run Native App (Diagnostic)"
+      },
+      {
         "command": "zero.stopApp",
         "title": "Zero: Stop App"
       },
@@ -218,7 +222,8 @@
           "task": {
             "type": "string",
             "enum": [
-              "run"
+              "run",
+              "native-run"
             ],
             "description": "Save and run the marked Zero Java project."
           }

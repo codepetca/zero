@@ -1,96 +1,77 @@
 # Browser games and playable links
 
-This feature is local and unreleased. The implemented baseline adds an optional
-browser destination while Run App still opens native JavaFX. The owner-approved
-next direction makes the browser the primary application target, with compilation
-on the student's computer. The migration below is planned, not implemented.
+This implementation is local and unreleased. Zero remains a local Java teaching
+kit. Its primary Run App target is now an owned browser preview, using the same
+pinned WebFX/GWT pipeline as Export and Publish. Students write ordinary Java and
+approved ordinary JavaFX APIs in local VS Code. Their computer does compilation;
+GitHub owns source and Pages hosts static apps. Cloud development, hosted Java
+compilation and online playgrounds are outside scope.
 
-## Planned browser-first migration
+## Run App and the validated build
 
-Zero remains a local Java teaching kit: ordinary Java and a strictly approved
-JavaFX subset, edited in local VS Code. Keep ordinary control names and explicit
-object updates. Reuse the existing pinned WebFX/GWT exporter, adapters and cache;
-do not add a second transpiler or a wrapper for every JavaFX control. GitHub owns
-student source, GitHub Pages hosts static apps, and ZeroHub stores playable links
-and verification metadata. Cloud development, hosted compilation, browser-only
-IDEs and online playgrounds are outside this direction.
+Run App saves, checks every original Java source, compiles locally when needed,
+validates a fresh complete snapshot and opens a managed browser panel. Checking,
+building, running and failure states are distinct. Restart destroys the old
+runtime before building again. Stop, cancellation, project changes and extension
+disposal abort owned work and destroy the executing frame and audio; a late build
+cannot reopen it. A failed build preserves the previous files without calling
+them a fresh running app. Run never requires GitHub sign-in.
 
-Two separately reviewable phases share one build contract:
+The managed preview serves cloned immutable output bytes from a token-protected
+loopback server. Rebuilding/exporting later cannot change an already running
+app's assets. This differs from merely closing an HTTP server while JavaScript
+continues in an external browser. Explicit **Run App Natively (diagnostic)** stays
+available in the Command Palette; browser failures never silently fall back to it.
 
-1. **Browser-first Run App.** Save, check compatibility, compile locally, validate
-   fresh complete output, then open/reload an owned browser preview. Show clear
-   checking/building/running/failure states. Restart, cancellation, project changes
-   and Stop must terminate the owned runtime and prevent late build completions
-   from launching. Stop must stop JavaScript, animation and audio already running;
-   closing the loopback HTTP server alone does not do this. Prove a supported
-   managed preview can destroy/recreate its executing frame, including an
-   unresponsive game, before choosing it as the default. External-browser control
-   requires equivalent lifecycle evidence before making that promise. Retain
-   native launch as an explicit optional diagnostic path if useful; never fall
-   back automatically after browser compatibility failure.
-2. **Strict compatibility.** Check resolved constructor, method and field symbols,
-   including inherited calls, overloads, static imports, fully qualified names,
-   method/constructor references and relevant Java APIs. Check all application
-   source bodies, including code the transpiler would eliminate. An approved
-   class must not implicitly approve every inherited member. Restrict dependencies
-   and their transitive versions. Fail closed on unresolved/unsupported use, with
-   source file/line/column, the offending member and a useful supported alternative.
-   Then require the pinned WebFX/GWT compile. Current helper hashes, inventory,
-   lexer/import checks and successful GWT builds do not yet provide this guarantee.
+Run, Export and Publish share a snapshot validator. It binds Java, resources,
+pom.xml, Maven wrappers/config, the complete exporter/compatibility profile and
+all output hashes; it verifies ZIP contents against the site and rejects missing,
+changed, additional or stale output. Unchanged successful builds can be reused.
+Changing any input or compiler rule requires another local build. Publishing
+compares all build inputs against the reviewed uploaded commit, including files
+Git status might hide as ignored. Standard CRLF/LF equivalence is allowed only
+for Java/known textual Maven inputs; resources must match the commit exactly.
 
-The proposed semantic implementation uses local JDK attribution with annotation
-processing disabled, without executing student code. Define a versioned contract
-of reviewed type/member signatures, overloads and dependency/toolchain hashes.
-Check original application sources before adapter rewriting or GWT optimization.
-Distinguish student-defined classes from trusted generated code and helpers by
-reviewed identities/hashes; a broad package-name exemption is insufficient.
+## Strict WebFX compatibility
 
-Run, Export and Publish must share an immutable validated snapshot: source,
-resources, build settings, compatibility contract, adapters and pinned dependencies,
-plus output completeness and hashes. Recheck freshness before preview/publish;
-source changes invalidate the current snapshot and require another local build.
-A failed build may preserve old files, but must never report them as a fresh run.
-Use generation ownership and process cancellation so an earlier completion cannot
-replace the latest run. Publishing must bind the clean uploaded source commit to
-the exact locally validated app bytes, or build afresh when inputs changed.
+A local JDK semantic checker attributes original sources before browser adapters
+or GWT optimizations. Annotation processing is disabled and student application
+code is not executed by this checker. A versioned explicit contract approves
+resolved constructor/method/field signatures, their declaring owners and overloads.
+It covers inherited calls, method/constructor references, static imports, Java
+APIs and all application bodies, including dead code. Class permission does not
+approve every inherited API. Unsupported or unresolved use produces original
+file/line/column diagnostics in Problems. Native methods/JSNI and source-defined
+runtime namespace spoofing are rejected.
 
-The current implementation compiles in GitHub Actions. That must migrate to a
-**deployment-only** workflow for the local-compilation direction: upload the
-validated local bundle, verify its bounded archive/manifest and source/contract
-binding, then deploy those app bytes without recompiling student code on GitHub.
-Select and review a supported upload transport before implementation. An ephemeral
-draft-release asset followed by deployment-only retrieval is one candidate, not
-an accepted design. Bound pending versions, expiry, retry and cleanup; do not add
-compiled game history to Git or duplicate it in ZeroHub. Public SHA/run markers
-prove delivery/binding, not an unforgeable proof that an owner-supplied local bundle
-was compiled from source. Review receipt/schema/checker trust claims accordingly.
+Only seven helpers at exact reviewed paths/hashes receive trusted adapters; a
+package name is not an exemption. Keep ordinary JavaFX control names and explicit
+object updates. Ordinary class-resource lookup is supported in
+`Main.class.getResource(...)` and `getClass().getResource(...)`; unrelated
+reflection remains unavailable. Source adapters operate on temporary copies.
+Canonical framework sources and the original game remain unchanged.
 
-Acceptance covers the existing helper, quiz, drawing, audio and Sky Hop fixtures;
-negative tests for inherited/unapproved APIs, overloads, references, Java APIs,
-dependencies, dead-code use, unresolved symbols and helper tampering; and actual
-editor checks for save/restart/cancel/Stop, audio/animation teardown, project
-switches, source drift and partial/stale output. Verify deploy-only transport
-cannot silently recompile or publish a different snapshot. Preserve native helper
-regressions. Windows, other engines, classroom networks and real hosted delivery
-need explicit evidence; existing Mac/Chrome results do not establish them.
+JavaFX dependencies use the reviewed pinned version; arbitrary libraries, inherited
+POM dependencies/profiles/BOMs and unapproved API members are rejected. Attribution
+jars and wrapper/properties are hash-checked. Compilation executes frozen reviewed
+wrapper copies with generated build settings, not project Maven hooks. The checksum
+catalogue verifies present compiler/runtime Maven jar/POM bytes before and after
+compilation; extra catalogue entries do not approve application dependencies or
+require downloading that entire catalogue. The real pinned GWT compilation remains
+mandatory after semantic checks. Successful output contains a compatibility receipt.
 
-First settle shared snapshot/contract and preview-lifecycle boundaries; review
-phase 1 and publishing transport, then phase 2's semantic gate, then integrated
-regression/review. Do not release a strict-compatibility claim before both phases
-pass. These changes are currently planning only. No new media caps or automatic
-asset transformations are approved. Real account/repository publication authority
-and the existing ZeroHub library-checker acceptance hold remain separate gates.
-
-## Implemented baseline
-
-The following sections describe the reviewed local implementation before that
-migration, including its current GitHub-hosted build step and optional export UI.
+The maintained source-based examples pass attribution; the two packaged examples
+using the separate starter-ui JAR remain outside this dependency profile. Their
+source-composed counterparts stay available. This is an approved teaching subset,
+not all Java/JavaFX. New APIs require explicit contract review and positive/negative
+coverage, actual WebFX compilation and browser behavior checks. No per-control
+wrapper language or second transpiler is introduced.
 
 ## Student flow
 
 Choose **Publish app** in Zero's GitHub section after finishing and uploading a
-change on `main`. Sign in and connect your repository to enable it. First setup reviews the public destination, prepares source-only
-publishing files, asks VS Code for GitHub workflow permission, and uses the
+change on `main`. Sign in and connect your repository to enable it. First setup reviews the public destination, prepares a small deployment-only
+publishing kit, asks VS Code for GitHub workflow permission, and uses the
 existing reviewed Upload changes flow. Zero then confirms the uploaded version.
 Later publishes reuse the approved destination and stable URL. Repository
 visibility is never changed. The deployed game and its included assets are public,
@@ -111,9 +92,9 @@ Simulation mode exits before saving, requesting authentication, writing setup
 files or making network calls. Live publication must be an explicit student
 choice after the teacher enables live mode.
 
-For local testing choose **Export for web** from the title menu or Command
+For a separate export choose **Export for web** from the title menu or Command
 Palette. The cancellable build offers **Preview game**, **Save ZIP**, and
-**Share…**. The preview is local; other people cannot use its loopback URL. A
+**Share…**. The managed preview is local; other people cannot use its loopback URL. A
 saved ZIP can instead be uploaded as an HTML game on itch.io. Students choose
 visibility there themselves.
 
@@ -142,10 +123,10 @@ previous successful export.
 
 `npm run check` enforces the reviewed helper inventory and adapter fingerprints.
 `npm run verify:web` performs real WebFX/GWT compilation of the helper fixture,
-quiz/shared score component, drawing example and dedicated audio fixture, then checks interaction in
+quiz/shared score component, drawing, dedicated audio and styled greeting fixtures, then checks interaction in
 Chrome. The pull-request workflow runs those same checks. New framework methods
 need corresponding fixture coverage; new or changed adapter-sensitive helpers
-must be reviewed before their profile fingerprints are updated. Publishing always runs the real compiler; the PR workflow exposes the separate
+must be reviewed before their profile fingerprints are updated. Publishing requires a validated local compiler result; the PR workflow exposes the separate
 compatibility check. Branch-protection settings remain an owner decision and
 were not changed.
 
@@ -194,12 +175,33 @@ build directory and replaces one diagnostic log per project; reusable dependenci
 remain cached. Exact output size changes with the source/runtime profile.
 Images and audio drive growth; save only exports you want to keep separately.
 
-GitHub setup commits a small source-only `.zero-web` compiler kit and a single
-owned workflow, rather than generated JavaScript or compiled archives. The
-workflow builds each version and deploys a Pages artifact with one-day retention.
-The live Pages site remains independent of temporary artifact expiry. GitHub
-still keeps ordinary run/deployment history and account storage/build limits
-apply. There is no central Zero game-storage bill or student upload service.
+GitHub setup commits a small deployment-only `.zero-web` kit and one owned
+workflow. Zero validates and packages the local output, uploads it as a uniquely
+named temporary draft-release asset and dispatches its exact asset/release IDs,
+source SHA, profile hash and archive digest. The runner only downloads, validates
+and extracts data, adds a source/run marker, then uploads a Pages artifact; it
+never compiles Java or executes the bundled game. App bytes stay unchanged.
+
+Extraction rejects traversal, links (the archive format has no link entries),
+duplicate/conflicting paths, bad hashes and incomplete output. Transfer is bounded
+to128MiB of app data/20,000 files; this is a publishing transport limit, not an
+image/audio format policy or automatic asset transformation. Uploads have a separate
+180-second timeout and remain cancellable. Operational errors preserve the old page.
+
+Workflow finalization and client retries delete only the exact owned staging draft.
+A lost creation response retains its unique name and blocks further staging until
+bounded recovery identifies it safely. Drafts have no automatic expiry; an offline
+client, revoked access or unresolved creation can require repository draft cleanup.
+Recheck retries rather than silently accumulating uploads. Pages artifacts use
+one-day retention; the live site remains independently available. Normal GitHub
+run/deployment history and account limits still apply. Compiled app bytes never
+enter source Git history or ZeroHub storage.
+
+Local manifests and public markers bind delivery to the selected source/run; they
+are owner-supplied evidence, not an unforgeable proof of compilation. ZeroHub's
+trusted checker still verifies its existing repository/workflow/run/Pages receipt
+contract. Its separate acceptance and activation hold remains in force.
+
 Runtime license/source files in each export must travel with the game; original
 student and Zero source retain their own licenses.
 
@@ -225,7 +227,9 @@ run tracking, public marker checks, retries, custom domains, and remembered link
 Real game browser checks cover images, sprite rendering, input, pause/reset/mute,
 audio progress, missing-image errors, autoplay recovery and synthetic blur/pagehide.
 Physical focus switching, other browser engines, Windows, school authentication
-and a real GitHub Pages publication need separate end-to-end verification. No
+and a real GitHub Pages publication need separate end-to-end verification. The new
+local integration is awaiting its final fixed-revision independent review and
+recorded acceptance in VERIFICATION.md. No
 account grant, push, deployment, release or installed Zero update was performed.
 
 

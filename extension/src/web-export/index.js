@@ -7,6 +7,8 @@ const https = require('node:https');
 const { spawn } = require('node:child_process');
 const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
+const { captureBuildInputs, buildProfileHash } = require('./snapshot');
+const { checkCompatibility, validateDependencies, verifyArtifactInventory, validateWrapperInputs } = require('./compatibility');
 const toolchain = require('./toolchain-lock.json');
 const { createReadStream } = require('node:fs');
 const sha = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -420,10 +422,10 @@ async function exportForWeb(options = {}) {
   try {
     await noSymlinks(logPath);
     onProgress('Checking Java sources and resources');
-    const javaFiles = await readTree(path.join(projectRoot, 'src/main/java'));
-    const resources = (
-      await readTree(path.join(projectRoot, 'src/main/resources'), true)
-    ).filter((file) => file.path !== '.gitkeep');
+    const profileHash = await buildProfileHash();
+    const captured = await captureBuildInputs(projectRoot);
+    const javaFiles = captured.files.filter(file => file.path.startsWith('src/main/java/')).map(file => ({ ...file, path: file.path.slice('src/main/java/'.length) }));
+    const resources = captured.files.filter(file => file.path.startsWith('src/main/resources/')).map(file => ({ ...file, path: file.path.slice('src/main/resources/'.length) }));
     if (!javaFiles.some((file) => file.path.endsWith('.java')))
       throw new Error('No Java sources found in src/main/java.');
     for (const file of javaFiles)
@@ -452,17 +454,8 @@ async function exportForWeb(options = {}) {
           `Private or hidden resources cannot be exported: ${file.path}`
         );
     await noSymlinks(path.join(projectRoot, 'pom.xml'));
-    const pom = await fs.readFile(path.join(projectRoot, 'pom.xml'), 'utf8');
-    const dependencies = [
-      ...pom.matchAll(/<dependency>([\s\S]*?)<\/dependency>/g)
-    ];
-    const unsupported = dependencies
-      .map((match) => match[1])
-      .filter((text) => !/<groupId>\s*org\.openjfx\s*<\/groupId>/.test(text));
-    if (unsupported.length)
-      throw new Error(
-        'This project uses extra Maven libraries. Web export currently supports the included Zero Java sources and JavaFX only. Copy compatible helper source into src/main/java or use the desktop app.'
-      );
+    const pom = captured.files.find(file => file.path === 'pom.xml').bytes.toString('utf8');
+    validateDependencies(pom);
     const wrapper = path.join(
       projectRoot,
       process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw'
@@ -472,40 +465,9 @@ async function exportForWeb(options = {}) {
       throw new Error(
         'This project needs its Maven wrapper (mvnw / mvnw.cmd). Run Zero project setup first.'
       );
-    const wrapperConfig = path.join(
-      projectRoot,
-      '.mvn/wrapper/maven-wrapper.properties'
-    );
-    await noSymlinks(wrapperConfig);
-    const wrapperText = await fs.readFile(wrapperConfig, 'utf8');
-    if (
-      !wrapperText.includes('apache-maven-3.9.11-bin.zip') ||
-      !wrapperText.includes(
-        'distributionSha256Sum=0d7125e8c91097b36edb990ea5934e6c68b4440eef4ea96510a0f6815e7eeadb'
-      )
-    )
-      throw new Error(
-        'Web export requires Zero’s pinned Maven 3.9.11 wrapper. Update the project setup first.'
-      );
-    const originals = [
-      ...javaFiles.map((file) => ({
-        ...file,
-        path: 'src/main/java/' + file.path
-      })),
-      ...resources.map((file) => ({
-        ...file,
-        path: 'src/main/resources/' + file.path
-      }))
-    ];
-    const sourceHash = sourceDigest(originals);
-    const adapted = require('./adapters').adaptSources({
-      sources: Object.fromEntries(
-        javaFiles.map((file) => [file.path, file.bytes.toString('utf8')])
-      ),
-      resourcePaths: resources.map((file) => file.path)
-    });
-    if (!/^(?:[a-zA-Z_$][\w$]*\.)+[a-zA-Z_$][\w$]*$/.test(adapted.mainClass))
-      throw new Error('Invalid browser launcher class.');
+    const wrapperInput = validateWrapperInputs(captured.files);
+    const originals = captured.files;
+    const sourceHash = captured.sourceHash;
     const artifacts = path.join(cacheRoot, 'artifacts');
     await prepareArtifacts(artifacts, signal, onProgress);
     const builds = path.join(cacheRoot, 'builds');
@@ -517,16 +479,34 @@ async function exportForWeb(options = {}) {
       await noSymlinks(directory);
     await fs.mkdir(builds, { recursive: true });
     buildRoot = await fs.mkdtemp(path.join(builds, 'export-'));
+    const compatibility = await checkCompatibility({
+      sources: Object.fromEntries(javaFiles.map(file => [file.path, file.bytes.toString('utf8')])),
+      pom, workRoot: buildRoot, cacheRoot, env: options.env, signal, onProgress, getArtifact: get
+    });
+    const adapted = require('./adapters').adaptSources({
+      sources: Object.fromEntries(
+        javaFiles.map((file) => [file.path, file.bytes.toString('utf8')])
+      ),
+      resourcePaths: resources.map((file) => file.path)
+    });
+    if (!/^(?:[a-zA-Z_$][\w$]*\.)+[a-zA-Z_$][\w$]*$/.test(adapted.mainClass))
+      throw new Error('Invalid browser launcher class.');
     await generateProject(buildRoot, adapted, resources, artifacts);
+    // Execute a frozen reviewed wrapper, with no project Maven hooks or mutable script race.
+    const frozenWrapper = path.join(buildRoot, wrapperInput.name);
+    await fs.writeFile(frozenWrapper, wrapperInput.wrapperBytes, { mode: 0o755 });
+    await fs.mkdir(path.join(buildRoot, '.mvn/wrapper'), { recursive: true });
+    await fs.writeFile(path.join(buildRoot, '.mvn/wrapper/maven-wrapper.properties'), wrapperInput.propertiesBytes);
     await fs.writeFile(
       path.join(buildRoot, 'settings.xml'),
       '<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"><interactiveMode>false</interactiveMode></settings>'
     );
+    verifyArtifactInventory(await artifactInventory(path.join(cacheRoot, 'repository')));
     onProgress(
       'Compiling Java for the browser. The first export downloads the compiler.'
     );
     const result = await runMaven({
-      wrapper,
+      wrapper: frozenWrapper,
       projectRoot,
       buildRoot,
       cacheRoot,
@@ -534,6 +514,7 @@ async function exportForWeb(options = {}) {
       signal,
       onProgress
     });
+    const resolvedArtifactInventory = verifyArtifactInventory(await artifactInventory(path.join(cacheRoot, 'repository')));
     diagnosticText += mapDiagnostics(result.output, adapted.sourceMap);
     await writeDiagnosticLog(logPath, diagnosticText);
     abort(signal);
@@ -566,21 +547,10 @@ async function exportForWeb(options = {}) {
           'The browser build did not preserve resource: ' + resource.path
         );
     }
-    const nowOriginals = [
-      ...(await readTree(path.join(projectRoot, 'src/main/java'))).map(
-        (file) => ({ ...file, path: 'src/main/java/' + file.path })
-      ),
-      ...(await readTree(path.join(projectRoot, 'src/main/resources'), true))
-        .filter((file) => file.path !== '.gitkeep')
-        .map((file) => ({ ...file, path: 'src/main/resources/' + file.path }))
-    ];
-    if (sourceDigest(nowOriginals) !== sourceHash)
-      throw new Error(
-        'Java sources or resources changed during export. Export again to build the saved version.'
-      );
-    const resolvedArtifactInventory = await artifactInventory(
-      path.join(cacheRoot, 'repository')
-    );
+    if ((await captureBuildInputs(projectRoot)).sourceHash !== sourceHash)
+      throw new Error('Java sources, resources or build settings changed during export. Run App again to build the saved version.');
+    if ((await buildProfileHash()) !== profileHash)
+      throw new Error('The browser compiler or compatibility contract changed during export. Run App again.');
     const notices = await readTree(path.join(__dirname, 'notices'));
     for (const file of notices)
       siteFiles.push({ path: 'licenses/' + file.path, bytes: file.bytes });
@@ -603,6 +573,8 @@ async function exportForWeb(options = {}) {
       schemaVersion: 1,
       buildId,
       sourceHash,
+      profileHash,
+      compatibility,
       createdAt: new Date().toISOString(),
       sitePath: path.join(outputRoot, 'site'),
       zipPath: path.join(outputRoot, 'web-export.zip'),
@@ -699,6 +671,8 @@ async function exportForWeb(options = {}) {
       manifestPath: path.join(outputRoot, 'manifest.json'),
       buildId,
       sourceHash,
+      profileHash,
+      compatibility,
       totalBytes: manifest.totalBytes,
       files: manifest.files,
       logPath

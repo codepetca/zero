@@ -88,3 +88,11 @@ test('abstract nested app owners are not mistaken for a second launch target', (
   const main = app.replace('public void setup() {}', 'public void setup() {} private abstract static class Owner extends SimpleApp {}');
   assert.doesNotThrow(() => adaptSources({ sources: { 'Main.java': main } }));
 });
+
+test('ordinary instance resource lookup supports stylesheets without enabling reflection rewrites', () => {
+  const source='import java.net.URL;\nimport zero.SimpleApp;\nclass Main extends SimpleApp { public void setup() { var theme=getClass().getResource("/theme.css"); java.net.URL same=Main.class.getResource("/theme.css"); String sample="getClass().getResource(ignored)"; } }';
+  const adapted=adaptSources({sources:{'Main.java':source},resourcePaths:['theme.css']}).sources['zero/exported/Main.java'];
+  assert.match(adapted,/var theme=zero.web.Resources.get\(getClass\(\), "\/theme.css"\)/);
+  assert.match(adapted,/zero.web.ResourceURL same=zero.web.Resources.get\(Main.class, "\/theme.css"\)/);
+  assert.ok(adapted.includes('"getClass().getResource(ignored)"'));
+});

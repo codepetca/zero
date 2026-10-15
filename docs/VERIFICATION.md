@@ -1943,3 +1943,43 @@ Configuration checks pass; full319tests318pass/1skip/0fail, affected66/66 and
 final readiness-boundary19/19 pass. Real helper/quiz/drawing builds and18browser
 checks plus frozen game/audio smoke pass. Independent review covers corrected
 code `c5db993` with no remaining findings; details and limits are in EVIDENCE.
+
+## Browser-first local integration — 2026-10-15
+
+Local implementation, unreleased; no GitHub writes, authentication grants, push,
+deployment or ZeroHub activation. Three focused GPT6.1Sol/high workers implemented
+strict original-source attribution, owned browser Run and local-bundle deployment;
+coordinator integrated the shared snapshot/provenance checks and source-example
+repairs. Effective configuration/token attribution is unavailable. Source base
+cdf30b3; final revision/review receipt will be recorded after acceptance.
+
+Verified local evidence so far: real isolated macOS VS Code Run built current
+Sky Hop with the strict gate; focused input/animation, actual HTML media progress,
+pause/reset/mute, restart/Stop/cancel and source Problems checks passed. Native
+QA exposed duplicate Problems and verbose sidebar errors; one pre-review batch
+fixed both and actual UI recheck passed. Fixture restored exactly. Receipt:
+`.verification/browser-run/native-acceptance.{json,md}`. Physical speaker output,
+Windows and remote editor tunnels remain unverified.
+
+The real game build was copied byte-identically into a standalone local Git
+fixture: all27 build inputs bind to its commit, the validated snapshot was packed
+and extracted through the deployment format, and all68 app files remain exact
+(8,208,661bytes; transfer bundle7,280,686bytes). No remote calls. Receipt:
+`.verification/browser-first/publish-proof.json`. SHA/run/profile metadata is
+owner-supplied provenance, not a cryptographic compilation attestation.
+
+All28 source-based maintained examples pass semantic attribution; two packaged
+starter-ui consumers remain explicitly dependency-blocked. Native/JSNI, reserved
+namespace, inherited member, reference, overload, unresolved symbol, source drift,
+helper tampering, wrapper and cache checksum tests cover rejection boundaries.
+Source example utility loadSound→loadEffect renames repair five conflicts with
+the existing final helper API; canonical helpers and original game unchanged.
+
+Initial extension294/294 and targeted latest publisher41/bundle6/browser19 checks
+passed. Final sharing48/48 and website104/104, typecheck and production build pass.
+A broader root run exposed a stale design fixture (fixed) and resource-contention
+timeouts; root concurrency is now bounded and timed-out cases are being rerun.
+The final five-fixture GWT/browser matrix and independent fixed-revision review
+are still in progress; this entry is not final acceptance. Source-only preview
+VSIX was built locally, not installed or published. Detailed logs remain ignored
+under `.verification/browser-first*` and `.verification/browser-run/`.

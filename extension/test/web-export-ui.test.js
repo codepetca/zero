@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const {createWebExportCommands}=require('../src/web-export-ui');
 const {createWebPreview}=require('../src/web-preview');
-const {preparePagesFiles,pagesWorkflow,publishingGuide}=require('../src/web-publishing');
+const {preparePagesFiles,pagesFiles,pagesWorkflow,publishingGuide}=require('../src/web-publishing');
 
 async function harness(t) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-web-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
@@ -18,7 +18,7 @@ async function harness(t) {
   const vscode={workspace:{isTrusted:true,saveAll:async()=>{saves++;return save;},openTextDocument:async value=>{documents.push(value);return {uri:{document:true}};}},
     window:{showInformationMessage:async(...value)=>{notices.push(value);return noticeAction;},showQuickPick:async(items)=>{picks.push(items);return items.find(i=>i.action===choices.shift());},showSaveDialog:async()=>undefined},
     commands:{executeCommand:async()=>{}},env:{openExternal:async uri=>{opened.push(uri);return true;}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})}};
-  const api=createWebExportCommands(vscode,{project:async()=>active,output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:value=>{busy=value;},setState:value=>states.push(value),engine:{exportForWeb:async options=>{builds++;args.push(options);if(fail)throw Error('Bad student source');return exportResult ? exportResult(options) : {sitePath:site,zipPath:zip,totalBytes:4500000};}},previewFactory:async()=>{previewOpened++;return {url:'http://127.0.0.1:1234/token/',dispose:()=>{previewClosed++;}};}});
+  const api=createWebExportCommands(vscode,{project:async()=>active,output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:value=>{busy=value;},setState:value=>states.push(value),validateExport:async()=>{},ensureValidatedExport:async options=>{builds++;args.push(options);if(fail)throw Error('Bad student source');return exportResult ? exportResult(options) : {sitePath:site,zipPath:zip,totalBytes:4500000};},previewFactory:async()=>{previewOpened++;return {url:'http://127.0.0.1:1234/token/',dispose:()=>{previewClosed++;}};}});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {root,site,zip,api,vscode,states,notices,opened,picks,documents,args,choices,get busy(){return busy;},set busy(v){busy=v;},get saves(){return saves;},get builds(){return builds;},set save(v){save=v;},set fail(v){fail=v;},set active(v){active=v;},set noticeAction(v){noticeAction=v;},set exportResult(v){exportResult=v;},get previewClosed(){return previewClosed;},get previewOpened(){return previewOpened;}};
 }
@@ -28,7 +28,7 @@ test('web export saves a trusted project, builds without auth, releases busy sta
   await h.api.commands['zero.exportWeb']();
   assert.equal(h.saves,1);assert.equal(h.builds,1);assert.equal(h.busy,false);assert.equal(h.previewOpened,1);
   assert.equal(h.args[0].projectRoot,h.root);assert.ok(h.args[0].signal instanceof AbortSignal);
-  assert.match(h.states.join('\n'),/4.5 MB/);assert.equal(h.opened[0].url,'http://127.0.0.1:1234/token/');
+  assert.match(h.states.join('\n'),/4.5 MB/);assert.equal(h.opened.length,0,'Managed previews never leave executing tabs in an external browser');
   h.fail=true;
   await assert.rejects(h.api.commands['zero.exportWeb'](),/Bad student source/);assert.equal(h.busy,false);
   await h.api.commands['zero.previewWebExport']();assert.equal(h.previewOpened,2,'Previous successful build remains available after failure');
@@ -66,12 +66,12 @@ test('Pages preparation is explicit, idempotent, preserves edits, and never incl
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-pages-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const engine=path.join(root,'bundled');await fs.mkdir(engine);await fs.writeFile(path.join(engine,'index.js'),'module.exports={};');await fs.writeFile(path.join(engine,'lock.json'),'{}');
   const project=path.join(root,'student');await fs.mkdir(project);
-  const result=await preparePagesFiles(project,engine);assert.ok(result.created.includes('.zero-web/tool/index.js'));assert.deepEqual((await preparePagesFiles(project,engine)).created,[]);
+  const result=await preparePagesFiles(project,engine);assert.ok(result.created.includes('.zero-web/web-publish-bundle.js'));assert.deepEqual((await preparePagesFiles(project,engine)).created,[]);
   await assert.rejects(fs.access(path.join(project,'.github/workflows/zero-web.yml')));
   await fs.writeFile(path.join(project,'.zero-web/run.cjs'),'student edit');await assert.rejects(preparePagesFiles(project,engine),/already has different content/);assert.equal(await fs.readFile(path.join(project,'.zero-web/run.cjs'),'utf8'),'student edit');
-  assert.match(pagesWorkflow,/workflow_dispatch:/);assert.doesNotMatch(pagesWorkflow,/\n\s+push:/);assert.match(pagesWorkflow,/retention-days: 1/);assert.match(pagesWorkflow,/needs: build/);assert.match(pagesWorkflow,/persist-credentials: false/);
+  assert.match(pagesWorkflow,/workflow_dispatch:/);assert.doesNotMatch(pagesWorkflow,/\n\s+push:/);assert.match(pagesWorkflow,/retention-days: 1/);assert.match(pagesWorkflow,/needs: stage/);assert.match(pagesWorkflow,/persist-credentials: false/);
   assert.match(publishingGuide(),/actual published game-page URL/);assert.doesNotMatch(publishingGuide(),/https:\/\/student.github.io/);
-  await fs.writeFile(path.join(engine,'bad.jar'),'binary');await assert.rejects(preparePagesFiles(project,engine),/source and templates only/);
+  await fs.writeFile(path.join(engine,'bad.jar'),'binary');const deployFiles=await pagesFiles(engine);assert.ok([...deployFiles.keys()].every(name=>!name.includes('/tool/')&&!name.endsWith('.jar')),'Publishing ships only the fixed deployment runner, never compiler or generated app bytes');
 });
 
 test('Pages preparation refuses a project path symlink before writing anything',async t=>{
@@ -79,4 +79,14 @@ test('Pages preparation refuses a project path symlink before writing anything',
   const engine=path.join(root,'engine');const student=path.join(root,'student');const elsewhere=path.join(root,'elsewhere');
   await Promise.all([fs.mkdir(engine),fs.mkdir(student),fs.mkdir(elsewhere)]);await fs.writeFile(path.join(engine,'index.js'),'');await fs.symlink(elsewhere,path.join(student,'.zero-web'));
   await assert.rejects(preparePagesFiles(student,engine),/symbolic link/);assert.deepEqual(await fs.readdir(elsewhere),[]);
+});
+
+test('preview serves immutable bytes when source output is replaced or removed',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-preview-snapshot-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ await fs.writeFile(path.join(root,'index.html'),'original');
+ const preview=await createWebPreview(root);t.after(()=>preview.dispose());await fs.writeFile(path.join(root,'index.html'),'replacement');await fs.writeFile(path.join(root,'new.txt'),'unvalidated');
+ assert.equal(await(await fetch(preview.url)).text(),'original');assert.equal((await fetch(preview.url+'new.txt')).status,404);
+ await fs.rm(path.join(root,'index.html'));assert.equal(await(await fetch(preview.url)).text(),'original');
+ const bytes=Buffer.from('validated');const supplied=await createWebPreview(root,{siteFiles:[{path:'index.html',bytes}]});t.after(()=>supplied.dispose());bytes.fill(0);assert.equal(await(await fetch(supplied.url)).text(),'validated');
+ await assert.rejects(createWebPreview(root,{siteFiles:[{path:'../private',bytes:Buffer.from('bad')}]}),/Invalid validated preview/);
 });

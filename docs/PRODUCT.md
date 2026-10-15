@@ -189,15 +189,15 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-Owner-approved next direction: Run App targets the browser after local
+Local, unreleased implementation: Run App targets the browser after local
 compatibility checking and WebFX compilation. Students keep ordinary Java and
 approved ordinary JavaFX APIs. Publish app stays in GitHub and deploys the same
 validated local build; ZeroHub links to the student-hosted app. Cloud development
-and hosted compilation are out of scope. This migration and a strict resolved-API
-gate are planned, not implemented; see [the migration plan](WEB-EXPORT.md#planned-browser-first-migration).
-The workflow below describes the current implemented baseline.
+and hosted compilation are out of scope. A strict resolved-API gate rejects unsupported
+application APIs before real WebFX compilation; see [browser builds](WEB-EXPORT.md).
+Final integrated acceptance and release remain separate.
 
-Optional browser sharing adds **Publish app** in the GitHub section and **Export for
+Browser sharing adds **Publish app** in the GitHub section and **Export for
 web** in the title menu. Students keep ordinary Java. A reviewed GitHub Pages
 setup leads to an exact-version verified playable link; simulation remains the
 default. Share game can attach the exact verified publication automatically;
@@ -214,8 +214,10 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   still blocks GitHub sharing. Tutorials and Setup help live in the native view
   overflow; Copy repository link lives in the repository menu. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
-- Run saves files, cleans/compiles and opens a separate native JavaFX window.
-  Re-running rebuilds/restarts; Stop terminates the owned run. There is no hot reload.
+- Run saves files, checks ordinary Java against the supported browser API, builds
+  locally when inputs changed and opens an owned browser preview. Re-running
+  destroys the old runtime; Stop cancels builds and destroys executing JavaScript
+  and audio. There is no hot reload. A native diagnostic command remains explicit.
 - The first lesson opens once per project when the editor is empty; Open First
   Lesson in the view menu or Command Palette reopens it. An explicit command
   opens the hosted tutorials when no bundled lesson exists; idle activation and

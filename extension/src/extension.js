@@ -14,6 +14,7 @@ const {readKitConfiguration} = require('./sharing/configuration');
 const {createSetupHelp} = require('./setup');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createWebExportCommands} = require('./web-export-ui');
+const {createBrowserRunCommands} = require('./web-run-ui');
 const {createWebPublishCommands} = require('./web-publish-ui');
 const {sidebarStyles} = require('./sidebar-style');
 const {libraryLayout} = require('./library-files');
@@ -34,10 +35,12 @@ function activate(context) {
   let menuOpen = false;
   let componentBusy = false;
   let exportingWeb = false;
+  let browserBusy = false;
+  let browserActive = false;
   let publishingWeb = false;
   let branch = '';
   let statusGeneration = 0;
-  const isBusy = () => uploading || connecting || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb;
+  const isBusy = () => uploading || connecting || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'simulation') : 'simulation';
   let runQueue = Promise.resolve();
@@ -149,13 +152,13 @@ function activate(context) {
     await stop();
     state = 'App stopped'; refresh();
   }
-  async function makeTask(root, definition = {type:'zero',task:'run'}, scope = vscode.TaskScope.Workspace) {
+  async function makeTask(root, definition = {type:'zero',task:'native-run'}, scope = vscode.TaskScope.Workspace) {
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
     const processExecution = spec.shell
       ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
       : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
-    const task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, '$zero-java');
+    const task = new vscode.Task(definition, scope, 'Run Native App (diagnostic)', 'Zero', processExecution, '$zero-java');
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
     task.group = vscode.TaskGroup.Build;
     return task;
@@ -170,7 +173,7 @@ function activate(context) {
     state = 'Building / running app — output is in the terminal'; refresh();
   }
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
-    if (event.execution.task.definition.type === 'zero') track(event.execution);
+    if (event.execution.task.definition.type === 'zero' && event.execution.task.definition.task === 'native-run') track(event.execution);
   }), vscode.tasks.onDidEndTask(event => {
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
@@ -189,7 +192,15 @@ function activate(context) {
     // Configured tasks must pass through resolveTask for saving and restart checks.
     provideTasks: async () => [],
     resolveTask: async configured => {
-      if (configured.definition.task !== 'run') return undefined;
+      if (configured.definition.task === 'run') {
+        return new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', new vscode.CustomExecution(async () => {
+          const closed=new vscode.EventEmitter();
+          let ticket,settled=false;
+          return {onDidClose:closed.event,open(){const running=browserRun.run();ticket=browserRun.generation;void running.then(()=>{settled=true;closed.fire(0);},error=>{settled=true;output.appendLine(error.message);closed.fire(1);});},close(){if(!settled && ticket===browserRun.generation)browserRun.stop();closed.dispose();}};
+        }));
+      }
+      if (configured.definition.task !== 'native-run') return undefined;
+      browserRun.stop({quiet:true});
       const generation = runGeneration;
       await stop();
       if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
@@ -378,7 +389,7 @@ function activate(context) {
     },
     'zero.startChange': () => change('start'),
     'zero.finishChange': () => change('finish'),
-    'zero.runApp': queuedRun,
+    'zero.runNativeApp': async () => {browserRun.stop({quiet:true});await queuedRun();},
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
       const root = await project();
@@ -441,17 +452,22 @@ function activate(context) {
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
-  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
+  const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
+  const browserRun=createBrowserRunCommands(vscode,{project,output,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
+  Object.assign(actions,browserRun.commands);
+  actions['zero.stopApp']=async()=>{browserRun.stop();await stopRequested();};
+  context.subscriptions.push(...browserRun.disposables);
+  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,verifiedPublication:webPublish.verifiedPublication,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);
-  const webExport=createWebExportCommands(vscode,{project,output,publish:()=>webPublish.publish(),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined});
+  const webExport=createWebExportCommands(vscode,{project,output,publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
-    try {await action();} catch(error) {state = error.message; refresh(); output.appendLine(error.message); vscode.window.showErrorMessage(`Zero: ${error.message}`);}
+    try {await action();} catch(error) {state = error.zeroRunMessage || error.message; refresh(); output.appendLine(error.message); vscode.window.showErrorMessage(`Zero: ${state}`);}
   }));
   function render(webview) {
     const nonce = crypto.randomBytes(16).toString('hex');
@@ -468,7 +484,7 @@ function activate(context) {
     const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong>${account}</div>${repoControl}${repositoryWarning}${branchControl}${githubActions}${publishControl}`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       ${sidebarStyles()}
-      </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>${icon('Square')}Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${localPractice || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${localPractice || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
@@ -515,6 +531,7 @@ function activate(context) {
   context.subscriptions.push(output, changes, vscode.window.registerTreeDataProvider('zero.files', files));
   const watcher = vscode.workspace.createFileSystemWatcher('**/*');
   for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git|\.zero-sharing-recovery)(?:[\\/]|$)/.test(uri.fsPath)) return; changes.fire();}, undefined, context.subscriptions);
+  for(const method of ['onDidCreate','onDidChange','onDidDelete']) watcher[method](uri=>{if(path.basename(uri.fsPath)==='zero.json')browserRun.stop();},undefined,context.subscriptions);
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
     if (!projectRoot) return;
