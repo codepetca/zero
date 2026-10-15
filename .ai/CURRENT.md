@@ -1,4 +1,17 @@
-# Current state — centered Zero DMG0.5.14 release
+# Current state — Mac automatic-update research complete
+
+Updated2026-10-14. Owner requested research and planning for automatic Mac app
+updates. [Plan](../docs/AUTO-UPDATES-PLAN.md) recommends pinned Sparkle2.10.0,
+short post-editor-handoff lifecycle, signed feed and existing DMG enclosure;
+first gate is a disposable signed A→B lifecycle proof. It includes recognized
+kit-upgrade session preservation, active VSIX versus installed VSIX, native
+command delivery, helper termination gating, immutable versioning and recovery.
+Read-only repository worker plus targeted plan sanity pass accepted; coordinator
+checked relevant source and official Sparkle documentation. Documentation only;
+no app changes, keys, credentials, builds, publication or release changes.
+Implementation/release remains future scope. Delivery evidence in EVIDENCE.md.
+
+## Last delivered installer
 
 Updated2026-10-14. Owner authorized centered minimal drag-to-Applications screen
 and preparation progress below text, then release for smoke testing. SourcePR59

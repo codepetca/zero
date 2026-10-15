@@ -1,5 +1,29 @@
 # Delivery evidence index
 
+## Mac automatic-update research and plan — 2026-10-14
+
+Owner requested research and planning only. Source inspected at
+`27a0ca10055bd432d404fababc1e7a6128d8c260`; published Mac0.5.14 remains unchanged.
+[Implementation plan](AUTO-UPDATES-PLAN.md) records current primary Sparkle
+documentation, pinned-version recommendation, launcher lifecycle proof gate,
+student-data/session preservation, signing/feed/release contracts and acceptance.
+
+Orchestrate workflow used one read-only worker, requested GPT-6.1-Sol/medium,
+for repository seams and a subsequent focused plan sanity check. Worker reported
+about5minutes for initial investigation; effective model/effort, total elapsed
+time and attributable tokens are unknown. Coordinator verified key source claims
+and accepted six planning corrections: release identity coupling, existing-process
+manual requests, installed/active VSIX distinction, termination gating, manual
+session completion and timer exceptions. No implementation rework; one bounded
+plan correction pass. Weekly allowance reading was62%remaining, not task cost;
+storage healthy at about313.8GB. DeepSeek remained paused.
+
+Verification: source and official-document review; documentation whitespace
+check. No builds/tests or live Sparkle upgrade were performed. Two signed builds,
+permissions, actual background lifecycle, fresh-machine/macOS12/Intel and active
+editor upgrade behavior remain future acceptance work. No code, key, credential,
+public feed, published asset, account setting or production metadata changed.
+
 ## Sidebar corrections and New Project — 2026-10-14
 
 Owner requested separate PRs for the pending extension and website changes:
