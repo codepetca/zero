@@ -72,8 +72,8 @@ test('escaping source symlinks are rejected without reading or changing sources'
   );
   assert.equal(await fs.readFile(path.join(root, 'secret'), 'utf8'), 'private');
 });
-test('generated project has fixed plugin versions, own assets and relative homepage links', async (t) => {
-  const root = await temporary(t);
+test('generated project uses pinned plugins and relative GWT directory overrides in spaced paths', async (t) => {
+  const root = path.join(await temporary(t), 'Build Root With Spaces');
   await generateProject(
     root,
     {
@@ -86,8 +86,11 @@ test('generated project has fixed plugin versions, own assets and relative homep
   const pom = await fs.readFile(path.join(root, 'pom.xml'), 'utf8');
   assert.ok(!pom.includes('SNAPSHOT'));
   assert.ok(!pom.includes('<parent>'));
+  assert.ok(pom.includes('<zero.artifactRoot>' + path.join(root, 'artifacts') + '</zero.artifactRoot>'));
   assert.match(pom, /<version>1\.2\.0<\/version>/);
   assert.match(pom, /<version>3\.1\.0<\/version>/);
+  assert.match(pom, /<compilerArgs><arg>-war<\/arg><arg>\$\{project\.build\.finalName\}<\/arg><arg>-workDir<\/arg><arg>gwt\/work<\/arg><arg>-deploy<\/arg><arg>gwt\/deploy<\/arg><\/compilerArgs>/);
+
   assert.deepEqual(
     await fs.readFile(
       path.join(root, 'src/main/resources/public/images/bird.png')

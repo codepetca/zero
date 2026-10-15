@@ -101,7 +101,12 @@ async function generateProject(root, adapted, resources, artifactRoot) {
 <project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><groupId>school.zero</groupId><artifactId>zero-web</artifactId><version>1.0.0</version><packaging>gwt-app</packaging>
 <properties><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><maven.main.skip>true</maven.main.skip><zero.artifactRoot>${xml(artifactRoot)}</zero.artifactRoot><maven.test.skip>true</maven.test.skip></properties>
 <dependencies>${dependencies.join('\n')}</dependencies><build><plugins>
-<plugin><groupId>net.ltgt.gwt.maven</groupId><artifactId>gwt-maven-plugin</artifactId><version>${lock.gwtPlugin}</version><extensions>true</extensions><configuration><moduleName>zero_web</moduleName><moduleShortName>zero_web</moduleShortName><failOnError>true</failOnError><sourceLevel>17</sourceLevel><style>OBF</style><optimize>9</optimize><localWorkers>2</localWorkers><jvmArgs><arg>-Xmx2g</arg></jvmArgs></configuration></plugin>
+<plugin><groupId>net.ltgt.gwt.maven</groupId><artifactId>gwt-maven-plugin</artifactId><version>${lock.gwtPlugin}</version><extensions>true</extensions><configuration><moduleName>zero_web</moduleName><moduleShortName>zero_web</moduleShortName><failOnError>true</failOnError><sourceLevel>17</sourceLevel><style>OBF</style><optimize>9</optimize><localWorkers>2</localWorkers>
+<!-- Plugin 1.2.0 quotes absolute compiler paths containing spaces as literal
+     argument data on Unix. It appends compilerArgs after those defaults and
+     launches GWT in target/. Final relative overrides select the same owned
+     output/work/deploy paths without changing or relocating the cache. -->
+<compilerArgs><arg>-war</arg><arg>${'${project.build.finalName}'}</arg><arg>-workDir</arg><arg>gwt/work</arg><arg>-deploy</arg><arg>gwt/deploy</arg></compilerArgs><jvmArgs><arg>-Xmx2g</arg></jvmArgs></configuration></plugin>
 <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.11.0</version></plugin>
 <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-resources-plugin</artifactId><version>3.3.1</version></plugin>
 <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.1.2</version></plugin>
