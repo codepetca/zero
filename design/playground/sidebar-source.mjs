@@ -16,7 +16,7 @@ export function sidebarSource(state = 'ready') {
   runInNewContext(`${source.slice(start, end)}\nrender(webview);`, {
     crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => false,
     repository: 'No repository connected', auth: { signedIn: false, accountLabel: '' },
-    branch: '', uploadMode: () => 'simulation', execution: null, browserActive: false, localPractice: state === 'practice',
+    branch: '', uploadMode: () => 'simulation', execution: null, browserActive: false, localPractice: state === 'practice', originalWork: state !== 'practice',
     state: state === 'error' ? 'Your app could not build. Main.java, line 8: add a semicolon after the greeting. Choose Show Problems to find the line.' : '',
     buildFailed: state === 'error',
   }, { timeout: 1000 });

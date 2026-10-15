@@ -43,7 +43,8 @@ light/dark mode. The OS preference is the initial default; a chosen mode persist
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
 Concise platform/version requirements and a setup link appear below the buttons;
-initial lesson projects link to setup and clarify that the scaffold ZIP installs no tools.
+initial tutorial entries link to setup and explain creating a student-owned repository
+from a template, then cloning that repository.
 Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
 available. `/hub` is ZeroHub: discover separate editable games and reusable
