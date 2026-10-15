@@ -111,6 +111,10 @@ async function fixture(name, example) {
       path.join(directory, 'src/main/resources/tiles.png'),
       png()
     );
+    await fs.copyFile(
+      path.join(directory, 'src/main/resources/tiles.png'),
+      path.join(directory, 'src/main/resources/late-image.png')
+    );
   }
   if (example === 'quiz')
     await fs.copyFile(

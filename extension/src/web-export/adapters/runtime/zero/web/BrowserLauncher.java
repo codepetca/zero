@@ -14,7 +14,7 @@ public final class BrowserLauncher extends Application {
     private Application app;
     private int remaining;
     private boolean failed, started;
-    private double timeout;
+    private double timeout, totalTimeout;
     private final java.util.Set<String> waiting = new java.util.LinkedHashSet<>();
     @Override public void start(Stage stage) {
         Text status = new Text("Loading game images…");
@@ -22,7 +22,8 @@ public final class BrowserLauncher extends Application {
         stage.show();
         remaining = PackagedResources.IMAGES.length;
         for (String path : PackagedResources.IMAGES) waiting.add(path);
-        timeout = DomGlobal.setTimeout(ignored -> fail(status, "Image loading timed out after 30 seconds: " + String.join(", ", waiting)), 30000);
+        waitForProgress(status);
+        totalTimeout = DomGlobal.setTimeout(ignored -> fail(status, "Image loading exceeded two minutes. Check your connection or reduce image sizes: " + String.join(", ", waiting)), 120000);
         if (remaining == 0) { launchGame(stage, status); return; }
         for (String path : PackagedResources.IMAGES) {
             ResourceURL url = Resources.get(BrowserLauncher.class, path);
@@ -38,16 +39,25 @@ public final class BrowserLauncher extends Application {
                 waiting.remove(path);
                 status.setText("Loading game images: " + (PackagedResources.IMAGES.length - remaining + 1) + "/" + PackagedResources.IMAGES.length);
                 if (--remaining == 0) launchGame(stage, status);
+                else waitForProgress(status);
             };
             image.progressProperty().addListener((observable, oldValue, newValue) -> check.run());
             image.errorProperty().addListener((observable, oldValue, newValue) -> check.run());
             check.run();
         }
     }
+    private void waitForProgress(Text status) {
+        DomGlobal.clearTimeout(timeout);
+        timeout = DomGlobal.setTimeout(ignored -> fail(status, "Image loading stalled for 30 seconds. Check your connection and refresh: " + String.join(", ", waiting)), 30000);
+    }
+    private void clearTimeouts() {
+        DomGlobal.clearTimeout(timeout);
+        DomGlobal.clearTimeout(totalTimeout);
+    }
     private void launchGame(Stage stage, Text status) {
         if (failed || started) return;
         started = true;
-        DomGlobal.clearTimeout(timeout);
+        clearTimeouts();
         Platform.runLater(() -> {
             try {
                 status.setText("");
@@ -66,13 +76,13 @@ public final class BrowserLauncher extends Application {
     private void fail(Text status, String message) {
         if (failed) return;
         failed = true;
-        DomGlobal.clearTimeout(timeout);
+        clearTimeouts();
         status.setText(message);
         DomGlobal.console.error(message);
     }
     @Override public void stop() {
         try { if (app != null) app.stop(); }
         catch (Exception failure) { throw new RuntimeException("Game shutdown failed.", failure); }
-        finally { BrowserFocus.uninstall(); }
+        finally { clearTimeouts(); BrowserFocus.uninstall(); }
     }
 }

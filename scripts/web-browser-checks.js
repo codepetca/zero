@@ -96,6 +96,45 @@ async (page) => {
     (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
     'No JavaScript errors in helpers'
   );
+  // A completed image at 10s must extend the 30s wait for a second at 35s.
+  // This exercises real loader timers without slowing every network resource.
+  const delayed = async route => {
+    await new Promise(resolve => setTimeout(resolve, route.request().url().endsWith('/tiles.png') ? 10000 : 35000));
+    await route.continue();
+  };
+  await page.route('**/tiles.png', delayed);
+  await page.route('**/late-image.png', delayed);
+  try {
+    await page.goto(urls.helpers, {waitUntil:'domcontentloaded'});
+    await page.waitForFunction(() => window.__zeroCheck?.last?.texts.includes('Web helpers ready'), null, {timeout:45000});
+    check((await state()).images.length === 12, 'Image progress extends startup beyond the original 30-second deadline');
+  } finally {
+    await page.unroute('**/tiles.png', delayed);
+    await page.unroute('**/late-image.png', delayed);
+  }
+  await page.addInitScript(() => {
+    const mode = new URL(location.href).searchParams.get('zero-loading-check');
+    if (!mode) return;
+    const schedule = window.setTimeout.bind(window);
+    window.setTimeout = (callback, delay, ...args) => schedule(callback,
+      delay === 30000 ? (mode === 'stall' ? 100 : 1000) : delay === 120000 ? (mode === 'total' ? 100 : 1000) : delay, ...args);
+  });
+  const held = async route => { await new Promise(resolve => setTimeout(resolve, 500)); await route.continue(); };
+  await page.route('**/tiles.png', held);
+  await page.route('**/late-image.png', held);
+  try {
+    for (const mode of ['stall', 'total']) {
+      await page.goto(urls.helpers + '?zero-loading-check=' + mode, {waitUntil:'domcontentloaded'});
+      const expected = mode === 'stall' ? 'Image loading stalled for 30 seconds' : 'Image loading exceeded two minutes';
+      await visibleText(new RegExp('^' + expected)).waitFor({timeout:5000});
+      await page.waitForTimeout(650);
+      check(!(await state())?.texts.includes('Web helpers ready'),
+        mode === 'stall' ? 'Accelerated stall deadline prevents late app startup' : 'Accelerated total deadline bounds image waits');
+    }
+  } finally {
+    await page.unroute('**/tiles.png', held);
+    await page.unroute('**/late-image.png', held);
+  }
   await page.goto(urls.quiz);
   await page.waitForSelector('input[type="text"]');
   await page.locator('input[type="text"]').fill('41');

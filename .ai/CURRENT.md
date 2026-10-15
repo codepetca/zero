@@ -85,7 +85,8 @@ or automations. Keep this worktree for integration and preserve private receipts
 
 ## Media/performance evidence after owner question
 
-No new asset restrictions, optimization or source changes were authorized/implemented.
+No new asset restrictions or asset optimization implemented. A measured loading
+failure is corrected within the active integration goal; student Java/assets unchanged.
 Read-only cold Chrome155/headless probes on this Mac used CDP network/CPU simulation:
 normal local startup121ms;5Mbps/150ms/4xCPU startup8.53s. Median canvas draw cadence
 16.6–16.7ms,95th17.5–18.2ms, no gaps over50ms in roughly5seconds of input. First key
@@ -99,3 +100,12 @@ not justify arbitrary hard caps or automatically rewriting student asset paths.
 Evidence `.verification/integration/performance/receipt.json`; source stays clean/
 reviewed. Owned performance Chrome/server stopped. Live publication authority still
 pending; don't claim the entire goal or responsive behavior across devices achieved.
+
+
+Concrete performance follow-up: generated BrowserLauncher now resets its30s image
+wait when an image completes and caps total preload at120s; timers clear on launch,
+error or stop. Same1Mbps/200ms/4xCPU game starts in40.29s instead of failing at34.34s.
+FourfreshGWT builds and45functionalbrowserchecks passed; a two-image helper fixture
+and real35s regression plus accelerated stall/total deadlines expand this to48checks.
+Final48check result passed; independent targeted delta review remains pending. No new
+hardmedia policy or source/API changes. No publication authority received.

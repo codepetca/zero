@@ -42,6 +42,9 @@ Its adapters cover the reviewed Zero helpers, canvas images and sprite regions,
 keyboard/mouse state, focus, supported JavaFX controls and the bounded JavaFX
 media calls used by the tested game. All seven reviewed helpers, including
 `Sound` and `Music`, retain the ordinary Java API. Image preloading completes before `setup`.
+Image startup allows 30 seconds between completed images and at most two minutes
+overall; a progressing slow download can outlast the first 30 seconds. Timeouts
+name remaining files and suggest checking the connection or reducing image sizes.
 Browser audio waits for a real gesture when autoplay is blocked. Missing assets
 and unsupported API calls produce build/startup errors rather than a false
 successful publication.
@@ -141,3 +144,21 @@ audio progress, missing-image errors, autoplay recovery and synthetic blur/pageh
 Physical focus switching, other browser engines, Windows, school authentication
 and a real GitHub Pages publication need separate end-to-end verification. No
 account grant, push, deployment, release or installed Zero update was performed.
+
+
+## Performance evidence and budgets
+
+Compatibility tests do not promise a frame rate or startup time on every device.
+A cold local Chrome sample with5Mbps/150ms and4xCPU simulation took8.53s to draw
+SkyHop's ready screen, then showed16.6ms median/18.2ms95th canvas draw intervals.
+The old fixed image deadline failed at1Mbps; the corrected progress window starts
+that same game in40.29s. These single headless Mac/loopback samples use uncompressed,
+no-store delivery, not GitHub hosting or classroom hardware. First media playing
+callbacks are not measurements of physical sound latency.
+
+The tested game has4.43MB of PNGs and1.58MB of WAVs. All packaged images preload,
+including an unused0.79MBbird.png; actual requests confirm that cost. About25.17MB
+of RGBA pixels excludes browser copies and other memory. Asset diagnostics, formats
+validated on target systems, and startup budgets calibrated to school networks are
+recommended follow-up work. No new file-size caps, asset deletion, image resizing,
+transcoding or Java restrictions were imposed by this correction.

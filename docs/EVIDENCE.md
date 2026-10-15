@@ -1,5 +1,20 @@
 # Delivery evidence index
 
+## Progressing image startup correction — local, 2026-10-15
+
+The media probe exposed a concrete fixed-deadline failure. Generated BrowserLauncher
+now allows30seconds between completed image loads, with a120second total bound;
+clears both timers on startup/failure/stop and retains named errors/recovery guidance.
+No canonical helper, student Java, source asset or media restriction changed.
+Same cold1Mbps/200ms/4xCPU probe now reaches ready in40.29s (previously failed at34.34s).
+This is not a fast startup claim: image size still matters. FourfreshGWTfixtures and
+45browser checks passed, then the helper fixture gained a second tiny image for a
+real10s/35s completion regression; accelerated stalled/total timer tests also check
+late image completion cannot start a failed app. Expanded48check run passed; targeted
+review remains pending at this writing. Private evidence is in performance/ and
+.verification/web-loading-fix. Public upload/deployment authority remains pending.
+
+
 ## Browser media performance probes — local, 2026-10-15
 
 Owner asked about media size/compatibility/lag. No product/source/asset changes.
