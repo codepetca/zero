@@ -1,5 +1,42 @@
 # Verification
 
+## Account and privacy setup — local candidate, 2026-10-15
+
+Reviewed source92953e2 adds verified personal GitHub account, school access and
+privacy preparation before tutorial lesson0. Student, teacher, kit, website and
+generated scaffold guides agree; tutorial Setup Help includes Git2.31+ readiness.
+Ordinary local apps remain Git-free. Commit identity is configured per repository
+after clone and before upload. Cached tutorial Run needs no active GitHub session;
+public app publishing stays optional. No credentials or account settings changed.
+
+54 setup/onboarding/tutorial tests,7 scaffold tests and18 website focused tests
+pass. Independent reviewer ran39 overlapping setup tests. Configuration/link
+checks, production website build and package/verify:kit pass, including extracted
+Maven compilation and exact source/license/mode parity. Website retains two known
+updater tracing warnings. Earlier full runtime/GWT coverage below is reused;
+no broad suite rerun solely for these guide/readiness changes.
+
+Actual Chrome interaction follows tutorial0's setup link to the prerequisite
+anchor. Desktop and320px visual/nooverflow checks pass. Two asynchronous listener
+message-channel errors at that setup URL are retained/unattributed; no clean-console
+claim. Owned tab/server closed and viewport reset. Native Setup Help and fresh
+student account flows were not interactively tested in this phase.
+
+Independent review is complete/clean: initial Luna/medium, targeted Sol/medium;
+two launches/four turns, one initial/three targeted waves and three fix batches.
+Corrections covered setup consistency and identity sequencing. Effective model,
+tokens and per-turn elapsed telemetry are unknown; no writer conflicts. Evidence
+`.verification/account-setup/` includes ledger, reports, checks and receipts.
+
+Local candidate `dist/candidates/zero-0.5.16-account-ca89325` saves kit/starter/VSIX
+and three maintainer-only empty tutorial drafts (20files each). All six hashes
+pass. Package sourceca89325 differs from reviewed92953e2 only in docs/SETUP.md,
+which is not a package input. Candidate is uninstalled/unpublished and not ready
+for production. Templates remain unpublished; fresh installed account/clone/
+Upload/Publish, public ZeroHub policy/Play, classroom/platform, native focus, final
+CI/signing/distribution gates in [release preparation](RELEASE-0.5.16.md) remain.
+No push, deployment, registry write, new game publication or external account action.
+
 ## Tutorial GitHub workflow — local candidate, 2026-10-15
 
 Reviewed source05daa6c requires initial tutorial template creation in the student's

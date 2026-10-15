@@ -14,24 +14,36 @@ implementation/testing authorized; no project deleted. Source push/merge, templa
 publication, distribution/signing/deployment, new game publication and ZeroHub
 activation remain held. Earlier scoped Sky Hop Pages test remains accepted.
 
-## Active account-setup phase
+## Account-setup phase — locally accepted
 
-Owner approved putting GitHub account creation, school access and privacy choices
-before lesson0, then explicitly requested planning/orchestration. Coordinator owns
-student/kit/website guidance and integration; account_teacher_setup owns only
-CLASSROOM-PILOT and lesson TEACHER notes. Both preserve ordinary local smoke and
-offline tutorial Run after clone/cache. Plan: (1) align required account/Git/school/
-privacy setup, (2) verify generated/bundled guidance and website links, (3) one
-independent documentation review, (4) record local candidate and remaining release
-gates. No account/visibility/publication changes authorized by this docs phase.
-Requested worker GPT-6.1 Sol/medium; review will use fast-tier medium. Effective
-model/tokens unknown. Weekly66%remaining is shared account usage; storage339GB
-healthy; DeepSeek stays paused.
+Owner approved account creation, school access and privacy preparation before
+lesson0 and asked this coordinator to plan/orchestrate it. Student, teacher,
+kit, generated tutorial and website guides now agree. Tutorial Setup Help requires
+Git2.31+; ordinary local smoke stays Git-free. Students clone their own repository,
+configure identity there before upload, and can Run offline after caching tools.
+No account, visibility or publication changes were made.
+
+One Sol/medium writer owned two teacher guides; coordinator integrated all other
+surfaces. Initial Luna/medium and targeted Sol/medium reviews are complete/clean:
+two launches/four turns, one initial/three targeted waves, three fix batches.
+Corrections aligned Setup Help, stale setup reference wording and per-repository
+identity ordering. No extra integration wave needed; unchanged coverage reused.
+Effective model/tokens unknown; no writer conflicts. Starting weekly66%remaining
+is shared usage, storage339GB healthy; DeepSeek paused. Evidence:
+`.verification/account-setup/acceptance.json` and review ledger/reports.
+
+Account phase checks:54 setup/onboarding/tutorial tests,7 scaffold tests and18
+website focused tests pass; reviewer independently ran39 overlapping setup tests.
+Configuration, production website build, package and exact extracted source/
+license/mode parity plus Maven build pass. Desktop/setup link and320px nooverflow
+browser checks pass. Two message-channel errors at setup URL are retained and
+unattributed; no clean-console claim. Owned tab/server closed, viewport reset.
+No installed-candidate or fresh-account trial claimed.
 
 ## Current delivery
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
-Reviewed source05daa6c (runtime6784a88; later playground adapter/Product correction).
+Reviewed source92953e2 (packaged ca89325; later changes only docs/SETUP.md).
 Kit/extension0.5.16, core0.1.3, next native build3. Three empty tutorial template
 publication drafts: Greeting0–2, Study3–7, Game8–12. All publication records are
 null; student UI reports unavailable rather than inventing live template links.
@@ -47,8 +59,8 @@ upload. Live is the default; explicit testing simulation is honored. ZeroHub
 contributions remain original-only; tutorial Share is hidden and guarded.
 
 Local immutable kit/starter/VSIX and three maintainer-only template ZIP drafts:
-`dist/candidates/zero-0.5.16-tutorial-6784a88`. All six checksums pass. Its release
-manifest and `.verification/tutorial-github/package-receipt.json` bind source,
+`dist/candidates/zero-0.5.16-account-ca89325`. All six checksums pass. Its release
+manifest and `.verification/account-setup/package-receipt.json` bind source,
 bytes and draft inventories (20files each, including wrapper notices). The three
 draft ZIPs are not offered as student tutorial downloads. Candidate remains
 uninstalled/unpublished; installed managed preview still0.5.15. Earlier candidate
@@ -91,5 +103,5 @@ Full evidence `.verification/live-sky-hop/acceptance.json`. Owned QA tabs/listen
 closed; no external writes this phase. Previous [handoff](archive/live-default-candidate-2026-10-15.md).
 Two bounded Sol/high implementers, two reviewers, zero writer conflicts; pre-review
 manifest/UI/notices refinements and one ignored canonical-path fixture correction
-retained in receipts. Storage~340GB healthy; last account weekly71%remaining is
+retained in receipts. Prior phase storage~340GB healthy; its account weekly71%remaining is
 shared usage, not task cost. DeepSeek paused. Overall goal remains incomplete.

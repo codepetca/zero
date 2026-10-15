@@ -23,7 +23,10 @@ destination dialog. Optional simulation is a testing setting. Publishing deploys
 same locally validated build, then offers Open app and Copy playable link. Native
 workflow authorization uses VS Code's own consent/session flow and checks the
 same account. Students need a supported JDK17+, Git2.31+ for uploads, and their
-own GitHub repository to publish. They need no global Node.js or Maven.
+own GitHub repository to publish. Tutorials require a verified personal GitHub
+account, Git2.31+, school-approved access/privacy and an owned template clone
+before lesson0. The account setup guide covers private teacher access and commit
+email privacy; public publishing is optional. They need no global Node.js or Maven.
 
 The new source helpers include images/sprites, collisions, Sound and Music. Image
 and audio compatibility remains bounded by the reviewed browser profile; this
@@ -109,6 +112,14 @@ Share request, registry write, account grant or ZeroHub activation is part of
 this preparation.
 
 ## Current local checks
+
+Latest account-setup source92953e2 is independently reviewed, with54 focused
+setup/onboarding/tutorial,7 scaffold and18 website tests passing. Production
+website build, package/extracted Maven/source parity and six saved hashes pass.
+Candidate `dist/candidates/zero-0.5.16-account-ca89325` is uninstalled/unpublished.
+Desktop and320px setup-link checks pass; two message-channel errors remain
+unattributed. This does not replace fresh account or native/platform acceptance.
+See [verification](VERIFICATION.md) for phase-specific evidence and limits.
 
 Final root432tests:431pass/1PowerShell platform skip; website108tests, typecheck
 and production build pass. Packaging and verify:kit pass, including extracted
