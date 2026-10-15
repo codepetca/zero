@@ -11,11 +11,15 @@ The download website is a separately built part of this repository. Its landing
 page has the shared app header, **Learn Java**, **Starting from zero.**, a primary
 **Get started** button to `/get-started`, and a quieter **Already set up? Continue
 tutorials** link to `/learn`. It uses the shared light/dark toggle and centered
-full-viewport layout. The public Get started guide orders GitHub account/school/
-privacy preparation, Zero installation, an owned tutorial template repository and
-clone, lesson0 browser Run, then reviewed Upload and optional public Publish.
-GitHub account links open GitHub; the website creates no session or sign-in gate.
-Downloads stays public and links back to the project step after installation.
+full-viewport layout. The public Get started wizard shows one short step at a time:
+GitHub, installation, own tutorial repository/clone, then lesson0. One Continue
+with GitHub button opens GitHub's combined sign-in/account-creation entry in a new
+tab and advances the wizard to installation. This is navigation, not verified
+website authentication; no account status is claimed or stored. Back/Next,
+browser history and bookmarked step hashes work. Downloads returns to the project
+step; detailed school/privacy/setup/sharing instructions expand only when needed.
+Browsing and downloads stay public. Reviewed Upload and optional public Publish
+are introduced in lessons and the final step's help.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
 are listed under three quiet project headings (Greeting app, Study quiz and Coin
 game); selecting one updates the reading pane and its bookmarkable

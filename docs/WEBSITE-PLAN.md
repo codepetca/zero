@@ -7,7 +7,7 @@ Keep the selected ultra-minimal design: Zero wordmark, one short description, a 
 | Address | Purpose |
 | --- | --- |
 | `/` | Minimal landing with Get started and returning-student tutorial link |
-| `/get-started` | Public GitHub preparation → install → owned template/clone → lesson0 → Upload/optional Publish guide |
+| `/get-started` | Public GitHub → install → owned template/clone → lesson0 wizard; details on demand |
 | `/learn`, `/tutorials/[lesson]` | Visual quick paths, expandable details and thirteen maintained lessons |
 | `/examples`, `/source` | Runnable examples, explicit copy instructions and readable source |
 | `/docs` | Setup, student API and teacher/developer guidance |

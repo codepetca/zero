@@ -9,9 +9,8 @@ supersede the original landing mockup.
 Home (`/`) has the shared app header and a centered stack: **Learn Java**,
 **Starting from zero.**, a primary **Get started** → `/get-started`, and a quieter
 **Already set up? Continue tutorials** → `/learn`. Use ordinary links and preserve
-visible keyboard focus. The public Get started guide follows GitHub preparation,
-installation, own template repository and clone, lesson0, then Upload and optional
-public Publish. No website authentication or completion gate is required.
+visible keyboard focus. The public Get started wizard shows GitHub preparation, installation, owned
+tutorial repository/clone and lesson0 one at a time. Detailed help expands on demand. No website authentication or completion gate is required.
 Tutorials opens lesson 0 directly, with all thirteen lessons in a desktop sidebar
 and a native lesson selector on narrow screens. Selecting updates the reading
 pane and bookmarkable lesson URL. Downloads is a separate page with a centered

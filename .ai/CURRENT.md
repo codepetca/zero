@@ -14,7 +14,17 @@ Local implementation/testing is authorized. Source push/merge, template publicat
 distribution/signing/deployment, new game publication and ZeroHub activation remain
 held. Earlier scoped Sky Hop Pages proof is accepted. Overall goal is incomplete.
 
-## Latest phase — first visit
+## Active simplification
+
+Owner requests fewer words, one GitHub entry and a wizard. Coordinator owns the
+compact client wizard/CSS/fixtures and aligned guidance; no external authority
+added. Plan: four short steps, one GitHub login entry, public downloads, own clone,
+lesson0; preserve bookmarked steps/history/focus and verified template gating.
+Run website tests/types/build and actual Chrome transition/Back/refresh/mobile/
+theme checks, then one independent Sol/medium review. Local acceptance only.
+Current base2214bd7; weekly66%remaining shared, storage339GB healthy; DeepSeek paused.
+
+## Prior accepted phase — first visit
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
 Reviewed website sourceacf874e. Home has Get started and a quieter returning-student

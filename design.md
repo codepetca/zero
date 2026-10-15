@@ -144,10 +144,19 @@ rules remain. Preserve current visual design and ordinary Java.
 ## First visit — owner decision, 2026-10-15
 
 The owner approved one Get started entry and a returning-student tutorial link.
-Reuse the restrained shared theme and typography for the public five-step guide;
+Reuse the restrained shared theme and typography for the public four-step wizard;
 GitHub preparation comes before download, but neither browsing nor downloads
 requires website authentication. GitHub handles account creation/sign-in. Link
 Downloads back to project creation after installation, and starting lessons back
 to this guide. Template availability still follows verified publication metadata.
 No account-state detection, website OAuth, forced completion gate, release metadata
 change or deployment is part of this implementation.
+
+## Setup wizard — owner correction, 2026-10-15
+
+Show one short step at a time with one prominent action. The first screen has a
+single Continue with GitHub link to GitHub's login/account-creation page in a new
+tab, then installation. No website OAuth or verified account state. Preserve
+Back/Next and bookmarked step URLs; existing sharing links open the final step.
+Keep privacy/setup/sharing detail available through concise disclosures and
+canonical guides. No forced-height or scrolling restriction.
