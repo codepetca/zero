@@ -1,5 +1,50 @@
 # Verification
 
+## Student release 0.5.16 — local preparation, 2026-10-15
+
+Prepared reviewed local source `515c064`: kit/extension0.5.16, readable core 0.1.3,
+next native Mac build 3. The complete kit, starter and VSIX are retained with exact
+checksums in `dist/candidates/zero-0.5.16-local-515c064`; unsigned development DMG
+and build receipt in `dist/candidates/zero-0.5.16-macos-development-8badf36`.
+All four checksums pass. No Zero source push, distribution release, account grant,
+new game publication or ZeroHub activation. Installed managed preview remains 0.5.15.
+Public download/installer/feed/sharing metadata is unchanged.
+
+Root 425 tests: 424 pass, 1 PowerShell platform skip, 0 fail/cancel; website 104 pass,
+typecheck and production build pass. Configuration, packaging and verify:kit pass,
+including exact source/license/mode parity and extracted Maven compilation.
+A fresh starter and engine extracted from the candidate archives compiled via real
+GWT using the managed compiler cache with spaces. Chrome showed Hello World with
+zero captured warnings/errors. Profile `e95aef93…` matches the live-tested runtime.
+Development Mac DMG built and selected payload/permission verification passed;
+it is not Developer ID signed or notarized, and was not installed.
+
+Local ZeroHub receipt fixtures exercise request validation, trusted verification
+using recorded/injected offline metadata, immutable source release, enriched
+catalog and backward-compatible legacy projection. Actual current Hub UI rendered
+Sky Hop 0.1.1 with separate Play latest/source download; Chrome Play opened the
+existing public game and ready canvas. No public registry writes or fresh trusted
+public verification are claimed. Actual prior Sky Hop native Publish/Copy/Open and
+68-file/8,208,661-byte live identity evidence remain applicable to unchanged runtime.
+
+Native verify:framework is **incomplete**, with retained phase 2 focus timeouts on
+three attempts including ARM JDK17; no assertion was weakened. Broad rollout also
+requires an accepted old 0.5.15 project upgrade path: preserved old helper bodies
+fail the strict browser fingerprints. New scaffold success is not migration proof.
+ZeroHub's retained public policy pin rejects new web receipts; coordinate the
+reviewed policy/kit/website rollout and real linked public acceptance before shipping
+Play support. Fresh workflow consent, Windows school setup, classroom/network and
+physical sound remain untested. Final source CI, production signing/notarization/
+stapling and sealed authorized publication remain outstanding.
+
+Independent complete preparation and proportional upgrade-note reviews are clean;
+no runtime change in this preparation. See [release gates](RELEASE-0.5.16.md) and
+`.verification/student-release-0.5.16/{acceptance.json,candidate.json,review.md,review-upgrade-note.md}`.
+Test servers/tabs closed; original checkouts/student files preserved. Requested
+GPT-6.1 Sol/high, effective model/tokens unknown. Weekly remaining 73%→71% is
+account-wide; storage 340.6 GB healthy; DeepSeek paused. One README package-link fix,
+one local pinned DMG-helper setup and retained native-focus attempts; no source conflicts.
+
 ## Managed audio helpers — 2026-10-15 local source
 
 Root263pass/1PowerShellskip; website98pass/type/build;41focusedAPI/project tests;

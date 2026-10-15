@@ -1,85 +1,87 @@
-# Current state — Sky Hop test Pages publication verified
+# Current state — Zero 0.5.16 local review candidate
 
 ## Goal and authority
 
-One coordinator: Lead publishing task, thread
-`01a13f98-55fc-7471-9038-1198b14d5a98`. Ordinary Java/approved JavaFX stays local;
-Run App checks/compiles locally, Publish app in GitHub deploys the same tested
-bytes, ZeroHub links to student-hosted apps. Explicit object updates, useful
-errors, simple controls and bounded storage remain requirements.
+Coordinator: Lead publishing task, thread
+`01a13f98-55fc-7471-9038-1198b14d5a98`. Keep ordinary Java, explicit object updates,
+strict browser compatibility, locally tested-build publishing in GitHub, and
+ZeroHub Play links to student-hosted apps. Source submission in Pika stays separate.
 
-Owner2026-10-15 authorized implementation/subagents, preview installation, then
-explicitly publishing Sky Hop to the existing `armorup/zero-sharing-proof` test
-GitHub Pages destination and verifying the public link against the local build.
-That scoped live milestone is complete. Separate ZeroHub checker/activation,
-Zero source push/merge and installer/extension distribution release remain held.
-Overall tool-backed goal is not complete while remaining activation holds persist.
+Owner authorized local student-release preparation and testing. Sky Hop's earlier
+scoped test Pages publication is accepted. Zero source push/merge, distribution
+release, production signing/deployment, new game publication and ZeroHub activation
+remain held. Overall goal is incomplete. Finish release gates before rollout.
 
-## Current delivery
+## Prepared delivery
 
 Work only in `/Users/stew/.codex/worktrees/web-export/zero`, branch
-`codex/web-export`. Runtime7ea63ee adds native upload workflow-session recovery;
-game/compiler runtime remainsc7f7bba, profilee95aef93…. All source workers/reviewers
-are delivered; no concurrent source writers remain. Original game and root
-funding checkout preserved. No Zero implementation push/release performed.
+`codex/web-export`. Reviewed preparation source `515c064`; core 0.1.3, kit/extension
+0.5.16, native Mac build 3. Game/compiler runtime remains unchanged; profile
+`e95aef9311ffb292eb2f64807dfe03fa64af47ab21c1eab6863dd6ca59f3b0b6`.
+Original root funding checkout and game project preserved. No source workers remain.
 
-Live game: <https://armorup.github.io/zero-sharing-proof/>
-Source commit `b3b6591fb838296d1ff99e4fa53a8dca31ad3303`.
-Successful deployment run38789445991:
+Local immutable review directories (ignored):
+
+- `dist/candidates/zero-0.5.16-local-515c064`: complete kit, starter, VSIX,
+  checksums, release notes and local source receipt. Not a GitHub CI preparation.
+- `dist/candidates/zero-0.5.16-macos-development-8badf36`: development DMG,
+  build receipt and checksum. Unsigned for production, not notarized.
+
+All four artifact checksums pass. Kit 2,871,797 B, starter 2,498,747 B, VSIX 357,322 B,
+development DMG 4,371,702 B. See `.verification/student-release-0.5.16/candidate.json`
+for exact hashes and revisions. Public kit 0.5.14, signed installer/feed 0.5.15/build 2
+and sharing policy pin remain unchanged. Candidate is local review only and must
+be repackaged/sealed after policy alignment and final CI. Current installed managed
+preview is still 0.5.15; candidate 0.5.16 has not been installed.
+
+## Acceptance and open gates
+
+Root 425 tests: 424 pass/1 PowerShell platform skip/0 fail; website 104 pass/type/build;
+configuration, package and verify:kit pass, including extracted Maven compile,
+source/license/mode parity. Actual candidate VSIX engine + extracted starter
+compiled with real GWT in the managed spaced cache; Chrome displayed Hello World,
+zero captured warnings/errors. Compiler profile matches the live-tested Sky Hop.
+
+Local ZeroHub request→trusted offline verifier→immutable release→enriched catalog
+fixture preserves the recorded public receipt; legacy projection omits it. Actual
+Hub UI Play latest opened the existing public Sky Hop and its ready canvas.
+Source download remains separate and commit-pinned. This is local fixture acceptance,
+not public registry membership or fresh trusted public verification. Owned test
+servers/tabs closed; no new publication or account grant.
+
+The Mac development DMG built and payload verification passed. Native
+verify:framework remains incomplete: phase 2 window-focus timeout on default/retry
+and explicit ARM JDK17. Logs retained; no assertion weakened. Existing installed
+macOS browser/Upload/Publish/Copy/Open acceptance is reused for unchanged runtime.
+
+Before student release, complete [the release gates](../docs/RELEASE-0.5.16.md):
+
+1. Accept/test old 0.5.15→0.5.16 project compatibility or migration. Updates preserve
+   older student-owned helpers; strict browser Run rejects their fingerprints.
+   New project success does not establish safe upgrades. Preserve customized Java.
+2. Coordinate the publicly available trusted-publisher SHA, operator policy,
+   kit pin and enriched website rollout; accept a real linked game request/Play.
+   Current pin `beaaca4e` rejects web receipts. Library execution remains closed.
+3. Resolve native focus acceptance; test fresh GitHub/workflow consent, Windows
+   school setup, classroom hardware/network and physical sound.
+4. Authorize source integration/final CI, then signed/notarized/stapled Mac build3,
+   sealed artifacts/feed and exact verified publication/metadata promotion.
+
+Independent preparation review and targeted upgrade-note review are clean; no
+runtime code changed this phase. Receipt `.verification/student-release-0.5.16/acceptance.json`;
+reports, logs, checksums and browser fixtures colocated. [Verification](../docs/VERIFICATION.md)
+records bounds. No additional review wave needed for these factual evidence notes.
+
+## Prior live proof and effort
+
+Sky Hop <https://armorup.github.io/zero-sharing-proof/> uses source `b3b6591` and run
 <https://github.com/armorup/zero-sharing-proof/actions/runs/38789445991>.
+All 68 public files/8,208,661 bytes match local build 95dc6665-5860-4674-a5cd-50fcd04a7c7c.
+Detailed native/public proof `.verification/live-sky-hop/acceptance.json`; prior
+[current-state receipt](archive/sky-hop-live-publication-2026-10-15.md).
 
-- Exact previously tested build95dc6665-5860-4674-a5cd-50fcd04a7c7c retained;
-  copied validated snapshot into owned test checkout, changing only manifest
-  location paths.27input files match uploaded Git blobs exactly. No recompilation.
-- All68public files/8208661appbytes match local SHA256 and length; public marker
-  binds source/run. Local snapshot validates again after deployment.
-- Native installed Zero Upload/Publish succeeds using existing VS Code armorup
-  workflow session. Copy playable link verified by native paste; saved Open
-  Published App rechecks and opens correct URL. Public Chrome ready art,
-  click/start, pause and restart pass;0captured warnings/errors. One game tab left
-  open. Temporary draft release cleaned; generated output stays ignored by Git.
-- Initial upload saved localcommit but failed with repo-only authentication.
-  Recovery now recognizes the exact canonical five-file publishing kit, selects
-  native repo+workflow session, checks same account/project/live mode and disposes
-  temporary auth. Ordinary repo-only uploads/simulation retain their boundaries.
-  Existing stored session reused; no new grant or credential fallback.
--18coordinator focused tests,32independent lifecycle tests, configuration/diff
-  checks pass. Two independent Sol/high security +lifecycle reviews clean at7ea63ee;
-  2launches/1initial wave/0remediation batches. Engine/profile unaffected, prior
-  full414pass/1platformskip and GWT/browser acceptance reused for unchanged code.
-
-Latest installed local preview0.5.15:
-`.verification/live-sky-hop/zero-publishing-preview.vsix`,354137bytes,
-SHA256`bc0e423f5ea1fee218ebbc1319fd2361b3e39e1f14e5ce8ac083c4d26118e771`.
-All73installed source files match package/current source. Earlier preview files
-are historical; use this one. Original0.5.14 rollback retained. Actual managed
-profile/owned native Code QA host tested, not a development-extension override.
-
-Detailed evidence `.verification/live-sky-hop/acceptance.json`; reviews/receipts/
-public file inventory/logs colocated. Owned fixtures in `~/Zero Preview Testing`;
-publishing checkout clean/main and origin/main atb3b6591, workspace remains live
-for this authorized test destination. Do not publish another version automatically.
-
-## Remaining limits and next authorized work
-
-No new phase requested. Preserve test site, worktree/cache and installed preview.
-Windows/Linux/classroom hardware, physical speakers and first-time OAuth workflow
-grant remain untested. ZeroHub checker acceptance/activation and broader Zero
-release need their own authority; a successful game deployment does not grant it.
-
-Orchestration: local_publish implemented bounded auth recovery; two fresh reviewers
-covered security and lifecycle; coordinator integrated/installed/native-tested.
-Requested GPT6.1Sol/high, effective configuration/tokens unknown. Weekly remaining
-75%atstart/74%atacceptance is account-wide, not task cost; storage342GB free.
-One upload-recovery code fix/reinstall, no writer conflicts. First independent
-marker check omitted its trailing newline; corrected only ignored verifier and
-reran successfully, retaining the first receipt. DeepSeek pilot remains paused.
-
-## Earlier evidence
-
-[Installed/local history](archive/web-publishing-installed-local-2026-10-15.md)
-retains previous acceptance and source handoffs.
-[Baseline](archive/web-export-baseline-2026-10-15.md) retains original chat IDs and
-constraints. `.verification/student-workflow/acceptance.json` records native
-project creation/edit/Run/Stop/Problems/export/ZIP acceptance. Previous full local
-browser/deployment evidence `.verification/browser-first-final/acceptance.json`.
+Requested worker configuration GPT-6.1 Sol/high; effective model/tokens unknown.
+Two reviewer turns, one initial/one targeted wave, one documentation fix batch.
+One README packaging-link correction and owned pinned DMG-helper setup; native
+focus failures retained, no source conflicts. Weekly remaining 73%→71% is shared
+account usage, not task cost. Storage 340.6 GB free/healthy; DeepSeek remains paused.
