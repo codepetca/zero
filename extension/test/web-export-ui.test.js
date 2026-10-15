@@ -129,3 +129,21 @@ test('Save ZIP refuses the live export destination whether unchanged or mutated 
   assert.equal(h.validations,2);assert.equal(await fs.readFile(h.zip,'utf8'),race?'RACED':'ZIP');assert.doesNotMatch(h.states.at(-1),/ZIP saved/);
  }
 });
+
+
+test('Save ZIP rejects directory and case aliases of the live export without overwriting a rebuilt archive',async t=>{
+ for(const alias of ['directory','case','hardlink']) {
+  const h=await harness(t);await h.api.commands['zero.exportWeb']();let destination;
+  if(alias==='directory') {
+   const directory=path.join(h.root,'export-alias');await fs.symlink(path.dirname(h.zip),directory,'junction');destination=path.join(directory,path.basename(h.zip));
+  } else if(alias==='case') {
+   destination=path.join(path.dirname(h.zip),path.basename(h.zip).toUpperCase());
+   const selected=await fs.stat(destination).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+   if(!selected || selected.ino!==(await fs.stat(h.zip)).ino)continue; // Exercised only on case-insensitive filesystems.
+  } else {destination=path.join(h.root,'hardlink.zip');await fs.link(h.zip,destination);}
+  h.validator=async({result},count)=>{const zipBytes=await fs.readFile(h.zip);if(count===2)await fs.writeFile(h.zip,'NEW BUILD');return {...result,zipBytes};};
+  h.vscode.window.showSaveDialog=async()=>({fsPath:destination});
+  await assert.rejects(h.api.commands['zero.saveWebExport'](),/destination outside the generated browser export/,alias);
+  assert.equal(await fs.readFile(h.zip,'utf8'),'NEW BUILD',alias);assert.doesNotMatch(h.states.at(-1),/ZIP saved/,alias);
+ }
+});

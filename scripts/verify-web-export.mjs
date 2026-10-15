@@ -124,8 +124,15 @@ async function fixture(name, example) {
   if (example === 'hello-app') {
     const mainFile=path.join(directory,'src/main/java/Main.java');
     const mainSource=await fs.readFile(mainFile,'utf8');
-    await fs.writeFile(mainFile,mainSource.replace('var stylesheet = getClass().getResource("/hello-app/theme.css");','java.net.URL stylesheet = new AppResources().theme();'));
-    await fs.writeFile(path.join(directory,'src/main/java/AppResources.java'),'import java.net.URL;\nclass AppResources { ResourceURL own = new ResourceURL(); URL theme() { return pass(getClass().getResource("/hello-app/theme.css")); } URL pass(URL resource) { return resource; } }\n');
+    // This generated probe tests greeting controls and cross-file resource URLs.
+    // The original maintained example's Parent.getStylesheets() is unsupported
+    // by the pinned WebFX profile and remains unchanged (and negatively tested).
+    const unsupportedCss = 'screen.getStylesheets().add(stylesheet.toExternalForm());\n        show(screen);';
+    if (!mainSource.includes(unsupportedCss)) throw new Error('Greeting probe source changed; review its explicit unsupported-CSS substitution.');
+    await fs.writeFile(mainFile,mainSource
+      .replace('var stylesheet = getClass().getResource("/hello-app/theme.css");','java.net.URL stylesheet = new AppResources().theme();')
+      .replace(unsupportedCss,'show(new VBox(16, screen, new Label("Resource: " + stylesheet.toExternalForm())));'));
+    await fs.writeFile(path.join(directory,'src/main/java/AppResources.java'),'import java.net.URL;\nclass AppResources { ResourceURL own = new ResourceURL(); URL theme() { var resource = getClass().getResource("/hello-app/theme.css"); return pass(resource); } URL pass(URL resource) { return resource; } }\n');
     await fs.writeFile(path.join(directory,'src/main/java/ResourceURL.java'),'class ResourceURL {}\n');
     await fs.mkdir(path.join(directory, 'src/main/resources/hello-app'), {recursive: true});
     await fs.copyFile(path.join(root, 'student-template/examples/hello-app/theme.css'), path.join(directory, 'src/main/resources/hello-app/theme.css'));
@@ -237,4 +244,4 @@ if (browser) {
     previews.forEach((item) => item.dispose());
   }
 }
-console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, and styled greeting.');
+console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, and greeting controls with cross-file resource URLs.');

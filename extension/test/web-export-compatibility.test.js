@@ -113,13 +113,13 @@ test('resource lookup is constrained and approved source initializers are attrib
   await assert.rejects(check({ 'Main.java': app('Object info = getClass();') }), /Object#getClass/);
   await assert.rejects(check({ 'Main.java': app('java.lang.Class<?> type = Main.class;') }), /Class literals are supported only/);
 });
-test('all 28 maintained source examples retain resolved compatibility; packaged examples require explicit dependency approval', { timeout: 240000 }, async () => {
+test('27 maintained source examples pass; original CSS greeting and packaged dependencies fail explicitly', { timeout: 240000 }, async () => {
   const base = path.join(root, 'student-template/examples'), sources = {};
   const exists = async file => fs.access(file).then(() => true, () => false);
   let count = 0;
   for (const entry of await fs.readdir(base, { withFileTypes: true })) {
     const name = entry.name;
-    if (!entry.isDirectory() || name.startsWith('packaged-') || !await exists(path.join(base, name, 'Main.java'))) continue;
+    if (!entry.isDirectory() || name.startsWith('packaged-') || name === 'hello-app' || !await exists(path.join(base, name, 'Main.java'))) continue;
     const prefix = 'checks.' + name.replaceAll('-', '_');
     const files = (await fs.readdir(path.join(base, name))).filter(file => file.endsWith('.java')).map(file => path.join(base, name, file));
     if (['coin-game-controls', 'coin-game-component', 'composed-game'].includes(name)) files.push(...['Player.java', 'Coin.java'].map(file => path.join(base, 'coin-game', file)));
@@ -129,8 +129,13 @@ test('all 28 maintained source examples retain resolved compatibility; packaged 
     for (const file of files) sources[prefix.replaceAll('.', '/') + '/' + path.basename(file)] = 'package ' + prefix + ';\n' + await fs.readFile(file, 'utf8');
     count++;
   }
-  assert.equal(count, 28);
+  assert.equal(count, 27);
   assert.equal((await check(sources)).status, 'passed');
+  const originalHello = await fs.readFile(path.join(base, 'hello-app/Main.java'), 'utf8');
+  await assert.rejects(check({ 'Main.java': originalHello }), error => {
+    assert.match(error.message, /Main\.java:\d+:\d+: Unsupported browser API javafx\.scene\.Parent#getStylesheets\(\)/);
+    return true;
+  });
   const pom = (await pomPromise).replace('</dependencies>', '<dependency><groupId>ca.codepet.zero</groupId><artifactId>starter-ui</artifactId><version>0.1.0-prototype.1</version></dependency></dependencies>');
   assert.throws(() => validateDependencies(pom), /Unsupported browser dependency/);
 });
@@ -148,18 +153,21 @@ test('native JSNI methods and source-defined external runtime or interop types c
 test('resolved resource URL types remain consistent across helpers, fields and wildcard imports without renaming user identifiers', {timeout:240000}, async()=>{
  const sources={
   'Main.java':app('java.net.URL URL = new Assets().theme(); java.net.URL stored = URL; if (stored != null) stored.toExternalForm();'),
-  'Assets.java':'import java.net.*; class Assets { URL theme() { return pass(getClass().getResource("/theme.css")); } URL pass(URL URL) { return URL; } }',
+  'Assets.java':'import java.net.*; class Assets { URL theme() { var resource = getClass().getResource("/theme.css"); return pass(resource); } URL pass(URL URL) { return URL; } }',
   'Own.java':'class Own { static class URL {} URL untouched = new URL(); }',
   'Reference.java':'import java.net.URL; class Reference { URL pass(URL value) { return value; } ResourceURL local = new ResourceURL(); }',
   'ResourceURL.java':'class ResourceURL {}'
  };
  const receipt=await check(sources),{adaptSources}=require('../src/web-export/adapters');
+ for (const spans of Object.values(receipt.resourceUrlReferences)) for (const span of spans) assert.ok(span.start >= 0 && span.end > span.start);
  const result=adaptSources({sources:{...await helpersPromise,...sources},resourcePaths:['theme.css'],urlReferences:receipt.resourceUrlReferences});
  assert.match(result.sources['zero/exported/Main.java'],/zero.web.ResourceURL URL = new Assets\(\).theme\(\)/);
+ assert.match(result.sources['zero/exported/Assets.java'],/var resource = zero.web.Resources.get\(getClass\(\),/);
  assert.match(result.sources['zero/exported/Assets.java'],/zero.web.ResourceURL pass\(zero.web.ResourceURL URL\) \{ return URL; \}/);
  assert.match(result.sources['zero/exported/Own.java'],/static class URL \{\} URL untouched = new URL\(\)/);
  assert.doesNotMatch(result.sources['zero/exported/Main.java'],/java.net.URL/);
  assert.doesNotMatch(result.sources['zero/exported/Reference.java'],/import zero.web.ResourceURL/);
  assert.match(result.sources['zero/exported/Reference.java'],/zero.web.ResourceURL pass\(zero.web.ResourceURL value\)/);
  assert.match(result.sources['zero/exported/Reference.java'],/ResourceURL local = new ResourceURL\(\)/);
+ await assert.rejects(check({'Main.java':app('var resource = getClass().getResource("/theme.css"); resource.openConnection();')}), /java.net.URL#openConnection\(\)/);
 });

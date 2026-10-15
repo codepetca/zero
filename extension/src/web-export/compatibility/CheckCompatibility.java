@@ -61,7 +61,10 @@ public final class CheckCompatibility {
             long start = trees.getSourcePositions().getStartPosition(path.getCompilationUnit(), tree);
             long end = trees.getSourcePositions().getEndPosition(path.getCompilationUnit(), tree);
             String file = root.relativize(Path.of(path.getCompilationUnit().getSourceFile().toUri())).toString().replace(File.separatorChar, '/');
-            resourceUrls.add("ZERO_URL\t" + Base64.getEncoder().encodeToString(file.getBytes(StandardCharsets.UTF_8)) + "\t" + start + "\t" + end);
+            // Inferred var type trees have no original source span. Their APIs
+            // still pass through every semantic check below; only edits need spans.
+            if (start != Diagnostic.NOPOS && end != Diagnostic.NOPOS)
+                resourceUrls.add("ZERO_URL\t" + Base64.getEncoder().encodeToString(file.getBytes(StandardCharsets.UTF_8)) + "\t" + start + "\t" + end);
         }
         if (key == null || element.getSimpleName().contentEquals("this") || element.getSimpleName().contentEquals("super") || application(element, trusted)) return;
         if (key.equals("M\tArray#length") && tree instanceof MemberSelectTree select && trees.getTypeMirror(new TreePath(path, select.getExpression())).getKind() == TypeKind.ARRAY) return;

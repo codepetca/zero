@@ -52,7 +52,10 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
     const targetStat=await inspect();
     if(targetStat?.isSymbolicLink())throw new Error('Choose a regular ZIP file destination, not a symbolic link.');
     if(targetStat && !targetStat.isFile())throw new Error('Choose a regular ZIP file destination.');
-    if(selected===path.resolve(verified.zipPath))throw new Error('Choose a ZIP destination outside the generated browser export.');
+    const archivePath=await fs.realpath(verified.zipPath);
+    const archiveStat=await fs.stat(archivePath);
+    const destinationPath=targetStat ? await fs.realpath(selected) : path.join(await fs.realpath(path.dirname(selected)),path.basename(selected));
+    if(destinationPath===archivePath || targetStat && targetStat.dev===archiveStat.dev && targetStat.ino===archiveStat.ino)throw new Error('Choose a ZIP destination outside the generated browser export.');
     {
       const temporary=path.join(path.dirname(selected),'.zero-save-'+crypto.randomUUID()+'.tmp');
       try {

@@ -133,7 +133,6 @@
     "javafx.scene.Node#setOnMousePressed(javafx.event.EventHandler)",
     "javafx.scene.Node#setOnMouseReleased(javafx.event.EventHandler)",
     "javafx.scene.Node#setStyle(java.lang.String)",
-    "javafx.scene.Parent#getStylesheets()",
     "javafx.scene.canvas.GraphicsContext#restore()",
     "javafx.scene.canvas.GraphicsContext#save()",
     "javafx.scene.canvas.GraphicsContext#setFont(javafx.scene.text.Font)",
