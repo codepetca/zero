@@ -1,5 +1,33 @@
 # Delivery evidence index
 
+## Browser media performance probes — local, 2026-10-15
+
+Owner asked about media size/compatibility/lag. No product/source/asset changes.
+A bounded read-only Playwright CLI/CDP cold probe measured first actual SkyHop title
+canvas draw, canvas drawing cadence, Resource Timing, long tasks and first HTML
+media playing event. Normal loopback121ms ready; simulated5Mbps/150ms/4xCPU8.53s.
+Median draw interval16.6–16.7ms,95th17.5–18.2ms, no gaps over50ms in roughly5seconds
+of repeated real keyboard input; first key→playing95ms/217ms, not speaker latency.
+At1Mbps/200ms/4xCPU, ready remained absent and the existing30s image timer reported
+sky.png timeout at34.34s after navigation. These single headlessChrome155/Mac samples
+use uncompressed/no-store loopback transport, not hosted delivery or a school-device
+benchmark; no Lighthouse/CoreWebVitals/INP result is claimed.
+
+Four PNGs4,429,845bytes, four WAVs1,584,500bytes, runtime/other586,971bytes and license/
+source1,606,776bytes make up this export. Images have about25.17MB RGBA pixel data,
+excluding browser copies/overhead. The unusedbird.png still preloads:788,425bytes,
+1402×1122pixels (6,292,176RGBAbytes), confirmed against all student Java and actual
+requests. Automatic removal must account for dynamic resource paths. Useful next
+work is asset diagnostics, startup budgets calibrated to the classroom, and review
+of fixed deadlines on progressing slow downloads. Suggested limits remain proposals,
+not enforced policy; functional45check success does not guarantee performance.
+
+Raw evidence `.verification/integration/performance/receipt.json` and result/slow-
+result retain parameters, resource measurements and limitations. Code still matches
+reviewedca04209; only documentary closeout differs. Owned performance browser/server
+stopped. Real publication/destination authorization remains pending.
+
+
 ## Browser publishing integration — local, 2026-10-15
 
 This chat owns the integration goal. Other game/compatibility chats handed off

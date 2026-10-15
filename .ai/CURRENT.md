@@ -58,9 +58,11 @@ and website98/source review are reusable for byte-identical canonical sources.
 
 ## Remaining acceptance
 
-All authorized local integration, meaningful checks, packaging and independent
-review are complete. Current codeca04209 is clean/reviewed; subsequent closeout
-changes are documentation only. Receipts/previewVSIX remain in .verification.
+Core local integration, functional checks, packaging and independent review are
+complete at codeca04209. Subsequent changes are documentation only. New owner media/
+lag question led to read-only performance probes: see below. Functional success
+does not establish an acceptable slow-network startup envelope. Receipts/preview
+VSIX remain in .verification.
 User's overall tool-backed goal remains active because a live publication trial
 and coordinated hosted activation/release are not complete.
 
@@ -79,3 +81,21 @@ No public push, deployment, account grant, ZeroHub activation or release authori
 Prior checks/limits in EVIDENCE and WEB-EXPORT; update after integrated verification.
 Weekly start89%remaining; latest86%; storage healthy. DeepSeek pause honored. No new tasks
 or automations. Keep this worktree for integration and preserve private receipts.
+
+
+## Media/performance evidence after owner question
+
+No new asset restrictions, optimization or source changes were authorized/implemented.
+Read-only cold Chrome155/headless probes on this Mac used CDP network/CPU simulation:
+normal local startup121ms;5Mbps/150ms/4xCPU startup8.53s. Median canvas draw cadence
+16.6–16.7ms,95th17.5–18.2ms, no gaps over50ms in roughly5seconds of input. First key
+to first HTML audio playing event95ms/217ms, not physical speaker latency. At1Mbps/
+200ms/4xCPU, startup failed at34.34s with image30s timeout forsky.png. Single samples,
+uncompressed/no-store loopback preview; not hosted, classroom, WebVitals or INP proof.
+All4PNGspreload; unusedbird.png is788,425bytes and estimated6,292,176RGBAbytes, confirmed
+by Main's3image loads and actual resource requests. This supports asset warnings,
+classroom-calibrated startup budgets and reviewing fixed loading deadlines. It does
+not justify arbitrary hard caps or automatically rewriting student asset paths.
+Evidence `.verification/integration/performance/receipt.json`; source stays clean/
+reviewed. Owned performance Chrome/server stopped. Live publication authority still
+pending; don't claim the entire goal or responsive behavior across devices achieved.
