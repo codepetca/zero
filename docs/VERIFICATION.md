@@ -1,5 +1,32 @@
 # Verification
 
+## Managed audio helpers — 2026-10-15 local source
+
+Root263pass/1PowerShellskip; website98pass/type/build;41focusedAPI/project tests;
+configuration/syntax/local links pass. Source assembly now ships seven classes.
+Framework package (noinstall),10starter/lesson checks and extracted Maven compile
+pass. Final extracted native sequence passed AudioCheck53, SmokeLauncher and
+GameHelpersCheck. Two earlier aggregate smoke watchdog timeouts are retained in
+[delivery evidence](EVIDENCE.md); no focus/resize assertion was relaxed. Asyncerror
+callback cleanup is injected coverage, not a naturally observed async decodererror.
+
+Audio tests cover canonical cache aliases, shared settings, independent Music,
+pre-ready requests, native effects, volume/mute, stop/rewind/full repeated loops,
+one-shot replay, useful errors/closed state, window/startup/frame failure and
+throwing-shutdown cleanup. Native SimpleApp audio playground passed button/mute
+and automatic close checks. Sky Hop194rules,4WAVchecks,19native fullsong/event/
+pause/reset/mute/dispose and GUIactual-frameSpace/P/R/M checks pass with final
+helpers. Normal Zero Run App rebuilt and launched under managedJDK21; compiled
+Main calls Zero loadSound/loadMusic. Browser verifies new audio API search/anchor,
+screenshot and no captured warnings/errors. Published release bytes unchanged.
+No physicalWindows/novice/human audio-quality claims. Full review found twoP2 lifecycle/fallback regressions; one batch fixed both.
+Core AudioCheck now57 and SmokeLauncher pass;21affectedAPI/kit/lesson checks and
+native corrupt-WAV silent fallback/missing-resource error checks pass. Final19audio
+and GUIinput checks pass. Targeted review verified58sourcehashes and resolved both
+findings with no further issue. Final website build refreshes lifecycle prose.
+See EVIDENCE and ignored remediation receipts. Source ZIP refreshed after acceptance.
+
+
 ## Sky Hop generated audio — 2026-10-15
 
 Four generated WAV asset checks and exact regeneration pass. Game194assertions,

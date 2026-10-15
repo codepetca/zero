@@ -1,6 +1,12 @@
 package zero;
 
 import java.util.Objects;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import javafx.stage.WindowEvent;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -19,7 +25,10 @@ public abstract class SimpleApp extends Application {
     private String appTitle = "Zero";
     private double appPadding;
     private boolean configuring;
+    private boolean shutdownCalled;
     private BorderPane root;
+    private final Map<String, Sound> soundCache = new HashMap<>();
+    private final ArrayList<Music> musicPlayers = new ArrayList<>();
 
     public void settings() { }
     public void setup() { }
@@ -62,6 +71,7 @@ public abstract class SimpleApp extends Application {
     protected void shutdown() { }
 
     @Override public final void start(Stage stage) {
+        shutdownCalled = false;
         try {
             configuring = true;
             try { settings(); } finally { configuring = false; }
@@ -74,14 +84,82 @@ public abstract class SimpleApp extends Application {
             stage.setScene(scene);
             stage.setTitle(appTitle);
             stage.setResizable(true);
+            stage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> stop());
             stage.show();
             ready(stage);
         } catch (RuntimeException | Error failure) {
-            stop();
-            stage.close();
+            try { stop(); } catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
+            try { stage.close(); } catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
             throw failure;
         }
     }
 
-    @Override public final void stop() { shutdown(); }
+    @Override public final void stop() {
+        Throwable failure = null;
+        // Window hiding and the JavaFX launcher can both stop the same lifecycle.
+        if (!shutdownCalled) {
+            shutdownCalled = true; // A throwing or reentrant hook must not run again.
+            try { shutdown(); } catch (RuntimeException | Error error) { failure = error; }
+        }
+        // Release every resource even if a custom shutdown or one native close fails.
+        for (Sound sound : soundCache.values()) {
+            try { sound.close(); } catch (RuntimeException | Error error) {
+                if (failure == null) failure = error; else failure.addSuppressed(error);
+            }
+        }
+        soundCache.clear();
+        for (Music music : musicPlayers) {
+            try { music.close(); } catch (RuntimeException | Error error) {
+                if (failure == null) failure = error; else failure.addSuppressed(error);
+            }
+        }
+        musicPlayers.clear();
+        if (failure instanceof RuntimeException error) throw error;
+        if (failure instanceof Error error) throw error;
+    }
+
+    /** Loads a short effect once per app. Resource aliases share the live Sound and its settings. */
+    public final Sound loadSound(String resourcePath) {
+        Sound.requireThread();
+        URL resource = audioResource(resourcePath, "Sound");
+        String key = audioResourceKey(resource);
+        Sound sound = soundCache.get(key);
+        if (sound == null || sound.isClosed()) {
+            sound = new Sound(key, resourcePath);
+            soundCache.put(key, sound);
+        }
+        return sound;
+    }
+
+    /** Loads independent music playback, owned and automatically closed by this app. */
+    public final Music loadMusic(String resourcePath) {
+        Sound.requireThread();
+        URL resource = audioResource(resourcePath, "Music");
+        Music music = new Music(audioResourceKey(resource), resourcePath);
+        musicPlayers.removeIf(Music::isClosed);
+        musicPlayers.add(music);
+        return music;
+    }
+
+    private URL audioResource(String resourcePath, String kind) {
+        if (resourcePath == null || resourcePath.isBlank()) {
+            throw new IllegalArgumentException(kind + " resource path must not be blank.");
+        }
+        URL resource = getClass().getResource(resourcePath);
+        if (resource == null) throw new IllegalArgumentException(kind + " resource not found: " + resourcePath);
+        return resource;
+    }
+    private static String audioResourceKey(URL resource) {
+        try {
+            if (resource.getProtocol().equals("file")) return Path.of(resource.toURI()).toRealPath().toUri().toString();
+            if (resource.getProtocol().equals("jar")) {
+                String url = resource.toExternalForm();
+                int separator = url.indexOf("!/");
+                return url.substring(0, separator + 1) + new java.net.URI(url.substring(separator + 1)).normalize();
+            }
+            return resource.toURI().normalize().toString();
+        } catch (java.io.IOException | java.net.URISyntaxException failure) {
+            throw new IllegalArgumentException("Cannot resolve audio resource: " + resource, failure);
+        }
+    }
 }

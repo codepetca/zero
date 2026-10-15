@@ -1,7 +1,8 @@
 # Zero API reference
 
 The complete public/protected API declared by `zero.SimpleApp`, `zero.SketchApp`,
-`zero.ImageRegion`, `zero.SpriteAnimation` and `zero.Collisions`.
+`zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Collisions`, `zero.Sound` and
+`zero.Music`.
 The game helpers are local, unreleased source additions. Published Mac setup
 0.5.15 still ships the older core 0.1.2; these additions need this source starter.
 For setup, explanations and complete examples, see the [app guide](APP-GUIDE.md)
@@ -10,7 +11,7 @@ or [starter guide](README.md).
 [SimpleApp](#simpleapp) · [SketchApp](#sketchapp) ·
 [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
-[Collisions](#collisions) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
+[Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
 ## SimpleApp
 
@@ -185,6 +186,71 @@ These tests do not move objects or resolve physics.
 | `static boolean rectHitsRect(double x1, double y1, double width1, double height1, double x2, double y2, double width2, double height2)` | Whether two axis-aligned rectangles touch or overlap. |
 | `static boolean circleHitsCircle(double x1, double y1, double radius1, double x2, double y2, double radius2)` | Whether two circles touch or overlap. |
 
+## Audio
+
+These SimpleApp methods are public and final, and are inherited by SketchApp.
+Load in `setup()` and keep fields for playback from a button or game event.
+Put audio in `src/main/resources`; a leading `/` starts at the resource root,
+otherwise paths are relative to your app class's Java package. Use supported
+JavaFX audio formats, such as PCM WAV. Missing or unreadable audio reports the
+resource path in an `IllegalArgumentException`; failed loads are not cached.
+
+| Signature | Behavior |
+| --- | --- |
+| `Sound loadSound(String resourcePath)` | Load a short sound effect. Successful loads are cached per app by canonical resource URL: aliases return the same live Sound, including its volume/mute state. Loading after manually closing that Sound creates a fresh one. |
+| `Music loadMusic(String resourcePath)` | Create an independent buffered music player. Each call owns its own position, volume and mute state, even for the same resource. |
+
+Sound stores decoded samples in memory for short, overlapping effects. Music uses
+JavaFX MediaPlayer buffering for longer tracks. Load once rather than once per
+frame. The app closes owned audio on stop, window close, startup failure and
+frame failure. Call loaders, controls and close on the JavaFX application thread
+(`setup`, `update` and JavaFX event handlers already do this). Main still explicitly decides when game pause, restart or focus
+loss should pause/stop music. Raw JavaFX AudioClip and MediaPlayer remain available
+for advanced needs; the app manages only audio created through these loaders.
+
+## Sound
+
+`public final class Sound implements AutoCloseable` has no public constructor.
+Import `zero.Sound` and obtain one with `loadSound`. The default volume is 1 and
+mute is false. Volume must be finite and between 0 and 1 inclusive, otherwise
+`IllegalArgumentException` is thrown. Muting preserves the chosen volume. Closing is idempotent; afterward controls
+throw a useful `IllegalStateException`, while getters remain readable.
+
+| Signature | Behavior |
+| --- | --- |
+| `void play()` | Play the short effect unless muted; repeated calls can overlap. |
+| `void stop()` | Stop all playback of this sound. |
+| `void setVolume(double volume)` | Set the volume for subsequent plays from 0 (silent) to 1 (full). |
+| `double getVolume()` | Return the chosen volume, independent of mute. |
+| `void setMuted(boolean muted)` | Muting stops active effects and silences new plays, without changing the chosen volume. Unmuting does not replay stopped effects. |
+| `boolean isMuted()` | Whether this sound is muted. |
+| `boolean isPlaying()` | Whether this sound currently has active playback. |
+| `void close()` | Stop playback and mark this sound closed. |
+
+## Music
+
+`public final class Music implements AutoCloseable` has no public constructor.
+Import `zero.Music` and obtain one with `loadMusic`. Each instance has independent
+playback. The default volume is 1 and mute is false. Volume must be finite and
+between 0 and 1 inclusive; invalid values throw `IllegalArgumentException`.
+Muting preserves the chosen volume. Readiness and actual playback are asynchronous.
+Asynchronous player failures report the resource path once and dispose the player;
+later controls throw a useful failed-player error. Closing is idempotent; after
+close controls throw `IllegalStateException`, while getters remain readable.
+
+| Signature | Behavior |
+| --- | --- |
+| `void play()` | Start or resume playback; after natural completion, start again. Preserve the selected repeat mode. |
+| `void loop()` | Select repeating playback and start or resume it. |
+| `void pause()` | Pause playback while preserving its position. |
+| `void stop()` | Stop playback and rewind to the beginning, preserving the selected repeat mode. |
+| `void setVolume(double volume)` | Set the volume from 0 (silent) to 1 (full). |
+| `double getVolume()` | Return the chosen volume, independent of mute. |
+| `void setMuted(boolean muted)` | Mute or unmute playback without changing the chosen volume. |
+| `boolean isMuted()` | Whether this player is muted. |
+| `boolean isPlaying()` | Whether this player currently reports active playback. |
+| `void close()` | Stop playback and dispose the owned player. |
+
 ## Input
 
 These SketchApp methods are public and final. Use after canvas creation.
@@ -222,7 +288,7 @@ Import `Stage` from `javafx.stage`.
 | Signature | Behavior |
 | --- | --- |
 | `public final void start(Stage stage)` | Run `settings`, create the root/content, run `setup`, create the scene, configure/show the stage, then call `ready`. On startup failure, call `stop`, close the stage and rethrow. |
-| `public final void stop()` | Call `shutdown`. JavaFX invokes this when the application stops. |
+| `public final void stop()` | Call `shutdown` at most once per app and close owned audio on every call. Window hiding and JavaFX application exit can both call stop; the extension hook is not repeated. |
 
 Use JavaFX's inherited `launch(args)` in `public static void main(String[] args)`.
 Other inherited JavaFX APIs remain available; they are outside Zero's own API.
@@ -240,7 +306,7 @@ These hooks support framework extension. Students normally override `settings`,
 | `protected Node createContent()` | Return initial centre content; default `null`. Called before `setup`. |
 | `protected Scene createScene(BorderPane content)` | Create a scene containing the root at the configured initial dimensions. Called after `setup`. |
 | `protected void ready(Stage stage)` | No action. Called after the stage is shown. |
-| `protected void shutdown()` | No action. Called by `stop`, including startup-failure cleanup. |
+| `protected void shutdown()` | No action. Called at most once by `stop`, including startup-failure cleanup. |
 
 ### Protected SketchApp overrides
 
@@ -254,7 +320,7 @@ SketchApp supplies these final overrides; subclasses cannot replace them.
 | `protected final void shutdown()` | Stop the timer if present, clear all input and the image cache, and forget the window. |
 
 Settings, setup, frames and JavaFX handlers run on the JavaFX application thread.
-A failed frame stops the timer, clears held input and reports the exception.
+A failed frame stops the timer, clears held input, closes owned audio and reports the exception.
 Closing the app also stops its timer.
 
 The readable [SimpleApp source](src/main/java/zero/SimpleApp.java) and
@@ -263,8 +329,8 @@ locally modified framework. Ordinary JavaFX controls and example classes such as
 ScoreDisplay, Player and Question have their own APIs; see the
 [app guide](APP-GUIDE.md) for their use.
 
-The source starter includes JavaFX controls, graphics and media. Use ordinary
-JavaFX `AudioClip` for short sound effects; see the [app guide](APP-GUIDE.md#short-sound-effects).
-AudioClip is not a Zero helper. Persistence, FXML and web need their own dependencies.
+The source starter includes JavaFX controls, graphics and media. Use `loadSound` for effects and `loadMusic` for tracks; see the
+[app guide](APP-GUIDE.md#short-sound-effects). Raw JavaFX AudioClip/MediaPlayer
+remain available. Persistence, FXML and web need their own dependencies.
 ZeroHub provides exact-version shared libraries through ordinary Java imports;
 it does not change this core API or require a component base class. Public activation is pending.

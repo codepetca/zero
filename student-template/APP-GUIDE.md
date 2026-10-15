@@ -251,11 +251,52 @@ own Java objects. The [API reference](API.md) lists every overload and construct
 
 ### Short sound effects
 
-The source starter also pins JavaFX media. Use an ordinary [AudioClip](https://openjfx.io/javadoc/21/javafx.media/javafx/scene/media/AudioClip.html), loaded
-once from a classpath resource, and call `play()` for one event. See
-[Lesson 12](lessons/12-media.md) for copying assets, the small loader and the
-additional dependency needed by older kits. Use short effects; AudioClip holds
-uncompressed audio in memory. Longer music and resource cleanup are later work.
+The local source starter provides `zero.Sound` for short effects and `zero.Music`
+for longer tracks, in both SimpleApp and SketchApp. These helpers are unreleased;
+published core 0.1.2/setup 0.5.15 retain their original API. The source starter
+already pins JavaFX media. Put `chime.wav` and `music.wav` in `src/main/resources`.
+Keep fields and load once in setup:
+
+```java
+// Fields (import zero.Sound and zero.Music):
+private Sound chime;
+private Music music;
+
+@Override
+public void setup() {
+    chime = loadSound("/chime.wav");
+    music = loadMusic("/music.wav");
+    music.setVolume(0.4);
+    music.loop();
+    // Create your controls or other app objects here too.
+}
+```
+
+Call `chime.play()` for an event such as collecting a coin or pressing a button.
+A short effect can overlap itself. Sound volume changes apply to subsequent plays;
+muting stops existing effects and silences new plays until unmuted. Loading the same sound resource again returns
+the same live Sound, including shared volume/mute settings. Closing it and loading
+again returns a fresh one. Effects hold decoded samples in memory; keep them short.
+Each `loadMusic` call creates an independent buffered player and playback position.
+
+Main owns game rules: call `music.pause()` when pausing, `music.play()` to resume,
+and `music.stop()` to rewind on restart. `loop()` selects repeat mode, which stays
+selected through stop/play. `music.setMuted(true)` silences it while preserving
+volume; `setMuted(false)` restores that volume. Both helpers accept finite volume
+from 0 to 1 and offer `getVolume`, `isMuted`, `isPlaying`, `stop` and `close`.
+Playback/readiness are asynchronous, so `isPlaying()` can initially be false.
+
+The app closes owned audio automatically on stop/window close, startup failure
+and frame failure. Focus loss does not automatically pause audio or game logic.
+Use loaders, controls and close on the JavaFX application thread (setup, update and
+JavaFX handlers already run there). `close()` is idempotent; later controls report
+that the resource is closed, while getters remain readable. Missing/unreadable
+resources give a useful path; asynchronous music failures report that path once
+and dispose the player. The [API reference](API.md#audio) lists exact signatures.
+Raw JavaFX [AudioClip](https://openjfx.io/javadoc/21/javafx.media/javafx/scene/media/AudioClip.html)
+and MediaPlayer remain available for advanced needs; manage those resources yourself.
+The older [Lesson 12](lessons/12-media.md) examples demonstrate ordinary AudioClip
+and the additional dependency needed by older kits.
 
 ### Input methods
 
@@ -323,7 +364,7 @@ For framework contributors, SimpleApp exposes protected hooks:
 `void ready(Stage stage)` and `void shutdown()`. Startup runs settings, creates
 the root/content, runs setup, creates the scene, shows the stage, then calls
 ready. Its public `final void start(Stage stage)` and `final void stop()` manage
-that lifecycle; stop calls shutdown. SketchApp provides final overrides of the
+that lifecycle; stop calls shutdown at most once and closes owned audio on every call. SketchApp provides final overrides of the
 content/scene/ready/shutdown hooks to own its canvas and timer. Students normally
 override only settings, setup, update and draw.
 
@@ -335,10 +376,14 @@ package; move its helpers into named packages too. Resource-root image paths
 such as `/player.png` keep working.
 
 The source starter includes JavaFX controls, graphics and media. Persistence,
-FXML and web need their own dependencies. AudioClip is ordinary JavaFX, not a Zero
-helper. ZeroHub provides exact-version shared libraries through ordinary Java imports; it does not change this core API or require a component base class. Public activation is pending.
+FXML and web need their own dependencies. The local Sound/Music helpers wrap
+JavaFX media; raw AudioClip and MediaPlayer are also available. ZeroHub provides exact-version shared libraries through ordinary Java imports; it does not change this core API or require a component base class. Public activation is pending.
 
 Try the local [Sprite playground](examples/sprite-playground/README.md) in a fresh project,
 copying one example at a time. It shares one bird sheet across two independent
 clocks, selects four aligned ImageRegion frames from the atlas, and demonstrates
 pause, reset, edge input and collision feedback.
+
+Try the optional [Audio playground](examples/audio-playground/README.md) in a separate
+fresh project. Its native buttons demonstrate effect playback, music loop/pause/
+resume/stop and mute using one setup-time load per resource.

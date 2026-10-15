@@ -1,6 +1,6 @@
 # Local Zero core library
 
-This development module packages the canonical SimpleApp, SketchApp, ImageRegion, SpriteAnimation and Collisions source
+This development module packages the canonical SimpleApp, SketchApp, ImageRegion, SpriteAnimation, Collisions, Sound and Music source
 for the Component Workshop. The student starter still ships editable core source;
 this module does not migrate existing projects or change their API.
 
@@ -27,10 +27,19 @@ The small game helpers are local, unreleased additions; published Mac setup
 0.5.15 still ships core 0.1.2. See the [complete API](../student-template/API.md)
 and [student guide](../student-template/APP-GUIDE.md#sprite-frames-and-small-game-helpers).
 Sprite clocks are explicitly updated by their owner; region/animation objects
-share their backing Image. Successful resource loads use an app-scoped cache
+share their backing Image. Successful image loads use an app-scoped cache
 cleared at shutdown. Grid assets require aligned equal-size cells dividing the
 image exactly; explicit region sequences support irregular atlases. Frame-edge
 input is non-consuming during one real update/draw, and focus loss clears it.
+
+SimpleApp and SketchApp both provide loadSound/loadMusic. Sound caches each
+successful canonical resource as one live wrapper, sharing volume/mute settings;
+manually closing it allows a fresh load. Music creates an independent buffered
+MediaPlayer per call. Short effects retain decoded samples in memory. Audio
+controls, loaders and close run on the FX thread. Owned audio closes on stop/window close,
+startup failure and frame failure, even if an extension shutdown hook throws.
+Game pause/focus/restart policy remains explicit in Main. See the
+[audio API](../student-template/API.md#audio) for thread, close and failure behavior.
 
 The JAR and sources JAR are generated in target/. No remote publishing target is
 configured. Original Zero source uses [MIT](../LICENSE); public Maven coordinates remain unresolved.

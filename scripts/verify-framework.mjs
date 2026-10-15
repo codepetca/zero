@@ -15,6 +15,9 @@ try {
   if (!result.stdout.includes('ZERO_SMOKE_OK')) throw new Error(result.stdout + '\n' + result.stderr);
   const helpers = maven(project, ['-q', '-Dapp.mainClass=zero.GameHelpersCheck', 'compile', 'javafx:run']);
   if (!helpers.stdout.includes('ZERO_GAME_HELPERS_OK')) throw new Error(helpers.stdout + '\n' + helpers.stderr);
+  const audio = maven(project, ['-q', '-Dapp.mainClass=zero.AudioCheck', 'compile', 'javafx:run']);
+  if (!audio.stdout.includes('ZERO_AUDIO_OK')) throw new Error(audio.stdout + '\n' + audio.stderr);
+  console.log(audio.stdout.trim());
   console.log('ZERO_GAME_HELPERS_OK: finite native game helper checks.');
   console.log('ZERO_SMOKE_OK: finite native framework behavior in a standalone assembled project.');
 } finally {rmSync(project, {recursive:true, force:true});}

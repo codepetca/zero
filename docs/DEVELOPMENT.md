@@ -26,7 +26,7 @@ node scripts/verify-project-progression.mjs
 npm run package
 npm run verify:kit
 npm run verify:framework
-python3 scripts/verify-examples.py --only sprite-playground
+python3 scripts/verify-examples.py --only sprite-playground audio-playground
 ```
 
 Java build and finite GUI checks are documented in

@@ -323,6 +323,23 @@ jar_check = '''var origin = Hud.class.getProtectionDomain().getCodeSource().getL
                 && ScoreDisplay.class.getProtectionDomain().getCodeSource().getLocation().equals(origin), "All three components come from one artifact");'''
 checks['packaged-study'] = checks['composed-study'] + jar_check
 checks['packaged-game'] = checks['composed-game'] + jar_check
+checks['audio-playground'] = '''require(app.chime == app.loadSound("/audio-playground/chime.wav"), "Short clips use the app cache");
+        require(app.theme != app.loadMusic("/audio-playground/theme.wav"), "Music players have independent state");
+        require(app.chime.getVolume() == .5 && app.theme.getVolume() == .25, "Example volumes are configured once");
+        button(stage.getScene().getRoot(), "Mute").fire();
+        require(app.chime.isMuted() && app.theme.isMuted(), "Mute reaches both resources");
+        button(stage.getScene().getRoot(), "Unmute").fire();
+        require(!app.chime.isMuted() && !app.theme.isMuted(), "Unmute restores both resources");
+        button(stage.getScene().getRoot(), "Loop music").fire();
+        button(stage.getScene().getRoot(), "Pause music").fire();
+        button(stage.getScene().getRoot(), "Resume music").fire();
+        button(stage.getScene().getRoot(), "Stop music").fire();
+        stage.hide();
+        try { app.chime.play(); throw new AssertionError("Hidden app sound must be closed"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().contains("closed"), "Window closure cleans up sounds"); }
+        try { app.theme.play(); throw new AssertionError("Hidden app music must be closed"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().contains("closed"), "Window closure cleans up music"); }'''
+
 checks['sprite-playground'] = '''require(app.bird.image() == app.companion.image(), "Animations share the loaded sheet");
         require(app.loadImage("/bird-flap-sheet.png") == app.bird.image(), "Example uses the app image cache");
         app.bird.reset(); app.companion.reset(); app.paused = false;

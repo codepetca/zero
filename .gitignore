@@ -18,6 +18,8 @@ student-template/src/main/java/zero/SketchApp.java
 student-template/src/main/java/zero/ImageRegion.java
 student-template/src/main/java/zero/SpriteAnimation.java
 student-template/src/main/java/zero/Collisions.java
+student-template/src/main/java/zero/Sound.java
+student-template/src/main/java/zero/Music.java
 student-template/LICENSE
 website/.generated/
 website/.next/

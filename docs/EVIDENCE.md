@@ -1,5 +1,76 @@
 # Delivery evidence index
 
+## Managed Sound/Music helpers — local implementation, 2026-10-15
+
+Owner explicitly authorized core helpers and Sky Hop migration after reviewing
+proposed API. Work continues on codex/student-game-helpers from8caba8b in the
+attached isolated worktree; primary funding edits remain preserved. No publication,
+push, Maven install or public release replacement. Existing core0.1.2 and kit pins
+remain unreleased-source boundaries, not a claim that published kits gained APIs.
+
+SimpleApp now provides loadSound/loadMusic to UI and canvas apps. Sound caches a
+live short clip per canonical resource and shared settings; Music has independent
+buffered playback/position. Explicit play/loop/pause/stop, volume/mute and close
+methods preserve ordinary student events. Stop rewinds through pause/seek. Native
+readiness remembers requested state. One-shot completion/replay is explicit even
+when native status lags. App stop, hidden owner window, startup/frame failure and
+throwing custom shutdown release every owned resource. Sound close drops its clip
+reference; failed music logs its resource and disposes. Closed controls explain
+misuse. Missing/invalid resources retain useful path errors.
+
+Seven source classes propagate through starter/lesson/native allowlist/website
+project inventories. Framework media dependency uses existing21.0.12 pin. Canonical
+API covers98declarations/7classes, including20audio entries; searchable website
+preserves prior anchors. Sky Hop loads wrappers once in setup; GameAudio only maps
+game rules to sound. The audio playground uses the same APIs from SimpleApp buttons.
+Existing Sky Hop art, score/physics, simple screen and audio assets remain unchanged.
+
+Passed: configuration/syntax/local links;10starter/lesson checks and independent
+standalone Maven compile; framework cleanpackage without install;53native audio
+assertions; old SmokeLauncher and GameHelpersCheck in the final extracted-project
+sequence;263root tests/1PowerShellskip;98website tests/type/build;41focused API,
+learning/source-project tests; native audio-playground consumer; Sky Hop194rules,
+4audio assets and19native whole17.14s-loop/effect/pause/mute/reset/disposal assertions;
+GUI/layout/animation and actual-frame Space/P/R/M. Local API search loadSound opens
+its anchor with no browser errors/warnings; screenshot inspected. Existing Zero
+Run App rebuilt the migrated game under managed JDK21; bytecode calls loadSound/
+loadMusic and Main process remains running.
+
+Two bounded writers: GPT-6.1 Sol/high for core/lifecycle/tests; Sol/medium for docs
+and strict API adapter. Coordinator migrated app/consumer and source inventories.
+No ownership conflict. Rework: added Sound clip-reference release on close; native
+one-shot end needed explicit pause/ended tracking. Two aggregate framework smoke
+runs timed out before audio; no assertions relaxed. Final same-source extracted
+sequence passed audio, smoke and game helpers; do not report an aggregate
+verify:framework rerun as passed. Async decoder error callback disposal was
+fault-injected; naturally malformed WAV errors were synchronous on this Mac.
+Core receipt `.verification/audio-helpers/core-result.md` preserves commands,
+checks and final hashes. Worker effective models/tokens/elapsed and attributable
+coordinator effort unknown; root suite250sec. Weekly97%remaining, storage317GB
+healthy at phase readings; DeepSeek remains paused. No cost/savings claim.
+
+Independent GPT-6.1 Sol/high review read the full fixed scope and found twoP2
+issues: a normal window-hide plus launcher exit repeated customshutdown, and
+synchronous native audio initialization failure aborted Sky Hop instead of silent
+play. One corrective batch guards shutdown at most once while retaining repeat
+managed cleanup, and catches only native MediaException causes during game audio
+loading; missing resources still fail with their filename. Added four native core
+assertions (now57), reran native SmokeLauncher, and added a disposable corrupt-WAV/
+missing-file game check. Both fallback paths,19audio/GUIinput checks and21affected
+API/kit/lesson tests pass. Final website build refreshed revised lifecycle docs.
+
+Targeted review resolved both findings with no further actionable issue; verified
+all58final hashes stable. Ledger2reviewerturns/launches,1initialwave,1targetedwave,
+1fixbatch,0integrationwave. Effective reviewer configuration/tokens/elapsed unknown.
+Initial manifest SHA7039759f9a15c6d0e5198fcf83e85bb687d332cb4b318506ea9ddbe9d33c1e7f;
+final `.verification/audio-helpers/remediation-source.json` SHA256
+`6f89c50a3125bd60eafc88baf6b861f029c6ea507d841380d0f929351d0e657c`.
+Receipts core-remediation/review-result/review-remediation retain commands and
+coverage. Bulky logs, screenshot, pre-migration backup and ZIP receipt remain ignored.
+Physical Windows/Linux, human listening-quality and novice classroom trials remain
+unverified. Earlier owner playtest predates these changes.
+
+
 ## Sky Hop music and sound — local, 2026-10-15
 
 Owner requested generation and integration in the existing standalone game at

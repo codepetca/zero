@@ -7,6 +7,7 @@ const categoryDefinitions = [
   ['images', 'Images', 'Load bundled images and draw them on the canvas.'],
   ['regions', 'Image regions', 'Select source rectangles without copying image pixels.'],
   ['animation', 'Sprite animation', 'Advance independent looping frame sequences explicitly.'],
+  ['audio', 'Audio', 'Load effects and independent music players in either app type.'],
   ['collisions', 'Collisions', 'Test ordinary geometry without moving objects.'],
   ['input', 'Keyboard and mouse', 'Read held keys, mouse buttons and canvas coordinates.'],
   ['advanced', 'Advanced', 'JavaFX lifecycle and protected framework extension hooks.'],
@@ -25,6 +26,8 @@ const examples = {
   strokeWidth: 'strokeWidth(3);', textSize: 'textSize(24);', rect: 'rect(20, 30, 100, 60);',
   outlineRect: 'outlineRect(20, 30, 100, 60);', circle: 'fill(Color.BLUE);\ncircle(100, 80, 40);',
   line: 'line(20, 30, 120, 90);', text: 'text("Hello", 20, 40);',
+  loadSound: 'Sound chime = loadSound("/chime.wav");',
+  loadMusic: 'Music music = loadMusic("/music.wav");\nmusic.loop();',
   loadImage: 'Image player = loadImage("/player.png");',
   image: 'image(player, 20, 30);', 'image-scaled': 'image(player, 20, 30, 80, 80);',
   textCentered: 'textCentered("Ready", width() / 2, 40);',
@@ -66,6 +69,8 @@ const related = {
   background: ['fill', 'draw'], fill: ['circle', 'rect', 'text'], stroke: ['line', 'outlineRect', 'strokeWidth'],
   strokeWidth: ['stroke', 'line'], textSize: ['text'], rect: ['outlineRect', 'fill'],
   outlineRect: ['rect', 'stroke'], circle: ['fill', 'rect'], line: ['stroke', 'strokeWidth'], text: ['textSize', 'fill'],
+  loadSound: ['sound-play', 'sound-stop', 'sound-setMuted'],
+  loadMusic: ['music-play', 'music-loop', 'music-pause', 'music-stop'],
   loadImage: ['image', 'image-scaled'], image: ['loadImage', 'image-scaled'], 'image-scaled': ['loadImage', 'image'],
   mouseX: ['mouseY', 'mouseDown'], mouseY: ['mouseX', 'mouseDown'], keyDown: ['update', 'mouseDown'],
   mouseDown: ['mouseX', 'mouseY', 'keyDown'],
@@ -90,6 +95,7 @@ function parameterDescription(name, method) {
     centreX: 'Horizontal centre of the circle in pixels.', centreY: 'Vertical centre of the circle in pixels.',
     diameter: 'Circle diameter in pixels.', x1: 'First shape x coordinate, or line start x, in pixels.', y1: 'First shape y coordinate, or line start y, in pixels.',
     x2: 'Second shape x coordinate, or line end x, in pixels.', y2: 'Second shape y coordinate, or line end y, in pixels.', value: 'Text to draw.',
+    volume: 'Volume from 0 to 1 inclusive; finite.', muted: 'True to mute; false to restore the chosen volume.',
     resourcePath: 'Classpath resource path; leading / starts at the resource root.', image: 'Successfully loaded backing JavaFX Image.',
     region: 'Immutable source rectangle to draw.', animation: 'Animation whose current frame is drawn without advancing.',
     angleDegrees: 'Rotation about the destination centre, in degrees; positive is clockwise.',
@@ -117,7 +123,7 @@ export function buildApiReference(markdown) {
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
     if (section === 'SimpleApp') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { SketchApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
+    return { Audio: 'audio', Sound: 'audio', Music: 'audio', SketchApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -138,9 +144,9 @@ export function buildApiReference(markdown) {
     const declaration = signature.match(/^(?:(?:public|protected|final|static)\s+)*(?:(\w+(?:\.\w+)*)\s+)?(\w+)\(([^()]*)\)$/);
     if (!declaration) throw new Error(`Malformed API signature: ${signature}`);
     const [, , name, argumentsText] = declaration;
-    const helper = ['ImageRegion', 'SpriteAnimation', 'Collisions'].includes(section);
+    const helper = ['ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(section);
     if (!declaration[1] && (!helper || name !== section)) throw new Error(`Malformed API constructor: ${signature}`);
-    const owner = helper ? section : section === 'SimpleApp' || (categoryId === 'advanced' && subsection !== 'Protected SketchApp overrides') ? 'SimpleApp' : 'SketchApp';
+    const owner = helper ? section : ['SimpleApp', 'Audio'].includes(section) || (categoryId === 'advanced' && subsection !== 'Protected SketchApp overrides') ? 'SimpleApp' : 'SketchApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
       const parameter = argument.trim().match(/^(\w+(?:\.\w+)*(?:\.\.\.)?)\s+(\w+)$/);
       if (!parameter) throw new Error(`Malformed API parameter: ${argument}`);
@@ -167,14 +173,20 @@ export function buildApiReference(markdown) {
     }
     if (owner === 'Collisions') entry.example = examples[name];
     if (owner === 'SpriteAnimation' && name === 'update') entry.example = 'walk.update(seconds);';
-    if (helper && name !== owner) entry.related = owner === 'Collisions' ? ['circle', 'rect'] : [owner.toLowerCase() + '-constructor'];
+    if (helper && name !== owner) entry.related = owner === 'Collisions' ? ['circle', 'rect']
+      : ['Sound', 'Music'].includes(owner) ? [owner === 'Sound' ? 'loadSound' : 'loadMusic'] : [owner.toLowerCase() + '-constructor'];
+    if (['Sound', 'Music'].includes(owner)) {
+      const variable = owner === 'Sound' ? 'chime' : 'music';
+      const argument = name === 'setVolume' ? '0.5' : name === 'setMuted' ? 'true' : '';
+      entry.example = `${variable}.${name}(${argument});`;
+    }
     if (id === 'image-scaled') entry.note = methodNotes.image;
     byId[categoryId].entries.push(entry);
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 10 || entries.length !== 78 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected ten sections and 78 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 13 || entries.length !== 98 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected thirteen sections and 98 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -188,6 +200,7 @@ export function buildApiReference(markdown) {
 }
 
 const aliases = {
+  loadSound: 'audio effect clip wav', loadMusic: 'audio music track loop', Sound: 'audio effect', Music: 'audio track',
   keyDown: 'keyboard keys held pressed input', keyPressed: 'keyboard edge once input', mousePressed: 'mouse edge click once input',
   SpriteAnimation: 'sprite sheet animation frames grid', ImageRegion: 'atlas crop source image rectangle', textCentered: 'text centre center baseline', rect: 'rectangle', outlineRect: 'rectangle outline',
   fill: 'color colour style', stroke: 'color colour style', background: 'color colour clear',
@@ -207,7 +220,7 @@ export function searchApiReference(categories, query) {
   };
   return categories.flatMap(category => category.entries.map(entry => ({ ...entry, categoryId: category.id, categoryTitle: category.title })))
     .filter(entry => {
-      const searchable = [entry.name, entry.signature, entry.description, entry.categoryTitle, aliases[entry.name] ?? ''].join(' ').toLowerCase();
+      const searchable = [entry.name, entry.owner, entry.signature, entry.description, entry.categoryTitle, aliases[entry.name] ?? ''].join(' ').toLowerCase();
       return tokens.every(token => searchable.includes(token));
     })
     .sort((left, right) => rank(left) - rank(right));

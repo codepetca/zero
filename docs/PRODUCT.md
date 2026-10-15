@@ -99,6 +99,15 @@ focus to a nearby control. Tab still moves focus to ordinary JavaFX controls;
 arrows in a focused text field keep their normal caret behavior.
 Useful startup errors explain invalid sizes and lifecycle misuse.
 
+Local, unreleased `Sound` and `Music` helpers are available to both SimpleApp and
+SketchApp. Load once with `loadSound` or `loadMusic`; short clips share a per-app
+canonical-resource cache, while each music object has an independent buffered
+player. Ordinary Java event handlers decide when to play/pause/stop/mute. App
+shutdown, startup/frame failure and window closing release owned audio, including
+when custom shutdown fails. Sky Hop and the separate audio playground demonstrate
+reuse. Published core0.1.2 and released kit bytes remain unchanged.
+
+
 Local, unreleased game helpers add `SpriteAnimation`, shared-pixel `ImageRegion`
 views, one-frame press input, window focus, centered/rotated and vertically flipped
 image drawing, centered text and `Collisions` geometry predicates. Animations

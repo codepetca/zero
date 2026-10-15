@@ -12,30 +12,30 @@ const normalizeSignature = signature => signature.replace(/\b(public|protected|f
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions']) {
+  for (const owner of ['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music']) {
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner}.java`, import.meta.url), 'utf8');
     // Class-level declarations have four-space indentation; the anonymous timer callback has twelve.
     for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:(?:final|static) )?(?:[\w.]+ )?\w+\([^)]*\))\s*\{/gm)) {
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 78);
+  assert.equal(expected.length, 98);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
-  assert.equal(JSON.parse(JSON.stringify(categories)).length, 10);
+  assert.equal(JSON.parse(JSON.stringify(categories)).length, 11);
 });
 
 test('categories and entries have unique anchors, valid relationships and complete metadata', () => {
   assert.deepEqual(categories.map(item => [item.id, item.title]), [
     ['startup', 'App startup'], ['interface', 'Window and interface'], ['canvas', 'Canvas'],
     ['drawing', 'Drawing'], ['images', 'Images'], ['regions', 'Image regions'],
-    ['animation', 'Sprite animation'], ['collisions', 'Collisions'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
+    ['animation', 'Sprite animation'], ['audio', 'Audio'], ['collisions', 'Collisions'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
   ]);
   const ids = [...categories, ...entries].map(item => item.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions'].includes(item.owner));
+    assert.ok(['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -74,8 +74,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 78);
-  assert.equal(search(' \n\t ').length, 78);
+  assert.equal(search('').length, 98);
+  assert.equal(search(' \n\t ').length, 98);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -172,9 +172,27 @@ test('documents all source-type overloads with unique stable anchors and helper 
 
 
 test('fails closed when any new overload or constructor table row is omitted', () => {
-  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Collisions'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped/.test(item.signature))) {
+  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
     const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
     assert.ok(line, item.signature);
     assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/, item.signature);
   }
+});
+
+
+test('audio declarations use owner-qualified anchors and preserve app lifecycle anchors', () => {
+  assert.equal(entry('loadSound').owner, 'SimpleApp');
+  assert.equal(entry('loadMusic').owner, 'SimpleApp');
+  assert.equal(entry('stop').owner, 'SimpleApp');
+  assert.equal(category('audio').entries.length, 20);
+  assert.equal(entry('sound-stop').owner, 'Sound');
+  assert.equal(entry('music-stop').owner, 'Music');
+  assert.ok(!entries.some(item => ['Sound', 'Music'].includes(item.name)));
+  assert.match(entry('loadSound').description, /same live Sound/);
+  assert.match(entry('loadMusic').description, /independent/);
+  assert.match(category('audio').notes, /frame failure/);
+  assert.match(entry('music-setVolume').parameters[0].description, /finite/);
+  assert.match(entry('sound-setMuted').parameters[0].description, /chosen volume/);
+  assert.ok(searchApiReference(categories, 'music pause').some(item => item.id === 'music-pause'));
+  assert.ok(searchApiReference(categories, 'audio effect').some(item => item.id === 'loadSound'));
 });

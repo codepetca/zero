@@ -102,7 +102,9 @@ public abstract class SketchApp extends SimpleApp {
                     update(seconds);
                     draw();
                 } catch (RuntimeException | Error failure) {
-                    SketchApp.this.stop(); // Stop the timer and clear held input after a failed frame.
+                    // Preserve the useful frame error even if native cleanup also fails.
+                    try { SketchApp.this.stop(); }
+                    catch (RuntimeException | Error cleanup) { failure.addSuppressed(cleanup); }
                     throw failure;
                 } finally {
                     pressedKeys.clear(); pressedButtons.clear();

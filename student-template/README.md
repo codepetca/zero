@@ -137,6 +137,7 @@ Useful methods inherited from SketchApp:
 | Text | `textSize(20); text("Hello", 20, 40);` (y is baseline) |
 | Mouse | `mouseX()`, `mouseY()`, `mouseDown(MouseButton.PRIMARY)` |
 | Held keys | `keyDown(KeyCode.LEFT)` |
+| Audio (local source) | `loadSound("/chime.wav")` / `loadMusic("/music.wav")` in setup; play on events, explicitly pause/stop music |
 | Images | `loadImage("/player.png")` in setup; `image(sprite, x, y)` in draw |
 
 Use imports from `javafx.scene.input` for KeyCode and MouseButton. Mouse positions
@@ -144,7 +145,9 @@ are canvas coordinates and can leave its bounds while dragging. **Click the
 canvas to play.** Held keys belong to the focused canvas; clicking or typing in
 native controls does not press game keys or mouse buttons. Moving focus to a
 control or another window clears held inputs. Releasing an owned button outside
-the canvas also clears it. Put images in `src/main/resources`; load once in setup. Successful image loads
+the canvas also clears it. Put images in `src/main/resources`; load once in setup. Sound/Music also work in ordinary SimpleApp interfaces; see
+the [audio guide](APP-GUIDE.md#short-sound-effects). Owned audio closes automatically
+on shutdown and startup/frame failure. Game pause/restart policy stays in Main. Successful image loads
 share an app-scoped cache until shutdown. The local source starter also includes
 explicitly updated SpriteAnimation, ImageRegion, frame-edge input, centred/
 flipped image drawing, centred text and static Collisions predicates. These
@@ -187,6 +190,7 @@ separate.
 | Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
 | Sprite playground | `examples/sprite-playground/Main.java` → `src/main/java/Main.java`; `examples/sprite-playground/src/main/resources/bird-flap-sheet.png` → `src/main/resources/bird-flap-sheet.png` | Independent sprite clocks share one image; arrows move, Space/click pauses, R resets, geometry changes the target colour. [Copy/run instructions](examples/sprite-playground/README.md). Local unreleased helpers required. |
+| Audio playground | `examples/audio-playground/Main.java` → `src/main/java/Main.java`; `examples/audio-playground/resources/audio-playground/` → `src/main/resources/audio-playground/` | Load once, trigger an effect and loop/pause/resume/stop/mute music with native buttons. [Copy/run instructions](examples/audio-playground/README.md). Local unreleased helpers required. |
 | Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
 | Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |
 | Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See [stage 3](lessons/12-media.md#3-gravity-platforms-and-collisions). |

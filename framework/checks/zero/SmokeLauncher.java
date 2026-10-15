@@ -33,7 +33,7 @@ public final class SmokeLauncher extends SketchApp {
         require(width() == 120 && height() == 100, "settings before setup");
         Thread watchdog = new Thread(() -> {
             try { Thread.sleep(10_000); } catch (InterruptedException ignored) { return; }
-            System.err.println("ZERO_SMOKE_TIMEOUT");
+            System.err.println("ZERO_SMOKE_TIMEOUT phase=" + phase);
             System.exit(1);
         }, "zero-smoke-deadline");
         watchdog.setDaemon(true);

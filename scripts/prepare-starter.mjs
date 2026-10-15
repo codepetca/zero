@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
-export const coreSources = ['SimpleApp.java', 'SketchApp.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java'];
+export const coreSources = ['SimpleApp.java', 'SketchApp.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java', 'Sound.java', 'Music.java'];
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // This is maintainer tooling. Extracted student projects contain ordinary Java
 // source and never run this script or depend on the surrounding repository.

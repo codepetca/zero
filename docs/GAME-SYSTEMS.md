@@ -56,10 +56,15 @@ score, player, patrols and camera. Reset suppresses a held jump reported by the 
 
 ## Resource and lifecycle limits
 
-Load assets once; play a short effect on collection. AudioClip keeps samples in
-memory, so brief effects remain appropriate. The core shutdown stops animation
-and clears input but has no application cleanup callback. Looping music still
-needs an explicit idempotent cleanup design when a shared need is demonstrated.
+Load assets once in setup; play a short effect on collection. The maintained
+Lesson 12 examples use ordinary JavaFX AudioClip. The local source additionally
+provides `loadSound`/`loadMusic` in both SimpleApp and SketchApp. Sound holds decoded
+samples in memory and can overlap; aliases return the same live wrapper, sharing
+volume/mute. Music uses a separate buffered player/position per load. Owned audio
+closes on stop/window close, startup failure and frame failure. Raw JavaFX players
+still need their owner's cleanup. Main explicitly pauses/resumes music for pause,
+rewinds it for restart, and chooses focus-loss policy. See the
+[audio guide](../student-template/APP-GUIDE.md#short-sound-effects).
 
 Canvas/window focus loss clears held and frame-edge input but does not pause
 physics or enemies. windowFocused() can support an explicit Main pause rule; a
@@ -98,3 +103,7 @@ Try the local [Sprite playground](../student-template/examples/sprite-playground
 copying one example at a time. It shares one bird sheet across two independent
 clocks, selects four aligned ImageRegion frames from the atlas, and demonstrates
 pause, reset, edge input and collision feedback.
+
+Try the optional [Audio playground](../student-template/examples/audio-playground/README.md) in a separate
+fresh project. Its native buttons demonstrate effect playback, music loop/pause/
+resume/stop and mute using one setup-time load per resource.
