@@ -10,7 +10,7 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 | Surface | Status |
 | --- | --- |
-| Home page with app header, Learn Java and two buttons | Owner-requested replacement 2026-10-13; shared light/dark themes. |
+| Home page with app header, Learn Java and Get started | Owner-approved first-visit flow 2026-10-15; shared light/dark themes and quieter returning-student link. |
 | Shared Learn/downloads design in light and dark | Owner-approved 2026-10-13; applies to the tutorial reader and Downloads. |
 | Minimal editor sidebar in light and dark | Owner-approved 2026-10-13: one Run/Stop, GitHub and ZeroHub view; idle status hidden; Sign in/username; New branch; Tutorials/Setup overflow. Native VS Code adaptation remains required. |
 | Docs reader | Owner-approved 2026-10-14 API mock: method/category sidebar, search and concise entries; preserve current shared navigation, themes and code copying. Setup and longer guides stay linked. |
@@ -52,7 +52,9 @@ those roles to each surface. The approved dark companion applies to Home, Learn 
 ## Surface adaptations and review scope
 
 Home uses the shared app header above **Learn Java**, **Starting from zero.**
-and stacked **Download Zero** (`/downloads`) and **Start Learning** (`/learn`) buttons.
+and **Get started** (`/get-started`) with a quieter **Already set up? Continue
+tutorials** (`/learn`) link. The guide follows GitHub preparation, installation,
+owned tutorial repository/clone, lesson0 and optional publishing.
 It uses the centered full-viewport layout and shared appearance toggle. Tutorials opens
 lesson 0 directly with the complete lesson sidebar and a reading pane. The owner
 removed the overview landing on 2026-10-13. The separate Download page offers
@@ -138,3 +140,14 @@ template path. Templates not yet published stay explicitly unavailable. After
 cloning, Run remains offline and independent of an active GitHub session.
 Upload/branch reviews, explicit Publish and separate original ZeroHub contribution
 rules remain. Preserve current visual design and ordinary Java.
+
+## First visit — owner decision, 2026-10-15
+
+The owner approved one Get started entry and a returning-student tutorial link.
+Reuse the restrained shared theme and typography for the public five-step guide;
+GitHub preparation comes before download, but neither browsing nor downloads
+requires website authentication. GitHub handles account creation/sign-in. Link
+Downloads back to project creation after installation, and starting lessons back
+to this guide. Template availability still follows verified publication metadata.
+No account-state detection, website OAuth, forced completion gate, release metadata
+change or deployment is part of this implementation.

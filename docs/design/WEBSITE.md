@@ -4,21 +4,25 @@ Start with [shared design](../../design.md) and the canonical
 [UI and UX guidelines](../UI-UX-GUIDELINES.md). Current owner instructions
 supersede the original landing mockup.
 
-## Current page contract — 2026-10-13
+## Current page contract — 2026-10-15
 
 Home (`/`) has the shared app header and a centered stack: **Learn Java**,
-**Starting from zero.**, **Download Zero** → `/downloads`, and **Start Learning**
-→ `/learn`. Use ordinary links and preserve visible keyboard focus.
+**Starting from zero.**, a primary **Get started** → `/get-started`, and a quieter
+**Already set up? Continue tutorials** → `/learn`. Use ordinary links and preserve
+visible keyboard focus. The public Get started guide follows GitHub preparation,
+installation, own template repository and clone, lesson0, then Upload and optional
+public Publish. No website authentication or completion gate is required.
 Tutorials opens lesson 0 directly, with all thirteen lessons in a desktop sidebar
 and a native lesson selector on narrow screens. Selecting updates the reading
 pane and bookmarkable lesson URL. Downloads is a separate page with a centered
 heading and stacked Mac/Windows platform actions; Download is a regular menu item.
 
-All three pages use shared light/dark semantic tokens and a circular header
+Home, Get started, Tutorials and Downloads use shared light/dark semantic tokens and a circular header
 sun/moon toggle. Default to the OS preference until a mode is chosen, then save
 the choice. Header and main fill the available viewport; longer content scrolls
 normally. Keep320px reflow, contained code, mobile menu and comfortable targets.
-No extra promotional sections or download/version instructions are requested.
+Keep the landing sparse. Downloads retains concise setup help and a return link
+to the guide’s project step after installation.
 
 Hub and other website routes retain their own design/contracts. The native
 VSCode sidebar follows host colors/fonts/focus/high-contrast roles. LocalRun and

@@ -8,9 +8,14 @@ using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
-page has the shared app header, **Learn Java**, **Starting from zero.**, and two
-stacked buttons: **Download Zero** opens `/downloads`; **Start Learning** opens
-`/learn`. It uses the shared light/dark toggle and centered full-viewport layout.
+page has the shared app header, **Learn Java**, **Starting from zero.**, a primary
+**Get started** button to `/get-started`, and a quieter **Already set up? Continue
+tutorials** link to `/learn`. It uses the shared light/dark toggle and centered
+full-viewport layout. The public Get started guide orders GitHub account/school/
+privacy preparation, Zero installation, an owned tutorial template repository and
+clone, lesson0 browser Run, then reviewed Upload and optional public Publish.
+GitHub account links open GitHub; the website creates no session or sign-in gate.
+Downloads stays public and links back to the project step after installation.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
 are listed under three quiet project headings (Greeting app, Study quiz and Coin
 game); selecting one updates the reading pane and its bookmarkable

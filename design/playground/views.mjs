@@ -27,7 +27,7 @@ export function webView(theme, downloads, screen = "learn") {
 </section>`).join('')}</article>
 </div>`;
   const homeContent = `<div class="intro"><h1>Learn Java</h1><p class="lead">Starting from zero.</p></div>
-<div class="home-actions"><a class="primary" href="/web?screen=downloads&theme=${theme}" data-screen="downloads">Download Zero</a><a class="primary" href="/web?screen=learn&theme=${theme}" data-screen="learn">Start Learning</a></div>`;
+<div class="home-actions"><button class="primary" data-fixture="Get started guide (review the five-step guide in the applied website)">Get started</button><a href="/web?screen=learn&theme=${theme}" data-screen="learn">Already set up? Continue tutorials</a></div>`;
   const downloadContent = `<section id="downloads" class="downloads" aria-label="Downloads">${downloads.mac ? `<button class="primary" data-fixture="Mac setup download" data-source-url="${escape(downloads.mac)}">
 ${icons.download}Download for Mac Silicon</button>` : ''}${downloads.windows ? `<button class="primary" data-fixture="Windows complete-kit ZIP download" aria-label="Download for Windows (ZIP), manual setup" data-source-url="${escape(downloads.windows)}">
 ${icons.download}Download for Windows (ZIP)</button>` : ''}</section>`;

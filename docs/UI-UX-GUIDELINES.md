@@ -31,7 +31,9 @@ marks a preferred pattern with documented, task-specific exceptions.
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,
-  Starting from zero., Download Zero → `/downloads` and Start Learning → `/learn`.
+  Starting from zero., Get started → `/get-started` and a quieter Already set up?
+  Continue tutorials → `/learn` link. The public guide orders account preparation,
+  install, owned tutorial repository/clone, lesson0 and optional publishing.
   Keep the centered stack and shared light/dark themes without promotional sections.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.
   Follow the editor's established controls, theme colors, keyboard behavior and

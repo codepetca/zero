@@ -62,3 +62,8 @@ a safe fixture reference; actual Learn runs through the website package.
 Tutorials previews the lesson sidebar and selected reading pane directly.
 Selecting a lesson updates fixture content; full canonical lesson content is
 available in the applied website at http://127.0.0.1:3257/learn.
+
+The Home fixture reflects the approved Get started/returning-student entry. Its
+Get started action is feedback only; review the real five-step guide at
+`/get-started` in the locally running website. No fixture creates accounts or
+publishes a tutorial repository.

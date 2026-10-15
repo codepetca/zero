@@ -14,6 +14,20 @@ implementation/testing authorized; no project deleted. Source push/merge, templa
 publication, distribution/signing/deployment, new game publication and ZeroHub
 activation remain held. Earlier scoped Sky Hop Pages test remains accepted.
 
+## Active first-visit phase
+
+Owner approved Get started → GitHub preparation → install → own tutorial
+template/clone → lesson0 → reviewed Upload/optional Publish, then requested
+planning/orchestration. Baseefe6707; no publication/account/deployment authority
+added. One Sol/medium worker owns new get-started page/component/CSS/fixture tests;
+coordinator owns home/download return/tutorial links, guidance and integration.
+Plan: implement guide and entry paths; run website tests/types/build and real
+Chrome keyboard/theme/320px flow checks; one bounded independent Sol/medium
+review; record accepted source and remaining release gates. Acceptance is local
+website readiness, with no sign-in wall or invented template availability.
+Shared weekly66%remaining, storage339GB healthy; DeepSeek paused. Effective model/
+tokens and attributable usage unknown.
+
 ## Account-setup phase — locally accepted
 
 Owner approved account creation, school access and privacy preparation before

@@ -358,3 +358,19 @@ body:has(.learn-theme) { min-width: 0; }
   flex-direction: column;
 }
 .learn-theme .home-page .button { width: 100%; }
+
+.learn-theme .home-page .returning-student {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  color: var(--zero-link);
+  font-size: .95rem;
+}
+.learn-theme .download-help .download-next { margin-top: var(--zero-space-4); }
+.learn-theme .download-next a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}

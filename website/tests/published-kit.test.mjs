@@ -101,8 +101,6 @@ test('local, published, fallback and missing states offer only available verifie
   const route=await readFile(new URL('../app/download/[asset]/route.ts',import.meta.url),'utf8');
   assert.match(route,/verifiedLocalAsset\([^\n]+asset, release\)/);
   assert.doesNotMatch(route,/publishedKit|downloadableKit/);
-  const home=await readFile(new URL('../app/page.tsx',import.meta.url),'utf8');
-  assert.equal((home.match(/className="button(?: [^"]+)?"/g)||[]).length,2);
 });
 
 test('hosted starter and setup share download-aware guidance rather than packaged version assumptions', async () => {
