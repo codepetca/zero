@@ -133,7 +133,11 @@ JavaFX properties and other JavaFX features remain available as later lessons.
 Start project supplies only empty Main boilerplate and build/framework setup.
 There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Website start
 buttons appear at 0, 3 and 8; later pages say to continue the existing project.
-The native Start project command opens the matching verified tutorial template.
+Before lesson 0, students complete account/privacy setup: their own verified GitHub
+account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
+repository visibility/commit identity. Tutorial source can stay private with teacher
+collaborator access; public game publishing remains optional. The native Start
+project command opens the matching verified tutorial template.
 Students create a repository in their own account, then clone their repository;
 there is no local-folder or project-ZIP tutorial alternative. Completed teacher
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two

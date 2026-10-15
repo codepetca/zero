@@ -17,7 +17,12 @@ Lesson 12's larger game stages are optional extensions of the same Game project.
 
 ## Start a lesson
 
-Complete [setup](../README.md#first-setup), including Git and a GitHub account.
+Before lesson 0, complete [account/privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy)
+and [Zero setup](../README.md#first-setup): your own verified GitHub account,
+Git 2.31+, school access and teacher-approved repository visibility. Use Private
+unless teacher/school policy says otherwise, invite your teacher as a collaborator
+on each repository, and verify their access. Publishing a public playable game
+is optional; tutorial uploads do not require buying a plan or making source public.
 At lessons **0, 3 and 8**, use **Use template** on the tutorial page or choose
 **Zero: Start project**. Create a repository in **your own account**, then use
 **Git: Clone** in VS Code to clone **your repository** and open its root folder.

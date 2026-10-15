@@ -12,21 +12,68 @@ verified native GitHub sign-in and a private upload; consult
 Record the date, kit/VSIX version, OS/version/architecture, VS Code version,
 project JDK (`java -version` and `javac -version`), Java extension versions/editor
 runtime, Git version, browser, and whether the optional profile was imported.
-Authenticated uploads require Git 2.31+; older Git must be rejected before
-credential dispatch while local running remains available.
+Tutorial setup and authenticated uploads require Git 2.31+; older Git must be
+rejected before credential dispatch. Ordinary local starter apps can run without Git.
 Record school proxy/firewall restrictions, download failures, setup time and
 teacher interventions. Use the teacher's privacy, account and repository
-visibility instructions; keep tokens, passwords and student personal information
-out of the record.
+visibility instructions; keep credentials, recovery codes and student personal
+information out of the record, including screenshots and logs.
+
+## Before lesson 0: accounts and school access
+
+Use [the student account and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy)
+before student lesson work. This is a required tutorial preflight, separate from
+an ordinary local starter smoke test.
+
+- Confirm school approval and account eligibility, plus the school's username,
+  email and display-name rules. Have each student create and verify their own
+  GitHub account if needed; do not share passwords.
+- On the target school device/network, confirm GitHub access, email verification,
+  native VS Code GitHub sign-in and the pinned compiler/dependency downloads.
+  Include Git 2.31+ in the tutorial setup. Do not bypass school restrictions.
+- Agree repository visibility **before Create**: use private unless the teacher or
+  school requires public. GitHub Free supports private repositories with collaborators.
+  Invite the teacher using their verified GitHub username; the teacher must accept
+  and open the actual private repository. A personal-repository collaborator has
+  write access; do not describe this as view-only access.
+- Configure Git identity per repository using a school-approved display name and
+  email. For email privacy, copy the exact GitHub-provided noreply address from
+  GitHub Settings → Emails; do not guess its form. Native sign-in does not set
+  commit identity. Keep passwords, tokens and recovery codes out of source and evidence.
+
+## Local smoke and tutorial repository setup
+
+An ordinary extracted starter may be used outside another Git repository to check
+setup: follow its README, retain hidden folders and run its default Hello, world!
+app. This local smoke does not complete lesson 0 or the required tutorial setup.
+The candidate's Run App opens a browser preview; verify rerun and Stop there.
+
+The three empty tutorial templates are still unpublished candidate drafts. Before
+student acceptance, publish them under separate authorization and verify their
+metadata and fresh student-account creation/clone flow. Do not substitute completed
+checkpoints, a tutorial ZIP or a direct teacher-template clone.
+
+For Greeting before lesson 0, Study before lesson 3 and Game before lesson 8,
+create a repository from the matching verified empty template in the student's
+own account and clone that repository. Open its root in Zero. Confirm a ZIP with
+no Git, a nested folder and a direct teacher-template clone receive useful setup
+guidance. After clone and the first compiler/dependency downloads are cached,
+confirm Run works offline without an active GitHub session.
+
+Complete the real authorized GitHub trial below using the tutorial clone. It
+already has origin and an initial main commit: skip the empty-repository creation
+step for that case. New branch, Upload, Finish and first/repeat Publish use the
+same controls as original projects. Source repository/Pika submission and optional
+public game hosting are separate. GitHub Pages availability for private repositories
+depends on the account plan; never require payment or a visibility change to finish
+the lessons. A public playable site should contain only work approved for publication.
 
 ## Build, edit and explain
 
-- Extract the starter outside another Git repository. Follow its `README.md`;
-  keep hidden project folders and run the first dependency download.
-- Run the default Hello, world! app from the sidebar and standard build shortcut.
-  Follow Lesson 0: change the greeting, click Run App again. Confirm a
-  separate window, repeated rebuild/restart and saved edits. Check profile
-  autosave and a dark theme if used; try the optional F6/F7 only if installed.
+- In the student's Greeting clone, follow lesson 0 to write a greeting label.
+  Change the greeting and click Run App again. Confirm the browser preview updates,
+  repeated rebuild/restart saves edits, and Stop ends the preview runtime. Check
+  profile autosave and a dark theme if used; try optional F6/F7 only if installed.
 - Introduce one clear compile error. Open its source location from Problems,
   repair it and run again. Record whether a novice can use the error unaided.
 - Create Study at lesson 3, then continue the same folder through lesson 7.
@@ -47,21 +94,6 @@ out of the record.
   sharing with a cohort; packages, interfaces and JavaFX properties can follow
   when useful to a concrete app.
 
-## Tutorial repository setup
-
-Before lesson0, verify school access to GitHub and Git. For each group (Greeting,
-Study, Game), create a repository from the verified empty template in the student's
-own account and clone that repository. Open its root in Zero. Confirm a ZIP with
-no Git, a nested folder and a direct teacher-template clone receive useful setup
-guidance. Confirm the student's clone runs offline after dependencies are cached,
-without requiring an active GitHub session for Run.
-
-Complete the real authorized GitHub trial below using the tutorial clone. It
-already has origin and an initial main commit: skip the empty-repository creation
-step for that case. New branch, upload, Finish and first/repeat Publish should use
-the same controls as original projects. The three new tutorial templates require
-publication before this candidate can pass that student trial.
-
 ## Authorized repository trial
 
 Perform these actions only when the teacher/user explicitly authorizes a real
@@ -70,10 +102,12 @@ account/network trial. Current development checks mock authentication and transp
 - Use a fresh VS Code window/profile to test actual native browser sign-in,
   cancellation and denied authentication. Confirm local Run still works, retry
   successfully, and check the displayed account. Record browser/school restrictions.
-- Create a student-owned empty repository through Connect a repo → Create a repository. Follow teacher
-  visibility instructions; leave README, license and gitignore uninitialized.
+- For an original local app, use Connect a repo → Create a repository to create a
+  student-owned empty repository. Apply the agreed private/public choice before
+  Create; leave README, license and gitignore uninitialized. Skip this step for a
+  tutorial clone.
   Connect its HTTPS URL from the standalone student folder and confirm the target.
-- Configure the student's per-repository Git name/email under privacy instructions.
+- Check the student's per-repository Git name/email against the preflight policy.
   For the optional simulation check, explicitly set `"zero.uploadMode": "simulation"`;
   confirm it says nothing was uploaded and makes no Git changes, then remove the
   override to restore the live default.
@@ -84,7 +118,9 @@ account/network trial. Current development checks mock authentication and transp
   on GitHub. Record failures and whether a local commit remains. A copied link
   alone does not prove uploaded or current work.
 - Click the connected repository name → Copy repository link; submit it separately in Pika and verify teacher access to
-  a private repository. Zero does not submit assignments or change grades.
+  a private repository after the teacher accepts the collaborator invitation. Open
+  the actual repository using the teacher account; a copied link alone is insufficient.
+  Zero does not submit assignments or change grades.
 
 - Upload the starting version on main. Choose New branch beside main, cancel once
   and verify the branch/files are unchanged; then create a named branch. Make
@@ -105,9 +141,11 @@ feedback and follow-up owner. Attach tool versions and test scope without secret
 
 Proceed to a limited cohort only when the target school machines build/run,
 errors lead to repair, novices can change event and animation state, and unchanged
-component reuse plus the caption enhancement work in both apps. For a cohort
-using uploads, require the authorized actual sign-in/create/connect/cancel/upload/
-remote-inspection trial and teacher access to pass too.
+component reuse plus the caption enhancement work in both apps. For this candidate
+tutorial cohort, require account/school preflight, verified template publication
+and student-owned creation/clone, plus the authorized actual
+sign-in/create/connect/cancel/upload/remote-inspection trial and teacher access to
+pass too. Optional public hosting is not a lesson-completion requirement.
 
 Hold adoption when a target OS or required sharing flow remains untested, setup
 needs unresolved proxy workarounds, input or state is unreliable, or students

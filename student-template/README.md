@@ -25,6 +25,21 @@ task before running again. A native run does not check browser compatibility.
 
 ## First setup
 
+Before tutorial lesson 0, have **your own verified GitHub account and Git 2.31+**.
+Use [github.com/signup](https://github.com/signup) if needed. Follow your teacher's
+username/email policy and check GitHub access, VS Code sign-in and compiler
+downloads on your school machine; ask teacher/IT about restrictions. Choose Private
+for tutorial repositories unless teacher/school policy says otherwise. Invite the
+teacher's confirmed username as a collaborator on each repository and verify
+acceptance/access; a private link alone grants none, and collaborators can edit.
+Set your teacher-approved Git name/email per repository; for email privacy, copy
+the exact GitHub `noreply` address from Settings → Emails. Keep passwords/tokens
+out of projects. See [the account/privacy guide](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
+The ordinary local Hello World check below needs no account. After cloning and
+compiler caching, tutorial Run works offline; uploading needs internet/sign-in.
+Publishing is optional and public, and private-repository Pages depends on the
+account plan. No paid plan is needed for tutorial source work; keep approved privacy.
+
 This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
 Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
 native Windows EXE is not published. Physical Windows/classroom verification
@@ -43,7 +58,7 @@ ZIP does not contain the launcher or Zero extension. You can use the steps below
 instead. Inside VS Code, **Zero: Setup Help** offers a checklist, repair actions
 and **Check again**. School IT can provide the tools before students start.
 
-1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
+1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for tutorials and uploads. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
@@ -249,8 +264,9 @@ needed and adds origin; it asks before replacing origin. It does not authenticat
 or upload. Local running works without GitHub sign-in.
 
 Before a real upload, configure Git's per-repository name/email identity.
-In a terminal opened in your project folder, replace the example name and email
-with your own, following your teacher's privacy instructions:
+In your project terminal, replace the examples with your teacher-approved display
+name and commit email. For email privacy, use the exact GitHub `noreply` address
+shown in Settings → Emails, rather than your personal email:
 
 ```sh
 git config user.name "Your Name"

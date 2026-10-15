@@ -5,6 +5,31 @@ with core **0.1.3**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
+## Before lesson 0
+
+Tutorials require **your own GitHub account and Git 2.31+**. Before starting:
+
+1. Follow your teacher's username/email rules. Create your account at
+   [github.com/signup](https://github.com/signup), verify its email, and keep
+   your password private. Use your own account for the template repository,
+   VS Code cloning and Zero uploads.
+2. Check GitHub access, native VS Code sign-in and compiler downloads on your
+   school machine/network. Use Setup help for missing Git; ask teacher/IT about
+   restrictions rather than bypassing them.
+3. Choose **Private** for tutorial repositories unless teacher/school policy says
+   otherwise. Invite your teacher's confirmed GitHub username as a collaborator
+   on each repository and verify they accepted and can open it. A link alone
+   does not grant private access; collaborators can also edit code.
+4. Configure a teacher-approved Git name/email in each cloned repository before
+   uploading. For email privacy, copy your exact GitHub `noreply` address from
+   Settings → Emails; do not put passwords or tokens in the project.
+
+The ordinary Hello World setup check needs no account. After tutorial cloning
+and compiler caching, Run App works offline. Uploading needs internet/sign-in.
+Publishing a game is optional and public; private-repository Pages eligibility
+depends on the GitHub plan. Do not change visibility or buy a plan just to finish
+lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
+
 ## Zero app for Mac
 
 Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -42,8 +67,9 @@ Run first app downloads the pinned browser compiler and dependencies as needed.
 Confirm the greeting in the browser preview; a passed tool check alone does not
 prove the app runs.
 
-You can use the manual steps below instead. Git and GitHub are needed for sharing
-work, not for running the first app. Sign in only when you are ready to upload.
+You can use the manual steps below instead. The ordinary first-app tool check
+needs no GitHub account. Complete the account/privacy setup above before tutorial
+lesson 0, then create and clone your own tutorial repository.
 
 ## Manual setup
 
@@ -90,7 +116,8 @@ Its terminal equivalent inside starter is **./mvnw clean compile javafx:run**
 on Mac or **.\mvnw.cmd clean compile javafx:run** on Windows. This does not
 check whether your app can run in the browser.
 
-Running locally needs no GitHub account. GitHub actions are live by default;
+After the initial tutorial clone, local Run needs no active GitHub sign-in.
+GitHub actions are live by default;
 nothing uploads automatically. Follow teacher visibility instructions, connect
 your own repository, then review Upload and branch changes. Tutorial projects
 require their own template-created repository and clone. Git **2.31+** and your own GitHub account are required for upload and publishing. Submit the repository link

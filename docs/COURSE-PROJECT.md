@@ -9,6 +9,11 @@ The four practice projects in ZeroHub are examples to explore and modify. You do
 not need to complete all four or base your course project on a finished example.
 The optional advanced projects can wait until you need their techniques.
 
+Before tutorial lesson 0, complete [GitHub account, school access and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy).
+Use your own verified account and Git 2.31+. Choose Private unless your teacher's
+policy says otherwise; invite the teacher as a collaborator on each repository
+and check acceptance/access. Publishing a public game remains optional.
+
 ## Create your own repository and clone it
 
 1. On the [minimal starter page](https://zero.codepet.ca/hub?kind=example&example=zero-starter),

@@ -13,6 +13,47 @@ it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
+## Before lesson 0: GitHub and privacy
+
+Tutorials require **your own GitHub account and Git 2.31+ before lesson 0**.
+The kit's ordinary Hello World setup check can run without an account; the
+continuing tutorials start from your own template-created repository and clone.
+
+1. Ask your teacher which username, email and repository visibility to use, and
+   confirm that GitHub and VS Code sign-in are allowed on your school device/network.
+   If access is blocked, ask your teacher or IT; do not bypass school restrictions.
+2. [Create a personal GitHub account](https://github.com/signup) if you do not
+   already have one, and verify its email; [GitHub's account guide](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github) explains this step. Use an email you can access under the
+   school's instructions. Keep the account yours; never share its password or
+   put passwords, tokens or recovery codes in project files.
+3. Have **Git 2.31+** available locally; **Setup help** explains missing tools.
+   On the school machine, check that you can open GitHub, complete VS Code's native
+   sign-in and download Zero's compiler dependencies. Use the same account for
+   your repository, cloning and Zero uploads. Nothing uploads just by signing in.
+4. Choose **Private** for tutorial repositories unless your teacher/school asks
+   for Public. After creating each repository from its template, invite your
+   teacher's confirmed GitHub username as a
+   [collaborator](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository) through repository
+   Settings → Collaborators → Add people. The teacher must accept; check they can
+   open it. Collaborator access to a personal repository includes writing code.
+   A private repository link alone does not grant access.
+
+Before your first upload, set the per-repository Git name/email following the
+instructions below. A Git commit records that identity. For email privacy, enable
+**Keep my email addresses private** in GitHub Settings → Emails and copy the exact
+GitHub-provided `noreply` address into your repository's `user.email`; do not guess
+its spelling. This setting does not rewrite old commits. See
+[GitHub's commit email guide](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address).
+
+**Publishing a playable game is optional.** Its app and included assets become
+public even if source stays private. GitHub Free supports private repositories
+and collaborators, but Pages from a private repository needs an eligible plan.
+Keep your teacher-approved visibility; if Pages is unavailable, skip Publish or
+ask your teacher about an approved option. No paid plan is needed to complete
+the tutorial repository/upload workflow. See [GitHub's Pages availability](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
+After cloning and caching compiler dependencies, editing and Run App work offline
+without an active GitHub session; uploads still need sign-in and internet.
+
 ## Zero app for Mac
 
 The Mac app uses the familiar drag-to-Applications flow. Existing published
@@ -32,8 +73,9 @@ You can eject the DMG after copying Zero. Later, open **Zero** from Applications
 or the Dock to return to the saved Zero editor session. Reopening checks readiness
 without repeating preparation when the current installation is ready.
 
-GitHub sign-in can wait until you want to share your work. Git must be available
-for repository work; use Setup help when you reach that step. You do not need
+Complete the GitHub account/privacy steps above before starting tutorial lesson 0.
+The ordinary local starter smoke check does not require GitHub; tutorial creation,
+cloning and uploads do. Use Setup help for missing Git. You do not need
 Python, Node.js, Homebrew or a separate Maven/JavaFX installation.
 If setup fails, **Details** shows technical output and useful errors.
 Clean-machine security prompts, physical Windows and novice classroom flows
@@ -181,8 +223,8 @@ The empty-repository steps below apply to an extracted source ZIP:
    Git in this standalone student folder if needed and adds its origin remote;
    it asks before replacing an existing origin. Connecting does not upload or
    verify repository ownership, existence or access.
-4. Set your Git commit identity if needed, using your own name and email under
-   your teacher's privacy instructions. These commands configure this repository
+4. Set your Git commit identity if needed, using your teacher-approved display
+   name and commit email (the exact GitHub `noreply` address for email privacy). These commands configure this repository
    only, from the student folder:
 
    ```sh

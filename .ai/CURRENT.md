@@ -14,6 +14,20 @@ implementation/testing authorized; no project deleted. Source push/merge, templa
 publication, distribution/signing/deployment, new game publication and ZeroHub
 activation remain held. Earlier scoped Sky Hop Pages test remains accepted.
 
+## Active account-setup phase
+
+Owner approved putting GitHub account creation, school access and privacy choices
+before lesson0, then explicitly requested planning/orchestration. Coordinator owns
+student/kit/website guidance and integration; account_teacher_setup owns only
+CLASSROOM-PILOT and lesson TEACHER notes. Both preserve ordinary local smoke and
+offline tutorial Run after clone/cache. Plan: (1) align required account/Git/school/
+privacy setup, (2) verify generated/bundled guidance and website links, (3) one
+independent documentation review, (4) record local candidate and remaining release
+gates. No account/visibility/publication changes authorized by this docs phase.
+Requested worker GPT-6.1 Sol/medium; review will use fast-tier medium. Effective
+model/tokens unknown. Weekly66%remaining is shared account usage; storage339GB
+healthy; DeepSeek stays paused.
+
 ## Current delivery
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
