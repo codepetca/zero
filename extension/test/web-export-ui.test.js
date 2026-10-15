@@ -120,4 +120,12 @@ test('Save ZIP preserves destination guards, cancellation, project changes and a
  h.vscode.window.showSaveDialog=async()=>{h.active='/different';return {fsPath:destination};};await h.api.commands['zero.saveWebExport']();assert.equal(await fs.readFile(destination,'utf8'),'ZIP');
 });
 
-test('saving to the unchanged export ZIP validates without modifying it',async t=>{const h=await harness(t);await h.api.commands['zero.exportWeb']();const before=await fs.stat(h.zip);h.vscode.window.showSaveDialog=async()=>({fsPath:h.zip});await h.api.commands['zero.saveWebExport']();const after=await fs.stat(h.zip);assert.equal(after.ino,before.ino);assert.equal(after.mtimeMs,before.mtimeMs);assert.equal(h.validations,2);assert.equal(await fs.readFile(h.zip,'utf8'),'ZIP');});
+test('Save ZIP refuses the live export destination whether unchanged or mutated after validation',async t=>{
+ for(const race of [false,true]) {
+  const h=await harness(t);await h.api.commands['zero.exportWeb']();
+  h.validator=async({result},count)=>{const zipBytes=await fs.readFile(h.zip);if(race && count===2)await fs.writeFile(h.zip,'RACED');return {...result,zipBytes};};
+  h.vscode.window.showSaveDialog=async()=>({fsPath:h.zip});
+  await assert.rejects(h.api.commands['zero.saveWebExport'](),/destination outside the generated browser export/);
+  assert.equal(h.validations,2);assert.equal(await fs.readFile(h.zip,'utf8'),race?'RACED':'ZIP');assert.doesNotMatch(h.states.at(-1),/ZIP saved/);
+ }
+});

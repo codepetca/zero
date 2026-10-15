@@ -125,7 +125,8 @@ async function fixture(name, example) {
     const mainFile=path.join(directory,'src/main/java/Main.java');
     const mainSource=await fs.readFile(mainFile,'utf8');
     await fs.writeFile(mainFile,mainSource.replace('var stylesheet = getClass().getResource("/hello-app/theme.css");','java.net.URL stylesheet = new AppResources().theme();'));
-    await fs.writeFile(path.join(directory,'src/main/java/AppResources.java'),'import java.net.*;\nclass AppResources { URL theme() { return pass(getClass().getResource("/hello-app/theme.css")); } URL pass(URL resource) { return resource; } }\n');
+    await fs.writeFile(path.join(directory,'src/main/java/AppResources.java'),'import java.net.URL;\nclass AppResources { ResourceURL own = new ResourceURL(); URL theme() { return pass(getClass().getResource("/hello-app/theme.css")); } URL pass(URL resource) { return resource; } }\n');
+    await fs.writeFile(path.join(directory,'src/main/java/ResourceURL.java'),'class ResourceURL {}\n');
     await fs.mkdir(path.join(directory, 'src/main/resources/hello-app'), {recursive: true});
     await fs.copyFile(path.join(root, 'student-template/examples/hello-app/theme.css'), path.join(directory, 'src/main/resources/hello-app/theme.css'));
   }

@@ -103,6 +103,12 @@ function adaptJava(file, source, changes, resolvedUrls) {
       let end = i + 1;
       while (end < ts.length && ts[end].text !== ';') end++;
       const imported = ts.slice(i + 1, end).map(t => t.text).join('');
+      // Resolved type uses are fully qualified. Retaining a rewritten import
+      // would shadow an ordinary student class with the same simple name.
+      if (resolvedUrls !== undefined && imported === 'zero.web.ResourceURL') {
+        const removed=source.slice(ts[i].start,ts[end].end);
+        edits.push({start:ts[i].start,end:ts[end].end,text:'\n'.repeat((removed.match(/\n/g)||[]).length)});
+      }
       if (imported.startsWith('javafx.scene.media.')) {
         const name = imported.slice('javafx.scene.media.'.length);
         if (!['AudioClip', 'Media', 'MediaPlayer', 'MediaException'].includes(name)) fail(file, `unsupported browser media import ${imported}; audio clips and background music are supported.`);
