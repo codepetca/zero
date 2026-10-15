@@ -34,17 +34,17 @@ latest game are preserved. Root funding checkout and installed Zero untouched.
   native fallback/sidebar32focused tests pass. No account grant or deployment.
 - Current SkyHop compiles and browser input/music/mute/reset/cleanup and synthetic
   cached-page restoration with P-resume pass at480x680;
-  final site8,208,092bytes / ZIP7,009,089bytes. All source/assets unchanged; exporter adds
+  latest site8,208,660bytes / ZIP7,009,261bytes. All source/assets unchanged; exporter adds
   only its .gitignore rule. Browser receipt `.verification/integration/`.
 - Owned native VSCode profile: actual Export→Preview→SaveZIP passed,68site/ZIP hashes
   match,21input hashes unchanged, only expected .gitignore differs. Final GitHub placement
   passes light/dark/highcontrast, keyboard and native overflow checks. See `.verification/native-integration/native-export-receipt.json`.
 
 Initial review ledger `.verification/integration/review-ledger.json` records fixed
-SHAs, two review scopes, interrupted/resumed context and conservative4turn count.
+SHAs, two review scopes, interrupted/resumed context and conservative5turn count.
 Targeted correction review resolved bothP2s with no new findings. Unchanged initial
 coverage plus corrected delta covers final codeca04209; no extra source wave needed.
-PreviewVSIX250,513bytes/70files has60byte-identical source files and no generated
+Latest previewVSIX250,619bytes/70files has60byte-identical source files and no generated
 binaries/game assets. Not installed/published. Effective
 worker configuration/tokens unavailable; requested GPT6.1Sol/high. Account-wide
 weekly86%remaining at latest check; no attribution/cost claim. DeepSeek paused.
@@ -59,7 +59,7 @@ and website98/source review are reusable for byte-identical canonical sources.
 ## Remaining acceptance
 
 Core local integration, functional checks, packaging and independent review are
-complete at codeca04209. Subsequent changes are documentation only. New owner media/
+complete at codeca04209 plus the reviewed loader correction5381b4d. Subsequent changes are documentation only. New owner media/
 lag question led to read-only performance probes: see below. Functional success
 does not establish an acceptable slow-network startup envelope. Receipts/preview
 VSIX remain in .verification.
@@ -107,5 +107,13 @@ wait when an image completes and caps total preload at120s; timers clear on laun
 error or stop. Same1Mbps/200ms/4xCPU game starts in40.29s instead of failing at34.34s.
 FourfreshGWT builds and45functionalbrowserchecks passed; a two-image helper fixture
 and real35s regression plus accelerated stall/total deadlines expand this to48checks.
-Final48check result passed; independent targeted delta review remains pending. No new
+Final48check result passed; targeted review at5381b4d is clean with no findings.
+Ledger now5conservative turns,2targeted waves,2fix batches, no extra full-diff wave. No new
 hardmedia policy or source/API changes. No publication authority received.
+
+Latest source is reviewed5381b4d (only subsequent documentation closeout). Updated
+preview package60sourcefiles match,70entries/250,619bytes, not installed/published.
+Performance receipts and raw48check results are under integration/performance.
+No further implementation, live trial, hosted activation or release is authorized
+without the outstanding destination/account/publication decision. Asset diagnostic
+budgets remain proposed; actual classroom hardware/hosting/speaker latency untested.

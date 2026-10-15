@@ -10,8 +10,11 @@ Same cold1Mbps/200ms/4xCPU probe now reaches ready in40.29s (previously failed a
 This is not a fast startup claim: image size still matters. FourfreshGWTfixtures and
 45browser checks passed, then the helper fixture gained a second tiny image for a
 real10s/35s completion regression; accelerated stalled/total timer tests also check
-late image completion cannot start a failed app. Expanded48check run passed; targeted
-review remains pending at this writing. Private evidence is in performance/ and
+late image completion cannot start a failed app. Expanded48check run passed; independent targeted
+review at5381b4d found no actionable issues across the six-file delta and callers.
+The refreshed preview package has60matching sourcefiles,70entries/250,619bytes and
+remains uninstalled/unpublished. Latest game site8,208,660bytes/ZIP7,009,261bytes;
+all student inputs unchanged except the documented generated export ignore rule. Private evidence is in performance/ and
 .verification/web-loading-fix. Public upload/deployment authority remains pending.
 
 
