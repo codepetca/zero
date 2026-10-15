@@ -1,5 +1,16 @@
 # Verification
 
+## Pre-release scope decision — 2026-10-15
+
+The owner confirmed there are no real users yet and existing development projects
+may be discarded. Old-project compatibility/migration is no longer a release
+gate. The full installed-candidate workflow must instead pass from a fresh current
+starter. This supersedes the migration requirement recorded in the local-preparation
+entry below; the old-helper incompatibility remains a technical fact. No projects
+were deleted, compiler checks changed, or new end-to-end test performed for this
+scope clarification. Other policy/platform/distribution gates remain. See
+[updated release scope](RELEASE-0.5.16.md#pre-release-fresh-start).
+
 ## Student release 0.5.16 — local preparation, 2026-10-15
 
 Prepared reviewed local source `515c064`: kit/extension0.5.16, readable core 0.1.3,

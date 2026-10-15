@@ -56,9 +56,11 @@ macOS browser/Upload/Publish/Copy/Open acceptance is reused for unchanged runtim
 
 Before student release, complete [the release gates](../docs/RELEASE-0.5.16.md):
 
-1. Accept/test old 0.5.15→0.5.16 project compatibility or migration. Updates preserve
-   older student-owned helpers; strict browser Run rejects their fingerprints.
-   New project success does not establish safe upgrades. Preserve customized Java.
+1. Accept the entire installed-candidate workflow from a fresh current project.
+   Owner confirmed no real users on2026-10-15 and permits discarding development
+   projects: old-project compatibility/migration is no longer a release gate.
+   No projects deleted; no automatic helper replacement added. Recreate fixtures
+   only as needed and retain useful source/proof and unrelated working checkouts.
 2. Coordinate the publicly available trusted-publisher SHA, operator policy,
    kit pin and enriched website rollout; accept a real linked game request/Play.
    Current pin `beaaca4e` rejects web receipts. Library execution remains closed.

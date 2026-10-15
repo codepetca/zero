@@ -44,30 +44,26 @@ live page; Download source project remains the exact immutable source version.
 ZeroHub does not store another compiled game. Local fixtures are acceptance tests,
 not public registry membership or an endorsement of a game's content.
 
-## Existing-project upgrade gate
+## Pre-release fresh start
 
-A general automatic update is not ready: published0.5.15 projects keep their
-older SimpleApp/SketchApp source when Zero updates, while0.5.16 Run App always
-uses the strict browser profile. Even the unchanged old starter's helper hashes
-are rejected. Updating the editor extension does not migrate those Java files.
-The managed update deliberately preserves student code; that protection remains.
+Owner decision, 2026-10-15: there are no real users or student projects to migrate.
+This release may break compatibility with existing development projects. Start
+fresh with a current starter or Start Project scaffold; an old-project migration
+feature and an old0.5.15→0.5.16 upgrade acceptance trial are not release gates.
+The full installed-candidate student flow still needs acceptance from a fresh
+project, including Run, repository setup, Upload and Publish.
 
-Before broad release, accept a clear compatibility/migration path and test an
-actual old15 project through update, Run and Publish with Main, student classes,
-resources and customized helpers preserved. New Start Project scaffolds already
-have the current seven helpers; that does not upgrade an existing project.
-
-An interim teacher workflow can use a backed-up project copy, retain customized
-helper originals, inspect changes and replace only known stock helpers from the
-new standalone starter, then verify native/browser behavior. This manual workflow
-has not been accepted as the student upgrade experience. Existing projects can
-use Zero: Run Native App (Diagnostic) while migration is planned; this does not
-add browser publishing support. Never silently overwrite student-owned helpers.
+Older helpers still fail the strict browser fingerprints; this decision removes
+the requirement to support them rather than changing the compiler. Development
+fixtures may be recreated when needed. No projects were deleted and no automatic
+helper-overwrite behavior was added by this decision. The maintained Sky Hop
+source, public proof and unrelated working checkouts remain useful evidence.
 
 ## Required before release
 
-1. **Accept the existing-project upgrade path.** Complete the compatibility/
-   migration acceptance above before offering a general automatic update.
+1. **Accept the fresh installed-candidate workflow.** Start from the current
+   starter and test setup, edit/Run/Stop, repository connection, real Upload,
+   Publish and Open/Copy. Existing-project migration is outside this pre-release scope.
 2. **Review and integrate source.** Review the final candidate delta, authorize
    Zero's source PR/push/merge, and run the real final CI/preparation workflow on
    the selected source. A local SOURCE receipt is not a successful GitHub CI run.
