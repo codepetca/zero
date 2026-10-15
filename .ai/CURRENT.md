@@ -25,9 +25,9 @@ latest game are preserved. Root funding checkout and installed Zero untouched.
 - Hub receipts/provenance, legacy catalog projection and Play latest integrated;
   coordinator composed native exact-receipt sharing callback and new-kit defaults.
 - Initial integrated review at8d20c67 complete: two acceptedP2s fixed in one batch,
-  targeted review next. Persisted pagehide retains paused app/audio for restoration;
+  targeted review clean atca04209. Persisted pagehide retains paused app/audio for restoration;
   stale/unavailable saved links allow source-only Share. Browser restore worker
-  source frozen; final four-fixture/45check regression remains running.
+  source frozen; final four-fixture/45check regression passed in401seconds.
 - User placement adjustment: Publish app moved into GitHub, disabled until signed
   in and repository connected. Local practice omits it. Run/Stop remain together.
 - Root337tests336pass1PowerShellskip; sharing48pass; website104tests/type/build;
@@ -41,8 +41,11 @@ latest game are preserved. Root funding checkout and installed Zero untouched.
   passes light/dark/highcontrast, keyboard and native overflow checks. See `.verification/native-integration/native-export-receipt.json`.
 
 Initial review ledger `.verification/integration/review-ledger.json` records fixed
-SHAs, two review scopes, interrupted/resumed context and conservative3turn count.
-One targeted correction review remains after browser regression passes. Effective
+SHAs, two review scopes, interrupted/resumed context and conservative4turn count.
+Targeted correction review resolved bothP2s with no new findings. Unchanged initial
+coverage plus corrected delta covers final codeca04209; no extra source wave needed.
+PreviewVSIX250,513bytes/70files has60byte-identical source files and no generated
+binaries/game assets. Not installed/published. Effective
 worker configuration/tokens unavailable; requested GPT6.1Sol/high. Account-wide
 weekly86%remaining at latest check; no attribution/cost claim. DeepSeek paused.
 
@@ -53,21 +56,26 @@ Original game is not a Git repo and remains untouched. Snapshot receipt in
 `.verification/integration/snapshot.json`. Prior native audio/game57/194/19 checks
 and website98/source review are reusable for byte-identical canonical sources.
 
-## Next acceptance sequence
+## Remaining acceptance
 
-1. Accept workers only after current game/audio behavior, source/cache/cleanup,
-   trusted web provenance and legacy-reader regressions pass. No parallel writers.
-2. Complete root/sharing/website checks, browser Hub/Play UI, current game smoke and
-   native Export→Preview/ZIP. Verify packaged source and source-distribution inventory.
-3. Independent risk-matched integrated review at a fixed commit; reuse prior
-   coverage, review deltas and finish meaningful desktop/browser regression.
-4. Prepare concrete release/trial build, then request explicit account/destination
-   authority for native GitHub auth and real Pages/ZeroHub round trip/publication.
-   Windows/other-engine/physical-focus coverage must be reported accurately.
+All authorized local integration, meaningful checks, packaging and independent
+review are complete. Current codeca04209 is clean/reviewed; subsequent closeout
+changes are documentation only. Receipts/previewVSIX remain in .verification.
+User's overall tool-backed goal remains active because a live publication trial
+and coordinated hosted activation/release are not complete.
+
+Next requires explicit GitHub account/repository destination and authorization for
+real publication, workflow permission, upload/push and Pages deployment. Then test
+native sign-in/setup→publish→verified Open/Copy→update stableURL, and separately
+coordinate ZeroHub website/checker policy activation/new-kit rollout without waiving
+its existing library-checker acceptance hold. No public push, account grant, live
+hosting, production activation or installed Zero update has occurred. Do not invent
+more local scaffolding while waiting for that necessary authority. Actual Windows,
+other browser engines, physical focus and actual cache navigation remain unverified.
 
 Play latest is explicitly mutable student hosting; source downloads stay versioned.
 No extra URL prompt/descriptor edits or per-update Hub resharing requirement.
 No public push, deployment, account grant, ZeroHub activation or release authorized.
 Prior checks/limits in EVIDENCE and WEB-EXPORT; update after integrated verification.
-Weekly start89%remaining; latest86%; storage316GBhealthy. DeepSeek pause honored. No new tasks
+Weekly start89%remaining; latest86%; storage healthy. DeepSeek pause honored. No new tasks
 or automations. Keep this worktree for integration and preserve private receipts.
