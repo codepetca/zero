@@ -4,19 +4,20 @@
 const scopes = Object.freeze(['repo']);
 const changedMessage = 'Your GitHub account or sign-in changed. Sign in and review the upload again. A local commit may already be saved.';
 function snapshot(session) {
-  return session && Object.freeze({id: session.id, accountId: session.account.id, label: session.account.label, accessToken: session.accessToken});
+  return session && Object.freeze({id: session.id, accountId: session.account.id, label: session.account.label, accessToken: session.accessToken, scopes: Object.freeze([...(session.scopes || [])])});
 }
 function same(a, b) {
-  return a?.id === b?.id && a?.accountId === b?.accountId && a?.accessToken === b?.accessToken;
+  return a?.id === b?.id && a?.accountId === b?.accountId && a?.accessToken === b?.accessToken && (a?.scopes || []).join('\0') === (b?.scopes || []).join('\0');
 }
-function createAuthentication(api, onChange = () => {}) {
+function createAuthentication(api, onChange = () => {}, requestedScopes = scopes) {
+  const sessionScopes = Object.freeze([...requestedScopes]);
   let current, revision = 0, disposed = false, unavailable = false;
   let queue = Promise.resolve();
   function request(options) {
     const next = queue.then(async () => {
       if (disposed) return;
       let session;
-      try { session = snapshot(await api.getSession('github', scopes, options)); unavailable = false; }
+      try { session = snapshot(await api.getSession('github', sessionScopes, options)); unavailable = false; }
       catch { unavailable = true; }
       if (disposed) return;
       if (!same(current, session)) revision++;

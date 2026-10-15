@@ -1902,3 +1902,14 @@ Owned local servers/test tab closed; primary checkout and immutable artifacts pr
 This final factual delivery receipt changes no code after review. The owner
 authorized publishing it with the other tracked documentation; private logs and
 screenshots remain local.
+
+
+## Optional browser export — local implementation
+
+The work is isolated on `codex/web-export` from base `8caba8b`; no game source,
+canonical framework helper, installed Zero, public artifact or account was changed.
+See [WEB-EXPORT.md](WEB-EXPORT.md) for supported behavior and commands. Local
+receipts live in `.verification/web-export-*`, `.verification/web-adapters/` and
+`.verification/web-publish-*`. Native editor UI/auth, actual GitHub Pages hosting,
+physical tab focus, Windows and non-Chrome engines still require explicit trials.
+Full final checks and independent review outcomes are recorded in EVIDENCE.

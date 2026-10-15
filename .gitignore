@@ -39,3 +39,4 @@ extension/media/lesson-projects.json
 **/.zero-sharing-recovery/
 output/playwright/
 .playwright-cli/
+**/.zero/web-export/

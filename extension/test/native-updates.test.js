@@ -60,5 +60,5 @@ test('native update contributions are macOS Palette-only and retain the minimal 
       if (location !== 'commandPalette') assert.ok(entries.every(entry => entry.command !== command));
     }
   }
-  assert.deepEqual(manifest.contributes.menus['view/title'].map(entry => entry.command), ['zero.openFirstLesson', 'zero.showSetup']);
+  assert.deepEqual(manifest.contributes.menus['view/title'].map(entry => entry.command), ['zero.exportWeb', 'zero.copyPublishedWebLink', 'zero.openPublishedWeb', 'zero.openFirstLesson', 'zero.showSetup']);
 });

@@ -249,3 +249,10 @@ run `node scripts/prepare-project-templates.mjs`; publication remains a separate
 authorized action. Never copy the development repository or local private files.
 The five template links and cloning path are separate from the ZIP + empty-repo
 alternative; source ZIPs continue to build from canonical maintained manifests.
+
+## Browser export
+
+See [WEB-EXPORT.md](WEB-EXPORT.md) for the optional WebFX/GWT profile, integrated
+Pages flow, source-only publishing kit and verification commands. Run
+`npm run test:web` and `npm run verify:web` when changing these boundaries.
+`npm run check` rejects unreviewed helper inventory/fingerprint drift.

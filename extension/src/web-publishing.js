@@ -1,0 +1,138 @@
+'use strict';
+const fs = require('node:fs/promises');
+const path = require('node:path');
+
+// The deploy job receives Pages permissions; compiling student Java needs only read access.
+const pagesWorkflow = `name: Publish Zero game
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: zero-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build the browser game
+        id: export
+        run: node .zero-web/run.cjs
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        with:
+          path: \${{ steps.export.outputs.site }}
+          retention-days: 1
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: \${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+        id: deployment
+`;
+
+const runner = `'use strict';
+const path = require('node:path');
+const os = require('node:os');
+const fs = require('node:fs/promises');
+const {exportForWeb} = require('./tool');
+exportForWeb({projectRoot:process.cwd(),cacheRoot:path.join(process.env.RUNNER_TEMP || os.tmpdir(),'zero-web-cache'),onProgress:message=>console.log(message)}).then(async result=>{
+  if(process.env.GITHUB_OUTPUT) {
+    if(/[\\r\\n]/.test(result.sitePath)) throw new Error('Invalid export path');
+    await fs.appendFile(process.env.GITHUB_OUTPUT,'site='+result.sitePath+'\\n');
+  }
+  console.log('Web build ready. GitHub must finish the separate deployment before the game is published.');
+}).catch(error=>{console.error(error.message);process.exitCode=1;});
+`;
+
+function publishingGuide(repositoryPage) {
+  return `# Share your app
+
+Choose **Publish app** in the Zero sidebar to publish a completed version using your connected GitHub repository. The first time, Zero reviews the public destination, prepares the publishing files, asks VS Code for workflow permission if needed, and uses the normal reviewed upload. Later updates use the same button and keep the same page URL.
+
+Wait for **Your app is live**. Then choose **Open app** or **Copy playable link**. You can retrieve the verified link later with **Zero: Copy Playable Link** or **Zero: Open Published App** in the command palette. This playable link is separate from the source repository link submitted in Pika.
+
+If Zero reports one setup step, follow that specific action and choose **Recheck**. Zero preserves repository visibility, existing websites and custom domains. School policies, account permissions or private-repository plans can require help from your teacher or IT. Simulation mode makes no upload or public website change; your teacher controls when live publishing is enabled.
+
+Your completed version must be saved and uploaded. If Zero asks you to finish a change or upload current work, use its ordinary workflow and try **Publish app** again. A failed build preserves the previously published page. Zero shows a new link only after the exact publishing run succeeds and the public site serves that version.
+
+${repositoryPage ? `Source repository: ${repositoryPage}\n\n` : ''}## Export files or use itch.io
+
+Choose **Export for web** from Zero's title menu or the command palette for a local browser build. Choose **Preview game** to try it on your computer, **Save ZIP** to save a copy, or **Share…** to choose a destination.
+
+For itch.io, open https://itch.io/game/new in your own account. Choose **HTML**, upload the exported ZIP, and select **This file will be played in the browser**. Preview controls and sound before choosing visibility and saving the page. Copy the actual published game-page URL.
+
+## Storage
+
+The exported app includes its JavaScript, images, audio and runtime license/source material. It includes no Java installation or Maven compiler. Exporting replaces the last generated output in **.zero/web-export** and keeps it ignored by Git. A failed build preserves the last successful export. Compiler downloads are cached once per Zero installation.
+
+GitHub Pages rebuilds from Java and deploys an artifact; it does not commit generated game files into source history. The temporary deployment artifact expires after one day, while the live site remains available independently. GitHub retains its normal run/deployment history. Large image/audio assets usually dominate game size.
+
+Hosting references: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages and https://itch.io/docs/creators/html5
+`;
+}
+
+async function pagesFiles(engineRoot) {
+  const files = new Map();
+  async function walk(directory,prefix='') {
+    for (const item of await fs.readdir(directory,{withFileTypes:true})) {
+      if (item.isSymbolicLink()) throw new Error('The bundled web exporter contains a symbolic link. Reinstall Zero.');
+      if (item.name.startsWith('.') || ['node_modules','target'].includes(item.name)) continue;
+      const relative = prefix ? prefix+'/'+item.name : item.name;
+      if (item.isDirectory()) await walk(path.join(directory,item.name),relative);
+      else if (item.isFile()) {
+        const data = await fs.readFile(path.join(directory,item.name));
+        if (data.length > 5*1024*1024 || /\.(?:jar|zip|class|log)$/i.test(item.name)) throw new Error('The bundled publishing kit must contain source and templates only.');
+        files.set('.zero-web/tool/'+relative,data);
+      }
+    }
+  }
+  await walk(engineRoot);
+  files.set('.zero-web/run.cjs',Buffer.from(runner));
+  // The publishing service replaces this intermediate template with its owned,
+  // version-pinned workflow during the reviewed setup transaction.
+  files.set('.zero-web/publish.yml',Buffer.from(pagesWorkflow));
+  files.set('.zero-web/README.md',Buffer.from(publishingGuide()));
+  return files;
+}
+
+async function preparePagesFiles(projectRoot,engineRoot) {
+  const root=await fs.realpath(projectRoot), files=await pagesFiles(engineRoot);
+  // Check every path before writing; never overwrite an edited publishing kit.
+  const create=[];
+  for (const [name,data] of files) {
+    let current=root;
+    for (const part of name.split('/')) {
+      current=path.join(current,part);
+      const stat=await fs.lstat(current).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+      if(stat?.isSymbolicLink()) throw new Error('A publishing-kit path is a symbolic link. Move it before preparing sharing.');
+    }
+    const existing=await fs.readFile(path.join(root,name)).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+    if(existing && !existing.equals(data)) throw new Error(`Publishing file ${name} already has different content. Preserve or move that folder before preparing a new kit.`);
+    if(!existing)create.push([name,data]);
+  }
+  for(const [name,data]of create) {
+    await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});
+    await fs.writeFile(path.join(root,name),data,{flag:'wx'});
+  }
+  return {created:create.map(([name])=>name),guide:publishingGuide(),workflow:pagesWorkflow};
+}
+
+module.exports={pagesWorkflow,pagesFiles,preparePagesFiles,publishingGuide};

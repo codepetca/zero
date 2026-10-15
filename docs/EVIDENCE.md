@@ -3279,3 +3279,50 @@ no reviewfixbatches; pre-reviewpackaging corrections/evidence recorded above.
 Finalprivate live-proof.json/production-status.json/linkedbytes retained under
 .verification/release-0.5.14. Worktree kept for continued owner smoke testing;
 primary checkout unchanged. No remaining release work for this request.
+
+
+## Optional browser export and Pages flow (local, 2026-10-15)
+
+Isolated worktree `web-export/zero`, branch `codex/web-export`, base `8caba8b`.
+No active game source or canonical framework helper changed. No external push,
+publish, account grant, deployment, release or installed Zero update occurred.
+Feature and limits: [WEB-EXPORT](WEB-EXPORT.md).
+
+- Pinned WebFX/GWT source modules compile a temporary copy; original Java stays
+  ordinary. Fingerprint/inventory gates reject unreviewed helper drift.
+- Integrated native commands add reviewed source-only Pages setup, use ordinary
+  authenticated Upload changes with the exact workflow-scoped session, track the
+  dispatch run ID and public SHA/run marker, and preserve the last verified link.
+- Tested frozen JavaFX-audio Sky Hop image/sprite/input/pause/reset/mute/audio,
+  autoplay denial/retry, missing image and synthetic blur/pagehide behavior. Site
+  about8.2MB / ZIP7.0MB, compiler cache188MB; generated artifacts stay out of Git,
+  deployment artifacts retain one day, temporary builds are removed.
+- Configuration check passed. Initial full root run310tests:308pass,1skip and one
+  stale title-menu expectation; corrected expectation and focused7tests passed.
+  Focused export/publish/auth initial50passed; expanded final checks and browser
+  behavior receipts are under `.verification/web-*`.
+- A local preview VSIX packaged67files/231473bytes before final bounded runtime
+  fixes; source/templates/notices present, no compiled archives. Final packaging
+  must be rechecked after source stabilization. Published kit bytes stayed frozen.
+- Real helper/quiz/drawing compilation succeeded. Browser regression caught a
+  genuine upstream right/middle mouse bitmask inversion; a documented super-source
+  correction keeps original Java unchanged. Final integrated check is pending.
+- Native editor UI/auth, real Pages hosting, physical focus switching, Windows
+  and other engines remain unverified. Isolated native host launched, but computer
+  control selected another VS Code instance, so no native UI verdict was claimed.
+
+Effort: native GPT-6.1Sol/high workers owned adapters, engine and publisher;
+coordinator handled UI/hooks, CI, tests and documentation. Read-only audit used
+its bounded assignment. Exact effective models/tokens and coordinator active
+seconds are unavailable. Start weekly97%remaining; storage317GBhealthy. DeepSeek
+pilot paused, honored. One additional engine turn repaired browser assertions,
+mouse compatibility and bounded cache retention; adapter verification reused its
+frozen fixture. Other chat's newer Sound/Music APIs await committed integration.
+
+Review ledger (opened before launch): high risk due GitHub authorization and
+public deployment boundaries; two fresh GPT-6.1Sol/high reviewers, separate
+security/correctness and architecture/compatibility assignments. General-tier
+workhorse/high is appropriate for these concrete state/data boundaries. Limits:
+2concurrent,7launches,1initialwave,4targetedwaves,1integrationwave,4fixbatches,
+60minutes/session and30minutes/reviewer. Initialsource head and receipts will be
+recorded with final outcomes; no merge/publication authority is implied.

@@ -9,11 +9,13 @@ import {prepareLessonProjects} from './lesson-projects.mjs';
 import {releaseDefinition} from './release.mjs';
 import {readMacUpdaterConfig} from './mac-updater.mjs';
 import {verifyUpdateBuildOrder} from './mac-update-feed.mjs';
+import {verifyWebProfiles} from './web-profiles.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();
+verifyWebProfiles();
 const checkedRelease=releaseDefinition();
 const priorUpdateFeed=path.join(root,'release/mac-update-feed.json');
 verifyUpdateBuildOrder(readMacUpdaterConfig(root),checkedRelease.kitVersion,existsSync(priorUpdateFeed) ? JSON.parse(readFileSync(priorUpdateFeed,'utf8')) : undefined);

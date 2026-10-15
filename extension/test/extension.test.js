@@ -29,6 +29,9 @@ test('commands simulate upload without Git and share task ownership across short
   extension.activate({subscriptions:[],workspaceState:{get:()=>true,update:async()=>{}}});
   await commands.get('zero.uploadToGitHub')();
   assert.match(notices[0],/Simulation only — nothing uploaded/);assert.equal(mutations,0);
+  await commands.get('zero.publishWeb')();
+  assert.equal(saved,0,'Simulated publishing must not save student files');
+  assert.equal(mutations,0,'Simulated publishing must not change Git or setup files');
   await commands.get('zero.runApp')();assert.equal(launches.length,1);assert.equal(saved,1);
   assert.deepEqual(launches[0].task.execution.args,['clean','compile','javafx:run']);assert.equal(launches[0].task.matcher,'$zero-java');
   await commands.get('zero.runApp')();assert.equal(launches.length,2);
@@ -145,6 +148,6 @@ test("Zero controls and Files remain separate native views with minimal overflow
   const manifest=require("../package.json");
   assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions","zero.files"]);
   assert.equal(manifest.contributes.views.zero[0].name,"Zero");
-  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.openFirstLesson","zero.showSetup"]);
+  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup"]);
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
 });

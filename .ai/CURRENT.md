@@ -1,31 +1,21 @@
-# Current state — student game helpers (local, unreleased)
+# Current state — optional browser export (local, unreleased)
 
-Owner authorized seven small game helpers and reuse after the Sky Hop audit,
-then requested generated music/effects. Sky Hop now includes an original17.14s
-loop, flap/score/crash sounds, cached playback, pause/reset/mute and cleanup.
-Audio work is local to the standalone game; Zero core remains unchanged from
-8e71038. Native audio19/game194/asset4 and final GUI/input checks pass; one
-Sol/medium independent review completed clean. Game relaunched through Zero.
-Audio receipts: `.verification/sky-hop-audio/`; detailed evidence in EVIDENCE.
-Implementation is in attached `student-game-helpers/zero`, based on origin/main
-`dfe2c9b`; dirty primary funding checkout preserved. No publication/push/release
-or Maven install authorized/performed. Published core0.1.2/setup0.5.15 unchanged.
+Work is isolated in `codex/web-export`, attached worktree `web-export/zero`,
+based on committed student game helpers `8caba8b`. Canonical framework/game source
+and the other chat's active checkout remain untouched. Published core/kit/native
+versions are unchanged; no push, deployment, publication or account grant occurred.
 
-Core, source assembly and canonical API docs now include SpriteAnimation,
-ImageRegion, one-frame input, focus, drawing/text and collision helpers. Sky Hop
-uses them; an optional sprite playground proves shared pixels/independent clocks.
-Main still explicitly updates ordinary student objects. All source edits are
-complete. Independent review verified all42 fixed hashes and found no actionable
-findings; no source rework was needed.
+Optional Export for web builds an adapted temporary copy with pinned WebFX/GWT,
+then offers local preview and ZIP. Publish app coordinates source-only GitHub
+Pages setup, existing reviewed Upload changes, exact workflow-run tracking and a
+public source/run marker before Open/Copy playable link. Simulation stays default.
+Ordinary student Java remains unchanged. See [WEB-EXPORT](../docs/WEB-EXPORT.md).
 
-Passed root263/1skip, native framework/helper and playground checks,97website
-checks/type/build, Sky Hop194rules and native animation/input renders. New API
-search/anchors checked in local browser; managed Zero Run App rebuilt the game.
-Windows/novice classroom trials and post-migration human playtest remain pending.
-See [EVIDENCE](../docs/EVIDENCE.md) and [VERIFICATION](../docs/VERIFICATION.md).
+Focused export/publish/auth tests, configuration checks and local VSIX packaging
+pass. Real helpers, quiz and drawing browser builds compile. Frozen JavaFX-audio
+Sky Hop browser checks passed; newer Sound/Music APIs in the other chat require
+explicit profile integration. Full integration/browser verification and required
+independent review are being finalized; receipts are under `.verification/`.
+Windows, native editor authentication and actual Pages publication remain untested.
 
-Review ledger: standard risk; one GPT-6.1 Sol/high reviewer, initialwave1,
-launch1, fixbatch0, target12min/hard30min within60min session. Source manifest
-`.verification/game-helpers/review-source.json`; review completed clean. Effective
-model/tokens unknown. Weekly99%remaining; storage324GBhealthy; DeepSeek paused.
-Previous updater release/handoff evidence remains in EVIDENCE and RELEASING.
+Prior helper/audio delivery remains recorded in EVIDENCE and VERIFICATION.

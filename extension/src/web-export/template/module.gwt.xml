@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- File managed by WebFX (DO NOT EDIT MANUALLY) -->
+<module rename-to="zero_web">
+
+    <inherits name="com.google.gwt.logging.Logging"/>
+    <set-property name="gwt.logging.enabled" value="TRUE"/>
+    <set-property name="gwt.logging.logLevel" value="FINEST"/>
+    <set-property name="gwt.logging.consoleHandler" value="ENABLED"/>
+    <set-property name="domino.slf4j.logging.level" value="OFF"/>
+
+    <set-configuration-property name="compiler.embedSourceMaps" value="true"/>
+    <set-configuration-property name="includeSourceMapUrl" value="symbolMaps/__HASH___sourceMap__FRAGMENT__.json"/>
+    <set-configuration-property name="installCode" value="true"/>
+
+    <source path="com/sun/javafx"/>
+    <source path="com/sun/javafx/binding"/>
+    <source path="com/sun/javafx/collections"/>
+    <source path="com/sun/javafx/event"/>
+    <source path="javafx/beans"/>
+    <source path="javafx/beans/binding"/>
+    <source path="javafx/beans/property"/>
+    <source path="javafx/beans/value"/>
+    <source path="javafx/collections"/>
+    <source path="javafx/collections/transformation"/>
+    <source path="javafx/event"/>
+    <source path="javafx/util"/>
+    <source path="com/sun/javafx/scene/control"/>
+    <source path="com/sun/javafx/scene/control/behavior"/>
+    <source path="com/sun/javafx/scene/control/inputmap"/>
+    <source path="com/sun/javafx/scene/control/skin"/>
+    <source path="javafx/scene/control"/>
+    <source path="javafx/scene/control/skin"/>
+    <source path="com/sun/javafx/application"/>
+    <source path="com/sun/javafx/cursor"/>
+    <source path="com/sun/javafx/geom"/>
+    <source path="com/sun/javafx/geom/transform"/>
+    <source path="com/sun/javafx/geometry"/>
+    <source path="com/sun/javafx/scene"/>
+    <source path="com/sun/javafx/scene/input"/>
+    <source path="com/sun/javafx/scene/text"/>
+    <source path="com/sun/javafx/scene/traversal"/>
+    <source path="com/sun/javafx/stage"/>
+    <source path="com/sun/javafx/tk"/>
+    <source path="com/sun/javafx/tk/quantum"/>
+    <source path="com/sun/javafx/util"/>
+    <source path="com/sun/scenario/animation"/>
+    <source path="dev/webfx/kit/mapper"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/emul_coupling"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/emul_coupling/base"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/emul_coupling/measurable"/>
+    <source path="dev/webfx/kit/mapper/spi"/>
+    <source path="dev/webfx/kit/mapper/spi/impl/base"/>
+    <source path="javafx/animation"/>
+    <source path="javafx/application"/>
+    <source path="javafx/concurrent"/>
+    <source path="javafx/css"/>
+    <source path="javafx/geometry"/>
+    <source path="javafx/scene"/>
+    <source path="javafx/scene/canvas"/>
+    <source path="javafx/scene/effect"/>
+    <source path="javafx/scene/image"/>
+    <source path="javafx/scene/input"/>
+    <source path="javafx/scene/layout"/>
+    <source path="javafx/scene/paint"/>
+    <source path="javafx/scene/shape"/>
+    <source path="javafx/scene/text"/>
+    <source path="javafx/scene/transform"/>
+    <source path="javafx/stage"/>
+    <inherits name="elemental2.core.Core"/>
+    <inherits name="elemental2.dom.Dom"/>
+    <inherits name="elemental2.svg.Svg"/>
+    <inherits name="com.google.gwt.user.User"/>
+    <inherits name="org.gwtproject.nio.GwtNioSupport"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxcontrols/base"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxcontrols/elemental2/html"/>
+    <source path="dev/webfx/kit/registry/javafxcontrols"/>
+    <source path="dev/webfx/kit/launcher/spi/impl/elemental2"/>
+    <source path="dev/webfx/kit/mapper/spi/impl/elemental2"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/markers"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/base"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/elemental2/html"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/elemental2/html/layoutmeasurable"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/elemental2/shared"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/elemental2/svg"/>
+    <source path="dev/webfx/kit/mapper/peers/javafxgraphics/elemental2/util"/>
+    <source path="dev/webfx/kit/registry/javafxgraphics"/>
+    <source path="dev/webfx/kit/launcher"/>
+    <source path="dev/webfx/kit/launcher/spi"/>
+    <source path="dev/webfx/kit/launcher/spi/impl/base"/>
+    <source path="dev/webfx/kit/perfectscrollbar/elemental2"/>
+    <resource path="dev/webfx/kit/perfectscrollbar"/>
+    <public path="" includes="dev/webfx/kit/perfectscrollbar/"/>
+    <source path="dev/webfx/kit/util/properties"/>
+    <source path="dev/webfx/kit/util/properties/conversion"/>
+    <source path="dev/webfx/kit/util/aria"/>
+    <source path="dev/webfx/platform/boot"/>
+    <source path="dev/webfx/platform/boot/spi"/>
+    <source path="dev/webfx/platform/boot/spi/impl"/>
+    <source path="dev/webfx/platform/console"/>
+    <source path="dev/webfx/platform/console/spi"/>
+    <source path="dev/webfx/platform/console/spi/impl/elemental2"/>
+    <super-source includes="java/io/" path=""/>
+    <super-source includes="java/lang/ref/" path=""/>
+    <super-source includes="java/net/" path=""/>
+    <super-source includes="java/util/" path=""/>
+    <super-source includes="java/util/function/" path=""/>
+    <super-source includes="java/util/regex/" path=""/>
+    <super-source includes="netscape/javascript/" path=""/>
+    <source path="dev/webfx/platform/meta"/>
+    <source path="dev/webfx/platform/os"/>
+    <source path="dev/webfx/platform/os/spi"/>
+    <source path="dev/webfx/platform/os/spi/impl"/>
+    <source path="dev/webfx/platform/os/spi/impl/elemental2"/>
+    <source path="dev/webfx/platform/polyfillcompat"/>
+    <source path="dev/webfx/platform/resource"/>
+    <source path="dev/webfx/platform/resource/spi"/>
+    <source path="dev/webfx/platform/resource/spi/impl/elemental2"/>
+    <source path="dev/webfx/platform/resource/spi/impl/web"/>
+    <source path="dev/webfx/platform/scheduler"/>
+    <source path="dev/webfx/platform/scheduler/spi"/>
+    <source path="dev/webfx/platform/service"/>
+    <source path="dev/webfx/platform/service/gwtj2cl"/>
+    <source path="dev/webfx/platform/shutdown"/>
+    <source path="dev/webfx/platform/shutdown/spi"/>
+    <source path="dev/webfx/platform/shutdown/spi/impl"/>
+    <source path="dev/webfx/platform/shutdown/spi/impl/elemental2"/>
+    <source path="dev/webfx/platform/uischeduler"/>
+    <source path="dev/webfx/platform/uischeduler/spi"/>
+    <source path="dev/webfx/platform/uischeduler/spi/impl"/>
+    <source path="dev/webfx/platform/uischeduler/spi/impl/elemental2"/>
+    <source path="dev/webfx/platform/useragent"/>
+    <source path="dev/webfx/platform/useragent/spi"/>
+    <source path="dev/webfx/platform/useragent/spi/impl"/>
+    <source path="dev/webfx/platform/useragent/spi/impl/elemental2"/>
+    <source path="dev/webfx/platform/util"/>
+    <source path="dev/webfx/platform/util/collection"/>
+    <source path="dev/webfx/platform/util/function"/>
+    <source path="dev/webfx/platform/util/stopwatch"/>
+    <source path="dev/webfx/platform/util/tuples"/>
+    <source path="dev/webfx/platform/util/uuid"/>
+    <source path="dev/webfx/platform/util/elemental2"/>
+    <!-- APP_SOURCE_PATHS -->
+    <source path="zero"/>
+    <resource path="assets"/>
+    <public path="" includes="assets/"/>
+
+    <set-property name="user.agent" value="safari"/> <!-- Only one permutation to speed up GWT compilation - now workings in all modern browsers -->
+    <set-configuration-property name="user.agent.runtimeWarning" value="false"/> <!-- removing irrelevant warning in non-safari browsers -->
+    <set-property name="jre.checks.checkLevel" value="MINIMAL"/> <!-- to speed up execution time -->
+
+    <entry-point class="dev.webfx.platform.boot.gwt.GwtEntryPoint"/>
+
+    <super-source path="super"/>
+
+    <public path="public"/>
+
+    <resource path="dev/webfx/kit/css"/>
+
+</module>

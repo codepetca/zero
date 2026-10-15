@@ -13,6 +13,8 @@ const {createSharingEditor} = require('./sharing/editor');
 const {readKitConfiguration} = require('./sharing/configuration');
 const {createSetupHelp} = require('./setup');
 const {createNativeUpdateCommands} = require('./native-updates');
+const {createWebExportCommands} = require('./web-export-ui');
+const {createWebPublishCommands} = require('./web-publish-ui');
 const {sidebarStyles} = require('./sidebar-style');
 const {libraryLayout} = require('./library-files');
 const {icon} = require('./sidebar-icons');
@@ -31,9 +33,11 @@ function activate(context) {
   let changing = false;
   let menuOpen = false;
   let componentBusy = false;
+  let exportingWeb = false;
+  let publishingWeb = false;
   let branch = '';
   let statusGeneration = 0;
-  const isBusy = () => uploading || connecting || signingIn || changing || menuOpen || componentBusy;
+  const isBusy = () => uploading || connecting || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb;
   let projectRoot;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'simulation') : 'simulation';
   let runQueue = Promise.resolve();
@@ -276,6 +280,34 @@ function activate(context) {
     } catch(error) {if (error.conflict) await conflictHelp(); throw error;}
     finally {await repositoryStatus(); changing = false; refresh();}
   }
+  async function uploadProject(uploadAuth = auth) {
+      if (isBusy()) return;
+      uploading = true; refresh();
+      try {
+        const root = await project();
+        await lessonProjects.assertShareable(root);
+        if (uploadMode(root) !== 'live') {
+          const result = core.simulatedUpload();
+          state = `${result.message} Nothing changed: no files saved, Git changes or sign-in.`; refresh();
+          void vscode.window.showWarningMessage(state);
+          return;
+        }
+        const ticket = await uploadAuth.capture();
+        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
+        const plan = await github.prepareUpload(root);
+        const message = await vscode.window.showInputBox({title:'Describe this version', prompt:'A commit saves a version in Git. Upload sends it to your connected GitHub repository.', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
+        if (!message) return;
+        const detail = `${plan.page}\nGitHub account: ${ticket.session.label}\nBranch: ${plan.branch}\n${plan.summary}\n\n${plan.changes.map(change => `${change.kind}: ${change.path}`).join('\n')}\n\nIgnored files stay local. This will save a Git commit when files changed and upload your branch using your VS Code GitHub sign-in. Git still needs your repository name/email identity. Submit your repository link separately in Pika.`;
+        const confirmed = await vscode.window.showInformationMessage('Upload this version to GitHub?', {modal:true, detail}, 'Commit & Upload');
+        if (confirmed !== 'Commit & Upload') return;
+        if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
+        const assertCurrent = () => uploadAuth.assertCurrent(ticket);
+        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => uploadAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
+        state = `Uploaded ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
+        refresh(); await repositoryStatus();
+        vscode.window.showInformationMessage(state);
+      } finally {await repositoryStatus(); uploading = false; refresh();}
+  }
   const actions = {
     'zero.githubAccount': async () => {
       if (isBusy()) return;
@@ -385,34 +417,7 @@ function activate(context) {
       await vscode.commands.executeCommand('workbench.view.extension.zero');
       if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
     },
-    'zero.uploadToGitHub': async () => {
-      if (isBusy()) return;
-      uploading = true; refresh();
-      try {
-        const root = await project();
-        await lessonProjects.assertShareable(root);
-        if (uploadMode(root) !== 'live') {
-          const result = core.simulatedUpload();
-          state = `${result.message} Nothing changed: no files saved, Git changes or sign-in.`; refresh();
-          void vscode.window.showWarningMessage(state);
-          return;
-        }
-        const ticket = await auth.capture();
-        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
-        const plan = await github.prepareUpload(root);
-        const message = await vscode.window.showInputBox({title:'Describe this version', prompt:'A commit saves a version in Git. Upload sends it to your connected GitHub repository.', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
-        if (!message) return;
-        const detail = `${plan.page}\nGitHub account: ${ticket.session.label}\nBranch: ${plan.branch}\n${plan.summary}\n\n${plan.changes.map(change => `${change.kind}: ${change.path}`).join('\n')}\n\nIgnored files stay local. This will save a Git commit when files changed and upload your branch using your VS Code GitHub sign-in. Git still needs your repository name/email identity. Submit your repository link separately in Pika.`;
-        const confirmed = await vscode.window.showInformationMessage('Upload this version to GitHub?', {modal:true, detail}, 'Commit & Upload');
-        if (confirmed !== 'Commit & Upload') return;
-        if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
-        const assertCurrent = () => auth.assertCurrent(ticket);
-        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => auth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
-        state = `Uploaded ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
-        refresh(); await repositoryStatus();
-        vscode.window.showInformationMessage(state);
-      } finally {await repositoryStatus(); uploading = false; refresh();}
-    },
+    'zero.uploadToGitHub': () => uploadProject(),
     'zero.connectRepository': async () => {
       if (isBusy()) return;
       connecting = true; refresh();
@@ -439,6 +444,12 @@ function activate(context) {
   const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);
+  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
+  Object.assign(actions,webPublish.commands);
+  context.subscriptions.push(...webPublish.disposables);
+  const webExport=createWebExportCommands(vscode,{project,output,publish:()=>webPublish.publish(),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined});
+  Object.assign(actions,webExport.commands);
+  context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
     try {await action();} catch(error) {state = error.message; refresh(); output.appendLine(error.message); vscode.window.showErrorMessage(`Zero: ${error.message}`);}
   }));
@@ -456,7 +467,7 @@ function activate(context) {
     const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong>${account}</div>${repoControl}${repositoryWarning}${branchControl}${githubActions}`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       ${sidebarStyles()}
-      </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>${icon('Square')}Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${localPractice || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution ? '' : 'disabled'}>${icon('Square')}Stop</button></div><button class="link" data-command="zero.publishWeb" ${disabled}>Publish app</button><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${localPractice || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
@@ -476,7 +487,7 @@ function activate(context) {
       try {
         const root = entry ? entry.uri.fsPath : await project();
         const visible = async (directory, omit = []) => (await fs.readdir(directory, {withFileTypes:true}))
-          .filter(child => !['.git','target','node_modules','.DS_Store','.zero-sharing-recovery', ...omit].includes(child.name) && !child.isSymbolicLink())
+          .filter(child => !['.git','target','node_modules','.DS_Store','.zero-sharing-recovery','.zero','.zero-web', ...omit].includes(child.name) && !child.isSymbolicLink())
           .sort((a,b) => Number(b.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b.name))
           .map(child => ({uri:vscode.Uri.file(path.join(directory, child.name)), directory:child.isDirectory()}));
         if (entry) return visible(root, entry.projectFiles ? ['src','README.md'] : []);

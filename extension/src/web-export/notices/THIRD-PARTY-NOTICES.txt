@@ -1,0 +1,14 @@
+Zero browser export uses WebFX (https://github.com/webfx-project/webfx), Apache License 2.0;
+GWT (https://github.com/gwtproject/gwt), Apache License 2.0;
+Elemental2 and JSInterop (https://github.com/google/elemental2 and https://github.com/google/jsinterop-base), Apache License 2.0;
+GWT NIO (https://github.com/treblereel/gwt-nio), Apache License 2.0.
+Perfect Scrollbar 1.5.3 (https://github.com/mdbootstrap/perfect-scrollbar), MIT.
+GWT Time 2.0.12 / ThreeTen Backport (https://github.com/foal/org.jresearch.gwt.time), BSD 3-Clause.
+The WebFX JavaFX emulation includes code derived from OpenJFX, whose upstream
+source files retain their applicable copyright and license terms. See
+https://github.com/openjdk/jfx and the GPL-2.0-with-Classpath-Exception license.
+The exact upstream WebFX runtime source JARs accompany this app in licenses/sources.
+Their versions, upstream download URLs and SHA-256 checksums are recorded in
+licenses/source-artifacts.json. The adjacent export manifest inventories all files.
+Zero's application and compatibility adapter sources are MIT licensed.
+Student-authored sources and assets remain subject to their owner's license.

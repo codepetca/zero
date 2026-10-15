@@ -57,6 +57,34 @@
         "title": "Zero: Stop App"
       },
       {
+        "command": "zero.exportWeb",
+        "title": "Zero: Export for Web"
+      },
+      {
+        "command": "zero.publishWeb",
+        "title": "Zero: Publish App"
+      },
+      {
+        "command": "zero.copyPublishedWebLink",
+        "title": "Zero: Copy Playable Link"
+      },
+      {
+        "command": "zero.openPublishedWeb",
+        "title": "Zero: Open Published App"
+      },
+      {
+        "command": "zero.previewWebExport",
+        "title": "Zero: Preview Web Export"
+      },
+      {
+        "command": "zero.saveWebExport",
+        "title": "Zero: Save Web Export ZIP"
+      },
+      {
+        "command": "zero.shareWebExport",
+        "title": "Zero: Share Web Export"
+      },
+      {
         "command": "zero.signInToGitHub",
         "title": "Zero: Sign in to GitHub"
       },
@@ -258,6 +286,21 @@
         }
       ],
       "view/title": [
+        {
+          "command": "zero.exportWeb",
+          "when": "view == zero.actions",
+          "group": "zero-web@1"
+        },
+        {
+          "command": "zero.copyPublishedWebLink",
+          "when": "view == zero.actions",
+          "group": "zero-web@2"
+        },
+        {
+          "command": "zero.openPublishedWeb",
+          "when": "view == zero.actions",
+          "group": "zero-web@3"
+        },
         {
           "command": "zero.openFirstLesson",
           "when": "view == zero.actions",
