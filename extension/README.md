@@ -1,4 +1,7 @@
-# Zero extension — local prototype
+# Zero extension — local release candidate
+
+Zero **0.5.16**, with core **0.1.3**, is prepared locally and unreleased. Published
+assets retain their existing versions and bytes.
 
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
@@ -7,27 +10,36 @@ and open in the normal editor. Zero’s controls are collapsible above Files; id
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.5.4.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.5.16.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
-Run App saves files and runs the project's Maven wrapper with separate
-`clean`, `compile` and `javafx:run` arguments. Cleaning avoids stale classes from
-the language server. Stop terminates the owned task; restart waits for it to end.
-The app opens in a separate native window, with rebuild/restart rather than hot
-reload. The default build shortcut uses the same TaskProvider:
+Run App saves files, checks original Java against the supported browser API
+subset, compiles locally when needed with the pinned WebFX/GWT pipeline, validates
+the build and opens Zero’s managed browser preview. Students need a supported
+JDK **17+**, with no global Maven or Node.js installation. The first build needs
+internet for compiler/dependency downloads; later projects reuse Zero’s local
+cache. The default build shortcut uses the same browser run action:
 
 ```json
 {"version":"2.0.0","tasks":[{"type":"zero","task":"run","label":"Zero: Run App","group":{"kind":"build","isDefault":true},"problemMatcher":"$zero-java"}]}
 ```
 
-Windows uses the task shell with strong wrapper-path quoting; other platforms
-use a process task. Physical Windows/Linux behavior remains unverified.
-Compiler output stays in the task terminal. `$zero-java` matches Maven
-`[ERROR] /absolute/File.java:[line,column] message` output; installed Java
-language support supplies editor diagnostics.
+Run App again after edits to rebuild and restart. Stop aborts owned work and
+ends the preview and its audio. Build/source/compatibility errors appear in Zero’s
+output and Problems; **Show Problems** opens the source diagnostics. Repair a
+failed download or the indicated code, then Run App again. A failed build does
+not reopen old output as a successful new run.
 
-Commands: `zero.runApp`, `zero.stopApp`, `zero.uploadToGitHub`,
+**Zero: Run Native App (Diagnostic)** explicitly runs the project’s Maven wrapper
+with separate `clean`, `compile` and `javafx:run` arguments in a native window.
+Native success does not establish browser compatibility. Windows native tasks
+use the task shell with strong wrapper-path quoting; other platforms use a
+process task. Physical Windows/Linux behavior remains unverified.
+
+Commands: `zero.runApp`, `zero.runNativeApp`, `zero.stopApp`, `zero.exportWeb`,
+`zero.publishWeb`, `zero.copyPublishedWebLink`, `zero.openPublishedWeb`,
+`zero.uploadToGitHub`,
 `zero.chooseBranch`, `zero.startChange`, `zero.finishChange`,
 `zero.githubAccount`, `zero.chooseRepository`,
 `zero.signInToGitHub`, `zero.createRepository`, `zero.connectRepository`,
@@ -113,6 +125,35 @@ Copy Repository Link returns the clean page URL for separate Pika submission.
 Students create their own empty repositories; no GitHub Classroom is involved.
 See the bundled `GETTING-STARTED.md` for the beginner workflow.
 
+## Playable publication
+
+Run App and test the intended version, finish and upload it on **main**, then
+choose **Publish app** in the sidebar’s **GitHub** section. Sign in and connect
+your own repository to enable it. Live publication requires Git **2.31+**, your
+own GitHub account and live upload mode. Simulation exits without saving,
+requesting authentication, writing publishing files or making network calls.
+
+First setup reviews the public Pages destination, prepares a small publishing kit,
+requests native GitHub workflow permission when needed and uses the existing
+reviewed Upload changes flow. Workflow authorization must use the same account
+as Zero. The app and included assets become public; repository visibility stays
+unchanged. Zero publishes the validated local build, while GitHub only deploys
+its static output. No Java compilation runs on GitHub.
+
+Wait for **Your playable game is live**, then choose **Open app** or **Copy
+playable link**. **Zero: Open Published App** and **Zero: Copy Playable Link**
+recheck the saved publication before opening or copying it. Pending runs survive
+editor restarts; choose Publish app again to recheck. Operational errors identify
+a next action and preserve the previous live page. Pika still receives the
+separate source repository link.
+
+**Share project** prepares a separate source contribution. It attaches a playable
+receipt only when the saved publication verifies for the exact uploaded commit.
+ZeroHub’s **Play latest** opens the student-hosted app; source downloads remain
+exact versions. Public checker acceptance and activation are still pending;
+public ZeroHub uploads are not open yet. Maintainer details are in
+`docs/WEB-EXPORT.md` in the Zero source repository.
+
 ## Development and verification
 
 The webview uses theme variables, keyboard-accessible buttons, escaped status,
@@ -141,8 +182,8 @@ Choose **Browse ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Co
 
 Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
 
-Library authors use **Extract library** inside their existing game repository, then **Check library** locally. Upload the source normally and choose **Share library** to prepare a GitHub request for the exact committed folder/version. `/hub/share` explains this flow and shows public request results. GitHub supplies the real personal-account identity; local Check does not grant hosted acceptance. Public library activation and physical installed-editor/Windows flows remain unverified.
+Library authors use **Extract library** inside their existing game repository, then **Check library** locally. Upload the source normally and choose **Share library** to prepare a GitHub request for the exact committed folder/version. `/hub/share` explains this flow and shows public request results. GitHub supplies the real personal-account identity; local Check does not grant hosted acceptance. Public library activation and physical Windows library flows remain unverified.
 
 ## Setup checklist
 
-**Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm a JavaFX window. No installation or account changes occur just by opening the checklist.
+**Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm the browser preview. No installation or account changes occur just by opening the checklist.

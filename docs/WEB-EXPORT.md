@@ -237,11 +237,16 @@ artifact preservation, auth/account/repository changes, setup ownership, exact
 run tracking, public marker checks, retries, custom domains, and remembered links.
 Real game browser checks cover images, sprite rendering, input, pause/reset/mute,
 audio progress, missing-image errors, autoplay recovery and synthetic blur/pagehide.
-Physical focus switching, other browser engines, Windows, school authentication
-and a real GitHub Pages publication need separate end-to-end verification. The new
-local integration is awaiting its final fixed-revision independent review and
-recorded acceptance in VERIFICATION.md. No
-account grant, push, deployment, release or installed Zero update was performed.
+The installed macOS preview and real test Pages publication are now accepted.
+Sky Hop at <https://armorup.github.io/zero-sharing-proof/> serves the same68files
+as tested locally; all public lengths/SHA256 values match. Native Upload, Publish,
+Copy playable link and saved Open Published App passed using an existing VS Code
+session. Independent reviews cover the compiler path and workflow-session retry
+fixes; see [verification](VERIFICATION.md). Physical Windows/classroom hardware,
+other browser engines, first-time workflow OAuth consent and physical audio remain
+untested. This test publication did not authorize a Zero distribution release or
+ZeroHub activation. The0.5.16 preparation and remaining coordinated policy rollout
+are recorded in [release readiness](RELEASE-0.5.16.md).
 
 
 ## Performance evidence and budgets

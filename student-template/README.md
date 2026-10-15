@@ -1,5 +1,8 @@
 # My Zero App
 
+This source accompanies the local, unreleased Zero **0.5.16** candidate with
+core **0.1.3**. Published downloads keep their own bundled instructions.
+
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
@@ -7,13 +10,16 @@ Choose **Zero: Start project** to create each once, then keep its folder and add
 to your own code in later lessons. Each practice scaffold contains an empty Main
 and build/framework setup. Practice stays local; coursework and GitHub sharing
 use a separate original project.
-Run App opens a separate JavaFX window. After editing, click Run App again;
-Zero saves your files and stops the previous run before rebuilding. The default build shortcut is
+Run App checks and compiles your Java locally, then opens Zero’s browser preview.
+After editing, click Run App again; Zero saves your files and stops the previous
+preview before rebuilding. The default build shortcut is
 **Ctrl+Shift+B** on Windows or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
-The default build task is **Zero: Run App**, owned by the extension so its Stop
-button can stop it. Without the extension, use **Tasks: Run Task → Run App without
-Zero**, then close the app window or terminate that task before running again.
+The default build task is **Zero: Run App**, owned by the extension so **Stop**
+ends the preview and its audio. For native JavaFX troubleshooting, use
+**Zero: Run Native App (Diagnostic)**. Without the extension, **Tasks: Run Task →
+Run App without Zero** is a native diagnostic; close its window or terminate the
+task before running again. A native run does not check browser compatibility.
 
 ## First setup
 
@@ -51,12 +57,13 @@ and **Check again**. School IT can provide the tools before students start.
    open that folder in VS Code,
    and trust the folder if you trust its source. Keep `zero.json`, `pom.xml`,
    both Maven wrappers, and the `.mvn` folder with it.
-4. Run App. The first run needs internet to download the pinned Maven and
-   JavaFX dependencies. You do not need a separate Maven or JavaFX installation.
+4. Run App. The first run needs internet to download the pinned browser compiler
+   and dependencies into Zero’s local cache; later projects reuse them. You do
+   not need Node.js, global Maven or a separate JavaFX installation.
    A school proxy/firewall can block these downloads; ask your teacher rather
    than adding passwords or tokens to project files.
 
-Terminal equivalent, from this folder:
+For a native JavaFX diagnostic only, from this folder:
 
 ```sh
 # Mac with Apple Silicon
@@ -77,7 +84,8 @@ artifact code do not make those platforms supported in this MVP.
 ## Make something
 
 Use the installed starter's **Run App** once to check setup: it opens a short
-Hello, world! demonstration. Then choose **Zero: Start project → Greeting app**
+Hello, world! demonstration in the browser preview. Then choose
+**Zero: Start project → Greeting app**
 to begin [Lesson 0](lessons/00-hello-world.md) with your own empty Main. Write the
 label, then continue lessons 1 and 2 in that same Greeting folder.
 
@@ -151,7 +159,8 @@ on shutdown and startup/frame failure. Game pause/restart policy stays in Main. 
 share an app-scoped cache until shutdown. The local source starter also includes
 explicitly updated SpriteAnimation, ImageRegion, frame-edge input, centred/
 flipped image drawing, centred text and static Collisions predicates. These
-helpers are unreleased; published Mac setup 0.5.15 ships the older core 0.1.2.
+helpers are part of this local candidate; published Mac setup 0.5.15 ships the
+older core 0.1.2.
 See the [game helper guide](APP-GUIDE.md#sprite-frames-and-small-game-helpers) and
 [complete API](API.md).
 
@@ -169,8 +178,9 @@ component base class, scene routing, or object discovery.
 The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
 **Start project** at lessons 0, 3 and 8 to get an empty runnable scaffold. Keep
 the same Greeting, Study or Game folder for its following lessons. Students write
-their own controls and classes; lesson 12 offers only optional image/sound assets. For another
-example, make a fresh local copy of the starter and copy only that example's
+their own controls and classes; lesson 12 offers only optional image/sound assets. Some reference examples use native JavaFX APIs outside the browser subset;
+Run App reports unsupported calls, and the native diagnostic remains available.
+For another example, make a fresh local copy of the starter and copy only that example's
 listed files into the new folder. Open the new folder in VS Code and click
 **Run App**. Keep these practice projects local; your own game repository is
 separate.
@@ -292,6 +302,30 @@ repository name and choose **Copy repository link**, then submit it separately
 in Pika. Give your teacher access if it is
 private. Zero does not submit assignments or change Pika grades.
 
+## Publish a playable app
+
+Use your own original project with Git **2.31+** and your own GitHub account.
+**Run App** and test it, then finish and upload the completed version on **main**.
+Choose **Publish app** in Zero’s **GitHub** section. Live mode must be enabled;
+simulation changes no public site. The first publish reviews the public Pages
+destination, prepares publishing files, and uses the reviewed upload flow.
+If VS Code requests workflow permission, use the same GitHub account as Zero.
+Confirm the uploaded version when asked. The app and included assets will be
+public; your source repository keeps its visibility.
+
+Zero deploys the locally checked build. Wait for **Your playable game is live**,
+then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published
+App** or **Zero: Copy Playable Link** in the Command Palette. Choose Publish app
+again to recheck a pending run; follow the stated next action if publication
+fails. The previous live page remains available after an unsuccessful update.
+The playable link is separate from your repository link for Pika.
+
+**Share project** prepares a separate ZeroHub source submission. This candidate
+attaches a playable link only when it can verify the saved publication for that
+exact uploaded commit. ZeroHub’s **Play latest** opens the student-hosted app;
+**Download source project** stays an exact version. Checker acceptance and public
+activation are pending; public ZeroHub uploads are not open yet.
+
 ## Checking your changes
 
 Run your app after each change. For the quiz, try both correct and incorrect answers.
@@ -300,10 +334,13 @@ alone does not verify layout, focus or school-machine restrictions.
 
 Zero maintainers keep the finite framework and example GUI checks in the
 [Zero source repository](https://github.com/codepetca/zero). These contributor tools are separate from this student
-project; your normal Run App launches Main and needs only the Maven wrapper.
+project. Your normal Run App uses Zero’s pinned local browser compiler. If a
+download fails, repair the connection and Run App again. Use **Show Problems**
+for source or unsupported-API errors; a failed build does not start an old build
+as a successful new run.
 
-Pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**, official Apache Maven
-Wrapper **3.3.4** (only-script), JavaFX Maven plugin **0.0.8**, compiler plugin
+For native diagnostics, pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**,
+official Apache Maven Wrapper **3.3.4** (only-script), JavaFX Maven plugin **0.0.8**, compiler plugin
 **3.14.0**. The wrapper verifies the Maven distribution's SHA-256. Maven's normal
 local dependency cache is used; no account credentials are required.
 

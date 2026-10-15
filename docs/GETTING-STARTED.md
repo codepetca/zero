@@ -1,8 +1,11 @@
 # Getting started with Zero
 
-Zero is a local Java kit: edit ordinary Java in VS Code, then open your app in a
-separate JavaFX window. This MVP targets **Mac with Apple Silicon** and
-**Windows**; Linux and Intel Macs are unsupported. On a supported Mac, use
+This guide describes the local, unreleased **Zero 0.5.16** candidate with
+core **0.1.3**. Published downloads keep their bundled instructions.
+
+Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
+compile locally and open a browser preview. This MVP targets **Mac with Apple
+Silicon** and **Windows**; Linux and Intel Macs are unsupported. On a supported Mac, use
 **Zero** for automatic setup. Windows is offered alongside Mac as the
 published **complete kit ZIP** for manual setup; the Windows native EXE is not
 published. The ZIP is also a manual alternative for a supported Mac;
@@ -12,8 +15,9 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Zero app for Mac
 
-Published Mac0.5.14 uses the familiar drag-to-Applications flow. Earlier downloads
-keep their original setup apps and bytes.
+The Mac app uses the familiar drag-to-Applications flow. Existing published
+downloads keep their original setup apps and bytes; this candidate is not yet a
+published update.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
 2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**
@@ -21,8 +25,8 @@ keep their original setup apps and bytes.
    receives setup-file updates; your code, assets and saved projects are kept.
 3. Zero opens its configured VS Code editor automatically. Review the starter
    before granting workspace trust if VS Code asks, then choose **Run App**.
-   A separate window shows **Hello, world!**. The first build needs internet for
-   Maven and JavaFX.
+   Zero’s browser preview shows **Hello, world!**. The first build needs internet
+   for the pinned browser compiler and dependencies, cached locally for reuse.
 
 You can eject the DMG after copying Zero. Later, open **Zero** from Applications
 or the Dock to return to the saved Zero editor session. Reopening checks readiness
@@ -59,7 +63,7 @@ with **Check again**. Older extensions may show a simpler setup guide.
 Java editor/debugger repair uses VS Code's extension installer in the current
 profile. Java/Git repair opens an official download page and explains installation
 and restarting VS Code. **Run first app** uses the usual save/build/launch flow;
-confirm its JavaFX window, since tool detection is not a build test.
+confirm its browser preview, since tool detection is not a build test.
 
 1. Install VS Code and a supported **JDK 17 or later**; install **Git 2.31 or newer** for repository
    work. JDK 17 was tested. Check `java -version`, `javac -version` and
@@ -90,7 +94,8 @@ confirm its JavaFX window, since tool detection is not a build test.
    checking its source and build scripts.
 4. Open the starter's `lessons/00-hello-world.md` for **Lesson 0: Hello, world!**.
    Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
-   The first build needs internet to download Maven and JavaFX. Students do not
+   The first build needs internet to download the pinned browser compiler and
+   dependencies into Zero’s local cache. Students do not
    need Node.js, global Maven or a separate JavaFX installation. On a supported Mac,
    a ZIP that loses executable permissions may need `chmod +x mvnw` once.
    Record school proxy/firewall problems with your teacher; do not place
@@ -100,7 +105,7 @@ confirm its JavaFX window, since tool detection is not a build test.
 
 Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
 click **Start Greeting project**, unzip it and open its folder in VS Code.
-The small scaffold starts with empty `setup()`; the first run is a blank window.
+The small scaffold starts with empty `setup()`; its first browser preview is blank.
 Write your label following the lesson, then click **Run App again** after edits.
 Keep this folder for lessons 1 and 2 as you add a button and name field.
 
@@ -120,12 +125,18 @@ The starter's example shelf remains optional reference. Try each independent
 example in its own local copy, following its exact file list; it is separate
 from the continuing lesson flow.
 
-With the profile, autosave runs after 500 ms. **Run App** also saves files, cleans
-and compiles the project, and restarts the app. Use **Ctrl+Shift+B** on Windows
-or **Cmd+Shift+B** on macOS for the same default build task. There is no hot reload.
-**Stop** ends the owned run; the app lives in its own native window.
+With the profile, autosave runs after 500 ms. **Run App** also saves files, checks
+browser compatibility and compiles locally when needed, then opens the browser
+preview. After editing, Run App again rebuilds and restarts it. Use
+**Ctrl+Shift+B** on Windows or **Cmd+Shift+B** on macOS for the same run action.
+**Stop** ends the owned preview and its audio.
 
-Read compiler errors in the task terminal and Problems panel; use
+First-time compiler downloads can take longer; later projects reuse the cache.
+If a download fails, repair the connection and Run App again. If an API is outside
+the supported browser subset, use the indicated source error to revise the code.
+A failed build does not open an older build as a successful new run.
+
+Read compiler errors in Zero’s output and Problems panel; use
 **View: Toggle Problems** in the Command Palette and open the indicated source
 line. See **Setup help** for missing local tools. F6/F7 are optional:
 merge `optional/optional-keybindings.json` into your keyboard shortcuts if wanted.
@@ -134,9 +145,15 @@ To change appearance, run **Preferences: Color Theme** in the Command Palette.
 The sidebar supports dark themes too. To return to an imported profile, run
 **Profiles: Switch Profile → Zero**, then **Zero: Show Sidebar**.
 
+For native JavaFX troubleshooting, choose **Zero: Run Native App (Diagnostic)**
+in the Command Palette. Its terminal equivalent is `./mvnw clean compile javafx:run`
+on Mac or `.\mvnw.cmd clean compile javafx:run` on Windows. Native success does
+not verify browser compatibility.
+
 ## Your GitHub repository
 
-Local running needs no GitHub sign-in. For sharing work, follow your teacher's
+Local running needs no GitHub sign-in. Live upload and publishing need Git
+**2.31+** and your own GitHub account. For sharing work, follow your teacher's
 privacy, visibility and account instructions. If you used a ZeroHub GitHub template,
 create your own repository from it and clone **your repository** as described in
 [the course project guide](COURSE-PROJECT.md#create-your-own-repository-and-clone-it).
@@ -219,6 +236,37 @@ Click the connected repository name, choose **Copy repository link**, and paste
 the link separately into the assignment
 in **Pika**. Give your teacher access if the repository is private. Copying a URL
 does not upload code, establish that the remote is current or submit in Pika.
+
+## Publish your playable app
+
+In your own project, **Run App** and test the version you want other people to
+play. Finish your change and upload it on **main**, then choose **Publish app**
+in Zero’s **GitHub** section. Sign in and connect your own repository to enable
+it. Upload and Publish remain simulated until live mode is enabled.
+
+The first publish reviews the public destination and prepares publishing files.
+If VS Code requests GitHub workflow permission, authorize the same account you
+selected in Zero. Review and upload those files through **Upload changes**, then
+confirm publication. Zero uses the locally checked build; GitHub deploys it to
+Pages. The playable app and its included assets are public, even if your source
+repository is private and your GitHub plan supports Pages. Zero keeps the
+repository’s visibility unchanged.
+
+Wait for **Your playable game is live**, then choose **Open app** or **Copy
+playable link**. You can retrieve the checked link later with **Zero: Open
+Published App** or **Zero: Copy Playable Link** in the Command Palette. Later
+publishes keep the same destination. If a run is still pending, choose Publish
+app again to recheck it. Follow any specific GitHub action or permission error;
+an unsuccessful update keeps the previous live page.
+
+The playable link lets people use your app. **Copy repository link** identifies
+your source for the separate Pika submission. **Share project** prepares a
+separate ZeroHub source contribution. In this candidate, it includes a saved
+playable link only when Zero can verify it for that exact uploaded commit.
+ZeroHub’s **Play latest** opens the student-hosted app, which can change with
+later publishes; **Download source project** remains an exact source version.
+ZeroHub checker acceptance and activation are still pending, and public uploads
+are not open yet.
 
 ## Before a class adopts it
 
