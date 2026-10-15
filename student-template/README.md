@@ -206,24 +206,38 @@ modified component before copying an example over it.
 
 ## Your repository and Pika
 
-Click the profile icon beside GitHub in Zero and complete VS Code's native browser
-flow. Its first letter identifies the signed-in account; hover for the full name
-or click for change/sign-out actions. Sign-out opens VS Code Accounts, where you
-select the GitHub account and choose Sign Out. Use **Connect a repo → Create a
-repository…** to open GitHub's page.
+Click **Sign in** beside GitHub in Zero and complete VS Code's native browser
+flow. The control then shows your GitHub username; click it for account-change
+or sign-out actions. Sign-out opens VS Code Accounts, where you
+select the GitHub account and choose Sign Out.
+
+If you created your own repository from a ZeroHub template and cloned it,
+keep that clone and its existing origin; skip creating an empty repository.
+For an extracted ZIP, use **Connect a repository → Create a repository…**
+to open GitHub's page.
 Create your own **empty repository** on GitHub (leave README, license and
 gitignore uninitialized). Use your own account and follow your teacher's
 visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
-page URL through **Connect a repo → Connect an existing repository…**. Connect initializes Git in this standalone student folder if
+page URL through **Connect a repository → Connect an existing repository…**. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or upload. Local running works without GitHub sign-in.
 
 Before a real upload, configure Git's per-repository name/email identity.
+In a terminal opened in your project folder, replace the example name and email
+with your own, following your teacher's privacy instructions:
+
+```sh
+git config user.name "Your Name"
+git config user.email "your-email@example.com"
+```
+
+These commands apply only to this repository. For more help, read
+[the online repository setup guide](https://zero.codepet.ca/docs/setup#your-github-repository)
+or ask your teacher.
 Signing in does not configure commit identity. Zero supplies the selected native
 GitHub session to its network operations without storing a token in your project
 or Git configuration. Account/session changes require a fresh upload review.
-See the kit's getting-started guide or ask your teacher for help. Never put a
-password or token in Java source, the marker or README.
+Never put a password or token in Java source, the marker or README.
 
 **Upload, Start and Finish default to simulation: no Git state changes or upload.**
 To use the implemented real-upload path, set `"zero.uploadMode": "live"` in
@@ -237,16 +251,20 @@ other platforms and school environments still need trials.
 For a new repository, Upload changes once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
-1. Click **main → Start a change**, name your branch (for example `quiz-feedback`)
+1. Click **New branch** beside main, name your branch (for example `quiz-feedback`)
    and review before creating it. Upload pending edits first. Main is updated
    from GitHub when it can be advanced without combining separate histories.
 2. Edit and Run App. **Upload changes** saves and uploads progress to your branch;
    repeat as needed.
-3. Click the branch name → **Finish change**. Upload pending edits first, run the
+3. Click **Finish change** beside the branch name. Upload pending edits first, run the
    app and review before merging/uploading into main. If newer main code is added
    to your branch, Zero pauses: run the combined app and review Finish again.
 4. After confirmed success, you are back on main. Remove the finished local
    branch when prompted, or keep it; its GitHub branch remains.
+
+Older kits may use a profile icon and **Connect a repo**, with **Start a change**
+or **Finish change** in the branch-name menu. Their installed controls remain
+unchanged; the steps above describe the current editor.
 
 If an update conflicts, your work and merge state remain. In VS Code Source
 Control, inspect the conflicted files/Merge Editor, combine the intended changes,

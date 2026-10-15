@@ -59,7 +59,7 @@ removed the overview landing on 2026-10-13. The separate Download page offers
 **Download for Mac Silicon** above the Windows complete-kit ZIP/manual-setup action.
 Center the heading and stacked buttons within the available page area. Do not
 invent availability, offer an unpublished Windows EXE, add Linux support, or add
-instructions/version prose to the download controls. Release metadata remains
+long instructions to the download controls. Release metadata remains
 the authority for actual downloads.
 
 The editor adapts shared hierarchy and roles through VS Code theme variables and
@@ -119,3 +119,11 @@ separate Files tree below a native collapsible Zero controls view. Keep Run/Stop
 GitHub and ZeroHub together; collapsing Zero leaves Files accessible. Native
 Explorer remains available. Only simulation mode shows the static upload notice.
 Native themes, local-practice restrictions and existing command/review guards stay.
+
+## Flow audit fixes — owner request, 2026-10-14
+
+The owner requested all five audited issues fixed. Keep the centered Downloads
+stack with a concise setup link and metadata-derived platform/version requirements
+below it. Initial lesson projects link to setup and explain that their ZIP does
+not install Zero or Java. Share your work uses the existing shared theme wrapper
+and controls; this is no broader Hub redesign. Release bytes stay immutable.
