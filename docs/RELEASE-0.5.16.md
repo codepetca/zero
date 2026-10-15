@@ -44,12 +44,34 @@ live page; Download source project remains the exact immutable source version.
 ZeroHub does not store another compiled game. Local fixtures are acceptance tests,
 not public registry membership or an endorsement of a game's content.
 
+## Existing-project upgrade gate
+
+A general automatic update is not ready: published0.5.15 projects keep their
+older SimpleApp/SketchApp source when Zero updates, while0.5.16 Run App always
+uses the strict browser profile. Even the unchanged old starter's helper hashes
+are rejected. Updating the editor extension does not migrate those Java files.
+The managed update deliberately preserves student code; that protection remains.
+
+Before broad release, accept a clear compatibility/migration path and test an
+actual old15 project through update, Run and Publish with Main, student classes,
+resources and customized helpers preserved. New Start Project scaffolds already
+have the current seven helpers; that does not upgrade an existing project.
+
+An interim teacher workflow can use a backed-up project copy, retain customized
+helper originals, inspect changes and replace only known stock helpers from the
+new standalone starter, then verify native/browser behavior. This manual workflow
+has not been accepted as the student upgrade experience. Existing projects can
+use Zero: Run Native App (Diagnostic) while migration is planned; this does not
+add browser publishing support. Never silently overwrite student-owned helpers.
+
 ## Required before release
 
-1. **Review and integrate source.** Review the final candidate delta, authorize
+1. **Accept the existing-project upgrade path.** Complete the compatibility/
+   migration acceptance above before offering a general automatic update.
+2. **Review and integrate source.** Review the final candidate delta, authorize
    Zero's source PR/push/merge, and run the real final CI/preparation workflow on
    the selected source. A local SOURCE receipt is not a successful GitHub CI run.
-2. **Coordinate ZeroHub's game policy rollout.** The retained public kit settings
+3. **Coordinate ZeroHub's game policy rollout.** The retained public kit settings
    still pin `beaaca4efbbb7e9c6b0b258ef27e3bfff67c0b2e`, whose trusted publisher
    rejects the new web receipt. Do not ship this local candidate as Play-enabled.
    Select a separately reviewed, publicly available publisher source SHA; align
@@ -57,19 +79,19 @@ not public registry membership or an endorsement of a game's content.
    API/UI; authorize game publication; then accept a real linked game request and
    check its public Play action. Repackage/reseal with the agreed policy pin before
    release. Library candidate execution remains closed unless separately accepted.
-3. **Finish target-platform acceptance.** Test a fresh student's GitHub/workflow
+4. **Finish target-platform acceptance.** Test a fresh student's GitHub/workflow
    consent, Windows school policy/setup, classroom hardware/network and sound.
    The current native framework smoke check also needs a controlled Mac rerun:
    it timed out waiting for window focus at phase2, including with ARM JDK17;
    no assertion was weakened. Existing-session browser Mac tests do not establish
    these native-focus cases. Linux and Intel Macs
    are not supported student targets.
-4. **Prepare the Mac distribution.** Build from clean reviewed source with native
+5. **Prepare the Mac distribution.** Build from clean reviewed source with native
    build3, then separately authorize signing, notarization/stapling and payload/
    Gatekeeper verification. Seal the new DMG and signed update feed. A local
    unsigned development DMG is only a preview; published0.5.15 cannot represent
    the new helper/extension bytes. Preserve the existing signed feed until promotion.
-5. **Authorize exact publication.** Publish the CI-sealed kit/starter/VSIX and the
+6. **Authorize exact publication.** Publish the CI-sealed kit/starter/VSIX and the
    separately sealed Mac DMG; verify their public bytes; promote only verified
    manifest/download/feed metadata through its reviewed release flow. Never replace
    old assets or guess public download URLs. See [release procedure](RELEASING.md).
