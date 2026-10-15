@@ -1947,39 +1947,80 @@ code `c5db993` with no remaining findings; details and limits are in EVIDENCE.
 ## Browser-first local integration — 2026-10-15
 
 Local implementation, unreleased; no GitHub writes, authentication grants, push,
-deployment or ZeroHub activation. Three focused GPT6.1Sol/high workers implemented
-strict original-source attribution, owned browser Run and local-bundle deployment;
-coordinator integrated the shared snapshot/provenance checks and source-example
-repairs. Effective configuration/token attribution is unavailable. Source base
-cdf30b3; final revision/review receipt will be recorded after acceptance.
+deployment, installed Zero update or ZeroHub activation. Worktree branch
+codex/web-export from cdf30b3; implementation77bf2f9, remediationef98253 and4141f0b.
+Three focused GPT6.1Sol/high workers delivered strict original-source attribution,
+owned browser Run and deployment of local compiled output. Coordinator integrated
+snapshot/provenance contracts and example repairs. Effective configuration/token
+attribution unavailable; account weekly83% remaining and healthy342GB free at start
+are shared measurements, not task costs. DeepSeek automatic pilot remains paused.
 
-Verified local evidence so far: real isolated macOS VS Code Run built current
-Sky Hop with the strict gate; focused input/animation, actual HTML media progress,
-pause/reset/mute, restart/Stop/cancel and source Problems checks passed. Native
-QA exposed duplicate Problems and verbose sidebar errors; one pre-review batch
-fixed both and actual UI recheck passed. Fixture restored exactly. Receipt:
-`.verification/browser-run/native-acceptance.{json,md}`. Physical speaker output,
-Windows and remote editor tunnels remain unverified.
+Actual isolated macOS VS Code Run built current Sky Hop with the strict gate;
+focused input/animation, actual HTML media progress, pause/reset/mute, restart/Stop/
+cancel and source Problems checks passed. Duplicate Problems/verbose sidebar errors
+were fixed and rechecked in native UI. Fixture restored exactly; original game,
+root checkout and installed Zero preserved. Receipt:
+`.verification/browser-run/native-acceptance.{json,md}`. Owned isolated editor host
+closed after acceptance. Physical speaker output/Windows/remote tunnels untested.
 
-The real game build was copied byte-identically into a standalone local Git
-fixture: all27 build inputs bind to its commit, the validated snapshot was packed
-and extracted through the deployment format, and all68 app files remain exact
-(8,208,661bytes; transfer bundle7,280,686bytes). No remote calls. Receipt:
-`.verification/browser-first/publish-proof.json`. SHA/run/profile metadata is
-owner-supplied provenance, not a cryptographic compilation attestation.
+Freshd88e085 real-game proof binds all27 build inputs to standalone local fixture
+commit ab0a20bafee295b2834c1f5d09dd07f12948c44f. Build
+142d3bb2-ba59-41c9-a014-ac2ef910723e; profile
+44456edc83503915abd7e0ea224181d71d22dbc76575a87f3511bfb700eb163f.
+All68files remain byte-identical through deployment pack/extract:8,208,660 appbytes,
+7,280,673 transferbytes. Exact ZIP SHA
+ db8064185e67541d4f453908dd6d6d292ea6fa6fd2a3da236ca1640f248c28f0.
+Actual final Chrome smoke validates this same snapshot before/after:480x680canvas,
+Space/click/start,114drawcalls, actual music progress, Ppause/resume,Mmute/unmute,
+Rreset, synthetic restoration/blur/pagehide cleanup,0runtime errors. Screenshot
+inspected correct ready art. Browser/server/session closed. Evidence:
+`.verification/browser-first-final/game-{proof,browser-proof}.json` and
+`game-browser-{smoke.log,ready.png}`. Physical sound, real BFcache navigation and
+other platforms remain unmeasured. No remote writes; provenance is owner-supplied,
+not an unforgeable compilation attestation.
 
-All28 source-based maintained examples pass semantic attribution; two packaged
-starter-ui consumers remain explicitly dependency-blocked. Native/JSNI, reserved
-namespace, inherited member, reference, overload, unresolved symbol, source drift,
-helper tampering, wrapper and cache checksum tests cover rejection boundaries.
-Source example utility loadSound→loadEffect renames repair five conflicts with
-the existing final helper API; canonical helpers and original game unchanged.
+Verification: focused final ZIP13, semantic27positive/originalCSSnegative +var
+positive/negative2, adapter+engine23 and configuration checks pass. A full run was
+interrupted by actual Mac sleep17:33:05–17:43:55UTC (sysctl kernel timestamps),
+expiring two timers; both cases pass unchanged on retry27.4s. The final
+uninterrupted root run passes414/415tests with1PowerShell platform skip,
+0failures and0cancellations in318.3s. A process-scoped idle-sleep guard ended with
+the checks; no permanent power-setting change. Earlier inferredvar failure is
+corrected;27source examples
+pass and original external-CSS greeting explicitly fails before GWT. Sharing48/48
+and website104/104/typecheck/production build pass (production sources unchanged).
+All five fresh GWT builds pass;53Chrome checks pass after a test-only selector
+correction105877b (native input rather than duplicate textbox wrapper). Source/ZIP
+snapshots for all five fixtures revalidate against the current profile. Receipt:
+`.verification/browser-first-final/{browser-receipt,fixture-snapshots}.json`.
 
-Initial extension294/294 and targeted latest publisher41/bundle6/browser19 checks
-passed. Final sharing48/48 and website104/104, typecheck and production build pass.
-A broader root run exposed a stale design fixture (fixed) and resource-contention
-timeouts; root concurrency is now bounded and timed-out cases are being rerun.
-The final five-fixture GWT/browser matrix and independent fixed-revision review
-are still in progress; this entry is not final acceptance. Source-only preview
-VSIX was built locally, not installed or published. Detailed logs remain ignored
-under `.verification/browser-first*` and `.verification/browser-run/`.
+Review: high-risk initial two-reviewer wave (Astra/high compatibility/architecture,
+Sol/high security/publishing) accepted1P1/5P2. Batch1 adds independently pinned
+Maven distribution96-file verification, resolved resource type spans, destination
+revalidation, immutable ZIP bytes, linear base64 and final abort checking. Targeted
+Astra/high closed four findings; batch2 removes generated import shadowing student
+ResourceURL and rejects the exact live ZIP destination. Sol/medium targeted review
+confirms URL fix but reproduces directory/case aliases still overwriting a newer
+live archive. Four launches,1initial/2targeted waves,2fixbatches. Detailed reports,
+counts and unknown effective telemetry in `.verification/browser-first/`.
+
+Owner answered "Continue with the fix and review" at pr-review's recurrent-ZIP
+checkpoint. Batch3d88e085 canonicalizes destination paths and file identities,
+adds directory/case/hardlink regressions, preserves inferredvar semantic checking,
+and rejects the unsupported stylesheet API. Final Sol/high targeted review is
+clean; independently UI13 and semantic1 pass. Final test-selector correction
+received a clean proportional review. Total5launches,
+6review turns,1initial/4targeted waves,4fixbatches. Review covers current runtime
+code using initial unchanged
+coverage plus all four targeted deltas; no extra integration-review gap identified. Last
+review completed before17:55:51UTC within the original60min window; effective telemetry and
+per-turn tokens unavailable. No further source change is planned.
+
+Preview VSIX352,618bytes/82entries includes72source files matchingd88e085 exactly;
+SHA6529165c52ebd31511957157800efc541ad42a831395c2836ea0e9dc91195b42.
+No JAR/classes/build output/node_modules included. Local/uninstalled/unpublished;
+package receipt `.verification/browser-first-final/package-receipt.json`. Local
+integration is accepted at105877b (runtime unchanged from reviewedd88e085);
+root/GWT/browser/game/immutable deployment checks pass. Detailed local receipt:
+`.verification/browser-first-final/acceptance.json`. Separate live
+publication and ZeroHub checker acceptance/activation holds remain in force.

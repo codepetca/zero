@@ -48,21 +48,32 @@ Only seven helpers at exact reviewed paths/hashes receive trusted adapters; a
 package name is not an exemption. Keep ordinary JavaFX control names and explicit
 object updates. Ordinary class-resource lookup is supported in
 `Main.class.getResource(...)` and `getClass().getResource(...)`; unrelated
-reflection remains unavailable. Source adapters operate on temporary copies.
+reflection remains unavailable. Resource URL types are resolved before adaptation,
+including fields, parameters and return values shared between Java files. Source
+adapters operate on temporary copies.
 Canonical framework sources and the original game remain unchanged.
 
 JavaFX dependencies use the reviewed pinned version; arbitrary libraries, inherited
 POM dependencies/profiles/BOMs and unapproved API members are rejected. Attribution
-jars and wrapper/properties are hash-checked. Compilation executes frozen reviewed
-wrapper copies with generated build settings, not project Maven hooks. The checksum
+jars and wrapper/properties are hash-checked. A pinned Maven distribution ZIP is
+verified before installation; its complete reviewed 96-file inventory is checked
+before and after compilation, including cached launchers and libraries. Compilation
+executes frozen reviewed wrapper copies with generated build settings, not project
+Maven hooks. The checksum
 catalogue verifies present compiler/runtime Maven jar/POM bytes before and after
 compilation; extra catalogue entries do not approve application dependencies or
 require downloading that entire catalogue. The real pinned GWT compilation remains
 mandatory after semantic checks. Successful output contains a compatibility receipt.
 
-The maintained source-based examples pass attribution; the two packaged examples
-using the separate starter-ui JAR remain outside this dependency profile. Their
-source-composed counterparts stay available. This is an approved teaching subset,
+The source-based examples use the reviewed teaching subset. The maintained
+external-stylesheet greeting is outside the browser profile: the pinned WebFX
+Parent has no getStylesheets() API, so attribution rejects it with its original
+source position before compilation. Its Java and CSS remain unchanged for native
+use. The two packaged examples using the separate starter-ui JAR also remain
+outside this dependency profile; their source-composed counterparts stay available.
+WebFX uses browser CSS rather than emulating JavaFX CSS; see its
+[documentation](https://docs.webfx.dev/). No stylesheet shim or silent styling
+removal is introduced. This is an approved teaching subset,
 not all Java/JavaFX. New APIs require explicit contract review and positive/negative
 coverage, actual WebFX compilation and browser behavior checks. No per-control
 wrapper language or second transpiler is introduced.
@@ -123,7 +134,7 @@ previous successful export.
 
 `npm run check` enforces the reviewed helper inventory and adapter fingerprints.
 `npm run verify:web` performs real WebFX/GWT compilation of the helper fixture,
-quiz/shared score component, drawing, dedicated audio and styled greeting fixtures, then checks interaction in
+quiz/shared score component, drawing, dedicated audio and resource/control greeting fixtures, then checks interaction in
 Chrome. The pull-request workflow runs those same checks. New framework methods
 need corresponding fixture coverage; new or changed adapter-sensitive helpers
 must be reviewed before their profile fingerprints are updated. Publishing requires a validated local compiler result; the PR workflow exposes the separate
