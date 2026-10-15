@@ -1,5 +1,53 @@
 # Delivery evidence index
 
+## Automatic updater0.5.15 — verified publication metadata, 2026-10-14
+
+Source [PR62](https://github.com/codepetca/zero/pull/62) merged
+8de180b1324a1087654bb926f1f04dda60b2615d after reviewed06c2e0a and
+[CI38670662418](https://github.com/codepetca/zero/actions/runs/38670662418) success.
+Main PR63/64 guide/published-kit14 changes were integrated. One integration P2
+(stale exact kit10 fallback test) was fixed and independently rechecked against
+all three anonymous kit14 downloads. Total source/artifact review7launches,
+1initialwave,2targetedwaves,1integrationwave,2fixbatches; no unresolved finding.
+The final requested Sol/high review completed its measured evidence phase82sec;
+effective configurations/tokens remain unknown. Prior two source and two artifact
+scopes were reused only after changed-boundary checks. Review finished before
+02:46:24UTC60min deadline. Coordinator also rebuilt a dirty-receipt intermediate
+candidate from clean source; it was never sealed/published. Old sealed candidate
+6809d99 retained unchanged; no public bytes overwritten.
+
+Manual signed/notarized fixture `.verification/updater-live-5h2ZG5/receipt.json`
+passed final build3, exact replacement, unchanged sentinels, surviving dummy editor,
+and no relaunch. PriorYHuTKs failure was an observation artifact: Cua AX reads
+reopened a closed app, reproduced with exact process evidence; repeat used global
+inventory/process evidence after the final click. No native workaround was added.
+Automatic e5UzgR/negative/runtime receipts and native293 tests remain applicable.
+95website tests, typecheck and production build passed after integration.
+
+Fresh production build06c2e0a2aa9cf129d2ed1f14e68b5a51aa9d9c92;
+preparation/tagtargete5b566e91c36eb77aa464ae958de160fb699b9b4, sealed
+`dist/candidates/mac-0.5.15-e5b566e91c36/`13files. Apple Accepted
+ d25332c4-278d-4b08-9151-a457c0112bdc for1918708bytes submitted
+SHA3474d88054d8c9683ce6e5f6eee2318c0d8a21725748d7d003aa1ff6370808d1.
+Final stapled DMG1920629bytes SHA
+`0e8c29d37926a6fae98c1651cd621edc6d358024d1840acf0089c31aea2302e9`.
+Feed1177bytes SHA`ac1622e1ca099c0a8691643602a3a29264c03d579cd99bdec56958779aa05145`.
+Final independent artifact review verified13checksummedfiles,38protectedsourcepaths,
+12arch signatures/13AppleCDHashes,157kitfiles/modes, canonical README, same pinned
+framework/resources/license and independent Ed25519 archive/full-feed checks.
+Receipt `.verification/updater-final-delta-review.json`; mounts detached. DMG-only
+staple; app and DMG Gatekeeper accepted. Actual buffers/Java/managed/Intel12 remain
+unverified; no expanded platform support claimed.
+
+[setup-v0.5.15](https://github.com/codepetca/zero/releases/tag/setup-v0.5.15)
+published one DMG, latest=false, exact tag target verified. Draft download and
+anonymous publicHTTP200 exact size/SHA/Ed matched sealed candidate before metadata
+promotion; proof `.verification/release-0.5.15-synced/public-proof.json`.
+This metadata copies exact sealed signed XML and only promotes feed/installer
+publication status plus verified asset URL. Kit15 stays local; published Windows
+kit14 was anonymously rehashed and retained. Next: separate metadata review/CI,
+merge and actual production download/feed verification. Primary checkout untouched.
+
 ## Automatic Mac updater — implementation and sealed candidate, 2026-10-14
 
 Owner approved the researched plan with “Do it.” Source [draft PR62](https://github.com/codepetca/zero/pull/62)

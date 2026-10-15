@@ -1,5 +1,18 @@
 # Verification
 
+## Mac updater0.5.15 release acceptance — 2026-10-14
+
+[Delivery evidence](EVIDENCE.md) records merged sourcePR62, successful exact-head
+CI38670662418,7independent source/artifact review launches and2batched fixes.
+Signed/notarized automatic and manual isolated A→B upgrades passed without
+relaunch; sentinels/dummy editor survived. Fresh1920629-byte production DMG
+SHA0e8c29d37926a6fae98c1651cd621edc6d358024d1840acf0089c31aea2302e9
+passed exact source/kit/framework/signature/notary/staple/Gatekeeper/Ed checks.
+Published one immutable setup-v0.5.15 DMG; draft/public downloads matched sealed
+bytes.95website tests/type/build passed; native293/root263+1skip and currentCI
+checks apply. Metadata/feed promotion and production verification follow next.
+Actual unsaved buffers/Java, managed/fresh classroom/Intel/macOS12 remain untested.
+
 ## Mac automatic-update candidate — 2026-10-14
 
 Reviewed source284ec1a and sealed preparation6809d99; [delivery evidence](EVIDENCE.md)
