@@ -35,6 +35,21 @@ private final class FakeRunner: SetupCommandRunning {
     func finish() { let completion = pending; pending = nil; completion?(result) }
 }
 
+private final class FakeUpdatePreferences: UpdatePreferences {
+    let defaults: UserDefaults
+    var writes = 0
+    init(defaults: UserDefaults) { self.defaults = defaults }
+    var automaticallyChecksForUpdates: Bool {
+        get { defaults.object(forKey: "checks") as? Bool ?? true }
+        set { writes += 1; defaults.set(newValue, forKey: "checks") }
+    }
+    var automaticallyDownloadsUpdates: Bool {
+        get { defaults.object(forKey: "downloads") as? Bool ?? true }
+        set { writes += 1; defaults.set(newValue, forKey: "downloads") }
+    }
+    var allowsAutomaticUpdates: Bool { automaticallyChecksForUpdates }
+}
+
 @main
 struct SetupTests {
     static let manager = FileManager.default
@@ -67,6 +82,94 @@ struct SetupTests {
             try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: root.appendingPathComponent(member).path)
         }
         return SetupKit(root: root)
+    }
+
+    static func updaterTests(app: NSApplication, kit: SetupKit, home: URL) throws {
+        for request in [NativeUpdateRequest.check, .settings] {
+            try expect(NativeUpdateRequest(url: URL(string: request.rawValue)!) == request, "fixed update request accepted")
+        }
+        for value in ["zero-updates://check/", "zero-updates://check?feed=https://evil.example", "zero-updates://check#x", "zero-updates://settings/path", "zero-updates://user@check", "zero-updates://check:1", "zero-updates://CHECK", "zero-updates://%63heck", "https://check", "zero-updates://other"] {
+            try expect(NativeUpdateRequest(url: URL(string: value)!) == nil, "request cannot carry unreviewed inputs: \(value)")
+        }
+        var info: [String: Any] = ["CFBundleIdentifier": "ca.codepet.zero", "ZeroDevelopmentBuild": false, "SUFeedURL": "https://zero.codepet.ca/updates/macos/appcast.xml", "SUPublicEDKey": Data(repeating: 1, count: 32).base64EncodedString()]
+        try expect(UpdateConfiguration(info: info).eligible, "production updater configuration eligible")
+        info["ZeroDevelopmentBuild"] = true
+        try expect(!UpdateConfiguration(info: info).eligible, "development app cannot start updater")
+        info["ZeroDevelopmentBuild"] = false; info["CFBundleIdentifier"] = "ca.codepet.zero.update-test"
+        try expect(!UpdateConfiguration(info: info).eligible, "normal compilation rejects fixture identity")
+        info["CFBundleIdentifier"] = "ca.codepet.zero"; info["SUFeedURL"] = "https://evil.example/feed"
+        try expect(!UpdateConfiguration(info: info).eligible, "production feed cannot be redirected by request configuration")
+        info["SUFeedURL"] = "https://zero.codepet.ca/updates/macos/appcast.xml"; info["SUPublicEDKey"] = "invalid"
+        try expect(!UpdateConfiguration(info: info).eligible, "missing or invalid update key disables updater")
+        let now = Date(timeIntervalSince1970: 100000)
+        try expect(!UpdateLifecycle.checkIsDue(enabled: false, lastCheck: nil, interval: 86400, now: now), "disabled auto checks never forced")
+        try expect(UpdateLifecycle.checkIsDue(enabled: true, lastCheck: nil, interval: 86400, now: now), "first enabled launch checks")
+        try expect(!UpdateLifecycle.checkIsDue(enabled: true, lastCheck: now.addingTimeInterval(-86399), interval: 86400, now: now), "daily check not forced early")
+        try expect(UpdateLifecycle.checkIsDue(enabled: true, lastCheck: now.addingTimeInterval(-86400), interval: 86400, now: now), "daily due boundary")
+        var policy = UpdateLifecycle(); policy.handedOff(now: 10)
+        try expect(!policy.shouldTerminate(now: 129.9, helperActive: false) && policy.shouldTerminate(now: 130, helperActive: false), "unattended budget expires after 120 seconds")
+        policy.handedOff(now: 100)
+        try expect(policy.deadline == 130, "reopens do not extend unattended work budget")
+        try expect(!policy.shouldTerminate(now: 200, helperActive: true), "deadline protects active setup helper")
+        policy.launching = true
+        try expect(!policy.shouldTerminate(now: 200, helperActive: false), "reopen launch protects setup before helper begins")
+        policy.launching = false; policy.updateUI = true
+        try expect(!policy.shouldTerminate(now: 200, helperActive: false), "deadline preserves visible update offer")
+        policy.updateUI = false; policy.modalUI = true
+        try expect(!policy.shouldTerminate(now: 200, helperActive: false), "deadline preserves modal authorization or result")
+        policy.modalUI = false; policy.installationCommitted = true; policy.cycleFinished = true
+        try expect(!policy.shouldTerminate(now: 200, helperActive: false) && !policy.mayBeginSetup, "cycle completion cannot interrupt committed installation or start new setup")
+        policy.installationCommitted = false; policy.installOnQuit = true
+        try expect(policy.shouldTerminate(now: 20, helperActive: false), "verified install-on-quit exits promptly")
+        try expect(!policy.commitTermination(helperActive: true) && policy.mayBeginSetup, "helper blocks atomic termination commit")
+        try expect(policy.commitTermination(helperActive: false) && !policy.mayBeginSetup, "termination commit prevents all later setup")
+        var manual = UpdateLifecycle(); manual.manualCheck = true; manual.updateUI = true; manual.cycleFinished = true
+        try expect(!manual.shouldTerminate(now: 100000, helperActive: false), "manual no-update result survives until dismissal")
+        var prepared = manual; prepared.installationCommitted = true; prepared.terminationDeferred = true
+        try expect(!prepared.shouldTerminate(now: 100000, helperActive: true) && !prepared.mayBeginSetup, "prepared manual installation freezes new helpers and waits for current helper")
+        try expect(prepared.shouldTerminate(now: 100000, helperActive: false), "prepared manual installation quits without invoking a relaunch handler")
+        prepared.modalUI = true
+        try expect(!prepared.shouldTerminate(now: 100000, helperActive: false), "deferred installation never dismisses modal authorization")
+        manual.updateUI = false
+        try expect(manual.shouldTerminate(now: 100000, helperActive: false), "manual result dismissal permits exit")
+        var settings = UpdateLifecycle(); settings.settingsVisible = true; settings.cycleFinished = true
+        try expect(!settings.shouldTerminate(now: 100000, helperActive: false), "settings remains open without setup")
+        settings.settingsVisible = false
+        try expect(settings.shouldTerminate(now: 100000, helperActive: false), "settings closure ends idle explicit session")
+        let suite = "ca.codepet.zero.updater-tests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = FakeUpdatePreferences(defaults: defaults)
+        preferences.automaticallyChecksForUpdates = false; preferences.automaticallyDownloadsUpdates = false
+        let writes = preferences.writes
+        let settingsWindow = UpdateSettingsWindow(preferences: preferences)
+        try expect(preferences.writes == writes, "opening settings never overwrites persisted user choice")
+        let stack = settingsWindow.window!.contentView!.subviews.compactMap { $0 as? NSStackView }.first!
+        let boxes = stack.arrangedSubviews.compactMap { $0 as? NSButton }
+        try expect(boxes.count == 2 && boxes[0].state == .off && boxes[1].state == .off && !boxes[1].isEnabled, "settings reflects both saved updater preferences")
+        boxes[0].performClick(nil); boxes[1].performClick(nil)
+        let reloaded = FakeUpdatePreferences(defaults: defaults)
+        try expect(reloaded.automaticallyChecksForUpdates && reloaded.automaticallyDownloadsUpdates, "checkbox changes persist through updater preference adapter")
+        settingsWindow.close()
+        let blockedRunner = FakeRunner(); let blocked = SetupController(kit: kit, runner: blockedRunner, home: home)
+        blocked.mayBeginWork = { false }
+        blocked.launch(); blocked.check(); blocked.primaryAction(); blocked.place(parent: home, name: "Must not exist")
+        try expect(blockedRunner.commands.isEmpty && !blocked.busy && !manager.fileExists(atPath: home.appendingPathComponent("Must not exist").path), "committed updater blocks every public setup entry")
+        for early in [true, false] {
+            let delegate = SetupApplication(arguments: ["Zero", "--update-request"])
+            var launches = 0; var requests: [NativeUpdateRequest] = []
+            delegate.launchForTesting = { launches += 1 }; delegate.handleRequestForTesting = { requests.append($0) }
+            if early { delegate.application(app, open: [URL(string: NativeUpdateRequest.settings.rawValue)!]) }
+            delegate.applicationDidFinishLaunching(Notification(name: NSApplication.didFinishLaunchingNotification))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            if !early { delegate.application(app, open: [URL(string: NativeUpdateRequest.settings.rawValue)!]) }
+            try expect(launches == 0 && requests == [.settings], "cold URL skips setup regardless of AppleEvent ordering")
+            delegate.application(app, open: [URL(string: NativeUpdateRequest.check.rawValue)!])
+            try expect(launches == 0 && requests == [.settings, .check], "running process accepts explicit request without setup")
+            delegate.application(app, open: [URL(string: "zero-updates://check?feed=evil")!])
+            delegate.application(app, open: [URL(string: NativeUpdateRequest.check.rawValue)!, URL(string: NativeUpdateRequest.settings.rawValue)!])
+            try expect(requests == [.settings, .check], "malformed and mixed running events have no effects")
+        }
     }
 
     static func main() throws {
@@ -240,6 +343,7 @@ struct SetupTests {
         try expect(defaultController.busy && !defaultController.mayExit(), "update gates close")
         try pump(until: { !defaultController.busy })
         try expect(defaultController.stage == .opened && defaultController.selectedFolder == existing, "automatic update rechecks fixed kit")
+        try expect(defaultFake.commands.last?.arguments.last == "--native-resume", "recognized kit refresh resumes saved editor session")
         try expect(defaultController.diagnostics.contains("Previous setup backup:"), "diagnostics record permanent backup location")
         try expect(try String(contentsOf: existing.appendingPathComponent("setup/README.md"), encoding: .utf8) == "fixture setup/README.md\n", "old setup refreshed from bundle")
         for name in preserved {
@@ -479,6 +583,7 @@ struct SetupTests {
         let updatedRunner = FakeRunner(); let updatedController = SetupController(kit: kit, runner: updatedRunner, home: appHome)
         updatedController.launch(); try pump(until: { !updatedController.busy })
         try expect(updatedController.stage == .opened && updatedRunner.commands.contains { $0.arguments.contains("--native-install") }, "changed owned runtime is updated before opening")
+        try expect(updatedRunner.commands.last?.arguments.last == "--native-resume", "recognized older runtime resumes after migration")
         try expect(try String(contentsOf: appKit.appendingPathComponent("starter/Main.java")) == "my study project", "setup refresh keeps student project")
         try expect(try manager.contentsOfDirectory(atPath: appHome.path).filter { $0.hasPrefix(".zero-setup-backup-") }.count == 1, "only actual setup-file refresh creates a backup")
         let refusedAppHome = temporary.appendingPathComponent("unrelated app launch home")
@@ -562,8 +667,12 @@ struct SetupTests {
         try rejected("concurrent initial settings creation") { try runtime.seedSettings(selected) }
         runtime.testBeforeExchange = nil
         try expect(try String(contentsOf: settings) == "student concurrent settings", "exclusive settings publication preserves concurrent student settings")
+        let oldPinSettings = try JSONSerialization.data(withJSONObject: ["java.configuration.runtimes": [["name": "JavaSE-21", "path": selected.path]], "student.setting": true], options: [.sortedKeys])
+        try oldPinSettings.write(to: settings)
         try manifest(String(repeating: "b", count: 64))
         var badHash = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)
+        try badHash.seedSettings(badHash.jdk.appendingPathComponent("jdk/Home"))
+        try expect(try Data(contentsOf: settings) == oldPinSettings && manager.fileExists(atPath: selected.path), "changed Java digest preserves existing settings bytes and referenced old JDK")
         badHash.testDownload = { target, _ in try manager.copyItem(at: archive, to: target) }
         try rejected("checksum mismatch") { try badHash.install("jdk") }
         try expect(!manager.fileExists(atPath: badHash.jdk.path), "unverified download never installed")
@@ -594,6 +703,7 @@ struct SetupTests {
         try manager.removeItem(at: launcher)
         try runtime.launcher(cli: URL(fileURLWithPath: "/fake editor/code"), java: selected)
         let generated = try String(contentsOf: launcher)
+        try expect(generated.contains("--new-window") && generated.contains(runtimeKit.root.appendingPathComponent("starter").path), "standalone fallback deliberately continues opening starter in new window")
         try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME="), "standalone launcher preserves private editor and Java after DMG closes")
         try manager.removeItem(at: launcher)
         runtime.testBeforeExchange = { try "student newly created launcher".write(to: launcher, atomically: true, encoding: .utf8) }
@@ -644,6 +754,7 @@ struct SetupTests {
 
         let app = NSApplication.shared
         app.setActivationPolicy(.prohibited)
+        try updaterTests(app: app, kit: kit, home: temporary)
         let pausedRunner = FakeRunner()
         pausedRunner.paused = true
         let pausedController = SetupController(kit: kit, runner: pausedRunner, home: parent)
@@ -665,7 +776,7 @@ struct SetupTests {
         pausedRunner.finish()
         try pump(until: { pausedRunner.pending != nil })
         pausedRunner.finish()
-        try expect(!pausedController.mayExit() && pausedRunner.commands.last?.arguments.last == "--native-open", "shutdown stays gated during automatic opening")
+        try expect(!pausedController.mayExit() && pausedRunner.commands.last?.arguments.last == "--native-resume", "shutdown stays gated during recognized-kit session opening")
         pausedRunner.finish()
         try expect(pausedController.mayExit() && pausedWindow.windowShouldClose(pausedWindow.window!) && delegate.applicationShouldTerminate(app) == .terminateNow, "copy, configure, recheck and automatic open release shutdown after completion")
         let handoffHome = temporary.appendingPathComponent("application delegate home")

@@ -209,6 +209,13 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
   removed from this Mac flow. Later editor choices and all student projects stay
   intact. Zero.app returns to this configured editor; ordinary VS Code
   profiles and Windows/ZIP setup remain separate.
+  New Mac source from0.5.15 includes a signed automatic updater. After editor
+  handoff, Zero checks when due and replaces only its app on quit; it does not
+  terminate VS Code. Kit support prepares on the next launch, preserving the
+  last project. Manual checks/settings are available in the Mac app menu and
+  Command Palette. Existing0.5.14 needs one manual replacement to gain updating;
+  school policies may still require administrator approval. A loaded extension
+  may require a student-chosen editor reload; no forced reload is performed.
   Signed/notarized Mac0.5.14 is published; Windows remains a local unsigned
   development build. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts

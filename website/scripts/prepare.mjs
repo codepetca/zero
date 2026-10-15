@@ -13,6 +13,7 @@ import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
 import { prepareExampleProjects } from "../lib/example-projects.mjs";
+import { loadUpdateFeed } from "../lib/update-feed.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -102,13 +103,14 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
+const updateFeed=await loadUpdateFeed(root,release,installer);
 await mkdir(resolve(site, ".generated"), { recursive: true });
 await prepareDesign({ website: true, extension: false });
 prepareLessonProjects(root, { website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, publishedKit, installer, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, publishedKit, installer, updateFeed, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

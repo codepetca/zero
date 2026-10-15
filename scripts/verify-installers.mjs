@@ -7,6 +7,7 @@ import {root, releaseDefinition} from './release.mjs';
 import {kitEntries} from './installer-payload.mjs';
 import {macArtifactIdentity} from './mac-artifact.mjs';
 import {verifyMacVolume, verifyMacPlist} from './mac-volume.mjs';
+import {readMacUpdaterConfig, updaterEnabledForVersion, acquireSparkle, verifySparkleFramework, updaterReceipt, verifyUpdaterAppLayout} from './mac-updater.mjs';
 import {installerOptions, verifyMacSignature} from './installer-signing.mjs';
 
 const {platform, signed} = installerOptions(process.argv.slice(2), 'verify');
@@ -53,12 +54,30 @@ for (const asset of receipt.artifacts) {
     const app = verifyMacVolume(mount, artifactIdentity, signed);
     const contents = path.join(app, 'Contents');
     const plist = JSON.parse(run('/usr/bin/plutil', ['-convert', 'json', '-o', '-', path.join(contents, 'Info.plist')]));
-    verifyMacPlist(plist, artifactIdentity, release.kitVersion, signed, contents);
+    const updater = updaterEnabledForVersion(release.kitVersion) ? readMacUpdaterConfig(root) : undefined;
+    verifyMacPlist(plist, artifactIdentity, release.kitVersion, signed, contents, updater);
+    if (updater) {
+      verifyUpdaterAppLayout(contents);
+      const distribution = acquireSparkle(command, root, updater);
+      const scratch = mkdtempSync(path.join(root, '.verification/native-installer/updater-'));
+      try {
+        assert.deepEqual(readFileSync(path.join(contents,'Resources/Sparkle-LICENSE.txt')),readFileSync(path.join(distribution.directory,'LICENSE')), 'Pinned Sparkle license');
+        const framework = verifySparkleFramework(command,path.join(contents,'Frameworks/Sparkle.framework'),updater,{sourceFramework:distribution.framework, ...(signed ? {identity:asset.signing?.identitySha1,team:asset.signing?.teamIdentifier,scratchPrefix:path.join(scratch,'cert')} : {})});
+        assert.deepEqual(asset.updater,updaterReceipt(updater,distribution,framework));
+        for (const architecture of ['arm64','x86_64']) {
+          const linkage = run('/usr/bin/otool',['-arch',architecture,'-L',path.join(contents,'MacOS/ZeroSetup')]);
+          assert.match(linkage, /@rpath\/Sparkle\.framework\/Versions\/B\/Sparkle/);
+          const loadCommands = run('/usr/bin/otool',['-arch',architecture,'-l',path.join(contents,'MacOS/ZeroSetup')]);
+          assert.match(loadCommands,/path @executable_path\/\.\.\/Frameworks \(offset/);
+        }
+      } finally { rmSync(distribution.directory,{recursive:true,force:true}); rmSync(scratch,{recursive:true,force:true}); }
+    } else assert.equal(asset.updater,undefined, 'Historical artifact has no updater contract');
     assert.deepEqual(asset.architectures, ['arm64', 'x86_64']);
     assert.equal(asset.minimumOS, '12.0');
     assert.equal(plist.LSMinimumSystemVersion, '12.0');
     assert.ok(lstatSync(path.join(contents, 'MacOS/ZeroSetup')).mode & 0o111, 'Native app launcher must be executable');
     for (const arch of ['arm64', 'x86_64']) run('/usr/bin/lipo', [path.join(contents, 'MacOS/ZeroSetup'), '-verify_arch', arch]);
+    if (updater) assert.deepEqual(run('/usr/bin/lipo',['-archs',path.join(contents,'MacOS/ZeroSetup')]).trim().split(/\s+/).sort(),['arm64','x86_64']);
     const payload = path.join(contents, 'Resources/kit'), found = [];
     function walk(folder, prefix = '') {
       for (const name of readdirSync(folder)) {
