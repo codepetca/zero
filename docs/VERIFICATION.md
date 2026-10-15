@@ -2024,3 +2024,58 @@ integration is accepted at105877b (runtime unchanged from reviewedd88e085);
 root/GWT/browser/game/immutable deployment checks pass. Detailed local receipt:
 `.verification/browser-first-final/acceptance.json`. Separate live
 publication and ZeroHub checker acceptance/activation holds remain in force.
+
+
+## Installed preview student workflow — 2026-10-15
+
+Runtime c7f7bba fixes GWT output paths in the normal installed macOS cache containing
+spaces. The pinned plugin incorrectly quoted absolute paths even though Maven
+reported success; final relative output/work/deploy arguments correct the result.
+15 focused tests, npm check, a real spaced-project/cache GWT regression and clean
+independent Sol/high review pass. Review/session receipt:
+`.verification/student-workflow/{review-ledger.json,review-path-fix.md}`. Previous
+full414-pass/1-platform-skip and browser/deployment acceptance remains evidence
+for unaffected code; those full suites were not repeated for this two-file fix.
+
+Corrected preview0.5.15 is installed into the actual managed Zero profile. The
+352835-byte VSIX has SHA256
+`0b0c38552e2243d7028029e89505ecd229149c3358407212fe5b9c712135b562`;
+all72 installed/current source files match its payload. Original0.5.14 retained
+for rollback. Use `.verification/student-workflow/zero-browser-first-preview-fixed.vsix`;
+the earlier `.verification/browser-first-final` VSIX is superseded.
+
+Native macOS tests used the installed extension (no development-extension override)
+and managed profile in the owned Code QA host; final observed editor release
+notes1.142.0. Greeting project creation/ordinary Java edits/download cancel-resume/
+Run/input/button/reset/Stop pass. Unsupported Runtime code reports exact Problems
+before GWT; restored source clears Problems and reuses output. Export and native
+Save ZIP cancellation/success pass. Saved ZIP SHA256
+`4b5d3180e1ede91e2d0d28316b56c062f8e038ee6d94410a964b77f3ab08e54d`
+exactly matches validated build1472c3fe-ca82-468f-a12c-bdd49b43b938.
+
+Installed Sky Hop compiles and displays ready art; click/Space start, P pause,
+R restart and Stop/server shutdown pass. Current snapshot
+95dc6665-5860-4674-a5cd-50fcd04a7c7c validates68files/8208661 appbytes/
+7009264 ZIPbytes against profile
+`e95aef9311ffb292eb2f64807dfe03fa64af47ab21c1eab6863dd6ca59f3b0b6`.
+Fixture clone initially omitted untracked zero.json; native Run reported that
+correctly, and copying original config into the owned fixture enabled Run.
+Physical audio/mute state was not independently measured in this phase.
+
+Existing VS Code GitHub session armorup reached real account/repository/main
+preflight and publishing setup review. Five setup files were prepared locally.
+Upload Changes reached its final review listing the correct account, repository,
+branch and five paths; **Commit & Upload canceled**. No index entries or local
+commit were created. Local/remote main remain
+c2525affd138cac991e4483ed6a8b7bdee161767. Setup files remain untracked. The external
+workspace was restored to simulation and sidebar visibly confirms that mode.
+The older remote source has different helper bodies; it was only the setup/review
+fixture, not a claimed current strict-profile compilation success.
+
+Full receipts: `.verification/student-workflow/{acceptance.json,install-receipt.json,fixed-package-receipt.json}`.
+Owned fixtures remain in `~/Zero Preview Testing`; original game, root checkout
+and default user Code window preserved. Actual upload/Pages/release asset/workflow
+/deployment/public-link testing, first-time OAuth, Windows/Linux/classroom hardware
+and physical sound remain untested. No live publication or agent account grant;
+separate ZeroHub checker activation hold persists. Local installed phase accepted;
+overall live goal remains incomplete.
