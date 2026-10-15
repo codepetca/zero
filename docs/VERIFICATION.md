@@ -1,6 +1,6 @@
 # Verification
 
-## Five flow audit fixes — local, 2026-10-14
+## Five flow audit fixes — source published, 2026-10-14
 
 Isolated worktree `fix-five-flow-issues/zero` starts at published `437ae7c`.
 Downloads and initial lessons link to setup; platform/version notes derive from
@@ -25,6 +25,20 @@ screen-reader checks remain unverified. Independent GPT6Luna/medium review
 callers: clean,0findings. One initial wave/launch,0review corrections; reviewer
 time/tokens unavailable. Later commit updates completion receipts only, inspected
 by coordinator; implementation/reviewed source is unchanged.
+
+## Kit artifact correction — 2026-10-14
+
+SourcePR61 merged4780582 after CI38666028280; affected live website navigation,
+setup copy, tutorial section target and sharing theme verified, including320px.
+Kit manual preparation38666802185 at4780582 passed all checks. Coordinator
+checksums,verifyReviewAssets and verify:kit passed; extracted Maven build included.
+Sol/medium artifact review independently checked all145starter members across
+ZIPs, embeddedVSIX/source/license/mode parity and excluded state. It found the
+starter README’s first-setup paragraph still named the old Mac command launcher.
+Corrected to reopening Zero.app from Applications/Dock, retaining explicit
+older-kit guidance. Candidate not published; its original sealed bytes retained.
+Ledger:1artifact initial wave/launch,1accepted finding,1correction batch;
+reviewer time/tokens unknown. Targeted review and new reviewed candidate next.
 
 ## Calm Windows setup — local 0.5.6, 2026-10-11
 

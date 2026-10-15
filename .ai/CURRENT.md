@@ -78,3 +78,7 @@ All five fixes locally complete; source commitb059fef, review receipt inVERIFICA
 No tool-backed goal, push/PR/merge/deploy, rebuilt immutable kit or account changes.
 Native/physicalWindows/upload/Pika/screen-reader coverage limits remain.
 Previous centeredDMG release state remains on published origin/main437ae7c.
+
+Main now includes PR63 starter reopening guide and PR64 published kit14. Preserve
+the verified Windows/kit14 fallback while kit15 stays local. Manual testYHuTKs
+installedB but relaunchedinto setup: acceptance failed; fix before release.
