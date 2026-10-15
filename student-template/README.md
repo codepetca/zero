@@ -22,9 +22,11 @@ Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
 native Windows EXE is not published. Physical Windows/classroom verification
 remains pending, so the support target is not a claim of completed testing.
 
-If you used **Download for Mac**, setup already prepares the Zero editor and
-Java tools. Use **Open Zero.command** in your Zero folder to return to that
-editor. The manual steps below are for the ZIP downloads.
+If you used the current **Download for Mac**, open the DMG and drag **Zero.app**
+into **Applications**, then open Zero to prepare the editor and Java tools.
+Later, reopen **Zero** from Applications or the Dock to return to your saved
+editor session. Older Mac kits may use **Open Zero.command** in the Zero folder;
+follow the guide bundled with that version. The manual steps below are for ZIP downloads.
 
 If your **complete kit** includes a `setup/` folder, use its `setup/Setup.cmd` (Windows) or
 `setup/Setup.command` (Mac with Apple Silicon) to check tools and

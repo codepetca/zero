@@ -1,20 +1,18 @@
-# Current state — five flow audit fixes, 2026-10-14
+# Current state — flow fixes published; kit correction pending
 
-Owner requested all five audited issues fixed. Isolated worktree
-`/Users/stew/.codex/worktrees/fix-five-flow-issues/zero`, base origin/main437ae7c.
-Coordinator owns website/docs edits; original funding checkout and other tasks
-are untouched. Five fixes implemented: setup bridge, current sidebar/installer
-instructions, bundled identity recovery, tutorial9 section link and shared
-sharing theme. No release bytes or Git/auth behavior changes.
+Owner authorized publication with Go on2026-10-14. Flow sourcePR61 merged
+47805820b1b650e60f9b171d8e3afde1da22c635 after fullCI38666028280 passed.
+Live setup links, current Finish instructions, tutorial9 anchor and sharing
+light/dark continuity verified;320px mobile navigation/reflow pass.
 
-Configuration/links,94website tests, typecheck/build and affected live-preview
-interactions pass, including320px reflow and light/dark. Evidence:
-[VERIFICATION](../docs/VERIFICATION.md), ignored `.verification/flow-fixes/`.
-Weekly63%remaining; storage healthy~312GB. DeepSeek remains paused.
-Independent GPT6Luna/medium review clean for complete437ae7c→b059fef diff;
-1launch,1initialwave,0reviewfixes, no unresolved findings. Reviewer elapsed/tokens
-unknown; coordinator implemented directly and verified all accepted audit claims.
-All five fixes locally complete; source commitb059fef, review receipt inVERIFICATION.
-No tool-backed goal, push/PR/merge/deploy, rebuilt immutable kit or account changes.
-Native/physicalWindows/upload/Pika/screen-reader coverage limits remain.
-Previous centeredDMG release state remains on published origin/main437ae7c.
+Kitv0.5.14 remains unpublished, independently from frozenMacsetup-v0.5.14.
+Manualpreparation38666802185 passed; candidate sealed under ignored
+`.verification/flow-fixes/kit-candidate-38666802185/`. Sol/medium artifact review
+found one remaining oldMacreopen instruction at starterREADME25; archive integrity
+otherwise passes. Corrected to Applications/Dock, explicitly version-labeling
+older command launchers. No candidate has been published or overwritten.
+One targeted correction review and newsourceCI/preparation precede kit publication.
+Independent native updater work stays with its separate task. Macstilllocked;
+realnative/authenticatedupload/Pika andphysicalWindows trials remain unverified.
+Weekly62%remaining; storagehealthy~313GB. DeepSeekpaused; no goal/automation.
+Original funding checkout untouched; this worktree owns only flow/release scope.
