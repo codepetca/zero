@@ -5,7 +5,7 @@
 Zero is a downloadable local Java teaching kit for students beginning Java
 through CodeHS. Build interfaces with ordinary JavaFX controls and `SimpleApp`,
 or animate a canvas with `SketchApp` and explicitly updated Java objects.
-A minimal VS Code sidebar runs the app in a separate native window.
+A minimal VS Code sidebar provides Run, Stop and GitHub controls.
 Students own their GitHub repositories and submit links separately in Pika.
 
 The MVP starts with a small quiz and includes animation, keyboard, counter,
@@ -14,9 +14,13 @@ builds on the quiz with ordinary Question objects, feedback, score and next/rest
 Readable framework source ships with the starter;
 there is no required component or screen base class.
 
-Run App saves, rebuilds and restarts. **Upload, Start and Finish default to simulation**.
-The individual flow is Start a change → Upload changes → Finish change into main.
-The opt-in live path reviews changes and uses VS Code's native GitHub session.
+The local, unreleased 0.5.16 candidate runs apps in the browser and defaults to
+live GitHub actions. Upload and branch changes retain their explicit review steps;
+local tutorial projects block GitHub actions. The individual flow is New branch →
+Upload changes → Finish change into main, using VS Code's native GitHub session.
+First Publish confirms a public destination; later explicit Publish actions update
+that approved site without another destination dialog. Published downloads retain
+their original behavior and bundled instructions.
 A Mac teacher trial verified real sign-in/create/connect/cancel/upload/copy-link.
 The current MVP targets Mac with Apple Silicon and Windows; Linux and Intel Macs
 are unsupported. Physical Windows and novice student trials remain unverified; see the

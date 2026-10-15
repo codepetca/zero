@@ -257,7 +257,7 @@
           ],
           "default": "live",
           "scope": "resource",
-          "markdownDescription": "Live is the default. GitHub actions still require your explicit choice and review; uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Tutorial practice remains local-only in either mode."
+          "markdownDescription": "Live is the default. GitHub actions require your explicit choice. Upload and branch changes retain review/confirmation; first Publish approves a destination and later Publish actions update that site. Uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Tutorial practice remains local-only in either mode."
         },
         "zero.sharingCatalogUrl": {
           "type": "string",

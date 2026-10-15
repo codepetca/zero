@@ -15,8 +15,10 @@ browser app and opens its preview; Stop closes it. Unsupported Java APIs produce
 source-position errors. Native running remains a diagnostic option.
 
 The GitHub section provides Upload changes and Publish app. Actions are live by
-default but still require explicit review and confirmation; tutorial practice
-projects remain local-only. Optional simulation is a testing setting. Publishing deploys the
+default. Upload and branch actions keep their review/confirmation steps; tutorial
+practice projects remain local-only. First Publish confirms its destination;
+later explicit Publish actions update that approved site without another
+destination dialog. Optional simulation is a testing setting. Publishing deploys the
 same locally validated build, then offers Open app and Copy playable link. Native
 workflow authorization uses VS Code's own consent/session flow and checks the
 same account. Students need a supported JDK17+, Git2.31+ for uploads, and their

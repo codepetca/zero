@@ -59,8 +59,10 @@ account/network trial. Current development checks mock authentication and transp
   visibility instructions; leave README, license and gitignore uninitialized.
   Connect its HTTPS URL from the standalone student folder and confirm the target.
 - Configure the student's per-repository Git name/email under privacy instructions.
-  Confirm simulation clearly says nothing was uploaded and makes no Git changes.
-- Opt into live mode. Review destination, branch, files and commit message, then
+  For the optional simulation check, explicitly set `"zero.uploadMode": "simulation"`;
+  confirm it says nothing was uploaded and makes no Git changes, then remove the
+  override to restore the live default.
+- With the default live mode, review destination, branch, files and commit message, then
   cancel once and verify no upload. Repeat with explicit approval to upload.
   If the session/account changes during review, expect a fresh review before retry.
 - Confirm success against the actual remote branch/commit and inspect source files

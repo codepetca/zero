@@ -293,7 +293,9 @@ replacing origin. It rejects nested projects. Connection is local: it does not
 verify remote ownership, existence or access and does not upload.
 
 `zero.uploadMode` defaults to `live`. Nothing uploads or publishes on activation,
-sign-in or connection alone. Upload saves files, gathers a commit message and
+sign-in or connection alone. First/new-destination Publish asks for confirmation;
+later explicit Publish actions revalidate and update that approved site without
+another destination dialog. Upload saves files, gathers a commit message and
 reviews repository, branch and changed files before explicit confirmation. It stages
 reviewed changes, commits when needed and pushes the reviewed destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave

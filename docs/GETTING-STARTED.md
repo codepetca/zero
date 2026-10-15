@@ -193,7 +193,8 @@ during review, sign in as needed and review the upload again.
 
 `main` holds completed work. A change branch holds your next improvement.
 **GitHub actions are live by default.** Nothing uploads automatically: choose an
-action, review the account, repository, branch and files, then confirm it. Local
+action; Upload and branch changes review the account, repository, branch and files
+before confirmation. Local
 Run needs no GitHub account. Tutorial practice projects stay local-only.
 
 For a new repository, **Upload changes once on main** to save and upload the
@@ -254,7 +255,8 @@ repository’s visibility unchanged.
 Wait for **Your playable game is live**, then choose **Open app** or **Copy
 playable link**. You can retrieve the checked link later with **Zero: Open
 Published App** or **Zero: Copy Playable Link** in the Command Palette. Later
-publishes keep the same destination. If a run is still pending, choose Publish
+publishes revalidate and update the same approved destination without another
+destination dialog. If a run is still pending, choose Publish
 app again to recheck it. Follow any specific GitHub action or permission error;
 an unsuccessful update keeps the previous live page.
 

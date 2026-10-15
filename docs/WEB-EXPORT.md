@@ -100,8 +100,9 @@ A school policy, missing capability, account plan, protected environment or
 existing unknown Pages setup produces a specific next action and **Recheck**.
 Zero does not replace an existing website/workflow or change a custom domain.
 Simulation mode exits before saving, requesting authentication, writing setup
-files or making network calls. Live is the default; publication remains an
-explicit student choice with destination review and confirmation.
+files or making network calls. Live is the default. First/new-destination publishing
+requires review and confirmation. Later explicit Publish actions revalidate and
+update the approved site without another destination dialog.
 
 For a separate export choose **Export for web** from the title menu or Command
 Palette. The cancellable build offers **Preview game**, **Save ZIP**, and

@@ -305,12 +305,12 @@ private. Zero does not submit assignments or change Pika grades.
 
 Use your own original project with Git **2.31+** and your own GitHub account.
 **Run App** and test it, then finish and upload the completed version on **main**.
-Choose **Publish app** in Zero’s **GitHub** section. Publishing requires a
-separate explicit confirmation. The first publish reviews the public Pages
+Choose **Publish app** in Zero’s **GitHub** section. The first publish reviews the public Pages
 destination, prepares publishing files, and uses the reviewed upload flow.
 If VS Code requests workflow permission, use the same GitHub account as Zero.
 Confirm the uploaded version when asked. The app and included assets will be
-public; your source repository keeps its visibility.
+public; your source repository keeps its visibility. Later explicit Publish actions
+revalidate and update that same approved site without another destination dialog.
 
 Zero deploys the locally checked build. Wait for **Your playable game is live**,
 then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published
