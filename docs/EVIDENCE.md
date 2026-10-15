@@ -1,5 +1,18 @@
 # Delivery evidence index
 
+## First-visit guide — local, 2026-10-15
+
+Sourceacf874e adds the approved public Get started flow and returning-student path.
+One bounded Sol/medium writer and one independent Sol/medium reviewer; complete
+clean review,1launch/1turn/0fix batches and no writer conflicts.114website/13design
+tests, types/build/configuration checks and actual Chrome navigation/theme/320/390px/
+keyboard checks pass. Two build warnings and two unattributed browser message-channel
+errors are retained; WebKit/text zoom/native/account trials are not claimed.
+[Verification](VERIFICATION.md) and `.verification/first-visit/` bind source, browser
+screenshots, review and limits. No package input/external state changed; template
+publication and installed-student/release gates remain pending. Shared weekly66%
+remaining does not measure task cost; effective model/tokens/worker time unknown.
+
 ## Progressing image startup correction — local, 2026-10-15
 
 The media probe exposed a concrete fixed-deadline failure. Generated BrowserLauncher

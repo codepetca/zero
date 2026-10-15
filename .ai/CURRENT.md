@@ -1,121 +1,84 @@
-# Current state — tutorial repositories use the same GitHub flow
+# Current state — first-visit student flow locally accepted
 
 ## Goal and authority
 
 Coordinator: Lead publishing task, thread
-`01a13f98-55fc-7471-9038-1198b14d5a98`. Ordinary Java, explicit object updates,
-strict browser compatibility, locally tested-build publishing in GitHub, and
-ZeroHub links to student-hosted apps. Pika source submission remains separate.
+`01a13f98-55fc-7471-9038-1198b14d5a98`. Preserve ordinary Java, explicit object
+updates, strict browser compatibility, publishing the locally tested build through
+GitHub, and ZeroHub links to student-hosted apps. Pika submission stays separate.
 
-Owner requested live by default and now requires tutorial students to create their
-own repository from a template and clone it, using the normal GitHub workflow.
-There are no real users; old-project migration is not a release gate. Local
-implementation/testing authorized; no project deleted. Source push/merge, template
-publication, distribution/signing/deployment, new game publication and ZeroHub
-activation remain held. Earlier scoped Sky Hop Pages test remains accepted.
+Owner approved live by default, own template-created/cloned tutorial repositories,
+account/school/privacy preparation before lesson0, and the first-visit Get started
+flow. There are no real users; old-project migration is not a release gate.
+Local implementation/testing is authorized. Source push/merge, template publication,
+distribution/signing/deployment, new game publication and ZeroHub activation remain
+held. Earlier scoped Sky Hop Pages proof is accepted. Overall goal is incomplete.
 
-## Active first-visit phase
-
-Owner approved Get started → GitHub preparation → install → own tutorial
-template/clone → lesson0 → reviewed Upload/optional Publish, then requested
-planning/orchestration. Baseefe6707; no publication/account/deployment authority
-added. One Sol/medium worker owns new get-started page/component/CSS/fixture tests;
-coordinator owns home/download return/tutorial links, guidance and integration.
-Plan: implement guide and entry paths; run website tests/types/build and real
-Chrome keyboard/theme/320px flow checks; one bounded independent Sol/medium
-review; record accepted source and remaining release gates. Acceptance is local
-website readiness, with no sign-in wall or invented template availability.
-Shared weekly66%remaining, storage339GB healthy; DeepSeek paused. Effective model/
-tokens and attributable usage unknown.
-
-## Account-setup phase — locally accepted
-
-Owner approved account creation, school access and privacy preparation before
-lesson0 and asked this coordinator to plan/orchestrate it. Student, teacher,
-kit, generated tutorial and website guides now agree. Tutorial Setup Help requires
-Git2.31+; ordinary local smoke stays Git-free. Students clone their own repository,
-configure identity there before upload, and can Run offline after caching tools.
-No account, visibility or publication changes were made.
-
-One Sol/medium writer owned two teacher guides; coordinator integrated all other
-surfaces. Initial Luna/medium and targeted Sol/medium reviews are complete/clean:
-two launches/four turns, one initial/three targeted waves, three fix batches.
-Corrections aligned Setup Help, stale setup reference wording and per-repository
-identity ordering. No extra integration wave needed; unchanged coverage reused.
-Effective model/tokens unknown; no writer conflicts. Starting weekly66%remaining
-is shared usage, storage339GB healthy; DeepSeek paused. Evidence:
-`.verification/account-setup/acceptance.json` and review ledger/reports.
-
-Account phase checks:54 setup/onboarding/tutorial tests,7 scaffold tests and18
-website focused tests pass; reviewer independently ran39 overlapping setup tests.
-Configuration, production website build, package and exact extracted source/
-license/mode parity plus Maven build pass. Desktop/setup link and320px nooverflow
-browser checks pass. Two message-channel errors at setup URL are retained and
-unattributed; no clean-console claim. Owned tab/server closed, viewport reset.
-No installed-candidate or fresh-account trial claimed.
-
-## Current delivery
+## Latest phase — first visit
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
-Reviewed source92953e2 (packaged ca89325; later changes only docs/SETUP.md).
-Kit/extension0.5.16, core0.1.3, next native build3. Three empty tutorial template
-publication drafts: Greeting0–2, Study3–7, Game8–12. All publication records are
-null; student UI reports unavailable rather than inventing live template links.
-The existing five complete example templates remain separate and unchanged.
+Reviewed website sourceacf874e. Home has Get started and a quieter returning-student
+link. Public `/get-started` follows GitHub preparation → install → owned tutorial
+repository/clone → lesson0/browser Run → reviewed Upload and optional public Publish.
+GitHub account links open official pages; there is no website authentication gate.
+Downloads returns to project creation; initial lessons return to the guide. Current
+unpublished templates remain unavailable, with no guessed link or tutorial ZIP.
 
-Tutorial schema2 markers require a standalone Git root, starting commit and
-ordinary GitHub origin away from teacher templates. Run checks are local/read-only;
-no active GitHub session needed after clone. This is teaching workflow validation,
-not cryptographic clone proof. Original local apps remain Git-free. Tutorials use
-normal source tracking, GitHub Upload/New branch/Finish/Publish. First Publish
-confirms destination; later explicit Publish updates the approved site. No automatic
-upload. Live is the default; explicit testing simulation is honored. ZeroHub
-contributions remain original-only; tutorial Share is hidden and guarded.
+One Sol/medium worker owned four new guide files; coordinator integrated home,
+download/tutorial paths and guidance. One independent Sol/medium initial review is
+complete/clean:1launch/1turn,0fixes/targeted waves. No writer conflicts. Requested
+models/effort recorded; effective model, tokens and attributable effort unknown.
+Starting weekly66%remaining is shared account usage; storage339GB healthy; DeepSeek
+paused. Evidence `.verification/first-visit/acceptance.json`, browser receipt and
+review ledger/report. See [verification](../docs/VERIFICATION.md).
 
-Local immutable kit/starter/VSIX and three maintainer-only template ZIP drafts:
-`dist/candidates/zero-0.5.16-account-ca89325`. All six checksums pass. Its release
-manifest and `.verification/account-setup/package-receipt.json` bind source,
-bytes and draft inventories (20files each, including wrapper notices). The three
-draft ZIPs are not offered as student tutorial downloads. Candidate remains
-uninstalled/unpublished; installed managed preview still0.5.15. Earlier candidate
-packages and development Mac DMG are historical; rebuild Mac before release.
-Public downloads/feed/policy unchanged; original root/game checkouts preserved.
+114 website tests and13 design tests pass; configuration/link checks, TypeScript
+and production build pass. Two existing updater tracing build warnings remain.
+Actual Chrome Home→guide→Downloads→project→lesson0/returning paths, desktop/320/390px,
+light/dark, mobile menu and visible keyboard focus pass. Two delayed message-channel
+errors at guide URL remain unattributed; no clean-console claim. WebKit/text zoom,
+native installation and real account creation/clone/upload were not tested. Owned
+tab/server stopped and viewport reset. No external writes or deployment.
 
-## Acceptance and next gates
+## Retained kit and browser acceptance
 
-Final root432tests:431pass/1PowerShellskip/0fail/cancel. Website108tests pass;
-typecheck/build pass. Package/verify:kit, source/license/mode parity and extracted
-Maven compile pass. All three empty scaffolds compile with Maven. Real local clones
-of Greeting and Game pass the repository gate and GWT with unchanged profilee95…;
-Chrome shows Hello tutorial and a640x400canvas. Website0/1/3/8/12, pending metadata,
-continuation, optional media,320px reflow and light/dark passed CUA checks. Two
-delayed message-channel errors on the prior tutorial URL after navigation are
-retained/unattributed; no errors attributed to app URLs. Mac native UI was locked.
+Kit/extension0.5.16, core0.1.3, next native build3. Local immutable candidate:
+`dist/candidates/zero-0.5.16-account-ca89325`; packaged ca89325, account/source reviewed
+92953e2. Kit/starter/VSIX plus3maintainer-only template drafts have six matching
+hashes;20files per empty draft including wrapper notices. This website-only phase
+changes no package input; no repackaging needed. Candidate is uninstalled and
+unpublished; installed managed preview remains0.5.15. Public kit0.5.14, Mac0.5.15
+and update feed are unchanged. Earlier Mac development DMG needs rebuilding.
 
-Two independent Sol/high reviews clean; one targeted adapter correction clean.
-Two launches/three turns, one initial/one targeted wave, one fix batch. Effective
-model/tokens unknown. Full root rerun closes the initial playground adapter failure.
-No extra integration wave needed. Reports/receipts `.verification/tutorial-github/`.
+Tutorial schema2 requires an owned standalone Git root/starting commit/GitHuborigin;
+Run checks are local/read-only, not cryptographic clone proof. Git2.31+ is required
+for tutorial readiness. Original local apps remain Git-free. Cached tutorial Run
+needs no active GitHub session. First Publish confirms destination; later explicit
+Publish updates it. No automatic uploads. ZeroHub contributions remain original-only.
 
-Before release, finish [release gates](../docs/RELEASE-0.5.16.md):
+Earlier root432tests:431pass/1PowerShellskip, website108tests, package/extracted
+Maven/source/license/mode parity,3scaffold Maven builds and2real-clone GWT/browser
+runs passed. Account readiness correction passed54focused tests; account guidance
+review is clean. These are retained results, not reruns for the first-visit phase.
+Full prior state/evidence: [account phase archive](archive/account-setup-candidate-2026-10-15.md).
 
-1. Authorize/publish three empty tutorial templates, verify metadata and real
-   fresh-account create-own-repository/clone. Verify/refresh the five original
-   example templates against the current strict browser profile as needed.
-2. Install final candidate; accept fresh setup/edit/Run/Stop, clone guards,
+## Next release gates
+
+Follow [release preparation](../docs/RELEASE-0.5.16.md):
+
+1. Authorize/publish/verify3empty tutorial templates (all publication:null); test
+   fresh student account/create-own-repository/clone. Verify/refresh5existing
+   complete example templates against the strict browser profile.
+2. Install final candidate and accept fresh setup/edit/Run/Stop, clone guards,
    GitHub consent/connect/cancel/Upload/branches/first+repeat Publish/Open/Copy.
-3. Align public trusted-publisher source SHA, operator policy, kit pin and website;
-   accept a real linked request/public Play. Current pinbeaaca4e rejects web
-   receipts; library execution remains closed.
-4. Resolve native focus smoke timeout; test physical Windows/school hardware,
-   network and sound; authorize final source CI, signed/notarized/stapled Mac
-   build3, exact sealed publication and metadata/feed promotion.
+3. Align public trusted-publisher SHA, operator policy, kit pin and website; accept
+   a real linked request/public Play. Current pinbeaaca4e rejects web receipts;
+   library execution stays closed.
+4. Resolve native focus timeout; test physical Windows/school hardware/network/
+   sound; authorize final source CI, Mac build3 signing/notarization/stapling and
+   exact sealed publication/metadata/feed promotion.
 
 Sky Hop <https://armorup.github.io/zero-sharing-proof/> remains earlier live proof:
-sourceb3b6591/run38789445991,68files/8208661bytes match tested build95dc6665….
-Full evidence `.verification/live-sky-hop/acceptance.json`. Owned QA tabs/listeners
-closed; no external writes this phase. Previous [handoff](archive/live-default-candidate-2026-10-15.md).
-Two bounded Sol/high implementers, two reviewers, zero writer conflicts; pre-review
-manifest/UI/notices refinements and one ignored canonical-path fixture correction
-retained in receipts. Prior phase storage~340GB healthy; its account weekly71%remaining is
-shared usage, not task cost. DeepSeek paused. Overall goal remains incomplete.
+sourceb3b6591/run38789445991,68files/8208661bytes match local build95dc6665….
+Evidence `.verification/live-sky-hop/acceptance.json`. Original root/game checkouts
+and all public downloads/feed/policy remain unchanged.

@@ -1,5 +1,41 @@
 # Verification
 
+## First-visit Get started flow — local website, 2026-10-15
+
+Reviewed sourceacf874e implements the approved Home Get started/returning-student
+entry and public five-step guide: GitHub preparation, install, owned tutorial
+repository/clone, lesson0 browser Run, then reviewed Upload/optional public Publish.
+Downloads links back to project creation; starting lessons link to the guide.
+Official GitHub account pages open separately; no website session/authentication
+gate was added. Current unpublished templates stay unavailable; no guessed URL
+or tutorial ZIP bypass. Release selectors, account services and kit inputs are
+unchanged. No new package, template publication or deployment was performed.
+
+114 website tests,13 design tests, configuration/link checks, TypeScript and
+production build pass. Six new production-component fixtures exercise published/
+unpublished guide states, public access links and own-repository workflow. An
+unrelated static Home button-count assertion was removed from a download-selector
+test; Home navigation is covered by the actual browser flow. Two existing Mac
+updater tracing build warnings remain. No unaffected runtime/GWT suite was rerun.
+
+Actual Chrome interaction passed Home→guide→Downloads→project hash→lesson0→guide,
+returning-student /learn and download recovery paths. Desktop,320/390px, light/dark,
+mobile menu,44px-or-larger guide actions and visible3px keyboard focus pass.
+Two delayed listener/message-channel errors at guide URL are retained/unattributed;
+no clean-console claim. WebKit,200%text/400%nativezoom, account creation, template
+create/clone, native install and authenticated upload/publish were not tested.
+Owned tab/listener closed and viewport reset. Screenshots/raw evidence are ignored
+under `.verification/first-visit/` with the browser acceptance receipt.
+
+One bounded Sol/medium implementation worker and one independent Sol/medium reviewer;
+complete clean18-file review,1launch/1turn/0fix batches. Reviewer separately verified
+authored deep-link targets and current Greeting publication metadata; reused valid
+checks. Effective models, tokens and per-worker time unavailable; no writer
+conflicts. Starting weekly66%remaining is account-wide, not attributable task cost.
+Ledger/report/acceptance `.verification/first-visit/`. Fresh novice onboarding is
+still gated on authorized template publication and installed-student trials; all
+[release gates](RELEASE-0.5.16.md) remain. No external account/source/registry writes.
+
 ## Account and privacy setup — local candidate, 2026-10-15
 
 Reviewed source92953e2 adds verified personal GitHub account, school access and
