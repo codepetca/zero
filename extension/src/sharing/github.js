@@ -1,10 +1,12 @@
 'use strict';
 const {createHash}=require('node:crypto');
 const contracts=require('./contracts');
+const {safePagesUrl,publicReadiness,boundedText}=require('../web-pages-verification');
 const API='https://api.github.com';
 const API_VERSION='2026-03-10';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 function fail(message){throw new Error(message);}
+function webSourceFailure(message){throw Object.assign(new Error(message),{kind:'source-failure'});}
 function githubId(value){if(!Number.isSafeInteger(value)||value<1)fail('GitHub returned an invalid numeric identity.');return String(value);}
 function safeRepositoryName(value){if(typeof value!=='string'||! /^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(value))fail('Use a GitHub owner/repository name.');return value;}
 function safeSourcePath(value){
@@ -30,7 +32,7 @@ async function jsonResponse(response,maximum) {
   finally{reader.releaseLock();}
   try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{fail('GitHub returned invalid JSON.');}
 }
-function createGitHubReader({fetcher=fetch,token,timeoutMs=15000}={}) {
+function createGitHubReader({fetcher=fetch,publicFetcher=publicReadiness,token,timeoutMs=15000}={}) {
   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>60000)fail('Invalid GitHub deadline.');
   async function read(path,{maximum=512*1024,signal}={}){
     if((!path.startsWith('/repos/')&&!/^\/repositories\/[1-9][0-9]{0,19}$/.test(path)&&path!=='/user')||/[\r\n#]/.test(path))fail('Unsupported GitHub API path.');
@@ -128,6 +130,29 @@ function createGitHubReader({fetcher=fetch,token,timeoutMs=15000}={}) {
     const sourceDigest=sha(JSON.stringify(files.map(file=>({path:file.path,mode:file.mode,size:file.bytes.length,sha256:sha(file.bytes)}))));
     return {request:checked,repositoryMetadata:resolved,files,sourceDigest};
   }
-  return {authenticatedUser,repository,repositoryById,publicationIssue,publicationIssues,publicationIssueState,source};
+  async function verifyWebPublication(request,{signal}={}) {
+    const checked=contracts.validateRequest(request);
+    if(!checked.web)fail('A web publication receipt is required.');
+    const web=contracts.validateWebPublication(checked.web,{commit:checked.commit});
+    const resolved=await repositoryById(checked.repository.id,{signal});
+    if(resolved.ownerId!==checked.requester.githubId)webSourceFailure('Repository ownership changed before web verification.');
+    const name=`${resolved.owner}/${resolved.name}`;
+    const run=await read(`/repos/${name}/actions/runs/${web.runId}`,{signal});
+    if(run.id!==web.runId||run.head_sha!==web.commit||run.path!=='.github/workflows/zero-web.yml'||
+      run.event!=='workflow_dispatch'||run.head_branch!=='main'||run.status!=='completed'||run.conclusion!=='success'||
+      githubId(run.repository?.id)!==resolved.id||githubId(run.repository?.owner?.id)!==resolved.ownerId)webSourceFailure('The web publishing run does not match this repository and source.');
+    const pages=await read(`/repos/${name}/pages`,{signal});
+    const url=safePagesUrl(pages.html_url,pages.cname);
+    if(!url||url!==web.url||pages.build_type!=='workflow'||pages.public!==true)webSourceFailure('The playable URL does not match this repository Pages site.');
+    const timeout=AbortSignal.timeout(timeoutMs),combined=signal?AbortSignal.any([signal,timeout]):timeout;
+    let response;
+    try{response=await publicFetcher(new URL('zero-source-sha.txt',url.endsWith('/')?url:url+'/').href,{method:'GET',redirect:'error',cache:'no-store',signal:combined});}
+    catch{fail('The public game version could not be verified. Publish this source version and retry.');}
+    if(!response.ok||response.redirected||Number(response.headers?.get('content-length')||0)>100||
+      await boundedText(response)!==web.commit+'\n'+web.runId)webSourceFailure('The public game serves a different version. Publish this source version and retry.');
+    combined.throwIfAborted();
+    return web;
+  }
+  return {authenticatedUser,repository,repositoryById,publicationIssue,publicationIssues,publicationIssueState,source,verifyWebPublication};
 }
 module.exports={createGitHubReader,safeSourcePath,retainedSource};

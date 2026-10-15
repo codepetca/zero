@@ -47,7 +47,7 @@ function summary(record, state, artifactOrigin) {
     if (release.kind !== frozen.kind || release.id !== identity.id || release.version !== frozen.version ||
         release.source.commit !== frozen.commit || release.source.folder !== frozen.folder || release.source.sha256 !== sourceDigest ||
         release.repository.id !== frozen.repository.id || release.contributor.githubId !== frozen.requester.githubId ||
-        release.policyRevision !== frozen.policyRevision) throw new Error('Invalid accepted source.');
+        release.policyRevision !== frozen.policyRevision || canonical(release.web??null) !== canonical(frozen.web??null)) throw new Error('Invalid accepted source.');
     status = 'accepted-pending';
   } else if (record.status === 'available' || record.status === 'delivery-pending') throw new Error('Missing acceptance.');
   else if (record.status === 'cancelled') status = 'cancelled';

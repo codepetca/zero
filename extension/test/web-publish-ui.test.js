@@ -74,3 +74,25 @@ test('Publish, Copy and Open claim one operation before awaiting project resolut
   await Promise.all([h.api.publish(),h.api.commands['zero.copyPublishedWebLink'](),h.api.commands['zero.openPublishedWeb']()]);
   release('/student');await copy;assert.equal(h.checks,2);assert.deepEqual(h.copied,['https://student.github.io/game/']);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
 });
+
+test('sharing receives an exact verified publication without editing metadata or another dialog',async t=>{
+  const h=fixture(t);h.choices.push('Publish game');await h.api.publish();const messages=h.messages.length;
+  const web=await h.api.verifiedPublication('/student','a'.repeat(40));
+  assert.deepEqual(web,{provider:'github-pages',url:'https://student.github.io/game/',commit:'a'.repeat(40),runId:42});
+  assert.equal(h.messages.length,messages);assert.equal(h.checks,2);assert.equal(h.published,1);assert.equal(h.busy,false);
+});
+test('missing, stale or simulated sharing receipts do not authenticate or request a page',async t=>{
+  const h=fixture(t);h.publisher.verifyLink=async()=>assert.fail('Unexpected page lookup');
+  assert.equal(await h.api.verifiedPublication('/student','a'.repeat(40)),undefined);
+  h.stored.set('zero.webPublish.lastLive',{root:'/student',sha:'b'.repeat(40)});
+  assert.equal(await h.api.verifiedPublication('/student','a'.repeat(40)),undefined);
+  h.simulation=true;assert.equal(await h.api.verifiedPublication('/student','b'.repeat(40)),undefined);assert.deepEqual(h.authCalls,[]);
+});
+test('nested sharing verification keeps the outer operation lock and rejects mode or project drift',async t=>{
+  const h=fixture(t);h.choices.push('Publish game');await h.api.publish();
+  const api=createWebPublishCommands(h.vscode,{project:async()=>'/student',workspaceState:h.workspaceState,isSimulation:()=>false,isBusy:()=>true,publisherFactory:()=>h.publisher});
+  t.after(()=>api.disposables.forEach(d=>d.dispose()));assert.equal((await api.verifiedPublication('/student','a'.repeat(40))).runId,42);
+  h.publisher.verifyLink=async()=>{h.simulation=true;return {status:'live',sha:'a'.repeat(40),url:'https://student.github.io/game/',resume:{runId:42}};};
+  assert.equal(await h.api.verifiedPublication('/student','a'.repeat(40)),undefined);assert.equal(h.busy,false);
+  h.simulation=false;h.active='/other';await assert.rejects(h.api.verifiedPublication('/student','a'.repeat(40)),/project changed/);assert.equal(h.busy,false);
+});

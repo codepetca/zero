@@ -10,6 +10,13 @@ async (page) => {
     if (!condition) throw new Error(JSON.stringify(results));
   };
   await page.addInitScript(() => {
+    window.__zeroAudio = [];
+    const create = document.createElement.bind(document);
+    document.createElement = function(name, ...args) {
+      const element = create(name, ...args);
+      if (name.toLowerCase() === 'audio') window.__zeroAudio.push(element);
+      return element;
+    };
     window.__zeroCheck = { texts: [], images: [], last: null, errors: [] };
     addEventListener('error', (event) =>
       window.__zeroCheck.errors.push(event.message)
@@ -178,6 +185,86 @@ async (page) => {
     (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
     'No JavaScript errors in drawing'
   );
+  await page.goto(urls.audio);
+  await page.getByText(/^Audio checks ready:/).filter({ visible: true }).waitFor();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(text => text.startsWith('Audio API ready:')));
+  check((await state()).texts.some(text => text.startsWith('Audio API ready:')), 'Seven-helper audio setup validates aliases, cache, ownership and volume errors');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true'));
+  check((await state()).texts.includes('Independent playing: false'), 'Pre-ready pause and stop leave independent music stopped');
+  const musicState = () => page.evaluate(() => {
+    const audio = window.__zeroAudio.find(element => element.getAttribute('src') && element.volume === .19);
+    return {playing: !audio.paused, time: audio.currentTime, muted: audio.muted, loop: audio.loop, volume: audio.volume};
+  });
+  let audioState = await musicState();
+  check(audioState.playing && audioState.loop && audioState.muted && audioState.volume === .19, 'Music ready callback applies pre-ready intent and retained loop/volume');
+  await page.getByRole('button', {name: 'Loop', exact: true}).click();
+  await page.getByRole('button', {name: 'Play twice', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroAudio.filter(a => a.getAttribute('src') && a.volume === .23 && !a.paused).length === 2);
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: true'));
+  check((await state()).texts.includes('Effect playing: true'), 'Overlapping effect voices report actual playing status');
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: false'));
+  audioState = await musicState();
+  check(audioState.muted && audioState.volume === .19, 'Mute stops active effects and retains music volume');
+  await page.getByRole('button', {name: 'Play twice', exact: true}).click();
+  check((await page.evaluate(() => window.__zeroAudio.filter(a => a.getAttribute('src') && a.volume === .23 && !a.paused).length)) === 0, 'Muted effects do not create playing voices');
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.evaluate(() => {
+    window.__denyEffects = true;
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function() {
+      return window.__denyEffects && this.volume === .23 ? Promise.reject(new DOMException('Gesture required', 'NotAllowedError')) : play.call(this);
+    };
+  });
+  const beforeSpam = await page.evaluate(() => window.__zeroAudio.length);
+  await page.getByRole('button', {name: 'Spam effects', exact: true}).click();
+  await page.waitForFunction(() => document.body.innerText.includes('Click or press a key to enable sound.'));
+  const afterSpam = await page.evaluate(() => ({created: window.__zeroAudio.length, pending: window.__zeroAudio.filter(a => a.getAttribute('src') && a.volume === .23).length}));
+  check(afterSpam.created - beforeSpam <= 32 && afterSpam.pending === 1, 'Injected autoplay denial bounds 100 same-frame plays and coalesces pending voices', afterSpam);
+  await page.getByRole('button', {name: 'Spam effects', exact: true}).click();
+  check(await page.evaluate(count => window.__zeroAudio.length === count, afterSpam.created), 'Further blocked frames do not allocate additional voices');
+  await page.evaluate(() => window.__denyEffects = false);
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.getByRole('button', {name: 'Pause', exact: true}).click();
+  const heldAt = (await musicState()).time;
+  await page.waitForTimeout(120);
+  check(!(await musicState()).playing && Math.abs((await musicState()).time - heldAt) < .03, 'Music pause holds playback position');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForTimeout(120);
+  check((await musicState()).playing && Math.abs((await musicState()).time - heldAt) > .04, 'Music resumes from paused position');
+  await page.getByRole('button', {name: 'Rewind', exact: true}).click();
+  await page.waitForFunction(() => { const a = window.__zeroAudio.find(a => a.getAttribute('src') && a.volume === .19); return a.paused && a.currentTime < .03; });
+  check(!(await musicState()).playing && (await musicState()).time < .03, 'Music stop rewinds without discarding loop mode');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForTimeout(1150);
+  check((await musicState()).playing && (await musicState()).loop, 'Music repeats through an actual audio end boundary');
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: false'));
+  check(true, 'Natural end callback stops non-looping music status');
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  check(await page.evaluate(() => window.__zeroAudio.some(a => a.getAttribute('src') && a.volume === 1 && !a.paused && a.currentTime < .5)), 'Play after end rewinds and restarts');
+  await page.getByRole('button', {name: 'Check error', exact: true}).click();
+  await page.getByText('Named late failure: true', {exact: true}).filter({visible:true}).waitFor();
+  check(true, 'Actual malformed audio callback preserves named Music failure');
+  await page.evaluate(() => {
+    const activeOnce = window.__zeroAudio.find(a => a.getAttribute('src') && a.volume === 1 && !a.paused);
+    activeOnce.dispatchEvent(new Event('error'));
+  });
+  await page.getByRole('button', {name: 'Check late', exact: true}).click();
+  await page.getByText('Named playing failure: true', {exact:true}).filter({visible:true}).waitFor();
+  check((await musicState()).playing, 'Injected failure of playing music disposes only its player');
+  await page.getByRole('button', {name: 'Stop app', exact: true}).click();
+  await page.getByText('App cleanup: true', {exact:true}).filter({visible:true}).waitFor();
+  check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'App stop closes all effect voices and independent music');
+  await page.reload();
+  await page.getByText(/^Audio checks ready:/).filter({visible:true}).waitFor();
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
+  check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'Synthetic pagehide invokes app-owned cleanup');
+  check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in audio fixture');
   return {
     status: 'passed',
     results,

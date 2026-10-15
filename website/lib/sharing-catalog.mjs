@@ -110,3 +110,22 @@ export async function readRegistryCatalog(state, {artifactOrigin, fetchImpl = fe
   if (catalog.revision !== pointer.revision) throw new Error('Invalid catalog revision.');
   return catalog;
 }
+
+/** Legacy readers reject unknown release keys. Strip only the optional web receipt
+ * after validating the full trusted snapshot; never expose registry state. */
+export function legacyCatalog(catalog) {
+  const checked=contracts.validateCatalog(catalog);
+  return {...checked,releases:checked.releases.map(release=>{const {web,...legacy}=release;return legacy;})};
+}
+/** Both catalog APIs use the same bounded reader and canonical schema.
+ * @param {Request} request
+ * @param {{includeWeb?: boolean, reader?: typeof readCatalog}} [options]
+ */
+export async function catalogResponse(request,{includeWeb=false,reader=readCatalog}={}) {
+  try {
+    const catalog=contracts.validateCatalog(await reader({signal:request.signal}));
+    return Response.json(includeWeb?catalog:legacyCatalog(catalog),{headers:{'Cache-Control':'no-store'}});
+  } catch {
+    return Response.json({error:'ZeroHub is unavailable. Try again shortly.'},{status:503,headers:{'Cache-Control':'no-store'}});
+  }
+}

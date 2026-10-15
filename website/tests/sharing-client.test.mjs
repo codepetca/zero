@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import contracts from '../../extension/src/sharing/contracts.js';
-import {dependencySnippet,releaseLink,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
+import {dependencySnippet,playLink,releaseLink,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
 const origin='https://artifacts.example';
 function fixture(kind,version='0.1.0',status='available') {
   const identity=contracts.identity(kind,'123','sample');
@@ -31,4 +31,20 @@ test('links pin source and release; only available libraries yield Maven snippet
   assert.match(dependencySnippet(library),/<version>0.1.0<\/version>/);
   assert.throws(()=>dependencySnippet(fixture('game')));
   assert.throws(()=>dependencySnippet(fixture('library','0.1.0','withdrawn')));
+});
+
+test('Play latest uses a stable external page independently of the immutable source snapshot',()=>{
+  const game=fixture('game'),web={provider:'github-pages',url:'https://student.github.io/game/',commit:game.source.commit,runId:42};
+  const linked=contracts.validateRelease({...game,web},{artifactOrigin:origin});
+  assert.equal(playLink(linked),web.url);assert.equal(playLink({...linked,version:'0.2.0'}),web.url);
+  assert.equal(playLink(game),undefined);assert.equal(playLink({...linked,status:'withdrawn'}),undefined);assert.equal(playLink({...linked,kind:'library'}),undefined);
+  assert.throws(()=>playLink({...linked,web:{...web,url:'javascript:alert(1)'}}));
+  assert.throws(()=>playLink({...linked,web:{...web,commit:'f'.repeat(40)}}));
+  assert.match(sourceLink(linked),new RegExp('/tree/'+game.source.commit+'$'));
+});
+test('discovery renders an external Play latest action with clear live-app and source-snapshot cues',async()=>{
+  const {readFile}=await import('node:fs/promises'),source=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8');
+  assert.match(source,/fetch\('\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer">Play latest<\/a>/);
+  assert.match(source,/Student-hosted live app/);assert.match(source,/View source snapshot on GitHub/);assert.match(source,/Download source project/);
+  assert.doesNotMatch(source,/<iframe|dangerouslySetInnerHTML|api\/sharing\/play/);
 });

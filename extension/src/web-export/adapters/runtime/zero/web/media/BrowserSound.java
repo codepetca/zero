@@ -13,10 +13,14 @@ final class BrowserSound {
     final HTMLAudioElement audio = Js.uncheckedCast(DomGlobal.document.createElement("audio"));
     private final String source;
     private final Runnable onError;
-    private boolean requested, blocked, disposed;
+    private boolean requested, blocked, disposed, playing;
     private int generation;
+    Runnable onBlocked;
     BrowserSound(String source, Runnable onError) {
         this.source = source; this.onError = onError;
+        audio.addEventListener("playing", event -> { if (!disposed) playing = true; });
+        audio.addEventListener("pause", event -> playing = false);
+        audio.addEventListener("ended", event -> playing = false);
         audio.src = source; audio.preload = "auto";
         audio.addEventListener("error", event -> failed());
         sounds.add(this);
@@ -55,12 +59,17 @@ final class BrowserSound {
             String name = String.valueOf(Js.asPropertyMap(error).get("name"));
             if (name.equals("NotAllowedError")) {
                 blocked = true;
+                if (onBlocked != null) onBlocked.run();
                 showNotice("Click or press a key to enable sound.");
             } else if (!name.equals("AbortError")) failed();
             return null;
         });
     }
-    void pause() { requested = false; blocked = false; generation++; audio.pause(); clearNotice(); }
+    boolean isPlaying() { return playing && !audio.paused && !audio.ended && !disposed; }
+    boolean isPending() { return requested && !playing && !disposed; }
+    boolean isBlocked() { return blocked && requested && !disposed; }
+    boolean isDisposed() { return disposed; }
+    void pause() { playing = false; requested = false; blocked = false; generation++; audio.pause(); clearNotice(); }
     void stop() { pause(); audio.currentTime = 0; }
     void dispose() {
         if (disposed) return;
@@ -69,7 +78,7 @@ final class BrowserSound {
     }
     private void failed() {
         if (disposed) return;
-        requested = false; blocked = false;
+        playing = false; requested = false; blocked = false;
         DomGlobal.console.error("Cannot play audio: " + source);
         showNotice("Audio unavailable: " + source);
         onError.run();
@@ -78,7 +87,7 @@ final class BrowserSound {
         if (notice == null) {
             notice = DomGlobal.document.createElement("div");
             notice.setAttribute("role", "status");
-            notice.setAttribute("style", "position:fixed;bottom:8px;left:8px;padding:8px;background:#fff;color:#222;z-index:99999;font:14px sans-serif;max-width:90vw");
+            notice.setAttribute("style", "pointer-events:none;position:fixed;bottom:8px;left:8px;padding:8px;background:#fff;color:#222;z-index:99999;font:14px sans-serif;max-width:90vw");
             DomGlobal.document.body.appendChild(notice);
         }
         notice.textContent = text;

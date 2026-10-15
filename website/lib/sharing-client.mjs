@@ -29,3 +29,10 @@ export function dependencySnippet(release) {
   const {groupId, artifactId, version} = release.coordinate;
   return `<repositories>\n  <repository>\n    <id>zero-sharing</id>\n    <url>${origin}/maven</url>\n  </repository>\n</repositories>\n\n<dependencies>\n  <dependency>\n    <groupId>${groupId}</groupId>\n    <artifactId>${artifactId}</artifactId>\n    <version>${version}</version>\n  </dependency>\n</dependencies>`;
 }
+
+// The receipt records acceptance-time provenance. Pages is a mutable external app,
+// so this action deliberately does not claim to play the source snapshot version.
+export function playLink(release) {
+  if(release.kind!=='game'||release.status!=='available'||!release.web)return undefined;
+  return contracts.validateWebPublication(release.web,{commit:release.source.commit}).url;
+}

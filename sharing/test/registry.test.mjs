@@ -179,3 +179,18 @@ test('stable source ingestion links renamed labels without changing frozen finge
   const changed=await ingestRequest(f.registry,{issueId:'4',request:{...renamed,descriptor:{...renamed.descriptor,title:'Changed details'}},authenticatedActor:renamed.requester,repositoryMetadata:metadata(renamed),sourceDigest:original.frozen.sourceDigest});assert.notEqual(changed.id,original.id);
   await assert.rejects(ingestRequest(f.registry,{issueId:'5',request:renamed,authenticatedActor:{githubId:'2',login:'other'},repositoryMetadata:metadata(renamed),sourceDigest:original.frozen.sourceDigest}),/actor/);
 });
+
+test('web receipts are part of immutable request fingerprints, deduplication and trusted acceptance evidence',async t=>{
+  const f=await fixture(t),request=fixtureRequest(1,{kind:'game'}),files={zip:Buffer.from('trusted editable source ZIP fixture')};
+  const plain=await f.ingest(request),web={provider:'github-pages',url:'https://student1.github.io/game/',commit:request.commit,runId:42};
+  const linked=await f.ingest({...request,web}),duplicate=await f.ingest({...request,web});
+  assert.notEqual(plain.id,linked.id);assert.equal(linked.id,duplicate.id);
+  const otherRun=await f.ingest({...request,web:{...web,runId:43}});assert.notEqual(linked.id,otherRun.id);
+  await assert.rejects(f.service.publish({requestId:linked.id,evidence:evidence(linked,files),artifacts:files}),/Web publication.*trusted evidence/);
+  await assert.rejects(f.service.publish({requestId:plain.id,evidence:{...evidence(plain,files),web},artifacts:files}),/Web publication.*trusted evidence/);
+  const published=await f.service.publish({requestId:linked.id,evidence:{...evidence(linked,files),web},artifacts:files});
+  assert.deepEqual(published.release.web,web);assert.deepEqual(Object.keys(published.release.artifacts),['zip']);
+  const replay=await f.service.publish({requestId:linked.id});assert.deepEqual(replay.release.web,web);
+  await assert.rejects(f.service.publish({requestId:otherRun.id,evidence:{...evidence(otherRun,files),web:{...web,runId:43}},artifacts:files}),/Immutable version conflict/);
+  assert.deepEqual(generateCatalog((await f.registry.read()).state,{artifactOrigin:f.service.artifactOrigin}).releases[0].web,web);
+});

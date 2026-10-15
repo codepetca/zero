@@ -19,7 +19,12 @@ function apply(source, edits) {
 }
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
 const helperHashes = Object.freeze({
-  'zero/SketchApp.java': '44a6e53876d83a2ec10ef3855ff4840482049b97f663ae00916ca6041cccc335',
+  'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
+  'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
+  'zero/Music.java': 'c4f8c88b5a9c6205e12ac4fd12a7dc3b9e1415c1abf6bc18cc45770e994d473a',
+  'zero/SimpleApp.java': '0eb6db9f27161db2aea0edcd2b47769b51ce8773383dcf47d51af05303601eb0',
+  'zero/SketchApp.java': 'e9d43e9c2dfad3c5e455fef413d918a6674c271e8903f6073f69d5a21b0cf67d',
+  'zero/Sound.java': '0ca8c041712cc7ed9faad3a8e69599d44337082898da9505365d06b5536f2c5a',
   'zero/SpriteAnimation.java': 'c68e48317388de67be2f6170c990baef6c7a20e028f6ce3b6163e74f6d67e0f0'
 });
 function overlay(file, source) {
@@ -29,6 +34,16 @@ function overlay(file, source) {
   if (crypto.createHash('sha256').update(source).digest('hex') !== expected) {
     fail(file, 'this Zero helper differs from the reviewed browser adapter. Keep your source; update the adapter or use the supported helper version before exporting.');
   }
+  if (file.endsWith('SimpleApp.java')) {
+    source = source.replace('import java.net.URL;\n', 'import zero.web.ResourceURL;\n').replace('import java.nio.file.Path;\n', '\n');
+    source = source.replaceAll('URL resource', 'ResourceURL resource').replace('private URL audioResource', 'private ResourceURL audioResource');
+    source = source.replace('getClass().getResource(resourcePath)', 'zero.web.Resources.get(getClass(), resourcePath)');
+    source = source.replaceAll('        Sound.requireThread();', '        Sound.requireThread(); zero.web.BrowserLifecycle.own(this, this::stop);');
+    source = source.replace('        Throwable failure = null;', '        zero.web.BrowserLifecycle.release(this); Throwable failure = null;');
+    const key = source.indexOf('    private static String audioResourceKey(');
+    return source.slice(0, key) + '    private static String audioResourceKey(ResourceURL resource) { return resource.toExternalForm(); }\n}\n';
+  }
+  if (!file.endsWith('SketchApp.java') && !file.endsWith('SpriteAnimation.java')) return source;
   if (file.endsWith('SpriteAnimation.java')) return source.replace('frames.clone()', 'java.util.Arrays.copyOf(frames, frames.length)');
   source = source.replace('import java.net.URL;\n', '\n').replace('import java.nio.file.Path;\n', '\n');
   source = source.replace('        window = stage;', '        window = stage; zero.web.BrowserFocus.install(this::clearInput);');
@@ -120,7 +135,7 @@ function adaptSources({ sources, resourcePaths = [] }) {
     output[destination] = adapted.source;
     sourceMap[destination] = { originalPath: file, lineOffset: adapted.lineOffset };
     const ts = tokens(source);
-    for (let i = 0; i < ts.length - 3; i++) if (ts[i].text === 'class' && ts[i - 1]?.text !== 'abstract' && ts[i + 2].text === 'extends' && ['SketchApp', 'SimpleApp', 'Application'].includes(ts[i + 3].text)) apps.push(`${adapted.pkg}.${ts[i + 1].text}`);
+    for (let i = 0; i < ts.length - 3; i++) if (ts[i].text === 'class' && !ts.slice(Math.max(0, i - 3), i).some(token => token.text === 'abstract') && ts[i + 2].text === 'extends' && ['SketchApp', 'SimpleApp', 'Application'].includes(ts[i + 3].text)) apps.push(`${adapted.pkg}.${ts[i + 1].text}`);
   }
   if (apps.length !== 1) fail('Main.java', `expected one application extending SketchApp, SimpleApp or Application; found ${apps.length}.`);
   const resources = [...new Set(resourcePaths)].sort();
@@ -129,7 +144,7 @@ function adaptSources({ sources, resourcePaths = [] }) {
   Object.assign(output, readRuntime(path.join(__dirname, 'runtime')));
   output['zero/web/PackagedResources.java'] = `package zero.web;\nfinal class PackagedResources {\n    static final String[] ALL = {${resources.map(x => JSON.stringify('/' + x)).join(', ')}};\n    static final String[] IMAGES = {${images.map(x => JSON.stringify('/' + x)).join(', ')}};\n}\n`;
   output['zero/web/BrowserLauncher.java'] = output['zero/web/BrowserLauncher.java'].replaceAll('__APPLICATION_CLASS__', apps[0]);
-  warnings.push('Browser effects use one cached voice per clip; retriggering restarts that effect.');
+  warnings.push('Browser effects overlap with up to 32 active/preparing voices per Sound. Blocked autoplay requests coalesce to one pending effect.');
   warnings.push('Browser audio requires a user gesture. Blocked playback is retried on the next click or key press; media failures are shown in the browser and console.');
   return { sources: output, mainClass: 'zero.web.BrowserLauncher', sourceMap, changes, warnings };
 }

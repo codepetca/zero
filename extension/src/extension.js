@@ -441,12 +441,12 @@ function activate(context) {
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
-  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
-  Object.assign(actions, sharing.commands);
-  context.subscriptions.push(...sharing.disposables);
   const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
+  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,verifiedPublication:webPublish.verifiedPublication,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
+  Object.assign(actions, sharing.commands);
+  context.subscriptions.push(...sharing.disposables);
   const webExport=createWebExportCommands(vscode,{project,output,publish:()=>webPublish.publish(),isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);

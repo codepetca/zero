@@ -256,7 +256,7 @@
         },
         "zero.sharingCatalogUrl": {
           "type": "string",
-          "default": "https://zero.codepet.ca/api/sharing/catalog",
+          "default": "https://zero.codepet.ca/api/sharing/catalog/web",
           "scope": "machine",
           "markdownDescription": "Exact generated games/library catalog URL. Public activation is pending; explicit loopback URLs support local verification."
         },

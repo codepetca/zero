@@ -67,3 +67,24 @@ test('ambiguous applications, path escapes, reserved packages and unsupported me
   assert.throws(() => adaptSources({ sources: { 'Main.java': 'package zero.web;\n' + app } }), /reserved/);
   assert.throws(() => adaptSources({ sources: { 'Main.java': 'import javafx.scene.media.MediaView;\n' + app } }), /unsupported browser media import/);
 });
+
+
+test('all seven native helpers retain declarations and generated audio ownership/aliases', () => {
+  const sources = { ...helpers(), 'Main.java': app };
+  assert.equal(Object.keys(helperHashes).length, 7);
+  const result = adaptSources({ sources, resourcePaths: ['audio/tone.wav'] });
+  const originalAPI = text => text.split('\n').filter(line => /^    (?:@Override )?(?:public|protected) /.test(line)).map(line => line.split('{')[0].trim());
+  for (const file of Object.keys(helperHashes)) assert.deepEqual(originalAPI(result.sources[file]), originalAPI(sources[file]), file + ' public/protected API');
+  assert.match(result.sources['zero/SimpleApp.java'], /Resources.get\(getClass\(\), resourcePath\)/);
+  assert.match(result.sources['zero/SimpleApp.java'], /BrowserLifecycle.own\(this, this::stop\)/);
+  assert.doesNotMatch(result.sources['zero/SimpleApp.java'], /java.net.URL|java.nio.file.Path|resource.toURI/);
+  assert.match(result.sources['zero/Sound.java'], /clip.play\(volume\)/);
+  assert.match(result.sources['zero/Music.java'], /player.setOnReady/);
+  sources['zero/Music.java'] += '// changed\n';
+  assert.throws(() => adaptSources({ sources }), /helper differs/);
+});
+
+test('abstract nested app owners are not mistaken for a second launch target', () => {
+  const main = app.replace('public void setup() {}', 'public void setup() {} private abstract static class Owner extends SimpleApp {}');
+  assert.doesNotThrow(() => adaptSources({ sources: { 'Main.java': main } }));
+});

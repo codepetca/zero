@@ -40,7 +40,8 @@ Students keep `Main.java`, explicit object updates, ordinary Java classes and
 JavaFX APIs. The exporter compiles a temporary copy with pinned WebFX/GWT modules.
 Its adapters cover the reviewed Zero helpers, canvas images and sprite regions,
 keyboard/mouse state, focus, supported JavaFX controls and the bounded JavaFX
-media calls used by the tested game. Image preloading completes before `setup`.
+media calls used by the tested game. All seven reviewed helpers, including
+`Sound` and `Music`, retain the ordinary Java API. Image preloading completes before `setup`.
 Browser audio waits for a real gesture when autoplay is blocked. Missing assets
 and unsupported API calls produce build/startup errors rather than a false
 successful publication.
@@ -55,19 +56,40 @@ previous successful export.
 
 `npm run check` enforces the reviewed helper inventory and adapter fingerprints.
 `npm run verify:web` performs real WebFX/GWT compilation of the helper fixture,
-quiz/shared score component and drawing example, then checks interaction in
+quiz/shared score component, drawing example and dedicated audio fixture, then checks interaction in
 Chrome. The pull-request workflow runs those same checks. New framework methods
 need corresponding fixture coverage; new or changed adapter-sensitive helpers
 must be reviewed before their profile fingerprints are updated. Publishing always runs the real compiler; the PR workflow exposes the separate
 compatibility check. Branch-protection settings remain an owner decision and
 were not changed.
 
-The game trial used a frozen copy of the JavaFX-audio Sky Hop version while the
-other chat continued work independently. Later `zero.Sound`/`zero.Music` helpers
-from that chat are not included in this branch's reviewed five-helper profile.
-Integrate their committed API and browser coverage before claiming that newer
-version works. No active game source or canonical framework helper was edited by
-this workstream.
+The supported profile guards seven helper sources and 98 public/protected Java
+API declarations. Changes must update reviewed adapters and behavior coverage;
+passing source checks alone is insufficient. Sound aliases share the native cache,
+effects overlap, Music players stay independent, and app/window shutdown releases
+owned playback. Browser limits are explicit: each Sound keeps at most 32 active or
+preparing voices and coalesces blocked autoplay into one pending voice. Music
+pause, resume, rewind, repeat, readiness and named decode failures have real browser
+coverage. No canonical helper or student game source is rewritten.
+
+## ZeroHub Play latest
+
+Share game automatically includes a playable link only when Zero can reverify a
+saved publication for the exact uploaded source commit. There is no extra URL or
+descriptor field for students to enter. The trusted checker independently verifies
+the repository, successful owned workflow run, Pages destination and public
+SHA/run marker before accepting that receipt. Games without a matching verified
+publication still share source normally.
+
+ZeroHub shows **Play latest** beside **Download source project**. Play opens the
+student-hosted live app, which can change on later publishes; source snapshots
+remain exact versions. ZeroHub stores only the link and verification metadata,
+not another compiled game. Withdrawn games have no Play action.
+
+New kits use `/api/sharing/catalog/web`; the original catalog endpoint validates
+the same data and projects out optional web receipts for older strict clients.
+Rollout requires coordinated website/checker policy deployment and a new kit;
+existing published kits and the inactive public publication policy remain unchanged.
 
 ## Storage and distribution
 

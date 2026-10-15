@@ -102,3 +102,27 @@ test('Share policy revision follows bundled settings until explicitly overridden
   const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,git:f.git,reader:f.reader});await editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);const body=new URL(f.opened[0]).searchParams.get('body');const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(body)[1]);assert.equal(request.policyRevision,override||bundle.policyRevision);
  }
 });
+
+test('Share attaches the exact verified playable receipt without changing source metadata',async t=>{
+ const f=await fixture(t,{approval:'Open GitHub form'}),before=await fs.readFile(path.join(f.root,'zero-game.json'));
+ const web={provider:'github-pages',url:'https://student.github.io/game/',commit:'a'.repeat(40),runId:42};
+ let calls=0,detail='';f.host.verifiedPublication=async(root,commit)=>{assert.equal(root,f.root);assert.equal(commit,web.commit);calls++;return web;};
+ const original=f.vscode.window.showInformationMessage;f.vscode.window.showInformationMessage=async(...args)=>{if(args[1]?.modal)detail=args[1].detail;return original(...args);};
+ await f.editor.commands['zero.shareGame']();
+ const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(f.opened[0]).searchParams.get('body'))[1]);
+ assert.deepEqual(request.web,web);assert.equal(calls,1);assert.match(detail,/Play latest: https:\/\/student.github.io\/game\//);
+ assert.deepEqual(await fs.readFile(path.join(f.root,'zero-game.json')),before);assert.equal(f.stats().busy,false);
+});
+test('source-only sharing stays available and a mismatched web commit cannot enter its form',async t=>{
+ const plain=await fixture(t,{approval:'Open GitHub form'});plain.host.verifiedPublication=async()=>undefined;await plain.editor.commands['zero.shareGame']();
+ const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(plain.opened[0]).searchParams.get('body'))[1]);assert.equal(Object.hasOwn(request,'web'),false);
+ const stale=await fixture(t,{approval:'Open GitHub form'});stale.host.verifiedPublication=async()=>({provider:'github-pages',url:'https://student.github.io/game/',commit:'b'.repeat(40),runId:42});
+ await assert.rejects(stale.editor.commands['zero.shareGame'](),/exact shared source/i);assert.equal(stale.opened.length,0);assert.equal(stale.stats().busy,false);
+});
+test('native game discovery offers Play latest without downloading or opening source',async t=>{
+ const f=await fixture(t),web={provider:'github-pages',url:'https://student.github.io/game/',commit:'a'.repeat(40),runId:42};
+ const release={kind:'game',status:'available',title:'Game',version:'0.1.0',description:'Game',contributor:{login:'student'},source:{commit:web.commit},web};
+ f.vscode.window.showQuickPick=async entries=>entries[0];f.vscode.window.showSaveDialog=async()=>assert.fail('Play must not ask for a source folder');
+ const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async()=>({catalog:{releases:[release]}}),downloadGame:async()=>assert.fail('Play must not download source')}});
+ await editor.commands['zero.browseGames']();assert.deepEqual(f.opened,[web.url]);assert.equal(f.stats().busy,false);
+});

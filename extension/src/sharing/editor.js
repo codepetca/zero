@@ -55,7 +55,7 @@ function createSharingEditor(vscode,host,options={}) {
   // activation instead of silently falling back to an accepted bundled origin.
   return configuration.get(key,undefined)??bundledValue??fallback;
  }
- const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundled.catalogUrl,'https://zero.codepet.ca/api/sharing/catalog'),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
+ const settings=()=>({catalogUrl:operatorSetting('sharingCatalogUrl',bundled.catalogUrl,'https://zero.codepet.ca/api/sharing/catalog/web'),artifactOrigin:operatorSetting('sharingArtifactOrigin',bundled.artifactOrigin,'')});
  async function current(root){if(await host.project()!==root)fail('The project changed during review. Prepare this action again.');assertSaved(vscode,root);}
  async function busy(action){if(host.isBusy())return;host.setBusy(true);try{return await action();}finally{host.setBusy(false);}}
  async function pickLibrary(root){const libraries=await api.authoring.discoverLibraries(root);if(!libraries.length)fail('Extract a library from this game first.');const chosen=await vscode.window.showQuickPick(libraries.map(l=>({label:l.descriptor.title,description:`${l.slug} · ${l.mode} · ${l.descriptor.version}`,library:l})),{title:'Choose a library'});return chosen?.library;}
@@ -185,10 +185,14 @@ function createSharingEditor(vscode,host,options={}) {
   if(!/^[a-f0-9]{40}$/.test(commit))fail('Upload your first committed version before sharing.');
   let committed;try{committed=c.validateDescriptor(JSON.parse(await api.git(root,['show',`${commit}:${filename}`])));}catch{fail('Upload the sharing metadata first, then choose Share again.');}
   if(JSON.stringify(committed)!==JSON.stringify(descriptor))fail('The committed sharing details differ. Upload changes before sharing.');
-  const request=c.validateRequest({schema:1,kind,slug:descriptor.slug,version:descriptor.version,repository:resolved.repository,requester:resolved.requester,commit,folder,descriptor:committed,policyRevision});
+  let request=c.validateRequest({schema:1,kind,slug:descriptor.slug,version:descriptor.version,repository:resolved.repository,requester:resolved.requester,commit,folder,descriptor:committed,policyRevision});
   // This read confirms the exact commit is uploaded and accessible in GitHub.
   await resolved.reader.source(request);
-  const approved=await vscode.window.showInformationMessage(`Open the ${kind} publication form?`,{modal:true,detail:`${descriptor.title} ${descriptor.version}\n${resolved.repository.url}\nRevision ${commit}\nFolder ${folder}\nGitHub: ${resolved.requester.login}\n\nThis opens a fully prefilled GitHub form. You review and submit it in GitHub. Uncommitted files are not shared.`},'Open GitHub form');if(approved!=='Open GitHub form')return;
+  const web=kind==='game' && host.verifiedPublication ? await host.verifiedPublication(root,commit) : undefined;
+  await current(root);
+  if(web)request=c.validateRequest({...request,web});
+  const webDetail=kind==='game' ? web ? `\nPlay latest: ${web.url}\nThe student-hosted live app can update; the source snapshot stays at this version.` : '\nSource only. Publish this uploaded version to include Play latest.' : '';
+  const approved=await vscode.window.showInformationMessage(`Open the ${kind} publication form?`,{modal:true,detail:`${descriptor.title} ${descriptor.version}\n${resolved.repository.url}\nRevision ${commit}\nFolder ${folder}\nGitHub: ${resolved.requester.login}${webDetail}\n\nThis opens a fully prefilled GitHub form. You review and submit it in GitHub. Uncommitted files are not shared.`},'Open GitHub form');if(approved!=='Open GitHub form')return;
   await current(root);await host.auth.assertCurrent(resolved.ticket);
   if((await api.git(root,['rev-parse','HEAD'])).trim()!==commit||(await api.git(root,['status','--porcelain','-z'])).length)fail('The committed revision or files changed during review. Share again.');
   if(!await vscode.env.openExternal(vscode.Uri.parse(c.publicationUrl(request))))fail('Could not open the GitHub publication form.');
@@ -217,7 +221,15 @@ function createSharingEditor(vscode,host,options={}) {
   const releases=context.catalog.releases.filter(r=>r.status==='available'&&(!kind||r.kind===kind));
   if(!releases.length){void vscode.window.showInformationMessage(`No shared ${kind==='game'?'games':'libraries'} are available yet.`);return;}
   const picked=await vscode.window.showQuickPick(releases.map(release=>({label:release.title,description:`${release.version} · ${release.contributor.login} · ${release.kind}`,detail:release.description,release})),{title:kind==='game'?'Shared games':'Shared libraries',placeHolder:'Choose an exact version',matchOnDescription:true});if(!picked)return;
-  if(picked.release.kind==='game')return openGame(context,picked.release);
+  if(picked.release.kind==='game') {
+   if(picked.release.web) {
+    const web=c.validateWebPublication(picked.release.web,{commit:picked.release.source.commit});
+    const action=await vscode.window.showQuickPick([{label:'Play latest',description:'Student-hosted live app',action:'play'},{label:'Open source project',description:`Exact source snapshot ${picked.release.version}`,action:'source'}],{title:picked.release.title});
+    if(!action)return;
+    if(action.action==='play'){if(!await vscode.env.openExternal(vscode.Uri.parse(web.url)))fail('Could not open the student-hosted game. Try again.');return;}
+   }
+   return openGame(context,picked.release);
+  }
   const action=await vscode.window.showQuickPick([{label:'Add library',operation:'add'},{label:'Update to this exact version',operation:'update'},{label:'Revert to the recorded previous version',operation:'revert'}],{title:picked.release.title});if(action)await applyDependency(await host.project(),context,picked.release,action.operation);
  }
  const commands={

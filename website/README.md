@@ -70,8 +70,14 @@ website OAuth, reservation, folder-upload, submission queue or Neon database.
 Public publication remains inactive while its operating and checker gates are
 unresolved. A local fixture or successful website build does not publish a release.
 
-The only sharing API is read-only `GET /api/sharing/catalog`. It returns the
-validated catalog, never registry request or operational state. The server uses
+Read-only `GET /api/sharing/catalog` returns the legacy catalog projection with
+optional web receipts removed for existing strict clients. `GET /api/sharing/catalog/web`
+returns the enriched catalog used by current discovery and new kits. Both validate
+the same canonical immutable snapshot before responding; neither returns registry
+request or operational state. Optional Play latest links open a student's hosted
+live app in a separate tab. Its stable Pages URL may change content after the exact
+source snapshot was shared. Source downloads remain editable Java projects; ZeroHub
+stores no compiled copy of the browser app. The server uses
 the pure schema from `extension/src/sharing/contracts.js`; include that source
 in website builds. Missing configuration, an uninitialized pointer, an invalid
 snapshot or an outage produces an honest unavailable state without fallback.

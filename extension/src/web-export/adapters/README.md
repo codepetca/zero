@@ -15,8 +15,8 @@ relative resource paths retain their original default-package meaning. The
 bridge supports `URL.toExternalForm()` and `toString()`; unsupported URL, JavaFX,
 reflection, file or other Java APIs fail the compiler gate.
 
-Only exact reviewed `SketchApp` and `SpriteAnimation` helper profiles receive
-internal overlays. CRLF and LF are equivalent. Modified helpers stop export with
+All seven reviewed Zero helper sources are fingerprint-checked. Exact reviewed
+`SimpleApp`, `SketchApp` and `SpriteAnimation` profiles receive internal overlays. CRLF and LF are equivalent. Modified helpers stop export with
 an actionable error; reviewing/updating the profile is deliberate maintenance.
 Image loading becomes a manifest-driven preload before student setup, with
 progress, individual failures, a 30-second named timeout and original dimension
@@ -24,19 +24,26 @@ validation. Browser focus loss clears input and latches one unfocused frame even
 if requestAnimationFrame was suspended. Canvas accessible text becomes a browser
 ARIA label.
 
-The audio bridge implements the bounded JavaFX Media/MediaPlayer/AudioClip calls
-used by the frozen JavaFX-audio Sky Hop fixture. It uses browser audio elements,
+The audio bridge implements the JavaFX Media/MediaPlayer/AudioClip calls used by
+the unchanged reviewed `zero.Sound` and `zero.Music` helpers. It uses browser audio elements,
 retains pause/reset/mute/loop/error/close behavior, pauses immediately on window
 blur or document hiding, and disposes on page exit. Autoplay rejection displays a
 click/key instruction and retries requested playback during the next gesture.
-Each effect has one cached voice; retriggering restarts it. Unsupported audio APIs
-fail compilation. Newer `zero.Music`/`zero.Sound` sources are a separate profile,
-not verified by this adapter revision.
+Effects create independent overlapping voices (up to32 active/preparing voices
+per Sound; autoplay-blocked requests coalesce to one pending effect); stopped or ended voices release
+their media elements. Music retains independent readiness, end/error callbacks,
+actual playing status, rewind, mute and repeat state. The canonical app cache and
+cleanup rules remain in the copied Java helpers. Browser page exit invokes each
+owner’s stop callback in addition to disposing native media. Decode failures are
+asynchronous in browsers: they retain a named error/notice; a failed Sound
+reports the failure on a later play, and Music keeps its native failure guard.
+Unsupported audio APIs fail compilation.
 
 Run `node --test extension/test/web-export-adapters.test.js`. The profile test
 intentionally fails if the canonical adapted helper changes. Actual browser
 acceptance additionally needs a real compiler build, input/audio interaction,
 focus-loss, missing-resource and autoplay-denial checks. Unit/source checks do
-not establish browser compatibility. The initial acceptance receipt lives in the
+not establish browser compatibility. The seven-helper audio verification is in the ignored
+`.verification/web-audio-integration/`; the earlier five-helper acceptance is in the
 ignored `.verification/web-adapters/receipt.json`; Safari, Firefox, Windows and
 physical tab/window switching require separate checks.

@@ -295,3 +295,24 @@ test('explicit operator CLI retries paused games and withdraws/restores without 
   const held=createSharingPlatform({reader:{...g.reader,publicationIssue:async()=>({...observed,request:library}),source:async request=>({...source,files:[{path:'zero-library.json',bytes:Buffer.from(JSON.stringify(library.descriptor))}],request})},registry:g.registry,storage:g.storage,artifactOrigin:origin,policyRevision:policy});
   await assert.rejects(held.publishIssue(1));const libraryRecord=Object.values(g.remote.state().requests)[0];await assert.rejects(held.retryPaused(libraryRecord.id),new RegExp(LIBRARY_EXECUTION_GATE));assert.equal(g.remote.state().requests[libraryRecord.id].status,'paused');
 });
+
+test('trusted game pipeline verifies optional web receipt before issuing evidence and never stages a compiled export',async()=>{
+  const f=await gameFixture();f.request.web={provider:'github-pages',url:'https://student.github.io/game/',commit:f.request.commit,runId:42};
+  let calls=0;
+  const platform=createSharingPlatform({reader:{...f.reader,verifyWebPublication:async(request,{signal})=>{calls++;assert.ok(signal instanceof AbortSignal);assert.deepEqual(request.web,f.request.web);return structuredClone(request.web);}},registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+  const published=await platform.publishIssue(1);assert.equal(calls,1);assert.deepEqual(published.release.web,f.request.web);
+  assert.deepEqual(Object.keys(published.release.artifacts),['zip']);
+  assert.ok([...f.blob.objects.keys()].every(key=>! /(?:web-export|site\/|\.html$|\.js$)/.test(key)));
+  // Updating the student site later does not mutate an accepted source release or
+  // rerun verification during immutable delivery/reconciliation.
+  await platform.publishIssue(1);assert.equal(calls,1);
+});
+test('a missing, mismatched or rejected trusted web verifier cannot accept a game release',async()=>{
+  for(const result of ['missing','mismatch','stale']) {
+    const f=await gameFixture();f.request.web={provider:'github-pages',url:'https://student.github.io/game/',commit:f.request.commit,runId:42};
+    const reader={...f.reader};delete reader.verifyWebPublication;
+    if(result!=='missing')reader.verifyWebPublication=async()=>{if(result==='stale')throw Object.assign(new Error('The public game serves a different version'),{kind:'source-failure'});return {...f.request.web,runId:43};};
+    const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+    await assert.rejects(platform.publishIssue(1));assert.equal(Object.keys(f.remote.state().releases).length,0);assert.equal(f.blob.objects.size,0);
+  }
+});

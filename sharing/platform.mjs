@@ -85,6 +85,12 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     observedRepositories.set(request.repository.id,`${source.repositoryMetadata.owner}/${source.repositoryMetadata.name}`);
     let packaged;try{packaged=buildGamePackage({files:source.files});}catch(error){throw sourceFailure(error.message);}
     const artifacts={zip:packaged.bytes};
+    let web;
+    if(request.web){
+      if(typeof reader.verifyWebPublication!=='function')throw new Error('Trusted web publication verifier unavailable');
+      web=await reader.verifyWebPublication(request,{signal});
+      if(canonical(web)!==canonical(request.web))throw sourceFailure('Verified web publication differs from the frozen request');
+    }
     const previewName=request.descriptor.preview;
     if(previewName) {
       const preview=source.files.find(file=>file.path===previewName);
@@ -92,7 +98,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
       if(!bytes||bytes.length>contracts.LIMITS.artifactBytes||!bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))throw sourceFailure('Committed PNG preview is missing or invalid');
       artifacts.preview=bytes;
     }
-    const evidence={status:'passed',requestFingerprint:record.id,sourceDigest,commit:request.commit,policyRevision,
+    const evidence={...(web?{web}:{}),status:'passed',requestFingerprint:record.id,sourceDigest,commit:request.commit,policyRevision,
       artifacts:Object.fromEntries(Object.entries(artifacts).map(([kind,bytes])=>[kind,{size:bytes.length,sha256:byteHash(bytes)}])),
       provenance:{kind:'trusted-game-packaging',schema:1,policyRevision,execution:'none'}};
     receipts.add(evidence);

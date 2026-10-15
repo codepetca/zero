@@ -126,7 +126,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
     try {
       root=await project();
       if(disposed || controller.signal.aborted)return;
-      if(isSimulation(root)){progress('Simulation only — no public link was checked or copied.');return;}
+      if(isSimulation(root)){progress(open ? 'Simulation only — no public page was checked or opened.' : 'Simulation only — no public link was checked or copied.');return;}
       const saved=lastLive || workspaceState?.get('zero.webPublish.lastLive');
       if(!saved || saved.root!==root)throw new Error('Publish this game before copying its playable link.');
       const expected=root;
@@ -138,6 +138,27 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       return verified;
     } finally {controller=undefined;publishing=false;setBusy(false);if(recheckRequested && !disposed){recheckRequested=false;queueMicrotask(()=>{void publishedLink(open).catch(error=>progress(error.message));});}}
   }
-  return {publish,commands:{'zero.publishWeb':publish,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true)},disposables:[{dispose(){disposed=true;controller?.abort();workflowAuth?.dispose();}}]};
+  // Sharing already holds the coordinator's component lock. This nested read
+  // claims our own lock but deliberately does not reject that outer busy flag.
+  // It neither publishes nor changes authored metadata.
+  async function verifiedPublication(expected,commit) {
+    if(disposed || isSimulation(expected))return;
+    if(publishing)throw new Error('Wait for publishing to finish before sharing its playable link.');
+    const saved=lastLive || workspaceState?.get('zero.webPublish.lastLive');
+    if(!saved || saved.root!==expected || saved.sha!==commit)return;
+    publishing=true;setBusy(true);controller=new AbortController();
+    try {
+      root=await project();
+      await stillCurrent(expected);
+      if(root!==expected)throw new Error('The project changed. Share its uploaded version again.');
+      if(isSimulation(root))return;
+      if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before checking its playable link.');
+      const checked=await publisher.verifyLink(expected,saved,{signal:controller.signal});
+      await stillCurrent(expected);
+      if(isSimulation(root) || checked.status!=='live' || checked.sha!==commit)return;
+      return {provider:'github-pages',url:checked.url,commit,runId:checked.resume.runId};
+    } finally {controller=undefined;publishing=false;setBusy(false);}
+  }
+  return {publish,verifiedPublication,commands:{'zero.publishWeb':publish,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true)},disposables:[{dispose(){disposed=true;controller?.abort();workflowAuth?.dispose();}}]};
 }
 module.exports={createWebPublishCommands};

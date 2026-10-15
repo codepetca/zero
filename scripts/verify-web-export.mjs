@@ -9,7 +9,8 @@ const require = createRequire(import.meta.url);
 const { exportForWeb } = require('../extension/src/web-export');
 const { createWebPreview } = require('../extension/src/web-preview');
 const root = fileURLToPath(new URL('../', import.meta.url));
-const base = path.join(root, '.verification/web-export-checks');
+const outputIndex = process.argv.indexOf('--output');
+const base = outputIndex >= 0 ? path.resolve(process.argv[outputIndex + 1]) : path.join(root, '.verification/web-export-checks');
 const browserOnly = process.argv.includes('--browser-only');
 const browser = browserOnly || process.argv.includes('--browser');
 const cacheIndex = process.argv.indexOf('--cache');
@@ -85,7 +86,15 @@ async function fixture(name, example) {
     { recursive: true }
   );
   await fs.chmod(path.join(directory, 'mvnw'), 0o755);
-  if (example)
+  if (name === 'audio') {
+    await fs.copyFile(path.join(root, 'framework/web-checks/audio/Main.java'), path.join(directory, 'src/main/java/Main.java'));
+    await fs.mkdir(path.join(directory, 'src/main/resources/audio'), { recursive: true });
+    const frames = 44100, wav = Buffer.alloc(44 + frames * 2);
+    wav.write('RIFF', 0); wav.writeUInt32LE(wav.length - 8, 4); wav.write('WAVEfmt ', 8); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22); wav.writeUInt32LE(44100, 24); wav.writeUInt32LE(88200, 28); wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(frames * 2, 40);
+    for (let i = 0; i < frames; i++) wav.writeInt16LE(Math.round(Math.sin(i * 2 * Math.PI * 330 / 44100) * 1200), 44 + i * 2);
+    await fs.writeFile(path.join(directory, 'src/main/resources/audio/tone.wav'), wav);
+    await fs.writeFile(path.join(directory, 'src/main/resources/audio/broken.wav'), 'Invalid audio fixture');
+  } else if (example)
     await fs.copyFile(
       path.join(root, 'student-template/examples', example, 'Main.java'),
       path.join(directory, 'src/main/java/Main.java')
@@ -117,7 +126,8 @@ if (!browserOnly)
   for (const [name, example] of [
     ['helpers', null],
     ['quiz', 'quiz'],
-    ['drawing', 'drawing']
+    ['drawing', 'drawing'],
+    ['audio', null]
   ]) {
     const project = await fixture(name, example);
     const result = await exportForWeb({
@@ -133,12 +143,12 @@ if (!browserOnly)
     JSON.stringify(results, null, 2) + '\n'
   );
 if (
-  results.length !== 3 ||
-  ['helpers', 'quiz', 'drawing'].some(
+  results.length !== 4 ||
+  ['helpers', 'quiz', 'drawing', 'audio'].some(
     (name) => !results.some((result) => result.name === name)
   )
 )
-  throw new Error('Build all three fixtures before using --browser-only.');
+  throw new Error('Build all four fixtures before using --browser-only.');
 if (browser) {
   const previews = [];
   try {
@@ -213,4 +223,4 @@ if (browser) {
     previews.forEach((item) => item.dispose());
   }
 }
-console.log('Real WebFX/GWT exports passed for helpers, quiz, and drawing.');
+console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, and audio.');

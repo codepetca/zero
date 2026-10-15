@@ -57,6 +57,24 @@ function identity(type,repositoryId,slug) {
     coordinate:{groupId:`ca.codepet.zero.contrib.r${repositoryId}`,artifactId:slug}});
   return result;
 }
+// Hosted pages are external mutable destinations, never registry artifacts.
+function validateWebUrl(value) {
+  if(typeof value!=='string'||value.length>2048||/[\\\s?#]/.test(value))fail('Use a canonical HTTPS playable page URL.');
+  let url;try{url=new URL(value);}catch{fail('Invalid playable page URL.');}
+  const labels=url.hostname.split('.');
+  if(url.protocol!=='https:'||url.href!==value||url.port||url.username||url.password||labels.length<2||
+    labels.some(label=>! /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label))||
+    (labels.at(-1).length<2||!/[a-z]/.test(labels.at(-1)))||['localhost','local','internal'].includes(labels.at(-1)))fail('Use a canonical public HTTPS playable page URL.');
+  return value;
+}
+function validateWebPublication(value,{commit}={}) {
+  keys(value,['provider','url','commit','runId'],['provider','url','commit','runId'],'web publication');
+  if(value.provider!=='github-pages')fail('Unsupported web publication provider.');
+  validateWebUrl(value.url);digest(value.commit,HEX40,'web source commit');
+  if(!Number.isSafeInteger(value.runId)||value.runId<1)fail('Invalid web publishing run.');
+  if(commit!==undefined&&value.commit!==commit)fail('Publish the exact shared source version before including Play.');
+  return {...value};
+}
 function validateDescriptor(value) {
   const common=['schema','kind','slug','version','title','description','license','preview'];
   keys(value,[...common,'libraryKind','controls'],common.filter(key=>key!=='preview'),'sharing descriptor');
@@ -77,7 +95,7 @@ function person(value,label) {
 }
 function validateRequest(value) {
   const required=['schema','kind','slug','version','repository','requester','commit','folder','descriptor','policyRevision'];
-  keys(value,required,required,'publication request');
+  keys(value,[...required,'web'],required,'publication request');
   if(value.schema!==SCHEMA)fail('Unsupported publication request schema.');
   kind(value.kind);validateSlug(value.slug);validateVersion(value.version);
   const repository=validateRepository(value.repository),requester=person(value.requester,'requester'),descriptor=validateDescriptor(value.descriptor);
@@ -85,7 +103,8 @@ function validateRequest(value) {
   if(requester.githubId!==repository.ownerId)fail('Publish from a repository owned by your GitHub account.');
   if(descriptor.kind!==value.kind||descriptor.slug!==value.slug||descriptor.version!==value.version)fail('Request and descriptor disagree.');
   if(value.folder!==(value.kind==='game'?'.':`libraries/${value.slug}`))fail('Use the root game or its matching library folder.');
-  return bounded({...value,repository,requester,descriptor},LIMITS.metadataBytes,'Publication request');
+  let web;if(Object.hasOwn(value,'web')){if(value.kind!=='game')fail('Only games have a web publication.');web=validateWebPublication(value.web,{commit:value.commit});}
+  return bounded({...value,repository,requester,descriptor,...(web?{web}:{})},LIMITS.metadataBytes,'Publication request');
 }
 function artifactPath(item,version,type) {
   const derived=identity(item.kind,item.repositoryId,item.slug);validateVersion(version);
@@ -104,7 +123,7 @@ function configuredOrigin(value) {
 }
 function validateRelease(value,{artifactOrigin}={}) {
   const required=['schema','kind','id','slug','version','title','description','license','repository','contributor','source','policyRevision','status','artifacts'];
-  keys(value,[...required,'namespace','coordinate','libraryKind','components','controls'],required,'release');
+  keys(value,[...required,'namespace','coordinate','libraryKind','components','controls','web'],required,'release');
   if(value.schema!==SCHEMA)fail('Unsupported release schema.');
   const repository=validateRepository(value.repository),contributor=person(value.contributor,'contributor');
   const item=identity(value.kind,repository.id,value.slug);validateVersion(value.version);
@@ -113,6 +132,7 @@ function validateRelease(value,{artifactOrigin}={}) {
   keys(value.source,['commit','folder','sha256'],['commit','folder','sha256'],'release source');
   digest(value.source.commit,HEX40,'source commit');digest(value.source.sha256,HEX64,'source digest');validateFolder(value.source.folder);
   if(value.source.folder!==(value.kind==='game'?'.':`libraries/${value.slug}`))fail('Release source folder mismatch.');
+  if(Object.hasOwn(value,'web')){if(value.kind!=='game')fail('Only games have a web publication.');validateWebPublication(value.web,{commit:value.source.commit});}
   digest(value.policyRevision,HEX40,'policy revision');if(!['available','withdrawn'].includes(value.status))fail('Unsupported release availability.');
   const requiredArtifacts=value.kind==='library'?['jar','sources','pom']:['zip'];
   keys(value.artifacts,[...requiredArtifacts,'preview'],requiredArtifacts,'release artifacts');
@@ -166,4 +186,4 @@ function publicationUrl(request,{repository='codepetca/zero'}={}) {
 }
 module.exports={SCHEMA,JAVA_RELEASE,JAVAFX_VERSION,LIMITS,validateSlug,validateVersion,
   validateFolder,validateRepository,identity,validateDescriptor,validateRequest,
-  validateRelease,validateCatalog,artifactPath,publicationUrl};
+  validateRelease,validateCatalog,artifactPath,publicationUrl,validateWebUrl,validateWebPublication};
