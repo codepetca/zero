@@ -1,6 +1,12 @@
 # Current state — student game helpers (local, unreleased)
 
-Owner authorized seven small game helpers and reuse after the Sky Hop audit.
+Owner authorized seven small game helpers and reuse after the Sky Hop audit,
+then requested generated music/effects. Sky Hop now includes an original17.14s
+loop, flap/score/crash sounds, cached playback, pause/reset/mute and cleanup.
+Audio work is local to the standalone game; Zero core remains unchanged from
+8e71038. Native audio19/game194/asset4 and final GUI/input checks pass; one
+Sol/medium independent review completed clean. Game relaunched through Zero.
+Audio receipts: `.verification/sky-hop-audio/`; detailed evidence in EVIDENCE.
 Implementation is in attached `student-game-helpers/zero`, based on origin/main
 `dfe2c9b`; dirty primary funding checkout preserved. No publication/push/release
 or Maven install authorized/performed. Published core0.1.2/setup0.5.15 unchanged.

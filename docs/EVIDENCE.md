@@ -1,5 +1,38 @@
 # Delivery evidence index
 
+## Sky Hop music and sound — local, 2026-10-15
+
+Owner requested generation and integration in the existing standalone game at
+`/Users/stew/Repos/zero-flappy-bird`. Added original procedurally synthesised
+112BPM D-major17.14s loop plus flap/score/crash WAVs, deterministic generator and
+hash/duration manifest. Four mono44.1kHz16-bit PCM files total1584500bytes.
+GameAudio uses one MediaPlayer and three cached AudioClips with the existing
+JavaFX21.0.12 pin; no Zero core API/source or public release changed. Explicit
+Main events drive audio. Music starts in play, pauses/resumes, rewinds for retry,
+M mutes, and window hiding disposes native playback. Native audio failure permits
+silent play; missing resources identify their paths.
+
+Passed194game rules;4asset format/hash/duration/headroom/endpoints checks; exact
+byte regeneration;19native playback assertions including whole-song repeat,
+effects, pause/resume/position, mute, restart, one crash per loss and disposal;
+GUI animation/layout and actual-frame Space/P/R/M. Zero Run App rebuilt under
+managed JDK21/javafx.media and left the game running. A concurrent GUI test skipped
+focus-dependent input; the final isolated run passed. One generator draft missed
+sample-rate multiplication; duration check caught it. A harness confused total
+infinite duration with cycle duration; corrected and awaits native readiness.
+Native stop/play reset stopped a later loop; pause-and-seek reset passed full loop.
+
+One independent GPT-6.1 Sol/medium read-only reviewer, initialwave1/launch1,
+remediation0. Verified16fixed source/asset hashes, read complete scope/callers,
+reran4asset checks and reused native logs: no actionable findings. Coordinator
+implemented this small coherent feature directly. Effective model, elapsed time,
+tokens and attributable coordination effort unknown; weekly98%remaining and
+storage321GBhealthy at phase readings. DeepSeek remains paused. Source, assets,
+checks, updated build log/audit and refreshed ZIP stay local. Review/manifest/
+delivery receipts are ignored in `.verification/sky-hop-audio/`. Human listening
+quality, novice use and physical Windows/Linux remain unverified.
+
+
 ## Student game helpers — local implementation, 2026-10-15
 
 Owner authorized seven small helpers after the Sky Hop build and student-flow

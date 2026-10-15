@@ -1,5 +1,17 @@
 # Verification
 
+## Sky Hop generated audio — 2026-10-15
+
+Four generated WAV asset checks and exact regeneration pass. Game194assertions,
+native audio19assertions (including an entire17.14s loop), GUI animation/layout
+and actual-frame Space/P/R/M checks pass. Pinned JavaFX media21.0.12 loads through
+the normal Zero Run App with managed JDK21. Independent Sol/medium audio review
+completed with no actionable findings;16source/asset hashes unchanged. ZIP rebuilt
+and every entry compared to source; executable Maven wrapper preserved.
+No core change, publication or new human listening/Windows/classroom claim.
+See [delivery evidence](EVIDENCE.md) and standalone docs/evidence audio logs.
+
+
 ## Student game helpers — 2026-10-15 local source
 
 Configuration/syntax/local links pass. Root suite263pass/1PowerShellskip;
