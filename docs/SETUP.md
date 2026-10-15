@@ -73,24 +73,30 @@ Java and its compiler need compatible matching JDK17+ versions. In manual setup,
 a bad JAVA_HOME must not be hidden by a working PATH installation. The new native
 Mac launcher explicitly selects Zero’s private JDK only for its own editor and
 child processes; it does not repair or change the system JAVA_HOME.
-Git 2.31+ is checked separately for optional sharing. Java editor support and the
-debugger are checked in the active VS Code profile; debugger absence does not
-block Run App. Installed extensions in another profile do not satisfy this check.
+Git 2.31+ is required before tutorial lesson 0 because the lessons use real
+uploads. Setup Help includes Git in tutorial Run readiness; ordinary local apps
+can run without Git. Java editor support and the debugger are checked in the
+active VS Code profile; debugger absence does not block Run App. Installed
+extensions in another profile do not satisfy this check.
 
 Extension repair invokes VS Code's supported extension installer on explicit
 selection. Java/Git repair opens an official installer page. Fully quit/reopen
 VS Code after installing tools or repairing environment variables, then Check
-again. Run first app uses the existing saved, clean-compile, native-window flow.
+again. Run first app saves the project, checks browser compatibility, builds it
+and opens the browser preview. Build errors appear in Zero Output and Problems.
 A missing or malformed project, timeout, unparseable version or failed tool check
 must not be reported as ready. On a supported Mac, the wrapper must also have
 execute permission; re-extract the complete kit or follow the reported local
 permission repair guidance. Checks do not execute the project's Maven build.
 
-GitHub sign-in, repository creation/connection and local Git name/email remain
-student steps when sharing starts. GitHub actions default to live. Upload and
-branch changes require review/confirmation; first Publish approves its destination
-and later explicit Publish actions update that site. Setup does not upload, publish, create
-a repository or submit anything in Pika. Tutorials require an initial student-owned template clone; then local Run works offline.
+Before tutorial lesson 0, students complete the GitHub account, school access,
+privacy and Git identity steps, then create and clone their own tutorial
+repository. After cloning and caching the build tools, local Run works offline
+without an active GitHub session; uploads require sign-in and internet access.
+GitHub actions default to live. Upload and branch changes require
+review/confirmation; first Publish approves its destination and later explicit
+Publish actions update that site. Setup itself does not create accounts or
+repositories, upload, publish or submit anything in Pika.
 
 ## Verification contract
 
