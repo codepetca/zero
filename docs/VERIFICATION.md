@@ -2079,3 +2079,69 @@ and default user Code window preserved. Actual upload/Pages/release asset/workfl
 and physical sound remain untested. No live publication or agent account grant;
 separate ZeroHub checker activation hold persists. Local installed phase accepted;
 overall live goal remains incomplete.
+
+
+## Authorized Sky Hop Pages publication — 2026-10-15
+
+Owner explicitly authorized publishing Sky Hop to the test repository. Live game:
+<https://armorup.github.io/zero-sharing-proof/>. Source commit
+`b3b6591fb838296d1ff99e4fa53a8dca31ad3303`; successful workflow
+<https://github.com/armorup/zero-sharing-proof/actions/runs/38789445991>.
+
+The exact installed-preview-tested build
+`95dc6665-5860-4674-a5cd-50fcd04a7c7c` was preserved. Its snapshot was copied into
+the owned publishing checkout, changing only absolute manifest location paths;
+Java/resources/POM/wrappers, all output bytes and ZIP remain identical. All27
+build inputs match uploaded Git blobs exactly. Native Publish reports “Validated
+browser build ready”; no local or hosted recompilation occurred. Source hash
+`52393d196a66dd9702445d99bdc8cbd8f5c4eebbef673085226642fe83b9c799`
+and profile
+`e95aef9311ffb292eb2f64807dfe03fa64af47ab21c1eab6863dd6ca59f3b0b6`
+remain unchanged and validate after publication.
+
+Independent public HTTP reads compared every68file against the local manifest:
+68/68match SHA256 and length,8208661appbytes,0missing/mismatched files. The public
+source/run marker matches the uploaded commit and deployment38789445991. The
+7280686-byte staged bundle digest
+`ad5d02f5047d69552dd501d5de420b2dcc2b824d8d0e530b7b66f17216564691`
+matched independent local packing and GitHub's asset digest. Stage and deploy jobs
+succeeded; temporary draft release removed; no stage releases remain. Generated
+app bytes remain ignored by source Git. Pages artifact retention is one day.
+
+Real installed native Upload initially saved the source commit but failed using
+the default repo-only session for its new workflow. Runtime7ea63ee adds canonical
+five-file kit recognition and native repo+workflow session selection for ordinary
+Upload retries, including clean committed-but-unpushed state after restart.
+Same-account/project/live-mode checks and scoped disposal remain enforced;
+ordinary projects keep repo-only sessions and simulation exits before new auth,
+saves or preparation. Existing stored armorup workflow session was reused; no new
+grant, credentials export or alternative credential fallback. Retry uploaded the
+original commit; native Publish deployed its exact local build.
+
+18coordinator focused tests,32independent lifecycle tests, npm check/diff check pass.
+Two independent GPT6.1Sol/high security +lifecycle reviews ofda8766b→7ea63ee are
+complete/clean:2launches,1initial wave,0remediation batches. Game/engine profile
+unchanged; prior full local checks reused. Latest local installed preview0.5.15
+is `.verification/live-sky-hop/zero-publishing-preview.vsix`,354137bytes,
+SHA256`bc0e423f5ea1fee218ebbc1319fd2361b3e39e1f14e5ce8ac083c4d26118e771`;
+all73installed/current source files match. Earlier preview packages are historical.
+No Zero implementation/distribution release was published.
+
+Actual public Chrome interaction passes ready artwork, click/start, pause and
+restart;0captured console warnings/errors. Zero's Copy playable link was verified
+by native clipboard paste. Saved Open Published App reverified the site, presented
+the normal external-domain dialog, then opened the correct URL. Trusted domains
+unchanged; one public game tab left open. Publishing checkout clean, main and
+origin/main atb3b6591. Workspace remains live for the explicitly authorized test
+site; no automatic repeat publication scheduled.
+
+Receipts `.verification/live-sky-hop/{acceptance.json,public-files.json,source-bound.json,postpublish.json,expected-bundle.json,staged-release.json,run.json,jobs.json,remaining-staging.json,review-ledger.json}`;
+`native-publish.log`, `run.log`, `review-security.md`, `review-lifecycle.md` retain
+supporting evidence. The first independent verifier expected no trailing newline
+in the marker; all68files already matched. Corrected only the ignored verifier
+to require the runner's exact newline-terminated marker, reran successfully, and
+preserved the original receipt. No app correction was involved.
+
+Windows/Linux/classroom hardware, physical speakers and first-time workflow OAuth
+grant remain untested. Separate ZeroHub checker acceptance/activation and broader
+Zero release holds persist; this scoped live test milestone is accepted.
