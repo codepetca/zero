@@ -49,7 +49,12 @@ public final class BrowserLauncher extends Application {
         started = true;
         DomGlobal.clearTimeout(timeout);
         Platform.runLater(() -> {
-            try { status.setText(""); app = new __APPLICATION_CLASS__(); app.start(stage); }
+            try {
+                status.setText("");
+                app = new __APPLICATION_CLASS__();
+                app.init();
+                app.start(stage);
+            }
             catch (Exception | Error failure) {
                 stage.setScene(new Scene(new StackPane(status), 480, 680));
                 stage.show();

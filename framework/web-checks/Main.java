@@ -12,11 +12,15 @@ public final class Main extends SketchApp {
     private Image sheet;
     private ImageRegion region;
     private SpriteAnimation animation, sequence;
-    private int presses, clicks;
+    private int presses, clicks, initCalls;
     private double x = 150;
     private boolean paused;
+    @Override public void init() {
+        if (++initCalls != 1) throw new IllegalStateException("Application.init must run exactly once");
+    }
     @Override public void settings() { title("Zero web helpers"); size(480, 400); padding(0); }
     @Override public void setup() {
+        if (initCalls != 1) throw new IllegalStateException("Application.init must run before setup");
         sheet = loadImage("/tiles.png");
         if (sheet != loadImage("/./tiles.png")) throw new IllegalStateException("Image aliases lost cache identity");
         region = imageRegion(sheet, 0, 0, 12, 12);

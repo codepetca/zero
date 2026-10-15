@@ -37,15 +37,31 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
   }
   async function publish() {
     if(disposed || publishing || isBusy())return;
-    root=await project();
-    // Simulation must never save files, request sessions or touch the network.
-    if(isSimulation(root)){progress('Simulation only — no publishing files, sign-in, upload or public website changed.');return {status:'simulated'};}
-    if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
-    const expected=root;publishing=true;setBusy(true);controller=new AbortController();
+    publishing=true;setBusy(true);controller=new AbortController();
     try {
+      root=await project();
+      if(disposed || controller.signal.aborted)return;
+      // Simulation must never save files, request sessions or touch the network.
+      if(isSimulation(root)){progress('Simulation only — no publishing files, sign-in, upload or public website changed.');return {status:'simulated'};}
+      if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
+      const expected=root;
       let result,approvedReview;
       resume=resume || workspaceState?.get('zero.webPublish.pending');
-      if(resume?.root===expected) result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress});
+      if(resume?.root===expected) {
+        try {result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress});}
+        catch(error) {
+          if(error.code!=='WEB_PUBLISH_REPOSITORY_CHANGED')throw error;
+          await stillCurrent(expected);
+          const chosen=await vscode.window.showInformationMessage('The saved publishing run belongs to a different repository.',{modal:true,detail:'Forget the saved run to review publishing in this connected repository. This does not cancel the old GitHub run or remove its website. Your previous verified link is kept.'},'Forget saved run');
+          await stillCurrent(expected);
+          if(chosen==='Forget saved run') {
+            resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);
+            progress('Saved run cleared. Choose Publish app to review this repository.');
+            return {status:'reset'};
+          }
+          return {status:'action-required',message:'Reconnect the previous repository or forget its saved publishing run.'};
+        }
+      }
       else {
         let review=await publisher.review(expected,{signal:controller.signal});
         await stillCurrent(expected);
@@ -106,12 +122,14 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
   }
   async function publishedLink(open) {
     if(disposed || publishing || isBusy())return;
-    root=await project();
-    if(isSimulation(root)){progress('Simulation only — no public link was checked or copied.');return;}
-    const saved=lastLive || workspaceState?.get('zero.webPublish.lastLive');
-    if(!saved || saved.root!==root)throw new Error('Publish this game before copying its playable link.');
-    const expected=root;publishing=true;setBusy(true);controller=new AbortController();
+    publishing=true;setBusy(true);controller=new AbortController();
     try {
+      root=await project();
+      if(disposed || controller.signal.aborted)return;
+      if(isSimulation(root)){progress('Simulation only — no public link was checked or copied.');return;}
+      const saved=lastLive || workspaceState?.get('zero.webPublish.lastLive');
+      if(!saved || saved.root!==root)throw new Error('Publish this game before copying its playable link.');
+      const expected=root;
       const verified=await publisher.verifyLink(expected,saved,{signal:controller.signal});
       await stillCurrent(expected);
       if(verified.status!=='live'){await showAction(verified);return verified;}

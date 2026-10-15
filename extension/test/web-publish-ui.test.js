@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
-function fixture(t) {
+function fixture(t,{resolveProject}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,uploaded=0;
   const messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
@@ -12,7 +12,7 @@ function fixture(t) {
   const calls=[];
   const publisher={review:async()=>{calls.push('review');reviewed++;return review();},setup:async()=>{calls.push('setup');return {status:'upload-required',message:'Upload setup'};},publish:async()=>{calls.push('publish');published++;return {status:'pending',resume:{runId:42}};},check:async()=>{checks++;return {status:'live',url:'https://student.github.io/game/',sha:'a'.repeat(40),resume:{runId:42,sha:'a'.repeat(40),repository:'https://github.com/student/game'}};}};
   publisher.verifyLink=async()=>publisher.check();
-  const api=createWebPublishCommands(vscode,{project:async()=>active,authentication:auth,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async()=>{assert.equal(busy,false);uploaded++;setup=false;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async()=>{assert.equal(busy,false);uploaded++;setup=false;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set active(v){active=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -46,4 +46,31 @@ test('prior verified live link persists through failed update and works after ed
 test('later publish revalidates the same approved destination with one command',async t=>{
   const h=fixture(t);h.choices.push('Publish game');await h.api.publish();const modalCount=h.messages.filter(message=>message[1]?.modal).length;
   await h.api.publish();assert.equal(h.published,2);assert.equal(h.reviewed,2);assert.equal(h.messages.filter(message=>message[1]?.modal).length,modalCount);
+});
+
+test('repository reconnect can forget a stale pending run without publishing or losing the prior link',async t=>{
+  const h=fixture(t),pending={root:'/student',value:{runId:42,sha:'a'.repeat(40),repository:'https://github.com/student/old-game'}};
+  const previous={root:'/student',url:'https://student.github.io/old-game/'};
+  h.stored.set('zero.webPublish.pending',pending);h.stored.set('zero.webPublish.lastLive',previous);
+  h.publisher.restore=async()=>{const error=Error('Repository changed');error.code='WEB_PUBLISH_REPOSITORY_CHANGED';throw error;};
+  assert.equal((await h.api.publish()).status,'action-required');assert.deepEqual(h.stored.get('zero.webPublish.pending'),pending);
+  h.choices.push('Forget saved run');assert.equal((await h.api.publish()).status,'reset');
+  assert.equal(h.stored.has('zero.webPublish.pending'),false);assert.deepEqual(h.stored.get('zero.webPublish.lastLive'),previous);
+  assert.equal(h.reviewed,0);assert.equal(h.published,0);
+  h.choices.push('Publish game');assert.equal((await h.api.publish()).status,'live');assert.equal(h.reviewed,1);assert.equal(h.published,1);
+});
+test('transient pending-run errors preserve tracking for a later retry',async t=>{
+  const h=fixture(t),pending={root:'/student',value:{runId:42}};h.stored.set('zero.webPublish.pending',pending);
+  h.publisher.restore=async()=>{throw Error('Connection unavailable');};
+  await assert.rejects(h.api.publish(),/Connection unavailable/);assert.deepEqual(h.stored.get('zero.webPublish.pending'),pending);assert.equal(h.busy,false);
+});
+test('Publish, Copy and Open claim one operation before awaiting project resolution',async t=>{
+  let release,gate=new Promise(resolve=>{release=resolve;});const h=fixture(t,{resolveProject:()=>gate});h.choices.push('Publish game');
+  const first=h.api.publish();
+  await Promise.all([h.api.publish(),h.api.commands['zero.copyPublishedWebLink'](),h.api.commands['zero.openPublishedWeb']()]);
+  assert.equal(h.reviewed,0);assert.equal(h.busy,true);release('/student');await first;
+  assert.equal(h.reviewed,1);assert.equal(h.published,1);
+  gate=new Promise(resolve=>{release=resolve;});const copy=h.api.commands['zero.copyPublishedWebLink']();
+  await Promise.all([h.api.publish(),h.api.commands['zero.copyPublishedWebLink'](),h.api.commands['zero.openPublishedWeb']()]);
+  release('/student');await copy;assert.equal(h.checks,2);assert.deepEqual(h.copied,['https://student.github.io/game/']);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
 });

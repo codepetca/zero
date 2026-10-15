@@ -30,9 +30,9 @@ function publicAddress(address) {
   // addresses cannot satisfy this prefix.
   return net.isIP(address)===6 && /^[23][a-f0-9]{3}:/i.test(address) && !/^2001:(?:0{1,4}|db8):/i.test(address) && !/^2002:/i.test(address);
 }
-function publicReadiness(url,{signal}={}) {
+function publicReadiness(url,{signal,get=https.get}={}) {
   return new Promise((resolve,reject)=>{
-    const req=https.get(url,{signal,headers:{'Cache-Control':'no-cache'},lookup(host,options,callback){
+    const req=get(url,{signal,headers:{'Cache-Control':'no-cache'},lookup(host,options,callback){
       dns.lookup(host,{all:true},(error,addresses)=>{
         if(error)return callback(error);
         if(!addresses.length || addresses.some(item=>!publicAddress(item.address)))return callback(new Error('The Pages domain does not resolve to a public address.'));
@@ -44,12 +44,18 @@ function publicReadiness(url,{signal}={}) {
       let size=0;const chunks=[];
       response.on('data',chunk=>{size+=chunk.length;if(size>100){response.destroy();reject(new Error('Unexpected public version response.'));}else chunks.push(chunk);});
       response.on('error',reject);
-      response.on('end',()=>resolve(new Response(Buffer.concat(chunks),{status:response.statusCode,headers:response.headers})));
+      response.on('end',()=>{
+        try {
+          if(response.statusCode!==200)throw new Error('The public version file is not available yet.');
+          resolve(new Response(Buffer.concat(chunks),{status:200,headers:response.headers}));
+        } catch(error) {reject(error);}
+      });
     });
     req.on('error',reject);
   });
 }
 async function boundedText(response) {
+  if(!response.body)return '';
   const reader=response.body.getReader();let text='',size=0;
   try {while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>100)return '';text+=new TextDecoder().decode(value);}return text.trim();} finally {await reader.cancel();}
 }
@@ -93,6 +99,8 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     // Only these repository-scoped official REST endpoints can receive a token.
     if(!/^(?:|\/pages|\/git\/ref\/heads\/main|\/actions\/workflows\/zero-web\.yml\/dispatches|\/actions\/runs\/\d+)$/.test(suffix))throw new Error('Unsupported web publishing API request.');
     await guard(review,signal);
+    // Mode can change while authentication and Git validation are awaited.
+    if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     const token=authentication.assertCurrentNow(review.ticket).accessToken;
     let response;
     try {response=await request('https://api.github.com/repos/'+review.slug+suffix,{method,redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])]),headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+token,'X-GitHub-Api-Version':'2026-03-10',...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
@@ -136,7 +144,9 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
       await core.assertRepositoryRoot(state.root,git);
       // Recheck path components immediately before each file creation.
       await inspectFiles(state.root,new Map([[name,state.files.get(name)]]));
+      if(isSimulation())throw new Error('Live publishing was disabled. Review publishing again.');
       await fs.mkdir(path.dirname(path.join(state.root,name)),{recursive:true});
+      if(isSimulation())throw new Error('Live publishing was disabled. Review publishing again.');
       await fs.writeFile(path.join(state.root,name),state.files.get(name),{flag:'wx'});
     }
     return {status:'upload-required',message:'Publishing setup is ready. Upload these source files on main, then publish the game.'};
@@ -149,7 +159,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
     if(remote.object?.sha!==state.plan.head)throw new Error('GitHub main changed after review. Upload or sync your project and review publishing again.');
     const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
-    if(pages && (pages.build_type!=='workflow' || pages.public!==true || (state.pages && (pages.html_url!==state.pages.html_url || pages.cname!==state.pages.cname))))throw new Error('Pages settings changed after review. Review publishing again.');
+    if(pages && (!state.pages || pages.build_type!=='workflow' || pages.public!==true || pages.html_url!==state.pages.html_url || pages.cname!==state.pages.cname))throw new Error('Pages settings changed after review. Review publishing again.');
     if(!pages) {
       if(state.pages)throw new Error('Pages settings changed after review. Review publishing again.');
       try {await api(state,'POST','/pages',{build_type:'workflow'},{signal});}
@@ -191,8 +201,12 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
   async function verifyLink(root,saved,{signal}={}) {
     if(isSimulation())return simulation();
     if(!saved?.resume || !shaPattern.test(saved.sha||'') || (!Number.isSafeInteger(saved.resume.runId) || saved.resume.runId<1) || saved.resume.sha!==saved.sha)throw new Error('Publish this game before copying its playable link.');
-    const plan=await prepareUpload(root,git),ticket=await authentication.capture();
-    if(plan.page!==saved.resume.repository)throw new Error('The connected repository changed. Publish this project before copying its playable link.');
+    const plan=await prepareUpload(root,git);
+    if(plan.page!==saved.resume.repository) {
+      const error=new Error('The connected repository changed. Publish this project before copying its playable link.');
+      error.code='WEB_PUBLISH_REPOSITORY_CHANGED';throw error;
+    }
+    const ticket=await authentication.capture();
     const state={root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length)};
     const repo=await api(state,'GET','',null,{signal});
     if(String(repo.owner?.id)!==String(ticket.session.accountId) || repo.owner?.type!=='User')throw new Error('Sign in to the GitHub account that owns this game.');
@@ -201,4 +215,4 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
   }
   return {review,setup,publish,check,restore,verifyLink};
 }
-module.exports={createGitHubPagesPublisher,publishingFiles,workflowPath,pagesPublishWorkflow:compiledWorkflow,publicAddress};
+module.exports={createGitHubPagesPublisher,publishingFiles,workflowPath,pagesPublishWorkflow:compiledWorkflow,publicAddress,_test:{publicReadiness,boundedText}};

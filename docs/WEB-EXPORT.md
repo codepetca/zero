@@ -58,9 +58,9 @@ previous successful export.
 quiz/shared score component and drawing example, then checks interaction in
 Chrome. The pull-request workflow runs those same checks. New framework methods
 need corresponding fixture coverage; new or changed adapter-sensitive helpers
-must be reviewed before their profile fingerprints are updated. Configure the
-web workflow as a required branch check when integrating; this change does not
-alter GitHub branch protection.
+must be reviewed before their profile fingerprints are updated. Publishing always runs the real compiler; the PR workflow exposes the separate
+compatibility check. Branch-protection settings remain an owner decision and
+were not changed.
 
 The game trial used a frozen copy of the JavaFX-audio Sky Hop version while the
 other chat continued work independently. Later `zero.Sound`/`zero.Music` helpers

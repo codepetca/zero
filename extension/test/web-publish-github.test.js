@@ -39,7 +39,7 @@ async function fixture(t,{installed=true}={}) {
     assert.fail('Unexpected API '+url);
   };
   const publisher=createGitHubPagesPublisher({authentication,fetch,files,isSimulation:()=>simulation});
-  return {root,git,head,files,publisher,calls,get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
+  return {root,git,head,files,publisher,calls,authentication,get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
@@ -116,4 +116,48 @@ test('public readiness address policy rejects private, mapped and local networks
   const {publicAddress}=require('../src/web-publish-github');
   for(const address of ['127.0.0.1','10.0.0.1','172.16.1.1','192.168.1.1','169.254.169.254','100.64.0.1','::1','fe80::1','fc00::1','::ffff:127.0.0.1','2001:db8::1'])assert.equal(publicAddress(address),false,address);
   assert.equal(publicAddress('185.199.108.153'),true);assert.equal(publicAddress('2606:50c0:8000::153'),true);
+});
+
+test('a Pages destination appearing after no-site consent cannot be overwritten',async t=>{
+  const h=await fixture(t);h.pages=null;
+  const review=await h.publisher.review(h.root);
+  h.pages={build_type:'workflow',public:true,cname:'existing.example.org',html_url:'https://existing.example.org/'};
+  await assert.rejects(h.publisher.publish(review),/Pages settings changed/);
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
+});
+test('simulation enabled during the final asynchronous guard blocks dispatch and setup writes',async t=>{
+  const h=await fixture(t);const review=await h.publisher.review(h.root);
+  const original=h.authentication.assertCurrent;let armed=false;
+  h.authentication.assertCurrent=async ticket=>{const value=await original(ticket);if(armed)h.simulation=true;return value;};
+  await assert.rejects(h.publisher.publish(review,{onProgress:()=>{armed=true;}}),/Live publishing is disabled/);
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
+  const setup=await fixture(t,{installed:false}),setupReview=await setup.publisher.review(setup.root);
+  const check=setup.authentication.assertCurrent;let checks=0;
+  setup.authentication.assertCurrent=async ticket=>{const value=await check(ticket);if(++checks===2)setup.simulation=true;return value;};
+  await assert.rejects(setup.publisher.setup(setupReview),/Live publishing was disabled/);
+  for(const name of setup.files.keys())await assert.rejects(fs.stat(path.join(setup.root,name)),{code:'ENOENT'});
+});
+test('repository changes return a typed stale-run error without requesting the old destination',async t=>{
+  const h=await fixture(t);const pending=await h.publisher.publish(await h.publisher.review(h.root));
+  await h.git(['remote','set-url','origin','https://github.com/student/new-game.git']);
+  const before=h.calls.length;
+  await assert.rejects(h.publisher.restore(h.root,pending.resume),error=>error.code==='WEB_PUBLISH_REPOSITORY_CHANGED');
+  assert.equal(h.calls.length,before);
+});
+test('asynchronous unexpected readiness responses reject safely and bounded empty bodies are harmless',async()=>{
+  const {EventEmitter}=require('node:events');
+  const {publicReadiness,boundedText}=require('../src/web-publish-github')._test;
+  for(const status of [204,205,304,999]) {
+    const get=(url,options,respond)=>{
+      const request=new EventEmitter();
+      queueMicrotask(()=>{const response=new EventEmitter();response.statusCode=status;response.headers={};respond(response);response.emit('end');});
+      return request;
+    };
+    await assert.rejects(publicReadiness('https://student.github.io/game/zero-source-sha.txt',{get}),/not available/);
+  }
+  assert.equal(await boundedText(new Response(null,{status:204})), '');
+  const get=(url,options,respond)=>{
+    const request=new EventEmitter();queueMicrotask(()=>{const response=new EventEmitter();response.statusCode=200;response.headers={};respond(response);response.emit('data',Buffer.from('version'));response.emit('end');});return request;
+  };
+  assert.equal(await boundedText(await publicReadiness('https://student.github.io/game/zero-source-sha.txt',{get})),'version');
 });
