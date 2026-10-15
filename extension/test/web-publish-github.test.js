@@ -161,3 +161,15 @@ test('asynchronous unexpected readiness responses reject safely and bounded empt
   };
   assert.equal(await boundedText(await publicReadiness('https://student.github.io/game/zero-source-sha.txt',{get})),'version');
 });
+
+test('simulation enabled during Pages response validation blocks public readiness traffic',async t=>{
+  const h=await fixture(t);const pending=await h.publisher.publish(await h.publisher.review(h.root));
+  const original=h.authentication.assertCurrent;
+  h.authentication.assertCurrent=async ticket=>{
+    const value=await original(ticket);
+    if(h.calls.at(-1)?.url.endsWith('/pages'))h.simulation=true;
+    return value;
+  };
+  await assert.rejects(h.publisher.check(pending.resume),/Live publishing is disabled/);
+  assert.ok(h.calls.every(call=>!call.url.startsWith('https://student.github.io/')));
+});

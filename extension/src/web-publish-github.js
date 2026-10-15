@@ -184,6 +184,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     const url=safeUrl(pages.html_url,pages.cname);
     if(!url || pages.build_type!=='workflow' || pages.public!==true)throw new Error('GitHub has not confirmed the expected public game URL. Check Pages settings and recheck.');
     onProgress('Checking that the public page serves your reviewed version…');
+    if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     let response;
     try {response=await (request===globalThis.fetch?publicReadiness:request)(new URL('zero-source-sha.txt',url.endsWith('/')?url:url+'/').href,{method:'GET',redirect:'error',cache:'no-store',signal:AbortSignal.any([AbortSignal.timeout(timeoutMs),...(signal?[signal]:[])])});}
     catch {return pending('Deployment succeeded; waiting for the public game to become reachable.');}
