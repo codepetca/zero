@@ -16,6 +16,7 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 ## Before lesson 0: GitHub and privacy
 
 Tutorials require **your own GitHub account and Git 2.31+ before lesson 0**.
+This baseline supports the real upload workflow used in the lessons.
 The kit's ordinary Hello World setup check can run without an account; the
 continuing tutorials start from your own template-created repository and clone.
 
