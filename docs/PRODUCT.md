@@ -189,7 +189,7 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-Optional browser sharing adds **Publish app** beneath Run/Stop and **Export for
+Optional browser sharing adds **Publish app** in the GitHub section and **Export for
 web** in the title menu. Students keep ordinary Java. A reviewed GitHub Pages
 setup leads to an exact-version verified playable link; simulation remains the
 default. Share game can attach the exact verified publication automatically;

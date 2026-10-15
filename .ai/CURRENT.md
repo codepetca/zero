@@ -1,7 +1,7 @@
 # Current state — browser publishing integration (active, unreleased)
 
 Goal set by owner2026-10-15: ordinary student Java and supported Zero teaching
-API → native Run App → simple Publish app → verified playable GitHub Pages link.
+API → native Run App → GitHub section Publish app → verified playable Pages link.
 ZeroHub links to the student-hosted live app; exact source/Pika links stay separate.
 No duplicate compiled-game storage in ZeroHub. Keep failures useful, compatibility
 gates meaningful, storage bounded and existing designs/native behavior intact.
@@ -20,21 +20,31 @@ latest game are preserved. Root funding checkout and installed Zero untouched.
 
 ## Current ownership and state
 
-- Browser adapter worker: generated resource/Sound/Music/lifecycle adapters,
-  focused tests, framework/web-checks and web verification scripts. Seven-helper
-  hashes/98declaration gate and real4fixture builds pass; behavior testing active.
-- Hub worker: optional request/release `web` receipt contract, trusted independent
-  Pages/run/marker verification, registry/evidence pipeline and website Play latest.
-  Also owns shared Pages security helper factoring/native publisher GitHub module.
-  Legacy catalog projects out web; enriched endpoint `/api/sharing/catalog/web`.
-- Coordinator: publisher read-only receipt callback, extension composition/native
-  sharing editor and tests, NEWkit catalog defaults, final UI/packaging/docs/review.
- 30native receipt/editor/extension checks pass. Current defaults opt into enriched
-  catalog; published old kits/bytes remain unchanged.
-- Native QA worker finished: owned official VSCode copy/profile/95filefixture;
-  light/dark/highcontrast, keyboard, menus and simulation pass. No auth grant.
-  Continue export in retained owned window after adapters stabilize. See
-  `.verification/native-integration/NATIVE-QA.md`; select its exact copiedapp path.
+- Browser adapters integrated: seven helper hashes/98 declarations, four real
+  GWT builds and37browser checks passed. Canonical helper source unchanged.
+- Hub receipts/provenance, legacy catalog projection and Play latest integrated;
+  coordinator composed native exact-receipt sharing callback and new-kit defaults.
+- Initial integrated review at8d20c67 complete: two acceptedP2s fixed in one batch,
+  targeted review next. Persisted pagehide retains paused app/audio for restoration;
+  stale/unavailable saved links allow source-only Share. Browser restore worker
+  source frozen; final four-fixture/45check regression remains running.
+- User placement adjustment: Publish app moved into GitHub, disabled until signed
+  in and repository connected. Local practice omits it. Run/Stop remain together.
+- Root337tests336pass1PowerShellskip; sharing48pass; website104tests/type/build;
+  native fallback/sidebar32focused tests pass. No account grant or deployment.
+- Current SkyHop compiles and browser input/music/mute/reset/cleanup and synthetic
+  cached-page restoration with P-resume pass at480x680;
+  final site8,208,092bytes / ZIP7,009,089bytes. All source/assets unchanged; exporter adds
+  only its .gitignore rule. Browser receipt `.verification/integration/`.
+- Owned native VSCode profile: actual Export→Preview→SaveZIP passed,68site/ZIP hashes
+  match,21input hashes unchanged, only expected .gitignore differs. Final GitHub placement
+  passes light/dark/highcontrast, keyboard and native overflow checks. See `.verification/native-integration/native-export-receipt.json`.
+
+Initial review ledger `.verification/integration/review-ledger.json` records fixed
+SHAs, two review scopes, interrupted/resumed context and conservative3turn count.
+One targeted correction review remains after browser regression passes. Effective
+worker configuration/tokens unavailable; requested GPT6.1Sol/high. Account-wide
+weekly86%remaining at latest check; no attribution/cost claim. DeepSeek paused.
 
 Frozen current SkyHop: `.verification/integration/latest-sky-hop`,95files from ZIP
 SHA25666b20743c2ba310f572197714a7e01ff1a430e682989894285d367c63eed47f8;
@@ -59,5 +69,5 @@ Play latest is explicitly mutable student hosting; source downloads stay version
 No extra URL prompt/descriptor edits or per-update Hub resharing requirement.
 No public push, deployment, account grant, ZeroHub activation or release authorized.
 Prior checks/limits in EVIDENCE and WEB-EXPORT; update after integrated verification.
-Weekly start89%remaining; storage321GBhealthy. DeepSeek pause honored. No new tasks
+Weekly start89%remaining; latest86%; storage316GBhealthy. DeepSeek pause honored. No new tasks
 or automations. Keep this worktree for integration and preserve private receipts.

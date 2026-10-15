@@ -1,5 +1,58 @@
 # Delivery evidence index
 
+## Browser publishing integration — local, 2026-10-15
+
+This chat owns the integration goal. Other game/compatibility chats handed off
+without competing writers; reviewed framework/audio sources fromdbaef8c were
+integrated asb7ece38. All seven canonical helpers and student Java stay unchanged.
+Generated adapters cover98public/protected declarations with source fingerprints,
+real compiler gates and behavior fixtures. Publishing still defaults to simulation.
+
+Native Publish app is inside GitHub, disabled until sign-in/repository connection;
+Run/Stop stay separate and Export for web remains available locally. An exact
+verified publication attaches automatically to Share game, without editing authored
+descriptors. Trusted checking independently verifies repository/owner, workflow run,
+Pages URL and public SHA/run marker. Hub Play latest opens mutable student hosting;
+source ZIPs remain versioned. Hub stores no duplicate compiled game. Legacy catalog
+projects out optional web receipts; new kits use the enriched endpoint. Coordinated
+website/checker policy activation and kit release remain separate, unperformed work.
+
+Passed locally: root337tests/336pass/1PowerShellskip; sharing48tests; website104tests,
+typecheck and production build; four real GWT fixtures/37browser checks;32focused
+native callback/sidebar tests after remediation. Native isolated VSCode Export→
+Preview→SaveZIP succeeded with68manifest-verified files and unchanged21Java/resource
+inputs. GitHub placement, keyboard, light/dark/highcontrast and overflow verified.
+Current frozen SkyHop compiles with final runtime; Space/click/P/R/M, music progress,
+reset, synthetic blur, persisted hide/show drawing/P-resume and final cleanup pass
+at480x680. Final site8,208,092bytes / ZIP7,009,089bytes. Only expected export .gitignore
+rule changes the frozen source fixture. Actual Hub browser checks cover9actions/
+invariants with a fixture catalog, pinned source, source-only/withdrawn and narrow
+keyboard layout; its existing community palette stays light even under emulated
+OS dark. These are not public deployment/authentication proofs.
+
+Initial independent integration review read46files at8d20c67 and found twoP2s:
+stale saved publication could prevent source-only sharing after repository reconnect,
+and persisted pagehide permanently stopped cached apps. One corrective batch adds
+optional-link fallback with cancellation/project/account guards and paused retained
+browser players/app ownership, plus the owner-requested GitHub placement. Fresh
+current-game regression and32native tests pass; expanded four-fixture/45browser
+regression and targeted fixed-revision review are the remaining local gates.
+
+Receipts remain ignored under `.verification/integration/`,
+`.verification/web-audio-integration/`, `.verification/web-bfcache-fix/` and
+`.verification/native-integration/NATIVE-EXPORT-QA.md`. A tool-session interruption
+terminated in-flight processes; confirmed stopped export locks were preserved or
+removed only for owned fixtures, then affected checks restarted. One native
+first-frame test timing race was corrected without weakening behavior assertions.
+Requested workers/reviewers used GPT6.1Sol/high for bounded interop/provenance/native
+UI work; effective models/tokens and attributable active effort are unavailable.
+Review ledger conservatively counts interrupted/resumed turns. Weekly reading moved
+89%→86%remaining account-wide, not a task cost measurement; storage healthy. DeepSeek
+pause honored. No push, publication, account grant, installed Zero replacement or
+public kit release occurred. Physical Windows, other browser engines, actual cache
+navigation/focus, listening quality and native GitHub/Pages/Hub trial remain untested.
+
+
 ## Managed Sound/Music helpers — local implementation, 2026-10-15
 
 Owner explicitly authorized core helpers and Sky Hop migration after reviewing

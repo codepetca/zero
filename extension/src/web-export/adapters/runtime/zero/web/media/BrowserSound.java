@@ -31,6 +31,9 @@ final class BrowserSound {
             DomGlobal.window.addEventListener("blur", event -> suspend());
             DomGlobal.document.addEventListener("visibilitychange", event -> { if (DomGlobal.document.hidden) suspend(); });
             DomGlobal.window.addEventListener("pagehide", event -> {
+                // Retain reusable players in the back/forward cache. Playback
+                // resumes only when the app explicitly requests it again.
+                if (Js.isTruthy(Js.asPropertyMap(event).get("persisted"))) { suspend(); return; }
                 for (BrowserSound sound : new ArrayList<>(sounds)) sound.dispose();
             });
         }

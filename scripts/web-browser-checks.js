@@ -17,7 +17,7 @@ async (page) => {
       if (name.toLowerCase() === 'audio') window.__zeroAudio.push(element);
       return element;
     };
-    window.__zeroCheck = { texts: [], images: [], last: null, errors: [] };
+    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], draws: 0 };
     addEventListener('error', (event) =>
       window.__zeroCheck.errors.push(event.message)
     );
@@ -33,6 +33,7 @@ async (page) => {
       return clear.apply(this, args);
     };
     p.fillText = function (...args) {
+      window.__zeroCheck.draws++;
       window.__zeroCheck.texts.push(String(args[0]));
       return text.apply(this, args);
     };
@@ -262,8 +263,45 @@ async (page) => {
   check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'App stop closes all effect voices and independent music');
   await page.reload();
   await page.getByText(/^Audio checks ready:/).filter({visible:true}).waitFor();
-  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide')));
-  check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'Synthetic pagehide invokes app-owned cleanup');
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(text => text.startsWith('Audio API ready:')));
+  await page.getByRole('button', {name: 'Loop', exact: true}).click();
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true') && window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  await page.getByRole('button', {name: 'Pause', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: false'));
+  check((await state()).texts.includes('Once playing: true'), 'Independent music keeps playing when another player pauses');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true'));
+  const beforePersisted = await page.evaluate(() => {
+    const sources = window.__zeroAudio.filter(a => a.getAttribute('src'));
+    window.__retainedAudio = sources.map(a => ({audio: a, source: a.getAttribute('src')}));
+    window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: true}));
+    return {draws: window.__zeroCheck.draws, time: sources.find(a => a.volume === .19).currentTime};
+  });
+  check(await page.evaluate(() => window.__retainedAudio.every(({audio, source}) => audio.paused && audio.getAttribute('src') === source)), 'Persisted pagehide pauses audio and retains every player source');
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true})));
+  await page.waitForFunction(before => window.__zeroCheck.draws > before + 5, beforePersisted.draws);
+  const restoredDraws = await page.evaluate(() => window.__zeroCheck.draws);
+  check(restoredDraws > beforePersisted.draws, 'Ordinary SketchApp drawing continues after persisted pagehide and pageshow', {before: beforePersisted.draws, after: restoredDraws});
+  await page.waitForTimeout(100);
+  check(!(await musicState()).playing && Math.abs((await musicState()).time - beforePersisted.time) < .03, 'Restored music stays paused at its retained position');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true'));
+  check((await state()).texts.includes('Once playing: false'), 'Restored music resumes independently without restarting another player');
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  check((await musicState()).playing, 'Second retained Music remains usable after restore');
+  await page.getByRole('button', {name: 'Play twice', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: true'));
+  check(true, 'Retained Sound can play after restore');
+  const finalDraws = await page.evaluate(() => {
+    window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: false}));
+    return window.__zeroCheck.draws;
+  });
+  check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'Non-persisted pagehide still invokes app-owned cleanup after restore');
+  await page.waitForTimeout(100);
+  check(await page.evaluate(before => window.__zeroCheck.draws === before, finalDraws), 'Non-persisted pagehide stops the SketchApp timer');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in audio fixture');
   return {
     status: 'passed',

@@ -5,8 +5,8 @@ ordinary Java projects; native Run App remains the normal development loop.
 
 ## Student flow
 
-Choose **Publish app** in Zero's sidebar after finishing and uploading a change
-on `main`. First setup reviews the public destination, prepares source-only
+Choose **Publish app** in Zero's GitHub section after finishing and uploading a
+change on `main`. Sign in and connect your repository to enable it. First setup reviews the public destination, prepares source-only
 publishing files, asks VS Code for GitHub workflow permission, and uses the
 existing reviewed Upload changes flow. Zero then confirms the uploaded version.
 Later publishes reuse the approved destination and stable URL. Repository
@@ -84,7 +84,9 @@ publication still share source normally.
 ZeroHub shows **Play latest** beside **Download source project**. Play opens the
 student-hosted live app, which can change on later publishes; source snapshots
 remain exact versions. ZeroHub stores only the link and verification metadata,
-not another compiled game. Withdrawn games have no Play action.
+not another compiled game. Existing versioned source-project ZIPs still use
+ZeroHub artifact storage and include the project assets. Withdrawn games have no
+Play action.
 
 New kits use `/api/sharing/catalog/web`; the original catalog endpoint validates
 the same data and projects out optional web receipts for older strict clients.

@@ -108,6 +108,9 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
   assert.match(webview.html,/>Sign in<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);
+  const githubSection=()=>webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)[1];
+  assert.match(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/);
+  assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
   assert.ok(authCalls.every(call=>call.options.silent));
   await commands.get('zero.browseZeroHub')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries']);
@@ -135,6 +138,8 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   nextChoice='change';await commands.get('zero.githubAccount')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
   repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Upload changes/.test(webview.html) && />student\/app /.test(webview.html));
   assert.match(webview.html,/Upload changes/);assert.match(webview.html,/>student\/app /);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
+  assert.match(githubSection(),/data-command="zero.publishWeb"/);
+  assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/,'Signed-in connected students can publish');
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['copy','connect']);
   session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle(()=>webview.html.includes('&lt;img src=x onerror=&quot;bad&quot;&gt;'));

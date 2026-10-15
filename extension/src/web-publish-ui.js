@@ -153,7 +153,16 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       if(root!==expected)throw new Error('The project changed. Share its uploaded version again.');
       if(isSimulation(root))return;
       if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before checking its playable link.');
-      const checked=await publisher.verifyLink(expected,saved,{signal:controller.signal});
+      let checked;
+      try {checked=await publisher.verifyLink(expected,saved,{signal:controller.signal});}
+      catch(error) {
+        // A remembered link is optional for source sharing. Never attach it when
+        // its repository or current availability cannot be verified.
+        await stillCurrent(expected);
+        if(error.name==='AbortError')throw error;
+        progress('Sharing source only — the saved playable link could not be verified.');
+        return;
+      }
       await stillCurrent(expected);
       if(isSimulation(root) || checked.status!=='live' || checked.sha!==commit)return;
       return {provider:'github-pages',url:checked.url,commit,runId:checked.resume.runId};

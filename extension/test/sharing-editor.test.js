@@ -126,3 +126,17 @@ test('native game discovery offers Play latest without downloading or opening so
  const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async()=>({catalog:{releases:[release]}}),downloadGame:async()=>assert.fail('Play must not download source')}});
  await editor.commands['zero.browseGames']();assert.deepEqual(f.opened,[web.url]);assert.equal(f.stats().busy,false);
 });
+
+test('reconnected same-folder same-commit projects can Share source without a stale playable receipt',async t=>{
+ const {createWebPublishCommands}=require('../src/web-publish-ui');
+ for(const accountDrift of [false,true]) {
+  const f=await fixture(t,{approval:'Open GitHub form'});let verifyCalls=0,accountChanged=false;
+  const saved={root:f.root,sha:'a'.repeat(40),resume:{repository:'https://github.com/student/previous-game',sha:'a'.repeat(40),runId:42}};
+  const publishing=createWebPublishCommands(f.vscode,{project:f.host.project,isSimulation:()=>false,isBusy:()=>true,workspaceState:{get:()=>saved},publisherFactory:()=>({verifyLink:async()=>{verifyCalls++;accountChanged=accountDrift;const error=new Error('The connected repository changed');error.code='WEB_PUBLISH_REPOSITORY_CHANGED';throw error;}})});
+  t.after(()=>publishing.disposables.forEach(d=>d.dispose()));f.host.verifiedPublication=publishing.verifiedPublication;
+  f.host.auth.assertCurrent=async()=>{if(accountChanged)throw Error('The GitHub account changed');};
+  if(accountDrift) {await assert.rejects(f.editor.commands['zero.shareGame'](),/account changed/);assert.equal(f.opened.length,0);}
+  else {await f.editor.commands['zero.shareGame']();const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(f.opened[0]).searchParams.get('body'))[1]);assert.equal(request.repository.url,repository.url);assert.equal(request.commit,saved.sha);assert.equal(request.web,undefined);}
+  assert.equal(verifyCalls,1);assert.equal(f.stats().busy,false);
+ }
+});
