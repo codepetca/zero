@@ -7,13 +7,24 @@ const zlib=require('node:zlib');
 const MAX_BYTES=128*1024*1024, MAX_JSON=192*1024*1024, MAX_FILES=20000;
 const hash=data=>crypto.createHash('sha256').update(data).digest('hex');
 const safePath=name=>typeof name==='string' && name.length<1024 && !name.startsWith('/') && !name.split('/').some(p=>!p || p==='.' || p==='..' || /[\\\x00-\x1f:]/.test(p));
+function validBase64(value) {
+  if(typeof value!=='string'||value.length%4!==0)return false;
+  let end=value.length;
+  if(end&&value.charCodeAt(end-1)===61)end--;
+  if(end&&value.charCodeAt(end-1)===61)end--;
+  for(let index=0;index<end;index++) {
+    const code=value.charCodeAt(index);
+    if(!((code>=65&&code<=90)||(code>=97&&code<=122)||(code>=48&&code<=57)||code===43||code===47))return false;
+  }
+  return value.length===0||end>=value.length-2&&end>0;
+}
 function decode(bytes,{sourceSha,digest,profileHash}={}) {
   if(!Buffer.isBuffer(bytes)||bytes.length>MAX_BYTES||hash(bytes)!==digest)throw Error('The staged app bundle has a different digest or exceeds the transfer limit.');
   const bundle=JSON.parse(zlib.gunzipSync(bytes,{maxOutputLength:MAX_JSON}).toString('utf8'));
   if(Object.keys(bundle).sort().join(',')!=='files,format,profileHash,sourceHash,sourceSha,totalBytes' || bundle.format!==1 || bundle.sourceSha!==sourceSha || !/^[a-f0-9]{64}$/.test(bundle.profileHash||'') || (profileHash && bundle.profileHash!==profileHash) || !/^[a-f0-9]{64}$/.test(bundle.sourceHash||'') || !Array.isArray(bundle.files) || !bundle.files.length || bundle.files.length>MAX_FILES)throw Error('Invalid staged app manifest.');
   const names=new Set();let total=0;
   const files=bundle.files.map(file=>{
-    if(!safePath(file.path)||file.path==='zero-source-sha.txt'||names.has(file.path)||Object.keys(file).sort().join(',')!=='bytes,data,path,sha256'||!Number.isSafeInteger(file.bytes)||file.bytes<0||typeof file.data!=='string'||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(file.data))throw Error('Invalid or duplicate staged app path.');
+    if(!safePath(file.path)||file.path==='zero-source-sha.txt'||names.has(file.path)||Object.keys(file).sort().join(',')!=='bytes,data,path,sha256'||!Number.isSafeInteger(file.bytes)||file.bytes<0||!validBase64(file.data))throw Error('Invalid or duplicate staged app path.');
     names.add(file.path);total+=file.bytes;if(total>MAX_BYTES)throw Error('The app exceeds the transfer limit.');
     const data=Buffer.from(file.data,'base64');if(data.length!==file.bytes||hash(data)!==file.sha256)throw Error('The staged app file digest does not match.');return {path:file.path,bytes:data};
   });

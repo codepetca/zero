@@ -12,15 +12,15 @@ async function harness(t) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-web-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const site=path.join(root,'.zero/web-export/site');await fs.mkdir(site,{recursive:true});await fs.writeFile(path.join(site,'index.html'),'<h1>game</h1>');
   const zip=path.join(root,'.zero/web-export/game.zip');await fs.writeFile(zip,'ZIP');
-  let active=root,busy=false,saves=0,builds=0,save=true,fail=false,noticeAction,previewClosed=0,previewOpened=0,exportResult;
+  let active=root,busy=false,saves=0,builds=0,save=true,fail=false,noticeAction,previewClosed=0,previewOpened=0,exportResult,validator,validations=0;
   const states=[],notices=[],opened=[],picks=[],documents=[],args=[];
   const choices=[];
   const vscode={workspace:{isTrusted:true,saveAll:async()=>{saves++;return save;},openTextDocument:async value=>{documents.push(value);return {uri:{document:true}};}},
     window:{showInformationMessage:async(...value)=>{notices.push(value);return noticeAction;},showQuickPick:async(items)=>{picks.push(items);return items.find(i=>i.action===choices.shift());},showSaveDialog:async()=>undefined},
     commands:{executeCommand:async()=>{}},env:{openExternal:async uri=>{opened.push(uri);return true;}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})}};
-  const api=createWebExportCommands(vscode,{project:async()=>active,output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:value=>{busy=value;},setState:value=>states.push(value),validateExport:async()=>{},ensureValidatedExport:async options=>{builds++;args.push(options);if(fail)throw Error('Bad student source');return exportResult ? exportResult(options) : {sitePath:site,zipPath:zip,totalBytes:4500000};},previewFactory:async()=>{previewOpened++;return {url:'http://127.0.0.1:1234/token/',dispose:()=>{previewClosed++;}};}});
+  const api=createWebExportCommands(vscode,{project:async()=>active,output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:value=>{busy=value;},setState:value=>states.push(value),validateExport:async options=>{validations++;return validator ? validator(options,validations) : {...options.result,zipBytes:await fs.readFile(zip)};},ensureValidatedExport:async options=>{builds++;args.push(options);if(fail)throw Error('Bad student source');return exportResult ? exportResult(options) : {sitePath:site,zipPath:zip,totalBytes:4500000,buildId:'build-1'};},previewFactory:async()=>{previewOpened++;return {url:'http://127.0.0.1:1234/token/',dispose:()=>{previewClosed++;}};}});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {root,site,zip,api,vscode,states,notices,opened,picks,documents,args,choices,get busy(){return busy;},set busy(v){busy=v;},get saves(){return saves;},get builds(){return builds;},set save(v){save=v;},set fail(v){fail=v;},set active(v){active=v;},set noticeAction(v){noticeAction=v;},set exportResult(v){exportResult=v;},get previewClosed(){return previewClosed;},get previewOpened(){return previewOpened;}};
+  return {root,site,zip,api,vscode,states,notices,opened,picks,documents,args,choices,get busy(){return busy;},set busy(v){busy=v;},get saves(){return saves;},get builds(){return builds;},set save(v){save=v;},set fail(v){fail=v;},set active(v){active=v;},set noticeAction(v){noticeAction=v;},set exportResult(v){exportResult=v;},set validator(v){validator=v;},get validations(){return validations;},get previewClosed(){return previewClosed;},get previewOpened(){return previewOpened;}};
 }
 
 test('web export saves a trusted project, builds without auth, releases busy state and previews only its site',async t=>{
@@ -90,3 +90,34 @@ test('preview serves immutable bytes when source output is replaced or removed',
  const bytes=Buffer.from('validated');const supplied=await createWebPreview(root,{siteFiles:[{path:'index.html',bytes}]});t.after(()=>supplied.dispose());bytes.fill(0);assert.equal(await(await fetch(supplied.url)).text(),'validated');
  await assert.rejects(createWebPreview(root,{siteFiles:[{path:'../private',bytes:Buffer.from('bad')}]}),/Invalid validated preview/);
 });
+
+test('Save ZIP revalidates after the dialog and rejects changed archives or a replaced build',async t=>{
+ for(const change of ['zip','build']) {
+  const h=await harness(t);await h.api.commands['zero.exportWeb']();const destination=path.join(h.root,'saved.zip');
+  h.validator=async({result},count)=>{if(count===2)throw Error(change==='zip'?'The browser ZIP differs from the validated app.':'The browser build was replaced.');return {...result,zipBytes:Buffer.from('ZIP')};};
+  h.vscode.window.showSaveDialog=async()=>{await fs.writeFile(h.zip,change==='zip'?'UNVALIDATED':'REBUILT');return {fsPath:destination};};
+  await assert.rejects(h.api.commands['zero.saveWebExport'](),/browser (?:ZIP differs|build was replaced)/);assert.equal(h.validations,2);await assert.rejects(fs.access(destination));assert.doesNotMatch(h.states.at(-1),/ZIP saved/);
+ }
+});
+
+test('Save ZIP writes verified immutable bytes even if the mutable export ZIP changes after validation',async t=>{
+ const h=await harness(t);await h.api.commands['zero.exportWeb']();const destination=path.join(h.root,'saved.zip');
+ h.validator=async({result},count)=>{const zipBytes=await fs.readFile(h.zip);if(count===2)await fs.writeFile(h.zip,'RACED');return {...result,zipBytes};};h.vscode.window.showSaveDialog=async()=>({fsPath:destination});
+ await h.api.commands['zero.saveWebExport']();assert.equal(await fs.readFile(destination,'utf8'),'ZIP');assert.equal(await fs.readFile(h.zip,'utf8'),'RACED');assert.equal(h.validations,2);assert.match(h.states.at(-1),/ZIP saved/);assert.deepEqual((await fs.readdir(h.root)).filter(name=>name.startsWith('.zero-save-')),[]);
+});
+
+test('Save ZIP refuses a changed build identity and never overwrites the live export archive',async t=>{
+ const h=await harness(t);await h.api.commands['zero.exportWeb']();h.validator=async({result},count)=>({...result,buildId:count===2?'new-build':result.buildId,zipBytes:Buffer.from('new build')});h.vscode.window.showSaveDialog=async()=>{await fs.writeFile(h.zip,'NEW BUILD');return {fsPath:h.zip};};
+ await assert.rejects(h.api.commands['zero.saveWebExport'](),/build changed while choosing/);assert.equal(await fs.readFile(h.zip,'utf8'),'NEW BUILD');
+});
+
+test('Save ZIP preserves destination guards, cancellation, project changes and approved regular-file replacement',async t=>{
+ const h=await harness(t);await h.api.commands['zero.exportWeb']();
+ h.vscode.window.showSaveDialog=async()=>undefined;await h.api.commands['zero.saveWebExport']();assert.equal(h.validations,1,'Cancelling does not revalidate or write');
+ const source=path.join(h.root,'Main.java');await fs.writeFile(source,'student source');h.vscode.window.showSaveDialog=async()=>({fsPath:source});await assert.rejects(h.api.commands['zero.saveWebExport'](),/\.zip filename/);assert.equal(await fs.readFile(source,'utf8'),'student source');
+ const symlink=path.join(h.root,'link.zip');await fs.symlink(source,symlink);h.vscode.window.showSaveDialog=async()=>({fsPath:symlink});await assert.rejects(h.api.commands['zero.saveWebExport'](),/symbolic link/);assert.equal(await fs.readFile(source,'utf8'),'student source');
+ const destination=path.join(h.root,'existing.zip');await fs.writeFile(destination,'old selected ZIP');h.vscode.window.showSaveDialog=async()=>({fsPath:destination});await h.api.commands['zero.saveWebExport']();assert.equal(await fs.readFile(destination,'utf8'),'ZIP');
+ h.vscode.window.showSaveDialog=async()=>{h.active='/different';return {fsPath:destination};};await h.api.commands['zero.saveWebExport']();assert.equal(await fs.readFile(destination,'utf8'),'ZIP');
+});
+
+test('saving to the unchanged export ZIP validates without modifying it',async t=>{const h=await harness(t);await h.api.commands['zero.exportWeb']();const before=await fs.stat(h.zip);h.vscode.window.showSaveDialog=async()=>({fsPath:h.zip});await h.api.commands['zero.saveWebExport']();const after=await fs.stat(h.zip);assert.equal(after.ino,before.ino);assert.equal(after.mtimeMs,before.mtimeMs);assert.equal(h.validations,2);assert.equal(await fs.readFile(h.zip,'utf8'),'ZIP');});

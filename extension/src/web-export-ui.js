@@ -2,6 +2,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
+const crypto = require('node:crypto');
 const core = require('./core');
 const {assertShareable} = require('./lesson-projects');
 const {createManagedWebPreview} = require('./web-run-preview');
@@ -41,9 +42,30 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
     const selected=path.resolve(destination.fsPath);
     // Keep accidental native source replacement impossible through the save dialog.
     if(path.extname(selected).toLowerCase()!=='.zip')throw new Error('Save the browser game with a .zip filename.');
-    const targetStat=await fs.lstat(selected).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+    // A native save dialog can remain open while Run/Export rebuilds this project.
+    // Bind the approved destination to the same snapshot and use its captured bytes.
+    const verified=await validate({projectRoot:root,result});
+    if(disposed || await project()!==root)return;
+    if(!verified || !result.buildId || verified.buildId!==result.buildId || !(verified.zipBytes instanceof Uint8Array))throw new Error('The browser build changed while choosing a ZIP destination. Export again before saving.');
+    const bytes=Buffer.from(verified.zipBytes);
+    const inspect=()=>fs.lstat(selected).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+    const targetStat=await inspect();
     if(targetStat?.isSymbolicLink())throw new Error('Choose a regular ZIP file destination, not a symbolic link.');
-    if(selected!==path.resolve(result.zipPath))await fs.copyFile(result.zipPath,selected);
+    if(targetStat && !targetStat.isFile())throw new Error('Choose a regular ZIP file destination.');
+    if(selected!==path.resolve(verified.zipPath)) {
+      const temporary=path.join(path.dirname(selected),'.zero-save-'+crypto.randomUUID()+'.tmp');
+      try {
+        await fs.writeFile(temporary,bytes,{flag:'wx',mode:0o600});
+        if(disposed || await project()!==root)return;
+        const targetNow=await inspect();
+        if(targetNow?.isSymbolicLink())throw new Error('Choose a regular ZIP file destination, not a symbolic link.');
+        if(Boolean(targetNow)!==Boolean(targetStat) || targetStat && (targetNow.dev!==targetStat.dev || targetNow.ino!==targetStat.ino || targetNow.size!==targetStat.size || targetNow.mtimeMs!==targetStat.mtimeMs))throw new Error('The ZIP destination changed while saving. Choose Save ZIP again.');
+        // Rename replaces a selected regular file without following a late symlink.
+        // A new destination uses link so concurrent creation cannot be overwritten.
+        if(targetStat)await fs.rename(temporary,selected);
+        else await fs.link(temporary,selected);
+      } finally {await fs.rm(temporary,{force:true});}
+    }
     setState('Browser game ZIP saved. Upload this ZIP as an HTML game on itch.io.');
   }
   async function repository(root) {

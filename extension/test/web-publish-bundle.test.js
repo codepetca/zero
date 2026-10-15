@@ -52,3 +52,22 @@ test('asset redirects never send a GitHub token to an arbitrary host and changed
   assert.equal(calls,3);
   await assert.rejects(main(f.env,async(url,options)=>url.endsWith('/releases/assets/8')&&options.headers.Accept==='application/octet-stream'?new Response(Buffer.from('altered')):f.request(url,options)),/digest differs/);
 });
+
+
+test('ordinary 8 MiB and 32 MiB assets pass local packing and receiver base64 validation',async()=>{
+  for(const size of [8*1024*1024,32*1024*1024]) {
+    const siteFiles=[{path:'index.html',bytes:Buffer.from('<html></html>')},{path:'app.js',bytes:Buffer.from('window.app=true;')},{path:'licenses/source-artifacts.json',bytes:Buffer.from('{}')},{path:'images/large.png',bytes:Buffer.alloc(size,0x56)}];
+    const files=siteFiles.map(file=>({path:file.path,bytes:file.bytes.length,sha256:hash(file.bytes)}));
+    const snapshot={sourceHash:'b'.repeat(64),profileHash:'c'.repeat(64),manifest:{files},siteFiles};
+    const bundle=await pack({projectRoot:'/unused',result:snapshot,sourceSha:source,validateExport:async()=>snapshot});
+    const decoded=decode(bundle.bytes,{sourceSha:source,digest:bundle.digest});
+    const asset=decoded.files.find(file=>file.path==='images/large.png');assert.equal(asset.bytes.length,size);assert.equal(hash(asset.bytes),files.at(-1).sha256);
+  }
+});
+test('base64 rejects invalid alphabet, embedded or excessive padding and incomplete quartets',async t=>{
+  const {bundle}=await fixture(t),original=JSON.parse(zlib.gunzipSync(bundle.bytes));
+  for(const value of ['AA!A','AA A','AA\nA','A===','====','=AAA','AA=A','AAA','AAAA=','AAAA====']) {
+    const changed=structuredClone(original);changed.files[0].data=value;
+    const bytes=zlib.gzipSync(Buffer.from(JSON.stringify(changed)));assert.throws(()=>decode(bytes,{sourceSha:source,digest:hash(bytes)}),/Invalid or duplicate/);
+  }
+});

@@ -8,6 +8,7 @@ const { spawn } = require('node:child_process');
 const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
 const { captureBuildInputs, buildProfileHash } = require('./snapshot');
+const { prepareMavenDistribution, verifyMavenDistribution } = require('./compatibility/maven-distribution');
 const { checkCompatibility, validateDependencies, verifyArtifactInventory, validateWrapperInputs } = require('./compatibility');
 const toolchain = require('./toolchain-lock.json');
 const { createReadStream } = require('node:fs');
@@ -487,7 +488,8 @@ async function exportForWeb(options = {}) {
       sources: Object.fromEntries(
         javaFiles.map((file) => [file.path, file.bytes.toString('utf8')])
       ),
-      resourcePaths: resources.map((file) => file.path)
+      resourcePaths: resources.map((file) => file.path),
+      urlReferences: compatibility.resourceUrlReferences
     });
     if (!/^(?:[a-zA-Z_$][\w$]*\.)+[a-zA-Z_$][\w$]*$/.test(adapted.mainClass))
       throw new Error('Invalid browser launcher class.');
@@ -501,6 +503,8 @@ async function exportForWeb(options = {}) {
       path.join(buildRoot, 'settings.xml'),
       '<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"><interactiveMode>false</interactiveMode></settings>'
     );
+    const mavenDistribution = await prepareMavenDistribution({ cacheRoot, signal, getArtifact: get, onProgress });
+    compatibility.mavenDistribution = mavenDistribution;
     verifyArtifactInventory(await artifactInventory(path.join(cacheRoot, 'repository')));
     onProgress(
       'Compiling Java for the browser. The first export downloads the compiler.'
@@ -514,6 +518,7 @@ async function exportForWeb(options = {}) {
       signal,
       onProgress
     });
+    await verifyMavenDistribution({ cacheRoot });
     const resolvedArtifactInventory = verifyArtifactInventory(await artifactInventory(path.join(cacheRoot, 'repository')));
     diagnosticText += mapDiagnostics(result.output, adapted.sourceMap);
     await writeDiagnosticLog(logPath, diagnosticText);

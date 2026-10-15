@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const core=require('../src/core');
 const {createGitHubPagesPublisher,pagesPublishWorkflow,publishingFiles}=require('../src/web-publish-github');
-async function fixture(t,{installed=true,publisherOptions={}}={}) {
+async function fixture(t,{installed=true,publisherOptions={},memoizeGit=false}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-pages-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=args=>core.git(root,args);
   await git(['init','-b','main']);await git(['config','user.name','Test']);await git(['config','user.email','test@example.invalid']);await git(['remote','add','origin','https://github.com/student/game.git']);
@@ -24,6 +24,7 @@ async function fixture(t,{installed=true,publisherOptions={}}={}) {
   const authentication={capture:async()=>ticket,assertCurrent:async value=>{if(!current || value!==ticket)throw Error('Account changed');return session;},assertCurrentNow:value=>{if(!current || value!==ticket)throw Error('Account changed');return session;}};
   const response=(value,status=200)=>new Response(status===204?null:JSON.stringify(value),{status,headers:{'content-type':'application/json'}});
   const fetch=async(url,options)=>{
+    if(options.signal?.aborted)throw options.signal.reason;
     calls.push({url,options});assert.equal(options.redirect,'error');
     if(url.startsWith('https://student.github.io/') || url.startsWith('https://play.example.org/')){assert.equal(options.headers,undefined);return new Response(marker,{status:publicStatus});}
     assert.equal(options.headers.Authorization,'Bearer TEST_SECRET');assert.equal(options.headers['X-GitHub-Api-Version'],'2026-03-10');
@@ -47,7 +48,8 @@ async function fixture(t,{installed=true,publisherOptions={}}={}) {
   const outputFiles=[];for(const [name,value] of data){await fs.mkdir(path.dirname(path.join(site,name)),{recursive:true});await fs.writeFile(path.join(site,name),value);outputFiles.push({path:name,bytes:Buffer.byteLength(value),sha256:require('../src/web-publish-bundle').hash(Buffer.from(value))});}
   const result={manifestPath:path.join(root,'.zero/web-export/manifest.json'),sitePath:site,sourceHash:'b'.repeat(64),profileHash:'c'.repeat(64)};await fs.writeFile(result.manifestPath,JSON.stringify({files:outputFiles}));
   const localBuild=async()=>result;let validationError;const validateExport=async()=>{if(validationError)throw validationError;const siteFiles=[];for(const file of outputFiles)siteFiles.push({path:file.path,bytes:await fs.readFile(path.join(site,file.path))});if(siteFiles.some(file=>require('../src/web-publish-bundle').hash(file.bytes)!==outputFiles.find(output=>output.path===file.path).sha256))throw Error('browser output changed');return {...result,manifest:{files:outputFiles},siteFiles};};
-  const publisher=createGitHubPagesPublisher({authentication,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
+  const gitReads=new Map();const guardedGit=memoizeGit?((cwd,args)=>{const key=JSON.stringify([cwd,args]);if(!gitReads.has(key))gitReads.set(key,core.git(cwd,args));return gitReads.get(key);}):core.git;
+  const publisher=createGitHubPagesPublisher({git:guardedGit,authentication,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
   return {root,git,head,files,publisher,calls,authentication,result,set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
@@ -227,4 +229,46 @@ test('binary app upload has its own bounded slower-network timeout while API rea
   const h=await fixture(t,{publisherOptions:{timeoutMs:10,uploadTimeoutMs:200}}),reviewed=await h.publisher.review(h.root);
   h.afterUpload=async()=>{await new Promise(resolve=>setTimeout(resolve,30));const upload=h.calls.find(call=>call.url.startsWith('https://uploads.github.com/'));assert.equal(upload.options.signal.aborted,false);assert.equal(h.calls[0].options.signal.aborted,true);};
   assert.equal((await h.publisher.publish(reviewed)).status,'pending');
+});
+
+
+test('Pages destination drift during upload blocks dispatch for URL, CNAME, visibility and build mode',async t=>{
+  const h=await fixture(t,{memoizeGit:true}),original={...h.pages};
+  for(const changed of [{html_url:'https://play.example.org/',cname:'play.example.org'},{cname:'play.example.org'},{public:false},{build_type:'legacy'}]) {
+    h.pages={...original};const reviewed=await h.publisher.review(h.root);
+    h.afterUpload=async()=>{h.pages={...original,...changed};};
+    await assert.rejects(h.publisher.publish(reviewed),/Pages settings changed/);
+  }
+  assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));
+  assert.equal(h.calls.filter(call=>call.options.method==='DELETE').length,4,'Each rejected upload removes its exact temporary draft');
+});
+test('approved Pages destination persists through restart and rejects changed destinations after dispatch',async t=>{
+  const h=await fixture(t,{memoizeGit:true}),pending=await h.publisher.publish(await h.publisher.review(h.root));
+  const saved=JSON.parse(JSON.stringify(pending.resume));assert.deepEqual(saved.destination,{url:'https://student.github.io/game/',cname:null,buildType:'workflow',public:true});
+  assert.equal((await h.publisher.restore(h.root,saved)).status,'live');
+  h.pages={build_type:'workflow',public:true,html_url:'https://play.example.org/',cname:'play.example.org'};
+  const before=h.calls.filter(call=>!call.url.startsWith('https://api.github.com/')).length;
+  await assert.rejects(h.publisher.check(pending.resume),/Pages settings changed/);
+  await assert.rejects(h.publisher.restore(h.root,saved),/Pages settings changed/);
+  assert.equal(h.calls.filter(call=>!call.url.startsWith('https://api.github.com/')).length,before,'An unapproved domain is never queried or returned live');
+  delete saved.destination;await assert.rejects(h.publisher.restore(h.root,saved),/public destination/);
+});
+test('first Pages creation accepts only the reviewed default repository URL without a custom domain',async t=>{
+  const h=await fixture(t,{memoizeGit:true});h.pages=null;const reviewed=await h.publisher.review(h.root);assert.equal(reviewed.needsPages,true);
+  h.afterUpload=async()=>{h.pages={build_type:'workflow',public:true,html_url:'https://play.example.org/',cname:'play.example.org'};};
+  await assert.rejects(h.publisher.publish(reviewed),/Pages settings changed/);
+  assert.ok(h.calls.some(call=>call.url.endsWith('/pages')&&call.options.method==='POST'));
+  assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));
+  h.pages=null;h.afterUpload=async()=>{};
+  const pending=await h.publisher.publish(await h.publisher.review(h.root));
+  assert.equal(pending.status,'pending');assert.equal(pending.resume.destination.url,'https://student.github.io/game/');assert.equal(pending.resume.destination.cname,null);
+});
+test('abort during the release guard sends no create request and clears its preflight stage receipt',async t=>{
+  const h=await fixture(t,{memoizeGit:true}),controller=new AbortController(),stages=[];
+  const reviewed=await h.publisher.review(h.root),original=h.authentication.assertCurrent;let armed=false;
+  h.authentication.assertCurrent=async ticket=>{const value=await original(ticket);if(armed){armed=false;await Promise.resolve();controller.abort();}return value;};
+  await assert.rejects(h.publisher.publish(reviewed,{signal:controller.signal,onStaging:async value=>{stages.push(value);if(value&&!value.staging.releaseId)armed=true;}}),/cancelled/);
+  assert.equal(h.calls.filter(call=>call.url.endsWith('/releases')&&call.options.method==='POST').length,0);
+  assert.equal(stages.at(-1),undefined);assert.ok(!h.calls.some(call=>call.url.includes('/releases?')),'No uncertain-request recovery is recorded for a request never sent');
+  assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending','Cancellation does not leave a nonexistent draft blocking retry');
 });

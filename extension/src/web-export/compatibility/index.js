@@ -112,7 +112,7 @@ async function checkCompatibility({ sources, pom, workRoot, cacheRoot, env, sign
   const childEnv = { ...process.env, ...env, JAVA_TOOL_OPTIONS: '', JDK_JAVA_OPTIONS: '', _JAVA_OPTIONS: '', CLASSPATH: '' };
   const java = childEnv.JAVA_HOME ? path.join(childEnv.JAVA_HOME, 'bin', process.platform === 'win32' ? 'java.exe' : 'java') : 'java';
   onProgress('Checking every original Java API against ' + contract.id);
-  await new Promise((resolve, reject) => {
+  const checkerOutput = await new Promise((resolve, reject) => {
     abort(signal);
     const child = spawn(java, ['-Xmx512m', path.join(__dirname, 'CheckCompatibility.java'), sourceRoot, jars.join(path.delimiter), api, trustedFile], { cwd: root, env: childEnv, windowsHide: true });
     let output = '', settled = false;
@@ -123,9 +123,18 @@ async function checkCompatibility({ sources, pom, workRoot, cacheRoot, env, sign
     const receive = chunk => { output += chunk.toString(); if (output.length > 1024 * 1024) { output = output.slice(0, 1024 * 1024); stop(); } };
     child.stdout.on('data', receive); child.stderr.on('data', receive);
     child.on('error', error => { if (!settled) { settled = true; cleanup(); reject(new Error('Cannot start the local JDK browser compatibility checker: ' + error.message)); } });
-    child.on('close', code => { if (settled) return; settled = true; cleanup(); try { abort(signal); if (code !== 0) throw new Error('Browser compatibility check failed:\n' + (output.trim() || 'The JDK checker timed out or stopped. Check the project and local JDK.')); resolve(); } catch (error) { reject(error); } });
+    child.on('close', code => { if (settled) return; settled = true; cleanup(); try { abort(signal); if (code !== 0) throw new Error('Browser compatibility check failed:\n' + (output.trim() || 'The JDK checker timed out or stopped. Check the project and local JDK.')); resolve(output); } catch (error) { reject(error); } });
   });
   abort(signal);
-  return { ...profile, status: 'passed', sourceCount: Object.keys(sources).length, trustedHelpers: trusted.sort().map(file => ({ file, sha256: helperHashes[file] })), ...dependencyProfile };
+  const resourceUrlReferences=Object.create(null);
+  for(const line of checkerOutput.split(/\r?\n/)) {
+    if(!line.startsWith('ZERO_URL\t'))continue;
+    const match=/^ZERO_URL\t([A-Za-z0-9+/]+=*)\t(\d+)\t(\d+)$/.exec(line);
+    if(!match)throw new Error('Invalid browser type-attribution record.');
+    const file=Buffer.from(match[1],'base64').toString('utf8'),start=Number(match[2]),end=Number(match[3]);
+    if(!Object.hasOwn(sources,file)||!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start<0||end<=start||end>sources[file].length||trusted.includes(file))throw new Error('Invalid browser type-attribution range.');
+    (resourceUrlReferences[file] ||= []).push({start,end});
+  }
+  return { ...profile, status: 'passed', sourceCount: Object.keys(sources).length, trustedHelpers: trusted.sort().map(file => ({ file, sha256: helperHashes[file] })), resourceUrlReferences, ...dependencyProfile };
 }
 module.exports = { checkCompatibility, compatibilityProfile, validateDependencies, prepareArtifacts, verifyArtifactInventory, validateWrapperInputs };

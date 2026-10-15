@@ -16,6 +16,21 @@ const shaPattern = /^[a-f0-9]{40}$/;
 const compiledWorkflow=pagesWorkflow;
 const {pack}=require('./web-publish-bundle');
 function action(message, url) { return {status:'action-required',action:{message,url}}; }
+function pagesDestination(pages) {
+  const url=pages && safeUrl(pages.html_url,pages.cname);
+  if(!url||pages.build_type!=='workflow'||pages.public!==true)return null;
+  return {url,cname:pages.cname||null,buildType:'workflow',public:true};
+}
+function defaultDestination(slug) {
+  const [owner,name]=slug.split('/');
+  const suffix=name.toLowerCase()===owner.toLowerCase()+'.github.io'?'':name+'/';
+  return {url:new URL('https://'+owner+'.github.io/'+suffix).href,cname:null,buildType:'workflow',public:true};
+}
+function assertDestination(pages,approved) {
+  const actual=pagesDestination(pages);
+  if(!approved||!actual||['url','cname','buildType','public'].some(key=>actual[key]!==approved[key]))throw Error('Pages settings changed after review. Review the public destination before publishing or opening this app.');
+  return actual;
+}
 async function publishingFiles(engineRoot) {
   const files = await pagesFiles(engineRoot);
   files.delete('.zero-web/publish.yml');
@@ -61,6 +76,8 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     const token=authentication.assertCurrentNow(review.ticket).accessToken;
     let response;
+    // Cancellation can arrive while authentication and repository guards await.
+    if(signal?.aborted)throw Error('Web publishing cancelled. An already dispatched GitHub run may continue.');
     try {onRequest?.();response=await request(uploadUrl || 'https://api.github.com/repos/'+review.slug+suffix,{method,redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(uploadUrl?uploadTimeoutMs:timeoutMs),...(signal?[signal]:[])]),headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+token,'X-GitHub-Api-Version':'2026-03-10',...(body?{'Content-Type':uploadUrl?'application/octet-stream':'application/json'}:{})},...(body?{body:uploadUrl?body:JSON.stringify(body)}:{})});}
     catch {throw new Error('GitHub could not be reached. Check your connection and recheck publishing.');}
     await authentication.assertCurrent(review.ticket);
@@ -89,7 +106,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     if(pages && (pages.build_type!=='workflow' || missing.length))return action('This repository already has a Pages site or a different publishing setup. Keep it and choose another repository for this game.',plan.page+'/settings/pages');
     if(pages && pages.public!==true)return action('This Pages site is not a public playable page. Review its access settings in GitHub and recheck.',plan.page+'/settings/pages');
     const result=Object.freeze({status:'review',root:plan.root,repository:plan.page,sha:plan.head,setup:missing.length>0,needsPages:!pages,publicUrl:pages?.html_url ? safeUrl(pages.html_url,pages.cname):undefined,account:ticket.session.label});
-    reviews.set(result,{...state,files,missing,pages});return result;
+    reviews.set(result,{...state,files,missing,pages,approvedDestination:pages?pagesDestination(pages):defaultDestination(repo.full_name)});return result;
   }
   async function setup(reviewed,{signal}={}) {
     if(isSimulation())return simulation();
@@ -156,9 +173,11 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
       const current=await api(state,'GET','/git/ref/heads/main',null,{signal});
       if(current.object?.sha!==state.plan.head)throw Error('GitHub main changed during app staging. Review publishing again.');
       onProgress('Deploying the validated local browser app on GitHub…');
+      const finalPages=await api(state,'GET','/pages',null,{signal});
+      const approvedDestination=assertDestination(finalPages,state.approvedDestination);
       const result=await api(state,'POST','/actions/workflows/zero-web.yml/dispatches',{ref:'main',inputs:{source_sha:state.plan.head,release_id:String(staging.releaseId),stage_tag:staging.tag,asset_id:String(staging.assetId),bundle_sha256:staging.digest,profile_sha256:bundle.profileHash}},{signal});
       if(!Number.isSafeInteger(result?.workflow_run_id) || result.workflow_run_id<1)throw new Error('GitHub did not identify the publishing run. Check Actions before starting another publish.');
-      const resume=Object.freeze({runId:result.workflow_run_id,sha:state.plan.head,repository:state.plan.page,repositoryId:state.repositoryId,staging});
+      const resume=Object.freeze({runId:result.workflow_run_id,sha:state.plan.head,repository:state.plan.page,repositoryId:state.repositoryId,destination:Object.freeze({...approvedDestination}),staging});
       resumptions.set(resume,state);
       await onPending(resume);
       unresolvedStages.delete(state.root);
@@ -201,8 +220,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     await cleanupStaging({...state,cleanupSha:resume.sha},resume.staging);
     if(run.conclusion!=='success')return {status:'failed',resume,message:'The new game was not confirmed published. Open this GitHub run to fix its build or deployment error. Your previous game may still be live.',action:{url:state.plan.page+'/actions/runs/'+resume.runId,message:'Open publishing run'}};
     const pages=await api(state,'GET','/pages',null,{signal});
-    const url=safeUrl(pages.html_url,pages.cname);
-    if(!url || pages.build_type!=='workflow' || pages.public!==true)throw new Error('GitHub has not confirmed the expected public game URL. Check Pages settings and recheck.');
+    const {url}=assertDestination(pages,resume.destination);
     onProgress('Checking that the public page serves your reviewed version…');
     if(isSimulation())throw new Error('Live publishing is disabled. Review again after choosing live uploads.');
     let response;

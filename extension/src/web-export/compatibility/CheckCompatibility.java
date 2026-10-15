@@ -14,6 +14,7 @@ import com.sun.source.util.*;
 public final class CheckCompatibility {
     static final Set<String> contract = new HashSet<>();
     static final Set<String> failures = new LinkedHashSet<>();
+    static final Set<String> resourceUrls = new LinkedHashSet<>();
     static Trees trees;
     static Types types;
     static Elements elements;
@@ -56,6 +57,12 @@ public final class CheckCompatibility {
     static void check(Element element, Tree tree, TreePath path, Set<CompilationUnitTree> trusted) {
         if (element == null) return; // javac error diagnostics below fail closed on unresolved symbols.
         String key = signature(element);
+        if (element instanceof TypeElement type && type.getQualifiedName().contentEquals("java.net.URL") && (tree instanceof IdentifierTree || tree instanceof MemberSelectTree)) {
+            long start = trees.getSourcePositions().getStartPosition(path.getCompilationUnit(), tree);
+            long end = trees.getSourcePositions().getEndPosition(path.getCompilationUnit(), tree);
+            String file = root.relativize(Path.of(path.getCompilationUnit().getSourceFile().toUri())).toString().replace(File.separatorChar, '/');
+            resourceUrls.add("ZERO_URL\t" + Base64.getEncoder().encodeToString(file.getBytes(StandardCharsets.UTF_8)) + "\t" + start + "\t" + end);
+        }
         if (key == null || element.getSimpleName().contentEquals("this") || element.getSimpleName().contentEquals("super") || application(element, trusted)) return;
         if (key.equals("M\tArray#length") && tree instanceof MemberSelectTree select && trees.getTypeMirror(new TreePath(path, select.getExpression())).getKind() == TypeKind.ARRAY) return;
         if (key.equals("M\tjava.lang.Object#getClass()") && !resourceClass(path)) { fail(path.getCompilationUnit(), tree, "Object#getClass() is supported only in getClass().getResource(...); use ordinary methods and the Zero asset helpers."); return; }
@@ -146,5 +153,6 @@ public final class CheckCompatibility {
         }
         failures.forEach(System.err::println);
         if (!failures.isEmpty()) System.exit(1);
+        resourceUrls.forEach(System.out::println);
     }
 }

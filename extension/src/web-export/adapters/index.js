@@ -64,7 +64,17 @@ function packageName(ts) {
   for (let i = index + 1; i < ts.length && ts[i].text !== ';'; i++) name += ts[i].text;
   return name;
 }
-function adaptJava(file, source, changes) {
+function adaptJava(file, source, changes, resolvedUrls) {
+  if (resolvedUrls !== undefined) {
+    if (!Array.isArray(resolvedUrls)) fail(file, 'invalid resolved browser URL references.');
+    let previousEnd=0;
+    const replacements=[...resolvedUrls].sort((a,b)=>a.start-b.start).map(({start,end})=>{
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start<previousEnd || end<=start || end>source.length) fail(file, 'invalid resolved browser URL range.');
+      previousEnd=end;
+      return {start,end,text:'zero.web.ResourceURL'+'\n'.repeat((source.slice(start,end).match(/\n/g)||[]).length)};
+    });
+    source=apply(source,replacements);
+  }
   const ts = tokens(source), edits = [];
   const pkg = packageName(ts);
   if (pkg === 'zero.web' || pkg.startsWith('zero.web.') || pkg === 'zero.exported') fail(file, 'package is reserved for browser export support.');
@@ -101,7 +111,7 @@ function adaptJava(file, source, changes) {
       }
     }
   }
-  if (resourceBridge) {
+  if (resourceBridge && resolvedUrls === undefined) {
     const urlImportTokens = new Set();
     for (let i = 0; i < ts.length - 6; i++) {
       if (ts.slice(i, i + 7).map(t => t.text).join('') === 'importjava.net.URL;') {
@@ -131,7 +141,7 @@ function readRuntime(directory, result = {}) {
   }
   return result;
 }
-function adaptSources({ sources, resourcePaths = [] }) {
+function adaptSources({ sources, resourcePaths = [], urlReferences }) {
   if (!sources || typeof sources !== 'object' || Array.isArray(sources)) throw new TypeError('Web export needs a source path/string map.');
   const output = {}, sourceMap = {}, changes = [], warnings = [];
   const apps = [];
@@ -140,7 +150,8 @@ function adaptSources({ sources, resourcePaths = [] }) {
     if (file.startsWith('zero/web/') || file.startsWith('zero/exported/')) fail(file, 'package is reserved for the browser export copy.');
     let source = overlay(file, original);
     if (source !== original) changes.push(`${file}: applied fingerprint-checked Zero browser helper adapter`);
-    const adapted = adaptJava(file, source, changes);
+    const resolvedUrls=urlReferences !== undefined && !helperHashes[file] ? (urlReferences[file] || []) : undefined;
+    const adapted = adaptJava(file, source, changes, resolvedUrls);
     const destination = adapted.pkg.replaceAll('.', '/') + '/' + path.posix.basename(file);
     if (output[destination]) fail(file, `duplicate exported source ${destination}`);
     output[destination] = adapted.source;

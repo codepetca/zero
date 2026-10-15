@@ -144,3 +144,17 @@ test('native JSNI methods and source-defined external runtime or interop types c
   const helpers = await helpersPromise; const withoutSound = { ...helpers }; delete withoutSound['zero/Sound.java'];
   await assert.rejects(check({ ...withoutSound, 'Main.java': app(''), 'other/Sound.java': 'package zero; public class Sound { public void play() {} }' }, { sources: { ...withoutSound, 'Main.java': app(''), 'other/Sound.java': 'package zero; public class Sound { public void play() {} }' } }), /helper identity requires/);
 });
+
+test('resolved resource URL types remain consistent across helpers, fields and wildcard imports without renaming user identifiers', {timeout:240000}, async()=>{
+ const sources={
+  'Main.java':app('java.net.URL URL = new Assets().theme(); java.net.URL stored = URL; if (stored != null) stored.toExternalForm();'),
+  'Assets.java':'import java.net.*; class Assets { URL theme() { return pass(getClass().getResource("/theme.css")); } URL pass(URL URL) { return URL; } }',
+  'Own.java':'class Own { static class URL {} URL untouched = new URL(); }'
+ };
+ const receipt=await check(sources),{adaptSources}=require('../src/web-export/adapters');
+ const result=adaptSources({sources:{...await helpersPromise,...sources},resourcePaths:['theme.css'],urlReferences:receipt.resourceUrlReferences});
+ assert.match(result.sources['zero/exported/Main.java'],/zero.web.ResourceURL URL = new Assets\(\).theme\(\)/);
+ assert.match(result.sources['zero/exported/Assets.java'],/zero.web.ResourceURL pass\(zero.web.ResourceURL URL\) \{ return URL; \}/);
+ assert.match(result.sources['zero/exported/Own.java'],/static class URL \{\} URL untouched = new URL\(\)/);
+ assert.doesNotMatch(result.sources['zero/exported/Main.java'],/java.net.URL/);
+});
