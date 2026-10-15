@@ -650,6 +650,7 @@ final class SetupController {
     private var snapshot: SetupSnapshot?
     var changed: (() -> Void)?
     var opened: (() -> Void)?
+    var mayBeginWork: () -> Bool = { true }
 
     init(kit: SetupKit, runner: SetupCommandRunning = NativeCommandRunner(),
          home: URL = FileManager.default.homeDirectoryForCurrentUser) {
@@ -685,6 +686,7 @@ final class SetupController {
         snapshot = nil; busy = false; configuring = false; record(detail); set(.retry, message)
     }
     private func run(_ arguments: [String], status: String, timeout: TimeInterval = 180, completion: @escaping (CommandResult) -> Void) {
+        guard mayBeginWork() else { return }
         do {
             let current = SetupKit(root: selectedFolder ?? kit.root)
             if selectedFolder == nil { try current.validate() } else { try KitUpdatePlan.validateInstalled(current.root) }
@@ -702,7 +704,7 @@ final class SetupController {
         } catch { fail("The kit needs attention. See Details.", detail: error.localizedDescription) }
     }
     func launch() {
-        guard !busy, !hasChecked, selectedFolder == nil else { return }
+        guard mayBeginWork(), !busy, !hasChecked, selectedFolder == nil else { return }
         busy = true; summary = "Opening Zero…"; changed?()
         DispatchQueue.global(qos: .userInitiated).async { [self] in
             let result = Result { () throws -> URL? in
@@ -727,7 +729,7 @@ final class SetupController {
         }
     }
     func check() {
-        guard !busy else { return }
+        guard mayBeginWork(), !busy else { return }
         snapshot = nil; stage = .checking
         if selectedFolder == nil { completedSteps = 0 }
         else if completedSteps == Self.totalSteps { completedSteps -= 1 }
@@ -767,6 +769,8 @@ final class SetupController {
         }
     }
     private func update(_ plan: KitUpdatePlan) {
+        guard mayBeginWork() else { return }
+        restoringSession = true
         busy = true; summary = "Preparing Zero…"; changed?()
         DispatchQueue.global(qos: .userInitiated).async { [self] in
             let result = Result { try plan.update(from: kit) }
@@ -784,7 +788,7 @@ final class SetupController {
         }
     }
     func primaryAction() {
-        guard !busy else { return }
+        guard mayBeginWork(), !busy else { return }
         switch stage {
         case .retry:
             if retryOpening { openZero() }
@@ -831,7 +835,7 @@ final class SetupController {
         }
     }
     func place(parent: URL?, name: String?) {
-        guard !busy, selectedFolder == nil, let parent, let name else { return }
+        guard mayBeginWork(), !busy, selectedFolder == nil, let parent, let name else { return }
         busy = true; summary = "Preparing your Zero folder…"; changed?()
         DispatchQueue.global(qos: .userInitiated).async { [self] in
             let result = Result { try kit.place(parent: parent, name: name) }

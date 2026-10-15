@@ -154,6 +154,52 @@ with another new local version.
 
 ## Separate Mac installer candidate
 
+### Automatic-update candidates from0.5.15
+
+Advance `release/mac-updater.json` buildNumber along with the new kit/extension
+version. Never reuse a distributed native build number. The current published
+feed remains valid while a newer local version is prepared; release preparation
+checks both version and build ordering against it.
+
+After signing, notarization and stapling, commit the measured local native
+manifest. Then seal its final update signature and signed feed:
+
+```sh
+npm run release:prepare:updates
+npm run release:prepare:mac
+```
+
+The updater key's Keychain account is `ca.codepet.zero.updates`. For an explicitly
+selected private key file, use `release:prepare:updates -- --key-file <absolute-private-path>`;
+the tool requires an owned private regular file and never prints its contents.
+Keep the recovery copy outside the repository with private permissions. Only the
+public key belongs in source. No new account credentials are needed for builds.
+
+The update preparation writes a new immutable
+`dist/installers/updates-<version>/` containing `appcast.xml` and strict
+`mac-update-feed.json`. Candidate sealing includes these exact bytes and public
+configuration. It independently verifies the final DMG Ed25519 signature, feed
+signature and agreement with the measured installer. There are no delta files
+or extra assets in the native GitHub release.
+
+Publish and anonymously verify the one immutable DMG before promoting the feed.
+In the reviewed metadata change, publish the installer manifest, copy the sealed
+feed to `release/mac-appcast.xml`, and copy its metadata to
+`release/mac-update-feed.json`, changing only publication.status to published.
+Do not edit the signed XML. Website preparation rejects an inconsistent feed,
+key, version, URL, size or signature; the route serves the exact validated feed
+bytes at `/updates/macos/appcast.xml` with a five-minute cache lifetime. Before
+the first feed is promoted the route returns404.
+
+Verify the deployed feed's exact digest/signature and DMG's public bytes against
+the sealed candidate. Removing a faulty entry stops future offers but cannot
+recall every staged download. Recovery is a higher-numbered corrected build or
+an intentional manual DMG replacement; never replace old GitHub assets. Keep
+old kit support backups and JDK paths when preserving user settings.
+
+The historical commands below illustrate the existing single-DMG release process;
+use the actual sealed candidate's version, filename and tag.
+
 `release/installer.json` is the optional, strict native manifest. It describes
 only the measured universal Mac DMG and its original clean build source, embedded
 kit, signer and accepted notarization submission. It currently records the

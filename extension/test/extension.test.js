@@ -91,6 +91,8 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}});
+  assert.equal(typeof commands.get('zero.checkForUpdates'),'function');
+  assert.equal(typeof commands.get('zero.updateSettings'),'function');
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};webviewProvider.resolveWebviewView(candidate);
   const settle=async predicate=>{
     const deadline=Date.now()+5000;
@@ -100,6 +102,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
     }
   };await settle(()=>authCalls.length>0 && /Sign in to GitHub/.test(webview.html));
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
+  assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
   assert.match(webview.html,/>Sign in<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);
   assert.ok(authCalls.every(call=>call.options.silent));

@@ -12,12 +12,16 @@ const {createTransport} = require('./transport');
 const {createSharingEditor} = require('./sharing/editor');
 const {readKitConfiguration} = require('./sharing/configuration');
 const {createSetupHelp} = require('./setup');
+const {createNativeUpdateCommands} = require('./native-updates');
 const {sidebarStyles} = require('./sidebar-style');
 const {libraryLayout} = require('./library-files');
 const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 function activate(context) {
+  for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
+    context.subscriptions.push(vscode.commands.registerCommand(id, action));
+  }
   const output = vscode.window.createOutputChannel('Zero');
   let execution, ending, view, pendingLaunch;
   let runGeneration = 0;

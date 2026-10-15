@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {lstatSync, readdirSync, readFileSync, readlinkSync} from 'node:fs';
 import path from 'node:path';
+import {verifyUpdaterPlist, updaterEnabledForVersion} from './mac-updater.mjs';
 import {verifyMacIcon} from './mac-icon.mjs';
 import {verifyMacDmgLayout} from './mac-dmg-layout.mjs';
 
@@ -26,13 +27,17 @@ export function verifyMacVolume(mount, identity, signed) {
   assert.ok(lstatSync(app).isDirectory() && !lstatSync(app).isSymbolicLink(), 'App bundle must be an owned directory');
   return app;
 }
-export function verifyMacPlist(plist, identity, version, signed, contents) {
+export function verifyMacPlist(plist, identity, version, signed, contents, updater) {
   assert.equal(plist.CFBundleName, identity.displayName);
   assert.equal(plist.CFBundleDisplayName, identity.displayName);
   assert.equal(plist.CFBundleShortVersionString, version);
   assert.equal(plist.CFBundleExecutable, 'ZeroSetup');
   assert.equal(plist.CFBundleIdentifier, identity.bundleIdentifier);
   assert.equal(plist.ZeroDevelopmentBuild ?? true, !signed, 'Signed app requires explicit non-development marker');
+  if (updaterEnabledForVersion(version)) {
+    assert.ok(updater, 'Updater-enabled releases require strict updater configuration');
+    verifyUpdaterPlist(plist, updater, signed);
+  }
   if (!identity.legacy) {
     assert.equal(plist.CFBundleIconFile, 'Zero.icns');
     const icon = path.join(contents, 'Resources/Zero.icns');

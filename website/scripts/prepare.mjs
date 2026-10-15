@@ -13,6 +13,8 @@ import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
 import { prepareExampleProjects } from "../lib/example-projects.mjs";
+import { readMacUpdaterConfig } from "../../scripts/mac-updater.mjs";
+import { validateMacUpdateFeed } from "../../scripts/mac-update-feed.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -102,13 +104,23 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
+let updateFeed = null;
+let updateManifest;
+try {
+  updateManifest = JSON.parse(await readFile(resolve(root, 'release/mac-update-feed.json'), 'utf8'));
+} catch (error) { if (error.code !== 'ENOENT') throw error; }
+if (updateManifest) {
+  const bytes = await readFile(resolve(root, 'release/mac-appcast.xml'));
+  validateMacUpdateFeed(updateManifest, readMacUpdaterConfig(root), installer, bytes, {allowLocal:true});
+  if (updateManifest.publication.status === 'published') updateFeed = bytes.toString('utf8');
+}
 await mkdir(resolve(site, ".generated"), { recursive: true });
 await prepareDesign({ website: true, extension: false });
 prepareLessonProjects(root, { website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, publishedKit, installer, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, publishedKit, installer, updateFeed, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

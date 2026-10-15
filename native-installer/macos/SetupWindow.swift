@@ -2,27 +2,117 @@ import AppKit
 
 final class SetupApplication: NSObject, NSApplicationDelegate {
     var setupWindow: SetupWindow?
-    var handOff: () -> Void = { NSApp.terminate(nil) }
+    // Test harnesses can observe a successful editor handoff without an updater.
+    var handOff: (() -> Void)?
+    private(set) var updateCoordinator: UpdateCoordinator?
+    private var explicitRequestReceived = false
+    private var finishedLaunching = false
+    private var pendingRequest: NativeUpdateRequest?
+    private var handedOff = false
+    private let updateOnlyLaunch: Bool
+    #if ZERO_SETUP_TESTS
+    var launchForTesting: (() -> Void)?
+    var handleRequestForTesting: ((NativeUpdateRequest) -> Void)?
+    #endif
+    init(arguments: [String] = CommandLine.arguments) {
+        updateOnlyLaunch = arguments.contains("--update-request")
+        super.init()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        finishedLaunching = true
+        // LaunchServices may deliver the initial URL before or just after this callback.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if let request = self.pendingRequest { self.pendingRequest = nil; self.handle(request); return }
+            guard !self.explicitRequestReceived else { return }
+            if self.updateOnlyLaunch {
+                // No URL was delivered yet. Never fall through into kit preparation.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                    guard let self, !self.explicitRequestReceived else { return }
+                    NSApp.terminate(nil)
+                }
+                return
+            }
+            #if ZERO_UPDATER_FIXTURE
+            if Bundle.main.bundleIdentifier == "ca.codepet.zero.update-test",
+               UpdateConfiguration().eligible,
+               CommandLine.arguments.contains("--updater-fixture-handoff") {
+                self.completeHandoff(); return
+            }
+            #endif
+            self.startOrdinaryLaunch()
+        }
+    }
+    private func startOrdinaryLaunch() {
+        #if ZERO_SETUP_TESTS
+        if let launchForTesting { launchForTesting(); return }
+        #endif
+        guard updateCoordinator?.beginLaunching() != false else { return }
         let resources = Bundle.main.resourceURL ?? Bundle.main.bundleURL.appendingPathComponent("Contents/Resources")
-        let controller = SetupController(kit: SetupKit(root: resources.appendingPathComponent("kit")))
-        start(controller)
+        start(SetupController(kit: SetupKit(root: resources.appendingPathComponent("kit"))))
     }
     func start(_ controller: SetupController) {
+        handedOff = false
+        controller.mayBeginWork = { [weak self] in self?.updateCoordinator?.mayBeginSetup ?? true }
         setupWindow = SetupWindow(controller: controller)
-        controller.opened = { [weak self] in self?.handOff() }
+        setupWindow?.closed = { [weak self] in self?.updateCoordinator?.setupClosed() }
+        controller.opened = { [weak self] in self?.completeHandoff() }
         setupWindow?.showWindow(nil)
         controller.launch()
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
     }
+    private func completeHandoff() {
+        handedOff = true
+        if let handOff { handOff(); return }
+        setupWindow?.window?.orderOut(nil)
+        guard UpdateConfiguration().eligible else { NSApp.terminate(nil); return }
+        ensureUpdater()
+        if updateCoordinator?.requiresForeground != true { NSApp.setActivationPolicy(.accessory) }
+        updateCoordinator?.handedOff()
+    }
+    private func ensureUpdater() {
+        guard updateCoordinator == nil else { return }
+        updateCoordinator = UpdateCoordinator(helperActive: { [weak self] in self?.setupWindow?.controller.busy ?? false }, terminate: { NSApp.terminate(nil) })
+    }
+    func application(_ application: NSApplication, open urls: [URL]) {
+        // Reject a mixed or multi-command event in its entirety.
+        guard urls.count == 1, let request = NativeUpdateRequest(url: urls[0]) else { return }
+        explicitRequestReceived = true
+        if !finishedLaunching { pendingRequest = request }
+        else { handle(request) }
+    }
+    private func handle(_ request: NativeUpdateRequest) {
+        #if ZERO_SETUP_TESTS
+        if let handleRequestForTesting { handleRequestForTesting(request); return }
+        #endif
+        guard UpdateConfiguration().eligible else {
+            let alert = NSAlert(); alert.messageText = "Updates are unavailable in this build."
+            alert.informativeText = "Install the current signed Zero download to enable updates."
+            alert.runModal()
+            if setupWindow == nil { NSApp.terminate(nil) }
+            return
+        }
+        ensureUpdater()
+        updateCoordinator?.request(request)
+    }
+    @objc func checkForUpdates(_ sender: Any?) { explicitRequestReceived = true; handle(.check) }
+    @objc func showUpdateSettings(_ sender: Any?) { explicitRequestReceived = true; handle(.settings) }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        setupWindow?.showWindow(nil)
-        sender.activate(ignoringOtherApps: true)
-        return true
+        if handedOff {
+            startOrdinaryLaunch()
+        } else if setupWindow != nil {
+            setupWindow?.showWindow(nil); sender.activate(ignoringOtherApps: true)
+        }
+        return false
     }
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { updateCoordinator == nil }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        setupWindow?.controller.mayExit() == false ? .terminateCancel : .terminateNow
+        guard setupWindow?.controller.mayExit() != false else {
+            updateCoordinator?.deferTerminationForHelper()
+            return .terminateCancel
+        }
+        return updateCoordinator?.mayTerminate() == false ? .terminateCancel : .terminateNow
     }
 }
 
@@ -44,6 +134,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     private let primary = NSButton(title: "Please wait", target: nil, action: nil)
     private let details = NSButton(title: "Details…", target: nil, action: nil)
     private var diagnosticsWindow: NSWindowController?
+    var closed: (() -> Void)?
 
     init(controller: SetupController) {
         self.controller = controller
@@ -89,6 +180,7 @@ final class SetupWindow: NSWindowController, NSWindowDelegate {
     }
     required init?(coder: NSCoder) { fatalError("Use init(controller:)") }
     func windowShouldClose(_ sender: NSWindow) -> Bool { controller.mayExit() }
+    func windowWillClose(_ notification: Notification) { closed?() }
     func refresh() {
         status.stringValue = controller.summary
         primary.title = controller.primaryTitle; primary.isEnabled = !controller.busy

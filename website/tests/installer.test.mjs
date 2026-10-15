@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import {macArtifactIdentity} from '../../scripts/mac-artifact.mjs';
 import { validateInstallerManifest, installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
 import { verifiedLocalInstaller, boundedFile } from '../lib/local-installer.mjs';
+import {sparkleComponents,updaterEnabledForVersion} from '../../scripts/mac-updater.mjs';
 const kit = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
 const releaseInstaller = JSON.parse(await readFile(new URL('../../release/installer.json', import.meta.url)));
 const authored = structuredClone(releaseInstaller);
@@ -24,6 +25,12 @@ async function fixture(t) {
   Object.assign(manifest.asset, {size:bytes.length, sha256:hash(bytes)});
   Object.assign(manifest.kit, {size:kitBytes.length, sha256:hash(kitBytes)});
   const receipt = {schema:1, kitVersion:kit.kitVersion, sourceRevision:manifest.sourceRevision, sourceDirty:false, kit:manifest.kit, artifacts:[{...manifest.asset, developerIdSigned:true, notarized:true, signing:manifest.signing, notarization:{submissionId:manifest.notarizationSubmissionId, status:'Accepted', stapled:true, gatekeeper:{dmg:'accepted',app:'accepted'}}}]};
+  if(updaterEnabledForVersion(manifest.kitVersion)) {
+    const config=JSON.parse(await readFile(new URL('../../release/mac-updater.json',import.meta.url)));
+    await mkdir(join(root,'release'),{recursive:true});await writeFile(join(root,'release/mac-updater.json'),JSON.stringify(config));
+    const {identitySha1,teamIdentifier}=manifest.signing;
+    receipt.artifacts[0].updater={schema:1,buildNumber:config.buildNumber,feedURL:config.feedURL,publicKeySha256:hash(Buffer.from(config.publicKey,'base64')),sparkle:{...config.sparkle,frameworkManifestSha256:'b'.repeat(64)},framework:{manifestSha256:'c'.repeat(64),components:sparkleComponents.map(({path,identifier})=>({path,identifier,signature:{architectures:['arm64','x86_64'].map(architecture=>({architecture,identitySha1,teamIdentifier,authority:`Developer ID Application: Fixture (${teamIdentifier})`,timestamp:'Oct 14, 2026 at 12:00:00'}))}}))}};
+  }
   await writeFile(join(root, 'dist/installers', manifest.asset.filename), bytes);
   await writeFile(join(root, 'dist', manifest.kit.filename), kitBytes);
   await writeFile(join(root, 'dist/release.json'), JSON.stringify({...kit, assets:{kit:manifest.kit}}));
@@ -128,6 +135,19 @@ test('verified native bytes require signed clean accepted stapled provenance and
     Object.keys(f.receipt).forEach(k => delete f.receipt[k]); Object.assign(f.receipt, original);
   }
   await f.save(); await writeFile(join(f.root, 'dist', f.manifest.kit.filename), 'tampered'); await assert.rejects(read());
+});
+test('updater local downloads bind the protected public trust config and nested signing proof',async t=>{
+  if(!updaterEnabledForVersion(kit.kitVersion)) return;
+  const f=await fixture(t);
+  for(const mutate of [u=>u.buildNumber++,u=>u.feedURL='https://evil.invalid/feed',u=>u.publicKeySha256='0'.repeat(64),u=>u.sparkle.sha256='0'.repeat(64),u=>u.framework.components.pop(),u=>u.framework.components[0].signature.architectures[0].teamIdentifier='AAAAAAAAAA']) {
+    const original=structuredClone(f.receipt.artifacts[0].updater);
+    mutate(f.receipt.artifacts[0].updater);await f.save();
+    await assert.rejects(verifiedLocalInstaller(f.root,f.manifest,kit,{checkSource:false}));
+    f.receipt.artifacts[0].updater=original;
+  }
+  await f.save();await verifiedLocalInstaller(f.root,f.manifest,kit,{checkSource:false});
+  await writeFile(join(f.root,'release/mac-updater.json'),'{"schema":99}');
+  await assert.rejects(verifiedLocalInstaller(f.root,f.manifest,kit,{checkSource:false}));
 });
 test('a valid published fallback cannot be served as the newer local candidate', async t => {
   const f = await fixture(t);

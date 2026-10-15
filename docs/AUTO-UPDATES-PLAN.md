@@ -2,8 +2,9 @@
 
 Research completed 2026-10-14 against local source
 `27a0ca10055bd432d404fababc1e7a6128d8c260` and published Zero 0.5.14.
-Status: proposed implementation, not an implemented or released updater.
-The owner requested research and planning only.
+Status: implementation authorized by the owner's subsequent “Do it”; verification
+and release are in progress. This document retains the researched design and
+acceptance gates; current delivery evidence is in [CURRENT](../.ai/CURRENT.md).
 
 ## Recommendation and student experience
 

@@ -114,7 +114,7 @@ test('signature verification rejects absent timestamp/runtime, entitlements and 
   const folder = mkdtempSync(path.join(tmpdir(), 'zero-signature-fixture-'));
   try {
     const detail = `Identifier=ca.codepet.zero\nAuthority=${authority}\nTeamIdentifier=${team}\nTimestamp=Oct 11, 2026\nCodeDirectory flags=0x10000(runtime)`;
-    for (const config of [ {fail:true}, {detail:detail.replace('Timestamp=', 'Signed Time=')}, {detail:detail.replace('runtime','none')}, {entitlements:'<?xml version="1.0"?><plist><dict><key>com.apple.security.get-task-allow</key><true/></dict></plist>'}, {certificateBytes:Buffer.from('wrong certificate')}, {detail:detail.replaceAll(team, 'WRONGTEAM1')} ]) {
+    for (const config of [ {fail:true}, {detail:detail.replace('Timestamp=', 'Signed Time=')}, {detail:detail.replace('runtime','none')}, {entitlements:'<?xml version="1.0"?><plist><dict><key>com.apple.security.get-task-allow</key><true/></dict></plist>'}, {entitlements:'<?xml version="1.0"?><plist version="1.0"><dict><key>danger</key><dict/></dict></plist>'}, {certificateBytes:Buffer.from('wrong certificate')}, {detail:detail.replaceAll(team, 'WRONGTEAM1')} ]) {
       assert.throws(() => verifyMacSignature(signatureRunner(config).run, '/fake/Zero Setup.app', path.join(folder, 'cert'), {app:true, identity, team}));
     }
   } finally {rmSync(folder, {recursive:true, force:true});}

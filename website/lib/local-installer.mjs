@@ -5,6 +5,7 @@ import { constants } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { validateInstallerManifest } from './installer.mjs';
+import {validateMacUpdaterConfig,updaterEnabledForVersion,validateUpdaterReceipt} from '../../scripts/mac-updater.mjs';
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 // No symlink is accepted, including dist/ or installers/. Size is bounded before reading.
@@ -32,7 +33,7 @@ export async function boundedFile(root, relative, limit) {
     return buffer.subarray(0, total);
   } finally { await handle.close(); }
 }
-const sourcePaths = ['native-installer/macos', 'extension', 'framework', 'profile', 'setup', 'student-template', 'LICENSE', 'release/kit.json', 'release/sharing.json', 'release/START-HERE.md', 'sharing/harness/ZeroLibraryHarness.java', 'scripts/build-installers.mjs', 'scripts/installer-signing.mjs', 'scripts/mac-artifact.mjs', 'scripts/mac-icon.mjs', 'scripts/mac-volume.mjs', 'scripts/mac-dmg-layout.mjs', 'scripts/mac-dmg-layout.py', 'scripts/mac-dmg-layout.json', 'scripts/mac-dmg-layout-requirements.txt', 'extension/media/zero.svg', 'design/tokens.json', 'website/lib/installer.mjs', 'scripts/installer-payload.mjs', 'scripts/package.mjs', 'scripts/release-review.mjs', 'scripts/kit.mjs', 'scripts/release.mjs', 'scripts/prepare-starter.mjs', 'package-lock.json'];
+const sourcePaths = ['native-installer/macos', 'extension', 'framework', 'profile', 'setup', 'student-template', 'LICENSE', 'release/kit.json', 'release/sharing.json', 'release/START-HERE.md', 'release/mac-updater.json', 'sharing/harness/ZeroLibraryHarness.java', 'scripts/build-installers.mjs', 'scripts/installer-signing.mjs', 'scripts/mac-artifact.mjs', 'scripts/mac-icon.mjs', 'scripts/mac-volume.mjs', 'scripts/mac-dmg-layout.mjs', 'scripts/mac-dmg-layout.py', 'scripts/mac-dmg-layout.json', 'scripts/mac-dmg-layout-requirements.txt', 'scripts/mac-updater.mjs', 'scripts/mac-update-feed.mjs', 'scripts/mac-update-release.mjs', 'scripts/check.mjs', 'scripts/verify-installers.mjs', 'website/lib/local-installer.mjs', 'extension/media/zero.svg', 'design/tokens.json', 'website/lib/installer.mjs', 'scripts/installer-payload.mjs', 'scripts/package.mjs', 'scripts/release-review.mjs', 'scripts/kit.mjs', 'scripts/release.mjs', 'scripts/prepare-starter.mjs', 'package-lock.json'];
 export function gitRead(root, args) {
   const result = spawnSync('git', args, {cwd:root, encoding:'utf8', timeout:10000, maxBuffer:1024 * 1024});
   assert.equal(result.status, 0, result.error?.message || result.stderr || 'Git source check failed');
@@ -64,6 +65,10 @@ export async function verifiedLocalInstaller(root, manifest, kitManifest, {check
   assert.equal(asset.developerIdSigned, true, 'Unsigned installer refused');
   assert.equal(asset.notarized, true, 'Unnotarized installer refused');
   for (const key of ['identitySha1', 'teamIdentifier']) assert.equal(asset.signing?.[key], manifest.signing[key], 'Installer signer receipt drift');
+  if (updaterEnabledForVersion(manifest.kitVersion)) {
+    const config=validateMacUpdaterConfig(JSON.parse((await boundedFile(root,'release/mac-updater.json',64*1024)).toString()));
+    validateUpdaterReceipt(asset.updater,config,manifest.signing);
+  } else assert.equal(asset.updater,undefined,'Historical installers cannot acquire an updater receipt');
   assert.equal(asset.notarization?.submissionId, manifest.notarizationSubmissionId);
   assert.equal(asset.notarization?.status, 'Accepted'); assert.equal(asset.notarization?.stapled, true);
   assert.deepEqual(asset.notarization?.gatekeeper, {dmg:'accepted', app:'accepted'});

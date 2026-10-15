@@ -8,6 +8,8 @@ import { root, releaseDefinition } from './release.mjs';
 import { publicKeys, verifyReviewAssets } from './release-review.mjs';
 import { validateInstallerManifest } from '../website/lib/installer.mjs';
 import { boundedFile, verifiedLocalInstaller, verifyInstallerSource } from '../website/lib/local-installer.mjs';
+import {readMacUpdaterConfig,updaterEnabledForVersion} from './mac-updater.mjs';
+import {validateMacUpdateFeed,verifyUpdateArchive,verifyUpdateBuildOrder} from './mac-update-feed.mjs';
 
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 export function sealMacCandidate(output, files) {
@@ -39,6 +41,13 @@ export async function prepareMacRelease({output} = {}) {
   output = resolve(output || join(root, 'dist/candidates', `mac-${release.kitVersion}-${source.preparationRevision.slice(0, 12)}`));
   assert.ok(!existsSync(output), 'Candidate output already exists; never overwrite sealed bytes');
   const native = await verifiedLocalInstaller(root, manifest, release);
+  const updater = updaterEnabledForVersion(release.kitVersion) ? readMacUpdaterConfig(root) : null;
+  if (updater) {
+    let previous;
+    try { previous=JSON.parse(await boundedFile(root,'release/mac-update-feed.json',64*1024)); }
+    catch(error) { if(error.code!=='ENOENT') throw error; }
+    verifyUpdateBuildOrder(updater,release.kitVersion,previous);
+  }
   const releaseBytes = await boundedFile(root, 'dist/release.json', 128 * 1024);
   // Existing kit validation checks archives/source/modes plus extracted Maven compile.
   verify(process.execPath, [join(root, 'scripts/verify-kit.mjs')]);
@@ -63,13 +72,26 @@ export async function prepareMacRelease({output} = {}) {
   files['release.json'] = releaseBytes;
   files['installer.json'] = manifestBytes;
   files['build-macos-signed.json'] = native.receiptBytes;
+  let updates;
+  if (updater) {
+    const prefix=`dist/installers/updates-${release.kitVersion}`;
+    const feed=await boundedFile(root,`${prefix}/appcast.xml`,64*1024);
+    const metadata=await boundedFile(root,`${prefix}/mac-update-feed.json`,64*1024);
+    const updateManifest=validateMacUpdateFeed(JSON.parse(metadata),updater,manifest,feed,{allowLocal:true});
+    assert.equal(updateManifest.publication.status,'local');
+    verifyUpdateArchive(native.bytes,updateManifest,updater);
+    files['appcast.xml']=feed; files['mac-update-feed.json']=metadata;
+    files['mac-updater.json']=await boundedFile(root,'release/mac-updater.json',64*1024);
+    updates={buildNumber:updater.buildNumber,feed:updateManifest.feed,enclosure:updateManifest.asset,publicKeySha256:updateManifest.publicKeySha256};
+  }
   const receipt = {schema:1, kind:'zero-mac-release-candidate', kitVersion:release.kitVersion,
     nativeTag:manifest.publication.tag, kitTag:release.publication.tag, ...source,
     preparedAt:new Date().toISOString(), verification:{kitSourceAndArchives:true, signedPayload:true, staple:true, gatekeeper:true},
-    artifacts:[...publicKeys.map(key => kitReceipt.assets[key]), manifest.asset]};
+    artifacts:[...publicKeys.map(key => kitReceipt.assets[key]), manifest.asset], ...(updates ? {updates} : {})};
   files['candidate.json'] = JSON.stringify(receipt, null, 2) + '\n';
   files['SOURCE.txt'] = `Repository: codepetca/zero\nBuilt installer source: ${source.builtSourceRevision}\nPreparation source: ${source.preparationRevision}\nVersion: ${release.kitVersion}\nNative/runtime/packaged source equivalent: true\n`;
   files['NOTES.md'] = `Zero Setup ${release.kitVersion} for Mac with Apple Silicon, macOS 12+.\n\nSigned, notarized and stapled Mac setup embeds the complete Zero kit. Drag Zero.app into Applications, then open Zero. On first launch, wait while Preparing Zero and its progress bar prepare the kit. Zero opens automatically after readiness is verified; choose Run App in the editor to begin. Later, open Zero from Applications or the Dock to restore its saved editor session without repeating setup. A failed opening offers Try again. Setup uses ~/Zero, prepares verified private Java and isolated editor support, and updates setup files in an existing recognized kit automatically while preserving student work. GitHub sign-in remains separate.\n\nLocal sealed candidate only. Native setup-v${release.kitVersion} publishes one DMG separately from the three-asset v${release.kitVersion} kit. Physical Windows testing is deferred; no Windows EXE is included. Fresh-machine installs and novice usability remain untested; Intel Macs are outside the current support target. Linux CI cannot regenerate this notarized Mac artifact.\n`;
+  if(updates) files['NOTES.md'] += '\nThis version adds automatic Zero.app updates through a signed update feed. Existing 0.5.14 and earlier installations need one manual replacement to gain the updater. Zero checks after opening the editor, installs a prepared app update on quit, and prepares owned support files on the next launch. Student projects/settings remain separate; no forced editor reload is performed. Manual Check for Updates and Update Settings are available in the Mac app menu and Command Palette. School-managed installations may still require administrator authorization.\n';
   files['SHA256SUMS'] = Object.entries(files).map(([name, bytes]) => `${digest(bytes)}  ${name}`).join('\n') + '\n';
   sealMacCandidate(output, files);
   console.log(`Sealed existing verified bytes at ${output}. No rebuild, signing, notarization upload or publication occurred.`);

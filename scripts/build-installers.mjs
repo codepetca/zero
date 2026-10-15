@@ -8,6 +8,7 @@ import {buildMacIcon} from './mac-icon.mjs';
 import {macArtifactIdentity} from './mac-artifact.mjs';
 import {buildStyledMacDmg} from './mac-dmg-layout.mjs';
 import {macInstallInstructions, macDevelopmentNotice} from './mac-volume.mjs';
+import {readMacUpdaterConfig, updaterEnabledForVersion, acquireSparkle, copySparkleFramework, signSparkleFramework, verifySparkleFramework, updaterReceipt} from './mac-updater.mjs';
 import {installerOptions, installerPlist, signMacArtifact, verifyMacSignature} from './installer-signing.mjs';
 
 const {platform, identity, signed} = installerOptions(process.argv.slice(2), 'build');
@@ -23,7 +24,7 @@ const work = mkdtempSync(path.join(root, '.verification/native-installer/build-'
 const receiptFile = path.join(output, `build-${platform}${signed ? '-signed' : ''}.json`);
 rmSync(receiptFile, {force:true});
 function run(command, args, timeout = 180000) {
-  const result = spawnSync(command, args, {cwd:root, stdio:command === '/usr/bin/codesign' ? 'pipe' : 'inherit', encoding:'utf8', timeout, env:{...process.env, DOTNET_CLI_TELEMETRY_OPTOUT:'1', DOTNET_NOLOGO:'1'}});
+  const result = spawnSync(command, args, {cwd:root, stdio:['/usr/bin/codesign','/usr/bin/plutil','/usr/bin/lipo'].includes(command) ? 'pipe' : 'inherit', encoding:'utf8', timeout, env:{...process.env, DOTNET_CLI_TELEMETRY_OPTOUT:'1', DOTNET_NOLOGO:'1'}});
   if (result.error || result.status !== 0) throw new Error(`Build failed: ${command}: ${result.error?.message || result.stderr || result.status}`);
   return {stdout:result.stdout || '', stderr:result.stderr || ''};
 }
@@ -35,6 +36,9 @@ function measure(filename, fields) {
 if (platform !== 'windows') {
   if (process.platform !== 'darwin') throw new Error('macOS DMG builds require macOS and Xcode command line tools');
   const source = path.join(root, 'native-installer/macos');
+  if (!updaterEnabledForVersion(release.kitVersion)) throw new Error('Updater source builds require a new kit version after 0.5.14');
+  const updater = readMacUpdaterConfig(root);
+  const distribution = updater ? acquireSparkle(run, root, updater) : undefined;
   const artifactIdentity = macArtifactIdentity(release.kitVersion, signed);
   if (artifactIdentity.legacy) throw new Error('New Zero.app packaging requires a new kit version after 0.5.12');
   const volume = path.join(work, 'volume'), app = path.join(volume, artifactIdentity.appName);
@@ -42,19 +46,27 @@ if (platform !== 'windows') {
   mkdirSync(bin, {recursive:true});
   extractKit(kit, path.join(contents, 'Resources/kit'));
   const plist = readFileSync(path.join(source, 'Info.plist'), 'utf8');
-  writeFileSync(path.join(contents, 'Info.plist'), installerPlist(plist, release.kitVersion, signed));
+  writeFileSync(path.join(contents, 'Info.plist'), installerPlist(plist, release.kitVersion, signed, updater));
   buildMacIcon(run, root, work, path.join(contents, 'Resources/Zero.icns'));
+  const framework = distribution ? copySparkleFramework(distribution, contents) : undefined;
   symlinkSync('/Applications', path.join(volume, 'Applications'));
   if (!artifactIdentity.styled) writeFileSync(path.join(volume, 'INSTALL.txt'), macInstallInstructions + (signed ? '' : macDevelopmentNotice));
   const binaries = [];
   for (const arch of ['arm64', 'x86_64']) {
     const file = path.join(work, `ZeroSetup-${arch}`);
-    run('/usr/bin/xcrun', ['swiftc', '-O', '-target', `${arch}-apple-macosx12.0`, '-framework', 'AppKit', '-framework', 'Foundation', ...['SetupCore.swift', 'MacRuntime.swift', 'SetupWindow.swift', 'main.swift'].map(name => path.join(source, name)), '-o', file]);
+    run('/usr/bin/xcrun', ['swiftc', '-O', '-target', `${arch}-apple-macosx12.0`, '-framework', 'AppKit', '-framework', 'Foundation', ...(updater ? ['-F', path.join(contents, 'Frameworks'), '-framework', 'Sparkle', '-Xlinker', '-rpath', '-Xlinker', '@executable_path/../Frameworks'] : []), ...['SetupCore.swift', 'MacRuntime.swift', 'SetupWindow.swift', ...(updater ? ['UpdateCoordinator.swift'] : []), 'main.swift'].map(name => path.join(source, name)), '-o', file]);
     binaries.push(file);
   }
   run('/usr/bin/lipo', ['-create', ...binaries, '-output', path.join(bin, 'ZeroSetup')]);
   for (const arch of ['arm64', 'x86_64']) run('/usr/bin/lipo', [path.join(bin, 'ZeroSetup'), '-verify_arch', arch]);
-  let appSignature;
+  let appSignature, updaterEvidence;
+  if (updater) {
+    signSparkleFramework(run, framework, signed ? identity : '-');
+    const frameworkEvidence = verifySparkleFramework(run, framework, updater, {sourceFramework:distribution.framework, ...(signed ? {identity, scratchPrefix:path.join(work, 'sparkle-cert')} : {})});
+    updaterEvidence = updaterReceipt(updater, distribution, frameworkEvidence);
+    if (!signed) run('/usr/bin/codesign', ['--force', '--sign', '-', app]);
+    rmSync(distribution.directory, {recursive:true, force:true});
+  }
   if (signed) {
     signMacArtifact(run, app, identity, true);
     appSignature = verifyMacSignature(run, app, path.join(work, 'app-cert'), {app:true, identity});
@@ -71,7 +83,7 @@ if (platform !== 'windows') {
     signing = {identitySha1:first.identitySha1, teamIdentifier:first.teamIdentifier, authority:first.authority, app:appSignature, dmg};
   }
   copyFileSync(staged, path.join(output, filename));
-  measure(filename, {platform:'macos', architectures:['arm64', 'x86_64'], minimumOS:'12.0', developerIdSigned:signed, notarized:false, ...(signing ? {signing} : {})});
+  measure(filename, {platform:'macos', architectures:['arm64', 'x86_64'], minimumOS:'12.0', developerIdSigned:signed, notarized:false, ...(signing ? {signing} : {}), ...(updaterEvidence ? {updater:updaterEvidence} : {})});
 }
 if (platform !== 'macos') {
   const project = path.join(root, 'native-installer/windows/ZeroSetup.csproj');

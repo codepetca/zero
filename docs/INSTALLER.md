@@ -220,13 +220,50 @@ On macOS, compile and run against disposable files/fake commands:
 mkdir -p .verification/native-installer/macos
 xcrun swiftc -O -target arm64-apple-macosx12.0 -D ZERO_SETUP_TESTS \
   -parse-as-library -framework AppKit -framework Foundation \
+  -F .verification/sparkle-2.10.0 -framework Sparkle \
+  -Xlinker -rpath -Xlinker "$PWD/.verification/sparkle-2.10.0" \
   native-installer/macos/SetupCore.swift native-installer/macos/MacRuntime.swift \
   native-installer/macos/SetupWindow.swift \
+  native-installer/macos/UpdateCoordinator.swift \
   native-installer/macos/tests.swift \
   -o .verification/native-installer/macos/setup-tests
 .verification/native-installer/macos/setup-tests \
   --preview .verification/native-installer/macos/preview.png
 ```
+
+The framework directory above is the digest-verified Sparkle distribution from
+the native build's dependency acquisition; do not substitute an unverified
+framework. `npm run test:updates` covers strict dependency, feed, signature,
+version and build-receipt contracts. The separate, explicitly invoked
+`npm run test:updates:live -- --developer-id-live` creates disposable Developer ID signed/notarized
+fixture apps and an ephemeral fixture key. It uses the existing Zero Notarization
+profile, loopback transport and a separate test identity, never installed Zero or
+student data. It is not part of routine unit tests.
+
+## Mac automatic updater
+
+New native versions from0.5.15 embed pinned Sparkle2.10.0. Existing0.5.14 and
+earlier downloads retain their original bytes and need one manual replacement
+to gain automatic updating. The launcher opens the configured editor first,
+then performs a due background update check. A prepared update replaces only
+Zero.app after Zero's setup helpers finish; the editor is not terminated.
+Owned kit support files prepare on the next launch, preserving student work.
+An already-running editor may need a student-chosen reload to activate a newly
+installed Zero extension.
+
+`release/mac-updater.json` contains only public trust/dependency configuration
+and the strictly increasing native build number. Production enables signed feeds
+and verifies archives before extraction; unsigned development builds omit the
+production feed, public key and URL registration. Runtime helper invocations do
+not initialize the updater. Never enable the fixture compile flag in production.
+See [the implementation plan](AUTO-UPDATES-PLAN.md) for lifecycle and recovery.
+
+Manual Check for Updates and Update Settings are in the Mac app menu and the
+macOS VS Code Command Palette. Requests select only those fixed actions. A slow
+background check has a120-second unattended-work budget; visible interaction
+and committed installation have separate completion rules. Updates retry on a
+later Zero launch when offline. School-managed/non-writable apps can still need
+administrator authorization. Checks do not run while only VS Code is open.
 
 For the Windows backend, build the net48 harness then run it with Mono on macOS,
 or directly on Windows. Use separate ignored intermediate/output folders:

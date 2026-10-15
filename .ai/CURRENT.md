@@ -1,15 +1,34 @@
-# Current state — Mac automatic-update research complete
+# Current state — Mac automatic updater implementation
 
-Updated2026-10-14. Owner requested research and planning for automatic Mac app
-updates. [Plan](../docs/AUTO-UPDATES-PLAN.md) recommends pinned Sparkle2.10.0,
-short post-editor-handoff lifecycle, signed feed and existing DMG enclosure;
-first gate is a disposable signed A→B lifecycle proof. It includes recognized
-kit-upgrade session preservation, active VSIX versus installed VSIX, native
-command delivery, helper termination gating, immutable versioning and recovery.
-Read-only repository worker plus targeted plan sanity pass accepted; coordinator
-checked relevant source and official Sparkle documentation. Documentation only;
-no app changes, keys, credentials, builds, publication or release changes.
-Implementation/release remains future scope. Delivery evidence in EVIDENCE.md.
+Owner said “Do it” after the researched [plan](../docs/AUTO-UPDATES-PLAN.md):
+implement, verify signed upgrade chain, review and release updated DMG/feed.
+Branchcodex/zero-auto-updates in setup-smoke-feedback worktree; primary untouched.
+Plan receiptbe98127; implementation still uncommitted. Kit/extension15local,
+native build2; old publicMac14/Windowskit10 remain unchanged. No publication yet.
+
+Native+packaging+extension workers delivered: pinned Sparkle2.10.0, exact URL
+requests/cold marker,120s unattended lifecycle, recognized-kit resume, full nested
+signing/strict proof, development isolation. Native293 assertions and both-arch
+compile passed; focused updater/feed/installer checks passed; website94/type/build
+and config passed; full root tests running in .verification/updater-root-tests.log.
+Coordinator integrating strict receipt/feed seals and docs; source review0/7 yet.
+Independent security+compatibility reviews required before source merge/release.
+
+Production Ed key generated in Keychain accountca.codepet.zero.updates; private
+600 recovery copy outside repo under ~/.codex/private/zero-updater/ed25519.key.
+Only publickey in release/mac-updater.json. Sign_update Keychain access stalled
+whileMaclocked; privatefile signing works; no credential values exposed/policychange.
+
+Real signed/notarized fixture automatic A→B PASSED under
+.verification/updater-live-B3RZjL; sentinelfiles/dummyeditor survived, exactnewtree,
+no relaunch. Firstharness run laterfailed overlystrict no-updateexpectation;
+updates_live worker running corrected negatives in updater-live-094Zcb.
+Nativeworker finalizing explicit production rejection of fixture-only launchmode.
+Manual actualInstall still required; Cua reportsMaclocked, userasked asyncunlock.
+Continue independent work; do not claimmanualUIorrealunsavededitor verified.
+Liveworker owns scripts/test-mac-updater-live.mjs+ignoredfixtures only; coordinator
+otherfiles, nativeworker main.swift only until final handoff. No goal/automation.
+Weekly62%remaining,313.6GBhealthy; DeepSeekpaused through2026-12-31.
 
 ## Last delivered installer
 
