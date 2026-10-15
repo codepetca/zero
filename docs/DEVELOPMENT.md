@@ -252,7 +252,8 @@ alternative; source ZIPs continue to build from canonical maintained manifests.
 
 ## Browser export
 
-See [WEB-EXPORT.md](WEB-EXPORT.md) for the optional WebFX/GWT profile, integrated
-Pages flow, source-only publishing kit and verification commands. Run
+See [WEB-EXPORT.md](WEB-EXPORT.md) for the implemented optional WebFX/GWT profile,
+Pages flow, source-only publishing kit, and planned browser-first local build and
+strict resolved-API gate. Current checks do not establish that future gate. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.

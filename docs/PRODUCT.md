@@ -189,6 +189,14 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
+Owner-approved next direction: Run App targets the browser after local
+compatibility checking and WebFX compilation. Students keep ordinary Java and
+approved ordinary JavaFX APIs. Publish app stays in GitHub and deploys the same
+validated local build; ZeroHub links to the student-hosted app. Cloud development
+and hosted compilation are out of scope. This migration and a strict resolved-API
+gate are planned, not implemented; see [the migration plan](WEB-EXPORT.md#planned-browser-first-migration).
+The workflow below describes the current implemented baseline.
+
 Optional browser sharing adds **Publish app** in the GitHub section and **Export for
 web** in the title menu. Students keep ordinary Java. A reviewed GitHub Pages
 setup leads to an exact-version verified playable link; simulation remains the

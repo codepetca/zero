@@ -1,135 +1,155 @@
-# Current state — browser publishing integration (blocked on live authority, unreleased)
+# Current state — one lead, browser-first migration planned, unreleased
 
-Goal set by owner2026-10-15: ordinary student Java and supported Zero teaching
-API → native Run App → GitHub section Publish app → verified playable Pages link.
-ZeroHub links to the student-hosted live app; exact source/Pika links stay separate.
-No duplicate compiled-game storage in ZeroHub. Keep failures useful, compatibility
-gates meaningful, storage bounded and existing designs/native behavior intact.
+## Goal and scope
 
-Coordinator: **Explore publishing the Flappy Bird**, this chat. Existing chats
-**Build Flappy Bird with Zero** and **Assess WebFX compatibility and app** delivered
-handoffs, have no active writers, and acknowledge this lead. Use bounded subagents
-here rather than another lead chat. Tool-backed goal is blocked on missing live-publication authority; local feature
-completion alone does not complete end-to-end integration/acceptance.
+Make Zero a local Java teaching kit whose primary app target is the browser:
+ordinary student Java and approved ordinary JavaFX APIs → Run App checks and
+compiles locally → responsive browser preview → GitHub section Publish app →
+verified Open/Copy playable link on student-owned GitHub Pages. ZeroHub links to
+that live app; versioned source and Pika repository links remain separate. Keep
+explicit object updates, useful errors, simple publishing and bounded storage.
+Cloud development, hosted compilation and an online playground are out of scope.
+
+Coordinator: **Lead publishing task**, thread
+`01a13f98-55fc-7471-9038-1198b14d5a98`. One coordinator, with bounded native
+subagents here when useful; no competing user-visible implementation chats.
+Existing chats cannot literally convert into native subagents. Their handoffs
+and completed changes are retained below; future work uses focused worker briefs.
 
 Worktree `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
-Reviewed original exporter/publisher code `c5db993` plus docs/plan through5430450.
-Reviewed audio/framework commitdbaef8c integrated asb7ece38; only conflict was CURRENT,
-retaining the coordinator plan. Canonical seven Java classes/98declarations and
-latest game are preserved. Root funding checkout and installed Zero untouched.
+Reviewed runtime code `5381b4d47823ccafa303123a4acb58576cda7d24`; baseline closeout
+`3a13ce0`. This consolidation changes plans only. Root funding checkout, original
+game, installed Zero and published releases remain untouched.
 
-## Current ownership and state
+## Current status and next phases
 
-- Browser adapters integrated: seven helper hashes/98 declarations, four real
-  GWT builds and37browser checks passed. Canonical helper source unchanged.
-- Hub receipts/provenance, legacy catalog projection and Play latest integrated;
-  coordinator composed native exact-receipt sharing callback and new-kit defaults.
-- Initial integrated review at8d20c67 complete: two acceptedP2s fixed in one batch,
-  targeted review clean atca04209. Persisted pagehide retains paused app/audio for restoration;
-  stale/unavailable saved links allow source-only Share. Browser restore worker
-  source frozen; final four-fixture/45check regression passed in401seconds.
-- User placement adjustment: Publish app moved into GitHub, disabled until signed
-  in and repository connected. Local practice omits it. Run/Stop remain together.
-- Root337tests336pass1PowerShellskip; sharing48pass; website104tests/type/build;
-  native fallback/sidebar32focused tests pass. No account grant or deployment.
-- Current SkyHop compiles and browser input/music/mute/reset/cleanup and synthetic
-  cached-page restoration with P-resume pass at480x680;
-  latest site8,208,660bytes / ZIP7,009,261bytes. All source/assets unchanged; exporter adds
-  only its .gitignore rule. Browser receipt `.verification/integration/`.
-- Owned native VSCode profile: actual Export→Preview→SaveZIP passed,68site/ZIP hashes
-  match,21input hashes unchanged, only expected .gitignore differs. Final GitHub placement
-  passes light/dark/highcontrast, keyboard and native overflow checks. See `.verification/native-integration/native-export-receipt.json`.
+The previous optional-export/publishing baseline is locally implemented, reviewed
+and tested. The newly agreed browser-first Run App, strict resolved-member gate
+and deployment of local builds are NOT implemented. The old statement that only
+publication authorization remains applies to that previous baseline, not this
+expanded direction. Detailed plan: `docs/WEB-EXPORT.md`, Planned browser-first
+migration; product/development docs distinguish current and planned behavior.
 
-Initial review ledger `.verification/integration/review-ledger.json` records fixed
-SHAs, two review scopes, interrupted/resumed context and conservative5turn count.
-Targeted correction review resolved bothP2s with no new findings. Unchanged initial
-coverage plus corrected delta covers final codeca04209; no extra source wave needed.
-Latest previewVSIX250,619bytes/70files has60byte-identical source files and no generated
-binaries/game assets. Not installed/published. Effective
-worker configuration/tokens unavailable; requested GPT6.1Sol/high. Account-wide
-weekly86%remaining at latest check; no attribution/cost claim. DeepSeek paused.
+1. Establish the shared validated snapshot, versioned compatibility contract,
+   owned-preview lifecycle and supported local-bundle upload transport.
+2. Browser-first Run App: save/check/local build/fresh-output validation/preview;
+   real Stop/restart/cancel of executing JavaScript and audio. Reuse exporter.
+   Publish the same validated local snapshot; migrate current Actions compilation
+   to deployment-only. Optional native diagnostic launch must be explicit.
+3. Strict compatibility: resolve approved constructors, methods and fields,
+   inherited calls/references and relevant Java APIs/dependencies in all original
+   application code, including dead code. Useful source diagnostics plus real
+   pinned WebFX/GWT compilation. Current fingerprints/lexer checks are insufficient.
+4. Combined regression, source-drift/lifecycle/deployment checks and independent
+   review; then authorized live Pages/ZeroHub acceptance and coordinated release.
 
-Frozen current SkyHop: `.verification/integration/latest-sky-hop`,95files from ZIP
-SHA25666b20743c2ba310f572197714a7e01ff1a430e682989894285d367c63eed47f8;
-seven framework classes matchdbaef8c. Preserve480x680 art/input/audio/game rules.
-Original game is not a Git repo and remains untouched. Snapshot receipt in
-`.verification/integration/snapshot.json`. Prior native audio/game57/194/19 checks
-and website98/source review are reusable for byte-identical canonical sources.
+Future worker boundaries: browser-run owner (extension lifecycle), semantic-check
+owner (contract/checker), and game/regression reviewer (fixtures/evidence). Agree
+shared interfaces first; one writer per component. No worker needs to run merely
+to replace an archived chat. Coordinator owns integration, authorization and
+acceptance. This request authorizes consolidation and plan updates, not external
+publication or a new implementation wave for the browser-first direction.
 
-## Remaining acceptance
+The existing tool-backed goal is blocked on live-publication authority; it is not
+complete or paused. Its recorded objective predates this expanded migration;
+this handoff records the new direction without creating a second goal. Real
+GitHub account/repository selection, workflow permission, push/upload/deployment
+and release still need explicit authority. Preserve the separate ZeroHub library-
+checker acceptance hold; no policy activation is authorized by this plan.
 
-Core local integration, functional checks, packaging and independent review are
-complete at codeca04209 plus the reviewed loader correction5381b4d. Subsequent changes are documentation only. New owner media/
-lag question led to read-only performance probes: see below. Functional success
-does not establish an acceptable slow-network startup envelope. Receipts/preview
-VSIX remain in .verification.
-User's overall tool-backed goal is blocked on explicit account/destination and live
-publication authority. A live trial and coordinated hosted activation/release are
-not complete; the goal is not achieved or paused.
+## Consolidated source-chat handoffs
 
-Next requires explicit GitHub account/repository destination and authorization for
-real publication, workflow permission, upload/push and Pages deployment. Then test
-native sign-in/setup→publish→verified Open/Copy→update stableURL, and separately
-coordinate ZeroHub website/checker policy activation/new-kit rollout without waiving
-its existing library-checker acceptance hold. No public push, account grant, live
-hosting, production activation or installed Zero update has occurred. Do not invent
-more local scaffolding while waiting for that necessary authority. Actual Windows,
-other browser engines, physical focus and actual cache navigation remain unverified.
+Owner requested consolidation/archiving on 2026-10-15. All three chats were idle,
+with no active implementation writers, before archive. Archive chat history only;
+retain all source, branches, worktrees, local evidence and recoverable histories.
+All three archive operations confirmed success. Their work is consolidated here;
+no new user-visible tasks or placeholder subagents were created. Consolidation
+verification: `npm run check` and `git diff --check` passed; runtime code unchanged.
 
-Play latest is explicitly mutable student hosting; source downloads stay versioned.
-No extra URL prompt/descriptor edits or per-update Hub resharing requirement.
-No public push, deployment, account grant, ZeroHub activation or release authorized.
-Prior checks/limits in EVIDENCE and WEB-EXPORT; update after integrated verification.
-Weekly start89%remaining; latest86%; storage healthy. DeepSeek pause honored. No new tasks
-or automations. Keep this worktree for integration and preserve private receipts.
+- **Assess WebFX-safe JavaFX wrappers** —
+  `01a14040-adb3-7393-81da-ac925fb8b727`. Latest human instruction confirmed
+  browser-first Run App and strict compatibility belong in this lead's plan,
+  using the existing WebFX/GWT pipeline and local compilation; cloud development
+  excluded. No replacement TeaVM pipeline or per-control wrapper DSL approved.
+- **Assess WebFX compatibility and app** —
+  `01a13f9f-ccfd-7731-8bc7-285d1d775d83`. Read-only historical analysis retained
+  at `/Users/stew/Repos/zero/docs/WEB-PUBLISHING.md` and root
+  `.verification/webfx-2026-10-15/`. Its five-helper/audio gaps and native-first
+  assumptions are superseded by integrated audio and the new plan. Preserve the
+  dirty root notes selectively; do not wholesale import or overwrite them.
+- **Build Flappy Bird with Zero** —
+  `01a13d75-377e-7201-98c5-cc1c2c0387f5`. Clean unpublished branch
+  `codex/student-game-helpers`, commit `dbaef8c0ea44aebcb137ddb7351f030ed8dd0b17`,
+  worktree `/Users/stew/.codex/worktrees/student-game-helpers/zero`. Integrated
+  here as `b7ece386fc5ca8f4d652435a3bdd16a4bce7c763`; only CURRENT conflicted,
+  preserving the coordinator plan. Seven canonical classes/98 declarations kept.
 
+Original game `/Users/stew/Repos/zero-flappy-bird` is not Git; preserve it and
+`/Users/stew/Repos/zero-flappy-bird.zip` (11,752,706 bytes, SHA256
+`66b20743c2ba310f572197714a7e01ff1a430e682989894285d367c63eed47f8`). Frozen
+fixture `.verification/integration/latest-sky-hop` and snapshot.json preserve
+95 files; canonical helpers match dbaef8c. Original game/assets unchanged.
+Game worktree evidence: `.verification/audio-helpers/remediation-source.json`
+(58-file manifest, zero drift at handoff), core-remediation.md and review-remediation.md.
 
-## Media/performance evidence after owner question
+Preserve Sky Hop's 480×680 design, ready-only title/start prompt, 90×72 bird,
+radius15, pipe spacing280/gap168, four poses at12fps, 701×561 cells/lower row y531;
+Space/click flap, P pause, R reset, M mute and focus suspension. Preserve art,
+17.14-second music and effects. Physics/states/scoring remain ordinary Java.
+Native handoff passed57 core audio assertions,194 game-rule and19 full-song
+checks, fallback/missing-resource, GUI/input and independent SimpleApp consumer.
 
-No new asset restrictions or asset optimization implemented. A measured loading
-failure is corrected within the active integration goal; student Java/assets unchanged.
-Read-only cold Chrome155/headless probes on this Mac used CDP network/CPU simulation:
-normal local startup121ms;5Mbps/150ms/4xCPU startup8.53s. Median canvas draw cadence
-16.6–16.7ms,95th17.5–18.2ms, no gaps over50ms in roughly5seconds of input. First key
-to first HTML audio playing event95ms/217ms, not physical speaker latency. At1Mbps/
-200ms/4xCPU, startup failed at34.34s with image30s timeout forsky.png. Single samples,
-uncompressed/no-store loopback preview; not hosted, classroom, WebVitals or INP proof.
-All4PNGspreload; unusedbird.png is788,425bytes and estimated6,292,176RGBAbytes, confirmed
-by Main's3image loads and actual resource requests. This supports asset warnings,
-classroom-calibrated startup budgets and reviewing fixed loading deadlines. It does
-not justify arbitrary hard caps or automatically rewriting student asset paths.
-Evidence `.verification/integration/performance/receipt.json`; source stays clean/
-reviewed. Owned performance Chrome/server stopped. Live publication authority still
-pending; don't claim the entire goal or responsive behavior across devices achieved.
+## Verified baseline and evidence
 
+- Local pinned WebFX/GWT exporter, temporary overlays for seven reviewed helpers,
+  ordinary canonical Java unchanged. Sound alias cache/overlap (32 browser voices),
+  independent Music pause/resume/rewind/repeat/error and owned cleanup integrated.
+- Local Export → Preview → Save ZIP passed in isolated macOS VS Code. Publish app
+  is in GitHub, disabled until signed in/connected. Run App is STILL native.
+- Publisher checks exact repository/run/main/workflow/SHA/Pages/public marker,
+  retries and saved live links. Simulation default. CURRENT workflow compiles in
+  Actions; local-build deployment migration remains planned.
+- ZeroHub verifies optional exact-source web receipts and offers Play latest.
+  Live page is mutable; source snapshots remain exact. Legacy catalog strips web
+  metadata; `/api/sharing/catalog/web` serves new kits. No compiled Hub duplicate;
+  existing source ZIPs include assets. Coordinated checker/kit rollout still held.
+- Root337 tests:336 pass/1 PowerShell skip; sharing48; website104 plus type/build;
+  native callback/sidebar32. Four fresh GWT fixtures and48 Chrome browser checks
+  include controls/drawing/audio/cache/errors/autoplay/cleanup and synthetic
+  persisted-page restoration. Final independent review clean after corrections.
+- Loader correction5381b4d uses30s progress windows/120s total image startup,
+  clears timers on launch/error/stop, prevents late start after failure. Real35s
+  and accelerated stall/total-deadline regressions passed.
+- Preview VSIX250,619 bytes/70 entries/60 source files match reviewed code; SHA256
+  `b8aef965202b1211d842552d264f7e918fbab86d8785e21ed357d5db07fa10bf`.
+  Not installed/published. Final acceptance audit and package receipt retained.
 
-Concrete performance follow-up: generated BrowserLauncher now resets its30s image
-wait when an image completes and caps total preload at120s; timers clear on launch,
-error or stop. Same1Mbps/200ms/4xCPU game starts in40.29s instead of failing at34.34s.
-FourfreshGWT builds and45functionalbrowserchecks passed; a two-image helper fixture
-and real35s regression plus accelerated stall/total deadlines expand this to48checks.
-Final48check result passed; targeted review at5381b4d is clean with no findings.
-Ledger now5conservative turns,2targeted waves,2fix batches, no extra full-diff wave. No new
-hardmedia policy or source/API changes. No publication authority received.
+Receipts under `.verification/integration/`: final-acceptance-audit.json,
+completion-audit.json, review-ledger.json, browser-acceptance.json, package-receipt.json;
+performance/ contains48-browser.log and targeted review. Loader build evidence in
+`.verification/web-loading-fix/`; native flow in
+`.verification/native-integration/NATIVE-EXPORT-QA.md`. Review ledger records five
+conservative launches/turns, two targeted waves/two fix batches. Do not reuse this
+completed baseline review as acceptance of future implementation changes.
 
-Latest source is reviewed5381b4d (only subsequent documentation closeout). Updated
-preview package60sourcefiles match,70entries/250,619bytes, not installed/published.
-Performance receipts and raw48check results are under integration/performance.
-No further implementation, live trial, hosted activation or release is authorized
-without the outstanding destination/account/publication decision. Asset diagnostic
-budgets remain proposed; actual classroom hardware/hosting/speaker latency untested.
+## Media, storage and remaining limits
 
+Game site8,208,660 bytes/ZIP7,009,261 bytes; shared compiler cache about188MB.
+One ignored export/log per project, temporary builds cleaned; source-only current
+publishing kit and one-day Actions artifacts. Local-bundle staging retention is a
+new design decision, not yet implemented. No media caps/optimization introduced.
 
-## Final acceptance audit / unblock
+Single cold Mac/headless Chrome loopback samples:121ms local ready;5Mbps/150ms/
+4xCPU ready8.53s, median16.6–16.7ms/p9517.5–18.2ms draw cadence over roughly5s.
+Corrected loader starts1Mbps/200ms/4xCPU in40.29s (old deadline failed34.34s).
+First key→HTML audio playing95/217ms is not physical sound latency. Assets4.43MB
+PNG/1.58MB WAV, decoded RGBA estimate25.17MB excluding overhead; unused0.79MB
+bird.png still preloads. Asset diagnostics/classroom budgets are proposed only.
+No responsive-device guarantee from these samples. Actual Windows, other engines,
+physical focus/BFcache navigation, speakers, novice/school networks, authentication
+and hosted publication remain unverified. No push, deployment, account grant,
+public activation or installed update occurred.
 
-Current authoritative source55c70d9 (reviewed code5381b4d) and package were rechecked:
-60packagedsourcefiles match and VSIXhash matches; canonical framework unchanged from
-reviewed native sources;48browserchecks all pass; root336pass/1skip,sharing48,website104,
-native32logs and finalcheck verified. See integration/final-acceptance-audit.json.
-Missing account/repository/live-publication authority has recurred across initial
-handoff, media follow-up, loading-correction turn and this final audit. There is no
-remaining independently authorized local implementation/test step. Goal marked
-blocked under its recurrence rule; no more automatic work or redundant checks until
-human authorization or relevant external state changes. Resume with the intended
-GitHub account/repository and explicit publishing-setup push/Pages deployment scope.
-Do not infer authorization from an existing login or waive the ZeroHub checker hold.
+Orchestration: DeepSeek pilot paused; last baseline weekly86% remaining is
+account-wide, not attributable task cost. No new delegation for this small
+consolidation. Storage check healthy (~342GB free); retained all unique worktrees.

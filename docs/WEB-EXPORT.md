@@ -1,7 +1,90 @@
 # Browser games and playable links
 
-This feature is local and unreleased. It adds an optional browser destination to
-ordinary Java projects; native Run App remains the normal development loop.
+This feature is local and unreleased. The implemented baseline adds an optional
+browser destination while Run App still opens native JavaFX. The owner-approved
+next direction makes the browser the primary application target, with compilation
+on the student's computer. The migration below is planned, not implemented.
+
+## Planned browser-first migration
+
+Zero remains a local Java teaching kit: ordinary Java and a strictly approved
+JavaFX subset, edited in local VS Code. Keep ordinary control names and explicit
+object updates. Reuse the existing pinned WebFX/GWT exporter, adapters and cache;
+do not add a second transpiler or a wrapper for every JavaFX control. GitHub owns
+student source, GitHub Pages hosts static apps, and ZeroHub stores playable links
+and verification metadata. Cloud development, hosted compilation, browser-only
+IDEs and online playgrounds are outside this direction.
+
+Two separately reviewable phases share one build contract:
+
+1. **Browser-first Run App.** Save, check compatibility, compile locally, validate
+   fresh complete output, then open/reload an owned browser preview. Show clear
+   checking/building/running/failure states. Restart, cancellation, project changes
+   and Stop must terminate the owned runtime and prevent late build completions
+   from launching. Stop must stop JavaScript, animation and audio already running;
+   closing the loopback HTTP server alone does not do this. Prove a supported
+   managed preview can destroy/recreate its executing frame, including an
+   unresponsive game, before choosing it as the default. External-browser control
+   requires equivalent lifecycle evidence before making that promise. Retain
+   native launch as an explicit optional diagnostic path if useful; never fall
+   back automatically after browser compatibility failure.
+2. **Strict compatibility.** Check resolved constructor, method and field symbols,
+   including inherited calls, overloads, static imports, fully qualified names,
+   method/constructor references and relevant Java APIs. Check all application
+   source bodies, including code the transpiler would eliminate. An approved
+   class must not implicitly approve every inherited member. Restrict dependencies
+   and their transitive versions. Fail closed on unresolved/unsupported use, with
+   source file/line/column, the offending member and a useful supported alternative.
+   Then require the pinned WebFX/GWT compile. Current helper hashes, inventory,
+   lexer/import checks and successful GWT builds do not yet provide this guarantee.
+
+The proposed semantic implementation uses local JDK attribution with annotation
+processing disabled, without executing student code. Define a versioned contract
+of reviewed type/member signatures, overloads and dependency/toolchain hashes.
+Check original application sources before adapter rewriting or GWT optimization.
+Distinguish student-defined classes from trusted generated code and helpers by
+reviewed identities/hashes; a broad package-name exemption is insufficient.
+
+Run, Export and Publish must share an immutable validated snapshot: source,
+resources, build settings, compatibility contract, adapters and pinned dependencies,
+plus output completeness and hashes. Recheck freshness before preview/publish;
+source changes invalidate the current snapshot and require another local build.
+A failed build may preserve old files, but must never report them as a fresh run.
+Use generation ownership and process cancellation so an earlier completion cannot
+replace the latest run. Publishing must bind the clean uploaded source commit to
+the exact locally validated app bytes, or build afresh when inputs changed.
+
+The current implementation compiles in GitHub Actions. That must migrate to a
+**deployment-only** workflow for the local-compilation direction: upload the
+validated local bundle, verify its bounded archive/manifest and source/contract
+binding, then deploy those app bytes without recompiling student code on GitHub.
+Select and review a supported upload transport before implementation. An ephemeral
+draft-release asset followed by deployment-only retrieval is one candidate, not
+an accepted design. Bound pending versions, expiry, retry and cleanup; do not add
+compiled game history to Git or duplicate it in ZeroHub. Public SHA/run markers
+prove delivery/binding, not an unforgeable proof that an owner-supplied local bundle
+was compiled from source. Review receipt/schema/checker trust claims accordingly.
+
+Acceptance covers the existing helper, quiz, drawing, audio and Sky Hop fixtures;
+negative tests for inherited/unapproved APIs, overloads, references, Java APIs,
+dependencies, dead-code use, unresolved symbols and helper tampering; and actual
+editor checks for save/restart/cancel/Stop, audio/animation teardown, project
+switches, source drift and partial/stale output. Verify deploy-only transport
+cannot silently recompile or publish a different snapshot. Preserve native helper
+regressions. Windows, other engines, classroom networks and real hosted delivery
+need explicit evidence; existing Mac/Chrome results do not establish them.
+
+First settle shared snapshot/contract and preview-lifecycle boundaries; review
+phase 1 and publishing transport, then phase 2's semantic gate, then integrated
+regression/review. Do not release a strict-compatibility claim before both phases
+pass. These changes are currently planning only. No new media caps or automatic
+asset transformations are approved. Real account/repository publication authority
+and the existing ZeroHub library-checker acceptance hold remain separate gates.
+
+## Implemented baseline
+
+The following sections describe the reviewed local implementation before that
+migration, including its current GitHub-hosted build step and optional export UI.
 
 ## Student flow
 
