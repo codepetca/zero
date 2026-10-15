@@ -1,4 +1,4 @@
-# Current state — browser publishing integration (active, unreleased)
+# Current state — browser publishing integration (blocked on live authority, unreleased)
 
 Goal set by owner2026-10-15: ordinary student Java and supported Zero teaching
 API → native Run App → GitHub section Publish app → verified playable Pages link.
@@ -9,7 +9,7 @@ gates meaningful, storage bounded and existing designs/native behavior intact.
 Coordinator: **Explore publishing the Flappy Bird**, this chat. Existing chats
 **Build Flappy Bird with Zero** and **Assess WebFX compatibility and app** delivered
 handoffs, have no active writers, and acknowledge this lead. Use bounded subagents
-here rather than another lead chat. Tool-backed goal is active; local feature
+here rather than another lead chat. Tool-backed goal is blocked on missing live-publication authority; local feature
 completion alone does not complete end-to-end integration/acceptance.
 
 Worktree `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
@@ -63,8 +63,9 @@ complete at codeca04209 plus the reviewed loader correction5381b4d. Subsequent c
 lag question led to read-only performance probes: see below. Functional success
 does not establish an acceptable slow-network startup envelope. Receipts/preview
 VSIX remain in .verification.
-User's overall tool-backed goal remains active because a live publication trial
-and coordinated hosted activation/release are not complete.
+User's overall tool-backed goal is blocked on explicit account/destination and live
+publication authority. A live trial and coordinated hosted activation/release are
+not complete; the goal is not achieved or paused.
 
 Next requires explicit GitHub account/repository destination and authorization for
 real publication, workflow permission, upload/push and Pages deployment. Then test
@@ -117,3 +118,18 @@ Performance receipts and raw48check results are under integration/performance.
 No further implementation, live trial, hosted activation or release is authorized
 without the outstanding destination/account/publication decision. Asset diagnostic
 budgets remain proposed; actual classroom hardware/hosting/speaker latency untested.
+
+
+## Final acceptance audit / unblock
+
+Current authoritative source55c70d9 (reviewed code5381b4d) and package were rechecked:
+60packagedsourcefiles match and VSIXhash matches; canonical framework unchanged from
+reviewed native sources;48browserchecks all pass; root336pass/1skip,sharing48,website104,
+native32logs and finalcheck verified. See integration/final-acceptance-audit.json.
+Missing account/repository/live-publication authority has recurred across initial
+handoff, media follow-up, loading-correction turn and this final audit. There is no
+remaining independently authorized local implementation/test step. Goal marked
+blocked under its recurrence rule; no more automatic work or redundant checks until
+human authorization or relevant external state changes. Resume with the intended
+GitHub account/repository and explicit publishing-setup push/Pages deployment scope.
+Do not infer authorization from an existing login or waive the ZeroHub checker hold.
