@@ -1,21 +1,31 @@
 # Current state — optional browser export (local, unreleased)
 
-Work is isolated in `codex/web-export`, attached worktree `web-export/zero`,
-based on committed student game helpers `8caba8b`. Canonical framework/game source
-and the other chat's active checkout remain untouched. Published core/kit/native
-versions are unchanged; no push, deployment, publication or account grant occurred.
+Complete on isolated `codex/web-export`, attached worktree `web-export/zero`,
+base `8caba8b`. Reviewed code head `c5db993`; final handoff changes only docs.
+Canonical framework/game source and the other chat's active checkout are untouched.
+Published core/kit/native versions remain frozen. No push, deployment, release,
+publication, account grant or installed Zero update occurred.
 
-Optional Export for web builds an adapted temporary copy with pinned WebFX/GWT,
-then offers local preview and ZIP. Publish app coordinates source-only GitHub
-Pages setup, existing reviewed Upload changes, exact workflow-run tracking and a
-public source/run marker before Open/Copy playable link. Simulation stays default.
-Ordinary student Java remains unchanged. See [WEB-EXPORT](../docs/WEB-EXPORT.md).
+Export for web compiles a temporary adapted copy with pinned WebFX/GWT and offers
+local preview/ZIP. Publish app coordinates reviewed source-only Pages setup,
+normal Upload changes, exact workflow-run/public-marker verification and durable
+Open/Copy playable links. Simulation remains default; ordinary Java is unchanged.
+See [WEB-EXPORT](../docs/WEB-EXPORT.md).
 
-Focused export/publish/auth tests, configuration checks and local VSIX packaging
-pass. Real helpers, quiz and drawing browser builds compile. Frozen JavaFX-audio
-Sky Hop browser checks passed; newer Sound/Music APIs in the other chat require
-explicit profile integration. Full integration/browser verification and required
-independent review are being finalized; receipts are under `.verification/`.
-Windows, native editor authentication and actual Pages publication remain untested.
+Checks: configuration/syntax pass; focused66/66; full319tests318pass/1skip/0fail;
+final readiness-boundary19/19. Real helpers/quiz/drawing compile and18browser
+checks pass, including init exactly once before setup. Frozen JavaFX-audio Sky Hop
+rebuilt and passed browser input/audio smoke. Final VSIX68files/234145bytes;
+all58packaged source files match reviewed code. Site8.2MB/ZIP7.0MB; temp build
+removed and per-project log retained. Detailed receipts and review in EVIDENCE.
 
-Prior helper/audio delivery remains recorded in EVIDENCE and VERIFICATION.
+Independent review complete: two Sol/high initial reviewers, two targeted turns,
+seven reported issues accepted/fixed across two batches, no remaining findings.
+Initial coverage plus reviewed deltas covers corrected code; no additional full
+review wave adds coverage. Native editor UI/auth, real Pages publication, Windows,
+physical focus/speakers and non-Chrome browsers remain unverified.
+
+Next integration must reconcile the other chat's committed Sound/Music APIs and
+profile coverage, then separately verify native editor/auth and an explicitly
+authorized Pages trial before student release. Keep this worktree for integration.
+Prior helper/audio and updater deliveries remain recorded in EVIDENCE/VERIFICATION.
