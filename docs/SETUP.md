@@ -89,9 +89,10 @@ must not be reported as ready. On a supported Mac, the wrapper must also have
 execute permission; re-extract the complete kit or follow the reported local
 permission repair guidance. Checks do not execute the project's Maven build.
 
-Before tutorial lesson 0, students complete the GitHub account, school access,
-privacy and Git identity steps, then create and clone their own tutorial
-repository. After cloning and caching the build tools, local Run works offline
+Before tutorial lesson 0, students complete the GitHub account, school access
+and privacy steps, then create and clone their own tutorial repository. In that
+clone, configure its teacher-approved Git identity before the first upload.
+After cloning and caching the build tools, local Run works offline
 without an active GitHub session; uploads require sign-in and internet access.
 GitHub actions default to live. Upload and branch changes require
 review/confirmation; first Publish approves its destination and later explicit
