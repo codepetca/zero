@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "publication": {
+    "status": "published"
+  },
+  "kitVersion": "0.5.15",
+  "buildNumber": 2,
+  "feedURL": "https://zero.codepet.ca/updates/macos/appcast.xml",
+  "publicKeySha256": "ea2fff0ee6537c05038f011272d466711afe633ba3950eb875a3928aa01bc60e",
+  "sourceRevision": "06c2e0a2aa9cf129d2ed1f14e68b5a51aa9d9c92",
+  "createdAt": "2026-10-15T02:24:59.000Z",
+  "asset": {
+    "filename": "Zero-0.5.15-macos.dmg",
+    "size": 1920629,
+    "sha256": "0e8c29d37926a6fae98c1651cd621edc6d358024d1840acf0089c31aea2302e9",
+    "url": "https://github.com/codepetca/zero/releases/download/setup-v0.5.15/Zero-0.5.15-macos.dmg",
+    "edSignature": "MtPO85iVKvimiskvB7wcv8flVXY47f6lXko5sIyYH34TE5osPKfuhg7xp+kB0lapW2wrYXm271OynOcN1/r2DA=="
+  },
+  "feed": {
+    "filename": "appcast.xml",
+    "size": 1177,
+    "sha256": "ac1622e1ca099c0a8691643602a3a29264c03d579cd99bdec56958779aa05145"
+  }
+}
