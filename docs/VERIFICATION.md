@@ -1,5 +1,34 @@
 # Verification
 
+## Live GitHub default — local candidate, 2026-10-15
+
+Source44e50e4 changes the manifest/runtime/setup fallback to live. Explicit testing
+simulation remains honored; tutorial practice still blocks GitHub actions. No
+activation-triggered upload/publication was introduced. Upload and branch changes
+retain their reviews. First/new-destination Publish confirms its target; later
+explicit Publish updates the same approved site without another destination modal.
+Current student, generated-project and contributor guides describe this precisely.
+
+Full regression atd93dd56:427tests,426pass/1PowerShellskip/0fail/cancel in158.7s.
+The final wording-only correction passes24focused and16website example checks,
+configuration/link checks and diff check. Initial independent security reviewer
+also passed99focused checks; these overlap and are not additive totals. No broad
+suite repeated after prose corrections. Final package/verify:kit passes, including
+extracted Maven build/source/license/mode parity. All three saved assets match
+checksums; packaged manifest and runtime use live. Local candidate retained in
+`dist/candidates/zero-0.5.16-live-44e50e4`, uninstalled/unpublished. The earlier
+Mac development DMG does not contain this default change and requires rebuilding.
+
+Two independent Sol/high initial scopes found two distinct P2 docs issues. One
+batch fixed stale default instructions and the false repeat-Publish confirmation
+promise; one targeted review is complete/clean. Two launches/three turns, one
+initial/one targeted wave, one fix batch. Effective model/tokens unknown. No new
+integration review gap. Logs/reports/receipt `.verification/live-default/`.
+No external account/transport actions. Prior public Sky Hop proof is unchanged;
+full fresh installed-candidate, ZeroHub policy/public Play, native focus/platform,
+final CI/signing/distribution acceptance remain open. Old-project migration was
+waived by the owner because there are no real users. Existing work preserved.
+
 ## Pre-release scope decision — 2026-10-15
 
 The owner confirmed there are no real users yet and existing development projects
