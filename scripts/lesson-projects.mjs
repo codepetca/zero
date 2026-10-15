@@ -1,3 +1,4 @@
+import {coreSources} from './prepare-starter.mjs';
 import {readFileSync, writeFileSync, mkdirSync, readdirSync, lstatSync, existsSync, unlinkSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -27,7 +28,7 @@ export function lessonProjects(root = repository) {
   add(common, '.vscode/settings.json', JSON.stringify(settings, null, 2) + '\n');
   add(common, '.gitignore', '# Local practice: keep every file off GitHub.\n*\n');
   add(common, 'LICENSE', read(root, 'LICENSE'));
-  for (const name of ['SimpleApp','SketchApp']) add(common, `src/main/java/zero/${name}.java`, read(root, `framework/src/main/java/zero/${name}.java`));
+  for (const name of coreSources) add(common, `src/main/java/zero/${name}`, read(root, `framework/src/main/java/zero/${name}`));
   const projects = practiceProjects.map(project => {
     const files = new Map(common);
     add(files, 'src/main/java/Main.java', read(root, `teaching/starters/${project.kind}/Main.java`));

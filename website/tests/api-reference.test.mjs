@@ -8,33 +8,34 @@ const categories = buildApiReference(markdown);
 const entries = categories.flatMap(category => category.entries);
 const entry = id => entries.find(candidate => candidate.id === id);
 const category = id => categories.find(candidate => candidate.id === id);
-const normalizeSignature = signature => signature.replace(/\b(public|protected|final)\s+/g, '').replace('javafx.scene.Node', 'Node').replace(/\s+/g, ' ').trim();
+const normalizeSignature = signature => signature.replace(/\b(public|protected|final|static)\s+/g, '').replace('javafx.scene.Node', 'Node').replace(/\s+/g, ' ').trim();
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['SimpleApp', 'SketchApp']) {
+  for (const owner of ['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions']) {
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner}.java`, import.meta.url), 'utf8');
     // Class-level declarations have four-space indentation; the anonymous timer callback has twelve.
-    for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:final )?[\w.]+ \w+\([^)]*\))\s*\{/gm)) {
+    for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:(?:final|static) )?(?:[\w.]+ )?\w+\([^)]*\))\s*\{/gm)) {
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 42);
+  assert.equal(expected.length, 78);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
-  assert.equal(JSON.parse(JSON.stringify(categories)).length, 7);
+  assert.equal(JSON.parse(JSON.stringify(categories)).length, 10);
 });
 
 test('categories and entries have unique anchors, valid relationships and complete metadata', () => {
   assert.deepEqual(categories.map(item => [item.id, item.title]), [
     ['startup', 'App startup'], ['interface', 'Window and interface'], ['canvas', 'Canvas'],
-    ['drawing', 'Drawing'], ['images', 'Images'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
+    ['drawing', 'Drawing'], ['images', 'Images'], ['regions', 'Image regions'],
+    ['animation', 'Sprite animation'], ['collisions', 'Collisions'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
   ]);
   const ids = [...categories, ...entries].map(item => item.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['SimpleApp', 'SketchApp'].includes(item.owner));
+    assert.ok(['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -44,7 +45,7 @@ test('categories and entries have unique anchors, valid relationships and comple
 test('classifies callbacks, window operations, overloads and advanced overrides', () => {
   assert.deepEqual(category('startup').entries.map(item => item.name), ['settings', 'setup', 'update', 'draw']);
   assert.deepEqual(category('interface').entries.map(item => item.name), ['size', 'title', 'padding', 'show']);
-  assert.equal(category('drawing').entries.length, 10);
+  assert.equal(category('drawing').entries.length, 11);
   assert.equal(category('advanced').entries.length, 12);
   assert.equal(entry('image').parameters.length, 3);
   assert.equal(entry('image-scaled').parameters.length, 5);
@@ -73,10 +74,10 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 42);
-  assert.equal(search(' \n\t ').length, 42);
+  assert.equal(search('').length, 78);
+  assert.equal(search(' \n\t ').length, 78);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
-  assert.deepEqual(search('rectangle').map(item => item.id), ['rect', 'outlineRect']);
+  assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
   assert.ok(search('colour').some(item => item.id === 'fill'));
   assert.ok(search('color').some(item => item.id === 'stroke'));
@@ -90,14 +91,15 @@ test('search handles aliases, case, multiple terms, whitespace and empty results
 
 test('search accepts method labels and ranks names before prose with stable ties', () => {
   const ids = query => searchApiReference(categories, query).map(item => item.id);
-  assert.deepEqual(ids('shutdown'), ['simpleapp-shutdown', 'sketchapp-shutdown', 'stop']);
-  assert.deepEqual(ids('image()').slice(0, 3), ['image', 'image-scaled', 'loadImage']);
-  assert.deepEqual(ids('circle()'), ['circle']);
-  assert.deepEqual(ids('  CiRcLe ( )  '), ['circle']);
+  assert.deepEqual(ids('shutdown').slice(0, 2), ['simpleapp-shutdown', 'sketchapp-shutdown']);
+  assert.ok(ids('shutdown').includes('stop'));
+  assert.deepEqual(ids('image()').slice(0, 6), ['image', 'image-scaled', 'image-region', 'image-region-scaled', 'image-animation', 'image-animation-scaled']);
+  assert.equal(ids('circle()')[0], 'circle');
+  assert.equal(ids('  CiRcLe ( )  ')[0], 'circle');
   assert.deepEqual(ids('image'), ids('image()'));
   assert.deepEqual(ids('mouse').slice(0, 3), ['mouseX', 'mouseY', 'mouseDown']);
   assert.deepEqual(ids('circle() filled'), ['circle']);
-  assert.equal(ids('circle() rectangle').length, 0);
+  assert.ok(ids('circle() rectangle').every(id => id.startsWith('collisions-')));
   assert.deepEqual(ids(''), entries.map(item => item.id));
 });
 
@@ -135,4 +137,44 @@ test('reads declarations and behavior from Markdown and rejects malformed or mis
   assert.throws(() => buildApiReference(markdown.replace(/^\| `void fill\(Color color\)`.*\n/m, '')), /Incomplete API reference/);
   assert.throws(() => buildApiReference(markdown.replace('## Drawing', '## Painting')), /Unknown API section/);
   assert.throws(() => buildApiReference(markdown.replace('`void stroke(Color color)`', '`void fill(Color color)`')), /Duplicate API reference id/);
+});
+
+
+test('documents all source-type overloads with unique stable anchors and helper constructors', () => {
+  for (const suffix of ['', '-region', '-animation']) {
+    assert.equal(entry(`image${suffix}`).parameters.length, 3);
+    assert.equal(entry(`image${suffix}-scaled`).parameters.length, 5);
+    assert.match(entry(`image${suffix}-scaled`).example, /20, 30, 80, 80/);
+    assert.equal(entry(`imageCentered${suffix}`).parameters.length, 6);
+    assert.equal(entry(`imageFlippedY${suffix}`).parameters.length, 5);
+  }
+  assert.equal(entry('imageregion-constructor').owner, 'ImageRegion');
+  assert.equal(entry('spriteanimation-constructor').parameters.length, 4);
+  assert.equal(entry('spriteanimation-constructor-frames').parameters[1].type, 'ImageRegion...');
+  for (const name of ['circleHitsRect', 'rectHitsRect', 'circleHitsCircle']) {
+    assert.match(entry(`collisions-${name}`).signature, /^static boolean /);
+    assert.match(entry(`collisions-${name}`).example, /Collisions\./);
+  }
+  assert.equal(category('regions').entries.length, 6);
+  assert.equal(category('animation').entries.length, 11);
+  assert.equal(category('collisions').entries.length, 3);
+  assert.match(category('images').notes, /same backing Image without bitmap copies/);
+  assert.match(entry('loadImage').description, /cached per app by canonical/);
+  assert.match(category('input').notes, /press and release between frames/);
+  assert.match(category('input').notes, /update\nand draw, then cleared/);
+  assert.match(category('animation').notes, /equal aligned cells/);
+  assert.match(category('collisions').notes, /Touching counts/);
+  assert.match(entry('textCentered').description, /baseline/);
+  assert.ok(!entry('spriteanimation-update').note?.includes('field named x'));
+  assert.ok(searchApiReference(categories, 'sprite sheet').some(item => item.owner === 'SpriteAnimation'));
+  assert.ok(searchApiReference(categories, 'keyboard edge').some(item => item.id === 'keyPressed'));
+});
+
+
+test('fails closed when any new overload or constructor table row is omitted', () => {
+  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Collisions'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped/.test(item.signature))) {
+    const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
+    assert.ok(line, item.signature);
+    assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/, item.signature);
+  }
 });

@@ -1,3 +1,4 @@
+import {coreSources} from './prepare-starter.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, symlinkSync, rmSync} from 'node:fs';
@@ -14,7 +15,7 @@ const content = (project, filename) => Buffer.from(project.files.find(file => fi
 test('three continuing projects cover every lesson without distributing solutions', () => {
   assert.deepEqual(bundle.projects.map(project => project.id), ['greeting','study','game']);
   const first = {greeting:'0',study:'3',game:'8'};
-  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java','src/main/java/zero/SimpleApp.java','src/main/java/zero/SketchApp.java','zero.json'].sort();
+  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java',...coreSources.map(name => `src/main/java/zero/${name}`),'zero.json'].sort();
   for (const project of bundle.projects) {
     assert.deepEqual(project.files.map(file => file.path).sort(),expected);
     const marker=JSON.parse(content(project,'zero.json'));

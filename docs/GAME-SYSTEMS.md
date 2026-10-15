@@ -61,12 +61,40 @@ memory, so brief effects remain appropriate. The core shutdown stops animation
 and clears input but has no application cleanup callback. Looping music still
 needs an explicit idempotent cleanup design when a shared need is demonstrated.
 
-Canvas/window focus loss clears held input but does not pause physics or enemies.
+Canvas/window focus loss clears held and frame-edge input but does not pause
+physics or enemies. windowFocused() can support an explicit Main pause rule; a
+focused native control still counts as a focused window.
 Restart observes that canvas state; physical OS key-repeat after button/canvas
 refocus remains a pilot check.
 The examples keep the canvas in the centre and manage endings through game state;
-inherited show can hide a canvas without stopping its timer. Pause, sprite
-animation, moving platforms and a larger physics library are future extensions.
+inherited show can hide a canvas without stopping its timer. Main still owns pause rules. Moving platforms and a larger physics library
+remain future extensions.
 
 Physical Windows/Linux, audible output and novice classroom play still require
 trials. See [verification](VERIFICATION.md) for actual local acceptance evidence.
+
+## Local core helpers
+
+The current source adds small game helpers without changing the lesson stages
+or automatically updating objects. These additions are unreleased; published
+Mac setup 0.5.15 ships the older core 0.1.2. See the
+[student guide](../student-template/APP-GUIDE.md#sprite-frames-and-small-game-helpers)
+and [complete API](../student-template/API.md).
+
+ImageRegion shares a bitmap; SpriteAnimation stores an independent clock and
+Main calls update(seconds) explicitly. Use aligned regular grids with dimensions
+that divide exactly, or equal-size explicit regions from one image for an atlas.
+loadImage caches successful canonical resources per app until shutdown; separate
+animations can share that image. Draw natural/scaled frames, centre/rotate them,
+flip them vertically, or centre text without leaving changed context styles.
+
+keyPressed/mousePressed are non-consuming edges for the whole real update/draw
+frame. Short between-frame taps survive until that frame; held input does not
+repeat. A game state pause does not retain edges for a later frame. Static
+Collisions predicates include touching and validate finite coordinates and
+non-negative dimensions/radii. They do not replace movement or collision response.
+
+Try the local [Sprite playground](../student-template/examples/sprite-playground/README.md) in a fresh project,
+copying one example at a time. It shares one bird sheet across two independent
+clocks, selects four aligned ImageRegion frames from the atlas, and demonstrates
+pause, reset, edge input and collision feedback.

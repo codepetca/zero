@@ -1,5 +1,26 @@
 # Verification
 
+## Student game helpers — 2026-10-15 local source
+
+Configuration/syntax/local links pass. Root suite263pass/1PowerShellskip;
+97website tests, typecheck and production build pass. Existing public release
+artifacts were not rebuilt or replaced. Source assembly includes all five core
+classes in starter, three practice projects and all26Hub example projects.
+
+`npm run verify:framework` passes the old native smoke and new GameHelpersCheck:
+real AnimationTimer update/draw press visibility, quick tap and autorepeat,
+canvas/control/window focus, held releases, cache identity/alias/failure/shutdown,
+explicit independent animation clocks/validation, shared regions, geometry,
+pixel drawing and graphics-state restoration. `python3 scripts/verify-examples.py
+--only sprite-playground` passes shared-memory/two-clock/pause/collision feedback.
+Sky Hop passes194rules and native scene/input checks. Local browser API search,
+new anchors and screenshot checked; no captured warnings/errors. Zero Run App
+rebuilt the migrated standalone game and its new helpers under managed JDK21.
+
+Independent review is recorded in [delivery evidence](EVIDENCE.md). Physical
+Windows, audible output, novice students and a new human playtest are not claimed.
+
+
 ## Mac updater0.5.15 release acceptance — 2026-10-14
 
 [Delivery evidence](EVIDENCE.md) records merged sourcePR62, successful exact-head

@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
-export const coreSources = ['SimpleApp.java', 'SketchApp.java'];
+export const coreSources = ['SimpleApp.java', 'SketchApp.java', 'ImageRegion.java', 'SpriteAnimation.java', 'Collisions.java'];
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // This is maintainer tooling. Extracted student projects contain ordinary Java
 // source and never run this script or depend on the surrounding repository.
@@ -26,7 +26,7 @@ export function prepareStarter(root = fileURLToPath(new URL('../', import.meta.u
     }
     return {name, destination, bytes, sha256};
   });
-  // Check every file before changing any, so a drift failure preserves the pair.
+  // Check every file before changing any, so a drift failure preserves all copies.
   for (const item of updates) {
     mkdirSync(path.dirname(item.destination), {recursive: true});
     writeFileSync(item.destination, item.bytes);

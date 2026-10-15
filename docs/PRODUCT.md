@@ -99,6 +99,16 @@ focus to a nearby control. Tab still moves focus to ordinary JavaFX controls;
 arrows in a focused text field keep their normal caret behavior.
 Useful startup errors explain invalid sizes and lifecycle misuse.
 
+Local, unreleased game helpers add `SpriteAnimation`, shared-pixel `ImageRegion`
+views, one-frame press input, window focus, centered/rotated and vertically flipped
+image drawing, centered text and `Collisions` geometry predicates. Animations
+advance only through explicit `update(seconds)` calls. Images are cached per app;
+independent animations share pixels. Physics, game states, scoring and obstacle
+rules stay in ordinary student classes. Sky Hop and the optional sprite playground
+exercise this contract; see [game systems](GAME-SYSTEMS.md). Published core0.1.2
+and kit bytes are unchanged.
+
+
 The scored quiz and practice tracker reuse the canonical
 `examples/shared/ScoreDisplay.java` unchanged. Each app creates its own instance;
 a JavaFX node has one parent. The optional caption extends this ordinary class

@@ -1,6 +1,6 @@
 # Local Zero core library
 
-This development module packages the canonical SimpleApp and SketchApp source
+This development module packages the canonical SimpleApp, SketchApp, ImageRegion, SpriteAnimation and Collisions source
 for the Component Workshop. The student starter still ships editable core source;
 this module does not migrate existing projects or change their API.
 
@@ -21,7 +21,16 @@ students need no Node.js or access to this module.
 
 The finite contributor harness lives separately in `checks/zero/SmokeLauncher.java`.
 `verify:framework` runs it in a disposable assembled starter with a native GUI;
-normal student projects contain only SimpleApp, SketchApp and their own app code.
+normal student projects contain the core classes and their own app code.
+
+The small game helpers are local, unreleased additions; published Mac setup
+0.5.15 still ships core 0.1.2. See the [complete API](../student-template/API.md)
+and [student guide](../student-template/APP-GUIDE.md#sprite-frames-and-small-game-helpers).
+Sprite clocks are explicitly updated by their owner; region/animation objects
+share their backing Image. Successful resource loads use an app-scoped cache
+cleared at shutdown. Grid assets require aligned equal-size cells dividing the
+image exactly; explicit region sequences support irregular atlases. Frame-edge
+input is non-consuming during one real update/draw, and focus loss clears it.
 
 The JAR and sources JAR are generated in target/. No remote publishing target is
 configured. Original Zero source uses [MIT](../LICENSE); public Maven coordinates remain unresolved.

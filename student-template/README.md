@@ -144,7 +144,13 @@ are canvas coordinates and can leave its bounds while dragging. **Click the
 canvas to play.** Held keys belong to the focused canvas; clicking or typing in
 native controls does not press game keys or mouse buttons. Moving focus to a
 control or another window clears held inputs. Releasing an owned button outside
-the canvas also clears it. Put images in `src/main/resources`; load once in setup.
+the canvas also clears it. Put images in `src/main/resources`; load once in setup. Successful image loads
+share an app-scoped cache until shutdown. The local source starter also includes
+explicitly updated SpriteAnimation, ImageRegion, frame-edge input, centred/
+flipped image drawing, centred text and static Collisions predicates. These
+helpers are unreleased; published Mac setup 0.5.15 ships the older core 0.1.2.
+See the [game helper guide](APP-GUIDE.md#sprite-frames-and-small-game-helpers) and
+[complete API](API.md).
 
 Use normal JavaFX through `graphics()` (GraphicsContext), `canvas()`, and
 `layout()` (BorderPane). In SketchApp.setup(), `layout().setBottom(button)` adds a
@@ -180,6 +186,7 @@ separate.
 | Composed study app | Main from `examples/composed-study/`, Question from `examples/study/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Start, answer questions, finish and restart using shared views. [Exact copy list](examples/composed-study/README.md). |
 | Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
+| Sprite playground | `examples/sprite-playground/Main.java` → `src/main/java/Main.java`; `examples/sprite-playground/src/main/resources/bird-flap-sheet.png` → `src/main/resources/bird-flap-sheet.png` | Independent sprite clocks share one image; arrows move, Space/click pauses, R resets, geometry changes the target colour. [Copy/run instructions](examples/sprite-playground/README.md). Local unreleased helpers required. |
 | Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
 | Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |
 | Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See [stage 3](lessons/12-media.md#3-gravity-platforms-and-collisions). |

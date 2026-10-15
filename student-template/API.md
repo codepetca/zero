@@ -1,12 +1,16 @@
 # Zero API reference
 
-The complete API declared by `zero.SimpleApp` and `zero.SketchApp`.
+The complete public/protected API declared by `zero.SimpleApp`, `zero.SketchApp`,
+`zero.ImageRegion`, `zero.SpriteAnimation` and `zero.Collisions`.
+The game helpers are local, unreleased source additions. Published Mac setup
+0.5.15 still ships the older core 0.1.2; these additions need this source starter.
 For setup, explanations and complete examples, see the [app guide](APP-GUIDE.md)
 or [starter guide](README.md).
 
 [SimpleApp](#simpleapp) · [SketchApp](#sketchapp) ·
 [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
-[Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
+[ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
+[Collisions](#collisions) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
 ## SimpleApp
 
@@ -91,6 +95,7 @@ Import `Color` from `javafx.scene.paint`.
 | `void circle(double centreX, double centreY, double diameter)` | Draw a filled circle centred at x/y with the supplied diameter. |
 | `void line(double x1, double y1, double x2, double y2)` | Draw a stroked line between the points. |
 | `void text(String value, double x, double y)` | Draw filled text. By default y is its baseline. |
+| `void textCentered(String value, double x, double y)` | Draw text horizontally centred at x, using the current font, fill and text baseline convention at y. Restore the previous text alignment afterward. |
 
 Drawing helpers use the native `GraphicsContext`, including settings changed
 through `graphics()`. For other operations, use that context directly.
@@ -102,9 +107,83 @@ canvas. Import `Image` from `javafx.scene.image`.
 
 | Signature | Behavior |
 | --- | --- |
-| `Image loadImage(String resourcePath)` | Load a bundled classpath image. A leading `/` starts at the resource root; otherwise the path is relative to your app class's Java package. Throws `IllegalArgumentException` for missing or unreadable images. Each call loads again; no cache is kept. |
+| `Image loadImage(String resourcePath)` | Load a bundled classpath image. A leading `/` starts at the resource root; otherwise the path is relative to your app class's Java package. Throws `IllegalArgumentException` for missing or unreadable images. Successful loads are cached per app by canonical resolved resource URL, including path aliases. The same resource returns the same Image until shutdown clears the cache; failed loads are not cached. |
 | `void image(Image image, double x, double y)` | Draw at x/y using the image's natural size. |
 | `void image(Image image, double x, double y, double width, double height)` | Draw at x/y scaled to the supplied dimensions. |
+| `SpriteAnimation loadAnimation(String resourcePath, int columns, int rows, double fps)` | Create a new independent looping animation over the cached image. Grid cells must divide its pixel dimensions exactly. |
+| `ImageRegion imageRegion(Image image, double x, double y, double width, double height)` | Create a validated source rectangle in an image without copying pixels. |
+| `void image(ImageRegion region, double x, double y)` | Draw the region at top-left x/y at its natural frame size. |
+| `void image(ImageRegion region, double x, double y, double width, double height)` | Draw the region at top-left x/y scaled to the supplied dimensions. |
+| `void image(SpriteAnimation animation, double x, double y)` | Draw the current animation frame without advancing it at top-left x/y at its natural frame size. |
+| `void image(SpriteAnimation animation, double x, double y, double width, double height)` | Draw the current animation frame without advancing it at top-left x/y scaled to the supplied dimensions. |
+| `void imageCentered(Image image, double x, double y, double width, double height, double angleDegrees)` | Draw scaled about destination centre x/y, rotating by angleDegrees; positive angles turn clockwise in canvas coordinates. Restore styles and transform afterward; animation does not advance. |
+| `void imageCentered(ImageRegion region, double x, double y, double width, double height, double angleDegrees)` | Draw scaled about destination centre x/y, rotating by angleDegrees; positive angles turn clockwise in canvas coordinates. Restore styles and transform afterward; animation does not advance. |
+| `void imageCentered(SpriteAnimation animation, double x, double y, double width, double height, double angleDegrees)` | Draw scaled about destination centre x/y, rotating by angleDegrees; positive angles turn clockwise in canvas coordinates. Restore styles and transform afterward; animation does not advance. |
+| `void imageFlippedY(Image image, double x, double y, double width, double height)` | Draw scaled and vertically reflected inside the destination rectangle with top-left x/y. Restore styles and transform afterward; animation does not advance. |
+| `void imageFlippedY(ImageRegion region, double x, double y, double width, double height)` | Draw scaled and vertically reflected inside the destination rectangle with top-left x/y. Restore styles and transform afterward; animation does not advance. |
+| `void imageFlippedY(SpriteAnimation animation, double x, double y, double width, double height)` | Draw scaled and vertically reflected inside the destination rectangle with top-left x/y. Restore styles and transform afterward; animation does not advance. |
+
+Load assets in setup. Cached images remain in memory until app shutdown; regions
+and animations retain the same backing Image without bitmap copies. Each
+animation owns a separate clock: call its update(seconds) explicitly once per
+app update. Drawing never updates it.
+
+## ImageRegion
+
+`public final class ImageRegion` is an immutable source rectangle. Import
+`zero.ImageRegion`. Coordinates are in source-image pixels. Null image throws
+`NullPointerException`; an unloaded/failed image, non-finite coordinates, negative
+x/y, non-positive dimensions or an out-of-bounds rectangle throw
+`IllegalArgumentException`. No pixels are copied.
+
+| Signature | Result |
+| --- | --- |
+| `ImageRegion(Image image, double x, double y, double width, double height)` | Construct a validated rectangle sharing the supplied image. |
+| `Image image()` | Original backing image, with identity preserved. |
+| `double x()` | Source rectangle left edge. |
+| `double y()` | Source rectangle top edge. |
+| `double width()` | Source rectangle width. |
+| `double height()` | Source rectangle height. |
+
+## SpriteAnimation
+
+`public final class SpriteAnimation` is an ordinary explicitly updated object.
+Import `zero.SpriteAnimation`. Regular sheets use equal aligned cells in
+row-major order, left to right then top to bottom. Trim outer margins and spacing
+before using a grid; arbitrary artwork is not automatically aligned. For an
+irregular atlas, supply equal-size ImageRegion frames from one shared Image.
+The explicit sequence clones the array, retaining its immutable region objects.
+Null inputs throw `NullPointerException`; invalid grids, frames, fps or seconds
+throw `IllegalArgumentException`. There is no automatic registration or update.
+
+| Signature | Result |
+| --- | --- |
+| `SpriteAnimation(Image image, int columns, int rows, double fps)` | Construct a looping grid animation at frame 0. Positive columns/rows must divide the loaded image dimensions exactly; fps must be positive and finite. |
+| `SpriteAnimation(double fps, ImageRegion... frames)` | Construct a non-empty looping sequence of equal-size regions from the same Image. Positive finite fps is required; columns is the frame count and rows is 1. |
+| `void update(double seconds)` | Advance and loop this object only. Seconds must be non-negative and finite. |
+| `void reset()` | Return this clock to frame 0, including fractional elapsed time. |
+| `ImageRegion frame()` | Current frame region; does not advance. |
+| `int frameIndex()` | Current zero-based frame index. |
+| `int frameCount()` | Total number of frames. |
+| `int columns()` | Grid columns, or explicit sequence length. |
+| `int rows()` | Grid rows, or 1 for an explicit sequence. |
+| `double fps()` | Configured frames per second. |
+| `Image image()` | Shared backing image. |
+
+## Collisions
+
+`public final class Collisions` has no public constructor. Import `zero.Collisions`
+and call its static predicates. Rectangles use top-left x/y; circles use centre
+x/y and radius (unlike drawing circle, which accepts a diameter). Touching counts
+as a hit, including zero-size shapes. All values must be finite; dimensions and
+radii must be non-negative, otherwise `IllegalArgumentException` is thrown.
+These tests do not move objects or resolve physics.
+
+| Signature | Result |
+| --- | --- |
+| `static boolean circleHitsRect(double cx, double cy, double radius, double x, double y, double width, double height)` | Whether a circle touches or overlaps an axis-aligned rectangle. |
+| `static boolean rectHitsRect(double x1, double y1, double width1, double height1, double x2, double y2, double width2, double height2)` | Whether two axis-aligned rectangles touch or overlap. |
+| `static boolean circleHitsCircle(double x1, double y1, double radius1, double x2, double y2, double radius2)` | Whether two circles touch or overlap. |
 
 ## Input
 
@@ -117,8 +196,15 @@ Import `KeyCode` and `MouseButton` from `javafx.scene.input`.
 | `double mouseY()` | Latest tracked mouse y in canvas coordinates. Starts at canvas centre. |
 | `boolean keyDown(KeyCode key)` | Whether a key pressed with canvas focus is held. |
 | `boolean mouseDown(MouseButton button)` | Whether a button pressed on the canvas is held. |
+| `boolean keyPressed(KeyCode key)` | Whether a new press occurred for the current update/draw frame. Repeated queries do not consume it; holding does not repeat it. |
+| `boolean mousePressed(MouseButton button)` | Whether a new canvas button press occurred for the current update/draw frame. Repeated queries do not consume it. |
+| `boolean windowFocused()` | Whether the app window has focus, including when a native control owns keyboard focus. False before the window exists or after shutdown. |
 
-These report held state. Click the canvas to focus it. Native controls receive
+keyDown/mouseDown report held state. keyPressed/mousePressed report edges: even
+a press and release between frames is visible throughout the next real update
+and draw, then cleared. Pausing your own game logic does not retain an edge
+beyond that frame. Losing focus clears held, pending and frame input. Window
+focus does not imply canvas focus and does not automatically pause a game. Click the canvas to focus it. Native controls receive
 normal typing. Losing canvas or window focus clears held input; owned releases
 clear it even outside the canvas. Coordinates track canvas events and owned
 drags, can leave its bounds, and do not continually track other controls.
@@ -165,7 +251,7 @@ SketchApp supplies these final overrides; subclasses cannot replace them.
 | `protected final Node createContent()` | Create the canvas, graphics context, layout and canvas input handlers; initialise mouse coordinates; return the layout. |
 | `protected final Scene createScene(BorderPane content)` | Create a scene sized from its content, allowing room for controls around the canvas. |
 | `protected final void ready(Stage stage)` | Install scene/window input handling, request canvas focus and start the frame timer. |
-| `protected final void shutdown()` | Stop the timer if present and clear held input. |
+| `protected final void shutdown()` | Stop the timer if present, clear all input and the image cache, and forget the window. |
 
 Settings, setup, frames and JavaFX handlers run on the JavaFX application thread.
 A failed frame stops the timer, clears held input and reports the exception.

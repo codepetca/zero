@@ -323,6 +323,19 @@ jar_check = '''var origin = Hud.class.getProtectionDomain().getCodeSource().getL
                 && ScoreDisplay.class.getProtectionDomain().getCodeSource().getLocation().equals(origin), "All three components come from one artifact");'''
 checks['packaged-study'] = checks['composed-study'] + jar_check
 checks['packaged-game'] = checks['composed-game'] + jar_check
+checks['sprite-playground'] = '''require(app.bird.image() == app.companion.image(), "Animations share the loaded sheet");
+        require(app.loadImage("/bird-flap-sheet.png") == app.bird.image(), "Example uses the app image cache");
+        app.bird.reset(); app.companion.reset(); app.paused = false;
+        app.update(0.09);
+        require(app.bird.frameIndex() == 1 && app.companion.frameIndex() == 0, "Independent clocks run at different rates");
+        app.paused = true;
+        app.update(0.2);
+        require(app.bird.frameIndex() == 1 && app.companion.frameIndex() == 0, "Example pause freezes both clocks");
+        app.x = 335; app.y = 220; app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(305, 160).equals(Color.web("#f1bd52")), "Overlap changes target color");
+        app.x = 140; app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(305, 160).equals(Color.web("#769b89")), "Separated bird restores target color");'''
+
 standalone = {
     'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
     'scrolling-game': ('ScrollingGameCheck', 'SCROLLING_GAME_OK'),
@@ -424,7 +437,7 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
         if kind != 'hello-world':
             for previous in (dest/'src/main/java').glob('*.java'):
                 previous.unlink()
-        resources = source/'examples'/kind/'resources'
+        resources = source/'examples'/kind/('src/main/resources' if kind == 'sprite-playground' else 'resources')
         if resources.is_dir():
             shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):

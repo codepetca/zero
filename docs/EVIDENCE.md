@@ -1,5 +1,65 @@
 # Delivery evidence index
 
+## Student game helpers — local implementation, 2026-10-15
+
+Owner authorized seven small helpers after the Sky Hop build and student-flow
+review. Work is isolated at `student-game-helpers/zero`, based on origin/main
+`dfe2c9b`; the dirty funding checkout is preserved. Local-only scope: no push,
+publication, release-byte replacement, credential change or Maven installation.
+Published core0.1.2 and setup0.5.15 remain unchanged.
+
+Added SpriteAnimation, ImageRegion, pressed input, window focus, centered/rotated
+and vertically flipped image drawing, centered text and collision predicates.
+Images cache per canonical resource/app; frames share pixels and clocks advance
+only when explicitly updated. Starter, lesson, extension allowlist, first-party
+project assembly, Maven source inclusion and complete API docs propagate all five
+classes. Existing API anchors and old game-package compatibility are preserved.
+
+Sky Hop at `/Users/stew/Repos/zero-flappy-bird` now consumes the helpers, keeping
+rules, art alignment, bird size and pipe spacing. The upper pipe uses a vertical
+flip, keeping its highlight on the lower pipe's side. The separate optional
+[sprite playground](../student-template/examples/sprite-playground/README.md)
+shares one generated sheet between independent12/6fps clocks. Its native consumer
+checks shared identity, independent advancement, pause and collision feedback.
+
+Passed: configuration/syntax/local links; root263pass/1PowerShellskip; native
+framework smoke and GameHelpersCheck;18 focused propagation/package checks;
+97website tests, typecheck and production build;26API/project focused checks;
+Sky Hop194rules and native four-pose/loop/freeze/reset/actual-frame quick/held/P/R
+checks; native sprite-playground consumer. Local browser search finds
+loadAnimation/keyPressed and navigates to their anchors, with no captured browser
+warnings/errors. Ready/playing renders were opened and inspected. Zero Run App
+rebuilt nine normal source files under managed JDK21 and left the game running.
+Physical Windows, novice classroom trials and a post-migration owner playtest
+remain unverified. Earlier owner “All work” applies to the earlier game version.
+
+Two bounded workers: GPT-6.1 Sol/high for core/input/lifecycle and Sol/medium for
+canonical docs/adapter. Coordinator owned app migration, consumer and integration.
+Core's first native test used Affine identity rather than values; corrected its
+assertion. Integration corrected an old two-class-only packaging assertion. No
+production rework or ownership conflict. Weekly99%remaining at the phase reading;
+latest storage324GBhealthy. DeepSeek is paused through2026-12-31. Worker effective
+model/token/elapsed telemetry and attributable coordinator effort are unknown;
+full root suite elapsed244sec. No savings claim.
+
+Independent GPT-6.1 Sol/high review completed with no actionable findings against
+base `dfe2c9bb3a75f974d3bae6797286e11836694996` and manifest SHA256
+`e67f074949457f705bee95bc6c0922557e224e66cca18542e993ea92a7642df1`.
+All29repository/13external source/check hashes verified before and after; complete
+scope read, supplied checks reused, diff hygiene/shared-asset identity independently
+checked. Ledger:1launch,1initialwave,0fixbatches,0targeted/integrationwaves. Receipt
+`.verification/game-helpers/review-result.md`; effective model, elapsed seconds and
+tokens unknown. Final coordinator receipts and copying reviewed canonical API docs
+into the standalone project do not alter reviewed implementation bytes.
+
+Ignored `.verification/game-helpers/` retains fixed-source hash manifest,
+pre-migration source, test/build logs, browser screenshot and ZIP receipt. Sky Hop
+has its own updated BUILD-LOG, STUDENT-AUDIT and ASSETS records. Source ZIP75entries,
+10327566bytes, SHA256
+`58f26a7a78376ee8add76ae4441aa218220f1d24285388e1cf26a5313aa31f74`;
+every entry was compared to source, all five core classes and wrapper mode checked.
+
+
 ## Automatic updater0.5.15 — verified publication metadata, 2026-10-14
 
 Source [PR62](https://github.com/codepetca/zero/pull/62) merged

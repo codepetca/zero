@@ -193,7 +193,7 @@ async function scaffoldInventory(root) {
     inventory.push({ path: file, data: await sourceBytes(root, `student-template/${file}`) });
   }
   inventory.push({ path: "LICENSE", data: await sourceBytes(root, "LICENSE") });
-  for (const name of ["SimpleApp", "SketchApp"]) {
+  for (const name of ["SimpleApp", "SketchApp", "ImageRegion", "SpriteAnimation", "Collisions"]) {
     inventory.push({ path: `src/main/java/zero/${name}.java`, data: await sourceBytes(root, `framework/src/main/java/zero/${name}.java`) });
   }
   return inventory;

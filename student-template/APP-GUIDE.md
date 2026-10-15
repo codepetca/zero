@@ -191,8 +191,63 @@ sprite = loadImage("/player.png");
 
 Then call `image(sprite, x, y)` in draw. The leading `/` starts at the classpath
 resource root. A path without `/` is relative to your class's Java package.
-`loadImage` performs a load each time you call it; it does not maintain a cache.
-Avoid repeated loading inside draw.
+`loadImage` caches successful loads per app using the canonical resolved resource
+URL. Aliases return the same Image; failures are not cached. Images remain in
+memory until shutdown clears the cache, so keep your asset set bounded. Load
+assets in setup to make their ownership and any errors easy to find.
+
+### Sprite frames and small game helpers
+
+These helpers are local, unreleased source additions. Published Mac setup 0.5.15
+ships the older core 0.1.2; use this source starter for these APIs. Import
+`zero.SpriteAnimation`, `zero.ImageRegion` and `zero.Collisions` as needed.
+
+Keep a `SpriteAnimation walk;` field. In setup, load a regular sheet whose four
+columns and two rows divide its image dimensions exactly:
+
+```java
+walk = loadAnimation("/walk.png", 4, 2, 8);
+```
+
+In update, call `walk.update(seconds)` explicitly once. In draw, use:
+
+```java
+image(walk, x, y, 64, 64);
+imageCentered(walk, 300, 100, 64, 64, 30);
+textCentered("Ready", width() / 2, 40);
+```
+
+Drawing never advances an animation. Two calls to loadAnimation share the bitmap
+but create independent clocks; reset() returns one clock to frame zero. Grid
+frames run left to right, then top to bottom. A sheet needs aligned, equal-size
+cells without margins or spacing; trim artwork before treating it as a grid.
+For irregular atlases, create equal-size source rectangles with
+`imageRegion(sheet, x, y, width, height)` and pass them to
+`new SpriteAnimation(8, first, second)`. Regions retain the original Image without
+copying pixels. Their source bounds must lie inside the loaded image.
+
+`image` accepts an Image, ImageRegion or SpriteAnimation, with natural or scaled
+size. `imageCentered` draws around its destination centre with rotation in
+degrees; `imageFlippedY` reflects vertically inside a top-left destination
+rectangle. Both restore the previous drawing styles and transform. textCentered
+centres horizontally while respecting the current font, fill and baseline
+convention; the default y remains a baseline.
+
+For a one-time action, test `keyPressed(KeyCode.SPACE)` or
+`mousePressed(MouseButton.PRIMARY)` in update. Repeated queries, including queries
+in draw, see the same value throughout that frame. Holding does not repeat;
+a short press/release between frames still appears in the next frame. Every real
+update/draw clears that edge afterward, even if your own game logic is paused.
+Canvas/window focus loss clears pending, held and current-frame input.
+`windowFocused()` reports window focus even when a native control has focus; it
+does not promise canvas focus or pause your game. Main still owns pause rules.
+
+Use `Collisions.circleHitsRect(cx, cy, radius, x, y, width, height)`,
+`Collisions.rectHitsRect(...)` or `Collisions.circleHitsCircle(...)` for geometry.
+Circles use a radius here; the drawing circle method uses a diameter. Touching
+edges count. Coordinates must be finite; dimensions/radii are non-negative and
+finite. These predicates leave movement, scoring and collision response in your
+own Java objects. The [API reference](API.md) lists every overload and constructor.
 
 ### Short sound effects
 
@@ -205,7 +260,7 @@ uncompressed audio in memory. Longer music and resource cleanup are later work.
 ### Input methods
 
 Import `KeyCode` and `MouseButton` from `javafx.scene.input`. These public final
-methods report held state, not a one-time click or keypress callback:
+methods include held input, frame edges and window focus (see the helper guide above):
 
 | Signature | Result |
 | --- | --- |
@@ -213,6 +268,9 @@ methods report held state, not a one-time click or keypress callback:
 | `double mouseY()` | Latest tracked mouse y in canvas coordinates. Starts at canvas centre. |
 | `boolean keyDown(KeyCode key)` | Whether a key pressed while the canvas had focus is held. |
 | `boolean mouseDown(MouseButton button)` | Whether a button pressed on the canvas is held. |
+| `boolean keyPressed(KeyCode key)` | New press visible for the current update/draw frame. |
+| `boolean mousePressed(MouseButton button)` | New button press visible for the current update/draw frame. |
+| `boolean windowFocused()` | Whether the app window has focus, including native controls. |
 
 Click the canvas to give it focus. Native text controls receive ordinary typing;
 their presses do not become game input. Losing canvas or window focus clears
@@ -279,3 +337,8 @@ such as `/player.png` keep working.
 The source starter includes JavaFX controls, graphics and media. Persistence,
 FXML and web need their own dependencies. AudioClip is ordinary JavaFX, not a Zero
 helper. ZeroHub provides exact-version shared libraries through ordinary Java imports; it does not change this core API or require a component base class. Public activation is pending.
+
+Try the local [Sprite playground](examples/sprite-playground/README.md) in a fresh project,
+copying one example at a time. It shares one bird sheet across two independent
+clocks, selects four aligned ImageRegion frames from the atlas, and demonstrates
+pause, reset, edge input and collision feedback.
