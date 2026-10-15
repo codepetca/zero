@@ -1,5 +1,72 @@
 # Delivery evidence index
 
+## Automatic Mac updater — implementation and sealed candidate, 2026-10-14
+
+Owner approved the researched plan with “Do it.” Source [draft PR62](https://github.com/codepetca/zero/pull/62)
+at `284ec1a90d8dea775bb17f612891b4acf6b45637` incorporates main/PR61 without
+changing the funding checkout. CI [38668181115](https://github.com/codepetca/zero/actions/runs/38668181115)
+and Vercel preview passed. Source is not merged and no new release/feed is public.
+
+Sparkle2.10.0 is hash-pinned; native build2/kit15 remains local. GUI updating starts
+after editor handoff; helpers never initialize it. Strict manual request delivery,
+persisted preferences, unattended/UI/install states, helper serialization and
+recognized-kit resume are covered. Production public trust configuration is
+separate from a compile-guarded fixture and disabled unsigned development build.
+The update key was generated/backed up privately outside Git; only its public key
+is in source. No existing credential or Keychain policy was changed.
+
+Requested GPT-6.1-Sol/high workers owned native code, packaging and actual signed
+upgrade harness; Sol/medium owned the extension commands. Effective configuration
+and attributable token/time totals are unknown. Independent Sol/high security and
+compatibility reviews covered `4780582..691fdb8`, finding the same feed-staging
+defect plus an older-CLT-Python incompatibility. Both accepted P2 findings were
+fixed in one batch. One targeted compatibility pass covered `691fdb8..284ec1a`
+and found both resolved without new actionable findings. It tests the real feed
+loader with an old public feed/new local installer and selects a capable
+maintainer Python without weakening tar filters.
+
+The final isolated signed/notarized A→B run and negative cases passed in
+`.verification/updater-live-e5UzgR/receipt.json`: exact B replaced A, no relaunch,
+student sentinels unchanged, separate dummy editor process survived. No-update,
+corrupt signed feed, invalid archive signature, unavailable feed and runtime
+isolation passed. This bypasses ordinary setup/editor launch and does not prove
+real unsaved editor buffers or Java processes survived. Earlier harness attempts
+corrected absent-preference detection and an overly strict no-update expectation;
+their evidence is retained, not represented as clean full runs.
+
+Production candidate was built from clean reviewed284ec1a, notarized Accepted
+`93089fbb-ca86-4e37-b62e-1322a5f8ca88`, stapled and Gatekeeper-assessed. Local
+manifest preparation `6809d99c36861b2cd2c6be5ec244a5264b159215` seals exactly
+`dist/candidates/mac-0.5.15-6809d99c3686/` (13 files), preserving three kit files
+and one native DMG plus signed update metadata/feed. Final DMG1920510bytes,
+SHA256 `1c022be4629544a9796ddd6a8b3d08caf70d89aced4f55523250cea8a96c91ac`.
+Feed1177bytes SHA256 `a5a84d43bdc02236d2d65a50f6e0dbf116fb9bbfea4d1b3db29010018c9fa9e8`.
+
+Two Sol/high artifact scopes independently passed: compatibility verified all157
+kit files/modes, VSIX/profile, fresh dependency/resource/layout/architecture proof
+and38protected source paths; crypto verified exact certificate/team/runtime/
+entitlements, all13CDHashes against Apple's accepted log, DMG staple/app+DMG
+Gatekeeper and independent Node Ed25519 checks of the final DMG and complete
+signed-feed payload. App itself has no embedded staple; only the DMG staple is
+claimed. Receipts: `.verification/updater-artifact-compat-6809d99.json` and
+`.verification/artifact15-crypto-360_t9uy/summary.json`. All mounts detached.
+
+Native293 assertions, root263pass/1platformskip, website tests/type/build, focused
+update/provenance suites, authenticated extraction and packaged/extracted Maven
+compile passed. Local framework JavaFX GUI smoke failed display initialization
+(`CVDisplayLink -6661`, timeout) while Mac locked; CI finite JavaFX checks passed.
+Manual Install UI, actual editor buffers/Java processes, authorization/managed
+devices, slow/interrupted transport, Intel and macOS12 execution remain unverified.
+Native UI tool reports Mac locked; owner was asked asynchronously to unlock.
+Manual Install acceptance is still required before release, with sourcePR draft.
+
+Ledger:5review launches,1initial source wave/1targeted wave,1fixbatch; no unresolved
+source/artifact finding. Artifact reviewers report roughly6/4minutes (crypto
+evidence phase193seconds); other elapsed estimates/effective models/tokens are
+unknown. Weekly reading62%remaining and313.6GBhealthy storage are account/machine
+context, not task cost. DeepSeek remained paused. No Windows/kit/Hub publication,
+new automation/chat/goal, installed Zero mutation or owner student-data testing.
+
 ## Mac automatic-update research and plan — 2026-10-14
 
 Owner requested research and planning only. Source inspected at

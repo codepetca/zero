@@ -1,5 +1,35 @@
 # Verification
 
+## Mac automatic-update candidate — 2026-10-14
+
+Reviewed source284ec1a and sealed preparation6809d99; [delivery evidence](EVIDENCE.md)
+records the two initial source reviews, one corrective batch/targeted pass and two
+independent artifact scopes. Source [PR62](https://github.com/codepetca/zero/pull/62)
+is draft; CI38668181115 and preview succeeded. No new release/feed is public.
+
+Passed:293 native assertions, arm64 fixture/x86_64 production compile targeting12,
+production fixture-mode rejection64, root263/1platformskip, website tests/type/
+Webpack build, updater/feed/receipt/source-equivalence tests, authenticated
+dependency extraction and tamper rejection, kit packaging and extracted Maven
+compile. Actual isolated Developer ID signed/notarized A→B replacement and bad
+feed/archive/unavailable/no-update/runtime checks passed; only sentinels and a
+dummy editor process were used. See `.verification/updater-live-e5UzgR/receipt.json`.
+
+Production DMG1920510bytes SHA256
+`1c022be4629544a9796ddd6a8b3d08caf70d89aced4f55523250cea8a96c91ac`:
+strict parent/nested/DMG signatures, exact five universal components and157 kit
+files/modes, accepted Apple93089fbb-ca86-4e37-b62e-1322a5f8ca88, DMG staple,
+app+DMG Gatekeeper and independent final-archive/feed Ed25519 verification passed.
+Only the DMG staple is claimed; the app lacks an embedded staple.
+
+Manual Install UI remains pending because native UI access reports Mac locked;
+owner was asked to unlock. Local framework GUI smoke failed CVDisplayLink(-6661)
+and timed out while locked; CI finite JavaFX checks passed. Actual unsaved editor
+buffers/Java processes, authorization/managed/read-only/translocated installation,
+slow/interrupted transfer, Intel and macOS12 execution remain unverified. Do not
+infer these from fixture or signature checks. No owner installed Zero/student data
+was used as a test, and no private key/credential value was exposed.
+
 ## Five flow audit fixes — source published, 2026-10-14
 
 Isolated worktree `fix-five-flow-issues/zero` starts at published `437ae7c`.
