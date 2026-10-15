@@ -69,7 +69,8 @@ source, public proof and unrelated working checkouts remain useful evidence.
 1. **Publish and verify tutorial templates.** Prepare the three empty tutorial
    repositories locally, then obtain authorization to publish them as templates.
    Record verified repository IDs/commits and public template metadata, and verify
-   create-own-repository/clone from a fresh student account. Pending templates
+   create-own-repository/clone from a fresh student account. Also verify/refresh the
+   five existing complete example templates against the current browser profile. Pending templates
    must stay unavailable; the five older complete example templates are distinct.
 2. **Accept the fresh installed-candidate workflow.** Start from the current
    starter and test setup, edit/Run/Stop, repository connection, real Upload,
@@ -109,11 +110,17 @@ this preparation.
 
 ## Current local checks
 
-The new candidate passes424root tests with1PowerShell platform skip; website
-104tests, typecheck and production build pass. Packaging and verify:kit pass,
-including extracted Maven compilation, exact source/license parity and executable
-wrapper checks. Local ZeroHub fixture contracts and actual Chrome Play navigation
-pass. Native verify:framework remains incomplete on this session because its
-focus-dependent smoke phase times out; its failed logs are retained. This is a
-release acceptance gap, not a passing check. Unchanged prior browser/GWT and real
-Pages file-identity evidence is reused for the same compiler profile.
+Final root432tests:431pass/1PowerShell platform skip; website108tests, typecheck
+and production build pass. Packaging and verify:kit pass, including extracted
+Maven compilation and exact source/license/mode parity. All three empty tutorial
+scaffolds compile with Maven; real disposable local Greeting/Game clones pass the
+repository gate and GWT, and display the greeting/expected canvas in Chrome.
+Tutorial website pending-template/continuation/media and320px/light/dark checks
+pass. Native installed-candidate create/clone remains untested; Mac UI was locked.
+
+Two initial independent source reviews and one targeted playground-adapter
+correction review are clean. The full root rerun passes after that adapter fix.
+Native verify:framework's previous focus timeout remains a separate acceptance
+gap. Prior exact-build Sky Hop Pages evidence is reused for the unchanged compiler
+profile. Templates and distribution remain unpublished; local fixture checks do
+not establish fresh student GitHub account acceptance or public template availability.

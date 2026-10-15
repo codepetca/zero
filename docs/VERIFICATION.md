@@ -1,5 +1,52 @@
 # Verification
 
+## Tutorial GitHub workflow — local candidate, 2026-10-15
+
+Reviewed source05daa6c requires initial tutorial template creation in the student's
+own GitHub account and cloning that repository. Native Start and website lessons
+0/3/8 expose verified published template links only; all three new records remain
+null. New schema2 scaffolds have empty Main, seven readable helpers, enabled Git,
+normal ignores and exact wrapper notices. No student tutorial project ZIP path.
+Legacy local-only markers retain restrictions; original local apps require no Git.
+Tutorial GitHub actions use the existing live review flow. Original-only ZeroHub
+Share is hidden and guarded; optional explicit Pages publishing remains available.
+
+Final root432tests:431pass/1PowerShellskip/0fail/cancel (146.6s); website108pass.
+Typecheck and production build pass, with two existing updater tracing warnings.
+Package and verify:kit pass, including extracted Maven build/source/license/mode
+parity. Three Maven scaffold builds pass. All six saved kit/starter/VSIX/template
+archive checksums match. Local candidate/drafts:
+`dist/candidates/zero-0.5.16-tutorial-6784a88`; uninstalled/unpublished.
+
+Real disposable local Git clones verify repository readiness without GitHub
+traffic. Current GWT builds of cloned Greeting and Game pass unchanged profilee95…;
+Chrome shows Hello tutorial and a640x400CSScanvas (2x backing pixels). First smoke
+used macOS /var alias: compilation succeeded but strict snapshot validation rejected
+the alias. Canonicalized only the ignored fixture and reran successfully; first log
+retained. Three empty publication drafts contain20allowlisted files each, no solutions.
+
+Actual CUA website0/1/3/8/12 tests show pending-template guidance, no guessed live
+link/project ZIP, same-repository progression, optional media ZIP, light/dark and
+320px nooverflow. No immediate website warnings/errors; two delayed asynchronous
+message-channel errors on the prior tutorial12URL after navigation are retained
+unattributed. Neither app URL logged an error. Owned test tab/three listeners closed,
+viewport reset. Mac app inspection reported locked; no native fresh-flow claim.
+
+Independent security and compatibility reviews are complete/clean. The first full
+root run caught a missing originalWork binding in the isolated playground adapter
+(430pass/1fail/1skip); one correction fixed it and a stale Product sentence. Three
+playground tests and targeted independent review pass; final full suite above passes.
+Two reviewer launches/three turns, one initial/one targeted wave, one fix batch.
+Requested GPT-6.1 Sol/high; effective model/tokens unknown. No further review gap.
+
+Receipts/logs/reports `.verification/tutorial-github/`. No new template/game/source
+publication, account grant, ZeroHub registry write, deployment or distribution.
+Before release, publish/verify the three templates with authorization; verify the
+five existing example templates against the new profile; complete fresh installed
+student-account create/clone/Upload/branch/Publish/Open/Copy, policy/publicPlay,
+native focus/platform/classroom and final CI/signing/distribution gates. Existing
+Sky Hop proof and all public download/feed metadata remain unchanged.
+
 ## Live GitHub default — local candidate, 2026-10-15
 
 Source44e50e4 changes the manifest/runtime/setup fallback to live. Explicit testing
