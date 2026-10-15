@@ -86,7 +86,8 @@ branch. Ignored files stay local. A failed push may leave a local commit.
 Optional workspace setting `"zero.uploadMode": "simulation"` is available for
 testing: Upload, Start, Finish and Publish skip saves, Git mutations, authentication
 prompts and network actions. Explicit simulation settings are honored. Tutorial
-practice projects block GitHub actions in either mode. First Publish confirms its
+repositories use the ordinary GitHub workflow after their required template clone.
+Legacy local-only projects retain their older protection. First Publish confirms its
 destination; later explicit Publish actions revalidate and update that approved
 site without another destination dialog.
 

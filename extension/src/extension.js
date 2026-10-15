@@ -51,22 +51,14 @@ function activate(context) {
   const taskExitCodes = new WeakMap();
   let repository = 'No repository connected';
   let localPractice = false;
+  let originalWork = false;
   const project = async () => {
+    originalWork = false;
     projectRoot = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));
     localPractice = await lessonProjects.isLocalPractice(projectRoot);
+    originalWork = !localPractice && !await lessonProjects.tutorialMarker(projectRoot);
     return projectRoot;
   };
-  async function openProjectRoots() {
-    const roots = new Set();
-    for (const folder of vscode.workspace.workspaceFolders || []) {
-      for (const candidate of [folder.uri.fsPath, path.join(folder.uri.fsPath, 'student-template')]) {
-        try {
-          if ((await fs.stat(path.join(candidate, 'zero.json'))).isFile()) roots.add(await fs.realpath(candidate));
-        } catch (error) {if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') throw error;}
-      }
-    }
-    return roots;
-  }
   const refresh = () => { if (view) render(view.webview); };
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
@@ -74,9 +66,16 @@ function activate(context) {
     // Older kits start with the quiz; preserve their first-lesson entry point.
     const practice = await lessonProjects.isLocalPractice(root);
     let marker = null;
+    const tutorial = practice ? null : await lessonProjects.tutorialMarker(root);
+    if (tutorial) {
+      if (await project() !== root || (onlyWhenEmpty && hasOpenEditors())) return false;
+      if (!hasOpenEditors()) await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,'src/main/java/Main.java'))), {preview:false});
+      if (!await vscode.env.openExternal(vscode.Uri.parse(`https://zero.codepet.ca/tutorials/${tutorial.lessonId}`))) throw new Error('Could not open the lesson guide in your browser.');
+      return true;
+    }
     if (practice) {
       try {marker = JSON.parse(await fs.readFile(path.join(root, 'zero.json'), 'utf8'));}
-      catch {throw new Error('This practice project’s zero.json is damaged. Restore its project marker or start a new project to open the guide. Local Run still works; GitHub sharing stays blocked.');}
+      catch {throw new Error('This practice project’s zero.json is damaged. Restore its project marker or start a new project to open the guide. GitHub sharing stays blocked until the marker is restored.');}
       if (!marker || typeof marker.lessonId !== 'string' || !/^(?:[0-9]|1[0-2])(?:-[a-z]+)?$/.test(marker.lessonId)) throw new Error('This project’s zero.json has no valid lessonId. Restore its project marker or start a new project to open the guide.');
       if (['greeting','study','game'].includes(marker.practiceProjectId)) {
         const firstLessons = {greeting:'0',study:'3',game:'8'};
@@ -154,6 +153,7 @@ function activate(context) {
     state = 'App stopped'; refresh();
   }
   async function makeTask(root, definition = {type:'zero',task:'native-run'}, scope = vscode.TaskScope.Workspace) {
+    await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
     const processExecution = spec.shell
@@ -205,7 +205,8 @@ function activate(context) {
       const generation = runGeneration;
       await stop();
       if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
-      const task = await makeTask(await project(), configured.definition, configured.scope);
+      const root=await project();await core.assertTutorialRepository(root);
+      const task = await makeTask(root, configured.definition, configured.scope);
       if (generation !== runGeneration) return undefined;
       task.group = configured.group || vscode.TaskGroup.Build;
       return task;
@@ -216,6 +217,7 @@ function activate(context) {
     await stop();
     const root = await project();
     if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running the dependency update. Run the original app explicitly.');
+    await core.assertTutorialRepository(root);
     if (generation !== runGeneration) return;
     if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
     const task = await makeTask(root);
@@ -408,16 +410,14 @@ function activate(context) {
       }
     },
     'zero.startProject': async () => {
-      const initialRoots = await openProjectRoots();
-      if (projectRoot) initialRoots.add(projectRoot);
       const projects = await lessonProjects.loadBundle(context.extensionPath || path.resolve(__dirname,'..'));
-      const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]} · local practice`, project:item})), {title:'Start project', placeHolder:'Choose one project to continue through its lessons'});
+      const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]} · your GitHub repository`, project:item})), {title:'Start project', placeHolder:'Choose a tutorial repository to create and clone'});
       if (!choice) return;
-      const destination = await vscode.window.showSaveDialog({title:'Choose a new project folder',saveLabel:'Create project',defaultUri:vscode.Uri.file(path.join(require('node:os').homedir(),choice.project.folder))});
-      if (!destination) return;
-      const roots = new Set([...initialRoots, ...await openProjectRoots()]);
-      const root = await lessonProjects.createLessonProject(choice.project,destination.fsPath,{forbiddenRoots:[...roots]});
-      await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),true);
+      if (!choice.project.template) throw new Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available, then create YOUR repository from that template and use VS Code Git: Clone. No local project was created.`);
+      const template = choice.project.template;
+      const next = await vscode.window.showInformationMessage('Create your own tutorial repository, then clone it', {modal:true, detail:`On GitHub, use this template to create a repository under your own account. Copy YOUR new repository URL. Return to VS Code, run Git: Clone, paste that URL, and open the cloned folder.\n\n${template.repositoryUrl}`}, 'Open template');
+      if (next !== 'Open template') return;
+      if (!await vscode.env.openExternal(vscode.Uri.parse(template.templateHref))) throw new Error('Could not open the published tutorial template. Try Start project again.');
     },
     'zero.browseZeroHub': async () => {
       if (isBusy()) return;
@@ -461,7 +461,8 @@ function activate(context) {
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
   const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
-  const browserRun=createBrowserRunCommands(vscode,{project,output,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
+  const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
+  const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested});
   Object.assign(actions,browserRun.commands);
   actions['zero.stopApp']=async()=>{browserRun.stop();await stopRequested();};
   context.subscriptions.push(...browserRun.disposables);
@@ -471,7 +472,7 @@ function activate(context) {
   const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,verifiedPublication:webPublish.verifiedPublication,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);
-  const webExport=createWebExportCommands(vscode,{project,output,publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
+  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
@@ -492,7 +493,7 @@ function activate(context) {
     const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong>${account}</div>${repoControl}${repositoryWarning}${branchControl}${githubActions}${publishControl}`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       ${sidebarStyles()}
-      </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${localPractice || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
+      </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;
   }
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};

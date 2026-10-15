@@ -8,7 +8,7 @@
 2. Give `ScoreDisplay` a small presentation change, copy that one class between your two local projects, and run both.
 3. Write down which methods a second app needs and which scoring decisions remain in each Main.
 
-**Done:** Both apps display the changed score and still score and restart correctly. Local practice stays off GitHub. Sharing later uses a **separate original game project** you own.
+**Done:** Both apps display the changed score and still score and restart correctly. Upload the tested change in both tutorial repositories and Finish each change. ZeroHub sharing later uses a **separate original game project** you own.
 
 Previous: [Reuse the score display](10-components.md).
 
@@ -28,8 +28,8 @@ If both projects compile after you copy this one class, you have a small two-con
 
 ## 2. Decide whether your original project has a reusable part
 
-These lesson projects are local practice. For an optional fourth project, create your **own separate game** and write an original helper that another app could use. Test it in your game and one small second consumer. Keep game rules in Main. In that original repository, **Libraries and Games → Extract library** can move complete classes into `libraries/<slug>/`; review the moved source and imports. Write API notes, a meaningful behavior check and license, then run **Check library** locally. Local Check reports on that version; it does not publish it. The generic hosted library checker remains unavailable pending acceptance, so do not describe a local pass as a ZeroHub listing.
+These lesson projects already use your GitHub repositories. ZeroHub contributions require original work. For an optional fourth project, create your **own separate game** and write an original helper that another app could use. Test it in your game and one small second consumer. Keep game rules in Main. In that original repository, **Libraries and Games → Extract library** can move complete classes into `libraries/<slug>/`; review the moved source and imports. Write API notes, a meaningful behavior check and license, then run **Check library** locally. Local Check reports on that version; it does not publish it. The generic hosted library checker remains unavailable pending acceptance, so do not describe a local pass as a ZeroHub listing.
 
-If your teacher enables sharing, use your own GitHub account and a separate original project. Upload that project's reviewed commit using the supported Zero workflow, then, when library acceptance is available, **Share library** prepares a request for that exact commit and opens the official browser form. Review before submitting. General game publication is also not yet available. Browse [ZeroHub](https://zero.codepet.ca/hub) for published exact versions; **Add library**, Update and Revert are deliberate choices. Coursework repository links are submitted in Pika separately.
+If your teacher enables sharing, use your own GitHub account and a separate original project. Upload that project's reviewed commit using the supported Zero workflow, then, when library acceptance is available, **Share library** prepares a request for that exact commit and opens the official browser form. Review before submitting. Public ZeroHub game admission is also pending; optional GitHub Pages publishing is a separate explicit action. Browse [ZeroHub](https://zero.codepet.ca/hub) for published exact versions; **Add library**, Update and Revert are deliberate choices. Coursework repository links are submitted in Pika separately.
 
 Continue growing your **same Coin game** with media in [lesson 12](12-media.md).

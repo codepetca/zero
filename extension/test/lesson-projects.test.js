@@ -8,21 +8,22 @@ const lessons = require('../src/lesson-projects');
 const core = require('../src/core');
 const github = require('../src/github');
 const workflow = require('../src/workflow');
-const sample = () => ({schema:1,projects:[['greeting','0','Greeting app'],['study','3','Study quiz'],['game','8','Coin game']].map(([id,lesson,title])=>({id,lesson,title,folder:`zero-project-${id}`,files:[
-  {path:'zero.json',content:Buffer.from(JSON.stringify({name:id,templateVersion:'0.1.0',mainClass:'Main',localOnly:true,practiceProjectId:id,lessonId:lesson})).toString('base64'),mode:420},
-  {path:'.gitignore',content:Buffer.from('*\n').toString('base64'),mode:420},
+const sample = () => ({schema:2,projects:[['greeting','0','Greeting app'],['study','3','Study quiz'],['game','8','Coin game']].map(([id,lesson,title])=>({id,lesson,title,folder:`zero-project-${id}`,template:null,files:[
+  {path:'zero.json',content:Buffer.from(JSON.stringify({name:id,templateVersion:'0.1.0',mainClass:'Main',repositoryRequired:true,tutorialProjectId:id,lessonId:lesson})).toString('base64'),mode:420},
+  {path:'.gitignore',content:Buffer.from('target/\n').toString('base64'),mode:420},
+  {path:'.vscode/settings.json',content:Buffer.from('{"git.enabled":true}').toString('base64'),mode:420},
   {path:'src/main/java/Main.java',content:Buffer.from('class Main {}\n').toString('base64'),mode:420}
 ]}))});
 async function temporary(t){const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-lessons-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));return root;}
 test('bundle validation rejects traversal, bad base64, duplicate paths and false practice marker', () => {
   assert.equal(lessons.validateBundle(sample()).length,3);
   for(const unsafe of ['../secret','/secret','a/../../secret','a\\secret','.git/config','CON.txt','a:stream','trailing.','a/aux','bad?name','examples/Main.java','src/main/java/Question.java','src/main/resources/media-demo/player.png']) {
-    const bundle=sample();bundle.projects[0].files[2].path=unsafe;
+    const bundle=sample();bundle.projects[0].files[3].path=unsafe;
     assert.throws(()=>lessons.validateBundle(bundle));
   }
-  const bad=sample();bad.projects[0].files[2].content='%%%';assert.throws(()=>lessons.validateBundle(bad));
-  const duplicate=sample();duplicate.projects[0].files.push({...duplicate.projects[0].files[2]});assert.throws(()=>lessons.validateBundle(duplicate));
-  const unignored=sample();unignored.projects[0].files[1].content=Buffer.from('*.class\n').toString('base64');assert.throws(()=>lessons.validateBundle(unignored));
+  const bad=sample();bad.projects[0].files[3].content='%%%';assert.throws(()=>lessons.validateBundle(bad));
+  const duplicate=sample();duplicate.projects[0].files.push({...duplicate.projects[0].files[3]});assert.throws(()=>lessons.validateBundle(duplicate));
+  const unignored=sample();unignored.projects[0].files[1].content=Buffer.from('*\n').toString('base64');assert.throws(()=>lessons.validateBundle(unignored));
   const marker=sample();marker.projects[0].files[0].content=Buffer.from('{"localOnly":false}').toString('base64');assert.throws(()=>lessons.validateBundle(marker));
   const missing=sample();missing.projects.pop();assert.throws(()=>lessons.validateBundle(missing));
   const wrongLesson=sample();wrongLesson.projects[1].lesson='4';assert.throws(()=>lessons.validateBundle(wrongLesson));
@@ -31,7 +32,7 @@ test('creates an exclusive local folder, preserves existing content, rejects sym
   const root=await temporary(t),project=lessons.validateBundle(sample())[0],target=path.join(root,'practice');
   assert.equal(await lessons.createLessonProject(project,target),target);
   assert.equal(await fs.readFile(path.join(target,'src/main/java/Main.java'),'utf8'),'class Main {}\n');
-  assert.equal(await lessons.isLocalPractice(target),true);
+  assert.equal(await lessons.isLocalPractice(target),false);
   await assert.rejects(lessons.createLessonProject(project,target),/EEXIST/);
   assert.equal(await fs.readFile(path.join(target,'src/main/java/Main.java'),'utf8'),'class Main {}\n');
   await assert.rejects(lessons.createLessonProject(project,path.join(root,'nested'),{forbiddenRoots:[root]}),/outside the current student project/);
@@ -52,7 +53,7 @@ test('failed materialization removes only files created by this operation', asyn
   assert.equal(await fs.readFile(target,'utf8'),'student work');
 });
 test('local practice blocks Git service entry points before Git or network calls', async t => {
-  const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),Buffer.from(sample().projects[0].files[0].content,'base64'));
+  const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,practiceProjectId:'greeting',lessonId:'0'}));
   let calls=0;const run=async()=>{calls++;throw new Error('Git called');};
   await assert.rejects(core.connectRepository(root,'https://github.com/student/app',async()=>true,run),/local lesson practice/i);
   await assert.rejects(core.assertRepositoryRoot(root,run),/local lesson practice/i);
@@ -68,7 +69,7 @@ test('local practice blocks Git service entry points before Git or network calls
 
 test('local practice sharing commands stop before authentication, saves, Git or external pages; native diagnostic run remains local', async t => {
   const Module=require('node:module');
-  const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),Buffer.from(sample().projects[0].files[0].content,'base64'));await fs.writeFile(path.join(root,'mvnw'),'');
+  const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,practiceProjectId:'greeting',lessonId:'0'}));await fs.writeFile(path.join(root,'mvnw'),'');
   const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0,launches=0;
   const disposable=()=>({dispose(){}});
   const vscode={
@@ -95,41 +96,42 @@ test('local practice sharing commands stop before authentication, saves, Git or 
   await commands.get('zero.openFirstLesson')();assert.match(errors.at(-1),/no valid lessonId.*Restore its project marker/i);
   await fs.writeFile(path.join(root,'zero.json'),'{broken');
   await commands.get('zero.shareGame')();assert.match(errors.at(-1),/local lesson practice/i);
-  await commands.get('zero.runNativeApp')();assert.equal(saves,1);assert.equal(launches,1);
+  await commands.get('zero.runNativeApp')();assert.match(errors.at(-1),/zero.json is damaged/);assert.equal(launches,0);
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',lessonId:'0',repositoryRequired:true}));
+  const beforeSaves=saves;
+  for(const id of ['zero.runApp','zero.runNativeApp','zero.exportWeb']) {
+    await commands.get(id)();assert.match(errors.at(-1),/own standalone Git repository.*Git: Clone/,id);
+  }
+  assert.equal(launches,0);assert.equal(saves,beforeSaves,'Tutorial compilation gates precede saves/builds');
+  for(const id of ['zero.shareGame','zero.shareLibrary']) {
+    await commands.get(id)();assert.match(errors.at(-1),/separate original project/,id);
+  }
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,lessonId:'0'}));
+  await commands.get('zero.runNativeApp')();assert.equal(launches,1);
 });
 
-test('Start project works without a workspace and opens only the freshly created folder in a new window', async t => {
+test('Start project cancels cleanly, explains unpublished templates, and opens only verified published template URLs', async t => {
   const Module=require('node:module'),root=await temporary(t),media=path.join(root,'media');await fs.mkdir(media);
-  await fs.writeFile(path.join(media,'lesson-projects.json'),JSON.stringify(sample()));
-  const commands=new Map(),opened=[],errors=[],pickers=[];let choose=false,save=false,destination=path.join(root,'new-lesson'),onSave;
+  const bundle=sample();const bundlePath=path.join(media,'lesson-projects.json');await fs.writeFile(bundlePath,JSON.stringify(bundle));
+  const commands=new Map(),opened=[],errors=[],messages=[];let choose=false,approve=false;
   const disposable=()=>({dispose(){}});
   const vscode={
     authentication:{getSession:async()=>null,onDidChangeSessions:disposable},
     workspace:{workspaceFolders:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async (items,options)=>{pickers.push({items,options});return choose?items[0]:undefined;},showSaveDialog:async()=>{onSave?.();return save?{fsPath:destination}:undefined;},showErrorMessage:async text=>{errors.push(text);}},
+    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async items=>choose?items[0]:undefined,showErrorMessage:async text=>errors.push(text),showInformationMessage:async(text,options)=>{messages.push({text,options});return approve?'Open template':undefined;}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},
-    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{opened.push(args);}},
-    Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
+    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{throw Error('No folder or clone should open automatically');}},
+    env:{openExternal:async uri=>{opened.push(uri.value);return true;}},Uri:{parse:value=>({value})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(item=>item.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:root});
-  await commands.get('zero.startProject')();choose=true;await commands.get('zero.startProject')();
-  assert.deepEqual(pickers.at(-1).items.map(({label,description})=>[label,description]),[['Greeting app','Lessons 0–2 · local practice'],['Study quiz','Lessons 3–7 · local practice'],['Coin game','Lessons 8–12 · local practice']]);
-  await assert.rejects(fs.stat(path.join(root,'new-lesson')),/ENOENT/);
-  save=true;await commands.get('zero.startProject')();
-  assert.equal(await lessons.isLocalPractice(path.join(root,'new-lesson')),true);
-  assert.deepEqual(opened.at(-1),['vscode.openFolder',{fsPath:path.join(root,'new-lesson')},true]);
-  assert.equal(opened.filter(call=>call[0]==='vscode.openFolder').length,1);
-  const first=path.join(root,'first'),second=path.join(root,'second'),third=path.join(root,'third');
-  for (const directory of [first,second,third]) {await fs.mkdir(directory);await fs.writeFile(path.join(directory,'zero.json'),'{}');}
-  vscode.workspace.workspaceFolders=[{uri:{fsPath:first}},{uri:{fsPath:second}}];
-  destination=path.join(second,'nested');onSave=undefined;
-  await commands.get('zero.startProject')();assert.match(errors.at(-1),/outside the current student project/);
-  await assert.rejects(fs.stat(destination),/ENOENT/);
-  onSave=()=>{vscode.workspace.workspaceFolders=[{uri:{fsPath:third}}];};
-  await commands.get('zero.startProject')();assert.match(errors.at(-1),/outside the current student project/,'Initial roots remain guarded after workspace change');
-  vscode.workspace.workspaceFolders=[{uri:{fsPath:first}}];destination=path.join(third,'nested');
-  await commands.get('zero.startProject')();assert.match(errors.at(-1),/outside the current student project/,'Newly opened roots are guarded at creation time');
-  assert.equal(opened.filter(call=>call[0]==='vscode.openFolder').length,1);
+  await commands.get('zero.startProject')();assert.equal(errors.length,0);assert.equal(opened.length,0);
+  choose=true;await commands.get('zero.startProject')();assert.match(errors.at(-1),/not published yet.*Git: Clone/);assert.equal(opened.length,0);
+  bundle.projects[0].template={repository:'codepetca/zero-tutorial-greeting',repositoryUrl:'https://github.com/codepetca/zero-tutorial-greeting',templateHref:'https://github.com/codepetca/zero-tutorial-greeting/generate'};
+  await fs.writeFile(bundlePath,JSON.stringify(bundle));
+  await commands.get('zero.startProject')();assert.equal(opened.length,0);assert.match(messages.at(-1).options.detail,/YOUR new repository URL.*Git: Clone/);
+  approve=true;await commands.get('zero.startProject')();assert.deepEqual(opened,['https://github.com/codepetca/zero-tutorial-greeting/generate']);
+  bundle.projects[0].template.templateHref='https://github.com/attacker/template/generate';await fs.writeFile(bundlePath,JSON.stringify(bundle));
+  await commands.get('zero.startProject')();assert.match(errors.at(-1),/invalid published template metadata/);assert.equal(opened.length,1);
 });

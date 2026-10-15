@@ -5,7 +5,7 @@ import "@/app/learn/learn.css";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { docs, sources } from "@/lib/content";
-import { lessons, lessonGroups, lessonNavigation, lessonAssets, projectForLesson, sampleGameAssets } from "@/lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, lessonAssets, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "@/lib/learning.mjs";
 import {
   foldSections,
   resolveContentLink,
@@ -16,6 +16,7 @@ import { Icon } from "./Icon";
 import { FoldingReader } from "./FoldingReader";
 import { ReaderNavigation } from "./ReaderNavigation";
 import { CodeBlock } from "./CodeBlock";
+import { TutorialProject } from "./TutorialProject";
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
   const title =
@@ -57,24 +58,8 @@ export function Document({ id, lesson = "" }) {
           </h2>
           {related && <p className="reader-subtitle">{related.description}</p>}
           {practiceProject && (
-            <section className="lesson-start" aria-label={`${practiceProject.title} project`}>
-              {lesson === practiceProject.firstLesson ? (
-                <>
-                  <a className="button" href={`/generated/projects/zero-project-${practiceProject.id}.zip`} download={`zero-project-${practiceProject.id}.zip`}>
-                    Start {practiceProject.title} project
-                  </a>
-                  <p>First time? <Link href="/docs/setup">Install Zero and complete setup</Link> before opening this project.</p>
-                  <p>This small download contains the project build files and an empty Main; it does not install Zero or Java. Unzip it, open the folder in your configured VS Code editor and write the code below. Click <strong>Zero → Run App</strong> to try it, then keep this same local project for later lessons.</p>
-                </>
-              ) : (
-                <>
-                  <p>Continue your {practiceProject.title} project from the earlier lesson. Open its folder in VS Code, make the next change and click <strong>Zero → Run App</strong>.</p>
-                  <p>If you have not started it yet, <a href={`/tutorials/${practiceProject.firstLesson}`}>start at lesson {practiceProject.firstLesson}</a>.</p>
-                </>
-              )}
-              {lesson === "10" && <p>Reopen your Study quiz and Coin game projects to try the same component in both.</p>}
-              {lesson === "12" && <p>For optional artwork and sound in your own game, <a href={sampleGameAssets.href} download={sampleGameAssets.filename}>download sample game assets</a>. This ZIP contains only media files.</p>}
-            </section>
+            <TutorialProject project={practiceProject} lesson={lesson}
+              template={publishedTutorialTemplate(practiceProject.id)} assets={sampleGameAssets} />
           )}
           <FoldingReader key={id}>
             <Markdown
@@ -103,7 +88,7 @@ export function Document({ id, lesson = "" }) {
                     lessonAssets,
                   );
                   return target ? (
-                    <a href={target} download={Object.values(lessonAssets).includes(target) || target.startsWith("/generated/projects/") || target === sampleGameAssets.href ? target.split("/").at(-1) : undefined}>{children}</a>
+                    <a href={target} download={Object.values(lessonAssets).includes(target) || target === sampleGameAssets.href ? target.split("/").at(-1) : undefined}>{children}</a>
                   ) : (
                     <span
                       className="source-note"

@@ -88,7 +88,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
       await showPreview(root,result,id);
     }catch(error){
       if(controller.signal.aborted || id!==generation || disposed)return;
-      error.zeroRunMessage='App could not run. Open Problems or check Zero output.';
+      error.zeroRunMessage=root ? 'App could not run. Open Problems or check Zero output.' : error.message;
       setFailed(true);setState(error.zeroRunMessage);output.appendLine(error.message);output.show?.(true);await diagnostics(error,root);throw error;
     }finally{
       if(operation===controller){operation=undefined;setBusy(false);setActive(Boolean(runtime));}

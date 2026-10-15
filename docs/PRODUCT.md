@@ -132,17 +132,22 @@ JavaFX properties and other JavaFX features remain available as later lessons.
 Start project supplies only empty Main boilerplate and build/framework setup.
 There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Website start
 buttons appear at 0, 3 and 8; later pages say to continue the existing project.
-The native Start project command chooses a new folder and opens a separate window;
-existing projects are never replaced. Completed teacher checkpoints and optional
-references stay outside scaffold ZIPs. Lesson 12 optionally downloads only two
+The native Start project command opens the matching verified tutorial template.
+Students create a repository in their own account, then clone their repository;
+there is no local-folder or project-ZIP tutorial alternative. Completed teacher
+checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
 media resources; students may use their own assets or drawing fallback.
 Click Run App again after editing: Zero saves, stops the previous process and
 rebuilds. No normal lesson switching, source replacement or helper removal is needed.
-Practice projects have a local-only marker, ignore every file in Git, disable
-workspace Git and reject Zero repository/upload/sharing actions. Native creation
-rejects existing destinations and Git parent folders. They have no GitHub repository
-or server-side student state. Students can create a separate original project for
-coursework/sharing; lesson 11 keeps those paths explicit.
+Tutorial projects carry a tutorial identifier and repository-required marker,
+normal Git ignores and enabled Git controls. Run and repository actions require
+an existing standalone Git repository with a valid commit and GitHub origin;
+cloning the shared teacher template directly is rejected. These are local teaching
+checks, not cryptographic proof of a clone or online account ownership. Once cloned,
+Run works offline without an active GitHub session. Upload, branch changes and
+Publish use the ordinary live GitHub flow. ZeroHub contributions still require
+separate original work; lesson11 keeps that distinction. Legacy local-only
+projects retain their old protection. No student project is silently rewritten.
 
 Canonical example sources live outside the starter's compiled source. ZeroHub
 assembles each into a complete standalone project from an explicit file/resource
@@ -210,8 +215,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Signed-in students can connect a repository, see its branch, choose New branch
   on main or Finish change on a feature branch, and Upload changes. Simulation
   remains visibly labeled. ZeroHub offers Browse (project templates/examples on
-  the website, or native library browsing) and signed-in Share project; local practice
-  still blocks GitHub sharing. Tutorials and Setup help live in the native view
+  the website, or native library browsing) and signed-in Share project for original
+  work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
   overflow; Copy repository link lives in the repository menu. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
 - Run saves files, checks ordinary Java against the supported browser API, builds
@@ -228,7 +233,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 - Guided setup checks existing tools on personal and school laptops. Kit launchers
   offer explicit installation/help actions; the in-editor native Setup Help picker
   checks the process JDK/compiler, student files and current-profile Java
-  extensions; relevant terminal environment overrides leave Run readiness unverified. Git is optional for local Run. Checks are read-only; repair/install
+  extensions; relevant terminal environment overrides leave Run readiness unverified. Git is optional for original local apps; tutorial repositories require Git for their clone and local repository checks. Checks are read-only; repair/install
   and the first app run are student choices. No silent elevation, package-manager
   installation, credential configuration or policy bypass. See [setup](SETUP.md).
 - Native setup wrappers embed the complete kit: a universal macOS app/DMG
@@ -303,7 +308,7 @@ a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity. Optional explicit
 `simulation` remains available for maintainer/teacher testing: Upload, Start,
 Finish and Publish simulate without saving files or performing Git/network actions.
-Tutorial projects remain local-only in either mode.
+Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with a reviewed Upload changes on main.

@@ -47,6 +47,21 @@ out of the record.
   sharing with a cohort; packages, interfaces and JavaFX properties can follow
   when useful to a concrete app.
 
+## Tutorial repository setup
+
+Before lesson0, verify school access to GitHub and Git. For each group (Greeting,
+Study, Game), create a repository from the verified empty template in the student's
+own account and clone that repository. Open its root in Zero. Confirm a ZIP with
+no Git, a nested folder and a direct teacher-template clone receive useful setup
+guidance. Confirm the student's clone runs offline after dependencies are cached,
+without requiring an active GitHub session for Run.
+
+Complete the real authorized GitHub trial below using the tutorial clone. It
+already has origin and an initial main commit: skip the empty-repository creation
+step for that case. New branch, upload, Finish and first/repeat Publish should use
+the same controls as original projects. The three new tutorial templates require
+publication before this candidate can pass that student trial.
+
 ## Authorized repository trial
 
 Perform these actions only when the teacher/user explicitly authorizes a real

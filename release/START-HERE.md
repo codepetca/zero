@@ -63,10 +63,12 @@ work, not for running the first app. Sign in only when you are ready to upload.
 4. Open **starter/lessons/00-hello-world.md** (Lesson 0: Hello, world!), then
    `src/main/java/Main.java`. Use **Zero: Run App** to see **Hello, world!**.
    Change the greeting to **Hello, Java!**, then click Run App again.
-5. For the lessons, choose **Zero: Start project** and create **Greeting** once
-   for lessons 0–2. Create **Study** at lesson 3 and **Game** at lesson 8.
-   Keep the same project for each group's following lessons; click Run App again
-   after editing. These empty practice projects stay local. Read
+5. For the lessons, choose **Zero: Start project** to open Greeting's template.
+   Create your own GitHub repository from it, then clone your repository and open
+   its root folder in Zero. Use Study's template at lesson3 and Game's at lesson8.
+   Keep each repository across its group's lessons. Use New branch, edit/Run,
+   Upload changes and Finish change as you progress. These empty tutorial templates
+   need verified publication before this candidate is released. Read
    **starter/lessons/README.md** or the online Tutorials for the next steps.
    **starter/README.md** covers running, examples and GitHub;
    **starter/API.md** describes the readable framework in your project.
@@ -90,8 +92,8 @@ check whether your app can run in the browser.
 
 Running locally needs no GitHub account. GitHub actions are live by default;
 nothing uploads automatically. Follow teacher visibility instructions, connect
-your own repository, then review Upload and branch changes. Tutorial projects stay
-local-only. Git **2.31+** and your own GitHub account are required for upload and publishing. Submit the repository link
+your own repository, then review Upload and branch changes. Tutorial projects
+require their own template-created repository and clone. Git **2.31+** and your own GitHub account are required for upload and publishing. Submit the repository link
 separately in Pika.
 
 ## Publish a playable app

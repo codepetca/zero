@@ -71,7 +71,7 @@ GitHub sign-in, repository creation/connection and local Git name/email remain
 student steps when sharing starts. GitHub actions default to live. Upload and
 branch changes require review/confirmation; first Publish approves its destination
 and later explicit Publish actions update that site. Setup does not upload, publish, create
-a repository or submit anything in Pika. Tutorial practice stays local-only.
+a repository or submit anything in Pika. Tutorials require an initial student-owned template clone; then local Run works offline.
 
 ## Verification contract
 

@@ -127,3 +127,14 @@ stack with a concise setup link and metadata-derived platform/version requiremen
 below it. Initial lesson projects link to setup and explain that their ZIP does
 not install Zero or Java. Share your work uses the existing shared theme wrapper
 and controls; this is no broader Hub redesign. Release bytes stay immutable.
+
+## Tutorial repository workflow — owner decision, 2026-10-15
+
+Tutorials use the same GitHub flow as original projects. At lessons0/3/8 students
+create their own repository from the matching empty template, then clone their
+copy. Remove local-only/tutorial-ZIP entry paths; keep optional media downloads
+and original example ZIP alternatives. Native Start project opens the verified
+template path. Templates not yet published stay explicitly unavailable. After
+cloning, Run remains offline and independent of an active GitHub session.
+Upload/branch reviews, explicit Publish and separate original ZeroHub contribution
+rules remain. Preserve current visual design and ordinary Java.

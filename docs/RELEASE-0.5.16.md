@@ -16,7 +16,8 @@ source-position errors. Native running remains a diagnostic option.
 
 The GitHub section provides Upload changes and Publish app. Actions are live by
 default. Upload and branch actions keep their review/confirmation steps; tutorial
-practice projects remain local-only. First Publish confirms its destination;
+projects require their own template-created repository and clone, then use the
+same GitHub workflow. First Publish confirms its destination;
 later explicit Publish actions update that approved site without another
 destination dialog. Optional simulation is a testing setting. Publishing deploys the
 same locally validated build, then offers Open app and Copy playable link. Native
@@ -65,13 +66,18 @@ source, public proof and unrelated working checkouts remain useful evidence.
 
 ## Required before release
 
-1. **Accept the fresh installed-candidate workflow.** Start from the current
+1. **Publish and verify tutorial templates.** Prepare the three empty tutorial
+   repositories locally, then obtain authorization to publish them as templates.
+   Record verified repository IDs/commits and public template metadata, and verify
+   create-own-repository/clone from a fresh student account. Pending templates
+   must stay unavailable; the five older complete example templates are distinct.
+2. **Accept the fresh installed-candidate workflow.** Start from the current
    starter and test setup, edit/Run/Stop, repository connection, real Upload,
    Publish and Open/Copy. Existing-project migration is outside this pre-release scope.
-2. **Review and integrate source.** Review the final candidate delta, authorize
+3. **Review and integrate source.** Review the final candidate delta, authorize
    Zero's source PR/push/merge, and run the real final CI/preparation workflow on
    the selected source. A local SOURCE receipt is not a successful GitHub CI run.
-3. **Coordinate ZeroHub's game policy rollout.** The retained public kit settings
+4. **Coordinate ZeroHub's game policy rollout.** The retained public kit settings
    still pin `beaaca4efbbb7e9c6b0b258ef27e3bfff67c0b2e`, whose trusted publisher
    rejects the new web receipt. Do not ship this local candidate as Play-enabled.
    Select a separately reviewed, publicly available publisher source SHA; align
@@ -79,19 +85,19 @@ source, public proof and unrelated working checkouts remain useful evidence.
    API/UI; authorize game publication; then accept a real linked game request and
    check its public Play action. Repackage/reseal with the agreed policy pin before
    release. Library candidate execution remains closed unless separately accepted.
-4. **Finish target-platform acceptance.** Test a fresh student's GitHub/workflow
+5. **Finish target-platform acceptance.** Test a fresh student's GitHub/workflow
    consent, Windows school policy/setup, classroom hardware/network and sound.
    The current native framework smoke check also needs a controlled Mac rerun:
    it timed out waiting for window focus at phase2, including with ARM JDK17;
    no assertion was weakened. Existing-session browser Mac tests do not establish
    these native-focus cases. Linux and Intel Macs
    are not supported student targets.
-5. **Prepare the Mac distribution.** Build from clean reviewed source with native
+6. **Prepare the Mac distribution.** Build from clean reviewed source with native
    build3, then separately authorize signing, notarization/stapling and payload/
    Gatekeeper verification. Seal the new DMG and signed update feed. A local
    unsigned development DMG is only a preview; published0.5.15 cannot represent
    the new helper/extension bytes. Preserve the existing signed feed until promotion.
-6. **Authorize exact publication.** Publish the CI-sealed kit/starter/VSIX and the
+7. **Authorize exact publication.** Publish the CI-sealed kit/starter/VSIX and the
    separately sealed Mac DMG; verify their public bytes; promote only verified
    manifest/download/feed metadata through its reviewed release flow. Never replace
    old assets or guess public download URLs. See [release procedure](RELEASING.md).

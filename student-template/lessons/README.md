@@ -17,22 +17,31 @@ Lesson 12's larger game stages are optional extensions of the same Game project.
 
 ## Start a lesson
 
-Complete [setup](../README.md#first-setup). At lessons **0, 3 and 8**, use the
-**Start project** button on the tutorial page. Unzip the small project and open
-its folder in VS Code. Kits from **0.5.9** also offer **Zero: Start project** in the Command Palette;
-older kits use the website ZIPs.
+Complete [setup](../README.md#first-setup), including Git and a GitHub account.
+At lessons **0, 3 and 8**, use **Use template** on the tutorial page or choose
+**Zero: Start project**. Create a repository in **your own account**, then use
+**Git: Clone** in VS Code to clone **your repository** and open its root folder.
+Do not clone Zero's shared template directly. There is no tutorial project ZIP
+or local-only folder path in this candidate. The new templates still require
+verified publication before this candidate is released; unavailable templates
+show that state instead of an invented working link.
 
-Each starter has an empty runnable `Main.java` and the build/framework setup.
-The first run opens a blank window or canvas. You write the controls, game objects
-and logic as the lessons guide you. No finished app or helper classes are supplied.
+Each template has an empty runnable `Main.java` and build/framework setup.
+The first run opens a blank browser preview or canvas. You write the controls,
+game objects and logic. Completed lesson programs are not supplied as starters.
 
-For every following lesson, open the same project and continue your code. After
-editing, click **Run App again**. Click the canvas before using game keys.
-No project downloads or file switching are needed between lessons.
+Sign in through Zero for uploads and configure Git name/email for each repository.
+Write a short plan in README, then Upload that first change on main. For each
+lesson improvement: **New branch → edit and Run App → Upload changes → Finish
+change**. Review before uploading or merging. Keep the same repository across
+that group's lessons. After editing, Run App again; click the canvas before using
+game keys. Once cloned, running needs no active GitHub session and works offline
+after compiler dependencies are cached.
 
 The only optional lesson download is the [image and sound ZIP](https://zero.codepet.ca/generated/learning-assets/game-assets.zip)
-in lesson 12. You can use your own assets or keep the drawing fallback instead.
-Keep practice local; Zero's practice projects block repository and sharing actions.
+in lesson12. You can use your own assets or keep the drawing fallback. Publishing
+a playable page is optional and explicit; it makes the app/assets public. ZeroHub
+contributions use separate original projects. See [repository setup](../../docs/COURSE-PROJECT.md#tutorial-repositories).
 
 ## Check your work
 

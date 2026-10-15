@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs/promises');const path=require('node:path');
-const core=require('../core');const {assertShareable}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
+const core=require('../core');const {assertShareable,assertOriginalProject}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
 const fail=message=>{throw new Error(message);};
 const escape=text=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function assertSaved(vscode,root) {if((vscode.workspace.textDocuments||[]).some(d=>d.isDirty&&d.uri?.fsPath&&(d.uri.fsPath===root||d.uri.fsPath.startsWith(root+path.sep))))fail('Save your project files before reviewing this action.');}
@@ -174,7 +174,7 @@ function createSharingEditor(vscode,host,options={}) {
   if(await saveDescriptor(root,filename,updated)!==false)await vscode.window.showInformationMessage('Sharing details saved. Upload changes separately, then Share the committed version.');
  }
  async function share(kind) {
-  trusted(vscode);const root=await host.project();await assertShareable(root);assertSaved(vscode,root);let folder='.',filename='zero-game.json',descriptor;
+  trusted(vscode);const root=await host.project();await assertOriginalProject(root);assertSaved(vscode,root);let folder='.',filename='zero-game.json',descriptor;
   if(kind==='library'){const lib=await pickLibrary(root);if(!lib)return;folder=lib.folder;filename=`${folder}/zero-library.json`;descriptor=lib.descriptor;}else descriptor=await gameDescriptor(root);
   if(!descriptor)return;
   const requestedVersion=await input('Sharing version','Reuse the saved exact version, or enter the next version. Metadata changes must be uploaded separately.',descriptor.version,c.validateVersion);if(!requestedVersion)return;

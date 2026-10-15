@@ -13,7 +13,8 @@ proposals require owner review before production visual changes.
 - Students own their GitHub repositories and submit links separately in Pika.
 - Never publish, push, deploy, or alter account credentials without explicit
   user authorization. Student GitHub actions default to live with explicit review/confirmation;
-  optional simulation remains available for testing. Tutorial projects stay local-only.
+  optional simulation remains available for testing. Tutorials require students to create their own repository from the
+  matching template and clone it; local running works offline after that setup.
 - Keep the option-2 sidebar minimal. Use supported VS Code extension APIs.
 - Preserve readable source and useful errors. Run the relevant checks; report
   untested operating systems and interactive flows accurately.

@@ -49,3 +49,38 @@ test('run specification uses separate fixed args and platform wrappers', () => {
   assert.equal(core.runSpecification('/a path','win32').command,'/a path/mvnw.cmd');
   assert.equal(core.runSpecification('/a path','win32').shell,true);
 });
+
+test('tutorial gate uses only local Git and accepts an own-origin clone without changing source', async t => {
+  const {execFileSync}=require('node:child_process');
+  const root=await temporary(t),seed=path.join(root,'seed'),clone=path.join(root,'clone');await fs.mkdir(seed);
+  const run=(cwd,args)=>execFileSync('git',args,{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+  run(seed,['init','-q','-b','main']);
+  const marker={tutorialProjectId:'greeting',lessonId:'0',repositoryRequired:true};
+  await fs.writeFile(path.join(seed,'zero.json'),JSON.stringify(marker));await fs.writeFile(path.join(seed,'Main.java'),'student source\n');
+  run(seed,['add','.']);run(seed,['-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','Template']);
+  run(root,['clone','-q',seed,clone]);run(clone,['remote','set-url','origin','https://github.com/student/my-greeting.git']);
+  const calls=[],readOnly=async(cwd,args)=>{calls.push(args);assert.ok(['rev-parse','remote'].includes(args[0]));if(args[0]==='remote')assert.deepEqual(args,['remote','get-url','origin']);return core.git(cwd,args);};
+  assert.deepEqual(await core.assertTutorialRepository(clone,readOnly),{page:'https://github.com/student/my-greeting',remote:'https://github.com/student/my-greeting.git'});
+  assert.deepEqual(await core.connectRepository(clone,'https://github.com/student/my-greeting',()=>{throw Error('No mutation approval');},readOnly),{page:'https://github.com/student/my-greeting',remote:'https://github.com/student/my-greeting.git'});
+  await assert.rejects(core.connectRepository(clone,'https://github.com/student/other',async()=>true,readOnly),/already connected/);
+  assert.equal(await fs.readFile(path.join(clone,'Main.java'),'utf8'),'student source\n');
+  assert.equal(run(clone,['status','--porcelain']),'');assert.ok(calls.length>0);
+  for(const teacher of ['greeting','study','game']) {
+    run(clone,['remote','set-url','origin',`https://github.com/codepetca/zero-tutorial-${teacher}.git`]);
+    await assert.rejects(core.assertTutorialRepository(clone,readOnly),/teacher tutorial template origin/);
+    await assert.rejects(core.connectRepository(clone,'https://github.com/student/new',async()=>true,readOnly),/teacher tutorial template origin/);
+  }
+  run(clone,['remote','set-url','origin','git@github.com:student/app.git']);await assert.rejects(core.assertTutorialRepository(clone,readOnly),/ordinary GitHub HTTPS origin/);
+  run(clone,['remote','remove','origin']);await assert.rejects(core.assertTutorialRepository(clone,readOnly),/ordinary GitHub HTTPS origin/);
+  const child=path.join(seed,'nested');await fs.mkdir(child);await fs.writeFile(path.join(child,'zero.json'),JSON.stringify(marker));
+  await assert.rejects(core.assertTutorialRepository(child,readOnly),/own standalone Git repository/);
+  const zip=path.join(root,'zip');await fs.mkdir(zip);await fs.writeFile(path.join(zip,'zero.json'),JSON.stringify(marker));
+  await assert.rejects(core.connectRepository(zip,'https://github.com/student/app',async()=>true,readOnly),/own standalone Git repository/);
+  await assert.rejects(fs.stat(path.join(zip,'.git')),/ENOENT/);
+  run(zip,['init','-q','-b','main']);run(zip,['remote','add','origin','https://github.com/student/app']);
+  await assert.rejects(core.assertTutorialRepository(zip,readOnly),/no starting commit/);
+  await fs.writeFile(path.join(zip,'zero.json'),JSON.stringify({...marker,lessonId:'3'}));
+  await assert.rejects(core.assertTutorialRepository(zip,readOnly),/invalid tutorial repository marker/);
+  const ordinary=path.join(root,'ordinary');await fs.mkdir(ordinary);await fs.writeFile(path.join(ordinary,'zero.json'),'{}');
+  assert.equal(await core.assertTutorialRepository(ordinary,()=>{throw Error('Git must not run');}),null);
+});

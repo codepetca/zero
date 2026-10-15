@@ -24,7 +24,10 @@ marks a preferred pattern with documented, task-specific exceptions.
 - MUST retain ordinary Java/JavaFX controls and explicit student-owned state.
   Main updates and draws objects explicitly; UI polish does not authorize a new
   component engine, automatic object discovery or a hidden state system.
-- MUST keep local Run independent of GitHub sign-in. Students own their
+- MUST keep local Run independent of an active GitHub sign-in. Tutorials require
+  initial setup from a student-owned template repository and clone; after that,
+  Run works offline once compiler dependencies are cached. Original local projects
+  do not acquire a GitHub requirement. Students own their
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,

@@ -1,7 +1,8 @@
 # Teacher notes: Lessons 0–12
 
 Use [three continuing projects](README.md): Greeting (0–2), Study (3–7), Game
-(8–12). Students create each once and write their own program. The small scaffold
+(8–12). Students create each repository from its empty template, clone their own copy,
+and write their own program. The small scaffold
 contains only an empty Main and build/framework setup. Do not distribute completed
 checkpoints as starters. Keep students' current code and add the next lesson's changes.
 
@@ -60,14 +61,20 @@ a normal and repeat/reset check, and explain their source.
 
 ## Sharing and readiness
 
-All three practice projects stay local. An optional fourth **original** app/game
-can have the student's GitHub repository and reusable library. Reuse their own
-component there; do not remove practice safeguards or publish a practice folder.
+All three tutorial projects use the student's own GitHub repositories. Teach the
+same New branch, edit/Run, Upload and Finish flow in each group; check the actual
+remote commit rather than only a copied link. An optional fourth **original**
+app/game is the place for a reusable ZeroHub contribution. Tutorial GitHub uploads
+and explicit optional Pages publishing are distinct from ZeroHub admission.
 Pika submission is separate. General hosted library acceptance and game publication
 remain pending; do not promise a live automatic listing from these lessons.
 
 Supported targets are Apple Silicon Mac and Windows. Physical Windows, school
 restrictions and novice classroom trials are still pending; Linux and Intel Macs
 are unsupported. See the [pilot checklist](../../docs/CLASSROOM-PILOT.md).
-Published kits remain immutable; website project ZIPs work with the existing Run
-App command. Native Start project is included in kits from0.5.9.
+Published kits retain their original local-practice behavior. The new candidate
+requires initial tutorial template creation and clone; the three template
+repositories still need verified publication and fresh student-account acceptance.
+After cloning, Run works offline once dependencies are cached. Check GitHub/school
+access before lesson0; use the real sign-in/identity/cancel/upload trial in the
+pilot. No student ZIP bypass or completed checkpoint starter is provided.

@@ -16,7 +16,7 @@ there is no required component or screen base class.
 
 The local, unreleased 0.5.16 candidate runs apps in the browser and defaults to
 live GitHub actions. Upload and branch changes retain their explicit review steps;
-local tutorial projects block GitHub actions. The individual flow is New branch →
+tutorials use student-owned template clones and the same GitHub workflow. The individual flow is New branch →
 Upload changes → Finish change into main, using VS Code's native GitHub session.
 First Publish confirms a public destination; later explicit Publish actions update
 that approved site without another destination dialog. Published downloads retain

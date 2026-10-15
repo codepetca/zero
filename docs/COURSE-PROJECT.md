@@ -40,7 +40,32 @@ Publish confirms its destination; later Publish actions update that approved sit
 Follow [the individual workflow](GETTING-STARTED.md#your-individual-workflow)
 when you are ready to upload. Students develop and submit their own repositories.
 
-## ZIP alternative
+## Tutorial repositories
+
+The continuing tutorials use three empty templates: Greeting for lessons0–2,
+Study for3–7 and Game for8–12. At each group's first lesson, choose its verified
+Use template action, create your own repository, then clone your repository using
+**Git: Clone** in VS Code or `git clone` with your own HTTPS URL. Do not clone the
+teacher's shared repository directly. Open the clone's root folder in Zero.
+These new tutorial templates require publication before the candidate is released;
+pending templates are unavailable rather than presented as working links.
+
+Sign in through Zero for uploads, check the connected account/repository, and
+configure Git name/email in each repository. Personalize README, then Upload that
+initial plan on main. For each lesson change: **New branch → edit and Run App →
+Upload changes → Finish change**. Keep the same repository across that group's
+lessons. No mode switch is needed. Local Run after cloning uses read-only local
+repository checks and needs no active GitHub session or network after caching.
+
+Tutorials have no ZIP/local-folder alternative. A ZIP, a folder inside another
+Git repository or a clone still pointing at the shared template receives setup
+guidance. This is teaching workflow validation, not tamper-proof provenance.
+Publish app is available as an explicit optional action; its game/assets are
+public. ZeroHub contributions remain for separate original work. Submit tutorial
+repository links in Pika only when the teacher assigns them; nothing is submitted
+automatically.
+
+## ZIP alternative for original example projects
 
 Choose **Download ZIP** in ZeroHub, extract it into a new standalone folder and
 open it in Zero. A ZIP has no Git history. Create an **empty repository in your

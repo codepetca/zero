@@ -5,7 +5,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { lessons, lessonGroups, lessonNavigation, isLessonDocumentId, lessonAssets, examples, projectForLesson, sampleGameAssets } from "../lib/learning.mjs";
+import { lessons, lessonGroups, lessonNavigation, isLessonDocumentId, lessonAssets, examples, projectForLesson, publishedTutorialTemplate, sampleGameAssets } from "../lib/learning.mjs";
 import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
@@ -226,20 +226,25 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
 
 test("only three lessons start a project; subsequent lessons continue it", () => {
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
+  const tutorialProject = readFileSync(new URL("../components/TutorialProject.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
-  assert.match(document, /lesson === practiceProject.firstLesson/);
-  assert.match(document, /Continue your .*practiceProject.title.* project/);
-  assert.match(document, /start at lesson/);
-  assert.match(document, /lesson === "10"/);
-  assert.match(document, /lesson === "12"/);
+  assert.match(document, /<TutorialProject project=\{practiceProject\}/);
+  assert.match(document, /publishedTutorialTemplate\(practiceProject.id\)/);
+  assert.match(tutorialProject, /lesson === project.firstLesson/);
+  assert.match(tutorialProject, /Continue your .*project.title.* project/);
+  assert.match(tutorialProject, /Start at lesson/);
+  assert.match(tutorialProject, /lesson === "10"/);
+  assert.match(tutorialProject, /lesson === "12"/);
+  assert.doesNotMatch(document + tutorialProject, /generated\/projects\/|zero-project-|Start project|Start Project/);
   assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);
   assert.match(prepare, /collect\("teaching\/checkpoints"\)/);
   assert.deepEqual(lessons.filter(({id})=>projectForLesson(id)?.firstLesson===id).map(({id})=>id),["0","3","8"]);
   for (const lesson of lessons) assert.ok(projectForLesson(lesson.id));
   for (const id of ["greeting","study","game"]) {
     const url = `/generated/projects/zero-project-${id}.zip`;
-    assert.equal(resolveContentLink("student-template/lessons/README.md",url,{},{}),url);
-    assert.equal(resolveContentLink("student-template/lessons/README.md",`https://zero.codepet.ca${url}`,{},{}),url);
+    assert.equal(resolveContentLink("student-template/lessons/README.md",url,{},{}),null);
+    assert.equal(resolveContentLink("student-template/lessons/README.md",`https://zero.codepet.ca${url}`,{},{}),null);
+    assert.equal(publishedTutorialTemplate(id),null);
   }
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/projects/zero-project-other.zip",{},{}),null);
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/lessons/zero-lesson-10-game.zip",{},{}),null);

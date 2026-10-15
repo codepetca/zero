@@ -104,10 +104,14 @@ confirm its browser preview, since tool detection is not a build test.
 ## Edit and run
 
 Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
-click **Start Greeting project**, unzip it and open its folder in VS Code.
-The small scaffold starts with empty `setup()`; its first browser preview is blank.
-Write your label following the lesson, then click **Run App again** after edits.
-Keep this folder for lessons 1 and 2 as you add a button and name field.
+use the Greeting template to **create a new repository in your own GitHub account**,
+then clone **your repository**, not Zero's shared template. Open that cloned root
+folder in Zero. The template has empty `setup()`; its first browser preview is
+blank. Write your label following the lesson and Run App again after edits.
+Keep that repository for lessons 1 and 2 as you add a button and name field.
+GitHub/Git setup is part of the tutorial; see [tutorial repository setup](COURSE-PROJECT.md#tutorial-repositories).
+After cloning, local Run needs no current GitHub sign-in or network connection
+once compiler dependencies are cached.
 
 At lesson 3, start **Study** once. Continue the same quiz through lesson 7,
 adding attempts, reset methods, Counter and Question objects. At lesson 8,
@@ -115,11 +119,13 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-The website ZIPs work with the published extension's **Run App**. Kits from **0.5.9** also provide **Zero: Start project** in the Command Palette
-to create the same three scaffolds without a website ZIP. Older kits use the
-website project downloads. Practice projects stay local. Create a separate original
-project if you want a GitHub repository or ZeroHub contribution. Read
-[the lesson guide](../student-template/lessons/README.md) for the three groups.
+In this candidate, **Zero: Start project** opens the matching verified template
+path; it does not create a local-only practice folder. The three tutorial templates
+still need authorized publication before this candidate can be released. An
+unavailable template shows a specific message rather than a guessed download.
+Older published kits keep their bundled local-practice behavior. New tutorials
+have no project-ZIP alternative. Read [the lesson guide](../student-template/lessons/README.md)
+for the three groups. Original ZeroHub contributions remain separate from tutorial exercises.
 
 The starter's example shelf remains optional reference. Try each independent
 example in its own local copy, following its exact file list; it is separate
@@ -195,7 +201,7 @@ during review, sign in as needed and review the upload again.
 **GitHub actions are live by default.** Nothing uploads automatically: choose an
 action; Upload and branch changes review the account, repository, branch and files
 before confirmation. Local
-Run needs no GitHub account. Tutorial practice projects stay local-only.
+Run needs no active GitHub session. Tutorial projects require their initial own-repository clone.
 
 For a new repository, **Upload changes once on main** to save and upload the
 starter. Enter a short commit message and check the account, repository, branch

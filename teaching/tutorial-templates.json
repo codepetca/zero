@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "templates": [
+    {"id":"greeting","repository":"codepetca/zero-tutorial-greeting","publication":null},
+    {"id":"study","repository":"codepetca/zero-tutorial-study","publication":null},
+    {"id":"game","repository":"codepetca/zero-tutorial-game","publication":null}
+  ]
+}
