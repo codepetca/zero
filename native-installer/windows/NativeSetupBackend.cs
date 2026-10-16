@@ -7,13 +7,20 @@ using System.Threading.Tasks;
 
 namespace ZeroSetup
 {
-    internal sealed class NativeSetupBackend : ISetupBackend, IDisposable
+    internal sealed class NativeSetupBackend : IAutomaticSetupBackend
     {
-        private readonly WindowsToolEnvironment tools = new WindowsToolEnvironment(new WindowsEnvironmentReader());
-        public string Root { get; private set; }
-        public async Task EnsureKit(CancellationToken cancellation)
+        private readonly string home;
+        private readonly string dataRoot;
+        private string bundledKit;
+        private WindowsRuntime runtime;
+        internal NativeSetupBackend(string dataRoot)
         {
-            if (Root != null) return;
+            this.dataRoot = dataRoot;
+            home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+        private async Task EnsureKit(CancellationToken cancellation)
+        {
+            if (bundledKit != null) return;
             string created = null;
             try
             {
@@ -27,30 +34,31 @@ namespace ZeroSetup
                     }
                 });
                 cancellation.ThrowIfCancellationRequested();
-                Root = created;
+                bundledKit = created;
             }
             catch { KitFiles.DeleteOwnedDirectory(created); throw; }
         }
-        public Task<string> Place(string parent, string name, KitFiles.KitTarget expected, Action<string> diagnostic, CancellationToken cancellation)
+        public async Task Prepare(Action<string> progress, CancellationToken cancellation)
         {
-            return Task.Run(() => expected.Existing ? KitFiles.UpdateKit(Root, expected, cancellation, diagnostic) : KitFiles.PlaceFreshKit(Root, parent, name, cancellation));
+            await EnsureKit(cancellation);
+            progress("Preparing Zero…");
+            var target = KitFiles.InspectDefaultFolder(home);
+            await Task.Run(() => target.Existing
+                ? KitFiles.UpdateKit(bundledKit, target, cancellation)
+                : KitFiles.PlaceFreshKit(bundledKit, home, "Zero", cancellation), cancellation);
+            // Configuration is always trusted from this installed app's payload,
+            // rather than from an editable student copy of the support files.
+            runtime = new WindowsRuntime(bundledKit, dataRoot, Path.Combine(target.Path, "starter"));
+            await runtime.Prepare(progress, cancellation);
         }
-        public Task<CheckResult> Run(string root, string action, string target, bool approved, CancellationToken cancellation)
+        public async Task Open(CancellationToken cancellation)
         {
-            // Allow bounded preflight probes before the backend's 5-minute extension timeout.
-            int timeout = action == "extension" ? 600000 : action == "profile" ? 180000 : 240000;
-            var info = Processes.NativeInfo(Processes.PowerShellPath(), root, action, target, approved);
-            tools.Apply(info);
-            return Processes.RunAsync(info, timeout, cancellation);
+            if (runtime == null) throw new InvalidOperationException("Prepare Zero before opening the editor.");
+            string marker = Path.Combine(dataRoot, "editor-opened");
+            KitFiles.RejectReparseAncestors(marker);
+            await runtime.Open(File.Exists(marker), cancellation);
+            File.WriteAllText(marker, "1");
         }
-        public Task Download(string url, CancellationToken cancellation)
-        {
-            cancellation.ThrowIfCancellationRequested();
-            if (url != "https://code.visualstudio.com/download" && url != "https://adoptium.net/temurin/releases/?version=17") throw new ArgumentException("Unknown download page.");
-            using (var process = Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })) { /* Shell handoff may reuse the existing browser without a process handle. */ }
-            tools.VendorHandoffCompleted();
-            return Task.CompletedTask;
-        }
-        public void Dispose() { KitFiles.DeleteOwnedDirectory(Root); }
+        public void Dispose() { KitFiles.DeleteOwnedDirectory(bundledKit); bundledKit = null; }
     }
 }

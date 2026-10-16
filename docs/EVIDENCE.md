@@ -1,5 +1,296 @@
 # Delivery evidence index
 
+## Draft Windows PR and actual Windows CI — 2026-10-16
+
+Owner explicitly approved pushing the reviewed branch, creating a draft PR and
+running Windows CI; signing/release publication/main merge remain deferred.
+[PR77](https://github.com/codepetca/zero/pull/77) is draft and attached. No account,
+paid service, signing, release or stable-feed publication action performed.
+Original funding checkout and other tasks were untouched. Initial PR conflicted
+with newer tutorial evidence; main456b490 merged into the feature branch at6965518.
+Independent Sol/medium integration review confirmed identical automatic merges,
+all92Windows-parent/94main-parent EVIDENCE sections preserved byte for byte and
+no Windows native/extension/release/setup/script changes from the sync.
+
+Real Windows runs found three issues, each fixed and independently reviewed:
+
+- [38933190564](https://github.com/codepetca/zero/actions/runs/38933190564),6965518:
+  native968/updater11 passed; packaging failed LF-dependent metadata on a CRLF
+  checkout.9c625e0 sets canonical LF in .gitattributes, retaining CRLF .cmd and
+  binary bytes. An actual disposable Git autocrlf=true checkout test passes.
+  Windows multi-command pwsh steps now fail immediately on native-command error.
+- [38933756652](https://github.com/codepetca/zero/actions/runs/38933756652),9c625e0:
+  kit packaging and extracted Maven passed; locked .NET publishing failed. Local
+  Windows-like restore reproduced NU1004 because an implicit Mac reference package
+  was absent.3a3cf80 explicitly pins the existing reference-assembly graph and
+  disables host-dependent implicit addition; lockfile/versions unchanged. Actual
+  locked full build passes with0warnings/errors. Build failures now retain stdout
+  as well as stderr, exposing .NET diagnostics rather than only exit status.
+- [38934551356](https://github.com/codepetca/zero/actions/runs/38934551356),3a3cf80:
+  actual Setup, shortcut and private runtime/editor bootstrap passed64sec; smoke
+  attempted CloseMainWindow before Electron created its window.7ed8cda waits up
+  to60sec for an accepted graceful close; no forced-kill success fallback. New
+  parser check passed2191tokens; real Windows proof is the final run below.
+
+Each correction received complete targeted Sol/medium review with no actionable
+P0-P2. One reviewer handled one integration turn and3targeted turns;4turns/3fix
+batches, approximately16:34–16:53UTC, within7/4/60min and30min/reviewer bounds.
+Effective model, tokens and attributable coordination time unavailable. Code
+reviews from prior phases remain applicable; no redundant full review wave.
+
+[Final Windows38935344735](https://github.com/codepetca/zero/actions/runs/38935344735)
+passed7ed8cdab5ce6a205ea1632e6f0982b3d66e737f5. GitHub tested merge02e20a5dfda1678c7dad7172f54820775c24c5b3,
+whose full tree was independently compared equal to that reviewed branch head.
+Actual hosted Windows Server2022/10.0.20348.0 and PowerShell5.1.20348.5622:
+968native checks (Unix-only cases excluded),11updater authentication/lifecycle,
+15package/signing/key checks with3expected POSIX-only skips;8extension update,
+2actual batch quoting,3JavaFX helper and1checkout test passed. No masked failures.
+Actual timestamped Authenticode/signing is still untested; its verifier uses fakes.
+
+Real measured Setup silent install, installed version/layout/Start shortcut,
+private Java21/compiler and Java/Zero extensions, actual editor handoff, accepted
+graceful window close and Start-menu reopen passed58.5sec. Subsequent ordinary
+JavaFX window/show/label update/close and nonce passed online clean compilation,
+then Maven-offline clean compilation/run using private caches;26.6sec total.
+Both small receipts deliberately retain nativeWindowsTested:false and
+signedUpdateTested:false; installation retains interactiveJavaFxTested:false and
+the JavaFX companion retains interactiveRunAppTested:false. No interactive Windows11
+student UI, ordinary-account UAC/policy, unsaved buffers or real A-to-B is inferred.
+
+CI candidate sourceDirty:false; downloaded Setup10692831bytes/SHA256
+`789025e9d7b90344efbb9872fb9e823c3f3193c67f3c7cf2599cecc8183eccdf`,
+full nupkg3178719bytes/SHA256
+`a70ec05a39d75c933973c92a91dae1e44db82b3f2206b84961ab132ee6c8fc6f`.
+Kit363087bytes/SHA25600624b851eea024117c289b88f564c0dc43218706d365e8ef4f24938dbee1370.
+Downloaded artifacts match measured sizes/hashes and both passing receipts bind
+the exact Setup, version and source. Self-contained local packet
+`dist/installers/Zero-Windows-0.5.18-trial-7ed8cda.zip`,10745997bytes/SHA256
+`7f9e4d724377adbfae3dbe2aca6ed0f085771ea75bca285c2ceb8cadd0ca3fc8`,
+contains that exact Setup/receipt, reviewed essential automation/pins, sanitized
+small CI receipts, START-HERE and a file manifest. Re-extracted every member and
+checked exact manifest bytes/hashes. No keys/credentials or account state included.
+Updater is deliberately disabled in this unsigned development trial. Earlier
+Mac-built candidates are retained with their distinct measurements.
+
+Linux release checks passed [9c625e0/38933756479](https://github.com/codepetca/zero/actions/runs/38933756479)
+and [3a3cf80/38934551349](https://github.com/codepetca/zero/actions/runs/38934551349).
+Redundant older6965518 Linux run38933190323 was cancelled only after newer coverage
+passed. Final source7ed8cda also passed [Linux38935344780](https://github.com/codepetca/zero/actions/runs/38935344780).
+PR stays draft; an evidence-only documentation head may be newer than tested code.
+Ignored logs/artifacts/receipts: .verification/windows-auto-setup/ci-*;
+Windows-like lock repro: .verification/windows-ci-lock-repro/. Initial account
+weekly remaining47% and healthy319GB storage are not task-attributed cost. No
+DeepSeek delegation or new task/goal/automation; only bounded native review work.
+
+## Windows flow recovery and unsigned trial — 2026-10-16
+
+Owner deferred signing and authorized the remaining Windows usability work.
+No account, paid service, push, publication or merge action performed. Public
+Windows/Mac0.5.17 assets remain unchanged. The original funding checkout and
+separate web-export/tutorial work are untouched.
+
+A read-only Sol/high parity audit completed four concrete findings: damaged
+recognized private runtimes could not recover; malformed isolated settings
+trapped retry; an accepted background update hid foreground progress/failures;
+and warm launch duplicated readiness probes. Coordinator fixes replace only
+recognized private runtime folders through verified staged downloads, restore
+old folders after failed/cancelled replacement, reset malformed isolated settings,
+show accepted update progress/errors with one install consent, and reduce warm
+child probes12→8 while retaining authoritative pre-launch readiness checks.
+Fixtures include missing Java/compiler/editor files, bad cached Java version,
+failed/cancelled repair and retry, unrecognized folder refusal, valid JSONC,
+malformed settings reset and saved-session continuity.
+
+Native harness985 checks and updater11 pass under Mono. Full net48 WinForms app
+compiles with zero warnings/errors.18 package/signing/key/config checks pass using
+private PowerShell with mocked Authenticode, not actual Windows signing.
+Configuration/syntax/docs checks and diff whitespace pass. Prior unchanged
+extension/website/kit coverage remains applicable. No physical Windows behavior
+is inferred from these checks.
+
+Separate Sol/high worker owns a maintainer-only real JavaFX companion, its focused
+tests, Windows CI and unsigned trial instructions. It uses the installed private
+Java, a disposable copy of the installed starter and separate Maven/cache/temp
+folders to show/update/close an ordinary JavaFX window, then clean/recompile/run
+with Maven offline. Interactive editor Run/Stop, real Windows execution, trusted
+publisher/SmartScreen and authenticated A→B acceptance remain separate evidence.
+Companion focused checks pass (4pass/1existing Windows-only skip including batch
+quoting); its generated fixture compiles with actual Java21 against cached pinned
+JavaFX21.0.12 JARs. No Windows GUI was executed. Combined review and rebuilt
+candidate measurements follow.
+
+Independent complete10-file Sol/high review of42e9512..ceecc6f2471b5af4d9fc101a5fba354d03d234fb
+passed with no actionable P0-P2. It inspected repair/rollback/path scope, settings,
+readiness, foreground update consent/progress/retry and trial/CI callers; reran
+4focused checks/1Windows-onlyskip. Effective model/tokens unknown. Review interval
+approximately16:12–16:16UTC,1initiallaunch/0fixbatches; no redundant extra wave.
+Actual coordinator Mac fixture execution additionally proved shown window, label
+update, close and matching nonce using localJava21/JavaFX21.0.12. That is fixture
+validation only, not Windows/native cache/installer execution.
+
+Pinned vpk cross-build and artifact verifier passed from clean reviewedceecc6f.
+Setup10611808bytes/SHA256
+`7cd5350f5793a42719302d4623581d6cc2050297820b65c1085389aedd99607a`;
+full nupkg3097696bytes/SHA256
+`41fa0d4de7c4564dcafd97638f2debe3c51a3fd86a46fa92cbf73e07a97f4b4c`.
+Kit bytes unchanged. Self-contained local trial packet
+`dist/installers/Zero-Windows-0.5.18-trial-ceecc6f.zip`,10661700bytes/SHA256
+`6e5789fb4729a009343c8265ee8bbeaec3d3d8aaef035a9089737dfcf06ef159`,
+contains Setup/receipt, reviewed essential scripts/pins, START-HERE and a measured
+file manifest. Every ZIP member was re-extracted and checked against its manifest.
+It includes no private keys/credentials or full account state; updater disabled.
+Prior candidates preserved under ignored prior-builds/pre-flow-polish. Packaging
+log/trial manifest in ignored .verification/windows-auto-setup/flow-*; actual Mac
+fixture evidence in .verification/windows-javafx-fixture-compilation/.
+
+Actual Windows/remote CI remains pending; an explicit owner approval question
+was sent to push the reviewed branch/open a draft PR/run Windows CI, as required
+by AGENTS.md. No publication/push occurred while awaiting its answer. Signing and
+production release remain deferred. Fresh storage guard312GB, healthy, no cleanup.
+
+Orchestration: one bounded read-only audit and one nonoverlapping implementation
+assignment; requested GPT-6.1Sol/high, effective model and token telemetry unknown.
+Coordinator owns native code and acceptance. Initial weekly allowance49% remaining
+and318GB free are account/system measurements, not attributed task cost. No writer
+conflicts or recursive delegation. DeepSeek remains paused.
+
+## Windows release-readiness preparation — 2026-10-16
+
+Owner requests production signing/feed setup and feasible tests, with Windows
+trial requirements; owner then reports no signing account and prefers free or
+very cheap. No paid resource/account, publication, push or merge performed.
+Production feed RSA3072 key is provisioned outside Git in private mode0700/0600
+maintainer storage. Public SPKI SHA256
+`8bbbf2e3cd59d9a50925067bd287557321ffd0b0f339f3e4c78b0eec6c65b8e5`.
+Only the public XML key/stable HTTPS feed URL are tracked. Actual Node-sign/.NET
+verify nonce challenge passed; changed challenge rejected, no production update
+descriptor authored. Owner must keep an encrypted backup before first publication.
+Feed/download remain unavailable for native Windows until accepted metadata exists;
+development updater remains forced off with production config now enabled.
+
+Sol/high cloud-signing worker implemented explicit Azure Artifact Signing metadata
+and exact publisher-subject support alongside existing certificate selection.
+Actual per-file Windows signature/timestamp/identity results are required; rotating
+Azure leaf thumbprints are recorded. Real NuGet bytes exposed upstream Newtonsoft
+signature, now preserved with exact original DLL bytes and pinned upstream signer.
+Other owned executables require our selected publisher. No live Azure signing was
+attempted. Official pinned vpk1.2.161 source reviewed; known upstream Windows Azure
+Setup issue1045 remains a real-device/signing test target, failures stop release.
+
+Sol/high trial worker implemented bounded actual Setup/bootstrap/private Java/
+extensions/editor reopen smoke for a disposable Windows account and GitHub-hosted
+runner, plus owner JavaFX/offline/signed A-to-B checklist. No Windows host/VM/peer
+available; workflow not remotely executed. Verified official private PowerShell
+7.5.3 macARM64 runtime SHA256
+`f4fac5c72e8c09ba3b6fb8667f21b1d73556047819857fce7883268d02369cde`.
+Parser, scoped PID/creation-time/profile ownership/quoting fixtures, Mac refusal,
+and existing mocked Windows backend3tests pass. Actual PEs never executed here.
+
+Affected checks: native834/updater11 pass with zero compilation warnings/errors;
+18signing/key/package/config tests pass including actual PowerShell verifier with
+mocked Authenticode results;11website feed/published-kit tests, website preparation
+and typecheck pass; configuration/syntax/docs checks pass. Prior unaffected full
+root279pass/1skip, website102/build and kit checks remain applicable. Production
+signatures/chain checks, Windows install and signed update are explicitly pending.
+Source worker effective configurations/tokens unknown; no writer conflicts.
+Account-wide weekly remaining53% at phase start; healthy storage327GB.
+
+Signing options and account steps in WINDOWS-SIGNING.md; disposable/owner trial in
+WINDOWS-TRIAL.md. SignPath Foundation free/selective and upstream-binary constraints,
+Microsoft Store MSIX free/new packaging, Microsoft Artifact Signing direct EXE
+~US$10/month were checked against provider docs. Owner account/provider decision
+remains; no service application sent. Independent Sol/high security and compatibility reviews completed the full20-file
+95b6b28..d420e634 delta. Security found no P0-P2; compatibility found3accepted P2:
+PS5.1 ANSI JSON decoding, default hosted Java8 before release17 compilation, and
+Node/libuv rewriting the helper's already-quoted Windows cmd arguments. One batch
+adds explicit UTF8 reads, validates/selects JAVA_HOME_21_X64, and propagates
+windowsVerbatimArguments through the constrained Maven invocation. A real Windows
+batch/spaced-argument regression is now in CI (1pass/1Windows-only skip locally).
+Trial instructions clarify separately reviewed staging configuration and key.
+Complete7-file targeted Sol/high review d420e634..f5209e224125d74e0cd9f29e5046d23971ccb172
+passed with all3P2s resolved and no new P0-P2. New-session review3assignments/1batch,
+within7/4/60min and30min/reviewer; approximate interval14:13-14:22UTC. Effective
+models/tokens unavailable. No redundant integration wave: targeted pass covers
+changed interactions and initial full coverage applies to unchanged source.
+Affected18tests, prepared-command1pass/1Windows-onlyskip, PowerShell parser2167tokens,
+kit/extracted Maven and configuration checks passed after correction. Actual
+Windows PS5.1/process execution remains pending, not inferred from parsing.
+
+Development installer rebuilt from cleand420e634, package verifier passed; EXE and
+full-package bytes exactly match prior3a4fe7a2 development hashes below. Corrections
+affect test/verification/docs, not packaged app source. Live feed checked at
+2026-10-16T14:15:33Z returned404 because this branch is not published; local new
+route returned503/Retry-After3600/no-store with provisioned trust and absent release
+metadata. No accepted public Windows manifest/feed was fabricated. Owner encrypted
+key backup, signing-provider selection/account/identity, Windows trial and approved
+publication remain required. Account-wide final weekly remaining52%, not task cost.
+Ignored evidence under .verification/windows-auto-setup/readiness-* and
+provisioned-key-proof/, update-key-provisioning.json, tool-runtime/powershell/.
+
+## Windows automatic setup and updater — 2026-10-16
+
+Owner authorized implementation with no preservation/migration acceptance
+requirement for prior student work/settings. Local0.5.18 adds a native per-user
+Velopack1.2.161 launcher, private pinned Java21, compatible editor reuse/private
+fallback, isolated settings/extensions, first-open/resume, fixed Windows editor
+update controls, serialized authenticated updates, signing tooling, future verified
+website download/feed metadata and Windows fixture/package CI. Published Mac,
+kit and feed bytes remain immutable. No credential, signing, push, publication,
+merge or account action performed. Original funding/web-export work is untouched.
+
+Native Net48/C#7.3 app builds with zero warnings/errors. Main fixture harness834
+assertions pass on Mono, including repeat preparation/open with JSONC settings. Updater harness11
+security/lifecycle checks pass with ephemeral RSA3072 keys. Root tests279pass/1skip
+(portable PowerShell unavailable); Windows package/config/signing8pass; website
+102pass, typecheck and production build pass. Configuration and kit verification
+pass, including extracted Maven build. Website retains the exact public0.5.17
+Mac/WindowsZIP fallback; local browser inspection and HTTP503/Retry-After3600
+confirm the unavailable Windows feed does not offer an unsigned candidate.
+
+Both actual official Windows vendorZIPs match authored size/SHA256 and extract
+through the production archive code without executing Windows vendor binaries.
+That check exposed and fixed VSCode1.142's versioned resources/app layout.
+Actual pinned-vpk Mac cross-pack verifies the launcher hook without bypass,
+Windows10build19041/x64/Start-menu identity and exact full-package bytes in Setup.
+General native artifact verification passes. Development updater configuration
+is forced disabled; production requires explicit existing certificate/trust config.
+
+Evidence retained under ignored .verification/windows-auto-setup: root-tests,
+final-native-tests, website-*, package-signing-tests, final-installer-build/verify and
+vendor-proof/archive-proof.log. Native/fixture checks are not a Windows UI trial:
+SmartScreen, actual tool processes, Windows locks, first JavaFX run and signed A→B
+remain required before production. No production update key is provisioned.
+
+Delegation: requested GPT-6.1Sol/high native runtime and updater/package workers;
+Sol/medium editor commands/website worker. Coordinator verified source, native
+harness, vendor/archive and package results; no overlapping writers or integration
+conflicts. Corrections from real artifacts: VSCode resource layout and vpk package
+layout; two obsolete website rendering test fixtures updated for new dependency.
+Effective models/per-task tokens unknown. Initial55%/pre-review54% weekly remaining
+are account-wide readings, not isolated task cost. Healthy free storage331GB at
+start; final storage327GB and weekly remaining54%, still account-wide. High-risk
+full54-file source reviews by independent Sol/high security/correctness and
+compatibility workers inspected e268b93..5790c554. Both found the same P2: strict
+settings JSON parsing blocked valid VS Code comments/trailing commas on reopening.
+One correction batch uses pinned Newtonsoft JSONC parsing in preparation/readiness,
+keeps project Java21 and removes obsolete tooling-JRE overrides so redhat.java uses
+its bundled runtime. Targeted Sol/high compatibility review of all3 correction
+files at5790c554..3a4fe7a2 found no P0-P2 blockers; original P2 resolved. Full reviews
+found no other blockers. Three review assignments/one fix batch, within cap7/4/60min;
+review interval approximately13:49-13:58UTC, per-review tokens/effective model unknown.
+Coordinator owns edits/final decisions; no unresolved integration conflicts.
+
+Final clean-source development package is built from
+3a4fe7a2ac04512e4a25d97aad7de19ea2622487. Setup10611047bytes SHA256
+`dabf4691ae82fadbdfd3c758c0dc0b37d447e835c05cc0ab957613c7d4bba75d`;
+full-package3096935bytes SHA256
+`34cdc3a3353616edba72fce77a70282132f209d6bfe278d4c88d148a2d99f686`.
+Exact embedded package/kit, launcher hook, dependencies, identity and platform
+contracts verified. The development EXE is unsigned and updater-disabled by design.
+Final native834/updater11 and configuration/syntax/docs checks passed; unaffected
+root/website/kit suites above reused. Final handoff only changes evidence/docs;
+no publication, release-key provisioning or native Windows acceptance performed.
+
 ## Restored lesson titles and encouraging endings — 2026-10-16
 
 [PR75](https://github.com/codepetca/zero/pull/75) merged

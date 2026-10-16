@@ -5,6 +5,8 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {root, releaseDefinition} from './release.mjs';
 import {kitEntries} from './installer-payload.mjs';
+import {unzipSync} from 'fflate';
+import {VELOPACK_VERSION} from './windows-updater.mjs';
 import {macArtifactIdentity} from './mac-artifact.mjs';
 import {verifyMacVolume, verifyMacPlist} from './mac-volume.mjs';
 import {readMacUpdaterConfig, updaterEnabledForVersion, acquireSparkle, verifySparkleFramework, updaterReceipt, verifyUpdaterAppLayout} from './mac-updater.mjs';
@@ -19,7 +21,7 @@ assert.equal(receipt.kitVersion, release.kitVersion);
 assert.equal(receipt.kit.sha256, sha256(kit));
 assert.equal(receipt.kit.size, kit.length);
 assert.equal(receipt.kit.filename, release.assets.kit.filename);
-assert.deepEqual(receipt.artifacts.map(asset => asset.platform).sort(), (platform === 'all' ? ['macos', 'windows'] : [platform]).sort());
+assert.deepEqual([...new Set(receipt.artifacts.map(asset => asset.platform))].sort(), (platform === 'all' ? ['macos', 'windows'] : [platform]).sort());
 const entries = kitEntries(kit);
 function command(command, args) {
   const result = spawnSync(command, args, {encoding:'utf8', timeout:180000});
@@ -30,19 +32,35 @@ function run(executable, args) { return command(executable, args).stdout; }
 for (const asset of receipt.artifacts) {
   const suffix = asset.platform === 'windows' ? 'windows-development.exe' : `macos${signed ? '' : '-development'}.dmg`;
   const artifactIdentity = macArtifactIdentity(release.kitVersion, signed);
-  assert.equal(asset.filename, asset.platform === 'windows' ? `Zero-Setup-${release.kitVersion}-${suffix}` : artifactIdentity.filename);
+  assert.equal(asset.filename, asset.platform === 'windows' ? (asset.kind === 'update-package' ? `Zero-${release.kitVersion}-full.nupkg` : `Zero-Setup-${release.kitVersion}-${suffix}`) : artifactIdentity.filename);
   const file = path.join(directory, asset.filename), bytes = readFileSync(file);
   assert.equal(bytes.length, asset.size); assert.equal(sha256(bytes), asset.sha256);
   if (asset.platform === 'windows') {
+    assert.equal(asset.packageId, 'Zero');
+    assert.equal(asset.mainExe, 'Zero.exe');
+    assert.equal(asset.velopackVersion, VELOPACK_VERSION);
+    assert.equal(asset.hookVerified, true);
+    assert.equal(asset.updaterEnabled, false, 'Development builds cannot use production updating');
+    assert.equal(asset.authenticodeSigned, false);
+    const packageAsset = receipt.artifacts.find(item => item.platform === 'windows' && item.kind === 'update-package');
+    assert.ok(packageAsset, 'Windows build requires its full update package');
+    const packageBytes = readFileSync(path.join(directory, packageAsset.filename));
+    assert.equal(sha256(packageBytes), packageAsset.sha256);
+    const contents = unzipSync(packageBytes);
+    const executable = Buffer.from(contents['lib/app/Zero.exe'] || []);
+    assert.ok(executable.indexOf(kit) >= 0, 'Exact embedded measured ZIP in launcher package');
+    assert.ok(contents['lib/app/Velopack.dll'] && contents['lib/app/Newtonsoft.Json.dll'], 'Pinned updater dependencies packaged');
+    const spec = Object.keys(contents).filter(name => name.endsWith('.nuspec'));
+    assert.equal(spec.length, 1);
+    const xml = Buffer.from(contents[spec[0]]).toString('utf8');
+    for (const [name,value] of Object.entries({id:'Zero',version:release.kitVersion,mainExe:'Zero.exe',channel:'win',shortcutLocations:'StartMenuRoot',osMinVersion:'10.0.19041',rid:'win-x64'}))
+      assert.ok(xml.includes(`<${name}>${value}</${name}>`), `Windows manifest ${name}`);
+    if (asset.kind === 'update-package') continue;
     assert.equal(bytes.readUInt16LE(0), 0x5a4d);
     const pe = bytes.readUInt32LE(0x3c);
     assert.equal(bytes.readUInt32LE(pe), 0x00004550);
-    // PE32 AnyCPU managed assembly, rather than an accidentally host-native binary.
-    assert.equal(bytes.readUInt16LE(pe + 4), 0x14c);
-    assert.equal(bytes.readUInt16LE(pe + 24), 0x10b);
-    assert.notEqual(bytes.readUInt32LE(pe + 24 + 96 + 14 * 8), 0, 'CLR header');
-    assert.ok(bytes.indexOf(kit) >= 0, 'Exact embedded measured ZIP');
-    assert.equal(asset.authenticodeSigned, false);
+    assert.equal(bytes.readUInt16LE(pe + 4), 0x8664, 'Native x64 per-user installer');
+    assert.ok(bytes.indexOf(packageBytes) >= 0, 'Setup embeds exact full update package');
     continue;
   }
   assert.equal(process.platform, 'darwin', 'DMG payload verification requires macOS');

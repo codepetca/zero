@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
-    <AssemblyName>ZeroSetup</AssemblyName>
+    <AssemblyName>Zero</AssemblyName>
     <RootNamespace>ZeroSetup</RootNamespace>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
@@ -13,17 +13,28 @@
     <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Keep the restore graph identical with or without installed Windows
+         targeting packs. Both reference packages are explicit and pinned. -->
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Program.cs;MainForm.cs;KitFiles.cs;Processes.cs;CloseGate.cs;SetupController.cs;NativeSetupBackend.cs;WindowsToolEnvironment.cs" />
+    <Compile Include="Program.cs;MainForm.cs;KitFiles.cs;Processes.cs;AutomaticSetupController.cs;NativeSetupBackend.cs;InstanceBroker.cs;WindowsRuntime.cs;WindowsRuntimeFiles.cs;WindowsRuntimeHost.cs;TrustedUpdateSource.cs;UpdateCoordinator.cs" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web.Extensions" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <EmbeddedResource Include="$(ZeroKitZip)" LogicalName="ZeroKit.zip" Condition="Exists('$(ZeroKitZip)')" />
+    <EmbeddedResource Include="$(ZeroUpdaterConfig)" LogicalName="WindowsUpdater.json" Condition="Exists('$(ZeroUpdaterConfig)')" />
   </ItemGroup>
   <Target Name="RequireKit" BeforeTargets="PrepareForBuild">
     <Error Condition="!Exists('$(ZeroKitZip)')" Text="Pass /p:ZeroKitZip=/absolute/path/to/zero-bootstrap.zip" />
+    <Error Condition="!Exists('$(ZeroUpdaterConfig)')" Text="Pass /p:ZeroUpdaterConfig=/absolute/path/to/verified-windows-updater.json" />
   </Target>
 </Project>

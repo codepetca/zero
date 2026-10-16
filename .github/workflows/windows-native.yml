@@ -1,0 +1,102 @@
+name: Windows launcher checks
+on:
+  pull_request:
+    paths:
+      - 'native-installer/windows/**'
+      - 'setup/**'
+      - 'scripts/**'
+      - 'extension/**'
+      - 'release/**'
+      - '.config/dotnet-tools.json'
+      - '.gitattributes'
+      - '.github/workflows/windows-native.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore pinned build tools
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          npm ci
+          dotnet tool restore
+      - name: Select Java 21 for extracted kit compilation
+        shell: powershell
+        run: |
+          if (-not $env:JAVA_HOME_21_X64) { throw 'The hosted runner must provide Java 21.' }
+          $javaBin = Join-Path $env:JAVA_HOME_21_X64 'bin'
+          $javac = Join-Path $javaBin 'javac.exe'
+          if (-not (Test-Path -LiteralPath $javac -PathType Leaf)) { throw 'Java 21 compiler is missing.' }
+          $version = & $javac -version 2>&1
+          if ($LASTEXITCODE -ne 0 -or "$version" -notmatch '^javac 21\.') { throw 'Expected Java 21 compiler.' }
+          "JAVA_HOME=$env:JAVA_HOME_21_X64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $javaBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Native fixtures and update authentication
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          npm run test:windows
+          npm run test:updates:windows
+          node --test extension/test/native-updates.test.js
+          node --test extension/test/process-specification.test.js
+          node --test scripts/test-windows-javafx.test.mjs
+          node --test setup/tests/windows-checkout.test.mjs
+      - name: Build measured development installer
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          npm run package
+          npm run verify:kit
+          node scripts/build-installers.mjs --platform windows
+          node scripts/verify-installers.mjs --platform windows
+      - name: Real install, private runtime bootstrap and editor reopening
+        # This is a disposable GitHub-hosted account. Never target a self-hosted
+        # runner or pass credentials. GUI/network failures remain failing evidence.
+        shell: powershell
+        timeout-minutes: 22
+        run: |
+          if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
+          & ./scripts/test-windows-installation.ps1 -DisposableAccount
+      - name: Real private-Java JavaFX window and cached offline rebuild
+        # Node is maintainer/CI tooling only. No student Node/global Maven install.
+        timeout-minutes: 12
+        run: node scripts/test-windows-javafx.mjs --disposable-account
+      - name: Retain Windows JavaFX receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-javafx-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          # Raw Maven logs contain account paths and remain on the disposable
+          # runner; never upload whole project/cache/editor state.
+          path: .verification/windows-javafx/report.json
+      - name: Retain Windows installation receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-installation-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            .verification/windows-installation/report.json
+            .verification/windows-installation/setup.log
+      - name: Retain measured development candidate
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-development-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/installers/Zero-Setup-*-windows-development.exe
+            dist/installers/Zero-*-full.nupkg
+            dist/installers/build-windows.json

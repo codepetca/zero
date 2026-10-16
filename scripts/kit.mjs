@@ -22,7 +22,7 @@ export function starterMembers(root, prefix = 'zero-starter') {
 }
 
 // Only student-facing setup files ship; maintainer tests and caches stay outside.
-export const setupFiles = ['Setup.cmd', 'Setup.ps1', 'Setup.command', 'setup.sh', 'README.md', 'mac-downloads.json'];
+export const setupFiles = ['Setup.cmd', 'Setup.ps1', 'Setup.command', 'setup.sh', 'README.md', 'mac-downloads.json', 'windows-downloads.json'];
 export function setupRequirements(root) {
   const extension = JSON.parse(readFileSync(path.join(root, 'extension/package.json'), 'utf8'));
   // Launchers implement a stable same-major range. Fail instead of guessing if

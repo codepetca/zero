@@ -21,7 +21,7 @@ export function extractProject(archive, prefix, parent) {
 export function maven(directory, args, timeout = 120000) {
   const spec = processSpecification(path.join(directory, process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw'),
     ['-B', '--no-transfer-progress', ...args]);
-  const result = spawnSync(spec.command, spec.args, {cwd:directory, encoding:'utf8', timeout});
+  const result = spawnSync(spec.command, spec.args, {cwd:directory, encoding:'utf8', timeout,windowsVerbatimArguments:spec.windowsVerbatimArguments});
   if (result.status !== 0) throw new Error(`Standalone Maven build failed: ${result.error?.message || ''}\n${result.stdout}\n${result.stderr}`);
   return result;
 }
