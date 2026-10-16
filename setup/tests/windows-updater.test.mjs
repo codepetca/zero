@@ -6,11 +6,12 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {readWindowsUpdaterConfig,validateWindowsUpdaterConfig,createWindowsUpdatePayload,signWindowsUpdatePayload,VELOPACK_VERSION} from '../../scripts/windows-updater.mjs';
 
-test('Windows updater pins stable Velopack and keeps unprovisioned builds disabled', () => {
-  const config = readWindowsUpdaterConfig(path.resolve(import.meta.dirname,'../..'));
+test('Windows production updater pins stable Velopack and the provisioned stable trust key', () => {
+  const config = readWindowsUpdaterConfig(path.resolve(import.meta.dirname,'../..'),{production:true});
   assert.equal(config.velopackVersion,VELOPACK_VERSION);
-  assert.equal(config.enabled,false);
-  assert.throws(() => validateWindowsUpdaterConfig(config,{production:true}),/authenticated updater/);
+  assert.equal(config.enabled,true);
+  assert.equal(config.feedUrl,'https://zero.codepet.ca/updates/windows/stable.json');
+  assert.throws(() => validateWindowsUpdaterConfig({...config,enabled:false,feedUrl:'',publicKeyXml:''},{production:true}),/authenticated updater/);
 });
 test('Windows update descriptor authenticates complete package bytes with exact matching RSA key', () => {
   const directory = mkdtempSync(path.join(tmpdir(),'zero-sign-update-'));

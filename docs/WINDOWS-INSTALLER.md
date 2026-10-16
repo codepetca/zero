@@ -99,11 +99,12 @@ and checksums. These unsigned candidates are not offered on the public website.
 
 ## Production trust and release
 
-`release/windows-updater.json` currently disables production updating. Before
-production, provision and back up a publisher-owned RSA key of at least 3072 bits
-under separate owner authorization. Store only its public XML key in the config;
-set the feed URL to `https://zero.codepet.ca/updates/windows/stable.json` and enable
-it. Private keys never belong in Git, app resources, website data or build logs.
+`release/windows-updater.json` now enables production trust with a provisioned
+RSA-3072 public key and `https://zero.codepet.ca/updates/windows/stable.json`.
+The matching private key is outside Git in a private maintainer directory. Back
+it up securely before publishing; private bytes never belong in app resources,
+website data or build logs. Development packages still force updating off.
+See [signing cost/account setup and key custody](WINDOWS-SIGNING.md).
 
 Windows Authenticode production packaging uses an explicitly supplied existing
 certificate, clean reviewed source and an enabled authenticated updater:
@@ -116,6 +117,16 @@ This command requires Windows and validates actual signatures, the expected
 certificate and timestamps before writing `build-windows-signed.json`. It never
 discovers/imports certificates, provisions credentials or publishes assets.
 Unsigned development builds cannot use this signing path accidentally.
+
+Microsoft Artifact Signing is also supported with explicit public metadata and
+an exact publisher subject, rather than a rotating leaf certificate thumbprint:
+
+```powershell
+npm run package:windows:production -- --azure-signing-metadata C:\private\zero-signing.json --publisher-subject "<exact Certificate Subject Preview>"
+```
+
+The service account and Public Trust identity validation are not provisioned.
+Both signing methods verify the actual timestamped signatures after packaging.
 
 The signed full package gets a second publisher signature over an exact-byte
 release descriptor containing its immutable URL, package identity, version,
@@ -157,6 +168,7 @@ buffers and running Java app during a signed A→B update. Verify installed and
 active extension versions separately. Check that app replacement waits for setup
 helpers and that delayed/cancelled checks leave no persistent background process.
 Cross-builds, Mono fixtures and archive inspection do not establish these results.
+See [the automated smoke test and owner trial checklist](WINDOWS-TRIAL.md).
 
 Primary integration references: [Velopack Windows](https://docs.velopack.io/packaging/operating-systems/windows),
 [lifecycle](https://docs.velopack.io/integrating/overview),

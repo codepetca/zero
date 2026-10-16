@@ -11,6 +11,6 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Velopack" Version="1.2.161" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <EmbeddedResource Include="../../../release/windows-updater.json" LogicalName="WindowsUpdater.json" />
+    <EmbeddedResource Include="disabled-windows-updater.json" LogicalName="WindowsUpdater.json" />
   </ItemGroup>
 </Project>

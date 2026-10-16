@@ -15,7 +15,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -33,13 +33,32 @@ jobs:
           npm run test:windows
           npm run test:updates:windows
           node --test extension/test/native-updates.test.js
-      - name: Build development installer without executing it
+      - name: Build measured development installer
         run: |
           npm run package
           npm run verify:kit
           node scripts/build-installers.mjs --platform windows
           node scripts/verify-installers.mjs --platform windows
+      - name: Real install, private runtime bootstrap and editor reopening
+        # This is a disposable GitHub-hosted account. Never target a self-hosted
+        # runner or pass credentials. GUI/network failures remain failing evidence.
+        shell: powershell
+        timeout-minutes: 22
+        run: |
+          if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
+          & ./scripts/test-windows-installation.ps1 -DisposableAccount
+      - name: Retain Windows installation receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-installation-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            .verification/windows-installation/report.json
+            .verification/windows-installation/setup.log
       - name: Retain measured development candidate
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: zero-windows-development-${{ github.run_id }}

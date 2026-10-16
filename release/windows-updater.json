@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "enabled": false,
+  "enabled": true,
   "packageId": "Zero",
   "channel": "win",
-  "feedUrl": "",
-  "publicKeyXml": "",
+  "feedUrl": "https://zero.codepet.ca/updates/windows/stable.json",
+  "publicKeyXml": "<RSAKeyValue><Modulus>qL9zaSx1KI7g0wAIV0pf/5pGG+6f4Jymo5FDv1f4Lyi+9QBXxHZuV5GXPLOJgpsTQ72S+AAYZeb4TH8E9+rGL86Ec7NBKkbc8p6uKY5+WFBm3xH2Xnc0VcbRwwtdyeOZUAQxxgWDsB+BJ4g6MvBuSIfLlsoFAp8Mq+y+WQpIj2v9Pb9W7bOzCRwo8EOSk/TEEhIWEFAm8f/YVnlSQathdDLg4uqvUaSMJa67J1hD92YTYHi968AMUuO7f8A8pWtkWaSSLShgGNyJABD6AGFQbk47gQz8gskZn/wRpkj04kebh+UsTaxfIbM71HY0CusRMtfQcZqT8EO8CEb0xPKYdmGImzrX2tqlKq/P2cdT0C+Recuj7390vRTNiCeaESGJLF4Ka9xQ5abao8zNwvxXMrRVpejvexmZhTzlJ4NheNrRhosXkELCQPDODCfZJZyRmNk7JMdSyFDICJUFwYIXZH7MrPOrsZrgwtyL13/u6w4CzepR+dx/Ha6dFIFJJtRX</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>",
   "velopackVersion": "1.2.161"
 }

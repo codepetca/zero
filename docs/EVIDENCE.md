@@ -1,5 +1,56 @@
 # Delivery evidence index
 
+## Windows release-readiness preparation — 2026-10-16
+
+Owner requests production signing/feed setup and feasible tests, with Windows
+trial requirements; owner then reports no signing account and prefers free or
+very cheap. No paid resource/account, publication, push or merge performed.
+Production feed RSA3072 key is provisioned outside Git in private mode0700/0600
+maintainer storage. Public SPKI SHA256
+`8bbbf2e3cd59d9a50925067bd287557321ffd0b0f339f3e4c78b0eec6c65b8e5`.
+Only the public XML key/stable HTTPS feed URL are tracked. Actual Node-sign/.NET
+verify nonce challenge passed; changed challenge rejected, no production update
+descriptor authored. Owner must keep an encrypted backup before first publication.
+Feed/download remain unavailable for native Windows until accepted metadata exists;
+development updater remains forced off with production config now enabled.
+
+Sol/high cloud-signing worker implemented explicit Azure Artifact Signing metadata
+and exact publisher-subject support alongside existing certificate selection.
+Actual per-file Windows signature/timestamp/identity results are required; rotating
+Azure leaf thumbprints are recorded. Real NuGet bytes exposed upstream Newtonsoft
+signature, now preserved with exact original DLL bytes and pinned upstream signer.
+Other owned executables require our selected publisher. No live Azure signing was
+attempted. Official pinned vpk1.2.161 source reviewed; known upstream Windows Azure
+Setup issue1045 remains a real-device/signing test target, failures stop release.
+
+Sol/high trial worker implemented bounded actual Setup/bootstrap/private Java/
+extensions/editor reopen smoke for a disposable Windows account and GitHub-hosted
+runner, plus owner JavaFX/offline/signed A-to-B checklist. No Windows host/VM/peer
+available; workflow not remotely executed. Verified official private PowerShell
+7.5.3 macARM64 runtime SHA256
+`f4fac5c72e8c09ba3b6fb8667f21b1d73556047819857fce7883268d02369cde`.
+Parser, scoped PID/creation-time/profile ownership/quoting fixtures, Mac refusal,
+and existing mocked Windows backend3tests pass. Actual PEs never executed here.
+
+Affected checks: native834/updater11 pass with zero compilation warnings/errors;
+18signing/key/package/config tests pass including actual PowerShell verifier with
+mocked Authenticode results;11website feed/published-kit tests, website preparation
+and typecheck pass; configuration/syntax/docs checks pass. Prior unaffected full
+root279pass/1skip, website102/build and kit checks remain applicable. Production
+signatures/chain checks, Windows install and signed update are explicitly pending.
+Source worker effective configurations/tokens unknown; no writer conflicts.
+Account-wide weekly remaining53% at phase start; healthy storage327GB.
+
+Signing options and account steps in WINDOWS-SIGNING.md; disposable/owner trial in
+WINDOWS-TRIAL.md. SignPath Foundation free/selective and upstream-binary constraints,
+Microsoft Store MSIX free/new packaging, Microsoft Artifact Signing direct EXE
+~US$10/month were checked against provider docs. Owner account/provider decision
+remains; no service application sent. Initial high-risk independent security and
+compatibility review planned on fixed release-readiness delta; budget7launches,
+4fix batches,60min/30min per reviewer. New-session2initial launches,zero fixes.
+Ignored evidence under .verification/windows-auto-setup/readiness-* and
+provisioned-key-proof/, update-key-provisioning.json, tool-runtime/powershell/.
+
 ## Windows automatic setup and updater — 2026-10-16
 
 Owner authorized implementation with no preservation/migration acceptance

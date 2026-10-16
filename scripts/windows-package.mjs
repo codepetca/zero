@@ -2,6 +2,7 @@ import {readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, exist
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {unzipSync} from 'fflate';
+import {windowsSigningPolicy,windowsSignatureVerifier,readWindowsSignatureResult,NEWTONSOFT_SIGNER_SHA1} from './windows-signing.mjs';
 import {readWindowsUpdaterConfig, validateWindowsUpdaterConfig, VELOPACK_VERSION} from './windows-updater.mjs';
 
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -29,33 +30,17 @@ export function windowsVpkInvocation(env = process.env) {
   return {command,prefix:['tool','run','vpk','--']};
 }
 
-function signingParameters(certificate) {
-  if (!certificate || !/^[0-9a-fA-F]{40}$/.test(certificate.thumbprint || '')) throw new Error('Production Windows packaging requires an existing certificate thumbprint');
-  const url = certificate.timestampUrl;
-  if (typeof url !== 'string' || !/^https:\/\/[A-Za-z0-9][A-Za-z0-9./?=&%_-]*$/.test(url)) throw new Error('Production Windows signing requires an HTTPS timestamp URL');
-  const parsed = new URL(url);
-  if (!parsed.hostname || parsed.username || parsed.password || parsed.hash) throw new Error('Invalid timestamp URL');
-  return `/sha1 ${certificate.thumbprint.toUpperCase()} /fd SHA256 /tr ${url} /td SHA256`;
-}
-
-const signatureVerifier = `param([Parameter(Mandatory=$true)][string]$Target,[Parameter(Mandatory=$true)][string]$Thumbprint)
-$ErrorActionPreference = 'Stop'
-$signature = Get-AuthenticodeSignature -LiteralPath $Target
-if ($signature.Status -ne 'Valid' -or $null -eq $signature.SignerCertificate -or $signature.SignerCertificate.Thumbprint -ne $Thumbprint -or $null -eq $signature.TimeStamperCertificate) { throw 'Expected a valid timestamped signature from the selected certificate.' }
-Write-Output 'ZERO_AUTHENTICODE_VERIFIED'
-`;
-
-export function buildWindowsPackage({root,kitFile,version,output,work,run,production = false,certificate,platform = process.platform,env = process.env}) {
+export function buildWindowsPackage({root,kitFile,version,output,work,run,production = false,certificate,azureSigning,platform = process.platform,env = process.env}) {
   absolute(root,'root'); absolute(kitFile,'kitFile'); absolute(output,'output'); absolute(work,'work');
   if (!/^\d+\.\d+\.\d+$/.test(version) || typeof run !== 'function') throw new Error('Windows packaging requires a three-part release version and process runner');
   if (production && platform !== 'win32') throw new Error('Production Windows Authenticode packaging requires Windows; cross-build development packages are unsigned');
-  if (!production && certificate) throw new Error('Signing certificates are accepted only for explicit production builds');
+  if (!production && (certificate || azureSigning)) throw new Error('Signing options are accepted only for explicit production builds');
   // VPK_SIGN_TEMPLATE is executable command text. Ambient VPK_* options must
   // never add signing, change package identity, or bypass the startup check.
   const childEnv = Object.fromEntries(Object.entries(env).filter(([name]) => !name.toUpperCase().startsWith('VPK_')));
   Object.assign(childEnv,{DOTNET_CLI_TELEMETRY_OPTOUT:'1',DOTNET_NOLOGO:'1'});
   const execute = (command,args,timeout) => run(command,args,timeout,{env:childEnv,capture:true});
-  const signParams = production ? signingParameters(certificate) : undefined;
+  const signingPolicy = production ? windowsSigningPolicy({certificate,azureSigning}) : undefined;
   const config = production ? readWindowsUpdaterConfig(root,{production:true}) : validateWindowsUpdaterConfig({schema:1,enabled:false,packageId:'Zero',channel:'win',feedUrl:'',publicKeyXml:'',velopackVersion:VELOPACK_VERSION});
   const tool = windowsVpkInvocation(env);
   const help = text(execute(tool.command,[...tool.prefix,'[win]','--help'],60000));
@@ -78,7 +63,17 @@ export function buildWindowsPackage({root,kitFile,version,output,work,run,produc
   const packArgs = [...tool.prefix,'[win]','pack','--packId','Zero','--packTitle','Zero','--packVersion',version,'--packDir',publishedDirectory,
     '--mainExe','Zero.exe','--runtime','win10.0.19041-x64','--channel','win','--outputDir',packageDirectory,'--delta','None','--noPortable',
     '--shortcuts','StartMenuRoot','--skip-updates','--yes'];
-  if (production) packArgs.push('--signParams',signParams,'--signParallel','1');
+  if (production) {
+    if (signingPolicy.mode === 'azure-artifact-signing') {
+      // Snapshot only the three validated public configuration values. Never pass
+      // a mutable source file or credential-bearing metadata through to vpk.
+      const metadataFile = path.join(work,'azure-signing-metadata.json');
+      if (/["%!]/.test(metadataFile)) throw new Error('Azure signing work path cannot contain cmd.exe expansion characters');
+      writeFileSync(metadataFile,JSON.stringify(signingPolicy.metadata,null,2)+'\n',{flag:'wx'});
+      packArgs.push('--azureTrustedSignFile',metadataFile);
+    } else packArgs.push('--signParams',signingPolicy.signParams);
+    packArgs.push('--signParallel','1');
+  }
   const packLog = text(execute(tool.command,packArgs,300000));
   // The upstream compatibility checker logs some failures without failing pack.
   if (!/Verified VelopackApp\.Run\(\)/.test(packLog) || /Unable to verify VelopackApp|Velopack library version is (?:greater|lower)/.test(packLog))
@@ -106,18 +101,38 @@ export function buildWindowsPackage({root,kitFile,version,output,work,run,produc
   const setupFile = path.join(packageDirectory,setupCandidates[0]), setupBytes = readFileSync(setupFile);
   pe(setupBytes,'Windows Setup');
   if (setupBytes.indexOf(packageBytes) < 0) throw new Error('Windows Setup must embed the exact measured full update package');
-  let authenticodeSigned = false;
+  let authenticodeSigned = false, signing;
   if (production) {
-    const verifier = path.join(work,'verify-authenticode.ps1'); writeFileSync(verifier,signatureVerifier,{flag:'wx'});
-    const signatureTargets = [setupFile];
+    const verifier = path.join(work,'verify-authenticode.ps1'); writeFileSync(verifier,windowsSignatureVerifier,{flag:'wx'});
+    const signatureTargets = [{target:setupFile,file:path.basename(setupFile),policy:signingPolicy}];
+    const expectedPeNames = [appName,updaterName,stubName,'lib/app/Velopack.dll','lib/app/Newtonsoft.Json.dll'].sort();
+    const packagedPeNames = Object.keys(contents).filter(name => /\.(exe|dll)$/i.test(name) || (contents[name].length >= 2 && contents[name][0] === 0x4d && contents[name][1] === 0x5a)).sort();
+    if (JSON.stringify(packagedPeNames) !== JSON.stringify(expectedPeNames)) throw new Error('Windows package contains missing or unexpected packaged PE files');
+
     for (const name of [appName,updaterName,stubName,'lib/app/Velopack.dll','lib/app/Newtonsoft.Json.dll']) {
       if (!contents[name]) throw new Error(`Signed Windows package is missing ${name}`);
-      const target = path.join(work,`signature-${path.basename(name)}`); writeFileSync(target,contents[name],{flag:'wx'}); signatureTargets.push(target);
+      pe(Buffer.from(contents[name]),name);
+      let policy = signingPolicy;
+      if (name === 'lib/app/Newtonsoft.Json.dll') {
+        // Locked Newtonsoft.Json 13.0.4 is already signed by Json.NET. vpk
+        // preserves trusted upstream signatures; require the exact published DLL
+        // and its upstream signer instead of pretending we re-signed it.
+        if (!Buffer.from(contents[name]).equals(readFileSync(path.join(publishedDirectory,'Newtonsoft.Json.dll')))) throw new Error('Windows package changed the upstream Newtonsoft.Json dependency');
+        policy = {expectedThumbprint:NEWTONSOFT_SIGNER_SHA1};
+      }
+      const target = path.join(work,`signature-${path.basename(name)}`); writeFileSync(target,contents[name],{flag:'wx'});
+      signatureTargets.push({target,file:name,policy});
     }
-    for (const target of signatureTargets) {
-      const result = execute('powershell.exe',['-NoProfile','-NonInteractive','-File',verifier,'-Target',target,'-Thumbprint',certificate.thumbprint.toUpperCase()],60000);
-      if (!text(result).includes('ZERO_AUTHENTICODE_VERIFIED')) throw new Error(`Windows signature verification did not succeed: ${path.basename(target)}`);
-    }
+    const signatures = signatureTargets.map(({target,file,policy}) => {
+      const args = ['-NoProfile','-NonInteractive','-File',verifier,'-Target',target];
+      if (policy.expectedThumbprint) args.push('-ExpectedThumbprint',policy.expectedThumbprint);
+      if (policy.expectedSubject) args.push('-ExpectedSubject',policy.expectedSubject);
+      const result = execute('powershell.exe',args,60000);
+      return readWindowsSignatureResult(result?.stdout,policy,file);
+    });
+    signing = {mode:signingPolicy.mode,thumbprint:signatures[0].thumbprint,subject:signatures[0].subject,
+      thumbprints:[...new Set(signatures.map(signature => signature.thumbprint))].sort(),signatures,
+      ...(signingPolicy.expectedSubject ? {expectedSubject:signingPolicy.expectedSubject,metadataSha256:digest(Buffer.from(JSON.stringify(signingPolicy.metadata)))} : {})};
     authenticodeSigned = true;
   }
   const fields = {platform:'windows',architectures:['x64'],runtime:'.NET Framework 4.8',minimumOS:'Windows 10 build 19041',packageId:'Zero',mainExe:'Zero.exe',velopackVersion:VELOPACK_VERSION,hookVerified:true,updaterEnabled:config.enabled,authenticodeSigned,nativeWindowsTested:false};
@@ -128,5 +143,5 @@ export function buildWindowsPackage({root,kitFile,version,output,work,run,produc
     const bytes = readFileSync(source); copyFileSync(source,destination);
     return {filename,size:bytes.length,sha256:digest(bytes),kind,...fields};
   });
-  return {artifacts,...fields,publishedDirectory,packageDirectory,kit:{size:kit.length,sha256:digest(kit)},updaterConfigSha256:digest(readFileSync(updaterFile)),untrustedIndex:path.join(packageDirectory,'releases.win.json')};
+  return {artifacts,...fields,...(signing ? {signing} : {}),publishedDirectory,packageDirectory,kit:{size:kit.length,sha256:digest(kit)},updaterConfigSha256:digest(readFileSync(updaterFile)),untrustedIndex:path.join(packageDirectory,'releases.win.json')};
 }

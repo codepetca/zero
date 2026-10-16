@@ -254,3 +254,8 @@ run `node scripts/prepare-project-templates.mjs`; publication remains a separate
 authorized action. Never copy the development repository or local private files.
 The five template links and cloning path are separate from the ZIP + empty-repo
 alternative; source ZIPs continue to build from canonical maintained manifests.
+
+Windows signing-account choices and private feed-key custody are documented in
+[Windows signing](WINDOWS-SIGNING.md). Use [Windows trial](WINDOWS-TRIAL.md) for
+the disposable real-install smoke and owner acceptance checklist; configuring CI
+is not a passing Windows run.

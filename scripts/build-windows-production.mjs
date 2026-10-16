@@ -6,13 +6,13 @@ import path from 'node:path';
 import {root,releaseDefinition} from './release.mjs';
 import {kitEntries} from './installer-payload.mjs';
 import {buildWindowsPackage} from './windows-package.mjs';
+import {parseWindowsSigningArguments,windowsSigningPolicy} from './windows-signing.mjs';
 
-// Explicit use of an existing certificate only. No discovery, enrollment,
-// credentials, certificate import or publication is performed by this command.
-const args=process.argv.slice(2);
+// Explicit use of an existing certificate or previously provisioned Azure
+// profile only. No enrollment, credential import or publication occurs here.
+const signingOptions = parseWindowsSigningArguments(process.argv.slice(2));
+windowsSigningPolicy(signingOptions);
 assert.equal(process.platform,'win32','Production Windows signing requires Windows');
-assert.ok(args.length===4 && args[0]==='--certificate-sha1' && /^[a-f0-9]{40}$/i.test(args[1]) && args[2]==='--timestamp-url',
-  'Use --certificate-sha1 <existing 40-hex thumbprint> --timestamp-url <HTTPS timestamp service>');
 const release=releaseDefinition();
 assert.equal(release.publication.status,'local','A published kit version is immutable; advance the local version first');
 function run(command,parameters,timeout=180000,options={}) {
@@ -34,8 +34,8 @@ kitEntries(kit);
 mkdirSync(path.join(root,'.verification/native-installer'),{recursive:true});
 const work=mkdtempSync(path.join(root,'.verification/native-installer/windows-signed-'));
 const result=buildWindowsPackage({root,kitFile,version:release.kitVersion,output,work,run,production:true,
-  certificate:{thumbprint:args[1].toUpperCase(),timestampUrl:args[3]}});
+  ...signingOptions});
 writeFileSync(receiptFile,JSON.stringify({schema:1,kitVersion:release.kitVersion,sourceRevision,sourceDirty:false,
   kit:{filename:release.assets.kit.filename,...result.kit},builtAt:new Date().toISOString(),artifacts:result.artifacts,
-  signing:{thumbprint:args[1].toUpperCase()},updaterConfigSha256:result.updaterConfigSha256},null,2)+'\n',{flag:'wx'});
+  signing:result.signing,updaterConfigSha256:result.updaterConfigSha256},null,2)+'\n',{flag:'wx'});
 console.log(`Verified signed Windows candidate: ${receiptFile}. Physical Windows acceptance and publication remain separate.`);
