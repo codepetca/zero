@@ -23,6 +23,9 @@ export function Document({ id, lesson = "" }) {
     "Documentation";
   const { related, next } = lessonNavigation(lesson);
   const practiceProject = lesson ? projectForLesson(lesson) : null;
+  const pageTitle = practiceProject
+    ? practiceProject.title.replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : lesson ? "Tutorials" : "Docs";
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
@@ -51,7 +54,7 @@ export function Document({ id, lesson = "" }) {
           />
         </aside>
         <article className="reader-content">
-          <h1>{lesson ? "Tutorials" : "Docs"}</h1>
+          <h1>{pageTitle}</h1>
           {!lesson && <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
             {title}
           </h2>}
