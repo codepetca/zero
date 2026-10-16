@@ -132,7 +132,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   nextChoice='create';await commands.get('zero.chooseRepository')();assert.equal(opened.length,0,'Cancelled sign-in cannot open repository creation');
   session={id:'student-session',account:{id:'student',label:'student'},accessToken:'PRIVATE'};
   await commands.get('zero.signInToGitHub')();assert.match(webview.html,/title="Signed in as student"/);assert.match(webview.html,/>student<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"|data-command="zero.signInToGitHub"/);
-  await commands.get('zero.chooseRepository')();assert.equal(opened[0].url,'https://github.com/new');assert.match(notices.at(-1),/empty GitHub repository/);assert.match(notices.at(-1),/README, .gitignore and license unselected/);
+  await commands.get('zero.chooseRepository')();assert.equal(opened[0].url,'https://github.com/new');assert.match(notices.at(-1),/empty GitHub repository/);assert.match(notices.at(-1),/README, .gitignore and license unselected/);assert.match(notices.at(-1),/Project menu → Connect to GitHub/);
   nextChoice=undefined;await commands.get('zero.githubAccount')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['change','signOut']);
   nextChoice='signOut';await commands.get('zero.githubAccount')();assert.equal(dispatched.at(-1),'workbench.action.manageAccounts','Sign-out belongs to native VS Code Accounts controls');

@@ -5,19 +5,27 @@ const os = require('node:os');
 const core = require('./core');
 
 // Projects are ordinary folders. Native Git owns clone transport and credentials.
-function createProjectFolders(vscode, {home = os.homedir(), active = () => true} = {}) {
+function createProjectFolders(vscode, {home = os.homedir(), active = () => true, report = () => {}} = {}) {
   const defaultParent = path.join(home, 'Zero Projects');
-  async function chooseFolder(title, openLabel) {
-    await fs.mkdir(defaultParent, {recursive:true});
+  async function chooseFolder(title, openLabel, createDefault = false) {
     if (!active()) return;
-    const selection = await vscode.window.showOpenDialog({title, openLabel, canSelectFiles:false, canSelectFolders:true, canSelectMany:false, defaultUri:vscode.Uri.file(defaultParent)});
+    let initial = defaultParent;
+    try {
+      if (createDefault) await fs.mkdir(defaultParent, {recursive:true});
+      if (!(await fs.stat(defaultParent)).isDirectory()) throw new Error('The default project path is not a folder.');
+    } catch(error) {
+      initial = home;
+      if (createDefault || error.code !== 'ENOENT') report(`Default project folder unavailable; choose another location. ${error.message}`);
+    }
+    if (!active()) return;
+    const selection = await vscode.window.showOpenDialog({title, openLabel, canSelectFiles:false, canSelectFolders:true, canSelectMany:false, defaultUri:vscode.Uri.file(initial)});
     return active() ? selection?.[0] : undefined;
   }
   async function clone() {
     const url = await vscode.window.showInputBox({title:'Clone from GitHub', prompt:'Paste your GitHub repository link.', placeHolder:'https://github.com/you/your-project', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
     if (!url || !active()) return;
     const destination = core.parseRepositoryUrl(url);
-    const parent = await chooseFolder('Clone location', 'Clone here');
+    const parent = await chooseFolder('Clone location', 'Clone here', true);
     if (!parent || !active()) return;
     const extension = vscode.extensions?.getExtension('vscode.git');
     const api = extension && (extension.isActive ? extension.exports : await extension.activate()).getAPI(1);

@@ -137,7 +137,7 @@ function activate(context) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  const projectFolders = createProjectFolders(vscode, {active:() => !disposed});
+  const projectFolders = createProjectFolders(vscode, {active:() => !disposed, report:text => output.appendLine(text)});
   const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';refresh();});
   context.subscriptions.push(auth);
   async function signIn(changeAccount = auth.signedIn) {
@@ -421,7 +421,7 @@ function activate(context) {
       if (isBusy()) return;
       await lessonProjects.assertShareable(await project());
       if (!auth.signedIn) throw new Error('Sign in to GitHub first.');
-      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose Repository → Connect an existing repository.');
+      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose the Project menu → Connect to GitHub.');
       if (!(await vscode.env.openExternal(vscode.Uri.parse('https://github.com/new')))) throw new Error('Could not open GitHub. Open https://github.com/new in your browser, create an empty repository, then connect its link.');
     },
     'zero.chooseBranch': async () => {
