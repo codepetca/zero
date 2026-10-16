@@ -1,5 +1,87 @@
 # Delivery evidence index
 
+## Draft Windows PR and actual Windows CI — 2026-10-16
+
+Owner explicitly approved pushing the reviewed branch, creating a draft PR and
+running Windows CI; signing/release publication/main merge remain deferred.
+[PR77](https://github.com/codepetca/zero/pull/77) is draft and attached. No account,
+paid service, signing, release or stable-feed publication action performed.
+Original funding checkout and other tasks were untouched. Initial PR conflicted
+with newer tutorial evidence; main456b490 merged into the feature branch at6965518.
+Independent Sol/medium integration review confirmed identical automatic merges,
+all92Windows-parent/94main-parent EVIDENCE sections preserved byte for byte and
+no Windows native/extension/release/setup/script changes from the sync.
+
+Real Windows runs found three issues, each fixed and independently reviewed:
+
+- [38933190564](https://github.com/codepetca/zero/actions/runs/38933190564),6965518:
+  native968/updater11 passed; packaging failed LF-dependent metadata on a CRLF
+  checkout.9c625e0 sets canonical LF in .gitattributes, retaining CRLF .cmd and
+  binary bytes. An actual disposable Git autocrlf=true checkout test passes.
+  Windows multi-command pwsh steps now fail immediately on native-command error.
+- [38933756652](https://github.com/codepetca/zero/actions/runs/38933756652),9c625e0:
+  kit packaging and extracted Maven passed; locked .NET publishing failed. Local
+  Windows-like restore reproduced NU1004 because an implicit Mac reference package
+  was absent.3a3cf80 explicitly pins the existing reference-assembly graph and
+  disables host-dependent implicit addition; lockfile/versions unchanged. Actual
+  locked full build passes with0warnings/errors. Build failures now retain stdout
+  as well as stderr, exposing .NET diagnostics rather than only exit status.
+- [38934551356](https://github.com/codepetca/zero/actions/runs/38934551356),3a3cf80:
+  actual Setup, shortcut and private runtime/editor bootstrap passed64sec; smoke
+  attempted CloseMainWindow before Electron created its window.7ed8cda waits up
+  to60sec for an accepted graceful close; no forced-kill success fallback. New
+  parser check passed2191tokens; real Windows proof is the final run below.
+
+Each correction received complete targeted Sol/medium review with no actionable
+P0-P2. One reviewer handled one integration turn and3targeted turns;4turns/3fix
+batches, approximately16:34–16:53UTC, within7/4/60min and30min/reviewer bounds.
+Effective model, tokens and attributable coordination time unavailable. Code
+reviews from prior phases remain applicable; no redundant full review wave.
+
+[Final Windows38935344735](https://github.com/codepetca/zero/actions/runs/38935344735)
+passed7ed8cdab5ce6a205ea1632e6f0982b3d66e737f5. GitHub tested merge02e20a5dfda1678c7dad7172f54820775c24c5b3,
+whose full tree was independently compared equal to that reviewed branch head.
+Actual hosted Windows Server2022/10.0.20348.0 and PowerShell5.1.20348.5622:
+968native checks (Unix-only cases excluded),11updater authentication/lifecycle,
+15package/signing/key checks with3expected POSIX-only skips;8extension update,
+2actual batch quoting,3JavaFX helper and1checkout test passed. No masked failures.
+Actual timestamped Authenticode/signing is still untested; its verifier uses fakes.
+
+Real measured Setup silent install, installed version/layout/Start shortcut,
+private Java21/compiler and Java/Zero extensions, actual editor handoff, accepted
+graceful window close and Start-menu reopen passed58.5sec. Subsequent ordinary
+JavaFX window/show/label update/close and nonce passed online clean compilation,
+then Maven-offline clean compilation/run using private caches;26.6sec total.
+Both small receipts deliberately retain nativeWindowsTested:false and
+signedUpdateTested:false; installation retains interactiveJavaFxTested:false and
+the JavaFX companion retains interactiveRunAppTested:false. No interactive Windows11
+student UI, ordinary-account UAC/policy, unsaved buffers or real A-to-B is inferred.
+
+CI candidate sourceDirty:false; downloaded Setup10692831bytes/SHA256
+`789025e9d7b90344efbb9872fb9e823c3f3193c67f3c7cf2599cecc8183eccdf`,
+full nupkg3178719bytes/SHA256
+`a70ec05a39d75c933973c92a91dae1e44db82b3f2206b84961ab132ee6c8fc6f`.
+Kit363087bytes/SHA25600624b851eea024117c289b88f564c0dc43218706d365e8ef4f24938dbee1370.
+Downloaded artifacts match measured sizes/hashes and both passing receipts bind
+the exact Setup, version and source. Self-contained local packet
+`dist/installers/Zero-Windows-0.5.18-trial-7ed8cda.zip`,10745997bytes/SHA256
+`7f9e4d724377adbfae3dbe2aca6ed0f085771ea75bca285c2ceb8cadd0ca3fc8`,
+contains that exact Setup/receipt, reviewed essential automation/pins, sanitized
+small CI receipts, START-HERE and a file manifest. Re-extracted every member and
+checked exact manifest bytes/hashes. No keys/credentials or account state included.
+Updater is deliberately disabled in this unsigned development trial. Earlier
+Mac-built candidates are retained with their distinct measurements.
+
+Linux release checks passed [9c625e0/38933756479](https://github.com/codepetca/zero/actions/runs/38933756479)
+and [3a3cf80/38934551349](https://github.com/codepetca/zero/actions/runs/38934551349).
+Redundant older6965518 Linux run38933190323 was cancelled only after newer coverage
+passed. Final source7ed8cda also passed [Linux38935344780](https://github.com/codepetca/zero/actions/runs/38935344780).
+PR stays draft; an evidence-only documentation head may be newer than tested code.
+Ignored logs/artifacts/receipts: .verification/windows-auto-setup/ci-*;
+Windows-like lock repro: .verification/windows-ci-lock-repro/. Initial account
+weekly remaining47% and healthy319GB storage are not task-attributed cost. No
+DeepSeek delegation or new task/goal/automation; only bounded native review work.
+
 ## Windows flow recovery and unsigned trial — 2026-10-16
 
 Owner deferred signing and authorized the remaining Windows usability work.

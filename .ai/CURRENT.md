@@ -1,56 +1,47 @@
-# Current state — Windows flow polish, 2026-10-16
+# Current state — Windows CI passed, 2026-10-16
 
-Owner has deferred Windows signing and requested the remaining Windows flow be
-as smooth and automatic as Mac. Owner explicitly authorized pushing the reviewed branch, opening a draft PR and
-running Windows CI. Draft PR77 is open at https://github.com/codepetca/zero/pull/77.
-Signing, release publication, merge to main, accounts and paid services remain deferred. Public0.5.17 stays unchanged.
-DeepSeek remains paused. Ordinary VS Code/account/global Java settings untouched.
+Owner authorized pushing the Windows branch, opening a draft PR and running CI.
+[Draft PR77](https://github.com/codepetca/zero/pull/77) is open and attached.
+Signing, production publication, merge to main, accounts and paid services remain
+deferred. Public downloads/feed were not promoted. DeepSeek remains paused.
 
-Working branch codex/windows-auto-setup, base e268b93, implementation worktree
-/Users/stew/.codex/worktrees/windows-auto-setup/zero. Prior release-readiness head
-42e9512; prior source reviews cover 3a4fe7a2 and f5209e2. Original dirty funding
-checkout and separate web-export/tutorial task are untouched. Do not archive the
-implementation worktree; unintegrated local artifacts remain useful.
+Branch codex/windows-auto-setup; implementation worktree
+/Users/stew/.codex/worktrees/windows-auto-setup/zero retained. Original dirty
+funding checkout and other chats untouched. Main456b490 was merged into this
+feature branch; incoming tutorial source and both evidence histories preserved.
+Independent source coverage includes original installer/readiness, flow polish,
+main synchronization and all3CI correction deltas through7ed8cda.
 
-Implemented native per-user Velopack Setup/Start shortcut, pinned private Java,
-compatible VS Code reuse/private fallback, isolated profile, saved-session open,
-authenticated background updater, explicit signing tooling and verified future
-website feed/download metadata. Production feed RSA3072 trust is configured;
-private key remains outside Git in private maintainer storage. Encrypted backup,
-signing and actual Windows release acceptance remain pending before publication.
-Development packages deliberately disable the production updater.
+[Windows CI38935344735](https://github.com/codepetca/zero/actions/runs/38935344735)
+passed source7ed8cdab5ce6a205ea1632e6f0982b3d66e737f5. Tested merge commit
+02e20a5dfda1678c7dad7172f54820775c24c5b3 has an identical tree. Actual hosted
+Windows Server2022 build20348/PowerShell5.1:968native checks,11updater checks,
+15package/key/signing checks with3POSIX-onlyskips; actual Setup packaging/install,
+Start shortcut, private Java/compiler/extensions, graceful editor close/reopen
+passed58.5sec; automatic online/offline clean JavaFX rebuild/window/update/close
+passed26.6sec. This is not interactive Windows11/SmartScreen/signed A-to-B proof.
+Linux release checks also passed final source7ed8cda in38935344780, alongside
+earlier9c625e0 and3a3cf80. Evidence-only documentation may have a newer head.
 
-Current phase changes: recognized damaged Java/editor automatically reinstall
-from verified downloads, failed/cancelled repair restores the old folder for
-retry, malformed isolated settings reset to defaults, warm-start child probes
-reduce12→8 while Open still checks readiness, accepted update discovery gets
-foreground progress/retry/error UI with one installation consent.
-Sol/high read-only parity worker completed four concrete findings; coordinator
-implemented them. Separate Sol/high worker owns scripts/test-windows-javafx*,
-Windows CI and WINDOWS-TRIAL.md for actual JavaFX window plus offline cached rerun
-in a disposable project. No overlapping writers; worker delivered3focused tests plus batch-argument proof
-(4pass/1existing Windows-only skip) and actual fixture compilation with Java21/
-pinned JavaFX21.0.12. Independent complete10file review ceecc6f passed with no P0-P2;
-new-session1launch/0fixes. Candidate rebuilt from clean ceecc6f and verified.
+CI corrections: canonical LF checkout with CRLF .cmd, real Git checkout regression,
+fail-fast native PowerShell steps, explicit pinned cross-host reference-assembly
+graph with locked restore preserved, visible build stdout diagnostics, and a
+bounded wait for Electron's window before the graceful reopening smoke. Sol/medium
+integration plus3targeted reviews passed;4turns/3fix batches/no findings, within
+7/4/60min limits. Earlier reviews reused unchanged. Native product code unchanged
+by CI corrections. Tokens/effective configs unknown; no writer conflicts.
 
-Current checks: native985 and updater11 Mono fixtures pass; full net48 GUI builds
-with0warnings/errors;18Windows signing/key/package tests pass using private
-PowerShell mocked Authenticode; npm run check and diff whitespace pass. Actual
-Windows installer/editor/JavaFX/process/locking and automatic A→B remain untested.
-Remote CI has not been run. Signing hold prevents trusted-publisher trial only;
-unsigned functional trial may proceed. Current unsigned Setup is built from clean reviewed ceecc6f (size10611808,
-SHA2567cd5350f5793a42719302d4623581d6cc2050297820b65c1085389aedd99607a).
-Full package size3097696/SHA25641fa0d4de7c4564dcafd97638f2debe3c51a3fd86a46fa92cbf73e07a97f4b4c.
-Self-contained unsigned trial ZIP dist/installers/Zero-Windows-0.5.18-trial-ceecc6f.zip
-(size10661700/SHA2566e5789fb4729a009343c8265ee8bbeaec3d3d8aaef035a9089737dfcf06ef159)
-contains measured Setup/receipt, essential reviewed scripts/pins and START-HERE.txt;
-no keys or credentials. Production updating remains disabled in this candidate.
-Actual Mac Java21/JavaFX21.0.12 fixture showed a window, edited its label, closed
-and wrote the expected nonce; this proves the fixture, not Windows execution.
-PR initially conflicted with newer tutorial evidence on main, preventing PR CI.
-Synchronizing main456b490 into this feature branch preserves incoming website
-source/design and both sets of delivery evidence; only CURRENT/EVIDENCE required
-manual resolution. Main remains unchanged. Windows CI follows this branch sync.
-Account-wide weekly remaining49%, healthy storage318GB at phase start; not task cost.
-Detailed historical delivery and limits: docs/EVIDENCE.md, WINDOWS-INSTALLER.md,
-WINDOWS-TRIAL.md and WINDOWS-SIGNING.md.
+CI-tested unsigned Setup10692831bytes/SHA256
+789025e9d7b90344efbb9872fb9e823c3f3193c67f3c7cf2599cecc8183eccdf.
+Latest self-contained packet dist/installers/Zero-Windows-0.5.18-trial-7ed8cda.zip
+10745997bytes/SHA2567f9e4d724377adbfae3dbe2aca6ed0f085771ea75bca285c2ceb8cadd0ca3fc8.
+It includes the exact CI-tested Setup/receipt, reviewed automation/pins, small CI
+receipts and START-HERE. Production updater deliberately disabled. Earlier local
+candidates remain preserved. Ignored proofs: .verification/windows-auto-setup/
+ci-38935344735 and ci-*-failed/full logs. No credentials or keys in the packet.
+
+Next: ordinary-account interactive Windows11x64 Run/Edit/Stop, saved project,
+offline/retry/cancel, keyboard/DPI/Narrator and school policy trial. Signing and
+real authenticated signed A-to-B trial remain later release gates. Production
+feed key already outside Git; owner encrypted backup still needed before release.
+See docs/WINDOWS-TRIAL.md, WINDOWS-INSTALLER.md and docs/EVIDENCE.md.
