@@ -45,6 +45,7 @@ function activate(context) {
   let browserBusy = false;
   let browserActive = false;
   let publishingWeb = false;
+  let exportReadyRoot;
   let branch = '';
   let statusGeneration = 0;
   const isBusy = () => uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb || browserBusy;
@@ -68,6 +69,7 @@ function activate(context) {
     return projectRoot;
   };
   const refresh = () => { if (view) render(view.webview); };
+  const report = text => {state=text;output.appendLine(text);refresh();};
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     let filename;
@@ -300,7 +302,7 @@ function activate(context) {
       const result = kind === 'start' ? await workflow.startPrepared(plan, options) : await workflow.finishPrepared(plan, options);
       if (kind === 'finish' && result.updated && !result.finished) {
         state = 'Main updates added to your change. Run App, then choose Merge to main again to review.';
-        void vscode.window.showInformationMessage(state);
+        report(state);
         return;
       }
       let cleanupError;
@@ -315,7 +317,7 @@ function activate(context) {
       }
       state = kind === 'start' ? `Started ${result.branch}. Make your changes, then Commit & push.` : cleanupError ? 'Merged change and pushed main. Local branch kept; check Zero Output.' : 'Merged change and pushed main. Finished local branch deleted.';
       if (cleanupError) void vscode.window.showWarningMessage(state);
-      else void vscode.window.showInformationMessage(state);
+      else report(state);
     } catch(error) {if (error.conflict) await conflictHelp(); throw error;}
     finally {await repositoryStatus(); changing = false; refresh();}
   }
@@ -348,7 +350,7 @@ function activate(context) {
         const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
         state = `Pushed ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
         refresh(); await repositoryStatus();
-        vscode.window.showInformationMessage(state);
+        report(state);
         return result;
       } finally {selectedAuth?.dispose();await repositoryStatus(); uploading = false; refresh();}
   }
@@ -489,7 +491,7 @@ function activate(context) {
         if (!value) return;
         if (await project() !== root) throw new Error('The student project changed. Connect the repository again.');
         const result = await core.connectRepository(root, value, async () => (await vscode.window.showWarningMessage('Replace this student project’s existing origin remote with the repository you entered?', {modal:true}, 'Replace origin')) === 'Replace origin');
-        if (result) { await repositoryStatus(); vscode.window.showInformationMessage('Repository connected locally. No files uploaded.'); }
+        if (result) { await repositoryStatus(); report('Repository connected locally. No files uploaded.'); }
       } finally {await repositoryStatus(); connecting = false; refresh();}
     },
     'zero.copyRepositoryLink': async () => {
@@ -498,7 +500,7 @@ function activate(context) {
       await core.assertRepositoryRoot(root);
       const {page} = core.parseRepositoryUrl(await core.git(root, ['remote','get-url','origin']));
       await vscode.env.clipboard.writeText(page);
-      vscode.window.showInformationMessage('Repository link copied. Paste it into Pika when submitting.');
+      report('Repository link copied. Paste it into Pika when submitting.');
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };
@@ -511,10 +513,10 @@ function activate(context) {
   const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
-  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,verifiedPublication:webPublish.verifiedPublication,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
+  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setState:report,verifiedPublication:webPublish.verifiedPublication,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);
-  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
+  const webExport=createWebExportCommands(vscode,{project:runnableProject,output,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
@@ -532,9 +534,12 @@ function activate(context) {
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const publishControl = `<button class="link" data-command="zero.publishWeb" ${disabled || (!auth.signedIn || !connected ? 'disabled' : '')} title="${auth.signedIn && connected ? 'Publish your pushed app to GitHub Pages' : 'Sign in and connect your repository to publish'}">${icon('Upload')}Publish app</button>`;
+    const published = context.workspaceState?.get('zero.webPublish.lastLive');
+    const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published?.root === projectRoot && published.account === auth.accountLabel && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
+    const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const tutorialActions = `${projectRoot ? '' : `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>`}<button class="link clone" data-command="zero.cloneRepository" ${disabled}>Clone repository</button>`;
-    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${tutorialActions}` : `${tutorialActions}<div class="context-row">${account}${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishControl}`;
-    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div></div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
+    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${tutorialActions}` : `${tutorialActions}<div class="context-row">${account}${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishControl}${publishedActions}`;
+    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,status:state,failed:buildFailed}); return;

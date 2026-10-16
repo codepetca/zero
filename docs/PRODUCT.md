@@ -295,6 +295,12 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   the local VSIX and Java extensions in it. The standard build shortcut runs
   the app; optional F6/F7 bindings stay separate.
 
+Routine Git, publishing, export and library results appear in the sidebar's live
+status and Zero Output, without success notifications. Verified published apps
+keep Open app/Copy playable link actions in the sidebar; completed exports keep
+Preview export/Save ZIP/Share export actions there. Errors, warnings, required
+choices and the first-publication warning remain visible through native prompts.
+
 ## Repository and upload contract
 
 Students sign in through VS Code's native GitHub authentication/browser flow.

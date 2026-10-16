@@ -231,3 +231,12 @@ branch through the existing clean-main, exact-SHA, ancestry and atomic ref guard
 Do not add another confirmation or delete the remote branch. A refused cleanup
 keeps the branch, preserves the successful merge outcome and shows a concise
 notice with details in Zero Output. Failed/paused/conflicted merges skip cleanup.
+
+### Quiet success feedback — owner decision, 2026-10-16
+
+Show routine Git, repository-link, publishing, export and library results in the
+existing accessible sidebar status and Zero Output. Remove success toasts. Keep
+required choices, first-publication consent, warnings and errors. Preserve the
+removed toast actions as native-theme sidebar buttons: Open app/Copy playable
+link for the saved verified publication and Preview export/Save ZIP/Share export
+for the current project's completed export. Reuse existing guarded commands.

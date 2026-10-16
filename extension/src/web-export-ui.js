@@ -8,7 +8,7 @@ const {assertShareable} = require('./lesson-projects');
 const {createManagedWebPreview} = require('./web-run-preview');
 const {publishingGuide} = require('./web-publishing');
 
-function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,cacheRoot,publish,ensureValidatedExport,validateExport,openPreview,previewFactory=createManagedWebPreview,engineRoot=path.join(__dirname,'web-export')}) {
+function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,setAvailable=()=>{},cacheRoot,publish,ensureValidatedExport,validateExport,openPreview,previewFactory=createManagedWebPreview,engineRoot=path.join(__dirname,'web-export')}) {
   let latest, preview, controller, disposed=false;
   const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
@@ -113,17 +113,13 @@ function createWebExportCommands(vscode,{project,output,isBusy,setBusy,setState,
         : await operation();
       if(disposed || controller.signal.aborted || await project()!==root)return;
       latest={root,result};
+      setAvailable(root);
       setState(`Web export ready${Number.isFinite(result.totalBytes) ? ` · ${(result.totalBytes/1_000_000).toFixed(1)} MB` : ''}. Preview before sharing.`);
     } catch(error) {
       setState(controller.signal.aborted ? 'Web export cancelled. Your previous successful export is preserved.' : 'Web export failed. Check the Zero output for the source error.');
       output.show?.(true);
       throw error;
     } finally {controller=undefined;setBusy(false);}
-    if(!result || disposed || await project()!==root)return;
-    const action=await vscode.window.showInformationMessage('Web export ready. Preview the game before sharing.','Preview game','Save ZIP','Share…');
-    if(action==='Preview game')await previewLatest();
-    else if(action==='Save ZIP')await saveZip();
-    else if(action==='Share…')await share();
   }
   return {
     commands:{'zero.exportWeb':exportWeb,'zero.previewWebExport':previewLatest,'zero.saveWebExport':saveZip,'zero.shareWebExport':share},

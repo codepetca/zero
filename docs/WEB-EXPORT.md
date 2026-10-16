@@ -90,8 +90,8 @@ Later publishes reuse the approved destination and stable URL. Repository
 visibility is never changed. The deployed game and its included assets are public,
 including when the source repository is private and the account supports Pages.
 
-Wait for **Your playable game is live**, then choose **Open app** or **Copy
-playable link**. These commands also live in the Zero title menu and Command
+Wait for **Your playable game is live** in the sidebar, then use its **Open app**
+or **Copy playable link** buttons. Successful actions no longer show popups. These commands also live in the Zero title menu and Command
 Palette. Pika still receives the separate source repository link. Publishing
 tracks the exact GitHub workflow run and checks an unauthenticated public marker
 containing both source SHA and run ID before offering the link. A previous live
@@ -107,8 +107,8 @@ requires review and confirmation. Later explicit Publish actions revalidate and
 update the approved site without another destination dialog.
 
 For a separate export choose **Export for web** from the title menu or Command
-Palette. The cancellable build offers **Preview game**, **Save ZIP**, and
-**Share…**. The managed preview is local; other people cannot use its loopback URL. A
+Palette. After the cancellable build finishes, the sidebar offers **Preview export**,
+**Save ZIP**, and **Share export…**. The managed preview is local; other people cannot use its loopback URL. A
 saved ZIP can instead be uploaded as an HTML game on itch.io. Students choose
 visibility there themselves.
 

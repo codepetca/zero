@@ -131,9 +131,6 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
         await workspaceState?.update('zero.webPublish.pending',undefined);
         lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount};
         await workspaceState?.update('zero.webPublish.lastLive',lastLive);
-        const selected=await vscode.window.showInformationMessage('Your playable game is live.','Open app','Copy playable link');
-        if(selected==='Open app')await vscode.env.openExternal(vscode.Uri.parse(result.url));
-        else if(selected==='Copy playable link')await vscode.env.clipboard.writeText(result.url);
       } else if(result.status==='pending')progress('Publishing is still running. Choose Publish web game again to recheck this run.');
       else {resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);await showAction(result);}
       return result;
