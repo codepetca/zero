@@ -1,5 +1,54 @@
 # Delivery evidence index
 
+## App/GameApp browser integration — local, 2026-10-15
+
+Reviewed/package source `6258daf` integrates the owner-approved `SimpleApp` →
+`App` and `SketchApp` → `GameApp` names into this browser branch. All seven
+canonical helper bodies equal the preceding source after identifier substitution;
+98 declarations, ordinary Java, explicit updates, media/input/lifecycle behavior
+and exact helper fingerprints remain enforced. Profile `zero-webfx-2026-10-v2`
+invalidates the preceding API generation. Exact helper matching distinguishes App
+from GameApp. No compatibility alias or student-file migration is supplied.
+
+Three final public tutorial archives were anonymously verified against the original
+reviewed drafts (20 files each, exact renamed bytes/modes and all seven canonical
+helpers); tutorial pins now match. Five public example revisions were independently
+verified as identifier-only archive updates and synchronized too. Those older
+complete templates still require a separate strict browser acceptance; identifier
+publication alone does not establish it.
+
+One Sol/high full-diff review found two P2 preservation bugs in generated-source
+retirement: dangling current leaves and linked output ancestors. One combined fix
+batch adds lstat preflight for current/retired outputs and ownership state. Eight
+kit tests include linked backup/state preservation and extracted Maven. Five stale
+example harness method names now target their existing private loadEffect methods;
+application behavior is unchanged. Clean targeted independent review covers the
+correction. Two reviewer starts/turns, one initial and one targeted wave, one fix
+batch; no remaining findings. Effective model/tokens/reviewer time unavailable;
+no extra integration wave needed for this guard/test-only correction.
+
+Checks: initial full root446tests (445pass/1PowerShellskip); focused updated8kit,
+8adapter/6lesson tests; website108tests/typecheck/build; five real GWT compiles and
+53browser interaction checks; native framework/game helpers/57audio checks;
+26maintained native example checks across preserved initial+focused corrected runs;
+16progression variants; three tutorial scaffold compiles; package/extracted-kit,
+licenses/modes/canonical bytes and retired-class absence. Browser engines/physical
+Windows/device audio/classroom performance remain untested by this phase.
+
+Local candidate `dist/candidates/zero-0.5.16-app-gameapp-6258daf` preserves assets
+and hashes. Its VSIX is installed in the owned nested managed preview profile;
+installed adapter/contract/lesson code bytes match source. Mac locked before
+extension-host reload, so fresh native Study/Game Clone/Run acceptance is pending.
+Their private armorup repositories were created in actual GitHub UI. Earlier
+Greeting native evidence remains valid for its preceding preview. No source push,
+release, website, playable-game publication or credential change by this phase.
+
+Evidence: ignored `.verification/gameapp-web-integration/` review ledger/reports,
+public archive receipts, browser result, native/example logs and private-repository
+screenshots. Sol/medium bounded verification and preparation workers used; one
+stale harness discovery required coordinator correction, no writer conflict.
+Weekly61%remaining shared reading; storage337GBhealthy; DeepSeek pause honored.
+
 ## Armorup setup and public tutorial templates — 2026-10-15
 
 Published/anonymous-hash-verified3empty20-file tutorial templates under codepetca,

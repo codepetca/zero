@@ -1,5 +1,31 @@
 # Verification
 
+## Renamed browser profile and follow-up trials — 2026-10-15
+
+Source `6258daf`, kit/extension0.5.16/core0.1.3, uses App/GameApp with seven exact
+reviewed helpers and profilev2. Five real GWT builds and53browser checks passed,
+including input, ordinary controls, drawing, image startup, audio and persisted-page
+restoration. Native smoke/game-helper/57audio checks,16progression variants and
+three scaffold builds passed. The initial446root tests passed445with1PowerShell
+skip; updated8kit tests and check cover the guard correction. Website108tests,
+types/build and package/extracted-kit checks pass. All26native maintained examples
+pass using20unchanged initial cases plus media and five remaining focused cases;
+five stale reflective harness names were corrected after preserved failures.
+Initial+targeted Sol/high review is clean after two preservation fixes.
+
+All three published tutorial downloads match the renamed canonical sources and
+verified commit/tree pins. Five older example template revisions are synchronized
+but strict browser acceptance remains a separate gate. No physical Windows,
+new GitHub consent, classroom latency or audible-output acceptance is claimed.
+
+Installed immutable local candidate:
+`dist/candidates/zero-0.5.16-app-gameapp-6258daf`. Actual GitHub UI created private
+`armorup/zero-study-setup-trial-20261015` and
+`armorup/zero-game-setup-trial-20261015` from the current templates. Their native
+clone/run trials and extension-host reload await Mac unlock. The earlier Greeting
+trial below used the preceding preview and retains its source/API names as history.
+Receipts/screenshots/logs: `.verification/gameapp-web-integration/`.
+
 ## Armorup real tutorial setup — preview and public templates, 2026-10-15
 
 Owner explicitly authorized public publication of the three prepared empty templates
