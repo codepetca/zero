@@ -1,4 +1,5 @@
 import {prepareDesign} from '../design/prepare.mjs';
+import {prepareTutorials} from './prepare-tutorials.mjs';
 import { readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +11,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();
+prepareTutorials();
 const directory = path.join(root, 'extension/test');
 const files = readdirSync(directory).filter(name => name.endsWith('.test.js'))
   .sort().map(name => path.join(directory, name));

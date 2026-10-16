@@ -1,4 +1,5 @@
 import {prepareDesign} from '../design/prepare.mjs';
+import {prepareTutorials} from './prepare-tutorials.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -15,6 +16,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();
+prepareTutorials();
 verifyWebProfiles();
 const checkedRelease=releaseDefinition();
 const priorUpdateFeed=path.join(root,'release/mac-update-feed.json');

@@ -14,7 +14,7 @@ editor theme colors. The dark website theme is proposed. Desktop/mobile web and
 narrow sidebar states remain readable and reflow; no clipped essential action
 was found in the tested views. Keyboard focus and fixture recovery were checked.
 
-See [verification and labeled evidence](design/playground/VERIFICATION.md) for
+See [verification and labeled evidence](../../../design/playground/VERIFICATION.md) for
 viewports, contrast samples, reviewer findings and limits. This passes the local
 review-kit gate only. It does not approve a visual baseline for production or
 certify accessibility, WebKit, Windows or a real VS Code host.

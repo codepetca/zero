@@ -21,7 +21,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
   if(practice) {await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'class Main {}\n');}
   await fs.writeFile(path.join(root,'mvnw'),'');
   if(lesson && !practice) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
-  const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[];
+  const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[],panels=[];
   let webviewProvider, folderChanged, tabReads=0;
   let session, interactiveSession, authFailure=false;
   const authCalls=[],notices=[];
@@ -30,11 +30,11 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});if(authFailure)throw new Error('PRIVATE');if(options.createIfNone&&interactiveSession)session=typeof interactiveSession==='function'?await interactiveSession():interactiveSession;return session;},onDidChangeSessions:disposable},
     workspace:{workspaceFolders:empty?[]:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},openTextDocument:async uri=>({uri}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
-    window:{tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
+    window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,reveal(){},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
-    Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
+    ViewColumn:{Beside:2},Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},env:{openExternal:async uri=>{calls.push(['openExternal',uri]);return externalResult;}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})}
   };
   const filename=require.resolve('../src/extension'), oldCache=require.cache[filename], load=Module._load;
@@ -54,7 +54,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
-  return {root,commands,calls,errors,launches,webview,remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:()=>folderChanged()};
+  return {root,commands,calls,errors,launches,webview,panels,remembered,finish,vscode,notices,authCalls,subscriptions,setSession(value){session=value;},setInteractiveSession(value){interactiveSession=value;},setFailure(value){authFailure=value;},tabReads:()=>tabReads,folderChanged:()=>folderChanged()};
 }
 test('first lesson opens once per project and can be reopened without modifying student source', async t=>{
   const f=await fixture(t);
@@ -96,13 +96,15 @@ test('a tab opened during asynchronous lesson preparation is preserved', async t
   await f.commands.get('zero.openFirstLesson')();
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,1);
 });
-test('lessonless projects support explicit native diagnostic run and hosted Tutorials', async t=>{
+test('lessonless projects support explicit native diagnostic run and bundled Tutorials', async t=>{
   const f=await fixture(t,{lesson:false});
   await f.commands.get('zero.runNativeApp')();assert.equal(f.launches.length,1);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
   await f.commands.get('zero.openFirstLesson')();assert.deepEqual(f.errors,[]);
-  assert.deepEqual(f.calls.filter(([id])=>id==='openExternal').map(([,uri])=>uri.value),['https://zero.codepet.ca/learn']);
+  assert.equal(f.panels.length,1);assert.equal(f.panels[0].type,'zero.tutorials');
+  assert.match(f.panels[0].webview.html,/Open in browser/);
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
   assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
 });
 test('only failed owned native diagnostic tasks offer Problems; success and Stop are normal exits', async t=>{
@@ -120,16 +122,19 @@ test('only failed owned native diagnostic tasks offer Problems; success and Stop
   assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
 });
 
-test('new local project opens its canonical online guide and Main without replacing an editor', async t=>{
+test('new local project opens its bundled guide beside Main without replacing an editor', async t=>{
   const f=await fixture(t,{practice:true});
   await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
   assert.equal(f.calls.filter(([id])=>id==='showTextDocument').length,1);
-  assert.equal(f.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/3');
+  assert.equal(f.panels.length,1);assert.equal(f.panels[0].column.viewColumn,2);
+  await f.panels[0].message({type:'ready'});assert.equal(f.panels[0].restored.state.lessonId,'3');
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   const editing=await fixture(t,{practice:true,activeEditor:true});
   await editing.commands.get('zero.openFirstLesson')();
   assert.equal(editing.calls.filter(([id])=>id==='showTextDocument').length,0);
-  assert.equal(editing.calls.find(([id])=>id==='openExternal')[1].value,'https://zero.codepet.ca/tutorials/3');
+  assert.equal(editing.panels.length,1);await editing.panels[0].message({type:'ready'});
+  assert.equal(editing.panels[0].restored.state.lessonId,'3');
 });
 
 test('idle status stays empty and a refused tutorial launch explains recovery',async t=>{
@@ -137,7 +142,9 @@ test('idle status stays empty and a refused tutorial launch explains recovery',a
   assert.match(f.webview.html,/aria-live="polite"><\/p>/);
   assert.doesNotMatch(f.webview.html,/Ready to run/);
   await f.commands.get('zero.openFirstLesson')();
-  assert.match(f.errors.at(-1),/Could not open the first lesson.*https:\/\/zero\.codepet\.ca\/learn/);
+  assert.deepEqual(f.errors,[]);assert.equal(f.panels.length,1);
+  await f.panels[0].message({type:'browser',lessonId:'0'});
+  assert.match(f.errors.at(-1),/Could not open Tutorials:.*browser.*Open in browser again/);
   assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
 });
 

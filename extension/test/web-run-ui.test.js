@@ -5,19 +5,40 @@ const {createBrowserRunCommands,sourceDiagnostics}=require('../src/web-run-ui');
 const {createManagedWebPreview}=require('../src/web-run-preview');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function harness(t) {
-  let active='/project',busy=false,building,valid=true,save=true,saveGate,builds=0,previews=0,stops=0,cancel,workspaceChanged,previewGate;
+  let active='/project',busy=false,building,valid=true,save=true,saveGate,builds=0,previews=0,stops=0,opens=0,openResult=true,cancel,workspaceChanged,previewGate,projectGate;
   const states=[],failures=[],events=[],diagnostics=[];
   const result={sitePath:'/project/.zero/web-export/site'};
   const vscode={workspace:{isTrusted:true,saveAll:async()=>{events.push('save');if(saveGate)await saveGate;return save;},onDidChangeWorkspaceFolders:callback=>{workspaceChanged=callback;return {dispose(){}};}},
     window:{withProgress:async(_,work)=>work({report(){}},{onCancellationRequested:callback=>{cancel=callback;return {dispose(){}};}})},ProgressLocation:{Notification:15},
     languages:{createDiagnosticCollection:()=>({clear(){diagnostics.length=0;},set(uri,items){diagnostics.push({uri,items});},dispose(){}})},Uri:{file:fsPath=>({fsPath})},
     Position:class{constructor(line,character){Object.assign(this,{line,character});}},Range:class{constructor(start,end){Object.assign(this,{start,end});}},Diagnostic:class{constructor(range,message,severity){Object.assign(this,{range,message,severity});}},DiagnosticSeverity:{Error:0}};
-  const api=createBrowserRunCommands(vscode,{project:async()=>active,output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:v=>{busy=v;},setActive:v=>events.push('active:'+v),setFailed:v=>failures.push(v),setState:v=>states.push(v),
+  const api=createBrowserRunCommands(vscode,{project:async()=>{if(projectGate)await projectGate;return active;},output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:v=>{busy=v;},setActive:v=>events.push('active:'+v),setFailed:v=>failures.push(v),setState:v=>states.push(v),
     ensureValidatedExport:async options=>{events.push('build');builds++;options.onProgress('Checking compatibility');options.onProgress('Compiling Java');return building ? building(options) : result;},validateExport:async()=>{events.push('validate');if(!valid)throw Error('Inputs changed. Run App again.');},
-    previewFactory:async(_,site,options)=>{previews++;events.push('preview');if(previewGate)await previewGate;let stopped=false;return {dispose(){if(!stopped){stopped=true;stops++;events.push('dispose');options.onDidDispose();}}};}});
+    previewFactory:async(_,site,options)=>{previews++;events.push('preview');if(previewGate)await previewGate;let stopped=false;return {openInBrowser:async()=>{opens++;if(openResult instanceof Error)throw openResult;return openResult;},dispose(){if(!stopped){stopped=true;stops++;events.push('dispose');options.onDidDispose();}}};}});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {api,vscode,events,states,failures,diagnostics,get busy(){return busy;},get builds(){return builds;},get previews(){return previews;},get stops(){return stops;},set active(v){active=v;},set building(v){building=v;},set valid(v){valid=v;},set save(v){save=v;},set saveGate(v){saveGate=v;},set previewGate(v){previewGate=v;},cancel:()=>cancel(),workspaceChanged:()=>workspaceChanged()};
+  return {api,vscode,events,states,failures,diagnostics,get busy(){return busy;},get builds(){return builds;},get previews(){return previews;},get stops(){return stops;},get opens(){return opens;},set openResult(v){openResult=v;},set active(v){active=v;},set building(v){building=v;},set valid(v){valid=v;},set save(v){save=v;},set saveGate(v){saveGate=v;},set previewGate(v){previewGate=v;},set projectGate(v){projectGate=v;},cancel:()=>cancel(),workspaceChanged:()=>workspaceChanged()};
 }
+
+test('Open in browser requires a running app and reuses it without saving, rebuilding or revalidating source',async t=>{
+ const h=harness(t);assert.equal(h.api.canOpenInBrowser,false);
+ await assert.rejects(h.api.commands['zero.openRunningAppInBrowser'](),/Run App before/);assert.equal(h.opens,0);
+ await h.api.run();assert.equal(h.api.canOpenInBrowser,true);h.events.length=0;h.valid=false;
+ await h.api.openInBrowser();await h.api.commands['zero.openRunningAppInBrowser']();assert.equal(h.opens,2);assert.equal(h.builds,1);assert.equal(h.previews,1);assert.deepEqual(h.events,[]);
+ h.api.stop();assert.equal(h.api.canOpenInBrowser,false);await assert.rejects(h.api.openInBrowser(),/Run App before/);assert.equal(h.opens,2);
+});
+
+test('Open in browser rejects changed project, stopped runtime and replacement generation',async t=>{
+ const changed=harness(t);await changed.api.run();changed.active='/different';await assert.rejects(changed.api.openInBrowser(),/student project changed/);assert.equal(changed.opens,0);assert.equal(changed.stops,1);assert.equal(changed.api.canOpenInBrowser,false);
+ for(const mode of ['stop','workspace','rerun','dispose']) {
+  const h=harness(t);await h.api.run();let release;h.projectGate=new Promise(resolve=>{release=resolve;});const pending=h.api.openInBrowser();
+  if(mode==='stop')h.api.stop();else if(mode==='workspace')h.workspaceChanged();else if(mode==='dispose')h.api.disposables[0].dispose();
+  let next;if(mode==='rerun')next=h.api.run();release();await assert.rejects(pending,/App stopped/);await next;assert.equal(h.opens,0,mode);
+ }
+});
+
+test('browser open failure preserves the running app and does not recompile',async t=>{
+ const h=harness(t);await h.api.run();h.openResult=Error('browser refused');await assert.rejects(h.api.openInBrowser(),/browser refused/);assert.equal(h.api.canOpenInBrowser,true);assert.equal(h.stops,0);assert.equal(h.builds,1);h.openResult=true;await h.api.openInBrowser();assert.equal(h.opens,2);
+});
 
 test('primary Run saves, checks/builds, validates and opens one managed preview; restart closes it first',async t=>{
  const h=harness(t);await h.api.run();assert.equal(h.builds,1);assert.equal(h.previews,1);assert.equal(h.busy,false);

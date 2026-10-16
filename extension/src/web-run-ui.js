@@ -23,12 +23,21 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
   const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const problems = vscode.languages?.createDiagnosticCollection('zero-browser');
-  let generation=0, operation, runtime, disposed=false, queue=Promise.resolve();
+  let generation=0, operation, runtime, runtimeRoot, runtimeGeneration, disposed=false, queue=Promise.resolve();
   const current = async (id,root) => !disposed && id===generation && await project()===root;
-  function disposeRuntime() {const old=runtime;runtime=undefined;old?.dispose();}
+  function disposeRuntime() {const old=runtime;runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;old?.dispose();}
   function stop({quiet=false}={}) {
     generation++;operation?.abort();disposeRuntime();setActive(false);
     if (!quiet && !disposed) {setFailed(false);setState('App stopped');}
+  }
+  async function openInBrowser() {
+    const opened=runtime,id=runtimeGeneration,root=runtimeRoot;
+    if(disposed || !opened || typeof opened.openInBrowser!=='function')throw Error('Run App before opening it in your browser.');
+    let selectedRoot;
+    try {selectedRoot=await project();} catch(error) {if(runtime===opened)stop();throw error;}
+    if(disposed || runtime!==opened || id!==generation)throw Error('App stopped. Run App before opening it in your browser.');
+    if(selectedRoot!==root){stop();throw Error('The student project changed. Run App in the current project before opening it in your browser.');}
+    return opened.openInBrowser();
   }
   async function diagnostics(error,root) {
     if (!problems || !root) return;
@@ -58,11 +67,11 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     if (!await current(id,root)) return;
     disposeRuntime();
     let opened;
-    opened=await previewFactory(vscode,validated.sitePath,{siteFiles:validated.siteFiles,title:'Zero App',onDidDispose:()=>{
-      if(runtime===opened){runtime=undefined;setActive(Boolean(operation));if(!operation&&!disposed)setState('App stopped');}
+    opened=await previewFactory(vscode,validated.sitePath,{siteFiles:validated.siteFiles,title:'Zero App',onOpenInBrowser:openInBrowser,onError:error=>{output.appendLine(error.message);return vscode.window.showErrorMessage?.(error.message);},onDidDispose:()=>{
+      if(runtime===opened){runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;setActive(Boolean(operation));if(!operation&&!disposed)setState('App stopped');}
     }});
     if (!await current(id,root)) {opened.dispose();return;}
-    runtime=opened;setActive(true);setFailed(false);setState('App running');
+    runtime=opened;runtimeRoot=root;runtimeGeneration=id;setActive(true);setFailed(false);setState('App running');
   }
   async function execute(id,expectedRoot) {
     if (disposed || id!==generation) return;
@@ -101,6 +110,6 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
   }
   async function preview(root,result) {stop({quiet:true});const id=generation;return showPreview(root,result,id);}
   const workspaceListener=vscode.workspace.onDidChangeWorkspaceFolders?.(()=>stop());
-  return {commands:{'zero.runApp':run,'zero.stopApp':stop},run,stop,preview,get generation(){return generation;},disposables:[{dispose(){disposed=true;stop({quiet:true});workspaceListener?.dispose();problems?.dispose();}}]};
+  return {commands:{'zero.runApp':run,'zero.stopApp':stop,'zero.openRunningAppInBrowser':openInBrowser},run,stop,preview,openInBrowser,get canOpenInBrowser(){return !disposed && typeof runtime?.openInBrowser==='function';},get generation(){return generation;},disposables:[{dispose(){disposed=true;stop({quiet:true});workspaceListener?.dispose();problems?.dispose();}}]};
 }
 module.exports={createBrowserRunCommands,sourceDiagnostics};

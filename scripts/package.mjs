@@ -1,4 +1,5 @@
 import {prepareDesign} from '../design/prepare.mjs';
+import {prepareTutorials} from './prepare-tutorials.mjs';
 import {mkdirSync, readFileSync, writeFileSync, readdirSync, copyFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import path from 'node:path';
@@ -13,6 +14,7 @@ import {sharingConfigurationBytes} from './release-review.mjs';
 prepareStarter();
 prepareLessonProjects();
 prepareDesign();
+prepareTutorials();
 const license = new Uint8Array(readFileSync(path.join(root, 'LICENSE')));
 // vsce packages its extension directory; retain the canonical license in every VSIX.
 copyFileSync(path.join(root, 'LICENSE'), path.join(root, 'extension/LICENSE'));

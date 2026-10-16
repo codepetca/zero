@@ -17,6 +17,7 @@ const {createSetupHelp} = require('./setup');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createWebExportCommands} = require('./web-export-ui');
 const {createBrowserRunCommands} = require('./web-run-ui');
+const {createTutorialReader} = require('./tutorial-reader');
 const {createWebPublishCommands} = require('./web-publish-ui');
 const {sidebarStyles} = require('./sidebar-style');
 const {createSidebarFiles} = require('./sidebar-files');
@@ -70,6 +71,8 @@ function activate(context) {
   };
   const refresh = () => { if (view) render(view.webview); };
   const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
+  const tutorials = createTutorialReader(vscode,{context,output,project});
+  context.subscriptions.push(tutorials);
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     let filename;
@@ -80,7 +83,7 @@ function activate(context) {
     if (tutorial) {
       if (await project() !== root || (onlyWhenEmpty && hasOpenEditors())) return false;
       if (!hasOpenEditors()) await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,'src/main/java/Main.java'))), {preview:false});
-      if (!await vscode.env.openExternal(vscode.Uri.parse(`https://zero.codepet.ca/tutorials/${tutorial.lessonId}`))) throw new Error('Could not open the lesson guide in your browser.');
+      await tutorials.open(root, tutorial.lessonId);
       return true;
     }
     if (practice) {
@@ -95,7 +98,7 @@ function activate(context) {
           const main = path.join(root, 'src', 'main', 'java', 'Main.java');
           await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(main)), {preview:false});
         }
-        if (!(await vscode.env.openExternal(vscode.Uri.parse(`https://zero.codepet.ca/tutorials/${marker.lessonId}`)))) throw new Error('Could not open the lesson guide in your browser.');
+        await tutorials.open(root, marker.lessonId);
         return true;
       }
     }
@@ -427,12 +430,11 @@ function activate(context) {
     'zero.runNativeApp': async () => {browserRun.stop({quiet:true});await queuedRun();},
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
+      if (!(vscode.workspace.workspaceFolders || []).length) {await tutorials.open(undefined,'0');return;}
       const root = await project();
       if (await openFirstLesson(root)) {
         await context.workspaceState.update(`zero.firstLessonShown:${root}`, true);
-      } else if (!(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/learn')))) {
-        throw new Error('Could not open the first lesson. Open https://zero.codepet.ca/learn in your browser.');
-      }
+      } else await tutorials.open(root);
     },
     'zero.startProject': async () => {
       if (disposed || isBusy()) return;
@@ -535,9 +537,10 @@ function activate(context) {
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published?.root === projectRoot && published.account === auth.accountLabel && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
+    const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
     const tutorialActions = `${projectRoot ? '' : `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>`}<button class="link clone" data-command="zero.cloneRepository" ${disabled}>Clone repository</button>`;
     const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${tutorialActions}` : `${tutorialActions}<div class="context-row">${account}${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishControl}${publishedActions}`;
-    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
+    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,status:state,failed:buildFailed}); return;

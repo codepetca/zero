@@ -23,8 +23,8 @@
   "scripts": {
     "test": "node --test",
     "package": "vsce package --no-dependencies --allow-missing-repository",
-    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension",
-    "pretest": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension"
+    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../scripts/prepare-tutorials.mjs && node ../design/prepare.mjs --extension",
+    "pretest": "node ../scripts/lesson-projects.mjs && node ../scripts/prepare-tutorials.mjs && node ../design/prepare.mjs --extension"
   },
   "contributes": {
     "commands": [
@@ -61,6 +61,10 @@
       {
         "command": "zero.runApp",
         "title": "Zero: Run App"
+      },
+      {
+        "command": "zero.openRunningAppInBrowser",
+        "title": "Zero: Open Running App in Browser"
       },
       {
         "command": "zero.runNativeApp",
@@ -120,7 +124,7 @@
       },
       {
         "command": "zero.openFirstLesson",
-        "title": "Zero: Open First Lesson",
+        "title": "Zero: Tutorials",
         "shortTitle": "Tutorials"
       },
       {
