@@ -1,18 +1,19 @@
-# Current state — automatic finished local-branch cleanup installed, 2026-10-16
+# Current state — quiet success feedback installed, 2026-10-16
 
-Latest owner follow-up automatically cleans up the finished local branch after
-confirmed merge/push success; code0b317de, corrected test/review9ca8f14 on
-codex/web-export. Existing project/clean-main/exact-SHA/ancestry/worktree/atomic
-ref guards remain. Failed/paused/conflicted merges skip cleanup. Refused cleanup
-keeps merge-success truthful with a nonmodal notice and Output details. The
-remote branch remains. Candidate
-`dist/candidates/zero-0.5.16-auto-cleanup-0b317de/zero-0.5.16.vsix` is installed in
-the owned nested Zero/editor profile;87files match current source/package/install.
-Current Study window reloaded;7trial Main hashes unchanged.42unchanged regression
-cases plus corrected UI case pass.2initialSol/high reviews+1targeted clean after
-1test-fixture fix; no production findings. No actual live merge/push/deletion,
-public release or account change. Existing archived-doc link blocker unchanged.
-See docs/EVIDENCE.md and .verification/auto-cleanup-20261016/.
+Latest owner follow-up routes routine Git/repository/publishing/export/library
+successes to sidebar status and Zero Output; codebd66546 on codex/web-export.
+Required choices, first-publication consent, warnings and errors remain. Verified
+publication keeps matching-root/account/repository Open app/Copy playable link
+buttons; current export keeps Preview export/Save ZIP/Share export buttons.
+Candidate `dist/candidates/zero-0.5.16-sidebar-results-bd66546/zero-0.5.16.vsix`
+is installed in the owned nested Zero/editor profile;87files match source/install.
+Mac Study window reloaded. Actual cached local export completed with sidebar
+status and3buttons, no success popup;7trial Main hashes preserved.76focused+
+32integration tests pass.1independent Sol/medium full review clean,0fixes.
+Earlier direct merge/automatic local cleanup remains integrated. No actual live
+GitHub mutation/publication, student release or account change. Known archived-doc
+link-check blocker unchanged. See docs/EVIDENCE.md and
+.verification/sidebar-results-20261016/. Other open windows need their own reload.
 
 Coordinator Lead publishing task, thread01a13f98-55fc-7471-9038-1198b14d5a98.
 Use /Users/stew/.codex/worktrees/web-export/zero, branch codex/web-export.

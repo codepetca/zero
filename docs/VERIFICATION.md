@@ -1,5 +1,40 @@
 # Verification
 
+## Quiet sidebar success feedback installed — 2026-10-16
+
+Owner requested removing success popups. Sourcebd66546 on codex/web-export routes
+routine Git, repository connection/link, publication, export and library results
+to the accessible sidebar status and Zero Output. Native warnings/errors,
+required choices and first-publication consent remain. Successful publication
+keeps Open app/Copy playable link buttons for the matching root/account/repository
+in live mode, using the existing reverified commands. A completed current-project
+export exposes Preview export/Save ZIP/Share export buttons. No raw URL dispatch
+or new mutation authority is introduced.
+
+76focused UI/auth/workflow/publishing/export/sharing tests and32sidebar/onboarding/
+browser-run integration cases pass. Syntax and whitespace pass. One independent
+GPT-6.1Sol/medium review covers complete14file diff plus immediate render/command,
+publication persistence/verification, export validation and sharing-host paths:
+zero findings,1review turn,0fix batches. Effective model/tokens/reviewer duration
+unknown. Unchanged engine/transport/root-suite evidence reused; known archived-doc
+link check blocker remains. No additional production review wave.
+
+Candidate `dist/candidates/zero-0.5.16-sidebar-results-bd66546/zero-0.5.16.vsix`
+is installed in the existing nested Zero/editor profile; all87package files match
+source and installation (native manifest metadata excluded). Prior extension
+backed up. Current Mac Study window reloaded. Actual local Export for Web reused
+the validated cached build; completion shows Web export ready ·2.3MB and the three
+action buttons in sidebar. Cancellable progress disappeared with no success popup.
+No browser was auto-opened or remote publication performed. All7trial Main hashes
+preserved. Live publish/link actions covered by tests/source; physical Windows,
+native dark/high-contrast/narrow layout and live success flows remain untested.
+
+Receipts: ignored `.verification/sidebar-results-20261016/` delivery.json,
+package-parity.json, tests.log, integration-tests.log, package.log, install.log and
+preservation/backup. Direct coordinator implementation and one bounded reviewer;
+recent55%weekly remaining/cached327GBhealthy reused, exact task effort unknown.
+No public push/deploy/release, account/credential change, new goal/chat/automation.
+
 ## Automatic finished local-branch cleanup installed — 2026-10-16
 
 Owner requested automatic cleanup after a successful merge, without another popup.
