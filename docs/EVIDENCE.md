@@ -1,5 +1,40 @@
 # Delivery evidence index
 
+## Tutorial reading cleanup — 2026-10-16
+
+Owner requested removal of Previous links, muted secondary hints, highlighted
+step titles and no tutorial horizontal dividers. The renderer now omits Previous
+paragraphs anywhere at the document root, rather than only at the end, and omits
+lesson thematic rules. Canonical Markdown and fenced code remain intact. Setup,
+continuation and optional resource hints share a quiet helper card; tutorial
+summaries use the existing theme surface with no section/pagination border.
+Docs/reference styling, lesson defaults, anchors and copying are unchanged.
+
+Based on main e7b9b4d, isolated in the attached tutorial-reading-cleanup worktree;
+original funding checkout and other active worktrees preserved. Local only;
+no publication, release, credential, goal, separate chat or automation change.
+96 website tests, typecheck, production build and diff whitespace checks pass.
+Build reports two existing mac-updater dynamic-filesystem tracing warnings.
+In-app browser: lessons8/9, light/dark,320/384/480/1280 CSS-pixel widths without
+page overflow, native keyboard expand/collapse with visible focus, direct step
+anchor and mobile lesson selection. Confirmed zero Previous paragraphs, HRs and
+section/pagination borders. Screenshot/viewport override restored to normal;
+original dark theme restored. Screenshots/logs: ignored
+`.verification/tutorial-cleanup/`. Safari, physical devices and enlarged text
+were not separately tested; no accessibility-conformance claim.
+
+Independent reviewer tutorial_cleanup_review/1, requested GPT-6 Luna/medium,
+reviewed the complete four-file implementation diff plus immediate callers and
+lesson sources. Fixed patch SHA256
+`71515901ca0412676a5c33a597958d6bb976628f1ea237c25b35deb522ef2ef1`.
+Complete verdict: zero actionable findings; diff whitespace check rerun and
+coordinator test/build/typecheck evidence reused. Browser checks not independently
+repeated. One initial wave/one launch, zero fixes/conflicts; reviewer estimated
+2–3 minutes, effective model/token telemetry unknown. Direct implementation;
+DeepSeek pause honored, weekly58%remaining at start, storage healthy329GB.
+Coordination was one focused brief and delivery verification; attributable task
+usage unknown. Review limits were not approached.
+
 ## App API rename across Zero and templates — 2026-10-15
 
 Owner requested `SimpleApp` → `App` across Zero, website and templates, continuing

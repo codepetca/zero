@@ -46,7 +46,9 @@ Concise platform/version requirements and a setup link appear below the buttons;
 initial lesson projects link to setup and clarify that the scaffold ZIP installs no tools.
 Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
-available. `/hub` is ZeroHub: discover separate editable games and reusable
+available. Tutorial step headings use subtle highlights instead of horizontal
+dividers. Secondary project help is muted in a helper card; Previous lesson
+prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
 Content pages use the navigation section name (Tutorials, Docs or ZeroHub)

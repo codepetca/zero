@@ -127,3 +127,12 @@ stack with a concise setup link and metadata-derived platform/version requiremen
 below it. Initial lesson projects link to setup and explain that their ZIP does
 not install Zero or Java. Share your work uses the existing shared theme wrapper
 and controls; this is no broader Hub redesign. Release bytes stay immutable.
+
+## Tutorial reading hierarchy — owner correction, 2026-10-16
+
+Remove Previous lesson prose and horizontal dividers from tutorial content,
+including section and Next lesson borders. Keep numbered step titles prominent
+on subtle theme surfaces, with existing disclosure controls and deep links.
+Setup, continuation and optional-resource guidance belongs in a smaller muted
+helper card; preserve visible prerequisites and functional links. Reuse approved
+light/dark tokens. The sidebar and Next lesson action remain available.

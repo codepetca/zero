@@ -83,6 +83,21 @@ test("relative links preserve fragments and route only maintained documents or a
   );
 });
 
+test("tutorial navigation prose and rules are removed without changing instructions or code", () => {
+  const markdown = "# Lesson\n\nPrevious: [Your study quiz](07-study-app.md).\n\n---\n\n## 2. Connect Player to your existing Main\n\nKeep your existing Main.\n\n---\n\n```text\nPrevious: keep this literal\n---\n```\n\nNext: [Coins](09-coin-game.md).";
+  const render = (lesson) => renderToStaticMarkup(React.createElement(Markdown, {
+    remarkPlugins: [remarkGfm], rehypePlugins: [[foldSections, { lesson }]], children: markdown,
+  }));
+  const html = render(true);
+  assert.doesNotMatch(html, /Your study quiz|href="09-coin-game.md"|<hr/);
+  assert.match(html, /id="2-connect-player-to-your-existing-main"/);
+  assert.match(html, /Keep your existing Main\./);
+  assert.match(html, /<code class="language-text">Previous: keep this literal\n---\n<\/code>/);
+  const guide = render(false);
+  assert.match(guide, /Your study quiz/);
+  assert.match(guide, /<hr/);
+});
+
 test("the course guide renders a clickable local starter link while remaining usable as GitHub Markdown", () => {
   const source = "docs/COURSE-PROJECT.md";
   const markdown = readFileSync(new URL("../../docs/COURSE-PROJECT.md", import.meta.url), "utf8");
@@ -160,6 +175,7 @@ test("every lesson has a visible target illustration and quick checkpoint before
     }));
     const image = html.indexOf(`<img src="visuals/${name}.svg"`);
     assert.match(html, /class="lesson-quick-path"/);
+    assert.doesNotMatch(html, /<p>Previous:\s/, `Lesson ${name} must omit previous navigation`);
     assert.ok(image >= 0 && image < html.indexOf("<details"), `Lesson ${name} target must be visible`);
     assert.ok(html.indexOf("<ol>") < html.indexOf("<details"), `Lesson ${name} actions must be visible`);
     assert.equal(resolveContentLink(`student-template/lessons/${file}`, `visuals/${name}.svg`, {}, {}, lessonAssets), `/generated/learning-assets/lessons/${name}.svg`);
