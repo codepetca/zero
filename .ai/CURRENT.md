@@ -14,7 +14,16 @@ Local implementation/testing is authorized. Source push/merge, template publicat
 distribution/signing/deployment, new game publication and ZeroHub activation remain
 held. Earlier scoped Sky Hop Pages proof is accepted. Overall goal is incomplete.
 
-## Latest phase — compact setup wizard locally accepted
+## Active single-page simplification
+
+Owner keeps GitHub separate and now requests all steps on one concise page.
+Coordinator removes client wizard/hash/focus state, preserves native anchors,
+verified-template gating and public entry points, then checks website tests/types/
+build and actual desktop/mobile/keyboard flow. One fast-tier independent review
+will cover this local presentation change. No live publication authority added.
+Base0fef405; weekly65%remaining shared, storage339GB healthy; DeepSeek paused.
+
+## Prior phase — compact setup wizard locally accepted
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
 Reviewed source1a9f9f6 replaces the long guide with four short screens: GitHub,

@@ -9,74 +9,62 @@ import { projectForLesson, publishedTutorialTemplate } from "../lib/learning.mjs
 const source = await readFile(new URL("../components/GetStarted.jsx", import.meta.url), "utf8");
 const js = ts.transpileModule(source, {
   compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext },
-}).outputText
-  .replace('"react/jsx-runtime"', JSON.stringify(import.meta.resolve("react/jsx-runtime")))
-  .replace('"react"', JSON.stringify(import.meta.resolve("react")));
-const { GetStarted, GetStartedStep, wizardStep } = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
-const routeSource = await readFile(new URL("../app/get-started/page.tsx", import.meta.url), "utf8");
-const render = (step, template = null) => renderToStaticMarkup(createElement(GetStartedStep, { step, template }));
+}).outputText.replace('"react/jsx-runtime"', JSON.stringify(import.meta.resolve("react/jsx-runtime")));
+const { GetStarted } = await import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
+const render = (template = null) => renderToStaticMarkup(createElement(GetStarted, { template }));
 const fixture = { templateHref: "https://github.com/fixture-owner/verified-greeting/generate" };
+const projectSection = html => html.slice(html.indexOf('<section id="project"'), html.indexOf('<section id="lesson"'));
 
-test("first screen shows one GitHub entry and no later steps or website login form", () => {
-  const html = renderToStaticMarkup(createElement(GetStarted, { template: null }));
-  assert.match(html, /Step 1 of 4/);
-  assert.match(html, /href="https:\/\/github.com\/login" target="_blank" rel="noopener noreferrer">Continue with GitHub/);
-  assert.equal((html.match(/class="guide-button"/g) || []).length, 1);
-  assert.doesNotMatch(html, /Download Zero|Create my project|Start lesson 0|<input|<form|oauth|access_token/i);
-  assert.match(html, /href="\/docs\/setup#before-lesson-0-github-and-privacy"/);
-});
-
-test("bookmark and browser-history steps stay bounded, including the old sharing link", () => {
-  for (const id of ["github", "install", "project", "lesson"]) assert.equal(wizardStep(`#${id}`), id);
-  for (const hash of ["", "#unknown", "#https://github.com", "#__proto__"]) assert.equal(wizardStep(hash), "github");
-  assert.equal(wizardStep("#sharing"), "lesson");
-});
-
-test("skip-to-content preserves the current wizard step instead of restarting setup", () => {
-  for (const step of ["github", "install", "project", "lesson"]) {
-    assert.equal(wizardStep("#page-content", step), step);
+test("all setup steps are readable together with public downloads and direct GitHub choices", () => {
+  const html = render();
+  let previous = -1;
+  for (const id of ["github", "install", "project", "lesson"]) {
+    const position = html.indexOf(`<section id="${id}"`);
+    assert.ok(position > previous, `${id} follows previous step`);
+    previous = position;
   }
-  assert.equal(wizardStep("#page-content"), "github");
-});
-
-test("installation stays public with platform labels and useful setup help", () => {
-  const html = render("install");
+  for (const url of ["https://github.com/login", "https://github.com/signup"]) {
+    assert.ok(html.includes(`href="${url}" target="_blank" rel="noopener noreferrer"`));
+  }
   assert.match(html, /href="\/downloads">Download Zero/);
+  assert.match(html, /Download and launch Zero/);
   assert.match(html, /Mac with Apple Silicon or Windows ZIP \(manual setup\)/);
-  assert.match(html, /check Java and Git/);
-  assert.match(html, /href="\/docs\/setup"/);
-  assert.doesNotMatch(html, /signed in successfully|account verified|<form/i);
-});
-
-test("project fixtures retain verified publication availability and an owned clone before coding", () => {
-  const missing = render("project");
-  assert.match(missing, /Template not available yet/);
-  assert.match(missing, /Ask your teacher/);
-  assert.match(missing, /your own already-cloned Greeting app/);
-  assert.doesNotMatch(missing, /href="https:\/\/github.com|Create my project|\.zip/);
-  const published = render("project", fixture);
-  assert.ok(published.includes(`href="${fixture.templateHref}"`));
-  assert.match(published, /repository in your GitHub account/);
-  assert.match(published, /your repository/);
-  assert.match(published, /Code → HTTPS/);
-  assert.match(published, /Git: Clone/);
-  assert.match(published, /open the folder/);
-  assert.match(published, /this repository.*Git name and email before your first upload/);
-  assert.doesNotMatch(published, /Template not available yet/);
-});
-
-test("lesson keeps local Run, reviewed optional public publishing and separate submission guidance", () => {
-  const html = render("lesson");
   assert.match(html, /href="\/tutorials\/0">Start lesson 0/);
-  assert.match(html, /Open your cloned project before coding/);
+  assert.doesNotMatch(html, /Step 1 of|Already installed\?|My project is open|<form|<input|access_token/);
+});
+
+test("unpublished template remains unavailable without blocking the rest of the page", () => {
+  const html = render();
+  const project = projectSection(html);
+  assert.match(project, /Template not available yet/);
+  assert.match(project, /your own already-cloned Greeting app/);
+  assert.doesNotMatch(project, /href="https:\/\/github.com|Create my project|\.zip/);
+  assert.match(html, /href="\/tutorials\/0"/);
+});
+
+test("published template links only supplied metadata and teaches an owned clone", async () => {
+  const html = render(fixture);
+  assert.ok(projectSection(html).includes(`href="${fixture.templateHref}"`));
+  assert.match(html, /Create your own repository from the template/);
+  assert.match(html, /Code → HTTPS URL/);
+  assert.match(html, /Git: Clone/);
+  assert.match(html, /open the folder/);
+  assert.doesNotMatch(html, /Template not available yet/);
+  const route = await readFile(new URL("../app/get-started/page.tsx", import.meta.url), "utf8");
+  assert.match(route, /publishedTutorialTemplate\(project.id\)/);
+  assert.match(route, /projectForLesson\("0"\)/);
+  const current = render(publishedTutorialTemplate(projectForLesson("0").id));
+  if (publishedTutorialTemplate("greeting") === null) assert.match(current, /Template not available yet/);
+});
+
+test("optional help preserves identity, offline Run, public Publish and separate submission", () => {
+  const html = render();
+  assert.match(html, /href="\/docs\/setup#before-lesson-0-github-and-privacy"/);
+  assert.match(html, /<details id="sharing">/);
+  assert.match(html, /this repository.*Git name\/email before your first upload/);
   assert.match(html, /offline once build tools are cached/);
   assert.match(html, /nothing uploads automatically/);
   assert.match(html, /Publish app is optional and public/);
   assert.match(html, /First Publish confirms the destination; later Publish updates that site/);
   assert.match(html, /separately in Pika/);
-  const route = routeSource;
-  assert.match(route, /publishedTutorialTemplate\(project.id\)/);
-  assert.match(route, /projectForLesson\("0"\)/);
-  const current = render("project", publishedTutorialTemplate(projectForLesson("0").id));
-  if (publishedTutorialTemplate("greeting") === null) assert.match(current, /Template not available yet/);
 });

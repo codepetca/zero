@@ -144,7 +144,7 @@ rules remain. Preserve current visual design and ordinary Java.
 ## First visit — owner decision, 2026-10-15
 
 The owner approved one Get started entry and a returning-student tutorial link.
-Reuse the restrained shared theme and typography for the public four-step wizard;
+Reuse the restrained shared theme and typography for the public four-step page;
 GitHub preparation comes before download, but neither browsing nor downloads
 requires website authentication. GitHub handles account creation/sign-in. Link
 Downloads back to project creation after installation, and starting lessons back
@@ -160,3 +160,10 @@ tab, then installation. No website OAuth or verified account state. Preserve
 Back/Next and bookmarked step URLs; existing sharing links open the final step.
 Keep privacy/setup/sharing detail available through concise disclosures and
 canonical guides. No forced-height or scrolling restriction.
+
+## Single-page setup — owner correction, 2026-10-15
+
+Supersedes the wizard: show four concise steps together with direct links for
+GitHub sign-in/account creation, download/launch, owned project/clone and lesson0.
+Keep GitHub separate; no website OAuth, automatic advance, progress state or
+Back/Next controls. Preserve ordinary section anchors and optional help.

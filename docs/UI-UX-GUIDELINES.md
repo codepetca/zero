@@ -32,8 +32,8 @@ marks a preferred pattern with documented, task-specific exceptions.
   copying its link, uploading a branch and completing main are distinct states.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,
   Starting from zero., Get started → `/get-started` and a quieter Already set up?
-  Continue tutorials → `/learn` link. The public wizard shows GitHub, install, owned tutorial repository/clone and lesson0
-  one step at a time; sharing details remain available on demand.
+  Continue tutorials → `/learn` link. The public setup page shows GitHub, download/launch, owned tutorial repository/clone
+  and lesson0 together; sharing details remain available on demand.
   Keep the centered stack and shared light/dark themes without promotional sections.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.
   Follow the editor's established controls, theme colors, keyboard behavior and
