@@ -14,8 +14,18 @@ Retired-source preparation now recognizes both removed class filenames, preserve
 edited/unrecorded files and excludes them from new kit archives. Kit tests cover
 both missing-ownership cases and archive absence. Six kit tests,95website tests,
 typecheck/production build,45sharing tests and3lesson scaffold builds pass.
-Root and CI results, exact review and source delivery are recorded by this branch's
-PR; no Mac GUI success or binary release is claimed by a rename-only source pass.
+Root265pass/1skip initially passed. A subsequent integration review identified
+two preservation defects in the existing retirement path: dangling current output
+links could bypass existsSync and permit removal before a failed write; linked
+output directories could redirect retirement into external backup directories.
+Coordinator reproduced both in disposable folders and held merge despite green CI.
+Imported only the correction and regression cases from6258daf, retaining this
+branch's two-class App/GameApp source inventory and excluding unrelated browser
+helpers/media fixture changes. Preflight now uses lstat on output ancestors,
+current/retired leaves and ownership-state paths before any unlink/write. Eight
+focused kit tests and configuration/docs check pass after the correction. Exact
+initial/targeted review and final CI/source delivery are recorded by this branch's
+PR. No Mac GUI success or binary release is claimed by this source pass.
 
 A bounded GPT-6.1 Sol/medium worker prepared eight template commits and own-wrapper
 clean compiles, preserving exact tracked inventory, modes and bytes apart from
