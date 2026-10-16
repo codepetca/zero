@@ -32,6 +32,13 @@ test("bookmark and browser-history steps stay bounded, including the old sharing
   assert.equal(wizardStep("#sharing"), "lesson");
 });
 
+test("skip-to-content preserves the current wizard step instead of restarting setup", () => {
+  for (const step of ["github", "install", "project", "lesson"]) {
+    assert.equal(wizardStep("#page-content", step), step);
+  }
+  assert.equal(wizardStep("#page-content"), "github");
+});
+
 test("installation stays public with platform labels and useful setup help", () => {
   const html = render("install");
   assert.match(html, /href="\/downloads">Download Zero/);

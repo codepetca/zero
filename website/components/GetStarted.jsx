@@ -10,8 +10,9 @@ const titles = {
   lesson: "Make your first app",
 };
 
-export function wizardStep(hash) {
+export function wizardStep(hash, current = "github") {
   const id = String(hash).replace(/^#/, "");
+  if (id === "page-content") return current;
   return steps.includes(id) ? id : id === "sharing" ? "lesson" : "github";
 }
 
@@ -64,12 +65,22 @@ export function GetStartedStep({ step, template, onGitHub, headingRef }) {
 export function GetStarted({ template }) {
   const [step, setStep] = useState("github");
   const heading = useRef(null);
+  const content = useRef(null);
+  const currentStep = useRef("github");
   const navigated = useRef(false);
 
   useEffect(() => {
     const sync = () => {
+      const next = wizardStep(window.location.hash, currentStep.current);
+      // The shared skip link changes the fragment for focus, not the wizard step.
+      if (window.location.hash === "#page-content") {
+        window.history.replaceState(window.history.state, "", `#${next}`);
+        content.current?.focus();
+        return;
+      }
+      currentStep.current = next;
       navigated.current = true;
-      setStep(wizardStep(window.location.hash));
+      setStep(next);
     };
     sync();
     window.addEventListener("hashchange", sync);
@@ -85,7 +96,7 @@ export function GetStarted({ template }) {
   }, [step]);
 
   const index = steps.indexOf(step);
-  return <main id="page-content" tabIndex={-1} className="get-started">
+  return <main id="page-content" tabIndex={-1} ref={content} className="get-started">
     <div className="setup-wizard">
       <p className="guide-progress">Step {index + 1} of {steps.length}</p>
       <GetStartedStep key={step} step={step} template={template} headingRef={heading}
