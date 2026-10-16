@@ -1,75 +1,65 @@
-# Current state — selected compact sidebar integration, 2026-10-16
+# Current state — compact sidebar installed and tested, 2026-10-16
 
 Coordinator Lead publishing task, thread01a13f98-55fc-7471-9038-1198b14d5a98.
 Use /Users/stew/.codex/worktrees/web-export/zero, branch codex/web-export.
-Goal: ordinary Java, explicit updates, browser-first Run, strict WebFX compatibility,
-student-owned GitHub publication of locally tested builds, ZeroHub Play links.
-Pika stays separate. Overall release remains incomplete; no new goal/task/automation.
+Goal: ordinary Java, explicit updates, browser-first Run, strict WebFX, student-owned
+GitHub publication of locally tested builds and ZeroHub Play. Pika stays separate.
+Overall release remains incomplete; no new goal/task/automation.
 
-Owner approved website direct Mac Silicon/Windows downloads → desktop GitHub
-session reuse/Connect → own template-created/cloned tutorials. No website OAuth
-or separate Zero account. Live actions explicit; no automatic uploads. Public
-3tutorial templates and private armorup trials authorized. Source push/merge,
-Zero release/signing/website, new playable-game publication and ZeroHub activation
-remain held for this coordinator. Upstream App/GameApp rename PR68 is merged
-as e7b9b4d; verified CI38844612121 passed on41972c5. It includes this task's
-preservation fix while retaining main's2helpers; this preview keeps7helpers.
+Authority: owner approved tutorial templates/private armorup trials and this compact
+sidebar/website follow-up. No feature source push/merge, website/Zero release/signing,
+new public game or ZeroHub activation authority added. Another chat reserved stable
+0.5.17/native17/core0.2.0 for its separately authorized two-helper API release; our
+future browser feature release must advance beyond those versions and coordinate
+final pins. Do not overwrite its artifacts or claim its release includes this work.
 
-Reviewed/package6258daf integrates App/GameApp, no alias, all7helpers/98decls,
-core0.1.3/profilev2 and strict fingerprints. Final3tutorial pins anonymously match
-20-file original drafts after both renames; all7helper bytes canonical. Five older
-example pins synchronized through verified identifier-only updates; their strict
-browser acceptance remains. No student project silently rewritten.
+Reviewed source e4e9629: initial19-file onboarding2e91259, complete40-file selected
+layout642a2f4 and8-file correction covered independently. One supported zero.actions
+webview contains controls+accessible files; no duplicate native collapse header or
+GitHub/ZeroHub headings. Start tutorial is welcome/empty + native overflow; Clone
+repository stays visible. Commit & push commits if needed/pushes current branch;
+Merge to main merges then pushes main. Publish remains separate. Detailed errors
+use Zero Output/Problems; short status remains. No Java/helper/exporter changes.
+All7canonical helpers/98declarations/core0.1.3/browser profilev2 remain in preview.
 
-Checks accepted: initial root446(445pass/1PowerShellskip), updated8kit/extracted
-Maven,8adapter/6lesson, website108/types/build,5realGWT+53browser, native framework/
-57audio,26examples across preserved+focused corrected runs,16progression variants,
-3scaffold compiles, package/verify-kit/source/license/modes/retired-class absence.
-Sol/high initial+targeted review,2P2preservation bugs fixed in1batch, clean corrected
-verdict. Worker Sol/medium verification/preparation; no shared edits. Effective
-model/tokens/time unknown. Weekly61%remaining shared;335.5GBhealthy; DeepSeek paused.
+Source review: Sol/high, complete initial+selected+targeted correction coverage;
+2P2focus/backpressure blockers fixed in1batch, clean final verdict.4launch equivalents
+include1non-review reproduction handoff,1initial/2targeted/0integration waves.
+No further integration wave adds code coverage. Effective model/tokens/exact reviewer
+runtime unknown; dispatch-to-receipt intervals recorded, no cost inferred. Native
+Sol/high extension writer and Sol/medium website writer delivered bounded scopes.
+Weekly59%remaining reused shared reading;329.5GBhealthy fresh; DeepSeek paused.
 
-Candidate dist/candidates/zero-0.5.16-app-gameapp-6258daf is installed only in owned
-nested Zero/editor preview profile; exact installed bytes and host reload verified.
-Actual native Study/Game Git:Clone/Open in New Window/account+origin detection,
-ordinary Java edits/Run/control+arrow interactions/Stop passed. Game unchanged
-rerun reused validated build and reset state. All3preview URLs refused connections
-after Stop. Original commits68e3bc6/df83829 retained, only local Main.java modified;
-all7helpers canonical. Earlier Greeting trial remains stopped with remote initial
-9ff5904 and local Main edited; it used the preceding API generation. No uploads,
-account grants or publication. Owned trial folders in ~/Zero Preview Testing/;
-preserve original apps/source/profile and all trial evidence.
+Final checks: root459tests458pass/1PowerShellskip,45focused, website108/types/build,
+package/extracted-kit parity/licenses/modes/Maven pass. Earlier real5GWT/53browser,
+native framework/57audio,26examples/16progression/3scaffolds reused for unchanged
+Java/engine. Design QA combined source+native screenshots passed, with intentional
+host fonts/icons; fixture dark/highcontrast/200% evidence is not native OS acceptance.
 
-Strict gate demonstrated actual DODGERBLUE source30:14 error; ordinary Color.web
-recovery passed, policy unchanged. Command+A replacement on an outer preview
-field did not work in one automation attempt; Backspace worked. Cause unisolated.
+Installed candidate dist/candidates/zero-0.5.16-sidebar-e4e9629 only in owned nested
+Zero/editor profile; all authored VSIX files exact, authored manifest equal after
+VS Code __metadata exclusion; host reload verified. Actual Mac flow: Start tutorial
+via overflow → Study template → new private armorup/zero-sidebar-flow-trial-20261016
+→ visible Clone → dedicated ~/Zero Preview Testing/sidebar-flow-20261016/ → Open
+in New Window → account/origin/Main detection → ordinary Java syntax error15:53 →
+Problems/Output → fix → Run/incorrect+correct controls → unchanged cached Run/Stop.
+Both preview URLs refused after Stop. Native file keyboard, nested focus during
+watcher create/delete, hide/show expansion and empty sidebar Start tutorial pass.
+New branch and Commit & push reviews cancelled. Main/initial073908c retained, only
+local Main changed;20tracked files/all7helpers canonical. Prior Study/Game Main
+hashes exactly preserved; original Greeting trial remains prior API and stopped.
+No fresh signup/grant, live push/merge or Pages/ZeroHub publication repeated.
 
-Active follow-up: user selected concept3, one continuous panel, then requested
-GitHub terms. Functional Start tutorial/Clone source2e91259 independently clean;
-451tests450pass/1PowerShellskip, website108/types/build, package/verify-kit passed.
-Selected refinement implements one supported webview for controls and files,
-removes separate zero.files/header and GitHub/ZeroHub headings, keeps Start
-tutorial on welcome/empty and native overflow, visible Clone repository, compact
-run status with detailed Zero Output. Commit & push commits if needed and pushes
-the current branch; Merge to main merges then pushes main (separate Publish app).
-No Java/helper/exporter changes. The installed native preview remains6258daf;
-new selected layout must be reviewed, packaged, installed and clicked through.
-One writer: /root/unified_sidebar owns extension runtime/styles/manifest/tests
-and design playground adapter/tests; website worker finished matching instructions.
-Parent owns docs, integration, UI tests and candidate. Active evidence/ledger:
-.verification/sidebar-onboarding-20261016/. Initial source review clean; new
-layout/terms delta awaits proportional independent review. Selected target:
-~/.codex/generated_images/01a13f98-55fc-7471-9038-1198b14d5a98/
-exec-2051d29b-f561-4f48-bb05-6306be3e0c83.png. Website candidate localhost62570
-shows correct0/3/8 template links and Git terms; native full flow and design QA
-remain. No source push, website deployment or release authority added.
+Website candidate localhost62570 has two platform buttons, correct0/3/8 template
+links, continuation9 and matching Git/sidebar instructions. Hosted site and public
+template READMEs still need aligned release updates; do not silently republish them.
+Before release: integrate/review final source+version/pins/CI, align desktop/site/
+template instructions, final installer/Windows/school/novice and full live Git/
+Pages acceptance, ZeroHub trusted policy+public Play alignment, Mac signing/
+notarization/stapling/sealing with separate authority. Public Sky Hop proof unchanged.
 
-Physical Windows/school hardware/network/sound,
-final native consent/upload/branches/Finish/Publish/Open/Copy, ZeroHub trusted policy
-alignment/public Play, native focus timeout, source CI and Mac build3 signing/
-notarization/stapling/sealed release remain. Release aligned desktop+site only
-with authority. Public Sky Hop proof unchanged; no new deployment here.
-
-Evidence: docs/EVIDENCE.md, VERIFICATION.md, RELEASE-0.5.16.md and ignored
-.verification/gameapp-web-integration/. Prior phase details:
-[armorup before rename](archive/armorup-before-app-gameapp-2026-10-15.md).
+Latest evidence: design-qa.md, docs/EVIDENCE.md, docs/VERIFICATION.md,
+docs/RELEASE-0.5.16.md; ignored .verification/sidebar-onboarding-20261016/ receipts,
+review-ledger.json and native screenshots. Prior7helper native/API evidence under
+.verification/gameapp-web-integration/ and earlier dated sections. Keep all private
+trials/profiles and frozen candidates; do not modify other chats/checkouts.

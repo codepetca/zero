@@ -1,31 +1,28 @@
 # Zero 0.5.16 release preparation
 
-Status: **local review candidate, not a student release**. Kit/extension0.5.16,
-readable core0.1.3, next native Mac build3. Published0.5.14 kit downloads and
-0.5.15 Mac installer/update feed remain unchanged. Candidate hashes, source
-revision and check results are retained under `.verification/student-release-0.5.16/`
-and in the local candidate directory. Nothing in this preparation grants source
-publication, deployment, signing or account authority.
+Status: **local preview, not a student release**. Kit/extension0.5.16/core0.1.3
+are retained for isolated testing. Another chat reserved stable0.5.17/native17/
+core0.2.0 for its separately authorized App/GameApp release; this browser feature
+must advance beyond those versions before release. This branch preserves prior
+sealed public assets and does not publish or overwrite that chat’s artifacts.
 
-Latest reviewed/package source `6258daf`, local candidate
-`dist/candidates/zero-0.5.16-app-gameapp-6258daf`, integrates App/GameApp with
-strict seven-helper browser profilev2. Five real GWT builds,53browser checks,
-root445pass/1PowerShellskip, updated8kit tests, website108/types/build,
-native framework/audio,26examples,16progression variants and three scaffold
-builds pass. Independent initial+targeted source review is clean after one
-preservation fix batch. Installed VSIX bytes match the reviewed source in the
-owned nested preview; reload and new native Study/Game clone/run/interact/stop
-trials passed on2026-10-16, including unchanged Game rerun.
+Latest reviewed/package source `e4e9629`, candidate
+`dist/candidates/zero-0.5.16-sidebar-e4e9629`, adds the owner-selected continuous
+sidebar and matching Git terms to the seven-helper strict browser preview. Actual
+Mac private-template creation/Clone/Open in New Window/account+origin detection,
+ordinary App edit/source-error recovery/Run/controls/cached Run/Stop, file keyboard/
+watcher focus/hide-show and empty state pass. New branch and Commit & push reviews
+were cancelled, preserving initial073908c/main and local-only Main edits. No fresh
+signup/grant or live push/merge/Pages repeated. Full root458pass/1PowerShellskip,
+website108/types/build, package/extracted kit and source/design review pass.
+Two P2focus/queue issues were fixed in one reviewed batch. See
+[latest verification](VERIFICATION.md) and [design QA](../design-qa.md).
 
-Home retains direct Mac Silicon and Windows ZIP choices. Desktop reuses native
-GitHub sessions or prompts Connect. The three renamed public tutorial templates
-are verified/pinned; earlier armorup private Greeting create/clone/edit/Run/Stop
-passed in its preceding preview. New private Study/Game trials now also pass
-with App/GameApp and strict compatibility recovery. No separate Zero account. Fresh
-signup/new grant, Upload/Publish and final native installer acceptance remain.
-The live Study lesson was rechecked2026-10-16 and still gives ZIP tutorial setup; website and desktop must be
-released together. Five complete example templates need strict browser acceptance
-beyond their identifier updates. See [verification](VERIFICATION.md).
+Website instructions are prepared and browser-checked locally with correct three
+template links, continuing-project lessons and direct Mac Silicon/Windows choices.
+Hosted website and public template README Git labels still need an aligned update.
+No feature source push, website deployment, signing, public game or student release
+is authorized by this preview handoff. Existing Sky Hop proof remains unchanged.
 
 ## What students receive
 
@@ -34,8 +31,11 @@ readable helper source. Run App saves and checks locally, compiles a compatible
 browser app and opens its preview; Stop closes it. Unsupported Java APIs produce
 source-position errors. Native running remains a diagnostic option.
 
-The GitHub section provides Upload changes and Publish app. Actions are live by
-default. Upload and branch actions keep their review/confirmation steps; tutorial
+The sidebar provides Commit & push and Publish app; Merge to main appears on a
+change branch. Commit & push creates a commit if needed and pushes that branch;
+Merge to main merges then pushes main. Actions are live by default and retain
+review/confirmation steps. Start tutorial is on welcome/empty and the native
+**…** menu, with Clone repository visible. Tutorial
 projects require their own template-created repository and clone, then use the
 same GitHub workflow. First Publish confirms its destination;
 later explicit Publish actions update that approved site without another

@@ -1,5 +1,49 @@
 # Delivery evidence index
 
+## Selected compact sidebar and fresh native student trial — 2026-10-16
+
+Reviewed source `e4e9629`, local immutable candidate
+`dist/candidates/zero-0.5.16-sidebar-e4e9629`, is installed only in the owned nested
+Mac preview. All authored extension files match the VSIX; the authored manifest
+matches after excluding VS Code’s added installation metadata. Host reload verified.
+One supported view now contains controls and accessible files. Start tutorial is
+welcome/empty or native overflow; Clone stays visible. Git actions use Commit &
+push and Merge to main, with truthful review text. Publish remains separate.
+
+Actual native trial created private `armorup/zero-sidebar-flow-trial-20261016` from
+the Study template, copied its HTTPS URL and used visible Clone → separate local
+destination → Open in New Window. Account/origin/Main were detected. Ordinary App
+code produced the intended syntax error at15:53; Show Problems and Show Output
+worked. After correction, Run rendered the quiz and3→Try again/4→Correct passed.
+An unchanged Run reported Validated browser build ready and reset state; both Stop
+URLs refused connections. Native Up/Down/Right/Return, readable helper opening,
+nested focus across watcher create/delete, sidebar hide/show expansion and empty
+Start tutorial passed. New branch and Commit & push reviews were cancelled; the
+initial073908c/main remain and only local Main.java is modified. All7helpers are
+canonical. Prior Study/Game Main hashes exactly match their earlier receipts.
+VS Code reused an already-open clone when its URL was entered; that was expected
+native repository-cache behavior, not a failed clone. Fresh trial tested new cloning.
+
+Final root459tests458pass/1PowerShellskip;45focused checks, website108/types/build,
+package/extracted kit pass. Real candidate website has0/3/8 correct template links,
+continuation9, two platform download choices and matching instructions. Combined
+source/native design QA passed. One Sol/high writer and Sol/medium website writer
+were coordinated; independent Sol/high initial/selected/correction review found
+2P2focus/queue blockers, fixed in1batch, final clean. Four launch equivalents count
+one reproduction-source handoff; no redundant integration review. Tokens/effective
+configuration/exact reviewer execution time unknown; observed dispatch intervals
+recorded without inferring cost. Fresh storage329.5GBhealthy; weekly59%remaining
+shared reading reused; DeepSeek pause honored.
+
+Receipts/screenshots/review ledger: `.verification/sidebar-onboarding-20261016/`;
+visual report: [design QA](../design-qa.md). No new public game, feature source push,
+website/student release, credentials or access grant. One authorized private test
+repository was created. Native fresh signup/consent, live push/merge/Pages and
+physical Windows/clean installer/school/novice remain separate acceptance. Public
+template README Git wording and hosted website need the aligned release update.
+The separately coordinated stable0.5.17/native17/core0.2.0 reservation must be
+respected; this feature preview will use a later release version.
+
 ## Armorup Study/Game native trial accepted — 2026-10-16
 
 Installed reviewed source6258daf candidate was reloaded in the owned nested
