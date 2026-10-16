@@ -1,5 +1,49 @@
 # Verification
 
+## 0.5.18 Mac preview integration baseline — 2026-10-16
+
+Local reviewed baseline e049c9d integrates main456b490 with the browser-first
+student workflow, seven helper profile, tutorial editor and browser actions.
+Versions are local0.5.18/core0.2.1/native18; published17 assets/feed remain exact.
+Hello now uses ordinary themed JavaFX controls and a supported Font. Its actual
+unmodified generated project compiles in WebFX; Chrome blank/name/Enter/reset
+and59servedfiles/2,263,877bytes match. Native Hello ARM17 also passes. Actual
+installed0.5.18 Study Run→ChromeCorrect→Stop, tutorial placement and Publish menu
+pass;105authoredfiles match the accepted9aa candidate/installation. Eight trial
+Main hashes and original main HEAD/status are preserved.
+
+Baseline root502tests501pass/1PowerShellskip; website109/types/build pass; final
+33guide/lesson/auth checks pass. Three scaffold compiles,16progressionvariants and
+two media reruns pass. Release tooling115pass/2optional skips. Unsigned9aa universal
+Mac DMG build/payload verification pass; ad-hoc only, no Developer ID/notarization
+or installer execution. Historical candidate retained; later changed inputs must
+be rebuilt. Current finite native framework checks remain inconclusive at window
+focus (x86helpersphase0; ARMsmokephase2twice), not a passed current native suite.
+
+Independent Sol/high review: complete62file baseline then four targeted waves,
+four correction batches, finalclean. One P2 stale Hello preview resolved with the
+verified canonical capture; subsequent guide/menu fixture corrections accepted.
+Legacy review budget closed; no extra remediation authorized by the workflow.
+A first root run loaded the obsolete Hello-CSS rejection while source was repaired;
+it was stopped, logged and replaced by the coherent passing ARM17 run. No task
+cost/worker token/runtime savings inferred from account usage. Recent49%weekly
+remaining and healthy319GBstorage; DeepSeek stays paused.
+
+Five anonymously retrieved public example archives match their exact pinned Git
+trees, but all retain two outdated helpers and fail the strict profile; local
+corrected drafts prepared. Three tutorials already match all21helperhashes.
+Published17 kit/starter/VSIX/MacDMG and updater feed were anonymously rechecked:
+all exact. Pinnedbeaaca4 trusted policy rejects web receipts; local current
+contract accepts them. No public policy/template update, live Git/Pages/ZeroHub
+operation, push/deploy/signing or release was performed. Windows physical testing
+is explicitly deferred by owner in favor of Mac preview first.
+
+Next owner-approved Project/Clone flow is being integrated separately with the
+same coordinator and one final installer/UI owner; this baseline is not a final
+release claim. Local records: `.verification/release-readiness-20261016/` review,
+tests, template audit/drafts, native/Chrome captures, candidate parity, preservation,
+public-downloads-17/receipt.json and release-tooling-9aa3f6a/RESULT.md.
+
 ## Tutorials beside Java and Open in browser accepted — 2026-10-16
 
 Owner selected tutorial option 2: an editor tab beside ordinary Java, with Open in

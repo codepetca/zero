@@ -50,7 +50,8 @@ retest the integrated source where affected rather than leaving stale blockers.
   proof remains valid history, not a new candidate's end-to-end acceptance.
 - ZeroHub trusted policy must admit verified web receipts before current candidate
   Play can be accepted; local fixtures are not live catalog membership.
-- Complete physical Windows and school/novice trials. Mac/PowerShell fakes cannot
+- Physical Windows is deferred by the owner for the Mac preview; complete it
+  before accepting the Windows release. School/novice trials remain separate. Mac/PowerShell fakes cannot
   establish Windows installation, security policy or classroom usability.
 - Prepare signed/notarized/stapled Mac distribution and exact sealed candidate only
   under separate authority, then final CI and publication decision. Keep immutable
@@ -59,3 +60,17 @@ retest the integrated source where affected rather than leaving stale blockers.
 Local evidence will be recorded in EVIDENCE/VERIFICATION and ignored
 `.verification/release-readiness-20261016/`. Remaining external gates must be
 reported honestly; build success alone does not mean ready to release.
+
+## Accepted local baseline and next milestone
+
+Reviewed e049c9d is accepted for local Mac preview:501root pass/1runtime skip,
+109website pass/types/build,33targeted guide checks, tutorial/progression and
+release tooling pass. Actual installed preview and Hello Chrome checks pass;
+current native focus-dependent framework harness remains inconclusive.
+Unsigned9aa Mac DMG/payload passed but is a historical artifact, not signed release.
+
+The owner then approved the simpler Project/Clone flow with default
+`~/Zero Projects` and Open local project. This is the current integration milestone;
+its reviewed source, aligned guides, final artifact and installed checks must land
+before release readiness can be declared. Current authority still excludes pushes,
+CI dispatch, template/policy activation, Developer ID/notary and publication.
