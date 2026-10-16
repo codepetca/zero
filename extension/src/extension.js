@@ -451,7 +451,7 @@ function activate(context) {
         const nativeRepository = gitApi?.getRepository(vscode.Uri.file(root));
         if (!nativeRepository || await fs.realpath(nativeRepository.rootUri.fsPath) !== root) throw new Error('Open this project in VS Code Source Control and enable the built-in Git extension, then try Switch branch again.');
         if (await project() !== root) return;
-        if (!gitApi.repositories.includes(nativeRepository)) throw new Error('This project was closed in Source Control. Reopen it, then try Switch branch again.');
+        if (!gitApi.repositories.some(candidate => candidate.rootUri.fsPath === nativeRepository.rootUri.fsPath)) throw new Error('This project was closed in Source Control. Reopen it, then try Switch branch again.');
         // Native Git owns branch selection and dirty-file/conflict recovery.
         // Pass the exact project URI instead of asking it to choose a repository.
         await vscode.commands.executeCommand('git.checkout', vscode.Uri.file(root));
