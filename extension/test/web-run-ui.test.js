@@ -100,6 +100,19 @@ test('browser preview uses the freshly validated immutable files instead of the 
  t.after(()=>api.disposables.forEach(d=>d.dispose()));await api.preview('/project',{sitePath:'/unvalidated'});assert.deepEqual(seen,[{site:'/validated/site',files}]);
 });
 
+test('preview passes the current project tutorial column only after root and lifecycle guards',async t=>{
+ let active='/project',column=2;
+ const selected=[],opened=[];
+ const api=createBrowserRunCommands({workspace:{onDidChangeWorkspaceFolders:()=>({dispose(){}})}},{project:async()=>active,output:{appendLine(){}},validateExport:async({result})=>result,preferredPreviewColumn:root=>{selected.push(root);return root==='/project'?column:undefined;},previewFactory:async(_,site,options)=>{opened.push({site,column:options.viewColumn});return {dispose(){}};}});
+ t.after(()=>api.disposables.forEach(d=>d.dispose()));
+ const result={sitePath:'/site'};
+ await api.preview('/project',result);column=3;await api.preview('/project',result);
+ active='/other';await api.preview('/other',result);
+ assert.deepEqual(selected,['/project','/project','/other']);assert.deepEqual(opened,[{site:'/site',column:2},{site:'/site',column:3},{site:'/site',column:undefined}]);
+ await api.preview('/project',result);assert.equal(selected.length,3,'Mismatched roots never select a column or open a preview');
+ api.disposables[0].dispose();await api.preview('/other',result);assert.equal(selected.length,3,'Disposed controllers never select a column or open a preview');assert.equal(opened.length,3);
+});
+
 test('Problems deduplicates source errors repeated in the summary and compiler log',async t=>{
  const h=harness(t);h.building=()=>{throw Error('Main.java:7:4: Unsupported member\nMain.java:7:4: Unsupported member');};
  await assert.rejects(h.api.run(),/Unsupported member/);assert.equal(h.diagnostics.length,1);assert.equal(h.diagnostics[0].items.length,1);assert.equal(h.diagnostics[0].items[0].message,'Unsupported member');

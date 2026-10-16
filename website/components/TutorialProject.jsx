@@ -14,15 +14,16 @@ export function TutorialProject({ project, lesson, template, assets }) {
           {' '}{template ? 'You can also choose Use template above.' : 'Continue when the template is available.'}
           {' '}On GitHub, choose <strong>Use this template → Create a new repository</strong> and create a repository under your own GitHub account.</li>
         <li>Copy <strong>your new repository</strong>&apos;s <strong>Code → HTTPS</strong> URL.
-          Return to Zero&apos;s sidebar and choose <strong>Clone repository</strong>. Paste your URL, choose a destination outside any other Git repository,
+          Return to Zero&apos;s sidebar, open the <strong>repository menu</strong> and choose <strong>Clone repository</strong>. Paste your URL, choose a destination outside any other Git repository,
           then choose <strong>Open in New Window</strong> when VS Code offers to open the clone.</li>
-        <li>Open <code>src/main/java/Main.java</code>, write the lesson&apos;s ordinary Java, then choose <strong>Run App</strong>. Start with its empty Main and keep this repository for lessons {project.lessons[0]}–{project.lessons.at(-1)}.</li>
+        <li>Follow the <strong>Tutorials</strong> tab beside <code>Main.java</code>. Start with its empty Main, write ordinary Java, then choose <strong>Run App</strong>. Use Zero&apos;s <strong>… → Tutorials</strong> to reopen the guide. Keep this repository for lessons {project.lessons[0]}–{project.lessons.at(-1)}.</li>
       </ol>
       {template && <p><a href={template.repositoryUrl}>View tutorial template</a></p>}
     </> : <>
       <p>Continue your {project.title} project in the same cloned repository.
         {' '}Need that repository? <a href={`/tutorials/${project.firstLesson}`}>Start at lesson {project.firstLesson}</a>.</p>
     </>}
+    <p><strong>Open in browser</strong> opens the current lesson or running app in your default browser.</p>
     <p>For each lesson: <strong>New branch</strong> → edit and <strong>Run App</strong> → <strong>Commit & push</strong> → <strong>Merge to main</strong>.
       Commit &amp; push creates a commit when needed and pushes the current branch. Merge to main merges your branch into main and pushes main.
       Review the account, repository, branch and files before confirming GitHub actions. Nothing pushes automatically.

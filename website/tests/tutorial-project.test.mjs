@@ -35,7 +35,9 @@ test("all three starting lessons require a template and clone of the student's o
     assert.match(html, /Return to Zero.*Clone repository/);
     assert.match(html, /Paste your URL, choose a destination outside any other Git repository/);
     assert.match(html, /Open in New Window/);
-    assert.match(html, /src\/main\/java\/Main.java/);
+    assert.match(html, /Tutorials<\/strong> tab beside <code>Main.java/);
+    assert.match(html, /repository menu<\/strong>.*Clone repository/);
+    assert.match(html, /Open in browser/);
     assert.match(html, /ordinary Java/);
     assert.match(html, /From Zero.*welcome/);
     assert.match(html, /With a project open, use Zero.*menu to find Start tutorial/);

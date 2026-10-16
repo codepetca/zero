@@ -19,8 +19,13 @@ them a fresh running app. Run never requires GitHub sign-in.
 
 The managed preview serves cloned immutable output bytes from a token-protected
 loopback server. Rebuilding/exporting later cannot change an already running
-app's assets. This differs from merely closing an HTTP server while JavaScript
-continues in an external browser. Explicit **Run App Natively (diagnostic)** stays
+app's assets. **Open in browser** in the preview or sidebar opens a preview-only
+page in the default browser around those same output bytes. A persistent liveness
+connection removes its child app frame when Stop, rerun or disposal ends that run.
+The server sends one-second heartbeats; a silent channel expires within4.5seconds
+while browser timers/events run. Suspended tabs or blocked browser execution can
+delay teardown. This shell is never added to exported/published files and its
+loopback URL is not shareable publicly. Explicit **Run App Natively (diagnostic)** stays
 available in the Command Palette; browser failures never silently fall back to it.
 
 Run, Export and Publish share a snapshot validator. It binds Java, resources,

@@ -71,7 +71,10 @@
   document.addEventListener('visibilitychange',() => {if (document.hidden) save();});
   window.addEventListener('message',event => {
     const message = event.data;
-    if (message?.type === 'restore') restore(vscode.getState() || message.state);
+    if (message?.type === 'restore') {
+      const local = vscode.getState();
+      restore(local?.readerKey === message.state?.readerKey ? local : message.state);
+    }
     else if (message?.type === 'copied') {
       status(message.ok ? 'Code copied.' : 'Could not copy. Select the code and copy it manually.');
       const button = document.querySelector(`button[data-copy="${message.id}"]`);

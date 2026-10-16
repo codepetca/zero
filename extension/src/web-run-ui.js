@@ -19,7 +19,7 @@ function sourceDiagnostics(text, root) {
   return diagnostics.filter(item => item.file.startsWith(root+path.sep));
 }
 
-function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setActive=()=>{},setFailed=()=>{},cacheRoot,ensureValidatedExport,validateExport,previewFactory=createManagedWebPreview,beforeRun=async()=>{}}) {
+function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBusy=()=>{},setState=()=>{},setActive=()=>{},setFailed=()=>{},cacheRoot,ensureValidatedExport,validateExport,previewFactory=createManagedWebPreview,beforeRun=async()=>{},preferredPreviewColumn=()=>undefined}) {
   const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const problems = vscode.languages?.createDiagnosticCollection('zero-browser');
@@ -67,7 +67,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     if (!await current(id,root)) return;
     disposeRuntime();
     let opened;
-    opened=await previewFactory(vscode,validated.sitePath,{siteFiles:validated.siteFiles,title:'Zero App',onOpenInBrowser:openInBrowser,onError:error=>{output.appendLine(error.message);return vscode.window.showErrorMessage?.(error.message);},onDidDispose:()=>{
+    opened=await previewFactory(vscode,validated.sitePath,{siteFiles:validated.siteFiles,title:'Zero App',viewColumn:preferredPreviewColumn(root),onOpenInBrowser:openInBrowser,onError:error=>{output.appendLine(error.message);return vscode.window.showErrorMessage?.(error.message);},onDidDispose:()=>{
       if(runtime===opened){runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;setActive(Boolean(operation));if(!operation&&!disposed)setState('App stopped');}
     }});
     if (!await current(id,root)) {opened.dispose();return;}

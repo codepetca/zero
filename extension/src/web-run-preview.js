@@ -5,7 +5,7 @@ const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 
 // The panel owns the executing frame, not just its HTTP listener. Disposing it
 // destroys animation, pending callbacks and audio even when student JS is busy.
-async function createManagedWebPreview(vscode, sitePath, {onDidDispose = () => {}, onOpenInBrowser, onError = error => vscode.window.showErrorMessage?.(error.message), serverFactory = createWebPreview, title = 'Zero App', siteFiles} = {}) {
+async function createManagedWebPreview(vscode, sitePath, {onDidDispose = () => {}, onOpenInBrowser, onError = error => vscode.window.showErrorMessage?.(error.message), serverFactory = createWebPreview, title = 'Zero App', siteFiles, viewColumn} = {}) {
   const server = await serverFactory(sitePath,{siteFiles});
   let panel, disposed = false, listener, messageListener;
   const dispose = () => {
@@ -29,12 +29,9 @@ async function createManagedWebPreview(vscode, sitePath, {onDidDispose = () => {
     const origin = new URL(url).origin;
     const nonce = crypto.randomBytes(16).toString('hex');
     const port = Number(new URL(server.url).port);
-    // Reuse the current tutorial/webview group after Stop instead of splitting
-    // another group each run. From a text editor, keep the app beside the code.
-    const viewColumn = !vscode.window.activeTextEditor
-      ? vscode.window.tabGroups?.active?.viewColumn ?? vscode.ViewColumn.Beside
-      : vscode.ViewColumn.Beside;
-    panel = vscode.window.createWebviewPanel('zero.app', title, viewColumn, {
+    // The coordinator knows the current project's tutorial panel. Host focus can
+    // still report its Java editor while that panel is active, so use its column.
+    panel = vscode.window.createWebviewPanel('zero.app', title, Number.isInteger(viewColumn) ? viewColumn : vscode.ViewColumn.Beside, {
       enableScripts: true, localResourceRoots: [], retainContextWhenHidden: true,
       portMapping: [{webviewPort:port,extensionHostPort:port}]
     });

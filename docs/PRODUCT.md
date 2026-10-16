@@ -144,8 +144,8 @@ Before lesson 0, students complete account/privacy setup: their own verified Git
 account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
 repository visibility/commit identity. Tutorial source can stay private with teacher
 collaborator access; public game publishing remains optional. The visible
-**Start tutorial** action on the welcome screen or Zero’s **…** menu opens the matching verified tutorial template. After creating their own repository, students choose the visible
-**Clone repository** action; VS Code owns its URL/destination/opening controls.
+**Start tutorial** action on the welcome screen or Zero’s **…** menu opens the matching verified tutorial template. After creating their own repository, students choose
+**Clone repository** in the repository menu; VS Code owns its URL/destination/opening controls.
 Students create a repository in their own account, then clone their repository;
 there is no local-folder or project-ZIP tutorial alternative. Completed teacher
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
@@ -223,11 +223,14 @@ exact verified publication automatically;
 ZeroHub offers Play latest on student hosting alongside exact source downloads.
 See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
-- A collapsible Zero view contains Run App, Stop, GitHub and ZeroHub. The separate
-  Files view keeps student Java, resources and project files beside the controls. Idle status is empty; app progress/errors
-  appear when there is a message. GitHub shows Sign in or the selected username.
-  Signed-in students can connect a repository, see its branch, choose New branch
-  on main or Merge to main on a feature branch, and Commit & push. Simulation
+- One continuous Zero view contains Run App, Stop, repository actions and Files,
+  without extra GitHub/ZeroHub headings or a separate collapsible controls row.
+  Idle status is empty; app progress/errors
+  appear when there is a message. The account row shows Sign in or the clickable
+  username. The repository menu stays visible, including an existing origin while
+  signed out; it offers Clone repository, create/connect/open/copy and New branch
+  or Switch branch as appropriate. The current branch stays visible. Commit & push
+  and Merge to main remain direct actions. Simulation
   remains visibly labeled. ZeroHub offers Browse (project templates/examples on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
@@ -235,13 +238,22 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   user controls can still move/hide views. There is no team/PR mode.
 - Run saves files, checks ordinary Java against the supported browser API, builds
   locally when inputs changed and opens an owned browser preview. Re-running
-  destroys the old runtime; Stop cancels builds and destroys executing JavaScript
-  and audio. There is no hot reload. A native diagnostic command remains explicit.
-- The first lesson opens once per project when the editor is empty; Open First
-  Lesson in the view menu or Command Palette reopens it. An explicit command
-  opens the hosted tutorials when no bundled lesson exists; idle activation and
-  Run do not invoke that fallback. Start tutorial and Clone repository are visible
-  in the sidebar and remain in the Command Palette.
+  destroys the old runtime; Stop cancels builds and destroys the managed frame.
+  Open in browser opens a local page around the same immutable compiled files in
+  the default browser. Its liveness connection removes the app frame on Stop or
+  rerun; a silent connection expires within4.5seconds while browser events run.
+  Suspended or blocked browser execution can delay teardown. There is no hot
+  reload. A native diagnostic command remains explicit.
+- A tutorial repository opens its bundled Tutorials editor tab beside Main.java
+  once when the editor is empty. Tutorials in the view menu or Command Palette
+  reopens it; ordinary older-kit Markdown guides remain supported. All13 lessons,
+  illustrations, code and linked Java references are bundled for offline reading.
+  The tab retains the selected lesson, scroll and disclosures per project. It
+  supports native floating windows and moves back into editor groups. Open in
+  browser opens the current canonical lesson on the website; website navigation
+  does not synchronize back into the editor. Start tutorial stays in welcome and
+  overflow; Clone repository is in the repository menu. Neither lesson navigation nor opening
+  a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools
   have setup help; GitHub sign-in does not block local running.
@@ -339,12 +351,12 @@ Tutorial repositories use the same GitHub workflow; only legacy local-only marke
 
 The individual flow uses main for completed work and one short-lived branch per
 change. A new empty repository starts with Commit & push on main.
-Choose New branch beside main and enter its name to create it directly. New branch
+Choose New branch in the repository menu and enter its name to create it directly. New branch
 requires clean committed main and brings in remote main only by fast-forward;
 diverged histories require manual repair. Commit & push commits/pushes progress
 to the current branch. Run and check the app before finishing.
 
-Click the change branch → Merge to main. Commit & push pending edits first.
+Click Merge to main beside the change branch. Commit & push pending edits first.
 Merge to main runs directly from its button and requires a clean committed change
 branch. Account, destination and source snapshots are checked before execution. Updated remote main is merged into the change
 branch, then the action pauses for Run App and another Merge to main review before

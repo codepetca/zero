@@ -5,14 +5,14 @@ const path = require('node:path');
 const {createTutorialReader,cleanState,rootKey} = require('../src/tutorial-reader');
 const {loadContent} = require('../src/tutorial-content');
 function fake() {
-  const panels=[], saved=new Map(), external=[], copied=[], errors=[];
+  const panels=[], saved=new Map(), external=[], copied=[], errors=[], serializers=new Map();
   const context={extensionPath:path.resolve(__dirname,'..'),workspaceState:{get:key=>saved.get(key),update:async(key,value)=>saved.set(key,value)}};
-  const vscode={Uri:{file:filename=>({fsPath:filename,toString:()=>`file://${filename}`}),parse:url=>url},ViewColumn:{Beside:-2},window:{createWebviewPanel:(kind,title,show,options)=>{
-    let receive,dispose;
-    const panel={kind,title,show,options,reveals:[],messages:[],viewColumn:2,webview:{cspSource:'https://webview.test',asWebviewUri:uri=>({toString:()=>`https://webview.test${uri.fsPath}`}),postMessage:async message=>panel.messages.push(message),onDidReceiveMessage:callback=>{receive=callback;}},onDidDispose:callback=>{dispose=callback;},dispose:()=>dispose(),reveal:(...args)=>panel.reveals.push(args),receive:message=>receive(message)};
+  const vscode={Uri:{file:filename=>({fsPath:filename,toString:()=>`file://${filename}`}),parse:url=>url},ViewColumn:{Beside:-2},window:{registerWebviewPanelSerializer:(type,serializer)=>{serializers.set(type,serializer);return {dispose:()=>serializers.delete(type)};},createWebviewPanel:(kind,title,show,options)=>{
+    let receive;const disposals = new Set();
+    const panel={kind,title,show,options,reveals:[],messages:[],viewColumn:2,webview:{cspSource:'https://webview.test',asWebviewUri:uri=>({toString:()=>`https://webview.test${uri.fsPath}`}),postMessage:async message=>panel.messages.push(message),onDidReceiveMessage:callback=>{receive=callback;}},onDidDispose:callback=>{disposals.add(callback);return {dispose:()=>disposals.delete(callback)};},dispose:()=>{panel.disposed=true;for(const callback of [...disposals]) callback();},reveal:(...args)=>panel.reveals.push(args),receive:message=>receive(message)};
     panels.push(panel);return panel;
   },showErrorMessage:async text=>errors.push(text)},env:{openExternal:async uri=>{external.push(uri);return true;},clipboard:{writeText:async text=>copied.push(text)}}};
-  return {vscode,context,panels,saved,external,copied,errors};
+  return {vscode,context,panels,saved,external,copied,errors,serializers};
 }
 test('reader opens beside Java with bounded resources/CSP and restores per-root reading position',async () => {
   const f=fake();
@@ -20,6 +20,8 @@ test('reader opens beside Java with bounded resources/CSP and restores per-root 
   const reader=createTutorialReader(f.vscode,{context:f.context,project:async()=>'/project-a'});
   const panel=await reader.open('/project-a','3');
   assert.equal(panel.title,'Tutorials');
+  assert.equal(reader.columnFor('/project-a'),2);
+  assert.equal(reader.columnFor('/project-other'),undefined);
   assert.equal(panel.show.viewColumn,-2);
   assert.equal(panel.options.retainContextWhenHidden,true);
   assert.equal(panel.options.enableCommandUris,false);
@@ -34,10 +36,11 @@ test('reader opens beside Java with bounded resources/CSP and restores per-root 
   assert.equal(panel.messages[0].state.scroll[5],420);
   assert.equal(await reader.open('/project-a','0'),panel);
   assert.equal(f.panels.length,1);
-  await panel.receive({type:'state',state:{lessonId:'6',scroll:{6:88},details:{'explanation-6':true}}});
+  await panel.receive({type:'state',state:{readerKey:rootKey('/project-a'),lessonId:'6',scroll:{6:88},details:{'explanation-6':true}}});
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(f.saved.get(rootKey('/project-a')).lessonId,'6');
   panel.dispose();
+  assert.equal(reader.columnFor('/project-a'),undefined);
   const reopened=await reader.open('/project-a','3');await reopened.receive({type:'ready'});
   assert.equal(reopened.messages[0].state.lessonId,'6');
   const other=await reader.open('/project-b','8');await other.receive({type:'ready'});
@@ -70,4 +73,71 @@ test('empty workspace, concurrent opens, invalid states and disposal stay bounde
   await assert.rejects(reader.open('relative','0'),/absolute/);
   await assert.rejects(reader.open('/project','12?evil'),/Unknown/);
   reader.dispose();assert.equal(await reader.open(),undefined);
+});
+test('serializer rehydrates the host panel and root-matched lesson, scroll and disclosures',async () => {
+  const f=fake();const key=rootKey('/project-a');
+  const reader=createTutorialReader(f.vscode,{context:f.context,project:async()=>'/project-a'});
+  const serializer=f.serializers.get('zero.tutorials');assert.ok(serializer);
+  const panel=f.vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{},{});
+  await serializer.deserializeWebviewPanel(panel,{readerKey:key,lessonId:'4',scroll:{4:512},details:{'explanation-4':true}});
+  assert.equal(f.panels.length,1);
+  assert.equal(await reader.open('/project-a'),panel);
+  assert.match(panel.webview.html,/Tutorials/);
+  await panel.receive({type:'ready'});
+  assert.deepEqual(panel.messages[0].state,{readerKey:key,lessonId:'4',scroll:{4:512},details:{'explanation-4':true}});
+  assert.equal(panel.webview.options.enableCommandUris,false);
+  assert.equal(panel.webview.options.localResourceRoots.length,1);
+  await panel.receive({type:'state',state:{readerKey:rootKey('/other'),lessonId:'12'}});
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(f.saved.has(key),false);
+  reader.dispose();assert.equal(f.serializers.size,0);
+});
+test('serializer rejects another root state and uses current root workspace fallback',async () => {
+  const f=fake();const key=rootKey('/project-b');
+  f.saved.set(key,{lessonId:'8',scroll:{8:125},details:{'explanation-8':true}});
+  const reader=createTutorialReader(f.vscode,{context:f.context,project:async()=>'/project-b'});
+  const panel=f.vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{},{});
+  await f.serializers.get('zero.tutorials').deserializeWebviewPanel(panel,{readerKey:rootKey('/project-a'),lessonId:'4',scroll:{4:512}});
+  await panel.receive({type:'ready'});
+  assert.equal(panel.messages[0].state.lessonId,'8');assert.equal(panel.messages[0].state.readerKey,key);
+  assert.deepEqual(panel.messages[0].state.scroll,{8:125});
+  reader.dispose();
+});
+test('serializer and explicit open races keep one panel; disposal cancels delayed restore',async () => {
+  const f=fake();const bundle=await loadContent(f.context.extensionPath);let finish;
+  const reader=createTutorialReader(f.vscode,{context:f.context,project:async()=>'/project',load:()=>new Promise(resolve=>{finish=resolve;})});
+  const serializer=f.serializers.get('zero.tutorials');
+  const panel=f.vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{},{});
+  const restore=serializer.deserializeWebviewPanel(panel,{readerKey:rootKey('/project'),lessonId:'4'});
+  await new Promise(resolve=>setImmediate(resolve));
+  const opening=reader.open('/project');finish(bundle);await restore;
+  assert.equal(await opening,panel);assert.equal(f.panels.length,1);
+  const duplicate=f.vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{},{});
+  await serializer.deserializeWebviewPanel(duplicate,{});assert.equal(duplicate.disposed,true);
+  reader.dispose();
+  const g=fake();let rootReady;
+  const other=createTutorialReader(g.vscode,{context:g.context,project:()=>new Promise(resolve=>{rootReady=resolve;})});
+  const pending=g.vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{},{});
+  const restoring=g.serializers.get('zero.tutorials').deserializeWebviewPanel(pending,{});
+  other.dispose();rootReady('/project');await restoring;
+  assert.equal(pending.disposed,true);assert.equal(pending.webview.html,undefined);
+});
+test('legacy constructor mocks remain lazy and closing during bundle load cannot render a disposed panel',async () => {
+  const reader=createTutorialReader({window:{}},{context:{workspaceState:{}}});reader.dispose();
+  const f=fake();const bundle=await loadContent(f.context.extensionPath);let finish;
+  const loading=createTutorialReader(f.vscode,{context:f.context,load:()=>new Promise(resolve=>{finish=resolve;})});
+  const opening=loading.open('/project');await new Promise(resolve=>setImmediate(resolve));
+  const panel=f.panels[0];panel.dispose();finish(bundle);
+  assert.equal(await opening,undefined);assert.equal(panel.webview.html,undefined);loading.dispose();
+});
+test('webview restore handshake ignores local state from another root',() => {
+  const vm=require('node:vm');const fs=require('node:fs');
+  const rootA=rootKey('/project-a'),rootB=rootKey('/project-b');
+  const articles=Array.from({length:13},(_,id)=>({dataset:{lessonId:String(id)},querySelector:()=>({focus(){}})}));
+  const elements=new Map(['lesson-picker','lesson-index','status'].map(id=>[id,{addEventListener(){}}]));
+  const handlers=new Map();let saved;
+  const sandbox={document:{querySelectorAll:selector=>selector === '.lesson' ? articles : [],getElementById:id=>elements.get(id),addEventListener(){}},window:{addEventListener:(name,handler)=>handlers.set(name,handler),scrollY:0,scrollTo(x,y){this.scrollY=y;}},requestAnimationFrame:callback=>callback(),setTimeout,clearTimeout,acquireVsCodeApi:()=>({getState:()=>({readerKey:rootA,lessonId:'4',scroll:{4:400},details:{}}),setState:state=>{saved=structuredClone(state);},postMessage(){}})};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../media/tutorial-reader.js'),'utf8'),sandbox);
+  handlers.get('message')({data:{type:'restore',state:{readerKey:rootB,lessonId:'8',scroll:{8:88},details:{}}}});
+  assert.equal(elements.get('lesson-picker').value,'8');assert.equal(saved.readerKey,rootB);assert.equal(saved.lessonId,'8');assert.equal(sandbox.window.scrollY,88);
+  assert.equal(articles.filter(article=>!article.hidden)[0].dataset.lessonId,'8');
 });

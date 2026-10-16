@@ -19,7 +19,15 @@ subset, compiles locally when needed with the pinned WebFX/GWT pipeline, validat
 the build and opens Zero’s managed browser preview. Students need a supported
 JDK **17+**, with no global Maven or Node.js installation. The first build needs
 internet for compiler/dependency downloads; later projects reuse Zero’s local
-cache. The default build shortcut uses the same browser run action:
+cache.
+
+Tutorial repositories open **Tutorials** beside `Main.java`. Use the lesson picker,
+Previous/Next and **Code and explanation** to read the bundled lessons offline.
+**Open in browser** opens the current website lesson. Native tab controls can move
+Tutorials into a floating window and back; the selected lesson and reading position
+are kept for that project. Tutorials is also available in Zero's **…** menu.
+
+The default build shortcut uses the same browser run action:
 
 ```json
 {"version":"2.0.0","tasks":[{"type":"zero","task":"run","label":"Zero: Run App","group":{"kind":"build","isDefault":true},"problemMatcher":"$zero-java"}]}
@@ -30,6 +38,12 @@ ends the preview and its audio. Build/source/compatibility errors appear in Zero
 output and Problems; **Show Problems** opens the source diagnostics. Repair a
 failed download or the indicated code, then Run App again. A failed build does
 not reopen old output as a successful new run.
+
+Choose **Open in browser** in the running preview or sidebar to test the same
+compiled app in your default browser, such as Chrome. This local URL is not a
+public link. Stop or rerun removes the app from responsive external preview tabs;
+suspended or blocked browser execution can delay that cleanup. **Publish app** is
+the separate action for a playable public link.
 
 **Zero: Run Native App (Diagnostic)** explicitly runs the project’s Maven wrapper
 with separate `clean`, `compile` and `javafx:run` arguments in a native window.
@@ -51,17 +65,17 @@ Commands: `zero.runApp`, `zero.runNativeApp`, `zero.stopApp`, `zero.exportWeb`,
 
 ## Repository workflow
 
-The GitHub header shows **Sign in** while signed out and the selected GitHub
+The account row shows **Sign in** while signed out and the selected GitHub
 username while signed in. Click the username for **Change GitHub account…** or
 **Sign out…**; native VS Code Accounts owns sign-out and credentials.
-The signed-in repository row shows `owner/name`, or **Connect a repository**.
-Click it for create/connect or copy-link/change actions. **New branch** beside
-main creates a feature branch after you enter its name; **Merge to main** beside
+The repository menu stays visible, showing an existing `owner/name` even while
+signed out. It contains clone/create/connect/open/copy and branch actions.
+**New branch** creates a feature branch after you enter its name; **Merge to main** beside
 a feature branch directly merges and pushes it to main. Its account, destination,
 source and conflict checks still run.
 **Commit & push** proceeds from its commit-message input.
 Local Run works without sign-in. Local-practice projects continue to block GitHub
-sharing. Native VS Code owns collapse, move and hide controls for Zero and Files.
+sharing. Native VS Code owns move and hide controls for the continuous Zero view.
 
 Sign-in uses VS Code's built-in GitHub authentication provider. It requests
 `repo` access, including private repositories, so students can choose Public or

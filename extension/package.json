@@ -18,7 +18,8 @@
     "workspaceContains:student-template/zero.json",
     "onTaskType:zero",
     "onCommand:zero.startProject",
-    "onCommand:zero.cloneRepository"
+    "onCommand:zero.cloneRepository",
+    "onWebviewPanel:zero.tutorials"
   ],
   "scripts": {
     "test": "node --test",
