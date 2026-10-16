@@ -168,12 +168,20 @@ try {
     Mark 'close-isolated-editor'
     $firstOpened = (Get-Item -LiteralPath $marker).LastWriteTimeUtc
     $null = Remember-Processes
-    $requestedClose = $false
-    foreach ($item in @(Editor-Roots)) {
-        $process = [Diagnostics.Process]::GetProcessById([int]$item.ProcessId)
-        try { if ($process.CloseMainWindow()) { $requestedClose = $true } } finally { $process.Dispose() }
-    }
-    if (-not $requestedClose) { throw 'The runner has no closable editor window. Complete reopening on an interactive Windows desktop.' }
+    # The handoff marker records a successful process start, before Electron has
+    # necessarily created its first window. Wait for a real close request to be
+    # accepted; never substitute a forced process kill for this coverage.
+    Wait-Until {
+        $requestedClose = $false
+        foreach ($item in @(Editor-Roots)) {
+            $process = $null
+            try {
+                $process = [Diagnostics.Process]::GetProcessById([int]$item.ProcessId)
+                if ($process.CloseMainWindow()) { $requestedClose = $true }
+            } catch [ArgumentException] { } finally { if ($process) { $process.Dispose() } }
+        }
+        return $requestedClose
+    } 60 'isolated editor window accepting graceful close; use an interactive desktop if no window appears'
     Wait-Until { @(Editor-Roots).Count -eq 0 } 60 'isolated editor graceful close'
     Mark 'reopen-from-start-shortcut'
     Open-Launcher $shortcut
