@@ -1,5 +1,96 @@
 # Delivery evidence index
 
+## Subtle scrollbar tracks — 2026-10-16
+
+Owner requested scrollbar gutters blend into the existing background. Generated
+web theme tokens now also target html only when a LearnTheme wrapper is present;
+light/dark/system color-scheme and root background match the visible page.
+Page/sidebar/code tracks are transparent with thin approved-gray thumbs; existing
+scrolling remains. Older-engine WebKit styling is scoped to the same surfaces,
+and forced colors use automatic scrollbar colors.
+
+10 shared design tests, website typecheck, production build and whitespace checks
+pass. Build retains two unrelated mac-updater tracing warnings. Previous96website
+tests reused; no new unit tests for this visual adjustment. In-app browser checks
+confirm dark#101321/light#fff root background and scheme, transparent root/sidebar/
+code tracks, thin thumbs and preserved scrolling. Dark theme restored; desktop
+preview retained. Screenshot: ignored
+`.verification/tutorial-cleanup/subtle-scrollbars-detail.png`; logs use scrollbar-
+prefix there. Safari/physical platforms/forced-color UI were not exercised.
+
+Independent scrollbar_review/1, requested Luna/medium, complete two-file diff plus
+theme adapter/global CSS/callers/forced-color/fallback inspection: no actionable
+findings. Base6d6e80f; patch SHA256
+`f3687b29a2eca17027827796de600f944f5a0d1d249bdcd38410c4a9bfb94905`.
+One initial launch, zero fixes/conflicts; checks reused. Effective model/token/
+elapsed telemetry unknown; recent healthy storage/usage reading reused. No
+publication, release, account, new goal/chat/automation change. Original checkout
+and other worktrees preserved.
+
+## Sticky API method names — 2026-10-16
+
+Owner requested Docs category headings scroll normally and method names become
+sticky instead. Only API reference CSS changes: method title rows stick within
+their own article, below the measured desktop header or at the top on phones.
+Opaque theme background keeps scrolling text behind the name. Entry anchor
+margins no longer reserve space for a category banner. Categories retain their
+normal heading appearance. Earlier tutorial cleanup remains intact.
+
+Website typecheck, production build,96tests and diff whitespace checks pass.
+The build retains two unrelated mac-updater filesystem-tracing warnings.
+In-app browser verifies1280px desktop title top93px matching header bottom,
+320/384px mobile title top0 while article top is negative, static category
+position, normal next-method transition, correct active sidebar, direct links,
+light/dark and no page overflow. Viewport and dark theme restored. Screenshots:
+ignored `.verification/tutorial-cleanup/docs-sticky-method-{desktop,mobile}.png`;
+check logs use `docs-` prefix in the same folder. Safari/physical devices,
+enlarged text and keyboard were not separately tested in this CSS follow-up.
+
+Independent docs_sticky_review/1, requested GPT-6 Luna/medium, complete CSS delta
+plus caller/global/theme/anchor inspection: no actionable findings. Reviewed
+base0933ad4 and patch SHA256
+`69b01e791b13b2d5cf2d9faa250baa24221344310afc1702e9676fe8436d14a0`.
+Checks/browser evidence reused, no independent browser drive. One initial launch,
+zero fixes/conflicts; effective model/tokens/reviewer elapsed unknown. Coordinator
+verified patch identity and returned claims. Recent weekly58%remaining and healthy
+storage reading reused; DeepSeek pause honored. No new publication, release,
+credentials, goal, chat or automation. Local preview remains on port3216.
+
+## Tutorial reading cleanup — 2026-10-16
+
+Owner requested removal of Previous links, muted secondary hints, highlighted
+step titles and no tutorial horizontal dividers. The renderer now omits Previous
+paragraphs anywhere at the document root, rather than only at the end, and omits
+lesson thematic rules. Canonical Markdown and fenced code remain intact. Setup,
+continuation and optional resource hints share a quiet helper card; tutorial
+summaries use the existing theme surface with no section/pagination border.
+Docs/reference styling, lesson defaults, anchors and copying are unchanged.
+
+Based on main e7b9b4d, isolated in the attached tutorial-reading-cleanup worktree;
+original funding checkout and other active worktrees preserved. Local only;
+no publication, release, credential, goal, separate chat or automation change.
+96 website tests, typecheck, production build and diff whitespace checks pass.
+Build reports two existing mac-updater dynamic-filesystem tracing warnings.
+In-app browser: lessons8/9, light/dark,320/384/480/1280 CSS-pixel widths without
+page overflow, native keyboard expand/collapse with visible focus, direct step
+anchor and mobile lesson selection. Confirmed zero Previous paragraphs, HRs and
+section/pagination borders. Screenshot/viewport override restored to normal;
+original dark theme restored. Screenshots/logs: ignored
+`.verification/tutorial-cleanup/`. Safari, physical devices and enlarged text
+were not separately tested; no accessibility-conformance claim.
+
+Independent reviewer tutorial_cleanup_review/1, requested GPT-6 Luna/medium,
+reviewed the complete four-file implementation diff plus immediate callers and
+lesson sources. Fixed patch SHA256
+`71515901ca0412676a5c33a597958d6bb976628f1ea237c25b35deb522ef2ef1`.
+Complete verdict: zero actionable findings; diff whitespace check rerun and
+coordinator test/build/typecheck evidence reused. Browser checks not independently
+repeated. One initial wave/one launch, zero fixes/conflicts; reviewer estimated
+2–3 minutes, effective model/token telemetry unknown. Direct implementation;
+DeepSeek pause honored, weekly58%remaining at start, storage healthy329GB.
+Coordination was one focused brief and delivery verification; attributable task
+usage unknown. Review limits were not approached.
+
 ## Zero 0.5.17 App/GameApp release — 2026-10-16
 
 Owner authorized a new public release. [Source PR69](https://github.com/codepetca/zero/pull/69)

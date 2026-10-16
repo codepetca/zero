@@ -1,5 +1,37 @@
 # Verification
 
+## Subtle scrollbar tracks — 2026-10-16
+
+10 shared design tests, website typecheck/build and whitespace checks pass.
+Browser verifies themed root background/color-scheme, transparent page/sidebar/
+code scrollbar tracks, thin thumbs, both themes and normal scrolling. Independent
+complete implementation review is clean; prior96website tests reused. Safari,
+physical platforms and forced-color UI were not exercised. Two unrelated updater
+tracing warnings remain. See [delivery evidence](EVIDENCE.md#subtle-scrollbar-tracks--2026-10-16).
+
+## Sticky API method names — 2026-10-16
+
+CSS follow-up passes website typecheck, production build,96tests and whitespace
+checks. Browser confirms method-bound sticky titles, static category titles,
+measured desktop-header offset, phone top0,320/384/1280px reflow, direct links,
+active method and light/dark. One complete independent source review is clean;
+browser evidence reused. Two unrelated updater tracing warnings remain.
+Safari/physical devices, enlarged text and keyboard were not separately tested.
+See [delivery evidence](EVIDENCE.md#sticky-api-method-names--2026-10-16).
+
+## Tutorial reading cleanup — 2026-10-16
+
+96 website tests, typecheck, production build and diff whitespace checks pass.
+The new renderer regression covers introductory Previous navigation, thematic
+rules, code-fence preservation, anchors and the unchanged non-lesson path; all13
+lesson renders reject Previous paragraphs. In-app browser checks cover lessons8/9,
+light/dark,320px through1280px reflow, keyboard disclosure/focus, a direct step
+anchor and mobile selection. No tutorial section/footer divider remains.
+Two unrelated mac-updater tracing warnings remain in the successful build.
+Safari, physical devices and enlarged text were not separately tested.
+Independent complete implementation review: no actionable findings.
+See [delivery evidence](EVIDENCE.md#tutorial-reading-cleanup--2026-10-16).
+
 ## Mac updater0.5.15 release acceptance — 2026-10-14
 
 [Delivery evidence](EVIDENCE.md) records merged sourcePR62, successful exact-head

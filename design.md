@@ -8,6 +8,24 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Approved and proposed
 
+### Remembered website preferences — 2026-10-16
+
+These are the owner's continuing design defaults. Preserve them in future website
+work unless the owner requests a change. Prefer a subtle appearance and keep the
+current task's content visually prominent.
+
+| Surface | Default |
+| --- | --- |
+| Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
+| Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
+| Secondary guidance | Put setup, continuation and optional hints in small muted helper cards. |
+| API reference | Category titles scroll away; each method name sticks through its own details. |
+| Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
+| Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
+
+Keep the sidebar, Next lesson action, search, code copying, deep links, accessible
+focus and ordinary scrolling usable. See the dated corrections below for details.
+
 | Surface | Status |
 | --- | --- |
 | Home page with app header, Learn Java and two buttons | Owner-requested replacement 2026-10-13; shared light/dark themes. |
@@ -127,3 +145,26 @@ stack with a concise setup link and metadata-derived platform/version requiremen
 below it. Initial lesson projects link to setup and explain that their ZIP does
 not install Zero or Java. Share your work uses the existing shared theme wrapper
 and controls; this is no broader Hub redesign. Release bytes stay immutable.
+
+## Tutorial reading hierarchy — owner correction, 2026-10-16
+
+Remove Previous lesson prose and horizontal dividers from tutorial content,
+including section and Next lesson borders. Keep numbered step titles prominent
+on subtle theme surfaces, with existing disclosure controls and deep links.
+Setup, continuation and optional-resource guidance belongs in a smaller muted
+helper card; preserve visible prerequisites and functional links. Reuse approved
+light/dark tokens. The sidebar and Next lesson action remain available.
+
+## Docs sticky method names — owner correction, 2026-10-16
+
+API category headings scroll with the document. Each method's name/owner row
+sticks only while reading that method, below the shared desktop header or at
+the top on phones. Reuse opaque theme backgrounds and preserve method links,
+search, navigation and normal category styling.
+
+## Subtle scrollbars — owner correction, 2026-10-16
+
+Themed website scrollbar tracks blend into their scrolling surface, including
+the page gutter. Use thin approved-gray thumbs and transparent tracks, retain
+normal scrolling, follow light/dark/system preference and defer to system
+scrollbar colors in forced-color mode.

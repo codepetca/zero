@@ -71,10 +71,16 @@ export function foldSections({ lesson = false } = {}) {
       for (const child of node.children ?? []) visit(child);
     }
     visit(tree);
-    // The website footer replaces the source guide's closing lesson links.
+    // Source guides also put Previous links in the introduction. The website
+    // sidebar and Next lesson footer already provide lesson navigation.
     const content = tree.children.filter((node) => !(
-      lesson && node.type === "element" && node.tagName === "p" &&
-      nodeText(node).startsWith("Target illustration:")
+      lesson && node.type === "element" && (
+        node.tagName === "hr" ||
+        (node.tagName === "p" && (
+          nodeText(node).startsWith("Target illustration:") ||
+          /^Previous:\s/.test(nodeText(node))
+        ))
+      )
     ));
     const lastBlock = content.findLast((node) => node.type === "element");
     if (

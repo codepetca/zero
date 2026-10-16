@@ -20,7 +20,8 @@ clicked, with a keyboard-accessible Copy button and success/failure feedback.
 Dragging to select text keeps manual copying available.
 `/downloads` is the separate platform download page;
 Download is a regular top-menu page, and platform buttons do not appear below tutorials.
-Docs opens the complete searchable Zero API directly; setup and longer app guides remain linked from its sidebar. Examples is a curated collection inside
+Docs opens the complete searchable Zero API directly; method names stay visible
+while their details scroll, and category headings scroll normally; setup and longer app guides remain linked from its sidebar. Examples is a curated collection inside
 ZeroHub, with actual app images, a description, Get project and a repository link.
 ZeroHub’s New Project action opens the published GitHub starter template directly.
 The starter details page remains available for ZIP downloads and setup instructions;
@@ -46,7 +47,9 @@ Concise platform/version requirements and a setup link appear below the buttons;
 initial lesson projects link to setup and clarify that the scaffold ZIP installs no tools.
 Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
-available. `/hub` is ZeroHub: discover separate editable games and reusable
+available. Tutorial step headings use subtle highlights instead of horizontal
+dividers. Secondary project help is muted in a helper card; Previous lesson
+prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
 Content pages use the navigation section name (Tutorials, Docs or ZeroHub)

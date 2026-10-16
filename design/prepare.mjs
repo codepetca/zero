@@ -6,7 +6,7 @@ import { webThemeCss, vscodeThemeCss } from './adapters.mjs';
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export function designOutputs() {
   return {
-    'website/.generated/learn-theme.css': `${webThemeCss('light', '.learn-theme')}\n${webThemeCss('dark', '.learn-theme[data-theme="dark"]')}\n@media (prefers-color-scheme: dark) {\n${webThemeCss('dark', '.learn-theme[data-theme="system"]')}\n}\n`,
+    'website/.generated/learn-theme.css': `${webThemeCss('light', '.learn-theme, html:has(.learn-theme)')}\n${webThemeCss('dark', '.learn-theme[data-theme="dark"], html:has(.learn-theme[data-theme="dark"])')}\n@media (prefers-color-scheme: dark) {\n${webThemeCss('dark', '.learn-theme[data-theme="system"], html:has(.learn-theme[data-theme="system"])')}\n}\n`,
     'extension/media/generated-theme.css': `${vscodeThemeCss()}\n${readFileSync(new URL('../extension/media/sidebar.css', import.meta.url), 'utf8')}`,
   };
 }

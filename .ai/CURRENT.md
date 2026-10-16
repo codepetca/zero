@@ -1,19 +1,25 @@
-# Current state — Zero 0.5.17 published, metadata promotion, 2026-10-16
+# Current state — Website publication, 2026-10-16
 
-Owner requested a public release with App/GameApp; source PR69 merged4d40e59 after
-clean independent review/fullCI. Manual preparation38902882241 at3a43f4c produced
-the exact three kit assets. Core0.2.0, native build17. Native built clean4d40e59,
-notarized/stapled, sealed at7c84935. Complete independent Sol/high artifact review
-passed. Both immutable GitHub releases are public and all four assets anonymously
-match sealed bytes; exact hashes/targets/evidence at docs/EVIDENCE.md.
+Owner explicitly authorized publication of this chat's website changes. Branch
+codex/tutorial-reading-cleanup integrates origin/main e8e25cc (published0.5.17
+metadata) while preserving release bytes, downloads and signed update feed.
+Original dirty funding checkout and active web-export/release worktrees remain
+untouched. Other unpublished browser/sidebar work is excluded.
 
-This metadata branch promotes verified kit/installer snapshots, unchanged signed
-feed XML, status-only feed metadata and README link. Local configuration,95website tests, typecheck and build pass; independent full
-metadata review, exactheadCI/merge and deployed download/
-feed verification remain final gates. Do not rebuild published bytes.
+Tutorials omit Previous prose and horizontal dividers, highlight numbered step
+headings and mute secondary setup/continuation hints in helper cards. Docs sticks
+method names within their entries instead of category banners. Transparent
+scrollbar tracks and thin gray thumbs follow the shared light/dark/system theme.
+Continuing owner preferences are saved in design.md and referenced by AGENTS.md.
 
-Coordinator owns integration. Preserve dirty education-funding checkout and active
-Lead publishing task workspace/profile/trials. Its unpublished0.5.16 browser-first/
-sidebar/tutorial work is excluded; it will advance beyond17. No credential, account,
-goal/task/automation changes. Private signing temp file was removed. Retain ignored
-.verification/release-0.5.17 receipts before managed worktree retirement.
+Prior local acceptance:96website tests,10design tests,typecheck/build and browser
+light/dark,narrow/desktop,anchors,keyboard disclosure/focus checks; three complete
+bounded Luna/medium implementation reviews found no actionable issues. Safari,
+physical platforms,enlarged text and forced-color UI were not newly verified.
+Two unrelated updater tracing warnings remain. Full evidence:docs/EVIDENCE.md,
+docs/VERIFICATION.md and ignored .verification/tutorial-cleanup/.
+
+Next: rerun affected checks on current-main integration, one bounded complete
+integration review, draft PR and exact-head CI, then merge under this authority
+and verify production deployment/live pages. No binary release rebuild or account
+changes. Retain all private/ignored evidence during worktree cleanup.
