@@ -9,7 +9,7 @@ learn a small set first:
 
 | Build | Start with |
 | --- | --- |
-| An app | `SimpleApp`: `settings()`, `setup()`, `size(...)`, `title(...)`, `padding(...)`, `show(...)`; ordinary `Label`, `Button`, `TextField`, `VBox`, `HBox`. |
+| An app | `App`: `settings()`, `setup()`, `size(...)`, `title(...)`, `padding(...)`, `show(...)`; ordinary `Label`, `Button`, `TextField`, `VBox`, `HBox`. |
 | A game | `GameApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
 | Improve appearance | JavaFX fonts, a few colours, spacing/padding and an editable stylesheet; canvas fonts through `graphics().setFont(...)`. |
 
@@ -17,14 +17,14 @@ Try [Hello, Java](examples/hello-app/README.md) for a complete styled app or
 [Reach the coin](examples/reach-the-coin/README.md) for a two-file game. Both use
 the pinned starter without additional dependencies or Zero APIs.
 
-This reference describes the bundled [SimpleApp source](src/main/java/zero/SimpleApp.java)
+This reference describes the bundled [App source](src/main/java/zero/App.java)
 and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for
 startup, drawing and input; use ordinary Java for your app's objects and rules.
 The source is the authority if you change your local framework.
 
 ## Choose an app
 
-Extend `zero.SimpleApp` for buttons, forms, quizzes and other event-driven
+Extend `zero.App` for buttons, forms, quizzes and other event-driven
 interfaces. Extend `zero.GameApp` for a canvas that updates and draws each frame.
 Both are JavaFX applications. Put this entry point in your Main class:
 
@@ -36,7 +36,7 @@ public static void main(String[] args) { launch(args); }
 by `app.mainClass` in [pom.xml](pom.xml). See [README.md](README.md) for running
 and [EXERCISES.md](EXERCISES.md) for practice.
 
-## SimpleApp: startup and interfaces
+## App: startup and interfaces
 
 Override these public methods; their default bodies do nothing:
 
@@ -63,9 +63,9 @@ resize or retitle an already-open window.
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     private int clicks;
 
     @Override public void settings() {
@@ -88,7 +88,7 @@ public class Main extends SimpleApp {
 }
 ```
 
-SimpleApp has no animation loop. The window is resizable; native layouts arrange
+App has no animation loop. The window is resizable; native layouts arrange
 their children. `show` replaces content; it does not store screens or create a
 navigation history. Keep any state you need in your own fields and objects.
 
@@ -150,7 +150,7 @@ or later, after the canvas exists:
 | `BorderPane layout()` | The layout containing the canvas in its centre. |
 
 Use `layout().setBottom(button)` or other BorderPane positions for native controls
-around the canvas. Keep its centre canvas for a game. Use SimpleApp and
+around the canvas. Keep its centre canvas for a game. Use App and
 `show(Node)` for a wholly event-driven interface; inherited `show` on a game
 replaces the visible game layout but does not stop its frame loop.
 
@@ -259,7 +259,7 @@ A startup failure closes the window and runs shutdown; a failed game frame
 stops its timer and clears held input, then reports the exception. Closing an app
 also stops the game timer. Fix the source and Run App again.
 
-For framework contributors, SimpleApp exposes protected hooks:
+For framework contributors, App exposes protected hooks:
 `final double initialWidth()`, `final double initialHeight()`,
 `Node createContent()`, `Scene createScene(BorderPane content)`,
 `void ready(Stage stage)` and `void shutdown()`. Startup runs settings, creates

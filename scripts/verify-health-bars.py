@@ -168,7 +168,7 @@ def main():
         consumer = output / 'consumers' / kind
         java = consumer / 'src/main/java'
         (java / 'zero').mkdir(parents=True)
-        shutil.copy2(ZERO / 'framework/src/main/java/zero/SimpleApp.java', java / 'zero/SimpleApp.java')
+        shutil.copy2(ZERO / 'framework/src/main/java/zero/App.java', java / 'zero/App.java')
         shutil.copy2(MODULE / f'examples/{kind}/Main.java', java / 'Main.java')
         component = 'SegmentedHealthBar' if kind.startswith('segmented-') else 'HealthBar'
         check = HARNESS.replace('TYPE', component).replace('CHECKS',CHECKS[kind.removeprefix('segmented-')]).replace('KIND',kind)

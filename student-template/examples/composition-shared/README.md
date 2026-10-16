@@ -14,7 +14,7 @@ The constructors create controls once. `view()` returns the same JavaFX node
 each time. Labels wrap longer instructions and feedback. Hud contains the
 existing canonical `examples/shared/ScoreDisplay.java` unchanged; it forwards
 explicit score updates and owns a Restart button. Main owns the numbers, rules
-and state. Neither view extends SimpleApp or GameApp.
+and state. Neither view extends App or GameApp.
 
 `Runnable` is an optional next Java topic. It represents a supplied action with
 no arguments and no result. `() -> restart()` supplies the same sort of button

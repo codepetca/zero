@@ -1,6 +1,6 @@
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     @Override public void setup() {
         // Build your interface here.
     }

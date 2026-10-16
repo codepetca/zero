@@ -87,7 +87,7 @@ export function buildApiReference(markdown) {
   const seenSections = new Set();
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
-    if (section === 'SimpleApp') return subsection === 'Window and content' ? 'interface' : 'startup';
+    if (section === 'App') return subsection === 'Window and content' ? 'interface' : 'startup';
     return { GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
@@ -109,7 +109,7 @@ export function buildApiReference(markdown) {
     const declaration = signature.match(/^(?:(?:public|protected|final)\s+)*(\w+(?:\.\w+)*)\s+(\w+)\(([^()]*)\)$/);
     if (!declaration) throw new Error(`Malformed API signature: ${signature}`);
     const [, , name, argumentsText] = declaration;
-    const owner = section === 'SimpleApp' || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'SimpleApp' : 'GameApp';
+    const owner = section === 'App' || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'App' : 'GameApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
       const parameter = argument.trim().match(/^(\w+(?:\.\w+)*)\s+(\w+)$/);
       if (!parameter) throw new Error(`Malformed API parameter: ${argument}`);

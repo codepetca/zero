@@ -1,7 +1,7 @@
 # Building with Zero
 
 The first app-building pass grows the tiny quiz into a study app using the same
-local starter, SimpleApp and ordinary JavaFX controls. It is an example students
+local starter, App and ordinary JavaFX controls. It is an example students
 can copy and extend; the beginner starter still opens the original one-question
 quiz. [Copy/run instructions](../student-template/examples/study/README.md) ship
 inside the starter ZIP.

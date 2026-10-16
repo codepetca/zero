@@ -7,10 +7,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
 /** Main owns the study rules; shared views only display values and call actions. */
-public class Main extends SimpleApp {
+public class Main extends App {
     private final Question[] questions = {
         new Question("What is the value of 7 / 2 when both numbers are ints?", "3",
                 "Integer division drops the fractional part."),

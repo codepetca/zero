@@ -12,7 +12,7 @@ const normalizeSignature = signature => signature.replace(/\b(public|protected|f
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['SimpleApp', 'GameApp']) {
+  for (const owner of ['App', 'GameApp']) {
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner}.java`, import.meta.url), 'utf8');
     // Class-level declarations have four-space indentation; the anonymous timer callback has twelve.
     for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:final )?[\w.]+ \w+\([^)]*\))\s*\{/gm)) {
@@ -34,7 +34,7 @@ test('categories and entries have unique anchors, valid relationships and comple
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['SimpleApp', 'GameApp'].includes(item.owner));
+    assert.ok(['App', 'GameApp'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -48,7 +48,7 @@ test('classifies callbacks, window operations, overloads and advanced overrides'
   assert.equal(category('advanced').entries.length, 12);
   assert.equal(entry('image').parameters.length, 3);
   assert.equal(entry('image-scaled').parameters.length, 5);
-  assert.equal(entry('simpleapp-createContent').owner, 'SimpleApp');
+  assert.equal(entry('app-createContent').owner, 'App');
   assert.equal(entry('gameapp-createContent').owner, 'GameApp');
   assert.match(entry('gameapp-createContent').signature, /^protected final /);
   assert.equal(entry('circle').signature, 'void circle(double centreX, double centreY, double diameter)');
@@ -57,7 +57,7 @@ test('classifies callbacks, window operations, overloads and advanced overrides'
 });
 
 test('keeps canonical class defaults, constructors and lifecycle caveats', () => {
-  assert.match(category('startup').notes, /public abstract class SimpleApp/);
+  assert.match(category('startup').notes, /public abstract class App/);
   assert.match(category('startup').notes, /public abstract class GameApp/);
   assert.equal((category('startup').notes.match(/implicit public\nno-argument constructor/g) ?? []).length, 2);
   assert.match(category('startup').notes, /800 × 500/);
@@ -90,7 +90,7 @@ test('search handles aliases, case, multiple terms, whitespace and empty results
 
 test('search accepts method labels and ranks names before prose with stable ties', () => {
   const ids = query => searchApiReference(categories, query).map(item => item.id);
-  assert.deepEqual(ids('shutdown'), ['simpleapp-shutdown', 'gameapp-shutdown', 'stop']);
+  assert.deepEqual(ids('shutdown'), ['app-shutdown', 'gameapp-shutdown', 'stop']);
   assert.deepEqual(ids('image()').slice(0, 3), ['image', 'image-scaled', 'loadImage']);
   assert.deepEqual(ids('circle()'), ['circle']);
   assert.deepEqual(ids('  CiRcLe ( )  '), ['circle']);
@@ -102,7 +102,7 @@ test('search accepts method labels and ranks names before prose with stable ties
 });
 
 test('documents current padding, arrow handling, bundled media and retained app guidance', async () => {
-  assert.equal(entry('padding').owner, 'SimpleApp');
+  assert.equal(entry('padding').owner, 'App');
   assert.equal(entry('padding').signature, 'void padding(double pixels)');
   assert.match(entry('padding').description, /non-negative and finite/);
   assert.match(entry('padding').description, /Default: 0/);

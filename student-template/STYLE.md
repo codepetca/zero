@@ -26,7 +26,7 @@ Keep a written win message in a game so colour alone does not communicate a win.
 
 ## Space around the window
 
-In a `SimpleApp`, add `padding(20)` to `settings()` for 20 pixels of space on each
+In a `App`, add `padding(20)` to `settings()` for 20 pixels of space on each
 edge. It applies to every screen you pass to `show(...)`. Keep the `VBox` or `HBox`
 spacing value for gaps between controls. Padding uses part of the window size,
 so choose a larger `size(...)` when the content needs more room.
@@ -158,7 +158,7 @@ Font bodyFont = Font.loadFont(fontFile.toExternalForm(), 16);
 if (bodyFont == null) {
     throw new IllegalArgumentException("Cannot load MyFont-Regular.ttf");
 }
-// SimpleApp: feedback.setFont(bodyFont);
+// App: feedback.setFont(bodyFont);
 // GameApp: graphics().setFont(bodyFont);
 ```
 

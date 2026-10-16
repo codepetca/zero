@@ -1,5 +1,52 @@
 # Delivery evidence index
 
+## App API rename across Zero and templates — 2026-10-15
+
+Owner requested `SimpleApp` → `App` across Zero, website and templates, continuing
+the reviewed PR/merge publication workflow. `zero.App` retains the same ordinary
+JavaFX settings/setup/show lifecycle; `GameApp extends App` retains the same
+update/draw and delta-time behavior. Imports, examples, lessons/checkpoints,
+health-bar consumers, scaffold/ZIP builders, sharing structure checks, Maven
+source includes, installer test fixtures and API/search anchors use App. No
+compatibility alias is supplied. Historical receipts keep their original names.
+
+Retired-source preparation now recognizes both removed class filenames, preserves
+edited/unrecorded files and excludes them from new kit archives. Kit tests cover
+both missing-ownership cases and archive absence. Six kit tests,95website tests,
+typecheck/production build,45sharing tests and3lesson scaffold builds pass.
+Root and CI results, exact review and source delivery are recorded by this branch's
+PR; no Mac GUI success or binary release is claimed by a rename-only source pass.
+
+A bounded GPT-6.1 Sol/medium worker prepared eight template commits and own-wrapper
+clean compiles, preserving exact tracked inventory, modes and bytes apart from
+SimpleApp→App and the source filename. Coordinator independently reran the
+byte/inventory verifier and inspected delivery before integration. Recorded worker
+elapsed: 25.11 seconds; effective model/token telemetry unknown.
+
+| Template | App revision |
+| --- | --- |
+| [zero-starter](https://github.com/codepetca/zero-starter) | `ab4c4b269abf096b5d545305ab625b238f04f02d` |
+| [zero-hello-java](https://github.com/codepetca/zero-hello-java) | `d60223edcc125e27b60e9834d38478aeb1276cd8` |
+| [zero-study-session](https://github.com/codepetca/zero-study-session) | `77de0bb966cd1babf8f956a2e9e72e2fe985ed06` |
+| [zero-coin-game](https://github.com/codepetca/zero-coin-game) | `7830a98b49a85e018d35de1695645b09749bcf9f` |
+| [zero-drawing-pad](https://github.com/codepetca/zero-drawing-pad) | `ad997f9a8a3b98ff0a63c34732a05240f834dbea` |
+| [zero-tutorial-greeting](https://github.com/codepetca/zero-tutorial-greeting) | `a00566d7e644ba46a79afbe2d0920b24dc0fba59` |
+| [zero-tutorial-study](https://github.com/codepetca/zero-tutorial-study) | `4209ab9233595594af4c01e56a06d7c82ded6b4e` |
+| [zero-tutorial-game](https://github.com/codepetca/zero-tutorial-game) | `a71cb084ae43c512852378521adb0b60f6e256be` |
+
+The five website publication records carry these commit/tree pairs. All eight
+remote heads and anonymous pinned archives must be verified before merge. Three
+tutorial revision records belong to the active publishing task; the owner already
+authorized sending updated tutorial hashes. That task was notified before this
+work began; its checkout, editor profile and private trial projects are untouched.
+Browser helper/profile adaptations stay byte-identical apart from the API name;
+existing student-created repositories remain independent copies.
+
+Evidence: ignored `.verification/app-rename/`, including template clone manifest,
+compile logs and reproducible identifier-only verifier. Weekly61%remaining;
+storage337GBhealthy; DeepSeek pause honored. No new tool-backed goal, separate
+task, automation, credential change or immutable release replacement.
+
 ## Published template GameApp migration — 2026-10-15
 
 Owner requested the starter templates also use GameApp. Updated all eight public

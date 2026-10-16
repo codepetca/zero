@@ -61,7 +61,7 @@ function validateGameStructure(input) {
   if(!new RegExp('\\bpublic\\s+(?:final\\s+)?class\\s+'+simple+'\\b').test(main)||!/\bpublic\s+static\s+void\s+main\s*\(\s*String\s*(?:\[\s*\]\s+[A-Za-z_$][\w$]*|\.\.\.\s+[A-Za-z_$][\w$]*)\s*\)/.test(main))fail('Game main class must declare an ordinary public Java main method');
   const declaredPackage=/\bpackage\s+([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*;/.exec(main)?.[1]||'';
   if(declaredPackage!==marker.mainClass.split('.').slice(0,-1).join('.'))fail('Game main package must match zero.json');
-  for(const name of ['SimpleApp','GameApp']) {
+  for(const name of ['App','GameApp']) {
     const source=declaration(text(files,'src/main/java/zero/'+name+'.java'));
     if(!/\bpackage\s+zero\s*;/.test(source)||!new RegExp('\\bclass\\s+'+name+'\\b').test(source))fail('Game snapshot must include readable Zero framework source');
   }

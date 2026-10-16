@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import zero.SimpleApp;
+import zero.App;
 import zero.GameApp;
 
 /** Finite checks for reviewed maintainer checkpoints, never student source. */
@@ -185,7 +185,7 @@ public class CheckpointHarness extends Application {
     }
 
     private static void checkGame(Main app, Stage stage) throws Exception {
-        GameApp game = (GameApp) (SimpleApp) app;
+        GameApp game = (GameApp) (App) app;
         require(game.layout().getCenter() == game.canvas(), "canvas remains in game layout");
         Label score = score(app);
         require(score.getText().equals("Score: 0"), "game begins with zero score");
@@ -265,7 +265,7 @@ public class CheckpointHarness extends Application {
         settle.setOnFinished(event -> {
             boolean passed = false;
             try {
-                if (((SimpleApp) app) instanceof GameApp) app.stop(); // Stop timer before deterministic update calls.
+                if (((App) app) instanceof GameApp) app.stop(); // Stop timer before deterministic update calls.
                 check(app, stage);
                 System.out.println("CHECKPOINT_OK " + id + (withMedia ? " with-media" : ""));
                 passed = true;

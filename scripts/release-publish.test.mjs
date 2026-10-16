@@ -385,7 +385,7 @@ test('expired review artifact cannot trigger release creation', async t => {
 
 test('changed packaged Java/source stops before release publication', async t => {
   const f = await fixture(t, {intercept: async (command, args) => {
-    if (command === 'git' && args[0] === 'diff' && args.includes('--')) return 'framework/src/main/java/zero/SimpleApp.java\n';
+    if (command === 'git' && args[0] === 'diff' && args.includes('--')) return 'framework/src/main/java/zero/App.java\n';
   }});
   await assert.rejects(publishZero({version, runId}, f.dependencies), /Packaged source changed/);
   assert.ok(!f.calls.some(call => call.args[0] === 'release' || call.args.includes('PATCH')));

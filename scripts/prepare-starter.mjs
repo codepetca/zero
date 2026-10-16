@@ -3,8 +3,8 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
-export const coreSources = ['SimpleApp.java', 'GameApp.java'];
-const retiredSources = ['SketchApp.java']; // Removed API; never include in new kits.
+export const coreSources = ['App.java', 'GameApp.java'];
+const retiredSources = ['SketchApp.java', 'SimpleApp.java']; // Removed API; never include in new kits.
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // This is maintainer tooling. Extracted student projects contain ordinary Java
 // source and never run this script or depend on the surrounding repository.

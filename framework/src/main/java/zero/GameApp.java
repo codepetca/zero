@@ -20,7 +20,7 @@ import javafx.stage.Stage;
  * Each frame calls update(seconds), then draw, on the JavaFX application thread.
  * Keep callbacks short: slow work blocks drawing and normal JavaFX controls.
  */
-public abstract class GameApp extends SimpleApp {
+public abstract class GameApp extends App {
     private Canvas canvas;
     private BorderPane layout;
     private GraphicsContext graphics;

@@ -8,10 +8,10 @@ Use [the appearance guide](STYLE.md) for fonts, spacing, colours and editable CS
 
 | What you are building | Base class | Put the interface here |
 | --- | --- | --- |
-| Form, quiz, counter or study app | `SimpleApp` | Build a VBox/HBox in setup and call `show(screen)`. |
+| Form, quiz, counter or study app | `App` | Build a VBox/HBox in setup and call `show(screen)`. |
 | Drawing, simulation or game | `GameApp` | Draw in the canvas; add controls with `layout().setBottom(...)`, `setTop(...)`, `setLeft(...)` or `setRight(...)`. |
 
-GameApp **extends SimpleApp**. Create one Main application, not a SimpleApp
+GameApp **extends App**. Create one Main application, not a App
 inside a GameApp. A control or component is an ordinary object in that app.
 Keep the canvas in the game's centre. Inherited `show(...)` replaces the
 visible game layout but does not stop its timer; it is not a game menu command.
@@ -117,7 +117,7 @@ Use named actions such as `checkAnswer()`, `nextQuestion()` and `restart()`.
 Reset all related state and update existing controls. Disable an unavailable
 action rather than letting it score twice or advance after completion.
 
-For a later welcome/menu or results page in SimpleApp, `show(node)` can replace
+For a later welcome/menu or results page in App, `show(node)` can replace
 its content; it does not remember pages or state for you. For a later game pause,
 guard your update logic with an app-owned state. Zero does not pause when you
 show another node or switch focus. Start/menu/pause/result helpers are proposals,

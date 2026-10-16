@@ -4,10 +4,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
 /** A small interface built with ordinary JavaFX controls. */
-public class Main extends SimpleApp {
+public class Main extends App {
     private TextField name;
     private Label feedback;
 

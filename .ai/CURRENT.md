@@ -1,22 +1,25 @@
-# Current state — published templates use GameApp, 2026-10-15
+# Current state — App API rename, 2026-10-15
 
-Owner requested updating starter templates after merged source PR66. All eight
-public template repositories now contain GameApp with no alias or old API
-references; new imports/inheritance and framework filenames are consistent.
-Eight wrapper clean compiles and anonymous metadata/archive byte checks pass.
-Exact public commits: docs/EVIDENCE.md. Existing student copies remain independent.
+Owner requested SimpleApp→App across Zero, website and all8templates, following
+the preceding authorized PR/merge and template publication workflow. This source
+branch starts from7b04bbc and owns only current-main rename integration. Original
+funding checkout, active web-export checkout/profile/private trials are preserved.
 
-One GPT-6.1 Sol/medium independent review covered eight exact base/head diffs and
-five website metadata records, zero findings/fixes. Each diff changes identifiers
-only; tutorial browser helpers/profiles, resources and wrappers are preserved.
-No GUI/browser runtime verification is claimed for this rename-only template pass.
+Canonical event-driven API is zero.App; GameApp extends App. Lifecycle, game loop,
+delta-time, drawing/input and browser helper semantics remain unchanged. All
+active source, maintained examples/lessons/checkpoints, builders, sharing validation,
+Maven includes, installer fixtures and website reference use the new name. No alias.
+Safe starter retirement now handles both removed filenames and preserves edits or
+unknown ownership. Old names remain only in retirement tests and historical records.
 
-Five website commit/tree records are refreshed. Final metadata PR/CI on this
-branch supplies its delivery status. The three tutorial version records belong
-to the active publishing workflow; new commits/trees are saved in ignored
-.verification/gameapp-templates/tutorial-revisions.json without touching its
-web-export checkout, editor profile or owned private trial repositories.
+Eight template commits and clean compiles were delivered by a bounded Sol/medium
+worker and independently byte/inventory/mode-verified by coordinator. Five website
+revision records are updated; exact8heads in docs/EVIDENCE.md. Separate tutorial
+records stay with their owning publishing workflow, notified under existing user
+authorization. Review/publication/anonymous archive/CI status is authoritative at
+this branch's PR and ignored .verification/app-rename/ receipts.
 
-Original funding checkout/edits preserved. No binary release, new task, tool goal,
-automation or credential change. Weekly62%remaining; storage337GBhealthy;
-DeepSeek pause remains. Prior source/API delivery and CI are in EVIDENCE/PR66.
+Local6kit,95website/typecheck/build,45sharing and3lesson scaffold builds pass.
+Full root suite, independent source/template review and final CI complete the
+delivery gates. No new binary release, credentials, goal, task or automation.
+Weekly61%remaining; healthy337GBstorage; DeepSeek pause remains in effect.

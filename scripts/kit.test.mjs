@@ -50,19 +50,19 @@ test('starter preparation refreshes generated source and preserves edited copies
     prepareStarter(fixture);
     assert.deepEqual(readFileSync(path.join(fixture, 'student-template/LICENSE')), readFileSync(path.join(root, 'LICENSE')));
     const generated = name => path.join(fixture, 'student-template/src/main/java/zero', name);
-    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/SimpleApp.java'), 'canonical update');
+    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'canonical update');
     prepareStarter(fixture);
-    assert.equal(readFileSync(generated('SimpleApp.java'), 'utf8'), 'canonical update');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'canonical update');
     writeFileSync(generated('GameApp.java'), 'valuable student edit');
-    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/SimpleApp.java'), 'next update');
+    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'next update');
     assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
     assert.equal(readFileSync(generated('GameApp.java'), 'utf8'), 'valuable student edit');
-    assert.equal(readFileSync(generated('SimpleApp.java'), 'utf8'), 'canonical update');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'canonical update');
     writeFileSync(generated('GameApp.java'), `original GameApp.java`);
     writeFileSync(path.join(fixture, 'student-template/LICENSE'), 'retained license edit');
     assert.throws(() => prepareStarter(fixture), /Preserved edited starter source/);
     assert.equal(readFileSync(path.join(fixture, 'student-template/LICENSE'), 'utf8'), 'retained license edit');
-    assert.equal(readFileSync(generated('SimpleApp.java'), 'utf8'), 'canonical update');
+    assert.equal(readFileSync(generated('App.java'), 'utf8'), 'canonical update');
   } finally {rmSync(fixture, {recursive:true, force:true});}
 });
 
@@ -75,37 +75,40 @@ test('starter preparation retires unchanged managed sources and preserves edited
     prepareStarter(fixture);
     const statePath = path.join(fixture, '.verification/starter-source.json');
     const state = JSON.parse(readFileSync(statePath, 'utf8'));
-    state['RetiredApp.java'] = state['SimpleApp.java'];
+    state['RetiredApp.java'] = state['App.java'];
     writeFileSync(statePath, JSON.stringify(state));
     const retired = path.join(fixture, 'student-template/src/main/java/zero/RetiredApp.java');
     writeFileSync(retired, 'valuable student edit');
-    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/SimpleApp.java'), 'next update');
+    writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'next update');
     assert.throws(() => prepareStarter(fixture), /Preserved edited retired starter source/);
     assert.equal(readFileSync(retired, 'utf8'), 'valuable student edit');
-    assert.equal(readFileSync(path.join(fixture, 'student-template/src/main/java/zero/SimpleApp.java'), 'utf8'), 'original SimpleApp.java');
+    assert.equal(readFileSync(path.join(fixture, 'student-template/src/main/java/zero/App.java'), 'utf8'), 'original App.java');
     assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')), state);
-    writeFileSync(retired, 'original SimpleApp.java');
+    writeFileSync(retired, 'original App.java');
     prepareStarter(fixture);
     assert.equal(existsSync(retired), false);
-    assert.equal(readFileSync(path.join(fixture, 'student-template/src/main/java/zero/SimpleApp.java'), 'utf8'), 'next update');
+    assert.equal(readFileSync(path.join(fixture, 'student-template/src/main/java/zero/App.java'), 'utf8'), 'next update');
     assert.equal(Object.hasOwn(JSON.parse(readFileSync(statePath, 'utf8')), 'RetiredApp.java'), false);
   } finally {rmSync(fixture, {recursive:true, force:true});}
 });
 
 test('starter preparation preserves retired API source when its ownership record is missing', () => {
-  const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-unrecorded-'));
-  try {
-    mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
-    writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
-    for (const name of coreSources) writeFileSync(path.join(fixture, 'framework/src/main/java/zero', name), `original ${name}`);
-    const retired = path.join(fixture, 'student-template/src/main/java/zero/SketchApp.java');
-    mkdirSync(path.dirname(retired), {recursive:true});
-    writeFileSync(retired, 'valuable unrecorded source');
-    assert.throws(() => prepareStarter(fixture), /Preserved edited retired starter source/);
-    assert.equal(readFileSync(retired, 'utf8'), 'valuable unrecorded source');
-    assert.equal(existsSync(path.join(path.dirname(retired), 'GameApp.java')), false);
-    assert.equal(existsSync(path.join(fixture, '.verification/starter-source.json')), false);
-  } finally {rmSync(fixture, {recursive:true, force:true});}
+  for (const retiredName of ['SketchApp.java', 'SimpleApp.java']) {
+    const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-unrecorded-'));
+    try {
+      mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
+      writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
+      for (const name of coreSources) writeFileSync(path.join(fixture, 'framework/src/main/java/zero', name), `original ${name}`);
+      const retired = path.join(fixture, 'student-template/src/main/java/zero/' + retiredName);
+      mkdirSync(path.dirname(retired), {recursive:true});
+      writeFileSync(retired, 'valuable unrecorded source');
+      assert.throws(() => prepareStarter(fixture), /Preserved edited retired starter source/);
+      assert.equal(readFileSync(retired, 'utf8'), 'valuable unrecorded source');
+      assert.equal(existsSync(path.join(path.dirname(retired), 'App.java')), false);
+      assert.equal(existsSync(path.join(path.dirname(retired), 'GameApp.java')), false);
+      assert.equal(existsSync(path.join(fixture, '.verification/starter-source.json')), false);
+    } finally {rmSync(fixture, {recursive:true, force:true});}
+  }
 });
 
 test('assembled ZIP is a standalone editable Java project with canonical source and no contributor tools', () => {
@@ -113,7 +116,7 @@ test('assembled ZIP is a standalone editable Java project with canonical source 
   const archive = zipSync(starterMembers(root)), entries = unzipSync(archive);
   for (const name of coreSources) assert.deepEqual(entries[`zero-starter/src/main/java/zero/${name}`],
     new Uint8Array(readFileSync(path.join(root, 'framework/src/main/java/zero', name))));
-  assert.equal(Object.keys(entries).some(name => /(?:^|\/)SketchApp\.java$/.test(name)), false);
+  assert.equal(Object.keys(entries).some(name => /(?:^|\/)(?:SketchApp|SimpleApp)\.java$/.test(name)), false);
   assert.deepEqual(entries['zero-starter/LICENSE'], new Uint8Array(readFileSync(path.join(root, 'LICENSE'))));
   const lessonFiles = readdirSync(path.join(root, 'student-template/lessons')).filter(name => /^\d{2}-.*\.md$/.test(name)).sort();
   assert.deepEqual(lessonFiles.map(name => name.slice(0, 2)), Array.from({length:13}, (_, id) => String(id).padStart(2, '0')));

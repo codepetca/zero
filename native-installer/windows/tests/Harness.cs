@@ -177,7 +177,7 @@ internal static class Harness
     {
         string source = Path.Combine(root, "upgrade-source"); CreateKit(source, "0.5.6");
         string home = Path.Combine(root, "upgrade-home"), destination = Path.Combine(home, "Zero"); CreateKit(destination, "0.5.3");
-        string[] studentPaths = { "starter/src/Main.java", "starter/src/zero/SimpleApp.java", "starter/pom.xml", "starter/.vscode/settings.json", "starter/.git/config", "starter/assets/image.png", "starter/saves/game.dat", "optional/Zero.code-profile", "optional/optional-keybindings.json", "my-notes.txt", "zero-0.5.3.vsix" };
+        string[] studentPaths = { "starter/src/Main.java", "starter/src/zero/App.java", "starter/pom.xml", "starter/.vscode/settings.json", "starter/.git/config", "starter/assets/image.png", "starter/saves/game.dat", "optional/Zero.code-profile", "optional/optional-keybindings.json", "my-notes.txt", "zero-0.5.3.vsix" };
         foreach (string relative in studentPaths)
         {
             string path = Path.Combine(destination, relative); Directory.CreateDirectory(Path.GetDirectoryName(path)); File.WriteAllText(path, "student bytes: " + relative);

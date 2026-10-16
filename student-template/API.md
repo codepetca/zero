@@ -1,18 +1,18 @@
 # Zero API reference
 
-The complete API declared by `zero.SimpleApp` and `zero.GameApp`.
+The complete API declared by `zero.App` and `zero.GameApp`.
 For setup, explanations and complete examples, see the [app guide](APP-GUIDE.md)
 or [starter guide](README.md).
 
-[SimpleApp](#simpleapp) · [GameApp](#gameapp) ·
+[App](#app) · [GameApp](#gameapp) ·
 [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
-## SimpleApp
+## App
 
-`public abstract class SimpleApp extends javafx.application.Application`
+`public abstract class App extends javafx.application.Application`
 
-Extend `zero.SimpleApp` for event-driven interfaces. It has an implicit public
+Extend `zero.App` for event-driven interfaces. It has an implicit public
 no-argument constructor. The default window is resizable, 800 × 500 pixels,
 with title `"Zero"` and zero content-edge padding. Import JavaFX `Node` from `javafx.scene`.
 
@@ -43,10 +43,10 @@ before content creation. Null title/content throws `NullPointerException`.
 
 ## GameApp
 
-`public abstract class GameApp extends SimpleApp`
+`public abstract class GameApp extends App`
 
 Extend `zero.GameApp` for games, animation and canvas input. It has an implicit public
-no-argument constructor and inherits all SimpleApp public methods above.
+no-argument constructor and inherits all App public methods above.
 Its canvas exists before `setup()`. It starts frames after showing the window.
 
 | Public callback | Behavior |
@@ -130,7 +130,7 @@ arrows in a focused text field keep their normal caret behavior.
 
 ### Public lifecycle methods
 
-SimpleApp declares these final JavaFX lifecycle overrides. Let JavaFX call them.
+App declares these final JavaFX lifecycle overrides. Let JavaFX call them.
 Import `Stage` from `javafx.stage`.
 
 | Signature | Behavior |
@@ -141,7 +141,7 @@ Import `Stage` from `javafx.stage`.
 Use JavaFX's inherited `launch(args)` in `public static void main(String[] args)`.
 Other inherited JavaFX APIs remain available; they are outside Zero's own API.
 
-### Protected SimpleApp API
+### Protected App API
 
 These hooks support framework extension. Students normally override `settings`,
 `setup`, `update` and `draw`. Import `Scene` and `Node` from `javafx.scene`,
@@ -171,7 +171,7 @@ Settings, setup, frames and JavaFX handlers run on the JavaFX application thread
 A failed frame stops the timer, clears held input and reports the exception.
 Closing the app also stops its timer.
 
-The readable [SimpleApp source](src/main/java/zero/SimpleApp.java) and
+The readable [App source](src/main/java/zero/App.java) and
 [GameApp source](src/main/java/zero/GameApp.java) are the authority for a
 locally modified framework. Ordinary JavaFX controls and example classes such as
 ScoreDisplay, Player and Question have their own APIs; see the

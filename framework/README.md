@@ -1,6 +1,6 @@
 # Local Zero core library
 
-This development module packages the canonical SimpleApp and GameApp source
+This development module packages the canonical App and GameApp source
 for the Component Workshop. The student starter still ships editable core source;
 this module does not migrate existing projects or change their API.
 
@@ -21,9 +21,9 @@ students need no Node.js or access to this module.
 
 The finite contributor harness lives separately in `checks/zero/SmokeLauncher.java`.
 `verify:framework` runs it in a disposable assembled starter with a native GUI;
-normal student projects contain only SimpleApp, GameApp and their own app code.
+normal student projects contain only App, GameApp and their own app code.
 
 The JAR and sources JAR are generated in target/. No remote publishing target is
 configured. Original Zero source uses [MIT](../LICENSE); public Maven coordinates remain unresolved.
-Never add this JAR to a project that already compiles its own zero.SimpleApp and
+Never add this JAR to a project that already compiles its own zero.App and
 zero.GameApp; pick one source of the framework classes.
