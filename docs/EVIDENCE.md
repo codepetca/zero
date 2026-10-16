@@ -2,13 +2,24 @@
 
 ## Lesson title card refinement — 2026-10-16
 
-Owner-requested correction: lesson title replaces Summary and duplicate outside
-heading; actions, Done and image share a subtly purple-tinted card. Desktop
-columns/phone stacking retained. All96 website tests, typecheck/build and diff
-check pass. Local1280px dark and320px light verify containment/reflow without page
-overflow; keyboard Enter collapses details. Safari/physical/enlarged-text/forced
-color checks not newly run. Review and publication pending; detailed receipts in
-`.verification/tutorial-lesson-card/`. Source lessons and release inputs unchanged.
+Published [PR73](https://github.com/codepetca/zero/pull/73), merge
+`cea6028f7679a13b64745d3b41f304060ea0fcce`. One independent Luna/medium review of
+`806c543` covered the complete diff/callers with no findings; one launch/wave,
+zero fixes, no rework/conflicts. Effective model/timing/tokens unknown; coordinator
+usage not attributable. [CI38915351023](https://github.com/codepetca/zero/actions/runs/38915351023)
+passed6m35s; production deployment7121572308 succeeded for the merge SHA.
+
+Lesson title replaces Summary and duplicate outside heading; actions, Done and
+image share a subtly purple-tinted card. All96 website tests,typecheck/build/diff
+checks and all13 local/public HTTP checks pass. Live1280px dark desktop confirms
+image containment/columns/no duplicate title/nooverflow. Local320/390px light
+stacking,1280px light tint and keyboard Enter disclosure verified. Safari/physical/
+enlarged-text/forced-color UI not newly run. Prior updater tracing warnings remain.
+Source lessons/Java/release inputs unchanged; public signed feed equals canonical
+bytes (SHA256775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2).
+Detailed receipts/screenshots:`.verification/tutorial-lesson-card/`. Owned worktree
+fast-forwarded to mergedmain; original dirty funding checkout untouched. This
+post-publication receipt is local. Owner defaults saved in design.md/PRODUCT.
 
 ## Tutorial Summary and removal of generic help cards — 2026-10-16
 

@@ -1,18 +1,26 @@
-# Current state — Lesson title card refinement, 2026-10-16
+# Current state — Lesson title cards published, 2026-10-16
 
-Active in owned tutorial-reading-cleanup worktree on codex/tutorial-lesson-card.
-Continuing owner-authorized website publication: put lesson title, actions, Done
-and image inside one subtly purple-tinted card; no duplicate outside title or
-Summary label. All13 lessons updated through shared rendering; source lessons
-and release inputs unchanged. Design defaults saved in design.md and PRODUCT.
+PR73 merged cea6028f7679a13b64745d3b41f304060ea0fcce after complete independent
+Luna/medium review of806c543 with no findings. CI38915351023 passed in6m35s.
+Production deployment7121572308 succeeded; all13 public lesson pages verified.
+This post-publication documentation receipt is local.
 
-96 website tests, typecheck/build and diff whitespace check pass. Local1280px
-dark columns and320px light stack/nooverflow/image containment verified; keyboard
-Enter collapses details. Safari/physical/enlarged-text/forced-color UI not newly
-exercised. Existing updater tracing warnings remain. Independent low-risk review
-planned:one Luna/medium reviewer, one initial wave, max7launches/4fix batches/60min;
-no extra wave unless actionable findings. Receipts:.verification/tutorial-lesson-card/.
+Each subtly purple-tinted card contains its lesson title, numbered actions, Done
+and target image. No Summary label or duplicate outside title. Desktop columns,
+phone stacking and original heading anchors retained. Continuing design defaults
+updated in design.md and PRODUCT. Generic setup cards remain removed; specific
+notes and Start buttons0/3/8 remain. Authored lessons,Java/release inputs and signed
+feed unchanged. Docs sticky methods and transparent scrollbars preserved.
 
-Previous publication PR72/main713040a verified; current head includes its local
-handoff receipt. Next: fixed-head review, reviewed PR/CI, authorized merge and
-verify public deployment. Preserve original dirty funding checkout and other work.
+96website tests,typecheck/build,all13 local/public HTTP and live1280px dark desktop
+pass. Local320/390px light stacking/nooverflow and1280px light tint verified;
+keyboard Enter toggles disclosure. Safari/physical/enlarged-text/forced-color UI
+not newly exercised; prior updater tracing warnings remain. Review:one launch,
+one initial complete wave,zero findings/fixes; effective config/tokens/timing
+unknown. Weekly allowance last56% remaining,not task cost. Storage healthy327GB.
+Receipts/screenshots:.verification/tutorial-lesson-card/;tracked delivery in
+EVIDENCE/VERIFICATION. Original dirty funding checkout and other worktrees untouched.
+
+Owned worktree fast-forwarded to mergedmain; local handoff receipt committed.
+Public desktop lesson1 left open. Worktree/preview retained for owner feedback.
+No new goal/chat/automation,release rebuild or credential changes. Publication done.
