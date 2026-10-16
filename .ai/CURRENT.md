@@ -1,65 +1,73 @@
-# Current state — Mac release integration, 2026-10-16
+# Current state — Mac release acceptance, 2026-10-16
 
 Coordinator: Lead publishing task, 01a13f98-55fc-7471-9038-1198b14d5a98.
-User requests continuing templates, GitHub publishing and ZeroHub Play work and
-full testing before student release. Ordinary Java/explicit object updates,
-strict WebFX, browser-first Run and simple own-repository publishing remain goals.
-Physical Windows remains deferred. Root owns source/Git/operator/UI acceptance.
-Completed Review verbose action confirmations and Audit Windows install and
-updates chats are archived; do not reactivate them.
+Continue templates, GitHub publishing and ZeroHub Play work; test before student
+release. Preserve ordinary Java, strict WebFX, browser-first Run, own repositories
+and minimal sidebar. Physical Windows remains deferred. Root owns source/Git/
+operator/UI acceptance. Other completed chats are archived; do not reactivate.
 
 Worktree /Users/stew/.codex/worktrees/release-readiness/zero, branch
-codex/mac-release-0.5.18, base merged1b63ae6 plus local evidence3cf5474.
-Preserve original fundingcheckout, QA app/profile and old trial/game projects.
-Current public apps/download/feed remain0.5.17; student distribution is held.
+codex/mac-release-0.5.18. Preserve original funding checkout, old artifacts/projects,
+QA app/profile and accepted registry/Blob history. Public downloads/feed remain
+0.5.17. Student distribution/template-main promotion are held until final acceptance.
 
 ## Accepted evidence
 
 PR78 merged1b63ae6; exact reviewed treea267d41 passed Linux38960026817,
-browser38960026736 and Windows38960026787. Production website deployment7128623333
-and root Chrome home/download/tutorial/setup acceptance passed with recorded copy/
-console limitations. Installed Mac0.5.18 matches106authored files frome1c3b83;
-actual Chrome wrong/right/Stop passed and Study tutorial restored.
-Audio investigation remains not reproduced, not fixed:24original local Linuxruns,
-3instrumentedruns,60earlycloses,60rapidcontrols and hosted38979041632 allpassed.
-Keep merged phase/FX-stack diagnostics. No automatic monitoring/retry scheduled.
+browser38960026736 and Windows38960026787. Production website7128623333 and
+actual Chrome acceptance passed. Prior installed Study/tutorial/clone/menu checks
+are retained; latest 3836224 VSIX installed in isolated existing armorup profile.
+Audio timeout not reproduced, not fixed: local original/instrumented/early-close/
+rapid-control runs and fresh hosted38979041632 passed. Keep merged diagnostics.
 
-## Current phase
+Five complete template candidates exactly match assembly and retained WebFX/
+Chrome inputs. Full Sol/medium batch review clean1launch/0fixes; five draft PRs
+are open, attached, main refs/website pins unchanged. Coordinate promotion with
+0.5.18 UI. Three tutorial scaffold helpers already current.
 
-Five complete template candidates exactly match current assembly and prior
-WebFX/Chrome compile-input evidence. IndependentSol/medium full-batchreview clean,
-1launch/0fixbatches. Five reviewed draftPRs are open and attached, one per canonical
-codepetca template repo; main refs and website template metadata unchanged.
-Current READMEs assume0.5.18UI, so coordinate default-template promotion with Mac
-release. Do not merge them prematurely. Receipts: template-commits/template-prs/
-template-review under .verification/mac-release-20261016/.
+Sky Hop migrated only retired base names/current7helpers in fresh owned clone
+/Users/stew/Zero Preview Testing/sky-hop-0.5.18-50q8o_aa. Independent source and
+guide-marker delta review clean2launches/1fixbatch. Native Commit & push/Run/
+Open in browser/Publish app/Open app passed. Chrome start/pause/resume/restart/
+click/Stop passed; audible output not verified. Publish refused stale guide and
+preserved it; maintained test repo corrected exact README/owner marker only.
+Public sourceb69879a477666f64328c4193759d7264c64baf80 and successful Pages run
+38983460841 serve exact68localfiles/8208615bytes/build0293f88e. Temporary staging
+release cleaned. Copy result visible, native paste verification inconclusive.
 
-Bundled sharing policy is being aligned to public reviewed source
-1b63ae6ce07f467ab4c4600d78507157ad3bdc7c. Live operator still selects oldbeaaca4
-with both game-publication gatesfalse. Registry snapshot sequence15 has2available
-Hello fixtures,1cancelled request and no pending unaccepted queue. Existing
-Blob origin and data branch are preserved. No local publisher credentials exposed.
-Prepare/test exact pin and operator plan; high-risk independent source/rollout
-reviews required before writes. Generic library execution remains closed; its
-prior checker acceptance rejection cannot be retried/bypassed by this task.
+Bundled policy selects public reviewed1b63ae6. Independent security/rollout
+reviews complete:173security checks+63compatibility checks; one accepted P2
+rollback-plan correction independently closed. Publisher ledger3launches/1fixbatch.
+Managed run38983652894 accepted issue79/game-r1417021749-sky-hop/0.1.1 with
+verified Play receipt. Registrysequence22, all3releasesready. Both live admission
+gates false again, compatible1b63ae6 retained. Never select oldbea against enriched
+registry; disable admission for rollback, preserve immutable history/objects and
+use append-only withdrawal if needed. Generic library execution remains closed;
+its prior checker acceptance rejection must not be retried or bypassed.
+Chrome ZeroHub card/Play target and request status tested. Legacy API exact3release
+projection omits web; enriched API retains it. SourceZIP32files exactly match Git.
+Old2acceptedrecords/2ZIPs/3snapshots unchanged; fresh Git+Blob backup and isolated
+restore passed. Receipts .verification/mac-release-20261016/.
 
-Fresh owned Sky Hop trial clone is recorded in sky-hop-plan.json. Existing public
-armorup/zero-sharing-proof remainsb3b6591 and playable. Upgrade retired base-class
-names/helpers only in the new clone, then compile/Chrome-test before any game push.
-Use existing native armorup session; no credential/account changes. Publishing must
-serve the same tested bytes and bind exact main SHA/run before ZeroHub acceptance.
+## Current phase / next
 
-Plan/review/operation receipts: .verification/mac-release-20261016/plan.json.
-This is new release work; completed PR78-specific waiver is not reused or reset.
-Retain prior10fix/10targeted/12reviewturn history. Current template review1/0;
-publisher review not launched yet. Starting39%weekly remaining/319.2GBfree healthy;
-DeepSeek remains paused through2026-12-31. Effective worker/time/tokens unknown.
+3836224 kit/package/extracted Maven and unsigned Mac payload pass. Same-source
+Mac candidate Developer ID signed, Apple notarization Acceptedcc9b6541-1b5a-4350-
+95ac-e1e6a6f58db8, stapled and Gatekeeper/signature/payload verification passed.
+release/installer.json now records local0.5.18; published0.5.17 fallback unchanged.
+Prepare final clean metadata/docs PR, CI, signed updater/feed and immutable seal.
+Do not publish student assets/feed or merge template defaults before acceptance.
 
-## Final gates
+Mac locked during fresh notarized launcher QA; unlock request pending. Resume
+mounted signed app at .verification/mac-release-20261016/mounted-signed/Zero.app
+when unlocked; do not claim its interactive pass yet. Website sharing-copy alignment
+uses Share project/Publish app and metadata-before-publish ordering. Current website
+115tests/typecheck/build passed before installer metadata update; focused recheck
+and actual local Chrome visual verification remain. Final independent delta review
+and source PR still needed. No template promotion or release/distribution occurred.
+School/novice, fresh-machine and physical Windows limits remain accurate.
 
-Complete linked-game live acceptance and legacy-catalog/source immutability checks;
-settle pins/metadata; rebuild final Mackit/native candidate and verify source/
-installer payload, trusted signing/notary/staple/seal, installed student flow.
-No student app release/feed/download promotion before acceptance. School/novice
-and physical Windows limitations must remain accurate. Existing unsigned4a9 DMG
-is historical; current candidate needs rebuilding after final settings.
+Current review/operation plan .verification/mac-release-20261016/plan.json.
+Prior PR78-specific waiver not reused; old10fix/10targeted/12turn history retained.
+Weekly39%remaining observation is account-wide; DeepSeek paused through2026-12-31.
+Storage327GBhealthy fresh before native build; attributable tokens/time unknown.

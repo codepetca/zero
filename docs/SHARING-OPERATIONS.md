@@ -105,3 +105,18 @@ The former Neon runtime is removed from source. Inventory old hosted resources,
 export useful data and decide retention before separately authorized retirement.
 Local code cleanup has not deleted the hosted database, credentials or published
 experiment artifacts. Preserve all existing immutable kit and artifact bytes.
+
+
+## Compatible rollback after linked-game admission
+
+Once a frozen request or release contains a web receipt, keep a publisher revision
+that can read it. The reviewed1b63ae6 publisher can read source-only and linked
+records; the formerbeaaca4 contracts cannot. A rollback disables both
+ZERO_SHARING_GAME_PUBLICATION_ENABLED and gamePublicationEnabled while retaining
+the compatible publisher, current registry/history, final objects and catalog
+snapshots. Never restore an older registry over accepted versions or delete final
+objects. If necessary, append a withdrawal event for the exact release using the
+compatible publisher; preserve the version reservation and source downloads.
+Recheck the queue before rotating pins: retry does not migrate frozen old-policy
+requests. Resume only after targeted repair/review and verify before/after hashes
+of accepted objects against the retained backup receipt.
