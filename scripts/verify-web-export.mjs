@@ -124,14 +124,12 @@ async function fixture(name, example) {
   if (example === 'hello-app') {
     const mainFile=path.join(directory,'src/main/java/Main.java');
     const mainSource=await fs.readFile(mainFile,'utf8');
-    // This generated probe tests greeting controls and cross-file resource URLs.
-    // The original maintained example's Parent.getStylesheets() is unsupported
-    // by the pinned WebFX profile and remains unchanged (and negatively tested).
-    const unsupportedCss = 'screen.getStylesheets().add(stylesheet.toExternalForm());\n        show(screen);';
-    if (!mainSource.includes(unsupportedCss)) throw new Error('Greeting probe source changed; review its explicit unsupported-CSS substitution.');
-    await fs.writeFile(mainFile,mainSource
-      .replace('var stylesheet = getClass().getResource("/hello-app/theme.css");','java.net.URL stylesheet = new AppResources().theme();')
-      .replace(unsupportedCss,'show(new VBox(16, screen, new Label("Resource: " + stylesheet.toExternalForm())));'));
+    // Add a separate cross-file resource URL probe to the ordinary greeting.
+    // The canonical greeting itself uses only supported JavaFX controls; this
+    // fixture does not substitute unsupported application APIs.
+    if (!mainSource.includes('show(screen);')) throw new Error('Greeting probe source changed; review its resource probe placement.');
+    await fs.writeFile(mainFile,mainSource.replace('show(screen);',
+      'show(new VBox(16, screen, new Label("Resource: " + new AppResources().theme().toExternalForm())));'));
     await fs.writeFile(path.join(directory,'src/main/java/AppResources.java'),'import java.net.URL;\nclass AppResources { ResourceURL own = new ResourceURL(); URL theme() { var resource = getClass().getResource("/hello-app/theme.css"); return pass(resource); } URL pass(URL resource) { return resource; } }\n');
     await fs.writeFile(path.join(directory,'src/main/java/ResourceURL.java'),'class ResourceURL {}\n');
     await fs.mkdir(path.join(directory, 'src/main/resources/hello-app'), {recursive: true});

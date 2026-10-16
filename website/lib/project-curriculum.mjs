@@ -14,7 +14,7 @@ export const projectGuides = Object.freeze({
   },
   "hello-app": {
     title: "Hello, Java",
-    challenge: "Personalize the greeting and change the button styling. Check both an empty name and a name you enter.",
+    challenge: "Personalize the greeting and change the heading size. Check both an empty name and a name you enter.",
   },
   study: {
     title: "Study session",

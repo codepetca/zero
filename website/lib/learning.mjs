@@ -182,11 +182,8 @@ export const examples = [
   {
     id: "hello-app",
     title: "Hello, Java",
-    description: "A small styled interface with a name field, greeting and reset.",
+    description: "A small interface with a name field, greeting and reset.",
     files: ["hello-app/Main.java"],
-    resources: [
-      { file: "hello-app/theme.css", destination: "src/main/resources/hello-app/theme.css" },
-    ],
     guide: "beginner",
   },
   {

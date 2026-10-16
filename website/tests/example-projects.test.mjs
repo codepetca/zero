@@ -125,7 +125,7 @@ test("preparation refuses missing canonical sources, substituted wrappers, path 
   const example = examples[0];
   await assert.rejects(buildExampleProject({ root: directory, example: { ...example, files: [...example.files, "hello-button/Main.java"] } }), /Duplicate\/case-colliding/);
   await assert.rejects(buildExampleProject({ root: directory, example: { ...example, files: ["../Main.java"] } }), /Unsafe game archive path/);
-  await assert.rejects(buildExampleProject({ root: directory, example: { ...example, resources: [{ file: "hello-app/theme.css", destination: "assets/theme.css" }] } }), /src\/main\/resources/);
+  await assert.rejects(buildExampleProject({ root: directory, example: { ...example, resources: [{ file: "media-demo/resources/media-demo/player.png", destination: "assets/player.png" }] } }), /src\/main\/resources/);
   const wrapper = path.join(directory, "student-template/mvnw");
   const trusted = await readFile(wrapper);
   await writeFile(wrapper, "substituted wrapper");
@@ -139,16 +139,16 @@ test("preparation refuses missing canonical sources, substituted wrappers, path 
 
 test("source and output symlinks are refused; copied executable bits cannot grant resource execution", async t => {
   const directory = await fixture(t);
-  const example = examples.find(example => example.id === "hello-app");
-  const resource = path.join(directory, "student-template/examples/hello-app/theme.css");
+  const example = examples.find(example => example.id === "media-demo");
+  const resource = path.join(directory, "student-template/examples/media-demo/resources/media-demo/player.png");
   await chmod(resource, 0o755);
   const built = await buildExampleProject({ root: directory, example });
-  assert.equal(archivePolicy.inspectGamePackage(built.bytes).find(file => file.path.endsWith("theme.css")).mode, 0o100644);
+  assert.equal(archivePolicy.inspectGamePackage(built.bytes).find(file => file.path.endsWith("player.png")).mode, 0o100644);
   await rm(resource);
-  await symlink(path.join(root, "student-template/examples/hello-app/theme.css"), resource);
+  await symlink(path.join(root, "student-template/examples/media-demo/resources/media-demo/player.png"), resource);
   await assert.rejects(buildExampleProject({ root: directory, example }), /ordinary file/);
   await rm(resource);
-  await writeFile(resource, await readFile(path.join(root, "student-template/examples/hello-app/theme.css")));
+  await writeFile(resource, await readFile(path.join(root, "student-template/examples/media-demo/resources/media-demo/player.png")));
   await symlink(path.join(directory, "student-template"), path.join(directory, "linked-output"));
   await assert.rejects(prepareExampleProjects({ root: directory, projectDirectory: path.join(directory, "linked-output/projects") }), /ordinary directory/);
   const assets = path.join(directory, "website/public/generated/example-projects");

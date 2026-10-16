@@ -7,8 +7,8 @@ export function TutorialProject({ project, lesson, template, assets }) {
     {starting && <>
       {template ? <>
         <a className="button" href={template.templateHref}>Use template</a>
-        <p>Create your own GitHub repository from the template, then choose <strong>Clone repository</strong> in Zero&apos;s repository menu. <a href="/docs/setup#one-time-setup">Setup</a></p>
-      </> : <p><strong>Template not available yet.</strong> Ask your teacher for the published {project.title} tutorial template, or continue in your own already-cloned repository. <a href="/docs/setup#one-time-setup">Setup</a></p>}
+        <p>Create your own GitHub repository from the template, then choose <strong>Clone repository</strong> in Zero&apos;s repository menu. <a href="/docs/setup#start-here">Setup</a></p>
+      </> : <p><strong>Template not available yet.</strong> Ask your teacher for the published {project.title} tutorial template, or continue in your own already-cloned repository. <a href="/docs/setup#start-here">Setup</a></p>}
     </>}
     {lesson === "10" && <p>Reopen your Study quiz and Coin game repositories to try the same component in both.</p>}
     {lesson === "12" && <p>For optional artwork and sound in your own game, <a href={assets.href} download={assets.filename}>download sample game assets</a>. This ZIP contains only media files.</p>}

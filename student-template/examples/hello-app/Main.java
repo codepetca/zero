@@ -4,6 +4,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import zero.App;
 
 /** A small interface built with ordinary JavaFX controls. */
@@ -20,7 +22,7 @@ public class Main extends App {
     @Override
     public void setup() {
         Label heading = new Label("Hello, Java");
-        heading.getStyleClass().add("heading");
+        heading.setFont(Font.font("System", FontWeight.BOLD, 32));
         Label instructions = new Label("Write your name, then say hello.");
         instructions.setWrapText(true);
 
@@ -29,7 +31,6 @@ public class Main extends App {
         name.setOnAction(event -> greet()); // Enter works too.
 
         Button hello = new Button("Say hello");
-        hello.getStyleClass().add("primary");
         hello.setOnAction(event -> greet());
         Button reset = new Button("Start again");
         reset.setOnAction(event -> restart());
@@ -39,13 +40,8 @@ public class Main extends App {
         HBox actions = new HBox(12, hello, reset);
         VBox screen = new VBox(16, heading, instructions, name, actions, feedback);
         screen.setPadding(new Insets(28));
-        screen.getStyleClass().add("screen");
 
-        var stylesheet = getClass().getResource("/hello-app/theme.css");
-        if (stylesheet == null) {
-            throw new IllegalStateException("Copy theme.css to src/main/resources/hello-app/theme.css.");
-        }
-        screen.getStylesheets().add(stylesheet.toExternalForm());
+        // Ordinary controls use the platform theme; no external stylesheet is required.
         show(screen);
     }
 

@@ -113,13 +113,13 @@ test('resource lookup is constrained and approved source initializers are attrib
   await assert.rejects(check({ 'Main.java': app('Object info = getClass();') }), /Object#getClass/);
   await assert.rejects(check({ 'Main.java': app('java.lang.Class<?> type = Main.class;') }), /Class literals are supported only/);
 });
-test('27 maintained source examples pass; original CSS greeting and packaged dependencies fail explicitly', { timeout: 240000 }, async () => {
+test('28 maintained source examples pass; external stylesheets and packaged dependencies fail explicitly', { timeout: 240000 }, async () => {
   const base = path.join(root, 'student-template/examples'), sources = {};
   const exists = async file => fs.access(file).then(() => true, () => false);
   let count = 0;
   for (const entry of await fs.readdir(base, { withFileTypes: true })) {
     const name = entry.name;
-    if (!entry.isDirectory() || name.startsWith('packaged-') || name === 'hello-app' || !await exists(path.join(base, name, 'Main.java'))) continue;
+    if (!entry.isDirectory() || name.startsWith('packaged-') || !await exists(path.join(base, name, 'Main.java'))) continue;
     const prefix = 'checks.' + name.replaceAll('-', '_');
     const files = (await fs.readdir(path.join(base, name))).filter(file => file.endsWith('.java')).map(file => path.join(base, name, file));
     if (['coin-game-controls', 'coin-game-component', 'composed-game'].includes(name)) files.push(...['Player.java', 'Coin.java'].map(file => path.join(base, 'coin-game', file)));
@@ -129,10 +129,9 @@ test('27 maintained source examples pass; original CSS greeting and packaged dep
     for (const file of files) sources[prefix.replaceAll('.', '/') + '/' + path.basename(file)] = 'package ' + prefix + ';\n' + await fs.readFile(file, 'utf8');
     count++;
   }
-  assert.equal(count, 27);
+  assert.equal(count, 28);
   assert.equal((await check(sources)).status, 'passed');
-  const originalHello = await fs.readFile(path.join(base, 'hello-app/Main.java'), 'utf8');
-  await assert.rejects(check({ 'Main.java': originalHello }), error => {
+  await assert.rejects(check({ 'Main.java': app('var box = new javafx.scene.layout.VBox(); box.getStylesheets().add("theme.css");') }), error => {
     assert.match(error.message, /Main\.java:\d+:\d+: Unsupported browser API javafx\.scene\.Parent#getStylesheets\(\)/);
     return true;
   });

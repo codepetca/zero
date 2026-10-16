@@ -1,4 +1,4 @@
-"""Build the exact copied example and exercise JavaFX behavior and stylesheet loading."""
+"""Build the exact copied example and exercise ordinary JavaFX controls without external CSS."""
 from pathlib import Path
 import os
 import shutil
@@ -15,11 +15,8 @@ with tempfile.TemporaryDirectory(prefix="zero hello app ") as temporary:
     project = Path(temporary) / "starter"
     shutil.copytree(starter, project, ignore=shutil.ignore_patterns("target", "examples", ".git"))
     shutil.copy2(example / "Main.java", project / "src/main/java/Main.java")
-    resource = project / "src/main/resources/hello-app/theme.css"
-    resource.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(example / "theme.css", resource)
-    for name in ("HelloAppCheck.java", "MissingStyleCheck.java"):
-        shutil.copy2(checks / name, project / "src/main/java" / name)
+    shutil.copy2(checks / "HelloAppCheck.java", project / "src/main/java/HelloAppCheck.java")
+    assert not (project / "src/main/resources/hello-app/theme.css").exists()
     wrapper = "mvnw.cmd" if os.name == "nt" else "./mvnw"
 
     def run(main, marker):
@@ -32,12 +29,9 @@ with tempfile.TemporaryDirectory(prefix="zero hello app ") as temporary:
         print(marker)
 
     run("HelloAppCheck", "HELLO_APP_OK")
-    evidence = repo / ".verification/hello-app"
+    evidence = Path(os.environ.get("ZERO_HELLO_EVIDENCE", repo / ".verification/hello-app"))
     evidence.mkdir(parents=True, exist_ok=True)
     for name in ("initial.png", "greeting.png", "focus.png"):
         shutil.copy2(project / name, evidence / name)
-    resource.unlink()
-    run("MissingStyleCheck", "MISSING_STYLE_OK")
 assert (starter / "src/main/java/Main.java").read_bytes() == default_main
-assert default_main == (starter / "examples/quiz/Main.java").read_bytes()
-print("Pinned wrapper checks passed; default quiz unchanged; disposable project removed.")
+print("Pinned wrapper checks passed; default Main unchanged; disposable project removed.")
