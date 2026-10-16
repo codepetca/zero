@@ -9,7 +9,7 @@ uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12
 Choose **Start tutorial** from Zero’s welcome or **…** menu to open each matching tutorial
 template once. On GitHub, use **Use this template → Create a new repository**
 to create your own repository. Copy its **Code → HTTPS** URL, return to Zero and
-choose **Clone repository** in the sidebar. Paste your URL, choose a destination
+choose **Clone repository** in the repository menu. Paste your URL, choose a destination
 outside any other Git repository, then choose **Open in New Window** when VS Code
 offers to open the clone. Keep that clone and add your own code across its lessons. Each template contains only empty Main
 and build/framework setup. Tutorial repositories use New branch, Run App,
@@ -295,7 +295,7 @@ other platforms and school environments still need trials.
 For a new repository, Commit & push once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
-1. Click **New branch** beside main, name your branch (for example `quiz-feedback`)
+1. Click **New branch** in the repository menu, name your branch (for example `quiz-feedback`)
    and review before creating it. Commit & push pending edits first. Main is updated
    from GitHub when it can be advanced without combining separate histories.
 2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
@@ -327,7 +327,7 @@ private. Zero does not submit assignments or change Pika grades.
 
 Use your own original project with Git **2.31+** and your own GitHub account.
 **Run App** and test it, then merge and push the completed version on **main**.
-Choose **Publish app** in Zero’s sidebar. The first publish reviews the public Pages
+Choose **Publish app** in Zero’s repository menu. The first publish reviews the public Pages
 destination, prepares publishing files, and uses the reviewed push flow.
 If VS Code requests workflow permission, use the same GitHub account as Zero.
 Confirm the pushed version when asked. The app and included assets will be

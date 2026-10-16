@@ -126,7 +126,7 @@ separately in Pika.
 ## Publish a playable app
 
 In your own project, Run App and test the version you want to publish. Finish and
-upload it on **main**, then choose **Publish app** in Zero’s **GitHub** section.
+upload it on **main**, then choose **Publish app** in Zero’s **repository menu**.
 Use the same GitHub account in Zero and any browser authorization. The first
 publish reviews the public destination, asks for GitHub workflow permission when
 needed, and uses the normal reviewed upload for its publishing files. The app and

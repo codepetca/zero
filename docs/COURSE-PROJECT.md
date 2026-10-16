@@ -22,7 +22,7 @@ and check acceptance/access. Publishing a public game remains optional.
    your personal account as the owner, give the project your own name and follow
    your teacher's visibility instructions. Create the repository.
 2. In **your new repository**, choose **Code → HTTPS** and copy its URL.
-   Return to Zero and choose **Clone repository** in the sidebar. Paste your
+   Return to Zero and choose **Clone repository** in the repository menu. Paste your
    URL and choose a destination outside any other Git repository. When VS Code
    offers to open the clone, choose **Open in New Window**.
 

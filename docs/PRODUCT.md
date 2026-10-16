@@ -60,8 +60,9 @@ dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
-Content pages use the navigation section name (Tutorials, Docs or ZeroHub)
-as the large main heading and the page topic beneath it as a muted subtitle.
+Tutorials show the current project name (Greeting App, Study Quiz or Coin Game)
+as the main heading and the lesson title below it. Docs and ZeroHub retain their
+section heading and muted topic subtitle.
 Purple eyebrow labels and back controls are removed; top navigation, reader
 sidebars and Next lesson remain available. Hub browsing/downloads are public;
 its Sign in to GitHub and Create GitHub account buttons open GitHub's official

@@ -27,7 +27,7 @@ At lessons **0, 3 and 8**, choose **Start tutorial** from Zero’s welcome or **
 the matching project, or use **Use template** on the tutorial page. On GitHub,
 choose **Use this template → Create a new repository** in **your own account**.
 Copy **your repository**’s **Code → HTTPS** URL, return to Zero and choose
-**Clone repository** in the sidebar. Paste your URL, choose a destination outside
+**Clone repository** in the repository menu. Paste your URL, choose a destination outside
 any other Git repository, then choose **Open in New Window** when VS Code offers
 to open the clone.
 Do not clone Zero's shared template directly. There is no tutorial project ZIP

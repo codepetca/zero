@@ -14,8 +14,7 @@ Published17 downloads, installer, update feed and fallback remain unchanged.
 5. Tutorials beside ordinary Main.java → edit → Run App. Open in browser opens
    the current lesson or validated running app. Stop ends its browser runtime.
 6. Repository menu → New branch; edit/Run → Commit & push → Merge to main.
-   Publishing remains an explicit action; verify the final menu placement against
-   the owner's newest sidebar update before sealing the candidate.
+   Repository menu → Publish app explicitly publishes the validated local build.
 
 ## Integration and acceptance
 

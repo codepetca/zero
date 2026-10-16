@@ -271,7 +271,7 @@ and files before **Commit & push**. This is the starting version.
 
 For each improvement:
 
-1. Click **New branch** beside `main`. Give it a short name such as `quiz-feedback`
+1. Click **New branch** in the repository menu. Give it a short name such as `quiz-feedback`
    using lowercase letters, numbers and dashes. Review before creating the branch.
    Commit & push pending edits first. Zero updates main from GitHub when it can do so
    without combining separate histories, then creates the branch.
@@ -310,7 +310,7 @@ does not push code, establish that the remote is current or submit in Pika.
 
 In your own project, **Run App** and test the version you want other people to
 play. Merge your change and push it on **main**, then choose **Publish app**
-in Zero’s sidebar. Sign in and connect your own repository to enable
+in Zero’s repository menu. Sign in and connect your own repository to enable
 it. Publishing is a separate explicit action from pushing your source.
 
 The first publish reviews the public destination and prepares publishing files.
