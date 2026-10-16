@@ -52,9 +52,9 @@ export function Document({ id, lesson = "" }) {
         </aside>
         <article className="reader-content">
           <h1>{lesson ? "Tutorials" : "Docs"}</h1>
-          <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
-            {lesson ? `Lesson ${lesson}: ${title}` : title}
-          </h2>
+          {!lesson && <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
+            {title}
+          </h2>}
           {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <section className="lesson-start" aria-label={`${practiceProject.title} project`}>
               {lesson === practiceProject.firstLesson && (

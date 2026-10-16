@@ -1,5 +1,15 @@
 # Delivery evidence index
 
+## Lesson title card refinement — 2026-10-16
+
+Owner-requested correction: lesson title replaces Summary and duplicate outside
+heading; actions, Done and image share a subtly purple-tinted card. Desktop
+columns/phone stacking retained. All96 website tests, typecheck/build and diff
+check pass. Local1280px dark and320px light verify containment/reflow without page
+overflow; keyboard Enter collapses details. Safari/physical/enlarged-text/forced
+color checks not newly run. Review and publication pending; detailed receipts in
+`.verification/tutorial-lesson-card/`. Source lessons and release inputs unchanged.
+
 ## Tutorial Summary and removal of generic help cards — 2026-10-16
 
 Published via [PR72](https://github.com/codepetca/zero/pull/72), merge

@@ -17,7 +17,7 @@ current task's content visually prominent.
 | Surface | Default |
 | --- | --- |
 | Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
-| Tutorial summary | Put the numbered actions and Done checkpoint in a Summary card; image beside it on desktop, below on phones. Omit the short lesson-description label. |
+| Tutorial summary | Use a subtly purple-tinted card headed by the lesson title, containing numbered actions, Done and the image. Steps/image sit beside each other on desktop and stack on phones. Omit duplicate titles and short lesson-description labels. |
 | Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
 | Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
 | API reference | Category titles scroll away; each method name sticks through its own details. |
@@ -185,3 +185,11 @@ Remove the redundant short description under the lesson title. The source's bold
 opening goal need not repeat above the card; authored lesson source stays intact.
 This card contains the current lesson's actions, not generic setup/continuation
 hints, which remain removed.
+
+## Lesson title card — owner correction, 2026-10-16
+
+The target image belongs inside the same card as the numbered actions and Done
+checkpoint. Use the lesson title (for example, “Lesson 1: Say hello with a button”)
+instead of “Summary”, with no duplicate title above. Give the whole card a subtle
+purple tint using shared theme tokens; retain desktop columns and phone stacking.
+This supersedes the preceding Summary card layout.

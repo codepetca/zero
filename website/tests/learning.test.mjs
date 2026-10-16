@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { lessons, lessonGroups, lessonNavigation, isLessonDocumentId, lessonAssets, examples, projectForLesson, sampleGameAssets } from "../lib/learning.mjs";
-import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.mjs";
+import { documentHref, foldSections, resolveContentLink, slugify } from "../lib/markdown.mjs";
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
   const markdown =
@@ -164,7 +164,7 @@ test("lesson media links use only the explicit build-time asset mapping", () => 
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
 });
 
-test("every lesson groups actions and Done in a Summary card beside its target before details", () => {
+test("every lesson groups its title, actions, Done and target in one card before details", () => {
   for (const lesson of lessons) {
     const name = String(lesson.id).padStart(2, "0");
     const folder = new URL("../../student-template/lessons/", import.meta.url);
@@ -175,10 +175,12 @@ test("every lesson groups actions and Done in a Summary card beside its target b
     }));
     const image = html.indexOf(`<img src="visuals/${name}.svg"`);
     assert.match(html, /class="lesson-quick-path"/);
-    assert.match(html, /class="lesson-summary-card" aria-labelledby="lesson-summary"><h2 id="lesson-summary">Summary<\/h2>/);
+    const sourceTitle = markdown.match(/^# (.+)$/m)[1];
+    const titleId = slugify(sourceTitle);
+    assert.ok(html.includes(`id="lesson-summary" class="lesson-summary-card" aria-labelledby="${titleId}"><h2 id="${titleId}">Lesson ${lesson.id}: ${sourceTitle.replace(/^\d+\. /, "")}</h2>`));
     const cardEnd = html.indexOf("</section>");
     assert.ok(html.indexOf("<ol>") < cardEnd && html.indexOf("Done:") < cardEnd, `Lesson ${name} actions and checkpoint belong in Summary`);
-    assert.ok(image > cardEnd, `Lesson ${name} illustration belongs beside, outside Summary`);
+    assert.ok(image >= 0 && image < cardEnd, `Lesson ${name} illustration belongs inside the lesson card`);
     assert.doesNotMatch(html, /<p>Previous:\s/, `Lesson ${name} must omit previous navigation`);
     assert.ok(image >= 0 && image < html.indexOf("<details"), `Lesson ${name} target must be visible`);
     assert.ok(html.indexOf("<ol>") < html.indexOf("<details"), `Lesson ${name} actions must be visible`);
