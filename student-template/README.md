@@ -330,11 +330,12 @@ Use your own original project with Git **2.31+** and your own GitHub account.
 Choose **Publish app** in Zero’s repository menu. The first publish reviews the public Pages
 destination, prepares publishing files, and uses the reviewed push flow.
 If VS Code requests workflow permission, use the same GitHub account as Zero.
-Confirm the pushed version when asked. The app and included assets will be
+Enter a commit message if the setup files need to be pushed; Zero then continues
+publishing. The app and included assets will be
 public; your source repository keeps its visibility. Later explicit Publish actions
 revalidate and update that same approved site without another destination dialog.
 
-Zero deploys the locally checked build. Wait for **Your playable game is live**,
+Zero deploys the locally checked build. Wait for **App published**,
 then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published
 App** or **Zero: Copy Playable Link** in the Command Palette. Choose Publish app
 again to recheck a pending run; follow the stated next action if publication

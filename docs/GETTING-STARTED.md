@@ -315,13 +315,13 @@ it. Publishing is a separate explicit action from pushing your source.
 
 The first publish reviews the public destination and prepares publishing files.
 If VS Code requests GitHub workflow permission, authorize the same account you
-selected in Zero. Review and push those files through **Commit & push**, then
-confirm publication. Zero uses the locally checked build; GitHub deploys it to
+selected in Zero. Enter a commit message if the setup files need to be pushed; Zero then continues
+publishing without another publication confirmation. Zero uses the locally checked build; GitHub deploys it to
 Pages. The playable app and its included assets are public, even if your source
 repository is private and your GitHub plan supports Pages. Zero keeps the
 repository’s visibility unchanged.
 
-Wait for **Your playable game is live**, then choose **Open app** or **Copy
+Wait for **App published**, then choose **Open app** or **Copy
 playable link**. You can retrieve the checked link later with **Zero: Open
 Published App** or **Zero: Copy Playable Link** in the Command Palette. Later
 publishes revalidate and update the same approved destination without another

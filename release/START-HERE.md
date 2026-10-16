@@ -134,7 +134,7 @@ included assets will be public; your source repository keeps its visibility.
 The first publish confirms its destination. Later explicit Publish actions revalidate
 and update that approved site without another destination dialog.
 
-Zero publishes the locally checked build. Wait for **Your playable game is live**,
+Zero publishes the locally checked build. Wait for **App published**,
 then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published
 App** or **Zero: Copy Playable Link** in the Command Palette. If publishing is still
 running, choose Publish app again to recheck; an error keeps the old live page.
