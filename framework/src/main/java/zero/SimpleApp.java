@@ -24,7 +24,7 @@ public abstract class SimpleApp extends Application {
     public void settings() { }
     public void setup() { }
 
-    /** Initial content size in pixels. SketchApp uses this as its fixed canvas size. */
+    /** Initial content size in pixels. GameApp uses this as its fixed canvas size. */
     public final void size(double width, double height) {
         if (!configuring) throw new IllegalStateException("Call size inside settings().");
         if (!Double.isFinite(width) || !Double.isFinite(height) || width <= 0 || height <= 0) {
@@ -69,7 +69,7 @@ public abstract class SimpleApp extends Application {
             root.setPadding(new Insets(appPadding));
             root.setCenter(createContent());
             setup();
-            // A sketch's extra controls need room beside its fixed canvas.
+            // A game's extra controls need room beside its fixed canvas.
             Scene scene = createScene(root);
             stage.setScene(scene);
             stage.setTitle(appTitle);

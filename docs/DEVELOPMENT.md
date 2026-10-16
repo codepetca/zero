@@ -149,7 +149,7 @@ an isolated VS Code user-data/extensions directory before normal installation.
 
 Check the two startup paths, useful lifecycle errors, JavaFX event/state behavior,
 explicit object updates, drawing/input and shutdown. Preserve text control input
-when a sketch includes controls. Check that the scored quiz and practice copy the canonical
+when a game includes controls. Check that the scored quiz and practice copy the canonical
 ScoreDisplay unchanged and that the caption constructor preserves existing apps.
 Study checks should exercise retries, duplicate scoring, advance/completion and
 restart, including a second run. Keep question data in ordinary Java objects.
@@ -181,7 +181,7 @@ pending. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) for a teacher-authorized t
 Pin JavaFX, Maven wrapper/distribution and npm tooling; commit the npm lockfile.
 Keep generated artifacts and caches out of Git. The framework source ships inside
 the starter so students can inspect and edit it. SimpleApp builds ordinary JavaFX
-interfaces; SketchApp adds canvas animation. Keep explicit object updates and
+interfaces; GameApp adds canvas animation. Keep explicit object updates and
 ordinary controls/layouts available rather than introducing a larger engine.
 
 Start with one readable helper, example or useful error. Put alternative examples

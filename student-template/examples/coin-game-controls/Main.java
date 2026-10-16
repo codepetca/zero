@@ -4,10 +4,10 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** One coin and ordinary controls: Main owns the score and reset rule. */
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private Player player;
     private Coin coin;
     private int points;

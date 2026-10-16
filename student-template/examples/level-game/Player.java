@@ -1,5 +1,5 @@
 import javafx.scene.image.Image;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Gravity and axis-by-axis solid response, using small bounded simulation steps. */
 public class Player {
@@ -60,5 +60,5 @@ public class Player {
                 && y + size >= otherY && y <= otherY + height;
     }
 
-    public void draw(SketchApp app, Image sprite) { app.image(sprite, x, y, size, size); }
+    public void draw(GameApp app, Image sprite) { app.image(sprite, x, y, size, size); }
 }

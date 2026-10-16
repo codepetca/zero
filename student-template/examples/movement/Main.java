@@ -1,9 +1,9 @@
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Main reads input, then explicitly updates and draws its Player. */
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private Player player;
 
     @Override public void settings() {

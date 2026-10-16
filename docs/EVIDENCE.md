@@ -1,5 +1,28 @@
 # Delivery evidence index
 
+## GameApp rename — source PR, 2026-10-15
+
+Owner requested a full `zero.SketchApp` → `zero.GameApp` rename without a
+compatibility alias, then explicitly authorized PR and merge. This branch starts
+at main dfe2c9b and carries the rename across current lessons/checkpoints,
+examples, project assembly, sharing validation/diagnostics, Maven and website
+API/search anchors. JavaFX loop and delta-time behavior are unchanged.
+
+Preparation removes only unchanged retired generated source with a matching
+ownership record; edited or unrecorded old files stop preparation and are kept.
+Regression tests cover retirement, preservation and absence from new kit ZIPs.
+Historical evidence retains the names used by its frozen revisions. Existing
+published binary assets, template repositories and release metadata are unchanged;
+new generated starter/lesson/example projects use GameApp.
+
+Earlier local implementation review: gameapp_review/1 Sol/medium found one P2
+(unrecorded retired source could leak into ZIPs); one fix batch and targeted turn2
+accepted preservation guard and tests. Current-main checks: configuration/syntax/docs,
+6kit tests,95website tests/typecheck,45sharing tests and all3lesson scaffold
+compiles pass. Full root tests, website build and PR CI are pending; the exact
+current-main integration will be independently reviewed before merge. Bulky receipts stay ignored under
+`.verification/gameapp-rename/`. Original funding checkout is preserved.
+
 ## Automatic updater0.5.15 — verified publication metadata, 2026-10-14
 
 Source [PR62](https://github.com/codepetca/zero/pull/62) merged

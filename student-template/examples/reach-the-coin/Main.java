@@ -2,10 +2,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Move the blue square to the gold square. */
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private Player player;
     private double coinX = 520;
     private double coinY = 180;

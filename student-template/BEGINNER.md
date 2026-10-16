@@ -10,7 +10,7 @@ Examples are outside `src/` until you copy them.
 If an older downloaded kit does not include these examples, the website's
 example pages show the complete files to copy into the same starter destinations.
 
-A SketchApp can host ordinary buttons, labels and component views around its canvas.
+A GameApp can host ordinary buttons, labels and component views around its canvas.
 It already inherits SimpleApp; create UI objects rather than a second application.
 See [UI and app/game flow](UI.md) for the shared pattern.
 
@@ -72,7 +72,7 @@ change its colours and spacing.
 
 ## Games: update the state, then draw it
 
-Choose `SketchApp` for a drawing, moving objects or a small game. Start with
+Choose `GameApp` for a drawing, moving objects or a small game. Start with
 the complete [Reach the coin game](examples/reach-the-coin/README.md).
 
 ```text

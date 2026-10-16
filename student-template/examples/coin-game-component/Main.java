@@ -4,10 +4,10 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Main owns game rules; the same ScoreDisplay class also works in a study app. */
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private Player player;
     private Coin[] coins;
     private int points;

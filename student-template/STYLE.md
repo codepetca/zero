@@ -159,7 +159,7 @@ if (bodyFont == null) {
     throw new IllegalArgumentException("Cannot load MyFont-Regular.ttf");
 }
 // SimpleApp: feedback.setFont(bodyFont);
-// SketchApp: graphics().setFont(bodyFont);
+// GameApp: graphics().setFont(bodyFont);
 ```
 
 See the [JavaFX Font reference](https://openjfx.io/javadoc/21/javafx.graphics/javafx/scene/text/Font.html)

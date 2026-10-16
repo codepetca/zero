@@ -12,11 +12,11 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /** Finite contributor GUI check, selected only with -Psmoke. */
-public final class SmokeLauncher extends SketchApp {
+public final class SmokeLauncher extends GameApp {
     private int phase;
     private boolean setupRan;
     private TextField input;
-    private FailingSketch failing;
+    private FailingGame failing;
     private Stage failureStage;
     private int observedErrors;
     private Stage uiStage;
@@ -81,9 +81,9 @@ public final class SmokeLauncher extends SketchApp {
                 require(input.isFocused(), "native TextField focus");
                 require(!keyDown(KeyCode.SPACE) && !mouseDown(MouseButton.PRIMARY), "focus transfer clears held inputs");
                 key(input, KeyEvent.KEY_PRESSED);
-                require(!keyDown(KeyCode.SPACE), "typing does not drive sketch keys");
+                require(!keyDown(KeyCode.SPACE), "typing does not drive game keys");
                 mouse(input, MouseEvent.MOUSE_PRESSED, MouseButton.PRIMARY);
-                require(!mouseDown(MouseButton.PRIMARY), "control click does not drive sketch mouse");
+                require(!mouseDown(MouseButton.PRIMARY), "control click does not drive game mouse");
                 input.setText("ordinary JavaFX input");
                 require(input.getText().equals("ordinary JavaFX input"), "native control usable");
                 input.positionCaret(0);
@@ -101,7 +101,7 @@ public final class SmokeLauncher extends SketchApp {
                     if (error instanceof IllegalStateException && "Expected frame failure".equals(error.getMessage())) observedErrors++;
                     else { error.printStackTrace(); System.exit(1); }
                 });
-                failing = new FailingSketch();
+                failing = new FailingGame();
                 failureStage = new Stage();
                 failing.start(failureStage);
             } else if (phase == 6) {
@@ -177,7 +177,7 @@ public final class SmokeLauncher extends SketchApp {
         try { new SimpleApp() { }.show(new Label()); throw new AssertionError("early show accepted"); }
         catch (IllegalStateException expected) { require(expected.getMessage().contains("setup"), "useful show error"); }
     }
-    private static final class FailingSketch extends SketchApp {
+    private static final class FailingGame extends GameApp {
         private int updates;
         @Override public void settings() { size(40, 40); }
         @Override public void update(double seconds) {

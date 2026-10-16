@@ -48,7 +48,7 @@ folded detail, and SVG targets also work in local Markdown.
 
 The new composed-study and composed-game examples reuse unchanged StartScreen and
 Hud source. Hud contains ScoreDisplay. Main provides Runnable actions and explicitly
-sets displayed values. The study example switches native views; the sketch keeps
+sets displayed values. The study example switches native views; the game keeps
 its canvas and gates update with playing. Both prove start→activity→completion→
 restart without introducing a component registry or core screen engine.
 
@@ -64,7 +64,7 @@ The original pair proves activity/completion/restart and playing/win/restart;
 the composed variants add a Start screen. Pause/loss/menu return remain proposals.
 A menu/pause extension should show exactly what stops updating and how input
 returns to the canvas. An overlay needs a tested layout/input example before a
-beginner convenience method. Do not use inherited show to hide a sketch while
+beginner convenience method. Do not use inherited show to hide a game while
 expecting its timer or game rules to stop.
 
 ## Component creation and contribution

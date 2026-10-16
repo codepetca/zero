@@ -80,7 +80,7 @@ are optional continuations of the same game, with maintained references; see
 The scored quiz remains a later reuse example.
 The new local tutorial pass inserts one-coin native controls before arrays/win,
 then reuses unchanged ScoreDisplay in the study app and coin game.
-[UI and flow](../student-template/UI.md) explains controls/components in sketches;
+[UI and flow](../student-template/UI.md) explains controls/components in games;
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. These sources remain unreleased; published kits
 keep their original bytes.
@@ -90,7 +90,7 @@ composed-study/composed-game examples now demonstrate the same ordinary StartScr
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).
 
-`zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
+`zero.GameApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as
 Player or Mover. Canvas input belongs to the focused canvas; controls can receive
 normal typing. The framework does not discover or automatically update objects.

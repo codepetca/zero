@@ -14,7 +14,7 @@ dist/
 .env
 .env.*
 student-template/src/main/java/zero/SimpleApp.java
-student-template/src/main/java/zero/SketchApp.java
+student-template/src/main/java/zero/GameApp.java
 student-template/LICENSE
 website/.generated/
 website/.next/

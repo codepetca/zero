@@ -1,5 +1,5 @@
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** A patrol moves only when Main calls update. */
 public class Enemy {
@@ -20,7 +20,7 @@ public class Enemy {
     public boolean touches(Player player) { return player.touches(x, y, 28, 28); }
     public double x() { return x; }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         app.fill(Color.FIREBRICK);
         app.rect(x, y, 28, 28);
     }

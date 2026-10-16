@@ -7,7 +7,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Finite native check with deterministic held input and explicit simulation time. */
 public class ScrollingGameCheck extends Application {
@@ -93,7 +93,7 @@ public class ScrollingGameCheck extends Application {
         var app = new Main();
         try {
             app.start(stage); app.stop();
-            var keys = (Set<KeyCode>) field(app, SketchApp.class, "keys");
+            var keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             cameraChecks(); drawingChecks(app);
             var player = (Player) field(app, "player");
             keys.add(KeyCode.A); app.update(0.1); close(player.x(), 20, "A moves left");

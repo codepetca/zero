@@ -31,7 +31,7 @@ Create `src/main/java/Coin.java` yourself. Coin owns its position and collection
 
 ```java
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 public class Coin {
     private final double x;
@@ -48,7 +48,7 @@ public class Coin {
     public boolean touches(Player player) { return player.touches(x, y, size); }
     public void collect() { collected = true; }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         if (collected) return;
         app.fill(Color.GOLD);
         app.rect(x, y, size, size);

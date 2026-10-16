@@ -9,22 +9,22 @@ Use [the appearance guide](STYLE.md) for fonts, spacing, colours and editable CS
 | What you are building | Base class | Put the interface here |
 | --- | --- | --- |
 | Form, quiz, counter or study app | `SimpleApp` | Build a VBox/HBox in setup and call `show(screen)`. |
-| Drawing, simulation or game | `SketchApp` | Draw in the canvas; add controls with `layout().setBottom(...)`, `setTop(...)`, `setLeft(...)` or `setRight(...)`. |
+| Drawing, simulation or game | `GameApp` | Draw in the canvas; add controls with `layout().setBottom(...)`, `setTop(...)`, `setLeft(...)` or `setRight(...)`. |
 
-SketchApp **extends SimpleApp**. Create one Main application, not a SimpleApp
-inside a SketchApp. A control or component is an ordinary object in that app.
-Keep the canvas in the sketch's centre. Inherited `show(...)` replaces the
-visible sketch layout but does not stop its timer; it is not a sketch menu command.
+GameApp **extends SimpleApp**. Create one Main application, not a SimpleApp
+inside a GameApp. A control or component is an ordinary object in that app.
+Keep the canvas in the game's centre. Inherited `show(...)` replaces the
+visible game layout but does not stop its timer; it is not a game menu command.
 
 ## Create UI once; update its values
 
 In `setup()`, create controls, arrange them and attach actions. A Button action
 calls an ordinary method that changes your fields and updates controls.
-JavaFX draws its controls automatically. In a sketch, `update(seconds)` changes
+JavaFX draws its controls automatically. In a game, `update(seconds)` changes
 the game and `draw()` draws the canvas; neither should rebuild the button row.
 
 The complete [one-coin controls example](examples/coin-game-controls/README.md)
-starts with these three controls in SketchApp.setup():
+starts with these three controls in GameApp.setup():
 
 ```java
 score = new Label();
