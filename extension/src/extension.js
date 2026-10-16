@@ -423,7 +423,7 @@ function activate(context) {
       if (isBusy()) return;
       await lessonProjects.assertShareable(await project());
       if (!auth.signedIn) throw new Error('Sign in to GitHub first.');
-      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose Connect a repo → Connect an existing repository.');
+      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose Repository → Connect an existing repository.');
       if (!(await vscode.env.openExternal(vscode.Uri.parse('https://github.com/new')))) throw new Error('Could not open GitHub. Open https://github.com/new in your browser, create an empty repository, then connect its link.');
     },
     'zero.chooseBranch': async () => {

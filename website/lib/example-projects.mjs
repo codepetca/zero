@@ -52,7 +52,7 @@ function templateSetup(template) {
    repository**. Select your personal account as owner, choose your own project
    name and follow your teacher's visibility instructions.
 2. Open the repository you just created in your own account. Choose **Code →
-   HTTPS** and copy its URL. In Zero’s sidebar, choose **Clone repository**,
+   HTTPS** and copy its URL. In Zero’s repository menu, choose **Clone repository**,
    paste your URL and choose a destination outside any other Git repository.
    Choose **Open in New Window** when VS Code offers to open the clone.
 
@@ -76,7 +76,7 @@ The clone already connects to your own repository as origin.
 If you downloaded a ZIP instead, extract it into its own folder and open that
 root folder in Zero. A ZIP has no Git history. Create your own empty GitHub
 repository, leaving README, license and gitignore uninitialized. Sign in through
-Zero and use **Connect a repo → Connect an existing repository…** with your own
+Zero and use **Repository → Connect an existing repository…** with your own
 repository's HTTPS URL, then review **Commit & push** on **main** for the initial
 project. Connection alone does not push files.
 `;
@@ -88,19 +88,18 @@ function templateWorkflow() {
 1. Sign in through the account control in Zero’s sidebar using your personal account.
    Configure Git's per-repository name/email identity manually; signing in does
    not configure commit identity. Real pushes require native GitHub sign-in.
-   GitHub actions are live by default; nothing pushes automatically. Commit & push
-   and branch changes keep their review and confirmation steps.
+   GitHub actions are live by default; nothing pushes automatically. Check the
+   account, repository and branch before submitting a name or commit message.
 2. Personalize this README with your project idea and a short change plan.
    If edits are pending, use **Commit & push** on **main** before starting a
-   change. Write a commit message, review your repository, branch and changed
-   files, then confirm Commit & push.
-3. With clean committed main, choose **New branch** beside main (**Start a change** in older kits) and review the new
-   branch. Edit the Java, choose **Run App**, and check the behavior you changed.
+   change. Check your repository, branch and changed files, then enter a commit
+   message to commit and push.
+3. With clean committed main, choose **New branch** in the repository menu and enter its name. Edit the Java, choose **Run App**, and check the behavior you changed.
 4. **Commit & push** creates a commit when needed and pushes the current branch.
    Use an explanatory commit message. Review the destination
    and changed files. Commit & push any pending edits before finishing.
-5. Click your branch → **Merge to main** and review the completed change into
-   main. If Zero brings in newer main code, Run App again and review Merge to main again.
+5. Click **Merge to main** beside your branch to merge and push the completed change.
+   If Zero brings in newer main code, Run App again, then click Merge to main again.
    Merge to main merges the current branch into main and pushes main; it does not create a pull request.
 6. Check your actual files on GitHub's **main** branch. Submit your own repository
    link separately in Pika, giving your teacher access if it is private.
@@ -116,21 +115,22 @@ function repositoryWorkflow() {
 1. Create your own empty GitHub repository in your personal account. Follow your
    teacher's visibility instructions; leave README, license and gitignore
    uninitialized. This downloaded ZIP becomes the files in your repository.
-2. Sign in through the account control in Zero’s sidebar. Use **Connect a repo → Connect
-   an existing repository…** with your own repository's HTTPS URL. Connection
+2. Sign in through the account control in Zero’s sidebar. Use **Repository → Connect an existing repository…** with your own repository's HTTPS URL. Connection
    alone does not push files.
 3. Configure Git's per-repository name/email identity. Real pushes require
    native GitHub sign-in. GitHub actions are live by default; nothing pushes
-   automatically. Commit & push and branch changes keep review and confirmation steps.
+   automatically. Check the account, repository and branch before submitting a name
+   or commit message.
 4. Use **Commit & push** on **main** for the initial project. Write a commit
-   message, check the repository, branch and files, then confirm Commit & push.
-5. For an improvement, choose **New branch** beside main (**Start a change** in older kits) and review the new branch.
+   message after checking the repository, branch and files; submitting it proceeds
+   with the commit and push.
+5. For an improvement, choose **New branch** in the repository menu and enter its name.
    Edit the Java, choose **Run App**, and check the behavior you changed.
 6. **Commit & push** creates a commit when needed and pushes the current branch.
    Use an explanatory commit message, such as "Add feedback
    after an incorrect answer". Review the destination and changed files.
-7. Click your branch → **Merge to main**. Review merging your current branch
-   into main and pushing main. If Zero brings in newer main code, Run App again and review Merge to main again.
+7. Click **Merge to main** beside your branch to merge and push main.
+   If Zero brings in newer main code, Run App again, then click Merge to main again.
 8. Check your actual files on GitHub's **main** branch. Submit your own repository
    link separately in Pika, giving your teacher access if it is private.
 
