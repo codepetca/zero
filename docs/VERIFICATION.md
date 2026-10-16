@@ -1,5 +1,15 @@
 # Verification
 
+## Sticky API method names — 2026-10-16
+
+CSS follow-up passes website typecheck, production build,96tests and whitespace
+checks. Browser confirms method-bound sticky titles, static category titles,
+measured desktop-header offset, phone top0,320/384/1280px reflow, direct links,
+active method and light/dark. One complete independent source review is clean;
+browser evidence reused. Two unrelated updater tracing warnings remain.
+Safari/physical devices, enlarged text and keyboard were not separately tested.
+See [delivery evidence](EVIDENCE.md#sticky-api-method-names--2026-10-16).
+
 ## Tutorial reading cleanup — 2026-10-16
 
 96 website tests, typecheck, production build and diff whitespace checks pass.

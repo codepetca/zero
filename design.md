@@ -136,3 +136,10 @@ on subtle theme surfaces, with existing disclosure controls and deep links.
 Setup, continuation and optional-resource guidance belongs in a smaller muted
 helper card; preserve visible prerequisites and functional links. Reuse approved
 light/dark tokens. The sidebar and Next lesson action remain available.
+
+## Docs sticky method names — owner correction, 2026-10-16
+
+API category headings scroll with the document. Each method's name/owner row
+sticks only while reading that method, below the shared desktop header or at
+the top on phones. Reuse opaque theme backgrounds and preserve method links,
+search, navigation and normal category styling.

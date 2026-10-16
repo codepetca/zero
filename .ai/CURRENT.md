@@ -1,4 +1,4 @@
-# Current state — Tutorial reading cleanup, 2026-10-16
+# Current state — Tutorial and Docs reading cleanup, 2026-10-16
 
 Owner requested removal of Previous links and tutorial dividers, clearer step
 headings and muted secondary hints. Local implementation is complete in the
@@ -17,5 +17,9 @@ Luna/medium independent review found no actionable issues. Two unrelated updater
 tracing warnings remain. Safari/physical devices/enlarged text were not tested.
 Full delivery/review evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
 Screenshots/logs are ignored under .verification/tutorial-cleanup/.
-Local preview: http://127.0.0.1:3216/tutorials/8.
+Docs follow-up is locally complete: category headings scroll normally and method
+name rows stick within their article, below the desktop header or at phone top0.
+Typecheck/build/96tests pass; complete Luna/medium review found no actionable
+issues. Browser checks cover light/dark,320/384/1280px and scroll handoff.
+Local previews: http://127.0.0.1:3216/tutorials/8 and /docs#circle.
 Next action, if requested: publish through the repository's reviewed PR workflow.

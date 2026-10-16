@@ -1,5 +1,34 @@
 # Delivery evidence index
 
+## Sticky API method names — 2026-10-16
+
+Owner requested Docs category headings scroll normally and method names become
+sticky instead. Only API reference CSS changes: method title rows stick within
+their own article, below the measured desktop header or at the top on phones.
+Opaque theme background keeps scrolling text behind the name. Entry anchor
+margins no longer reserve space for a category banner. Categories retain their
+normal heading appearance. Earlier tutorial cleanup remains intact.
+
+Website typecheck, production build,96tests and diff whitespace checks pass.
+The build retains two unrelated mac-updater filesystem-tracing warnings.
+In-app browser verifies1280px desktop title top93px matching header bottom,
+320/384px mobile title top0 while article top is negative, static category
+position, normal next-method transition, correct active sidebar, direct links,
+light/dark and no page overflow. Viewport and dark theme restored. Screenshots:
+ignored `.verification/tutorial-cleanup/docs-sticky-method-{desktop,mobile}.png`;
+check logs use `docs-` prefix in the same folder. Safari/physical devices,
+enlarged text and keyboard were not separately tested in this CSS follow-up.
+
+Independent docs_sticky_review/1, requested GPT-6 Luna/medium, complete CSS delta
+plus caller/global/theme/anchor inspection: no actionable findings. Reviewed
+base0933ad4 and patch SHA256
+`69b01e791b13b2d5cf2d9faa250baa24221344310afc1702e9676fe8436d14a0`.
+Checks/browser evidence reused, no independent browser drive. One initial launch,
+zero fixes/conflicts; effective model/tokens/reviewer elapsed unknown. Coordinator
+verified patch identity and returned claims. Recent weekly58%remaining and healthy
+storage reading reused; DeepSeek pause honored. No new publication, release,
+credentials, goal, chat or automation. Local preview remains on port3216.
+
 ## Tutorial reading cleanup — 2026-10-16
 
 Owner requested removal of Previous links, muted secondary hints, highlighted
