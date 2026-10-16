@@ -223,3 +223,11 @@ The explicit Merge to main button starts the guarded merge/push-main flow withou
 an additional confirmation. Preserve account/project/destination/source checks,
 operation serialization, the pause to run after incorporating updated main,
 conflict recovery and the separate optional local-branch deletion confirmation.
+
+### Automatic finished-branch cleanup — owner decision, 2026-10-16
+
+After confirmed Merge to main success, automatically delete the finished local
+branch through the existing clean-main, exact-SHA, ancestry and atomic ref guards.
+Do not add another confirmation or delete the remote branch. A refused cleanup
+keeps the branch, preserves the successful merge outcome and shows a concise
+notice with details in Zero Output. Failed/paused/conflicted merges skip cleanup.

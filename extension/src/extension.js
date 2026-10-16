@@ -303,15 +303,19 @@ function activate(context) {
         void vscode.window.showInformationMessage(state);
         return;
       }
-      state = kind === 'start' ? `Started ${result.branch}. Make your changes, then Commit & push.` : 'Merged change and pushed main. Run your app to check it.';
-      void vscode.window.showInformationMessage(state);
-      if (kind === 'finish') {
-        const remove = await vscode.window.showInformationMessage(`Delete the finished local branch ${result.finishedBranch}?`, {modal:true, detail:'Your change is now on main. This only deletes the local branch; the GitHub branch stays available.'}, 'Delete local branch');
-        if (remove === 'Delete local branch') {
-          if (await project() !== root) throw new Error('The student project changed. The finished local branch was kept.');
+      let cleanupError;
+      if (kind === 'finish' && result.finished) {
+        try {
+          if (await project() !== root) throw new Error('The student project changed.');
           await workflow.deleteFinishedBranch(root, result.finishedBranch, result.head);
+        } catch(error) {
+          cleanupError = error;
+          output.appendLine(`Main was merged and pushed. Finished local branch kept: ${error.message}`);
         }
       }
+      state = kind === 'start' ? `Started ${result.branch}. Make your changes, then Commit & push.` : cleanupError ? 'Merged change and pushed main. Local branch kept; check Zero Output.' : 'Merged change and pushed main. Finished local branch deleted.';
+      if (cleanupError) void vscode.window.showWarningMessage(state);
+      else void vscode.window.showInformationMessage(state);
     } catch(error) {if (error.conflict) await conflictHelp(); throw error;}
     finally {await repositoryStatus(); changing = false; refresh();}
   }

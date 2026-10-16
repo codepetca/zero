@@ -106,8 +106,10 @@ No rebase, force push, reset or automatic abort is performed.
 Finish advances local main with guarded SHA checks and non-force pushes the
 captured completed SHA, then confirms remote main before returning to it. A
 failed push retains the change branch for retry; local main may already have
-advanced. Optional cleanup deletes only the unchanged local finished branch
-after success. The remote change branch remains. Shared worktrees and unusual
+advanced. After confirmed success, automatic cleanup deletes only the unchanged
+local finished branch. A cleanup refusal keeps the branch and the successful
+merge outcome, with a concise notice and details in Zero Output. The remote
+change branch remains. Shared worktrees and unusual
 histories require ordinary Git tools. The repository link for Pika is unchanged;
 completed code should be on main.
 

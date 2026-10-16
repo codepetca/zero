@@ -346,8 +346,10 @@ running the app and reviewing Merge to main again. Local main may not contain se
 unpublished work outside the change branch. The action advances local main, pushes
 the exact completed SHA to remote main and confirms it before switching to main.
 A failed push can leave main advanced locally while retaining the change branch
-for another Finish review. Optional cleanup removes only the unchanged local
-finished branch; the uploaded remote change branch remains. Shared worktrees and
+for another Finish review. After confirmed success, cleanup automatically removes
+only the unchanged local finished branch. If its safety checks fail, main stays
+completed and the local branch is kept with a concise notice and Zero Output
+details. The uploaded remote change branch remains. Shared worktrees and
 unusual histories require normal Git tools. No automatic source rollback occurs.
 
 Live transport uses transient credentials from the captured native GitHub session.
