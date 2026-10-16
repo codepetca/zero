@@ -1,5 +1,37 @@
 # Verification
 
+## Automatic finished local-branch cleanup installed — 2026-10-16
+
+Owner requested automatic cleanup after a successful merge, without another popup.
+Production code0b317de on codex/web-export calls the existing guarded cleanup only
+for a confirmed finished result, after checking project identity. Failed pushes,
+conflicts and the Run-after-main-update pause skip cleanup. Clean main, exact SHA,
+ancestry, shared-worktree and atomic compare/delete guards remain unchanged. The
+remote branch stays available. A refused cleanup preserves the merge-success
+outcome and explains the retained branch through a nonmodal notice/Zero Output.
+
+Two independent GPT-6.1Sol/high complete6file reviews found no production issue;
+both identified a fixture missing the real finished:true receipt. One test-only
+fix9ca8f14 and one targeted review accepted final source.42unchanged boundary cases
+pass plus the corrected UI case passes, covering direct cleanup, exact arguments,
+paused/conflicted cases, account drift/serialization and cleanup refusal. Syntax
+and whitespace pass.3review turns,1fix batch; effective model/tokens/exact reviewer
+time unknown. No repeated full-suite or unchanged engine review wave.
+
+Candidate `dist/candidates/zero-0.5.16-auto-cleanup-0b317de/zero-0.5.16.vsix` is
+installed in the existing nested Zero/editor profile. All87package files match
+current corrected source and installation; the corrected test is excluded from
+the VSIX. Prior extension backed up. Current Mac Study window reloaded; all7trial
+Main hashes unchanged. No actual student GitHub merge/push or branch deletion
+was invoked; automated cases use disposable repositories/mocks. Physical Windows
+remains untested. Known archived-doc link-check blocker unchanged. No public
+publication, release, account/credential change or new goal/chat/automation.
+
+Receipts: ignored `.verification/auto-cleanup-20261016/` delivery.json,
+package-parity.json, tests-initial.log, ui-final.log, package.log, install.log and
+preservation/backup. Direct coordinator implementation, bounded native reviewers;
+cached327GBhealthy and recent55%weekly remaining reused; attribution unknown.
+
 ## Direct Merge to main installed — 2026-10-16
 
 Owner requested removing the merge confirmation. Source2377d0b on codex/web-export

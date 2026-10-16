@@ -1,15 +1,18 @@
-# Current state — direct Git actions installed, 2026-10-16
+# Current state — automatic finished local-branch cleanup installed, 2026-10-16
 
-Latest owner follow-up removes the Merge to main confirmation too: code2377d0b
-on codex/web-export. Existing safety checks/Run-after-main-update pause/conflict
-recovery remain; optional local-branch deletion still confirms. Candidate
-`dist/candidates/zero-0.5.16-direct-merge-2377d0b/zero-0.5.16.vsix` is installed in
-the owned nested Zero/editor profile; all87files match source/package/installation.
-Current Study window reloaded and ready.43workflow/UI/auth/transport tests pass;
-2independent Sol/high reviews clean,0fixes.7trial Main hashes preserved. No live
-merge/push, public app, student release or account change. Known archived-doc
-link-check blocker unchanged. Previous confirmation cleanup2377's parent8bedf8f
-remains integrated. See docs/EVIDENCE.md and .verification/direct-merge-20261016/.
+Latest owner follow-up automatically cleans up the finished local branch after
+confirmed merge/push success; code0b317de, corrected test/review9ca8f14 on
+codex/web-export. Existing project/clean-main/exact-SHA/ancestry/worktree/atomic
+ref guards remain. Failed/paused/conflicted merges skip cleanup. Refused cleanup
+keeps merge-success truthful with a nonmodal notice and Output details. The
+remote branch remains. Candidate
+`dist/candidates/zero-0.5.16-auto-cleanup-0b317de/zero-0.5.16.vsix` is installed in
+the owned nested Zero/editor profile;87files match current source/package/install.
+Current Study window reloaded;7trial Main hashes unchanged.42unchanged regression
+cases plus corrected UI case pass.2initialSol/high reviews+1targeted clean after
+1test-fixture fix; no production findings. No actual live merge/push/deletion,
+public release or account change. Existing archived-doc link blocker unchanged.
+See docs/EVIDENCE.md and .verification/auto-cleanup-20261016/.
 
 Coordinator Lead publishing task, thread01a13f98-55fc-7471-9038-1198b14d5a98.
 Use /Users/stew/.codex/worktrees/web-export/zero, branch codex/web-export.

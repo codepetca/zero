@@ -1,9 +1,10 @@
 # Zero 0.5.16 release preparation
 
-Latest local installed extension: `zero-0.5.16-direct-merge-2377d0b` on
-`codex/web-export`. Merge to main now runs directly, with safety checks and the
-optional branch-deletion prompt retained. Current preview reloaded; see
-[EVIDENCE.md](EVIDENCE.md). Published release assets are unchanged.
+Latest installed extension: `zero-0.5.16-auto-cleanup-0b317de` on
+`codex/web-export`, reviewed with the corrected test at9ca8f14. Successful merging
+automatically removes the unchanged finished local branch through the existing
+safety guards, with no extra popup. The remote branch remains. Current preview
+reloaded; see [EVIDENCE.md](EVIDENCE.md). Published assets are unchanged.
 
 Status: **local preview, not a student release**. Kit/extension0.5.16/core0.1.3
 are retained for isolated testing. Another chat published stable0.5.17/native17/
