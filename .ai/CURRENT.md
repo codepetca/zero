@@ -1,28 +1,19 @@
-# Current state — App API rename, 2026-10-15
+# Current state — Zero 0.5.17 release, 2026-10-16
 
-Owner requested SimpleApp→App across Zero, website and all8templates, following
-the preceding authorized PR/merge and template publication workflow. This source
-branch starts from7b04bbc and owns only current-main rename integration. Original
-funding checkout, active web-export checkout/profile/private trials are preserved.
+Owner explicitly requested publication with App and GameApp. Stable source starts
+from e7b9b4d (merged App rename PR68); no runtime changes in this release branch.
+Version 0.5.17/core 0.2.0/native build17 is reserved with Lead publishing task.
+Its unpublished 0.5.16/browser/sidebar/tutorial work, profile and private trials
+remain separate. Preserve dirty original education-funding checkout.
 
-Canonical event-driven API is zero.App; GameApp extends App. Lifecycle, game loop,
-delta-time, drawing/input and browser helper semantics remain unchanged. All
-active source, maintained examples/lessons/checkpoints, builders, sharing validation,
-Maven includes, installer fixtures and website reference use the new name. No alias.
-Safe starter retirement handles both removed filenames, preserves edits/unknown
-ownership and preflights linked output/ownership paths before any mutations. Old names remain only in retirement tests and historical records.
+Source preparation changes version definitions, startup guide and release notes.
+Cheap checks passed: configuration, 86 release tests, 11 updater tests/2 platform
+skips. Source review, exact-head CI/manual preparation, signed/notarized Mac
+build, artifact review, immutable publication and reviewed metadata promotion
+are remaining gates. Use exact manual CI kit bytes in the native installer.
+Keep published fallbacks/feed until anonymous verification and promotion.
 
-Eight template commits and clean compiles were delivered by a bounded Sol/medium
-worker and independently byte/inventory/mode-verified by coordinator. Five website
-revision records are updated; exact8heads in docs/EVIDENCE.md. Separate tutorial
-records stay with their owning publishing workflow, notified under existing user
-authorization. Review/publication/anonymous archive/CI status is authoritative at
-this branch's PR and ignored .verification/app-rename/ receipts.
-
-Local8kit (after preservation correction),95website/typecheck/build,45sharing,
-3lesson scaffold builds and initialroot265pass/1skip pass. Initial complete source/
-template review had zero findings. Two later integration preservation findings
-were reproduced and fixed in one batch imported from6258daf; targeted review and
-new-head CI remain merge gates. The eight published templates are unaffected by
-maintainer preparation fixes. No new binary release, credentials, goal, task or automation.
-Weekly61%remaining; healthy337GBstorage; DeepSeek pause remains in effect.
+Coordinator owns release edits/publication. Evidence/logs and review ledger live
+in ignored .verification/release-0.5.17; final tracked evidence at docs/EVIDENCE.md.
+Healthy329GB free; weekly59%remaining; DeepSeek pause honored. No new goal, task,
+automation or credentials. User publication and earlier PR/merge authority apply.
