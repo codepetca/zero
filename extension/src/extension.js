@@ -301,7 +301,7 @@ function activate(context) {
       await assertCurrent();
       const result = kind === 'start' ? await workflow.startPrepared(plan, options) : await workflow.finishPrepared(plan, options);
       if (kind === 'finish' && result.updated && !result.finished) {
-        report('Main updated. Run App, then Merge to main.', 'Main updates added to your change. Run App, then choose Merge to main again to review.');
+        report('Branch updated. Run App, then Merge to main.', 'Main updates added to your change. Run App, then choose Merge to main again to review.');
         return;
       }
       let cleanupError;
