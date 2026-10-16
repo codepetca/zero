@@ -260,7 +260,14 @@ gate. Run
 
 One supported webview (`zero.actions`) contains controls and the project file list;
 with a single view VS Code merges its title into the container header. Start
-tutorial (`zero.startProject`, stable command ID) is on welcome/empty and the native
-**…** menu; Clone repository (`zero.cloneRepository`) stays visible. Clone delegates to VS Code’s built-in
-`git.clone`; native Git owns authentication, URL/destination selection and opening.
-Website/tutorial instructions use the visible sidebar labels.
+tutorial (`zero.startProject`, stable command ID) is in welcome and the native
+**…** menu. Signed-out GitHub controls show only **Sign in**; local Run and files
+remain available. Signed in reveals the project dropdown with **Clone from GitHub…**
+(`zero.cloneRepository`) and **Open local project…** (`zero.openLocalProject`).
+Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
+with another location selectable and a home-folder fallback if the default is
+unavailable. Native Git owns transport and credentials. Where its public clone
+API exists, Zero opens the returned folder in a new window; older supported hosts
+use `git.clone` and retain their native open-after-clone choice. Open local project
+validates and opens an existing Zero folder without cloning, moving it or creating
+the default folder. Website/tutorial instructions use these visible labels.
