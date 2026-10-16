@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync, symlinkSync, lstatSync, readlinkSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync, symlinkSync, lstatSync, readlinkSync, renameSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {zipSync, unzipSync} from 'fflate';
@@ -139,6 +139,84 @@ test('starter preparation preserves unrecorded retired files and retired symlink
       }
     }
   } finally {rmSync(fixture, {recursive:true, force:true});}
+});
+
+test('starter preparation rejects linked current files and output directories before retiring owned files', () => {
+  for (const mode of ['current-link', 'dangling-current-link', 'directory-link']) {
+    const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-linked-output-'));
+    try {
+      mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
+      writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
+      for (const name of coreSources) writeFileSync(path.join(fixture, 'framework/src/main/java/zero', name), `original ${name}`);
+      prepareStarter(fixture);
+      const statePath = path.join(fixture, '.verification/starter-source.json');
+      const state = JSON.parse(readFileSync(statePath, 'utf8'));
+      state['SimpleApp.java'] = state['App.java'];
+      const stateBytes = JSON.stringify(state);
+      writeFileSync(statePath, stateBytes);
+      const generated = path.join(fixture, 'student-template/src/main/java/zero');
+      writeFileSync(path.join(generated, 'SimpleApp.java'), 'original App.java');
+      writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'canonical update');
+      const backup = path.join(fixture, 'valuable-backup');
+      let linked, target, preservedDirectory = generated;
+      if (mode === 'directory-link') {
+        renameSync(generated, backup);
+        linked = generated; target = backup; preservedDirectory = backup;
+      } else {
+        linked = path.join(generated, 'App.java');
+        rmSync(linked);
+        target = mode === 'current-link' ? backup : path.join(fixture, 'missing', 'App.java');
+        if (mode === 'current-link') writeFileSync(backup, 'valuable external source');
+      }
+      symlinkSync(target, linked);
+      assert.throws(() => prepareStarter(fixture), /Expected ordinary generated (?:source|directory)/, mode);
+      assert.equal(lstatSync(linked).isSymbolicLink(), true);
+      assert.equal(readlinkSync(linked), target);
+      assert.equal(readFileSync(path.join(preservedDirectory, 'SimpleApp.java'), 'utf8'), 'original App.java');
+      assert.equal(readFileSync(path.join(preservedDirectory, 'GameApp.java'), 'utf8'), 'original GameApp.java');
+      assert.equal(readFileSync(statePath, 'utf8'), stateBytes);
+      if (mode === 'current-link') assert.equal(readFileSync(backup, 'utf8'), 'valuable external source');
+      if (mode === 'dangling-current-link') assert.equal(existsSync(path.dirname(target)), false);
+    } finally {rmSync(fixture, {recursive:true, force:true});}
+  }
+});
+
+test('starter preparation rejects linked ownership state paths before changing any output', () => {
+  for (const mode of ['state-link', 'dangling-state-link', 'state-directory-link']) {
+    const fixture = mkdtempSync(path.join(tmpdir(), 'zero-source-linked-state-'));
+    try {
+      mkdirSync(path.join(fixture, 'framework/src/main/java/zero'), {recursive:true});
+      writeFileSync(path.join(fixture, 'LICENSE'), readFileSync(path.join(root, 'LICENSE')));
+      for (const name of coreSources) writeFileSync(path.join(fixture, 'framework/src/main/java/zero', name), `original ${name}`);
+      prepareStarter(fixture);
+      const statePath = path.join(fixture, '.verification/starter-source.json');
+      const state = JSON.parse(readFileSync(statePath, 'utf8'));
+      state['SimpleApp.java'] = state['App.java'];
+      const stateBytes = JSON.stringify(state);
+      writeFileSync(statePath, stateBytes);
+      const generated = path.join(fixture, 'student-template/src/main/java/zero');
+      writeFileSync(path.join(generated, 'SimpleApp.java'), 'original App.java');
+      writeFileSync(path.join(fixture, 'framework/src/main/java/zero/App.java'), 'canonical update');
+      const backup = path.join(fixture, 'state-backup');
+      let linked = statePath, target = backup, preservedState = backup;
+      if (mode === 'state-directory-link') {
+        linked = path.dirname(statePath);
+        renameSync(linked, backup);
+        preservedState = path.join(backup, 'starter-source.json');
+      } else {
+        renameSync(statePath, backup);
+        if (mode === 'dangling-state-link') target = path.join(fixture, 'missing-state.json');
+      }
+      symlinkSync(target, linked);
+      assert.throws(() => prepareStarter(fixture), /Expected ordinary (?:starter ownership state|generated directory)/, mode);
+      assert.equal(lstatSync(linked).isSymbolicLink(), true);
+      assert.equal(readlinkSync(linked), target);
+      assert.equal(readFileSync(preservedState, 'utf8'), stateBytes);
+      assert.equal(readFileSync(path.join(generated, 'SimpleApp.java'), 'utf8'), 'original App.java');
+      for (const name of coreSources) assert.equal(readFileSync(path.join(generated, name), 'utf8'), `original ${name}`);
+      if (mode === 'dangling-state-link') assert.equal(existsSync(target), false);
+    } finally {rmSync(fixture, {recursive:true, force:true});}
+  }
 });
 
 test('assembled ZIP is a standalone editable Java project with canonical source and no contributor tools', () => {
