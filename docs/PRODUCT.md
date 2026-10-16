@@ -8,8 +8,9 @@ using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
-page has the shared app header, **Learn Java**, **Starting from zero.**, and one
-**Download Zero** button to `/downloads`. It uses the shared light/dark toggle and
+page has the shared app header, **Learn Java**, **Starting from zero.**, and two
+direct download buttons: **Download for Mac Silicon** and **Download for Windows
+(ZIP)**. It uses the shared light/dark toggle and
 centered full-viewport layout. The old `/get-started` address redirects to Downloads.
 The website requires no GitHub sign-in. Download and launch desktop Zero first;
 its welcome checks VS Code's existing GitHub connection, offers **Connect GitHub**

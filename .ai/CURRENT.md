@@ -8,7 +8,7 @@ Preserve ordinary Java, explicit updates, strict WebFX compatibility, locally te
 build publishing through GitHub and ZeroHub links to student-hosted games. Pika
 submission stays separate. Overall goal is incomplete.
 
-Owner approved website Download Zero → desktop GitHub session check → explicit
+Owner approved website Mac Silicon / Windows ZIP downloads → desktop GitHub session check → explicit
 Connect GitHub if needed → own template-created/cloned tutorial repository.
 No website OAuth or separate Zero account. Live is the student default; local Run
 remains available after Later. Original local apps remain Git-free. Tutorial Run
@@ -23,7 +23,7 @@ held. No real users; old-project migration is not a release gate.
 ## Accepted local phase
 
 Reviewed/package source `47cc071351583814e70c060fd056df62bbf4ebf7`.
-Home has one Download Zero action; old `/get-started` redirects to Downloads.
+Owner correction: Home restores direct Mac Silicon and Windows ZIP download actions; old `/get-started` redirects to Downloads.
 Desktop welcome silently checks VS Code's session, offers Connect GitHub or Later,
 shows an existing connection's username, and uses the existing native provider/
 scopes/consent. Persistent modal avoids a disappearing notification; manual

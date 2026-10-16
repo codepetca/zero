@@ -10,7 +10,7 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 | Surface | Status |
 | --- | --- |
-| Home page with app header, Learn Java and Download Zero | Owner-approved download-first flow 2026-10-15; GitHub welcome belongs in desktop Zero. |
+| Home page with app header, Learn Java and Mac/Windows downloads | Owner-approved download-first flow 2026-10-15; GitHub welcome belongs in desktop Zero. |
 | Shared Learn/downloads design in light and dark | Owner-approved 2026-10-13; applies to the tutorial reader and Downloads. |
 | Minimal editor sidebar in light and dark | Owner-approved 2026-10-13: one Run/Stop, GitHub and ZeroHub view; idle status hidden; Sign in/username; New branch; Tutorials/Setup overflow. Native VS Code adaptation remains required. |
 | Docs reader | Owner-approved 2026-10-14 API mock: method/category sidebar, search and concise entries; preserve current shared navigation, themes and code copying. Setup and longer guides stay linked. |
@@ -52,7 +52,7 @@ those roles to each surface. The approved dark companion applies to Home, Learn 
 ## Surface adaptations and review scope
 
 Home uses the shared app header above **Learn Java**, **Starting from zero.**
-and one **Download Zero** (`/downloads`) button. GitHub connection is handled
+and two direct buttons: **Download for Mac Silicon** and **Download for Windows (ZIP)**. GitHub connection is handled
 by the downloaded app's native welcome, using VS Code sessions and consent.
 It uses the centered full-viewport layout and shared appearance toggle. Tutorials opens
 lesson 0 directly with the complete lesson sidebar and a reading pane. The owner
@@ -173,3 +173,8 @@ Supersedes website setup steps: Home offers Download Zero, with no website sign-
 Desktop Zero checks its VS Code GitHub connection, offers Connect GitHub when
 needed, shows the existing account and leads to tutorial creation. Use supported
 native welcome/consent controls, allow Later, and keep local Run available.
+
+### Owner correction — direct platform downloads, 2026-10-15
+
+Restore Mac Silicon and Windows ZIP download buttons on Home. Reuse the verified
+Downloads component and release availability rules. Desktop GitHub welcome remains.

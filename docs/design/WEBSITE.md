@@ -7,7 +7,8 @@ supersede the original landing mockup.
 ## Current page contract — 2026-10-15
 
 Home (`/`) has the shared app header and a centered stack: **Learn Java**,
-**Starting from zero.** and one **Download Zero** → `/downloads` action. GitHub
+**Starting from zero.** and two direct download actions: **Download for Mac Silicon**
+and **Download for Windows (ZIP)**. GitHub
 connection happens in downloaded Zero's native welcome. The website needs no
 sign-in; old `/get-started` links redirect to Downloads. Preserve keyboard focus.
 Tutorials opens lesson 0 directly, with all thirteen lessons in a desktop sidebar

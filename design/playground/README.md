@@ -63,4 +63,4 @@ Tutorials previews the lesson sidebar and selected reading pane directly.
 Selecting a lesson updates fixture content; full canonical lesson content is
 available in the applied website at http://127.0.0.1:3257/learn.
 
-The Home fixture uses Download Zero; GitHub connection belongs in desktop Zero.
+The Home fixture shows Mac Silicon and Windows ZIP download buttons; GitHub connection belongs in desktop Zero.

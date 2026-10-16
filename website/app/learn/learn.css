@@ -244,6 +244,7 @@ body:has(.learn-theme) { min-width: 0; }
   .learn-theme .lesson-preview .lesson-number { border: 1px solid CanvasText; }
 }
 
+.learn-theme .home-page .download-section,
 .learn-theme .downloads-page .download-section {
   margin-top: var(--zero-space-5);
   padding-top: 0;

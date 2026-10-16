@@ -50,7 +50,7 @@ not attributable cost telemetry. Weekly65%remaining is shared usage; storage339G
 healthy, DeepSeek paused, no writer conflicts. Owned tabs/server stopped, viewport
 reset. No external account mutation/deployment or package input change. Evidence:
 `.verification/setup-steps/acceptance.json`, review ledger/report and desktop image.
-Prior wizard/first-visit evidence remains in [verification](../docs/VERIFICATION.md).
+Prior wizard/first-visit evidence remains in [verification](../../docs/VERIFICATION.md).
 All broader release gates below remain; overall goal is incomplete.
 
 ## Retained kit and browser acceptance
@@ -73,11 +73,11 @@ Earlier root432tests:431pass/1PowerShellskip, website108tests, package/extracted
 Maven/source/license/mode parity,3scaffold Maven builds and2real-clone GWT/browser
 runs passed. Account readiness correction passed54focused tests; account guidance
 review is clean. These are retained results, not reruns for the first-visit phase.
-Full prior state/evidence: [account phase archive](archive/account-setup-candidate-2026-10-15.md).
+Full prior state/evidence: [account phase archive](account-setup-candidate-2026-10-15.md).
 
 ## Next release gates
 
-Follow [release preparation](../docs/RELEASE-0.5.16.md):
+Follow [release preparation](../../docs/RELEASE-0.5.16.md):
 
 1. Authorize/publish/verify3empty tutorial templates (all publication:null); test
    fresh student account/create-own-repository/clone. Verify/refresh5existing

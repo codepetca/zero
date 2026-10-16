@@ -31,7 +31,7 @@ marks a preferred pattern with documented, task-specific exceptions.
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,
-  Starting from zero. and one Download Zero → `/downloads` action. Keep the
+  Starting from zero. and direct Mac Silicon and Windows ZIP download actions. Keep the
   centered stack and shared light/dark themes without promotional sections.
   GitHub connection belongs in downloaded Zero's welcome, using VS Code's native
   session/consent UI. No website sign-in or separate Zero account is needed.
