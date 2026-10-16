@@ -62,7 +62,7 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
       if(runtime===opened){runtime=undefined;setActive(Boolean(operation));if(!operation&&!disposed)setState('App stopped');}
     }});
     if (!await current(id,root)) {opened.dispose();return;}
-    runtime=opened;setActive(true);setFailed(false);setState('App running in the browser preview');
+    runtime=opened;setActive(true);setFailed(false);setState('App running');
   }
   async function execute(id,expectedRoot) {
     if (disposed || id!==generation) return;

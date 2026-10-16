@@ -17,7 +17,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
   async function stillCurrent(expected) {
     if(disposed || controller?.signal.aborted || await project()!==expected)throw new Error('The project changed or publishing was cancelled. Check GitHub Actions for any run already started.');
   }
-  const progress=message=>{setState(message);output?.appendLine(message);};
+  const progress=(message,detail=message)=>{setState(message);output?.appendLine(detail);};
   async function showAction(result) {
     progress(result.message || result.action?.message || 'Publishing needs one more step.');
     if(!result.action)return;
@@ -127,7 +127,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       result=await waitForDeployment(result,expected,approvedAccount);
       await stillCurrent(expected);
       if(result.status==='live') {
-        resume=undefined;progress('Your playable game is live.');
+        resume=undefined;progress('App published','Your playable game is live.');
         await workspaceState?.update('zero.webPublish.pending',undefined);
         lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount};
         await workspaceState?.update('zero.webPublish.lastLive',lastLive);
@@ -150,7 +150,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       await stillCurrent(expected);
       if(verified.status!=='live'){await showAction(verified);return verified;}
       if(open)await vscode.env.openExternal(vscode.Uri.parse(verified.url));
-      else {await vscode.env.clipboard.writeText(verified.url);progress('Playable game link copied.');}
+      else {await vscode.env.clipboard.writeText(verified.url);progress('Playable link copied','Playable game link copied.');}
       return verified;
     } finally {controller=undefined;publishing=false;setBusy(false);if(recheckRequested && !disposed){recheckRequested=false;queueMicrotask(()=>{void publishedLink(open).catch(error=>progress(error.message));});}}
   }

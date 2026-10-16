@@ -90,7 +90,7 @@ Later publishes reuse the approved destination and stable URL. Repository
 visibility is never changed. The deployed game and its included assets are public,
 including when the source repository is private and the account supports Pages.
 
-Wait for **Your playable game is live** in the sidebar, then use its **Open app**
+Wait for **App published** in the sidebar, then use its **Open app**
 or **Copy playable link** buttons. Successful actions no longer show popups. These commands also live in the Zero title menu and Command
 Palette. Pika still receives the separate source repository link. Publishing
 tracks the exact GitHub workflow run and checks an unauthenticated public marker

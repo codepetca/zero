@@ -69,7 +69,7 @@ function activate(context) {
     return projectRoot;
   };
   const refresh = () => { if (view) render(view.webview); };
-  const report = text => {state=text;output.appendLine(text);refresh();};
+  const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     let filename;
@@ -301,8 +301,7 @@ function activate(context) {
       await assertCurrent();
       const result = kind === 'start' ? await workflow.startPrepared(plan, options) : await workflow.finishPrepared(plan, options);
       if (kind === 'finish' && result.updated && !result.finished) {
-        state = 'Main updates added to your change. Run App, then choose Merge to main again to review.';
-        report(state);
+        report('Main updated. Run App, then Merge to main.', 'Main updates added to your change. Run App, then choose Merge to main again to review.');
         return;
       }
       let cleanupError;
@@ -315,9 +314,9 @@ function activate(context) {
           output.appendLine(`Main was merged and pushed. Finished local branch kept: ${error.message}`);
         }
       }
-      state = kind === 'start' ? `Started ${result.branch}. Make your changes, then Commit & push.` : cleanupError ? 'Merged change and pushed main. Local branch kept; check Zero Output.' : 'Merged change and pushed main. Finished local branch deleted.';
+      state = kind === 'start' ? `Created ${result.branch}` : cleanupError ? 'Merged to main · local branch kept; see Output' : 'Merged to main';
       if (cleanupError) void vscode.window.showWarningMessage(state);
-      else report(state);
+      else report(state, kind === 'start' ? `Started ${result.branch}. Make your changes, then Commit & push.` : `Merged ${result.finishedBranch} to main and pushed ${result.head}. Finished local branch deleted.`);
     } catch(error) {if (error.conflict) await conflictHelp(); throw error;}
     finally {await repositoryStatus(); changing = false; refresh();}
   }
@@ -348,9 +347,8 @@ function activate(context) {
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
         const assertCurrent = async () => {await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
         const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
-        state = `Pushed ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
-        refresh(); await repositoryStatus();
-        report(state);
+        await repositoryStatus();
+        report(`Pushed to ${result.branch}`, `Pushed ${result.head} to ${result.branch}. Copy your repository link for Pika.`);
         return result;
       } finally {selectedAuth?.dispose();await repositoryStatus(); uploading = false; refresh();}
   }
@@ -491,7 +489,7 @@ function activate(context) {
         if (!value) return;
         if (await project() !== root) throw new Error('The student project changed. Connect the repository again.');
         const result = await core.connectRepository(root, value, async () => (await vscode.window.showWarningMessage('Replace this student project’s existing origin remote with the repository you entered?', {modal:true}, 'Replace origin')) === 'Replace origin');
-        if (result) { await repositoryStatus(); report('Repository connected locally. No files uploaded.'); }
+        if (result) { await repositoryStatus(); report('Repository connected', 'Repository connected locally. No files uploaded.'); }
       } finally {await repositoryStatus(); connecting = false; refresh();}
     },
     'zero.copyRepositoryLink': async () => {
@@ -500,7 +498,7 @@ function activate(context) {
       await core.assertRepositoryRoot(root);
       const {page} = core.parseRepositoryUrl(await core.git(root, ['remote','get-url','origin']));
       await vscode.env.clipboard.writeText(page);
-      report('Repository link copied. Paste it into Pika when submitting.');
+      report('Repository link copied', 'Repository link copied. Paste it into Pika when submitting.');
     },
     'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
   };

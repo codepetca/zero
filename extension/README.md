@@ -151,7 +151,7 @@ as Zero. The app and included assets become public; repository visibility stays
 unchanged. Zero publishes the validated local build, while GitHub only deploys
 its static output. No Java compilation runs on GitHub.
 
-Wait for **Your playable game is live** in the sidebar, then use its **Open app**
+Wait for **App published** in the sidebar, then use its **Open app**
 or **Copy playable link** buttons. Successful actions no longer show popups. **Zero: Open Published App** and **Zero: Copy Playable Link**
 recheck the saved publication before opening or copying it. Pending runs survive
 editor restarts; choose Publish app again to recheck. Operational errors identify

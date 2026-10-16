@@ -36,7 +36,7 @@ async function harness(t,{kit=true,workflowAvailable=true,cancel=false,workflowA
 test('native Commit & push uses existing workflow auth for a clean outgoing commit and retries after failed push',async t=>{
   const h=await harness(t);h.failPush=true;
   await h.commands.get('zero.uploadToGitHub')();assert.equal(h.uploads,1);assert.match(h.errors[0],/local commit is preserved/);assert.equal(h.disposed,1);
-  await h.commands.get('zero.uploadToGitHub')();assert.equal(h.uploads,2);assert.equal(h.disposed,2);assert.match(h.results.at(-1),/Pushed bbbbbbb/);assert.ok(!h.notices.some(text=>text.startsWith('Pushed ')));
+  await h.commands.get('zero.uploadToGitHub')();assert.equal(h.uploads,2);assert.equal(h.disposed,2);assert.match(h.results.at(-1),/Pushed bbbbbbb/);assert.match(h.render().html,/Pushed to main/);assert.ok(!h.notices.some(text=>text.startsWith('Pushed ')));
   assert.ok(h.calls.some(call=>call.scopes.includes('workflow')));assert.ok(h.calls.every(call=>call.options.silent),'Stored native sessions need no grant or account changes');
 });
 test('native workflow permission cancellation stops before review UI or push and disposes scoped auth',async t=>{

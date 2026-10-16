@@ -240,3 +240,11 @@ required choices, first-publication consent, warnings and errors. Preserve the
 removed toast actions as native-theme sidebar buttons: Open app/Copy playable
 link for the saved verified publication and Preview export/Save ZIP/Share export
 for the current project's completed export. Reuse existing guarded commands.
+
+### Brief result text — owner decision, 2026-10-16
+
+Use short sidebar results: Pushed to main, Merged to main, App published, Export
+ready, ZIP saved. Keep branch/library names when needed, and retain longer
+technical details and guidance in Zero Output. Conditions needing attention still
+include a clear next step, such as running the app after main updates or checking
+Output when local-branch cleanup is refused. No action or guard changes.

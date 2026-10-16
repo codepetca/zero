@@ -21,7 +21,7 @@ test('simulation publish never saves, authenticates, writes setup or calls publi
 });
 test('publish completion reports in sidebar and its verified copy command remains available',async t=>{
   const h=fixture(t);h.choices.push('Publish app');const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(h.reviewed,1);assert.equal(h.published,1);assert.equal(h.checks,1);assert.deepEqual(h.copied,[]);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
-  assert.equal(h.states.at(-1),'Your playable game is live.');assert.equal(h.messages.length,1,'Only first-publish warning remains');
+  assert.equal(h.states.at(-1),'App published');assert.equal(h.messages.length,1,'Only first-publish warning remains');
   await h.api.commands['zero.copyPublishedWebLink']();assert.deepEqual(h.copied,['https://student.github.io/game/']);
   const warning=h.messages.find(message=>message[1]?.modal);
   assert.equal(warning[0],'Publish this app publicly?');

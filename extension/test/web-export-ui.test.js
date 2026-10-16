@@ -13,14 +13,14 @@ async function harness(t) {
   const site=path.join(root,'.zero/web-export/site');await fs.mkdir(site,{recursive:true});await fs.writeFile(path.join(site,'index.html'),'<h1>game</h1>');
   const zip=path.join(root,'.zero/web-export/game.zip');await fs.writeFile(zip,'ZIP');
   let active=root,busy=false,saves=0,builds=0,save=true,fail=false,noticeAction,previewClosed=0,previewOpened=0,exportResult,validator,validations=0;
-  const available=[],states=[],notices=[],opened=[],picks=[],documents=[],args=[];
+  const logs=[],available=[],states=[],notices=[],opened=[],picks=[],documents=[],args=[];
   const choices=[];
   const vscode={workspace:{isTrusted:true,saveAll:async()=>{saves++;return save;},openTextDocument:async value=>{documents.push(value);return {uri:{document:true}};}},
     window:{showInformationMessage:async(...value)=>{notices.push(value);return noticeAction;},showQuickPick:async(items)=>{picks.push(items);return items.find(i=>i.action===choices.shift());},showSaveDialog:async()=>undefined},
     commands:{executeCommand:async()=>{}},env:{openExternal:async uri=>{opened.push(uri);return true;}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})}};
-  const api=createWebExportCommands(vscode,{project:async()=>active,output:{appendLine(){},show(){}},isBusy:()=>busy,setBusy:value=>{busy=value;},setState:value=>states.push(value),setAvailable:root=>available.push(root),validateExport:async options=>{validations++;return validator ? validator(options,validations) : {...options.result,zipBytes:await fs.readFile(zip)};},ensureValidatedExport:async options=>{builds++;args.push(options);if(fail)throw Error('Bad student source');return exportResult ? exportResult(options) : {sitePath:site,zipPath:zip,totalBytes:4500000,buildId:'build-1'};},previewFactory:async()=>{previewOpened++;return {url:'http://127.0.0.1:1234/token/',dispose:()=>{previewClosed++;}};}});
+  const api=createWebExportCommands(vscode,{project:async()=>active,output:{appendLine:text=>logs.push(text),show(){}},isBusy:()=>busy,setBusy:value=>{busy=value;},setState:value=>states.push(value),setAvailable:root=>available.push(root),validateExport:async options=>{validations++;return validator ? validator(options,validations) : {...options.result,zipBytes:await fs.readFile(zip)};},ensureValidatedExport:async options=>{builds++;args.push(options);if(fail)throw Error('Bad student source');return exportResult ? exportResult(options) : {sitePath:site,zipPath:zip,totalBytes:4500000,buildId:'build-1'};},previewFactory:async()=>{previewOpened++;return {url:'http://127.0.0.1:1234/token/',dispose:()=>{previewClosed++;}};}});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {root,site,zip,api,vscode,available,states,notices,opened,picks,documents,args,choices,get busy(){return busy;},set busy(v){busy=v;},get saves(){return saves;},get builds(){return builds;},set save(v){save=v;},set fail(v){fail=v;},set active(v){active=v;},set noticeAction(v){noticeAction=v;},set exportResult(v){exportResult=v;},set validator(v){validator=v;},get validations(){return validations;},get previewClosed(){return previewClosed;},get previewOpened(){return previewOpened;}};
+  return {root,site,zip,api,vscode,logs,available,states,notices,opened,picks,documents,args,choices,get busy(){return busy;},set busy(v){busy=v;},get saves(){return saves;},get builds(){return builds;},set save(v){save=v;},set fail(v){fail=v;},set active(v){active=v;},set noticeAction(v){noticeAction=v;},set exportResult(v){exportResult=v;},set validator(v){validator=v;},get validations(){return validations;},get previewClosed(){return previewClosed;},get previewOpened(){return previewOpened;}};
 }
 
 test('web export saves a trusted project, builds without auth, releases busy state and previews only its site',async t=>{
@@ -29,7 +29,7 @@ test('web export saves a trusted project, builds without auth, releases busy sta
   assert.equal(h.saves,1);assert.equal(h.builds,1);assert.equal(h.busy,false);assert.equal(h.previewOpened,0);assert.deepEqual(h.available,[h.root]);assert.deepEqual(h.notices,[]);
   await h.api.commands['zero.previewWebExport']();assert.equal(h.previewOpened,1);
   assert.equal(h.args[0].projectRoot,h.root);assert.ok(h.args[0].signal instanceof AbortSignal);
-  assert.match(h.states.join('\n'),/4.5 MB/);assert.equal(h.opened.length,0,'Managed previews never leave executing tabs in an external browser');
+  assert.deepEqual(h.states,['Export ready','Preview opened']);assert.match(h.logs.join('\n'),/4.5 MB/);assert.equal(h.opened.length,0,'Managed previews never leave executing tabs in an external browser');
   h.fail=true;
   await assert.rejects(h.api.commands['zero.exportWeb'](),/Bad student source/);assert.equal(h.busy,false);
   await h.api.commands['zero.previewWebExport']();assert.equal(h.previewOpened,2,'Previous successful build remains available after failure');

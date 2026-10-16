@@ -296,7 +296,9 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   the app; optional F6/F7 bindings stay separate.
 
 Routine Git, publishing, export and library results appear in the sidebar's live
-status and Zero Output, without success notifications. Verified published apps
+status and Zero Output, without success notifications. Routine status uses short
+results such as “Pushed to main”, “Merged to main” and “Export ready”; commit
+hashes, sizes and longer guidance stay in Zero Output. Verified published apps
 keep Open app/Copy playable link actions in the sidebar; completed exports keep
 Preview export/Save ZIP/Share export actions there. Errors, warnings, required
 choices and the first-publication warning remain visible through native prompts.
