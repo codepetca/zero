@@ -1,5 +1,16 @@
 # Delivery evidence index
 
+## Download-first desktop onboarding — local, 2026-10-15
+
+Reviewed/package source47cc071: website Download Zero, desktop session check and
+persistent Connect GitHub/Later welcome. Actual Mac first-launch/cancel/retry and
+Chrome download/redirect/mobile checks pass. Final20focused tests, website108tests,
+types/build/checks and package/extracted-kit checks pass; root443pass/1PowerShellskip
+predates the modal adjustment. Independent Sol/high review clean,1launch/0fixes.
+New candidate `dist/candidates/zero-0.5.16-welcome-47cc071` is local/uninstalled.
+Scope, evidence and remaining live-account/platform/release gates are in
+[verification](VERIFICATION.md) and `.verification/desktop-welcome/`.
+
 ## Single-page setup — local, 2026-10-15
 
 Sourcec77f358 shows all four concise steps together; GitHub remains separate.

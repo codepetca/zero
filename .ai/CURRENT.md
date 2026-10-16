@@ -1,79 +1,65 @@
-# Current state — first-visit student flow locally accepted
+# Current state — download-first onboarding locally accepted
 
 ## Goal and authority
 
-Coordinator: Lead publishing task, thread
-`01a13f98-55fc-7471-9038-1198b14d5a98`. Preserve ordinary Java, explicit object
-updates, strict browser compatibility, publishing the locally tested build through
-GitHub, and ZeroHub links to student-hosted apps. Pika submission stays separate.
+Coordinator: Lead publishing task, thread `01a13f98-55fc-7471-9038-1198b14d5a98`.
+Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
+Preserve ordinary Java, explicit updates, strict WebFX compatibility, locally tested
+build publishing through GitHub and ZeroHub links to student-hosted games. Pika
+submission stays separate. Overall goal is incomplete.
 
-Owner approved live by default, own template-created/cloned tutorial repositories,
-account/school/privacy preparation before lesson0, and the first-visit Get started
-flow. There are no real users; old-project migration is not a release gate.
+Owner approved website Download Zero → desktop GitHub session check → explicit
+Connect GitHub if needed → own template-created/cloned tutorial repository.
+No website OAuth or separate Zero account. Live is the student default; local Run
+remains available after Later. Original local apps remain Git-free. Tutorial Run
+checks the owned Git root/starting commit/origin locally; cached Run needs no active
+GitHub session. First Publish confirms destination; later explicit Publish updates
+it. No automatic uploads. ZeroHub contributions remain original-only.
+
 Local implementation/testing is authorized. Source push/merge, template publication,
 distribution/signing/deployment, new game publication and ZeroHub activation remain
-held. Earlier scoped Sky Hop Pages proof is accepted. Overall goal is incomplete.
+held. No real users; old-project migration is not a release gate.
 
-## Active download-first desktop onboarding
+## Accepted local phase
 
-Owner approved website Download Zero only, then desktop session check and explicit
-Connect GitHub if needed, followed by tutorial creation. No website OAuth or Zero
-account. Coordinator owns website/guidance/integration; Sol/medium worker owns
-extension welcome/activation/tests only. Plan: integrate native welcome with existing
-VS Code session/consent paths; test welcome lifecycle/empty workspace/cancel/retry/
-existing session; check website and actual native host; independent review, package
-and record candidate. No external sign-in grant or publication action authorized.
-Weekly65%remaining shared; storage339GB healthy; DeepSeek paused. Native Mac was
-initially locked; owner reports unlocked for click-through. Basee733564.
+Reviewed/package source `47cc071351583814e70c060fd056df62bbf4ebf7`.
+Home has one Download Zero action; old `/get-started` redirects to Downloads.
+Desktop welcome silently checks VS Code's session, offers Connect GitHub or Later,
+shows an existing connection's username, and uses the existing native provider/
+scopes/consent. Persistent modal avoids a disappearing notification; manual
+Zero: Get Started reopens it. No account grant was performed.
 
-## Prior phase — concise single-page setup locally accepted
+Root suite444tests:443pass/1PowerShellskip before the final modal correction;
+post-correction20welcome/onboarding tests and final configuration/syntax/link check
+pass. Website108tests/types/production build pass (2known updater tracing warnings).
+Actual isolated Mac source host: fresh-launch modal, Later, manual reopen, native
+provider prompt, cancel/retry and no repeat after reload pass. Actual Chrome:
+Home→Downloads, legacy redirect and320pxlight/dark nooverflow pass. Existing-account
+success is mocked, not a live native grant. Package/extracted Maven/source/license/
+mode checks and candidate checksums pass. Native installer not rebuilt/installed.
 
-Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
-Reviewed sourcec77f358 supersedes the wizard. Get started shows four short steps
-together: GitHub sign-in/account creation, download/launch Zero, owned template
-repository/clone, lesson0. GitHub stays separate in new tabs; no website OAuth,
-automatic advance, account check or completion state. Native section anchors and
-optional help replace all wizard/hash/focus code. Public home/download/returning
-paths and current unpublished-template gating remain intact.
+Sol/medium implementation worker plus Sol/high independent reviewer;1review launch,
+1initial wave,0findings/fix batches,128reviewer seconds. Effective models/tokens
+unknown; no writer conflicts. Native QA required one presentation correction and
+short temporary profiles because long macOS socket paths fail. Weekly65%remaining
+is shared account usage; storage338.5GB healthy; DeepSeek paused. Owned QA apps and
+browser tab/server stopped; viewport reset. Evidence `.verification/desktop-welcome/`,
+[verification](../docs/VERIFICATION.md), [delivery index](../docs/EVIDENCE.md).
 
-112website tests, types, configuration/link checks and production build pass.
-A final template wording clarification passes4focused tests and a fresh build;
-2existing updater tracing warnings remain. Actual Chrome verifies all4sections,
-GitHub new-tab/noadvance, Downloads/#project return, native keyboard skip focus,
-50pxactions/3pxfocus,320px light/dark and expanded help with nooverflow.4delayed
-message-channel errors remain unattributed; no clean-console claim. WebKit/text
-zoom, native/student auth/clone/upload trials were not performed.
+## Candidate and retained acceptance
 
-Coordinator handled the compact change;1Luna/medium reviewer/launch/turn, complete
-clean10file review,0fixes. Effective model/tokens unknown; reviewer reported~5min,
-not attributable cost telemetry. Weekly65%remaining is shared usage; storage339GB
-healthy, DeepSeek paused, no writer conflicts. Owned tabs/server stopped, viewport
-reset. No external account mutation/deployment or package input change. Evidence:
-`.verification/setup-steps/acceptance.json`, review ledger/report and desktop image.
-Prior wizard/first-visit evidence remains in [verification](../docs/VERIFICATION.md).
-All broader release gates below remain; overall goal is incomplete.
+Kit/extension0.5.16, core0.1.3, next native build3. New local immutable candidate:
+`dist/candidates/zero-0.5.16-welcome-47cc071` (three kit files, manifest, hashes,
+source receipt). Not installed/published/production-ready. Prior account candidate
+and three maintainer-only template drafts retained separately. Managed preview0.5.15,
+public kit0.5.14 and Mac0.5.15/build2/feed remain unchanged. Earlier development DMG
+is stale. Three empty tutorial templates still have publication:null; five existing
+complete example templates need strict-profile verification/refresh.
 
-## Retained kit and browser acceptance
-
-Kit/extension0.5.16, core0.1.3, next native build3. Local immutable candidate:
-`dist/candidates/zero-0.5.16-account-ca89325`; packaged ca89325, account/source reviewed
-92953e2. Kit/starter/VSIX plus3maintainer-only template drafts have six matching
-hashes;20files per empty draft including wrapper notices. This website-only phase
-changes no package input; no repackaging needed. Candidate is uninstalled and
-unpublished; installed managed preview remains0.5.15. Public kit0.5.14, Mac0.5.15
-and update feed are unchanged. Earlier Mac development DMG needs rebuilding.
-
-Tutorial schema2 requires an owned standalone Git root/starting commit/GitHuborigin;
-Run checks are local/read-only, not cryptographic clone proof. Git2.31+ is required
-for tutorial readiness. Original local apps remain Git-free. Cached tutorial Run
-needs no active GitHub session. First Publish confirms destination; later explicit
-Publish updates it. No automatic uploads. ZeroHub contributions remain original-only.
-
-Earlier root432tests:431pass/1PowerShellskip, website108tests, package/extracted
-Maven/source/license/mode parity,3scaffold Maven builds and2real-clone GWT/browser
-runs passed. Account readiness correction passed54focused tests; account guidance
-review is clean. These are retained results, not reruns for the first-visit phase.
-Full prior state/evidence: [account phase archive](archive/account-setup-candidate-2026-10-15.md).
+Earlier scaffold Maven and real-clone GWT/browser acceptance is retained; core and
+WebFX sources did not change in this phase. Full previous state:
+[onboarding archive](archive/download-first-onboarding-previous-2026-10-15.md),
+[account archive](archive/account-setup-candidate-2026-10-15.md).
 
 ## Next release gates
 

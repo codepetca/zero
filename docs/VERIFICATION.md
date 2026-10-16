@@ -1,5 +1,34 @@
 # Verification
 
+## Download-first desktop onboarding — local, 2026-10-15
+
+Reviewed/package source47cc071 replaces website setup with Download Zero and a
+native desktop welcome using VS Code's existing GitHub session/consent. Later,
+manual Get Started, cancel/retry and existing-session username have focused tests.
+No website OAuth, new scopes, automatic uploads or account grant.
+
+Root444tests:443pass/1PowerShellskip before the final modal adjustment; final20
+welcome/onboarding tests and configuration/syntax/link check pass. Website108tests,
+types and production build pass;2known updater tracing warnings remain. Actual
+Chrome verifies Home→Downloads, legacy redirect,320pxlight/dark nooverflow. Actual
+isolated Mac source host verifies fresh automatic modal, Later, manual reopening,
+provider consent prompt, cancellation/retry and no repeat after reload. Existing
+connected success is mocked; no real grant/upload or physical Windows trial.
+The persistent dialog corrects a native QA finding where a toast disappeared while
+its promise stayed pending. Long profile paths exceeded macOS socket limits;
+short disposable profiles resolved the harness issue. Vendor app bytes unchanged.
+
+One Sol/medium implementation worker; one independent Sol/high full-diff reviewer,
+1launch/1wave/0findings/0review fix batches,128reviewer seconds. Effective model and
+tokens unknown; account-wide65%remaining is not task cost. Package and extracted
+Maven/source/license/mode checks pass; four candidate hashes verify. Candidate
+`dist/candidates/zero-0.5.16-welcome-47cc071` is uninstalled/unpublished and excludes
+a refreshed native installer. Source-host testing does not prove installer behavior.
+Evidence `.verification/desktop-welcome/` contains logs, review ledger/report,
+acceptance and desktop/browser images. Owned QA apps/tabs/server closed and viewport
+reset. Template publication, successful fresh-account/clone/upload/Publish trial,
+ZeroHub policy alignment and final installer/platform/release gates remain held.
+
 ## Concise single-page setup — local, 2026-10-15
 
 Sourcec77f358 supersedes the wizard with four visible sections: GitHub sign-in/

@@ -7,6 +7,13 @@ revision and check results are retained under `.verification/student-release-0.5
 and in the local candidate directory. Nothing in this preparation grants source
 publication, deployment, signing or account authority.
 
+Latest local source/package candidate: `47cc071`,
+`dist/candidates/zero-0.5.16-welcome-47cc071`. Website only offers Download Zero;
+desktop checks the native GitHub session, prompts Connect GitHub if needed, then
+leads to tutorial creation. No separate Zero account. Native source-host Later/
+cancel/retry checks pass; successful fresh-account/clone/publish and final native
+installer acceptance remain pending. See [verification](VERIFICATION.md).
+
 ## What students receive
 
 Students keep ordinary Java and JavaFX controls, explicit object updates and
