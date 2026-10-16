@@ -20,6 +20,34 @@ Local implementation/testing is authorized. Source push/merge, template publicat
 distribution/signing/deployment, new game publication and ZeroHub activation remain
 held. No real users; old-project migration is not a release gate.
 
+## Armorup student-flow trial — in progress
+
+Owner requested real armorup account/tutorial setup and sidebar assessment.
+Browser confirms armorup already signed in. Candidate website Home and lesson0
+captured; lesson0 stops at Template not available yet. Expected Greeting repo404
+in actual signed-in browser; all3expected template repositories404 through GitHub
+API. Fresh local drafts match previously tested20-file drafts byte-for-byte.
+Explicit public-template publication approval requested and pending; do not bypass
+the metadata gate or substitute another template.
+
+Reviewed47cc071VSIX0.5.16 installed successfully into our owned running preview's
+`~/Library/Application Support/Zero/editor/{user-data,extensions}`. Native reload
+and connected-account trial pending: CUA reports Mac locked, unlock requested.
+An older root Zero setup-receipt0.7.0 was initially mistaken for this preview;
+process arguments confirm nested0.5.15 preview was the active host. Ordinary root
+installation and account credentials untouched. No source/template push/deploy.
+
+Sol/medium source helper verified sidebar mapping and clone handoff. Start tutorial
+is absent from sidebar/menu, recovery uses Command Palette; Git:Clone is a manual
+handoff; connected tutorial menu offers a replacement origin action the core rejects.
+These are source findings awaiting actual native UI capture. Effective model/time/
+tokens unknown; installed-version claim needed parent correction.63%weeklyremaining
+shared;337GBstoragehealthy. Other chat GameApp rename remains separate; coordination
+message sent. Evidence `.verification/armorup-student-flow/`.
+Next: owner unlock → reload owned preview, record armorup native session/consent,
+Start tutorial picker/error/sidebar; approved templates → own private repository,
+HTTPS clone/open/edit/Run/Stop. Do not claim whole-flow or native usability success.
+
 ## Accepted local phase
 
 Latest owner correction reviewed at364944b: Home restores direct Mac Silicon and
@@ -56,7 +84,7 @@ browser tab/server stopped; viewport reset. Evidence `.verification/desktop-welc
 
 Kit/extension0.5.16, core0.1.3, next native build3. New local immutable candidate:
 `dist/candidates/zero-0.5.16-welcome-47cc071` (three kit files, manifest, hashes,
-source receipt). Not installed/published/production-ready. Prior account candidate
+source receipt). VSIX installed in the owned trial profile; native installer not refreshed. Not published/production-ready. Prior account candidate
 and three maintainer-only template drafts retained separately. Managed preview0.5.15,
 public kit0.5.14 and Mac0.5.15/build2/feed remain unchanged. Earlier development DMG
 is stale. Three empty tutorial templates still have publication:null; five existing
