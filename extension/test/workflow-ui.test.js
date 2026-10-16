@@ -33,7 +33,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   const plan = () => ({root,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,head:'f'.repeat(40),mainHead:'a'.repeat(40),remoteMainHead:'a'.repeat(40),summary:'Reviewed change',changedPaths:['Main.java']});
   workflow.prepareStart=async()=>{prepared++;return plan();};workflow.prepareFinish=async()=>{prepared++;const captured=plan();if(prepareGate)await prepareGate;return captured;};
   workflow.startPrepared=async()=>{executed++;branch='add-score';return {branch,head:'f'.repeat(40)};};
-  workflow.finishPrepared=async(_,options)=>{executed++;await options.beforeNetwork();if(finishError)throw finishError;if(finishUpdates)return {updated:true,finished:false,branch,head:'f'.repeat(40)};branch='main';return {branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
+  workflow.finishPrepared=async(_,options)=>{executed++;await options.beforeNetwork();if(finishError)throw finishError;if(finishUpdates)return {updated:true,finished:false,branch,head:'f'.repeat(40)};branch='main';return {finished:true,branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
   workflow.deleteFinishedBranch=async(...args)=>{deletions.push(args);if(cleanupError)throw cleanupError;deleted++;};
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
