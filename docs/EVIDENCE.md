@@ -1,5 +1,15 @@
 # Delivery evidence index
 
+## Setup wizard simplification — local, 2026-10-15
+
+Source1a9f9f6: four short screens, one GitHub entry, help on demand. Initial113
+website tests and final6focused/types/build/configuration checks pass. Actual
+Chrome verifies transitions/history/refresh/mobile and corrected skip-link focus.
+One independent Sol/medium reviewer,1launch/2turns/1fix batch, complete clean.
+Prior long-guide acceptance is superseded by this owner correction. Limits and
+retained warnings/errors are in [verification](VERIFICATION.md) and
+`.verification/setup-wizard/`; no external mutation/deployment/package change.
+
 ## First-visit guide — local, 2026-10-15
 
 Sourceacf874e adds the approved public Get started flow and returning-student path.

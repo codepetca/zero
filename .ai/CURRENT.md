@@ -14,41 +14,38 @@ Local implementation/testing is authorized. Source push/merge, template publicat
 distribution/signing/deployment, new game publication and ZeroHub activation remain
 held. Earlier scoped Sky Hop Pages proof is accepted. Overall goal is incomplete.
 
-## Active simplification
-
-Owner requests fewer words, one GitHub entry and a wizard. Coordinator owns the
-compact client wizard/CSS/fixtures and aligned guidance; no external authority
-added. Plan: four short steps, one GitHub login entry, public downloads, own clone,
-lesson0; preserve bookmarked steps/history/focus and verified template gating.
-Run website tests/types/build and actual Chrome transition/Back/refresh/mobile/
-theme checks, then one independent Sol/medium review. Local acceptance only.
-Current base2214bd7; weekly66%remaining shared, storage339GB healthy; DeepSeek paused.
-
-## Prior accepted phase — first visit
+## Latest phase — compact setup wizard locally accepted
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
-Reviewed website sourceacf874e. Home has Get started and a quieter returning-student
-link. Public `/get-started` follows GitHub preparation → install → owned tutorial
-repository/clone → lesson0/browser Run → reviewed Upload and optional public Publish.
-GitHub account links open official pages; there is no website authentication gate.
-Downloads returns to project creation; initial lessons return to the guide. Current
-unpublished templates remain unavailable, with no guessed link or tutorial ZIP.
+Reviewed source1a9f9f6 replaces the long guide with four short screens: GitHub,
+install, own project/clone, lesson0. One Continue with GitHub link opens GitHub's
+login/account-creation page in a new tab and advances to install; no website OAuth,
+account check or verified-sign-in claim. Back/Next, bookmarks, refresh and browser
+history work. Detailed school/privacy/setup/sharing help expands on demand.
+Current unpublished templates still have no invented link. Public downloads and
+home/returning-student paths stay intact. No package inputs changed.
 
-One Sol/medium worker owned four new guide files; coordinator integrated home,
-download/tutorial paths and guidance. One independent Sol/medium initial review is
-complete/clean:1launch/1turn,0fixes/targeted waves. No writer conflicts. Requested
-models/effort recorded; effective model, tokens and attributable effort unknown.
-Starting weekly66%remaining is shared account usage; storage339GB healthy; DeepSeek
-paused. Evidence `.verification/first-visit/acceptance.json`, browser receipt and
-review ledger/report. See [verification](../docs/VERIFICATION.md).
+Coordinator implemented the compact change. One independent Sol/medium reviewer:
+1launch/2turns,1targeted wave/1fix batch; complete clean. Initial skip-link P2 was
+reproduced in Chrome, fixed to retain stage/hash/main focus and rechecked after
+refresh and on the final stage. Initial113website tests pass; after correction,
+6focused tests, configuration checks, types and production build pass. Existing
+2updater build warnings remain. First test fixture TDZ failure was corrected before
+review; logs retained. No broad suite repeated solely for the bounded correction.
 
-114 website tests and13 design tests pass; configuration/link checks, TypeScript
-and production build pass. Two existing updater tracing build warnings remain.
-Actual Chrome Home→guide→Downloads→project→lesson0/returning paths, desktop/320/390px,
-light/dark, mobile menu and visible keyboard focus pass. Two delayed message-channel
-errors at guide URL remain unattributed; no clean-console claim. WebKit/text zoom,
-native installation and real account creation/clone/upload were not tested. Owned
-tab/server stopped and viewport reset. No external writes or deployment.
+Actual Chrome covers single GitHub entry/new tab, wizard transitions, Back/Forward,
+footer Back, #project refresh, download return, legacy #sharing, skip-link focus,
+320px light/dark/expanded help and desktop. Two delayed browser message-channel
+errors remain unattributed; no clean-console claim. WebKit/text zoom, fresh account,
+installed/native/clone/upload trials remain untested. Owned tabs/server closed,
+viewport reset; no account mutation or deployment. Evidence:
+`.verification/setup-wizard/acceptance.json`, browser receipt and review ledger.
+Effective model/tokens/attributable worker effort unknown; weekly66%remaining is
+shared usage, storage339GB healthy, DeepSeek paused; no writer conflicts.
+
+Prior first-visit sourceacf874e and account setup evidence remain in
+[verification](../docs/VERIFICATION.md); current owner simplification supersedes
+the long five-step guide. Source publication and all release gates below remain held.
 
 ## Retained kit and browser acceptance
 

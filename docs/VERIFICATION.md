@@ -1,5 +1,29 @@
 # Verification
 
+## Compact setup wizard — local, 2026-10-15
+
+Reviewed source1a9f9f6 replaces the long guide with GitHub/install/project/lesson
+screens, one main action per screen and Help disclosures. Continue with GitHub
+opens the official login/account-creation entry and advances navigation; no OAuth,
+account check or successful-sign-in claim. Step URLs/history/refresh remain usable.
+Public downloads, verified-template availability and ordinary Java are unchanged.
+
+Initial113website tests pass; after the bounded correction,6focused tests, root
+configuration/link checks, types and production build pass. Known2updater tracing
+warnings remain. One Sol/medium reviewer,1launch/2turns/1targeted wave/1fix batch;
+complete clean. Initial review found the shared skip link reset stages. Coordinator
+reproduced it, preserved stage/canonical URL/main focus, then verified project and
+lesson skip, refresh and footer Back in actual Chrome. Other Chrome checks cover
+GitHub new-tab/installation, Next/browser history, downloads return, legacy sharing
+bookmark,320px light/dark/expanded help and desktop. Screenshots/raw receipts:
+`.verification/setup-wizard/`. First test-fixture TDZ failure retained and fixed.
+
+Two delayed message-channel errors remain unattributed. No native/fresh student
+account/clone/upload, WebKit or text-enlargement trial; no release/production claim.
+Effective model/time/tokens unknown; weekly66%remaining is shared usage. No package
+input changed, account action submitted, template published or deployment made.
+Owned tabs/server stopped and viewport reset. Existing release gates remain.
+
 ## First-visit Get started flow — local website, 2026-10-15
 
 Reviewed sourceacf874e implements the approved Home Get started/returning-student
