@@ -72,7 +72,7 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 
 ## App and learning contract
 
-`zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
+`zero.App` is event-driven: `settings()` sets `title(...)` and initial
 `size(...)` and optional `padding(...)` around the content; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
 The installed kit's default app shows Hello, world!; the learning projects start
@@ -98,7 +98,7 @@ composed-study/composed-game examples now demonstrate the same ordinary StartScr
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).
 
-`zero.SketchApp` adds a fixed-size canvas and `update(seconds)` followed by
+`zero.GameApp` adds a fixed-size canvas and `update(seconds)` followed by
 `draw()` each frame. Main explicitly updates and draws ordinary objects such as
 Player or Mover. Canvas input belongs to the focused canvas; controls can receive
 normal typing. The framework does not discover or automatically update objects.
@@ -107,8 +107,8 @@ focus to a nearby control. Tab still moves focus to ordinary JavaFX controls;
 arrows in a focused text field keep their normal caret behavior.
 Useful startup errors explain invalid sizes and lifecycle misuse.
 
-Local, unreleased `Sound` and `Music` helpers are available to both SimpleApp and
-SketchApp. Load once with `loadSound` or `loadMusic`; short clips share a per-app
+Local, unreleased `Sound` and `Music` helpers are available to both App and
+GameApp. Load once with `loadSound` or `loadMusic`; short clips share a per-app
 canonical-resource cache, while each music object has an independent buffered
 player. Ordinary Java event handlers decide when to play/pause/stop/mute. App
 shutdown, startup/frame failure and window closing release owned audio, including

@@ -19,7 +19,7 @@ The harness opens a real native JavaFX window, stops automatic frames, and
 chooses held-key state and frame times deterministically. It directly sets the
 existing framework's held-key set by reflection; it does **not** prove native
 keyboard delivery or canvas focus. The game uses only the existing public
-SketchApp API. Do not copy the checks into a student's app.
+GameApp API. Do not copy the checks into a student's app.
 
 Checked behavior:
 

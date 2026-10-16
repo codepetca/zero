@@ -1,6 +1,6 @@
 # Hello, Java
 
-A complete SimpleApp example: type a name and click **Say hello** or press Enter.
+A complete App example: type a name and click **Say hello** or press Enter.
 Blank input gives useful feedback. **Start again** clears the field and greeting.
 This app responds to events; it has no update/draw loop.
 

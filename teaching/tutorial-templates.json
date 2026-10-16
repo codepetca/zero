@@ -9,8 +9,8 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "b4734a4c0fc9bbaf540662076605e527f95d5671",
-        "tree": "c9351597e691f75f14dc6e536fe093a7144b4c40"
+        "commit": "a00566d7e644ba46a79afbe2d0920b24dc0fba59",
+        "tree": "b0ed4cf836304cfa69cb7cd2dd0fe844042867a1"
       }
     },
     {
@@ -21,8 +21,8 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "43fbfd478b39909e803252b8ec2fdf3758a531a2",
-        "tree": "cf4172659b62dbd7efbca1b9d39b3385f61dce1c"
+        "commit": "4209ab9233595594af4c01e56a06d7c82ded6b4e",
+        "tree": "d7b2dffbfa9ddb3b06c19eb7c9b1798707a762fc"
       }
     },
     {
@@ -33,8 +33,8 @@
         "visibility": "public",
         "isTemplate": true,
         "defaultBranch": "main",
-        "commit": "0daa1d6eff184727085cbb9002e0820a00922e07",
-        "tree": "9123e4bc6f8827c8273044ad98054759ba3865d9"
+        "commit": "a71cb084ae43c512852378521adb0b60f6e256be",
+        "tree": "3cdc2d7509f639fd236835175abbbd7a596d7c64"
       }
     }
   ]

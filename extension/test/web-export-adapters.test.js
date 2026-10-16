@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { adaptSources, helperHashes } = require('../src/web-export/adapters');
 const root = path.resolve(__dirname, '../..');
-const app = 'import zero.SketchApp;\npublic class Main extends SketchApp { public void setup() {} }\n';
+const app = 'import zero.GameApp;\npublic class Main extends GameApp { public void setup() {} }\n';
 const helpers = () => Object.fromEntries(Object.keys(helperHashes).map(file => [file, fs.readFileSync(path.join(root, 'framework/src/main/java', file), 'utf8')]));
 
 test('browser adapter relocates ordinary game objects without changing their rules', () => {
@@ -25,22 +25,22 @@ test('browser adapter relocates ordinary game objects without changing their rul
 test('current canonical helper fingerprints require a reviewed adapter update after changes', () => {
   const sources = { ...helpers(), 'Main.java': app };
   const result = adaptSources({ sources });
-  assert.match(result.sources['zero/SketchApp.java'], /BrowserFocus.install\(this::clearInput\)/);
-  assert.match(result.sources['zero/SketchApp.java'], /BrowserImages.get\(resourcePath, getClass\(\)\)/);
-  assert.match(result.sources['zero/SketchApp.java'], /ImageRegion.requireLoaded\(image\)/);
-  const originalLine = sources['zero/SketchApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
-  const adaptedLine = result.sources['zero/SketchApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
+  assert.match(result.sources['zero/GameApp.java'], /BrowserFocus.install\(this::clearInput\)/);
+  assert.match(result.sources['zero/GameApp.java'], /BrowserImages.get\(resourcePath, getClass\(\)\)/);
+  assert.match(result.sources['zero/GameApp.java'], /ImageRegion.requireLoaded\(image\)/);
+  const originalLine = sources['zero/GameApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
+  const adaptedLine = result.sources['zero/GameApp.java'].split('\n').findIndex(line => line.includes('public final SpriteAnimation loadAnimation'));
   assert.equal(adaptedLine, originalLine, 'framework source diagnostics retain original line numbers');
-  assert.doesNotMatch(result.sources['zero/SketchApp.java'], /getResource\(|imageResourceKey/);
+  assert.doesNotMatch(result.sources['zero/GameApp.java'], /getResource\(|imageResourceKey/);
   assert.match(result.sources['zero/SpriteAnimation.java'], /Arrays.copyOf\(frames, frames.length\)/);
   const windowsSources = Object.fromEntries(Object.entries(sources).map(([file, text]) => [file, text.replaceAll('\n', '\r\n')]));
   assert.doesNotThrow(() => adaptSources({ sources: windowsSources }));
-  sources['zero/SketchApp.java'] += '// student changes preserved in original\n';
+  sources['zero/GameApp.java'] += '// student changes preserved in original\n';
   assert.throws(() => adaptSources({ sources }), /helper differs from the reviewed browser adapter/);
 });
 
 test('lexical rewrites preserve literals/comments and bridge only code resource and canvas calls', () => {
-  const source = `import zero.SketchApp;\nimport java.net.URL;\nimport javafx.scene.media.MediaPlayer;\npublic class Main extends SketchApp {\n    String example = "Main.class.getResource(\\\"/foo\\\") canvas().setAccessibleText(";\n    // Main.class.getResource("comment") canvas().setAccessibleText("comment");\n    public void setup() { URL file = Main.class.getResource("/audio/loop.wav"); canvas().setAccessibleText("Space or click"); }\n}\n`;
+  const source = `import zero.GameApp;\nimport java.net.URL;\nimport javafx.scene.media.MediaPlayer;\npublic class Main extends GameApp {\n    String example = "Main.class.getResource(\\\"/foo\\\") canvas().setAccessibleText(";\n    // Main.class.getResource("comment") canvas().setAccessibleText("comment");\n    public void setup() { URL file = Main.class.getResource("/audio/loop.wav"); canvas().setAccessibleText("Space or click"); }\n}\n`;
   const result = adaptSources({ sources: { 'Main.java': source }, resourcePaths: ['audio/loop.wav'] });
   const adapted = result.sources['zero/exported/Main.java'];
   assert.ok(adapted.includes('String example = "Main.class.getResource(\\\"/foo\\\") canvas().setAccessibleText(";'));
@@ -53,7 +53,7 @@ test('lexical rewrites preserve literals/comments and bridge only code resource 
 });
 
 test('packaged student applications retain package and line mapping', () => {
-  const source = 'package school.games;\nimport zero.SimpleApp;\npublic class Hello extends SimpleApp {}\n';
+  const source = 'package school.games;\nimport zero.App;\npublic class Hello extends App {}\n';
   const result = adaptSources({ sources: { 'school/games/Hello.java': source } });
   assert.equal(result.sources['school/games/Hello.java'], source);
   assert.deepEqual(result.sourceMap['school/games/Hello.java'], { originalPath: 'school/games/Hello.java', lineOffset: 0 });
@@ -61,7 +61,7 @@ test('packaged student applications retain package and line mapping', () => {
 
 test('ambiguous applications, path escapes, reserved packages and unsupported media fail usefully', () => {
   assert.throws(() => adaptSources({ sources: {} }), /expected one application/);
-  assert.throws(() => adaptSources({ sources: { 'Main.java': app, 'Other.java': 'class Other extends SimpleApp {}' } }), /found 2/);
+  assert.throws(() => adaptSources({ sources: { 'Main.java': app, 'Other.java': 'class Other extends App {}' } }), /found 2/);
   assert.throws(() => adaptSources({ sources: { '../Main.java': app } }), /invalid Java source path/);
   assert.throws(() => adaptSources({ sources: { 'Main.java': app }, resourcePaths: ['../private.png'] }), /invalid packaged resource path/);
   assert.throws(() => adaptSources({ sources: { 'Main.java': 'package zero.web;\n' + app } }), /reserved/);
@@ -75,9 +75,9 @@ test('all seven native helpers retain declarations and generated audio ownership
   const result = adaptSources({ sources, resourcePaths: ['audio/tone.wav'] });
   const originalAPI = text => text.split('\n').filter(line => /^    (?:@Override )?(?:public|protected) /.test(line)).map(line => line.split('{')[0].trim());
   for (const file of Object.keys(helperHashes)) assert.deepEqual(originalAPI(result.sources[file]), originalAPI(sources[file]), file + ' public/protected API');
-  assert.match(result.sources['zero/SimpleApp.java'], /Resources.get\(getClass\(\), resourcePath\)/);
-  assert.match(result.sources['zero/SimpleApp.java'], /BrowserLifecycle.own\(this, this::stop\)/);
-  assert.doesNotMatch(result.sources['zero/SimpleApp.java'], /java.net.URL|java.nio.file.Path|resource.toURI/);
+  assert.match(result.sources['zero/App.java'], /Resources.get\(getClass\(\), resourcePath\)/);
+  assert.match(result.sources['zero/App.java'], /BrowserLifecycle.own\(this, this::stop\)/);
+  assert.doesNotMatch(result.sources['zero/App.java'], /java.net.URL|java.nio.file.Path|resource.toURI/);
   assert.match(result.sources['zero/Sound.java'], /clip.play\(volume\)/);
   assert.match(result.sources['zero/Music.java'], /player.setOnReady/);
   sources['zero/Music.java'] += '// changed\n';
@@ -85,12 +85,12 @@ test('all seven native helpers retain declarations and generated audio ownership
 });
 
 test('abstract nested app owners are not mistaken for a second launch target', () => {
-  const main = app.replace('public void setup() {}', 'public void setup() {} private abstract static class Owner extends SimpleApp {}');
+  const main = app.replace('public void setup() {}', 'public void setup() {} private abstract static class Owner extends App {}');
   assert.doesNotThrow(() => adaptSources({ sources: { 'Main.java': main } }));
 });
 
 test('ordinary instance resource lookup supports stylesheets without enabling reflection rewrites', () => {
-  const source='import java.net.URL;\nimport zero.SimpleApp;\nclass Main extends SimpleApp { public void setup() { var theme=getClass().getResource("/theme.css"); java.net.URL same=Main.class.getResource("/theme.css"); String sample="getClass().getResource(ignored)"; } }';
+  const source='import java.net.URL;\nimport zero.App;\nclass Main extends App { public void setup() { var theme=getClass().getResource("/theme.css"); java.net.URL same=Main.class.getResource("/theme.css"); String sample="getClass().getResource(ignored)"; } }';
   const adapted=adaptSources({sources:{'Main.java':source},resourcePaths:['theme.css']}).sources['zero/exported/Main.java'];
   assert.match(adapted,/var theme=zero.web.Resources.get\(getClass\(\), "\/theme.css"\)/);
   assert.match(adapted,/zero.web.ResourceURL same=zero.web.Resources.get\(Main.class, "\/theme.css"\)/);

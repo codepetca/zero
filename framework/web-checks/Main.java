@@ -4,11 +4,11 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import zero.Collisions;
 import zero.ImageRegion;
-import zero.SketchApp;
+import zero.GameApp;
 import zero.SpriteAnimation;
 
 /** Release check: exercise the supported canvas API through the real exporter. */
-public final class Main extends SketchApp {
+public final class Main extends GameApp {
     private Image sheet;
     private ImageRegion region;
     private SpriteAnimation animation, sequence;

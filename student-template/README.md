@@ -124,7 +124,7 @@ size. `setup()` builds the interface once and calls `show(screen)` with an
 ordinary JavaFX node. A button's `setOnAction(event -> checkAnswer())` means
 “when clicked, call this method.” The method body is ordinary Java.
 
-`SimpleApp` does not run an animation loop. The window is resizable; JavaFX
+`App` does not run an animation loop. The window is resizable; JavaFX
 layouts such as VBox/HBox arrange and resize their children. The scored quiz uses
 12-pixel spacing and 20-pixel padding directly in its VBox; change these numbers
 or use normal JavaFX CSS. Main owns the points and scoring rule. `ScoreDisplay`
@@ -138,7 +138,7 @@ ordinary JavaFX component conventions.
 
 ### Animated apps
 
-Choose `SketchApp` for animation, drawing or games. It extends the same SimpleApp
+Choose `GameApp` for animation, drawing or games. It extends the same App
 startup, creates a canvas before setup, then calls `update(double seconds)` and
 `draw()` each frame. Your Main explicitly calls ordinary objects such as
 `player.update(...)` and `player.draw(this)`; there is no automatic object lifecycle.
@@ -151,7 +151,7 @@ native controls fit around the canvas; resizing the window does not scale its
 pixels. Elapsed seconds are capped at 0.1 after a long pause. Drawing does not
 clear automatically: call `background(Color.WHITE)` in draw for a fresh frame.
 
-Useful methods inherited from SketchApp:
+Useful methods inherited from GameApp:
 
 | Purpose | Example |
 | --- | --- |
@@ -170,7 +170,7 @@ are canvas coordinates and can leave its bounds while dragging. **Click the
 canvas to play.** Held keys belong to the focused canvas; clicking or typing in
 native controls does not press game keys or mouse buttons. Moving focus to a
 control or another window clears held inputs. Releasing an owned button outside
-the canvas also clears it. Put images in `src/main/resources`; load once in setup. Sound/Music also work in ordinary SimpleApp interfaces; see
+the canvas also clears it. Put images in `src/main/resources`; load once in setup. Sound/Music also work in ordinary App interfaces; see
 the [audio guide](APP-GUIDE.md#short-sound-effects). Owned audio closes automatically
 on shutdown and startup/frame failure. Game pause/restart policy stays in Main. Successful image loads
 share an app-scoped cache until shutdown. The local source starter also includes
@@ -182,12 +182,12 @@ See the [game helper guide](APP-GUIDE.md#sprite-frames-and-small-game-helpers) a
 [complete API](API.md).
 
 Use normal JavaFX through `graphics()` (GraphicsContext), `canvas()`, and
-`layout()` (BorderPane). In SketchApp.setup(), `layout().setBottom(button)` adds a
+`layout()` (BorderPane). In GameApp.setup(), `layout().setBottom(button)` adds a
 native control. Keep the canvas in the centre. The counter example proves this
-mixed UI approach; use `show(Node)` for the event-driven SimpleApp examples.
+mixed UI approach; use `show(Node)` for the event-driven App examples.
 
-Read the bundled framework in `src/main/java/zero/SimpleApp.java` and
-`SketchApp.java`. It has shared startup and a small drawing/input API, with no
+Read the bundled framework in `src/main/java/zero/App.java` and
+`GameApp.java`. It has shared startup and a small drawing/input API, with no
 component base class, scene routing, or object discovery.
 
 ## Try an example

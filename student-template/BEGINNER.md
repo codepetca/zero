@@ -10,13 +10,13 @@ Examples are outside `src/` until you copy them.
 If an older downloaded kit does not include these examples, the website's
 example pages show the complete files to copy into the same starter destinations.
 
-A SketchApp can host ordinary buttons, labels and component views around its canvas.
-It already inherits SimpleApp; create UI objects rather than a second application.
+A GameApp can host ordinary buttons, labels and component views around its canvas.
+It already inherits App; create UI objects rather than a second application.
 See [UI and app/game flow](UI.md) for the shared pattern.
 
 ## Apps: controls that respond to events
 
-Choose `SimpleApp` for a quiz, calculator, study tool or small form. Start with
+Choose `App` for a quiz, calculator, study tool or small form. Start with
 the complete [Hello app](examples/hello-app/README.md), including its stylesheet.
 
 ```text
@@ -29,7 +29,7 @@ Override `settings()` once to call `size(width, height)`, `title("My app")`
 and optionally `padding(20)` for space around the edges.
 Override `setup()` once to create controls, connect handlers and call
 `show(screen)`. Keep the example's `main` method to launch the app.
-There is no automatic `update()` or `draw()` callback in SimpleApp.
+There is no automatic `update()` or `draw()` callback in App.
 
 Start with these ordinary JavaFX classes:
 
@@ -72,7 +72,7 @@ change its colours and spacing.
 
 ## Games: update the state, then draw it
 
-Choose `SketchApp` for a drawing, moving objects or a small game. Start with
+Choose `GameApp` for a drawing, moving objects or a small game. Start with
 the complete [Reach the coin game](examples/reach-the-coin/README.md).
 
 ```text

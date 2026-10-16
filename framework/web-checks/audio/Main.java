@@ -4,11 +4,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import zero.Music;
 import zero.Sound;
-import zero.SimpleApp;
-import zero.SketchApp;
+import zero.App;
+import zero.GameApp;
 
 /** Ordinary public audio API exercised through real browser media and app ownership. */
-public final class Main extends SketchApp {
+public final class Main extends GameApp {
     private Sound effect;
     private Music song, once, independent, broken;
     private final Label result = new Label("Audio checks preparing");
@@ -72,6 +72,6 @@ public final class Main extends SketchApp {
         text("Independent playing: " + independent.isPlaying(), 10, 170);
         text("Muted: " + song.isMuted() + " / " + effect.isMuted(), 10, 205);
     }
-    private abstract static class Owner extends SimpleApp { int shutdowns; @Override protected void shutdown() { shutdowns++; } }
+    private abstract static class Owner extends App { int shutdowns; @Override protected void shutdown() { shutdowns++; } }
     public static void main(String[] args) { launch(args); }
 }

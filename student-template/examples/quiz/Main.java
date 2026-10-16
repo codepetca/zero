@@ -3,10 +3,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
 /** Start here: fields, objects, and a method called by a button click. */
-public class Main extends SimpleApp {
+public class Main extends App {
     private int points;
     private TextField answer;
     private Label feedback;

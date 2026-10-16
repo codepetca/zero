@@ -322,7 +322,7 @@ async (page) => {
   await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true})));
   await page.waitForFunction(before => window.__zeroCheck.draws > before + 5, beforePersisted.draws);
   const restoredDraws = await page.evaluate(() => window.__zeroCheck.draws);
-  check(restoredDraws > beforePersisted.draws, 'Ordinary SketchApp drawing continues after persisted pagehide and pageshow', {before: beforePersisted.draws, after: restoredDraws});
+  check(restoredDraws > beforePersisted.draws, 'Ordinary GameApp drawing continues after persisted pagehide and pageshow', {before: beforePersisted.draws, after: restoredDraws});
   await page.waitForTimeout(100);
   check(!(await musicState()).playing && Math.abs((await musicState()).time - beforePersisted.time) < .03, 'Restored music stays paused at its retained position');
   await page.getByRole('button', {name: 'Resume', exact: true}).click();
@@ -340,7 +340,7 @@ async (page) => {
   });
   check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'Non-persisted pagehide still invokes app-owned cleanup after restore');
   await page.waitForTimeout(100);
-  check(await page.evaluate(before => window.__zeroCheck.draws === before, finalDraws), 'Non-persisted pagehide stops the SketchApp timer');
+  check(await page.evaluate(before => window.__zeroCheck.draws === before, finalDraws), 'Non-persisted pagehide stops the GameApp timer');
   check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in audio fixture');
   await page.goto(urls.hello);
   await page.locator('input[type="text"]').fill('Ada');

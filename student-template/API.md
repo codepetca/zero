@@ -1,6 +1,6 @@
 # Zero API reference
 
-The complete public/protected API declared by `zero.SimpleApp`, `zero.SketchApp`,
+The complete public/protected API declared by `zero.App`, `zero.GameApp`,
 `zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Collisions`, `zero.Sound` and
 `zero.Music`.
 The game helpers are local, unreleased source additions. Published Mac setup
@@ -8,16 +8,16 @@ The game helpers are local, unreleased source additions. Published Mac setup
 For setup, explanations and complete examples, see the [app guide](APP-GUIDE.md)
 or [starter guide](README.md).
 
-[SimpleApp](#simpleapp) · [SketchApp](#sketchapp) ·
+[App](#app) · [GameApp](#gameapp) ·
 [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
 [Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
-## SimpleApp
+## App
 
-`public abstract class SimpleApp extends javafx.application.Application`
+`public abstract class App extends javafx.application.Application`
 
-Extend `zero.SimpleApp` for event-driven interfaces. It has an implicit public
+Extend `zero.App` for event-driven interfaces. It has an implicit public
 no-argument constructor. The default window is resizable, 800 × 500 pixels,
 with title `"Zero"` and zero content-edge padding. Import JavaFX `Node` from `javafx.scene`.
 
@@ -36,22 +36,22 @@ These methods are public and final; call them without overriding them.
 
 | Signature | Behavior |
 | --- | --- |
-| `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Dimensions must be positive and finite. On SketchApp, these are fixed canvas dimensions. |
+| `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Dimensions must be positive and finite. On GameApp, these are fixed canvas dimensions. |
 | `void title(String title)` | Set a non-null initial window title, inside `settings()` only. |
 | `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a sketch keeps its fixed canvas size. |
-| `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On SketchApp this replaces the visible sketch layout while its loop continues. |
+| `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On GameApp this replaces the visible sketch layout while its loop continues. |
 
 `size`, `title` and `padding` throw `IllegalStateException` outside `settings()`;
 invalid dimensions or padding throw `IllegalArgumentException`. `show` throws `IllegalStateException`
 before content creation. Null title/content throws `NullPointerException`.
 `size`, `title` and `padding` do not change an already-open window.
 
-## SketchApp
+## GameApp
 
-`public abstract class SketchApp extends SimpleApp`
+`public abstract class GameApp extends App`
 
-Extend `zero.SketchApp` for animation and canvas input. It has an implicit public
-no-argument constructor and inherits all SimpleApp public methods above.
+Extend `zero.GameApp` for animation and canvas input. It has an implicit public
+no-argument constructor and inherits all App public methods above.
 Its canvas exists before `setup()`. It starts frames after showing the window.
 
 | Public callback | Behavior |
@@ -66,7 +66,7 @@ around the canvas can enlarge the initial window.
 
 ## Canvas
 
-These SketchApp methods are public and final. Call them in `setup()` or later,
+These GameApp methods are public and final. Call them in `setup()` or later,
 after canvas creation. Imports: `javafx.scene.canvas.Canvas`,
 `javafx.scene.canvas.GraphicsContext`, `javafx.scene.layout.BorderPane`.
 
@@ -80,7 +80,7 @@ after canvas creation. Imports: `javafx.scene.canvas.Canvas`,
 
 ## Drawing
 
-These SketchApp methods are public and final. Call them after canvas creation.
+These GameApp methods are public and final. Call them after canvas creation.
 Coordinates use canvas pixels: `(0, 0)` is the top left; y increases downward.
 Import `Color` from `javafx.scene.paint`.
 
@@ -103,7 +103,7 @@ through `graphics()`. For other operations, use that context directly.
 
 ## Images
 
-These SketchApp methods are public and final. Drawing requires an existing
+These GameApp methods are public and final. Drawing requires an existing
 canvas. Import `Image` from `javafx.scene.image`.
 
 | Signature | Behavior |
@@ -188,7 +188,7 @@ These tests do not move objects or resolve physics.
 
 ## Audio
 
-These SimpleApp methods are public and final, and are inherited by SketchApp.
+These App methods are public and final, and are inherited by GameApp.
 Load in `setup()` and keep fields for playback from a button or game event.
 Put audio in `src/main/resources`; a leading `/` starts at the resource root,
 otherwise paths are relative to your app class's Java package. Use supported
@@ -253,7 +253,7 @@ close controls throw `IllegalStateException`, while getters remain readable.
 
 ## Input
 
-These SketchApp methods are public and final. Use after canvas creation.
+These GameApp methods are public and final. Use after canvas creation.
 Import `KeyCode` and `MouseButton` from `javafx.scene.input`.
 
 | Signature | Result |
@@ -282,7 +282,7 @@ arrows in a focused text field keep their normal caret behavior.
 
 ### Public lifecycle methods
 
-SimpleApp declares these final JavaFX lifecycle overrides. Let JavaFX call them.
+App declares these final JavaFX lifecycle overrides. Let JavaFX call them.
 Import `Stage` from `javafx.stage`.
 
 | Signature | Behavior |
@@ -293,7 +293,7 @@ Import `Stage` from `javafx.stage`.
 Use JavaFX's inherited `launch(args)` in `public static void main(String[] args)`.
 Other inherited JavaFX APIs remain available; they are outside Zero's own API.
 
-### Protected SimpleApp API
+### Protected App API
 
 These hooks support framework extension. Students normally override `settings`,
 `setup`, `update` and `draw`. Import `Scene` and `Node` from `javafx.scene`,
@@ -308,9 +308,9 @@ These hooks support framework extension. Students normally override `settings`,
 | `protected void ready(Stage stage)` | No action. Called after the stage is shown. |
 | `protected void shutdown()` | No action. Called at most once by `stop`, including startup-failure cleanup. |
 
-### Protected SketchApp overrides
+### Protected GameApp overrides
 
-SketchApp supplies these final overrides; subclasses cannot replace them.
+GameApp supplies these final overrides; subclasses cannot replace them.
 
 | Signature | Behavior |
 | --- | --- |
@@ -323,8 +323,8 @@ Settings, setup, frames and JavaFX handlers run on the JavaFX application thread
 A failed frame stops the timer, clears held input, closes owned audio and reports the exception.
 Closing the app also stops its timer.
 
-The readable [SimpleApp source](src/main/java/zero/SimpleApp.java) and
-[SketchApp source](src/main/java/zero/SketchApp.java) are the authority for a
+The readable [App source](src/main/java/zero/App.java) and
+[GameApp source](src/main/java/zero/GameApp.java) are the authority for a
 locally modified framework. Ordinary JavaFX controls and example classes such as
 ScoreDisplay, Player and Question have their own APIs; see the
 [app guide](APP-GUIDE.md) for their use.

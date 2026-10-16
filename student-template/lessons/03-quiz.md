@@ -14,8 +14,8 @@ Target illustration: a correct answer to your first quiz question.
 
 ## Code and explanation
 
-Keep the generated `Main extends SimpleApp`, `setup()` and `main(...)` lines.
-Add these imports above the class, beside the existing `zero.SimpleApp` import:
+Keep the generated `Main extends App`, `setup()` and `main(...)` lines.
+Add these imports above the class, beside the existing `zero.App` import:
 
 ```java
 import javafx.scene.control.Button;

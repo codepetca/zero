@@ -1,6 +1,6 @@
 # Local Zero core library
 
-This development module packages the canonical SimpleApp, SketchApp, ImageRegion, SpriteAnimation, Collisions, Sound and Music source
+This development module packages the canonical App, GameApp, ImageRegion, SpriteAnimation, Collisions, Sound and Music source
 for the Component Workshop. The student starter still ships editable core source;
 this module does not migrate existing projects or change their API.
 
@@ -32,7 +32,7 @@ cleared at shutdown. Grid assets require aligned equal-size cells dividing the
 image exactly; explicit region sequences support irregular atlases. Frame-edge
 input is non-consuming during one real update/draw, and focus loss clears it.
 
-SimpleApp and SketchApp both provide loadSound/loadMusic. Sound caches each
+App and GameApp both provide loadSound/loadMusic. Sound caches each
 successful canonical resource as one live wrapper, sharing volume/mute settings;
 manually closing it allows a fresh load. Music creates an independent buffered
 MediaPlayer per call. Short effects retain decoded samples in memory. Audio
@@ -43,5 +43,5 @@ Game pause/focus/restart policy remains explicit in Main. See the
 
 The JAR and sources JAR are generated in target/. No remote publishing target is
 configured. Original Zero source uses [MIT](../LICENSE); public Maven coordinates remain unresolved.
-Never add this JAR to a project that already compiles its own zero.SimpleApp and
-zero.SketchApp; pick one source of the framework classes.
+Never add this JAR to a project that already compiles its own zero.App and
+zero.GameApp; pick one source of the framework classes.

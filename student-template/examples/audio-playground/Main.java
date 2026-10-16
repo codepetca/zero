@@ -4,11 +4,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import zero.Music;
-import zero.SimpleApp;
+import zero.App;
 import zero.Sound;
 
 /** Ordinary controls and event handlers; Zero owns the native audio resources. */
-public class Main extends SimpleApp {
+public class Main extends App {
     Sound chime;
     Music theme;
     boolean muted;

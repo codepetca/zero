@@ -29,7 +29,7 @@ async function check(sources, overrides = {}) {
   const workRoot = path.join(temporary, String(++counter)); await fs.mkdir(workRoot);
   return checkCompatibility({ sources: { ...await helpersPromise, ...sources }, pom: await pomPromise, workRoot, cacheRoot: path.join(temporary, 'cache'), ...overrides });
 }
-const app = body => `import zero.SimpleApp;\npublic class Main extends SimpleApp {\n public void setup() { ${body} }\n public static void main(String[] args) { launch(args); }\n}\n`;
+const app = body => `import zero.App;\npublic class Main extends App {\n public void setup() { ${body} }\n public static void main(String[] args) { launch(args); }\n}\n`;
 test('contract has an immutable explicit type/member boundary and hashed attribution inputs', async () => {
   const profile = await compatibilityProfile();
   assert.equal(profile.schemaVersion, 1); assert.equal(profile.javafxVersion, '21.0.12');

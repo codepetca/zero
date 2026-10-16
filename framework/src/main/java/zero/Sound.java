@@ -3,7 +3,7 @@ package zero;
 import javafx.application.Platform;
 import javafx.scene.media.AudioClip;
 
-/** A cached short sound effect. Obtain it with SimpleApp.loadSound on the JavaFX thread. */
+/** A cached short sound effect. Obtain it with App.loadSound on the JavaFX thread. */
 public final class Sound implements AutoCloseable {
     private AudioClip clip;
     private final String resourcePath;

@@ -4,11 +4,11 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import zero.Collisions;
 import zero.ImageRegion;
-import zero.SketchApp;
+import zero.GameApp;
 import zero.SpriteAnimation;
 
 /** Two birds share one loaded image, but have independent animation clocks. */
-public class Main extends SketchApp {
+public class Main extends GameApp {
     SpriteAnimation bird, companion;
     double x = 140, y = 220;
     boolean paused;

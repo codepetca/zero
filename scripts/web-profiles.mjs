@@ -9,7 +9,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 export function verifyWebProfiles() {
   const directory=path.join(root,'framework/src/main/java/zero');
   const names=fs.readdirSync(directory).filter(name=>name.endsWith('.java')).sort();
-  assert.deepEqual(names,['Collisions.java','ImageRegion.java','Music.java','SimpleApp.java','SketchApp.java','Sound.java','SpriteAnimation.java'],'A Zero helper was added or removed. Add its browser adapter and real compile/browser coverage before releasing.');
+  assert.deepEqual(names,['App.java','Collisions.java','GameApp.java','ImageRegion.java','Music.java','Sound.java','SpriteAnimation.java'],'A Zero helper was added or removed. Add its browser adapter and real compile/browser coverage before releasing.');
   const sources=Object.fromEntries(names.map(name=>['zero/'+name,fs.readFileSync(path.join(directory,name),'utf8')]));
   const declarations = Object.values(sources).reduce((total, source) => total + [...source.matchAll(/^    (?:@Override )?(?:public|protected) /gm)].length, 0);
   assert.equal(declarations, 98, 'The supported Zero API declaration inventory changed. Extend browser fixture coverage before updating the profile.');

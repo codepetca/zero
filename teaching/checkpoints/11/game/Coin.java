@@ -1,5 +1,5 @@
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** A coin remembers whether it was collected; Main owns the score. */
 public class Coin {
@@ -19,7 +19,7 @@ public class Coin {
 
     public void collect() { collected = true; }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         if (collected) return;
         app.fill(Color.GOLD);
         app.rect(x, y, size, size);

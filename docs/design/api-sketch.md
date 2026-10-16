@@ -5,7 +5,7 @@ used to guide implementation. The working versions now live in the
 [starter](../../student-template/README.md); consult
 [PRODUCT.md](../PRODUCT.md) for the current contract and
 [VERIFICATION.md](../VERIFICATION.md) for actual check evidence.
-The earlier starter's `SimpleApp` was a canvas-based app; the new design separates
+The earlier starter's `App` was a canvas-based app; the new design separates
 ordinary interface apps from animated sketches.
 
 ## The learning model
@@ -17,9 +17,9 @@ the small amount of repetitive window configuration.
 
 Two entry points share the same startup conventions:
 
-- `SimpleApp`: `settings()` configures the window, `setup()` builds the interface,
+- `App`: `settings()` configures the window, `setup()` builds the interface,
   and `show(Node)` displays it. There is no student animation loop.
-- `SketchApp`: adds a canvas, drawing/input helpers and the explicit
+- `GameApp`: adds a canvas, drawing/input helpers and the explicit
   `update(seconds)` followed by `draw()` loop. Its canvas dimensions come from
   `size(width, height)`. A later mixed UI/canvas example should prove integration
   before we design a separate embedded sketch API.
@@ -29,7 +29,7 @@ their own objects. JavaFX controls handle their own rendering and layout.
 Event handlers and animation run on the JavaFX application thread; long-running
 work is a later topic because it would otherwise freeze the interface.
 
-The split requires migrating old canvas examples to `SketchApp`. The source
+The split requires migrating old canvas examples to `GameApp`. The source
 kit makes that change explicit; this is not a binary compatibility promise.
 
 ## Example 1: a tiny quiz
@@ -62,9 +62,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     private int points = 0;
     private TextField answer;
     private Label feedback;
@@ -164,9 +164,9 @@ when the Player updates and draws. Player has no automatic engine lifecycle.
 
 ```java
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private Player player;
 
     @Override
@@ -201,7 +201,7 @@ public class Main extends SketchApp {
 
 ```java
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 public class Player {
     private double x;
@@ -218,7 +218,7 @@ public class Player {
         y += (targetY - y) * amount;
     }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         app.fill(Color.ROYALBLUE);
         app.circle(x, y, 40);
     }
@@ -228,7 +228,7 @@ public class Player {
 The movement formula is a supplied example, not a prerequisite for learning
 objects. Students can first replace it with `x = targetX; y = targetY;`, then
 investigate smooth movement and elapsed time. A later interface could decouple
-Player's drawing from SketchApp, but that abstraction is not necessary initially.
+Player's drawing from GameApp, but that abstraction is not necessary initially.
 
 ## Example 3: a second app reusing ScoreDisplay unchanged
 
@@ -250,9 +250,9 @@ Window sketch:
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     private int completed = 0;
     private ScoreDisplay score;
 
@@ -302,8 +302,8 @@ Change the shared class once, then verify both apps.
 
 | Surface | Initial contract |
 | --- | --- |
-| SimpleApp | settings, setup, title, initial size, show a JavaFX Node |
-| SketchApp | Common startup plus canvas dimensions, update(seconds), draw |
+| App | settings, setup, title, initial size, show a JavaFX Node |
+| GameApp | Common startup plus canvas dimensions, update(seconds), draw |
 | Drawing | background, fill, circle, rect, line, text, basic image support |
 | Input | Canvas mouse coordinates and held key/button queries |
 | Controls and layout | Existing JavaFX Button, Label, TextField, VBox, HBox |

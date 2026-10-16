@@ -1,10 +1,10 @@
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
 /** A second app reuses the exact same ScoreDisplay class. */
-public class Main extends SimpleApp {
+public class Main extends App {
     private int completed;
     private ScoreDisplay score;
 

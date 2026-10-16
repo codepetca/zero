@@ -1,9 +1,9 @@
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     private final Counter counter = new Counter();
 
     public void setup() {

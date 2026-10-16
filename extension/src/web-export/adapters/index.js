@@ -21,10 +21,10 @@ function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`);
 const helperHashes = Object.freeze({
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
   'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
-  'zero/Music.java': 'c4f8c88b5a9c6205e12ac4fd12a7dc3b9e1415c1abf6bc18cc45770e994d473a',
-  'zero/SimpleApp.java': '0eb6db9f27161db2aea0edcd2b47769b51ce8773383dcf47d51af05303601eb0',
-  'zero/SketchApp.java': 'e9d43e9c2dfad3c5e455fef413d918a6674c271e8903f6073f69d5a21b0cf67d',
-  'zero/Sound.java': '0ca8c041712cc7ed9faad3a8e69599d44337082898da9505365d06b5536f2c5a',
+  'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',
+  'zero/App.java': 'bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09',
+  'zero/GameApp.java': '218f45f20f585938fd7c8e4b152fd69b8ca4ad3daf6ff7d5bc45132c8fd3a4d7',
+  'zero/Sound.java': '6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286',
   'zero/SpriteAnimation.java': 'c68e48317388de67be2f6170c990baef6c7a20e028f6ce3b6163e74f6d67e0f0'
 });
 function overlay(file, source) {
@@ -34,7 +34,7 @@ function overlay(file, source) {
   if (crypto.createHash('sha256').update(source).digest('hex') !== expected) {
     fail(file, 'this Zero helper differs from the reviewed browser adapter. Keep your source; update the adapter or use the supported helper version before exporting.');
   }
-  if (file.endsWith('SimpleApp.java')) {
+  if (file === 'zero/App.java') {
     source = source.replace('import java.net.URL;\n', 'import zero.web.ResourceURL;\n').replace('import java.nio.file.Path;\n', '\n');
     source = source.replaceAll('URL resource', 'ResourceURL resource').replace('private URL audioResource', 'private ResourceURL audioResource');
     source = source.replace('getClass().getResource(resourcePath)', 'zero.web.Resources.get(getClass(), resourcePath)');
@@ -43,7 +43,7 @@ function overlay(file, source) {
     const key = source.indexOf('    private static String audioResourceKey(');
     return source.slice(0, key) + '    private static String audioResourceKey(ResourceURL resource) { return resource.toExternalForm(); }\n}\n';
   }
-  if (!file.endsWith('SketchApp.java') && !file.endsWith('SpriteAnimation.java')) return source;
+  if (!file.endsWith('GameApp.java') && !file.endsWith('SpriteAnimation.java')) return source;
   if (file.endsWith('SpriteAnimation.java')) return source.replace('frames.clone()', 'java.util.Arrays.copyOf(frames, frames.length)');
   source = source.replace('import java.net.URL;\n', '\n').replace('import java.nio.file.Path;\n', '\n');
   source = source.replace('        window = stage;', '        window = stage; zero.web.BrowserFocus.install(this::clearInput);');
@@ -163,9 +163,9 @@ function adaptSources({ sources, resourcePaths = [], urlReferences }) {
     output[destination] = adapted.source;
     sourceMap[destination] = { originalPath: file, lineOffset: adapted.lineOffset };
     const ts = tokens(source);
-    for (let i = 0; i < ts.length - 3; i++) if (ts[i].text === 'class' && !ts.slice(Math.max(0, i - 3), i).some(token => token.text === 'abstract') && ts[i + 2].text === 'extends' && ['SketchApp', 'SimpleApp', 'Application'].includes(ts[i + 3].text)) apps.push(`${adapted.pkg}.${ts[i + 1].text}`);
+    for (let i = 0; i < ts.length - 3; i++) if (ts[i].text === 'class' && !ts.slice(Math.max(0, i - 3), i).some(token => token.text === 'abstract') && ts[i + 2].text === 'extends' && ['GameApp', 'App', 'Application'].includes(ts[i + 3].text)) apps.push(`${adapted.pkg}.${ts[i + 1].text}`);
   }
-  if (apps.length !== 1) fail('Main.java', `expected one application extending SketchApp, SimpleApp or Application; found ${apps.length}.`);
+  if (apps.length !== 1) fail('Main.java', `expected one application extending GameApp, App or Application; found ${apps.length}.`);
   const resources = [...new Set(resourcePaths)].sort();
   for (const resource of resources) if (typeof resource !== 'string' || resource.startsWith('/') || resource.includes('\\') || resource.split('/').some(x => !x || x === '..' || x === '.')) fail(String(resource), 'invalid packaged resource path.');
   const images = resources.filter(file => /\.(png|jpe?g|gif|webp|bmp|svg|avif|ico)$/i.test(file));

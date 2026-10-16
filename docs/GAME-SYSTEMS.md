@@ -1,6 +1,6 @@
 # Game systems in Zero
 
-Lesson 12 builds a two-level platformer in five runnable stages. SketchApp stays
+Lesson 12 builds a two-level platformer in five runnable stages. GameApp stays
 small: it hosts the window, input and frames. Main owns the rules and explicitly
 updates/draws ordinary Java objects. No registry or engine rewrite is needed.
 
@@ -38,7 +38,7 @@ It does not repair a leaked camera transform. Always balance save/restore.
 
 ## Physics and game rules
 
-SketchApp caps variable frame time at0.1seconds. The platformer Player further
+GameApp caps variable frame time at0.1seconds. The platformer Player further
 splits it into steps no larger than1/120second, limits fall speed, and resolves
 horizontal then vertical solid overlap. The bounded movement is smaller than the
 provided platforms' thickness. This is a teaching implementation for axis-aligned
@@ -58,7 +58,7 @@ score, player, patrols and camera. Reset suppresses a held jump reported by the 
 
 Load assets once in setup; play a short effect on collection. The maintained
 Lesson 12 examples use ordinary JavaFX AudioClip. The local source additionally
-provides `loadSound`/`loadMusic` in both SimpleApp and SketchApp. Sound holds decoded
+provides `loadSound`/`loadMusic` in both App and GameApp. Sound holds decoded
 samples in memory and can overlap; aliases return the same live wrapper, sharing
 volume/mute. Music uses a separate buffered player/position per load. Owned audio
 closes on stop/window close, startup failure and frame failure. Raw JavaFX players

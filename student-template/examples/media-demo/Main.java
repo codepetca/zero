@@ -6,10 +6,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.MediaException;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Load small local assets once. Main owns the button action and drawing. */
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private Image sprite;
     private AudioClip sound;
     private int plays;

@@ -7,9 +7,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.MediaException;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private final double worldWidth = 1600;
     private Player player;
     private Camera camera;

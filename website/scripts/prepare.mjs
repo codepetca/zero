@@ -83,7 +83,7 @@ for (const file of [
   "README.md",
 ])
   sources[file] = await readFile(resolve(root, file), "utf8");
-for (const name of ["SimpleApp", "SketchApp"])
+for (const name of ["App", "GameApp"])
   sources[`student-template/src/main/java/zero/${name}.java`] = await readFile(
     resolve(root, `framework/src/main/java/zero/${name}.java`),
     "utf8",

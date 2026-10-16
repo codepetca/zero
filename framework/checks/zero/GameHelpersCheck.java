@@ -16,7 +16,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 /** Finite checks delivered through the real AnimationTimer update/draw loop. */
-public final class GameHelpersCheck extends SketchApp {
+public final class GameHelpersCheck extends GameApp {
     private int phase;
     private TextField field;
     private Stage other;
@@ -141,7 +141,7 @@ public final class GameHelpersCheck extends SketchApp {
         invalid(() -> loadImage("/zero/retry.png"));
         Files.copy(sheet, retry, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         require(loadImage("/zero/retry.png").getWidth() == 8, "failed image loads are not cached");
-        SketchApp another = new SketchApp() { };
+        GameApp another = new GameApp() { };
         require(another.loadImage("/zero/helper-sheet.png") != cached, "cache belongs to each app"); another.stop();
     }
     private void verifyDrawing() {

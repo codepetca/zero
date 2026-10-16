@@ -19,7 +19,7 @@ import javafx.stage.Stage;
  * setup builds ordinary JavaFX controls and calls show. Both run once on the
  * JavaFX application thread. Keep event handlers short so the UI can respond.
  */
-public abstract class SimpleApp extends Application {
+public abstract class App extends Application {
     private double appWidth = 800;
     private double appHeight = 500;
     private String appTitle = "Zero";
@@ -33,7 +33,7 @@ public abstract class SimpleApp extends Application {
     public void settings() { }
     public void setup() { }
 
-    /** Initial content size in pixels. SketchApp uses this as its fixed canvas size. */
+    /** Initial content size in pixels. GameApp uses this as its fixed canvas size. */
     public final void size(double width, double height) {
         if (!configuring) throw new IllegalStateException("Call size inside settings().");
         if (!Double.isFinite(width) || !Double.isFinite(height) || width <= 0 || height <= 0) {

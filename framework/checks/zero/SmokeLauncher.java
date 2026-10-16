@@ -12,15 +12,15 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /** Finite contributor GUI check, selected only with -Psmoke. */
-public final class SmokeLauncher extends SketchApp {
+public final class SmokeLauncher extends GameApp {
     private int phase;
     private boolean setupRan;
     private TextField input;
-    private FailingSketch failing;
+    private FailingGame failing;
     private Stage failureStage;
     private int observedErrors;
     private Stage uiStage;
-    private SimpleApp uiApp;
+    private App uiApp;
     private TextField uiField;
     private double initialFieldWidth;
     private Thread.UncaughtExceptionHandler previousHandler;
@@ -94,14 +94,14 @@ public final class SmokeLauncher extends SketchApp {
                 require(mouseDown(MouseButton.PRIMARY), "canvas click reacquires input");
                 mouse(input, MouseEvent.MOUSE_RELEASED, MouseButton.PRIMARY);
                 require(!mouseDown(MouseButton.PRIMARY), "release outside canvas clears button");
-                verifySimpleApp();
+                verifyApp();
                 verifyErrors();
                 previousHandler = Thread.currentThread().getUncaughtExceptionHandler();
                 Thread.currentThread().setUncaughtExceptionHandler((thread, error) -> {
                     if (error instanceof IllegalStateException && "Expected frame failure".equals(error.getMessage())) observedErrors++;
                     else { error.printStackTrace(); System.exit(1); }
                 });
-                failing = new FailingSketch();
+                failing = new FailingGame();
                 failureStage = new Stage();
                 failing.start(failureStage);
             } else if (phase == 6) {
@@ -126,9 +126,9 @@ public final class SmokeLauncher extends SketchApp {
             }
         } catch (Throwable failure) { failure.printStackTrace(); System.exit(1); }
     }
-    private void verifySimpleApp() {
+    private void verifyApp() {
         uiStage = new Stage();
-        uiApp = new SimpleApp() {
+        uiApp = new App() {
             private boolean configured;
             @Override public void settings() { configured = true; size(240, 160); title("UI lifecycle check"); padding(12); }
             @Override public void setup() {
@@ -162,22 +162,22 @@ public final class SmokeLauncher extends SketchApp {
     private void verifyErrors() {
         for (double value : new double[] {-1, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
             Stage paddingStage = new Stage();
-            SimpleApp invalidPadding = new SimpleApp() { @Override public void settings() { padding(value); } };
+            App invalidPadding = new App() { @Override public void settings() { padding(value); } };
             try { invalidPadding.start(paddingStage); throw new AssertionError("invalid padding accepted: " + value); }
             catch (IllegalArgumentException expected) { require(!paddingStage.isShowing(), "invalid padding leaves no window"); }
         }
         Stage invalidStage = new Stage();
-        SimpleApp invalid = new SimpleApp() { @Override public void settings() { size(Double.NaN, 100); } };
+        App invalid = new App() { @Override public void settings() { size(Double.NaN, 100); } };
         try { invalid.start(invalidStage); throw new AssertionError("invalid size accepted"); }
         catch (IllegalArgumentException expected) { require(!invalidStage.isShowing(), "invalid config leaves no window"); }
         Stage setupStage = new Stage();
-        SimpleApp badSetup = new SimpleApp() { @Override public void setup() { throw new IllegalStateException("Expected setup failure"); } };
+        App badSetup = new App() { @Override public void setup() { throw new IllegalStateException("Expected setup failure"); } };
         try { badSetup.start(setupStage); throw new AssertionError("setup failure swallowed"); }
         catch (IllegalStateException expected) { require(!setupStage.isShowing(), "setup error closes window"); }
-        try { new SimpleApp() { }.show(new Label()); throw new AssertionError("early show accepted"); }
+        try { new App() { }.show(new Label()); throw new AssertionError("early show accepted"); }
         catch (IllegalStateException expected) { require(expected.getMessage().contains("setup"), "useful show error"); }
     }
-    private static final class FailingSketch extends SketchApp {
+    private static final class FailingGame extends GameApp {
         private int updates;
         @Override public void settings() { size(40, 40); }
         @Override public void update(double seconds) {

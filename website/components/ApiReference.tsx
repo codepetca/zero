@@ -15,12 +15,12 @@ type Entry = {
 };
 type Category = { id: string; title: string; description: string; notes: string; entries: Entry[] };
 const aliases: Record<string, string> = {
-  simpleapp: 'startup', sketchapp: 'startup', 'window-and-content': 'interface',
+  app: 'startup', gameapp: 'startup', 'window-and-content': 'interface',
   callbacks: 'startup', 'lifecycle-and-extension-hooks': 'advanced',
-  'public-lifecycle-methods': 'advanced', 'protected-simpleapp-api': 'advanced',
-  'protected-sketchapp-overrides': 'advanced',
+  'public-lifecycle-methods': 'advanced', 'protected-app-api': 'advanced',
+  'protected-gameapp-overrides': 'advanced',
   'input-methods': 'input', 'drawing-methods': 'drawing', 'images-and-resources': 'images',
-  'simpleapp-startup-and-interfaces': 'startup', 'sketchapp-frames-and-canvas': 'startup',
+  'app-startup-and-interfaces': 'startup', 'gameapp-frames-and-canvas': 'startup',
   'threading-errors-and-advanced-java': 'advanced', 'ordinary-javafx-and-reusable-objects': 'interface',
   'short-sound-effects': 'images', 'choose-an-app': 'startup',
 };

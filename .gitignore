@@ -13,8 +13,8 @@ dist/
 *.log
 .env
 .env.*
-student-template/src/main/java/zero/SimpleApp.java
-student-template/src/main/java/zero/SketchApp.java
+student-template/src/main/java/zero/App.java
+student-template/src/main/java/zero/GameApp.java
 student-template/src/main/java/zero/ImageRegion.java
 student-template/src/main/java/zero/SpriteAnimation.java
 student-template/src/main/java/zero/Collisions.java

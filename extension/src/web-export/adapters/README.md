@@ -16,7 +16,7 @@ bridge supports `URL.toExternalForm()` and `toString()`; unsupported URL, JavaFX
 reflection, file or other Java APIs fail the compiler gate.
 
 All seven reviewed Zero helper sources are fingerprint-checked. Exact reviewed
-`SimpleApp`, `SketchApp` and `SpriteAnimation` profiles receive internal overlays. CRLF and LF are equivalent. Modified helpers stop export with
+`App`, `GameApp` and `SpriteAnimation` profiles receive internal overlays. CRLF and LF are equivalent. Modified helpers stop export with
 an actionable error; reviewing/updating the profile is deliberate maintenance.
 Image loading becomes a manifest-driven preload before student setup, with
 progress, individual failures, a 30-second named timeout and original dimension

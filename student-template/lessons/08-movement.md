@@ -18,7 +18,7 @@ Create `src/main/java/Player.java`. Player owns position; Main decides when to u
 
 ```java
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 public class Player {
     private double x;
@@ -39,7 +39,7 @@ public class Player {
         y = Math.max(0, Math.min(y, canvasHeight - size));
     }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         app.fill(Color.CORNFLOWERBLUE);
         app.rect(x, y, size, size);
     }
@@ -76,7 +76,7 @@ Add `import javafx.scene.input.KeyCode;` and `import javafx.scene.paint.Color;` 
 }
 ```
 
-Keep the starter's `settings()` and `main(...)`. `SketchApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls Player. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
+Keep the starter's `settings()` and `main(...)`. `GameApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls Player. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
 
 ## 3. Explore and check
 

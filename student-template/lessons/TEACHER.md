@@ -62,7 +62,7 @@ and scrolling have dedicated progressive checkpoints.
 Main explicitly calls ordinary objects' methods. Introduce Counter in lesson 6,
 then Question objects and array indexes in lesson 7. Rendering never awards points.
 ScoreDisplay presents app-owned state; a JavaFX node has one parent, so create
-separate instances in Study and Game. SketchApp calls Main's update/draw, and Main
+separate instances in Study and Game. GameApp calls Main's update/draw, and Main
 explicitly updates/draws Player and Coin. Compare world and screen coordinates
 before optional camera, gravity and level work.
 

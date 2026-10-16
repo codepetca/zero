@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "profile": "zero-webfx-2026-10-v1",
+  "profile": "zero-webfx-2026-10-v2",
   "artifacts": [
     {
       "path": "aopalliance/aopalliance/1.0/aopalliance-1.0.pom",

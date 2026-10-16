@@ -1,6 +1,6 @@
-import zero.SketchApp;
+import zero.GameApp;
 
-public class Main extends SketchApp {
+public class Main extends GameApp {
     @Override public void settings() {
         size(640, 400);
     }

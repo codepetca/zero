@@ -13,7 +13,7 @@ import { buildCourseStarter, buildExampleProject, prepareExampleProjects } from 
 import { templateDefinitions, templateDefinition, validatePublishedTemplates } from "../lib/project-templates.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
-const coreNames = ["SimpleApp", "SketchApp", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music"];
+const coreNames = ["App", "GameApp", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music"];
 const corePaths = coreNames.map(name => `src/main/java/zero/${name}.java`);
 const scaffolding = ["pom.xml", "mvnw", "mvnw.cmd", ".mvn/wrapper/maven-wrapper.properties", ".mvn/wrapper/LICENSE-APACHE-2.0.txt", ".mvn/wrapper/NOTICE", ".vscode/tasks.json", ".vscode/extensions.json", ".gitignore"];
 
@@ -132,7 +132,7 @@ test("preparation refuses missing canonical sources, substituted wrappers, path 
   await assert.rejects(buildExampleProject({ root: directory, example }), /pinned trusted kit/);
   await assert.rejects(buildCourseStarter({ root: directory }), /pinned trusted kit/);
   await writeFile(wrapper, trusted);
-  await rm(path.join(directory, "framework/src/main/java/zero/SimpleApp.java"));
+  await rm(path.join(directory, "framework/src/main/java/zero/App.java"));
   await assert.rejects(prepareExampleProjects({ root: directory }), { code: "ENOENT" });
   await assert.rejects(lstat(path.join(directory, "website/.generated/example-projects.json")), { code: "ENOENT" });
 });

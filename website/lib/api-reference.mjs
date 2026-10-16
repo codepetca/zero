@@ -47,7 +47,7 @@ const examples = {
 };
 const methodNotes = {
   settings: 'Override this callback. Call size, title and optional padding here.',
-  setup: 'Override this callback. On SketchApp the canvas already exists.',
+  setup: 'Override this callback. On GameApp the canvas already exists.',
   size: 'Call inside settings() only. Dimensions must be positive and finite.',
   title: 'Call inside settings() only. The title must not be null.',
   padding: 'Call inside settings() only. Padding must be non-negative and finite; the default is 0.',
@@ -87,7 +87,7 @@ function parameterDescription(name, method) {
     height: method === 'size' ? 'Initial content height in pixels; positive and finite.' : 'Height in pixels.',
     title: 'Initial window title; must not be null.',
     content: method === 'show' ? 'JavaFX node to display; must not be null.' : 'Root layout containing the app content.',
-    seconds: 'Elapsed seconds; non-negative and finite. SketchApp supplies first 0, then at most 0.1.',
+    seconds: 'Elapsed seconds; non-negative and finite. GameApp supplies first 0, then at most 0.1.',
     color: 'JavaFX Color to use.', pixels: method === 'padding' ? 'Space around each content edge in pixels; non-negative and finite.'
       : method === 'textSize' ? 'Font size in pixels.' : 'Stroke width in pixels.',
     x: method === 'imageCentered' ? 'Destination centre x in canvas pixels.' : 'Horizontal position in pixels (source pixels for a region).',
@@ -122,8 +122,8 @@ export function buildApiReference(markdown) {
   const seenSections = new Set();
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
-    if (section === 'SimpleApp') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { Audio: 'audio', Sound: 'audio', Music: 'audio', SketchApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
+    if (section === 'App') return subsection === 'Window and content' ? 'interface' : 'startup';
+    return { Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -146,7 +146,7 @@ export function buildApiReference(markdown) {
     const [, , name, argumentsText] = declaration;
     const helper = ['ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(section);
     if (!declaration[1] && (!helper || name !== section)) throw new Error(`Malformed API constructor: ${signature}`);
-    const owner = helper ? section : ['SimpleApp', 'Audio'].includes(section) || (categoryId === 'advanced' && subsection !== 'Protected SketchApp overrides') ? 'SimpleApp' : 'SketchApp';
+    const owner = helper ? section : ['App', 'Audio'].includes(section) || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'App' : 'GameApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
       const parameter = argument.trim().match(/^(\w+(?:\.\w+)*(?:\.\.\.)?)\s+(\w+)$/);
       if (!parameter) throw new Error(`Malformed API parameter: ${argument}`);

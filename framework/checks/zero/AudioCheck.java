@@ -26,11 +26,11 @@ public final class AudioCheck extends Application {
     private double pausedAt;
     private int repeats;
     private Stage ownerStage, failingStage;
-    private FailingSketch failing;
+    private FailingGame failing;
     private int frameErrors;
     private Thread.UncaughtExceptionHandler previousHandler;
 
-    static class Owner extends SimpleApp {
+    static class Owner extends App {
         int shutdowns;
         @Override protected void shutdown() { shutdowns++; }
         @Override public void setup() { show(new Label("Finite Zero audio checks")); }
@@ -159,7 +159,7 @@ public final class AudioCheck extends Application {
                 require(!once.isPlaying() && nativeOnce.getStatus() == MediaPlayer.Status.DISPOSED, "music close disposes");
                 expect(IllegalStateException.class, once::play, "closed music");
                 expect(IllegalStateException.class, () -> once.setMuted(true), "closed music setter");
-                ownerStage.close(); // Must clean up without Application.launch owning this SimpleApp.
+                ownerStage.close(); // Must clean up without Application.launch owning this App.
                 require(sound.isClosed() && !sound.isPlaying() && music.isClosed()
                         && nativeMusic.getStatus() == MediaPlayer.Status.DISPOSED, "window hidden cleans app audio");
                 owner.stop(); owner.stop(); // Simulate the launcher's later stop callback.
@@ -215,9 +215,9 @@ public final class AudioCheck extends Application {
             if (failure instanceof IllegalStateException && "Expected audio frame failure".equals(failure.getMessage())) frameErrors++;
             else { failure.printStackTrace(); System.exit(1); }
         });
-        failing = new FailingSketch(); failingStage = new Stage(); failing.start(failingStage);
+        failing = new FailingGame(); failingStage = new Stage(); failing.start(failingStage);
     }
-    private static final class FailingSketch extends SketchApp {
+    private static final class FailingGame extends GameApp {
         Sound sound; Music music; int updates;
         @Override public void setup() { sound = loadSound("/zero/audio-check.wav"); music = loadMusic("/zero/audio-check.wav"); music.loop(); }
         @Override public void update(double seconds) { updates++; throw new IllegalStateException("Expected audio frame failure"); }

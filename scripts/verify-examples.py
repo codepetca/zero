@@ -300,7 +300,7 @@ checks['composed-game'] = '''app.stop();
         require(hud.view().getBoundsInParent().getMaxY() <= stage.getScene().getHeight() + 1, "HUD fits initial scene after Start");
         double x = (double) field(player, "x");
         // Deterministic held input, like MovementCheck; native window focus is not a keyboard trial.
-        var heldField = SketchApp.class.getDeclaredField("keys"); heldField.setAccessible(true);
+        var heldField = GameApp.class.getDeclaredField("keys"); heldField.setAccessible(true);
         var heldKeys = (java.util.Set<KeyCode>) heldField.get(app);
         heldKeys.add(KeyCode.RIGHT); app.update(0.1); heldKeys.clear();
         require((double) field(player, "x") > x, "Active game explicitly updates from held direction");
@@ -387,7 +387,7 @@ import javafx.scene.input.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 public class ExampleCheck extends Application {
     static Object field(Object object, String name) throws Exception {
         var field = object.getClass().getDeclaredField(name);
@@ -402,7 +402,7 @@ public class ExampleCheck extends Application {
     static void require(boolean value, String message) {
         if (!value) throw new AssertionError(message);
     }
-    static void mouse(SketchApp app, javafx.event.EventType<MouseEvent> type, double x, double y, MouseButton button) {
+    static void mouse(GameApp app, javafx.event.EventType<MouseEvent> type, double x, double y, MouseButton button) {
         Event.fireEvent(app.canvas(), new MouseEvent(type, x, y, x, y, button, 1,
                 false, false, false, false, button == MouseButton.PRIMARY,
                 false, button == MouseButton.SECONDARY, false, false, false, null));

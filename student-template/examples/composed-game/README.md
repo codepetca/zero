@@ -36,7 +36,7 @@ fresh. Main owns playing/won, movement, scoring and the win rule. Hud supplies n
 game logic. `update(seconds)` explicitly returns when playing is false or won
 is true, including before Start. `draw()` keeps rendering but never awards points.
 
-SketchApp extends SimpleApp. This example always keeps the canvas in
+GameApp extends App. This example always keeps the canvas in
 `layout().getCenter()`, uses the left panel for StartScreen and the bottom for Hud.
 It does not call inherited `show(...)` to hide the canvas: doing that would leave
 the sketch timer running. Focus loss clears held input but does not pause rules.

@@ -6,7 +6,7 @@
   <artifactId>zero-core</artifactId>
   <version>0.1.3</version>
   <name>Zero core (local development library)</name>
-  <description>The existing readable SimpleApp and SketchApp, without student app classes.</description>
+  <description>The existing readable App and GameApp, without student app classes.</description>
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

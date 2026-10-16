@@ -2,11 +2,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 import zero.healthbars.SegmentedHealthBar;
 
 /** App rules own health; the library only presents explicit updates. */
-public class Main extends SimpleApp {
+public class Main extends App {
     private int health = 100;
     private final SegmentedHealthBar meter = new SegmentedHealthBar(100);
     private final Button hit = new Button("Take 25 damage");

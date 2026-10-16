@@ -2,11 +2,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 import zero.healthbars.HealthBar;
 
 /** A different app uses the same component to show a finite study budget. */
-public class Main extends SimpleApp {
+public class Main extends App {
     private int energy = 8;
     private final HealthBar meter = new HealthBar("Study energy", 8);
     private final TextField answer = new TextField();

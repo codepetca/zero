@@ -8,7 +8,7 @@ export const lessons = [
     "description": "Run a tiny program and change its greeting.",
     "topic": "Run, edit, rerun",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "1",
@@ -16,7 +16,7 @@ export const lessons = [
     "description": "Click a button to change the greeting.",
     "topic": "Button, click handler, label text",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "2",
@@ -24,7 +24,7 @@ export const lessons = [
     "description": "Type your name and show a greeting.",
     "topic": "TextField, getText, joining text",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "3",
@@ -32,7 +32,7 @@ export const lessons = [
     "description": "Check one answer and show feedback.",
     "topic": "if/else, comparing text",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "4",
@@ -70,7 +70,7 @@ export const lessons = [
     "id": "8",
     "title": "Movement and keys",
     "description": "Move a player inside the canvas.",
-    "topic": "SketchApp, elapsed time, explicit updates",
+    "topic": "GameApp, elapsed time, explicit updates",
     "doc": "api",
     "anchor": "input-methods"
   },
@@ -80,7 +80,7 @@ export const lessons = [
     "description": "Build a game with coins, score, winning and restart.",
     "topic": "Collision checks, game state, object reuse",
     "doc": "api",
-    "anchor": "sketchapp-frames-and-canvas"
+    "anchor": "gameapp-frames-and-canvas"
   },
   {
     "id": "10",

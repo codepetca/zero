@@ -12,7 +12,7 @@ const normalizeSignature = signature => signature.replace(/\b(public|protected|f
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music']) {
+  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music']) {
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner}.java`, import.meta.url), 'utf8');
     // Class-level declarations have four-space indentation; the anonymous timer callback has twelve.
     for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:(?:final|static) )?(?:[\w.]+ )?\w+\([^)]*\))\s*\{/gm)) {
@@ -35,7 +35,7 @@ test('categories and entries have unique anchors, valid relationships and comple
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['SimpleApp', 'SketchApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(item.owner));
+    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -49,17 +49,17 @@ test('classifies callbacks, window operations, overloads and advanced overrides'
   assert.equal(category('advanced').entries.length, 12);
   assert.equal(entry('image').parameters.length, 3);
   assert.equal(entry('image-scaled').parameters.length, 5);
-  assert.equal(entry('simpleapp-createContent').owner, 'SimpleApp');
-  assert.equal(entry('sketchapp-createContent').owner, 'SketchApp');
-  assert.match(entry('sketchapp-createContent').signature, /^protected final /);
+  assert.equal(entry('app-createContent').owner, 'App');
+  assert.equal(entry('gameapp-createContent').owner, 'GameApp');
+  assert.match(entry('gameapp-createContent').signature, /^protected final /);
   assert.equal(entry('circle').signature, 'void circle(double centreX, double centreY, double diameter)');
   assert.equal(entry('circle').example, 'fill(Color.BLUE);\ncircle(100, 80, 40);');
   assert.match(entry('circle').note, /diameter, not the radius/);
 });
 
 test('keeps canonical class defaults, constructors and lifecycle caveats', () => {
-  assert.match(category('startup').notes, /public abstract class SimpleApp/);
-  assert.match(category('startup').notes, /public abstract class SketchApp/);
+  assert.match(category('startup').notes, /public abstract class App/);
+  assert.match(category('startup').notes, /public abstract class GameApp/);
   assert.equal((category('startup').notes.match(/implicit public\nno-argument constructor/g) ?? []).length, 2);
   assert.match(category('startup').notes, /800 × 500/);
   assert.match(category('startup').notes, /0\.1/);
@@ -91,7 +91,7 @@ test('search handles aliases, case, multiple terms, whitespace and empty results
 
 test('search accepts method labels and ranks names before prose with stable ties', () => {
   const ids = query => searchApiReference(categories, query).map(item => item.id);
-  assert.deepEqual(ids('shutdown').slice(0, 2), ['simpleapp-shutdown', 'sketchapp-shutdown']);
+  assert.deepEqual(ids('shutdown').slice(0, 2), ['app-shutdown', 'gameapp-shutdown']);
   assert.ok(ids('shutdown').includes('stop'));
   assert.deepEqual(ids('image()').slice(0, 6), ['image', 'image-scaled', 'image-region', 'image-region-scaled', 'image-animation', 'image-animation-scaled']);
   assert.equal(ids('circle()')[0], 'circle');
@@ -104,7 +104,7 @@ test('search accepts method labels and ranks names before prose with stable ties
 });
 
 test('documents current padding, arrow handling, bundled media and retained app guidance', async () => {
-  assert.equal(entry('padding').owner, 'SimpleApp');
+  assert.equal(entry('padding').owner, 'App');
   assert.equal(entry('padding').signature, 'void padding(double pixels)');
   assert.match(entry('padding').description, /non-negative and finite/);
   assert.match(entry('padding').description, /Default: 0/);
@@ -181,9 +181,9 @@ test('fails closed when any new overload or constructor table row is omitted', (
 
 
 test('audio declarations use owner-qualified anchors and preserve app lifecycle anchors', () => {
-  assert.equal(entry('loadSound').owner, 'SimpleApp');
-  assert.equal(entry('loadMusic').owner, 'SimpleApp');
-  assert.equal(entry('stop').owner, 'SimpleApp');
+  assert.equal(entry('loadSound').owner, 'App');
+  assert.equal(entry('loadMusic').owner, 'App');
+  assert.equal(entry('stop').owner, 'App');
   assert.equal(category('audio').entries.length, 20);
   assert.equal(entry('sound-stop').owner, 'Sound');
   assert.equal(entry('music-stop').owner, 'Music');

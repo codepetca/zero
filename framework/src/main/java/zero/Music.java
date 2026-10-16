@@ -4,7 +4,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 
-/** Independent music playback. Obtain it with SimpleApp.loadMusic on the JavaFX thread. */
+/** Independent music playback. Obtain it with App.loadMusic on the JavaFX thread. */
 public final class Music implements AutoCloseable {
     private final MediaPlayer player;
     private final String resourcePath;
