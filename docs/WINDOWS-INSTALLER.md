@@ -49,6 +49,9 @@ a verified private copy. Java comes from the pinned private Temurin 21 ZIP.
 URLs, sizes and SHA-256 hashes are authored in `setup/windows-downloads.json`.
 Global PATH/JAVA_HOME, ordinary VS Code profiles and account credentials are not
 modified. Zero sets Java and editor isolation on its owned child processes.
+Project compilation uses Java 21 through `java.configuration.runtimes`; the Java
+extension uses its bundled tooling runtime. The isolated settings support VS Code's
+JSONC comments and trailing commas when reopening or repairing setup.
 
 The owner waived preservation/migration requirements for existing student work
 and settings in this implementation. Existing safe kit placement remains; no

@@ -11,8 +11,8 @@ website download/feed metadata and Windows fixture/package CI. Published Mac,
 kit and feed bytes remain immutable. No credential, signing, push, publication,
 merge or account action performed. Original funding/web-export work is untouched.
 
-Native Net48/C#7.3 app builds with zero warnings/errors. Main fixture harness690
-assertions pass on Mono, including424 runtime assertions. Updater harness11
+Native Net48/C#7.3 app builds with zero warnings/errors. Main fixture harness834
+assertions pass on Mono, including repeat preparation/open with JSONC settings. Updater harness11
 security/lifecycle checks pass with ephemeral RSA3072 keys. Root tests279pass/1skip
 (portable PowerShell unavailable); Windows package/config/signing8pass; website
 102pass, typecheck and production build pass. Configuration and kit verification
@@ -29,7 +29,7 @@ General native artifact verification passes. Development updater configuration
 is forced disabled; production requires explicit existing certificate/trust config.
 
 Evidence retained under ignored .verification/windows-auto-setup: root-tests,
-all-native-tests, website-*, package-signing-tests, installer-build/verify and
+final-native-tests, website-*, package-signing-tests, final-installer-build/verify and
 vendor-proof/archive-proof.log. Native/fixture checks are not a Windows UI trial:
 SmartScreen, actual tool processes, Windows locks, first JavaFX run and signed A→B
 remain required before production. No production update key is provisioned.
@@ -41,9 +41,28 @@ conflicts. Corrections from real artifacts: VSCode resource layout and vpk packa
 layout; two obsolete website rendering test fixtures updated for new dependency.
 Effective models/per-task tokens unknown. Initial55%/pre-review54% weekly remaining
 are account-wide readings, not isolated task cost. Healthy free storage331GB at
-start. Review session: high risk,2independent Sol/high reviewers, security/correctness
-and lifecycle/compatibility; cap7launches/4fix batches/60minutes, initial2launches
-planned, no fix batches yet. Review result recorded after fixed-source inspection.
+start; final storage327GB and weekly remaining54%, still account-wide. High-risk
+full54-file source reviews by independent Sol/high security/correctness and
+compatibility workers inspected e268b93..5790c554. Both found the same P2: strict
+settings JSON parsing blocked valid VS Code comments/trailing commas on reopening.
+One correction batch uses pinned Newtonsoft JSONC parsing in preparation/readiness,
+keeps project Java21 and removes obsolete tooling-JRE overrides so redhat.java uses
+its bundled runtime. Targeted Sol/high compatibility review of all3 correction
+files at5790c554..3a4fe7a2 found no P0-P2 blockers; original P2 resolved. Full reviews
+found no other blockers. Three review assignments/one fix batch, within cap7/4/60min;
+review interval approximately13:49-13:58UTC, per-review tokens/effective model unknown.
+Coordinator owns edits/final decisions; no unresolved integration conflicts.
+
+Final clean-source development package is built from
+3a4fe7a2ac04512e4a25d97aad7de19ea2622487. Setup10611047bytes SHA256
+`dabf4691ae82fadbdfd3c758c0dc0b37d447e835c05cc0ab957613c7d4bba75d`;
+full-package3096935bytes SHA256
+`34cdc3a3353616edba72fce77a70282132f209d6bfe278d4c88d148a2d99f686`.
+Exact embedded package/kit, launcher hook, dependencies, identity and platform
+contracts verified. The development EXE is unsigned and updater-disabled by design.
+Final native834/updater11 and configuration/syntax/docs checks passed; unaffected
+root/website/kit suites above reused. Final handoff only changes evidence/docs;
+no publication, release-key provisioning or native Windows acceptance performed.
 
 ## Subtle scrollbar tracks — 2026-10-16
 

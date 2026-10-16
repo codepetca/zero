@@ -1,40 +1,34 @@
 # Current state — Windows automatic setup/update implementation, 2026-10-16
 
 Owner authorized implementing Windows installer and automatic updates to match
-the Mac flow; preserving existing student work/settings is not an acceptance
-requirement. Existing filesystem boundaries still apply. No publication, push,
-merge, signing credentials or account changes authorized by this request.
+the Mac flow; preserving existing student work/settings is not required. Existing
+filesystem boundaries remain. No publication, push, merge, production signing,
+credential provisioning or account changes authorized or performed.
 
-Working branch codex/windows-auto-setup, base e268b93. Original dirty funding
-checkout and separate web-export task remain untouched. Current published Mac,
-kit assets and feed bytes stay immutable; Windows remains unavailable publicly
-until separately signed, Windows-tested and released.
+Local implementation complete on codex/windows-auto-setup, base e268b93;
+reviewed source3a4fe7a2ac04512e4a25d97aad7de19ea2622487. Managed worktree
+/Users/stew/.codex/worktrees/windows-auto-setup/zero retained for owner review.
+Original dirty funding checkout and separate web-export work remain untouched.
+Published0.5.17 assets/feed immutable; public Windows manual ZIP remains available.
 
-Coordinator owns launcher/UI lifecycle, integration, docs and acceptance. Native
-runtime worker (requested GPT-6.1 Sol/high) owns WindowsRuntime* helpers, verified
-Windows vendor pins and RuntimeHarness. Updater spike worker (Sol/high) owns only
-ignored investigation artifacts until package/authentication contracts are agreed.
-No recursive delegation. DeepSeek remains paused under the owner override.
+Local0.5.18 implements per-user Velopack Setup/Start shortcut, verified private
+Java/editor setup, isolated editor support, first starter/subsequent saved-session
+open, background authenticated launcher updates and editor update controls.
+Source includes signing/package tools, optional verified website feed/download
+metadata and Windows fixture/package CI. Development updater is forced off.
 
-Target: signed per-user installer/Start shortcut, automatic private Java and
-isolated editor setup, first starter/subsequent saved-session open, due background
-checks after editor handoff, helper-gated authenticated newer launcher updates,
-Windows manual update/preferences commands, useful failure/retry and offline use.
-User waived migration preservation; no arbitrary-directory deletion is needed.
+Verified: native834+updater11 fixture checks on Mono, zero build warnings/errors;
+root279pass/1skip, Windows tooling8pass, website102/typecheck/build, kit/config,
+actual vendor ZIP hash/extraction and rebuilt vpk installer/package verification.
+Two independent full-diff Sol/high reviews found one shared JSONC P2; corrected
+once and targeted review passed. Review3assignments/1fix batch within budget.
+No remaining source-review blocker. Account-wide weekly remaining54%; storage327GB.
+DeepSeek remains paused; requested/effective worker telemetry in docs/EVIDENCE.md.
 
-Implementation integrated and local development package built. Native690+updater11
-fixture checks, root279pass/1skip, website102/typecheck/build, pinned vendor ZIP
-hash/extraction, kit/config and actual vpk package verification pass. Windows
-production remains blocked on separate key/signing authorization and real-device
-acceptance; no public download change. No arbitrary work/settings deletion added.
-
-Current phase: independent high-risk full-diff review, two fresh Sol/high workers
-(security/correctness; lifecycle/compatibility), fixed local commit. Review budget:
-7launches/1initial/4targeted/1integration/4fix batches/60min;2initial launches planned,
-zero fixes. Coordinator alone integrates. Next: accepted corrections and affected
-checks, final local artifact/receipt and handoff. No publication/merge authorized.
-
-Evidence in docs/EVIDENCE.md and ignored .verification/windows-auto-setup. Requested
-worker model/effort noted there; effective configuration/task tokens unknown.
-Weekly remaining54% before review; storage healthy. Keep this managed worktree
-attached with its local commit/artifacts for owner review.
+Local artifacts: dist/installers/Zero-Setup-0.5.18-windows-development.exe,
+Zero-0.5.18-full.nupkg and build-windows.json (clean source3a4fe7a2).
+Unsigned development candidate only. Real Windows interactive install/tool/JavaFX,
+SmartScreen/locking and signed A-to-B update remain untested. Production needs a
+separately authorized key/certificate, Windows acceptance and publication. No
+production feed/key or remote CI run claimed. docs/WINDOWS-INSTALLER.md contains
+release and acceptance steps. Keep this worktree/branch and ignored evidence.
