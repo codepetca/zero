@@ -14,15 +14,16 @@ root445pass/1PowerShellskip, updated8kit tests, website108/types/build,
 native framework/audio,26examples,16progression variants and three scaffold
 builds pass. Independent initial+targeted source review is clean after one
 preservation fix batch. Installed VSIX bytes match the reviewed source in the
-owned nested preview; Mac locked before extension-host reload/new native trials.
+owned nested preview; reload and new native Study/Game clone/run/interact/stop
+trials passed on2026-10-16, including unchanged Game rerun.
 
 Home retains direct Mac Silicon and Windows ZIP choices. Desktop reuses native
 GitHub sessions or prompts Connect. The three renamed public tutorial templates
 are verified/pinned; earlier armorup private Greeting create/clone/edit/Run/Stop
-passed in its preceding preview. New private Study/Game repositories are ready;
-native clone/run acceptance is pending unlock. No separate Zero account. Fresh
+passed in its preceding preview. New private Study/Game trials now also pass
+with App/GameApp and strict compatibility recovery. No separate Zero account. Fresh
 signup/new grant, Upload/Publish and final native installer acceptance remain.
-The live website still gives ZIP tutorial setup; website and desktop must be
+The live Study lesson was rechecked2026-10-16 and still gives ZIP tutorial setup; website and desktop must be
 released together. Five complete example templates need strict browser acceptance
 beyond their identifier updates. See [verification](VERIFICATION.md).
 

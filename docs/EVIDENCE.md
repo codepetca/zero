@@ -1,5 +1,33 @@
 # Delivery evidence index
 
+## Armorup Study/Game native trial accepted — 2026-10-16
+
+Installed reviewed source6258daf candidate was reloaded in the owned nested
+managed Mac profile. Actual native Git:Clone → dedicated local destination →
+Open in New Window worked for both private armorup Study/Game repositories.
+Account and exact origin were detected automatically; no new grant or credentials.
+The ordinary external-website Open prompt led to lessons3/8, without changing
+trusted-domain settings. Both clones have20tracked files and all7canonical helper
+bytes; original commits68e3bc6/df83829 remain, only local Main.java edited.
+
+Study App compiled/rendered; button checks3→Try again and4→Correct passed. GameApp
+strictly rejected Color.DODGERBLUE at source30:14, then ordinary Color.web recovery
+compiled/rendered without policy changes. Canvas Right/Left input moved x240→351
+→276; unchanged rerun reused the validated build and reset x240. All3owned preview
+URLs refused connections after Stop. Warm rerun returned in first AX observation
+(entire call1.06s), not a cold/classroom benchmark. Preview text selection via
+Command+A on an outer text field did not replace text in one automation attempt;
+ordinary Backspace worked. Cause not isolated; no general shortcut claim.
+
+Rechecked live Study lesson3 in Chrome: Start still links the old generated project
+ZIP and says unzip/open. Website/desktop alignment remains a release gate. Fresh
+GitHub signup/consent, physical Windows/hardware/audio, upload/branch/Finish/Publish
+and release acceptance remain outside these native trials. No upload, source push,
+new playable game, website/release publication or account change here. Source/API
+review and earlier checks reused unchanged; this phase only adds QA evidence.
+Screenshots/receipts: .verification/gameapp-web-integration/. Source worktree clean
+before evidence update; weekly61%remaining shared,335.5GBhealthy.
+
 ## App/GameApp browser integration — local, 2026-10-15
 
 Upstream coordination update: independently verified [PR68](https://github.com/codepetca/zero/pull/68)

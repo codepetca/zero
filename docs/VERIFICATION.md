@@ -1,5 +1,29 @@
 # Verification
 
+## Installed Study/Game Clone → Run → Stop — 2026-10-16
+
+The previously locked native acceptance is now complete for candidate
+`dist/candidates/zero-0.5.16-app-gameapp-6258daf` in the owned nested managed profile.
+Reload verified; armorup reused without a new grant. Native Git:Clone/Open in New
+Window opened the private Study and Game repositories, detected origin/account,
+opened Main and requested ordinary external-lesson Open. Existing Greeting trial
+and other applications were preserved.
+
+Study Main extends App: incorrect/correct answer controls passed. Game Main
+extends GameApp: unsupported DODGERBLUE produced a source30:14 compatibility error;
+recovery using Color.web compiled, canvas/Right/Left worked, and unchanged rerun
+reused the validated build with fresh game state. Stop closed all3preview servers,
+confirmed by connection refused. All7helpers match canonical source; both initial
+Git commits/origins retained, only local Main modified. No uploads/publication.
+Command+A replacement of the outer preview text field did not work in one
+observed automation attempt; Backspace editing did. Cause remains unisolated.
+
+Actual live lesson3 was rechecked in Chrome and still links the ZIP scaffold.
+Published website and new desktop flow remain unaligned. Native receipts, stopped
+URLs, source hashes, strict-error AX and running-app screenshots are in
+`.verification/gameapp-web-integration/`. Fresh signup/consent and physical Windows
+were not tested; these trials do not establish final release/publishing acceptance.
+
 ## Renamed browser profile and follow-up trials — 2026-10-15
 
 Source `6258daf`, kit/extension0.5.16/core0.1.3, uses App/GameApp with seven exact
