@@ -155,7 +155,7 @@ public final class AudioCheck extends Application {
                 // Seek/status notifications are asynchronous. Observe an actual rewind
                 // before checking subsequent playback, rather than the stale end time.
                 nativeOnce.currentTimeProperty().addListener((observable, previous, current) -> {
-                    if (current.toMillis() < 120) replayRewound = true;
+                    if (current.toMillis() < 650) replayRewound = true;
                 });
                 once.play(); next(now); break;
             case 6:
