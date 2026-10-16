@@ -55,29 +55,15 @@ export function Document({ id, lesson = "" }) {
           <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
             {lesson ? `Lesson ${lesson}: ${title}` : title}
           </h2>
-          {related && <p className="reader-subtitle">{related.description}</p>}
-          {practiceProject && (
+          {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <section className="lesson-start" aria-label={`${practiceProject.title} project`}>
               {lesson === practiceProject.firstLesson && (
                 <a className="button" href={`/generated/projects/zero-project-${practiceProject.id}.zip`} download={`zero-project-${practiceProject.id}.zip`}>
                   Start {practiceProject.title} project
                 </a>
               )}
-              <aside className="lesson-help" aria-label="Project help">
-                {lesson === practiceProject.firstLesson ? (
-                  <>
-                    <p>First time? <Link href="/docs/setup">Install Zero and complete setup</Link> before opening this project.</p>
-                    <p>This ZIP contains build files and an empty Main; it does not install Zero or Java. Unzip it, open the folder in VS Code and follow the steps below. Keep this project for later lessons.</p>
-                  </>
-                ) : (
-                  <>
-                    <p>Continue your {practiceProject.title} project from the earlier lesson. Open its folder in VS Code, make the next change and click <strong>Zero → Run App</strong>.</p>
-                    <p>If you have not started it yet, <a href={`/tutorials/${practiceProject.firstLesson}`}>start at lesson {practiceProject.firstLesson}</a>.</p>
-                  </>
-                )}
-                {lesson === "10" && <p>Reopen your Study quiz and Coin game projects to try the same component in both.</p>}
-                {lesson === "12" && <p>For optional artwork and sound in your own game, <a href={sampleGameAssets.href} download={sampleGameAssets.filename}>download sample game assets</a>. This ZIP contains only media files.</p>}
-              </aside>
+              {lesson === "10" && <p>Reopen your Study quiz and Coin game projects to try the same component in both.</p>}
+              {lesson === "12" && <p>For optional artwork and sound in your own game, <a href={sampleGameAssets.href} download={sampleGameAssets.filename}>download sample game assets</a>. This ZIP contains only media files.</p>}
             </section>
           )}
           <FoldingReader key={id}>

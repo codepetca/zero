@@ -1,5 +1,67 @@
 # Delivery evidence index
 
+## Tutorial Summary and removal of generic help cards — 2026-10-16
+
+Owner removed the First time card and all If you have not started it yet cards,
+refining the continuing website publication. Document omits the entire generic
+setup/continuation aside and empty continuation sections; stale card CSS is gone.
+Start project buttons remain at0/3/8; lesson10 component reminder and lesson12
+asset link remain as small muted,unboxed notes. Canonical lessons unchanged.
+Design/product guidance supersedes the earlier helper-card choice.
+
+Owner then requested Summary cards with the existing numbered actions and full
+Done checkpoint inside, image beside on desktop/below on narrow screens, and no
+redundant description label. Markdown transformation preserves authored lesson
+source/code and deep links. All13 lesson render tests now verify Summary/actions/
+Done grouping and the image outside the card before detailed sections.96website
+ tests/typecheck/build pass after this refinement; desktop lesson1 browser shows
+side-by-side card/image, no subtitle/overflow. The initial review turn was
+interrupted for this owner-requested scope update; resume one complete review on
+the new fixed head, within the same initial wave and existing budget.
+
+96website tests,typecheck/build,whitespace checks and all13 local HTTP renders pass:
+zero generic cards/text; exactly three Start buttons; no empty continuation section;
+lesson-specific10/12 notes preserved. Browser lessons8/9 verify compact phone
+layout/no overflow. Logs:ignored .verification/tutorial-card-removal/. Existing
+updater tracing warnings and prior platform limits remain. One bounded Luna/medium
+review and exact-headCI/publication acceptance follow through this branch's PR;
+no release files,credentials,new goal/chat/automation or other worktree changes.
+
+## Website reading cleanup published — 2026-10-16
+
+Owner explicitly authorized publication of all changes from this chat. Integrated
+current main e8e25cc without changing0.5.17 release/download/update metadata;
+manual conflicts were limited to CURRENT/EVIDENCE and both histories were retained.
+[PR71](https://github.com/codepetca/zero/pull/71) reviewed head
+1d23adc5e3d112de55c60c4ab74d24680bd2d141 passed complete Sol/medium integration
+review with no findings,96website tests,10design tests,typecheck/build and
+[CI38906665641](https://github.com/codepetca/zero/actions/runs/38906665641).
+CI passed native input/examples/progression, extension/sharing/Maven and website.
+Merge e268b93f6a9dfe2bbdacf3b59172abda10617e0b is verified on origin/main;
+owned worktree fast-forwarded, original funding and other active worktrees preserved.
+
+Vercel production dpl_Gkgp3gRkzEMNT5Pmhw6tp2BC2a3R is READY and serves
+[zero.codepet.ca](https://zero.codepet.ca); GitHub production deployment7120105398
+binds that URL to the merge SHA. Anonymous HTTP200 verifies tutorials8/9,docs,
+docs/api and downloads. Tutorial output has muted helper cards with no Previous
+paragraphs/HRs; deployed CSS pins method names and themes scrollbar tracks.
+Live browser1280px confirms method top93 equals header bottom93 while its article
+is scrolled away, static category headings and no overflow. Live tutorial8 shows
+zero section borders, muted14px help and subtle step backgrounds. Root scrollbar
+tracks are transparent in both themes; dark preference restored. Existing0.5.17
+kit link remains exact, signed feed bytes still SHA256
+775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2.
+
+Receipts/screenshots:ignored .verification/tutorial-cleanup/publication/.
+The preview was protected by Vercel SSO and was not counted as page verification.
+One complete integration wave after three prior component review launches;zero
+findings/fix batches. Effective model,tokens and reviewer elapsed unknown.
+Weekly56%remaining at publication start;storage healthy328GB. DeepSeek pause
+honored. Two unrelated updater tracing warnings remain;Safari/physical platforms,
+enlarged text and forced-color UI were not newly exercised. No binaries rebuilt,
+credentials/account changes,new goal/chat/automation. The implementation and remembered design choices were published on main
+through PR71; this receipt records acceptance after that publication.
+
 ## Subtle scrollbar tracks — 2026-10-16
 
 Owner requested scrollbar gutters blend into the existing background. Generated

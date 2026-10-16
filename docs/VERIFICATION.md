@@ -1,5 +1,30 @@
 # Verification
 
+## Tutorial Summary and removal of generic help cards — 2026-10-16
+
+96website tests,typecheck/build and whitespace checks pass after Summary refinement.
+All13 lesson render tests verify Summary/actions/Done grouping with image outside
+the card; desktop browser confirms side-by-side layout and no redundant subtitle.
+All13 local tutorial
+HTTP renders have no generic help card or First time/not-started copy; only0/3/8
+have a Start button; lesson10/12 notes/assets remain. Browser8/9 phone layout has
+no empty card/section or overflow. Existing updater tracing warnings remain.
+No new Safari/physical-platform coverage. Review/CI/live publication verdict is
+recorded at the follow-up PR and .verification/tutorial-card-removal/ receipts.
+
+## Website publication acceptance — 2026-10-16
+
+[PR71](https://github.com/codepetca/zero/pull/71) merged e268b93 after complete
+independent integration review and successful exact-headCI38906665641.96website
+and10design tests/typecheck/build pass; CI also covers native input, examples,
+lesson progression, extension, sharing and Maven consumers. Production READY and
+anonymous200 checks cover tutorials8/9,docs/docs-api/downloads; live desktop browser
+confirms highlighted tutorial headings, muted help,no Previous/dividers, method-
+bound sticky names and matching light/dark scrollbar tracks.0.5.17 kit destination
+and signed feed bytes unchanged. Safari/physical/enlarged-text/forced-color UI
+remain untested. Evidence: [publication receipt](EVIDENCE.md#website-reading-cleanup-published--2026-10-16)
+and ignored .verification/tutorial-cleanup/publication/.
+
 ## Subtle scrollbar tracks — 2026-10-16
 
 10 shared design tests, website typecheck/build and whitespace checks pass.

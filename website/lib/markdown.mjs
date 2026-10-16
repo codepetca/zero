@@ -121,9 +121,27 @@ export function foldSections({ lesson = false } = {}) {
     const blocks = intro.filter((node) => node.type !== "text" || node.value.trim());
     const actions = blocks.findIndex((node) => node.type === "element" && node.tagName === "ol");
     if (lesson && actions >= 0 && nodeText(blocks[actions + 1] ?? {}).startsWith("Done:")) {
+      const introduction = blocks.slice(0, actions);
+      const visuals = introduction.filter((node) =>
+        node.type === "element" && node.children?.some((child) => child.tagName === "img"));
+      // The source's opening bold goal repeats the actions and Done checkpoint.
+      const goal = introduction[0]?.tagName === "p" &&
+        introduction[0].children?.length === 1 &&
+        introduction[0].children[0].tagName === "strong" ? introduction[0] : null;
       lessonIntro = [{
         type: "element", tagName: "div", properties: { className: ["lesson-quick-path"] },
-        children: blocks.slice(0, actions + 2),
+        children: [{
+          type: "element", tagName: "section",
+          properties: { className: ["lesson-summary-card"], "aria-labelledby": "lesson-summary" },
+          children: [{
+            type: "element", tagName: "h2", properties: { id: "lesson-summary" },
+            children: [{ type: "text", value: "Summary" }],
+          }, ...introduction.filter((node) => node !== goal && !visuals.includes(node)),
+          blocks[actions], blocks[actions + 1]],
+        }, ...(visuals.length ? [{
+          type: "element", tagName: "div", properties: { className: ["lesson-summary-visual"] },
+          children: visuals,
+        }] : [])],
       }];
       const extra = blocks.slice(actions + 2);
       if (sections.length) sections[0].children[1].children.unshift(...extra);
