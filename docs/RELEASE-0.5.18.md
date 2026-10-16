@@ -1,9 +1,13 @@
 # Zero 0.5.18 release readiness
 
-Status: **Mac preview ready; public student release held**. Reviewed source4a9e889,
-runtimece12fa7, local kit/extension0.5.18/core0.2.1/native18. Published0.5.17 assets,
-download manifests and updater feed remain unchanged. No push, merge, deployment,
-public template/policy activation, DeveloperID/notary or release authority yet.
+Status: **Mac release integration in progress; student distribution held**.
+PR78 merged as1b63ae6 with all exact-head CI checks and production website
+acceptance complete. Kit/extension0.5.18, core0.2.1, native18 remain local;
+published0.5.17 downloads/feed are immutable. The owner requested continuing the
+remaining templates, GitHub publishing and ZeroHub Play work, with testing before
+student release. Five template updates are reviewed draftPRs; their default main
+branches stay unchanged until coordinated promotion. Live publisher remains
+disabled on oldbeaaca4 while the reviewed new-source pin/rollout is prepared.
 
 ## Student flow
 
