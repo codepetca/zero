@@ -143,3 +143,10 @@ API category headings scroll with the document. Each method's name/owner row
 sticks only while reading that method, below the shared desktop header or at
 the top on phones. Reuse opaque theme backgrounds and preserve method links,
 search, navigation and normal category styling.
+
+## Subtle scrollbars — owner correction, 2026-10-16
+
+Themed website scrollbar tracks blend into their scrolling surface, including
+the page gutter. Use thin approved-gray thumbs and transparent tracks, retain
+normal scrolling, follow light/dark/system preference and defer to system
+scrollbar colors in forced-color mode.

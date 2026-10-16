@@ -1,6 +1,33 @@
 /* Shared approved Learn/downloads palette; other routes retain their existing shell. */
 body:has(.learn-theme) { min-width: 0; }
 
+/* Let scrollbar tracks blend into each scrolling surface, including the page. */
+html:has(.learn-theme) { background: var(--zero-page); }
+html:has(.learn-theme),
+.learn-theme {
+  scrollbar-color: var(--zero-border) transparent;
+  scrollbar-width: thin;
+}
+.learn-theme * { scrollbar-width: thin; }
+@supports not (scrollbar-color: gray transparent) {
+  html:has(.learn-theme)::-webkit-scrollbar,
+  .learn-theme ::-webkit-scrollbar { width: 8px; height: 8px; }
+  html:has(.learn-theme)::-webkit-scrollbar-track,
+  html:has(.learn-theme)::-webkit-scrollbar-corner,
+  .learn-theme ::-webkit-scrollbar-track,
+  .learn-theme ::-webkit-scrollbar-corner { background: transparent; }
+  html:has(.learn-theme)::-webkit-scrollbar-thumb,
+  .learn-theme ::-webkit-scrollbar-thumb {
+    background: var(--zero-border);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 8px;
+  }
+}
+@media (forced-colors: active) {
+  html:has(.learn-theme), .learn-theme { scrollbar-color: auto; }
+}
+
 .learn-theme {
   --ink: var(--zero-text);
   --muted: var(--zero-muted);

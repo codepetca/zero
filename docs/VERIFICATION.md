@@ -1,5 +1,14 @@
 # Verification
 
+## Subtle scrollbar tracks — 2026-10-16
+
+10 shared design tests, website typecheck/build and whitespace checks pass.
+Browser verifies themed root background/color-scheme, transparent page/sidebar/
+code scrollbar tracks, thin thumbs, both themes and normal scrolling. Independent
+complete implementation review is clean; prior96website tests reused. Safari,
+physical platforms and forced-color UI were not exercised. Two unrelated updater
+tracing warnings remain. See [delivery evidence](EVIDENCE.md#subtle-scrollbar-tracks--2026-10-16).
+
 ## Sticky API method names — 2026-10-16
 
 CSS follow-up passes website typecheck, production build,96tests and whitespace

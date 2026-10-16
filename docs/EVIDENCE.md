@@ -1,5 +1,32 @@
 # Delivery evidence index
 
+## Subtle scrollbar tracks — 2026-10-16
+
+Owner requested scrollbar gutters blend into the existing background. Generated
+web theme tokens now also target html only when a LearnTheme wrapper is present;
+light/dark/system color-scheme and root background match the visible page.
+Page/sidebar/code tracks are transparent with thin approved-gray thumbs; existing
+scrolling remains. Older-engine WebKit styling is scoped to the same surfaces,
+and forced colors use automatic scrollbar colors.
+
+10 shared design tests, website typecheck, production build and whitespace checks
+pass. Build retains two unrelated mac-updater tracing warnings. Previous96website
+tests reused; no new unit tests for this visual adjustment. In-app browser checks
+confirm dark#101321/light#fff root background and scheme, transparent root/sidebar/
+code tracks, thin thumbs and preserved scrolling. Dark theme restored; desktop
+preview retained. Screenshot: ignored
+`.verification/tutorial-cleanup/subtle-scrollbars-detail.png`; logs use scrollbar-
+prefix there. Safari/physical platforms/forced-color UI were not exercised.
+
+Independent scrollbar_review/1, requested Luna/medium, complete two-file diff plus
+theme adapter/global CSS/callers/forced-color/fallback inspection: no actionable
+findings. Base6d6e80f; patch SHA256
+`f3687b29a2eca17027827796de600f944f5a0d1d249bdcd38410c4a9bfb94905`.
+One initial launch, zero fixes/conflicts; checks reused. Effective model/token/
+elapsed telemetry unknown; recent healthy storage/usage reading reused. No
+publication, release, account, new goal/chat/automation change. Original checkout
+and other worktrees preserved.
+
 ## Sticky API method names — 2026-10-16
 
 Owner requested Docs category headings scroll normally and method names become
