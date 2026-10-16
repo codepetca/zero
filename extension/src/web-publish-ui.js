@@ -25,9 +25,9 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
     if(selected==='Open GitHub' && !disposed)await vscode.env.openExternal(vscode.Uri.parse(result.action.url));
     if(selected==='Recheck')recheckRequested=true;
   }
-  async function waitForDeployment(result,expected) {
+  async function waitForDeployment(result,expected,account) {
     for(let attempt=0;result.status==='pending' && attempt<maxChecks;attempt++) {
-      await stillCurrent(expected);progress(result.message);resume={root:expected,value:result.resume};
+      await stillCurrent(expected);progress(result.message);resume={root:expected,value:result.resume,account};
       await workspaceState?.update('zero.webPublish.pending',resume);
       await new Promise(resolve=>{const timer=setTimeout(done,pollIntervalMs);function done(){clearTimeout(timer);controller?.signal.removeEventListener('abort',done);resolve();}controller.signal.addEventListener('abort',done,{once:true});});
       await stillCurrent(expected);
@@ -45,7 +45,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       if(isSimulation(root)){progress('Simulation only — no publishing files, sign-in, upload or public website changed.');return {status:'simulated'};}
       if(vscode.workspace.isTrusted===false)throw new Error('Trust your own project before publishing its browser game.');
       const expected=root;
-      let result,approvedReview;
+      let result,approvedAccount;
       const staged=workspaceState?.get('zero.webPublish.staging');
       const pendingSaved=resume || workspaceState?.get('zero.webPublish.pending');
       if(staged?.root===expected && pendingSaved?.root!==expected && publisher.cleanup) {
@@ -55,6 +55,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       }
       resume=resume || workspaceState?.get('zero.webPublish.pending');
       if(resume?.root===expected) {
+        approvedAccount=resume.account;
         try {result=publisher.restore ? await publisher.restore(expected,resume.value,{signal:controller.signal}) : await publisher.check(resume.value,{signal:controller.signal,onProgress:progress});}
         catch(error) {
           if(error.code!=='WEB_PUBLISH_REPOSITORY_CHANGED')throw error;
@@ -109,23 +110,26 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
           // The coordinator's existing upload action owns its busy flag and
           // input. Keep this command's separate operation guard held throughout.
           setBusy(false);
-          try {await uploadChanges(workflowAuth || authentication);} finally {setBusy(true);}
+          let uploaded;
+          try {uploaded=await uploadChanges(workflowAuth || authentication);} finally {setBusy(true);}
+          if(!uploaded?.uploaded)return;
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
           if(review.status!=='review'){await showAction(review);return review;}
           if(review.setup)throw new Error('The publishing setup was not uploaded completely. Commit & push on main and retry.');
           assertDestination();
+          if(review.sha!==uploaded.head)throw new Error('The project version changed after the setup upload. Choose Publish app again to publish the intended version.');
         }
         await stillCurrent(expected);
-        approvedReview=review;
-        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress,onStaging:async value=>{await workspaceState?.update('zero.webPublish.staging',value?{root:expected,value}:undefined);},onPending:async value=>{resume={root:expected,value};await workspaceState?.update('zero.webPublish.pending',resume);await workspaceState?.update('zero.webPublish.staging',undefined);}});
+        approvedAccount=review.account;
+        result=await publisher.publish(review,{signal:controller.signal,onProgress:progress,onStaging:async value=>{await workspaceState?.update('zero.webPublish.staging',value?{root:expected,value}:undefined);},onPending:async value=>{resume={root:expected,value,account:approvedAccount};await workspaceState?.update('zero.webPublish.pending',resume);await workspaceState?.update('zero.webPublish.staging',undefined);}});
       }
-      result=await waitForDeployment(result,expected);
+      result=await waitForDeployment(result,expected,approvedAccount);
       await stillCurrent(expected);
       if(result.status==='live') {
         resume=undefined;progress('Your playable game is live.');
         await workspaceState?.update('zero.webPublish.pending',undefined);
-        lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedReview?.account};
+        lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount};
         await workspaceState?.update('zero.webPublish.lastLive',lastLive);
         const selected=await vscode.window.showInformationMessage('Your playable game is live.','Open app','Copy playable link');
         if(selected==='Open app')await vscode.env.openExternal(vscode.Uri.parse(result.url));

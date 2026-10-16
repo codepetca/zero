@@ -349,6 +349,7 @@ function activate(context) {
         state = `Pushed ${result.head.slice(0,7)} to ${result.branch}. Copy your repository link for Pika.`;
         refresh(); await repositoryStatus();
         vscode.window.showInformationMessage(state);
+        return result;
       } finally {selectedAuth?.dispose();await repositoryStatus(); uploading = false; refresh();}
   }
   const actions = {
