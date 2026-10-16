@@ -17,7 +17,7 @@ const waitFor = async (condition, message) => {
   }
 };
 
-test('branch creation is direct; merges stay confirmed, serialized and recover conflicts through native Git', async t => {
+test('branch creation and merges are direct, serialized and recover conflicts through native Git', async t => {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-workflow-ui-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.writeFile(path.join(root,'zero.json'),'{}');
   const original = {git:core.git,resolve:core.resolveProject,assert:core.assertRepositoryRoot,prepare:github.prepareUpload,...workflow};
@@ -25,13 +25,13 @@ test('branch creation is direct; merges stay confirmed, serialized and recover c
   let projectResolves=0;
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
   let branch='main',mode='simulation',session={id:'session',account:{id:'student',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider;
-  let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,confirm,reviewGate,pickGate,warningGate,finishError,finishUpdates=false,nativeScm=true;
+  let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,confirm,prepareGate,pickGate,warningGate,finishError,finishUpdates=false,nativeScm=true;
   const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],metadata={};
   core.assertRepositoryRoot=async()=>root;
   core.git=async(_,args)=>{if(args[0]==='remote')return 'https://github.com/student/app.git';if(args[0]==='symbolic-ref')return branch;throw new Error('Unexpected Git mutation');};
   github.prepareUpload=async()=>({remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,changes:[],summary:'No changes'});
   const plan = () => ({root,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,head:'f'.repeat(40),mainHead:'a'.repeat(40),remoteMainHead:'a'.repeat(40),summary:'Reviewed change',changedPaths:['Main.java']});
-  workflow.prepareStart=async()=>{prepared++;return plan();};workflow.prepareFinish=async()=>{prepared++;return plan();};
+  workflow.prepareStart=async()=>{prepared++;return plan();};workflow.prepareFinish=async()=>{prepared++;const captured=plan();if(prepareGate)await prepareGate;return captured;};
   workflow.startPrepared=async()=>{executed++;branch='add-score';return {branch,head:'f'.repeat(40)};};
   workflow.finishPrepared=async(_,options)=>{executed++;await options.beforeNetwork();if(finishError)throw finishError;if(finishUpdates)return {updated:true,finished:false,branch,head:'f'.repeat(40)};branch='main';return {branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
   workflow.deleteFinishedBranch=async(...args)=>{deleted++;deletions.push(args);};
@@ -41,7 +41,7 @@ test('branch creation is direct; merges stay confirmed, serialized and recover c
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return items.find(item=>item.action===choice);},showInputBox:async()=>input,
       showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;},
-      showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal){reviews.push({text,options});if(reviewGate)await reviewGate;return confirm;}},showErrorMessage:async text=>{errors.push(text);}},
+      showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal){reviews.push({text,options});assert.match(text,/^Delete the finished local branch/,'Only optional branch deletion should confirm');return confirm;}},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async id=>{dispatch.push(id);},getCommands:async()=>nativeScm?['workbench.view.scm']:[]},
     env:{clipboard:{writeText:async()=>{}},openExternal:async()=>true},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
@@ -70,17 +70,17 @@ test('branch creation is direct; merges stay confirmed, serialized and recover c
   mode=undefined;input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
   input='add-score';await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,1);assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
-  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge and push main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1)?.text==='Merge add-score to main?', 'Finish review should open');
+  let releasePrepare;prepareGate=new Promise(resolve=>{releasePrepare=resolve;});const preparedBeforeFinish=prepared;const pending=commands.get('zero.finishChange')();await waitFor(()=>prepared>preparedBeforeFinish, 'Finish preparation should start directly');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
   assert.deepEqual({saved,prepared,authCalls},before);assert.match(webview.html,/data-command="zero.finishChange"[^>]* disabled/);
-  session={...session,id:'changed'};authEvent({provider:{id:'github'}});releaseReview();await pending;reviewGate=undefined;
+  session={...session,id:'changed'};authEvent({provider:{id:'github'}});releasePrepare();await pending;prepareGate=undefined;
   assert.equal(executed,1,'Changed account cannot execute the reviewed finish');assert.equal(deleted,0);assert.match(errors.at(-1),/sign-in changed/);
   finishError=Object.assign(new Error('Merge conflicts need your attention'),{conflict:true});await commands.get('zero.finishChange')();assert.equal(dispatch.at(-1),'workbench.view.scm');assert.equal(deleted,0);assert.match(notices.join('\n'),/Stage the resolved files/);assert.match(webview.html,/add-score<\/span>/);
   nativeScm=false;await commands.get('zero.finishChange')();assert.match(notices.at(-1),/Open Source Control/);assert.equal(deleted,0);
-  finishError=undefined;finishUpdates=true;confirm='Merge and push main';const beforeUpdates=reviews.length;await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.equal(reviews.length,beforeUpdates+1);assert.match(notices.at(-1),/Run App.*Merge to main again/);assert.equal(branch,'add-score');
-  finishUpdates=false;confirm='Merge and push main';await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.match(reviews.at(-1).text,/Delete the finished local branch/);assert.match(webview.html,/main<\/span>/);
+  finishError=undefined;finishUpdates=true;const beforeUpdates=reviews.length;await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.equal(reviews.length,beforeUpdates);assert.match(notices.at(-1),/Run App.*Merge to main again/);assert.equal(branch,'add-score');
+  finishUpdates=false;await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.match(reviews.at(-1).text,/Delete the finished local branch/);assert.match(webview.html,/main<\/span>/);
   // Answer each modal by its purpose for the successful optional cleanup.
-  branch='add-score';vscode.window.showInformationMessage=async(text,options)=>{if(options?.modal)return text.startsWith('Delete')?'Delete local branch':'Merge and push main';};
+  branch='add-score';vscode.window.showInformationMessage=async(text,options)=>{if(options?.modal){assert.match(text,/^Delete the finished local branch/);return 'Delete local branch';}};
   await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.deepEqual(deletions[0],[root,'add-score','f'.repeat(40)]);
   branch='<branch "x">';provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes('&lt;branch &quot;x&quot;&gt;'));assert.match(webview.html,/&lt;branch &quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
   branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.at(-1).options.title.includes('main'), 'Main branch menu should open');

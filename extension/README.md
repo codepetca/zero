@@ -57,7 +57,8 @@ username while signed in. Click the username for **Change GitHub account…** or
 The signed-in repository row shows `owner/name`, or **Connect a repository**.
 Click it for create/connect or copy-link/change actions. **New branch** beside
 main creates a feature branch after you enter its name; **Merge to main** beside
-a feature branch completes it into main with a concise confirmation.
+a feature branch directly merges and pushes it to main. Its account, destination,
+source and conflict checks still run.
 **Commit & push** proceeds from its commit-message input.
 Local Run works without sign-in. Local-practice projects continue to block GitHub
 sharing. Native VS Code owns collapse, move and hide controls for Zero and Files.

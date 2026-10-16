@@ -295,10 +295,6 @@ function activate(context) {
       const options = {networkRun, beforeNetwork:assertCurrent, onProgress:text => {state=text; refresh();}};
       const plan = kind === 'start' ? await workflow.prepareStart(root, name, options) : await workflow.prepareFinish(root, options);
       if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review your change again.');
-      if (kind === 'finish') {
-        const confirmed = await vscode.window.showInformationMessage(`Merge ${plan.branch} to main?`, {modal:true, detail:`${plan.page}\nThis merges your change and pushes main to GitHub.`}, 'Merge and push main');
-        if (confirmed !== 'Merge and push main') return;
-      }
       if (await project() !== root) throw new Error('The student project changed. Review your change again.');
       await assertCurrent();
       const result = kind === 'start' ? await workflow.startPrepared(plan, options) : await workflow.finishPrepared(plan, options);

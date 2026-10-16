@@ -216,3 +216,10 @@ Publish uses one short public-visibility warning; setup/upload continues without
 a second confirmation. Repeat Publish revalidates and updates the same site.
 Keep concise merge, delete and repository-replacement confirmations and all
 underlying account, destination, source-drift, conflict and transport checks.
+
+### Merge to main — owner decision, 2026-10-16
+
+The explicit Merge to main button starts the guarded merge/push-main flow without
+an additional confirmation. Preserve account/project/destination/source checks,
+operation serialization, the pause to run after incorporating updated main,
+conflict recovery and the separate optional local-branch deletion confirmation.

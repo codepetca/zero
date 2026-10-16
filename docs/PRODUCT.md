@@ -337,8 +337,8 @@ diverged histories require manual repair. Commit & push commits/pushes progress
 to the current branch. Run and check the app before finishing.
 
 Click the change branch → Merge to main. Commit & push pending edits first.
-Merge to main requires a clean committed change branch and a concise confirmation
-showing the branch and repository destination. Updated remote main is merged into the change
+Merge to main runs directly from its button and requires a clean committed change
+branch. Account, destination and source snapshots are checked before execution. Updated remote main is merged into the change
 branch, then the action pauses for Run App and another Merge to main review before
 pushing the combined version. No rebase/force push is used. Conflicts preserve the branch and merge
 state, open native Source Control and require resolution/staging/commit before
