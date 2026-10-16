@@ -2,6 +2,30 @@
 
 ## Tutorial Summary and removal of generic help cards — 2026-10-16
 
+Published via [PR72](https://github.com/codepetca/zero/pull/72), merge
+713040a77d8f98ca239b6886e5eebbbb116f44e8, reviewed head
+bb2f21096ff222c497400460fe91421e52032dc7. Complete resumed Luna/medium review:
+no actionable findings; initial turn interrupted for owner steering, not counted
+as complete. One initial wave,two turns,zero review fix batches. Exact-head
+[CI38911105634 attempt2](https://github.com/codepetca/zero/actions/runs/38911105634/attempts/2)
+passed in6m51s, including native/examples/progression/sharing and website. Attempt1
+hit a180s timeout in the unchanged Java/Maven sample test; its inputs matched
+publishedmain and the retry passed unchanged. Superseded c6edf3e run cancelled.
+
+Production deployment7120970704 is successful, bound to merge713040a; unique URL
+https://zero-oftc8579g-stewarts-projects-cc2722c4.vercel.app serves
+https://zero.codepet.ca. Anonymous live checks on all13 lessons confirm Summary/
+three actions/full Done, separate image,no generic cards or short labels, exactly
+three Start buttons and preserved10/12 notes. Live1280px lesson1 browser confirms
+side-by-side image,zero subtitle/overflow.320px light-theme local check confirms
+stacked card/image; dark/desktop restored and public lesson1 left open. Signed
+feed remains byte-identical SHA775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2.
+Owned worktree fast-forwarded to mergedmain; final tracked handoff receipt is local.
+No release,credentials,other-worktree,new goal/chat/automation changes. Detailed
+logs/measurements/screenshots and CI/deployment JSON:.verification/tutorial-card-removal/.
+Effective model/token/worker elapsed telemetry unavailable; prior platform limits
+remain. The following implementation notes describe this completed change.
+
 Owner removed the First time card and all If you have not started it yet cards,
 refining the continuing website publication. Document omits the entire generic
 setup/continuation aside and empty continuation sections; stale card CSS is gone.

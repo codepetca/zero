@@ -2,6 +2,14 @@
 
 ## Tutorial Summary and removal of generic help cards — 2026-10-16
 
+PR72 merged713040a after complete resumed independent review and successful
+exact-headCI38911105634 attempt2. First attempt hit an unchanged Maven sample
+timeout; retry passed without changing source/checks. Production deployment7120970704
+is successful; all13 public tutorial pages verify Summary/three actions/Done/image,
+removed generic cards/labels and preserved buttons/notes. Live1280px card/image
+layout is side-by-side without overflow. Existing signed feed bytes unchanged.
+Evidence:.verification/tutorial-card-removal/ and docs/EVIDENCE.md.
+
 96website tests,typecheck/build and whitespace checks pass after Summary refinement.
 All13 lesson render tests verify Summary/actions/Done grouping with image outside
 the card; desktop browser confirms side-by-side layout and no redundant subtitle.

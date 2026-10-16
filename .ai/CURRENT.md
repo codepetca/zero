@@ -1,23 +1,26 @@
-# Current state — Tutorial Summary refinement, 2026-10-16
+# Current state — Tutorial Summary published, 2026-10-16
 
-Owner requested removal of the entire First time card and every continuation card
-containing If you have not started it yet. This refines the website cleanup
-published through PR71/e268b93 under the current publication workflow. Branch
-codex/tutorial-remove-project-hints owns this refinement; original funding and
-other active worktrees remain untouched.0.5.17 release files remain unchanged.
+PR72 merged713040a77d8f98ca239b6886e5eebbbb116f44e8 after complete resumed
+Luna/medium review ofbb2f210 with no findings. CI38911105634 attempt2 passed;
+attempt1 timed out in an unchanged Maven sample,then passed unchanged on retry.
+Production deployment7120970704 succeeded and https://zero.codepet.ca is verified.
+This final post-publication documentation receipt is local.
 
-Document removes the generic help wrapper/content and empty continuation sections.
-Start project buttons remain only at lessons0/3/8. Lesson10 component reminder and
-lesson12 optional assets remain as small muted,unboxed notes. Canonical lesson
-instructions,Next/sidebar,sticky API names and transparent scrollbars are unchanged.
-Owner also requested opening actions/Done in a Summary card, illustration beside
-on desktop/below on phones, and removal of the redundant short description label.
-Renderer/CSS implement this without changing authored source; all13 render tests
-verify grouping.96website tests/typecheck/build pass. Prior review turn interrupted
-for owner steering; one complete review resumes on the new fixed head. Draft PR72
-owns both refinements. Continuing design/product defaults are updated.
+All13 lessons have a Summary card with numbered actions and full Done checkpoint;
+target image beside on desktop/below on phones. Generic First time/not-started
+cards and short description labels removed. Start downloads remain0/3/8; specific
+10/12 notes stay muted/unboxed. Authored lessons/code,API sticky names,transparent
+scrollbars,0.5.17 release inputs and signed feed remain unchanged. Updated continuing
+owner defaults:design.md,referenced by AGENTS.md.
 
-Next: local website checks/browser confirmation,one bounded independent review,
-then PR/exact-headCI/merge and live verification through the existing publication
-flow. Preserve .verification/tutorial-card-removal/ receipts. Prior PR71 acceptance
-and platform limits remain recorded in docs/EVIDENCE.md and docs/VERIFICATION.md.
+96website tests/typecheck/build plus fullCI pass; all13 anonymous public HTTP
+checks and live1280px browser checks pass. Local320px light-theme stack/nooverflow
+verified. Safari/physical/enlarged-text/forced-color UI not newly exercised; prior
+updater tracing warnings remain. Review:one initial wave,two turns (one interrupted
+for owner steering),zero fixes. Receipts/screenshots:.verification/tutorial-card-removal/;
+tracked delivery/verification:docs/EVIDENCE.md,docs/VERIFICATION.md.
+
+Owned worktree fast-forwarded to mergedmain,then local handoff receipt committed.
+Original funding and other active worktrees untouched. Public lesson1 left open;
+worktree/local preview retained for owner feedback. No new goal/chat/automation,
+release rebuild or credential/account changes. Publication complete.
