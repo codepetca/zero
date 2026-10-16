@@ -8,6 +8,24 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Approved and proposed
 
+### Remembered website preferences — 2026-10-16
+
+These are the owner's continuing design defaults. Preserve them in future website
+work unless the owner requests a change. Prefer a subtle appearance and keep the
+current task's content visually prominent.
+
+| Surface | Default |
+| --- | --- |
+| Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
+| Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
+| Secondary guidance | Put setup, continuation and optional hints in small muted helper cards. |
+| API reference | Category titles scroll away; each method name sticks through its own details. |
+| Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
+| Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
+
+Keep the sidebar, Next lesson action, search, code copying, deep links, accessible
+focus and ordinary scrolling usable. See the dated corrections below for details.
+
 | Surface | Status |
 | --- | --- |
 | Home page with app header, Learn Java and two buttons | Owner-requested replacement 2026-10-13; shared light/dark themes. |

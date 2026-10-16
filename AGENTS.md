@@ -7,6 +7,8 @@ handoffs. Keep CURRENT short; archived phase records are not active instructions
 For UI work, start with `design.md`, then read the canonical
 `docs/UI-UX-GUIDELINES.md`. Preserve approved designs; shared light/dark playground
 proposals require owner review before production visual changes.
+The remembered website preferences in `design.md` are continuing owner defaults;
+preserve them in future UI work unless the owner asks to change them.
 
 - Zero is a local Java teaching kit: a VS Code extension/profile and a small
   JavaFX library. Preserve ordinary Java and explicit object updates.

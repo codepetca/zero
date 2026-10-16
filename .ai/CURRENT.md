@@ -16,6 +16,8 @@ default-open disclosures and code copying remain available.
 Luna/medium independent review found no actionable issues. Two unrelated updater
 tracing warnings remain. Safari/physical devices/enlarged text were not tested.
 Full delivery/review evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
+Owner asked to remember the design choices: continuing website defaults are
+summarized in design.md and explicitly referenced by AGENTS.md.
 Screenshots/logs are ignored under .verification/tutorial-cleanup/.
 Docs follow-up is locally complete: category headings scroll normally and method
 name rows stick within their article, below the desktop header or at phone top0.
