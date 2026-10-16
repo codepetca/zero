@@ -26,7 +26,7 @@ const receiptFile = path.join(output, `build-${platform}${signed ? '-signed' : '
 rmSync(receiptFile, {force:true});
 function run(command, args, timeout = 180000, options = {}) {
   const result = spawnSync(command, args, {cwd:root, stdio:'pipe', encoding:'utf8', timeout, env:options.env || {...process.env, DOTNET_CLI_TELEMETRY_OPTOUT:'1', DOTNET_NOLOGO:'1'}});
-  if (result.error || result.status !== 0) throw new Error(`Build failed: ${command}: ${result.error?.message || result.stderr || result.status}`);
+  if (result.error || result.status !== 0) throw new Error(`Build failed: ${command}: ${[result.error?.message, result.stderr, result.stdout].filter(Boolean).join('\n') || result.status}`);
   return {stdout:result.stdout || '', stderr:result.stderr || ''};
 }
 const artifacts = [];
