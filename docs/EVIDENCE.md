@@ -45,9 +45,31 @@ Signing options and account steps in WINDOWS-SIGNING.md; disposable/owner trial 
 WINDOWS-TRIAL.md. SignPath Foundation free/selective and upstream-binary constraints,
 Microsoft Store MSIX free/new packaging, Microsoft Artifact Signing direct EXE
 ~US$10/month were checked against provider docs. Owner account/provider decision
-remains; no service application sent. Initial high-risk independent security and
-compatibility review planned on fixed release-readiness delta; budget7launches,
-4fix batches,60min/30min per reviewer. New-session2initial launches,zero fixes.
+remains; no service application sent. Independent Sol/high security and compatibility reviews completed the full20-file
+95b6b28..d420e634 delta. Security found no P0-P2; compatibility found3accepted P2:
+PS5.1 ANSI JSON decoding, default hosted Java8 before release17 compilation, and
+Node/libuv rewriting the helper's already-quoted Windows cmd arguments. One batch
+adds explicit UTF8 reads, validates/selects JAVA_HOME_21_X64, and propagates
+windowsVerbatimArguments through the constrained Maven invocation. A real Windows
+batch/spaced-argument regression is now in CI (1pass/1Windows-only skip locally).
+Trial instructions clarify separately reviewed staging configuration and key.
+Complete7-file targeted Sol/high review d420e634..f5209e224125d74e0cd9f29e5046d23971ccb172
+passed with all3P2s resolved and no new P0-P2. New-session review3assignments/1batch,
+within7/4/60min and30min/reviewer; approximate interval14:13-14:22UTC. Effective
+models/tokens unavailable. No redundant integration wave: targeted pass covers
+changed interactions and initial full coverage applies to unchanged source.
+Affected18tests, prepared-command1pass/1Windows-onlyskip, PowerShell parser2167tokens,
+kit/extracted Maven and configuration checks passed after correction. Actual
+Windows PS5.1/process execution remains pending, not inferred from parsing.
+
+Development installer rebuilt from cleand420e634, package verifier passed; EXE and
+full-package bytes exactly match prior3a4fe7a2 development hashes below. Corrections
+affect test/verification/docs, not packaged app source. Live feed checked at
+2026-10-16T14:15:33Z returned404 because this branch is not published; local new
+route returned503/Retry-After3600/no-store with provisioned trust and absent release
+metadata. No accepted public Windows manifest/feed was fabricated. Owner encrypted
+key backup, signing-provider selection/account/identity, Windows trial and approved
+publication remain required. Account-wide final weekly remaining52%, not task cost.
 Ignored evidence under .verification/windows-auto-setup/readiness-* and
 provisioned-key-proof/, update-key-provisioning.json, tool-runtime/powershell/.
 
