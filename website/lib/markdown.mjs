@@ -55,7 +55,7 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
   return null;
 }
 // Fold parsed blocks, preserving fenced code and nested Markdown exactly.
-export function foldSections({ lesson = false } = {}) {
+export function foldSections({ lesson = false, encouragement = "" } = {}) {
   return (tree) => {
     const counts = new Map();
     function visit(node) {
@@ -71,9 +71,6 @@ export function foldSections({ lesson = false } = {}) {
       for (const child of node.children ?? []) visit(child);
     }
     visit(tree);
-    const lessonHeading = tree.children.find((node) => node.tagName === "h1");
-    const lessonTitle = nodeText(lessonHeading ?? {}).replace(/^(\d+)\.\s+/, "Lesson $1: ");
-    const lessonTitleId = lessonHeading?.properties?.id || "lesson-title";
     // Source guides also put Previous links in the introduction. The website
     // sidebar and Next lesson footer already provide lesson navigation.
     const content = tree.children.filter((node) => !(
@@ -135,10 +132,10 @@ export function foldSections({ lesson = false } = {}) {
         type: "element", tagName: "div", properties: { className: ["lesson-quick-path"] },
         children: [{
           type: "element", tagName: "section",
-          properties: { id: "lesson-summary", className: ["lesson-summary-card"], "aria-labelledby": lessonTitleId },
+          properties: { id: "lesson-summary", className: ["lesson-summary-card"], "aria-labelledby": "lesson-summary-title" },
           children: [{
-            type: "element", tagName: "h2", properties: { id: lessonTitleId },
-            children: [{ type: "text", value: lessonTitle }],
+            type: "element", tagName: "h2", properties: { id: "lesson-summary-title" },
+            children: [{ type: "text", value: "Summary" }],
           }, {
             type: "element", tagName: "div", properties: { className: ["lesson-summary-body"] },
             children: [{
@@ -155,6 +152,12 @@ export function foldSections({ lesson = false } = {}) {
       const extra = blocks.slice(actions + 2);
       if (sections.length) sections[0].children[1].children.unshift(...extra);
       else lessonIntro.push(...extra);
+    }
+    if (lesson && encouragement && sections.length) {
+      sections.at(-1).children[1].children.push({
+        type: "element", tagName: "p", properties: { className: ["lesson-encouragement"] },
+        children: [{ type: "text", value: encouragement }],
+      });
     }
     tree.children = [
       ...(lesson

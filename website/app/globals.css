@@ -1255,3 +1255,10 @@ pre code {
 /* Direct GitHub account actions on the public Hub. */
 .reading .hub-account-actions { flex-wrap: wrap; gap: 12px; }
 .hub-account-actions .button { min-width: 0; max-width: 100%; margin: 0; white-space: normal; }
+
+/* Lesson hierarchy and a quiet closing note inside the final explanation. */
+.tutorial-reader .page-subtitle {
+  color: var(--ink);
+  font-size: clamp(28px, 3vw, 36px);
+}
+.markdown .lesson-encouragement { margin: 24px 0 0; font-weight: 600; }
