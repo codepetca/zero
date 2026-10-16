@@ -1,4 +1,5 @@
 import {coreSources} from './prepare-starter.mjs';
+import {publishedTutorialTemplate,validateTutorialTemplates,tutorialTemplateDefinitions} from '../teaching/projects.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, symlinkSync, rmSync} from 'node:fs';
@@ -21,7 +22,7 @@ test('three continuing projects cover every lesson without distributing solution
     const marker=JSON.parse(content(project,'zero.json'));
     assert.equal(marker.localOnly,undefined);
     assert.equal(marker.repositoryRequired,true);
-    assert.equal(project.template,null);
+    assert.deepEqual(project.template,publishedTutorialTemplate(project.id));
     assert.equal(marker.tutorialProjectId,project.id);
     assert.equal(marker.lessonId,first[project.id]);
     assert.equal(JSON.parse(content(project,'.vscode/settings.json'))['git.enabled'],true);
@@ -85,8 +86,12 @@ test('native receives maintained bytes and website preparation removes stale tut
 });
 
 test('tutorial publications stay unavailable until complete verified metadata exists', async () => {
-  const {publishedTutorialTemplate,validateTutorialTemplates,tutorialTemplateDefinitions} = await import('../teaching/projects.mjs');
-  for (const id of ['greeting','study','game']) assert.equal(publishedTutorialTemplate(id),null);
+  for (const item of tutorialTemplateDefinitions) {
+    const repositoryUrl=`https://github.com/${item.repository}`;
+    assert.deepEqual(publishedTutorialTemplate(item.id),item.publication ? {repository:item.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`} : null);
+  }
+  const unpublished={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item,publication:null}))};
+  assert.ok(validateTutorialTemplates(unpublished).every(item=>item.publication===null));
   for (const publication of [{}, {repositoryId:1,visibility:'private',isTemplate:true,defaultBranch:'main',commit:'a'.repeat(40),tree:'b'.repeat(40)}]) {
     const metadata={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item}))};metadata.templates[0].publication=publication;
     assert.throws(()=>validateTutorialTemplates(metadata),/publication/);

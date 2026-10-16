@@ -1,4 +1,5 @@
 import test from "node:test";
+import { tutorialTemplateDefinitions } from "../../teaching/projects.mjs";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import React from "react";
@@ -244,7 +245,9 @@ test("only three lessons start a project; subsequent lessons continue it", () =>
     const url = `/generated/projects/zero-project-${id}.zip`;
     assert.equal(resolveContentLink("student-template/lessons/README.md",url,{},{}),null);
     assert.equal(resolveContentLink("student-template/lessons/README.md",`https://zero.codepet.ca${url}`,{},{}),null);
-    assert.equal(publishedTutorialTemplate(id),null);
+    const record=tutorialTemplateDefinitions.find(item=>item.id===id);
+    const repositoryUrl=`https://github.com/${record.repository}`;
+    assert.deepEqual(publishedTutorialTemplate(id),record.publication ? {repository:record.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`} : null);
   }
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/projects/zero-project-other.zip",{},{}),null);
   assert.equal(resolveContentLink("student-template/lessons/README.md","/generated/lessons/zero-lesson-10-game.zip",{},{}),null);
