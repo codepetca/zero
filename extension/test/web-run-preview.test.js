@@ -83,6 +83,25 @@ function managedHarness() {
  return {vscode,opened,errors,events,get html(){return html;},set openResult(value){openResult=value;},receive:message=>receive(message),close:()=>close()};
 }
 
+test('managed preview reuses the active tutorial group after Stop and reads placement anew each run',async()=>{
+ const h=managedHarness(),placements=[];
+ const createPanel=h.vscode.window.createWebviewPanel;
+ h.vscode.ViewColumn.Beside=-2;
+ h.vscode.window.createWebviewPanel=(type,title,column,options)=>{placements.push(column);return createPanel(type,title,column,options);};
+ h.vscode.window.tabGroups={active:{viewColumn:1}};
+ h.vscode.window.activeTextEditor={document:{languageId:'java'}};
+ const options={serverFactory:async()=>({url:'http://127.0.0.1:1234/site/',dispose(){}})};
+ const fromCode=await createManagedWebPreview(h.vscode,'/site',options);assert.deepEqual(placements,[-2]);fromCode.dispose();
+ // Stop reveals the tutorial in the existing right-hand group.
+ h.vscode.window.activeTextEditor=undefined;h.vscode.window.tabGroups.active.viewColumn=2;
+ const fromTutorial=await createManagedWebPreview(h.vscode,'/site',options);assert.deepEqual(placements,[-2,2]);fromTutorial.dispose();
+ h.vscode.window.tabGroups.active.viewColumn=3;
+ const movedTutorial=await createManagedWebPreview(h.vscode,'/site',options);assert.deepEqual(placements,[-2,2,3]);movedTutorial.dispose();
+ // Older factory mocks or unavailable group information retain the fallback.
+ h.vscode.window.tabGroups=undefined;
+ const fallback=await createManagedWebPreview(h.vscode,'/site',options);assert.deepEqual(placements,[-2,2,3,-2]);fallback.dispose();
+});
+
 test('managed toolbar opens the default browser using only the runtime shell URL and reports failed opens',async()=>{
  const h=managedHarness();const options=[];
  const preview=await createManagedWebPreview(h.vscode,'/site',{siteFiles:['validated'],serverFactory:async(site,value)=>{options.push({site,value});return {url:'http://127.0.0.1:1234/immutable/',browserUrl:'http://127.0.0.1:1234/immutable/.zero-preview-secret/',dispose:()=>h.events.push('server disposed')};}});

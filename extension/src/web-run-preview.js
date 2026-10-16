@@ -29,7 +29,12 @@ async function createManagedWebPreview(vscode, sitePath, {onDidDispose = () => {
     const origin = new URL(url).origin;
     const nonce = crypto.randomBytes(16).toString('hex');
     const port = Number(new URL(server.url).port);
-    panel = vscode.window.createWebviewPanel('zero.app', title, vscode.ViewColumn.Beside, {
+    // Reuse the current tutorial/webview group after Stop instead of splitting
+    // another group each run. From a text editor, keep the app beside the code.
+    const viewColumn = !vscode.window.activeTextEditor
+      ? vscode.window.tabGroups?.active?.viewColumn ?? vscode.ViewColumn.Beside
+      : vscode.ViewColumn.Beside;
+    panel = vscode.window.createWebviewPanel('zero.app', title, viewColumn, {
       enableScripts: true, localResourceRoots: [], retainContextWhenHidden: true,
       portMapping: [{webviewPort:port,extensionHostPort:port}]
     });
