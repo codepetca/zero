@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.17",
+  "version": "0.5.18",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -29,12 +29,12 @@
       {
         "command": "zero.checkForUpdates",
         "title": "Zero: Check for Updates",
-        "enablement": "isMac"
+        "enablement": "isMac || isWindows"
       },
       {
         "command": "zero.updateSettings",
         "title": "Zero: Update Settings",
-        "enablement": "isMac"
+        "enablement": "isMac || isWindows"
       },
       {
         "command": "zero.startProject",
@@ -250,11 +250,11 @@
       "commandPalette": [
         {
           "command": "zero.checkForUpdates",
-          "when": "isMac"
+          "when": "isMac || isWindows"
         },
         {
           "command": "zero.updateSettings",
-          "when": "isMac"
+          "when": "isMac || isWindows"
         }
       ],
       "view/title": [

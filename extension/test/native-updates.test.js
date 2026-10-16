@@ -1,6 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const {EventEmitter} = require('node:events');
 const {createNativeUpdateCommands} = require('../src/native-updates');
 
 function fixture(options) {
@@ -31,13 +32,15 @@ test('manual native commands use only fixed, directly addressed requests and bou
 });
 
 test('programmatic requests on unsupported platforms explain availability without spawning', async () => {
-  for (const platform of ['win32', 'linux']) {
-    const {commands, errors, calls} = fixture({platform});
+  for (const platform of ['linux', 'freebsd']) {
+    const spawns = [];
+    const {commands, errors, calls} = fixture({platform, spawnProcess:(...args) => spawns.push(args)});
     await commands['zero.checkForUpdates']();
     await commands['zero.updateSettings']();
     assert.deepEqual(calls, []);
+    assert.deepEqual(spawns, []);
     assert.equal(errors.length, 2);
-    assert.ok(errors.every(text => /only on macOS/.test(text)));
+    assert.ok(errors.every(text => /only on macOS and Windows/.test(text)));
   }
 });
 
@@ -51,14 +54,99 @@ test('missing app, denied opening and timeout errors give usable recovery withou
   }
 });
 
-test('native update contributions are macOS Palette-only and retain the minimal view menu', () => {
+test('native update contributions are Mac/Windows Palette-only and retain the minimal view menu', () => {
   const manifest = require('../package.json');
   for (const [command, title] of [['zero.checkForUpdates','Zero: Check for Updates'], ['zero.updateSettings','Zero: Update Settings']]) {
-    assert.deepEqual(manifest.contributes.commands.find(entry => entry.command === command), {command, title, enablement:'isMac'});
-    assert.deepEqual(manifest.contributes.menus.commandPalette.find(entry => entry.command === command), {command, when:'isMac'});
+    assert.deepEqual(manifest.contributes.commands.find(entry => entry.command === command), {command, title, enablement:'isMac || isWindows'});
+    assert.deepEqual(manifest.contributes.menus.commandPalette.find(entry => entry.command === command), {command, when:'isMac || isWindows'});
     for (const [location, entries] of Object.entries(manifest.contributes.menus)) {
       if (location !== 'commandPalette') assert.ok(entries.every(entry => entry.command !== command));
     }
   }
   assert.deepEqual(manifest.contributes.menus['view/title'].map(entry => entry.command), ['zero.openFirstLesson', 'zero.showSetup']);
+});
+
+function windowsFixture(options = {}) {
+  const children = [], spawns = [];
+  const state = fixture({
+    platform:'win32', environment:{LOCALAPPDATA:'C:\\Users\\Student Name\\AppData\\Local'},
+    spawnProcess:(...args) => {
+      spawns.push(args);
+      const child = new EventEmitter();
+      child.unrefs = 0;
+      child.unref = () => {child.unrefs++;};
+      children.push(child);
+      return child;
+    },
+    ...options
+  });
+  return {...state, children, spawns};
+}
+
+test('Windows commands launch only the stable installed stub and fixed arguments without waiting for UI exit', async () => {
+  const {commands, calls, errors, spawns, children} = windowsFixture();
+  for (const [command, argument] of [['zero.checkForUpdates','--check-for-updates'], ['zero.updateSettings','--update-settings']]) {
+    let completed = false;
+    const pending = commands[command]('https://attacker.invalid/feed', {executable:'D:\\other.exe', args:['--feed', 'evil']})
+      .then(() => {completed = true;});
+    await Promise.resolve();
+    assert.equal(completed, false, 'Handoff must wait for process creation');
+    const child = children.at(-1);
+    assert.equal(child.unrefs, 0);
+    child.emit('spawn');
+    await pending;
+    assert.equal(completed, true, 'No exit event is required');
+    assert.equal(child.unrefs, 1);
+    assert.deepEqual(spawns.at(-1), [
+      'C:\\Users\\Student Name\\AppData\\Local\\Zero\\Zero.exe', [argument],
+      {shell:false, windowsHide:true, detached:false, stdio:'ignore'}
+    ]);
+    // A later child error is consumed and never leaks private process details.
+    child.emit('error', new Error('PRIVATE controller details'));
+  }
+  assert.deepEqual(calls, [], 'Windows never uses the Mac execFile path');
+  assert.deepEqual(errors, []);
+});
+
+test('Windows invalid or missing local application data cannot launch another path', async () => {
+  for (const local of [undefined, '', 'relative', 'C:relative', '\\Users\\Student', '\\\\server\\share', 'C:\\Users\nPRIVATE', 123]) {
+    const {commands, spawns, errors} = windowsFixture({environment:{LOCALAPPDATA:local}});
+    for (const action of Object.values(commands)) await action();
+    assert.deepEqual(spawns, []);
+    assert.equal(errors.length, 2);
+    assert.ok(errors.every(text => /Install the latest Zero for Windows/.test(text) && /teacher or IT/.test(text)));
+    assert.ok(errors.every(text => !text.includes('PRIVATE')));
+  }
+});
+
+test('Windows spawn failures report recovery without exposing child details', async () => {
+  for (const code of ['ENOENT', 'EACCES']) {
+    const {commands, children, errors} = windowsFixture();
+    const pending = commands['zero.checkForUpdates']();
+    children[0].emit('error', Object.assign(new Error('PRIVATE path or output'), {code}));
+    await pending;
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /Install the latest Zero for Windows/);
+    assert.match(errors[0], /teacher or IT/);
+    assert.ok(!errors[0].includes('PRIVATE'));
+  }
+  const {commands, errors} = windowsFixture({spawnProcess:() => {throw new Error('PRIVATE synchronous failure');}});
+  await commands['zero.updateSettings']();
+  assert.equal(errors.length, 1);
+  assert.ok(!errors[0].includes('PRIVATE'));
+});
+
+test('Windows stalled spawn signaling is bounded without killing the native updater', async context => {
+  context.mock.timers.enable({apis:['setTimeout']});
+  const {commands, children, errors} = windowsFixture();
+  const pending = commands['zero.updateSettings']();
+  context.mock.timers.tick(5000);
+  await pending;
+  assert.equal(children[0].unrefs, 1);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /Install the latest Zero for Windows/);
+  // Even an unusually delayed spawn/error must not kill a controller or throw.
+  children[0].emit('spawn');
+  children[0].emit('error', new Error('PRIVATE delayed error'));
+  assert.equal(errors.length, 1);
 });

@@ -17,14 +17,15 @@ const native = JSON.parse(await readFile(new URL('../../release/installer.json',
 native.publication.status = 'local';
 delete native.asset.url;
 const source = await readFile(new URL('../components/Downloads.jsx', import.meta.url), 'utf8');
-async function render(release, publishedKit, installer, local) {
+async function render(release, publishedKit, installer, local, windows = null) {
   const kit = availableKitRelease(release, publishedKit, local);
-  const values = {release, installer, kit, mac:installerHref(installer, local)};
+  const values = {release, installer, kit, mac:installerHref(installer, local), windows};
   const fixture = source.replace(/^import .*;\n/gm, '')
-    .replace('export function Downloads()', `const {release, installer, kit:available, mac:macHref} = ${JSON.stringify(values)};
+    .replace('export function Downloads()', `const {release, installer, kit:available, mac:macHref, windows:windowsHref} = ${JSON.stringify(values)};
 const DownloadIcon = () => null;
 const downloadableKit = () => available;
 const macDownloadHref = () => macHref;
+const windowsDownloadHref = () => windowsHref;
 const downloadHref = (key = 'kit') => available?.publication.status === 'published' ? available.assets[key].url : '/download/' + key;
 export function Downloads()`);
   const js = ts.transpileModule(fixture, {compilerOptions:{jsx:ts.JsxEmit.ReactJSX, module:ts.ModuleKind.ESNext}}).outputText
@@ -113,4 +114,12 @@ test('hosted starter and setup share download-aware guidance rather than package
   assert.match(guide,/Zero \.vsix included with your downloaded kit/);
   assert.match(guide,/If your extracted complete kit includes a `setup\/` folder/);
   assert.match(guide,/Use the versioned Zero VSIX included with your/);
+});
+
+test('verified Windows installer replaces manual ZIP as the primary Windows download', async () => {
+  const url='https://github.com/codepetca/zero/releases/download/windows-v0.5.18/Zero-Setup-0.5.18-windows.exe';
+  const html=await render(current,fallback,null,false,url);
+  assert.ok(html.includes(`href="${url}"`));
+  assert.match(html,/Download for Windows<\/a>/);
+  assert.doesNotMatch(html,/Windows \(ZIP\)|zero-bootstrap.zip/);
 });

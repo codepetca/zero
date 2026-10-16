@@ -1,0 +1,51 @@
+name: Windows launcher checks
+on:
+  pull_request:
+    paths:
+      - 'native-installer/windows/**'
+      - 'setup/**'
+      - 'scripts/**'
+      - 'extension/**'
+      - 'release/**'
+      - '.config/dotnet-tools.json'
+      - '.github/workflows/windows-native.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore pinned build tools
+        run: |
+          npm ci
+          dotnet tool restore
+      - name: Native fixtures and update authentication
+        run: |
+          npm run test:windows
+          npm run test:updates:windows
+          node --test extension/test/native-updates.test.js
+      - name: Build development installer without executing it
+        run: |
+          npm run package
+          npm run verify:kit
+          node scripts/build-installers.mjs --platform windows
+          node scripts/verify-installers.mjs --platform windows
+      - name: Retain measured development candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-development-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/installers/Zero-Setup-*-windows-development.exe
+            dist/installers/Zero-*-full.nupkg
+            dist/installers/build-windows.json

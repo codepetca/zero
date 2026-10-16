@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {root, releaseDefinition} from './release.mjs';
 import {extractKit, kitEntries} from './installer-payload.mjs';
+import {buildWindowsPackage} from './windows-package.mjs';
 import {buildMacIcon} from './mac-icon.mjs';
 import {macArtifactIdentity} from './mac-artifact.mjs';
 import {buildStyledMacDmg} from './mac-dmg-layout.mjs';
@@ -23,8 +24,8 @@ mkdirSync(path.join(root, '.verification/native-installer'), {recursive:true});
 const work = mkdtempSync(path.join(root, '.verification/native-installer/build-'));
 const receiptFile = path.join(output, `build-${platform}${signed ? '-signed' : ''}.json`);
 rmSync(receiptFile, {force:true});
-function run(command, args, timeout = 180000) {
-  const result = spawnSync(command, args, {cwd:root, stdio:['/usr/bin/codesign','/usr/bin/plutil','/usr/bin/lipo'].includes(command) ? 'pipe' : 'inherit', encoding:'utf8', timeout, env:{...process.env, DOTNET_CLI_TELEMETRY_OPTOUT:'1', DOTNET_NOLOGO:'1'}});
+function run(command, args, timeout = 180000, options = {}) {
+  const result = spawnSync(command, args, {cwd:root, stdio:'pipe', encoding:'utf8', timeout, env:options.env || {...process.env, DOTNET_CLI_TELEMETRY_OPTOUT:'1', DOTNET_NOLOGO:'1'}});
   if (result.error || result.status !== 0) throw new Error(`Build failed: ${command}: ${result.error?.message || result.stderr || result.status}`);
   return {stdout:result.stdout || '', stderr:result.stderr || ''};
 }
@@ -85,19 +86,12 @@ if (platform !== 'windows') {
   copyFileSync(staged, path.join(output, filename));
   measure(filename, {platform:'macos', architectures:['arm64', 'x86_64'], minimumOS:'12.0', developerIdSigned:signed, notarized:false, ...(signing ? {signing} : {}), ...(updaterEvidence ? {updater:updaterEvidence} : {})});
 }
+let windowsPackage;
 if (platform !== 'macos') {
-  const project = path.join(root, 'native-installer/windows/ZeroSetup.csproj');
-  const published = path.join(work, 'windows');
-  run('dotnet', ['publish', project, '-c', 'Release', '-o', published, `-p:ZeroKitZip=${kitFile}`, `-p:Version=${release.kitVersion}`, `-p:AssemblyVersion=${release.kitVersion}.0`, `-p:BaseIntermediateOutputPath=${path.join(work, 'obj')}/`, `-p:BaseOutputPath=${path.join(work, 'bin')}/`, `-p:RestorePackagesPath=${path.join(root, '.verification/native-installer/nuget')}`, '-p:NuGetAudit=false'], 240000);
-  const executable = path.join(published, 'ZeroSetup.exe'), bytes = readFileSync(executable);
-  if (bytes.readUInt16LE(0) !== 0x5a4d || bytes.readUInt32LE(bytes.readUInt32LE(0x3c)) !== 0x00004550 || bytes.indexOf(kit) < 0) throw new Error('Windows PE executable must embed exact measured kit');
-  const dependencies = readdirSync(published).filter(name => name.endsWith('.dll'));
-  if (dependencies.length) throw new Error(`Unexpected Windows runtime dependencies: ${dependencies.join(', ')}`);
-  const filename = `Zero-Setup-${release.kitVersion}-windows-development.exe`;
-  copyFileSync(executable, path.join(output, filename));
-  measure(filename, {platform:'windows', architectures:['AnyCPU'], runtime:'.NET Framework 4.8', authenticodeSigned:false, nativeWindowsTested:false});
+  windowsPackage = buildWindowsPackage({root,kitFile,version:release.kitVersion,output,work,run});
+  artifacts.push(...windowsPackage.artifacts);
 }
 const git = spawnSync('git', ['rev-parse', 'HEAD'], {cwd:root, encoding:'utf8'});
 const dirty = spawnSync('git', ['status', '--porcelain'], {cwd:root, encoding:'utf8'});
-writeFileSync(receiptFile, JSON.stringify({schema:1, kitVersion:release.kitVersion, sourceRevision:git.stdout.trim(), sourceDirty:!!dirty.stdout.trim(), kit:{filename:release.assets.kit.filename, size:kit.length, sha256:sha256(kit)}, builtAt:new Date().toISOString(), artifacts}, null, 2) + '\n');
+writeFileSync(receiptFile, JSON.stringify({schema:1, kitVersion:release.kitVersion, sourceRevision:git.stdout.trim(), sourceDirty:!!dirty.stdout.trim(), kit:{filename:release.assets.kit.filename, size:kit.length, sha256:sha256(kit)}, builtAt:new Date().toISOString(), artifacts, ...(windowsPackage ? {windowsPackage:{packageId:windowsPackage.packageId,mainExe:windowsPackage.mainExe,velopackVersion:windowsPackage.velopackVersion,updaterConfigSha256:windowsPackage.updaterConfigSha256,hookVerified:windowsPackage.hookVerified}} : {})}, null, 2) + '\n');
 console.log(`Built local ${signed ? 'signed Mac candidate (not notarized)' : 'development installers'}; measured receipt: ${receiptFile}`);

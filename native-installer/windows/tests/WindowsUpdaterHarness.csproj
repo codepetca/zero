@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="WindowsUpdaterHarness.cs;../TrustedUpdateSource.cs;../UpdateCoordinator.cs" />
+    <Reference Include="System.Net.Http" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <EmbeddedResource Include="../../../release/windows-updater.json" LogicalName="WindowsUpdater.json" />
+  </ItemGroup>
+</Project>

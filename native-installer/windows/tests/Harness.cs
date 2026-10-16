@@ -52,6 +52,8 @@ internal static class Harness
             TestCloseDuringPausedWork(root);
             checks += ControllerHarness.Run(root);
             checks += EnvironmentHarness.Run();
+            checks += AutomaticControllerHarness.Run();
+            checks += RuntimeHarness.Run();
             string home = Path.Combine(root, "default-home"); Directory.CreateDirectory(home);
             Assert(KitFiles.ResolveDefaultFolder(home) == Path.Combine(home, "Zero") && !Directory.EnumerateFileSystemEntries(home).Any(), "default selection read-only in home");
             File.WriteAllText(Path.Combine(home, "Zero"), "existing file");
@@ -176,6 +178,12 @@ internal static class Harness
     private static void TestUpdates(string root)
     {
         string source = Path.Combine(root, "upgrade-source"); CreateKit(source, "0.5.6");
+        string newerHome = Path.Combine(root, "newer-home"); CreateKit(Path.Combine(newerHome, "Zero"), "0.5.17");
+        Reject(() => KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(newerHome), CancellationToken.None), "older installer cannot downgrade newer support");
+        Assert(File.ReadAllText(Path.Combine(newerHome, "Zero", "setup", "kit.properties")).Contains("kitVersion=0.5.17"), "downgrade keeps newer metadata");
+        string matchingHome = Path.Combine(root, "matching-home"); CreateKit(Path.Combine(matchingHome, "Zero"), "0.5.6");
+        KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(matchingHome), CancellationToken.None);
+        Assert(Directory.GetDirectories(matchingHome).Length == 1, "same support files create no backup or staging");
         string home = Path.Combine(root, "upgrade-home"), destination = Path.Combine(home, "Zero"); CreateKit(destination, "0.5.3");
         string[] studentPaths = { "starter/src/Main.java", "starter/src/zero/App.java", "starter/pom.xml", "starter/.vscode/settings.json", "starter/.git/config", "starter/assets/image.png", "starter/saves/game.dat", "optional/Zero.code-profile", "optional/optional-keybindings.json", "my-notes.txt", "zero-0.5.3.vsix" };
         foreach (string relative in studentPaths)
@@ -200,7 +208,7 @@ internal static class Harness
         Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")) == oldScript && File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.3"), "failure restores old runtime and metadata");
         KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None);
         Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")).StartsWith("0.5.6:"), "explicit retry succeeds after rollback");
-        expected = KitFiles.InspectDefaultFolder(home);
+        CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
         Reject(() => KitFiles.UpdateKit(source, expected, CancellationToken.None, beforeCommit: path => File.WriteAllText(Path.Combine(path, "setup", "Setup.ps1"), "raced runtime")), "runtime race at commit");
         Assert(File.ReadAllText(Path.Combine(destination, "setup", "Setup.ps1")) == "raced runtime", "raced runtime not overwritten");
         CreateKit(destination, "0.5.3"); expected = KitFiles.InspectDefaultFolder(home);
@@ -246,6 +254,7 @@ internal static class Harness
         }
         KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None);
         Assert(File.ReadAllText(Path.Combine(destination, "setup", "kit.properties")).Contains("0.5.6"), "retry after commit cancellation succeeds");
+        CreateKit(destination, "0.5.3");
         int competingChecks = 0;
         KitFiles.UpdateKit(source, KitFiles.InspectDefaultFolder(home), CancellationToken.None, beforeCommit: path =>
         {

@@ -26,7 +26,10 @@
     "verify:framework": "node scripts/verify-framework.mjs",
     "test:sharing": "node --test sharing/test/*.test.mjs",
     "sharing": "node sharing/cli.mjs",
-    "prepare:design": "node design/prepare.mjs"
+    "prepare:design": "node design/prepare.mjs",
+    "test:windows": "node scripts/test-windows.mjs",
+    "test:updates:windows": "node --test setup/tests/windows-updater.test.mjs setup/tests/windows-package.test.mjs",
+    "package:windows:production": "node scripts/build-windows-production.mjs"
   },
   "devDependencies": {
     "@vscode/vsce": "4.0.0",

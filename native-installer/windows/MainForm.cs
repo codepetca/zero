@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -11,89 +12,211 @@ namespace ZeroSetup
     {
         private readonly Label status;
         private readonly ProgressBar progress;
-        private readonly Button primary;
-        private readonly Button back;
+        private readonly Button retry;
         private readonly Button details;
-        private readonly NativeSetupBackend backend = new NativeSetupBackend();
+        private readonly Button done;
+        private readonly NativeSetupBackend backend;
+        private readonly AutomaticSetupController controller;
+        private readonly UpdateCoordinator updates;
+        private readonly Queue<LauncherRequest> requests = new Queue<LauncherRequest>();
         private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
-        private readonly CloseGate closeGate = new CloseGate();
-        private readonly SetupController controller;
+        private CancellationTokenSource background;
+        private bool pumping, closing, settingsVisible;
+        private LauncherRequest active;
+        private string errorDetails = "";
 
-        public MainForm()
+        internal MainForm(string dataRoot, LauncherRequest initial)
         {
-            Text = "Zero Setup — unsigned development build";
-            ClientSize = new Size(440, 180);
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
+            Text = "Zero";
+            ClientSize = new Size(440, 190);
+            MinimumSize = new Size(400, 220);
             StartPosition = FormStartPosition.CenterScreen;
-            Font = new Font("Segoe UI", 9);
-            controller = new SetupController(backend, lifetime.Token);
-            progress = new ProgressBar { Location = new Point(170, 26), Size = new Size(100, 8), Style = ProgressBarStyle.Marquee, MarqueeAnimationSpeed = 30, AccessibleName = "Setup progress" };
-            status = new Label { Location = new Point(16, 52), Size = new Size(408, 24), TextAlign = ContentAlignment.MiddleCenter, AutoEllipsis = true, AccessibleName = "Setup status" };
-            primary = new Button { Location = new Point(125, 92), Size = new Size(190, 30), Text = "Please wait" };
-            back = new Button { Location = new Point(16, 145), Size = new Size(62, 25), Text = "Back", Visible = false };
-            details = new Button { Location = new Point(345, 145), Size = new Size(79, 25), Text = "Details…", Visible = false };
-            Controls.AddRange(new Control[] { progress, status, primary, back, details });
-            AcceptButton = primary;
-            controller.Changed = RefreshStatus;
-            primary.Click += async (sender, args) => await PrimaryAction();
-            back.Click += (sender, args) => controller.PreviousProfileStep();
-            details.Click += (sender, args) => ShowDetails();
-            Shown += async (sender, args) => await controller.Check();
+            Font = new Font("Segoe UI", 10);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            MaximizeBox = false;
+            var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(24), ColumnCount = 1, RowCount = 4 };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 14));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+            status = new Label { Dock = DockStyle.Fill, Text = "Preparing Zero…", TextAlign = ContentAlignment.MiddleCenter, AccessibleName = "Zero status" };
+            progress = new ProgressBar { Dock = DockStyle.Fill, Style = ProgressBarStyle.Marquee, MarqueeAnimationSpeed = AnimationsEnabled() ? 30 : 0, AccessibleName = "Preparation progress" };
+            var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft };
+            retry = new Button { AutoSize = true, Text = "Try again", Visible = false, TabIndex = 0 };
+            details = new Button { AutoSize = true, Text = "Details…", Visible = false, TabIndex = 1 };
+            done = new Button { AutoSize = true, Text = "Done", Visible = false, TabIndex = 0 };
+            actions.Controls.Add(done); actions.Controls.Add(retry); actions.Controls.Add(details);
+            layout.Controls.Add(status, 0, 0); layout.Controls.Add(progress, 0, 1); layout.Controls.Add(actions, 0, 3);
+            Controls.Add(layout); AcceptButton = retry;
+            backend = new NativeSetupBackend(dataRoot);
+            controller = new AutomaticSetupController(backend);
+            updates = new UpdateCoordinator(dataRoot);
+            updates.StatusChanged += message => OnUI(() => { if (Visible && active == LauncherRequest.Check) status.Text = message; });
+            controller.Changed += () => OnUI(() => { status.Text = controller.Status; progress.Visible = controller.Busy; });
+            retry.Click += (sender, args) => Request(active);
+            done.Click += (sender, args) => { Hide(); if (!pumping) Finish(); };
+            details.Click += (sender, args) => MessageBox.Show(this, errorDetails, "Zero details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Shown += (sender, args) => Request(initial);
             FormClosing += (sender, args) =>
             {
-                if (!closeGate.TryClose(args, lifetime.Cancel))
-                    status.Text = "Please wait for setup to finish this step.";
+                if (!closing && pumping)
+                {
+                    args.Cancel = true;
+                    lifetime.Cancel(); background?.Cancel();
+                    status.Text = "Closing Zero after this step…";
+                    retry.Visible = false; details.Visible = false;
+                }
             };
-            FormClosed += (sender, args) => { backend.Dispose(); lifetime.Dispose(); };
-            RefreshStatus();
+            FormClosed += (sender, args) => { lifetime.Cancel(); background?.Dispose(); updates.Dispose(); backend.Dispose(); lifetime.Dispose(); };
         }
-        private void RefreshStatus()
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SystemParametersInfo(uint action, uint parameter, [MarshalAs(UnmanagedType.Bool)] out bool value, uint flags);
+        private static bool AnimationsEnabled()
+        {
+            bool enabled;
+            return SystemParametersInfo(0x1042, 0, out enabled, 0) && enabled;
+        }
+
+        private void OnUI(Action action)
         {
             if (IsDisposed) return;
-            closeGate.SetBusy(controller.Busy);
-            status.Text = controller.Summary;
-            primary.Text = controller.PrimaryTitle;
-            primary.Enabled = !controller.Busy;
-            primary.Visible = !controller.Busy && controller.Stage != SetupStage.Checking;
-            details.Visible = controller.CanShowDetails;
-            back.Visible = controller.CanGoBack;
-            back.Enabled = !controller.Busy;
-            progress.Visible = controller.Busy || controller.Stage == SetupStage.Checking;
+            if (InvokeRequired) BeginInvoke(action); else action();
         }
-        private async Task PrimaryAction()
+
+        internal void Request(LauncherRequest request)
         {
-            if (controller.Busy) return;
-            if (controller.Stage == SetupStage.ProfileStep && controller.Step == ProfileStep.FilePicker)
-            {
-                controller.CopyProfilePath(path => { Clipboard.SetText(path); return true; });
-                return;
-            }
-            await controller.PrimaryAction();
+            if (closing || lifetime.IsCancellationRequested) return;
+            if (settingsVisible && request == LauncherRequest.Settings) { Activate(); return; }
+            // Reopening during preparation already has a pending editor handoff.
+            if (pumping && controller.Busy && request == LauncherRequest.Open) return;
+            if (!requests.Contains(request)) requests.Enqueue(request);
+            background?.Cancel();
+            if (!pumping) { var operation = Pump(); }
         }
-        private void ShowDetails()
+
+        private async Task Pump()
         {
-            string root = controller.Root;
-            string guide = "";
+            pumping = true;
             try
             {
-                if (root != null)
+                while (requests.Count > 0 && !lifetime.IsCancellationRequested)
                 {
-                    string path = Path.Combine(root, "setup", "README.md");
-                    KitFiles.RejectReparseAncestors(path);
-                    guide = File.ReadAllText(path);
+                    active = requests.Dequeue();
+                    retry.Visible = false; details.Visible = false; done.Visible = false; errorDetails = "";
+                    if (active == LauncherRequest.Settings) ShowUpdateSettings();
+                    else if (active == LauncherRequest.Check) await CheckUpdates(true);
+                    else
+                    {
+                        Show(); Activate();
+                        bool opened = await controller.Open(lifetime.Token);
+                        if (!opened)
+                        {
+                            if (!lifetime.IsCancellationRequested) Fail(controller.Status, controller.Details);
+                            continue;
+                        }
+                        Hide();
+                        // Pending explicit requests take precedence over an automatic check.
+                        if (requests.Count == 0 && updates.Enabled && updates.IsDue) await CheckUpdates(false);
+                    }
                 }
             }
-            catch (Exception error) { guide = "Guide unavailable: " + error.Message; }
-            using (var dialog = new Form { Text = "Zero Setup Details", Size = new Size(720, 500), StartPosition = FormStartPosition.CenterParent, Font = Font })
+            catch (OperationCanceledException) { }
+            catch (Exception error) { if (!lifetime.IsCancellationRequested) Fail("Zero needs attention. Try again or open Details.", error.Message); }
+            finally
             {
-                string profile = root == null ? "(kit is still being prepared)" : controller.ProfileFile;
-                dialog.Controls.Add(new TextBox { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, WordWrap = true,
-                    Text = "Unsigned development build • " + Application.ProductVersion + "\r\n\r\n" + controller.Summary + "\r\n" + controller.ConsentDetail +
-                    "\r\n\r\nProfile import: Ctrl+Shift+P > Preferences: Open Profiles (UI) > menu beside New Profile > Import Profile > Select File. Paste the full path into File name, choose Open, then Create with the name Zero. Return here and Check profile.\r\nProfile: " + profile +
-                    "\r\n\r\n" + controller.Diagnostics + "\r\nManual setup guide:\r\n" + guide, AccessibleName = "Zero setup details" });
-                dialog.ShowDialog(this);
+                pumping = false;
+                if (lifetime.IsCancellationRequested || (!Visible && requests.Count == 0)) Finish();
             }
+        }
+
+        private async Task CheckUpdates(bool manual)
+        {
+            if (manual)
+            {
+                Show(); Activate(); status.Text = "Checking for updates…"; progress.Visible = true;
+            }
+            background?.Dispose();
+            background = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+            try
+            {
+                UpdateResult result = await updates.CheckAndDownload(manual, background.Token);
+                if (background.IsCancellationRequested || requests.Count > 0) return;
+                if (result == UpdateResult.Available)
+                {
+                    Show(); Activate(); progress.Visible = false;
+                    if (MessageBox.Show(this, "A Zero update is available. Download and install it now?", "Zero update", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                        result = await updates.CheckAndDownload(true, lifetime.Token);
+                    else { Hide(); return; }
+                }
+                if (result == UpdateResult.Ready)
+                {
+                    if (manual && MessageBox.Show(this, "The Zero update is ready. Install it now? Your editor can stay open.", "Zero update", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
+                    { Hide(); return; }
+                    if (lifetime.IsCancellationRequested || requests.Count > 0 || controller.Busy) return;
+                    // No setup helper may run after commit. Apply only the package
+                    // reverified by the coordinator; never restart/kill the editor.
+                    closing = true;
+                    try { backend.Dispose(); updates.ApplyPending(); }
+                    catch { closing = false; throw; }
+                    Finish();
+                    return;
+                }
+                if (manual)
+                {
+                    progress.Visible = false;
+                    status.Text = result == UpdateResult.Disabled ? "Automatic updates aren’t configured for this development build." : "Zero is up to date.";
+                    ShowCloseButton();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                if (manual && !lifetime.IsCancellationRequested && requests.Count == 0)
+                    Fail("The update check took too long. Try again when you’re ready.", "Check your internet connection, then choose Try again. The installed version is still available.");
+                // Background timeout/offline: normal editor session remains open.
+            }
+            catch (Exception error)
+            {
+                if (manual) Fail("Could not update Zero. Try again or open Details.", error.Message);
+            }
+            finally { progress.Visible = false; }
+        }
+
+        private void ShowUpdateSettings()
+        {
+            Hide(); settingsVisible = true;
+            try
+            {
+                using (var dialog = new Form { Text = "Zero update settings", ClientSize = new Size(410, 180), StartPosition = FormStartPosition.CenterScreen, Font = Font, AutoScaleMode = AutoScaleMode.Dpi, MinimizeBox = false, MaximizeBox = false })
+                {
+                    var check = new CheckBox { Text = "Check automatically when Zero opens", Checked = updates.CheckEnabled, AutoSize = true, Location = new Point(20, 20) };
+                    var download = new CheckBox { Text = "Download and install updates automatically", Checked = updates.DownloadEnabled, AutoSize = true, Location = new Point(20, 55) };
+                    var note = new Label { Text = "Checks happen after your editor opens. School policies may restrict updates.", Location = new Point(20, 87), Size = new Size(370, 40) };
+                    var done = new Button { Text = "Done", DialogResult = DialogResult.OK, Location = new Point(290, 137), Size = new Size(100, 28) };
+                    dialog.Controls.AddRange(new Control[] { check, download, note, done });
+                    dialog.AcceptButton = done; dialog.CancelButton = done;
+                    if (dialog.ShowDialog() == DialogResult.OK) { updates.CheckEnabled = check.Checked; updates.DownloadEnabled = download.Checked; }
+                }
+            }
+            finally { settingsVisible = false; }
+        }
+
+        private void ShowCloseButton()
+        {
+            retry.Visible = false;
+            done.Visible = true; AcceptButton = done;
+        }
+        private void Fail(string message, string detail)
+        {
+            Show(); Activate(); status.Text = message; errorDetails = detail;
+            progress.Visible = false; retry.Visible = true; details.Visible = true;
+            AcceptButton = retry;
+        }
+        private void Finish()
+        {
+            if (closing && IsDisposed) return;
+            closing = true; Close();
         }
     }
 }

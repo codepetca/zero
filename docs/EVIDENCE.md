@@ -1,5 +1,50 @@
 # Delivery evidence index
 
+## Windows automatic setup and updater — 2026-10-16
+
+Owner authorized implementation with no preservation/migration acceptance
+requirement for prior student work/settings. Local0.5.18 adds a native per-user
+Velopack1.2.161 launcher, private pinned Java21, compatible editor reuse/private
+fallback, isolated settings/extensions, first-open/resume, fixed Windows editor
+update controls, serialized authenticated updates, signing tooling, future verified
+website download/feed metadata and Windows fixture/package CI. Published Mac,
+kit and feed bytes remain immutable. No credential, signing, push, publication,
+merge or account action performed. Original funding/web-export work is untouched.
+
+Native Net48/C#7.3 app builds with zero warnings/errors. Main fixture harness690
+assertions pass on Mono, including424 runtime assertions. Updater harness11
+security/lifecycle checks pass with ephemeral RSA3072 keys. Root tests279pass/1skip
+(portable PowerShell unavailable); Windows package/config/signing8pass; website
+102pass, typecheck and production build pass. Configuration and kit verification
+pass, including extracted Maven build. Website retains the exact public0.5.17
+Mac/WindowsZIP fallback; local browser inspection and HTTP503/Retry-After3600
+confirm the unavailable Windows feed does not offer an unsigned candidate.
+
+Both actual official Windows vendorZIPs match authored size/SHA256 and extract
+through the production archive code without executing Windows vendor binaries.
+That check exposed and fixed VSCode1.142's versioned resources/app layout.
+Actual pinned-vpk Mac cross-pack verifies the launcher hook without bypass,
+Windows10build19041/x64/Start-menu identity and exact full-package bytes in Setup.
+General native artifact verification passes. Development updater configuration
+is forced disabled; production requires explicit existing certificate/trust config.
+
+Evidence retained under ignored .verification/windows-auto-setup: root-tests,
+all-native-tests, website-*, package-signing-tests, installer-build/verify and
+vendor-proof/archive-proof.log. Native/fixture checks are not a Windows UI trial:
+SmartScreen, actual tool processes, Windows locks, first JavaFX run and signed A→B
+remain required before production. No production update key is provisioned.
+
+Delegation: requested GPT-6.1Sol/high native runtime and updater/package workers;
+Sol/medium editor commands/website worker. Coordinator verified source, native
+harness, vendor/archive and package results; no overlapping writers or integration
+conflicts. Corrections from real artifacts: VSCode resource layout and vpk package
+layout; two obsolete website rendering test fixtures updated for new dependency.
+Effective models/per-task tokens unknown. Initial55%/pre-review54% weekly remaining
+are account-wide readings, not isolated task cost. Healthy free storage331GB at
+start. Review session: high risk,2independent Sol/high reviewers, security/correctness
+and lifecycle/compatibility; cap7launches/4fix batches/60minutes, initial2launches
+planned, no fix batches yet. Review result recorded after fixed-source inspection.
+
 ## Subtle scrollbar tracks — 2026-10-16
 
 Owner requested scrollbar gutters blend into the existing background. Generated

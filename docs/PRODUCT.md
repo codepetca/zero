@@ -327,7 +327,10 @@ See [VERIFICATION.md](VERIFICATION.md) for actual local checks and their scope.
 A Mac teacher trial verified native authentication and a private repository
 upload. The current MVP targets Mac with Apple Silicon and Windows; Linux and
 Intel Macs are unsupported. Windows uses the published complete-kit ZIP for
-manual setup; its native EXE remains unpublished. Physical Windows, school
+manual setup; its native EXE remains unpublished. Local0.5.18 source implements
+a per-user native Windows launcher with automatic private Java/editor preparation,
+session resume and authenticated updates; see [the Windows contract](WINDOWS-INSTALLER.md).
+It still needs signing, actual Windows acceptance and authorized publication. Physical Windows, school
 restrictions and novice classroom pilots still need verification. Retained
 universal/cross-platform artifacts and historical checks do not expand support.
 First-time builds need internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before

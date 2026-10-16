@@ -21,14 +21,18 @@ test('Windows native requests are explicit and validated before any probes', () 
   assert.match(source, /WaitAll[\s\S]*2000/);
   assert.match(source, /\$script:Vsix = Join-Path \$KitDir "zero-\$KitVersion.vsix"/);
 });
-test('Windows native UI uses one status line and guarded explicit actions', () => {
+test('Windows production launcher uses automatic preparation and authenticated explicit updates', () => {
   const ui = readFileSync(new URL('../../native-installer/windows/MainForm.cs', import.meta.url), 'utf8');
-  assert.match(ui, /ClientSize = new Size\(440, 180\)/);
-  assert.match(ui, /FormBorderStyle = FormBorderStyle.FixedSingle/);
-  assert.match(ui, /primary.Enabled = !controller.Busy/);
-  assert.match(ui, /ProgressBarStyle.Marquee/);
-  assert.match(ui, /Shown[\s\S]*controller.Check/);
-  assert.doesNotMatch(ui, /LaunchSetup|LaunchFolder|TextBox summary/);
+  const backend = readFileSync(new URL('../../native-installer/windows/NativeSetupBackend.cs', import.meta.url), 'utf8');
+  const program = readFileSync(new URL('../../native-installer/windows/Program.cs', import.meta.url), 'utf8');
+  assert.match(ui, /AutomaticSetupController/);
+  assert.match(ui, /Hide\(\)[\s\S]*updates.IsDue/);
+  assert.match(ui, /controller.Busy[\s\S]*updates.ApplyPending/);
+  assert.doesNotMatch(ui, /ProfileStep|Import Profile|Open download page/);
+  assert.doesNotMatch(backend, /PowerShell|NativeInfo|Process.Start/);
+  assert.match(backend, /runtime.Prepare/);
+  assert.match(backend, /runtime.Open\(File.Exists\(marker\)/);
+  assert.ok(program.indexOf('SetAutoApplyOnStartup(false).Run()') < program.indexOf('Application.EnableVisualStyles()'));
 });
 test('PowerShell parser and mocked native workflow (portable PowerShell; not Windows 5.1)', {skip: !pwsh}, () => {
   const result = spawnSync(pwsh, ['-NoLogo', '-NoProfile', '-NonInteractive', '-File', fileURLToPath(new URL('./windows-native-fakes.ps1', import.meta.url)), '-Source', script], {encoding: 'utf8', timeout: 20000});

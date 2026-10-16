@@ -24,3 +24,10 @@ export const sources: Record<string,string> = snapshot.sources;
 export const installer = snapshot.installer;
 export function macDownloadHref() { return installerHref(installer, localDownloadsEnabled()); }
 export function landingHref() { return landingDownloadHref(downloadHref(), installer, localDownloadsEnabled()); }
+
+export const windowsInstaller = snapshot.windowsInstaller as {
+  kitVersion: string;
+  publication: {status: 'published'; repository: string; tag: string};
+  asset: {url: string; minimumOS: string; architectures: string[]};
+} | null;
+export function windowsDownloadHref() { return windowsInstaller?.publication.status === 'published' ? windowsInstaller.asset.url : null; }
