@@ -14,7 +14,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, externalResult=true, empty=false, profile, information=async()=>undefined, pick=async()=>undefined}={}) {
+async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, externalResult=true, empty=false, profile, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):'{}');
@@ -42,7 +42,15 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
   Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./core')return {...core,assertRepositoryRoot:async()=>{throw new Error('No repository');}};return load.call(this,id,...args);};
   let extension;try{extension=require(filename);}finally{Module._load=load;}
   t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
-  extension.activate({subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}});
+  let extensionPath;
+  if (unpublishedTutorials) {
+    extensionPath=path.join(root,'extension-fixture');
+    await fs.mkdir(path.join(extensionPath,'media'),{recursive:true});
+    const bundle=JSON.parse(await fs.readFile(path.join(__dirname,'../media/lesson-projects.json'),'utf8'));
+    for (const project of bundle.projects) project.template=null;
+    await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
+  }
+  extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
@@ -166,7 +174,7 @@ test('empty window with existing editor waits for explicit account action withou
 
 test('explicit welcome connection succeeds in an empty window and unpublished tutorial stays unavailable',async t=>{
   let answer;const profile=new Map();let picks=0;
-  const f=await fixture(t,{empty:true,profile,information:(text,...choices)=>choices.includes('Connect GitHub')?new Promise(resolve=>{answer=resolve;}):choices.includes('Start tutorial')?'Start tutorial':undefined,pick:async items=>{picks++;return items[0];}});
+  const f=await fixture(t,{empty:true,profile,unpublishedTutorials:true,information:(text,...choices)=>choices.includes('Connect GitHub')?new Promise(resolve=>{answer=resolve;}):choices.includes('Start tutorial')?'Start tutorial':undefined,pick:async items=>{picks++;return items[0];}});
   await settle(()=>answer);f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});answer('Connect GitHub');
   await settle(()=>f.errors.length>0);assert.match(f.errors[0],/template is not published yet/);assert.equal(picks,1);
   assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1);assert.deepEqual(f.authCalls.at(-1).options,{createIfNone:true});assert.ok(f.authCalls.every(call=>call.scopes.join(',')==='repo'));

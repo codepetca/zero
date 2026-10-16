@@ -1,8 +1,41 @@
 {
   "schema": 1,
   "templates": [
-    {"id":"greeting","repository":"codepetca/zero-tutorial-greeting","publication":null},
-    {"id":"study","repository":"codepetca/zero-tutorial-study","publication":null},
-    {"id":"game","repository":"codepetca/zero-tutorial-game","publication":null}
+    {
+      "id": "greeting",
+      "repository": "codepetca/zero-tutorial-greeting",
+      "publication": {
+        "repositoryId": 1421546221,
+        "visibility": "public",
+        "isTemplate": true,
+        "defaultBranch": "main",
+        "commit": "b4734a4c0fc9bbaf540662076605e527f95d5671",
+        "tree": "c9351597e691f75f14dc6e536fe093a7144b4c40"
+      }
+    },
+    {
+      "id": "study",
+      "repository": "codepetca/zero-tutorial-study",
+      "publication": {
+        "repositoryId": 1421546287,
+        "visibility": "public",
+        "isTemplate": true,
+        "defaultBranch": "main",
+        "commit": "43fbfd478b39909e803252b8ec2fdf3758a531a2",
+        "tree": "cf4172659b62dbd7efbca1b9d39b3385f61dce1c"
+      }
+    },
+    {
+      "id": "game",
+      "repository": "codepetca/zero-tutorial-game",
+      "publication": {
+        "repositoryId": 1421546366,
+        "visibility": "public",
+        "isTemplate": true,
+        "defaultBranch": "main",
+        "commit": "0daa1d6eff184727085cbb9002e0820a00922e07",
+        "tree": "9123e4bc6f8827c8273044ad98054759ba3865d9"
+      }
+    }
   ]
 }
