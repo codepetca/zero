@@ -440,18 +440,20 @@ h3 {
   height: auto;
 }
 .lesson-quick-path {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 24px;
-  align-items: center;
   margin: 24px 0;
   font-size: 16px;
   line-height: 1.6;
 }
-.lesson-quick-path > * { min-width: 0; }
+.lesson-summary-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+}
+.lesson-summary-body > * { min-width: 0; }
 .learn-theme .lesson-summary-card {
   padding: 24px;
-  background: var(--zero-surface);
+  background: color-mix(in srgb, var(--zero-accent) 8%, var(--zero-page));
   border-radius: var(--zero-radius);
 }
 .markdown .lesson-summary-card h2 {
@@ -464,7 +466,7 @@ h3 {
 .markdown .lesson-summary-card p { margin: 16px 0 0; line-height: 1.6; }
 .markdown .lesson-summary-visual p { margin: 0; }
 @media (max-width: 760px) {
-  .lesson-quick-path { grid-template-columns: minmax(0, 1fr); }
+  .lesson-summary-body { grid-template-columns: minmax(0, 1fr); }
   .learn-theme .lesson-summary-card { padding: 20px; }
 }
 .markdown h2 {

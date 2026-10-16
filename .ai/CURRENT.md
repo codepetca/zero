@@ -1,23 +1,18 @@
-# Current state — Tutorial Summary refinement, 2026-10-16
+# Current state — Lesson title card refinement, 2026-10-16
 
-Owner requested removal of the entire First time card and every continuation card
-containing If you have not started it yet. This refines the website cleanup
-published through PR71/e268b93 under the current publication workflow. Branch
-codex/tutorial-remove-project-hints owns this refinement; original funding and
-other active worktrees remain untouched.0.5.17 release files remain unchanged.
+Active in owned tutorial-reading-cleanup worktree on codex/tutorial-lesson-card.
+Continuing owner-authorized website publication: put lesson title, actions, Done
+and image inside one subtly purple-tinted card; no duplicate outside title or
+Summary label. All13 lessons updated through shared rendering; source lessons
+and release inputs unchanged. Design defaults saved in design.md and PRODUCT.
 
-Document removes the generic help wrapper/content and empty continuation sections.
-Start project buttons remain only at lessons0/3/8. Lesson10 component reminder and
-lesson12 optional assets remain as small muted,unboxed notes. Canonical lesson
-instructions,Next/sidebar,sticky API names and transparent scrollbars are unchanged.
-Owner also requested opening actions/Done in a Summary card, illustration beside
-on desktop/below on phones, and removal of the redundant short description label.
-Renderer/CSS implement this without changing authored source; all13 render tests
-verify grouping.96website tests/typecheck/build pass. Prior review turn interrupted
-for owner steering; one complete review resumes on the new fixed head. Draft PR72
-owns both refinements. Continuing design/product defaults are updated.
+96 website tests, typecheck/build and diff whitespace check pass. Local1280px
+dark columns and320px light stack/nooverflow/image containment verified; keyboard
+Enter collapses details. Safari/physical/enlarged-text/forced-color UI not newly
+exercised. Existing updater tracing warnings remain. Independent low-risk review
+planned:one Luna/medium reviewer, one initial wave, max7launches/4fix batches/60min;
+no extra wave unless actionable findings. Receipts:.verification/tutorial-lesson-card/.
 
-Next: local website checks/browser confirmation,one bounded independent review,
-then PR/exact-headCI/merge and live verification through the existing publication
-flow. Preserve .verification/tutorial-card-removal/ receipts. Prior PR71 acceptance
-and platform limits remain recorded in docs/EVIDENCE.md and docs/VERIFICATION.md.
+Previous publication PR72/main713040a verified; current head includes its local
+handoff receipt. Next: fixed-head review, reviewed PR/CI, authorized merge and
+verify public deployment. Preserve original dirty funding checkout and other work.

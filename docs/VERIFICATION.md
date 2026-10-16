@@ -1,6 +1,24 @@
 # Verification
 
+## Lesson title card refinement — 2026-10-16
+
+Owner-requested correction: lesson title replaces Summary and duplicate outside
+heading; actions, Done and image share a subtly purple-tinted card. Desktop
+columns/phone stacking retained. All96 website tests, typecheck/build and diff
+check pass. Local1280px dark and320px light verify containment/reflow without page
+overflow; keyboard Enter collapses details. Safari/physical/enlarged-text/forced
+color checks not newly run. Review and publication pending; detailed receipts in
+`.verification/tutorial-lesson-card/`. Source lessons and release inputs unchanged.
+
 ## Tutorial Summary and removal of generic help cards — 2026-10-16
+
+PR72 merged713040a after complete resumed independent review and successful
+exact-headCI38911105634 attempt2. First attempt hit an unchanged Maven sample
+timeout; retry passed without changing source/checks. Production deployment7120970704
+is successful; all13 public tutorial pages verify Summary/three actions/Done/image,
+removed generic cards/labels and preserved buttons/notes. Live1280px card/image
+layout is side-by-side without overflow. Existing signed feed bytes unchanged.
+Evidence:.verification/tutorial-card-removal/ and docs/EVIDENCE.md.
 
 96website tests,typecheck/build and whitespace checks pass after Summary refinement.
 All13 lesson render tests verify Summary/actions/Done grouping with image outside

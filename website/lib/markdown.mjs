@@ -71,6 +71,9 @@ export function foldSections({ lesson = false } = {}) {
       for (const child of node.children ?? []) visit(child);
     }
     visit(tree);
+    const lessonHeading = tree.children.find((node) => node.tagName === "h1");
+    const lessonTitle = nodeText(lessonHeading ?? {}).replace(/^(\d+)\.\s+/, "Lesson $1: ");
+    const lessonTitleId = lessonHeading?.properties?.id || "lesson-title";
     // Source guides also put Previous links in the introduction. The website
     // sidebar and Next lesson footer already provide lesson navigation.
     const content = tree.children.filter((node) => !(
@@ -132,16 +135,22 @@ export function foldSections({ lesson = false } = {}) {
         type: "element", tagName: "div", properties: { className: ["lesson-quick-path"] },
         children: [{
           type: "element", tagName: "section",
-          properties: { className: ["lesson-summary-card"], "aria-labelledby": "lesson-summary" },
+          properties: { id: "lesson-summary", className: ["lesson-summary-card"], "aria-labelledby": lessonTitleId },
           children: [{
-            type: "element", tagName: "h2", properties: { id: "lesson-summary" },
-            children: [{ type: "text", value: "Summary" }],
-          }, ...introduction.filter((node) => node !== goal && !visuals.includes(node)),
-          blocks[actions], blocks[actions + 1]],
-        }, ...(visuals.length ? [{
-          type: "element", tagName: "div", properties: { className: ["lesson-summary-visual"] },
-          children: visuals,
-        }] : [])],
+            type: "element", tagName: "h2", properties: { id: lessonTitleId },
+            children: [{ type: "text", value: lessonTitle }],
+          }, {
+            type: "element", tagName: "div", properties: { className: ["lesson-summary-body"] },
+            children: [{
+              type: "element", tagName: "div", properties: { className: ["lesson-summary-steps"] },
+              children: [...introduction.filter((node) => node !== goal && !visuals.includes(node)),
+                blocks[actions], blocks[actions + 1]],
+            }, ...(visuals.length ? [{
+              type: "element", tagName: "div", properties: { className: ["lesson-summary-visual"] },
+              children: visuals,
+            }] : [])],
+          }],
+        }],
       }];
       const extra = blocks.slice(actions + 2);
       if (sections.length) sections[0].children[1].children.unshift(...extra);
