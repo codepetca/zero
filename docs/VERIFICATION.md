@@ -1,5 +1,68 @@
 # Verification
 
+## Armorup real tutorial setup — preview and public templates, 2026-10-15
+
+Owner explicitly authorized public publication of the three prepared empty templates
+and private armorup trials. Published [Greeting](https://github.com/codepetca/zero-tutorial-greeting),
+[Study](https://github.com/codepetca/zero-tutorial-study) and
+[Coin game](https://github.com/codepetca/zero-tutorial-game). Each is a public GitHub
+template with20files, identical to previously reviewed/tested scaffolds. Anonymous
+API/download verification checked IDs/public/template flags and all file hashes.
+Exact commit/tree/ID pins are in teaching/tutorial-templates.json.
+
+Reviewed corrected sourcecbf2832, packagefbd0c33; local immutable candidate
+`dist/candidates/zero-0.5.16-templates-fbd0c33`. Installed its VSIX into the owned
+nested managed test profile, preserving ordinary installations and other worktrees.
+Actual native0.5.16 reused armorup's session; no new grant or signup was performed.
+Get Started → Start tutorial → Greeting → Open template opened the GitHub form.
+Actual UI created private armorup/zero-greeting-setup-trial-20261015 (ID1421549554),
+then native Git:Clone used its HTTPS URL and opened the standalone folder. Main
+and hosted lesson0 opened; account and origin were detected without reconnecting.
+Ordinary Label/show code displayed Hello armorup; editing/running showed Hello Java;
+cached unchanged rerun worked. Three Stop checks closed all3runtime URLs. A native
+attempt to replace tutorial origin was rejected; original origin and remote initial
+commit9ff5904 remained unchanged. Only local Main is modified. No Upload, branch,
+Finish, Pages, source push, website deployment or release action was performed.
+Trial window is left stopped for inspection.
+
+Root444tests:443pass/1PowerShellskip;7scaffold tests;26focused setup tests;
+website108tests/build; configuration/syntax/link checks; package/extracted Maven/
+source/license/mode checks and four saved hashes pass. Existing2updater tracing
+warnings remain. Sol/medium independent publication review found one consolidated
+P2: script/website tests assumed permanently unpublished templates. One fix batch
+and targeted review accepted canonical availability checks while explicit null/
+invalid recovery fixtures remain.2review turns/starts,1initial/1targeted wave,
+0remaining findings; effective model/tokens/elapsed unavailable. Assertion-only
+remediation changes no runtime metadata, so prior complete review is retained.
+Source helper mapping was useful; coordinator corrected an obsolete installed-path
+inference through actual process arguments. Shared allowance63%remaining is not
+attributable task cost; storage337GBhealthy; no writer conflicts.
+
+Compiler Maven phases were14.015s and33.242s with other checks running. These exclude
+other Run stages and are not cold-machine/classroom benchmarks. Cached unchanged
+rerun returned in the first AX observation, entire toolcall<1.5s. This supports
+functional acceptance, not a universal responsiveness guarantee.
+
+Usability findings from actual screens: grouping Run/Stop, GitHub and ZeroHub is
+coherent; Start tutorial disappears from visible sidebar/menu after welcome; manual
+Git:Clone/folder choice adds a browser/editor handoff; Connect another repository
+is offered for a tutorial then rejected. The actual hosted lesson still gives old
+ZIP instructions; candidate lessons0/3/8 show the correct verified template links.
+The public website/installer must align with this flow before student release.
+GameApp rename from the other chat is separate; current published browser templates
+still use the reviewed SketchApp profile and need coordinated refresh after API/
+WebFX integration. No source fingerprint rule was bypassed.
+
+Screenshots, AX text, publication/draft/review logs, audit.json and trial-receipt.json
+are retained under `.verification/armorup-student-flow/`. Final accepted screenshots
+include native armorup welcome, private GitHub repository, working app/source,
+hosted-vs-candidate lesson setup and the redundant connection error. Native labels
+and keyboard Command Palette worked; no complete screenreader/keyboard-only or
+accessibility-compliance claim. Fresh account/signup/new grant, physical Windows,
+school hardware/network, real branch/upload/Publish on this candidate and repeated
+private Study/Coin native walkthroughs remain untested. Public source parity and
+all3candidate template entry links are verified; earlier scaffold builds retained.
+
 ## Restore direct platform downloads — local, 2026-10-15
 
 Source364944b restores Mac Silicon and Windows ZIP buttons directly on Home using

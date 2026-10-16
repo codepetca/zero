@@ -7,12 +7,14 @@ revision and check results are retained under `.verification/student-release-0.5
 and in the local candidate directory. Nothing in this preparation grants source
 publication, deployment, signing or account authority.
 
-Latest local source/package candidate: `47cc071`,
-`dist/candidates/zero-0.5.16-welcome-47cc071`. Website only offers Download Zero;
-desktop checks the native GitHub session, prompts Connect GitHub if needed, then
-leads to tutorial creation. No separate Zero account. Native source-host Later/
-cancel/retry checks pass; successful fresh-account/clone/publish and final native
-installer acceptance remain pending. See [verification](VERIFICATION.md).
+Latest package sourcefbd0c33, reviewed corrected sourcecbf2832 (test-only delta),
+`dist/candidates/zero-0.5.16-templates-fbd0c33`. Home offers direct Mac Silicon and
+Windows ZIP choices. Desktop reuses native GitHub sessions or prompts Connect.
+The three public tutorial templates are verified and pinned; actual armorup private
+Greeting create/clone/edit/Run/Stop passed in the installed owned preview. No
+separate Zero account. Fresh signup/new grant, Upload/Publish and final native
+installer acceptance remain. The live website still gives ZIP tutorial setup;
+website and desktop must be released together. See [verification](VERIFICATION.md).
 
 ## What students receive
 
@@ -65,8 +67,8 @@ Owner decision, 2026-10-15: there are no real users or student projects to migra
 This release may break compatibility with existing development projects. Start
 fresh with a current starter or Start Project scaffold; an old-project migration
 feature and an old0.5.15→0.5.16 upgrade acceptance trial are not release gates.
-The full installed-candidate student flow still needs acceptance from a fresh
-project, including Run, repository setup, Upload and Publish.
+The installed preview accepted a fresh armorup-owned tutorial create/clone/edit/
+Run/Stop trial. Fresh native consent and the final Upload/Publish flow remain.
 
 Older helpers still fail the strict browser fingerprints; this decision removes
 the requirement to support them rather than changing the compiler. Development
@@ -76,12 +78,12 @@ source, public proof and unrelated working checkouts remain useful evidence.
 
 ## Required before release
 
-1. **Publish and verify tutorial templates.** Prepare the three empty tutorial
-   repositories locally, then obtain authorization to publish them as templates.
-   Record verified repository IDs/commits and public template metadata, and verify
-   create-own-repository/clone from a fresh student account. Also verify/refresh the
-   five existing complete example templates against the current browser profile. Pending templates
-   must stay unavailable; the five older complete example templates are distinct.
+1. **Align tutorial and example templates.** The three empty tutorials are public
+   and anonymously verified; exact pins are recorded. Existing armorup setup trial
+   passed. Integrate the other chat's GameApp rename with strict browser adapters/
+   fingerprints before refreshing the current SketchApp-based templates. Verify/
+   refresh the five older complete example templates. Test a fresh signup/consent
+   flow; existing-session acceptance does not establish new-account behavior.
 2. **Accept the fresh installed-candidate workflow.** Start from the current
    starter and test setup, edit/Run/Stop, repository connection, real Upload,
    Publish and Open/Copy. Existing-project migration is outside this pre-release scope.
@@ -120,25 +122,19 @@ this preparation.
 
 ## Current local checks
 
-Latest account-setup source92953e2 is independently reviewed, with54 focused
-setup/onboarding/tutorial,7 scaffold and18 website tests passing. Production
-website build, package/extracted Maven/source parity and six saved hashes pass.
-Candidate `dist/candidates/zero-0.5.16-account-ca89325` is uninstalled/unpublished.
-Desktop and320px setup-link checks pass; two message-channel errors remain
-unattributed. This does not replace fresh account or native/platform acceptance.
-See [verification](VERIFICATION.md) for phase-specific evidence and limits.
+Reviewed sourcecbf2832 has root444tests:443pass/1PowerShellskip;7scaffold and26focused
+setup tests; website108tests/build; configuration/syntax/link checks; package and
+verify:kit passed. Extracted Maven/source/license/mode parity and saved hashes pass.
+Candidate `dist/candidates/zero-0.5.16-templates-fbd0c33` VSIX is installed in the
+owned nested preview profile, with its public template metadata. The native
+installer and public kit/website remain unchanged. Independent Sol/medium review
+found obsolete null expectations, fixed and accepted in one targeted pass.
 
-Final root432tests:431pass/1PowerShell platform skip; website108tests, typecheck
-and production build pass. Packaging and verify:kit pass, including extracted
-Maven compilation and exact source/license/mode parity. All three empty tutorial
-scaffolds compile with Maven; real disposable local Greeting/Game clones pass the
-repository gate and GWT, and display the greeting/expected canvas in Chrome.
-Tutorial website pending-template/continuation/media and320px/light/dark checks
-pass. Native installed-candidate create/clone remains untested; Mac UI was locked.
-
-Two initial independent source reviews and one targeted playground-adapter
-correction review are clean. The full root rerun passes after that adapter fix.
-Native verify:framework's previous focus timeout remains a separate acceptance
-gap. Prior exact-build Sky Hop Pages evidence is reused for the unchanged compiler
-profile. Templates and distribution remain unpublished; local fixture checks do
-not establish fresh student GitHub account acceptance or public template availability.
+Actual existing-armorup private Greeting create/clone/edit/browser Run/Stop/rerun
+passes. All3template entries point to verified public repositories. Earlier3scaffold
+Maven and Greeting/Game GWT/browser proofs remain applicable through exact public
+source parity. Sidebar usability findings, compiler timings and release limits
+are in [verification](VERIFICATION.md) and `.verification/armorup-student-flow/`.
+No fresh GitHub signup/new permission, physical Windows, current-candidate Upload/
+branches/Finish/Publish, or full private Study/Coin native walkthrough is claimed.
+The separate native framework focus timeout and public website ZIP mismatch remain.

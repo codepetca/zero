@@ -216,8 +216,9 @@ Final integrated acceptance and release remain separate.
 
 Browser sharing adds **Publish app** in the GitHub section and **Export for
 web** in the title menu. Students keep ordinary Java. A reviewed GitHub Pages
-setup leads to an exact-version verified playable link; simulation remains the
-default. Share game can attach the exact verified publication automatically;
+setup leads to an exact-version verified playable link. Live is the student
+default; simulation is an explicit testing setting. Share game can attach the
+exact verified publication automatically;
 ZeroHub offers Play latest on student hosting alongside exact source downloads.
 See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 

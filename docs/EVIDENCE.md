@@ -1,5 +1,19 @@
 # Delivery evidence index
 
+## Armorup setup and public tutorial templates — 2026-10-15
+
+Published/anonymous-hash-verified3empty20-file tutorial templates under codepetca,
+after explicit owner approval. Real native0.5.16 armorup reuse → private Greeting
+creation → nativeHTTPSClone → ordinary Java edit/Run/Stop/rerun passed. Remote
+initial commit unchanged; no source upload/game/website/release action. Hosted
+lesson still gives old ZIP setup, so the public path is not release-ready.
+Reviewed corrected sourcecbf2832, packagefbd0c33; candidate
+`dist/candidates/zero-0.5.16-templates-fbd0c33`. Root443pass/1PowerShellskip,
+website108tests/build,7scaffold/26focused tests, package/extracted-kit and hashes
+pass. One Sol/medium reviewer, initial+targeted turns,1test-expectation fix batch,
+clean corrected verdict. Sidebar findings, scope/limits and screenshots are in
+[verification](VERIFICATION.md) and `.verification/armorup-student-flow/`.
+
 ## Download-first desktop onboarding — local, 2026-10-15
 
 Reviewed/package source47cc071: website Download Zero, desktop session check and
