@@ -43,13 +43,13 @@ Tutorials and Downloads use one circular sun/moon button in the header to switch
 light/dark mode. The OS preference is the initial default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
-Concise platform/version requirements and a setup link appear below the buttons;
-initial lesson projects link to setup and clarify that the scaffold ZIP installs no tools.
+Concise platform/version requirements and a setup link appear below the buttons.
+Tutorial project downloads appear without generic setup or continuation cards.
 Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
 available. Tutorial step headings use subtle highlights instead of horizontal
-dividers. Secondary project help is muted in a helper card; Previous lesson
-prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
+dividers. Generic setup/continuation cards are omitted; specific component or
+media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
 Content pages use the navigation section name (Tutorials, Docs or ZeroHub)
@@ -87,8 +87,12 @@ then reuses unchanged ScoreDisplay in the study app and coin game.
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. These sources remain unreleased; published kits
 keep their original bytes.
-The later local visual pass gives all thirteen lessons an always-visible target
-illustration, three actions and one checkpoint before detailed code. Optional
+Tutorial pages use the current project name as their main heading: Greeting App,
+Study Quiz or Coin Game. The large lesson title appears directly below that
+heading, followed by a clearly tinted Summary card (stronger in dark mode) containing numbered actions,
+Done checkpoint and always-visible target illustration. Steps and image sit beside each other inside the card on desktop
+and stack on narrow screens. The redundant short description is omitted. Each
+lesson ends its final code/explanation section with a short encouraging message. Optional
 composed-study/composed-game examples now demonstrate the same ordinary StartScreen
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).

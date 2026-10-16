@@ -1,9 +1,9 @@
 # Current state — Windows flow polish, 2026-10-16
 
 Owner has deferred Windows signing and requested the remaining Windows flow be
-as smooth and automatic as Mac. Continue local implementation/verification and
-prepare an unsigned disposable trial; no push, publication, merge, account or
-paid-service action is authorized by this phase. Public0.5.17 stays unchanged.
+as smooth and automatic as Mac. Owner explicitly authorized pushing the reviewed branch, opening a draft PR and
+running Windows CI. Draft PR77 is open at https://github.com/codepetca/zero/pull/77.
+Signing, release publication, merge to main, accounts and paid services remain deferred. Public0.5.17 stays unchanged.
 DeepSeek remains paused. Ordinary VS Code/account/global Java settings untouched.
 
 Working branch codex/windows-auto-setup, base e268b93, implementation worktree
@@ -47,9 +47,10 @@ contains measured Setup/receipt, essential reviewed scripts/pins and START-HERE.
 no keys or credentials. Production updating remains disabled in this candidate.
 Actual Mac Java21/JavaFX21.0.12 fixture showed a window, edited its label, closed
 and wrote the expected nonce; this proves the fixture, not Windows execution.
-Pending user approval question: push reviewed branch/open draft PR/run Windows CI.
-Do not push or run remote CI until the user answers affirmatively. Signing and
-release publication remain deferred.
+PR initially conflicted with newer tutorial evidence on main, preventing PR CI.
+Synchronizing main456b490 into this feature branch preserves incoming website
+source/design and both sets of delivery evidence; only CURRENT/EVIDENCE required
+manual resolution. Main remains unchanged. Windows CI follows this branch sync.
 Account-wide weekly remaining49%, healthy storage318GB at phase start; not task cost.
 Detailed historical delivery and limits: docs/EVIDENCE.md, WINDOWS-INSTALLER.md,
 WINDOWS-TRIAL.md and WINDOWS-SIGNING.md.

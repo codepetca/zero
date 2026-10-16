@@ -23,6 +23,9 @@ export function Document({ id, lesson = "" }) {
     "Documentation";
   const { related, next } = lessonNavigation(lesson);
   const practiceProject = lesson ? projectForLesson(lesson) : null;
+  const pageTitle = practiceProject
+    ? practiceProject.title.replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : lesson ? "Tutorials" : "Docs";
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
@@ -51,39 +54,25 @@ export function Document({ id, lesson = "" }) {
           />
         </aside>
         <article className="reader-content">
-          <h1>{lesson ? "Tutorials" : "Docs"}</h1>
+          <h1>{pageTitle}</h1>
           <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
             {lesson ? `Lesson ${lesson}: ${title}` : title}
           </h2>
-          {related && <p className="reader-subtitle">{related.description}</p>}
-          {practiceProject && (
+          {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <section className="lesson-start" aria-label={`${practiceProject.title} project`}>
               {lesson === practiceProject.firstLesson && (
                 <a className="button" href={`/generated/projects/zero-project-${practiceProject.id}.zip`} download={`zero-project-${practiceProject.id}.zip`}>
                   Start {practiceProject.title} project
                 </a>
               )}
-              <aside className="lesson-help" aria-label="Project help">
-                {lesson === practiceProject.firstLesson ? (
-                  <>
-                    <p>First time? <Link href="/docs/setup">Install Zero and complete setup</Link> before opening this project.</p>
-                    <p>This ZIP contains build files and an empty Main; it does not install Zero or Java. Unzip it, open the folder in VS Code and follow the steps below. Keep this project for later lessons.</p>
-                  </>
-                ) : (
-                  <>
-                    <p>Continue your {practiceProject.title} project from the earlier lesson. Open its folder in VS Code, make the next change and click <strong>Zero → Run App</strong>.</p>
-                    <p>If you have not started it yet, <a href={`/tutorials/${practiceProject.firstLesson}`}>start at lesson {practiceProject.firstLesson}</a>.</p>
-                  </>
-                )}
-                {lesson === "10" && <p>Reopen your Study quiz and Coin game projects to try the same component in both.</p>}
-                {lesson === "12" && <p>For optional artwork and sound in your own game, <a href={sampleGameAssets.href} download={sampleGameAssets.filename}>download sample game assets</a>. This ZIP contains only media files.</p>}
-              </aside>
+              {lesson === "10" && <p>Reopen your Study quiz and Coin game projects to try the same component in both.</p>}
+              {lesson === "12" && <p>For optional artwork and sound in your own game, <a href={sampleGameAssets.href} download={sampleGameAssets.filename}>download sample game assets</a>. This ZIP contains only media files.</p>}
             </section>
           )}
           <FoldingReader key={id}>
             <Markdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[[foldSections, { lesson: !!lesson }]]}
+              rehypePlugins={[[foldSections, { lesson: !!lesson, encouragement: related?.encouragement }]]}
               components={{
                 pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
                 img: ({ src, alt }) => {

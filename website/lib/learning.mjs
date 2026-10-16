@@ -4,6 +4,7 @@ export const lessonGroups = practiceProjects.map(({id, title, lessons}) => ({id,
 export const lessons = [
   {
     "id": "0",
+    encouragement: "You wrote your first Zero program!",
     "title": "Hello, world!",
     "description": "Run a tiny program and change its greeting.",
     "topic": "Run, edit, rerun",
@@ -12,6 +13,7 @@ export const lessons = [
   },
   {
     "id": "1",
+    encouragement: "You made your greeting respond to a button!",
     "title": "Say hello with a button",
     "description": "Click a button to change the greeting.",
     "topic": "Button, click handler, label text",
@@ -20,6 +22,7 @@ export const lessons = [
   },
   {
     "id": "2",
+    encouragement: "You made a greeting that knows your name!",
     "title": "Greet by name",
     "description": "Type your name and show a greeting.",
     "topic": "TextField, getText, joining text",
@@ -28,6 +31,7 @@ export const lessons = [
   },
   {
     "id": "3",
+    encouragement: "You built your first quiz question!",
     "title": "A tiny quiz",
     "description": "Check one answer and show feedback.",
     "topic": "if/else, comparing text",
@@ -36,6 +40,7 @@ export const lessons = [
   },
   {
     "id": "4",
+    encouragement: "Your quiz can count attempts. Keep going!",
     "title": "Count your attempts",
     "description": "Track attempts in your study quiz.",
     "topic": "int, attempts, updating feedback",
@@ -44,6 +49,7 @@ export const lessons = [
   },
   {
     "id": "5",
+    encouragement: "You added a fresh start to your quiz!",
     "title": "Reset your quiz",
     "description": "Reset quiz state with a named method.",
     "topic": "Fields, methods, reset quiz state",
@@ -52,6 +58,7 @@ export const lessons = [
   },
   {
     "id": "6",
+    encouragement: "You wrote a reusable Counter class!",
     "title": "Counter object",
     "description": "Move the attempt count into an ordinary Counter object.",
     "topic": "Classes, constructors, object methods",
@@ -60,6 +67,7 @@ export const lessons = [
   },
   {
     "id": "7",
+    encouragement: "You built a study quiz. Try it with your own questions!",
     "title": "Study quiz",
     "description": "Add more questions, Next and Restart to your study quiz.",
     "topic": "Question objects, arrays, scoring, session state",
@@ -68,6 +76,7 @@ export const lessons = [
   },
   {
     "id": "8",
+    encouragement: "You got your player moving!",
     "title": "Movement and keys",
     "description": "Move a player inside the canvas.",
     "topic": "GameApp, elapsed time, explicit updates",
@@ -76,6 +85,7 @@ export const lessons = [
   },
   {
     "id": "9",
+    encouragement: "You built a coin game. Make it your own!",
     "title": "Collect the coins",
     "description": "Build a game with coins, score, winning and restart.",
     "topic": "Collision checks, game state, object reuse",
@@ -84,6 +94,7 @@ export const lessons = [
   },
   {
     "id": "10",
+    encouragement: "You reused one component in two apps!",
     "title": "Reuse a component",
     "description": "Use the same display class in two apps.",
     "topic": "Extraction, view, compatible changes",
@@ -92,6 +103,7 @@ export const lessons = [
   },
   {
     "id": "11",
+    encouragement: "You checked your component in both apps. Nice work!",
     "title": "Share with ZeroHub",
     "description": "Prepare a library and upload it for automatic checks.",
     "topic": "Prepare, edit, upload, checks, exact releases",
@@ -100,6 +112,7 @@ export const lessons = [
   },
   {
     id: "12",
+    encouragement: "Done! Keep experimenting with your game!",
     title: "Build a platformer",
     description: "Grow your sprites and sounds into a two-level game.",
     topic: "Camera, scoreboard, gravity, levels, game state",

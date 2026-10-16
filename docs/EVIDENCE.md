@@ -209,6 +209,153 @@ Final native834/updater11 and configuration/syntax/docs checks passed; unaffecte
 root/website/kit suites above reused. Final handoff only changes evidence/docs;
 no publication, release-key provisioning or native Windows acceptance performed.
 
+## Restored lesson titles and encouraging endings — 2026-10-16
+
+[PR75](https://github.com/codepetca/zero/pull/75) merged
+`f6da11eaecbb36befe812840e45eb3b5084b05bb`. Large lesson title restored directly
+below project heading; tinted card says Summary, still containing actions/Done/image.
+Each lesson has a short encouraging note inside its final explanation;lesson0 says
+“You wrote your first Zero program!”. One Luna/medium independent complete review
+ofb34e74b found no issues;one launch/wave,zero fixes/rework/conflicts. Effective
+configuration,review elapsed and tokens unknown;allowance not attributable task cost.
+
+96website tests,typecheck/build/diff check and all13 local/public HTTP checks pass:
+outside title,unique old source anchor,Summary label,image containment and one note
+at final explanation end. Docs components unaffected.1280px dark desktop and320px
+light phone title/reflow pass;note collapses with keyboard-controlled details.
+Live1280x720 lesson0 title and ending screenshots verify note visible/inside final
+explanation/last in section. Safari/physical/enlarged-text/forced-color not newly
+exercised;existing updater tracing warnings remain. [CI38918414124](https://github.com/codepetca/zero/actions/runs/38918414124)
+passed6m57s;production7122282435 succeeded for merge SHA. Source lessons,Java/release
+inputs unchanged;public signed feed matches canonical bytes. Owner defaults saved
+in design.md/PRODUCT. Receipts:.verification/tutorial-summary-encouragement/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
+## Tutorial project headings published — 2026-10-16
+
+[PR74](https://github.com/codepetca/zero/pull/74) merged
+`91169fc0b87f04cbf20a0986736a519fd7328b65`. Shared renderer uses existing project
+membership for Greeting App0–2,Study Quiz3–7,Coin Game8–12; Docs remains Docs.
+Owner default saved in design.md/PRODUCT. One Luna/medium independent full-diff
+review of227d599 found no issues;one launch/wave,zero fixes/rework/conflicts.
+Effective config,review elapsed and tokens unknown;account allowance not task cost.
+96 website tests,typecheck/build and all13 local/public rendered headings pass.
+1280px desktop live heading and320px local reflow/nooverflow verified. No new
+label-only tests;Safari/physical/enlarged-text/forced-color not newly run. Existing
+updater tracing warnings remain. [CI38916786229](https://github.com/codepetca/zero/actions/runs/38916786229)
+passed6m53s;production deployment7121817477 succeeded for merge SHA. Lesson/release
+inputs unchanged. Detailed receipts/screenshots:.verification/tutorial-project-heading/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
+## Lesson title card refinement — 2026-10-16
+
+Published [PR73](https://github.com/codepetca/zero/pull/73), merge
+`cea6028f7679a13b64745d3b41f304060ea0fcce`. One independent Luna/medium review of
+`806c543` covered the complete diff/callers with no findings; one launch/wave,
+zero fixes, no rework/conflicts. Effective model/timing/tokens unknown; coordinator
+usage not attributable. [CI38915351023](https://github.com/codepetca/zero/actions/runs/38915351023)
+passed6m35s; production deployment7121572308 succeeded for the merge SHA.
+
+Lesson title replaces Summary and duplicate outside heading; actions, Done and
+image share a subtly purple-tinted card. All96 website tests,typecheck/build/diff
+checks and all13 local/public HTTP checks pass. Live1280px dark desktop confirms
+image containment/columns/no duplicate title/nooverflow. Local320/390px light
+stacking,1280px light tint and keyboard Enter disclosure verified. Safari/physical/
+enlarged-text/forced-color UI not newly run. Prior updater tracing warnings remain.
+Source lessons/Java/release inputs unchanged; public signed feed equals canonical
+bytes (SHA256775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2).
+Detailed receipts/screenshots:`.verification/tutorial-lesson-card/`. Owned worktree
+fast-forwarded to mergedmain; original dirty funding checkout untouched. This
+post-publication receipt is local. Owner defaults saved in design.md/PRODUCT.
+
+## Tutorial Summary and removal of generic help cards — 2026-10-16
+
+Published via [PR72](https://github.com/codepetca/zero/pull/72), merge
+713040a77d8f98ca239b6886e5eebbbb116f44e8, reviewed head
+bb2f21096ff222c497400460fe91421e52032dc7. Complete resumed Luna/medium review:
+no actionable findings; initial turn interrupted for owner steering, not counted
+as complete. One initial wave,two turns,zero review fix batches. Exact-head
+[CI38911105634 attempt2](https://github.com/codepetca/zero/actions/runs/38911105634/attempts/2)
+passed in6m51s, including native/examples/progression/sharing and website. Attempt1
+hit a180s timeout in the unchanged Java/Maven sample test; its inputs matched
+publishedmain and the retry passed unchanged. Superseded c6edf3e run cancelled.
+
+Production deployment7120970704 is successful, bound to merge713040a; unique URL
+https://zero-oftc8579g-stewarts-projects-cc2722c4.vercel.app serves
+https://zero.codepet.ca. Anonymous live checks on all13 lessons confirm Summary/
+three actions/full Done, separate image,no generic cards or short labels, exactly
+three Start buttons and preserved10/12 notes. Live1280px lesson1 browser confirms
+side-by-side image,zero subtitle/overflow.320px light-theme local check confirms
+stacked card/image; dark/desktop restored and public lesson1 left open. Signed
+feed remains byte-identical SHA775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2.
+Owned worktree fast-forwarded to mergedmain; final tracked handoff receipt is local.
+No release,credentials,other-worktree,new goal/chat/automation changes. Detailed
+logs/measurements/screenshots and CI/deployment JSON:.verification/tutorial-card-removal/.
+Effective model/token/worker elapsed telemetry unavailable; prior platform limits
+remain. The following implementation notes describe this completed change.
+
+Owner removed the First time card and all If you have not started it yet cards,
+refining the continuing website publication. Document omits the entire generic
+setup/continuation aside and empty continuation sections; stale card CSS is gone.
+Start project buttons remain at0/3/8; lesson10 component reminder and lesson12
+asset link remain as small muted,unboxed notes. Canonical lessons unchanged.
+Design/product guidance supersedes the earlier helper-card choice.
+
+Owner then requested Summary cards with the existing numbered actions and full
+Done checkpoint inside, image beside on desktop/below on narrow screens, and no
+redundant description label. Markdown transformation preserves authored lesson
+source/code and deep links. All13 lesson render tests now verify Summary/actions/
+Done grouping and the image outside the card before detailed sections.96website
+ tests/typecheck/build pass after this refinement; desktop lesson1 browser shows
+side-by-side card/image, no subtitle/overflow. The initial review turn was
+interrupted for this owner-requested scope update; resume one complete review on
+the new fixed head, within the same initial wave and existing budget.
+
+96website tests,typecheck/build,whitespace checks and all13 local HTTP renders pass:
+zero generic cards/text; exactly three Start buttons; no empty continuation section;
+lesson-specific10/12 notes preserved. Browser lessons8/9 verify compact phone
+layout/no overflow. Logs:ignored .verification/tutorial-card-removal/. Existing
+updater tracing warnings and prior platform limits remain. One bounded Luna/medium
+review and exact-headCI/publication acceptance follow through this branch's PR;
+no release files,credentials,new goal/chat/automation or other worktree changes.
+
+## Website reading cleanup published — 2026-10-16
+
+Owner explicitly authorized publication of all changes from this chat. Integrated
+current main e8e25cc without changing0.5.17 release/download/update metadata;
+manual conflicts were limited to CURRENT/EVIDENCE and both histories were retained.
+[PR71](https://github.com/codepetca/zero/pull/71) reviewed head
+1d23adc5e3d112de55c60c4ab74d24680bd2d141 passed complete Sol/medium integration
+review with no findings,96website tests,10design tests,typecheck/build and
+[CI38906665641](https://github.com/codepetca/zero/actions/runs/38906665641).
+CI passed native input/examples/progression, extension/sharing/Maven and website.
+Merge e268b93f6a9dfe2bbdacf3b59172abda10617e0b is verified on origin/main;
+owned worktree fast-forwarded, original funding and other active worktrees preserved.
+
+Vercel production dpl_Gkgp3gRkzEMNT5Pmhw6tp2BC2a3R is READY and serves
+[zero.codepet.ca](https://zero.codepet.ca); GitHub production deployment7120105398
+binds that URL to the merge SHA. Anonymous HTTP200 verifies tutorials8/9,docs,
+docs/api and downloads. Tutorial output has muted helper cards with no Previous
+paragraphs/HRs; deployed CSS pins method names and themes scrollbar tracks.
+Live browser1280px confirms method top93 equals header bottom93 while its article
+is scrolled away, static category headings and no overflow. Live tutorial8 shows
+zero section borders, muted14px help and subtle step backgrounds. Root scrollbar
+tracks are transparent in both themes; dark preference restored. Existing0.5.17
+kit link remains exact, signed feed bytes still SHA256
+775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2.
+
+Receipts/screenshots:ignored .verification/tutorial-cleanup/publication/.
+The preview was protected by Vercel SSO and was not counted as page verification.
+One complete integration wave after three prior component review launches;zero
+findings/fix batches. Effective model,tokens and reviewer elapsed unknown.
+Weekly56%remaining at publication start;storage healthy328GB. DeepSeek pause
+honored. Two unrelated updater tracing warnings remain;Safari/physical platforms,
+enlarged text and forced-color UI were not newly exercised. No binaries rebuilt,
+credentials/account changes,new goal/chat/automation. The implementation and remembered design choices were published on main
+through PR71; this receipt records acceptance after that publication.
+
 ## Subtle scrollbar tracks — 2026-10-16
 
 Owner requested scrollbar gutters blend into the existing background. Generated
