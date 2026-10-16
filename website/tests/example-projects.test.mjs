@@ -234,14 +234,14 @@ test("starter and featured downloads give concrete changes and the actual indivi
       assert.ok(readme.includes(guide.challenge));
     }
     assert.match(readme, /own empty GitHub repository/);
-    assert.match(readme, /Connect a repo/);
+    assert.match(readme, /Repository → Connect an existing repository/);
     assert.match(readme, /per-repository name\/email identity/);
     assert.match(readme, /native GitHub sign-in/);
     assert.match(readme, /GitHub actions are live by default/);
     assert.doesNotMatch(readme, /zero\.uploadMode|default simulation/);
     assert.match(readme, /Commit & push.*main/);
     assert.match(readme, /New branch/);
-    assert.match(readme, /Start a change.*older kits/);
+    assert.match(readme, /New branch.*repository menu/);
     assert.match(readme, /explanatory commit message/);
     assert.match(readme, /Merge to main/);
     assert.match(readme, /GitHub's.*main.*branch/);
@@ -328,7 +328,7 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(clone, /Create a new\n   repository/);
     assert.match(clone, /personal account as owner/);
     assert.match(clone, /Code →\n   HTTPS/);
-    assert.match(clone, /Zero’s sidebar, choose \*\*Clone repository\*\*/);
+    assert.match(clone, /Zero’s repository menu, choose \*\*Clone repository\*\*/);
     assert.match(clone, /paste your URL and choose a destination outside any other Git repository/);
     assert.match(clone, /Open in New Window/);
     assert.match(clone, /git clone https:\/\/github.com\/YOUR-USERNAME\/YOUR-PROJECT.git\ncd YOUR-PROJECT/);
@@ -343,7 +343,7 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(readme, /nothing pushes automatically/);
     assert.match(readme, /Commit & push.*main.*before starting a/);
     assert.match(readme, /New branch/);
-    assert.match(readme, /Start a change.*older kits/);
+    assert.match(readme, /New branch.*repository menu/);
     assert.match(readme, /Commit & push any pending edits before finishing/);
     assert.match(readme, /Merge to main merges the current branch into main and pushes main; it does not create a pull request/);
     assert.match(readme, /link separately in Pika/);
