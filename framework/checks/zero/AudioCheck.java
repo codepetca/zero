@@ -25,6 +25,7 @@ public final class AudioCheck extends Application {
     private long entered;
     private double pausedAt;
     private int repeats;
+    private boolean replayRewound;
     private Stage ownerStage, failingStage;
     private FailingGame failing;
     private int frameErrors;
@@ -151,9 +152,14 @@ public final class AudioCheck extends Application {
                 require(music.isPlaying() && nativeMusic.getCurrentCount() >= 2, "full native repeats after three restarts");
                 require(!once.isPlaying() && nativeOnce.getCurrentTime().toMillis() >= 850,
                         "play once reaches end status=" + nativeOnce.getStatus() + " time=" + nativeOnce.getCurrentTime());
+                // Seek/status notifications are asynchronous. Observe an actual rewind
+                // before checking subsequent playback, rather than the stale end time.
+                nativeOnce.currentTimeProperty().addListener((observable, previous, current) -> {
+                    if (current.toMillis() < 120) replayRewound = true;
+                });
                 once.play(); next(now); break;
             case 6:
-                if (!once.isPlaying() || nativeOnce.getCurrentTime().toMillis() < 120) return;
+                if (!replayRewound || !once.isPlaying() || nativeOnce.getCurrentTime().toMillis() < 120) return;
                 require(nativeOnce.getCurrentTime().toMillis() < 650, "play after end restarts");
                 once.close(); once.close();
                 require(!once.isPlaying() && nativeOnce.getStatus() == MediaPlayer.Status.DISPOSED, "music close disposes");
