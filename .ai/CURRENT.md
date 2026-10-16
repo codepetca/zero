@@ -26,9 +26,11 @@ superseded. Model/tokens/exactworker time unknown; ~52%weekly remaining and
 
 Peer Review verbose action confirmations (01a144e4-4bab-7be1-8d7b-cda1d7a45f1e)
 completed quiet status/account/repository source through76f8fb5 and independent
-review. It owns native UI: account/repository menus and New branch cancellation passed;
-Switch branch picker reached, but final selection blocked by Mac lock (peer asked
-for unlock). No install/reload/source writes. Coordinator owns shared evidence/current/design.
+review. Final native account/repository menus, New branch cancellation, Switch to own
+local test branch and return to main passed after unlock. Test branch removed;
+original HEAD/status and all eight Main hashes preserved. UI released, no further
+source/package edits. Own receipt: .verification/sidebar-repository-20261016/RESULT.md.
+Coordinator owns shared evidence/current/design.
 Preserve new approved design: account Sign in/username; always-visible repository
 menu contains Clone/create/connect/open/copy/New/Switch branch. Direct Commit &
 push and Merge to main remain; no standalone Clone/New branch. Git tab parked.

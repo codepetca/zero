@@ -51,11 +51,13 @@ Release remains held for current-main/version/pin integration, website/template
 alignment, physical Windows and school/novice acceptance, final Git/Pages/ZeroHub
 acceptance and separately authorized signing/publication.
 
-Peer combined-preview acceptance: account and repository menus and New branch
-cancellation passed; native Switch branch reached the picker, but final selection
-was interrupted by the Mac lock. The peer requested unlock. This is a remaining
-Git interactive check, not a passed end-to-end switch. No credential change.
-Screenshots: `.verification/sidebar-repository-20261016/{account,repository}-menu.png`.
+Peer combined-preview acceptance completed after unlock: account and repository
+menus, New branch cancellation, native Switch to an existing disposable local
+branch and return to main passed. Current branch/direct Merge controls updated;
+no success popup appeared. Temporary branch removed after verifying original HEAD
+and working status; all eight trial Main hashes preserved. No credential change
+or GitHub mutation. Receipts: `.verification/sidebar-repository-20261016/RESULT.md`,
+`delivery.json`, `local-switch.json` and `installed-sidebar-final.png`.
 
 ## Quiet sidebar success feedback installed — 2026-10-16
 
