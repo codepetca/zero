@@ -1,4 +1,25 @@
-# Current state — compact sidebar installed and tested, 2026-10-16
+# Current state — routine confirmations simplified, 2026-10-16
+
+This chat's local follow-up is complete in isolated worktree
+`/Users/stew/.codex/worktrees/simplify-confirmations/zero`, branch
+`codex/simplify-confirmations`, code commits42140d4+6c3cde8 overddbaf47.
+Owner approved removing routine confirmations and keeping a short first-publish
+warning. Commit & push/New branch are direct; first Publish warns once through
+setup; repeat Publish revalidates silently. Merge/delete/replace still confirm.
+Successful upload receipt/exact SHA and all underlying guards remain binding;
+pending approval persists across restart. Two initial Sol/high reviews and one
+targeted review accepted final code after one fix batch. Initial full471pass/1skip,
+final48focused+34publisher boundary regressions pass; global check has an unchanged
+archived-doc link blocker. See docs/EVIDENCE.md and docs/VERIFICATION.md.
+
+No source push, merge, install, release, public app or credential change. Keep this
+worktree for integration into the parent browser-preview branch. Parent chat is
+active; its checkout, preview profile and private trials were not modified.
+No tool-backed goal, separate chat or automation created.
+
+## Inherited browser-preview context at base ddbaf47
+
+### Compact sidebar installed and tested, 2026-10-16
 
 Coordinator Lead publishing task, thread01a13f98-55fc-7471-9038-1198b14d5a98.
 Use /Users/stew/.codex/worktrees/web-export/zero, branch codex/web-export.

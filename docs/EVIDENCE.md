@@ -1,5 +1,38 @@
 # Delivery evidence index
 
+## Routine confirmations — 2026-10-16
+
+Local implementation on `codex/simplify-confirmations`, based on browser-preview
+source `ddbaf47`; code commits `42140d4` and `6c3cde8`. Worktree:
+`/Users/stew/.codex/worktrees/simplify-confirmations/zero`. No push, merge,
+installation, release, external publication or account changes.
+
+Commit & push proceeds from its message input, with repository and branch shown.
+Naming a branch creates it directly. First/new-destination Publish has one short
+public-visibility warning and continues through setup/upload without a second
+confirmation; repeat publishing revalidates the same site. Merge remains a short
+confirmation; deletion and origin replacement retain their prompts.
+Setup requires a successful upload receipt and the exact uploaded SHA. Pending
+runs retain their approved account across restart. Legacy pending receipts still
+restore and conservatively warn once on the next publish.
+
+Verification: initial complete root suite at42140d4:471pass/1expected PowerShell
+skip,0fail; final48focused UI/auth tests pass.34publisher/upload-auth boundary
+regressions passed with unchanged final production source. Syntax and whitespace
+checks pass. `npm run check` stops on an unchanged archived relative link:
+`docs/design/archive/design-qa-before-compact-sidebar-2026-10-16.md:17` references
+`design/playground/VERIFICATION.md` from the wrong directory. This is present in
+the base; no archive repair was included. No native/editor, physical Windows or
+live GitHub acceptance was performed for this change.
+
+Independent review requested GPT-6.1 Sol/high:2complete initial reviews,1targeted
+review,1fix batch. One P2 source-binding finding fixed and reverified; resumed
+account retention also fixed. Final code review clean; full initial plus targeted
+interaction coverage reused without another integration wave. Effective model,
+tokens and exact reviewer times unknown. Weekly55%remaining/cached331GBhealthy;
+one coordinator writer, no conflicts; source owner's worktree/profile untouched.
+Detailed logs and review ledger: ignored `.verification/confirmations-20261016/`.
+
 ## Selected compact sidebar and fresh native student trial — 2026-10-16
 
 Reviewed source `e4e9629`, local immutable candidate
