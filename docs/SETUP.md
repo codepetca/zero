@@ -1,5 +1,10 @@
 # Guided student setup
 
+Windows0.5.18 native automatic setup is a local development candidate; see
+[Windows installation and updates](WINDOWS-INSTALLER.md). The published Windows
+download still uses the ZIP/manual instructions below until a signed, tested
+release is authorized.
+
 The current MVP targets **Mac with Apple Silicon** and **Windows**. Linux and
 Intel Macs are unsupported. The signed Mac0.5.14 app provides automatic
 Java/editor preparation for supported personal and school Macs. Windows uses

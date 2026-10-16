@@ -51,9 +51,15 @@ public asset URLs/checksums remain pinned to their release. See
 [release preparation and publication](RELEASING.md) for the one-command publisher
 and its read-only CI preparation workflow.
 
+The Windows0.5.18 local candidate uses native private-runtime setup and pinned
+Velopack packaging. See [Windows installation and updates](WINDOWS-INSTALLER.md)
+for .NET8+ tooling, repository-local `dotnet tool restore`, `npm run test:windows`,
+signing/feed preparation and actual-Windows acceptance. No new Windows download
+is public until those release gates pass.
+
 Native development installers are built locally with `npm run package:installers`.
 This rebuilds and verifies the kit, then produces a universal macOS app/DMG and
-an AnyCPU Windows EXE in ignored `dist/installers/`. Platform-only builds use
+an x64 per-user Windows Setup EXE plus full update package in ignored `dist/installers/`. Platform-only builds use
 `node scripts/build-installers.mjs --platform macos` or `--platform windows`
 after packaging/verification. macOS requires Xcode command line tools and
 `hdiutil`; Windows cross-builds use the .NET SDK and the pinned build-only
@@ -273,3 +279,8 @@ API exists, Zero opens the returned folder in a new window; older supported host
 use `git.clone` and retain their native open-after-clone choice. Open local project
 validates and opens an existing Zero folder without cloning, moving it or creating
 the default folder. Website/tutorial instructions use these visible labels.
+
+Windows signing-account choices and private feed-key custody are documented in
+[Windows signing](WINDOWS-SIGNING.md). Use [Windows trial](WINDOWS-TRIAL.md) for
+the disposable real-install smoke and owner acceptance checklist; configuring CI
+is not a passing Windows run.

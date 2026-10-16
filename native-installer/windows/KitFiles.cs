@@ -144,7 +144,24 @@ namespace ZeroSetup
                     {
                         Recheck(expected);
                         string metadata = ReadKitMetadata(source);
+                        if (new Version(KitVersion(metadata)) < new Version(KitVersion(expected.Metadata)))
+                            throw new IOException("This Zero installer is older than your installed setup. Open the installed Zero from the Start menu or download the latest installer.");
                         var paths = new List<string> { "setup/Setup.cmd", "setup/Setup.ps1", "setup/Setup.command", "setup/setup.sh", "setup/README.md", "START-HERE.md", "LICENSE", "zero-" + KitVersion(metadata) + ".vsix", "setup/kit.properties" };
+                        // A normal reopen verifies owned bytes and does not create
+                        // another migration/backup of an already-current kit.
+                        bool matches = true;
+                        foreach (string relative in paths)
+                        {
+                            string supplied = ContainedPath(source, relative), installedPath = ContainedPath(expected.Path, relative);
+                            RequireRegularFile(supplied);
+                            RejectReparseAncestors(installedPath);
+                            if (!EntryExists(installedPath)) { matches = false; continue; }
+                            RequireRegularFile(installedPath);
+                            if (new FileInfo(supplied).Length > MaxFileBytes || new FileInfo(installedPath).Length > MaxFileBytes)
+                                throw new IOException("A setup runtime file is too large to verify safely.");
+                            if (!File.ReadAllBytes(supplied).SequenceEqual(File.ReadAllBytes(installedPath))) matches = false;
+                        }
+                        if (matches) { Recheck(expected); return expected.Path; }
                         string stage = System.IO.Path.Combine(parent, ".ZeroSetup-stage-" + Guid.NewGuid().ToString("N"));
                         string backup = System.IO.Path.Combine(parent, ".ZeroSetup-backup-" + Guid.NewGuid().ToString("N"));
                         var originals = new Dictionary<string, byte[]>();

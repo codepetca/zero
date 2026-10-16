@@ -37,12 +37,12 @@
       {
         "command": "zero.checkForUpdates",
         "title": "Zero: Check for Updates",
-        "enablement": "isMac"
+        "enablement": "isMac || isWindows"
       },
       {
         "command": "zero.updateSettings",
         "title": "Zero: Update Settings",
-        "enablement": "isMac"
+        "enablement": "isMac || isWindows"
       },
       {
         "command": "zero.startProject",
@@ -306,11 +306,11 @@
       "commandPalette": [
         {
           "command": "zero.checkForUpdates",
-          "when": "isMac"
+          "when": "isMac || isWindows"
         },
         {
           "command": "zero.updateSettings",
-          "when": "isMac"
+          "when": "isMac || isWindows"
         }
       ],
       "view/title": [

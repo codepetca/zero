@@ -1,6 +1,9 @@
 # Native Zero Setup
 
-Zero Setup uses a native Mac runtime; Windows wraps the guided setup scripts. Signed,
+Zero Setup uses native Mac and Windows runtimes. The local Windows0.5.18
+candidate adds automatic private Java/editor setup and authenticated updating;
+see [Windows setup and updates](WINDOWS-INSTALLER.md). Published Windows remains
+the manual complete-kit ZIP until its signed release and actual Windows trial. Signed,
 notarized Mac0.5.17 is published at [setup-v0.5.17](https://github.com/codepetca/zero/releases/tag/setup-v0.5.17)
 and embeds the complete0.5.17 kit with App and GameApp (core0.2.0). Windows development installers remain local
 and unsigned; they are excluded from student downloads. Previous Mac releases
@@ -37,8 +40,9 @@ Details is hidden during healthy preparation. The bar advances with completed
 stages and fills only after final readiness; it does not estimate download/time
 percentages. Opening retains a fresh backend check. First launch selects the
 starter; reopening lets VS Code restore its own isolated saved UI/workspace state.
-Git/GitHub and the first student app run remain separate choices. Windows and
-ZIP/manual launchers keep their existing guided flow and animated progress bar.
+Git/GitHub and the first student app run remain separate choices. Published
+ZIP/manual launchers keep their guided flow. The local Windows candidate now
+uses automatic preparation and a restrained native progress bar.
 
 Mac setup uses a private JDK21 and isolated VS Code user-data/extensions under
 `~/Library/Application Support/Zero`. It reuses a compatible installed VS Code,
@@ -56,10 +60,11 @@ change global environment variables, disable security prompts or enroll a device
 Workspace trust and managed-device restrictions still apply. First-time Maven
 and JavaFX downloads occur when Run App builds the project.
 
-Windows native setup and ZIP/manual launchers retain their guided profile import
-and official-download handoffs. Compatible tools and existing profiles are reused.
-Physical Windows testing remains deferred. These platform paths are not described
-as having the new Mac automation.
+Published Windows ZIP/manual launchers retain their guided profile import
+and official-download handoffs. The new local Windows native launcher uses the
+automatic path in [Windows setup](WINDOWS-INSTALLER.md). Compatible tools and existing profiles are reused.
+Physical Windows testing remains deferred. The published manual paths do not
+have the native automation.
 
 The extracted kit's shell launchers stay available as a manual fallback. Physical
 Windows testing remains deferred; cross-builds and fake tests do not prove its UI.
@@ -160,19 +165,20 @@ checks do not establish classroom runtime, fresh-machine or physical Intel tests
 
 The macOS app uses AppKit and Foundation, targets macOS 12+, and includes ARM64
 and Intel binaries. The Windows app uses Windows Forms and the Windows .NET
-Framework 4.8; the .NET SDK/reference package is build-only. Recent Windows 10/11
+Framework 4.8; the .NET SDK/reference package is build-only. Windows 10 build19041+ and Windows11
 include a compatible framework; see [Microsoft's Windows version table](https://learn.microsoft.com/en-us/dotnet/framework/install/on-windows-and-server).
 Older systems may need Microsoft's runtime installation.
-The Windows EXE embeds the ZIP, validates/extracts it into an owned temporary
-folder, and copies it atomically into the chosen fresh folder. The macOS app
+The Windows Setup EXE embeds the full update package, whose native launcher
+embeds the kit ZIP. The launcher validates/extracts it into owned temporary
+staging and prepares the fixed home Zero folder. The macOS app
 carries the kit in Contents/Resources/kit and preserves executable script modes.
 
 Native checks have bounded output/time and use fixed executables/arguments.
-macOS calls its compiled native runtime helper; Windows calls native PowerShell
-`-NoProfile -NonInteractive -File .../Setup.ps1 -NativeCheck` under normal policy.
-Both invoke fixed background actions from the copied kit. Windows uses normal-policy
-`-File` for native actions. If policy blocks it,
-read the copied Setup.cmd guidance; managed policy remains authoritative.
+macOS calls its compiled native runtime helper; the local Windows candidate
+uses its compiled private-runtime backend. Earlier Windows native source called
+normal-policy PowerShell; those script actions remain only in the manual fallback.
+The automatic Windows path does not require a script-policy allowance. Managed
+software-execution policy remains authoritative.
 
 No new package manager, persistent agent or custom IDE engine is introduced.
 Compatible VS Code policy comes from canonical extension metadata. Manual shell
@@ -279,11 +285,10 @@ npm run test:installers
 npm run verify:installers
 ```
 
-`verify:installers` verifies the measured artifact hashes, the EXE's exact embedded
-ZIP and managed PE header, and mounts the DMG read-only to compare every bundled
+`verify:installers` verifies the measured artifact hashes, the Windows Setup's exact full-package payload and native x64 PE header, and mounts the DMG read-only to compare every bundled
 file/permission plus both binary architectures. It detaches afterward and never
 executes installer actions. DMG inspection requires macOS; use `--platform windows`
-with a matching platform-only build receipt to inspect only the Windows EXE.
+with a matching platform-only build receipt to inspect the Windows Setup and full package.
 
 Published0.5.14 adds a centered Finder layout with only Zero and Applications
 icons/labels and an arrow. Preparation text and progress below form a centered

@@ -7,9 +7,12 @@
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Harness.cs;ControllerHarness.cs;EnvironmentHarness.cs;../KitFiles.cs;../Processes.cs;../CloseGate.cs;../SetupController.cs;../WindowsToolEnvironment.cs" />
+    <Compile Include="Harness.cs;ControllerHarness.cs;EnvironmentHarness.cs;AutomaticControllerHarness.cs;RuntimeHarness.cs;../AutomaticSetupController.cs;../InstanceBroker.cs;../WindowsRuntime.cs;../WindowsRuntimeFiles.cs;../WindowsRuntimeHost.cs;../KitFiles.cs;../Processes.cs;../CloseGate.cs;../SetupController.cs;../WindowsToolEnvironment.cs" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web.Extensions" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 </Project>

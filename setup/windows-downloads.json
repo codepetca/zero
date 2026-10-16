@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "architectures": {
+    "x64": {
+      "jdk": {
+        "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip",
+        "sha256": "f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e",
+        "format": "zip",
+        "version": "jdk-21.0.12.1+1",
+        "size": 205073461
+      },
+      "vscode": {
+        "url": "https://vscode.download.prss.microsoft.com/dbazure/download/stable/6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1/VSCode-win32-x64-1.142.0.zip",
+        "sha256": "ace1da7d1432d43c1ab4b2bbf643f6494f6d25dec07494976755eac522cd50d9",
+        "format": "zip",
+        "version": "1.142.0",
+        "size": 351679077
+      }
+    }
+  },
+  "provenance": {
+    "checkedUtc": "2026-10-16",
+    "jdk": "https://api.adoptium.net/v3/assets/latest/21/hotspot?architecture=x64&image_type=jdk&os=windows&vendor=eclipse",
+    "vscode": "https://update.code.visualstudio.com/api/update/win32-x64-archive/stable/latest",
+    "sizes": "Adoptium package.size and Microsoft asset HEAD Content-Length; checksums from the vendor metadata. No vendor executable was run during pin selection."
+  }
+}
