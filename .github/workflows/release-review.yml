@@ -58,14 +58,6 @@ jobs:
         run: node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-ci
       - name: Three local project builds
         run: node scripts/verify-lesson-projects.mjs
-      - name: Canvas and native control input checks
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openbox
-          xvfb-run -a bash -c '
-            openbox --sm-disable > "$RUNNER_TEMP/zero-window-manager.log" 2>&1 &
-            npm run verify:framework
-          '
       - name: Configure virtual audio for media checks
         run: |
           sudo apt-get update
@@ -78,6 +70,16 @@ jobs:
           pcm.!default { type pulse }
           ctl.!default { type pulse }
           EOF
+      - name: Canvas and native control input checks
+        env:
+          ALSA_CONFIG_PATH: ${{ runner.temp }}/zero-asound.conf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openbox
+          xvfb-run -a bash -c '
+            openbox --sm-disable > "$RUNNER_TEMP/zero-window-manager.log" 2>&1 &
+            npm run verify:framework
+          '
       - name: Finite JavaFX example checks
         env:
           ALSA_CONFIG_PATH: ${{ runner.temp }}/zero-asound.conf
