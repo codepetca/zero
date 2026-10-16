@@ -8,11 +8,12 @@ remain the goal. Public release is NOT ready. Mac preview first; physical Window
 is explicitly deferred by the owner. No push, main merge, deployment, template or
 policy activation, Developer ID/notary or live publication authority in this phase.
 
-Installed and locally accepted preview source: 3bf5304, kit/extension 0.5.18,
+Installed and locally accepted preview source: 0f033c1 (runtime ce12fa7), kit/extension 0.5.18,
 core 0.2.1, native build 18. All 106 authored VSIX files match source and installed
-nested Zero profile (only VS Code package metadata differs). Candidate and unsigned
-universal DMG are preserved under dist/candidates/zero-0.5.18-readiness-3bf5304 and
-dist/installers/candidate-3bf5304. Published 17 manifests/downloads/feed unchanged.
+nested Zero profile (only VS Code package metadata differs). Latest kit/VSIX candidate is dist/candidates/zero-0.5.18-remember-0f033c1.
+Unsigned DMG candidate-3bf5304 is preserved historical evidence and predates the
+clone preference change; rebuild later with final approved guide/policy settings.
+Published 17 manifests/downloads/feed unchanged.
 
 New Project/Clone milestone complete: signed-out Git area only Sign in; signed-in
 Project menu offers Clone from GitHub / Open local project, folder or connected
@@ -39,16 +40,21 @@ and Hello's standalone preview illustration only. Three public tutorial template
 already match all 21 helper hashes. Five public complete examples still fail the
 strict helper profile and need separately authorized updates from prepared drafts.
 
-NEW owner-requested follow-up: remember the selected clone parent for future
-clones. Peer Review verbose action confirmations owns project-folders/tests,
-extension wiring and narrow product/development docs in a separate managed
-remember-clone-folder worktree from8f39cdd. Selection saved only on Clone here,
-machine-local globalState (not Settings Sync); picker cancellation retains the
-previous selection, unavailable saved parent falls back. Root holds these files
-and retains integration/package/install/native ownership. Reviewed source87ba673 integrated asce12fa7; all five hashes exact.
-Root preparing the single combined preview and native persistence acceptance.
-Do not install a parallel candidate. This new scope does not release the separate
-legacy-guide review hold below.
+Remember-clone-location follow-up COMPLETE locally: peer source87ba673 integrated
+asce12fa7; all five reviewed hashes exact. One independent Sol/medium initial
+review clean, no fixes. Root34focusedtests/check/package/extracted-kit pass; prior
+unchanged full root/website coverage reused. Latest VSIX all106authoredfiles match
+source and installed profile; SHA256cd802b11f41018bcfa344bc43a4c869d935f440be07d530812d985733fa9d1a6.
+Actual native Clone here saved an owned alternate parent; reopening, navigating
+elsewhere then cancelling, and window reload retained it. Restored the original
+~/Zero Projects through UI and verified another picker, then cancelled. Main left /
+Study Tutorials3right restored and raised. Existing account/Java unchanged, native
+Git reused existing clone; no fresh clone transport. Preference is machine-local,
+not registered for Settings Sync. Missing/invalid path and storage failures are
+covered by focused tests, not native fault injection; physical Windows still deferred.
+Receipts .verification/release-readiness-20261016/remember-clone/. Peer has received
+final installed acceptance and owns no more UI/package work. This new scope does
+not release the separate legacy-guide hold below.
 
 ACTIVE CHECKPOINT: Chrome setup inspection found legacy guides still describing
 removed modal confirmations and optional local-branch deletion. Prepared, NOT
@@ -78,5 +84,5 @@ Receipts: .verification/release-readiness-20261016/ (native-combined-acceptance,
 combined-candidate, project-menu review/integration, final-mac-3bf5304, template
 Chrome/HTTP/input parity and tests). Older accepted evidence remains in web-export.
 Source and user projects preserved; no cleanup of valuable state. Recent weekly
-47% remaining / storage fresh healthy 319 GB; account-wide usage is not task cost.
+46% remaining / storage healthy 317.7 GB; account-wide usage is not task cost.
 DeepSeek automatic pilot paused through 2026-12-31. Goal remains incomplete.

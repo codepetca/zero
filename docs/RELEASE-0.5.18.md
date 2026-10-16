@@ -95,3 +95,13 @@ is prepared, not applied; approval for one extra remediation batch and focused
 review is pending under the exhausted legacy review budget. Correct/review guides
 and refresh affected packages before release; do not treat the current unsigned
 artifact as a signed final distribution. External gates above remain unchanged.
+
+## Remembered clone parent preview
+
+The installed0.5.18 preview now remembers the parent chosen with Clone here within
+the desktop profile. Native cancellation and window reload preserve it; missing
+saved locations fall back safely. Sourcece12fa7/candidate0f033c1 is independently
+reviewed,34focusedchecks and package verification pass, and106installedfiles match.
+Study was restored for the owner. The earlier unsigned3bf5304 DMG is historical;
+refresh final distribution after the pending guide correction and policy choices.
+Public release holds and physical Windows deferral are unchanged.

@@ -1,5 +1,35 @@
 # Delivery evidence index
 
+## Remember clone location installed and accepted — 2026-10-16
+
+Owner requested remembering the chosen clone parent. Peer source87ba673 integrated
+asce12fa7; five reviewed file hashes exactly match. One Sol/medium independent
+complete-diff review was clean with no findings/fixes. Effective model/tokens and
+review elapsed unavailable. Root34folder/onboarding/extension tests, check,
+package and extracted-kit verification pass. Existing510root/109website passes
+are reused for unchanged behavior; no redundant full suite was run.
+
+Installed candidate source0f033c1 (CURRENT-only metadata after runtimece12fa7):
+VSIX SHA256`cd802b11f41018bcfa344bc43a4c869d935f440be07d530812d985733fa9d1a6`,
+106authoredfiles exact source/package/installed. Native test chose an owned alternate
+parent with Clone here, reopened with that parent selected, navigated elsewhere
+and cancelled, then reloaded the editor: the chosen parent remained. Finally
+restored the original ~/Zero Projects via UI and verified it by reopening/cancelling.
+Main left and Study lesson3right restored/raised. Existing armorup session and
+ordinary Java retained; native Git reused an existing clone, with no fresh transport
+or public mutation claimed. The machine-local preference is not registered for
+Settings Sync. Unavailable paths/storage failure have focused test coverage, not
+native fault injection; no actual Sync or physical Windows trial.
+
+Receipts `.verification/release-readiness-20261016/remember-clone/`: delivery.json,
+source-hashes.json, integration.json, integrated-tests.log, candidate.json,
+native-acceptance.json and remembered-after-reload.png/study-restored.png. Candidate
+preserved in dist/candidates/zero-0.5.18-remember-0f033c1. Unsigned3bf5304 DMG is now
+historical and must be refreshed with final guide/policy inputs before release.
+The legacy three-guide correction remains prepared/unapplied pending its explicit
+extra-batch review approval; no new review session was used to bypass that hold.
+Weekly46%remaining/healthy317.7GB are shared observations, not attributable cost.
+
 ## Combined Project menu and installed Mac preview — 2026-10-16
 
 Installed source `3bf5304` integrates the reviewed Project/Clone feature and aligned
