@@ -8,6 +8,7 @@ on:
       - 'extension/**'
       - 'release/**'
       - '.config/dotnet-tools.json'
+      - '.gitattributes'
       - '.github/workflows/windows-native.yml'
   workflow_dispatch:
 permissions:
@@ -26,6 +27,7 @@ jobs:
           cache: npm
       - name: Restore pinned build tools
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           npm ci
           dotnet tool restore
       - name: Select Java 21 for extracted kit compilation
@@ -41,13 +43,16 @@ jobs:
           $javaBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Native fixtures and update authentication
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           npm run test:windows
           npm run test:updates:windows
           node --test extension/test/native-updates.test.js
           node --test extension/test/process-specification.test.js
           node --test scripts/test-windows-javafx.test.mjs
+          node --test setup/tests/windows-checkout.test.mjs
       - name: Build measured development installer
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           npm run package
           npm run verify:kit
           node scripts/build-installers.mjs --platform windows
