@@ -17,6 +17,7 @@ current task's content visually prominent.
 | Surface | Default |
 | --- | --- |
 | Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
+| Tutorial summary | Put the numbered actions and Done checkpoint in a Summary card; image beside it on desktop, below on phones. Omit the short lesson-description label. |
 | Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
 | Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
 | API reference | Category titles scroll away; each method name sticks through its own details. |
@@ -175,3 +176,12 @@ Remove the entire “First time?” card and all continuation cards containing
 “If you have not started it yet”. This supersedes the earlier helper-card choice.
 Keep Start project buttons on lessons0/3/8, the lesson instructions and specific
 component/media notes. Those specific notes stay small, muted and unboxed.
+
+## Tutorial Summary card — owner correction, 2026-10-16
+
+Group the opening numbered actions and full Done checkpoint in a subtle Summary
+card, with the target image beside it on desktop and below it on narrow screens.
+Remove the redundant short description under the lesson title. The source's bold
+opening goal need not repeat above the card; authored lesson source stays intact.
+This card contains the current lesson's actions, not generic setup/continuation
+hints, which remain removed.

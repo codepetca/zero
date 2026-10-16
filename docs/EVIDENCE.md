@@ -1,6 +1,6 @@
 # Delivery evidence index
 
-## Remove generic tutorial help cards — 2026-10-16
+## Tutorial Summary and removal of generic help cards — 2026-10-16
 
 Owner removed the First time card and all If you have not started it yet cards,
 refining the continuing website publication. Document omits the entire generic
@@ -8,6 +8,16 @@ setup/continuation aside and empty continuation sections; stale card CSS is gone
 Start project buttons remain at0/3/8; lesson10 component reminder and lesson12
 asset link remain as small muted,unboxed notes. Canonical lessons unchanged.
 Design/product guidance supersedes the earlier helper-card choice.
+
+Owner then requested Summary cards with the existing numbered actions and full
+Done checkpoint inside, image beside on desktop/below on narrow screens, and no
+redundant description label. Markdown transformation preserves authored lesson
+source/code and deep links. All13 lesson render tests now verify Summary/actions/
+Done grouping and the image outside the card before detailed sections.96website
+ tests/typecheck/build pass after this refinement; desktop lesson1 browser shows
+side-by-side card/image, no subtitle/overflow. The initial review turn was
+interrupted for this owner-requested scope update; resume one complete review on
+the new fixed head, within the same initial wave and existing budget.
 
 96website tests,typecheck/build,whitespace checks and all13 local HTTP renders pass:
 zero generic cards/text; exactly three Start buttons; no empty continuation section;

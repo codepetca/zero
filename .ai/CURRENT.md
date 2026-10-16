@@ -1,4 +1,4 @@
-# Current state — Remove generic tutorial cards, 2026-10-16
+# Current state — Tutorial Summary refinement, 2026-10-16
 
 Owner requested removal of the entire First time card and every continuation card
 containing If you have not started it yet. This refines the website cleanup
@@ -10,7 +10,12 @@ Document removes the generic help wrapper/content and empty continuation section
 Start project buttons remain only at lessons0/3/8. Lesson10 component reminder and
 lesson12 optional assets remain as small muted,unboxed notes. Canonical lesson
 instructions,Next/sidebar,sticky API names and transparent scrollbars are unchanged.
-Continuing owner defaults in design.md and product guidance reflect this correction.
+Owner also requested opening actions/Done in a Summary card, illustration beside
+on desktop/below on phones, and removal of the redundant short description label.
+Renderer/CSS implement this without changing authored source; all13 render tests
+verify grouping.96website tests/typecheck/build pass. Prior review turn interrupted
+for owner steering; one complete review resumes on the new fixed head. Draft PR72
+owns both refinements. Continuing design/product defaults are updated.
 
 Next: local website checks/browser confirmation,one bounded independent review,
 then PR/exact-headCI/merge and live verification through the existing publication

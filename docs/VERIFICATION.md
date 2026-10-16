@@ -1,8 +1,11 @@
 # Verification
 
-## Remove generic tutorial help cards — 2026-10-16
+## Tutorial Summary and removal of generic help cards — 2026-10-16
 
-96website tests,typecheck/build and whitespace checks pass. All13 local tutorial
+96website tests,typecheck/build and whitespace checks pass after Summary refinement.
+All13 lesson render tests verify Summary/actions/Done grouping with image outside
+the card; desktop browser confirms side-by-side layout and no redundant subtitle.
+All13 local tutorial
 HTTP renders have no generic help card or First time/not-started copy; only0/3/8
 have a Start button; lesson10/12 notes/assets remain. Browser8/9 phone layout has
 no empty card/section or overflow. Existing updater tracing warnings remain.

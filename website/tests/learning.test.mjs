@@ -164,7 +164,7 @@ test("lesson media links use only the explicit build-time asset mapping", () => 
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
 });
 
-test("every lesson has a visible target illustration and quick checkpoint before folded details", () => {
+test("every lesson groups actions and Done in a Summary card beside its target before details", () => {
   for (const lesson of lessons) {
     const name = String(lesson.id).padStart(2, "0");
     const folder = new URL("../../student-template/lessons/", import.meta.url);
@@ -175,6 +175,10 @@ test("every lesson has a visible target illustration and quick checkpoint before
     }));
     const image = html.indexOf(`<img src="visuals/${name}.svg"`);
     assert.match(html, /class="lesson-quick-path"/);
+    assert.match(html, /class="lesson-summary-card" aria-labelledby="lesson-summary"><h2 id="lesson-summary">Summary<\/h2>/);
+    const cardEnd = html.indexOf("</section>");
+    assert.ok(html.indexOf("<ol>") < cardEnd && html.indexOf("Done:") < cardEnd, `Lesson ${name} actions and checkpoint belong in Summary`);
+    assert.ok(image > cardEnd, `Lesson ${name} illustration belongs beside, outside Summary`);
     assert.doesNotMatch(html, /<p>Previous:\s/, `Lesson ${name} must omit previous navigation`);
     assert.ok(image >= 0 && image < html.indexOf("<details"), `Lesson ${name} target must be visible`);
     assert.ok(html.indexOf("<ol>") < html.indexOf("<details"), `Lesson ${name} actions must be visible`);
@@ -244,7 +248,7 @@ test("only three lessons start a project, without generic setup or continuation 
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
   assert.match(document, /lesson === practiceProject.firstLesson/);
-  assert.doesNotMatch(document, /First time\?|If you have not started it yet|className="lesson-help"/);
+  assert.doesNotMatch(document, /First time\?|If you have not started it yet|className="lesson-help"|className="reader-subtitle"/);
   assert.match(document, /lesson === "10"/);
   assert.match(document, /lesson === "12"/);
   assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);

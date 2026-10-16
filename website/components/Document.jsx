@@ -55,7 +55,6 @@ export function Document({ id, lesson = "" }) {
           <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
             {lesson ? `Lesson ${lesson}: ${title}` : title}
           </h2>
-          {related && <p className="reader-subtitle">{related.description}</p>}
           {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <section className="lesson-start" aria-label={`${practiceProject.title} project`}>
               {lesson === practiceProject.firstLesson && (

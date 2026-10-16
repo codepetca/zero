@@ -87,8 +87,10 @@ then reuses unchanged ScoreDisplay in the study app and coin game.
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. These sources remain unreleased; published kits
 keep their original bytes.
-The later local visual pass gives all thirteen lessons an always-visible target
-illustration, three actions and one checkpoint before detailed code. Optional
+All thirteen lessons open with a Summary card containing their numbered actions
+and Done checkpoint, with an always-visible target illustration beside it on
+desktop or below on narrow screens. The redundant short lesson-description label
+is omitted before detailed code. Optional
 composed-study/composed-game examples now demonstrate the same ordinary StartScreen
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).
