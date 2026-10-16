@@ -70,12 +70,12 @@ test('local practice blocks Git service entry points before Git or network calls
 test('local practice sharing commands stop before authentication, saves, Git or external pages; native diagnostic run remains local', async t => {
   const Module=require('node:module');
   const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,practiceProjectId:'greeting',lessonId:'0'}));await fs.writeFile(path.join(root,'mvnw'),'');
-  const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0,launches=0;
+  const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0,launches=0;const repositoryPicks=[];
   const disposable=()=>({dispose(){}});
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return null;},onDidChangeSessions:disposable},
     workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable,textDocuments:[]},
-    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showErrorMessage:async text=>{errors.push(text);},showInformationMessage:async()=>{},showQuickPick:async()=>{throw new Error('picker opened');}},
+    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showErrorMessage:async text=>{errors.push(text);},showInformationMessage:async()=>{},showQuickPick:async items=>{repositoryPicks.push(items);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable,executeTask:async task=>{launches++;return {task,terminate(){}};}},
     Task:class{constructor(definition,scope,name,source,execution){Object.assign(this,{definition,scope,name,source,execution});}},TaskScope:{Workspace:1},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:1},ProcessExecution:class{constructor(command,args){Object.assign(this,{command,args});}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
@@ -85,7 +85,8 @@ test('local practice sharing commands stop before authentication, saves, Git or 
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(item=>item.dispose()));
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:path.resolve(__dirname,'..')});
-  for(const id of ['zero.chooseRepository','zero.connectRepository','zero.createRepository','zero.uploadToGitHub','zero.startChange','zero.finishChange','zero.extractLibrary','zero.shareGame','zero.shareLibrary']) {
+  await commands.get('zero.chooseRepository')();assert.deepEqual(repositoryPicks.at(-1).map(item=>item.action),['tutorial','clone'],'Local practice only offers leaving for a tutorial or clone, never sharing');
+  for(const id of ['zero.switchBranch','zero.connectRepository','zero.createRepository','zero.uploadToGitHub','zero.startChange','zero.finishChange','zero.extractLibrary','zero.shareGame','zero.shareLibrary']) {
     await commands.get(id)();assert.match(errors.at(-1),/local lesson practice/i,id);
   }
   assert.equal(saves,0);assert.equal(external,0);assert.equal(authCalls,1,'Only activation may inspect native sign-in silently');

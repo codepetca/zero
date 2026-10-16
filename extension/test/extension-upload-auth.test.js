@@ -81,9 +81,10 @@ test('repository-required tutorial reaches default live Upload review and preser
 test('tutorial sidebar retains normal GitHub controls and hides original-only Share project',async t=>{
   const h=await harness(t,{kit:false,tutorial:true});const webview=h.render();
   const deadline=Date.now()+5000;
-  while(!webview.html.includes('data-command="zero.startChange"')) {assert.ok(Date.now()<deadline,'Tutorial repository controls should finish rendering');await new Promise(resolve=>setImmediate(resolve));}
-  for(const command of ['zero.chooseRepository','zero.uploadToGitHub','zero.startChange','zero.publishWeb','zero.browseZeroHub']) assert.ok(webview.html.includes(`data-command="${command}"`),command);
-  assert.doesNotMatch(webview.html,/data-command="zero.shareGame"|Local practice/);
+  while(!webview.html.includes('data-command="zero.uploadToGitHub"')) {assert.ok(Date.now()<deadline,'Tutorial repository controls should finish rendering');await new Promise(resolve=>setImmediate(resolve));}
+  for(const command of ['zero.chooseRepository','zero.uploadToGitHub','zero.publishWeb','zero.browseZeroHub']) assert.ok(webview.html.includes(`data-command="${command}"`),command);
+  assert.doesNotMatch(webview.html,/data-command="zero.shareGame"|data-command="zero.startChange"|data-command="zero.cloneRepository"|Local practice/);
+  assert.match(webview.html,/Current branch: main/);
   await h.commands.get('zero.shareGame')();assert.match(h.errors.at(-1),/separate original project/);
 });
 test('original project sidebar continues offering Share project',async t=>{
