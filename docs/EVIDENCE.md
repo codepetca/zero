@@ -1,5 +1,28 @@
 # Delivery evidence index
 
+## Restored lesson titles and encouraging endings — 2026-10-16
+
+[PR75](https://github.com/codepetca/zero/pull/75) merged
+`f6da11eaecbb36befe812840e45eb3b5084b05bb`. Large lesson title restored directly
+below project heading; tinted card says Summary, still containing actions/Done/image.
+Each lesson has a short encouraging note inside its final explanation;lesson0 says
+“You wrote your first Zero program!”. One Luna/medium independent complete review
+ofb34e74b found no issues;one launch/wave,zero fixes/rework/conflicts. Effective
+configuration,review elapsed and tokens unknown;allowance not attributable task cost.
+
+96website tests,typecheck/build/diff check and all13 local/public HTTP checks pass:
+outside title,unique old source anchor,Summary label,image containment and one note
+at final explanation end. Docs components unaffected.1280px dark desktop and320px
+light phone title/reflow pass;note collapses with keyboard-controlled details.
+Live1280x720 lesson0 title and ending screenshots verify note visible/inside final
+explanation/last in section. Safari/physical/enlarged-text/forced-color not newly
+exercised;existing updater tracing warnings remain. [CI38918414124](https://github.com/codepetca/zero/actions/runs/38918414124)
+passed6m57s;production7122282435 succeeded for merge SHA. Source lessons,Java/release
+inputs unchanged;public signed feed matches canonical bytes. Owner defaults saved
+in design.md/PRODUCT. Receipts:.verification/tutorial-summary-encouragement/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
 ## Tutorial project headings published — 2026-10-16
 
 [PR74](https://github.com/codepetca/zero/pull/74) merged

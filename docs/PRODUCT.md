@@ -89,7 +89,7 @@ welcome/result/countdown helpers. These sources remain unreleased; published kit
 keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,
 Study Quiz or Coin Game. The large lesson title appears directly below that
-heading, followed by a subtly tinted Summary card containing numbered actions,
+heading, followed by a clearly tinted Summary card (stronger in dark mode) containing numbered actions,
 Done checkpoint and always-visible target illustration. Steps and image sit beside each other inside the card on desktop
 and stack on narrow screens. The redundant short description is omitted. Each
 lesson ends its final code/explanation section with a short encouraging message. Optional

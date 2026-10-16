@@ -452,9 +452,14 @@ h3 {
 }
 .lesson-summary-body > * { min-width: 0; }
 .learn-theme .lesson-summary-card {
+  --lesson-summary-tint: 14%;
   padding: 24px;
-  background: color-mix(in srgb, var(--zero-accent) 8%, var(--zero-page));
+  background: color-mix(in srgb, var(--zero-accent) var(--lesson-summary-tint), var(--zero-page));
   border-radius: var(--zero-radius);
+}
+.learn-theme[data-theme="dark"] .lesson-summary-card { --lesson-summary-tint: 24%; }
+@media (prefers-color-scheme: dark) {
+  .learn-theme[data-theme="system"] .lesson-summary-card { --lesson-summary-tint: 24%; }
 }
 .markdown .lesson-summary-card h2 {
   margin: 0 0 16px;
