@@ -48,10 +48,11 @@ setup: follow its README, retain hidden folders and run its default Hello, world
 app. This local smoke does not complete lesson 0 or the required tutorial setup.
 The candidate's Run App opens a browser preview; verify rerun and Stop there.
 
-The three empty tutorial templates are still unpublished candidate drafts. Before
-student acceptance, publish them under separate authorization and verify their
-metadata and fresh student-account creation/clone flow. Do not substitute completed
-checkpoints, a tutorial ZIP or a direct teacher-template clone.
+The three empty tutorial templates are published, with verified exact pins in
+`teaching/tutorial-templates.json`. Their seven canonical helpers match the tested
+browser profile. Repeat the student-account creation/clone flow against the final
+release candidate; prior maintainer acceptance is not a novice or school trial.
+Do not substitute completed checkpoints, a tutorial ZIP or a teacher-template clone.
 
 For Greeting before lesson 0, Study before lesson 3 and Game before lesson 8,
 create a repository from the matching verified empty template in the student's
@@ -62,7 +63,7 @@ confirm Run works offline without an active GitHub session.
 
 Complete the real authorized GitHub trial below using the tutorial clone. It
 already has origin and an initial main commit: skip the empty-repository creation
-step for that case. New branch, Upload, Finish and first/repeat Publish use the
+step for that case. New branch, Commit & push, Merge to main and first/repeat Publish use the
 same controls as original projects. Source repository/Pika submission and optional
 public game hosting are separate. GitHub Pages availability for private repositories
 depends on the account plan; never require payment or a visibility change to finish
@@ -122,7 +123,7 @@ account/network trial. Current development checks mock authentication and transp
   the actual repository using the teacher account; a copied link alone is insufficient.
   Zero does not submit assignments or change grades.
 
-- Upload the starting version on main. Choose New branch beside main, cancel once
+- Upload the starting version on main. Choose New branch in the repository menu, cancel once
   and verify the branch/files are unchanged; then create a named branch. Make
   and run a small app improvement, Commit & push to that branch, cancel Finish
   once, then review/approve Finish. Confirm the completed SHA and files on remote

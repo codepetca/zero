@@ -81,9 +81,9 @@ public final class SmokeLauncher extends GameApp {
                 require(input.isFocused(), "native TextField focus");
                 require(!keyDown(KeyCode.SPACE) && !mouseDown(MouseButton.PRIMARY), "focus transfer clears held inputs");
                 key(input, KeyEvent.KEY_PRESSED);
-                require(!keyDown(KeyCode.SPACE), "typing does not drive sketch keys");
+                require(!keyDown(KeyCode.SPACE), "typing does not drive game keys");
                 mouse(input, MouseEvent.MOUSE_PRESSED, MouseButton.PRIMARY);
-                require(!mouseDown(MouseButton.PRIMARY), "control click does not drive sketch mouse");
+                require(!mouseDown(MouseButton.PRIMARY), "control click does not drive game mouse");
                 input.setText("ordinary JavaFX input");
                 require(input.getText().equals("ordinary JavaFX input"), "native control usable");
                 input.positionCaret(0);

@@ -1,4 +1,7 @@
-# Zero 0.5.16 release preparation
+# Zero 0.5.16 historical preview preparation
+
+Superseded for release readiness by [the 0.5.18 candidate](RELEASE-0.5.18.md).
+The dated states below describe earlier previews; they are not current blockers.
 
 Latest installed extension: `zero-0.5.16-sidebar-results-bd66546` on
 `codex/web-export`. Routine successes use sidebar status rather than popups;

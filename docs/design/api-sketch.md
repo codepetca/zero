@@ -22,7 +22,7 @@ Two entry points share the same startup conventions:
 - `GameApp`: adds a canvas, drawing/input helpers and the explicit
   `update(seconds)` followed by `draw()` loop. Its canvas dimensions come from
   `size(width, height)`. A later mixed UI/canvas example should prove integration
-  before we design a separate embedded sketch API.
+  before we design a separate embedded game canvas API.
 
 The library calls app lifecycle methods. Students explicitly call methods on
 their own objects. JavaFX controls handle their own rendering and layout.

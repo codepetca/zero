@@ -20,7 +20,6 @@ export default function DownloadPage() {
           <p>{mac && installer && <>Mac {installer.kitVersion}: Apple Silicon, macOS {installer.asset.minimumOS}+.<br /></>}
             {kit && <>Windows {kit.kitVersion}: ZIP with manual setup.</>}</p>
           <Link href="/docs/setup">Installation steps and setup help</Link>
-          <p>Launch Zero. It reuses your GitHub connection; choose <strong>Connect GitHub</strong> if prompted. Then choose <strong>Start tutorial</strong> in Zero’s welcome. With a project open, find it in Zero’s <strong>…</strong> menu.</p>
         </div>
       </main>
     </LearnTheme>

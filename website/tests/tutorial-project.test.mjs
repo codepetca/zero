@@ -17,73 +17,38 @@ const render = (lesson, template = null) => renderToStaticMarkup(createElement(T
   project: projectForLesson(lesson), lesson, template, assets: sampleGameAssets,
 }));
 
-test("all three starting lessons require a template and clone of the student's own repository", () => {
+test("only starting lessons offer the published template and a concise own-repository path", () => {
   for (const lesson of ["0", "3", "8"]) {
     const project = projectForLesson(lesson);
     const repository = `fixture-owner/tutorial-${project.id}`;
     const template = {repository, repositoryUrl: `https://github.com/${repository}`, templateHref: `https://github.com/${repository}/generate`};
     const html = render(lesson, template);
     assert.ok(html.includes(`href="${template.templateHref}">Use template</a>`));
-    assert.ok(html.includes(`href="${template.repositoryUrl}">View tutorial template</a>`));
-    assert.match(html, /create a repository under your own GitHub account/);
-    assert.match(html, /your new repository/);
-    assert.match(html, /Code → HTTPS/);
-    assert.match(html, /Start tutorial<\/strong> → <strong>/);
-    assert.ok(html.includes(`<strong>${project.title}</strong> to open the matching template`));
-    assert.match(html, /Use this template → Create a new repository/);
-    assert.match(html, /reuses your GitHub connection; choose Connect GitHub if prompted/);
-    assert.match(html, /Return to Zero.*Clone repository/);
-    assert.match(html, /Paste your URL, choose a destination outside any other Git repository/);
-    assert.match(html, /Open in New Window/);
-    assert.match(html, /Tutorials<\/strong> tab beside <code>Main.java/);
-    assert.match(html, /repository menu<\/strong>.*Clone repository/);
-    assert.match(html, /Open in browser/);
-    assert.match(html, /ordinary Java/);
-    assert.match(html, /From Zero.*welcome/);
-    assert.match(html, /With a project open, use Zero.*menu to find Start tutorial/);
-    assert.doesNotMatch(html, /Git: Clone|Command Palette/);
-    assert.match(html, /your new repository<\/strong>.*Code → HTTPS/);
-    assert.match(html, /empty Main/);
-    assert.doesNotMatch(html, /Template not available yet|\.zip|download=|Unzip|Create an empty repository/);
+    assert.match(html, /Create your own GitHub repository from the template/);
+    assert.match(html, /Clone repository<\/strong> in Zero.*repository menu/);
+    assert.match(html, /href="\/docs\/setup#one-time-setup">Setup<\/a>/);
+    assert.equal((html.match(/<p>/g) || []).length, 1);
+    assert.doesNotMatch(html, /Template not available yet|\.zip|download=|<ol|Publish app|New branch|Open in browser/);
   }
 });
 
-test("unpublished templates give a precise recovery without guessed GitHub links or a ZIP bypass", () => {
+test("unpublished templates explain recovery without a guessed GitHub link or ZIP bypass", () => {
   for (const lesson of ["0", "3", "8"]) {
     const html = render(lesson);
     assert.match(html, /Template not available yet/);
-    assert.match(html, /tutorial template has not been published/);
-    assert.match(html, /Ask your teacher for the published tutorial template/);
+    assert.ok(html.includes(`Ask your teacher for the published ${projectForLesson(lesson).title} tutorial template`));
     assert.match(html, /your own already-cloned repository/);
+    assert.match(html, /href="\/docs\/setup#one-time-setup">Setup<\/a>/);
     assert.doesNotMatch(html, /href="https:\/\/github\.com|class="button"|\.zip|download=/);
   }
 });
 
-test("every lesson uses the live branch, run, commit, push and merge workflow with local Run available", () => {
-  for (let id = 0; id <= 12; id++) {
-    const lesson = String(id);
-    const html = render(lesson);
-    const actions = ["New branch", "Run App", "Commit &amp; push", "Merge to main"];
-    let previous = -1;
-    for (const action of actions) {
-      const position = html.indexOf(`<strong>${action}</strong>`, previous + 1);
-      assert.ok(position > previous, `${lesson}: ${action} stays in workflow order`);
-      previous = position;
-    }
-    assert.match(html, /Review the account, repository, branch and files before confirming GitHub actions/);
-    assert.match(html, /Nothing pushes automatically/);
-    assert.match(html, /creates a commit when needed and pushes the current branch/);
-    assert.match(html, /merges your branch into main and pushes main/);
-    assert.match(html, /Publish app is a separate action.*GitHub Pages/);
-    assert.doesNotMatch(html, /Upload changes|Finish change/);
-    assert.match(html, /Local Run App needs no GitHub sign-in/);
-    assert.match(html, /href="\/docs\/course-project#tutorial-repositories"/);
-    assert.doesNotMatch(html, /simulation|per-repository Git commit name and email|origin and starting history/);
-    if (!["0", "3", "8"].includes(lesson)) {
-      assert.match(html, /Continue your .* project in the same cloned repository/);
-      assert.ok(html.includes(`href="/tutorials/${projectForLesson(lesson).firstLesson}"`));
-      assert.doesNotMatch(html, /Use template|Start tutorial|Clone repository|has not been published/);
-    }
+test("continuing lessons omit repeated generic setup and workflow cards", () => {
+  for (const lesson of ["1", "2", "4", "5", "6", "7", "9", "11"]) {
+    assert.equal(render(lesson), "", `Lesson ${lesson} has no project setup card`);
+  }
+  for (const lesson of ["10", "12"]) {
+    assert.doesNotMatch(render(lesson), /Setup|Use template|Clone repository|Continue your|New branch|Publish app|Open in browser/);
   }
 });
 

@@ -51,7 +51,7 @@ These public methods are `final` (call them; do not override them):
 | --- | --- |
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Both numbers must be positive and finite. Default: 800 × 500. |
 | `void title(String title)` | Set the window title inside `settings()` only. It must not be null. Default: `"Zero"`. |
-| `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a sketch keeps its fixed canvas size. |
+| `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a game keeps its fixed canvas size. |
 | `void show(Node content)` | Replace the root's centre with a non-null JavaFX node. Call in `setup()` or later in an event handler. |
 
 `size`, `title` and `padding` throw `IllegalStateException` outside settings;
@@ -320,7 +320,7 @@ release outside the canvas. Mouse coordinates track canvas events and an owned
 drag, and can be outside its bounds; they do not continually track movement over
 other controls.
 
-This small sketch makes movement explicit:
+This small game makes movement explicit:
 
 ```java
 import javafx.scene.input.KeyCode;
@@ -354,9 +354,9 @@ thread. Keep them short. Sleeping, long calculations or blocking file/network
 work freezes the UI. Native background-work tools such as JavaFX Task are an
 advanced option; update live controls on the JavaFX application thread.
 
-A startup failure closes the window and runs shutdown; a failed sketch frame
+A startup failure closes the window and runs shutdown; a failed game frame
 stops its timer and clears held input, then reports the exception. Closing an app
-also stops the sketch timer. Fix the source and Run App again.
+also stops the game timer. Fix the source and Run App again.
 
 For framework contributors, App exposes protected hooks:
 `final double initialWidth()`, `final double initialHeight()`,

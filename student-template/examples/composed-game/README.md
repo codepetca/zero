@@ -39,7 +39,7 @@ is true, including before Start. `draw()` keeps rendering but never awards point
 GameApp extends App. This example always keeps the canvas in
 `layout().getCenter()`, uses the left panel for StartScreen and the bottom for Hud.
 It does not call inherited `show(...)` to hide the canvas: doing that would leave
-the sketch timer running. Focus loss clears held input but does not pause rules.
+the game timer running. Focus loss clears held input but does not pause rules.
 Each running app creates separate component instances because a node has one
 parent. See [the shared view contract](../composition-shared/README.md) for
 Runnable/lambdas. Try long instructions and feedback; the native labels wrap.

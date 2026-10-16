@@ -727,6 +727,131 @@ rebuilt the migrated standalone game and its new helpers under managed JDK21.
 Independent review is recorded in [delivery evidence](EVIDENCE.md). Physical
 Windows, audible output, novice students and a new human playtest are not claimed.
 
+## Restored lesson titles and encouraging endings — 2026-10-16
+
+[PR75](https://github.com/codepetca/zero/pull/75) merged
+`f6da11eaecbb36befe812840e45eb3b5084b05bb`. Large lesson title restored directly
+below project heading; tinted card says Summary, still containing actions/Done/image.
+Each lesson has a short encouraging note inside its final explanation;lesson0 says
+“You wrote your first Zero program!”. One Luna/medium independent complete review
+ofb34e74b found no issues;one launch/wave,zero fixes/rework/conflicts. Effective
+configuration,review elapsed and tokens unknown;allowance not attributable task cost.
+
+96website tests,typecheck/build/diff check and all13 local/public HTTP checks pass:
+outside title,unique old source anchor,Summary label,image containment and one note
+at final explanation end. Docs components unaffected.1280px dark desktop and320px
+light phone title/reflow pass;note collapses with keyboard-controlled details.
+Live1280x720 lesson0 title and ending screenshots verify note visible/inside final
+explanation/last in section. Safari/physical/enlarged-text/forced-color not newly
+exercised;existing updater tracing warnings remain. [CI38918414124](https://github.com/codepetca/zero/actions/runs/38918414124)
+passed6m57s;production7122282435 succeeded for merge SHA. Source lessons,Java/release
+inputs unchanged;public signed feed matches canonical bytes. Owner defaults saved
+in design.md/PRODUCT. Receipts:.verification/tutorial-summary-encouragement/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
+## Tutorial project headings published — 2026-10-16
+
+[PR74](https://github.com/codepetca/zero/pull/74) merged
+`91169fc0b87f04cbf20a0986736a519fd7328b65`. Shared renderer uses existing project
+membership for Greeting App0–2,Study Quiz3–7,Coin Game8–12; Docs remains Docs.
+Owner default saved in design.md/PRODUCT. One Luna/medium independent full-diff
+review of227d599 found no issues;one launch/wave,zero fixes/rework/conflicts.
+Effective config,review elapsed and tokens unknown;account allowance not task cost.
+96 website tests,typecheck/build and all13 local/public rendered headings pass.
+1280px desktop live heading and320px local reflow/nooverflow verified. No new
+label-only tests;Safari/physical/enlarged-text/forced-color not newly run. Existing
+updater tracing warnings remain. [CI38916786229](https://github.com/codepetca/zero/actions/runs/38916786229)
+passed6m53s;production deployment7121817477 succeeded for merge SHA. Lesson/release
+inputs unchanged. Detailed receipts/screenshots:.verification/tutorial-project-heading/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
+## Lesson title card refinement — 2026-10-16
+
+Published [PR73](https://github.com/codepetca/zero/pull/73), merge
+`cea6028f7679a13b64745d3b41f304060ea0fcce`. One independent Luna/medium review of
+`806c543` covered the complete diff/callers with no findings; one launch/wave,
+zero fixes, no rework/conflicts. Effective model/timing/tokens unknown; coordinator
+usage not attributable. [CI38915351023](https://github.com/codepetca/zero/actions/runs/38915351023)
+passed6m35s; production deployment7121572308 succeeded for the merge SHA.
+
+Lesson title replaces Summary and duplicate outside heading; actions, Done and
+image share a subtly purple-tinted card. All96 website tests,typecheck/build/diff
+checks and all13 local/public HTTP checks pass. Live1280px dark desktop confirms
+image containment/columns/no duplicate title/nooverflow. Local320/390px light
+stacking,1280px light tint and keyboard Enter disclosure verified. Safari/physical/
+enlarged-text/forced-color UI not newly run. Prior updater tracing warnings remain.
+Source lessons/Java/release inputs unchanged; public signed feed equals canonical
+bytes (SHA256775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2).
+Detailed receipts/screenshots:`.verification/tutorial-lesson-card/`. Owned worktree
+fast-forwarded to mergedmain; original dirty funding checkout untouched. This
+post-publication receipt is local. Owner defaults saved in design.md/PRODUCT.
+
+## Tutorial Summary and removal of generic help cards — 2026-10-16
+
+PR72 merged713040a after complete resumed independent review and successful
+exact-headCI38911105634 attempt2. First attempt hit an unchanged Maven sample
+timeout; retry passed without changing source/checks. Production deployment7120970704
+is successful; all13 public tutorial pages verify Summary/three actions/Done/image,
+removed generic cards/labels and preserved buttons/notes. Live1280px card/image
+layout is side-by-side without overflow. Existing signed feed bytes unchanged.
+Evidence:.verification/tutorial-card-removal/ and docs/EVIDENCE.md.
+
+96website tests,typecheck/build and whitespace checks pass after Summary refinement.
+All13 lesson render tests verify Summary/actions/Done grouping with image outside
+the card; desktop browser confirms side-by-side layout and no redundant subtitle.
+All13 local tutorial
+HTTP renders have no generic help card or First time/not-started copy; only0/3/8
+have a Start button; lesson10/12 notes/assets remain. Browser8/9 phone layout has
+no empty card/section or overflow. Existing updater tracing warnings remain.
+No new Safari/physical-platform coverage. Review/CI/live publication verdict is
+recorded at the follow-up PR and .verification/tutorial-card-removal/ receipts.
+
+## Website publication acceptance — 2026-10-16
+
+[PR71](https://github.com/codepetca/zero/pull/71) merged e268b93 after complete
+independent integration review and successful exact-headCI38906665641.96website
+and10design tests/typecheck/build pass; CI also covers native input, examples,
+lesson progression, extension, sharing and Maven consumers. Production READY and
+anonymous200 checks cover tutorials8/9,docs/docs-api/downloads; live desktop browser
+confirms highlighted tutorial headings, muted help,no Previous/dividers, method-
+bound sticky names and matching light/dark scrollbar tracks.0.5.17 kit destination
+and signed feed bytes unchanged. Safari/physical/enlarged-text/forced-color UI
+remain untested. Evidence: [publication receipt](EVIDENCE.md#website-reading-cleanup-published--2026-10-16)
+and ignored .verification/tutorial-cleanup/publication/.
+
+## Subtle scrollbar tracks — 2026-10-16
+
+10 shared design tests, website typecheck/build and whitespace checks pass.
+Browser verifies themed root background/color-scheme, transparent page/sidebar/
+code scrollbar tracks, thin thumbs, both themes and normal scrolling. Independent
+complete implementation review is clean; prior96website tests reused. Safari,
+physical platforms and forced-color UI were not exercised. Two unrelated updater
+tracing warnings remain. See [delivery evidence](EVIDENCE.md#subtle-scrollbar-tracks--2026-10-16).
+
+## Sticky API method names — 2026-10-16
+
+CSS follow-up passes website typecheck, production build,96tests and whitespace
+checks. Browser confirms method-bound sticky titles, static category titles,
+measured desktop-header offset, phone top0,320/384/1280px reflow, direct links,
+active method and light/dark. One complete independent source review is clean;
+browser evidence reused. Two unrelated updater tracing warnings remain.
+Safari/physical devices, enlarged text and keyboard were not separately tested.
+See [delivery evidence](EVIDENCE.md#sticky-api-method-names--2026-10-16).
+
+## Tutorial reading cleanup — 2026-10-16
+
+96 website tests, typecheck, production build and diff whitespace checks pass.
+The new renderer regression covers introductory Previous navigation, thematic
+rules, code-fence preservation, anchors and the unchanged non-lesson path; all13
+lesson renders reject Previous paragraphs. In-app browser checks cover lessons8/9,
+light/dark,320px through1280px reflow, keyboard disclosure/focus, a direct step
+anchor and mobile selection. No tutorial section/footer divider remains.
+Two unrelated mac-updater tracing warnings remain in the successful build.
+Safari, physical devices and enlarged text were not separately tested.
+Independent complete implementation review: no actionable findings.
+See [delivery evidence](EVIDENCE.md#tutorial-reading-cleanup--2026-10-16).
 
 ## Mac updater0.5.15 release acceptance — 2026-10-14
 

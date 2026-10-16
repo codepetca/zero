@@ -24,6 +24,9 @@ export function Document({ id, lesson = "" }) {
     "Documentation";
   const { related, next } = lessonNavigation(lesson);
   const practiceProject = lesson ? projectForLesson(lesson) : null;
+  const pageTitle = practiceProject
+    ? practiceProject.title.replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : lesson ? "Tutorials" : "Docs";
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
@@ -41,7 +44,7 @@ export function Document({ id, lesson = "" }) {
       <main
         id="page-content"
         tabIndex={-1}
-        className="reader-layout compact-reader"
+        className={`reader-layout compact-reader${lesson ? " tutorial-reader" : ""}`}
       >
         <aside className="reader-navigation">
           <ReaderNavigation
@@ -52,19 +55,18 @@ export function Document({ id, lesson = "" }) {
           />
         </aside>
         <article className="reader-content">
-          <h1>{lesson ? "Tutorials" : "Docs"}</h1>
+          <h1>{pageTitle}</h1>
           <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
             {lesson ? `Lesson ${lesson}: ${title}` : title}
           </h2>
-          {related && <p className="reader-subtitle">{related.description}</p>}
-          {practiceProject && (
+          {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <TutorialProject project={practiceProject} lesson={lesson}
               template={publishedTutorialTemplate(practiceProject.id)} assets={sampleGameAssets} />
           )}
           <FoldingReader key={id}>
             <Markdown
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[[foldSections, { lesson: !!lesson }]]}
+              rehypePlugins={[[foldSections, { lesson: !!lesson, encouragement: related?.encouragement }]]}
               components={{
                 pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
                 img: ({ src, alt }) => {

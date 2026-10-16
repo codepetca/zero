@@ -67,6 +67,27 @@ and repository-menu rules above supersede the sidebar shown in the concept.
 
 ## Approved and proposed
 
+### Remembered website preferences — 2026-10-16
+
+These are the owner's continuing design defaults. Preserve them in future website
+work unless the owner requests a change. Prefer a subtle appearance and keep the
+current task's content visually prominent.
+
+| Surface | Default |
+| --- | --- |
+| Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
+| Tutorial heading | Show the current project name in title case: Greeting App, Study Quiz or Coin Game. |
+| Tutorial summary | Show the large lesson title below the project heading. Use “Summary” inside the clearly visible purple-tinted card (stronger in dark mode) containing actions, Done and image; columns on desktop, stacked on phones. Omit short description labels. |
+| Lesson ending | Close the final code/explanation section with a short encouraging message in plain text. |
+| Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
+| Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
+| API reference | Category titles scroll away; each method name sticks through its own details. |
+| Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
+| Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
+
+Keep the sidebar, Next lesson action, search, code copying, deep links, accessible
+focus and ordinary scrolling usable. See the dated corrections below for details.
+
 | Surface | Status |
 | --- | --- |
 | Home page with app header, Learn Java and Mac/Windows downloads | Owner-approved download-first flow 2026-10-15; GitHub welcome belongs in desktop Zero. |
@@ -184,8 +205,8 @@ Native themes, local-practice restrictions and existing command/review guards st
 
 The owner requested all five audited issues fixed. Keep the centered Downloads
 stack with a concise setup link and metadata-derived platform/version requirements
-below it. Initial lesson projects link to setup and explain that their ZIP does
-not install Zero or Java. Share your work uses the existing shared theme wrapper
+below it. The later tutorial-card correction removes the initial-lesson setup
+card; setup remains available through Downloads and Docs. Share your work uses the existing shared theme wrapper
 and controls; this is no broader Hub redesign. Release bytes stay immutable.
 
 ## Tutorial repository workflow — owner decision, 2026-10-15
@@ -307,3 +328,62 @@ ready, ZIP saved. Keep branch/library names when needed, and retain longer
 technical details and guidance in Zero Output. Conditions needing attention still
 include a clear next step, such as running the app after main updates or checking
 Output when local-branch cleanup is refused. No action or guard changes.
+## Tutorial reading hierarchy — owner correction, 2026-10-16
+
+Remove Previous lesson prose and horizontal dividers from tutorial content,
+including section and Next lesson borders. Keep numbered step titles prominent
+on subtle theme surfaces, with existing disclosure controls and deep links.
+The later correction below removes generic setup/continuation cards entirely;
+lesson-specific optional notes stay muted and unboxed. Reuse approved light/dark
+tokens. The sidebar and Next lesson action remain available.
+
+## Docs sticky method names — owner correction, 2026-10-16
+
+API category headings scroll with the document. Each method's name/owner row
+sticks only while reading that method, below the shared desktop header or at
+the top on phones. Reuse opaque theme backgrounds and preserve method links,
+search, navigation and normal category styling.
+
+## Subtle scrollbars — owner correction, 2026-10-16
+
+Themed website scrollbar tracks blend into their scrolling surface, including
+the page gutter. Use thin approved-gray thumbs and transparent tracks, retain
+normal scrolling, follow light/dark/system preference and defer to system
+scrollbar colors in forced-color mode.
+
+## Remove generic tutorial help cards — owner correction, 2026-10-16
+
+Remove the entire “First time?” card and all continuation cards containing
+“If you have not started it yet”. This supersedes the earlier helper-card choice.
+Keep Start project buttons on lessons0/3/8, the lesson instructions and specific
+component/media notes. Those specific notes stay small, muted and unboxed.
+
+## Tutorial Summary card — owner correction, 2026-10-16
+
+Group the opening numbered actions and full Done checkpoint in a subtle Summary
+card, with the target image beside it on desktop and below it on narrow screens.
+Remove the redundant short description under the lesson title. The source's bold
+opening goal need not repeat above the card; authored lesson source stays intact.
+This card contains the current lesson's actions, not generic setup/continuation
+hints, which remain removed.
+
+## Lesson title card — owner correction, 2026-10-16
+
+The target image belongs inside the same card as the numbered actions and Done
+checkpoint. Use the lesson title (for example, “Lesson 1: Say hello with a button”)
+instead of “Summary”, with no duplicate title above. Give the whole card a subtle
+purple tint using shared theme tokens; retain desktop columns and phone stacking.
+This supersedes the preceding Summary card layout.
+
+## Lesson title and encouragement — owner correction, 2026-10-16
+
+Restore the large lesson title directly below the project heading and label the
+card “Summary”. Keep its tint and contained image. End each lesson’s final code
+and explanation section with short encouragement, such as “You wrote your first
+Zero program!” for lesson0. This supersedes the lesson-title-inside-card choice.
+
+## Summary card contrast — owner correction, 2026-10-16
+
+Summary cards must stand out from the surrounding page, especially in dark mode.
+Use a14% accent tint in light mode and24% in dark mode, including system-selected
+dark. This supersedes the earlier8% tint; preserve readable text and links.

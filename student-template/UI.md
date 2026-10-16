@@ -20,7 +20,7 @@ visible sketch layout but does not stop its timer; it is not a sketch menu comma
 
 In `setup()`, create controls, arrange them and attach actions. A Button action
 calls an ordinary method that changes your fields and updates controls.
-JavaFX draws its controls automatically. In a sketch, `update(seconds)` changes
+JavaFX draws its controls automatically. In a game, `update(seconds)` changes
 the game and `draw()` draws the canvas; neither should rebuild the button row.
 
 The complete [one-coin controls example](examples/coin-game-controls/README.md)

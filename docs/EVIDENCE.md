@@ -676,6 +676,426 @@ has its own updated BUILD-LOG, STUDENT-AUDIT and ASSETS records. Source ZIP75ent
 `58f26a7a78376ee8add76ae4441aa218220f1d24285388e1cf26a5313aa31f74`;
 every entry was compared to source, all five core classes and wrapper mode checked.
 
+## Restored lesson titles and encouraging endings — 2026-10-16
+
+[PR75](https://github.com/codepetca/zero/pull/75) merged
+`f6da11eaecbb36befe812840e45eb3b5084b05bb`. Large lesson title restored directly
+below project heading; tinted card says Summary, still containing actions/Done/image.
+Each lesson has a short encouraging note inside its final explanation;lesson0 says
+“You wrote your first Zero program!”. One Luna/medium independent complete review
+ofb34e74b found no issues;one launch/wave,zero fixes/rework/conflicts. Effective
+configuration,review elapsed and tokens unknown;allowance not attributable task cost.
+
+96website tests,typecheck/build/diff check and all13 local/public HTTP checks pass:
+outside title,unique old source anchor,Summary label,image containment and one note
+at final explanation end. Docs components unaffected.1280px dark desktop and320px
+light phone title/reflow pass;note collapses with keyboard-controlled details.
+Live1280x720 lesson0 title and ending screenshots verify note visible/inside final
+explanation/last in section. Safari/physical/enlarged-text/forced-color not newly
+exercised;existing updater tracing warnings remain. [CI38918414124](https://github.com/codepetca/zero/actions/runs/38918414124)
+passed6m57s;production7122282435 succeeded for merge SHA. Source lessons,Java/release
+inputs unchanged;public signed feed matches canonical bytes. Owner defaults saved
+in design.md/PRODUCT. Receipts:.verification/tutorial-summary-encouragement/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
+## Tutorial project headings published — 2026-10-16
+
+[PR74](https://github.com/codepetca/zero/pull/74) merged
+`91169fc0b87f04cbf20a0986736a519fd7328b65`. Shared renderer uses existing project
+membership for Greeting App0–2,Study Quiz3–7,Coin Game8–12; Docs remains Docs.
+Owner default saved in design.md/PRODUCT. One Luna/medium independent full-diff
+review of227d599 found no issues;one launch/wave,zero fixes/rework/conflicts.
+Effective config,review elapsed and tokens unknown;account allowance not task cost.
+96 website tests,typecheck/build and all13 local/public rendered headings pass.
+1280px desktop live heading and320px local reflow/nooverflow verified. No new
+label-only tests;Safari/physical/enlarged-text/forced-color not newly run. Existing
+updater tracing warnings remain. [CI38916786229](https://github.com/codepetca/zero/actions/runs/38916786229)
+passed6m53s;production deployment7121817477 succeeded for merge SHA. Lesson/release
+inputs unchanged. Detailed receipts/screenshots:.verification/tutorial-project-heading/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
+## Lesson title card refinement — 2026-10-16
+
+Published [PR73](https://github.com/codepetca/zero/pull/73), merge
+`cea6028f7679a13b64745d3b41f304060ea0fcce`. One independent Luna/medium review of
+`806c543` covered the complete diff/callers with no findings; one launch/wave,
+zero fixes, no rework/conflicts. Effective model/timing/tokens unknown; coordinator
+usage not attributable. [CI38915351023](https://github.com/codepetca/zero/actions/runs/38915351023)
+passed6m35s; production deployment7121572308 succeeded for the merge SHA.
+
+Lesson title replaces Summary and duplicate outside heading; actions, Done and
+image share a subtly purple-tinted card. All96 website tests,typecheck/build/diff
+checks and all13 local/public HTTP checks pass. Live1280px dark desktop confirms
+image containment/columns/no duplicate title/nooverflow. Local320/390px light
+stacking,1280px light tint and keyboard Enter disclosure verified. Safari/physical/
+enlarged-text/forced-color UI not newly run. Prior updater tracing warnings remain.
+Source lessons/Java/release inputs unchanged; public signed feed equals canonical
+bytes (SHA256775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2).
+Detailed receipts/screenshots:`.verification/tutorial-lesson-card/`. Owned worktree
+fast-forwarded to mergedmain; original dirty funding checkout untouched. This
+post-publication receipt is local. Owner defaults saved in design.md/PRODUCT.
+
+## Tutorial Summary and removal of generic help cards — 2026-10-16
+
+Published via [PR72](https://github.com/codepetca/zero/pull/72), merge
+713040a77d8f98ca239b6886e5eebbbb116f44e8, reviewed head
+bb2f21096ff222c497400460fe91421e52032dc7. Complete resumed Luna/medium review:
+no actionable findings; initial turn interrupted for owner steering, not counted
+as complete. One initial wave,two turns,zero review fix batches. Exact-head
+[CI38911105634 attempt2](https://github.com/codepetca/zero/actions/runs/38911105634/attempts/2)
+passed in6m51s, including native/examples/progression/sharing and website. Attempt1
+hit a180s timeout in the unchanged Java/Maven sample test; its inputs matched
+publishedmain and the retry passed unchanged. Superseded c6edf3e run cancelled.
+
+Production deployment7120970704 is successful, bound to merge713040a; unique URL
+https://zero-oftc8579g-stewarts-projects-cc2722c4.vercel.app serves
+https://zero.codepet.ca. Anonymous live checks on all13 lessons confirm Summary/
+three actions/full Done, separate image,no generic cards or short labels, exactly
+three Start buttons and preserved10/12 notes. Live1280px lesson1 browser confirms
+side-by-side image,zero subtitle/overflow.320px light-theme local check confirms
+stacked card/image; dark/desktop restored and public lesson1 left open. Signed
+feed remains byte-identical SHA775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2.
+Owned worktree fast-forwarded to mergedmain; final tracked handoff receipt is local.
+No release,credentials,other-worktree,new goal/chat/automation changes. Detailed
+logs/measurements/screenshots and CI/deployment JSON:.verification/tutorial-card-removal/.
+Effective model/token/worker elapsed telemetry unavailable; prior platform limits
+remain. The following implementation notes describe this completed change.
+
+Owner removed the First time card and all If you have not started it yet cards,
+refining the continuing website publication. Document omits the entire generic
+setup/continuation aside and empty continuation sections; stale card CSS is gone.
+Start project buttons remain at0/3/8; lesson10 component reminder and lesson12
+asset link remain as small muted,unboxed notes. Canonical lessons unchanged.
+Design/product guidance supersedes the earlier helper-card choice.
+
+Owner then requested Summary cards with the existing numbered actions and full
+Done checkpoint inside, image beside on desktop/below on narrow screens, and no
+redundant description label. Markdown transformation preserves authored lesson
+source/code and deep links. All13 lesson render tests now verify Summary/actions/
+Done grouping and the image outside the card before detailed sections.96website
+ tests/typecheck/build pass after this refinement; desktop lesson1 browser shows
+side-by-side card/image, no subtitle/overflow. The initial review turn was
+interrupted for this owner-requested scope update; resume one complete review on
+the new fixed head, within the same initial wave and existing budget.
+
+96website tests,typecheck/build,whitespace checks and all13 local HTTP renders pass:
+zero generic cards/text; exactly three Start buttons; no empty continuation section;
+lesson-specific10/12 notes preserved. Browser lessons8/9 verify compact phone
+layout/no overflow. Logs:ignored .verification/tutorial-card-removal/. Existing
+updater tracing warnings and prior platform limits remain. One bounded Luna/medium
+review and exact-headCI/publication acceptance follow through this branch's PR;
+no release files,credentials,new goal/chat/automation or other worktree changes.
+
+## Website reading cleanup published — 2026-10-16
+
+Owner explicitly authorized publication of all changes from this chat. Integrated
+current main e8e25cc without changing0.5.17 release/download/update metadata;
+manual conflicts were limited to CURRENT/EVIDENCE and both histories were retained.
+[PR71](https://github.com/codepetca/zero/pull/71) reviewed head
+1d23adc5e3d112de55c60c4ab74d24680bd2d141 passed complete Sol/medium integration
+review with no findings,96website tests,10design tests,typecheck/build and
+[CI38906665641](https://github.com/codepetca/zero/actions/runs/38906665641).
+CI passed native input/examples/progression, extension/sharing/Maven and website.
+Merge e268b93f6a9dfe2bbdacf3b59172abda10617e0b is verified on origin/main;
+owned worktree fast-forwarded, original funding and other active worktrees preserved.
+
+Vercel production dpl_Gkgp3gRkzEMNT5Pmhw6tp2BC2a3R is READY and serves
+[zero.codepet.ca](https://zero.codepet.ca); GitHub production deployment7120105398
+binds that URL to the merge SHA. Anonymous HTTP200 verifies tutorials8/9,docs,
+docs/api and downloads. Tutorial output has muted helper cards with no Previous
+paragraphs/HRs; deployed CSS pins method names and themes scrollbar tracks.
+Live browser1280px confirms method top93 equals header bottom93 while its article
+is scrolled away, static category headings and no overflow. Live tutorial8 shows
+zero section borders, muted14px help and subtle step backgrounds. Root scrollbar
+tracks are transparent in both themes; dark preference restored. Existing0.5.17
+kit link remains exact, signed feed bytes still SHA256
+775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2.
+
+Receipts/screenshots:ignored .verification/tutorial-cleanup/publication/.
+The preview was protected by Vercel SSO and was not counted as page verification.
+One complete integration wave after three prior component review launches;zero
+findings/fix batches. Effective model,tokens and reviewer elapsed unknown.
+Weekly56%remaining at publication start;storage healthy328GB. DeepSeek pause
+honored. Two unrelated updater tracing warnings remain;Safari/physical platforms,
+enlarged text and forced-color UI were not newly exercised. No binaries rebuilt,
+credentials/account changes,new goal/chat/automation. The implementation and remembered design choices were published on main
+through PR71; this receipt records acceptance after that publication.
+
+## Subtle scrollbar tracks — 2026-10-16
+
+Owner requested scrollbar gutters blend into the existing background. Generated
+web theme tokens now also target html only when a LearnTheme wrapper is present;
+light/dark/system color-scheme and root background match the visible page.
+Page/sidebar/code tracks are transparent with thin approved-gray thumbs; existing
+scrolling remains. Older-engine WebKit styling is scoped to the same surfaces,
+and forced colors use automatic scrollbar colors.
+
+10 shared design tests, website typecheck, production build and whitespace checks
+pass. Build retains two unrelated mac-updater tracing warnings. Previous96website
+tests reused; no new unit tests for this visual adjustment. In-app browser checks
+confirm dark#101321/light#fff root background and scheme, transparent root/sidebar/
+code tracks, thin thumbs and preserved scrolling. Dark theme restored; desktop
+preview retained. Screenshot: ignored
+`.verification/tutorial-cleanup/subtle-scrollbars-detail.png`; logs use scrollbar-
+prefix there. Safari/physical platforms/forced-color UI were not exercised.
+
+Independent scrollbar_review/1, requested Luna/medium, complete two-file diff plus
+theme adapter/global CSS/callers/forced-color/fallback inspection: no actionable
+findings. Base6d6e80f; patch SHA256
+`f3687b29a2eca17027827796de600f944f5a0d1d249bdcd38410c4a9bfb94905`.
+One initial launch, zero fixes/conflicts; checks reused. Effective model/token/
+elapsed telemetry unknown; recent healthy storage/usage reading reused. No
+publication, release, account, new goal/chat/automation change. Original checkout
+and other worktrees preserved.
+
+## Sticky API method names — 2026-10-16
+
+Owner requested Docs category headings scroll normally and method names become
+sticky instead. Only API reference CSS changes: method title rows stick within
+their own article, below the measured desktop header or at the top on phones.
+Opaque theme background keeps scrolling text behind the name. Entry anchor
+margins no longer reserve space for a category banner. Categories retain their
+normal heading appearance. Earlier tutorial cleanup remains intact.
+
+Website typecheck, production build,96tests and diff whitespace checks pass.
+The build retains two unrelated mac-updater filesystem-tracing warnings.
+In-app browser verifies1280px desktop title top93px matching header bottom,
+320/384px mobile title top0 while article top is negative, static category
+position, normal next-method transition, correct active sidebar, direct links,
+light/dark and no page overflow. Viewport and dark theme restored. Screenshots:
+ignored `.verification/tutorial-cleanup/docs-sticky-method-{desktop,mobile}.png`;
+check logs use `docs-` prefix in the same folder. Safari/physical devices,
+enlarged text and keyboard were not separately tested in this CSS follow-up.
+
+Independent docs_sticky_review/1, requested GPT-6 Luna/medium, complete CSS delta
+plus caller/global/theme/anchor inspection: no actionable findings. Reviewed
+base0933ad4 and patch SHA256
+`69b01e791b13b2d5cf2d9faa250baa24221344310afc1702e9676fe8436d14a0`.
+Checks/browser evidence reused, no independent browser drive. One initial launch,
+zero fixes/conflicts; effective model/tokens/reviewer elapsed unknown. Coordinator
+verified patch identity and returned claims. Recent weekly58%remaining and healthy
+storage reading reused; DeepSeek pause honored. No new publication, release,
+credentials, goal, chat or automation. Local preview remains on port3216.
+
+## Tutorial reading cleanup — 2026-10-16
+
+Owner requested removal of Previous links, muted secondary hints, highlighted
+step titles and no tutorial horizontal dividers. The renderer now omits Previous
+paragraphs anywhere at the document root, rather than only at the end, and omits
+lesson thematic rules. Canonical Markdown and fenced code remain intact. Setup,
+continuation and optional resource hints share a quiet helper card; tutorial
+summaries use the existing theme surface with no section/pagination border.
+Docs/reference styling, lesson defaults, anchors and copying are unchanged.
+
+Based on main e7b9b4d, isolated in the attached tutorial-reading-cleanup worktree;
+original funding checkout and other active worktrees preserved. Local only;
+no publication, release, credential, goal, separate chat or automation change.
+96 website tests, typecheck, production build and diff whitespace checks pass.
+Build reports two existing mac-updater dynamic-filesystem tracing warnings.
+In-app browser: lessons8/9, light/dark,320/384/480/1280 CSS-pixel widths without
+page overflow, native keyboard expand/collapse with visible focus, direct step
+anchor and mobile lesson selection. Confirmed zero Previous paragraphs, HRs and
+section/pagination borders. Screenshot/viewport override restored to normal;
+original dark theme restored. Screenshots/logs: ignored
+`.verification/tutorial-cleanup/`. Safari, physical devices and enlarged text
+were not separately tested; no accessibility-conformance claim.
+
+Independent reviewer tutorial_cleanup_review/1, requested GPT-6 Luna/medium,
+reviewed the complete four-file implementation diff plus immediate callers and
+lesson sources. Fixed patch SHA256
+`71515901ca0412676a5c33a597958d6bb976628f1ea237c25b35deb522ef2ef1`.
+Complete verdict: zero actionable findings; diff whitespace check rerun and
+coordinator test/build/typecheck evidence reused. Browser checks not independently
+repeated. One initial wave/one launch, zero fixes/conflicts; reviewer estimated
+2–3 minutes, effective model/token telemetry unknown. Direct implementation;
+DeepSeek pause honored, weekly58%remaining at start, storage healthy329GB.
+Coordination was one focused brief and delivery verification; attributable task
+usage unknown. Review limits were not approached.
+
+## Zero 0.5.17 App/GameApp release — 2026-10-16
+
+Owner authorized a new public release. [Source PR69](https://github.com/codepetca/zero/pull/69)
+merged4d40e5928adc780dc770862e19d747f786eb95f3 after complete Sol/medium review
+of3a43f4c59cb5b64b4ddab6e2d0d377d86e4c923c (zero findings) and
+[CI38902797474](https://github.com/codepetca/zero/actions/runs/38902797474).
+Deliberate [preparation38902882241](https://github.com/codepetca/zero/actions/runs/38902882241)
+passed on that exact source; its tree equals mergedmain. Framework0.2.0 ships only
+canonical App.java/GameApp.java, no legacy aliases. Exact kit bytes were reused in
+the native build from clean4d40e59; preparation7c849351366827630e897c89b348a46edbcaed5b
+changes only the measured native manifest. No separate browser/sidebar/tutorial
+feature branch or development profile was shipped or changed.
+
+Local checks: configuration,86release,11updater/2platformskips,2native-seal,16installer,
+9website-installer tests pass. Exact kit/source/license/mode/VSIX checks and extracted
+Maven compile pass. Full CI also covers extension, sharing, real Maven consumers,
+three scaffolds, native canvas/control input, finite examples/progression and website.
+Signed verification covers both architectures, embedded payload, pinned Sparkle,
+hardened app/nested/DMG signatures, layout, staple and Gatekeeper. Apple accepted
+336d6210-b7a2-485c-9fbb-29f898efd91b for1918762-byte inputSHA
+6398ba33c06f1e7750271a2efcc99bcd1a8da4adf4610a20fbcea954fdfebc69.
+Final stapledDMG1920683 SHA5d3cf2d83f9412a333040800ef19a4c16ee70a04c147a0102c30afb1c87355e7.
+Existing signer/team and updater publickey are unchanged. Temporary private signing
+file resolved the Keychain executable timeout and was removed; no key/account changes.
+
+Independent complete Sol/high artifact review passed without findings: sealed
+hashes/CI bytes, App/GameApp and licenses, source equivalence, Ed25519 DMG/feed
+signatures, native build17>published2, Apple binding, codesign/staple/Gatekeeper
+and public notes/publication mapping. One source+one artifact reviewer; no review
+fix batches. Effective model/tokens and exact reviewer durations unavailable.
+Weekly59%remaining was shared usage;329GB free healthy. DeepSeek pause honored.
+
+[Kit v0.5.17](https://github.com/codepetca/zero/releases/tag/v0.5.17) targets3a43f4c
+and contains exactly three assets; [Mac setup-v0.5.17](https://github.com/codepetca/zero/releases/tag/setup-v0.5.17)
+targets7c84935 and contains one DMG. Draft targets/notes/inventory/digests and
+authenticated re-downloads matched; all four published assets then anonymously
+matched sealed exact bytes before metadata promotion. Kit361670 SHA
+0b34f117aad17b47349f8bb53974b754db603ef47015e1640663c10ac012c439; starter190051 SHA
+51c3057c9919738159842880e81cdfe691c953eee2ea56643fc4eb8e01d9551d; VSIX150961 SHA
+1ec98c9503481db2b326c423c65eeea5b1ad2922783f8c940150ba99ae95add4.
+Signed feed1178 SHA775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2
+is copied unchanged, with only feed metadata publication status promoted. Previous
+releases remain immutable; no WindowsEXE or Maven-registry publication.
+
+Promotion configuration,95website tests, typecheck and production build pass.
+Exact fallback snapshot assertions advance to the anonymously verified17 bytes.
+Metadata review/CI/merge and live links/feed verification are final gates. Physical
+Windows, fresh-machine setup, Intel support, novice usability and an actual updater
+installation trial were not newly performed. Detailed receipts are ignored under
+.verification/release-0.5.17/, including immutable CI/native candidates, reviews,
+Apple evidence, draft/public API records and anonymous bytes.
+
+
+## App API rename across Zero and templates — 2026-10-15
+
+Owner requested `SimpleApp` → `App` across Zero, website and templates, continuing
+the reviewed PR/merge publication workflow. `zero.App` retains the same ordinary
+JavaFX settings/setup/show lifecycle; `GameApp extends App` retains the same
+update/draw and delta-time behavior. Imports, examples, lessons/checkpoints,
+health-bar consumers, scaffold/ZIP builders, sharing structure checks, Maven
+source includes, installer test fixtures and API/search anchors use App. No
+compatibility alias is supplied. Historical receipts keep their original names.
+
+Retired-source preparation now recognizes both removed class filenames, preserves
+edited/unrecorded files and excludes them from new kit archives. Kit tests cover
+both missing-ownership cases and archive absence. Six kit tests,95website tests,
+typecheck/production build,45sharing tests and3lesson scaffold builds pass.
+Root265pass/1skip initially passed. A subsequent integration review identified
+two preservation defects in the existing retirement path: dangling current output
+links could bypass existsSync and permit removal before a failed write; linked
+output directories could redirect retirement into external backup directories.
+Coordinator reproduced both in disposable folders and held merge despite green CI.
+Imported only the correction and regression cases from6258daf, retaining this
+branch's two-class App/GameApp source inventory and excluding unrelated browser
+helpers/media fixture changes. Preflight now uses lstat on output ancestors,
+current/retired leaves and ownership-state paths before any unlink/write. Eight
+focused kit tests and configuration/docs check pass after the correction. Exact
+initial/targeted review and final CI/source delivery are recorded by this branch's
+PR. No Mac GUI success or binary release is claimed by this source pass.
+
+A bounded GPT-6.1 Sol/medium worker prepared eight template commits and own-wrapper
+clean compiles, preserving exact tracked inventory, modes and bytes apart from
+SimpleApp→App and the source filename. Coordinator independently reran the
+byte/inventory verifier and inspected delivery before integration. Recorded worker
+elapsed: 25.11 seconds; effective model/token telemetry unknown.
+
+| Template | App revision |
+| --- | --- |
+| [zero-starter](https://github.com/codepetca/zero-starter) | `ab4c4b269abf096b5d545305ab625b238f04f02d` |
+| [zero-hello-java](https://github.com/codepetca/zero-hello-java) | `d60223edcc125e27b60e9834d38478aeb1276cd8` |
+| [zero-study-session](https://github.com/codepetca/zero-study-session) | `77de0bb966cd1babf8f956a2e9e72e2fe985ed06` |
+| [zero-coin-game](https://github.com/codepetca/zero-coin-game) | `7830a98b49a85e018d35de1695645b09749bcf9f` |
+| [zero-drawing-pad](https://github.com/codepetca/zero-drawing-pad) | `ad997f9a8a3b98ff0a63c34732a05240f834dbea` |
+| [zero-tutorial-greeting](https://github.com/codepetca/zero-tutorial-greeting) | `a00566d7e644ba46a79afbe2d0920b24dc0fba59` |
+| [zero-tutorial-study](https://github.com/codepetca/zero-tutorial-study) | `4209ab9233595594af4c01e56a06d7c82ded6b4e` |
+| [zero-tutorial-game](https://github.com/codepetca/zero-tutorial-game) | `a71cb084ae43c512852378521adb0b60f6e256be` |
+
+The five website publication records carry these commit/tree pairs. All eight
+remote heads and anonymous pinned archives must be verified before merge. Three
+tutorial revision records belong to the active publishing task; the owner already
+authorized sending updated tutorial hashes. That task was notified before this
+work began; its checkout, editor profile and private trial projects are untouched.
+Browser helper/profile adaptations stay byte-identical apart from the API name;
+existing student-created repositories remain independent copies.
+
+Evidence: ignored `.verification/app-rename/`, including template clone manifest,
+compile logs and reproducible identifier-only verifier. Weekly61%remaining;
+storage337GBhealthy; DeepSeek pause honored. No new tool-backed goal, separate
+task, automation, credential change or immutable release replacement.
+
+## Published template GameApp migration — 2026-10-15
+
+Owner requested the starter templates also use GameApp. Updated all eight public
+starter/practice/tutorial repositories with an identifier-only rename, including
+the framework filename, imports, inheritance and qualified timer self reference.
+No alias remains. Each repository's wrappers, resources, game logic and tutorial
+browser helper/profile adaptations retain their exact previous bytes apart from
+the API identifier. Template status and default branches remain unchanged.
+
+| Template | Verified published commit |
+| --- | --- |
+| [zero-starter](https://github.com/codepetca/zero-starter) | `4b9687d5207939299a6a1e066d796047e6c87ff3` |
+| [zero-hello-java](https://github.com/codepetca/zero-hello-java) | `9d4969bab0d4b1b31d10e946d03f60baa72ba168` |
+| [zero-study-session](https://github.com/codepetca/zero-study-session) | `86d021bb7cd64ca60f003b3415077d7ff1945402` |
+| [zero-coin-game](https://github.com/codepetca/zero-coin-game) | `e9875d5dafbeaa5c66dd7f5a7ff1f31fa00f58d6` |
+| [zero-drawing-pad](https://github.com/codepetca/zero-drawing-pad) | `838921410abe37236fecdf7151729f92a7fff95e` |
+| [zero-tutorial-greeting](https://github.com/codepetca/zero-tutorial-greeting) | `5e45a37f8f486d63d095634f771019cc25cbd2a2` |
+| [zero-tutorial-study](https://github.com/codepetca/zero-tutorial-study) | `71facc4b154e89af509489948794588383dc02e1` |
+| [zero-tutorial-game](https://github.com/codepetca/zero-tutorial-game) | `f1fab5c3adf6b2ac897170fabf42e1a84eaf45f3` |
+
+All eight own-wrapper clean compiles passed, with GameApp.class present and no
+old class. Anonymous GitHub metadata and commit-addressed ZIP downloads were
+verified against every committed file (15–20 per project), with no old API source
+or reference in the archives. No GUI/browser runtime or operating-system claim
+comes from these compilation checks. Existing student-created repositories are
+independent copies and are not rewritten by a template update.
+
+Independent template_gameapp_review/1 GPT-6.1 Sol/medium inspected all eight
+base/head diffs and central metadata, independently confirming exact identifier
+substitution and unchanged inventory/implementation. Zero actionable findings;
+one initial review turn, zero fixes. Effective configuration/tokens/worker elapsed
+unknown. Weekly62%remaining, cached/freshstorage337GBhealthy. No new task, goal,
+automation, editor/profile change or binary release.
+
+The five website template commit/tree records now point to these actual public
+versions; focused metadata tests and root configuration/docs check pass. The
+three tutorial publication records are owned by the active publishing workflow
+outside current main; exact replacement hashes/trees are preserved in ignored
+`.verification/gameapp-templates/tutorial-revisions.json` for that workflow.
+Do not overwrite its checkout/profile. Full receipts and build logs stay ignored
+under `.verification/gameapp-templates/`; this source branch's PR records final
+CI/merge status. The original funding checkout remains preserved.
+
+## GameApp rename — source PR, 2026-10-15
+
+Owner requested a full `zero.SketchApp` → `zero.GameApp` rename without a
+compatibility alias, then explicitly authorized PR and merge. This branch starts
+at main dfe2c9b and carries the rename across current lessons/checkpoints,
+examples, project assembly, sharing validation/diagnostics, Maven and website
+API/search anchors. JavaFX loop and delta-time behavior are unchanged.
+
+Preparation removes only unchanged retired generated source with a matching
+ownership record; edited or unrecorded old files stop preparation and are kept.
+Regression tests cover retirement, preservation and absence from new kit ZIPs.
+Historical evidence retains the names used by its frozen revisions. Existing
+published binary assets, template repositories and release metadata are unchanged;
+new generated starter/lesson/example projects use GameApp.
+
+Earlier local implementation review: gameapp_review/1 Sol/medium found one P2
+(unrecorded retired source could leak into ZIPs); one fix batch and targeted turn2
+accepted preservation guard and tests. Current-main checks: configuration/syntax/docs,
+6kit tests,95website tests/typecheck,45sharing tests and all3lesson scaffold
+compiles pass. Root265pass/1skip and the website production build also pass. Independent
+current-main integration review gameapp_integration_review/1 Sol/medium covered
+all109changed files at bb9434f from dfe2c9b and found no actionable findings.
+Framework smoke compiled and reached javafx:run, then timed out waiting for
+native focus; this local runtime gap is disclosed. No new GUI success is claimed.
+[PR66](https://github.com/codepetca/zero/pull/66) records the final CI and merge
+outcome; it remains draft until those checks pass. Review ledger:3turns total (initial, targeted retirement fix, final current-main
+integration),1fixbatch; effective model/tokens/worker elapsed unknown. This final
+receipt update changes documentation only. Bulky receipts stay ignored under
+`.verification/gameapp-rename/`. Original funding checkout is preserved.
 
 ## Automatic updater0.5.15 — verified publication metadata, 2026-10-14
 

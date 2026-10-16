@@ -1,6 +1,33 @@
 /* Shared approved Learn/downloads palette; other routes retain their existing shell. */
 body:has(.learn-theme) { min-width: 0; }
 
+/* Let scrollbar tracks blend into each scrolling surface, including the page. */
+html:has(.learn-theme) { background: var(--zero-page); }
+html:has(.learn-theme),
+.learn-theme {
+  scrollbar-color: var(--zero-border) transparent;
+  scrollbar-width: thin;
+}
+.learn-theme * { scrollbar-width: thin; }
+@supports not (scrollbar-color: gray transparent) {
+  html:has(.learn-theme)::-webkit-scrollbar,
+  .learn-theme ::-webkit-scrollbar { width: 8px; height: 8px; }
+  html:has(.learn-theme)::-webkit-scrollbar-track,
+  html:has(.learn-theme)::-webkit-scrollbar-corner,
+  .learn-theme ::-webkit-scrollbar-track,
+  .learn-theme ::-webkit-scrollbar-corner { background: transparent; }
+  html:has(.learn-theme)::-webkit-scrollbar-thumb,
+  .learn-theme ::-webkit-scrollbar-thumb {
+    background: var(--zero-border);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 8px;
+  }
+}
+@media (forced-colors: active) {
+  html:has(.learn-theme), .learn-theme { scrollbar-color: auto; }
+}
+
 .learn-theme {
   --ink: var(--zero-text);
   --muted: var(--zero-muted);
@@ -286,7 +313,20 @@ body:has(.learn-theme) { min-width: 0; }
 }
 .learn-theme .lesson-start { margin: var(--zero-space-4) 0 var(--zero-space-5); }
 .learn-theme .lesson-start .button { min-height: 48px; max-width: 100%; text-align: center; white-space: normal; }
-.learn-theme .lesson-start p { margin: var(--zero-space-3) 0 0; color: var(--zero-muted); }
+.learn-theme .lesson-start p { margin: var(--zero-space-3) 0 0; color: var(--zero-muted); font-size: .875rem; }
+.learn-theme .lesson-start p a { color: inherit; }
+.learn-theme .lesson-start p a:hover { color: var(--zero-link); }
+.learn-theme .tutorial-reader .reading-section,
+.learn-theme .tutorial-reader .lesson-pagination { border: 0; }
+.learn-theme .tutorial-reader .reading-section { margin-top: var(--zero-space-5); }
+.learn-theme .tutorial-reader .reading-section > summary {
+  padding: var(--zero-space-3) var(--zero-space-4);
+  min-height: 56px;
+  background: var(--zero-surface);
+  border-radius: var(--zero-radius);
+  color: var(--zero-text);
+}
+.learn-theme .tutorial-reader .reading-section-body { padding-top: var(--zero-space-4); }
 .learn-theme .reader-content { overflow-wrap: anywhere; }
 .learn-theme .reader-content h1 {
   margin: 0 0 var(--zero-space-3);

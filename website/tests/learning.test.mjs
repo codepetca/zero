@@ -84,6 +84,21 @@ test("relative links preserve fragments and route only maintained documents or a
   );
 });
 
+test("tutorial navigation prose and rules are removed without changing instructions or code", () => {
+  const markdown = "# Lesson\n\nPrevious: [Your study quiz](07-study-app.md).\n\n---\n\n## 2. Connect Player to your existing Main\n\nKeep your existing Main.\n\n---\n\n```text\nPrevious: keep this literal\n---\n```\n\nNext: [Coins](09-coin-game.md).";
+  const render = (lesson) => renderToStaticMarkup(React.createElement(Markdown, {
+    remarkPlugins: [remarkGfm], rehypePlugins: [[foldSections, { lesson }]], children: markdown,
+  }));
+  const html = render(true);
+  assert.doesNotMatch(html, /Your study quiz|href="09-coin-game.md"|<hr/);
+  assert.match(html, /id="2-connect-player-to-your-existing-main"/);
+  assert.match(html, /Keep your existing Main\./);
+  assert.match(html, /<code class="language-text">Previous: keep this literal\n---\n<\/code>/);
+  const guide = render(false);
+  assert.match(guide, /Your study quiz/);
+  assert.match(guide, /<hr/);
+});
+
 test("the course guide renders a clickable local starter link while remaining usable as GitHub Markdown", () => {
   const source = "docs/COURSE-PROJECT.md";
   const markdown = readFileSync(new URL("../../docs/COURSE-PROJECT.md", import.meta.url), "utf8");
@@ -150,17 +165,25 @@ test("lesson media links use only the explicit build-time asset mapping", () => 
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
 });
 
-test("every lesson has a visible target illustration and quick checkpoint before folded details", () => {
+test("every lesson has a Summary card and closes its final explanation with encouragement", () => {
   for (const lesson of lessons) {
     const name = String(lesson.id).padStart(2, "0");
     const folder = new URL("../../student-template/lessons/", import.meta.url);
     const file = readdirSync(folder).find((file) => file.startsWith(`${name}-`) && file.endsWith(".md"));
     const markdown = readFileSync(new URL(file, folder), "utf8");
     const html = renderToStaticMarkup(React.createElement(Markdown, {
-      remarkPlugins: [remarkGfm], rehypePlugins: [[foldSections, { lesson: true }]], children: markdown,
+      remarkPlugins: [remarkGfm], rehypePlugins: [[foldSections, { lesson: true, encouragement: lesson.encouragement }]], children: markdown,
     }));
     const image = html.indexOf(`<img src="visuals/${name}.svg"`);
     assert.match(html, /class="lesson-quick-path"/);
+    assert.match(html, /aria-labelledby="lesson-summary-title"><h2 id="lesson-summary-title">Summary<\/h2>/);
+    assert.ok(lesson.encouragement, `Lesson ${name} has a closing message`);
+    assert.ok(html.endsWith(`<p class="lesson-encouragement">${lesson.encouragement}</p></div></details>`), `Lesson ${name} closes its final explanation with encouragement`);
+    assert.equal((html.match(/class="lesson-encouragement"/g) || []).length, 1);
+    const cardEnd = html.indexOf("</section>");
+    assert.ok(html.indexOf("<ol>") < cardEnd && html.indexOf("Done:") < cardEnd, `Lesson ${name} actions and checkpoint belong in Summary`);
+    assert.ok(image >= 0 && image < cardEnd, `Lesson ${name} illustration belongs inside the lesson card`);
+    assert.doesNotMatch(html, /<p>Previous:\s/, `Lesson ${name} must omit previous navigation`);
     assert.ok(image >= 0 && image < html.indexOf("<details"), `Lesson ${name} target must be visible`);
     assert.ok(html.indexOf("<ol>") < html.indexOf("<details"), `Lesson ${name} actions must be visible`);
     assert.equal(resolveContentLink(`student-template/lessons/${file}`, `visuals/${name}.svg`, {}, {}, lessonAssets), `/generated/learning-assets/lessons/${name}.svg`);
@@ -225,15 +248,15 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
   assert.match(prepare,/"your-repository-and-pika": "your-individual-workflow"/);
 });
 
-test("only three lessons start a project; subsequent lessons continue it", () => {
+test("only three lessons start a project, without generic setup or continuation cards", () => {
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
   const tutorialProject = readFileSync(new URL("../components/TutorialProject.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
   assert.match(document, /<TutorialProject project=\{practiceProject\}/);
+  assert.match(document, /lesson === practiceProject.firstLesson/);
+  assert.doesNotMatch(document + tutorialProject, /First time\?|If you have not started it yet|className="lesson-help"|className="reader-subtitle"|Continue your/);
   assert.match(document, /publishedTutorialTemplate\(practiceProject.id\)/);
   assert.match(tutorialProject, /lesson === project.firstLesson/);
-  assert.match(tutorialProject, /Continue your .*project.title.* project/);
-  assert.match(tutorialProject, /Start at lesson/);
   assert.match(tutorialProject, /lesson === "10"/);
   assert.match(tutorialProject, /lesson === "12"/);
   assert.doesNotMatch(document + tutorialProject, /generated\/projects\/|zero-project-|Start project|Start Project/);

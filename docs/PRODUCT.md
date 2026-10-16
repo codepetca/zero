@@ -27,7 +27,8 @@ clicked, with a keyboard-accessible Copy button and success/failure feedback.
 Dragging to select text keeps manual copying available.
 `/downloads` is the separate platform download page;
 Download is a regular top-menu page, and platform buttons do not appear below tutorials.
-Docs opens the complete searchable Zero API directly; setup and longer app guides remain linked from its sidebar. Examples is a curated collection inside
+Docs opens the complete searchable Zero API directly; method names stay visible
+while their details scroll, and category headings scroll normally; setup and longer app guides remain linked from its sidebar. Examples is a curated collection inside
 ZeroHub, with actual app images, a description, Get project and a repository link.
 ZeroHub’s New Project action opens the published GitHub starter template directly.
 The starter details page remains available for ZIP downloads and setup instructions;
@@ -50,11 +51,13 @@ light/dark mode. The OS preference is the initial default; a chosen mode persist
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
 Concise platform/version requirements and a setup link appear below the buttons;
-initial tutorial entries link to setup and explain creating a student-owned repository
-from a template, then cloning that repository.
+initial tutorial entries offer the verified empty template and a concise Setup link.
+Longer guidance in Docs explains creating and cloning the student-owned repository.
 Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
-available. `/hub` is ZeroHub: discover separate editable games and reusable
+available. Tutorial step headings use subtle highlights instead of horizontal
+dividers. Generic setup/continuation cards are omitted; specific component or
+media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
 libraries, inspect exact versions, source and verified GitHub contributor identity.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
 Content pages use the navigation section name (Tutorials, Docs or ZeroHub)
@@ -88,12 +91,16 @@ are optional continuations of the same game, with maintained references; see
 The scored quiz remains a later reuse example.
 The new local tutorial pass inserts one-coin native controls before arrays/win,
 then reuses unchanged ScoreDisplay in the study app and coin game.
-[UI and flow](../student-template/UI.md) explains controls/components in sketches;
+[UI and flow](../student-template/UI.md) explains controls/components in games;
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. These sources remain unreleased; published kits
 keep their original bytes.
-The later local visual pass gives all thirteen lessons an always-visible target
-illustration, three actions and one checkpoint before detailed code. Optional
+Tutorial pages use the current project name as their main heading: Greeting App,
+Study Quiz or Coin Game. The large lesson title appears directly below that
+heading, followed by a clearly tinted Summary card (stronger in dark mode) containing numbered actions,
+Done checkpoint and always-visible target illustration. Steps and image sit beside each other inside the card on desktop
+and stack on narrow screens. The redundant short description is omitted. Each
+lesson ends its final code/explanation section with a short encouraging message. Optional
 composed-study/composed-game examples now demonstrate the same ordinary StartScreen
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).

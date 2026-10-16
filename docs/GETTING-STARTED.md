@@ -1,7 +1,7 @@
 # Getting started with Zero
 
-This guide describes the local, unreleased **Zero 0.5.16** candidate with
-core **0.1.3**. Published downloads keep their bundled instructions.
+This guide describes the local, unreleased **Zero 0.5.18** candidate with
+core **0.2.1**. Published downloads keep their bundled instructions.
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
 compile locally and open a browser preview. This MVP targets **Mac with Apple
@@ -22,11 +22,12 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 3. Choose **Start tutorial** from Zero’s welcome or **…** menu and select **Greeting app**.
    On GitHub, choose **Use this template → Create a new repository** under your
    own account. Copy **your new repository**’s **Code → HTTPS** URL.
-4. Return to Zero and choose **Clone repository** in the sidebar. Paste your
+4. Return to Zero and open the **repository menu** and choose **Clone repository**. Paste your
    URL and select a destination outside any other Git repository. Choose
    **Open in New Window** when VS Code offers to open the clone.
-5. Open `src/main/java/Main.java`, write the ordinary Java from lesson 0 and
-   choose **Run App**. Keep this repository for the following Greeting lessons.
+5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
+   lesson 0 and choose **Run App**. **Open in browser** opens the lesson or running
+   app in your default browser. Keep this repository for the following Greeting lessons.
 
 Zero needs no separate account. **Later** leaves local Run available. To return
 to setup, use **Zero: Get Started** from VS Code's Command Palette.

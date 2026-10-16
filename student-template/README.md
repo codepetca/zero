@@ -149,7 +149,7 @@ Both lifecycle callbacks and JavaFX events run on the JavaFX application thread.
 Slow work freezes the interface. A failed frame stops the animation and reports
 one stack trace instead of repeating it every frame.
 
-For a sketch, `size` means **fixed canvas dimensions**. The window can grow and
+For a game, `size` means **fixed canvas dimensions**. The window can grow and
 native controls fit around the canvas; resizing the window does not scale its
 pixels. Elapsed seconds are capped at 0.1 after a long pause. Drawing does not
 clear automatically: call `background(Color.WHITE)` in draw for a fresh frame.
@@ -216,7 +216,7 @@ tutorial path. ZeroHub contributions use original projects of your own.
 | Reset counter | `examples/reset-counter/Main.java` | Reset clears the count; methods name each action. See [Lesson 5](lessons/05-methods.md). |
 | Counter object | `examples/object-counter/Main.java`, `examples/object-counter/Counter.java` | Main explicitly uses an ordinary Counter. See [Lesson 6](lessons/06-objects.md). |
 | One coin with controls | `examples/coin-game-controls/Main.java`, plus Player and Coin from `examples/coin-game/` | Native score/message/Restart beneath the canvas. See [Lesson 9](lessons/09-coin-game.md). |
-| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse the study app's display in a sketch. See [Lesson 10](lessons/10-components.md). |
+| Shared component in a game | `examples/coin-game-component/Main.java`, Player/Coin from `examples/coin-game/`, and `examples/shared/ScoreDisplay.java` | Reuse the study app's display in a game. See [Lesson 10](lessons/10-components.md). |
 | Composed study app | Main from `examples/composed-study/`, Question from `examples/study/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Start, answer questions, finish and restart using shared views. [Exact copy list](examples/composed-study/README.md). |
 | Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |

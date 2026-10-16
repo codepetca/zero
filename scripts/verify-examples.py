@@ -287,7 +287,7 @@ checks['composed-game'] = '''app.stop();
         var player = (Player) field(app, "player");
         var coins = (Coin[]) field(app, "coins");
         var score = (Label) ((ScoreDisplay) field(hud, "score")).view();
-        require(app.layout().getCenter() == app.canvas() && app.layout().getLeft() == start.view() && !(boolean) field(app, "playing"), "Start panel preserves sketch canvas");
+        require(app.layout().getCenter() == app.canvas() && app.layout().getLeft() == start.view() && !(boolean) field(app, "playing"), "Start panel preserves game canvas");
         require(app.layout().getBottom() == hud.view() && hud.view().isDisabled(), "Initial layout reserves HUD space and disables Restart");
         setDouble(player, "x", (double) field(coins[0], "x"));
         setDouble(player, "y", (double) field(coins[0], "y")); app.update(0);
