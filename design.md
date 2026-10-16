@@ -18,7 +18,7 @@ current task's content visually prominent.
 | --- | --- |
 | Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
 | Tutorial heading | Show the current project name in title case: Greeting App, Study Quiz or Coin Game. |
-| Tutorial summary | Show the large lesson title below the project heading. Use “Summary” inside the subtly purple-tinted card containing actions, Done and image; columns on desktop, stacked on phones. Omit short description labels. |
+| Tutorial summary | Show the large lesson title below the project heading. Use “Summary” inside the clearly visible purple-tinted card (stronger in dark mode) containing actions, Done and image; columns on desktop, stacked on phones. Omit short description labels. |
 | Lesson ending | Close the final code/explanation section with a short encouraging message in plain text. |
 | Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
 | Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
@@ -202,3 +202,9 @@ Restore the large lesson title directly below the project heading and label the
 card “Summary”. Keep its tint and contained image. End each lesson’s final code
 and explanation section with short encouragement, such as “You wrote your first
 Zero program!” for lesson0. This supersedes the lesson-title-inside-card choice.
+
+## Summary card contrast — owner correction, 2026-10-16
+
+Summary cards must stand out from the surrounding page, especially in dark mode.
+Use a14% accent tint in light mode and24% in dark mode, including system-selected
+dark. This supersedes the earlier8% tint; preserve readable text and links.
