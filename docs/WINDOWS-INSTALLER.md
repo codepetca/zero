@@ -4,6 +4,9 @@ The 0.5.18 source adds a per-user Windows launcher with automatic setup and
 authenticated updates. It is a local development candidate. Published Windows
 0.5.17 remains the manual complete-kit ZIP until a signed candidate passes actual
 Windows acceptance and receives separate publication authorization.
+The owner has deferred signing. Unsigned development candidates can be used for
+the disposable usability trial now; trusted-publisher and signed-update release
+acceptance remain pending.
 
 ## Student experience
 
@@ -52,6 +55,10 @@ modified. Zero sets Java and editor isolation on its owned child processes.
 Project compilation uses Java 21 through `java.configuration.runtimes`; the Java
 extension uses its bundled tooling runtime. The isolated settings support VS Code's
 JSONC comments and trailing commas when reopening or repairing setup.
+Malformed isolated settings reset to the shipped defaults on retry. Recognized
+damaged private Java/editor folders are replaced from verified downloads; a
+cancelled or failed replacement keeps the old folder available for another try.
+Ordinary installed VS Code folders are never replaced by this repair path.
 
 The owner waived preservation/migration requirements for existing student work
 and settings in this implementation. Existing safe kit placement remains; no
@@ -81,8 +88,9 @@ node scripts/verify-installers.mjs --platform windows
 On macOS the C# fixture harnesses run with an existing Mono installation. They
 use fake vendor tools, disposable folders and ephemeral test signing keys; no
 real software installation or account operation occurs. Windows CI runs the same
-fixtures against the Windows CLR and filesystem. That workflow does not execute
-the installer or replace the required interactive Windows trial.
+fixtures against the Windows CLR and filesystem, then installs the development
+candidate in its disposable account and checks real bootstrap and reopening.
+The automated receipt supplements the required interactive Windows trial.
 
 For a maintainer with a private local .NET runtime, explicit absolute
 `ZERO_WINDOWS_DOTNET` and `ZERO_WINDOWS_VPK_DLL` paths select the tool runner.

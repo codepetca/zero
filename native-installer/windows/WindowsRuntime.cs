@@ -182,13 +182,48 @@ namespace ZeroSetup
                 }
             }
         }
+        private async Task Repair(string kind, Action<string> progress, CancellationToken cancellation)
+        {
+            string destination = AssetFolder(kind);
+            // Only replace a recognized private runtime, never an installed editor
+            // or an unrecognized directory. Keep the old copy until replacement
+            // succeeds so a cancelled/offline repair can be retried.
+            Marker(destination, kind);
+            string previous = Path.Combine(data, "runtime", ".repair-" + Guid.NewGuid().ToString("N"));
+            WindowsRuntimeFolders.Check(destination); WindowsRuntimeFolders.Check(previous);
+            cancellation.ThrowIfCancellationRequested();
+            Directory.Move(destination, previous);
+            try
+            {
+                progress(kind == "jdk" ? "Repairing Java…" : "Repairing editor…");
+                await Install(kind, progress, cancellation);
+            }
+            finally
+            {
+                WindowsRuntimeFolders.Check(destination); WindowsRuntimeFolders.Check(previous);
+                if (Directory.Exists(destination)) WindowsRuntimeArchive.DeleteStaging(previous);
+                else Directory.Move(previous, destination);
+            }
+        }
+        private async Task PrepareJava(Action<string> progress, CancellationToken cancellation)
+        {
+            bool existed = Directory.Exists(AssetFolder("jdk"));
+            await Install("jdk", progress, cancellation);
+            progress("Checking Java…");
+            try { await VerifyJava(cancellation); }
+            catch (Exception error) when (existed && (error is IOException || error is System.ComponentModel.Win32Exception))
+            {
+                await Repair("jdk", progress, cancellation);
+                await VerifyJava(cancellation);
+            }
+        }
         private async Task VerifyJava(CancellationToken cancellation)
         {
             string root = AssetFolder("jdk"); Marker(root, "jdk"); java = root;
             // The pinned Temurin ZIP's top directory is flattened at install.
             string javaVersion = await Execute(Path.Combine(java, "bin", "java.exe"), new[] { "-version" }, 30000, cancellation);
             string javacVersion = await Execute(Path.Combine(java, "bin", "javac.exe"), new[] { "-version" }, 30000, cancellation);
-            if (!Regex.IsMatch(javaVersion, @"version ""21\.") || !Regex.IsMatch(javacVersion, @"^javac 21\.", RegexOptions.Multiline)) throw new IOException("Zero's private Java 21 is incomplete. Reinstall Zero or ask for help.");
+            if (!Regex.IsMatch(javaVersion, @"version ""21\.") || !Regex.IsMatch(javacVersion, @"^javac 21\.", RegexOptions.Multiline)) throw new IOException("Zero's private Java 21 could not be verified. Try again; if your device blocks software, ask your teacher or IT for help.");
         }
         internal static string ResolveEditorApp(string root)
         {
@@ -253,9 +288,17 @@ namespace ZeroSetup
         {
             string user = Path.Combine(UserData, "User"); folders.Ensure(user); folders.Ensure(Extensions);
             string path = Path.Combine(user, "settings.json");
-            JObject values;
-            if (File.Exists(path)) values = ReadSettings(ReadText(path, 1024 * 1024));
-            else
+            JObject values = null;
+            if (File.Exists(path))
+            {
+                // A malformed settings edit must not trap Try again outside the
+                // editor. Zero owns this isolated profile; restore its defaults.
+                // Filesystem/access errors still propagate without replacement.
+                string text = ReadText(path, 1024 * 1024);
+                try { values = ReadSettings(text); }
+                catch (IOException error) when (error.InnerException is JsonException) { }
+            }
+            if (values == null)
             {
                 var profile = json.Deserialize<Dictionary<string, object>>(ReadText(Path.Combine(kit, "optional", "Zero.code-profile"), 1024 * 1024));
                 var wrapper = json.Deserialize<Dictionary<string, object>>((string)profile["settings"]);
@@ -307,24 +350,32 @@ namespace ZeroSetup
                 using (var setupLock = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
                 {
                     WindowsRuntimeFolders.Check(lockPath);
-                    await Install("jdk", progress, cancellation); progress("Checking Java…"); await VerifyJava(cancellation);
+                    await PrepareJava(progress, cancellation);
                     folders.Ensure(UserData); folders.Ensure(Extensions);
                     progress("Preparing editor…"); await FindEditor(cancellation);
-                    if (editor == null) { await Install("vscode", progress, cancellation); await FindEditor(cancellation); }
+                    if (editor == null)
+                    {
+                        if (Directory.Exists(AssetFolder("vscode"))) await Repair("vscode", progress, cancellation);
+                        else await Install("vscode", progress, cancellation);
+                        await FindEditor(cancellation);
+                    }
                     if (editor == null) throw new IOException("A compatible editor could not be prepared. Retry setup.");
                     progress("Preparing editor settings…"); Settings(folders);
-                    var state = await ExtensionState(cancellation); string zero;
+                    var state = await ExtensionState(cancellation); string zero; bool installed = false;
                     if (!state.TryGetValue("zero.zero", out zero) || !AtLeast(zero, version))
                     {
                         progress("Preparing Zero support…");
                         string vsix = Path.Combine(kit, "zero-" + version + ".vsix"); WindowsRuntimeFolders.Check(vsix);
                         if (!File.Exists(vsix)) throw new IOException("Zero's bundled editor support is missing. Reinstall Zero.");
                         await Code(new[] { "--install-extension", vsix }, 600000, cancellation);
+                        installed = true;
                     }
-                    if (!state.ContainsKey("redhat.java")) { progress("Preparing Java support…"); await Code(new[] { "--install-extension", "redhat.java" }, 600000, cancellation); }
+                    if (!state.ContainsKey("redhat.java")) { progress("Preparing Java support…"); await Code(new[] { "--install-extension", "redhat.java" }, 600000, cancellation); installed = true; }
                     progress("Checking Zero…");
-                    await VerifyJava(cancellation);
-                    if (!await CompatibleEditor(editor, cancellation) || !SettingsReady() || !ExtensionsReady(await ExtensionState(cancellation))) throw new IOException("Required editor support was not verified. Retry setup.");
+                    // Java/editor were checked above. Only changed extension
+                    // state needs another probe here; Open rechecks readiness
+                    // authoritatively immediately before the editor handoff.
+                    if (!SettingsReady() || !ExtensionsReady(installed ? await ExtensionState(cancellation) : state)) throw new IOException("Required editor support was not verified. Retry setup.");
                 }
             }
         }

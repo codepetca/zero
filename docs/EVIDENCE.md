@@ -1,5 +1,48 @@
 # Delivery evidence index
 
+## Windows flow recovery and unsigned trial — 2026-10-16
+
+Owner deferred signing and authorized the remaining Windows usability work.
+No account, paid service, push, publication or merge action performed. Public
+Windows/Mac0.5.17 assets remain unchanged. The original funding checkout and
+separate web-export/tutorial work are untouched.
+
+A read-only Sol/high parity audit completed four concrete findings: damaged
+recognized private runtimes could not recover; malformed isolated settings
+trapped retry; an accepted background update hid foreground progress/failures;
+and warm launch duplicated readiness probes. Coordinator fixes replace only
+recognized private runtime folders through verified staged downloads, restore
+old folders after failed/cancelled replacement, reset malformed isolated settings,
+show accepted update progress/errors with one install consent, and reduce warm
+child probes12→8 while retaining authoritative pre-launch readiness checks.
+Fixtures include missing Java/compiler/editor files, bad cached Java version,
+failed/cancelled repair and retry, unrecognized folder refusal, valid JSONC,
+malformed settings reset and saved-session continuity.
+
+Native harness985 checks and updater11 pass under Mono. Full net48 WinForms app
+compiles with zero warnings/errors.18 package/signing/key/config checks pass using
+private PowerShell with mocked Authenticode, not actual Windows signing.
+Configuration/syntax/docs checks and diff whitespace pass. Prior unchanged
+extension/website/kit coverage remains applicable. No physical Windows behavior
+is inferred from these checks.
+
+Separate Sol/high worker owns a maintainer-only real JavaFX companion, its focused
+tests, Windows CI and unsigned trial instructions. It uses the installed private
+Java, a disposable copy of the installed starter and separate Maven/cache/temp
+folders to show/update/close an ordinary JavaFX window, then clean/recompile/run
+with Maven offline. Interactive editor Run/Stop, real Windows execution, trusted
+publisher/SmartScreen and authenticated A→B acceptance remain separate evidence.
+Companion focused checks pass (4pass/1existing Windows-only skip including batch
+quoting); its generated fixture compiles with actual Java21 against cached pinned
+JavaFX21.0.12 JARs. No Windows GUI was executed. Combined review and rebuilt
+candidate measurements follow.
+
+Orchestration: one bounded read-only audit and one nonoverlapping implementation
+assignment; requested GPT-6.1Sol/high, effective model and token telemetry unknown.
+Coordinator owns native code and acceptance. Initial weekly allowance49% remaining
+and318GB free are account/system measurements, not attributed task cost. No writer
+conflicts or recursive delegation. DeepSeek remains paused.
+
 ## Windows release-readiness preparation — 2026-10-16
 
 Owner requests production signing/feed setup and feasible tests, with Windows

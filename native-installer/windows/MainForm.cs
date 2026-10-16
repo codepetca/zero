@@ -21,7 +21,7 @@ namespace ZeroSetup
         private readonly Queue<LauncherRequest> requests = new Queue<LauncherRequest>();
         private readonly CancellationTokenSource lifetime = new CancellationTokenSource();
         private CancellationTokenSource background;
-        private bool pumping, closing, settingsVisible;
+        private bool pumping, closing, settingsVisible, foregroundUpdate;
         private LauncherRequest active;
         private string errorDetails = "";
 
@@ -52,7 +52,7 @@ namespace ZeroSetup
             backend = new NativeSetupBackend(dataRoot);
             controller = new AutomaticSetupController(backend);
             updates = new UpdateCoordinator(dataRoot);
-            updates.StatusChanged += message => OnUI(() => { if (Visible && active == LauncherRequest.Check) status.Text = message; });
+            updates.StatusChanged += message => OnUI(() => { if (Visible && foregroundUpdate) status.Text = message; });
             controller.Changed += () => OnUI(() => { status.Text = controller.Status; progress.Visible = controller.Busy; });
             retry.Click += (sender, args) => Request(active);
             done.Click += (sender, args) => { Hide(); if (!pumping) Finish(); };
@@ -133,6 +133,8 @@ namespace ZeroSetup
 
         private async Task CheckUpdates(bool manual)
         {
+            bool installApproved = false;
+            foregroundUpdate = manual;
             if (manual)
             {
                 Show(); Activate(); status.Text = "Checking for updates…"; progress.Visible = true;
@@ -147,12 +149,20 @@ namespace ZeroSetup
                 {
                     Show(); Activate(); progress.Visible = false;
                     if (MessageBox.Show(this, "A Zero update is available. Download and install it now?", "Zero update", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
-                        result = await updates.CheckAndDownload(true, lifetime.Token);
+                    {
+                        // This is now an explicit user operation. Show progress
+                        // and useful failures, and honor the one consent already
+                        // given to download and install.
+                        manual = true; foregroundUpdate = true; installApproved = true;
+                        active = LauncherRequest.Check;
+                        status.Text = "Downloading update…"; progress.Visible = true;
+                        result = await updates.CheckAndDownload(true, background.Token);
+                    }
                     else { Hide(); return; }
                 }
                 if (result == UpdateResult.Ready)
                 {
-                    if (manual && MessageBox.Show(this, "The Zero update is ready. Install it now? Your editor can stay open.", "Zero update", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
+                    if (manual && !installApproved && MessageBox.Show(this, "The Zero update is ready. Install it now? Your editor can stay open.", "Zero update", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
                     { Hide(); return; }
                     if (lifetime.IsCancellationRequested || requests.Count > 0 || controller.Busy) return;
                     // No setup helper may run after commit. Apply only the package
@@ -180,7 +190,7 @@ namespace ZeroSetup
             {
                 if (manual) Fail("Could not update Zero. Try again or open Details.", error.Message);
             }
-            finally { progress.Visible = false; }
+            finally { progress.Visible = false; foregroundUpdate = false; }
         }
 
         private void ShowUpdateSettings()

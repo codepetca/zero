@@ -40,7 +40,7 @@ internal static class RuntimeHarness
     private sealed class FakeHost : IWindowsRuntimeHost
     {
         public string Architecture { get; set; } = "AMD64";
-        public bool Unsupported, BrokenDownload, CancelDownload, RejectInstall, Timeout;
+        public bool Unsupported, BrokenDownload, CancelDownload, RejectInstall, Timeout, RepairJavaOnDownload;
         public int Downloads, Installs, Runs;
         public string JavaVersion = "21.0.12";
         public string ZeroVersion, RedhatVersion;
@@ -54,6 +54,7 @@ internal static class RuntimeHarness
         public Task Download(WindowsRuntimeAsset asset, string destination, CancellationToken cancellation)
         {
             Downloads++;
+            if (RepairJavaOnDownload && asset.version.StartsWith("jdk", StringComparison.Ordinal)) JavaVersion = "21.0.12";
             File.WriteAllBytes(destination, BrokenDownload ? new byte[] { 1, 2, 3 } : asset.version.StartsWith("jdk", StringComparison.Ordinal) ? Jdk : Editor);
             if (CancelDownload) throw new OperationCanceledException(cancellation);
             return Task.CompletedTask;
@@ -121,7 +122,7 @@ internal static class RuntimeHarness
         string parent = Path.Combine(Directory.GetCurrentDirectory(), ".verification", "zero-runtime-harness-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(parent);
         try
         {
-            TestLifecycle(parent); TestFailures(parent); TestArchives(parent);
+            TestLifecycle(parent); TestRecovery(parent); TestFailures(parent); TestArchives(parent);
         }
         finally { WindowsRuntimeArchive.DeleteStaging(parent); }
         return checks;
@@ -154,6 +155,9 @@ internal static class RuntimeHarness
             settings = File.ReadAllText(settingsPath);
             Assert(settings.Contains("\"editor.fontSize\": 17") && !settings.Contains("java.jdt.ls.java.home") && !settings.Contains("\"java.home\""), "repeated JSONC preparation preserves ordinary settings and removes obsolete tooling overrides");
             Assert(f.Host.Downloads == 2 && f.Host.Installs == 2, "JSONC repair reuses tools and extensions");
+            int runs = f.Host.Runs;
+            var warm = f.Runtime(); warm.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); warm.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Runs - runs == 8, "warm preparation and handoff use eight probes without redundant final preparation checks");
             runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(Environment.GetEnvironmentVariable("JAVA_HOME") == parentJava && Environment.GetEnvironmentVariable("PATH") == parentPath, "global and parent tool environment unchanged");
             f.Host.RedhatVersion = null;
@@ -178,6 +182,42 @@ internal static class RuntimeHarness
         File.WriteAllText(Path.Combine(invalid, "bin", "code.cmd"), @"%~dp0..\..\outside\cli.js");
         Reject(() => WindowsRuntime.ResolveEditorApp(invalid), "vendor launcher resource discovery rejects traversal and never executes scripts");
         Assert(WindowsRuntime.AtLeast("0.5.19", "0.5.18") && !WindowsRuntime.AtLeast("0.5.17", "0.5.18") && !WindowsRuntime.AtLeast("bad", "0.5.18"), "exact numeric version order");
+    }
+    private static void TestRecovery(string parent)
+    {
+        using (var f = new Fixture(parent))
+        {
+            f.Prepare();
+            string jdk = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "jdk-*").Single();
+            string editor = Directory.GetDirectories(Path.Combine(f.Data, "runtime"), "vscode-*").Single();
+            string saved = Path.Combine(f.Data, "editor", "user-data", "saved-session"); File.WriteAllText(saved, "session");
+            File.Delete(Path.Combine(jdk, "bin", "javac.exe"));
+            f.Prepare();
+            Assert(File.Exists(Path.Combine(jdk, "bin", "javac.exe")) && f.Host.Downloads == 3, "missing private Java compiler repaired automatically");
+            File.Delete(Path.Combine(editor, "6d62b1d5da", "resources", "app", "out", "cli.js"));
+            f.Prepare();
+            Assert(File.Exists(Path.Combine(editor, "6d62b1d5da", "resources", "app", "out", "cli.js")) && f.Host.Downloads == 4, "damaged owned editor repaired automatically");
+            f.Host.JavaVersion = "17.0.1"; f.Host.RepairJavaOnDownload = true;
+            f.Prepare();
+            Assert(f.Host.JavaVersion == "21.0.12" && f.Host.Downloads == 5, "failed cached Java version probe triggers one verified replacement");
+            string settings = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json"); File.WriteAllText(settings, "{ broken JSONC");
+            var runtime = f.Runtime(); runtime.Prepare(null, CancellationToken.None).GetAwaiter().GetResult(); runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(File.ReadAllText(settings).Contains("JavaSE-21") && File.ReadAllText(settings).Contains("chat.disableAIFeatures"), "malformed isolated settings reset to shipped defaults and mandatory Java settings");
+            Assert(!f.Host.Launched.Arguments.Contains("--new-window") && File.ReadAllText(saved) == "session" && f.Host.Installs == 2, "repair preserves saved editor session and installed extensions");
+            Assert(!Directory.GetDirectories(Path.Combine(f.Data, "runtime"), ".repair-*").Any(), "successful repairs remove only quarantined old tools");
+            File.Delete(Path.Combine(jdk, "bin", "javac.exe")); f.Host.BrokenDownload = true;
+            Reject(f.Prepare, "failed replacement download remains a visible failure");
+            Assert(Directory.Exists(jdk) && !File.Exists(Path.Combine(jdk, "bin", "javac.exe")) && !Directory.GetDirectories(Path.Combine(f.Data, "runtime"), ".repair-*").Any(), "failed repair restores original tool folder for another retry");
+            f.Host.BrokenDownload = false; f.Host.CancelDownload = true;
+            Cancelled(f.Prepare, "cancelled replacement download propagates");
+            Assert(Directory.Exists(jdk) && !Directory.GetDirectories(Path.Combine(f.Data, "runtime"), ".repair-*").Any(), "cancelled repair restores original folder");
+            f.Host.CancelDownload = false; f.Prepare();
+            Assert(File.Exists(Path.Combine(jdk, "bin", "javac.exe")) && File.ReadAllText(saved) == "session", "explicit retry after failed and cancelled repair recovers");
+            int downloads = f.Host.Downloads;
+            File.WriteAllText(Path.Combine(jdk, ".zero-asset.sha256"), "unrecognized");
+            Reject(f.Prepare, "unrecognized runtime is not replaced");
+            Assert(f.Host.Downloads == downloads && Directory.Exists(jdk), "unrecognized folder untouched with no repair download");
+        }
     }
     private static void TestFailures(string parent)
     {

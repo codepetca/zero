@@ -7,10 +7,13 @@ on an IT-approved school machine records policy/antivirus restrictions; it does
 not bypass them. Windows 10, ARM, 32-bit and school deployment remain separate
 coverage until actually tested.
 
-The development smoke test below installs and downloads real software. It leaves
-Zero's installed files in the disposable account. It never proves production
-signing, SmartScreen acceptance, a JavaFX app run or a signed automatic update.
-Do not mark `nativeWindowsTested:true` from the CI receipt alone.
+The unsigned development candidate can be tried now: install/open, private Java
+and editor preparation, real JavaFX windows, cached offline rebuilding, saved
+project reopening and interrupted-setup retry do not require a signing account.
+The smoke tests below install/download real software and leave Zero's files in
+the disposable account. Authenticode, SmartScreen trusted-publisher behavior and
+signed A→B updating stay **pending** until reviewed signed candidates exist.
+Do not mark `nativeWindowsTested:true` from automated receipts alone.
 
 ## Automated disposable-account smoke
 
@@ -39,9 +42,40 @@ launcher/editor processes and their recorded descendants. Files stay available
 for diagnosis; discard the VM/account when finished. A timeout or unavailable
 GUI/network is a failed trial requiring inspection, never a silent skip.
 
-[Windows CI](../.github/workflows/windows-native.yml) runs the same script after
-fixtures and packaging on a disposable `windows-2022` GitHub-hosted runner. Its
-result establishes only that runner's automated smoke coverage once executed.
+After that script passes, run its companion from the same reviewed checkout with
+**Node.js 22+**. Node is needed only for this maintainer/CI automation; students
+need neither Node nor global Maven. Keep the same measured Setup EXE/build receipt
+available:
+
+```powershell
+node .\scripts\test-windows-javafx.mjs --disposable-account `
+  --installation-receipt C:\Trial\installation-result\report.json `
+  --build-receipt C:\Trial\build-windows.json `
+  --output "C:\Trial\JavaFX result"
+```
+
+The output directory must be new and its parent must exist. The companion checks
+the passing installation receipt against the candidate's measured bytes/version,
+requires the isolated editor's exact pinned private Java root, and copies the
+installed starter into `installed starter with spaces` under that output. The
+original starter remains available for interactive Run App. The copied wrapper,
+Maven distribution and build pins must match the reviewed checkout.
+
+It uses the pinned wrapper with explicit private JAVA_HOME/PATH and output-local
+Maven settings, repository, wrapper cache and temporary files. The first online
+`clean compile javafx:run` warms all needed plugins, including clean. A disposable
+ordinary Java class extends `zero.App`, opens a real JavaFX Stage, updates a Label,
+calls show, checks its displayed state, closes automatically and writes a unique
+marker. A second `-o clean compile javafx:run` deletes compiled outputs, rebuilds
+and repeats the window using cached JavaFX/native dependencies. This proves Maven
+offline cache use; it does not disconnect Windows or prove the editor's Run App
+command offline. Each run has a deadline and scoped process-tree cleanup, with
+private bounded Maven logs and a small `report.json`. GUI, network and timeout
+failures fail the trial. Discard the disposable VM/account afterward.
+
+[Windows CI](../.github/workflows/windows-native.yml) runs both scripts after
+fixtures and packaging on a disposable `windows-2022` GitHub-hosted runner. Their
+results establish only that runner's automated smoke coverage once executed.
 Configuring the workflow is not evidence that a remote run passed. No signing
 key, certificate, secrets or production feed are used. The development updater
 is disabled; RSA/update state-machine fixtures are a separate CI step.
@@ -53,10 +87,12 @@ CPU architecture, ordinary/admin context, display scale, candidate version and
 Setup SHA-256. Record existing VS Code and any deliberately bad JAVA_HOME only
 in their separate coverage cases. Check each result as pass/fail/pending:
 
-- Download the **production signed candidate** from the intended trial source.
-  Check its Authenticode publisher, timestamp and hash against the signed build
-  receipt. Open it normally; record actual SmartScreen/antivirus behavior. Do not
-  globally disable protections. Verify no unexpected administrator prompt.
+- For the unsigned development trial, transfer the measured development candidate
+  and receipt to the disposable machine and verify its hash. Record its unsigned
+  status and actual warnings/antivirus behavior; inspect or stop when policy blocks
+  it. Do not globally disable protections. Open the installer normally and verify
+  no unexpected administrator prompt. This is useful install evidence, with signed
+  publisher and SmartScreen acceptance still pending.
 - Allow **Preparing Zero…** to finish. Confirm the editor opens, Zero's sidebar
   appears and the starter is readable ordinary Java. Trust only this expected
   workspace when prompted. Choose **Run App**, wait for Maven/JavaFX preparation,
@@ -69,6 +105,11 @@ in their separate coverage cases. Check each result as pass/fail/pending:
   existing support and the previously built app still work. Reconnect. On a
   separate fresh snapshot test interrupted first preparation, close/cancel and
   **Try again**; no permanent background helper should remain after it settles.
+- Once signing is available, repeat installation with the **production signed
+  candidate** from the intended trial source. Check its actual Authenticode
+  publisher, timestamp and measured hash. Record SmartScreen/antivirus behavior
+  and whether the expected trusted publisher appears. An unsigned trial cannot
+  satisfy this acceptance item.
 - With installed **signed version A**, keep the isolated editor open, an unsaved
   buffer and a JavaFX app running. Use the reviewed, authenticated HTTPS feed
   offering **higher signed version B** with immutable measured package bytes.
@@ -102,9 +143,9 @@ stable feed to conduct this test.
 
 ## Return the evidence
 
-Return the small automated `report.json`, a completed checklist with exact
+Return both small automated `report.json` files, a completed checklist with exact
 candidate hashes/versions and concise errors or screenshots. Keep `setup.log`
-and editor/native error Details private until reviewed for account paths or other
+and `online-maven.log`/`offline-maven.log` and editor/native error Details private until reviewed for account paths or other
 personal data. Redact user names, student work, repository URLs and secrets before
 sharing. Do not upload whole editor user-data/extensions directories, credentials,
 GitHub tokens, private keys, certificates or account databases. A useful failure

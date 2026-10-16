@@ -15,7 +15,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
-    timeout-minutes: 35
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -45,6 +45,7 @@ jobs:
           npm run test:updates:windows
           node --test extension/test/native-updates.test.js
           node --test extension/test/process-specification.test.js
+          node --test scripts/test-windows-javafx.test.mjs
       - name: Build measured development installer
         run: |
           npm run package
@@ -59,6 +60,20 @@ jobs:
         run: |
           if ($env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Disposable GitHub-hosted runner required.' }
           & ./scripts/test-windows-installation.ps1 -DisposableAccount
+      - name: Real private-Java JavaFX window and cached offline rebuild
+        # Node is maintainer/CI tooling only. No student Node/global Maven install.
+        timeout-minutes: 12
+        run: node scripts/test-windows-javafx.mjs --disposable-account
+      - name: Retain Windows JavaFX receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-windows-javafx-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 14
+          # Raw Maven logs contain account paths and remain on the disposable
+          # runner; never upload whole project/cache/editor state.
+          path: .verification/windows-javafx/report.json
       - name: Retain Windows installation receipt
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
