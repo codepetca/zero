@@ -37,6 +37,35 @@ quoting); its generated fixture compiles with actual Java21 against cached pinne
 JavaFX21.0.12 JARs. No Windows GUI was executed. Combined review and rebuilt
 candidate measurements follow.
 
+Independent complete10-file Sol/high review of42e9512..ceecc6f2471b5af4d9fc101a5fba354d03d234fb
+passed with no actionable P0-P2. It inspected repair/rollback/path scope, settings,
+readiness, foreground update consent/progress/retry and trial/CI callers; reran
+4focused checks/1Windows-onlyskip. Effective model/tokens unknown. Review interval
+approximately16:12–16:16UTC,1initiallaunch/0fixbatches; no redundant extra wave.
+Actual coordinator Mac fixture execution additionally proved shown window, label
+update, close and matching nonce using localJava21/JavaFX21.0.12. That is fixture
+validation only, not Windows/native cache/installer execution.
+
+Pinned vpk cross-build and artifact verifier passed from clean reviewedceecc6f.
+Setup10611808bytes/SHA256
+`7cd5350f5793a42719302d4623581d6cc2050297820b65c1085389aedd99607a`;
+full nupkg3097696bytes/SHA256
+`41fa0d4de7c4564dcafd97638f2debe3c51a3fd86a46fa92cbf73e07a97f4b4c`.
+Kit bytes unchanged. Self-contained local trial packet
+`dist/installers/Zero-Windows-0.5.18-trial-ceecc6f.zip`,10661700bytes/SHA256
+`6e5789fb4729a009343c8265ee8bbeaec3d3d8aaef035a9089737dfcf06ef159`,
+contains Setup/receipt, reviewed essential scripts/pins, START-HERE and a measured
+file manifest. Every ZIP member was re-extracted and checked against its manifest.
+It includes no private keys/credentials or full account state; updater disabled.
+Prior candidates preserved under ignored prior-builds/pre-flow-polish. Packaging
+log/trial manifest in ignored .verification/windows-auto-setup/flow-*; actual Mac
+fixture evidence in .verification/windows-javafx-fixture-compilation/.
+
+Actual Windows/remote CI remains pending; an explicit owner approval question
+was sent to push the reviewed branch/open a draft PR/run Windows CI, as required
+by AGENTS.md. No publication/push occurred while awaiting its answer. Signing and
+production release remain deferred. Fresh storage guard312GB, healthy, no cleanup.
+
 Orchestration: one bounded read-only audit and one nonoverlapping implementation
 assignment; requested GPT-6.1Sol/high, effective model and token telemetry unknown.
 Coordinator owns native code and acceptance. Initial weekly allowance49% remaining
