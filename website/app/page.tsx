@@ -14,8 +14,7 @@ export default function Home() {
           <p className="hub-lead">Starting from zero.</p>
         </div>
         <div className="hub-actions">
-          <Link className="button" href="/get-started">Get started</Link>
-          <Link className="returning-student" href="/learn">Already set up? Continue tutorials</Link>
+          <Link className="button" href="/downloads">Download Zero</Link>
         </div>
       </main>
     </LearnTheme>

@@ -5,7 +5,7 @@ export function TutorialProject({ project, lesson, template, assets }) {
   return <section className="lesson-start" aria-label={`${project.title} project`}>
     {starting ? <>
       <h3>Start your {project.title} repository</h3>
-      <p>Before starting, complete <a href="/get-started">Zero, GitHub account and privacy setup</a>.</p>
+      <p>Launch Zero and connect GitHub there before starting. <a href="/downloads">Download Zero</a> · <a href="/docs/setup#before-lesson-0-github-and-privacy">Account and privacy help</a>.</p>
       {template ? <a className="button" href={template.templateHref}>Use template</a> :
         <p><strong>Template not available yet.</strong> The {project.title} tutorial template has not been published.
           Ask your teacher for the published tutorial template, or continue in your own already-cloned repository.</p>}

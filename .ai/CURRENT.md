@@ -14,7 +14,19 @@ Local implementation/testing is authorized. Source push/merge, template publicat
 distribution/signing/deployment, new game publication and ZeroHub activation remain
 held. Earlier scoped Sky Hop Pages proof is accepted. Overall goal is incomplete.
 
-## Latest phase — concise single-page setup locally accepted
+## Active download-first desktop onboarding
+
+Owner approved website Download Zero only, then desktop session check and explicit
+Connect GitHub if needed, followed by tutorial creation. No website OAuth or Zero
+account. Coordinator owns website/guidance/integration; Sol/medium worker owns
+extension welcome/activation/tests only. Plan: integrate native welcome with existing
+VS Code session/consent paths; test welcome lifecycle/empty workspace/cancel/retry/
+existing session; check website and actual native host; independent review, package
+and record candidate. No external sign-in grant or publication action authorized.
+Weekly65%remaining shared; storage339GB healthy; DeepSeek paused. Native Mac was
+initially locked; owner reports unlocked for click-through. Basee733564.
+
+## Prior phase — concise single-page setup locally accepted
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
 Reviewed sourcec77f358 supersedes the wizard. Get started shows four short steps

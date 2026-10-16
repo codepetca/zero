@@ -118,7 +118,7 @@ when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
 The optional `release/installer.json` adds **Download for Mac Silicon** on the Download page.
 When that installer is published or local downloads are enabled, the public
-Download Zero action in the Get started guide opens platform choices at `/downloads`. Mac setup
+Download Zero action on Home opens platform choices at `/downloads`. Mac setup
 and the Windows complete-kit ZIP are the only visible download controls, with no
 extra instructions or version prose. The complete ZIP, starter and VSIX remain
 available on GitHub releases with their own kit version, even when Mac setup

@@ -1,13 +1,13 @@
 # Zero website and ZeroHub
 
-Keep the selected ultra-minimal design: Zero wordmark, one short description, a primary Get started button and a quieter returning-student tutorial link. No editor screenshot or numbered onboarding on the landing page. See [saved theme](design/WEBSITE.md) and [selected mockup](design/selected-landing.png).
+Keep the selected ultra-minimal design: Zero wordmark, one short description, one Download Zero button. No editor screenshot or numbered onboarding on the landing page. See [saved theme](design/WEBSITE.md) and [selected mockup](design/selected-landing.png).
 
 `website/` is a pinned Next.js app in the Zero repo, deployed independently to Vercel. Cloudflare manages `zero.codepet.ca` DNS; no GitHub Pages.
 
 | Address | Purpose |
 | --- | --- |
-| `/` | Minimal landing with Get started and returning-student tutorial link |
-| `/get-started` | Public single page: GitHub, download/launch, owned template/clone, lesson0; details on demand |
+| `/` | Minimal landing with Download Zero |
+| `/get-started` | Legacy setup address; redirects to `/downloads` |
 | `/learn`, `/tutorials/[lesson]` | Visual quick paths, expandable details and thirteen maintained lessons |
 | `/examples`, `/source` | Runnable examples, explicit copy instructions and readable source |
 | `/docs` | Setup, student API and teacher/developer guidance |

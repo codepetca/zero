@@ -8,17 +8,15 @@ using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
 The download website is a separately built part of this repository. Its landing
-page has the shared app header, **Learn Java**, **Starting from zero.**, a primary
-**Get started** button to `/get-started`, and a quieter **Already set up? Continue
-tutorials** link to `/learn`. It uses the shared light/dark toggle and centered
-full-viewport layout. The public Get started page shows four short steps together:
-sign in to GitHub or create an account, download/launch Zero, create and clone an
-owned tutorial repository, then start lesson0. GitHub links open separate tabs;
-there is no website OAuth, account check, automatic advance or completion gate.
-Native section anchors preserve setup bookmarks and the Downloads return link.
-School/privacy/setup/sharing details stay in linked guides or optional help.
-Downloads and lessons stay public. Upload and optional Publish use Zero's separate
-GitHub connection.
+page has the shared app header, **Learn Java**, **Starting from zero.**, and one
+**Download Zero** button to `/downloads`. It uses the shared light/dark toggle and
+centered full-viewport layout. The old `/get-started` address redirects to Downloads.
+The website requires no GitHub sign-in. Download and launch desktop Zero first;
+its welcome checks VS Code's existing GitHub connection, offers **Connect GitHub**
+when needed, and then leads to creating a tutorial project. VS Code owns sign-in,
+permission and credentials; no website OAuth or separate Zero account. Existing
+connections show the username. Dismissing welcome leaves local Run available;
+setup guidance remains accessible later. Publication and uploads remain explicit.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
 are listed under three quiet project headings (Greeting app, Study quiz and Coin
 game); selecting one updates the reading pane and its bookmarkable

@@ -20,8 +20,7 @@ export default function DownloadPage() {
           <p>{mac && installer && <>Mac {installer.kitVersion}: Apple Silicon, macOS {installer.asset.minimumOS}+.<br /></>}
             {kit && <>Windows {kit.kitVersion}: ZIP with manual setup.</>}</p>
           <Link href="/docs/setup">Installation steps and setup help</Link>
-          <p className="download-next"><Link href="/get-started#project">After installing: create your tutorial project</Link></p>
-          <Link href="/get-started#github">New here? Start with GitHub setup</Link>
+          <p>Launch Zero, then choose <strong>Connect GitHub</strong> when prompted.</p>
         </div>
       </main>
     </LearnTheme>

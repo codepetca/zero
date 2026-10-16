@@ -8,6 +8,7 @@ const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
+const {createWelcome} = require('./welcome');
 const {selectUploadAuthentication} = require('./web-publish-upload-auth');
 const {createTransport} = require('./transport');
 const {createSharingEditor} = require('./sharing/editor');
@@ -32,6 +33,8 @@ function activate(context) {
   let uploading = false;
   let connecting = false;
   let signingIn = false;
+  let disposed = false;
+  context.subscriptions.push({dispose() { disposed = true; }});
   let changing = false;
   let menuOpen = false;
   let componentBusy = false;
@@ -122,7 +125,24 @@ function activate(context) {
   }
   const auth = createAuthentication(vscode.authentication, refresh);
   context.subscriptions.push(auth);
-  void auth.refresh();
+  async function assertAccountAllowed() {
+    // Connecting a native account needs no project. Retain local-practice
+    // restrictions whenever a workspace is open, including damaged markers.
+    if (vscode.workspace.workspaceFolders?.length) await lessonProjects.assertShareable(await project());
+  }
+  async function signIn(changeAccount = auth.signedIn) {
+    if (disposed || isBusy()) return;
+    signingIn = true; refresh();
+    try {
+      await assertAccountAllowed();
+      if (disposed) return;
+      void vscode.window.showInformationMessage('VS Code will sign you into GitHub. Zero requests repository access (repo), including private repositories, so live uploads can use your chosen repository. VS Code stores the sign-in; Zero keeps no password or token file.');
+      await auth.signIn(changeAccount);
+      if (!disposed) state = auth.status;
+    } catch (error) {
+      if (!disposed) throw error;
+    } finally { signingIn = false; if (!disposed) refresh(); }
+  }
   async function repositoryStatus() {
     const generation = ++statusGeneration;
     let nextRepository = 'No repository connected', nextBranch = '';
@@ -330,9 +350,10 @@ function activate(context) {
       } finally {selectedAuth?.dispose();await repositoryStatus(); uploading = false; refresh();}
   }
   const actions = {
+    'zero.getStarted': () => welcome.show(true),
     'zero.githubAccount': async () => {
       if (isBusy()) return;
-      await lessonProjects.assertShareable(await project());
+      await assertAccountAllowed();
       if (!auth.signedIn) return actions['zero.signInToGitHub']();
       const choice = await quickPick([
         {label:'Change GitHub account…', action:'change'},
@@ -369,16 +390,7 @@ function activate(context) {
         await actions['zero.createRepository']();
       }
     },
-    'zero.signInToGitHub': async () => {
-      if (isBusy()) return;
-      await lessonProjects.assertShareable(await project());
-      signingIn = true; refresh();
-      try {
-        void vscode.window.showInformationMessage('VS Code will sign you into GitHub. Zero requests repository access (repo), including private repositories, so live uploads can use your chosen repository. VS Code stores the sign-in; Zero keeps no password or token file.');
-        await auth.signIn(auth.signedIn);
-        state = auth.status;
-      } finally { signingIn = false; refresh(); }
-    },
+    'zero.signInToGitHub': signIn,
     'zero.createRepository': async () => {
       if (isBusy()) return;
       await lessonProjects.assertShareable(await project());
@@ -548,8 +560,18 @@ function activate(context) {
     if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus(); void introduceProject().catch(error => output.appendLine(`Getting started: ${error.message}`));}));
+  const welcome = createWelcome({window:vscode.window,globalState:context.globalState,authentication:auth,connect:() => signIn(false),startProject:() => actions['zero.startProject'](),isBusy,
+    eligible:async () => {
+      if (!(vscode.workspace.workspaceFolders || []).length) return !hasOpenEditors();
+      try {await lessonProjects.assertShareable(await project());return true;} catch {return false;}
+    }});
+  context.subscriptions.push(welcome);
+  const startup = welcome.show().catch(error => {
+    if (!disposed) {output.appendLine(`Getting started: ${error.message}`);void vscode.window.showErrorMessage(`Zero: ${error.message}`);}
+  });
+  const introduceAfterWelcome = () => startup.then(() => {if (!disposed) return introduceProject();}).catch(error => output.appendLine(`Getting started: ${error.message}`));
+  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; changes.fire(); repositoryStatus(); void introduceAfterWelcome();}));
   context.subscriptions.push({dispose:() => {if (execution) execution.terminate();}});
-  void introduceProject().catch(() => {});
+  void introduceAfterWelcome();
 }
 module.exports = {activate};

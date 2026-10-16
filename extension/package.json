@@ -13,6 +13,7 @@
   ],
   "main": "./src/extension.js",
   "activationEvents": [
+    "onStartupFinished",
     "workspaceContains:zero.json",
     "workspaceContains:student-template/zero.json",
     "onTaskType:zero",
@@ -26,6 +27,10 @@
   },
   "contributes": {
     "commands": [
+      {
+        "command": "zero.getStarted",
+        "title": "Zero: Get Started"
+      },
       {
         "command": "zero.checkForUpdates",
         "title": "Zero: Check for Updates",

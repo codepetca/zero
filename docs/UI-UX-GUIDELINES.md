@@ -31,10 +31,10 @@ marks a preferred pattern with documented, task-specific exceptions.
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,
-  Starting from zero., Get started → `/get-started` and a quieter Already set up?
-  Continue tutorials → `/learn` link. The public setup page shows GitHub, download/launch, owned tutorial repository/clone
-  and lesson0 together; sharing details remain available on demand.
-  Keep the centered stack and shared light/dark themes without promotional sections.
+  Starting from zero. and one Download Zero → `/downloads` action. Keep the
+  centered stack and shared light/dark themes without promotional sections.
+  GitHub connection belongs in downloaded Zero's welcome, using VS Code's native
+  session/consent UI. No website sign-in or separate Zero account is needed.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.
   Follow the editor's established controls, theme colors, keyboard behavior and
   native authentication/account flows. Retain light and dark editor support.

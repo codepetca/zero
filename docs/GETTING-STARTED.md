@@ -13,6 +13,18 @@ it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
+## Start here
+
+1. Download and launch **Zero**. The website needs no sign-in.
+2. In desktop Zero, choose **Connect GitHub** if prompted. VS Code reuses an
+   authorized connection or guides sign-in and permission. If you need an account,
+   create it on GitHub and verify your email, then return to connect.
+3. Start your tutorial project from its template, clone your own repository and
+   open it in Zero. Follow lesson 0.
+
+Zero needs no separate account. **Later** leaves local Run available. To return
+to setup, use **Zero: Get Started** from VS Code's Command Palette.
+
 ## Before lesson 0: GitHub and privacy
 
 Tutorials require **your own GitHub account and Git 2.31+ before lesson 0**.
