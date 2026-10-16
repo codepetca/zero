@@ -420,21 +420,34 @@ public class ExampleCheck extends Application {
     public void start(Stage stage) {
         Thread watchdog = new Thread(() -> {
             try { Thread.sleep(15_000); } catch (InterruptedException ignored) { return; }
-            System.err.println("EXAMPLE_TIMEOUT"); System.exit(1);
+            System.err.println("EXAMPLE_TIMEOUT KIND");
+            for (var entry : Thread.getAllStackTraces().entrySet()) {
+                if (entry.getKey().getName().equals("JavaFX Application Thread")) {
+                    System.err.println("FX thread state: " + entry.getKey().getState());
+                    for (var frame : entry.getValue()) System.err.println("    at " + frame);
+                }
+            }
+            System.exit(1);
         });
         watchdog.setDaemon(true); watchdog.start();
+        System.err.println("EXAMPLE_STAGE KIND starting");
         Main app = new Main();
         app.start(stage);
+        System.err.println("EXAMPLE_STAGE KIND started");
         PauseTransition wait = new PauseTransition(Duration.millis(200));
         wait.setOnFinished(event -> {
             try {
+                System.err.println("EXAMPLE_STAGE KIND checking");
                 CHECK
+                System.err.println("EXAMPLE_STAGE KIND checked");
                 System.out.println("EXAMPLE_OK KIND");
             } catch (Throwable failure) {
                 failure.printStackTrace();
                 System.exit(1);
             } finally {
+                System.err.println("EXAMPLE_STAGE KIND cleanup");
                 app.stop();
+                System.err.println("EXAMPLE_STAGE KIND stopped");
                 stage.close();
                 Platform.exit();
             }
