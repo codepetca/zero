@@ -10,7 +10,10 @@ Published17 downloads, installer, update feed and fallback remain unchanged.
 1. Website: Download for Mac Silicon or Windows ZIP. No website account/sign-in.
 2. Desktop: reuse GitHub connection or connect through native VS Code sign-in.
 3. Start tutorial from welcome or …; create an own repository from its template.
-4. Repository menu → Clone repository → own HTTPS URL → Open in New Window.
+4. Project menu → Clone from GitHub… → own HTTPS URL → Clone here. Default
+   location is `~/Zero Projects`, with another location available. Existing projects
+   use Open local project…. Modern VS Code opens the clone automatically; the
+   1.95 fallback may ask Open in New Window.
 5. Tutorials beside ordinary Main.java → edit → Run App. Open in browser opens
    the current lesson or validated running app. Stop ends its browser runtime.
 6. Repository menu → New branch; edit/Run → Commit & push → Merge to main.
@@ -30,9 +33,10 @@ cards, current project heading, encouragement and light/dark tint; no repeated
 generic setup panels. Initial lessons offer verified templates and concise Setup.
 Detailed instructions belong in the setup guide. Website never authenticates.
 
-Three tutorial template pins already match all21helperhashes. Five complete-project
-example templates still need exact public-snapshot compatibility checks; the old
-identifier-only receipt explicitly did not accept browser runtime. Do not republish
+Three tutorial template pins already match all21helperhashes. All five public
+complete-project snapshots were verified against their pinned Git trees and fail
+the strict helper profile. Corrected local drafts compile and pass Chrome behavior
+checks, with exact served bytes; public template updates remain separately held. Do not republish
 already-correct tutorial templates solely because old release notes said pending.
 App/GameApp rename and earlier native focus/audio/helper checks are accepted history;
 retest the integrated source where affected rather than leaving stale blockers.
@@ -74,3 +78,20 @@ The owner then approved the simpler Project/Clone flow with default
 its reviewed source, aligned guides, final artifact and installed checks must land
 before release readiness can be declared. Current authority still excludes pushes,
 CI dispatch, template/policy activation, Developer ID/notary and publication.
+
+## Combined installed preview accepted; guide correction pending
+
+Source3bf5304 Project/Clone implementation and guides are reviewed and installed:
+106 authored files exact, 510 root tests pass/one runtime skip, 109 website tests
+and types/build pass, check/package/extracted-kit pass. Native Project/default
+location/Open local/Run→Chrome wrong-right→Stop passed. Native Git reused the
+already-open clone, so this repeat does not establish a fresh clone transport.
+The Study tutorial is open for the owner. Unsigned universal Mac build and payload
+verification passed, with candidate preserved. This is a local preview acceptance.
+
+Final Chrome guide inspection caught descriptions of confirmation prompts and
+optional branch cleanup removed by the current runtime. A three-guide correction
+is prepared, not applied; approval for one extra remediation batch and focused
+review is pending under the exhausted legacy review budget. Correct/review guides
+and refresh affected packages before release; do not treat the current unsigned
+artifact as a signed final distribution. External gates above remain unchanged.

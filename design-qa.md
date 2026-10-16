@@ -72,3 +72,20 @@ iteration remains. Earlier compact-sidebar QA is preserved in
 
 P3 follow-up: compare lesson density with students at smaller laptop heights;
 the canonical illustration increases scrolling relative to the concept.
+
+## Installed 0.5.18 Project menu addendum — 2026-10-16
+
+Source3bf5304, actual Mac light-theme screenshot
+`.verification/release-readiness-20261016/native-study-front.png` was inspected.
+The native window was fitted after a display change: all controls and both editor
+groups are visible, with ordinary Java left and canonical Study lesson3 right.
+A narrow sidebar stacks Run/Stop and wraps the long trial repository name; native
+scrolling, fonts, input and menu behavior remain intact. No new decorative or
+stylesheet changes were made to the selected tutorial layout. Current menus and
+Clone location were inspected in native screenshots; Open local/Run/Chrome/Stop
+interaction evidence is in native-combined-acceptance.json.
+
+The full combined suite now passes510/one runtime skip and website109/types/build.
+Remaining guide wording mismatch is explicitly held for correction/review. Dark/
+high-contrast, physical Windows, smaller student devices and novice usability are
+not newly established by this addendum. No fresh visual comparison or WCAG claim.

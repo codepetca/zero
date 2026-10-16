@@ -1,5 +1,67 @@
 # Verification
 
+## Combined Project menu and installed Mac preview — 2026-10-16
+
+Installed source `3bf5304` integrates the reviewed Project/Clone feature and aligned
+website guides. Full combined root suite: 511 tests, 510 pass, one PowerShell runtime
+skip, zero failures in 297.116 seconds with ARM JDK 17. Website 109 tests, typecheck
+and production build pass; check/package/extracted-kit verification pass. The later
+sole development-guide correction reuses unchanged runtime coverage. Root verified
+all 26 peer-reviewed source hashes exactly. New-feature independent Sol/high review:
+one complete initial wave, two targeted waves, two fix batches, no remaining finding;
+effective model, tokens and review elapsed unavailable. Accepted fixes let another
+location work when the default folder is unavailable and correct stale menu wording.
+The peer stopped its stale root run, preserved logs and handed one coherent full run
+to this coordinator; no duplicate install or UI writer.
+
+Final candidate VSIX SHA256 `586ba6d6ec5b3013fe4c660c48d732daaea33b4cd60a355167a47b24fca105d2`,
+431186 bytes, has 106 authored files matching source and installed extension. Native
+current host is VS Code 1.142.0. Existing armorup account retained. Project menu,
+invalid URL recovery and Clone location / Zero Projects / Clone here passed. Native
+Git reused the already-open Study clone; this repeat does not claim fresh transport
+or new authentication. Open local project opened a separate owned canonical Study
+folder in a new window, showed its folder name and Connect to GitHub; all 23 authored
+files unchanged. Actual installed Run → Chrome wrong 4 / right 5 → Stop passed;
+Stop removed the iframe. Main and Tutorials lesson 3 restored; the requested Study
+window was reopened, fitted and raised. No GitHub/account/publication mutation.
+
+All five canonical complete template drafts compile and pass Chrome acceptance.
+Study retry, scoring once, all three answers, completion and restart pass. Drawing
+click paints and secondary click clears. Coin game held-arrow input collects three
+coins, reaches win and restarts. Starter renders Hello world; Hello blank/name/Enter/
+Reset was accepted earlier. No captured browser console warnings/errors. Four new
+builds each have 59 served files, 2161473–2263775 bytes, exact to their local manifests;
+Hello has 59 files/2263877 bytes exact. Final generated drafts retain exact compiled
+inputs; only instructions and the standalone Hello preview illustration changed.
+Public complete templates remain old and require separate authorized publication.
+
+Sol/medium bounded artifact worker rebuilt the unsigned universal Mac DMG in
+69.589 seconds and verified the payload in 7.992 seconds, one attempt/no rework.
+Preserved candidate-3bf5304 DMG: 4442988 bytes, SHA256
+`9b0922ab565eb1c81234312216cb0b0483b26f669f5c5f7fe359761abcbc5af1`.
+Kit: 2945203 bytes, SHA256
+`bf64bb2884c72a0699c4573f286022a9aeba7a377e5321069322c601b3ca7504`.
+Source, kit, previous artifact and published manifests/feed remained unchanged.
+Ad-hoc build signing only; no Developer ID, notarization or installer execution.
+
+Final Chrome guide inspection found remaining legacy descriptions of removed
+confirmation dialogs and optional finished-branch cleanup. A concrete three-guide
+patch is prepared but not applied; an explicit extra-batch/focused-review question
+is pending because the legacy review exhausted four fix batches/targeted waves.
+This is a release blocker, not hidden behind the clean new-feature review. Remaining
+public policy/template/Play, CI, real Git/Pages, signing and classroom gates remain;
+physical Windows is deferred for the Mac preview. The current focus-dependent native
+framework harness still has no passing verdict. No public release is claimed.
+
+Receipts under `.verification/release-readiness-20261016/`: combined-candidate.json,
+native-combined-acceptance.json, open-local-before/after.json, project-menu-integration.json,
+project-menu-peer-*, root-tests-combined-4adb2fa.log, website-*-combined-*,
+final-mac-3bf5304/RESULT.*, template-chrome-acceptance.json, template-http-parity.json,
+final-template-input-parity.json and guide-correction-proposal.patch. Current weekly
+47% remaining and fresh healthy319 GB are shared account/host observations, not
+attributable cost. Worker effective configurations/tokens and coordinator active
+seconds are unknown. DeepSeek pause honored.
+
 ## 0.5.18 Mac preview integration baseline — 2026-10-16
 
 Local reviewed baseline e049c9d integrates main456b490 with the browser-first

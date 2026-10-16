@@ -1,62 +1,71 @@
-# Current state — Mac preview readiness, 2026-10-16
+# Current state — installed Mac preview, 2026-10-16
 
-Coordinator Lead publishing task, 01a13f98-55fc-7471-9038-1198b14d5a98.
-Canonical integration /Users/stew/.codex/worktrees/release-readiness/zero,
-codex/release-readiness. Reviewed baseline e049c9d includes main456b490, seven
-helpers/strictWebFX/browser-firstRun, Tutorial option2/session restore, browser
-buttons, account/repo menu, Publish in menu, browser-safe Hello and aligned guides.
-Kit/extension0.5.18/core0.2.1/native18 local; published17 fallback/feed exact.
-No push/mainmerge/deploy/DeveloperID/notary/liveGitHub/Pages/ZeroHub authority.
+Coordinator: Lead publishing task, 01a13f98-55fc-7471-9038-1198b14d5a98.
+Worktree: /Users/stew/.codex/worktrees/release-readiness/zero,
+branch codex/release-readiness. Ordinary Java, strict seven-helper WebFX profile,
+browser-first Run, tutorial option 2 and simple student-owned GitHub publishing
+remain the goal. Public release is NOT ready. Mac preview first; physical Windows
+is explicitly deferred by the owner. No push, main merge, deployment, template or
+policy activation, Developer ID/notary or live publication authority in this phase.
 
-Owner now prefers Mac preview first; physical Windows deferred. Installed0.5.18
-source9aa3f6a in nestedZero/editor has105authoredfiles parity, ownedprofilebackup.
-Actual nativeStudyMain+TutorialsGroup2, Run/AppGroup2→ChromeCorrect→Stop/noiframe
-andPublishmenu pass. All8trialMainhashes preserved; main68e3bc6/statusunchanged.
-Useraskedwhatwindow: reopened/RAISED Tutorials—study-quiz, nowfront; keep it open.
+Installed and locally accepted preview source: 3bf5304, kit/extension 0.5.18,
+core 0.2.1, native build 18. All 106 authored VSIX files match source and installed
+nested Zero profile (only VS Code package metadata differs). Candidate and unsigned
+universal DMG are preserved under dist/candidates/zero-0.5.18-readiness-3bf5304 and
+dist/installers/candidate-3bf5304. Published 17 manifests/downloads/feed unchanged.
 
-NEW owner-authorized Project/Clone milestone, verified direct user instruction in
-peerchat: default ~/Zero Projects with change-location choice; implement+preview.
-Peer Review verbose action confirmations,01a144e4-4bab-7be1-8d7b-cda1d7a45f1e,
-owns extension/design/PRODUCT/extensionREADME in managed project-menu-flow worktree
-from74e5536 plus e049fixture. SignedoutGitarea onlySign in; signedinempty Project
-menu Clone from GitHub/Open local project; localnoorigin Connect to GitHub;
-connectedowner/repo workflowretained. Clone here defaults ~/Zero Projects; native
-Git API preferred/1.95fallback. No redundantownpostcloneconfirmation.
-Root website_alignment subagent owns website+listedstudent/setupguides+lesson
-README generator in readiness worktree; preserve styling/API/Play contracts.
-It sendsfrozenpatch→rootcommit→peercherrypick BEFORE peercompleteindependentreview.
-RootownsCURRENT/EVIDENCE/VERIFICATION/RELEASE18 andsinglefinaltest/build/install.
-Do not install/review duplicate candidates; integrate reviewedcombinedfeaturefirst.
+New Project/Clone milestone complete: signed-out Git area only Sign in; signed-in
+Project menu offers Clone from GitHub / Open local project, folder or connected
+owner/repository naming, Connect to GitHub where eligible. Clone location defaults
+to ~/Zero Projects, supports another folder, and falls back if default unavailable.
+Native public clone API preferred; VS Code 1.95 command fallback retained. Existing
+armorup session reused. Actual URL validation/default picker, native existing-clone
+reuse and Open local into a new window passed. All 23 owned local project files
+unchanged. This repeat did NOT establish fresh clone transport or a new OAuth grant.
+Actual Study Run → Chrome wrong 4 / right 5 → Stop with iframe removed passed.
+Main left, Tutorials lesson 3 right, window reopened, fitted and raised for user.
 
-Legacy release integration review CLOSED:1initial+4targeted/5launches/4fixbatches,
-finalclean e049; budgetsconsumed, noextra legacy correction withoutcheckpoint.
-OnlyP2staleHelloimage resolved; docs/menu fixturecorrections accepted. New owner
-Project/Clone milestone has peer-owned distinctscope/reviewbudget; no resetto
-circumventoldfinding. Newfeaturefinalintegration stillrequired. ModelSol/high;
-DeepSeekpausedthrough2026-12-31. Weekly49%remaining/healthy319GBrecent, taskcostunknown.
+Final combined root: 511 tests, 510 pass, one PowerShell runtime skip, no failures
+(297.116 seconds, ARM JDK 17). Website 109 pass, types/build pass. Check, package,
+extracted-kit verification pass. New feature Sol/high independent full 26-file
+review plus two targeted corrections clean: 3 turns, 2 fix batches. Root verified
+all 26 reviewed hashes exactly. Peer source c940d4b/39409ee/3dce5a1 integrated as
+9acc623/4adb2fa/3bf5304; peer owns no further UI/install work.
 
-Accepted baseline root502tests501pass/1PowerShellskip; website109/types/build;
-33guide/lesson/nativeauth targetedpass after label fixturecorrections;3scaffolds+
-16progressionvariants/2mediarerunspass;115releasetoolingpass/2optionalSparkleskips.
-ActualunmodifiedHelloWebFX+nativeARM17+Chromeblank/name/Enter/reset pass,59files/
-2263877bytes exact. Fourothercomplete-templateWebFXbuilds RUNNING session36136,
-logs .verification/release-readiness-20261016/complete-template-builds.*.
-Finiteframeworkcurrentfocusnotpassed: x86JDK21helperphase0 timeout; ARM17smoke
-phase2 timeouttwice (includingexclusiveattempt). Priorcanonicalhelpersunchanged;
-reportcurrentlimitations, no blindretry. Do notstealuser'sforegroundStudywindow.
-Unsigned9aauniversalMacDMG+payloadverifyPASS, preserved dist/installers/candidate-9aa3f6a;
-localad-hoc '-' only, noDeveloperID/notary/app execution, manifests17 unchanged.
-Newfeature/textinputswillrequirefinalbuild; oldartifactishistorical.
+All five corrected complete template drafts compile in WebFX and pass actual
+Chrome behavior checks; exact served-file hashes/lengths verified. Draft Java,
+resources and build inputs match the compiled inputs; later differences are README
+and Hello's standalone preview illustration only. Three public tutorial templates
+already match all 21 helper hashes. Five public complete examples still fail the
+strict helper profile and need separately authorized updates from prepared drafts.
 
-Fivepubliccompleteexamples EXACToldpinnedGitTrees verified butallfailhelperprofile;
-localcanonicaldrafts corrected, Hello CSS removed. Threepublictutorials already
-matchall21helperhashes; no needlesshelperrepublish. Allpublished17assets+feed
-anonymouslyexactverified. Pinnedbeaaca4 trustedpolicy rejectswebreceipts; current
-localcontractsaccept. Requiredlaterpublicsource/policypin/operatoractivation/Play
-acceptance are NOTdone; finalpolicysettingschange requires reseal. FreshGit/Pages/
-consent, CI via authorizedpush/PR, signing, school/novice and publicrelease remain.
+ACTIVE CHECKPOINT: Chrome setup inspection found legacy guides still describing
+removed modal confirmations and optional local-branch deletion. Prepared, NOT
+applied: .verification/release-readiness-20261016/guide-correction-proposal.patch
+(three guides). Async question requests explicit permission for this extra batch
+and one focused review. Legacy review CLOSED at one initial + four targeted waves,
+four fix batches; do not use the separate Project milestone to reset that budget.
+No dependent correction/review/package rebuild until approval. Continue only useful
+independent work. Prior direct user permission concerned the earlier ZIP fix, not
+this extension of the exhausted integration review.
 
-Receipts .verification/release-readiness-20261016/, oldacceptedproofs in
-/Users/stew/.codex/worktrees/web-export/zero/.verification/. Preservebothworktrees.
-Goalnotcomplete; finishnewfeatureintegration/localQA, preparereviewablePR/release
-checklist, then requestonlymissingexplicitauthority forconcreteexternalnextstep.
+Unsigned Mac artifact build/payload passed in 69.589 + 7.992 seconds, one attempt,
+Sol/medium worker. Local ad-hoc '-' only; no app execution, Developer ID or notary.
+Native finite framework focus harness remains inconclusive (old x86 helper phase 0;
+ARM smoke phase 2 twice); do not claim current full framework pass or blindly retry.
+Prior unchanged helper proof, three scaffold compiles, 16 progression variants,
+two media reruns, native Hello and 115 release tooling passes remain valid history.
+
+Release gates after guide correction: authorized push/draft PR and CI; public
+complete templates; public trusted publisher source/pin/operator activation and
+real ZeroHub Play acceptance; final authorized Git/Pages/consent/public-byte check;
+Mac Developer ID/notary/sealing; school/novice acceptance. Physical Windows remains
+a separate deferred Windows release gate. Pinned beaaca4 trusted policy rejects
+web receipts while integrated local contracts accept them; never fake a public pin.
+
+Receipts: .verification/release-readiness-20261016/ (native-combined-acceptance,
+combined-candidate, project-menu review/integration, final-mac-3bf5304, template
+Chrome/HTTP/input parity and tests). Older accepted evidence remains in web-export.
+Source and user projects preserved; no cleanup of valuable state. Recent weekly
+47% remaining / storage fresh healthy 319 GB; account-wide usage is not task cost.
+DeepSeek automatic pilot paused through 2026-12-31. Goal remains incomplete.
