@@ -11,8 +11,9 @@ session reuse/Connect → own template-created/cloned tutorials. No website OAut
 or separate Zero account. Live actions explicit; no automatic uploads. Public
 3tutorial templates and private armorup trials authorized. Source push/merge,
 Zero release/signing/website, new playable-game publication and ZeroHub activation
-remain held for this coordinator. Other chat owns its separately authorized main
-API/template rename PR and received the reviewed preservation correction.
+remain held for this coordinator. Upstream App/GameApp rename PR68 is merged
+as e7b9b4d; verified CI38844612121 passed on41972c5. It includes this task's
+preservation fix while retaining main's2helpers; this preview keeps7helpers.
 
 Reviewed/package6258daf integrates App/GameApp, no alias, all7helpers/98decls,
 core0.1.3/profilev2 and strict fingerprints. Final3tutorial pins anonymously match

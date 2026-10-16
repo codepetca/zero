@@ -2,6 +2,15 @@
 
 ## App/GameApp browser integration — local, 2026-10-15
 
+Upstream coordination update: independently verified [PR68](https://github.com/codepetca/zero/pull/68)
+merged as `e7b9b4d8821f03ffca1358b75fb1fe791ec8d535`, with
+[CI38844612121](https://github.com/codepetca/zero/actions/runs/38844612121)
+successful on exact head `41972c5ce0ce88e9228ce057165573280669f56e`. The owning
+chat integrated the preparation preservation fix into its separately reviewed
+two-helper main branch; this seven-helper browser preview and private trials
+remain separate. This verifies upstream source delivery, not this branch's CI,
+binary release or pending native trial acceptance.
+
 Reviewed/package source `6258daf` integrates the owner-approved `SimpleApp` →
 `App` and `SketchApp` → `GameApp` names into this browser branch. All seven
 canonical helper bodies equal the preceding source after identifier substitution;
