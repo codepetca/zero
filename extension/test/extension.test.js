@@ -79,12 +79,15 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
-  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[];let session,authEvent,webviewProvider,repo,nextChoice,inputCount=0,nativeAccountsAvailable=true,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate;let gitChanges=0;
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[];let session,authEvent,webviewProvider,repo,nextChoice,inputCount=0,nativeAccountsAvailable=true,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0;
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
-  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return root;if(args[0]==='symbolic-ref')return currentBranch;if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
+  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return args.includes('--verify')?'a'.repeat(40):root;if(args[0]==='symbolic-ref'){if(currentBranch===undefined)throw new Error('Detached HEAD');return currentBranch;}if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
+  const nativeRepository={rootUri:{fsPath:root}};
+  const nativeApi={getRepository:()=>{nativeRepository.rootUri.fsPath=nativeRoot;return nativeRoot?nativeRepository:null;},get repositories(){return nativeRoot?[nativeRepository]:[];}};
   const vscode={
+    extensions:{getExtension:()=>({isActive:true,exports:{getAPI:()=>nativeApi}})},
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
     workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});if(pickEffect)await pickEffect();return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return undefined;},showErrorMessage:async message=>{errors.push(message);}},
@@ -156,6 +159,11 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.equal(authCalls.length,beforeSwitchAuth,'Local switching works signed out');assert.match(webview.html,/>Switched to add-score<\/p>/);assert.match(webview.html,/Current branch: add-score/);
   const beforeCancel=notices.length;checkout=undefined;await commands.get('zero.switchBranch')();assert.equal(notices.length,beforeCancel,'Cancel creates no success popup');
   nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(!picks.at(-1).items.some(item=>item.action==='start'),'New branch follows the existing main-only workflow');
+  currentBranch=undefined;nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='switch'));assert.match(webview.html,/>Detached HEAD<\/span>/);
+  checkout=async()=>{currentBranch='main';};nextChoice='switch';await commands.get('zero.chooseRepository')();assert.match(webview.html,/>Switched to main<\/p>/);assert.doesNotMatch(webview.html,/>Detached HEAD<\/span>/);
+  for(const unavailable of [undefined,path.dirname(root)]) {nativeRoot=unavailable;const beforeUnavailable=dispatched.length;await commands.get('zero.switchBranch')();assert.equal(dispatched.length,beforeUnavailable,'Missing or mismatched native repository cannot fall back to another repository');assert.match(errors.at(-1),/Source Control.*built-in Git extension/);}nativeRoot=root;
+  checkout=async()=>{throw new Error('Local changes would be overwritten. Commit or stash them first.');};await commands.get('zero.switchBranch')();assert.match(errors.at(-1),/Local changes would be overwritten/);assert.equal(currentBranch,'main');checkout=undefined;
+
   nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();

@@ -48,6 +48,7 @@ function activate(context) {
   let publishingWeb = false;
   let exportReadyRoot;
   let branch = '';
+  let branchDetached = false;
   let statusGeneration = 0;
   const isBusy = () => uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
@@ -155,15 +156,16 @@ function activate(context) {
   }
   async function repositoryStatus() {
     const generation = ++statusGeneration;
-    let nextRepository = 'No repository connected', nextBranch = '';
+    let nextRepository = 'No repository connected', nextBranch = '', nextDetached = false;
     try {
       const root = await project();
       if (localPractice) {nextRepository = 'Local practice'; throw new Error('Local practice');}
       await core.assertRepositoryRoot(root);
       nextRepository = core.parseRepositoryUrl(await core.git(root, ['remote', 'get-url', 'origin'])).page;
-      try {nextBranch = (await core.git(root, ['symbolic-ref', '--short', 'HEAD'])).trim();} catch {}
+      try {nextBranch = (await core.git(root, ['symbolic-ref', '--short', 'HEAD'])).trim();}
+      catch {try {nextDetached = /^[a-f0-9]{40,64}$/.test(await core.git(root, ['rev-parse', '--verify', 'HEAD']));} catch {}}
     } catch (error) { if (!localPractice) nextRepository = error.message.includes('different Git repository') ? 'Standalone student copy needed to connect' : 'No repository connected'; }
-    if (generation === statusGeneration) {repository = nextRepository; branch = nextBranch; refresh();}
+    if (generation === statusGeneration) {repository = nextRepository; branch = nextBranch; branchDetached = nextDetached; refresh();}
   }
   async function stop() {
     if (!execution) return;
@@ -389,7 +391,7 @@ function activate(context) {
         {label:'Open on GitHub', action:'open'},
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
         ...(branch === 'main' ? [{label:'New branch…', action:'start'}] : []),
-        ...(branch ? [{label:'Switch branch…', action:'switch'}] : []),
+        {label:'Switch branch…', action:'switch'},
         ...(!tutorial ? [{label:'Connect another repository…', action:'connect'}] : [])
       ] : !root || tutorial || localPractice ? [
         {label:'Start tutorial…', action:'tutorial'}
@@ -443,7 +445,13 @@ function activate(context) {
         await lessonProjects.assertShareable(root);
         await core.assertRepositoryRoot(root);
         if (uploadMode(root) !== 'live') {simulation('Switch branch'); return;}
-        const previous = (await core.git(root, ['symbolic-ref', '--short', 'HEAD'])).trim();
+        const previous = await core.git(root, ['symbolic-ref', '--short', 'HEAD']).catch(() => '');
+        const gitExtension = vscode.extensions?.getExtension('vscode.git');
+        const gitApi = gitExtension && (gitExtension.isActive ? gitExtension.exports : await gitExtension.activate()).getAPI(1);
+        const nativeRepository = gitApi?.getRepository(vscode.Uri.file(root));
+        if (!nativeRepository || await fs.realpath(nativeRepository.rootUri.fsPath) !== root) throw new Error('Open this project in VS Code Source Control and enable the built-in Git extension, then try Switch branch again.');
+        if (await project() !== root) return;
+        if (!gitApi.repositories.includes(nativeRepository)) throw new Error('This project was closed in Source Control. Reopen it, then try Switch branch again.');
         // Native Git owns branch selection and dirty-file/conflict recovery.
         // Pass the exact project URI instead of asking it to choose a repository.
         await vscode.commands.executeCommand('git.checkout', vscode.Uri.file(root));
@@ -555,7 +563,7 @@ function activate(context) {
     const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in'}</button>`;
     const repoName = connected ? repository.slice('https://github.com/'.length) : 'Repository';
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Repository actions')}" aria-label="${escape(`Repository: ${repoName}. Open repository actions`)}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>`;
-    const branchControl = connected && branch ? `<div class="branch-row"><span class="branch" title="${escape(`Current branch: ${branch}`)}">${icon('GitBranch')}${escape(branch)}</span>${auth.signedIn && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
+    const branchControl = connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const publishControl = `<button class="link" data-command="zero.publishWeb" ${disabled || (!auth.signedIn || !connected ? 'disabled' : '')} title="${auth.signedIn && connected ? 'Publish your pushed app to GitHub Pages' : 'Sign in and connect your repository to publish'}">${icon('Upload')}Publish app</button>`;
