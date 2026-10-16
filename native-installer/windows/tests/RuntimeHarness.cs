@@ -135,8 +135,9 @@ internal static class RuntimeHarness
             Assert(f.Host.Downloads == 2 && f.Host.Installs == 2, "fresh setup downloads pinned Java/editor and installs extensions");
             Assert(progress.Contains("Downloading Java…") && progress.Contains("Checking Zero…"), "real preparation progress reaches verification");
             Assert(!Directory.EnumerateDirectories(Path.Combine(f.Data, "runtime"), ".install-*").Any(), "successful staging removed");
-            string settings = File.ReadAllText(Path.Combine(f.Data, "editor", "user-data", "User", "settings.json"));
-            Assert(settings.Contains("java.jdt.ls.java.home") && settings.Contains("JavaSE-21") && settings.Contains("chat.disableAIFeatures") && settings.Contains("terminal.integrated.env.windows"), "quiet profile plus explicit Java settings seeded automatically");
+            string settingsPath = Path.Combine(f.Data, "editor", "user-data", "User", "settings.json");
+            string settings = File.ReadAllText(settingsPath);
+            Assert(!settings.Contains("java.jdt.ls.java.home") && settings.Contains("JavaSE-21") && settings.Contains("chat.disableAIFeatures") && settings.Contains("terminal.integrated.env.windows"), "quiet profile plus project Java settings seeded without overriding bundled tooling JRE");
             f.Host.ZeroVersion = "0.9.0";
             f.Prepare(); Assert(f.Host.Downloads == 2 && f.Host.Installs == 2, "repair reuses verified private tools and newer extensions");
             runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
@@ -145,6 +146,15 @@ internal static class RuntimeHarness
             Assert(!f.Host.Launched.UseShellExecute && !f.Host.Launched.RedirectStandardOutput && f.Host.Launched.EnvironmentVariables["ELECTRON_RUN_AS_NODE"] == null, "standalone editor launch is not node or a shell");
             runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(!f.Host.Launched.Arguments.Contains("--new-window") && !f.Host.Launched.Arguments.Contains(f.Project), "resume lets isolated editor restore last session");
+            string jsonc = settings.TrimEnd().TrimEnd('}') + ",\n// A normal VS Code settings edit\n\"editor.fontSize\": 17,\n\"java.jdt.ls.java.home\": \"old-tooling-jdk\",\n\"java.home\": \"legacy-tooling-jdk\",\n}\n";
+            File.WriteAllText(settingsPath, jsonc);
+            runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
+            Assert(f.Host.Launched != null, "readiness accepts JSONC comments and trailing commas before repair");
+            f.Prepare(); f.Prepare();
+            settings = File.ReadAllText(settingsPath);
+            Assert(settings.Contains("\"editor.fontSize\": 17") && !settings.Contains("java.jdt.ls.java.home") && !settings.Contains("\"java.home\""), "repeated JSONC preparation preserves ordinary settings and removes obsolete tooling overrides");
+            Assert(f.Host.Downloads == 2 && f.Host.Installs == 2, "JSONC repair reuses tools and extensions");
+            runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(Environment.GetEnvironmentVariable("JAVA_HOME") == parentJava && Environment.GetEnvironmentVariable("PATH") == parentPath, "global and parent tool environment unchanged");
             f.Host.RedhatVersion = null;
             Reject(() => runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult(), "readiness rechecked before launch");

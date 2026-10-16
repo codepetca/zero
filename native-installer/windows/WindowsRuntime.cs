@@ -8,6 +8,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ZeroSetup
 {
@@ -237,23 +239,35 @@ namespace ZeroSetup
             if (Directory.Exists(owned)) { Marker(owned, "vscode"); if (await CompatibleEditor(owned, cancellation)) return; }
             editor = null;
         }
+        private static JObject ReadSettings(string text)
+        {
+            try
+            {
+                // VS Code settings are JSONC, including comments and trailing commas.
+                using (var reader = new JsonTextReader(new StringReader(text)) { MaxDepth = 32, DateParseHandling = DateParseHandling.None })
+                    return JObject.Load(reader);
+            }
+            catch (JsonException error) { throw new IOException("Zero's editor settings could not be read. Check settings.json and retry setup.", error); }
+        }
         private void Settings(WindowsRuntimeFolders folders)
         {
             string user = Path.Combine(UserData, "User"); folders.Ensure(user); folders.Ensure(Extensions);
             string path = Path.Combine(user, "settings.json");
-            Dictionary<string, object> values;
-            if (File.Exists(path)) values = json.Deserialize<Dictionary<string, object>>(ReadText(path, 1024 * 1024));
+            JObject values;
+            if (File.Exists(path)) values = ReadSettings(ReadText(path, 1024 * 1024));
             else
             {
                 var profile = json.Deserialize<Dictionary<string, object>>(ReadText(Path.Combine(kit, "optional", "Zero.code-profile"), 1024 * 1024));
                 var wrapper = json.Deserialize<Dictionary<string, object>>((string)profile["settings"]);
-                values = json.Deserialize<Dictionary<string, object>>((string)wrapper["settings"]);
+                values = ReadSettings((string)wrapper["settings"]);
             }
             if (values == null) throw new IOException("Zero's editor settings are incomplete. Reinstall Zero.");
-            values["java.configuration.runtimes"] = new[] { new Dictionary<string, object> { ["name"] = "JavaSE-21", ["path"] = java, ["default"] = true } };
-            values["java.jdt.ls.java.home"] = java;
+            values["java.configuration.runtimes"] = new JArray(new JObject { ["name"] = "JavaSE-21", ["path"] = java, ["default"] = true });
+            // The Java extension supplies its own tooling JRE; Java 21 is the project runtime.
+            values.Remove("java.jdt.ls.java.home");
+            values.Remove("java.home");
             values["java.import.gradle.java.home"] = java;
-            values["terminal.integrated.env.windows"] = new Dictionary<string, object> { ["JAVA_HOME"] = java, ["PATH"] = Path.Combine(java, "bin") + ";${env:PATH}" };
+            values["terminal.integrated.env.windows"] = new JObject { ["JAVA_HOME"] = java, ["PATH"] = Path.Combine(java, "bin") + ";${env:PATH}" };
             // Zero owns this isolated profile; tools never import into Default.
             values["window.restoreWindows"] = "all";
             string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -261,7 +275,7 @@ namespace ZeroSetup
             {
                 WindowsRuntimeFolders.Check(path);
                 using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                using (var writer = new StreamWriter(output, new UTF8Encoding(false))) writer.Write(json.Serialize(values));
+                using (var writer = new StreamWriter(output, new UTF8Encoding(false))) writer.Write(values.ToString(Formatting.Indented));
                 if (File.Exists(path)) File.Replace(temporary, path, null);
                 else File.Move(temporary, path);
             }
@@ -320,9 +334,12 @@ namespace ZeroSetup
             if (!Directory.Exists(Extensions)) return false;
             string path = Path.Combine(UserData, "User", "settings.json");
             if (!File.Exists(path)) return false;
-            var values = json.Deserialize<Dictionary<string, object>>(ReadText(path, 1024 * 1024));
-            object jdk;
-            return values != null && values.TryGetValue("java.jdt.ls.java.home", out jdk) && string.Equals(jdk as string, java, StringComparison.OrdinalIgnoreCase);
+            var values = ReadSettings(ReadText(path, 1024 * 1024));
+            var runtimes = values["java.configuration.runtimes"] as JArray;
+            return runtimes != null && runtimes.OfType<JObject>().Any(runtime =>
+                (string)runtime["name"] == "JavaSE-21" && runtime["default"]?.Type == JTokenType.Boolean &&
+                (bool)runtime["default"] && runtime["path"]?.Type == JTokenType.String &&
+                string.Equals((string)runtime["path"], java, StringComparison.OrdinalIgnoreCase));
         }
         public async Task Open(bool resume, CancellationToken cancellation)
         {
