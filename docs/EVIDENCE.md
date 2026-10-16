@@ -1,5 +1,58 @@
 # Delivery evidence index
 
+## Zero 0.5.17 App/GameApp release — 2026-10-16
+
+Owner authorized a new public release. [Source PR69](https://github.com/codepetca/zero/pull/69)
+merged4d40e5928adc780dc770862e19d747f786eb95f3 after complete Sol/medium review
+of3a43f4c59cb5b64b4ddab6e2d0d377d86e4c923c (zero findings) and
+[CI38902797474](https://github.com/codepetca/zero/actions/runs/38902797474).
+Deliberate [preparation38902882241](https://github.com/codepetca/zero/actions/runs/38902882241)
+passed on that exact source; its tree equals mergedmain. Framework0.2.0 ships only
+canonical App.java/GameApp.java, no legacy aliases. Exact kit bytes were reused in
+the native build from clean4d40e59; preparation7c849351366827630e897c89b348a46edbcaed5b
+changes only the measured native manifest. No separate browser/sidebar/tutorial
+feature branch or development profile was shipped or changed.
+
+Local checks: configuration,86release,11updater/2platformskips,2native-seal,16installer,
+9website-installer tests pass. Exact kit/source/license/mode/VSIX checks and extracted
+Maven compile pass. Full CI also covers extension, sharing, real Maven consumers,
+three scaffolds, native canvas/control input, finite examples/progression and website.
+Signed verification covers both architectures, embedded payload, pinned Sparkle,
+hardened app/nested/DMG signatures, layout, staple and Gatekeeper. Apple accepted
+336d6210-b7a2-485c-9fbb-29f898efd91b for1918762-byte inputSHA
+6398ba33c06f1e7750271a2efcc99bcd1a8da4adf4610a20fbcea954fdfebc69.
+Final stapledDMG1920683 SHA5d3cf2d83f9412a333040800ef19a4c16ee70a04c147a0102c30afb1c87355e7.
+Existing signer/team and updater publickey are unchanged. Temporary private signing
+file resolved the Keychain executable timeout and was removed; no key/account changes.
+
+Independent complete Sol/high artifact review passed without findings: sealed
+hashes/CI bytes, App/GameApp and licenses, source equivalence, Ed25519 DMG/feed
+signatures, native build17>published2, Apple binding, codesign/staple/Gatekeeper
+and public notes/publication mapping. One source+one artifact reviewer; no review
+fix batches. Effective model/tokens and exact reviewer durations unavailable.
+Weekly59%remaining was shared usage;329GB free healthy. DeepSeek pause honored.
+
+[Kit v0.5.17](https://github.com/codepetca/zero/releases/tag/v0.5.17) targets3a43f4c
+and contains exactly three assets; [Mac setup-v0.5.17](https://github.com/codepetca/zero/releases/tag/setup-v0.5.17)
+targets7c84935 and contains one DMG. Draft targets/notes/inventory/digests and
+authenticated re-downloads matched; all four published assets then anonymously
+matched sealed exact bytes before metadata promotion. Kit361670 SHA
+0b34f117aad17b47349f8bb53974b754db603ef47015e1640663c10ac012c439; starter190051 SHA
+51c3057c9919738159842880e81cdfe691c953eee2ea56643fc4eb8e01d9551d; VSIX150961 SHA
+1ec98c9503481db2b326c423c65eeea5b1ad2922783f8c940150ba99ae95add4.
+Signed feed1178 SHA775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2
+is copied unchanged, with only feed metadata publication status promoted. Previous
+releases remain immutable; no WindowsEXE or Maven-registry publication.
+
+Promotion configuration,95website tests, typecheck and production build pass.
+Exact fallback snapshot assertions advance to the anonymously verified17 bytes.
+Metadata review/CI/merge and live links/feed verification are final gates. Physical
+Windows, fresh-machine setup, Intel support, novice usability and an actual updater
+installation trial were not newly performed. Detailed receipts are ignored under
+.verification/release-0.5.17/, including immutable CI/native candidates, reviews,
+Apple evidence, draft/public API records and anonymous bytes.
+
+
 ## App API rename across Zero and templates — 2026-10-15
 
 Owner requested `SimpleApp` → `App` across Zero, website and templates, continuing

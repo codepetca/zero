@@ -1,8 +1,8 @@
 # Native Zero Setup
 
 Zero Setup uses a native Mac runtime; Windows wraps the guided setup scripts. Signed,
-notarized Mac0.5.14 is published at [setup-v0.5.14](https://github.com/codepetca/zero/releases/tag/setup-v0.5.14)
-and embeds the complete0.5.14 kit. Windows development installers remain local
+notarized Mac0.5.17 is published at [setup-v0.5.17](https://github.com/codepetca/zero/releases/tag/setup-v0.5.17)
+and embeds the complete0.5.17 kit with App and GameApp (core0.2.0). Windows development installers remain local
 and unsigned; they are excluded from student downloads. Previous Mac releases
 are preserved.
 The website offers Mac setup alongside the separately verified published kit ZIP.
