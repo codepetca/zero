@@ -14,47 +14,32 @@ Local implementation/testing is authorized. Source push/merge, template publicat
 distribution/signing/deployment, new game publication and ZeroHub activation remain
 held. Earlier scoped Sky Hop Pages proof is accepted. Overall goal is incomplete.
 
-## Active single-page simplification
-
-Owner keeps GitHub separate and now requests all steps on one concise page.
-Coordinator removes client wizard/hash/focus state, preserves native anchors,
-verified-template gating and public entry points, then checks website tests/types/
-build and actual desktop/mobile/keyboard flow. One fast-tier independent review
-will cover this local presentation change. No live publication authority added.
-Base0fef405; weekly65%remaining shared, storage339GB healthy; DeepSeek paused.
-
-## Prior phase — compact setup wizard locally accepted
+## Latest phase — concise single-page setup locally accepted
 
 Use `/Users/stew/.codex/worktrees/web-export/zero`, branch `codex/web-export`.
-Reviewed source1a9f9f6 replaces the long guide with four short screens: GitHub,
-install, own project/clone, lesson0. One Continue with GitHub link opens GitHub's
-login/account-creation page in a new tab and advances to install; no website OAuth,
-account check or verified-sign-in claim. Back/Next, bookmarks, refresh and browser
-history work. Detailed school/privacy/setup/sharing help expands on demand.
-Current unpublished templates still have no invented link. Public downloads and
-home/returning-student paths stay intact. No package inputs changed.
+Reviewed sourcec77f358 supersedes the wizard. Get started shows four short steps
+together: GitHub sign-in/account creation, download/launch Zero, owned template
+repository/clone, lesson0. GitHub stays separate in new tabs; no website OAuth,
+automatic advance, account check or completion state. Native section anchors and
+optional help replace all wizard/hash/focus code. Public home/download/returning
+paths and current unpublished-template gating remain intact.
 
-Coordinator implemented the compact change. One independent Sol/medium reviewer:
-1launch/2turns,1targeted wave/1fix batch; complete clean. Initial skip-link P2 was
-reproduced in Chrome, fixed to retain stage/hash/main focus and rechecked after
-refresh and on the final stage. Initial113website tests pass; after correction,
-6focused tests, configuration checks, types and production build pass. Existing
-2updater build warnings remain. First test fixture TDZ failure was corrected before
-review; logs retained. No broad suite repeated solely for the bounded correction.
+112website tests, types, configuration/link checks and production build pass.
+A final template wording clarification passes4focused tests and a fresh build;
+2existing updater tracing warnings remain. Actual Chrome verifies all4sections,
+GitHub new-tab/noadvance, Downloads/#project return, native keyboard skip focus,
+50pxactions/3pxfocus,320px light/dark and expanded help with nooverflow.4delayed
+message-channel errors remain unattributed; no clean-console claim. WebKit/text
+zoom, native/student auth/clone/upload trials were not performed.
 
-Actual Chrome covers single GitHub entry/new tab, wizard transitions, Back/Forward,
-footer Back, #project refresh, download return, legacy #sharing, skip-link focus,
-320px light/dark/expanded help and desktop. Two delayed browser message-channel
-errors remain unattributed; no clean-console claim. WebKit/text zoom, fresh account,
-installed/native/clone/upload trials remain untested. Owned tabs/server closed,
-viewport reset; no account mutation or deployment. Evidence:
-`.verification/setup-wizard/acceptance.json`, browser receipt and review ledger.
-Effective model/tokens/attributable worker effort unknown; weekly66%remaining is
-shared usage, storage339GB healthy, DeepSeek paused; no writer conflicts.
-
-Prior first-visit sourceacf874e and account setup evidence remain in
-[verification](../docs/VERIFICATION.md); current owner simplification supersedes
-the long five-step guide. Source publication and all release gates below remain held.
+Coordinator handled the compact change;1Luna/medium reviewer/launch/turn, complete
+clean10file review,0fixes. Effective model/tokens unknown; reviewer reported~5min,
+not attributable cost telemetry. Weekly65%remaining is shared usage; storage339GB
+healthy, DeepSeek paused, no writer conflicts. Owned tabs/server stopped, viewport
+reset. No external account mutation/deployment or package input change. Evidence:
+`.verification/setup-steps/acceptance.json`, review ledger/report and desktop image.
+Prior wizard/first-visit evidence remains in [verification](../docs/VERIFICATION.md).
+All broader release gates below remain; overall goal is incomplete.
 
 ## Retained kit and browser acceptance
 

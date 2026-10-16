@@ -1,5 +1,14 @@
 # Delivery evidence index
 
+## Single-page setup — local, 2026-10-15
+
+Sourcec77f358 shows all four concise steps together; GitHub remains separate.
+112website tests/types/build/checks pass; final wording4focused checks/build pass.
+Actual desktop/320px/keyboard/link checks and one independent Luna/medium review
+pass with0fixes. No package input/deployment/account mutation. Retained build/
+browser warnings and untested native/auth/platform limits are in
+[verification](VERIFICATION.md) and `.verification/setup-steps/`.
+
 ## Setup wizard simplification — local, 2026-10-15
 
 Source1a9f9f6: four short screens, one GitHub entry, help on demand. Initial113

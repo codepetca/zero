@@ -1,5 +1,24 @@
 # Verification
 
+## Concise single-page setup — local, 2026-10-15
+
+Sourcec77f358 supersedes the wizard with four visible sections: GitHub sign-in/
+account creation, download/launch Zero, own template/clone and lesson0. GitHub
+stays separate; client wizard/hash/focus state and automatic advance are removed.
+Native anchors and optional help preserve public downloads, template availability,
+ordinary Java and source upload/Publish/Pika boundaries. No package input changed.
+
+112website tests, types/configuration/build pass; final template wording has4
+focused checks and a fresh build. Existing2updater tracing warnings remain.
+Actual Chrome confirms all4sections, separate GitHub tab with unchanged setup URL,
+download-return#project, native skip-to-main,50pxactions/3pxfocus,320pxlight/dark
+and expanded-help reflow.4delayed message-channel errors remain unattributed.
+One Luna/medium independent review is complete/clean,1launch/1turn/0fixes; effective
+model/tokens unknown, reviewer-reported~5min approximate. No broad rerun for prose.
+Evidence `.verification/setup-steps/` includes review, acceptance and desktop image.
+No WebKit/textzoom/native/student auth/clone/upload trial or live publication.
+Owned tabs/server stopped and viewport reset. Existing release gates remain.
+
 ## Compact setup wizard — local, 2026-10-15
 
 Reviewed source1a9f9f6 replaces the long guide with GitHub/install/project/lesson
