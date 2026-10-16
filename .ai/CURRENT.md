@@ -39,6 +39,17 @@ and Hello's standalone preview illustration only. Three public tutorial template
 already match all 21 helper hashes. Five public complete examples still fail the
 strict helper profile and need separately authorized updates from prepared drafts.
 
+NEW owner-requested follow-up: remember the selected clone parent for future
+clones. Peer Review verbose action confirmations owns project-folders/tests,
+extension wiring and narrow product/development docs in a separate managed
+remember-clone-folder worktree from8f39cdd. Selection saved only on Clone here,
+machine-local globalState (not Settings Sync); picker cancellation retains the
+previous selection, unavailable saved parent falls back. Root holds these files
+and retains integration/package/install/native ownership. Reviewed source87ba673 integrated asce12fa7; all five hashes exact.
+Root preparing the single combined preview and native persistence acceptance.
+Do not install a parallel candidate. This new scope does not release the separate
+legacy-guide review hold below.
+
 ACTIVE CHECKPOINT: Chrome setup inspection found legacy guides still describing
 removed modal confirmations and optional local-branch deletion. Prepared, NOT
 applied: .verification/release-readiness-20261016/guide-correction-proposal.patch
