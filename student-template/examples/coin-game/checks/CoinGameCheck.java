@@ -7,7 +7,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Maintainer check: real update rules with deterministic held input and time. */
 public class CoinGameCheck extends Application {
@@ -65,7 +65,7 @@ public class CoinGameCheck extends Application {
         try {
             app.start(stage);
             app.stop();
-            var keys = (Set<KeyCode>) field(app, SketchApp.class, "keys");
+            var keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             var controls = (HBox) app.layout().getBottom();
             var restart = (Button) controls.getChildren().get(2);
             requireReset(app);

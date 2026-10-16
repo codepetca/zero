@@ -1,5 +1,5 @@
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** A solid rectangle described in world coordinates. */
 public class Platform {
@@ -9,7 +9,7 @@ public class Platform {
         this.x = x; this.y = y; this.width = width; this.height = height;
     }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         app.fill(Color.SLATEGRAY);
         app.rect(x, y, width, height);
     }

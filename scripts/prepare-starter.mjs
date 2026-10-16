@@ -1,9 +1,10 @@
-import {mkdirSync, readFileSync, writeFileSync, existsSync, lstatSync} from 'node:fs';
+import {mkdirSync, readFileSync, writeFileSync, existsSync, lstatSync, unlinkSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
-export const coreSources = ['SimpleApp.java', 'SketchApp.java'];
+export const coreSources = ['SimpleApp.java', 'GameApp.java'];
+const retiredSources = ['SketchApp.java']; // Removed API; never include in new kits.
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // This is maintainer tooling. Extracted student projects contain ordinary Java
 // source and never run this script or depend on the surrounding repository.
@@ -14,6 +15,19 @@ export function prepareStarter(root = fileURLToPath(new URL('../', import.meta.u
     source: path.join(root, 'framework/src/main/java/zero', name),
     destination: path.join(root, 'student-template/src/main/java/zero', name)}));
   files.push({name: 'LICENSE', source: path.join(root, 'LICENSE'), destination: path.join(root, 'student-template/LICENSE')});
+  // Retire only unchanged copies recorded by a previous preparation. Check them
+  // before writing anything, with the same edit protection as current sources.
+  const retired = Object.entries({...Object.fromEntries(retiredSources.map(name => [name, null])), ...previous}).filter(([name]) =>
+    /^[A-Za-z][A-Za-z0-9]*\.java$/.test(name) && !coreSources.includes(name))
+    .map(([name, sha256]) => {
+      const destination = path.join(root, 'student-template/src/main/java/zero', name);
+      if (!existsSync(destination)) return null;
+      if (!lstatSync(destination).isFile() || lstatSync(destination).isSymbolicLink()
+          || digest(readFileSync(destination)) !== sha256) {
+        throw new Error(`Preserved edited retired starter source: ${destination}. Save edited files elsewhere before preparing again.`);
+      }
+      return destination;
+    }).filter(Boolean);
   const updates = files.map(({name, source, destination}) => {
     if (!lstatSync(source).isFile() || lstatSync(source).isSymbolicLink()) throw new Error(`Expected ordinary canonical source: ${source}`);
     const bytes = readFileSync(source), sha256 = digest(bytes);
@@ -27,6 +41,7 @@ export function prepareStarter(root = fileURLToPath(new URL('../', import.meta.u
     return {name, destination, bytes, sha256};
   });
   // Check every file before changing any, so a drift failure preserves the pair.
+  for (const destination of retired) unlinkSync(destination);
   for (const item of updates) {
     mkdirSync(path.dirname(item.destination), {recursive: true});
     writeFileSync(item.destination, item.bytes);

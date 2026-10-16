@@ -33,7 +33,7 @@ test('static game structure rejects broken markers/main/framework/POM/pins/licen
   const replace=(name,text)=>minimalGameFiles().map(file=>file.path===name?{...file,data:Buffer.from(text)}:file);
   for(const marker of ['{',JSON.stringify({name:'Game',mainClass:'Missing'}),JSON.stringify({name:'Game',mainClass:'../Main'})])assert.throws(()=>buildGamePackage({files:replace('zero.json',marker)}));
   assert.throws(()=>buildGamePackage({files:replace('src/main/java/Main.java','public class Main {}')}),/main method/);
-  assert.throws(()=>buildGamePackage({files:minimalGameFiles().filter(file=>file.path!=='src/main/java/zero/SketchApp.java')}),/SketchApp/);
+  assert.throws(()=>buildGamePackage({files:minimalGameFiles().filter(file=>file.path!=='src/main/java/zero/GameApp.java')}),/GameApp/);
   assert.throws(()=>buildGamePackage({files:replace('LICENSE','MIT')}),/license/);
   assert.throws(()=>buildGamePackage({files:replace('.gitignore','!target/\n!.env\n')}),/unignore/);
   const pom=minimalGameFiles().find(file=>file.path==='pom.xml').data.toString();

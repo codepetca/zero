@@ -4,7 +4,7 @@
 
 | Folder | Responsibility |
 | --- | --- |
-| `framework/` | Ordinary Java SimpleApp and SketchApp |
+| `framework/` | Ordinary Java SimpleApp and GameApp |
 | `extension/` | Supported VS Code Run, GitHub and sharing tools |
 | `student-template/` | Standalone Maven project, lessons and examples |
 | `libraries/` | Maintained sample source, examples and checks |

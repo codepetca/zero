@@ -30,7 +30,7 @@ const examples = {
 };
 const methodNotes = {
   settings: 'Override this callback. Call size, title and optional padding here.',
-  setup: 'Override this callback. On SketchApp the canvas already exists.',
+  setup: 'Override this callback. On GameApp the canvas already exists.',
   size: 'Call inside settings() only. Dimensions must be positive and finite.',
   title: 'Call inside settings() only. The title must not be null.',
   padding: 'Call inside settings() only. Padding must be non-negative and finite; the default is 0.',
@@ -88,7 +88,7 @@ export function buildApiReference(markdown) {
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
     if (section === 'SimpleApp') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { SketchApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', 'Lifecycle and extension hooks': 'advanced' }[section];
+    return { GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -109,7 +109,7 @@ export function buildApiReference(markdown) {
     const declaration = signature.match(/^(?:(?:public|protected|final)\s+)*(\w+(?:\.\w+)*)\s+(\w+)\(([^()]*)\)$/);
     if (!declaration) throw new Error(`Malformed API signature: ${signature}`);
     const [, , name, argumentsText] = declaration;
-    const owner = section === 'SimpleApp' || (categoryId === 'advanced' && subsection !== 'Protected SketchApp overrides') ? 'SimpleApp' : 'SketchApp';
+    const owner = section === 'SimpleApp' || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'SimpleApp' : 'GameApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
       const parameter = argument.trim().match(/^(\w+(?:\.\w+)*)\s+(\w+)$/);
       if (!parameter) throw new Error(`Malformed API parameter: ${argument}`);

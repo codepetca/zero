@@ -1,5 +1,5 @@
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** An ordinary Java object: it moves only when Main calls update. */
 public class Player {
@@ -30,7 +30,7 @@ public class Player {
                 && y + size >= coinY && y <= coinY + coinSize;
     }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         app.fill(color);
         app.rect(x, y, size, size);
     }

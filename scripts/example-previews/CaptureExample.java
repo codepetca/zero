@@ -39,7 +39,7 @@ public class CaptureExample extends Application {
                     Path output = Path.of(getParameters().getRaw().get(0));
                     if (output.getFileName().toString().equals("drawing.png")) {
                         snapshot(stage.getScene(), Path.of("drawing-initial.png"));
-                        Canvas canvas = ((zero.SketchApp) owned).canvas();
+                        Canvas canvas = ((zero.GameApp) owned).canvas();
                         mouse(canvas, MouseEvent.MOUSE_PRESSED, 170, 240, true);
                         for (int x = 190; x <= 450; x += 20)
                             mouse(canvas, MouseEvent.MOUSE_DRAGGED, x, 200 + 40 * Math.cos((x - 170) / 65.0), true);

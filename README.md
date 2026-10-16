@@ -4,7 +4,7 @@
 
 Zero is a downloadable local Java teaching kit for students beginning Java
 through CodeHS. Build interfaces with ordinary JavaFX controls and `SimpleApp`,
-or animate a canvas with `SketchApp` and explicitly updated Java objects.
+or animate a canvas with `GameApp` and explicitly updated Java objects.
 A minimal VS Code sidebar runs the app in a separate native window.
 Students own their GitHub repositories and submit links separately in Pika.
 

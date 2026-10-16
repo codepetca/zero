@@ -4,7 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Maintainer check: deterministic frames, not a physical-keyboard test. */
 public class MovementCheck extends Application {
@@ -36,7 +36,7 @@ public class MovementCheck extends Application {
             app.start(stage);
             app.stop();
             var player = (Player) field(app, Main.class, "player");
-            var keys = (Set<KeyCode>) field(app, SketchApp.class, "keys");
+            var keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             require(coordinate(player, "x") == 40 && coordinate(player, "y") == 180,
                     "Initial position");
             app.update(0.1);

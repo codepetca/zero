@@ -1,6 +1,6 @@
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** An ordinary object: coordinates change only when update is called. */
 public class Player {
@@ -29,12 +29,12 @@ public class Player {
                 && y + size >= coinY && y <= coinY + coinSize;
     }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         app.fill(Color.CORNFLOWERBLUE);
         app.rect(x, y, size, size);
     }
 
-    public void drawImage(SketchApp app, Image sprite) {
+    public void drawImage(GameApp app, Image sprite) {
         app.image(sprite, x, y, size, size);
     }
 }

@@ -1,5 +1,5 @@
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** An ordinary object: coordinates change only when update is called. */
 public class Player {
@@ -22,7 +22,7 @@ public class Player {
         y = Math.max(0, Math.min(y, canvasHeight - size));
     }
 
-    public void draw(SketchApp app) {
+    public void draw(GameApp app) {
         app.fill(Color.CORNFLOWERBLUE);
         app.rect(x, y, size, size);
     }

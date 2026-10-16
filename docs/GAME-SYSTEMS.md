@@ -1,6 +1,6 @@
 # Game systems in Zero
 
-Lesson 12 builds a two-level platformer in five runnable stages. SketchApp stays
+Lesson 12 builds a two-level platformer in five runnable stages. GameApp stays
 small: it hosts the window, input and frames. Main owns the rules and explicitly
 updates/draws ordinary Java objects. No registry or engine rewrite is needed.
 
@@ -38,7 +38,7 @@ It does not repair a leaked camera transform. Always balance save/restore.
 
 ## Physics and game rules
 
-SketchApp caps variable frame time at0.1seconds. The platformer Player further
+GameApp caps variable frame time at0.1seconds. The platformer Player further
 splits it into steps no larger than1/120second, limits fall speed, and resolves
 horizontal then vertical solid overlap. The bounded movement is smaller than the
 provided platforms' thickness. This is a teaching implementation for axis-aligned

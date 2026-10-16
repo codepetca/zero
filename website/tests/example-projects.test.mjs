@@ -18,7 +18,7 @@ const scaffolding = ["pom.xml", "mvnw", "mvnw.cmd", ".mvn/wrapper/maven-wrapper.
 async function fixture(t) {
   const directory = await realpath(await mkdtemp(path.join(os.tmpdir(), "zero-example-projects-")));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const sources = new Set(["LICENSE", "student-template/src/main/java/Main.java", ...scaffolding.map(file => `student-template/${file}`), "framework/src/main/java/zero/SimpleApp.java", "framework/src/main/java/zero/SketchApp.java"]);
+  const sources = new Set(["LICENSE", "student-template/src/main/java/Main.java", ...scaffolding.map(file => `student-template/${file}`), "framework/src/main/java/zero/SimpleApp.java", "framework/src/main/java/zero/GameApp.java"]);
   for (const example of examples) {
     for (const file of example.files) sources.add(`student-template/examples/${file}`);
     for (const resource of example.resources ?? []) sources.add(`student-template/examples/${resource.file}`);
@@ -43,7 +43,7 @@ test("all 26 complete projects preserve exact manifest sources and resources, wi
     const project = await buildExampleProject({ root, example });
     const inspected = archivePolicy.inspectGamePackage(project.bytes);
     const files = new Map(inspected.map(file => [file.path, file]));
-    const expected = ["LICENSE", "README.md", "zero.json", ...scaffolding, "src/main/java/zero/SimpleApp.java", "src/main/java/zero/SketchApp.java",
+    const expected = ["LICENSE", "README.md", "zero.json", ...scaffolding, "src/main/java/zero/SimpleApp.java", "src/main/java/zero/GameApp.java",
       ...example.files.map(file => `src/main/java/${path.posix.basename(file)}`), ...(example.resources ?? []).map(resource => resource.destination)].sort();
     assert.deepEqual([...files.keys()], expected, example.id);
     for (const file of example.files) {
@@ -52,7 +52,7 @@ test("all 26 complete projects preserve exact manifest sources and resources, wi
     for (const resource of example.resources ?? []) {
       assert.deepEqual(files.get(resource.destination).data, await readFile(path.join(root, "student-template/examples", resource.file)), `${example.id}: ${resource.file}`);
     }
-    for (const name of ["SimpleApp", "SketchApp"]) {
+    for (const name of ["SimpleApp", "GameApp"]) {
       assert.deepEqual(files.get(`src/main/java/zero/${name}.java`).data, await readFile(path.join(root, `framework/src/main/java/zero/${name}.java`)));
     }
     assert.deepEqual(JSON.parse(files.get("zero.json").data), { name: example.title, templateVersion: "0.1.0", mainClass: "Main" });
@@ -203,11 +203,11 @@ test("course starter contains canonical Main, shared scaffold and framework only
   const project = await buildCourseStarter({ root: directory });
   const files = new Map(archivePolicy.inspectGamePackage(project.bytes).map(file => [file.path, file]));
   assert.deepEqual([...files.keys()], ["LICENSE", "README.md", "zero.json", ...scaffolding,
-    "src/main/java/Main.java", "src/main/java/zero/SimpleApp.java", "src/main/java/zero/SketchApp.java"].sort());
+    "src/main/java/Main.java", "src/main/java/zero/SimpleApp.java", "src/main/java/zero/GameApp.java"].sort());
   const sources = [
     ["src/main/java/Main.java", "student-template/src/main/java/Main.java"],
     ["src/main/java/zero/SimpleApp.java", "framework/src/main/java/zero/SimpleApp.java"],
-    ["src/main/java/zero/SketchApp.java", "framework/src/main/java/zero/SketchApp.java"],
+    ["src/main/java/zero/GameApp.java", "framework/src/main/java/zero/GameApp.java"],
     ["LICENSE", "LICENSE"], ...scaffolding.map(file => [file, `student-template/${file}`]),
   ];
   for (const [destination, source] of sources) assert.deepEqual(files.get(destination).data, await readFile(path.join(directory, source)));

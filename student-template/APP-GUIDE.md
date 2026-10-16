@@ -10,7 +10,7 @@ learn a small set first:
 | Build | Start with |
 | --- | --- |
 | An app | `SimpleApp`: `settings()`, `setup()`, `size(...)`, `title(...)`, `padding(...)`, `show(...)`; ordinary `Label`, `Button`, `TextField`, `VBox`, `HBox`. |
-| A game | `SketchApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
+| A game | `GameApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
 | Improve appearance | JavaFX fonts, a few colours, spacing/padding and an editable stylesheet; canvas fonts through `graphics().setFont(...)`. |
 
 Try [Hello, Java](examples/hello-app/README.md) for a complete styled app or
@@ -18,14 +18,14 @@ Try [Hello, Java](examples/hello-app/README.md) for a complete styled app or
 the pinned starter without additional dependencies or Zero APIs.
 
 This reference describes the bundled [SimpleApp source](src/main/java/zero/SimpleApp.java)
-and [SketchApp source](src/main/java/zero/SketchApp.java). Use these classes for
+and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for
 startup, drawing and input; use ordinary Java for your app's objects and rules.
 The source is the authority if you change your local framework.
 
 ## Choose an app
 
 Extend `zero.SimpleApp` for buttons, forms, quizzes and other event-driven
-interfaces. Extend `zero.SketchApp` for a canvas that updates and draws each frame.
+interfaces. Extend `zero.GameApp` for a canvas that updates and draws each frame.
 Both are JavaFX applications. Put this entry point in your Main class:
 
 ```java
@@ -51,7 +51,7 @@ These public methods are `final` (call them; do not override them):
 | --- | --- |
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Both numbers must be positive and finite. Default: 800 × 500. |
 | `void title(String title)` | Set the window title inside `settings()` only. It must not be null. Default: `"Zero"`. |
-| `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a sketch keeps its fixed canvas size. |
+| `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a game keeps its fixed canvas size. |
 | `void show(Node content)` | Replace the root's centre with a non-null JavaFX node. Call in `setup()` or later in an event handler. |
 
 `size`, `title` and `padding` throw `IllegalStateException` outside settings;
@@ -120,9 +120,9 @@ Their methods belong to those examples; they are not core Zero APIs or required
 names. The study app's Question holds data and checks an answer; Main decides
 when to advance and award points.
 
-## SketchApp: frames and canvas
+## GameApp: frames and canvas
 
-SketchApp inherits settings, setup, size and title. It creates its canvas before
+GameApp inherits settings, setup, size and title. It creates its canvas before
 setup, shows the window, then starts frames. Override:
 
 | Signature | Behavior |
@@ -150,9 +150,9 @@ or later, after the canvas exists:
 | `BorderPane layout()` | The layout containing the canvas in its centre. |
 
 Use `layout().setBottom(button)` or other BorderPane positions for native controls
-around the canvas. Keep its centre canvas for a sketch. Use SimpleApp and
-`show(Node)` for a wholly event-driven interface; inherited `show` on a sketch
-replaces the visible sketch layout but does not stop its frame loop.
+around the canvas. Keep its centre canvas for a game. Use SimpleApp and
+`show(Node)` for a wholly event-driven interface; inherited `show` on a game
+replaces the visible game layout but does not stop its frame loop.
 
 ### Drawing methods
 
@@ -221,14 +221,14 @@ release outside the canvas. Mouse coordinates track canvas events and an owned
 drag, and can be outside its bounds; they do not continually track movement over
 other controls.
 
-This small sketch makes movement explicit:
+This small game makes movement explicit:
 
 ```java
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private double x = 60;
 
     @Override public void settings() { size(400, 240); title("Move right"); }
@@ -255,9 +255,9 @@ thread. Keep them short. Sleeping, long calculations or blocking file/network
 work freezes the UI. Native background-work tools such as JavaFX Task are an
 advanced option; update live controls on the JavaFX application thread.
 
-A startup failure closes the window and runs shutdown; a failed sketch frame
+A startup failure closes the window and runs shutdown; a failed game frame
 stops its timer and clears held input, then reports the exception. Closing an app
-also stops the sketch timer. Fix the source and Run App again.
+also stops the game timer. Fix the source and Run App again.
 
 For framework contributors, SimpleApp exposes protected hooks:
 `final double initialWidth()`, `final double initialHeight()`,
@@ -265,7 +265,7 @@ For framework contributors, SimpleApp exposes protected hooks:
 `void ready(Stage stage)` and `void shutdown()`. Startup runs settings, creates
 the root/content, runs setup, creates the scene, shows the stage, then calls
 ready. Its public `final void start(Stage stage)` and `final void stop()` manage
-that lifecycle; stop calls shutdown. SketchApp provides final overrides of the
+that lifecycle; stop calls shutdown. GameApp provides final overrides of the
 content/scene/ready/shutdown hooks to own its canvas and timer. Students normally
 override only settings, setup, update and draw.
 

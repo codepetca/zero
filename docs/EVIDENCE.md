@@ -1,5 +1,35 @@
 # Delivery evidence index
 
+## GameApp rename — source PR, 2026-10-15
+
+Owner requested a full `zero.SketchApp` → `zero.GameApp` rename without a
+compatibility alias, then explicitly authorized PR and merge. This branch starts
+at main dfe2c9b and carries the rename across current lessons/checkpoints,
+examples, project assembly, sharing validation/diagnostics, Maven and website
+API/search anchors. JavaFX loop and delta-time behavior are unchanged.
+
+Preparation removes only unchanged retired generated source with a matching
+ownership record; edited or unrecorded old files stop preparation and are kept.
+Regression tests cover retirement, preservation and absence from new kit ZIPs.
+Historical evidence retains the names used by its frozen revisions. Existing
+published binary assets, template repositories and release metadata are unchanged;
+new generated starter/lesson/example projects use GameApp.
+
+Earlier local implementation review: gameapp_review/1 Sol/medium found one P2
+(unrecorded retired source could leak into ZIPs); one fix batch and targeted turn2
+accepted preservation guard and tests. Current-main checks: configuration/syntax/docs,
+6kit tests,95website tests/typecheck,45sharing tests and all3lesson scaffold
+compiles pass. Root265pass/1skip and the website production build also pass. Independent
+current-main integration review gameapp_integration_review/1 Sol/medium covered
+all109changed files at bb9434f from dfe2c9b and found no actionable findings.
+Framework smoke compiled and reached javafx:run, then timed out waiting for
+native focus; this local runtime gap is disclosed. No new GUI success is claimed.
+[PR66](https://github.com/codepetca/zero/pull/66) records the final CI and merge
+outcome; it remains draft until those checks pass. Review ledger:3turns total (initial, targeted retirement fix, final current-main
+integration),1fixbatch; effective model/tokens/worker elapsed unknown. This final
+receipt update changes documentation only. Bulky receipts stay ignored under
+`.verification/gameapp-rename/`. Original funding checkout is preserved.
+
 ## Automatic updater0.5.15 — verified publication metadata, 2026-10-14
 
 Source [PR62](https://github.com/codepetca/zero/pull/62) merged

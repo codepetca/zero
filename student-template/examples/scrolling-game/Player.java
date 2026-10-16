@@ -1,5 +1,5 @@
 import javafx.scene.image.Image;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** The player stores world coordinates, independent of the camera. */
 public class Player {
@@ -24,5 +24,5 @@ public class Player {
                 && y + size >= otherY && y <= otherY + height;
     }
 
-    public void draw(SketchApp app, Image sprite) { app.image(sprite, x, y, size, size); }
+    public void draw(GameApp app, Image sprite) { app.image(sprite, x, y, size, size); }
 }

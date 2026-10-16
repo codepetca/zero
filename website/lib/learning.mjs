@@ -70,7 +70,7 @@ export const lessons = [
     "id": "8",
     "title": "Movement and keys",
     "description": "Move a player inside the canvas.",
-    "topic": "SketchApp, elapsed time, explicit updates",
+    "topic": "GameApp, elapsed time, explicit updates",
     "doc": "api",
     "anchor": "input-methods"
   },
@@ -80,7 +80,7 @@ export const lessons = [
     "description": "Build a game with coins, score, winning and restart.",
     "topic": "Collision checks, game state, object reuse",
     "doc": "api",
-    "anchor": "sketchapp-frames-and-canvas"
+    "anchor": "gameapp-frames-and-canvas"
   },
   {
     "id": "10",

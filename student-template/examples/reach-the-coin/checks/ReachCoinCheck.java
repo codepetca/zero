@@ -4,7 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Maintainer-only deterministic checks; never copied into a student's app. */
 public class ReachCoinCheck extends Application {
@@ -42,7 +42,7 @@ public class ReachCoinCheck extends Application {
             app.stop(); // Stop automatic frames so each test chooses elapsed time.
             app.draw();
             saveCanvas(app, "initial.png");
-            Set<KeyCode> keys = (Set<KeyCode>) field(app, SketchApp.class, "keys");
+            Set<KeyCode> keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             Player player = (Player) field(app, Main.class, "player");
             require(coordinate(player, "x") == 40 && coordinate(player, "y") == 180,
                     "Start position");

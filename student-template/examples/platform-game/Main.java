@@ -6,10 +6,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.MediaException;
 import javafx.scene.paint.Color;
-import zero.SketchApp;
+import zero.GameApp;
 
 /** Main owns input, rules and drawing; ordinary objects do only what it calls. */
-public class Main extends SketchApp {
+public class Main extends GameApp {
     private Image sprite;
     private AudioClip sound;
     private Player player;
