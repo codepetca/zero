@@ -120,7 +120,7 @@ function Open-Launcher([string]$Path) {
     if ($process) { $process.Dispose() }
 }
 try {
-    $receipt = Get-Content -LiteralPath $BuildReceipt -Raw | ConvertFrom-Json
+    $receipt = Get-Content -LiteralPath $BuildReceipt -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($receipt.schema -ne 1 -or $receipt.kitVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid Windows build receipt.' }
     $asset = @($receipt.artifacts | Where-Object { $_.platform -eq 'windows' -and $_.kind -eq 'installer' })
     if ($asset.Count -ne 1) { throw 'Expected exactly one measured Windows installer.' }
@@ -150,7 +150,7 @@ try {
     $marker = Join-Path $data 'editor-opened'
     Wait-Until { (Test-Path -LiteralPath $marker) -and @(Editor-Roots).Count -gt 0 } $BootstrapTimeoutSeconds 'real Java/editor/extension preparation and editor handoff'
     Mark 'private-java-and-installed-support'
-    $settings = Get-Content -LiteralPath (Join-Path $userData 'User\settings.json') -Raw | ConvertFrom-Json
+    $settings = Get-Content -LiteralPath (Join-Path $userData 'User\settings.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $runtimes = @($settings.'java.configuration.runtimes' | Where-Object { $_.name -eq 'JavaSE-21' -and $_.default -eq $true })
     if ($runtimes.Count -ne 1) { throw 'Expected one default private Java 21 runtime.' }
     $java = [IO.Path]::GetFullPath($runtimes[0].path)
@@ -160,7 +160,7 @@ try {
     if ($javaOutput -notmatch 'version "21\.' -or $javacOutput -notmatch 'javac 21\.') { throw 'The real private Java tools did not report Java 21.' }
     $installedExtensions = @(Get-ChildItem -LiteralPath $extensions -Directory | ForEach-Object {
         $manifest = Join-Path $_.FullName 'package.json'
-        if (Test-Path -LiteralPath $manifest) { Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json }
+        if (Test-Path -LiteralPath $manifest) { Get-Content -LiteralPath $manifest -Raw -Encoding UTF8 | ConvertFrom-Json }
     })
     if (-not @($installedExtensions | Where-Object { $_.publisher -eq 'zero' -and $_.name -eq 'zero' -and $_.version -eq $receipt.kitVersion }).Count -or
         -not @($installedExtensions | Where-Object { $_.publisher -eq 'redhat' -and $_.name -eq 'java' }).Count) { throw 'Required Zero and Java extensions were not actually installed.' }

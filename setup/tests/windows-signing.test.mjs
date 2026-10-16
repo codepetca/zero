@@ -50,7 +50,7 @@ test('PowerShell verifier executes its identity, trust and timestamp rejection b
     writeFileSync(verifier,windowsSignatureVerifier);
     writeFileSync(wrapper,`param([string]$Values,[string]$ExpectedSubject)
 $ErrorActionPreference = 'Stop'
-$global:zeroFixtureSignature = Get-Content -LiteralPath $Values -Raw | ConvertFrom-Json
+$global:zeroFixtureSignature = Get-Content -LiteralPath $Values -Raw -Encoding UTF8 | ConvertFrom-Json
 function Get-AuthenticodeSignature { param([string]$LiteralPath) return $global:zeroFixtureSignature }
 & (Join-Path $PSScriptRoot 'verify.ps1') -Target 'fake-Zero.exe' -ExpectedSubject $ExpectedSubject
 `);

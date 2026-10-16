@@ -90,6 +90,16 @@ mark it **pending**. Provisioning keys, signing, publishing or changing accounts
 requires the owner's separate applicable authority. Do not manufacture a passing
 result or promote the public Windows download while a release gate is pending.
 
+Prepare A and B from a dedicated reviewed trial branch with
+`release/windows-updater.json` pointing to an owned HTTPS staging-feed URL before
+building either installer. Use a separate trial signing key for the feed, and keep
+the staging configuration/key out of the production release branch. Both builds
+must trust that trial public key and use the same staging URL; advance the kit and
+extension version for B. Publish exact measured signed B bytes and their signed
+descriptor to the authorized trial endpoint. A production build's embedded stable
+feed URL cannot be redirected using a runtime flag. Do not modify the public
+stable feed to conduct this test.
+
 ## Return the evidence
 
 Return the small automated `report.json`, a completed checklist with exact
