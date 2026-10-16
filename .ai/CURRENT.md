@@ -22,6 +22,12 @@ held. No real users; old-project migration is not a release gate.
 
 ## Accepted local phase
 
+Latest owner correction reviewed at364944b: Home restores direct Mac Silicon and
+Windows ZIP download buttons. Existing release availability/URLs and desktop GitHub
+welcome remain. Types,5download tests, rootcheck, build and actual desktop/320px
+light/dark browser checks pass. One Luna/medium review clean,1launch/0fixes. Website
+only; packaged candidate unchanged. Evidence `.verification/desktop-welcome/platform-*`.
+
 Reviewed/package source `47cc071351583814e70c060fd056df62bbf4ebf7`.
 Owner correction: Home restores direct Mac Silicon and Windows ZIP download actions; old `/get-started` redirects to Downloads.
 Desktop welcome silently checks VS Code's session, offers Connect GitHub or Later,

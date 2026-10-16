@@ -1,5 +1,19 @@
 # Verification
 
+## Restore direct platform downloads — local, 2026-10-15
+
+Source364944b restores Mac Silicon and Windows ZIP buttons directly on Home using
+the existing Downloads component and verified release availability rules. Desktop
+GitHub welcome is unchanged. Types,5focused download tests, root configuration/
+syntax/link checks and production build pass (2existing tracing warnings).
+Actual Chrome verifies both exact published destinations and320pxlight/dark reflow
+without overflow. Screenshot `.verification/desktop-welcome/platform-home.jpg`.
+One independent Luna/medium full-diff review passed:1launch/0findings/0fixes;
+effective model/tokens unavailable. No downloads were clicked, public manifests
+changed or website deployed. Archive
+links from the preceding evidence commit were corrected after the link check
+caught their old relative paths. Browser viewport reset and owned tab/server closed.
+
 ## Download-first desktop onboarding — local, 2026-10-15
 
 Reviewed/package source47cc071 replaces website setup with Download Zero and a
