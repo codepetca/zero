@@ -16,7 +16,7 @@ window.acquireVsCodeApi = () => ({
   postMessage: message => {
     if (message.type === 'sidebar.ready') return;
     if (message.type === 'files.list') {
-      setTimeout(()=>window.dispatchEvent(new MessageEvent('message',{data:{type:'files.result',result:{generation:'fixture',parent:message.id || null,items:fixtureFiles[message.id || 'root'] || [],truncated:false}}})),0);
+      setTimeout(()=>window.dispatchEvent(new MessageEvent('message',{data:{type:'files.result',requestId:message.requestId,result:{generation:'fixture',parent:message.id || null,items:fixtureFiles[message.id || 'root'] || [],truncated:false}}})),0);
       return;
     }
     if (message.type === 'files.open') {feedback('A project file would open in VS Code');return;}

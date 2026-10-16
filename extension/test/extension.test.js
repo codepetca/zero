@@ -107,7 +107,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
-  assert.match(webview.html,/>Sign in<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);
+  assert.match(webview.html,/>Sign in to GitHub<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);
   const githubSection=()=>webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)[1];
   assert.match(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/);
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');

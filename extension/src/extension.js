@@ -20,6 +20,7 @@ const {createBrowserRunCommands} = require('./web-run-ui');
 const {createWebPublishCommands} = require('./web-publish-ui');
 const {sidebarStyles} = require('./sidebar-style');
 const {createSidebarFiles} = require('./sidebar-files');
+const {createSidebarBridge} = require('./sidebar-bridge');
 const {sidebarScript} = require('./sidebar-script');
 const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -526,7 +527,7 @@ function activate(context) {
     const disabled = isBusy() ? 'disabled' : '';
     const connected = repository.startsWith('https://github.com/');
     const accountTitle = auth.signedIn ? `Signed in as ${auth.accountLabel}` : 'Sign in to GitHub';
-    const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in'}</button>`;
+    const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in to GitHub'}</button>`;
     const repoName = connected ? repository.slice('https://github.com/'.length) : 'Connect a repository';
     const repoControl = auth.signedIn ? `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repository')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>` : '';
     const branchControl = auth.signedIn && connected && branch ? `<div class="branch-row"><span class="branch" title="${escape(`Current branch: ${branch}`)}">${icon('GitBranch')}${escape(branch)}</span><button class="link change" data-command="${branch === 'main' ? 'zero.startChange' : 'zero.finishChange'}" ${disabled}>${branch === 'main' ? 'New branch' : 'Merge to main'}</button></div>` : '';
@@ -544,22 +545,7 @@ function activate(context) {
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><section class="files-section" aria-labelledby="files-heading"><h2 id="files-heading">Files</h2><div id="files" role="tree" aria-label="Project files" data-chevron-icon="${escape(icon('ChevronDown'))}" data-folder-icon="${escape(icon('Folder'))}" data-file-icon="${escape(icon('File'))}"></div><p id="file-status" class="muted status" role="status" aria-live="polite"></p></section><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
   }
   const files = createSidebarFiles({project,open:filename=>vscode.commands.executeCommand('vscode.open',vscode.Uri.file(filename))});
-  let pendingFiles = 0;
-  async function fileMessage(webview, message) {
-    if (pendingFiles >= 8) return;
-    pendingFiles++;
-    try {
-      if (!(vscode.workspace.workspaceFolders || []).length) {await webview.postMessage?.({type:'files.empty'});return;}
-      if (message.type === 'files.list') {
-        if (message.id !== undefined && (typeof message.id !== 'string' || !/^[a-f0-9]{32}$/.test(message.id))) return;
-        const result = await files.list(message.id,message.generation);
-        if (result && view?.webview === webview && !disposed) await webview.postMessage?.({type:'files.result',result});
-      } else if (message.type === 'files.open' && typeof message.id === 'string') await files.openFile(message.id,message.generation);
-    } catch (error) {
-      output.appendLine(`Files: ${error.message}`);
-      if (view?.webview === webview && !disposed) await webview.postMessage?.({type:'files.error',message:'Could not load this project file. Reopen the folder or use Explorer. See Zero Output for details.'});
-    } finally {pendingFiles--;}
-  }
+  const fileMessage = createSidebarBridge({files,isEmpty:()=>!(vscode.workspace.workspaceFolders || []).length,isCurrent:webview=>!disposed && view?.webview === webview,report:error=>output.appendLine(`Files: ${error.message}`)});
   context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
     candidate.webview.onDidReceiveMessage(message => {

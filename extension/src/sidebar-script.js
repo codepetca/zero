@@ -4,15 +4,20 @@
 function sidebarClient() {
   const api = acquireVsCodeApi();
   const remembered = api.getState?.() || {};
-  let generation, expanded = new Set(remembered.expanded || []), requested = new Set();
+  let generation, expanded = new Set(remembered.expanded || []), requested = new Map();
+  const pending = new Map();
+  let nextRequest = 0;
   let treeFocus = remembered.focus, firstRoot = true;
   const tree = document.getElementById('files');
   const status = document.getElementById('file-status');
   const save = () => api.setState?.({generation, expanded:[...expanded],focus:treeFocus,scroll:window.scrollY});
-  const request = id => {
-    const key = id || 'root'; if (requested.has(key)) return;
-    requested.add(key); api.postMessage({type:'files.list',id,generation});
+  const send = (type,id) => {
+    const requestId=++nextRequest;
+    pending.set(requestId,{type,id});
+    if(type==='files.list') requested.set(id || 'root',requestId);
+    api.postMessage({type,id,generation,requestId});
   };
+  const request = id => {if(!requested.has(id || 'root')) send('files.list',id);};
   const items = () => [...tree.querySelectorAll('[role="treeitem"]')].filter(item => !item.closest('[hidden]'));
   function select(item, focus = true) {
     for (const other of tree.querySelectorAll('[role="treeitem"]')) other.tabIndex = other === item ? 0 : -1;
@@ -23,7 +28,7 @@ function sidebarClient() {
     item.setAttribute('aria-expanded',String(open));
     const group = item.nextElementSibling;
     group.hidden = !open;
-    if (open) {expanded.add(item.dataset.id); if (!group.childElementCount) request(item.dataset.id);}
+    if (open) {expanded.add(item.dataset.id); request(item.dataset.id);}
     else expanded.delete(item.dataset.id);
     save();
   }
@@ -31,7 +36,7 @@ function sidebarClient() {
     const item = event.target.closest('[role="treeitem"]'); if (!item) return;
     select(item);
     if (item.hasAttribute('aria-expanded')) toggle(item,item.getAttribute('aria-expanded') !== 'true');
-    else api.postMessage({type:'files.open',id:item.dataset.id,generation});
+    else send('files.open',item.dataset.id);
   });
   tree.addEventListener('keydown', event => {
     const item = event.target.closest('[role="treeitem"]'); if (!item) return;
@@ -52,7 +57,7 @@ function sidebarClient() {
         break;
       case 'Enter': case ' ':
         if (item.hasAttribute('aria-expanded')) toggle(item,item.getAttribute('aria-expanded') !== 'true');
-        else api.postMessage({type:'files.open',id:item.dataset.id,generation});
+        else send('files.open',item.dataset.id);
         break;
       default:return;
     }
@@ -82,14 +87,22 @@ function sidebarClient() {
       if (!message.failed) recovery.replaceChildren();
       if (message.failed && !recovery.childElementCount) for (const label of ['Problems','Output']) {
         const button=document.createElement('button'); button.className='link'; button.dataset.command='zero.show'+label; button.textContent='Show '+label; recovery.append(button);
-      } 
+      }
     }
-    if (message?.type === 'files.empty') {tree.replaceChildren();status.textContent='Open a Zero project to see its files.';}
-    if (message?.type === 'files.reset') {requested.clear();request();}
-    if (message?.type === 'files.error') {requested.clear();status.textContent=message.message;}
-    if (message?.type !== 'files.result') return;
+    if (message?.type === 'files.reset') {
+      for(const [id,request] of pending) if(request.type==='files.list') pending.delete(id);
+      requested.clear();request();return;
+    }
+    if (!message?.type?.startsWith('files.')) return;
+    const completed=pending.get(message.requestId);
+    if(!completed) return;
+    pending.delete(message.requestId);
+    if(completed.type==='files.list') requested.delete(completed.id || 'root');
+    if (message.type === 'files.empty') {pending.clear();requested.clear();generation=undefined;expanded.clear();tree.replaceChildren();treeFocus=undefined;status.textContent='Open a Zero project to see its files.';save();return;}
+    if (message.type === 'files.error') {status.textContent=message.message;return;}
+    if (message.type === 'files.stale') {request();return;}
+    if (message.type !== 'files.result') return;
     const result = message.result;
-    requested.delete(result.parent || 'root');
     if (result.parent && generation !== result.generation) return;
     if (!result.parent && generation !== result.generation) {
       if (remembered.generation !== result.generation) expanded.clear();
@@ -104,9 +117,18 @@ function sidebarClient() {
     if (!result.parent) firstRoot=false;
     const hadFocus = tree.contains(document.activeElement);
     const focused = document.activeElement?.dataset.id;
-    container.replaceChildren();
+    const previous=new Map([...container.children].map(wrapper=>[wrapper.firstElementChild?.dataset.id,wrapper]));
+    let position=0;
     for (const entry of result.items) {
-      const wrapper = document.createElement('div'); wrapper.setAttribute('role','none');
+      let wrapper=previous.get(entry.id);
+      previous.delete(entry.id);
+      if(wrapper) {
+        const item=wrapper.firstElementChild;
+        if(entry.directory && expanded.has(entry.id)) request(entry.id);
+        if(container.children[position]!==wrapper) container.insertBefore(wrapper,container.children[position] || null);
+        position++;continue;
+      }
+      wrapper = document.createElement('div'); wrapper.setAttribute('role','none');
       const item = document.createElement('div'); item.setAttribute('role','treeitem'); item.dataset.id=entry.id;
       item.tabIndex=-1; item.className='file-row';
       item.style.setProperty('--depth',String(result.parent ? Number(container.dataset.depth || 1) : 0));
@@ -124,9 +146,12 @@ function sidebarClient() {
         group.dataset.depth=String(Number(item.style.getPropertyValue('--depth'))+1);
         wrapper.append(group); if (expanded.has(entry.id)) request(entry.id);
       }
-      container.append(wrapper);
+      container.insertBefore(wrapper,container.children[position] || null);position++;
     }
-    const selected = tree.querySelector(`[data-id="${treeFocus || ''}"]`) || items()[0];
+    for(const wrapper of previous.values()) wrapper.remove();
+    const retained = tree.querySelector(`[data-id="${treeFocus || ''}"]`);
+    const selected = retained || (result.parent ? container.previousElementSibling : items()[0]);
+    if(!retained) treeFocus=selected?.dataset.id;
     if (selected) select(selected,false);
     if (hadFocus) (tree.querySelector(`[data-id="${focused || ''}"]`) || selected)?.focus({preventScroll:true});
     status.textContent = result.truncated ? 'Some files are hidden. Open Explorer to see all files.' : '';
