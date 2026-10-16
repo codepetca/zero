@@ -2,7 +2,7 @@
   "schema": 1,
   "kitVersion": "0.5.17",
   "publication": {
-    "status": "local",
+    "status": "published",
     "repository": "codepetca/zero",
     "tag": "setup-v0.5.17"
   },
@@ -21,7 +21,8 @@
     ],
     "minimumOS": "12.0",
     "size": 1920683,
-    "sha256": "5d3cf2d83f9412a333040800ef19a4c16ee70a04c147a0102c30afb1c87355e7"
+    "sha256": "5d3cf2d83f9412a333040800ef19a4c16ee70a04c147a0102c30afb1c87355e7",
+    "url": "https://github.com/codepetca/zero/releases/download/setup-v0.5.17/Zero-0.5.17-macos.dmg"
   },
   "signing": {
     "identitySha1": "ACE8EE40F3615C5062CBBD5F085E299E049BAE08",
