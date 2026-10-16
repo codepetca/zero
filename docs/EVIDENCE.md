@@ -4814,3 +4814,60 @@ physical focus/speakers and non-Chrome engines remain unverified. Isolated nativ
 host launched but computer control selected another VS Code instance, so no native
 UI verdict was claimed. The game was a frozen JavaFX-audio version; the other
 chat's later Sound/Music API needs committed profile integration before release.
+
+
+## 2026-10-16 — PR 78 integration and production website acceptance
+
+PR78 merged as `1b63ae6ce07f467ab4c4600d78507157ad3bdc7c`; tree
+`f33e59fe920bcb2e15d1b3de2e51d074bfd15320` exactly matches independently reviewed
+and tested `a267d41b7b27595bccbc1e68cc1393a296194b9c`. Exact-head Linux38960026817,
+browser38960026736 and Windows38960026787 passed. The Linux gate includes native
+framework/audio, all27examples,16checkpointvariants,115website tests and extracted
+kit verification. Windows hosted Server2022/PowerShell5.1 installation/reopening
+and automatic/offline JavaFX passed; physical Windows and signed update remain
+separate. Production deployment7128623333 succeeded at20:17:51UTC. Root verified
+actual Chrome home/download choices, tutorial0/3/8 template links and setup/Git/
+browser instructions. Published downloads remain0.5.17;0.5.18 app release was not
+promoted. Copy showed success feedback but automation clipboard was empty; two
+listener-channel console errors had no established cause. No fresh OAuth, clone,
+push, Pages or ZeroHub admission was repeated by this acceptance check.
+
+Installed Mac0.5.18 has all106 authored files matching integratede1c3b83; later
+merged changes only affect CI and maintainer tests. Actual Chrome wrong/right/Stop
+passed and Study tutorial was restored. Existing trial Java/Git state preserved.
+Receipts: `.verification/release-readiness-20261016/{pr78-native,pr78-integration,public-website-1b63ae6}/`.
+Final Windows receipt is in its worktree `.verification/pr78-windows-a267d41/`.
+The owner explicitly approved merge plus automatic website deployment and a
+PR78-specific review-limit waiver. Cumulative10fix/10targeted/12review turns retained;
+that waiver completed with PR78. The two completed coordinating chats were archived
+on the owner's later direct request; evidence and worktrees were preserved.
+
+## 2026-10-16 — native audio timeout investigation (local work)
+
+The previous audio-playground timeout remains unexplained; final passing CI was
+not treated as a cause-specific fix. Root owns local branch
+`codex/audio-timeout-investigation`, base merged1b63ae6. Bounded read-only native
+lifecycle analysis used GPT-6.1Sol/high; effective configuration, elapsed time and
+tokens are unavailable. Root verified the harness and helper control/ownership
+order. The check always closes a newly constructed second Music before its FX
+READY callback; that is legal API usage, not evidence by itself of a defect.
+DISPOSED/closed is set before native disposal returns, so before/after markers
+are necessary to diagnose a stall.
+
+Isolated Ubuntu24/PulseAudio tests used unchanged JavaFX21.0.12, Java17 and15s
+watchdog:12original example runs on LinuxARM and12on emulated Linuxx86 passed.
+Three instrumented Linuxx86 runs showed both the ready theme and UNKNOWN second
+player completing disposal. Separate probes passed60same-callback early player
+closures and60ready-player loop/pause/play/stop sequences (3processes each).
+These probes supplement the unchanged checks; they do not replace assertions or
+prove absence of a rare native race. Linuxx86 used Temurin17.0.20.1 under Docker
+emulation, not a physical x86 machine. LinuxARM used OpenJDK17.0.20.1.
+
+One clean diagnostic hosted run38979041632 was dispatched on the already-reviewed
+a267d41 source (identical merge tree); result **success**, including native audio, all27examples, lesson/website checks
+and packaging. Hosted runner is the original GitHub Linux environment; local
+x86 runs were emulated. No cause-specific fix is established.
+No code was pushed and no deployment, release feed, template, publisher activation
+or student game publication was performed. Production helpers and pinned compiler
+inputs are unchanged. Detailed logs, disposable snapshots, model notes and test
+receipts stay in `.verification/audio-investigation-20261016/`.

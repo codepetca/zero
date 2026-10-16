@@ -3109,3 +3109,19 @@ preserved the original receipt. No app correction was involved.
 Windows/Linux/classroom hardware, physical speakers and first-time workflow OAuth
 grant remain untested. Separate ZeroHub checker acceptance/activation and broader
 Zero release holds persist; this scoped live test milestone is accepted.
+
+
+## 2026-10-16 native audio investigation
+
+On merged1b63ae6, unchanged audio-playground passed12LinuxARM and12emulated
+Linuxx86 runs with Java17/JavaFX21.0.12/PulseAudio and the original15sdeadline.
+Three instrumented x86 runs completed both READY and newly created UNKNOWN
+player disposal. Isolated probes completed60earlyclosures and60ready-player
+loop/pause/play/stop sequences. Original tests/assertions remain unchanged;
+no production helper correction or root-cause fix is claimed. Same-source hosted
+Linux diagnostic [run38979041632](https://github.com/codepetca/zero/actions/runs/38979041632)
+passed all gates, including the audio example. The historical timeout remains
+unexplained; no automatic repeats or speculative helper fixes are planned. Physical Windows,
+physical speakers and current-candidate live game publication were not tested.
+See `.verification/audio-investigation-20261016/evidence.json` and the current
+EVIDENCE entry for setup, architecture limits and source-analysis provenance.
