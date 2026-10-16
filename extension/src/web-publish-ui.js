@@ -80,9 +80,13 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
         const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
         const sameDestination=!review.setup && previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl;
         if(!sameDestination) {
-          const chosen=await vscode.window.showInformationMessage(review.setup?'Set up and publish this browser game?':'Publish this version of your browser game?',{modal:true,detail:`Public destination: ${review.publicUrl || (review.repository + ' → GitHub Pages')}\nAccount: ${review.account}\nSource: main at ${review.sha.slice(0,12)}\n${review.setup?'Adds deployment source and a publishing workflow, then uses Commit & push. VS Code may ask once for permission to create GitHub workflows. ':''}The playable page and included assets will be public. Repository visibility stays the same. Zero checks and builds locally; GitHub Actions uses your account’s deployment allowance.`},review.setup?'Set up publishing':'Publish game');
-          if(!chosen || chosen!==(review.setup?'Set up publishing':'Publish game'))return;
+          const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.\n${review.publicUrl || (review.repository + ' → GitHub Pages')}`},'Publish app');
+          if(chosen!=='Publish app')return;
         }
+        const approvedDestination=review;
+        const assertDestination=()=>{
+          if(review.repository!==approvedDestination.repository || review.account!==approvedDestination.account || review.publicUrl!==approvedDestination.publicUrl || review.needsPages!==approvedDestination.needsPages)throw new Error('The publishing account or destination changed. Choose Publish app again to review it.');
+        };
         await stillCurrent(expected);
         if(review.setup) {
           const base=await authentication.capture();
@@ -95,22 +99,22 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
           // Native authorization changes invalidate the old review. Never reuse it.
           review=await publisher.review(expected,{signal:controller.signal});
           if(review.status!=='review'){await showAction(review);return review;}
-          if(review.sha!==original.sha || review.repository!==original.repository)throw new Error('The project version changed during GitHub authorization. Review publishing again.');
+          assertDestination();
+          if(review.sha!==original.sha)throw new Error('The project version changed during GitHub authorization. Review publishing again.');
           await stillCurrent(expected);
           result=await publisher.setup(review,{signal:controller.signal});
           if(result.status!=='upload-required'){await showAction(result);return result;}
           progress(result.message);
           if(!uploadChanges){await showAction({...result,action:{message:'Choose Commit & push to save the publishing setup on main, then choose Publish web game again.'}});return result;}
           // The coordinator's existing upload action owns its busy flag and
-          // review. Keep this command's separate operation guard held throughout.
+          // input. Keep this command's separate operation guard held throughout.
           setBusy(false);
           try {await uploadChanges(workflowAuth || authentication);} finally {setBusy(true);}
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
           if(review.status!=='review'){await showAction(review);return review;}
           if(review.setup)throw new Error('The publishing setup was not uploaded completely. Commit & push on main and retry.');
-          const confirmed=await vscode.window.showInformationMessage('Publish the uploaded game now?',{modal:true,detail:`Public destination: ${review.publicUrl || (review.repository + ' → GitHub Pages')}\nSource: main at ${review.sha.slice(0,12)}\nThe browser game and included assets will be public.`},'Publish game');
-          if(confirmed!=='Publish game')return;
+          assertDestination();
         }
         await stillCurrent(expected);
         approvedReview=review;

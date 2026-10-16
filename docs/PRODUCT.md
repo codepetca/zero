@@ -313,11 +313,14 @@ replacing origin. It rejects nested projects. Connection is local: it does not
 verify remote ownership, existence or access and does not upload.
 
 `zero.uploadMode` defaults to `live`. Nothing uploads or publishes on activation,
-sign-in or connection alone. First/new-destination Publish asks for confirmation;
+sign-in or connection alone. First/new-destination Publish shows a short warning
+that the app and included assets will be public;
 later explicit Publish actions revalidate and update that approved site without
-another destination dialog. Upload saves files, gathers a commit message and
-reviews repository, branch and changed files before explicit confirmation. It stages
-reviewed changes, commits when needed and pushes the reviewed destination/SHA,
+another destination dialog. Publishing setup continues through its upload without
+a second publish confirmation. Commit & push saves files and shows the repository
+and branch with the commit-message input; submitting the message proceeds directly.
+It validates and stages the captured changes, commits when needed and pushes the
+captured destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave
 a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity. Optional explicit
@@ -327,15 +330,15 @@ Git/network actions.
 Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
 
 The individual flow uses main for completed work and one short-lived branch per
-change. A new empty repository starts with a reviewed Commit & push on main.
-Choose New branch beside main, name it, and review its creation. New branch
+change. A new empty repository starts with Commit & push on main.
+Choose New branch beside main and enter its name to create it directly. New branch
 requires clean committed main and brings in remote main only by fast-forward;
 diverged histories require manual repair. Commit & push commits/pushes progress
 to the current branch. Run and check the app before finishing.
 
 Click the change branch → Merge to main. Commit & push pending edits first.
-Merge to main requires a clean committed change branch and previews the branch, destination,
-main snapshots and affected paths. Updated remote main is merged into the change
+Merge to main requires a clean committed change branch and a concise confirmation
+showing the branch and repository destination. Updated remote main is merged into the change
 branch, then the action pauses for Run App and another Merge to main review before
 pushing the combined version. No rebase/force push is used. Conflicts preserve the branch and merge
 state, open native Source Control and require resolution/staging/commit before

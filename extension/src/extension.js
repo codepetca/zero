@@ -295,10 +295,10 @@ function activate(context) {
       const options = {networkRun, beforeNetwork:assertCurrent, onProgress:text => {state=text; refresh();}};
       const plan = kind === 'start' ? await workflow.prepareStart(root, name, options) : await workflow.prepareFinish(root, options);
       if (plan.remote !== destination.remote) throw new Error('The connected repository changed. Review your change again.');
-      const detail = `${plan.page}\nGitHub account: ${ticket.session.label}\nCurrent branch: ${plan.branch} (${plan.head})\nMain: ${plan.mainHead}\nLatest pushed main: ${plan.remoteMainHead || 'none'}\n${plan.summary}\n\n${kind === 'start' ? `Update local main to the reviewed latest main, then start ${name}.` : `Merge ${plan.branch} into main and push main to this repository.\n${(plan.changedPaths || []).join('\n')}\n\nRun your app before merging. If main must first be incorporated into your change, run and check the app again before choosing Merge to main again.`}`;
-      const button = kind === 'start' ? 'Create branch' : 'Merge and push main';
-      const confirmed = await vscode.window.showInformationMessage(kind === 'start' ? 'Create this branch?' : 'Merge this branch to main?', {modal:true, detail}, button);
-      if (confirmed !== button) return;
+      if (kind === 'finish') {
+        const confirmed = await vscode.window.showInformationMessage(`Merge ${plan.branch} to main?`, {modal:true, detail:`${plan.page}\nThis merges your change and pushes main to GitHub.`}, 'Merge and push main');
+        if (confirmed !== 'Merge and push main') return;
+      }
       if (await project() !== root) throw new Error('The student project changed. Review your change again.');
       await assertCurrent();
       const result = kind === 'start' ? await workflow.startPrepared(plan, options) : await workflow.finishPrepared(plan, options);
@@ -341,11 +341,8 @@ function activate(context) {
         const plan = await github.prepareUpload(root);
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,provider:vscode.authentication,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
-        const message = await vscode.window.showInputBox({title:'Describe this version', prompt:'A commit saves a version in Git. Push sends it to your connected GitHub repository.', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
+        const message = await vscode.window.showInputBox({title:'Commit & push', prompt:`${plan.page} · ${plan.branch}`, placeHolder:'Describe your changes', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
-        const detail = `${plan.page}\nGitHub account: ${ticket.session.label}\nBranch: ${plan.branch}\n${plan.summary}\n\n${plan.changes.map(change => `${change.kind}: ${change.path}`).join('\n')}\n\nIgnored files stay local. This will save a Git commit when files changed and push your branch using your VS Code GitHub sign-in. Git still needs your repository name/email identity. Submit your repository link separately in Pika.`;
-        const confirmed = await vscode.window.showInformationMessage('Commit and push this version to GitHub?', {modal:true, detail}, 'Commit & push');
-        if (confirmed !== 'Commit & push') return;
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
         const assertCurrent = async () => {await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
         const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});

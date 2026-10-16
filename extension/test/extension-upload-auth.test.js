@@ -4,7 +4,7 @@ const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:pa
 const core=require('../src/core'),github=require('../src/github');
 const {publishingFiles}=require('../src/web-publish-github');
 const disposable=()=>({dispose(){}});
-async function harness(t,{kit=true,workflowAvailable=true,cancel=false,workflowAccount='1',mode,confirm=true,practice=false,tutorial=false}={}) {
+async function harness(t,{kit=true,workflowAvailable=true,cancel=false,workflowAccount='1',mode,cancelMessage=false,practice=false,tutorial=false}={}) {
   const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-native-upload-auth-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify(practice?{localOnly:true}:{}));
   if(tutorial){
@@ -25,7 +25,7 @@ async function harness(t,{kit=true,workflowAvailable=true,cancel=false,workflowA
     return {id:workflow?'workflow-session':'repo-session',account:{id:workflow?workflowAccount:'1',label:'student'},accessToken:workflow?'WORKFLOW_TEST_ONLY':'REPO_TEST_ONLY',scopes:[...scopes]};
   },onDidChangeSessions:listener=>{listeners.add(listener);return {dispose(){disposed++;listeners.delete(listener);}};}},
   workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-  window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showWarningMessage:async text=>notices.push(text),showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal&&confirm)return 'Commit & push';},showInputBox:async()=>{inputs++;return 'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
+  window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showWarningMessage:async text=>notices.push(text),showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
@@ -53,15 +53,15 @@ test('simulation skips managed kit authentication, saves and upload preparation'
   const h=await harness(t,{mode:'simulation',workflowAvailable:false});const before=h.calls.length;await h.commands.get('zero.uploadToGitHub')();assert.equal(h.calls.length,before);assert.equal(h.saves,0);assert.equal(h.reviews,0);assert.equal(h.uploads,0);assert.equal(h.disposed,0);assert.match(h.notices.at(-1),/Simulation only/);
 });
 
-test('unset upload mode is live but activation and cancelled confirmation never upload',async t=>{
+test('unset upload mode is live but activation and cancelled commit message never upload',async t=>{
   assert.equal(require('../package.json').contributes.configuration.properties['zero.uploadMode'].default,'live');
-  const h=await harness(t,{kit:false,confirm:false});
+  const h=await harness(t,{kit:false,cancelMessage:true});
   assert.equal(h.saves,0);assert.equal(h.reviews,0);assert.equal(h.uploads,0);
   assert.ok(h.calls.every(call=>call.options.silent),'Activation only inspects existing sessions');
   await h.commands.get('zero.uploadToGitHub')();
   assert.equal(h.reviews,1,'Unset mode reaches the real review path');
-  assert.equal(h.inputs,1);assert.equal(h.uploads,0,'Cancelling review must not call commit/push');
-  assert.equal(h.errors.length,0);assert.ok(h.notices.includes('Commit and push this version to GitHub?'));
+  assert.equal(h.inputs,1);assert.equal(h.uploads,0,'Cancelling the message must not call commit/push');
+  assert.equal(h.errors.length,0);assert.ok(!h.notices.includes('Commit and push this version to GitHub?'));
 });
 test('legacy local-only practice blocks GitHub actions even with the default live mode',async t=>{
   const h=await harness(t,{kit:false,practice:true});const before=h.calls.length;
@@ -73,9 +73,9 @@ test('legacy local-only practice blocks GitHub actions even with the default liv
 });
 
 test('repository-required tutorial reaches default live Upload review and preserves cancellation',async t=>{
-  const h=await harness(t,{kit:false,tutorial:true,confirm:false});
+  const h=await harness(t,{kit:false,tutorial:true,cancelMessage:true});
   await h.commands.get('zero.uploadToGitHub')();assert.equal(h.reviews,1);assert.equal(h.inputs,1);assert.equal(h.uploads,0);assert.equal(h.errors.length,0);
-  assert.ok(h.notices.includes('Commit and push this version to GitHub?'));
+  assert.ok(!h.notices.includes('Commit and push this version to GitHub?'));
 });
 
 test('tutorial sidebar retains normal GitHub controls and hides original-only Share project',async t=>{

@@ -17,7 +17,7 @@ const waitFor = async (condition, message) => {
   }
 };
 
-test('individual change actions are reviewed, serialized, simulated and recover conflicts through native Git', async t => {
+test('branch creation is direct; merges stay confirmed, serialized and recover conflicts through native Git', async t => {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-workflow-ui-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.writeFile(path.join(root,'zero.json'),'{}');
   const original = {git:core.git,resolve:core.resolveProject,assert:core.assertRepositoryRoot,prepare:github.prepareUpload,...workflow};
@@ -68,10 +68,9 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.match(warnings[0],/nothing changed/);
   assert.doesNotMatch(webview.html,/data-command="zero.startChange"[^>]* disabled/);releaseWarning();warningGate=undefined;
   mode=undefined;input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
-  input='add-score';confirm=undefined;await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,0);assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(reviews.at(-1).options.detail,/student\/app.*\nGitHub account: student/);
-  confirm='Create branch';await commands.get('zero.startChange')();assert.equal(executed,1);assert.match(webview.html,/add-score<\/span>/);
+  input='add-score';await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,1);assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
-  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge and push main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1).text==='Merge this branch to main?', 'Finish review should open');
+  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge and push main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1)?.text==='Merge add-score to main?', 'Finish review should open');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
   assert.deepEqual({saved,prepared,authCalls},before);assert.match(webview.html,/data-command="zero.finishChange"[^>]* disabled/);
   session={...session,id:'changed'};authEvent({provider:{id:'github'}});releaseReview();await pending;reviewGate=undefined;

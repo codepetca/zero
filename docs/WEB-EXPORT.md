@@ -81,9 +81,11 @@ wrapper language or second transpiler is introduced.
 ## Student flow
 
 Choose **Publish app** in Zero's sidebar after merging and pushing a
-change on `main`. Sign in and connect your repository to enable it. First setup reviews the public destination, prepares a small deployment-only
-publishing kit, asks VS Code for GitHub workflow permission, and uses the
-existing reviewed Commit & push flow. Zero then confirms the uploaded version.
+change on `main`. Sign in and connect your repository to enable it. First setup
+shows a short public-visibility warning and destination, prepares a small
+deployment-only publishing kit, asks VS Code for GitHub workflow permission,
+and uses the Commit & push message input. Zero validates the uploaded version
+and continues publishing without another confirmation.
 Later publishes reuse the approved destination and stable URL. Repository
 visibility is never changed. The deployed game and its included assets are public,
 including when the source repository is private and the account supports Pages.

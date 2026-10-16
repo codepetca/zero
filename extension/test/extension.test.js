@@ -12,13 +12,13 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-extension-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
-  const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', confirmUpload;
+  const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', commitMessage;
   const originalGit=core.git;core.git=async(_,args)=>{if (args[0] === 'remote' || args[0] === 'rev-parse' || args[0] === 'symbolic-ref') throw new Error('No repository'); mutations++;throw new Error('Unexpected git');};t.after(()=>{core.git=originalGit;});
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
     authentication:{getSession:async()=>({id:'test-session',account:{id:'student',label:'student'},accessToken:'INTERCEPTED'}),onDidChangeSessions:disposable},
     workspace:{getConfiguration:(section,uri)=>({get:()=> {if(section!=='zero') return false; assert.equal(uri?.fsPath,root,'Upload mode must use the student folder scope, overriding global live'); return mode;}}),onDidChangeConfiguration:disposable,workspaceFolders:[{uri:{fsPath:root}}],saveAll:async()=>{saved++;if(saveGate) await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async()=> 'Describe changes',showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal) return confirmUpload;},showErrorMessage:async text=>{throw new Error(text);}},
+    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async options=>{assert.equal(options.title,'Commit & push');assert.match(options.prompt,/https:\/\/github.com\/student\/app · main/);return commitMessage;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine upload must not open a confirmation');},showErrorMessage:async text=>{throw new Error(text);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTaskProcess:disposable,onDidEndTask:fn=>{ends.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{const execution={task,terminate(){ends.forEach(fn=>fn({execution}));}};launches.push(execution);starts.forEach(fn=>fn({execution}));return execution;}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
     Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ShellQuoting:{Strong:2},ProcessExecution:class{constructor(command,args,options){Object.assign(this,{command,args,options});}},ShellExecution:class{},
@@ -69,7 +69,7 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   assert.equal(mutations,0,'Connect must not mutate origin while an upload review is pending');
   releaseReview(); await heldUpload;
   github.prepareUpload=async()=>({page:'https://github.com/student/app',remote:'https://github.com/student/app.git',branch:'main',summary:'1 changed path',changes:[{kind:'M',path:'Main.java'}]});
-  confirmUpload='Commit & push';
+  commitMessage='Describe changes';
   await commands.get('zero.uploadToGitHub')();
   assert.equal(uploaded,1);assert.match(notices.at(-1),/Pushed aaaaaaa/);
   assert.equal(mutations,0,'All real transport is mocked in the live UI test');

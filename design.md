@@ -207,3 +207,12 @@ one supported webview view. Keep short actionable state and Problems recovery;
 long compiler details stay in Zero Output. Native themes and keyboard/file safety
 remain acceptance requirements. The refined generated visual is linked in the
 ignored design-options receipt; it is not native implementation evidence.
+
+### Routine confirmations — owner decision, 2026-10-16
+
+Commit & push proceeds from the commit-message input, showing repository and
+branch there. Naming a new branch creates it directly. First/new-destination
+Publish uses one short public-visibility warning; setup/upload continues without
+a second confirmation. Repeat Publish revalidates and updates the same site.
+Keep concise merge, delete and repository-replacement confirmations and all
+underlying account, destination, source-drift, conflict and transport checks.

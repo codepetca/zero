@@ -56,8 +56,9 @@ username while signed in. Click the username for **Change GitHub account…** or
 **Sign out…**; native VS Code Accounts owns sign-out and credentials.
 The signed-in repository row shows `owner/name`, or **Connect a repository**.
 Click it for create/connect or copy-link/change actions. **New branch** beside
-main creates a reviewed feature branch; **Finish change** beside a feature branch
-completes it into main. Upload remains a separate reviewed action.
+main creates a feature branch after you enter its name; **Merge to main** beside
+a feature branch completes it into main with a concise confirmation.
+**Commit & push** proceeds from its commit-message input.
 Local Run works without sign-in. Local-practice projects continue to block GitHub
 sharing. Native VS Code owns collapse, move and hide controls for Zero and Files.
 
@@ -79,16 +80,17 @@ if it is nested inside another Git repository. Connecting is local and does
 not verify GitHub ownership, existence or permission.
 
 **GitHub actions are live by default; activation never uploads automatically.**
-After signing in and connecting your own repository, enter a commit message and
-review the account, repository, branch and changed paths. **Commit & Upload**
-stages reviewed changes, commits when needed, pushes and checks the remote
+After signing in and connecting your own repository, choose **Commit & push**.
+Its message input shows the repository and branch; submitting proceeds directly.
+Zero validates and stages the captured changes, commits when needed, pushes and
+checks the remote
 branch. Ignored files stay local. A failed push may leave a local commit.
 Optional workspace setting `"zero.uploadMode": "simulation"` is available for
 testing: Upload, Start, Finish and Publish skip saves, Git mutations, authentication
 prompts and network actions. Explicit simulation settings are honored. Tutorial
 repositories use the ordinary GitHub workflow after their required template clone.
-Legacy local-only projects retain their older protection. First Publish confirms its
-destination; later explicit Publish actions revalidate and update that approved
+Legacy local-only projects retain their older protection. First Publish briefly
+warns that the app and included assets will be public and shows its destination; later explicit Publish actions revalidate and update that approved
 site without another destination dialog.
 
 Upload the starting version once on main. For each improvement, start a named
@@ -138,9 +140,10 @@ your own repository to enable it. Live publication requires Git **2.31+**, your
 own GitHub account and live upload mode. Simulation exits without saving,
 requesting authentication, writing publishing files or making network calls.
 
-First setup reviews the public Pages destination, prepares a small publishing kit,
-requests native GitHub workflow permission when needed and uses the existing
-reviewed Upload changes flow. Workflow authorization must use the same account
+First setup shows one short public-visibility warning and the Pages destination,
+prepares a small publishing kit, requests native GitHub workflow permission when
+needed and uses the Commit & push message input. Publishing continues after the
+upload without another confirmation. Workflow authorization must use the same account
 as Zero. The app and included assets become public; repository visibility stays
 unchanged. Zero publishes the validated local build, while GitHub only deploys
 its static output. No Java compilation runs on GitHub.
