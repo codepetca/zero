@@ -52,6 +52,19 @@ pushes, merges to the integration branch, public publication, releases or accoun
 changes. Ordinary Java, explicit object updates, student-owned repositories and
 separate Pika submission remain the product baseline.
 
+## Tutorial tab and browser actions — accepted 2026-10-16
+
+Owner selected the second tutorial concept: ordinary Java on the left and a
+native Tutorials editor tab beside it. Preserve the canonical lesson wording,
+target illustration, short numbered tasks and optional full explanation/code.
+Open in browser opens the current hosted lesson. Run places Zero App in the
+matching tutorial group; its Open in browser action opens the validated local
+build. Both actions are also available through their supported commands.
+The panel supports native detach/reattach and restoration of reading position.
+Actual Mac/Chrome acceptance and combined visual comparison are recorded in
+[design QA](design-qa.md). Git-tab exploration remains parked. The newer account
+and repository-menu rules above supersede the sidebar shown in the concept.
+
 ## Approved and proposed
 
 | Surface | Status |

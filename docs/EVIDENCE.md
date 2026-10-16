@@ -1,5 +1,62 @@
 # Delivery evidence index
 
+## Tutorials beside Java and Open in browser accepted — 2026-10-16
+
+Owner selected tutorial option 2: an editor tab beside ordinary Java, with Open in
+browser for the current lesson and running app. Final source `c89b6ef` includes all
+13 bundled canonical lessons and illustrations, optional explanations/source,
+copy/navigation, root-specific reader state and supported WebviewPanel restoration.
+Run uses the matching tutorial column, keeping Java in the other editor group.
+Native detach/reattach and reload retain the lesson and reading position.
+
+The running-app browser command opens an immutable snapshot of the validated
+WebFX build on loopback. Its preview-only shell is excluded from exports. Stop,
+rerun and server closure remove the browser iframe/audio through a liveness channel;
+the fallback watchdog is bounded while browser timers run (suspension can delay it).
+The browser link is local; GitHub publication remains a separate guarded action.
+
+Actual Mac acceptance used a separate local clone of the previously authorized
+armorup Study trial and existing sign-in. Empty Main + Tutorials opened together;
+Copy code, ordinary Java paste/save, Run, lesson browser opening in Chrome, wrong
+answer 4 / correct answer 5, Stop and cached rerun passed. Chrome received 59 exact
+compiled files, 2,254,060 bytes, matching local bytes and manifest hashes; build ID
+526e6bf2-e86c-4e66-9ced-7ff7245ef60e. Final installed c89 candidate repeated Chrome
+correct-answer/Stop checks without console errors. Seven prior trial Main hashes
+are unchanged; only Main in the dedicated clone was edited. No GitHub mutation,
+new consent, live push/merge/Pages, website deployment or release was performed.
+
+Full root run: 499 tests, 498 pass, one PowerShell runtime skip. Final c89 delta:
+36 targeted tests pass. Website: 108 pass, types and production build pass.
+Configuration/syntax/command contracts/docs links and extracted-kit verification
+pass. Accepted VSIX SHA256 a5ab068c9683811ef0430525e3afc8ff53311c712793f56992ac70c1d0bded81;
+105 authored files match package/source and installed nested Zero/editor extension
+(native __metadata excluded). Preview version 0.5.16 is not a student release.
+
+Bounded GPT-6.1-sol/high implementation/review delegation: one initial and three
+targeted review waves, four correction batches, final review clean. Native testing
+rejected the earlier focus heuristic at 6639c12; explicit column contract replaced
+it. Serializer restoration and a suppressed initialization error were corrected.
+Final source accepted; exact model telemetry, worker tokens/runtime and savings are
+unknown. Recent account-wide weekly remaining 52%; healthy storage ~326.6 GB reused.
+
+Receipts: ignored `.verification/tutorial-browser-20261016/` final-root-tests.log,
+accepted-delta-tests.log, website-final-{tests,types,build}.log, check-accepted.log,
+verify-kit-final.log, package-accepted-parity.json, chrome-served-build.json,
+preservation-final.json and native/Chrome screenshots. Independent installed parity:
+`.verification/sidebar-repository-20261016/installed-parity.json`. Visual comparison
+and intentional canonical-content/native-host adaptations: [design QA](../design-qa.md).
+Website source instructions now describe repository-menu Clone, Tutorials beside
+Java and both browser actions; the public website still contains older ZIP setup.
+Release remains held for current-main/version/pin integration, website/template
+alignment, physical Windows and school/novice acceptance, final Git/Pages/ZeroHub
+acceptance and separately authorized signing/publication.
+
+Peer combined-preview acceptance: account and repository menus and New branch
+cancellation passed; native Switch branch reached the picker, but final selection
+was interrupted by the Mac lock. The peer requested unlock. This is a remaining
+Git interactive check, not a passed end-to-end switch. No credential change.
+Screenshots: `.verification/sidebar-repository-20261016/{account,repository}-menu.png`.
+
 ## Quiet sidebar success feedback installed — 2026-10-16
 
 Owner requested removing success popups. Sourcebd66546 on codex/web-export routes
