@@ -66,7 +66,7 @@ function createTutorialReader(vscode,{context,output,project,load = loadContent}
       });
       panel.webview.html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${escapeHtml(panel.webview.cspSource)}; style-src ${escapeHtml(panel.webview.cspSource)}; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none';"><link rel="stylesheet" href="${escapeHtml(resource('tutorial-reader.css'))}"><title>Tutorials</title></head><body><header><button type="button" class="text-button" data-index="true">← All tutorials</button><button type="button" class="text-button" id="browser">Open in browser ↗</button></header><div id="lesson-index" hidden><label for="lesson-picker">Choose a tutorial</label><select id="lesson-picker">${rendered.navigation}</select></div><main id="tutorial-content">${rendered.articles}</main><p class="sr-only" role="status" aria-live="polite" id="status"></p><script nonce="${nonce}" src="${escapeHtml(resource('tutorial-reader.js'))}"></script></body></html>`;
       return panel;
-    })().catch(error => {panel.dispose();throw error;});
+    })();
     return item;
   }
   async function open(root, initialLessonId = '0') {
@@ -84,7 +84,8 @@ function createTutorialReader(vscode,{context,output,project,load = loadContent}
     }
     const media = vscode.Uri.file(path.join(extensionPath,'media'));
     const panel = vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{viewColumn:vscode.ViewColumn.Beside,preserveFocus:true},{enableScripts:true,enableCommandUris:false,retainContextWhenHidden:true,localResourceRoots:[media]});
-    return attach(panel,key,initialLessonId).initializing;
+    try {return await attach(panel,key,initialLessonId).initializing;}
+    catch (error) {panel.dispose();throw error;}
   }
   const pendingRestores = new Set();
   const serializer = vscode.window.registerWebviewPanelSerializer?.('zero.tutorials',{
@@ -101,7 +102,11 @@ function createTutorialReader(vscode,{context,output,project,load = loadContent}
         const existing = panels.get(key);
         if (existing) {if (existing.panel !== panel) panel.dispose();await existing.initializing;return;}
         await attach(panel,key,'0',serialized).initializing;
-      } catch (error) {const shouldReport = !disposed && !closed;panel.dispose();if (shouldReport) await report(error);}
+      } catch (error) {
+        const shouldReport = !disposed && !closed;
+        panel.dispose();
+        if (shouldReport) await report(new Error(`${error.message} Reinstall Zero to restore the bundled tutorials.`));
+      }
       finally {pendingRestores.delete(panel);listener?.dispose();}
     }
   });

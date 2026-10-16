@@ -141,3 +141,35 @@ test('webview restore handshake ignores local state from another root',() => {
   assert.equal(elements.get('lesson-picker').value,'8');assert.equal(saved.readerKey,rootB);assert.equal(saved.lessonId,'8');assert.equal(sandbox.window.scrollY,88);
   assert.equal(articles.filter(article=>!article.hidden)[0].dataset.lessonId,'8');
 });
+test('serializer initialization failures report useful reinstall guidance before disposing their panel',async () => {
+  for (const failure of ['missing bundle','render failure']) {
+    const f=fake();const lines=[];
+    const reader=createTutorialReader(f.vscode,{context:f.context,output:{appendLine:text=>lines.push(text)},load:async()=>{
+      if(failure === 'missing bundle') throw new Error('ENOENT tutorial-content.json');
+      return {lessons:null};
+    }});
+    const panel=f.vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{},{});
+    await f.serializers.get('zero.tutorials').deserializeWebviewPanel(panel,{});
+    assert.equal(panel.disposed,true);
+    assert.equal(f.errors.length,1);assert.match(f.errors[0],/Reinstall Zero to restore the bundled tutorials/);
+    assert.equal(lines.length,1);assert.match(lines[0],/Tutorials:/);
+    assert.equal(reader.columnFor(),undefined);reader.dispose();
+  }
+});
+test('serializer suppresses delayed initialization errors after genuine user close or manager disposal',async () => {
+  for (const close of ['user','manager']) {
+    const f=fake();let fail;
+    const reader=createTutorialReader(f.vscode,{context:f.context,load:()=>new Promise((resolve,reject)=>{fail=reject;})});
+    const panel=f.vscode.window.createWebviewPanel('zero.tutorials','Tutorials',{},{});
+    const restoring=f.serializers.get('zero.tutorials').deserializeWebviewPanel(panel,{});
+    await new Promise(resolve=>setImmediate(resolve));
+    if(close === 'user') panel.dispose();else reader.dispose();
+    fail(new Error('delayed missing bundle'));await restoring;
+    assert.equal(panel.disposed,true);assert.deepEqual(f.errors,[]);reader.dispose();
+  }
+});
+test('explicit open still disposes its failed panel and propagates initialization failure to its command',async () => {
+  const f=fake();const reader=createTutorialReader(f.vscode,{context:f.context,load:async()=>{throw new Error('missing bundle');}});
+  await assert.rejects(reader.open('/project'),/missing bundle/);
+  assert.equal(f.panels[0].disposed,true);assert.equal(reader.columnFor('/project'),undefined);reader.dispose();
+});
