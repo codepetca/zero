@@ -1,19 +1,26 @@
 # Current state — GameApp rename, 2026-10-15
 
 Owner authorized complete canvas API rename without an alias, then PR and merge.
-Branch codex/gameapp-rename starts from main dfe2c9b in a managed worktree; the
-original funding checkout and its unrelated edits stay preserved.
+[PR66](https://github.com/codepetca/zero/pull/66) carries current-main source from
+dfe2c9b; final CI/merge status is authoritative at that link. Original funding
+checkout and its unrelated edits remain preserved.
 
 Current source uses zero.GameApp across library, examples, lessons/checkpoints,
 generated projects, sharing validation and website API. Loop/delta-time behavior
-is unchanged. Safe retired-source handling preserves edits and blocks unknown
-ownership; known unchanged generated copies are removed. No new binary release,
-external template repository change or credential change is part of this PR.
+is unchanged. Retired generated source is removed only with a matching recorded
+hash; edits/unknown ownership block preparation and are preserved. Published
+binaries, external template repositories and release metadata are unchanged.
 
-Next: finish proportionate local checks, one bounded current-main integration
-review, draft PR/CI, then merge under the owner's explicit authorization. Reuse
-prior implementation/retirement review only after integration verification.
-Evidence: docs/EVIDENCE.md and ignored .verification/gameapp-rename/.
-Previous updater publication is recorded in EVIDENCE; its immutable assets/feed
-and release metadata remain unchanged. Weekly63%remaining; storage337GBhealthy;
-DeepSeek pause remains in effect. No new goal, task or automation.
+Code review: gameapp_integration_review/1 Sol/medium complete109file diff through
+bb9434f, no findings. Prior implementation retirement P2 fixed/accepted; total
+3reviewer turns/1fixbatch. Effective model/tokens/worker elapsed unknown.
+Local check,6kit,265root+1skip,95website/typecheck/build,45sharing and3lesson
+scaffold builds pass. Native smoke compiled but timed out at window focus;
+GitHub CI supplies the Linux native checks. No other-OS or Mac focus success claim.
+
+See docs/EVIDENCE.md and ignored .verification/gameapp-rename/ for receipts.
+Final documentation-only receipt commit follows reviewed source without API/code
+changes. Keep PR draft until CI passes, then merge under explicit owner authority;
+verify GitHub's final state and preserve original checkout on cleanup. Existing
+updater release/feed unchanged. Weekly63%remaining; storage337GBhealthy; DeepSeek
+pause remains. No new goal, task, automation or credential change.
