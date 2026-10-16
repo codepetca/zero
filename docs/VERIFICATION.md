@@ -1,5 +1,18 @@
 # Verification
 
+## Website publication acceptance — 2026-10-16
+
+[PR71](https://github.com/codepetca/zero/pull/71) merged e268b93 after complete
+independent integration review and successful exact-headCI38906665641.96website
+and10design tests/typecheck/build pass; CI also covers native input, examples,
+lesson progression, extension, sharing and Maven consumers. Production READY and
+anonymous200 checks cover tutorials8/9,docs/docs-api/downloads; live desktop browser
+confirms highlighted tutorial headings, muted help,no Previous/dividers, method-
+bound sticky names and matching light/dark scrollbar tracks.0.5.17 kit destination
+and signed feed bytes unchanged. Safari/physical/enlarged-text/forced-color UI
+remain untested. Evidence: [publication receipt](EVIDENCE.md#website-reading-cleanup-published--2026-10-16)
+and ignored .verification/tutorial-cleanup/publication/.
+
 ## Subtle scrollbar tracks — 2026-10-16
 
 10 shared design tests, website typecheck/build and whitespace checks pass.

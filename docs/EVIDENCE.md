@@ -1,5 +1,41 @@
 # Delivery evidence index
 
+## Website reading cleanup published — 2026-10-16
+
+Owner explicitly authorized publication of all changes from this chat. Integrated
+current main e8e25cc without changing0.5.17 release/download/update metadata;
+manual conflicts were limited to CURRENT/EVIDENCE and both histories were retained.
+[PR71](https://github.com/codepetca/zero/pull/71) reviewed head
+1d23adc5e3d112de55c60c4ab74d24680bd2d141 passed complete Sol/medium integration
+review with no findings,96website tests,10design tests,typecheck/build and
+[CI38906665641](https://github.com/codepetca/zero/actions/runs/38906665641).
+CI passed native input/examples/progression, extension/sharing/Maven and website.
+Merge e268b93f6a9dfe2bbdacf3b59172abda10617e0b is verified on origin/main;
+owned worktree fast-forwarded, original funding and other active worktrees preserved.
+
+Vercel production dpl_Gkgp3gRkzEMNT5Pmhw6tp2BC2a3R is READY and serves
+[zero.codepet.ca](https://zero.codepet.ca); GitHub production deployment7120105398
+binds that URL to the merge SHA. Anonymous HTTP200 verifies tutorials8/9,docs,
+docs/api and downloads. Tutorial output has muted helper cards with no Previous
+paragraphs/HRs; deployed CSS pins method names and themes scrollbar tracks.
+Live browser1280px confirms method top93 equals header bottom93 while its article
+is scrolled away, static category headings and no overflow. Live tutorial8 shows
+zero section borders, muted14px help and subtle step backgrounds. Root scrollbar
+tracks are transparent in both themes; dark preference restored. Existing0.5.17
+kit link remains exact, signed feed bytes still SHA256
+775853aa186d3098bc2845e2ad1fa57e58f7bbf02ec6dff35b9dabf9ab2c5ad2.
+
+Receipts/screenshots:ignored .verification/tutorial-cleanup/publication/.
+The preview was protected by Vercel SSO and was not counted as page verification.
+One complete integration wave after three prior component review launches;zero
+findings/fix batches. Effective model,tokens and reviewer elapsed unknown.
+Weekly56%remaining at publication start;storage healthy328GB. DeepSeek pause
+honored. Two unrelated updater tracing warnings remain;Safari/physical platforms,
+enlarged text and forced-color UI were not newly exercised. No binaries rebuilt,
+credentials/account changes,new goal/chat/automation. This final documentation
+receipt is local; the published implementation and remembered design choices are
+already on main through PR71.
+
 ## Subtle scrollbar tracks — 2026-10-16
 
 Owner requested scrollbar gutters blend into the existing background. Generated
