@@ -1,17 +1,15 @@
-# Current state — compact sidebar and simplified confirmations installed, 2026-10-16
+# Current state — direct Git actions installed, 2026-10-16
 
-Routine-confirmation follow-up integrated locally and installed, 2026-10-16:
-owner authorized this chat to fast-forward codex/web-export to3238295 and update
-the existing preview. Reviewed code6c3cde8 is unchanged by integration. Candidate
-`dist/candidates/zero-0.5.16-confirmations-6c3cde8/zero-0.5.16.vsix` now replaces
-the prior0.5.16extension in the owned nested Zero/editor profile. All87packaged
-files match current source/installation (native manifest metadata excluded).
-Actual Study preview window reloaded; new Commit & push input shows repository
-and branch, Escape restores ready controls; no commit/push performed. All7trial
-Main hashes preserved. Integrated48focused tests pass. Underlying source review
-remains clean; known archived-doc global-check blocker unchanged. No public
-release, GitHub publication, account change or new goal/task/automation.
-See docs/EVIDENCE.md and .verification/confirmations-20261016/integration-install.json.
+Latest owner follow-up removes the Merge to main confirmation too: code2377d0b
+on codex/web-export. Existing safety checks/Run-after-main-update pause/conflict
+recovery remain; optional local-branch deletion still confirms. Candidate
+`dist/candidates/zero-0.5.16-direct-merge-2377d0b/zero-0.5.16.vsix` is installed in
+the owned nested Zero/editor profile; all87files match source/package/installation.
+Current Study window reloaded and ready.43workflow/UI/auth/transport tests pass;
+2independent Sol/high reviews clean,0fixes.7trial Main hashes preserved. No live
+merge/push, public app, student release or account change. Known archived-doc
+link-check blocker unchanged. Previous confirmation cleanup2377's parent8bedf8f
+remains integrated. See docs/EVIDENCE.md and .verification/direct-merge-20261016/.
 
 Coordinator Lead publishing task, thread01a13f98-55fc-7471-9038-1198b14d5a98.
 Use /Users/stew/.codex/worktrees/web-export/zero, branch codex/web-export.

@@ -1,5 +1,34 @@
 # Delivery evidence index
 
+## Direct Merge to main installed — 2026-10-16
+
+Owner requested removing the merge confirmation. Source2377d0b on codex/web-export
+removes only the modal before execution; account/project/destination/SHA checks,
+clean-tree/remote-main rules, operation locking, updated-main Run pause and conflict
+recovery remain. Optional local-branch deletion still asks separately. Product,
+design, manifest and README reflect the direct action.
+
+43workflow/UI/auth/transport tests pass, including disposable bare-remotes,
+session drift during preparation, serialization, conflicts and cleanup. Syntax
+and whitespace pass. Independent GPT-6.1Sol/high safety and compatibility reviews
+cover the complete6file delta over8bedf8f and immediate callers: zero findings,
+2review turns,0fix batches. Effective model/tokens/exact reviewer time unknown.
+Unchanged earlier publication tests/reviews reused; existing archived-doc link
+blocker remains outside this change.
+
+Candidate `dist/candidates/zero-0.5.16-direct-merge-2377d0b/zero-0.5.16.vsix`
+installed into the existing nested Zero/editor profile. All87package files match
+source and installation (native package metadata excluded). Prior extension
+backed up. Current Mac Study preview reloaded, sidebar/editor ready; no actual
+merge or push invoked. All7trial Main hashes unchanged. Other open windows may
+need Reload Window. Physical Windows/live GitHub merge untested. No public source
+push, app publication, student release or credential changes.
+
+Receipts: ignored `.verification/direct-merge-20261016/` package-parity.json,
+delivery.json, tests.log, package.log and install.log. Coordinator handled this
+small edit directly; two bounded reviewers retained the prior configuration.
+Cached327GBhealthy and recent55%weekly remaining reused; no new goal/chat/automation.
+
 ## Simplified confirmations integrated and installed — 2026-10-16
 
 Owner authorized local browser-branch integration and installed-preview update.
