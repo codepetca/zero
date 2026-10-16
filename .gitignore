@@ -13,7 +13,7 @@ dist/
 *.log
 .env
 .env.*
-student-template/src/main/java/zero/SimpleApp.java
+student-template/src/main/java/zero/App.java
 student-template/src/main/java/zero/GameApp.java
 student-template/LICENSE
 website/.generated/

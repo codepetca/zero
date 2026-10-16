@@ -34,7 +34,7 @@ Main creates both shared views and its activity controls once in setup. Start
 and Restart call Main's `restartSession()`; Main resets its fields and updates
 the existing controls. Main owns Question[], retries, points, advance and
 completion. Hud owns presentation and forwards points to its ScoreDisplay.
-SimpleApp's `show(...)` displays the welcome or activity; it does not remember
+App's `show(...)` displays the welcome or activity; it does not remember
 session state. Completion updates the activity view instead of rebuilding it.
 
 See [the shared view contract](../composition-shared/README.md) for the optional

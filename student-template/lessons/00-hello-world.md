@@ -14,7 +14,7 @@ Target illustration: your greeting after you write it.
 
 ## Code and explanation
 
-The new `Main.java` has `Main extends SimpleApp`, an empty `setup()` and a
+The new `Main.java` has `Main extends App`, an empty `setup()` and a
 `main` method. Keep those lines. The empty setup opens a blank window, so your
 first control is yours to write. Add this import above `public class Main`:
 

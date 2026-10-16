@@ -26,7 +26,7 @@ Each Question holds its prompt, expected answer and explanation. Add another
 `new Question(...)` to the array to extend the session; progress and the final
 summary use the array's length. Change the prompts, explanations or answers to
 study another topic. Main's small event-handler methods own all session state.
-SimpleApp only starts the window and displays the JavaFX layout.
+App only starts the window and displays the JavaFX layout.
 
 ScoreDisplay is the exact same source used by the default quiz and practice
 tracker. Copy the canonical shared file without changing it for this app.

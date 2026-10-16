@@ -3,10 +3,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
 /** A small study session: Main owns the state and updates ordinary objects. */
-public class Main extends SimpleApp {
+public class Main extends App {
     private final Question[] questions = {
         new Question("What is the value of 7 / 2 when both numbers are ints?", "3",
                 "Integer division drops the fractional part."),

@@ -5,7 +5,7 @@ used to guide implementation. The working versions now live in the
 [starter](../../student-template/README.md); consult
 [PRODUCT.md](../PRODUCT.md) for the current contract and
 [VERIFICATION.md](../VERIFICATION.md) for actual check evidence.
-The earlier starter's `SimpleApp` was a canvas-based app; the new design separates
+The earlier starter's `App` was a canvas-based app; the new design separates
 ordinary interface apps from animated games.
 
 ## The learning model
@@ -17,7 +17,7 @@ the small amount of repetitive window configuration.
 
 Two entry points share the same startup conventions:
 
-- `SimpleApp`: `settings()` configures the window, `setup()` builds the interface,
+- `App`: `settings()` configures the window, `setup()` builds the interface,
   and `show(Node)` displays it. There is no student animation loop.
 - `GameApp`: adds a canvas, drawing/input helpers and the explicit
   `update(seconds)` followed by `draw()` loop. Its canvas dimensions come from
@@ -62,9 +62,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     private int points = 0;
     private TextField answer;
     private Label feedback;
@@ -250,9 +250,9 @@ Window sketch:
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     private int completed = 0;
     private ScoreDisplay score;
 
@@ -302,7 +302,7 @@ Change the shared class once, then verify both apps.
 
 | Surface | Initial contract |
 | --- | --- |
-| SimpleApp | settings, setup, title, initial size, show a JavaFX Node |
+| App | settings, setup, title, initial size, show a JavaFX Node |
 | GameApp | Common startup plus canvas dimensions, update(seconds), draw |
 | Drawing | background, fill, circle, rect, line, text, basic image support |
 | Input | Canvas mouse coordinates and held key/button queries |

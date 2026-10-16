@@ -30,5 +30,5 @@ Main creates ScoreDisplay once in setup and puts `score.view()` in the bottom
 HBox. After changing points, Main calls `score.setScore(points)` explicitly.
 ScoreDisplay owns its Label; Main owns points, the goal and the win rule.
 Player and Coin are the unchanged Lesson 9 classes. Neither the display nor
-the game objects extend SimpleApp; Main extends GameApp and hosts ordinary
+the game objects extend App; Main extends GameApp and hosts ordinary
 JavaFX nodes around its canvas. See [Lesson 10](../../lessons/10-components.md).

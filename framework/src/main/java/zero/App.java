@@ -13,7 +13,7 @@ import javafx.stage.Stage;
  * setup builds ordinary JavaFX controls and calls show. Both run once on the
  * JavaFX application thread. Keep event handlers short so the UI can respond.
  */
-public abstract class SimpleApp extends Application {
+public abstract class App extends Application {
     private double appWidth = 800;
     private double appHeight = 500;
     private String appTitle = "Zero";

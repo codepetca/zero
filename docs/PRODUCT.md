@@ -64,7 +64,7 @@ See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md)
 
 ## App and learning contract
 
-`zero.SimpleApp` is event-driven: `settings()` sets `title(...)` and initial
+`zero.App` is event-driven: `settings()` sets `title(...)` and initial
 `size(...)` and optional `padding(...)` around the content; `setup()` creates JavaFX controls and calls `show(Node)`. Buttons,
 labels, text fields and layouts keep their ordinary JavaFX names and behavior.
 The installed kit's default app shows Hello, world!; the learning projects start

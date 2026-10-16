@@ -8,8 +8,8 @@
       "visibility": "public",
       "isTemplate": true,
       "defaultBranch": "main",
-      "commit": "4b9687d5207939299a6a1e066d796047e6c87ff3",
-      "tree": "29a784070044337ea56a17b1cb58d52582340fed"
+      "commit": "ab4c4b269abf096b5d545305ab625b238f04f02d",
+      "tree": "9082b43e33f48055e7f2b21766507ded0944792b"
     },
     {
       "id": "hello-app",
@@ -18,8 +18,8 @@
       "visibility": "public",
       "isTemplate": true,
       "defaultBranch": "main",
-      "commit": "9d4969bab0d4b1b31d10e946d03f60baa72ba168",
-      "tree": "afefe040276fe21ac02fd840445e27a743ac1e51"
+      "commit": "d60223edcc125e27b60e9834d38478aeb1276cd8",
+      "tree": "dd5a3b1ce23ea61e0217990efc7e13045f7fedcc"
     },
     {
       "id": "study",
@@ -28,8 +28,8 @@
       "visibility": "public",
       "isTemplate": true,
       "defaultBranch": "main",
-      "commit": "86d021bb7cd64ca60f003b3415077d7ff1945402",
-      "tree": "84e96d4c25cc35aa92fd0fc40c3949168d85f551"
+      "commit": "77de0bb966cd1babf8f956a2e9e72e2fe985ed06",
+      "tree": "d169944a6be7000897bd8cfd542c1ae4ea8a1697"
     },
     {
       "id": "coin-game-component",
@@ -38,8 +38,8 @@
       "visibility": "public",
       "isTemplate": true,
       "defaultBranch": "main",
-      "commit": "e9875d5dafbeaa5c66dd7f5a7ff1f31fa00f58d6",
-      "tree": "e6037e69f886104f8010db963ee66d81c1bc6bc9"
+      "commit": "7830a98b49a85e018d35de1695645b09749bcf9f",
+      "tree": "7727f5633d6f9f9eddea9894fb31ffa9378e620e"
     },
     {
       "id": "drawing",
@@ -48,8 +48,8 @@
       "visibility": "public",
       "isTemplate": true,
       "defaultBranch": "main",
-      "commit": "838921410abe37236fecdf7151729f92a7fff95e",
-      "tree": "da25f4b39ffd5391b7f90007a487360aeddc99ed"
+      "commit": "ad997f9a8a3b98ff0a63c34732a05240f834dbea",
+      "tree": "ab726cfd8aa8a3888d48a589b06704b4355d0672"
     }
   ]
 }

@@ -180,7 +180,7 @@ pending. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) for a teacher-authorized t
 
 Pin JavaFX, Maven wrapper/distribution and npm tooling; commit the npm lockfile.
 Keep generated artifacts and caches out of Git. The framework source ships inside
-the starter so students can inspect and edit it. SimpleApp builds ordinary JavaFX
+the starter so students can inspect and edit it. App builds ordinary JavaFX
 interfaces; GameApp adds canvas animation. Keep explicit object updates and
 ordinary controls/layouts available rather than introducing a larger engine.
 

@@ -9,7 +9,7 @@ switching examples; the exact copy list is in [README.md](README.md#try-an-examp
 
 1. **Trace execution.** Identify the fields holding state, the objects made in
    setup, and the method called by clicking Check answer. Explain why setup runs
-   once, why the handler runs on a click, and why SimpleApp has no draw loop.
+   once, why the handler runs on a click, and why App has no draw loop.
 2. **Change the quiz.** Change the question and expected string together. Change
    the points awarded. Change VBox spacing/padding or add a hint Label. Try a
    wrong answer, an answer surrounded by spaces, and clicking again after success.

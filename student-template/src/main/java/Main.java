@@ -1,7 +1,7 @@
 import javafx.scene.control.Label;
-import zero.SimpleApp;
+import zero.App;
 
-public class Main extends SimpleApp {
+public class Main extends App {
     public void setup() {
         var greeting = new Label("Hello, world!");
         show(greeting);

@@ -8,7 +8,7 @@ export const lessons = [
     "description": "Run a tiny program and change its greeting.",
     "topic": "Run, edit, rerun",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "1",
@@ -16,7 +16,7 @@ export const lessons = [
     "description": "Click a button to change the greeting.",
     "topic": "Button, click handler, label text",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "2",
@@ -24,7 +24,7 @@ export const lessons = [
     "description": "Type your name and show a greeting.",
     "topic": "TextField, getText, joining text",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "3",
@@ -32,7 +32,7 @@ export const lessons = [
     "description": "Check one answer and show feedback.",
     "topic": "if/else, comparing text",
     "doc": "api",
-    "anchor": "simpleapp-startup-and-interfaces"
+    "anchor": "app-startup-and-interfaces"
   },
   {
     "id": "4",
