@@ -13,8 +13,8 @@ Use [the appearance guide](STYLE.md) for fonts, spacing, colours and editable CS
 
 GameApp **extends App**. Create one Main application, not a App
 inside a GameApp. A control or component is an ordinary object in that app.
-Keep the canvas in the game's centre. Inherited `show(...)` replaces the
-visible game layout but does not stop its timer; it is not a game menu command.
+Keep the canvas in the sketch's centre. Inherited `show(...)` replaces the
+visible sketch layout but does not stop its timer; it is not a sketch menu command.
 
 ## Create UI once; update its values
 

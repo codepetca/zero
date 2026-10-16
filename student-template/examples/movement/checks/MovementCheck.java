@@ -34,7 +34,8 @@ public class MovementCheck extends Application {
         var app = new Main();
         try {
             app.start(stage);
-            app.stop();
+            // Keep the lifecycle active until the shutdown assertion below. These
+            // synchronous checks finish on the FX thread before timer callbacks run.
             var player = (Player) field(app, Main.class, "player");
             var keys = (Set<KeyCode>) field(app, GameApp.class, "keys");
             require(coordinate(player, "x") == 40 && coordinate(player, "y") == 180,

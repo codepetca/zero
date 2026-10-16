@@ -1,5 +1,903 @@
 # Verification
 
+## Approved guide correction complete — 2026-10-16
+
+Direct owner approval released the prepared three-guide batch plus one focused
+review. Source4a9e889 corrects the removed confirmation prompts and optional local
+branch deletion in GETTING-STARTED, SETUP and starter README. One independent
+Sol/medium complete three-file delta review found no actionable issues against
+immediate Git/publish callers. Legacy ledger now6launches,1initial/5targetedwaves,
+5fixbatches; this authorized extension is complete, with no further loop requested.
+Effective reviewer model/tokens/elapsed unavailable. No new Java/runtime changes.
+
+Current109website tests/check/build pass; actual Chrome guide includes direct
+Enter/click actions, retained remote branch and safe-cleanup Output recovery, with
+obsolete prompts absent and no captured warnings/errors. Package/extracted-kit
+pass; corrected starter README is exact in the kit. All106source/package/installed
+extension files still match, so no redundant reinstall or native retest was needed.
+Existing student project READMEs were preserved. Prior510root/onePowerShellskip,
+34clone-preference and website type checks retain unchanged-runtime coverage.
+
+Local candidate dist/candidates/zero-0.5.18-guides-4a9e889 and unsigned universal
+Mac dist/installers/candidate-4a9e889 preserved. Sol/medium artifact worker rebuilt
+in37.590s and verified in5.097s, one attempt/no rework. Independently rehashed all
+preserved files. DMG4443455bytes SHA256
+`f4066be957e3f1cce16fa309bd772b9ac93e61e48eab61af2c6321e0503a3058`.
+Source/kit/release manifests/feed/historical candidates remained exact. Ad-hoc '-'
+only; no app execution, DeveloperID/notary/staple or public action.
+
+Mac preview is locally ready; public student release is not. Next missing authority
+is pushing reviewed codex/release-readiness and opening a draft PR for CI. A concrete
+PR body is prepared locally. Public template/policy/Play, final live Git/Pages,
+signing/classroom gates remain; Windows is separately deferred. Current native
+finite framework focus harness has no passing verdict and remains honestly reported.
+No workflow assertion was weakened. Receipts guide-correction/review.md,
+review-budget.json, candidate.json, chrome-guide.json/png and final-mac-4a9e889/RESULT.*.
+Weekly45%remaining and healthy316.6GB are shared observations, not attributable cost.
+
+## Remember clone location installed and accepted — 2026-10-16
+
+Owner requested remembering the chosen clone parent. Peer source87ba673 integrated
+asce12fa7; five reviewed file hashes exactly match. One Sol/medium independent
+complete-diff review was clean with no findings/fixes. Effective model/tokens and
+review elapsed unavailable. Root34folder/onboarding/extension tests, check,
+package and extracted-kit verification pass. Existing510root/109website passes
+are reused for unchanged behavior; no redundant full suite was run.
+
+Installed candidate source0f033c1 (CURRENT-only metadata after runtimece12fa7):
+VSIX SHA256`cd802b11f41018bcfa344bc43a4c869d935f440be07d530812d985733fa9d1a6`,
+106authoredfiles exact source/package/installed. Native test chose an owned alternate
+parent with Clone here, reopened with that parent selected, navigated elsewhere
+and cancelled, then reloaded the editor: the chosen parent remained. Finally
+restored the original ~/Zero Projects via UI and verified it by reopening/cancelling.
+Main left and Study lesson3right restored/raised. Existing armorup session and
+ordinary Java retained; native Git reused an existing clone, with no fresh transport
+or public mutation claimed. The machine-local preference is not registered for
+Settings Sync. Unavailable paths/storage failure have focused test coverage, not
+native fault injection; no actual Sync or physical Windows trial.
+
+Receipts `.verification/release-readiness-20261016/remember-clone/`: delivery.json,
+source-hashes.json, integration.json, integrated-tests.log, candidate.json,
+native-acceptance.json and remembered-after-reload.png/study-restored.png. Candidate
+preserved in dist/candidates/zero-0.5.18-remember-0f033c1. Unsigned3bf5304 DMG is now
+historical and must be refreshed with final guide/policy inputs before release.
+The legacy three-guide correction remains prepared/unapplied pending its explicit
+extra-batch review approval; no new review session was used to bypass that hold.
+Weekly46%remaining/healthy317.7GB are shared observations, not attributable cost.
+
+## Combined Project menu and installed Mac preview — 2026-10-16
+
+Installed source `3bf5304` integrates the reviewed Project/Clone feature and aligned
+website guides. Full combined root suite: 511 tests, 510 pass, one PowerShell runtime
+skip, zero failures in 297.116 seconds with ARM JDK 17. Website 109 tests, typecheck
+and production build pass; check/package/extracted-kit verification pass. The later
+sole development-guide correction reuses unchanged runtime coverage. Root verified
+all 26 peer-reviewed source hashes exactly. New-feature independent Sol/high review:
+one complete initial wave, two targeted waves, two fix batches, no remaining finding;
+effective model, tokens and review elapsed unavailable. Accepted fixes let another
+location work when the default folder is unavailable and correct stale menu wording.
+The peer stopped its stale root run, preserved logs and handed one coherent full run
+to this coordinator; no duplicate install or UI writer.
+
+Final candidate VSIX SHA256 `586ba6d6ec5b3013fe4c660c48d732daaea33b4cd60a355167a47b24fca105d2`,
+431186 bytes, has 106 authored files matching source and installed extension. Native
+current host is VS Code 1.142.0. Existing armorup account retained. Project menu,
+invalid URL recovery and Clone location / Zero Projects / Clone here passed. Native
+Git reused the already-open Study clone; this repeat does not claim fresh transport
+or new authentication. Open local project opened a separate owned canonical Study
+folder in a new window, showed its folder name and Connect to GitHub; all 23 authored
+files unchanged. Actual installed Run → Chrome wrong 4 / right 5 → Stop passed;
+Stop removed the iframe. Main and Tutorials lesson 3 restored; the requested Study
+window was reopened, fitted and raised. No GitHub/account/publication mutation.
+
+All five canonical complete template drafts compile and pass Chrome acceptance.
+Study retry, scoring once, all three answers, completion and restart pass. Drawing
+click paints and secondary click clears. Coin game held-arrow input collects three
+coins, reaches win and restarts. Starter renders Hello world; Hello blank/name/Enter/
+Reset was accepted earlier. No captured browser console warnings/errors. Four new
+builds each have 59 served files, 2161473–2263775 bytes, exact to their local manifests;
+Hello has 59 files/2263877 bytes exact. Final generated drafts retain exact compiled
+inputs; only instructions and the standalone Hello preview illustration changed.
+Public complete templates remain old and require separate authorized publication.
+
+Sol/medium bounded artifact worker rebuilt the unsigned universal Mac DMG in
+69.589 seconds and verified the payload in 7.992 seconds, one attempt/no rework.
+Preserved candidate-3bf5304 DMG: 4442988 bytes, SHA256
+`9b0922ab565eb1c81234312216cb0b0483b26f669f5c5f7fe359761abcbc5af1`.
+Kit: 2945203 bytes, SHA256
+`bf64bb2884c72a0699c4573f286022a9aeba7a377e5321069322c601b3ca7504`.
+Source, kit, previous artifact and published manifests/feed remained unchanged.
+Ad-hoc build signing only; no Developer ID, notarization or installer execution.
+
+Final Chrome guide inspection found remaining legacy descriptions of removed
+confirmation dialogs and optional finished-branch cleanup. A concrete three-guide
+patch is prepared but not applied; an explicit extra-batch/focused-review question
+is pending because the legacy review exhausted four fix batches/targeted waves.
+This is a release blocker, not hidden behind the clean new-feature review. Remaining
+public policy/template/Play, CI, real Git/Pages, signing and classroom gates remain;
+physical Windows is deferred for the Mac preview. The current focus-dependent native
+framework harness still has no passing verdict. No public release is claimed.
+
+Receipts under `.verification/release-readiness-20261016/`: combined-candidate.json,
+native-combined-acceptance.json, open-local-before/after.json, project-menu-integration.json,
+project-menu-peer-*, root-tests-combined-4adb2fa.log, website-*-combined-*,
+final-mac-3bf5304/RESULT.*, template-chrome-acceptance.json, template-http-parity.json,
+final-template-input-parity.json and guide-correction-proposal.patch. Current weekly
+47% remaining and fresh healthy319 GB are shared account/host observations, not
+attributable cost. Worker effective configurations/tokens and coordinator active
+seconds are unknown. DeepSeek pause honored.
+
+## 0.5.18 Mac preview integration baseline — 2026-10-16
+
+Local reviewed baseline e049c9d integrates main456b490 with the browser-first
+student workflow, seven helper profile, tutorial editor and browser actions.
+Versions are local0.5.18/core0.2.1/native18; published17 assets/feed remain exact.
+Hello now uses ordinary themed JavaFX controls and a supported Font. Its actual
+unmodified generated project compiles in WebFX; Chrome blank/name/Enter/reset
+and59servedfiles/2,263,877bytes match. Native Hello ARM17 also passes. Actual
+installed0.5.18 Study Run→ChromeCorrect→Stop, tutorial placement and Publish menu
+pass;105authoredfiles match the accepted9aa candidate/installation. Eight trial
+Main hashes and original main HEAD/status are preserved.
+
+Baseline root502tests501pass/1PowerShellskip; website109/types/build pass; final
+33guide/lesson/auth checks pass. Three scaffold compiles,16progressionvariants and
+two media reruns pass. Release tooling115pass/2optional skips. Unsigned9aa universal
+Mac DMG build/payload verification pass; ad-hoc only, no Developer ID/notarization
+or installer execution. Historical candidate retained; later changed inputs must
+be rebuilt. Current finite native framework checks remain inconclusive at window
+focus (x86helpersphase0; ARMsmokephase2twice), not a passed current native suite.
+
+Independent Sol/high review: complete62file baseline then four targeted waves,
+four correction batches, finalclean. One P2 stale Hello preview resolved with the
+verified canonical capture; subsequent guide/menu fixture corrections accepted.
+Legacy review budget closed; no extra remediation authorized by the workflow.
+A first root run loaded the obsolete Hello-CSS rejection while source was repaired;
+it was stopped, logged and replaced by the coherent passing ARM17 run. No task
+cost/worker token/runtime savings inferred from account usage. Recent49%weekly
+remaining and healthy319GBstorage; DeepSeek stays paused.
+
+Five anonymously retrieved public example archives match their exact pinned Git
+trees, but all retain two outdated helpers and fail the strict profile; local
+corrected drafts prepared. Three tutorials already match all21helperhashes.
+Published17 kit/starter/VSIX/MacDMG and updater feed were anonymously rechecked:
+all exact. Pinnedbeaaca4 trusted policy rejects web receipts; local current
+contract accepts them. No public policy/template update, live Git/Pages/ZeroHub
+operation, push/deploy/signing or release was performed. Windows physical testing
+is explicitly deferred by owner in favor of Mac preview first.
+
+Next owner-approved Project/Clone flow is being integrated separately with the
+same coordinator and one final installer/UI owner; this baseline is not a final
+release claim. Local records: `.verification/release-readiness-20261016/` review,
+tests, template audit/drafts, native/Chrome captures, candidate parity, preservation,
+public-downloads-17/receipt.json and release-tooling-9aa3f6a/RESULT.md.
+
+## Tutorials beside Java and Open in browser accepted — 2026-10-16
+
+Owner selected tutorial option 2: an editor tab beside ordinary Java, with Open in
+browser for the current lesson and running app. Final source `c89b6ef` includes all
+13 bundled canonical lessons and illustrations, optional explanations/source,
+copy/navigation, root-specific reader state and supported WebviewPanel restoration.
+Run uses the matching tutorial column, keeping Java in the other editor group.
+Native detach/reattach and reload retain the lesson and reading position.
+
+The running-app browser command opens an immutable snapshot of the validated
+WebFX build on loopback. Its preview-only shell is excluded from exports. Stop,
+rerun and server closure remove the browser iframe/audio through a liveness channel;
+the fallback watchdog is bounded while browser timers run (suspension can delay it).
+The browser link is local; GitHub publication remains a separate guarded action.
+
+Actual Mac acceptance used a separate local clone of the previously authorized
+armorup Study trial and existing sign-in. Empty Main + Tutorials opened together;
+Copy code, ordinary Java paste/save, Run, lesson browser opening in Chrome, wrong
+answer 4 / correct answer 5, Stop and cached rerun passed. Chrome received 59 exact
+compiled files, 2,254,060 bytes, matching local bytes and manifest hashes; build ID
+526e6bf2-e86c-4e66-9ced-7ff7245ef60e. Final installed c89 candidate repeated Chrome
+correct-answer/Stop checks without console errors. Seven prior trial Main hashes
+are unchanged; only Main in the dedicated clone was edited. No GitHub mutation,
+new consent, live push/merge/Pages, website deployment or release was performed.
+
+Full root run: 499 tests, 498 pass, one PowerShell runtime skip. Final c89 delta:
+36 targeted tests pass. Website: 108 pass, types and production build pass.
+Configuration/syntax/command contracts/docs links and extracted-kit verification
+pass. Accepted VSIX SHA256 a5ab068c9683811ef0430525e3afc8ff53311c712793f56992ac70c1d0bded81;
+105 authored files match package/source and installed nested Zero/editor extension
+(native __metadata excluded). Preview version 0.5.16 is not a student release.
+
+Bounded GPT-6.1-sol/high implementation/review delegation: one initial and three
+targeted review waves, four correction batches, final review clean. Native testing
+rejected the earlier focus heuristic at 6639c12; explicit column contract replaced
+it. Serializer restoration and a suppressed initialization error were corrected.
+Final source accepted; exact model telemetry, worker tokens/runtime and savings are
+unknown. Recent account-wide weekly remaining 52%; healthy storage ~326.6 GB reused.
+
+Receipts: ignored `.verification/tutorial-browser-20261016/` final-root-tests.log,
+accepted-delta-tests.log, website-final-{tests,types,build}.log, check-accepted.log,
+verify-kit-final.log, package-accepted-parity.json, chrome-served-build.json,
+preservation-final.json and native/Chrome screenshots. Independent installed parity:
+`.verification/sidebar-repository-20261016/installed-parity.json`. Visual comparison
+and intentional canonical-content/native-host adaptations: [design QA](../design-qa.md).
+Website source instructions now describe repository-menu Clone, Tutorials beside
+Java and both browser actions; the public website still contains older ZIP setup.
+Release remains held for current-main/version/pin integration, website/template
+alignment, physical Windows and school/novice acceptance, final Git/Pages/ZeroHub
+acceptance and separately authorized signing/publication.
+
+Peer combined-preview acceptance completed after unlock: account and repository
+menus, New branch cancellation, native Switch to an existing disposable local
+branch and return to main passed. Current branch/direct Merge controls updated;
+no success popup appeared. Temporary branch removed after verifying original HEAD
+and working status; all eight trial Main hashes preserved. No credential change
+or GitHub mutation. Receipts: `.verification/sidebar-repository-20261016/RESULT.md`,
+`delivery.json`, `local-switch.json` and `installed-sidebar-final.png`.
+
+## Quiet sidebar success feedback installed — 2026-10-16
+
+Owner requested removing success popups. Sourcebd66546 on codex/web-export routes
+routine Git, repository connection/link, publication, export and library results
+to the accessible sidebar status and Zero Output. Native warnings/errors,
+required choices and first-publication consent remain. Successful publication
+keeps Open app/Copy playable link buttons for the matching root/account/repository
+in live mode, using the existing reverified commands. A completed current-project
+export exposes Preview export/Save ZIP/Share export buttons. No raw URL dispatch
+or new mutation authority is introduced.
+
+76focused UI/auth/workflow/publishing/export/sharing tests and32sidebar/onboarding/
+browser-run integration cases pass. Syntax and whitespace pass. One independent
+GPT-6.1Sol/medium review covers complete14file diff plus immediate render/command,
+publication persistence/verification, export validation and sharing-host paths:
+zero findings,1review turn,0fix batches. Effective model/tokens/reviewer duration
+unknown. Unchanged engine/transport/root-suite evidence reused; known archived-doc
+link check blocker remains. No additional production review wave.
+
+Candidate `dist/candidates/zero-0.5.16-sidebar-results-bd66546/zero-0.5.16.vsix`
+is installed in the existing nested Zero/editor profile; all87package files match
+source and installation (native manifest metadata excluded). Prior extension
+backed up. Current Mac Study window reloaded. Actual local Export for Web reused
+the validated cached build; completion shows Web export ready ·2.3MB and the three
+action buttons in sidebar. Cancellable progress disappeared with no success popup.
+No browser was auto-opened or remote publication performed. All7trial Main hashes
+preserved. Live publish/link actions covered by tests/source; physical Windows,
+native dark/high-contrast/narrow layout and live success flows remain untested.
+
+Receipts: ignored `.verification/sidebar-results-20261016/` delivery.json,
+package-parity.json, tests.log, integration-tests.log, package.log, install.log and
+preservation/backup. Direct coordinator implementation and one bounded reviewer;
+recent55%weekly remaining/cached327GBhealthy reused, exact task effort unknown.
+No public push/deploy/release, account/credential change, new goal/chat/automation.
+
+## Automatic finished local-branch cleanup installed — 2026-10-16
+
+Owner requested automatic cleanup after a successful merge, without another popup.
+Production code0b317de on codex/web-export calls the existing guarded cleanup only
+for a confirmed finished result, after checking project identity. Failed pushes,
+conflicts and the Run-after-main-update pause skip cleanup. Clean main, exact SHA,
+ancestry, shared-worktree and atomic compare/delete guards remain unchanged. The
+remote branch stays available. A refused cleanup preserves the merge-success
+outcome and explains the retained branch through a nonmodal notice/Zero Output.
+
+Two independent GPT-6.1Sol/high complete6file reviews found no production issue;
+both identified a fixture missing the real finished:true receipt. One test-only
+fix9ca8f14 and one targeted review accepted final source.42unchanged boundary cases
+pass plus the corrected UI case passes, covering direct cleanup, exact arguments,
+paused/conflicted cases, account drift/serialization and cleanup refusal. Syntax
+and whitespace pass.3review turns,1fix batch; effective model/tokens/exact reviewer
+time unknown. No repeated full-suite or unchanged engine review wave.
+
+Candidate `dist/candidates/zero-0.5.16-auto-cleanup-0b317de/zero-0.5.16.vsix` is
+installed in the existing nested Zero/editor profile. All87package files match
+current corrected source and installation; the corrected test is excluded from
+the VSIX. Prior extension backed up. Current Mac Study window reloaded; all7trial
+Main hashes unchanged. No actual student GitHub merge/push or branch deletion
+was invoked; automated cases use disposable repositories/mocks. Physical Windows
+remains untested. Known archived-doc link-check blocker unchanged. No public
+publication, release, account/credential change or new goal/chat/automation.
+
+Receipts: ignored `.verification/auto-cleanup-20261016/` delivery.json,
+package-parity.json, tests-initial.log, ui-final.log, package.log, install.log and
+preservation/backup. Direct coordinator implementation, bounded native reviewers;
+cached327GBhealthy and recent55%weekly remaining reused; attribution unknown.
+
+## Direct Merge to main installed — 2026-10-16
+
+Owner requested removing the merge confirmation. Source2377d0b on codex/web-export
+removes only the modal before execution; account/project/destination/SHA checks,
+clean-tree/remote-main rules, operation locking, updated-main Run pause and conflict
+recovery remain. Optional local-branch deletion still asks separately. Product,
+design, manifest and README reflect the direct action.
+
+43workflow/UI/auth/transport tests pass, including disposable bare-remotes,
+session drift during preparation, serialization, conflicts and cleanup. Syntax
+and whitespace pass. Independent GPT-6.1Sol/high safety and compatibility reviews
+cover the complete6file delta over8bedf8f and immediate callers: zero findings,
+2review turns,0fix batches. Effective model/tokens/exact reviewer time unknown.
+Unchanged earlier publication tests/reviews reused; existing archived-doc link
+blocker remains outside this change.
+
+Candidate `dist/candidates/zero-0.5.16-direct-merge-2377d0b/zero-0.5.16.vsix`
+installed into the existing nested Zero/editor profile. All87package files match
+source and installation (native package metadata excluded). Prior extension
+backed up. Current Mac Study preview reloaded, sidebar/editor ready; no actual
+merge or push invoked. All7trial Main hashes unchanged. Other open windows may
+need Reload Window. Physical Windows/live GitHub merge untested. No public source
+push, app publication, student release or credential changes.
+
+Receipts: ignored `.verification/direct-merge-20261016/` package-parity.json,
+delivery.json, tests.log, package.log and install.log. Coordinator handled this
+small edit directly; two bounded reviewers retained the prior configuration.
+Cached327GBhealthy and recent55%weekly remaining reused; no new goal/chat/automation.
+
+## Simplified confirmations integrated and installed — 2026-10-16
+
+Owner authorized local browser-branch integration and installed-preview update.
+`codex/web-export` fast-forwarded ddbaf47→3238295; reviewed code6c3cde8 remains
+byte-identical. Integrated focused48/48pass; prior full471pass/1expected skip and
+clean independent reviews reused for unchanged source. No additional code delta
+or reviewer wave. The known archived-document link check blocker remains.
+
+Built candidate `dist/candidates/zero-0.5.16-confirmations-6c3cde8/zero-0.5.16.vsix`,
+SHA2563433dd9a6602af122611f16a59383cd714f25d2fc629cdc1dbb485e3bf8672d5.
+All87packaged extension files match source and installed nested Zero/editor profile;
+only VSCode's added package metadata is excluded. Previous extensions backed up
+under ignored .verification/confirmations-20261016/. Existing test projects,
+accounts and settings preserved; all7trial Main source hashes unchanged.
+
+Actual Mac preview Study window reloaded through Developer: Reload Window. Its
+Commit & push input shows the real repository and main branch; Escape cancels
+and restores actions/editor focus. No commit, push or live publish was performed.
+First-publish warning remains source/automated-test verified; physical Windows
+and new live publication untested. Other already-open windows need their own
+reload to activate newly installed code. No student release, website deployment,
+public GitHub change, new chat/goal/automation or credential change.
+
+Receipts: ignored .verification/confirmations-20261016/{integration-install.json,
+package-parity.json,integrated-focused.log,package.log,install.log}; source review
+and preservation receipts copied alongside. Direct integration/install reused
+reviewed source; no new implementation worker. Fresh storage327GBhealthy,
+weekly55%remaining reading reused; exact coordination time/tokens unknown.
+
+## Routine confirmations — 2026-10-16
+
+Local implementation on `codex/simplify-confirmations`, based on browser-preview
+source `ddbaf47`; code commits `42140d4` and `6c3cde8`. Worktree:
+`/Users/stew/.codex/worktrees/simplify-confirmations/zero`. No push, merge,
+installation, release, external publication or account changes.
+
+Commit & push proceeds from its message input, with repository and branch shown.
+Naming a branch creates it directly. First/new-destination Publish has one short
+public-visibility warning and continues through setup/upload without a second
+confirmation; repeat publishing revalidates the same site. Merge remains a short
+confirmation; deletion and origin replacement retain their prompts.
+Setup requires a successful upload receipt and the exact uploaded SHA. Pending
+runs retain their approved account across restart. Legacy pending receipts still
+restore and conservatively warn once on the next publish.
+
+Verification: initial complete root suite at42140d4:471pass/1expected PowerShell
+skip,0fail; final48focused UI/auth tests pass.34publisher/upload-auth boundary
+regressions passed with unchanged final production source. Syntax and whitespace
+checks pass. `npm run check` stops on an unchanged archived relative link:
+`docs/design/archive/design-qa-before-compact-sidebar-2026-10-16.md:17` references
+`design/playground/VERIFICATION.md` from the wrong directory. This is present in
+the base; no archive repair was included. No native/editor, physical Windows or
+live GitHub acceptance was performed for this change.
+
+Independent review requested GPT-6.1 Sol/high:2complete initial reviews,1targeted
+review,1fix batch. One P2 source-binding finding fixed and reverified; resumed
+account retention also fixed. Final code review clean; full initial plus targeted
+interaction coverage reused without another integration wave. Effective model,
+tokens and exact reviewer times unknown. Weekly55%remaining/cached331GBhealthy;
+one coordinator writer, no conflicts; source owner's worktree/profile untouched.
+Detailed logs and review ledger: ignored `.verification/confirmations-20261016/`.
+
+## Selected compact sidebar and fresh native student trial — 2026-10-16
+
+Reviewed source `e4e9629`, local immutable candidate
+`dist/candidates/zero-0.5.16-sidebar-e4e9629`, is installed only in the owned nested
+Mac preview. All authored extension files match the VSIX; the authored manifest
+matches after excluding VS Code’s added installation metadata. Host reload verified.
+One supported view now contains controls and accessible files. Start tutorial is
+welcome/empty or native overflow; Clone stays visible. Git actions use Commit &
+push and Merge to main, with truthful review text. Publish remains separate.
+
+Actual native trial created private `armorup/zero-sidebar-flow-trial-20261016` from
+the Study template, copied its HTTPS URL and used visible Clone → separate local
+destination → Open in New Window. Account/origin/Main were detected. Ordinary App
+code produced the intended syntax error at15:53; Show Problems and Show Output
+worked. After correction, Run rendered the quiz and3→Try again/4→Correct passed.
+An unchanged Run reported Validated browser build ready and reset state; both Stop
+URLs refused connections. Native Up/Down/Right/Return, readable helper opening,
+nested focus across watcher create/delete, sidebar hide/show expansion and empty
+Start tutorial passed. New branch and Commit & push reviews were cancelled; the
+initial073908c/main remain and only local Main.java is modified. All7helpers are
+canonical. Prior Study/Game Main hashes exactly match their earlier receipts.
+VS Code reused an already-open clone when its URL was entered; that was expected
+native repository-cache behavior, not a failed clone. Fresh trial tested new cloning.
+
+Final root459tests458pass/1PowerShellskip;45focused checks, website108/types/build,
+package/extracted kit pass. Real candidate website has0/3/8 correct template links,
+continuation9, two platform download choices and matching instructions. Combined
+source/native design QA passed. One Sol/high writer and Sol/medium website writer
+were coordinated; independent Sol/high initial/selected/correction review found
+2P2focus/queue blockers, fixed in1batch, final clean. Four launch equivalents count
+one reproduction-source handoff; no redundant integration review. Tokens/effective
+configuration/exact reviewer execution time unknown; observed dispatch intervals
+recorded without inferring cost. Fresh storage329.5GBhealthy; weekly59%remaining
+shared reading reused; DeepSeek pause honored.
+
+Receipts/screenshots/review ledger: `.verification/sidebar-onboarding-20261016/`;
+visual report: [design QA](../design-qa.md). No new public game, feature source push,
+website/student release, credentials or access grant. One authorized private test
+repository was created. Native fresh signup/consent, live push/merge/Pages and
+physical Windows/clean installer/school/novice remain separate acceptance. Public
+template README Git wording and hosted website need the aligned release update.
+The separately coordinated stable0.5.17/native17/core0.2.0 is now public. This
+coordinator independently verified public3asset metadata/target3a43f4c and merged
+[PR70/e8e25cc](https://github.com/codepetca/zero/pull/70); no new native binary/signature
+verification here. That release excludes these features; this preview must advance
+to a later version and integrate the new baseline before release.
+
+## Installed Study/Game Clone → Run → Stop — 2026-10-16
+
+The previously locked native acceptance is now complete for candidate
+`dist/candidates/zero-0.5.16-app-gameapp-6258daf` in the owned nested managed profile.
+Reload verified; armorup reused without a new grant. Native Git:Clone/Open in New
+Window opened the private Study and Game repositories, detected origin/account,
+opened Main and requested ordinary external-lesson Open. Existing Greeting trial
+and other applications were preserved.
+
+Study Main extends App: incorrect/correct answer controls passed. Game Main
+extends GameApp: unsupported DODGERBLUE produced a source30:14 compatibility error;
+recovery using Color.web compiled, canvas/Right/Left worked, and unchanged rerun
+reused the validated build with fresh game state. Stop closed all3preview servers,
+confirmed by connection refused. All7helpers match canonical source; both initial
+Git commits/origins retained, only local Main modified. No uploads/publication.
+Command+A replacement of the outer preview text field did not work in one
+observed automation attempt; Backspace editing did. Cause remains unisolated.
+
+Actual live lesson3 was rechecked in Chrome and still links the ZIP scaffold.
+Published website and new desktop flow remain unaligned. Native receipts, stopped
+URLs, source hashes, strict-error AX and running-app screenshots are in
+`.verification/gameapp-web-integration/`. Fresh signup/consent and physical Windows
+were not tested; these trials do not establish final release/publishing acceptance.
+
+## Renamed browser profile and follow-up trials — 2026-10-15
+
+Source `6258daf`, kit/extension0.5.16/core0.1.3, uses App/GameApp with seven exact
+reviewed helpers and profilev2. Five real GWT builds and53browser checks passed,
+including input, ordinary controls, drawing, image startup, audio and persisted-page
+restoration. Native smoke/game-helper/57audio checks,16progression variants and
+three scaffold builds passed. The initial446root tests passed445with1PowerShell
+skip; updated8kit tests and check cover the guard correction. Website108tests,
+types/build and package/extracted-kit checks pass. All26native maintained examples
+pass using20unchanged initial cases plus media and five remaining focused cases;
+five stale reflective harness names were corrected after preserved failures.
+Initial+targeted Sol/high review is clean after two preservation fixes.
+
+All three published tutorial downloads match the renamed canonical sources and
+verified commit/tree pins. Five older example template revisions are synchronized
+but strict browser acceptance remains a separate gate. No physical Windows,
+new GitHub consent, classroom latency or audible-output acceptance is claimed.
+
+Installed immutable local candidate:
+`dist/candidates/zero-0.5.16-app-gameapp-6258daf`. Actual GitHub UI created private
+`armorup/zero-study-setup-trial-20261015` and
+`armorup/zero-game-setup-trial-20261015` from the current templates. Their native
+clone/run trials and extension-host reload await Mac unlock. The earlier Greeting
+trial below used the preceding preview and retains its source/API names as history.
+Receipts/screenshots/logs: `.verification/gameapp-web-integration/`.
+
+## Armorup real tutorial setup — preview and public templates, 2026-10-15
+
+Owner explicitly authorized public publication of the three prepared empty templates
+and private armorup trials. Published [Greeting](https://github.com/codepetca/zero-tutorial-greeting),
+[Study](https://github.com/codepetca/zero-tutorial-study) and
+[Coin game](https://github.com/codepetca/zero-tutorial-game). Each is a public GitHub
+template with20files, identical to previously reviewed/tested scaffolds. Anonymous
+API/download verification checked IDs/public/template flags and all file hashes.
+Exact commit/tree/ID pins are in teaching/tutorial-templates.json.
+
+Reviewed corrected sourcecbf2832, packagefbd0c33; local immutable candidate
+`dist/candidates/zero-0.5.16-templates-fbd0c33`. Installed its VSIX into the owned
+nested managed test profile, preserving ordinary installations and other worktrees.
+Actual native0.5.16 reused armorup's session; no new grant or signup was performed.
+Get Started → Start tutorial → Greeting → Open template opened the GitHub form.
+Actual UI created private armorup/zero-greeting-setup-trial-20261015 (ID1421549554),
+then native Git:Clone used its HTTPS URL and opened the standalone folder. Main
+and hosted lesson0 opened; account and origin were detected without reconnecting.
+Ordinary Label/show code displayed Hello armorup; editing/running showed Hello Java;
+cached unchanged rerun worked. Three Stop checks closed all3runtime URLs. A native
+attempt to replace tutorial origin was rejected; original origin and remote initial
+commit9ff5904 remained unchanged. Only local Main is modified. No Upload, branch,
+Finish, Pages, source push, website deployment or release action was performed.
+Trial window is left stopped for inspection.
+
+Root444tests:443pass/1PowerShellskip;7scaffold tests;26focused setup tests;
+website108tests/build; configuration/syntax/link checks; package/extracted Maven/
+source/license/mode checks and four saved hashes pass. Existing2updater tracing
+warnings remain. Sol/medium independent publication review found one consolidated
+P2: script/website tests assumed permanently unpublished templates. One fix batch
+and targeted review accepted canonical availability checks while explicit null/
+invalid recovery fixtures remain.2review turns/starts,1initial/1targeted wave,
+0remaining findings; effective model/tokens/elapsed unavailable. Assertion-only
+remediation changes no runtime metadata, so prior complete review is retained.
+Source helper mapping was useful; coordinator corrected an obsolete installed-path
+inference through actual process arguments. Shared allowance63%remaining is not
+attributable task cost; storage337GBhealthy; no writer conflicts.
+
+Compiler Maven phases were14.015s and33.242s with other checks running. These exclude
+other Run stages and are not cold-machine/classroom benchmarks. Cached unchanged
+rerun returned in the first AX observation, entire toolcall<1.5s. This supports
+functional acceptance, not a universal responsiveness guarantee.
+
+Usability findings from actual screens: grouping Run/Stop, GitHub and ZeroHub is
+coherent; Start tutorial disappears from visible sidebar/menu after welcome; manual
+Git:Clone/folder choice adds a browser/editor handoff; Connect another repository
+is offered for a tutorial then rejected. The actual hosted lesson still gives old
+ZIP instructions; candidate lessons0/3/8 show the correct verified template links.
+The public website/installer must align with this flow before student release.
+GameApp rename from the other chat is separate; current published browser templates
+still use the reviewed SketchApp profile and need coordinated refresh after API/
+WebFX integration. No source fingerprint rule was bypassed.
+
+Screenshots, AX text, publication/draft/review logs, audit.json and trial-receipt.json
+are retained under `.verification/armorup-student-flow/`. Final accepted screenshots
+include native armorup welcome, private GitHub repository, working app/source,
+hosted-vs-candidate lesson setup and the redundant connection error. Native labels
+and keyboard Command Palette worked; no complete screenreader/keyboard-only or
+accessibility-compliance claim. Fresh account/signup/new grant, physical Windows,
+school hardware/network, real branch/upload/Publish on this candidate and repeated
+private Study/Coin native walkthroughs remain untested. Public source parity and
+all3candidate template entry links are verified; earlier scaffold builds retained.
+
+## Restore direct platform downloads — local, 2026-10-15
+
+Source364944b restores Mac Silicon and Windows ZIP buttons directly on Home using
+the existing Downloads component and verified release availability rules. Desktop
+GitHub welcome is unchanged. Types,5focused download tests, root configuration/
+syntax/link checks and production build pass (2existing tracing warnings).
+Actual Chrome verifies both exact published destinations and320pxlight/dark reflow
+without overflow. Screenshot `.verification/desktop-welcome/platform-home.jpg`.
+One independent Luna/medium full-diff review passed:1launch/0findings/0fixes;
+effective model/tokens unavailable. No downloads were clicked, public manifests
+changed or website deployed. Archive
+links from the preceding evidence commit were corrected after the link check
+caught their old relative paths. Browser viewport reset and owned tab/server closed.
+
+## Download-first desktop onboarding — local, 2026-10-15
+
+Reviewed/package source47cc071 replaces website setup with Download Zero and a
+native desktop welcome using VS Code's existing GitHub session/consent. Later,
+manual Get Started, cancel/retry and existing-session username have focused tests.
+No website OAuth, new scopes, automatic uploads or account grant.
+
+Root444tests:443pass/1PowerShellskip before the final modal adjustment; final20
+welcome/onboarding tests and configuration/syntax/link check pass. Website108tests,
+types and production build pass;2known updater tracing warnings remain. Actual
+Chrome verifies Home→Downloads, legacy redirect,320pxlight/dark nooverflow. Actual
+isolated Mac source host verifies fresh automatic modal, Later, manual reopening,
+provider consent prompt, cancellation/retry and no repeat after reload. Existing
+connected success is mocked; no real grant/upload or physical Windows trial.
+The persistent dialog corrects a native QA finding where a toast disappeared while
+its promise stayed pending. Long profile paths exceeded macOS socket limits;
+short disposable profiles resolved the harness issue. Vendor app bytes unchanged.
+
+One Sol/medium implementation worker; one independent Sol/high full-diff reviewer,
+1launch/1wave/0findings/0review fix batches,128reviewer seconds. Effective model and
+tokens unknown; account-wide65%remaining is not task cost. Package and extracted
+Maven/source/license/mode checks pass; four candidate hashes verify. Candidate
+`dist/candidates/zero-0.5.16-welcome-47cc071` is uninstalled/unpublished and excludes
+a refreshed native installer. Source-host testing does not prove installer behavior.
+Evidence `.verification/desktop-welcome/` contains logs, review ledger/report,
+acceptance and desktop/browser images. Owned QA apps/tabs/server closed and viewport
+reset. Template publication, successful fresh-account/clone/upload/Publish trial,
+ZeroHub policy alignment and final installer/platform/release gates remain held.
+
+## Concise single-page setup — local, 2026-10-15
+
+Sourcec77f358 supersedes the wizard with four visible sections: GitHub sign-in/
+account creation, download/launch Zero, own template/clone and lesson0. GitHub
+stays separate; client wizard/hash/focus state and automatic advance are removed.
+Native anchors and optional help preserve public downloads, template availability,
+ordinary Java and source upload/Publish/Pika boundaries. No package input changed.
+
+112website tests, types/configuration/build pass; final template wording has4
+focused checks and a fresh build. Existing2updater tracing warnings remain.
+Actual Chrome confirms all4sections, separate GitHub tab with unchanged setup URL,
+download-return#project, native skip-to-main,50pxactions/3pxfocus,320pxlight/dark
+and expanded-help reflow.4delayed message-channel errors remain unattributed.
+One Luna/medium independent review is complete/clean,1launch/1turn/0fixes; effective
+model/tokens unknown, reviewer-reported~5min approximate. No broad rerun for prose.
+Evidence `.verification/setup-steps/` includes review, acceptance and desktop image.
+No WebKit/textzoom/native/student auth/clone/upload trial or live publication.
+Owned tabs/server stopped and viewport reset. Existing release gates remain.
+
+## Compact setup wizard — local, 2026-10-15
+
+Reviewed source1a9f9f6 replaces the long guide with GitHub/install/project/lesson
+screens, one main action per screen and Help disclosures. Continue with GitHub
+opens the official login/account-creation entry and advances navigation; no OAuth,
+account check or successful-sign-in claim. Step URLs/history/refresh remain usable.
+Public downloads, verified-template availability and ordinary Java are unchanged.
+
+Initial113website tests pass; after the bounded correction,6focused tests, root
+configuration/link checks, types and production build pass. Known2updater tracing
+warnings remain. One Sol/medium reviewer,1launch/2turns/1targeted wave/1fix batch;
+complete clean. Initial review found the shared skip link reset stages. Coordinator
+reproduced it, preserved stage/canonical URL/main focus, then verified project and
+lesson skip, refresh and footer Back in actual Chrome. Other Chrome checks cover
+GitHub new-tab/installation, Next/browser history, downloads return, legacy sharing
+bookmark,320px light/dark/expanded help and desktop. Screenshots/raw receipts:
+`.verification/setup-wizard/`. First test-fixture TDZ failure retained and fixed.
+
+Two delayed message-channel errors remain unattributed. No native/fresh student
+account/clone/upload, WebKit or text-enlargement trial; no release/production claim.
+Effective model/time/tokens unknown; weekly66%remaining is shared usage. No package
+input changed, account action submitted, template published or deployment made.
+Owned tabs/server stopped and viewport reset. Existing release gates remain.
+
+## First-visit Get started flow — local website, 2026-10-15
+
+Reviewed sourceacf874e implements the approved Home Get started/returning-student
+entry and public five-step guide: GitHub preparation, install, owned tutorial
+repository/clone, lesson0 browser Run, then reviewed Upload/optional public Publish.
+Downloads links back to project creation; starting lessons link to the guide.
+Official GitHub account pages open separately; no website session/authentication
+gate was added. Current unpublished templates stay unavailable; no guessed URL
+or tutorial ZIP bypass. Release selectors, account services and kit inputs are
+unchanged. No new package, template publication or deployment was performed.
+
+114 website tests,13 design tests, configuration/link checks, TypeScript and
+production build pass. Six new production-component fixtures exercise published/
+unpublished guide states, public access links and own-repository workflow. An
+unrelated static Home button-count assertion was removed from a download-selector
+test; Home navigation is covered by the actual browser flow. Two existing Mac
+updater tracing build warnings remain. No unaffected runtime/GWT suite was rerun.
+
+Actual Chrome interaction passed Home→guide→Downloads→project hash→lesson0→guide,
+returning-student /learn and download recovery paths. Desktop,320/390px, light/dark,
+mobile menu,44px-or-larger guide actions and visible3px keyboard focus pass.
+Two delayed listener/message-channel errors at guide URL are retained/unattributed;
+no clean-console claim. WebKit,200%text/400%nativezoom, account creation, template
+create/clone, native install and authenticated upload/publish were not tested.
+Owned tab/listener closed and viewport reset. Screenshots/raw evidence are ignored
+under `.verification/first-visit/` with the browser acceptance receipt.
+
+One bounded Sol/medium implementation worker and one independent Sol/medium reviewer;
+complete clean18-file review,1launch/1turn/0fix batches. Reviewer separately verified
+authored deep-link targets and current Greeting publication metadata; reused valid
+checks. Effective models, tokens and per-worker time unavailable; no writer
+conflicts. Starting weekly66%remaining is account-wide, not attributable task cost.
+Ledger/report/acceptance `.verification/first-visit/`. Fresh novice onboarding is
+still gated on authorized template publication and installed-student trials; all
+[release gates](RELEASE-0.5.16.md) remain. No external account/source/registry writes.
+
+## Account and privacy setup — local candidate, 2026-10-15
+
+Reviewed source92953e2 adds verified personal GitHub account, school access and
+privacy preparation before tutorial lesson0. Student, teacher, kit, website and
+generated scaffold guides agree; tutorial Setup Help includes Git2.31+ readiness.
+Ordinary local apps remain Git-free. Commit identity is configured per repository
+after clone and before upload. Cached tutorial Run needs no active GitHub session;
+public app publishing stays optional. No credentials or account settings changed.
+
+54 setup/onboarding/tutorial tests,7 scaffold tests and18 website focused tests
+pass. Independent reviewer ran39 overlapping setup tests. Configuration/link
+checks, production website build and package/verify:kit pass, including extracted
+Maven compilation and exact source/license/mode parity. Website retains two known
+updater tracing warnings. Earlier full runtime/GWT coverage below is reused;
+no broad suite rerun solely for these guide/readiness changes.
+
+Actual Chrome interaction follows tutorial0's setup link to the prerequisite
+anchor. Desktop and320px visual/nooverflow checks pass. Two asynchronous listener
+message-channel errors at that setup URL are retained/unattributed; no clean-console
+claim. Owned tab/server closed and viewport reset. Native Setup Help and fresh
+student account flows were not interactively tested in this phase.
+
+Independent review is complete/clean: initial Luna/medium, targeted Sol/medium;
+two launches/four turns, one initial/three targeted waves and three fix batches.
+Corrections covered setup consistency and identity sequencing. Effective model,
+tokens and per-turn elapsed telemetry are unknown; no writer conflicts. Evidence
+`.verification/account-setup/` includes ledger, reports, checks and receipts.
+
+Local candidate `dist/candidates/zero-0.5.16-account-ca89325` saves kit/starter/VSIX
+and three maintainer-only empty tutorial drafts (20files each). All six hashes
+pass. Package sourceca89325 differs from reviewed92953e2 only in docs/SETUP.md,
+which is not a package input. Candidate is uninstalled/unpublished and not ready
+for production. Templates remain unpublished; fresh installed account/clone/
+Upload/Publish, public ZeroHub policy/Play, classroom/platform, native focus, final
+CI/signing/distribution gates in [release preparation](RELEASE-0.5.16.md) remain.
+No push, deployment, registry write, new game publication or external account action.
+
+## Tutorial GitHub workflow — local candidate, 2026-10-15
+
+Reviewed source05daa6c requires initial tutorial template creation in the student's
+own GitHub account and cloning that repository. Native Start and website lessons
+0/3/8 expose verified published template links only; all three new records remain
+null. New schema2 scaffolds have empty Main, seven readable helpers, enabled Git,
+normal ignores and exact wrapper notices. No student tutorial project ZIP path.
+Legacy local-only markers retain restrictions; original local apps require no Git.
+Tutorial GitHub actions use the existing live review flow. Original-only ZeroHub
+Share is hidden and guarded; optional explicit Pages publishing remains available.
+
+Final root432tests:431pass/1PowerShellskip/0fail/cancel (146.6s); website108pass.
+Typecheck and production build pass, with two existing updater tracing warnings.
+Package and verify:kit pass, including extracted Maven build/source/license/mode
+parity. Three Maven scaffold builds pass. All six saved kit/starter/VSIX/template
+archive checksums match. Local candidate/drafts:
+`dist/candidates/zero-0.5.16-tutorial-6784a88`; uninstalled/unpublished.
+
+Real disposable local Git clones verify repository readiness without GitHub
+traffic. Current GWT builds of cloned Greeting and Game pass unchanged profilee95…;
+Chrome shows Hello tutorial and a640x400CSScanvas (2x backing pixels). First smoke
+used macOS /var alias: compilation succeeded but strict snapshot validation rejected
+the alias. Canonicalized only the ignored fixture and reran successfully; first log
+retained. Three empty publication drafts contain20allowlisted files each, no solutions.
+
+Actual CUA website0/1/3/8/12 tests show pending-template guidance, no guessed live
+link/project ZIP, same-repository progression, optional media ZIP, light/dark and
+320px nooverflow. No immediate website warnings/errors; two delayed asynchronous
+message-channel errors on the prior tutorial12URL after navigation are retained
+unattributed. Neither app URL logged an error. Owned test tab/three listeners closed,
+viewport reset. Mac app inspection reported locked; no native fresh-flow claim.
+
+Independent security and compatibility reviews are complete/clean. The first full
+root run caught a missing originalWork binding in the isolated playground adapter
+(430pass/1fail/1skip); one correction fixed it and a stale Product sentence. Three
+playground tests and targeted independent review pass; final full suite above passes.
+Two reviewer launches/three turns, one initial/one targeted wave, one fix batch.
+Requested GPT-6.1 Sol/high; effective model/tokens unknown. No further review gap.
+
+Receipts/logs/reports `.verification/tutorial-github/`. No new template/game/source
+publication, account grant, ZeroHub registry write, deployment or distribution.
+Before release, publish/verify the three templates with authorization; verify the
+five existing example templates against the new profile; complete fresh installed
+student-account create/clone/Upload/branch/Publish/Open/Copy, policy/publicPlay,
+native focus/platform/classroom and final CI/signing/distribution gates. Existing
+Sky Hop proof and all public download/feed metadata remain unchanged.
+
+## Live GitHub default — local candidate, 2026-10-15
+
+Source44e50e4 changes the manifest/runtime/setup fallback to live. Explicit testing
+simulation remains honored; tutorial practice still blocks GitHub actions. No
+activation-triggered upload/publication was introduced. Upload and branch changes
+retain their reviews. First/new-destination Publish confirms its target; later
+explicit Publish updates the same approved site without another destination modal.
+Current student, generated-project and contributor guides describe this precisely.
+
+Full regression atd93dd56:427tests,426pass/1PowerShellskip/0fail/cancel in158.7s.
+The final wording-only correction passes24focused and16website example checks,
+configuration/link checks and diff check. Initial independent security reviewer
+also passed99focused checks; these overlap and are not additive totals. No broad
+suite repeated after prose corrections. Final package/verify:kit passes, including
+extracted Maven build/source/license/mode parity. All three saved assets match
+checksums; packaged manifest and runtime use live. Local candidate retained in
+`dist/candidates/zero-0.5.16-live-44e50e4`, uninstalled/unpublished. The earlier
+Mac development DMG does not contain this default change and requires rebuilding.
+
+Two independent Sol/high initial scopes found two distinct P2 docs issues. One
+batch fixed stale default instructions and the false repeat-Publish confirmation
+promise; one targeted review is complete/clean. Two launches/three turns, one
+initial/one targeted wave, one fix batch. Effective model/tokens unknown. No new
+integration review gap. Logs/reports/receipt `.verification/live-default/`.
+No external account/transport actions. Prior public Sky Hop proof is unchanged;
+full fresh installed-candidate, ZeroHub policy/public Play, native focus/platform,
+final CI/signing/distribution acceptance remain open. Old-project migration was
+waived by the owner because there are no real users. Existing work preserved.
+
+## Pre-release scope decision — 2026-10-15
+
+The owner confirmed there are no real users yet and existing development projects
+may be discarded. Old-project compatibility/migration is no longer a release
+gate. The full installed-candidate workflow must instead pass from a fresh current
+starter. This supersedes the migration requirement recorded in the local-preparation
+entry below; the old-helper incompatibility remains a technical fact. No projects
+were deleted, compiler checks changed, or new end-to-end test performed for this
+scope clarification. Other policy/platform/distribution gates remain. See
+[updated release scope](RELEASE-0.5.16.md#pre-release-fresh-start).
+
+## Student release 0.5.16 — local preparation, 2026-10-15
+
+Prepared reviewed local source `515c064`: kit/extension0.5.16, readable core 0.1.3,
+next native Mac build 3. The complete kit, starter and VSIX are retained with exact
+checksums in `dist/candidates/zero-0.5.16-local-515c064`; unsigned development DMG
+and build receipt in `dist/candidates/zero-0.5.16-macos-development-8badf36`.
+All four checksums pass. No Zero source push, distribution release, account grant,
+new game publication or ZeroHub activation. Installed managed preview remains 0.5.15.
+Public download/installer/feed/sharing metadata is unchanged.
+
+Root 425 tests: 424 pass, 1 PowerShell platform skip, 0 fail/cancel; website 104 pass,
+typecheck and production build pass. Configuration, packaging and verify:kit pass,
+including exact source/license/mode parity and extracted Maven compilation.
+A fresh starter and engine extracted from the candidate archives compiled via real
+GWT using the managed compiler cache with spaces. Chrome showed Hello World with
+zero captured warnings/errors. Profile `e95aef93…` matches the live-tested runtime.
+Development Mac DMG built and selected payload/permission verification passed;
+it is not Developer ID signed or notarized, and was not installed.
+
+Local ZeroHub receipt fixtures exercise request validation, trusted verification
+using recorded/injected offline metadata, immutable source release, enriched
+catalog and backward-compatible legacy projection. Actual current Hub UI rendered
+Sky Hop 0.1.1 with separate Play latest/source download; Chrome Play opened the
+existing public game and ready canvas. No public registry writes or fresh trusted
+public verification are claimed. Actual prior Sky Hop native Publish/Copy/Open and
+68-file/8,208,661-byte live identity evidence remain applicable to unchanged runtime.
+
+Native verify:framework is **incomplete**, with retained phase 2 focus timeouts on
+three attempts including ARM JDK17; no assertion was weakened. Broad rollout also
+requires an accepted old 0.5.15 project upgrade path: preserved old helper bodies
+fail the strict browser fingerprints. New scaffold success is not migration proof.
+ZeroHub's retained public policy pin rejects new web receipts; coordinate the
+reviewed policy/kit/website rollout and real linked public acceptance before shipping
+Play support. Fresh workflow consent, Windows school setup, classroom/network and
+physical sound remain untested. Final source CI, production signing/notarization/
+stapling and sealed authorized publication remain outstanding.
+
+Independent complete preparation and proportional upgrade-note reviews are clean;
+no runtime change in this preparation. See [release gates](RELEASE-0.5.16.md) and
+`.verification/student-release-0.5.16/{acceptance.json,candidate.json,review.md,review-upgrade-note.md}`.
+Test servers/tabs closed; original checkouts/student files preserved. Requested
+GPT-6.1 Sol/high, effective model/tokens unknown. Weekly remaining 73%→71% is
+account-wide; storage 340.6 GB healthy; DeepSeek paused. One README package-link fix,
+one local pinned DMG-helper setup and retained native-focus attempts; no source conflicts.
+
+## Managed audio helpers — 2026-10-15 local source
+
+Root263pass/1PowerShellskip; website98pass/type/build;41focusedAPI/project tests;
+configuration/syntax/local links pass. Source assembly now ships seven classes.
+Framework package (noinstall),10starter/lesson checks and extracted Maven compile
+pass. Final extracted native sequence passed AudioCheck53, SmokeLauncher and
+GameHelpersCheck. Two earlier aggregate smoke watchdog timeouts are retained in
+[delivery evidence](EVIDENCE.md); no focus/resize assertion was relaxed. Asyncerror
+callback cleanup is injected coverage, not a naturally observed async decodererror.
+
+Audio tests cover canonical cache aliases, shared settings, independent Music,
+pre-ready requests, native effects, volume/mute, stop/rewind/full repeated loops,
+one-shot replay, useful errors/closed state, window/startup/frame failure and
+throwing-shutdown cleanup. Native SimpleApp audio playground passed button/mute
+and automatic close checks. Sky Hop194rules,4WAVchecks,19native fullsong/event/
+pause/reset/mute/dispose and GUIactual-frameSpace/P/R/M checks pass with final
+helpers. Normal Zero Run App rebuilt and launched under managedJDK21; compiled
+Main calls Zero loadSound/loadMusic. Browser verifies new audio API search/anchor,
+screenshot and no captured warnings/errors. Published release bytes unchanged.
+No physicalWindows/novice/human audio-quality claims. Full review found twoP2 lifecycle/fallback regressions; one batch fixed both.
+Core AudioCheck now57 and SmokeLauncher pass;21affectedAPI/kit/lesson checks and
+native corrupt-WAV silent fallback/missing-resource error checks pass. Final19audio
+and GUIinput checks pass. Targeted review verified58sourcehashes and resolved both
+findings with no further issue. Final website build refreshes lifecycle prose.
+See EVIDENCE and ignored remediation receipts. Source ZIP refreshed after acceptance.
+
+
+## Sky Hop generated audio — 2026-10-15
+
+Four generated WAV asset checks and exact regeneration pass. Game194assertions,
+native audio19assertions (including an entire17.14s loop), GUI animation/layout
+and actual-frame Space/P/R/M checks pass. Pinned JavaFX media21.0.12 loads through
+the normal Zero Run App with managed JDK21. Independent Sol/medium audio review
+completed with no actionable findings;16source/asset hashes unchanged. ZIP rebuilt
+and every entry compared to source; executable Maven wrapper preserved.
+No core change, publication or new human listening/Windows/classroom claim.
+See [delivery evidence](EVIDENCE.md) and standalone docs/evidence audio logs.
+
+
+## Student game helpers — 2026-10-15 local source
+
+Configuration/syntax/local links pass. Root suite263pass/1PowerShellskip;
+97website tests, typecheck and production build pass. Existing public release
+artifacts were not rebuilt or replaced. Source assembly includes all five core
+classes in starter, three practice projects and all26Hub example projects.
+
+`npm run verify:framework` passes the old native smoke and new GameHelpersCheck:
+real AnimationTimer update/draw press visibility, quick tap and autorepeat,
+canvas/control/window focus, held releases, cache identity/alias/failure/shutdown,
+explicit independent animation clocks/validation, shared regions, geometry,
+pixel drawing and graphics-state restoration. `python3 scripts/verify-examples.py
+--only sprite-playground` passes shared-memory/two-clock/pause/collision feedback.
+Sky Hop passes194rules and native scene/input checks. Local browser API search,
+new anchors and screenshot checked; no captured warnings/errors. Zero Run App
+rebuilt the migrated standalone game and its new helpers under managed JDK21.
+
+Independent review is recorded in [delivery evidence](EVIDENCE.md). Physical
+Windows, audible output, novice students and a new human playtest are not claimed.
+
 ## Restored lesson titles and encouraging endings — 2026-10-16
 
 [PR75](https://github.com/codepetca/zero/pull/75) merged
@@ -1995,3 +2893,219 @@ Owned local servers/test tab closed; primary checkout and immutable artifacts pr
 This final factual delivery receipt changes no code after review. The owner
 authorized publishing it with the other tracked documentation; private logs and
 screenshots remain local.
+
+
+## Optional browser export — local implementation
+
+The work is isolated on `codex/web-export` from base `8caba8b`; no game source,
+canonical framework helper, installed Zero, public artifact or account was changed.
+See [WEB-EXPORT.md](WEB-EXPORT.md) for supported behavior and commands. Local
+receipts live in `.verification/web-export-*`, `.verification/web-adapters/` and
+`.verification/web-publish-*`. Native editor UI/auth, actual GitHub Pages hosting,
+physical tab focus, Windows and non-Chrome engines still require explicit trials.
+Configuration checks pass; full319tests318pass/1skip/0fail, affected66/66 and
+final readiness-boundary19/19 pass. Real helper/quiz/drawing builds and18browser
+checks plus frozen game/audio smoke pass. Independent review covers corrected
+code `c5db993` with no remaining findings; details and limits are in EVIDENCE.
+
+## Browser-first local integration — 2026-10-15
+
+Local implementation, unreleased; no GitHub writes, authentication grants, push,
+deployment, installed Zero update or ZeroHub activation. Worktree branch
+codex/web-export from cdf30b3; implementation77bf2f9, remediationef98253 and4141f0b.
+Three focused GPT6.1Sol/high workers delivered strict original-source attribution,
+owned browser Run and deployment of local compiled output. Coordinator integrated
+snapshot/provenance contracts and example repairs. Effective configuration/token
+attribution unavailable; account weekly83% remaining and healthy342GB free at start
+are shared measurements, not task costs. DeepSeek automatic pilot remains paused.
+
+Actual isolated macOS VS Code Run built current Sky Hop with the strict gate;
+focused input/animation, actual HTML media progress, pause/reset/mute, restart/Stop/
+cancel and source Problems checks passed. Duplicate Problems/verbose sidebar errors
+were fixed and rechecked in native UI. Fixture restored exactly; original game,
+root checkout and installed Zero preserved. Receipt:
+`.verification/browser-run/native-acceptance.{json,md}`. Owned isolated editor host
+closed after acceptance. Physical speaker output/Windows/remote tunnels untested.
+
+Freshd88e085 real-game proof binds all27 build inputs to standalone local fixture
+commit ab0a20bafee295b2834c1f5d09dd07f12948c44f. Build
+142d3bb2-ba59-41c9-a014-ac2ef910723e; profile
+44456edc83503915abd7e0ea224181d71d22dbc76575a87f3511bfb700eb163f.
+All68files remain byte-identical through deployment pack/extract:8,208,660 appbytes,
+7,280,673 transferbytes. Exact ZIP SHA
+ db8064185e67541d4f453908dd6d6d292ea6fa6fd2a3da236ca1640f248c28f0.
+Actual final Chrome smoke validates this same snapshot before/after:480x680canvas,
+Space/click/start,114drawcalls, actual music progress, Ppause/resume,Mmute/unmute,
+Rreset, synthetic restoration/blur/pagehide cleanup,0runtime errors. Screenshot
+inspected correct ready art. Browser/server/session closed. Evidence:
+`.verification/browser-first-final/game-{proof,browser-proof}.json` and
+`game-browser-{smoke.log,ready.png}`. Physical sound, real BFcache navigation and
+other platforms remain unmeasured. No remote writes; provenance is owner-supplied,
+not an unforgeable compilation attestation.
+
+Verification: focused final ZIP13, semantic27positive/originalCSSnegative +var
+positive/negative2, adapter+engine23 and configuration checks pass. A full run was
+interrupted by actual Mac sleep17:33:05–17:43:55UTC (sysctl kernel timestamps),
+expiring two timers; both cases pass unchanged on retry27.4s. The final
+uninterrupted root run passes414/415tests with1PowerShell platform skip,
+0failures and0cancellations in318.3s. A process-scoped idle-sleep guard ended with
+the checks; no permanent power-setting change. Earlier inferredvar failure is
+corrected;27source examples
+pass and original external-CSS greeting explicitly fails before GWT. Sharing48/48
+and website104/104/typecheck/production build pass (production sources unchanged).
+All five fresh GWT builds pass;53Chrome checks pass after a test-only selector
+correction105877b (native input rather than duplicate textbox wrapper). Source/ZIP
+snapshots for all five fixtures revalidate against the current profile. Receipt:
+`.verification/browser-first-final/{browser-receipt,fixture-snapshots}.json`.
+
+Review: high-risk initial two-reviewer wave (Astra/high compatibility/architecture,
+Sol/high security/publishing) accepted1P1/5P2. Batch1 adds independently pinned
+Maven distribution96-file verification, resolved resource type spans, destination
+revalidation, immutable ZIP bytes, linear base64 and final abort checking. Targeted
+Astra/high closed four findings; batch2 removes generated import shadowing student
+ResourceURL and rejects the exact live ZIP destination. Sol/medium targeted review
+confirms URL fix but reproduces directory/case aliases still overwriting a newer
+live archive. Four launches,1initial/2targeted waves,2fixbatches. Detailed reports,
+counts and unknown effective telemetry in `.verification/browser-first/`.
+
+Owner answered "Continue with the fix and review" at pr-review's recurrent-ZIP
+checkpoint. Batch3d88e085 canonicalizes destination paths and file identities,
+adds directory/case/hardlink regressions, preserves inferredvar semantic checking,
+and rejects the unsupported stylesheet API. Final Sol/high targeted review is
+clean; independently UI13 and semantic1 pass. Final test-selector correction
+received a clean proportional review. Total5launches,
+6review turns,1initial/4targeted waves,4fixbatches. Review covers current runtime
+code using initial unchanged
+coverage plus all four targeted deltas; no extra integration-review gap identified. Last
+review completed before17:55:51UTC within the original60min window; effective telemetry and
+per-turn tokens unavailable. No further source change is planned.
+
+Preview VSIX352,618bytes/82entries includes72source files matchingd88e085 exactly;
+SHA6529165c52ebd31511957157800efc541ad42a831395c2836ea0e9dc91195b42.
+No JAR/classes/build output/node_modules included. Local/uninstalled/unpublished;
+package receipt `.verification/browser-first-final/package-receipt.json`. Local
+integration is accepted at105877b (runtime unchanged from reviewedd88e085);
+root/GWT/browser/game/immutable deployment checks pass. Detailed local receipt:
+`.verification/browser-first-final/acceptance.json`. Separate live
+publication and ZeroHub checker acceptance/activation holds remain in force.
+
+
+## Installed preview student workflow — 2026-10-15
+
+Runtime c7f7bba fixes GWT output paths in the normal installed macOS cache containing
+spaces. The pinned plugin incorrectly quoted absolute paths even though Maven
+reported success; final relative output/work/deploy arguments correct the result.
+15 focused tests, npm check, a real spaced-project/cache GWT regression and clean
+independent Sol/high review pass. Review/session receipt:
+`.verification/student-workflow/{review-ledger.json,review-path-fix.md}`. Previous
+full414-pass/1-platform-skip and browser/deployment acceptance remains evidence
+for unaffected code; those full suites were not repeated for this two-file fix.
+
+Corrected preview0.5.15 is installed into the actual managed Zero profile. The
+352835-byte VSIX has SHA256
+`0b0c38552e2243d7028029e89505ecd229149c3358407212fe5b9c712135b562`;
+all72 installed/current source files match its payload. Original0.5.14 retained
+for rollback. Use `.verification/student-workflow/zero-browser-first-preview-fixed.vsix`;
+the earlier `.verification/browser-first-final` VSIX is superseded.
+
+Native macOS tests used the installed extension (no development-extension override)
+and managed profile in the owned Code QA host; final observed editor release
+notes1.142.0. Greeting project creation/ordinary Java edits/download cancel-resume/
+Run/input/button/reset/Stop pass. Unsupported Runtime code reports exact Problems
+before GWT; restored source clears Problems and reuses output. Export and native
+Save ZIP cancellation/success pass. Saved ZIP SHA256
+`4b5d3180e1ede91e2d0d28316b56c062f8e038ee6d94410a964b77f3ab08e54d`
+exactly matches validated build1472c3fe-ca82-468f-a12c-bdd49b43b938.
+
+Installed Sky Hop compiles and displays ready art; click/Space start, P pause,
+R restart and Stop/server shutdown pass. Current snapshot
+95dc6665-5860-4674-a5cd-50fcd04a7c7c validates68files/8208661 appbytes/
+7009264 ZIPbytes against profile
+`e95aef9311ffb292eb2f64807dfe03fa64af47ab21c1eab6863dd6ca59f3b0b6`.
+Fixture clone initially omitted untracked zero.json; native Run reported that
+correctly, and copying original config into the owned fixture enabled Run.
+Physical audio/mute state was not independently measured in this phase.
+
+Existing VS Code GitHub session armorup reached real account/repository/main
+preflight and publishing setup review. Five setup files were prepared locally.
+Upload Changes reached its final review listing the correct account, repository,
+branch and five paths; **Commit & Upload canceled**. No index entries or local
+commit were created. Local/remote main remain
+c2525affd138cac991e4483ed6a8b7bdee161767. Setup files remain untracked. The external
+workspace was restored to simulation and sidebar visibly confirms that mode.
+The older remote source has different helper bodies; it was only the setup/review
+fixture, not a claimed current strict-profile compilation success.
+
+Full receipts: `.verification/student-workflow/{acceptance.json,install-receipt.json,fixed-package-receipt.json}`.
+Owned fixtures remain in `~/Zero Preview Testing`; original game, root checkout
+and default user Code window preserved. Actual upload/Pages/release asset/workflow
+/deployment/public-link testing, first-time OAuth, Windows/Linux/classroom hardware
+and physical sound remain untested. No live publication or agent account grant;
+separate ZeroHub checker activation hold persists. Local installed phase accepted;
+overall live goal remains incomplete.
+
+
+## Authorized Sky Hop Pages publication — 2026-10-15
+
+Owner explicitly authorized publishing Sky Hop to the test repository. Live game:
+<https://armorup.github.io/zero-sharing-proof/>. Source commit
+`b3b6591fb838296d1ff99e4fa53a8dca31ad3303`; successful workflow
+<https://github.com/armorup/zero-sharing-proof/actions/runs/38789445991>.
+
+The exact installed-preview-tested build
+`95dc6665-5860-4674-a5cd-50fcd04a7c7c` was preserved. Its snapshot was copied into
+the owned publishing checkout, changing only absolute manifest location paths;
+Java/resources/POM/wrappers, all output bytes and ZIP remain identical. All27
+build inputs match uploaded Git blobs exactly. Native Publish reports “Validated
+browser build ready”; no local or hosted recompilation occurred. Source hash
+`52393d196a66dd9702445d99bdc8cbd8f5c4eebbef673085226642fe83b9c799`
+and profile
+`e95aef9311ffb292eb2f64807dfe03fa64af47ab21c1eab6863dd6ca59f3b0b6`
+remain unchanged and validate after publication.
+
+Independent public HTTP reads compared every68file against the local manifest:
+68/68match SHA256 and length,8208661appbytes,0missing/mismatched files. The public
+source/run marker matches the uploaded commit and deployment38789445991. The
+7280686-byte staged bundle digest
+`ad5d02f5047d69552dd501d5de420b2dcc2b824d8d0e530b7b66f17216564691`
+matched independent local packing and GitHub's asset digest. Stage and deploy jobs
+succeeded; temporary draft release removed; no stage releases remain. Generated
+app bytes remain ignored by source Git. Pages artifact retention is one day.
+
+Real installed native Upload initially saved the source commit but failed using
+the default repo-only session for its new workflow. Runtime7ea63ee adds canonical
+five-file kit recognition and native repo+workflow session selection for ordinary
+Upload retries, including clean committed-but-unpushed state after restart.
+Same-account/project/live-mode checks and scoped disposal remain enforced;
+ordinary projects keep repo-only sessions and simulation exits before new auth,
+saves or preparation. Existing stored armorup workflow session was reused; no new
+grant, credentials export or alternative credential fallback. Retry uploaded the
+original commit; native Publish deployed its exact local build.
+
+18coordinator focused tests,32independent lifecycle tests, npm check/diff check pass.
+Two independent GPT6.1Sol/high security +lifecycle reviews ofda8766b→7ea63ee are
+complete/clean:2launches,1initial wave,0remediation batches. Game/engine profile
+unchanged; prior full local checks reused. Latest local installed preview0.5.15
+is `.verification/live-sky-hop/zero-publishing-preview.vsix`,354137bytes,
+SHA256`bc0e423f5ea1fee218ebbc1319fd2361b3e39e1f14e5ce8ac083c4d26118e771`;
+all73installed/current source files match. Earlier preview packages are historical.
+No Zero implementation/distribution release was published.
+
+Actual public Chrome interaction passes ready artwork, click/start, pause and
+restart;0captured console warnings/errors. Zero's Copy playable link was verified
+by native clipboard paste. Saved Open Published App reverified the site, presented
+the normal external-domain dialog, then opened the correct URL. Trusted domains
+unchanged; one public game tab left open. Publishing checkout clean, main and
+origin/main atb3b6591. Workspace remains live for the explicitly authorized test
+site; no automatic repeat publication scheduled.
+
+Receipts `.verification/live-sky-hop/{acceptance.json,public-files.json,source-bound.json,postpublish.json,expected-bundle.json,staged-release.json,run.json,jobs.json,remaining-staging.json,review-ledger.json}`;
+`native-publish.log`, `run.log`, `review-security.md`, `review-lifecycle.md` retain
+supporting evidence. The first independent verifier expected no trailing newline
+in the marker; all68files already matched. Corrected only the ignored verifier
+to require the runner's exact newline-terminated marker, reran successfully, and
+preserved the original receipt. No app correction was involved.
+
+Windows/Linux/classroom hardware, physical speakers and first-time workflow OAuth
+grant remain untested. Separate ZeroHub checker acceptance/activation and broader
+Zero release holds persist; this scoped live test milestone is accepted.

@@ -4,7 +4,7 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const execute = promisify(execFile);
-const {assertShareable} = require('./lesson-projects');
+const {assertShareable,tutorialMarker} = require('./lesson-projects');
 
 function parseRepositoryUrl(input) {
   if (typeof input !== 'string' || input !== input.trim()) throw new Error('Use an ordinary GitHub HTTPS repository URL.');
@@ -40,8 +40,26 @@ async function repositoryRoot(project, run = git) {
     throw error;
   }
 }
+// Read-only teaching workflow check. This intentionally proves local repository
+// readiness, not ancestry or remote ownership; Run never contacts GitHub.
+async function assertTutorialRepository(project, run = git) {
+  const marker = await tutorialMarker(project);
+  if (!marker) return null;
+  const help = 'Create YOUR repository from the tutorial template, then use VS Code Git: Clone and open that cloned folder.';
+  const expected = await fs.realpath(project);
+  const actual = await repositoryRoot(expected, run);
+  if (actual !== expected) throw new Error(`This tutorial needs its own standalone Git repository. ${help}`);
+  try {await run(expected, ['rev-parse', '--verify', 'HEAD^{commit}']);}
+  catch {throw new Error(`This tutorial repository has no starting commit. ${help}`);}
+  let repository;
+  try {repository = parseRepositoryUrl(await run(expected, ['remote', 'get-url', 'origin']));}
+  catch {throw new Error(`This tutorial needs your ordinary GitHub HTTPS origin. ${help}`);}
+  if (/^https:\/\/github\.com\/codepetca\/zero-tutorial-(?:greeting|study|game)$/i.test(repository.page)) throw new Error(`This is a teacher tutorial template origin. ${help}`);
+  return repository;
+}
 async function assertRepositoryRoot(project, run = git) {
   await assertShareable(project);
+  await assertTutorialRepository(project, run);
   const expected = await fs.realpath(project);
   const actual = await repositoryRoot(expected, run);
   if (actual !== expected) throw new Error(actual ? 'This project is inside a different Git repository. Open a standalone student copy before connecting.' : 'Connect a repository for this student project first.');
@@ -50,6 +68,11 @@ async function assertRepositoryRoot(project, run = git) {
 async function connectRepository(project, url, confirmReplacement, run = git) {
   await assertShareable(project);
   const repository = parseRepositoryUrl(url);
+  const tutorial = await assertTutorialRepository(project, run);
+  if (tutorial) {
+    if (tutorial.page.toLowerCase() !== repository.page.toLowerCase()) throw new Error('This tutorial is already connected to its cloned repository. Clone your own repository to use a different destination.');
+    return tutorial;
+  }
   const expected = await fs.realpath(project);
   const existingRoot = await repositoryRoot(expected, run);
   if (existingRoot && existingRoot !== expected) throw new Error('This project is inside a different Git repository. Copy the student-template folder outside the kit repository first.');
@@ -71,4 +94,4 @@ function simulatedUpload() {
 function runSpecification(project, platform = process.platform) {
   return {cwd: project, command: path.join(project, platform === 'win32' ? 'mvnw.cmd' : 'mvnw'), args: ['clean', 'compile', 'javafx:run'], shell: platform === 'win32'};
 }
-module.exports = {parseRepositoryUrl, resolveProject, git, repositoryRoot, assertRepositoryRoot, connectRepository, simulatedUpload, runSpecification};
+module.exports = {assertTutorialRepository,parseRepositoryUrl, resolveProject, git, repositoryRoot, assertRepositoryRoot, connectRepository, simulatedUpload, runSpecification};

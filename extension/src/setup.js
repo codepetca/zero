@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const {tutorialMarker} = require('./lesson-projects');
 const {execFile} = require('node:child_process');
 const {promisify} = require('node:util');
 const executeFile = promisify(execFile);
@@ -63,7 +64,7 @@ async function inspectSetup(options) {
     }
   };
   const resolve = async () => {
-    try {const root = await project(); await check(root,platform); return {ok:true,root,text:root};}
+    try {const root = await project(); await check(root,platform); return {ok:true,root,text:root,requiresGit:Boolean(await tutorialMarker(root))};}
     catch (error) {return {ok:false,text:error.message};}
   };
   const [java,javac,git,studentProject] = await Promise.all([
@@ -86,38 +87,38 @@ async function inspectSetup(options) {
     } catch {taskEnvironment = {verified:false,keys:[],text:'Run environment unverified: terminal environment settings could not be read. Review them with your teacher or IT; ordinary Run App remains available.'};}
   }
   return {platform,source,java,javac,git,project:studentProject,extensions,jdkReady,gitReady,jdkDetail,
-    taskEnvironment,runReady:Boolean(jdkReady && studentProject.ok && taskEnvironment.verified),editorReady:extensions[0].available};
+    taskEnvironment,runReady:Boolean(jdkReady && studentProject.ok && taskEnvironment.verified && (!studentProject.requiresGit || gitReady)),editorReady:extensions[0].available};
 }
 
 function writeDetails(output,report,mode) {
   output.clear();
-  output.appendLine('Zero setup — local Run App does not require Git or GitHub sign-in.');
+  output.appendLine(report.project.requiresGit ? 'Zero tutorial setup — Git 2.31+ is required for the tutorial workflow. Local Run needs no active GitHub sign-in.' : 'Zero setup — ordinary local apps do not require Git or GitHub sign-in.');
   output.appendLine(`VS Code: present. Host-process Java tools: ${report.source}.`);
   for (const name of ['java','javac','git']) output.appendLine(`${report[name].command}: ${report[name].text}`);
   output.appendLine(report.jdkDetail);
   output.appendLine(`Student project: ${report.project.text}`);
   if (report.taskEnvironment && !report.taskEnvironment.verified) output.appendLine(report.taskEnvironment.text);
   for (const extension of report.extensions) output.appendLine(`${extension.id}: ${extension.available ? 'available in this profile' : 'missing or disabled in this profile'} — ${extension.purpose}`);
-  output.appendLine(`${report.runReady ? 'Run prerequisites ready' : 'Run prerequisites need attention'}; ${report.gitReady ? 'Git 2.31+ available for optional sharing' : 'optional sharing needs Git 2.31+'}.`);
-  output.appendLine(`Checks do not build the project or verify a JavaFX window. ${report.runReady ? 'Choose Run first app, then confirm the separate app window opens.' : 'Review setup issues before using Run App.'} First builds need internet for Maven and JavaFX; read failures in the task terminal.`);
-  output.appendLine(`Upload mode: ${mode}. Simulation makes no Git changes. Live sharing also needs an optional native GitHub sign-in, a connected repository and your per-repository Git name/email. Zero does not change identity or credentials.`);
+  output.appendLine(`${report.runReady ? 'Run prerequisites ready' : 'Run prerequisites need attention'}; ${report.gitReady ? 'Git 2.31+ available for tutorials and uploads' : 'tutorials and uploads need Git 2.31+'}.`);
+  output.appendLine(`Checks do not build the project or verify its browser preview. ${report.runReady ? 'Choose Run first app, then confirm the browser preview opens.' : 'Review setup issues before using Run App.'} First builds download the pinned browser compiler and dependencies; read failures in Zero Output and Problems.`);
+  output.appendLine(`Upload mode: ${mode}. Simulation makes no Git changes. Uploads need native GitHub sign-in, a connected repository and your per-repository Git name/email. Account setup is required before tutorial lesson 0; public game publishing is optional. Zero does not change identity or credentials.`);
 }
 
 function checklist(report) {
   return [
-    {label:report.taskEnvironment?.verified === false ? '$(warning) Run environment unverified' : report.runReady ? '$(check) Run prerequisites ready' : '$(warning) Run prerequisites need attention', description:report.taskEnvironment?.verified === false ? report.taskEnvironment.text : 'Build and app window still need a first run',action:'details'},
+    {label:report.taskEnvironment?.verified === false ? '$(warning) Run environment unverified' : report.runReady ? '$(check) Run prerequisites ready' : '$(warning) Run prerequisites need attention', description:report.taskEnvironment?.verified === false ? report.taskEnvironment.text : 'Build and browser preview still need a first run',action:'details'},
     {label:'$(check) VS Code',description:'Already running — no reinstall needed',action:'details'},
     {label:`${report.jdkReady ? '$(check)' : '$(warning)'} Java JDK — host process`,description:report.jdkDetail,action:report.jdkReady ? 'details' : 'jdk'},
     {label:`${report.project.ok ? '$(check)' : '$(warning)'} Student project`,description:report.project.text,action:report.project.ok ? 'details' : 'project'},
     ...report.extensions.map(extension => ({label:`${extension.available ? '$(check)' : '$(warning)'} ${extension.name}`,description:extension.available ? `Available — ${extension.purpose}` : `Install or enable in this profile — ${extension.purpose}`,action:extension.available ? 'details' : extension.id})),
-    {label:`${report.gitReady ? '$(check)' : '$(info)'} Git — optional sharing`,description:report.gitReady ? 'Git 2.31+ available; account/repository setup is separate' : 'Sharing incomplete — install or update Git 2.31+',action:report.gitReady ? 'details' : 'git'},
+    {label:`${report.gitReady ? '$(check)' : report.project.requiresGit ? '$(warning)' : '$(info)'} Git — tutorials and uploads`,description:report.gitReady ? 'Git 2.31+ available; account/repository setup is separate' : report.project.requiresGit ? 'Tutorial setup incomplete — install or update Git 2.31+' : 'Sharing incomplete — install or update Git 2.31+; ordinary local apps still run',action:report.gitReady ? 'details' : 'git'},
     {label:'$(refresh) Check again',description:'Recheck this VS Code process and current profile',action:'check'},
-    ...(report.runReady ? [{label:'$(play) Run first app',description:'Save, build and launch; confirm the separate JavaFX window',action:'run'}] : []),
+    ...(report.runReady ? [{label:'$(play) Run first app',description:'Save, check and build; confirm the browser preview',action:'run'}] : []),
     {label:'$(output) Show setup details',description:'Version output and guidance in Zero Output',action:'details'}
   ];
 }
 
-function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulation', inspect = inspectSetup}) {
+function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'live', inspect = inspectSetup}) {
   let busy = false;
   return async () => {
     if (busy) return;
@@ -149,7 +150,7 @@ function createSetupHelp(vscode,{project,output,run,uploadMode = () => 'simulati
             continue;
           }
           if (!report.runReady) continue;
-          void vscode.window.showInformationMessage('Run App will save your files and build the app. First builds need internet. Confirm that the separate JavaFX window opens; if it fails, read the task terminal.');
+          void vscode.window.showInformationMessage('Run App will save your files and build the app. First builds need internet. Confirm that the browser preview opens; if it fails, read Zero Output and Problems.');
           await run(report.project.root); return;
         }
         if (EXTENSIONS.some(extension => extension.id === choice.action)) {

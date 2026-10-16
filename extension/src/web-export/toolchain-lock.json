@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "webfx": [
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxbase-emul",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxbase-emul-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxbase-emul/0.1.0-SNAPSHOT/webfx-kit-javafxbase-emul-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "a6530a0e4d30c77ede4daf6ea2307bbbadb3d74341b10235b0c8c9abf752e297"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxgraphics-emul",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxgraphics-emul-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxgraphics-emul/0.1.0-SNAPSHOT/webfx-kit-javafxgraphics-emul-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "699ac13b15f952890a4e4583944222c6e76e6e2756287105f5ccf38a2f644dd0"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxgraphics-elemental2",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxgraphics-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxgraphics-elemental2/0.1.0-SNAPSHOT/webfx-kit-javafxgraphics-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "479d4a292c1842041b5643e2763dd8bb5584b3b0359b1ba33fe33eb757e9abe4"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxgraphics-peers",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxgraphics-peers-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxgraphics-peers/0.1.0-SNAPSHOT/webfx-kit-javafxgraphics-peers-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "ea5c3d0f04f313182ccc6584e2864a31e145874ada61296d19ac3b09e7ae2aa9"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxgraphics-peers-base",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxgraphics-peers-base-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxgraphics-peers-base/0.1.0-SNAPSHOT/webfx-kit-javafxgraphics-peers-base-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "c4173d1ae2fa448093d25a031ee14fb4b968664e708e8330118c834deeb0d961"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxgraphics-peers-elemental2",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxgraphics-peers-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxgraphics-peers-elemental2/0.1.0-SNAPSHOT/webfx-kit-javafxgraphics-peers-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "56f04f05ef2d226051a1c460572f3689a7b43486479718a46959bb63a9192ee1"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxgraphics-registry-elemental2",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxgraphics-registry-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxgraphics-registry-elemental2/0.1.0-SNAPSHOT/webfx-kit-javafxgraphics-registry-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "8dec443e91b1ee0cd2a8fb956cbbfb347ea389e588a3bc675411b8ae41764dba"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-launcher",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-launcher-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-launcher/0.1.0-SNAPSHOT/webfx-kit-launcher-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "49811230679fb5ad0b20805707d8791e7002194f0e33b107cdbaaab5cd756e09"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-util",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-util-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-util/0.1.0-SNAPSHOT/webfx-kit-util-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "755fa00e04a1db079f5d8000f24f7ffe22a0e96201372dc365f723e7d0e3bbfb"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-util-aria",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-util-aria-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-util-aria/0.1.0-SNAPSHOT/webfx-kit-util-aria-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "39e5a5a7d5bcead2f22e5edb389613f5fecc10ab23a88f423819cff44a369f14"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-boot",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-boot-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-boot/0.1.0-SNAPSHOT/webfx-platform-boot-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "c578542e54a67e306ae172714ecc3d3c6f2d466b95907ba46eddfa0a172f3d99"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-console",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-console-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-console/0.1.0-SNAPSHOT/webfx-platform-console-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "e3c1deb95992d3e77730a982485cbb838b52e4a8d052aec1bd6e4af9cf0d7e4c"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-console-elemental2",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-console-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-console-elemental2/0.1.0-SNAPSHOT/webfx-platform-console-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "13b3e4767d13e436fe8b7a8ea6fbeddf1879d73c9353ffa17787424de753f40a"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-javabase-emul-gwt",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "shaded-sources",
+      "file": "webfx-platform-javabase-emul-gwt-0.1.0-20260917.140147-3-shaded-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-javabase-emul-gwt/0.1.0-SNAPSHOT/webfx-platform-javabase-emul-gwt-0.1.0-20260917.140147-3-shaded-sources.jar",
+      "sha256": "9536f683f6d4c54ac9abfd0910994e356b90e45311372468bccd9ac11241b36b"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-meta",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-meta-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-meta/0.1.0-SNAPSHOT/webfx-platform-meta-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "1f46f1c283f0507d29d6f7ebaadc76bff75363b6b7eece8ef545649130b6ae20"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-os",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-os-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-os/0.1.0-SNAPSHOT/webfx-platform-os-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "81ae5b9202f766a03b926922b6a210abe8c6c21dcdca20a824594e192519ccbe"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-os-elemental2",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-os-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-os-elemental2/0.1.0-SNAPSHOT/webfx-platform-os-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "217671489bdae749de5bd39414d7eb29b4c504fa5615ef1d77d0e25a1ece7888"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-polyfillcompat",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-polyfillcompat-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-polyfillcompat/0.1.0-SNAPSHOT/webfx-platform-polyfillcompat-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "bb3734401a108e3443be471f8096e39d58b1345a386132475f0d6a2c657ecdf4"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-resource",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-resource-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-resource/0.1.0-SNAPSHOT/webfx-platform-resource-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "66c6a48ec86143a97058fdf80d3172f9641852174b4e313e3b7e1b51c3458a83"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-resource-elemental2",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-resource-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-resource-elemental2/0.1.0-SNAPSHOT/webfx-platform-resource-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "e7f69abe8b21a00cc428fc668757b7e3289bd5b5f6e7b85c6dfdeef74b91f994"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-resource-web",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-resource-web-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-resource-web/0.1.0-SNAPSHOT/webfx-platform-resource-web-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "21d727de1f14e0714644ec1889c3723bf21c175534c66d893ae347b0c864b49e"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-scheduler",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-scheduler-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-scheduler/0.1.0-SNAPSHOT/webfx-platform-scheduler-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "5b47cf4164ac49a137292da664fd9618e9c5e026491746ae91dde60375f67103"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-service",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-service-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-service/0.1.0-SNAPSHOT/webfx-platform-service-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "662997b6436d6508509e5428f745ed4c58dd5e036f745e6c4386c7c1e7e44a20"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-service-gwt-j2cl",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-service-gwt-j2cl-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-service-gwt-j2cl/0.1.0-SNAPSHOT/webfx-platform-service-gwt-j2cl-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "2593d13550d70463b6cf31c110c72c3a06bdd1531ac9f804bf29364e8c4c02c0"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-shutdown",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-shutdown-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-shutdown/0.1.0-SNAPSHOT/webfx-platform-shutdown-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "88f224f3fc0cc4b0e618b4fe4433c61daa2adaf38ef118057a0887a9188b26a3"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-shutdown-elemental2",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-shutdown-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-shutdown-elemental2/0.1.0-SNAPSHOT/webfx-platform-shutdown-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "8515c04734716e247272d76dd28caa1ff9300f28993d6b0a229be5cce323a7d5"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-uischeduler",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-uischeduler-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-uischeduler/0.1.0-SNAPSHOT/webfx-platform-uischeduler-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "d9ad96c37f95921bf22ce2a9729afb30476d753eced84850922e122f36a8a16a"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-uischeduler-elemental2",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-uischeduler-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-uischeduler-elemental2/0.1.0-SNAPSHOT/webfx-platform-uischeduler-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "38ef12d8bc8e31558549c950dceacc574141d6daedf2e1b2f60fe592d2e1c0b8"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-useragent",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-useragent-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-useragent/0.1.0-SNAPSHOT/webfx-platform-useragent-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "29c61653d825022ab22a52a46ed3bd455631d03fb37f4fbbffe369823c2aaef8"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-useragent-elemental2",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-useragent-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-useragent-elemental2/0.1.0-SNAPSHOT/webfx-platform-useragent-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "a8a6d07937316feeba1fa9b6b91abbabf129c4044118dc3fa26189fdc26488c6"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-util",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-util-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-util/0.1.0-SNAPSHOT/webfx-platform-util-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "369bfd4bffc1fea357ff4182595fddbaf8ecacf87b2bc122bd53423844c50272"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-platform-util-elemental2",
+      "version": "0.1.0-20260917.140147-3",
+      "classifier": "sources",
+      "file": "webfx-platform-util-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-platform-util-elemental2/0.1.0-SNAPSHOT/webfx-platform-util-elemental2-0.1.0-20260917.140147-3-sources.jar",
+      "sha256": "3f4e51da370a7bfd5774a01b68b0e9edc337cbe6c0fb260425c19223a0064f2d"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxcontrols-emul",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxcontrols-emul-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxcontrols-emul/0.1.0-SNAPSHOT/webfx-kit-javafxcontrols-emul-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "54a5da9e4da99a9f2085aa13d8ec0681201d6115c298c28dc023c755f36563b4"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxcontrols-peers-base",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxcontrols-peers-base-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxcontrols-peers-base/0.1.0-SNAPSHOT/webfx-kit-javafxcontrols-peers-base-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "999765f466d974342060eb8df5da7b0d06be4ead3e95dec6c207e3d7cf029d78"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxcontrols-peers-elemental2",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxcontrols-peers-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxcontrols-peers-elemental2/0.1.0-SNAPSHOT/webfx-kit-javafxcontrols-peers-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "0d8e4a08acc5f1198f9dc4048a101d68c691caa8e6587d2266909ca48455a93a"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-javafxcontrols-registry-elemental2",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-javafxcontrols-registry-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-javafxcontrols-registry-elemental2/0.1.0-SNAPSHOT/webfx-kit-javafxcontrols-registry-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "cc45253480c89d7bc2708c9e1308a31bc11ed605cd6dd63034fffe0867ae2e7e"
+    },
+    {
+      "groupId": "dev.webfx",
+      "artifactId": "webfx-kit-perfectscrollbar-elemental2-gwt-j2cl",
+      "version": "0.1.0-20260917.143427-1",
+      "classifier": "sources",
+      "file": "webfx-kit-perfectscrollbar-elemental2-gwt-j2cl-0.1.0-20260917.143427-1-sources.jar",
+      "url": "https://central.sonatype.com/repository/maven-snapshots/dev/webfx/webfx-kit-perfectscrollbar-elemental2-gwt-j2cl/0.1.0-SNAPSHOT/webfx-kit-perfectscrollbar-elemental2-gwt-j2cl-0.1.0-20260917.143427-1-sources.jar",
+      "sha256": "798bc6eabe15bff31b359b4c24e64b773799bb1498f16cb54146e6c05c16108d"
+    }
+  ],
+  "gwt": "2.13.0",
+  "gwtPlugin": "1.2.0",
+  "maven": "3.9.11",
+  "java": "21",
+  "runtimePatches": [
+    {
+      "className": "dev.webfx.kit.mapper.peers.javafxgraphics.elemental2.util.FxEvents",
+      "reason": "Correct DOM secondary and middle mouse-button bit masks",
+      "sourceArtifact": "webfx-kit-javafxgraphics-peers-elemental2-0.1.0-20260917.143427-1-sources.jar",
+      "originalSourceSha256": "cfb021c1b18ce106af440d5da93e0121006a9cab14a190d9147a10bed198b204",
+      "patchedSourceSha256": "9c4a0281018d1882cf2b8c9f68cdcb2e285dad677929c5100f027363bb4918ab"
+    }
+  ]
+}

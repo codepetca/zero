@@ -185,8 +185,8 @@ public class CheckpointHarness extends Application {
     }
 
     private static void checkGame(Main app, Stage stage) throws Exception {
-        GameApp game = (GameApp) (App) app;
-        require(game.layout().getCenter() == game.canvas(), "canvas remains in game layout");
+        GameApp sketch = (GameApp) (App) app;
+        require(sketch.layout().getCenter() == sketch.canvas(), "canvas remains in game layout");
         Label score = score(app);
         require(score.getText().equals("Score: 0"), "game begins with zero score");
         if (!id.equals("9")) checkScoreDisplay(app);

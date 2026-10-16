@@ -8,7 +8,7 @@
 2. Reopen your **Coin game** from lesson 9. Copy only your `ScoreDisplay.java` into that project, then use it there.
 3. **Run App** in each project and check scoring and Restart.
 
-**Done:** The same student-authored class displays `Score: 0`, `Score: 1` and resets to 0 in both apps. These are still your two existing local practice projects; lesson 10 has no starter download.
+**Done:** The same student-authored class displays `Score: 0`, `Score: 1` and resets to 0 in both apps. These are still your two existing tutorial repositories; lesson 10 has no starter download.
 
 Previous: [Build a coin game](09-coin-game.md).
 

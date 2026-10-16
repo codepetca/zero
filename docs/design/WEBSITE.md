@@ -4,21 +4,24 @@ Start with [shared design](../../design.md) and the canonical
 [UI and UX guidelines](../UI-UX-GUIDELINES.md). Current owner instructions
 supersede the original landing mockup.
 
-## Current page contract — 2026-10-13
+## Current page contract — 2026-10-15
 
 Home (`/`) has the shared app header and a centered stack: **Learn Java**,
-**Starting from zero.**, **Download Zero** → `/downloads`, and **Start Learning**
-→ `/learn`. Use ordinary links and preserve visible keyboard focus.
+**Starting from zero.** and two direct download actions: **Download for Mac Silicon**
+and **Download for Windows (ZIP)**. GitHub
+connection happens in downloaded Zero's native welcome. The website needs no
+sign-in; old `/get-started` links redirect to Downloads. Preserve keyboard focus.
 Tutorials opens lesson 0 directly, with all thirteen lessons in a desktop sidebar
 and a native lesson selector on narrow screens. Selecting updates the reading
 pane and bookmarkable lesson URL. Downloads is a separate page with a centered
 heading and stacked Mac/Windows platform actions; Download is a regular menu item.
 
-All three pages use shared light/dark semantic tokens and a circular header
+Home, Tutorials and Downloads use shared light/dark semantic tokens and a circular header
 sun/moon toggle. Default to the OS preference until a mode is chosen, then save
 the choice. Header and main fill the available viewport; longer content scrolls
 normally. Keep320px reflow, contained code, mobile menu and comfortable targets.
-No extra promotional sections or download/version instructions are requested.
+Keep the landing sparse. Downloads retains concise installation help and explains connecting GitHub after
+launching Zero.
 
 Hub and other website routes retain their own design/contracts. The native
 VSCode sidebar follows host colors/fonts/focus/high-contrast roles. LocalRun and

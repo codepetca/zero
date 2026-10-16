@@ -24,6 +24,8 @@
     "test:release": "node --test scripts/release-review.test.mjs scripts/release-publish.test.mjs",
     "verify:kit": "node scripts/verify-kit.mjs",
     "verify:framework": "node scripts/verify-framework.mjs",
+    "verify:web": "node scripts/verify-web-export.mjs --browser",
+    "test:web": "node --test extension/test/web-export-*.test.js extension/test/web-publish-*.test.js",
     "test:sharing": "node --test sharing/test/*.test.mjs",
     "sharing": "node sharing/cli.mjs",
     "prepare:design": "node design/prepare.mjs",
@@ -33,6 +35,7 @@
     "package:windows:production": "node scripts/build-windows-production.mjs"
   },
   "devDependencies": {
+    "@playwright/cli": "0.1.22",
     "@vscode/vsce": "4.0.0",
     "fflate": "0.8.3",
     "parse5": "8.0.1"

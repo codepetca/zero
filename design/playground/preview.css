@@ -387,7 +387,7 @@ h1 {
 }
 
 
-.downloads-page .downloads { border-top:0; padding-top:0; margin-top:var(--zero-space-5); }
+.home-page .downloads, .downloads-page .downloads { border-top:0; padding-top:0; margin-top:var(--zero-space-5); }
 
 .tutorial-reader { display:grid; grid-template-columns:minmax(180px,240px) minmax(0,1fr); gap:var(--zero-space-6); }
 .tutorial-reader > * { min-width:0; }
@@ -423,8 +423,8 @@ h1 {
 .tutorial-reader { flex:1; width:100%; align-items:start; }
 
 .web-preview .downloads-page { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
-.downloads-page .downloads { width:min(100%,340px); flex-direction:column; align-items:stretch; }
-.downloads-page .downloads .primary { width:100%; }
+.home-page .downloads, .downloads-page .downloads { width:min(100%,340px); flex-direction:column; align-items:stretch; }
+.home-page .downloads .primary, .downloads-page .downloads .primary { width:100%; }
 
 .web-preview main.home-page { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
 .home-actions { width:min(100%,340px); display:flex; flex-direction:column; gap:var(--zero-space-4); }

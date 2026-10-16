@@ -1,28 +1,25 @@
 # Hello, Java
 
 A complete App example: type a name and click **Say hello** or press Enter.
-Blank input gives useful feedback. **Start again** clears the field and greeting.
-This app responds to events; it has no update/draw loop.
+Blank input gives useful feedback. **Start again** clears the field and greeting
+and returns focus to the name field. This app responds to events; it has no
+update/draw loop. Ordinary JavaFX controls use the platform theme, with a larger
+heading set through `Font`. No external stylesheet or media is needed.
 
 ## Copy and run
 
-Create a fresh local project from a standalone Zero starter. Copy these exact files into that separate folder:
-If your downloaded kit does not have this example, copy the complete Main and
-stylesheet shown on the website's [Hello, Java page](https://zero.codepet.ca/examples/hello-app)
-into these same destinations.
+Use the complete [Hello, Java project](https://zero.codepet.ca/examples/hello-app),
+or copy `examples/hello-app/Main.java` into a fresh standalone Zero starter at
+`src/main/java/Main.java` (replace Main). Keep the framework in
+`src/main/java/zero/`, the pinned build files and wrappers.
 
-| Example file | Destination |
-| --- | --- |
-| `examples/hello-app/Main.java` | `src/main/java/Main.java` (replace Main) |
-| `examples/hello-app/theme.css` | `src/main/resources/hello-app/theme.css` (create the folder) |
-
-Keep the framework in `src/main/java/zero/`, the pinned build files and wrappers.
-Copying the CSS is required: the app gives an explicit startup error when it is missing.
-Open the standalone starter folder in VS Code and click **Zero → Run App**, or
-run the following from that folder using a supported JDK 17+:
+Open the standalone project folder in Zero and click **Run App** for the browser
+preview. The first build needs internet for the pinned compiler and dependencies.
+Save edits and Run App again to rebuild. For an explicit native JavaFX check,
+run the following from the project folder with a supported JDK 17+:
 
 ```sh
-# macOS / Linux
+# macOS
 ./mvnw clean compile javafx:run
 ```
 
@@ -31,23 +28,25 @@ run the following from that folder using a supported JDK 17+:
 .\mvnw.cmd clean compile javafx:run
 ```
 
-The first build needs internet for the pinned dependencies. Save edits and run
-again to rebuild. The example shelf is outside compiled source, so the starter's
-Hello, world! app remains unchanged until you copy another Main into your project.
 In a repository checkout, first run `node scripts/prepare-starter.mjs` from the
 repository root, then use a disposable copy of `student-template/`. An extracted
 starter already has its framework sources and needs no preparation or Node.js.
+The example shelf stays outside compiled source until you copy its Main.
 
 ## Three changes to try
 
 1. Change the greeting in `greet()` to `"Welcome, " + enteredName + "!"`.
-2. Change the primary button colour in theme.css from `#6457e8` to `#176b59`.
+2. Change the heading font size from `32` to `28`.
 3. Change the VBox spacing from `16` to `24`; compare the layout.
 
-The stylesheet supplies colours, fonts, rounded corners and visible focus, hover
-and pressed states. Java owns the content, rules and layout. Try Tab to move
-between controls, Enter in the name field and Space on a focused button.
-The layouts respond to window size; very narrow windows may still clip content.
+Try Tab to move between controls, Enter in the name field and Space on a focused
+button. The layouts respond to window size; very narrow windows may clip content.
 
-See [the beginner toolkit](../../BEGINNER.md) and [appearance guide](../../STYLE.md).
+The adjacent `theme.css` is an optional reference for advanced **native JavaFX**
+experiments. The default Main does not load it, and the complete project download
+does not require or include it. External JavaFX stylesheets are outside the
+supported browser profile; adding the stylesheet-loading code requires the
+explicit native workflow described in [the appearance guide](../../STYLE.md).
+
+See [the beginner toolkit](../../BEGINNER.md).
 Maintainer checks and platform limits are in [checks/README.md](checks/README.md).

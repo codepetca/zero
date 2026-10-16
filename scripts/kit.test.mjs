@@ -249,5 +249,6 @@ test('assembled ZIP is a standalone editable Java project with canonical source 
     maven(project, ['-q', 'clean', 'compile']);
     assert.ok(existsSync(path.join(project, 'target/classes/Main.class')));
     assert.ok(existsSync(path.join(project, 'target/classes/zero/GameApp.class')));
+    for (const retired of ['SketchApp', 'SimpleApp']) assert.equal(existsSync(path.join(project, `target/classes/zero/${retired}.class`)), false);
   } finally {rmSync(project, {recursive:true, force:true});}
 });

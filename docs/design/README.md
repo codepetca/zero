@@ -17,9 +17,10 @@ Run/Stop/Upload, repository status, a copy-link action and native-style files.
 The storyboard-generation brief: first-launch setup, ready-to-code view,
 separate JavaFX app, line-linked compiler error, upload then separate Pika link.
 
-Actual bootstrap differs intentionally in one important state: upload is
-labelled simulation by default; a guarded upload engine is implemented behind
-the opt-in live setting, but actual GitHub authentication/upload is unverified. Local
+The original bootstrap used labelled simulation by default. The current local
+candidate defaults to live GitHub actions with explicit review/confirmation;
+optional simulation remains a testing setting. Installed-preview GitHub upload
+and test-site publication evidence is recorded in `docs/VERIFICATION.md`. Local
 running is available independently of GitHub sign-in. Framework method names
 in the mockups were illustrative; the Java source defines the implemented API.
 

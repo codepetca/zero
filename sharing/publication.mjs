@@ -30,6 +30,7 @@ export class PublicationService {
     const request = record.frozen;
     if (!evidence || evidence.status !== 'passed' || evidence.requestFingerprint !== requestId || evidence.sourceDigest !== request.sourceDigest || evidence.commit !== request.commit || evidence.policyRevision !== request.policyRevision) throw new Error('Evidence is not bound to the frozen request/source/policy');
     if (await this.verifyEvidence(evidence, structuredClone(request)) !== true) throw new Error('Trusted managed evidence verification failed');
+    if (canonical(evidence.web??null)!==canonical(request.web??null))throw new Error('Web publication is not bound to trusted evidence');
     if (components && evidence.componentsDigest !== digest(components)) throw new Error('Generated component metadata is not bound to trusted evidence');
     if (!artifacts || typeof artifacts !== 'object' || Array.isArray(artifacts)) throw new Error('Trusted artifacts required');
     const ident = contracts.identity(request.kind, request.repository.id, request.slug);
@@ -60,6 +61,7 @@ export class PublicationService {
       repository: contracts.validateRepository(Object.fromEntries(['id','ownerId','owner','name','url'].map(key => [key, metadata[key]]))),
       contributor: {githubId:request.requester.githubId,login:metadata.owner}, source: {commit: request.commit, folder: request.folder, sha256: request.sourceDigest},
       policyRevision: request.policyRevision, status: 'available', artifacts: manifest,
+      ...(request.web?{web:structuredClone(request.web)}:{}),
       ...(request.kind === 'library' ? {namespace: ident.namespace, coordinate: {...ident.coordinate, version: request.version}, libraryKind: descriptor.libraryKind, ...(components ? {components} : {})} : {controls: descriptor.controls})
     };
     contracts.validateRelease(release, {artifactOrigin: this.artifactOrigin});

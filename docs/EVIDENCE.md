@@ -1,5 +1,852 @@
 # Delivery evidence index
 
+## Approved guide correction complete — 2026-10-16
+
+Direct owner approval released the prepared three-guide batch plus one focused
+review. Source4a9e889 corrects the removed confirmation prompts and optional local
+branch deletion in GETTING-STARTED, SETUP and starter README. One independent
+Sol/medium complete three-file delta review found no actionable issues against
+immediate Git/publish callers. Legacy ledger now6launches,1initial/5targetedwaves,
+5fixbatches; this authorized extension is complete, with no further loop requested.
+Effective reviewer model/tokens/elapsed unavailable. No new Java/runtime changes.
+
+Current109website tests/check/build pass; actual Chrome guide includes direct
+Enter/click actions, retained remote branch and safe-cleanup Output recovery, with
+obsolete prompts absent and no captured warnings/errors. Package/extracted-kit
+pass; corrected starter README is exact in the kit. All106source/package/installed
+extension files still match, so no redundant reinstall or native retest was needed.
+Existing student project READMEs were preserved. Prior510root/onePowerShellskip,
+34clone-preference and website type checks retain unchanged-runtime coverage.
+
+Local candidate dist/candidates/zero-0.5.18-guides-4a9e889 and unsigned universal
+Mac dist/installers/candidate-4a9e889 preserved. Sol/medium artifact worker rebuilt
+in37.590s and verified in5.097s, one attempt/no rework. Independently rehashed all
+preserved files. DMG4443455bytes SHA256
+`f4066be957e3f1cce16fa309bd772b9ac93e61e48eab61af2c6321e0503a3058`.
+Source/kit/release manifests/feed/historical candidates remained exact. Ad-hoc '-'
+only; no app execution, DeveloperID/notary/staple or public action.
+
+Mac preview is locally ready; public student release is not. Next missing authority
+is pushing reviewed codex/release-readiness and opening a draft PR for CI. A concrete
+PR body is prepared locally. Public template/policy/Play, final live Git/Pages,
+signing/classroom gates remain; Windows is separately deferred. Current native
+finite framework focus harness has no passing verdict and remains honestly reported.
+No workflow assertion was weakened. Receipts guide-correction/review.md,
+review-budget.json, candidate.json, chrome-guide.json/png and final-mac-4a9e889/RESULT.*.
+Weekly45%remaining and healthy316.6GB are shared observations, not attributable cost.
+
+## Remember clone location installed and accepted — 2026-10-16
+
+Owner requested remembering the chosen clone parent. Peer source87ba673 integrated
+asce12fa7; five reviewed file hashes exactly match. One Sol/medium independent
+complete-diff review was clean with no findings/fixes. Effective model/tokens and
+review elapsed unavailable. Root34folder/onboarding/extension tests, check,
+package and extracted-kit verification pass. Existing510root/109website passes
+are reused for unchanged behavior; no redundant full suite was run.
+
+Installed candidate source0f033c1 (CURRENT-only metadata after runtimece12fa7):
+VSIX SHA256`cd802b11f41018bcfa344bc43a4c869d935f440be07d530812d985733fa9d1a6`,
+106authoredfiles exact source/package/installed. Native test chose an owned alternate
+parent with Clone here, reopened with that parent selected, navigated elsewhere
+and cancelled, then reloaded the editor: the chosen parent remained. Finally
+restored the original ~/Zero Projects via UI and verified it by reopening/cancelling.
+Main left and Study lesson3right restored/raised. Existing armorup session and
+ordinary Java retained; native Git reused an existing clone, with no fresh transport
+or public mutation claimed. The machine-local preference is not registered for
+Settings Sync. Unavailable paths/storage failure have focused test coverage, not
+native fault injection; no actual Sync or physical Windows trial.
+
+Receipts `.verification/release-readiness-20261016/remember-clone/`: delivery.json,
+source-hashes.json, integration.json, integrated-tests.log, candidate.json,
+native-acceptance.json and remembered-after-reload.png/study-restored.png. Candidate
+preserved in dist/candidates/zero-0.5.18-remember-0f033c1. Unsigned3bf5304 DMG is now
+historical and must be refreshed with final guide/policy inputs before release.
+The legacy three-guide correction remains prepared/unapplied pending its explicit
+extra-batch review approval; no new review session was used to bypass that hold.
+Weekly46%remaining/healthy317.7GB are shared observations, not attributable cost.
+
+## Combined Project menu and installed Mac preview — 2026-10-16
+
+Installed source `3bf5304` integrates the reviewed Project/Clone feature and aligned
+website guides. Full combined root suite: 511 tests, 510 pass, one PowerShell runtime
+skip, zero failures in 297.116 seconds with ARM JDK 17. Website 109 tests, typecheck
+and production build pass; check/package/extracted-kit verification pass. The later
+sole development-guide correction reuses unchanged runtime coverage. Root verified
+all 26 peer-reviewed source hashes exactly. New-feature independent Sol/high review:
+one complete initial wave, two targeted waves, two fix batches, no remaining finding;
+effective model, tokens and review elapsed unavailable. Accepted fixes let another
+location work when the default folder is unavailable and correct stale menu wording.
+The peer stopped its stale root run, preserved logs and handed one coherent full run
+to this coordinator; no duplicate install or UI writer.
+
+Final candidate VSIX SHA256 `586ba6d6ec5b3013fe4c660c48d732daaea33b4cd60a355167a47b24fca105d2`,
+431186 bytes, has 106 authored files matching source and installed extension. Native
+current host is VS Code 1.142.0. Existing armorup account retained. Project menu,
+invalid URL recovery and Clone location / Zero Projects / Clone here passed. Native
+Git reused the already-open Study clone; this repeat does not claim fresh transport
+or new authentication. Open local project opened a separate owned canonical Study
+folder in a new window, showed its folder name and Connect to GitHub; all 23 authored
+files unchanged. Actual installed Run → Chrome wrong 4 / right 5 → Stop passed;
+Stop removed the iframe. Main and Tutorials lesson 3 restored; the requested Study
+window was reopened, fitted and raised. No GitHub/account/publication mutation.
+
+All five canonical complete template drafts compile and pass Chrome acceptance.
+Study retry, scoring once, all three answers, completion and restart pass. Drawing
+click paints and secondary click clears. Coin game held-arrow input collects three
+coins, reaches win and restarts. Starter renders Hello world; Hello blank/name/Enter/
+Reset was accepted earlier. No captured browser console warnings/errors. Four new
+builds each have 59 served files, 2161473–2263775 bytes, exact to their local manifests;
+Hello has 59 files/2263877 bytes exact. Final generated drafts retain exact compiled
+inputs; only instructions and the standalone Hello preview illustration changed.
+Public complete templates remain old and require separate authorized publication.
+
+Sol/medium bounded artifact worker rebuilt the unsigned universal Mac DMG in
+69.589 seconds and verified the payload in 7.992 seconds, one attempt/no rework.
+Preserved candidate-3bf5304 DMG: 4442988 bytes, SHA256
+`9b0922ab565eb1c81234312216cb0b0483b26f669f5c5f7fe359761abcbc5af1`.
+Kit: 2945203 bytes, SHA256
+`bf64bb2884c72a0699c4573f286022a9aeba7a377e5321069322c601b3ca7504`.
+Source, kit, previous artifact and published manifests/feed remained unchanged.
+Ad-hoc build signing only; no Developer ID, notarization or installer execution.
+
+Final Chrome guide inspection found remaining legacy descriptions of removed
+confirmation dialogs and optional finished-branch cleanup. A concrete three-guide
+patch is prepared but not applied; an explicit extra-batch/focused-review question
+is pending because the legacy review exhausted four fix batches/targeted waves.
+This is a release blocker, not hidden behind the clean new-feature review. Remaining
+public policy/template/Play, CI, real Git/Pages, signing and classroom gates remain;
+physical Windows is deferred for the Mac preview. The current focus-dependent native
+framework harness still has no passing verdict. No public release is claimed.
+
+Receipts under `.verification/release-readiness-20261016/`: combined-candidate.json,
+native-combined-acceptance.json, open-local-before/after.json, project-menu-integration.json,
+project-menu-peer-*, root-tests-combined-4adb2fa.log, website-*-combined-*,
+final-mac-3bf5304/RESULT.*, template-chrome-acceptance.json, template-http-parity.json,
+final-template-input-parity.json and guide-correction-proposal.patch. Current weekly
+47% remaining and fresh healthy319 GB are shared account/host observations, not
+attributable cost. Worker effective configurations/tokens and coordinator active
+seconds are unknown. DeepSeek pause honored.
+
+## 0.5.18 Mac preview integration baseline — 2026-10-16
+
+Local reviewed baseline e049c9d integrates main456b490 with the browser-first
+student workflow, seven helper profile, tutorial editor and browser actions.
+Versions are local0.5.18/core0.2.1/native18; published17 assets/feed remain exact.
+Hello now uses ordinary themed JavaFX controls and a supported Font. Its actual
+unmodified generated project compiles in WebFX; Chrome blank/name/Enter/reset
+and59servedfiles/2,263,877bytes match. Native Hello ARM17 also passes. Actual
+installed0.5.18 Study Run→ChromeCorrect→Stop, tutorial placement and Publish menu
+pass;105authoredfiles match the accepted9aa candidate/installation. Eight trial
+Main hashes and original main HEAD/status are preserved.
+
+Baseline root502tests501pass/1PowerShellskip; website109/types/build pass; final
+33guide/lesson/auth checks pass. Three scaffold compiles,16progressionvariants and
+two media reruns pass. Release tooling115pass/2optional skips. Unsigned9aa universal
+Mac DMG build/payload verification pass; ad-hoc only, no Developer ID/notarization
+or installer execution. Historical candidate retained; later changed inputs must
+be rebuilt. Current finite native framework checks remain inconclusive at window
+focus (x86helpersphase0; ARMsmokephase2twice), not a passed current native suite.
+
+Independent Sol/high review: complete62file baseline then four targeted waves,
+four correction batches, finalclean. One P2 stale Hello preview resolved with the
+verified canonical capture; subsequent guide/menu fixture corrections accepted.
+Legacy review budget closed; no extra remediation authorized by the workflow.
+A first root run loaded the obsolete Hello-CSS rejection while source was repaired;
+it was stopped, logged and replaced by the coherent passing ARM17 run. No task
+cost/worker token/runtime savings inferred from account usage. Recent49%weekly
+remaining and healthy319GBstorage; DeepSeek stays paused.
+
+Five anonymously retrieved public example archives match their exact pinned Git
+trees, but all retain two outdated helpers and fail the strict profile; local
+corrected drafts prepared. Three tutorials already match all21helperhashes.
+Published17 kit/starter/VSIX/MacDMG and updater feed were anonymously rechecked:
+all exact. Pinnedbeaaca4 trusted policy rejects web receipts; local current
+contract accepts them. No public policy/template update, live Git/Pages/ZeroHub
+operation, push/deploy/signing or release was performed. Windows physical testing
+is explicitly deferred by owner in favor of Mac preview first.
+
+Next owner-approved Project/Clone flow is being integrated separately with the
+same coordinator and one final installer/UI owner; this baseline is not a final
+release claim. Local records: `.verification/release-readiness-20261016/` review,
+tests, template audit/drafts, native/Chrome captures, candidate parity, preservation,
+public-downloads-17/receipt.json and release-tooling-9aa3f6a/RESULT.md.
+
+## Tutorials beside Java and Open in browser accepted — 2026-10-16
+
+Owner selected tutorial option 2: an editor tab beside ordinary Java, with Open in
+browser for the current lesson and running app. Final source `c89b6ef` includes all
+13 bundled canonical lessons and illustrations, optional explanations/source,
+copy/navigation, root-specific reader state and supported WebviewPanel restoration.
+Run uses the matching tutorial column, keeping Java in the other editor group.
+Native detach/reattach and reload retain the lesson and reading position.
+
+The running-app browser command opens an immutable snapshot of the validated
+WebFX build on loopback. Its preview-only shell is excluded from exports. Stop,
+rerun and server closure remove the browser iframe/audio through a liveness channel;
+the fallback watchdog is bounded while browser timers run (suspension can delay it).
+The browser link is local; GitHub publication remains a separate guarded action.
+
+Actual Mac acceptance used a separate local clone of the previously authorized
+armorup Study trial and existing sign-in. Empty Main + Tutorials opened together;
+Copy code, ordinary Java paste/save, Run, lesson browser opening in Chrome, wrong
+answer 4 / correct answer 5, Stop and cached rerun passed. Chrome received 59 exact
+compiled files, 2,254,060 bytes, matching local bytes and manifest hashes; build ID
+526e6bf2-e86c-4e66-9ced-7ff7245ef60e. Final installed c89 candidate repeated Chrome
+correct-answer/Stop checks without console errors. Seven prior trial Main hashes
+are unchanged; only Main in the dedicated clone was edited. No GitHub mutation,
+new consent, live push/merge/Pages, website deployment or release was performed.
+
+Full root run: 499 tests, 498 pass, one PowerShell runtime skip. Final c89 delta:
+36 targeted tests pass. Website: 108 pass, types and production build pass.
+Configuration/syntax/command contracts/docs links and extracted-kit verification
+pass. Accepted VSIX SHA256 a5ab068c9683811ef0430525e3afc8ff53311c712793f56992ac70c1d0bded81;
+105 authored files match package/source and installed nested Zero/editor extension
+(native __metadata excluded). Preview version 0.5.16 is not a student release.
+
+Bounded GPT-6.1-sol/high implementation/review delegation: one initial and three
+targeted review waves, four correction batches, final review clean. Native testing
+rejected the earlier focus heuristic at 6639c12; explicit column contract replaced
+it. Serializer restoration and a suppressed initialization error were corrected.
+Final source accepted; exact model telemetry, worker tokens/runtime and savings are
+unknown. Recent account-wide weekly remaining 52%; healthy storage ~326.6 GB reused.
+
+Receipts: ignored `.verification/tutorial-browser-20261016/` final-root-tests.log,
+accepted-delta-tests.log, website-final-{tests,types,build}.log, check-accepted.log,
+verify-kit-final.log, package-accepted-parity.json, chrome-served-build.json,
+preservation-final.json and native/Chrome screenshots. Independent installed parity:
+`.verification/sidebar-repository-20261016/installed-parity.json`. Visual comparison
+and intentional canonical-content/native-host adaptations: [design QA](../design-qa.md).
+Website source instructions now describe repository-menu Clone, Tutorials beside
+Java and both browser actions; the public website still contains older ZIP setup.
+Release remains held for current-main/version/pin integration, website/template
+alignment, physical Windows and school/novice acceptance, final Git/Pages/ZeroHub
+acceptance and separately authorized signing/publication.
+
+Peer combined-preview acceptance completed after unlock: account and repository
+menus, New branch cancellation, native Switch to an existing disposable local
+branch and return to main passed. Current branch/direct Merge controls updated;
+no success popup appeared. Temporary branch removed after verifying original HEAD
+and working status; all eight trial Main hashes preserved. No credential change
+or GitHub mutation. Receipts: `.verification/sidebar-repository-20261016/RESULT.md`,
+`delivery.json`, `local-switch.json` and `installed-sidebar-final.png`.
+
+## Quiet sidebar success feedback installed — 2026-10-16
+
+Owner requested removing success popups. Sourcebd66546 on codex/web-export routes
+routine Git, repository connection/link, publication, export and library results
+to the accessible sidebar status and Zero Output. Native warnings/errors,
+required choices and first-publication consent remain. Successful publication
+keeps Open app/Copy playable link buttons for the matching root/account/repository
+in live mode, using the existing reverified commands. A completed current-project
+export exposes Preview export/Save ZIP/Share export buttons. No raw URL dispatch
+or new mutation authority is introduced.
+
+76focused UI/auth/workflow/publishing/export/sharing tests and32sidebar/onboarding/
+browser-run integration cases pass. Syntax and whitespace pass. One independent
+GPT-6.1Sol/medium review covers complete14file diff plus immediate render/command,
+publication persistence/verification, export validation and sharing-host paths:
+zero findings,1review turn,0fix batches. Effective model/tokens/reviewer duration
+unknown. Unchanged engine/transport/root-suite evidence reused; known archived-doc
+link check blocker remains. No additional production review wave.
+
+Candidate `dist/candidates/zero-0.5.16-sidebar-results-bd66546/zero-0.5.16.vsix`
+is installed in the existing nested Zero/editor profile; all87package files match
+source and installation (native manifest metadata excluded). Prior extension
+backed up. Current Mac Study window reloaded. Actual local Export for Web reused
+the validated cached build; completion shows Web export ready ·2.3MB and the three
+action buttons in sidebar. Cancellable progress disappeared with no success popup.
+No browser was auto-opened or remote publication performed. All7trial Main hashes
+preserved. Live publish/link actions covered by tests/source; physical Windows,
+native dark/high-contrast/narrow layout and live success flows remain untested.
+
+Receipts: ignored `.verification/sidebar-results-20261016/` delivery.json,
+package-parity.json, tests.log, integration-tests.log, package.log, install.log and
+preservation/backup. Direct coordinator implementation and one bounded reviewer;
+recent55%weekly remaining/cached327GBhealthy reused, exact task effort unknown.
+No public push/deploy/release, account/credential change, new goal/chat/automation.
+
+## Automatic finished local-branch cleanup installed — 2026-10-16
+
+Owner requested automatic cleanup after a successful merge, without another popup.
+Production code0b317de on codex/web-export calls the existing guarded cleanup only
+for a confirmed finished result, after checking project identity. Failed pushes,
+conflicts and the Run-after-main-update pause skip cleanup. Clean main, exact SHA,
+ancestry, shared-worktree and atomic compare/delete guards remain unchanged. The
+remote branch stays available. A refused cleanup preserves the merge-success
+outcome and explains the retained branch through a nonmodal notice/Zero Output.
+
+Two independent GPT-6.1Sol/high complete6file reviews found no production issue;
+both identified a fixture missing the real finished:true receipt. One test-only
+fix9ca8f14 and one targeted review accepted final source.42unchanged boundary cases
+pass plus the corrected UI case passes, covering direct cleanup, exact arguments,
+paused/conflicted cases, account drift/serialization and cleanup refusal. Syntax
+and whitespace pass.3review turns,1fix batch; effective model/tokens/exact reviewer
+time unknown. No repeated full-suite or unchanged engine review wave.
+
+Candidate `dist/candidates/zero-0.5.16-auto-cleanup-0b317de/zero-0.5.16.vsix` is
+installed in the existing nested Zero/editor profile. All87package files match
+current corrected source and installation; the corrected test is excluded from
+the VSIX. Prior extension backed up. Current Mac Study window reloaded; all7trial
+Main hashes unchanged. No actual student GitHub merge/push or branch deletion
+was invoked; automated cases use disposable repositories/mocks. Physical Windows
+remains untested. Known archived-doc link-check blocker unchanged. No public
+publication, release, account/credential change or new goal/chat/automation.
+
+Receipts: ignored `.verification/auto-cleanup-20261016/` delivery.json,
+package-parity.json, tests-initial.log, ui-final.log, package.log, install.log and
+preservation/backup. Direct coordinator implementation, bounded native reviewers;
+cached327GBhealthy and recent55%weekly remaining reused; attribution unknown.
+
+## Direct Merge to main installed — 2026-10-16
+
+Owner requested removing the merge confirmation. Source2377d0b on codex/web-export
+removes only the modal before execution; account/project/destination/SHA checks,
+clean-tree/remote-main rules, operation locking, updated-main Run pause and conflict
+recovery remain. Optional local-branch deletion still asks separately. Product,
+design, manifest and README reflect the direct action.
+
+43workflow/UI/auth/transport tests pass, including disposable bare-remotes,
+session drift during preparation, serialization, conflicts and cleanup. Syntax
+and whitespace pass. Independent GPT-6.1Sol/high safety and compatibility reviews
+cover the complete6file delta over8bedf8f and immediate callers: zero findings,
+2review turns,0fix batches. Effective model/tokens/exact reviewer time unknown.
+Unchanged earlier publication tests/reviews reused; existing archived-doc link
+blocker remains outside this change.
+
+Candidate `dist/candidates/zero-0.5.16-direct-merge-2377d0b/zero-0.5.16.vsix`
+installed into the existing nested Zero/editor profile. All87package files match
+source and installation (native package metadata excluded). Prior extension
+backed up. Current Mac Study preview reloaded, sidebar/editor ready; no actual
+merge or push invoked. All7trial Main hashes unchanged. Other open windows may
+need Reload Window. Physical Windows/live GitHub merge untested. No public source
+push, app publication, student release or credential changes.
+
+Receipts: ignored `.verification/direct-merge-20261016/` package-parity.json,
+delivery.json, tests.log, package.log and install.log. Coordinator handled this
+small edit directly; two bounded reviewers retained the prior configuration.
+Cached327GBhealthy and recent55%weekly remaining reused; no new goal/chat/automation.
+
+## Simplified confirmations integrated and installed — 2026-10-16
+
+Owner authorized local browser-branch integration and installed-preview update.
+`codex/web-export` fast-forwarded ddbaf47→3238295; reviewed code6c3cde8 remains
+byte-identical. Integrated focused48/48pass; prior full471pass/1expected skip and
+clean independent reviews reused for unchanged source. No additional code delta
+or reviewer wave. The known archived-document link check blocker remains.
+
+Built candidate `dist/candidates/zero-0.5.16-confirmations-6c3cde8/zero-0.5.16.vsix`,
+SHA2563433dd9a6602af122611f16a59383cd714f25d2fc629cdc1dbb485e3bf8672d5.
+All87packaged extension files match source and installed nested Zero/editor profile;
+only VSCode's added package metadata is excluded. Previous extensions backed up
+under ignored .verification/confirmations-20261016/. Existing test projects,
+accounts and settings preserved; all7trial Main source hashes unchanged.
+
+Actual Mac preview Study window reloaded through Developer: Reload Window. Its
+Commit & push input shows the real repository and main branch; Escape cancels
+and restores actions/editor focus. No commit, push or live publish was performed.
+First-publish warning remains source/automated-test verified; physical Windows
+and new live publication untested. Other already-open windows need their own
+reload to activate newly installed code. No student release, website deployment,
+public GitHub change, new chat/goal/automation or credential change.
+
+Receipts: ignored .verification/confirmations-20261016/{integration-install.json,
+package-parity.json,integrated-focused.log,package.log,install.log}; source review
+and preservation receipts copied alongside. Direct integration/install reused
+reviewed source; no new implementation worker. Fresh storage327GBhealthy,
+weekly55%remaining reading reused; exact coordination time/tokens unknown.
+
+## Routine confirmations — 2026-10-16
+
+Local implementation on `codex/simplify-confirmations`, based on browser-preview
+source `ddbaf47`; code commits `42140d4` and `6c3cde8`. Worktree:
+`/Users/stew/.codex/worktrees/simplify-confirmations/zero`. No push, merge,
+installation, release, external publication or account changes.
+
+Commit & push proceeds from its message input, with repository and branch shown.
+Naming a branch creates it directly. First/new-destination Publish has one short
+public-visibility warning and continues through setup/upload without a second
+confirmation; repeat publishing revalidates the same site. Merge remains a short
+confirmation; deletion and origin replacement retain their prompts.
+Setup requires a successful upload receipt and the exact uploaded SHA. Pending
+runs retain their approved account across restart. Legacy pending receipts still
+restore and conservatively warn once on the next publish.
+
+Verification: initial complete root suite at42140d4:471pass/1expected PowerShell
+skip,0fail; final48focused UI/auth tests pass.34publisher/upload-auth boundary
+regressions passed with unchanged final production source. Syntax and whitespace
+checks pass. `npm run check` stops on an unchanged archived relative link:
+`docs/design/archive/design-qa-before-compact-sidebar-2026-10-16.md:17` references
+`design/playground/VERIFICATION.md` from the wrong directory. This is present in
+the base; no archive repair was included. No native/editor, physical Windows or
+live GitHub acceptance was performed for this change.
+
+Independent review requested GPT-6.1 Sol/high:2complete initial reviews,1targeted
+review,1fix batch. One P2 source-binding finding fixed and reverified; resumed
+account retention also fixed. Final code review clean; full initial plus targeted
+interaction coverage reused without another integration wave. Effective model,
+tokens and exact reviewer times unknown. Weekly55%remaining/cached331GBhealthy;
+one coordinator writer, no conflicts; source owner's worktree/profile untouched.
+Detailed logs and review ledger: ignored `.verification/confirmations-20261016/`.
+
+## Selected compact sidebar and fresh native student trial — 2026-10-16
+
+Reviewed source `e4e9629`, local immutable candidate
+`dist/candidates/zero-0.5.16-sidebar-e4e9629`, is installed only in the owned nested
+Mac preview. All authored extension files match the VSIX; the authored manifest
+matches after excluding VS Code’s added installation metadata. Host reload verified.
+One supported view now contains controls and accessible files. Start tutorial is
+welcome/empty or native overflow; Clone stays visible. Git actions use Commit &
+push and Merge to main, with truthful review text. Publish remains separate.
+
+Actual native trial created private `armorup/zero-sidebar-flow-trial-20261016` from
+the Study template, copied its HTTPS URL and used visible Clone → separate local
+destination → Open in New Window. Account/origin/Main were detected. Ordinary App
+code produced the intended syntax error at15:53; Show Problems and Show Output
+worked. After correction, Run rendered the quiz and3→Try again/4→Correct passed.
+An unchanged Run reported Validated browser build ready and reset state; both Stop
+URLs refused connections. Native Up/Down/Right/Return, readable helper opening,
+nested focus across watcher create/delete, sidebar hide/show expansion and empty
+Start tutorial passed. New branch and Commit & push reviews were cancelled; the
+initial073908c/main remain and only local Main.java is modified. All7helpers are
+canonical. Prior Study/Game Main hashes exactly match their earlier receipts.
+VS Code reused an already-open clone when its URL was entered; that was expected
+native repository-cache behavior, not a failed clone. Fresh trial tested new cloning.
+
+Final root459tests458pass/1PowerShellskip;45focused checks, website108/types/build,
+package/extracted kit pass. Real candidate website has0/3/8 correct template links,
+continuation9, two platform download choices and matching instructions. Combined
+source/native design QA passed. One Sol/high writer and Sol/medium website writer
+were coordinated; independent Sol/high initial/selected/correction review found
+2P2focus/queue blockers, fixed in1batch, final clean. Four launch equivalents count
+one reproduction-source handoff; no redundant integration review. Tokens/effective
+configuration/exact reviewer execution time unknown; observed dispatch intervals
+recorded without inferring cost. Fresh storage329.5GBhealthy; weekly59%remaining
+shared reading reused; DeepSeek pause honored.
+
+Receipts/screenshots/review ledger: `.verification/sidebar-onboarding-20261016/`;
+visual report: [design QA](../design-qa.md). No new public game, feature source push,
+website/student release, credentials or access grant. One authorized private test
+repository was created. Native fresh signup/consent, live push/merge/Pages and
+physical Windows/clean installer/school/novice remain separate acceptance. Public
+template README Git wording and hosted website need the aligned release update.
+The separately coordinated stable0.5.17/native17/core0.2.0 is now public. This
+coordinator independently verified public3asset metadata/target3a43f4c and merged
+[PR70/e8e25cc](https://github.com/codepetca/zero/pull/70); no new native binary/signature
+verification here. That release excludes these features; this preview must advance
+to a later version and integrate the new baseline before release.
+
+## Armorup Study/Game native trial accepted — 2026-10-16
+
+Installed reviewed source6258daf candidate was reloaded in the owned nested
+managed Mac profile. Actual native Git:Clone → dedicated local destination →
+Open in New Window worked for both private armorup Study/Game repositories.
+Account and exact origin were detected automatically; no new grant or credentials.
+The ordinary external-website Open prompt led to lessons3/8, without changing
+trusted-domain settings. Both clones have20tracked files and all7canonical helper
+bytes; original commits68e3bc6/df83829 remain, only local Main.java edited.
+
+Study App compiled/rendered; button checks3→Try again and4→Correct passed. GameApp
+strictly rejected Color.DODGERBLUE at source30:14, then ordinary Color.web recovery
+compiled/rendered without policy changes. Canvas Right/Left input moved x240→351
+→276; unchanged rerun reused the validated build and reset x240. All3owned preview
+URLs refused connections after Stop. Warm rerun returned in first AX observation
+(entire call1.06s), not a cold/classroom benchmark. Preview text selection via
+Command+A on an outer text field did not replace text in one automation attempt;
+ordinary Backspace worked. Cause not isolated; no general shortcut claim.
+
+Rechecked live Study lesson3 in Chrome: Start still links the old generated project
+ZIP and says unzip/open. Website/desktop alignment remains a release gate. Fresh
+GitHub signup/consent, physical Windows/hardware/audio, upload/branch/Finish/Publish
+and release acceptance remain outside these native trials. No upload, source push,
+new playable game, website/release publication or account change here. Source/API
+review and earlier checks reused unchanged; this phase only adds QA evidence.
+Screenshots/receipts: .verification/gameapp-web-integration/. Source worktree clean
+before evidence update; weekly61%remaining shared,335.5GBhealthy.
+
+## App/GameApp browser integration — local, 2026-10-15
+
+Upstream coordination update: independently verified [PR68](https://github.com/codepetca/zero/pull/68)
+merged as `e7b9b4d8821f03ffca1358b75fb1fe791ec8d535`, with
+[CI38844612121](https://github.com/codepetca/zero/actions/runs/38844612121)
+successful on exact head `41972c5ce0ce88e9228ce057165573280669f56e`. The owning
+chat integrated the preparation preservation fix into its separately reviewed
+two-helper main branch; this seven-helper browser preview and private trials
+remain separate. This verifies upstream source delivery, not this branch's CI,
+binary release or pending native trial acceptance.
+
+Reviewed/package source `6258daf` integrates the owner-approved `SimpleApp` →
+`App` and `SketchApp` → `GameApp` names into this browser branch. All seven
+canonical helper bodies equal the preceding source after identifier substitution;
+98 declarations, ordinary Java, explicit updates, media/input/lifecycle behavior
+and exact helper fingerprints remain enforced. Profile `zero-webfx-2026-10-v2`
+invalidates the preceding API generation. Exact helper matching distinguishes App
+from GameApp. No compatibility alias or student-file migration is supplied.
+
+Three final public tutorial archives were anonymously verified against the original
+reviewed drafts (20 files each, exact renamed bytes/modes and all seven canonical
+helpers); tutorial pins now match. Five public example revisions were independently
+verified as identifier-only archive updates and synchronized too. Those older
+complete templates still require a separate strict browser acceptance; identifier
+publication alone does not establish it.
+
+One Sol/high full-diff review found two P2 preservation bugs in generated-source
+retirement: dangling current leaves and linked output ancestors. One combined fix
+batch adds lstat preflight for current/retired outputs and ownership state. Eight
+kit tests include linked backup/state preservation and extracted Maven. Five stale
+example harness method names now target their existing private loadEffect methods;
+application behavior is unchanged. Clean targeted independent review covers the
+correction. Two reviewer starts/turns, one initial and one targeted wave, one fix
+batch; no remaining findings. Effective model/tokens/reviewer time unavailable;
+no extra integration wave needed for this guard/test-only correction.
+
+Checks: initial full root446tests (445pass/1PowerShellskip); focused updated8kit,
+8adapter/6lesson tests; website108tests/typecheck/build; five real GWT compiles and
+53browser interaction checks; native framework/game helpers/57audio checks;
+26maintained native example checks across preserved initial+focused corrected runs;
+16progression variants; three tutorial scaffold compiles; package/extracted-kit,
+licenses/modes/canonical bytes and retired-class absence. Browser engines/physical
+Windows/device audio/classroom performance remain untested by this phase.
+
+Local candidate `dist/candidates/zero-0.5.16-app-gameapp-6258daf` preserves assets
+and hashes. Its VSIX is installed in the owned nested managed preview profile;
+installed adapter/contract/lesson code bytes match source. Mac locked before
+extension-host reload, so fresh native Study/Game Clone/Run acceptance is pending.
+Their private armorup repositories were created in actual GitHub UI. Earlier
+Greeting native evidence remains valid for its preceding preview. No source push,
+release, website, playable-game publication or credential change by this phase.
+
+Evidence: ignored `.verification/gameapp-web-integration/` review ledger/reports,
+public archive receipts, browser result, native/example logs and private-repository
+screenshots. Sol/medium bounded verification and preparation workers used; one
+stale harness discovery required coordinator correction, no writer conflict.
+Weekly61%remaining shared reading; storage337GBhealthy; DeepSeek pause honored.
+
+## Armorup setup and public tutorial templates — 2026-10-15
+
+Published/anonymous-hash-verified3empty20-file tutorial templates under codepetca,
+after explicit owner approval. Real native0.5.16 armorup reuse → private Greeting
+creation → nativeHTTPSClone → ordinary Java edit/Run/Stop/rerun passed. Remote
+initial commit unchanged; no source upload/game/website/release action. Hosted
+lesson still gives old ZIP setup, so the public path is not release-ready.
+Reviewed corrected sourcecbf2832, packagefbd0c33; candidate
+`dist/candidates/zero-0.5.16-templates-fbd0c33`. Root443pass/1PowerShellskip,
+website108tests/build,7scaffold/26focused tests, package/extracted-kit and hashes
+pass. One Sol/medium reviewer, initial+targeted turns,1test-expectation fix batch,
+clean corrected verdict. Sidebar findings, scope/limits and screenshots are in
+[verification](VERIFICATION.md) and `.verification/armorup-student-flow/`.
+
+## Download-first desktop onboarding — local, 2026-10-15
+
+Reviewed/package source47cc071: website Download Zero, desktop session check and
+persistent Connect GitHub/Later welcome. Actual Mac first-launch/cancel/retry and
+Chrome download/redirect/mobile checks pass. Final20focused tests, website108tests,
+types/build/checks and package/extracted-kit checks pass; root443pass/1PowerShellskip
+predates the modal adjustment. Independent Sol/high review clean,1launch/0fixes.
+New candidate `dist/candidates/zero-0.5.16-welcome-47cc071` is local/uninstalled.
+Scope, evidence and remaining live-account/platform/release gates are in
+[verification](VERIFICATION.md) and `.verification/desktop-welcome/`.
+
+## Single-page setup — local, 2026-10-15
+
+Sourcec77f358 shows all four concise steps together; GitHub remains separate.
+112website tests/types/build/checks pass; final wording4focused checks/build pass.
+Actual desktop/320px/keyboard/link checks and one independent Luna/medium review
+pass with0fixes. No package input/deployment/account mutation. Retained build/
+browser warnings and untested native/auth/platform limits are in
+[verification](VERIFICATION.md) and `.verification/setup-steps/`.
+
+## Setup wizard simplification — local, 2026-10-15
+
+Source1a9f9f6: four short screens, one GitHub entry, help on demand. Initial113
+website tests and final6focused/types/build/configuration checks pass. Actual
+Chrome verifies transitions/history/refresh/mobile and corrected skip-link focus.
+One independent Sol/medium reviewer,1launch/2turns/1fix batch, complete clean.
+Prior long-guide acceptance is superseded by this owner correction. Limits and
+retained warnings/errors are in [verification](VERIFICATION.md) and
+`.verification/setup-wizard/`; no external mutation/deployment/package change.
+
+## First-visit guide — local, 2026-10-15
+
+Sourceacf874e adds the approved public Get started flow and returning-student path.
+One bounded Sol/medium writer and one independent Sol/medium reviewer; complete
+clean review,1launch/1turn/0fix batches and no writer conflicts.114website/13design
+tests, types/build/configuration checks and actual Chrome navigation/theme/320/390px/
+keyboard checks pass. Two build warnings and two unattributed browser message-channel
+errors are retained; WebKit/text zoom/native/account trials are not claimed.
+[Verification](VERIFICATION.md) and `.verification/first-visit/` bind source, browser
+screenshots, review and limits. No package input/external state changed; template
+publication and installed-student/release gates remain pending. Shared weekly66%
+remaining does not measure task cost; effective model/tokens/worker time unknown.
+
+## Progressing image startup correction — local, 2026-10-15
+
+The media probe exposed a concrete fixed-deadline failure. Generated BrowserLauncher
+now allows30seconds between completed image loads, with a120second total bound;
+clears both timers on startup/failure/stop and retains named errors/recovery guidance.
+No canonical helper, student Java, source asset or media restriction changed.
+Same cold1Mbps/200ms/4xCPU probe now reaches ready in40.29s (previously failed at34.34s).
+This is not a fast startup claim: image size still matters. FourfreshGWTfixtures and
+45browser checks passed, then the helper fixture gained a second tiny image for a
+real10s/35s completion regression; accelerated stalled/total timer tests also check
+late image completion cannot start a failed app. Expanded48check run passed; independent targeted
+review at5381b4d found no actionable issues across the six-file delta and callers.
+The refreshed preview package has60matching sourcefiles,70entries/250,619bytes and
+remains uninstalled/unpublished. Latest game site8,208,660bytes/ZIP7,009,261bytes;
+all student inputs unchanged except the documented generated export ignore rule. Private evidence is in performance/ and
+.verification/web-loading-fix. Public upload/deployment authority remains pending.
+
+
+## Browser media performance probes — local, 2026-10-15
+
+Owner asked about media size/compatibility/lag. No product/source/asset changes.
+A bounded read-only Playwright CLI/CDP cold probe measured first actual SkyHop title
+canvas draw, canvas drawing cadence, Resource Timing, long tasks and first HTML
+media playing event. Normal loopback121ms ready; simulated5Mbps/150ms/4xCPU8.53s.
+Median draw interval16.6–16.7ms,95th17.5–18.2ms, no gaps over50ms in roughly5seconds
+of repeated real keyboard input; first key→playing95ms/217ms, not speaker latency.
+At1Mbps/200ms/4xCPU, ready remained absent and the existing30s image timer reported
+sky.png timeout at34.34s after navigation. These single headlessChrome155/Mac samples
+use uncompressed/no-store loopback transport, not hosted delivery or a school-device
+benchmark; no Lighthouse/CoreWebVitals/INP result is claimed.
+
+Four PNGs4,429,845bytes, four WAVs1,584,500bytes, runtime/other586,971bytes and license/
+source1,606,776bytes make up this export. Images have about25.17MB RGBA pixel data,
+excluding browser copies/overhead. The unusedbird.png still preloads:788,425bytes,
+1402×1122pixels (6,292,176RGBAbytes), confirmed against all student Java and actual
+requests. Automatic removal must account for dynamic resource paths. Useful next
+work is asset diagnostics, startup budgets calibrated to the classroom, and review
+of fixed deadlines on progressing slow downloads. Suggested limits remain proposals,
+not enforced policy; functional45check success does not guarantee performance.
+
+Raw evidence `.verification/integration/performance/receipt.json` and result/slow-
+result retain parameters, resource measurements and limitations. Code still matches
+reviewedca04209; only documentary closeout differs. Owned performance browser/server
+stopped. Real publication/destination authorization remains pending.
+
+
+## Browser publishing integration — local, 2026-10-15
+
+This chat owns the integration goal. Other game/compatibility chats handed off
+without competing writers; reviewed framework/audio sources fromdbaef8c were
+integrated asb7ece38. All seven canonical helpers and student Java stay unchanged.
+Generated adapters cover98public/protected declarations with source fingerprints,
+real compiler gates and behavior fixtures. Publishing still defaults to simulation.
+
+Native Publish app is inside GitHub, disabled until sign-in/repository connection;
+Run/Stop stay separate and Export for web remains available locally. An exact
+verified publication attaches automatically to Share game, without editing authored
+descriptors. Trusted checking independently verifies repository/owner, workflow run,
+Pages URL and public SHA/run marker. Hub Play latest opens mutable student hosting;
+source ZIPs remain versioned. Hub stores no duplicate compiled game. Legacy catalog
+projects out optional web receipts; new kits use the enriched endpoint. Coordinated
+website/checker policy activation and kit release remain separate, unperformed work.
+
+Passed locally: root337tests/336pass/1PowerShellskip; sharing48tests; website104tests,
+typecheck and production build; four real GWT fixtures/37browser checks;32focused
+native callback/sidebar tests after remediation. Native isolated VSCode Export→
+Preview→SaveZIP succeeded with68manifest-verified files and unchanged21Java/resource
+inputs. GitHub placement, keyboard, light/dark/highcontrast and overflow verified.
+Current frozen SkyHop compiles with final runtime; Space/click/P/R/M, music progress,
+reset, synthetic blur, persisted hide/show drawing/P-resume and final cleanup pass
+at480x680. Final site8,208,092bytes / ZIP7,009,089bytes. Only expected export .gitignore
+rule changes the frozen source fixture. Actual Hub browser checks cover9actions/
+invariants with a fixture catalog, pinned source, source-only/withdrawn and narrow
+keyboard layout; its existing community palette stays light even under emulated
+OS dark. These are not public deployment/authentication proofs.
+
+Initial independent integration review read46files at8d20c67 and found twoP2s:
+stale saved publication could prevent source-only sharing after repository reconnect,
+and persisted pagehide permanently stopped cached apps. One corrective batch adds
+optional-link fallback with cancellation/project/account guards and paused retained
+browser players/app ownership, plus the owner-requested GitHub placement. Fresh
+current-game regression and32native tests pass; expanded four-fixture/45browser
+regression also passed in401seconds. Targeted review atca04209 resolved bothP2s with
+zero new findings, independently verified all45checks and ran3focused guard tests.
+Initial unchanged coverage plus the corrected delta covers final implementation;
+no additional source review wave was needed. Review ledger: conservative4turns,
+1initial wave,1targeted wave,1fix batch, no cumulative integration wave. Preview
+VSIX250,513bytes/70files contains60byte-identical source files, no generated binary
+or game assets, and was not installed or published. Final closeout changes are
+documentation only; remaining goal acceptance needs an authorized live trial.
+
+Receipts remain ignored under `.verification/integration/`,
+`.verification/web-audio-integration/`, `.verification/web-bfcache-fix/` and
+`.verification/native-integration/NATIVE-EXPORT-QA.md`. A tool-session interruption
+terminated in-flight processes; confirmed stopped export locks were preserved or
+removed only for owned fixtures, then affected checks restarted. One native
+first-frame test timing race was corrected without weakening behavior assertions.
+Requested workers/reviewers used GPT6.1Sol/high for bounded interop/provenance/native
+UI work; effective models/tokens and attributable active effort are unavailable.
+Review ledger conservatively counts interrupted/resumed turns. Weekly reading moved
+89%→86%remaining account-wide, not a task cost measurement; storage healthy. DeepSeek
+pause honored. No push, publication, account grant, installed Zero replacement or
+public kit release occurred. Physical Windows, other browser engines, actual cache
+navigation/focus, listening quality and native GitHub/Pages/Hub trial remain untested.
+
+
+## Managed Sound/Music helpers — local implementation, 2026-10-15
+
+Owner explicitly authorized core helpers and Sky Hop migration after reviewing
+proposed API. Work continues on codex/student-game-helpers from8caba8b in the
+attached isolated worktree; primary funding edits remain preserved. No publication,
+push, Maven install or public release replacement. Existing core0.1.2 and kit pins
+remain unreleased-source boundaries, not a claim that published kits gained APIs.
+
+SimpleApp now provides loadSound/loadMusic to UI and canvas apps. Sound caches a
+live short clip per canonical resource and shared settings; Music has independent
+buffered playback/position. Explicit play/loop/pause/stop, volume/mute and close
+methods preserve ordinary student events. Stop rewinds through pause/seek. Native
+readiness remembers requested state. One-shot completion/replay is explicit even
+when native status lags. App stop, hidden owner window, startup/frame failure and
+throwing custom shutdown release every owned resource. Sound close drops its clip
+reference; failed music logs its resource and disposes. Closed controls explain
+misuse. Missing/invalid resources retain useful path errors.
+
+Seven source classes propagate through starter/lesson/native allowlist/website
+project inventories. Framework media dependency uses existing21.0.12 pin. Canonical
+API covers98declarations/7classes, including20audio entries; searchable website
+preserves prior anchors. Sky Hop loads wrappers once in setup; GameAudio only maps
+game rules to sound. The audio playground uses the same APIs from SimpleApp buttons.
+Existing Sky Hop art, score/physics, simple screen and audio assets remain unchanged.
+
+Passed: configuration/syntax/local links;10starter/lesson checks and independent
+standalone Maven compile; framework cleanpackage without install;53native audio
+assertions; old SmokeLauncher and GameHelpersCheck in the final extracted-project
+sequence;263root tests/1PowerShellskip;98website tests/type/build;41focused API,
+learning/source-project tests; native audio-playground consumer; Sky Hop194rules,
+4audio assets and19native whole17.14s-loop/effect/pause/mute/reset/disposal assertions;
+GUI/layout/animation and actual-frame Space/P/R/M. Local API search loadSound opens
+its anchor with no browser errors/warnings; screenshot inspected. Existing Zero
+Run App rebuilt the migrated game under managed JDK21; bytecode calls loadSound/
+loadMusic and Main process remains running.
+
+Two bounded writers: GPT-6.1 Sol/high for core/lifecycle/tests; Sol/medium for docs
+and strict API adapter. Coordinator migrated app/consumer and source inventories.
+No ownership conflict. Rework: added Sound clip-reference release on close; native
+one-shot end needed explicit pause/ended tracking. Two aggregate framework smoke
+runs timed out before audio; no assertions relaxed. Final same-source extracted
+sequence passed audio, smoke and game helpers; do not report an aggregate
+verify:framework rerun as passed. Async decoder error callback disposal was
+fault-injected; naturally malformed WAV errors were synchronous on this Mac.
+Core receipt `.verification/audio-helpers/core-result.md` preserves commands,
+checks and final hashes. Worker effective models/tokens/elapsed and attributable
+coordinator effort unknown; root suite250sec. Weekly97%remaining, storage317GB
+healthy at phase readings; DeepSeek remains paused. No cost/savings claim.
+
+Independent GPT-6.1 Sol/high review read the full fixed scope and found twoP2
+issues: a normal window-hide plus launcher exit repeated customshutdown, and
+synchronous native audio initialization failure aborted Sky Hop instead of silent
+play. One corrective batch guards shutdown at most once while retaining repeat
+managed cleanup, and catches only native MediaException causes during game audio
+loading; missing resources still fail with their filename. Added four native core
+assertions (now57), reran native SmokeLauncher, and added a disposable corrupt-WAV/
+missing-file game check. Both fallback paths,19audio/GUIinput checks and21affected
+API/kit/lesson tests pass. Final website build refreshed revised lifecycle docs.
+
+Targeted review resolved both findings with no further actionable issue; verified
+all58final hashes stable. Ledger2reviewerturns/launches,1initialwave,1targetedwave,
+1fixbatch,0integrationwave. Effective reviewer configuration/tokens/elapsed unknown.
+Initial manifest SHA7039759f9a15c6d0e5198fcf83e85bb687d332cb4b318506ea9ddbe9d33c1e7f;
+final `.verification/audio-helpers/remediation-source.json` SHA256
+`6f89c50a3125bd60eafc88baf6b861f029c6ea507d841380d0f929351d0e657c`.
+Receipts core-remediation/review-result/review-remediation retain commands and
+coverage. Bulky logs, screenshot, pre-migration backup and ZIP receipt remain ignored.
+Physical Windows/Linux, human listening-quality and novice classroom trials remain
+unverified. Earlier owner playtest predates these changes.
+
+
+## Sky Hop music and sound — local, 2026-10-15
+
+Owner requested generation and integration in the existing standalone game at
+`/Users/stew/Repos/zero-flappy-bird`. Added original procedurally synthesised
+112BPM D-major17.14s loop plus flap/score/crash WAVs, deterministic generator and
+hash/duration manifest. Four mono44.1kHz16-bit PCM files total1584500bytes.
+GameAudio uses one MediaPlayer and three cached AudioClips with the existing
+JavaFX21.0.12 pin; no Zero core API/source or public release changed. Explicit
+Main events drive audio. Music starts in play, pauses/resumes, rewinds for retry,
+M mutes, and window hiding disposes native playback. Native audio failure permits
+silent play; missing resources identify their paths.
+
+Passed194game rules;4asset format/hash/duration/headroom/endpoints checks; exact
+byte regeneration;19native playback assertions including whole-song repeat,
+effects, pause/resume/position, mute, restart, one crash per loss and disposal;
+GUI animation/layout and actual-frame Space/P/R/M. Zero Run App rebuilt under
+managed JDK21/javafx.media and left the game running. A concurrent GUI test skipped
+focus-dependent input; the final isolated run passed. One generator draft missed
+sample-rate multiplication; duration check caught it. A harness confused total
+infinite duration with cycle duration; corrected and awaits native readiness.
+Native stop/play reset stopped a later loop; pause-and-seek reset passed full loop.
+
+One independent GPT-6.1 Sol/medium read-only reviewer, initialwave1/launch1,
+remediation0. Verified16fixed source/asset hashes, read complete scope/callers,
+reran4asset checks and reused native logs: no actionable findings. Coordinator
+implemented this small coherent feature directly. Effective model, elapsed time,
+tokens and attributable coordination effort unknown; weekly98%remaining and
+storage321GBhealthy at phase readings. DeepSeek remains paused. Source, assets,
+checks, updated build log/audit and refreshed ZIP stay local. Review/manifest/
+delivery receipts are ignored in `.verification/sky-hop-audio/`. Human listening
+quality, novice use and physical Windows/Linux remain unverified.
+
+
+## Student game helpers — local implementation, 2026-10-15
+
+Owner authorized seven small helpers after the Sky Hop build and student-flow
+review. Work is isolated at `student-game-helpers/zero`, based on origin/main
+`dfe2c9b`; the dirty funding checkout is preserved. Local-only scope: no push,
+publication, release-byte replacement, credential change or Maven installation.
+Published core0.1.2 and setup0.5.15 remain unchanged.
+
+Added SpriteAnimation, ImageRegion, pressed input, window focus, centered/rotated
+and vertically flipped image drawing, centered text and collision predicates.
+Images cache per canonical resource/app; frames share pixels and clocks advance
+only when explicitly updated. Starter, lesson, extension allowlist, first-party
+project assembly, Maven source inclusion and complete API docs propagate all five
+classes. Existing API anchors and old game-package compatibility are preserved.
+
+Sky Hop at `/Users/stew/Repos/zero-flappy-bird` now consumes the helpers, keeping
+rules, art alignment, bird size and pipe spacing. The upper pipe uses a vertical
+flip, keeping its highlight on the lower pipe's side. The separate optional
+[sprite playground](../student-template/examples/sprite-playground/README.md)
+shares one generated sheet between independent12/6fps clocks. Its native consumer
+checks shared identity, independent advancement, pause and collision feedback.
+
+Passed: configuration/syntax/local links; root263pass/1PowerShellskip; native
+framework smoke and GameHelpersCheck;18 focused propagation/package checks;
+97website tests, typecheck and production build;26API/project focused checks;
+Sky Hop194rules and native four-pose/loop/freeze/reset/actual-frame quick/held/P/R
+checks; native sprite-playground consumer. Local browser search finds
+loadAnimation/keyPressed and navigates to their anchors, with no captured browser
+warnings/errors. Ready/playing renders were opened and inspected. Zero Run App
+rebuilt nine normal source files under managed JDK21 and left the game running.
+Physical Windows, novice classroom trials and a post-migration owner playtest
+remain unverified. Earlier owner “All work” applies to the earlier game version.
+
+Two bounded workers: GPT-6.1 Sol/high for core/input/lifecycle and Sol/medium for
+canonical docs/adapter. Coordinator owned app migration, consumer and integration.
+Core's first native test used Affine identity rather than values; corrected its
+assertion. Integration corrected an old two-class-only packaging assertion. No
+production rework or ownership conflict. Weekly99%remaining at the phase reading;
+latest storage324GBhealthy. DeepSeek is paused through2026-12-31. Worker effective
+model/token/elapsed telemetry and attributable coordinator effort are unknown;
+full root suite elapsed244sec. No savings claim.
+
+Independent GPT-6.1 Sol/high review completed with no actionable findings against
+base `dfe2c9bb3a75f974d3bae6797286e11836694996` and manifest SHA256
+`e67f074949457f705bee95bc6c0922557e224e66cca18542e993ea92a7642df1`.
+All29repository/13external source/check hashes verified before and after; complete
+scope read, supplied checks reused, diff hygiene/shared-asset identity independently
+checked. Ledger:1launch,1initialwave,0fixbatches,0targeted/integrationwaves. Receipt
+`.verification/game-helpers/review-result.md`; effective model, elapsed seconds and
+tokens unknown. Final coordinator receipts and copying reviewed canonical API docs
+into the standalone project do not alter reviewed implementation bytes.
+
+Ignored `.verification/game-helpers/` retains fixed-source hash manifest,
+pre-migration source, test/build logs, browser screenshot and ZIP receipt. Sky Hop
+has its own updated BUILD-LOG, STUDENT-AUDIT and ASSETS records. Source ZIP75entries,
+10327566bytes, SHA256
+`58f26a7a78376ee8add76ae4441aa218220f1d24285388e1cf26a5313aa31f74`;
+every entry was compared to source, all five core classes and wrapper mode checked.
+
 ## Draft Windows PR and actual Windows CI — 2026-10-16
 
 Owner explicitly approved pushing the reviewed branch, creating a draft PR and
@@ -3898,3 +4745,72 @@ no reviewfixbatches; pre-reviewpackaging corrections/evidence recorded above.
 Finalprivate live-proof.json/production-status.json/linkedbytes retained under
 .verification/release-0.5.14. Worktree kept for continued owner smoke testing;
 primary checkout unchanged. No remaining release work for this request.
+
+
+## Optional browser export and Pages flow (local, 2026-10-15)
+
+Isolated `codex/web-export`, base `8caba8b`; reviewed code `c5db993`. Final handoff
+changes only documentation. No active game/canonical framework source, installed
+Zero, published release or account changed. No external upload, push or deploy.
+Feature and limits: [WEB-EXPORT](WEB-EXPORT.md).
+
+Export compiles a temporary copy with pinned WebFX/GWT, enforcing reviewed helper
+inventory/fingerprints and preserving ordinary Java. Publish app adds source-only
+Pages tooling, uses normal reviewed Upload with the exact workflow-scoped native
+session, tracks the dispatch run ID and checks the public SHA/run marker before
+Open/Copy. Failed builds preserve previous output/live links. Generated output
+stays out of Git; deployment artifacts retain one day; temporary builds are removed
+and one diagnostic log per project retained.
+
+Verification receipts, all ignored under `.verification/`:
+
+- `web-export-final-check.log`: configuration, syntax, command and docs checks pass.
+- `web-focused-final.log`:66/66 affected checks pass; `web-export-final-tests.log`:
+  full319tests318pass/1skip/0fail at corrected initial-review head. Subsequent sole
+  readiness guard/test delta passes all19service tests in
+  `web-publish-readiness-guard-tests.log`; unchanged coverage reused.
+- `web-adapters/init-lifecycle-verification.log`: three fresh helper/quiz/drawing
+  WebFX/GWT builds and18browser checks pass. The helper fixture throws unless init
+  runs exactly once before setup. Real quiz retry/success/score and drawing
+  drag/right-click clear pass; upstream mouse bitmask correction is documented.
+- `web-adapters/delivery-receipt.json` and `delivery-browser-smoke.log`: final frozen
+  JavaFX-audio Sky Hop rebuild, unchanged source digest, image/sprite/input/audio
+  start/P pause-resume/M mute/R reset/click smoke pass. Earlier tests additionally
+  cover autoplay denial/retry, missing image and synthetic blur/pagehide cleanup.
+  Site8199445bytes/ZIP7006669bytes, combined local output15538166bytes including
+  manifest; reusable compiler cache187542265bytes. Own temporary build is absent.
+- `web-package-receipt.json`: local unreleased VSIX68files/234145bytes; all58source
+  files match reviewed code, including runtime/templates/notices. No compiled game
+  or compiler archives. Published kit bytes remain frozen; no normal installation.
+
+Review ledger: high risk (GitHub authorization/public-deployment boundary),
+GPT-6.1Sol/high chosen as capable general-tier reviewers for concrete authority
+and compatibility paths. Initial complete-diff wave: separate publishing security
+and export compatibility reviewers. Six actionable issues accepted/fixed in one
+batch: destination drift, asynchronous readiness crash, simulation mode drift,
+stale pending recovery, overlapping commands and missing Application.init.
+First targeted turn found one remaining public-readiness mode boundary; locally
+reproduced and fixed in batch2. Second targeted turn passed with no findings.
+Coverage: `8caba8b`→`2d210b1`→`a2c448f`→`c5db993`. Receipts:
+`review-publish.json`, `review-export.json`, `review-fixes.json`,
+`review-fixes-turn2.json`; aggregate `web-review-ledger.json`. Complete initial
+coverage plus reviewed deltas covers current code; an additional full integration
+wave would add no boundary coverage. Budget consumed4reviewer turns/launch
+equivalents,1initialwave,2targetedwaves,2fixbatches,0integrationwaves, about17min
+session wall time; within7/4/4/60min limits. No remaining finding or source gap in
+assigned review scope. Per-turn model effectiveness/tokens and coordinator active
+seconds are unavailable; no cost inferred from shared allowance.
+
+Implementation used bounded native Sol/high workers for engine, adapters and
+publishing; coordinator owned UI/hooks, CI, integration and final decisions.
+A bounded read-only compatibility audit informed the profile. Final game build
+and initial browser check elapsed27.556s in its receipt; final repeat and root
+suite were separate from reviewer time. Weekly start97%remaining; storage317GB
+healthy. DeepSeek pilot was paused and honored. Rework is captured above; no
+recursive worker delegation or new user chat/goal/automation was needed.
+
+Native editor UI/auth and a real Pages deployment/custom domain, Windows,
+physical focus/speakers and non-Chrome engines remain unverified. Isolated native
+host launched but computer control selected another VS Code instance, so no native
+UI verdict was claimed. The game was a frozen JavaFX-audio version; the other
+chat's later Sound/Music API needs committed profile integration before release.

@@ -1,6 +1,8 @@
+import {coreSources} from './prepare-starter.mjs';
+import {publishedTutorialTemplate,validateTutorialTemplates,tutorialTemplateDefinitions} from '../teaching/projects.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, symlinkSync, rmSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, symlinkSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -14,15 +16,18 @@ const content = (project, filename) => Buffer.from(project.files.find(file => fi
 test('three continuing projects cover every lesson without distributing solutions', () => {
   assert.deepEqual(bundle.projects.map(project => project.id), ['greeting','study','game']);
   const first = {greeting:'0',study:'3',game:'8'};
-  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java','src/main/java/zero/App.java','src/main/java/zero/GameApp.java','zero.json'].sort();
+  const expected = ['.gitignore','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/settings.json','.vscode/tasks.json','LICENSE','README.md','mvnw','mvnw.cmd','pom.xml','src/main/java/Main.java',...coreSources.map(name => `src/main/java/zero/${name}`),'zero.json'].sort();
   for (const project of bundle.projects) {
     assert.deepEqual(project.files.map(file => file.path).sort(),expected);
     const marker=JSON.parse(content(project,'zero.json'));
-    assert.equal(marker.localOnly,true);
-    assert.equal(marker.practiceProjectId,project.id);
+    assert.equal(marker.localOnly,undefined);
+    assert.equal(marker.repositoryRequired,true);
+    assert.deepEqual(project.template,publishedTutorialTemplate(project.id));
+    assert.equal(marker.tutorialProjectId,project.id);
     assert.equal(marker.lessonId,first[project.id]);
-    assert.equal(JSON.parse(content(project,'.vscode/settings.json'))['git.enabled'],false);
+    assert.equal(JSON.parse(content(project,'.vscode/settings.json'))['git.enabled'],true);
     assert.equal(project.files.find(file => file.path === 'mvnw').mode,0o755);
+    for (const notice of ['LICENSE-APACHE-2.0.txt','NOTICE']) assert.deepEqual(content(project,`.mvn/wrapper/${notice}`),readFileSync(path.join(root,'student-template/.mvn/wrapper',notice)));
     const main=content(project,'src/main/java/Main.java').toString();
     assert.doesNotMatch(main,/new (Label|Button|Player|Coin|Counter|Question|ScoreDisplay)|show\(/);
     assert.match(main,/void setup\(\)/);
@@ -52,23 +57,43 @@ test('ZIPs round-trip every source byte and preserve runnable wrapper permission
     assert.equal(wrapperMode,0o755);
   }
 });
-test('generated project ignores every practice file even when Git is manually initialized', t => {
+test('generated project tracks student source and ignores build outputs', t => {
   const directory=mkdtempSync(path.join(tmpdir(),'zero-lesson-ignore-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
   const project=bundle.projects[0];
   for(const file of project.files) {const filename=path.join(directory,file.path);mkdirSync(path.dirname(filename),{recursive:true});writeFileSync(filename,Buffer.from(file.content,'base64'));}
   execFileSync('git',['init','-q'],{cwd:directory});
-  assert.equal(execFileSync('git',['status','--porcelain','--untracked-files=all'],{cwd:directory,encoding:'utf8'}),'');
+  mkdirSync(path.join(directory,'target'));writeFileSync(path.join(directory,'target','temporary.class'),'generated');
   execFileSync('git',['add','--all'],{cwd:directory});
-  assert.equal(execFileSync('git',['ls-files'],{cwd:directory,encoding:'utf8'}),'');
+  const tracked=execFileSync('git',['ls-files'],{cwd:directory,encoding:'utf8'});
+  assert.match(tracked,/src\/main\/java\/Main.java/);
+  assert.match(tracked,/zero.json/);
+  assert.doesNotMatch(tracked,/target\//);
 });
 test('maintained source symlink is rejected before producing project payloads', t => {
   const directory=mkdtempSync(path.join(tmpdir(),'zero-lesson-symlink-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
   mkdirSync(path.join(directory,'student-template'));symlinkSync(path.join(root,'student-template/pom.xml'),path.join(directory,'student-template/pom.xml'));
   assert.throws(()=>lessonProjects(directory),/No symlinks/);
 });
-test('website and native entry points receive the same maintained project bytes', () => {
+test('native receives maintained bytes and website preparation removes stale tutorial ZIPs', () => {
+  for(const project of bundle.projects) {
+    const destination=path.join(root,`website/public/generated/projects/${project.folder}.zip`);
+    mkdirSync(path.dirname(destination),{recursive:true});writeFileSync(destination,'stale tutorial ZIP');
+  }
   prepareLessonProjects(root,{website:true,extension:true});
   const generated=JSON.parse(readFileSync(path.join(root,'extension/media/lesson-projects.json')));
   assert.deepEqual(generated,bundle);
-  for(const project of generated.projects) assert.deepEqual(readFileSync(path.join(root,`website/public/generated/projects/${project.folder}.zip`)),lessonProjectZip(project));
+  for(const project of generated.projects) assert.equal(existsSync(path.join(root,`website/public/generated/projects/${project.folder}.zip`)),false);
+});
+
+test('tutorial publications stay unavailable until complete verified metadata exists', async () => {
+  for (const item of tutorialTemplateDefinitions) {
+    const repositoryUrl=`https://github.com/${item.repository}`;
+    assert.deepEqual(publishedTutorialTemplate(item.id),item.publication ? {repository:item.repository,repositoryUrl,templateHref:`${repositoryUrl}/generate`} : null);
+  }
+  const unpublished={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item,publication:null}))};
+  assert.ok(validateTutorialTemplates(unpublished).every(item=>item.publication===null));
+  for (const publication of [{}, {repositoryId:1,visibility:'private',isTemplate:true,defaultBranch:'main',commit:'a'.repeat(40),tree:'b'.repeat(40)}]) {
+    const metadata={schema:1,templates:tutorialTemplateDefinitions.map(item=>({...item}))};metadata.templates[0].publication=publication;
+    assert.throws(()=>validateTutorialTemplates(metadata),/publication/);
+  }
 });

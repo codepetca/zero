@@ -56,7 +56,7 @@ public class MediaDemoCheck extends Application {
             var pixels = app.canvas().snapshot(null, null).getPixelReader();
             require(pixels.getColor(125, 150).equals(Color.rgb(99, 65, 230)), "Scaled sprite drawn");
             require(pixels.getColor(90, 110).equals(Color.ALICEBLUE), "Sprite transparency");
-            var loader = Main.class.getDeclaredMethod("loadSound", String.class);
+            var loader = Main.class.getDeclaredMethod("loadEffect", String.class);
             loader.setAccessible(true);
             for (String path : new String[] {"/media-demo/missing.wav", "/media-demo/player.png"}) {
                 try {

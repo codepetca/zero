@@ -26,6 +26,7 @@ node scripts/verify-project-progression.mjs
 npm run package
 npm run verify:kit
 npm run verify:framework
+python3 scripts/verify-examples.py --only sprite-playground audio-playground
 ```
 
 Java build and finite GUI checks are documented in
@@ -122,8 +123,8 @@ Without the local preview flag, an unpublished kit uses the verified fallback
 when present. Published assets keep their verified public links
 even with the flag enabled. No guessed public release URL is shown.
 The optional `release/installer.json` adds **Download for Mac Silicon** on the Download page.
-When that installer is published or local downloads are enabled, the landing
-Download Zero action opens the platform choices at `/downloads`. Mac setup
+When that installer is published or local downloads are enabled, the public
+Download Zero action on Home opens platform choices at `/downloads`. Mac setup
 and the Windows complete-kit ZIP are the only visible download controls, with no
 extra instructions or version prose. The complete ZIP, starter and VSIX remain
 available on GitHub releases with their own kit version, even when Mac setup
@@ -164,7 +165,7 @@ Test project resolution, Git URL parsing/root guards, simulation side effects,
 native authentication states, review cancellation, account/session drift and
 credential isolation. Git/authentication tests use mocks and intercept transport;
 no real sign-in, upload or account/configuration changes are authorized by a
-local development check. Simulation stays the default. Signing in is separate
+local development check. Live is the student default; simulation tests must explicitly select it. Signing in is separate
 from manually configuring per-repository Git commit identity.
 
 The individual workflow adds reviewed start/finish plans. Test real local Git
@@ -192,7 +193,7 @@ ordinary controls/layouts available rather than introducing a larger engine.
 
 Start with one readable helper, example or useful error. Put alternative examples
 outside compiled `src/`; use the three minimal project scaffolds for continuing
-local practice. Completed teaching checkpoints are maintainer fixtures only. For shared
+student-owned tutorial repositories. Completed teaching checkpoints are maintainer fixtures only. For shared
 components, start from `examples/shared/ScoreDisplay.java`, test exact-copy reuse
 in quiz, practice and study, retaining the caption enhancement and existing
 no-argument constructor. Include meaningful behavior checks and a short explanation
@@ -248,12 +249,36 @@ also cover the new paths. Native community catalog integration/publication polic
 is unchanged; first-party website downloads do not claim a registry release.
 The starter uses only canonical Main, framework and pinned build/config files;
 it excludes the lesson/example shelf. Guided READMEs cover student-owned GitHub
-repositories and Start/Upload/Finish; GitHub PR practice is separate. Five public GitHub template repositories are recorded in
+repositories and New branch/Commit & push/Merge to main; GitHub PR practice is separate. Five public GitHub template repositories are recorded in
 `website/content/project-templates.json`. To prepare fresh local template drafts,
 run `node scripts/prepare-project-templates.mjs`; publication remains a separate
 authorized action. Never copy the development repository or local private files.
 The five template links and cloning path are separate from the ZIP + empty-repo
 alternative; source ZIPs continue to build from canonical maintained manifests.
+
+## Browser export
+
+See [WEB-EXPORT.md](WEB-EXPORT.md) for the implemented WebFX/GWT teaching profile,
+browser-first Run App, deployment-only publishing kit and strict resolved-API
+gate. Run
+`npm run test:web` and `npm run verify:web` when changing these boundaries.
+`npm run check` rejects unreviewed helper inventory/fingerprint drift.
+
+One supported webview (`zero.actions`) contains controls and the project file list;
+with a single view VS Code merges its title into the container header. Start
+tutorial (`zero.startProject`, stable command ID) is in welcome and the native
+**…** menu. Signed-out GitHub controls show only **Sign in**; local Run and files
+remain available. Signed in reveals the project dropdown with **Clone from GitHub…**
+(`zero.cloneRepository`) and **Open local project…** (`zero.openLocalProject`).
+Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
+with another location selectable. Zero remembers the selected clone parent in the
+local editor profile for future clones; cancelling the picker or opening a local
+project leaves that choice unchanged. An unavailable saved folder falls back to
+`~/Zero Projects`, then home if necessary. Native Git owns transport and credentials. Where its public clone
+API exists, Zero opens the returned folder in a new window; older supported hosts
+use `git.clone` and retain their native open-after-clone choice. Open local project
+validates and opens an existing Zero folder without cloning, moving it or creating
+the default folder. Website/tutorial instructions use these visible labels.
 
 Windows signing-account choices and private feed-key custody are documented in
 [Windows signing](WINDOWS-SIGNING.md). Use [Windows trial](WINDOWS-TRIAL.md) for

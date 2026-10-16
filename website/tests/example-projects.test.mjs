@@ -13,12 +13,14 @@ import { buildCourseStarter, buildExampleProject, prepareExampleProjects } from 
 import { templateDefinitions, templateDefinition, validatePublishedTemplates } from "../lib/project-templates.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
+const coreNames = ["App", "GameApp", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music"];
+const corePaths = coreNames.map(name => `src/main/java/zero/${name}.java`);
 const scaffolding = ["pom.xml", "mvnw", "mvnw.cmd", ".mvn/wrapper/maven-wrapper.properties", ".mvn/wrapper/LICENSE-APACHE-2.0.txt", ".mvn/wrapper/NOTICE", ".vscode/tasks.json", ".vscode/extensions.json", ".gitignore"];
 
 async function fixture(t) {
   const directory = await realpath(await mkdtemp(path.join(os.tmpdir(), "zero-example-projects-")));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const sources = new Set(["LICENSE", "student-template/src/main/java/Main.java", ...scaffolding.map(file => `student-template/${file}`), "framework/src/main/java/zero/App.java", "framework/src/main/java/zero/GameApp.java"]);
+  const sources = new Set(["LICENSE", "student-template/src/main/java/Main.java", ...scaffolding.map(file => `student-template/${file}`), ...coreNames.map(name => `framework/src/main/java/zero/${name}.java`)]);
   for (const example of examples) {
     for (const file of example.files) sources.add(`student-template/examples/${file}`);
     for (const resource of example.resources ?? []) sources.add(`student-template/examples/${resource.file}`);
@@ -43,7 +45,7 @@ test("all 26 complete projects preserve exact manifest sources and resources, wi
     const project = await buildExampleProject({ root, example });
     const inspected = archivePolicy.inspectGamePackage(project.bytes);
     const files = new Map(inspected.map(file => [file.path, file]));
-    const expected = ["LICENSE", "README.md", "zero.json", ...scaffolding, "src/main/java/zero/App.java", "src/main/java/zero/GameApp.java",
+    const expected = ["LICENSE", "README.md", "zero.json", ...scaffolding, ...corePaths,
       ...example.files.map(file => `src/main/java/${path.posix.basename(file)}`), ...(example.resources ?? []).map(resource => resource.destination)].sort();
     assert.deepEqual([...files.keys()], expected, example.id);
     for (const file of example.files) {
@@ -52,7 +54,7 @@ test("all 26 complete projects preserve exact manifest sources and resources, wi
     for (const resource of example.resources ?? []) {
       assert.deepEqual(files.get(resource.destination).data, await readFile(path.join(root, "student-template/examples", resource.file)), `${example.id}: ${resource.file}`);
     }
-    for (const name of ["App", "GameApp"]) {
+    for (const name of coreNames) {
       assert.deepEqual(files.get(`src/main/java/zero/${name}.java`).data, await readFile(path.join(root, `framework/src/main/java/zero/${name}.java`)));
     }
     assert.deepEqual(JSON.parse(files.get("zero.json").data), { name: example.title, templateVersion: "0.1.0", mainClass: "Main" });
@@ -123,7 +125,7 @@ test("preparation refuses missing canonical sources, substituted wrappers, path 
   const example = examples[0];
   await assert.rejects(buildExampleProject({ root: directory, example: { ...example, files: [...example.files, "hello-button/Main.java"] } }), /Duplicate\/case-colliding/);
   await assert.rejects(buildExampleProject({ root: directory, example: { ...example, files: ["../Main.java"] } }), /Unsafe game archive path/);
-  await assert.rejects(buildExampleProject({ root: directory, example: { ...example, resources: [{ file: "hello-app/theme.css", destination: "assets/theme.css" }] } }), /src\/main\/resources/);
+  await assert.rejects(buildExampleProject({ root: directory, example: { ...example, resources: [{ file: "media-demo/resources/media-demo/player.png", destination: "assets/player.png" }] } }), /src\/main\/resources/);
   const wrapper = path.join(directory, "student-template/mvnw");
   const trusted = await readFile(wrapper);
   await writeFile(wrapper, "substituted wrapper");
@@ -137,16 +139,16 @@ test("preparation refuses missing canonical sources, substituted wrappers, path 
 
 test("source and output symlinks are refused; copied executable bits cannot grant resource execution", async t => {
   const directory = await fixture(t);
-  const example = examples.find(example => example.id === "hello-app");
-  const resource = path.join(directory, "student-template/examples/hello-app/theme.css");
+  const example = examples.find(example => example.id === "media-demo");
+  const resource = path.join(directory, "student-template/examples/media-demo/resources/media-demo/player.png");
   await chmod(resource, 0o755);
   const built = await buildExampleProject({ root: directory, example });
-  assert.equal(archivePolicy.inspectGamePackage(built.bytes).find(file => file.path.endsWith("theme.css")).mode, 0o100644);
+  assert.equal(archivePolicy.inspectGamePackage(built.bytes).find(file => file.path.endsWith("player.png")).mode, 0o100644);
   await rm(resource);
-  await symlink(path.join(root, "student-template/examples/hello-app/theme.css"), resource);
+  await symlink(path.join(root, "student-template/examples/media-demo/resources/media-demo/player.png"), resource);
   await assert.rejects(buildExampleProject({ root: directory, example }), /ordinary file/);
   await rm(resource);
-  await writeFile(resource, await readFile(path.join(root, "student-template/examples/hello-app/theme.css")));
+  await writeFile(resource, await readFile(path.join(root, "student-template/examples/media-demo/resources/media-demo/player.png")));
   await symlink(path.join(directory, "student-template"), path.join(directory, "linked-output"));
   await assert.rejects(prepareExampleProjects({ root: directory, projectDirectory: path.join(directory, "linked-output/projects") }), /ordinary directory/);
   const assets = path.join(directory, "website/public/generated/example-projects");
@@ -203,11 +205,10 @@ test("course starter contains canonical Main, shared scaffold and framework only
   const project = await buildCourseStarter({ root: directory });
   const files = new Map(archivePolicy.inspectGamePackage(project.bytes).map(file => [file.path, file]));
   assert.deepEqual([...files.keys()], ["LICENSE", "README.md", "zero.json", ...scaffolding,
-    "src/main/java/Main.java", "src/main/java/zero/App.java", "src/main/java/zero/GameApp.java"].sort());
+    "src/main/java/Main.java", ...corePaths].sort());
   const sources = [
     ["src/main/java/Main.java", "student-template/src/main/java/Main.java"],
-    ["src/main/java/zero/App.java", "framework/src/main/java/zero/App.java"],
-    ["src/main/java/zero/GameApp.java", "framework/src/main/java/zero/GameApp.java"],
+    ...coreNames.map(name => [`src/main/java/zero/${name}.java`, `framework/src/main/java/zero/${name}.java`]),
     ["LICENSE", "LICENSE"], ...scaffolding.map(file => [file, `student-template/${file}`]),
   ];
   for (const [destination, source] of sources) assert.deepEqual(files.get(destination).data, await readFile(path.join(directory, source)));
@@ -233,16 +234,16 @@ test("starter and featured downloads give concrete changes and the actual indivi
       assert.ok(readme.includes(guide.challenge));
     }
     assert.match(readme, /own empty GitHub repository/);
-    assert.match(readme, /Connect a repo/);
+    assert.match(readme, /Project → Connect to GitHub…/);
     assert.match(readme, /per-repository name\/email identity/);
     assert.match(readme, /native GitHub sign-in/);
-    assert.match(readme, /zero\.uploadMode.*live/);
-    assert.match(readme, /simulation makes no Git changes/);
-    assert.match(readme, /Upload changes.*main/);
+    assert.match(readme, /GitHub actions are live by default/);
+    assert.doesNotMatch(readme, /zero\.uploadMode|default simulation/);
+    assert.match(readme, /Commit & push.*main/);
     assert.match(readme, /New branch/);
-    assert.match(readme, /Start a change.*older kits/);
+    assert.match(readme, /New branch.*repository menu/);
     assert.match(readme, /explanatory commit message/);
-    assert.match(readme, /Finish change/);
+    assert.match(readme, /Merge to main/);
     assert.match(readme, /GitHub's.*main.*branch/);
     assert.match(readme, /own repository.*\n.*link separately in Pika/);
     assert.doesNotMatch(readme, /github\.com\/[^\s)]+\/generate|git clone|pull request/i);
@@ -327,20 +328,30 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(clone, /Create a new\n   repository/);
     assert.match(clone, /personal account as owner/);
     assert.match(clone, /Code →\n   HTTPS/);
+    assert.match(clone, /Project → Clone from GitHub…/);
+    assert.match(clone, /Paste your URL in \*\*Clone from GitHub\*\*/);
+    assert.match(clone, /Clone location/);
+    assert.match(clone, /~\/Zero Projects/);
+    assert.match(clone, /choose \*\*Clone here\*\*/);
+    assert.match(clone, /Project → Open local project…/);
+    assert.match(clone, /new window automatically/);
+    assert.match(clone, /Open in New Window/);
     assert.match(clone, /git clone https:\/\/github.com\/YOUR-USERNAME\/YOUR-PROJECT.git\ncd YOUR-PROJECT/);
-    assert.match(clone, /Open that cloned root folder in Zero/);
+    assert.match(clone, /The cloned root opens in Zero/);
     assert.match(clone, /baseline on \*\*main\*\*/);
     assert.doesNotMatch(clone, /empty GitHub|Connect a repo/);
     assert.match(alternative, /ZIP has no Git history/);
     assert.match(alternative, /own empty GitHub/);
+    assert.match(alternative, /Project → Connect to GitHub…/);
     assert.match(readme, /per-repository name\/email identity manually/);
     assert.match(readme, /signing in does\n   not configure commit identity/);
-    assert.match(readme, /simulation makes no Git changes and uploads nothing/);
-    assert.match(readme, /Upload changes.*main.*before starting a/);
+    assert.match(readme, /GitHub actions are live by default/);
+    assert.match(readme, /nothing pushes automatically/);
+    assert.match(readme, /Commit & push.*main.*before starting a/);
     assert.match(readme, /New branch/);
-    assert.match(readme, /Start a change.*older kits/);
-    assert.match(readme, /Upload any pending edits before finishing/);
-    assert.match(readme, /Finish merges into main directly; it does not create a pull request/);
+    assert.match(readme, /New branch.*repository menu/);
+    assert.match(readme, /Commit & push any pending edits before finishing/);
+    assert.match(readme, /Merge to main merges the current branch into main and pushes main; it does not create a pull request/);
     assert.match(readme, /link separately in Pika/);
     assert.match(readme, /\.\/mvnw clean compile javafx:run/);
     assert.match(readme, /\.\\mvnw\.cmd clean compile javafx:run/);

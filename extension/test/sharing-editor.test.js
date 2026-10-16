@@ -5,18 +5,18 @@ const repository={id:'12345',ownerId:'7',owner:'student',name:'game',url:'https:
 async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40),owner='7',notification}={}) {
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-editor-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'public class Main { Health health = new Health(); }');await fs.writeFile(path.join(root,'src/main/java/Health.java'),'public class Health {}');
  const descriptor={schema:1,kind:'game',slug:'game',version:'0.1.0',title:'Game',description:'Finite fixture',controls:'Keys',license:'MIT'};await fs.writeFile(path.join(root,'zero-game.json'),JSON.stringify(descriptor,null,2)+'\n');
- let busy=false;const opened=[],gitCalls=[],messages=[];let sources=0,edits=0,saves=0,stagedPlan;
+ let busy=false;const opened=[],gitCalls=[],messages=[],states=[];let sources=0,edits=0,saves=0,stagedPlan;
  const vscode={Uri:{file:fsPath=>({fsPath}),parse:x=>x},Range:class{},ProgressLocation:{Notification:1},workspace:{isTrusted:true,textDocuments:dirty?[{isDirty:true,uri:{fsPath:path.join(root,'src/main/java/Main.java')}}]:[],openTextDocument:async uri=>({uri,getText:()=>'',version:1,isDirty:false}),getConfiguration:()=>({get:(key,fallback)=>key==='sharingPolicyRevision'?policy:fallback})},env:{openExternal:async url=>{opened.push(url);return true;}},commands:{executeCommand:async()=>{}},window:{
  showInputBox:async options=>options.title==='Library name'?'health-bar':options.title==='Library title'?'Health':options.title==='Library description'?'An ordinary helper':options.value||'description',
  showQuickPick:async entries=>entries[0]?.path?[entries.find(e=>e.label==='Health')]:entries.find(e=>e.kind==='helper')||entries[0],
  showInformationMessage:async(message,options)=>{messages.push(message);if(options?.modal){if(drift&&message.startsWith('Extract'))await fs.appendFile(path.join(root,'src/main/java/Health.java'),'// newer');return approval;}return notification;},
  showTextDocument:async()=>{},withProgress:async(_opts,callback)=>callback({report(){}},{onCancellationRequested:()=>({dispose(){}})})
  }};
- const host={project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student'},revision:1}),assertCurrent:async()=>{}}};
+ const host={setState:message=>states.push(message),project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student'},revision:1}),assertCurrent:async()=>{}}};
  const git=async(_root,args)=>{gitCalls.push(args);if(args[0]==='rev-parse')return args[1]==='--show-toplevel'?root:'a'.repeat(40);if(args[0]==='remote')return repository.url+'.git';if(args[0]==='status')return '';if(args[0]==='show')return JSON.stringify(descriptor);throw new Error('Unexpected Git action');};
  const reader=()=>({authenticatedUser:async()=>({githubId:owner,login:'student'}),repository:async()=>({...repository,visibility:'public',ownerType:'User'}),source:async()=>{sources++;return {};}});
  const api={...authoring,applyPlan:async plan=>{stagedPlan=plan;return authoring.applyPlan(plan);}};
- const editor=createSharingEditor(vscode,host,{git,reader,authoring:api});return {root,editor,vscode,host,git,reader,opened,gitCalls,messages,stats:()=>({busy,sources,edits,saves,stagedPlan})};
+ const editor=createSharingEditor(vscode,host,{git,reader,authoring:api});return {root,editor,vscode,host,git,reader,opened,gitCalls,messages,states,stats:()=>({busy,sources,edits,saves,stagedPlan})};
 }
 test('Share opens a fully prefilled frozen GitHub form; never commits, pushes or sends an issue',async t=>{
  const f=await fixture(t,{approval:'Open GitHub form'});await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);const url=new URL(f.opened[0]);assert.equal(url.pathname,'/codepetca/zero/issues/new');assert.match(url.searchParams.get('body'),new RegExp('a'.repeat(40)));assert.equal(f.stats().sources,1);assert.ok(f.gitCalls.every(args=>['rev-parse','remote','status','show'].includes(args[0])));assert.equal(f.stats().busy,false);
@@ -31,7 +31,7 @@ test('extraction cancellation, unsaved changes and source drift preserve files; 
   const f=await fixture(t,opts);if(opts.dirty||opts.drift)await assert.rejects(f.editor.commands['zero.extractLibrary'](),/Save your project|changed after preview/);else await f.editor.commands['zero.extractLibrary']();
   await fs.access(path.join(f.root,'src/main/java/Health.java'));assert.equal(f.stats().busy,false);await assert.rejects(fs.access(path.join(f.root,'.gitignore')));
  }
- const applied=await fixture(t,{approval:'Apply'});await applied.editor.commands['zero.extractLibrary']();assert.match(await fs.readFile(path.join(applied.root,'src/main/java/Main.java'),'utf8'),/import zero.contrib.r12345.health_bar.Health;/);assert.match(await fs.readFile(path.join(applied.root,'.gitignore'),'utf8'),/\.zero-sharing-recovery\//);assert.ok(applied.stats().stagedPlan.changes.some(c=>c.path==='.gitignore'));assert.equal(applied.stats().busy,false);
+ const applied=await fixture(t,{approval:'Apply'});await applied.editor.commands['zero.extractLibrary']();assert.match(await fs.readFile(path.join(applied.root,'src/main/java/Main.java'),'utf8'),/import zero.contrib.r12345.health_bar.Health;/);assert.match(await fs.readFile(path.join(applied.root,'.gitignore'),'utf8'),/\.zero-sharing-recovery\//);assert.ok(applied.stats().stagedPlan.changes.some(c=>c.path==='.gitignore'));assert.equal(applied.stats().busy,false);assert.match(applied.states.at(-1),/Library extracted/);assert.ok(!applied.messages.some(text=>text.startsWith('Library extracted')));
 });
 test('direct import rewriting preserves strings/comments and complex qualified references take manual path',async t=>{
  const f=await fixture(t);await fs.writeFile(path.join(f.root,'src/main/java/Health.java'),'package game; public class Health {}');
@@ -100,5 +100,43 @@ test('Share policy revision follows bundled settings until explicitly overridden
  for(const override of [undefined,'f'.repeat(40)]) {
   const f=await fixture(t,{approval:'Open GitHub form'});f.vscode.workspace.getConfiguration=()=>({get:key=>manifest['zero.'+key].default,inspect:key=>({defaultValue:manifest['zero.'+key].default,...(key==='sharingPolicyRevision'&&override!==undefined?{globalValue:'d'.repeat(40),workspaceValue:'c'.repeat(40),workspaceFolderValue:override}:{})})});
   const editor=createSharingEditor(f.vscode,f.host,{kitConfiguration:bundle,git:f.git,reader:f.reader});await editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);const body=new URL(f.opened[0]).searchParams.get('body');const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(body)[1]);assert.equal(request.policyRevision,override||bundle.policyRevision);
+ }
+});
+
+test('Share attaches the exact verified playable receipt without changing source metadata',async t=>{
+ const f=await fixture(t,{approval:'Open GitHub form'}),before=await fs.readFile(path.join(f.root,'zero-game.json'));
+ const web={provider:'github-pages',url:'https://student.github.io/game/',commit:'a'.repeat(40),runId:42};
+ let calls=0,detail='';f.host.verifiedPublication=async(root,commit)=>{assert.equal(root,f.root);assert.equal(commit,web.commit);calls++;return web;};
+ const original=f.vscode.window.showInformationMessage;f.vscode.window.showInformationMessage=async(...args)=>{if(args[1]?.modal)detail=args[1].detail;return original(...args);};
+ await f.editor.commands['zero.shareGame']();
+ const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(f.opened[0]).searchParams.get('body'))[1]);
+ assert.deepEqual(request.web,web);assert.equal(calls,1);assert.match(detail,/Play latest: https:\/\/student.github.io\/game\//);
+ assert.deepEqual(await fs.readFile(path.join(f.root,'zero-game.json')),before);assert.equal(f.stats().busy,false);
+});
+test('source-only sharing stays available and a mismatched web commit cannot enter its form',async t=>{
+ const plain=await fixture(t,{approval:'Open GitHub form'});plain.host.verifiedPublication=async()=>undefined;await plain.editor.commands['zero.shareGame']();
+ const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(plain.opened[0]).searchParams.get('body'))[1]);assert.equal(Object.hasOwn(request,'web'),false);
+ const stale=await fixture(t,{approval:'Open GitHub form'});stale.host.verifiedPublication=async()=>({provider:'github-pages',url:'https://student.github.io/game/',commit:'b'.repeat(40),runId:42});
+ await assert.rejects(stale.editor.commands['zero.shareGame'](),/exact shared source/i);assert.equal(stale.opened.length,0);assert.equal(stale.stats().busy,false);
+});
+test('native game discovery offers Play latest without downloading or opening source',async t=>{
+ const f=await fixture(t),web={provider:'github-pages',url:'https://student.github.io/game/',commit:'a'.repeat(40),runId:42};
+ const release={kind:'game',status:'available',title:'Game',version:'0.1.0',description:'Game',contributor:{login:'student'},source:{commit:web.commit},web};
+ f.vscode.window.showQuickPick=async entries=>entries[0];f.vscode.window.showSaveDialog=async()=>assert.fail('Play must not ask for a source folder');
+ const editor=createSharingEditor(f.vscode,f.host,{consumer:{loadCatalog:async()=>({catalog:{releases:[release]}}),downloadGame:async()=>assert.fail('Play must not download source')}});
+ await editor.commands['zero.browseGames']();assert.deepEqual(f.opened,[web.url]);assert.equal(f.stats().busy,false);
+});
+
+test('reconnected same-folder same-commit projects can Share source without a stale playable receipt',async t=>{
+ const {createWebPublishCommands}=require('../src/web-publish-ui');
+ for(const accountDrift of [false,true]) {
+  const f=await fixture(t,{approval:'Open GitHub form'});let verifyCalls=0,accountChanged=false;
+  const saved={root:f.root,sha:'a'.repeat(40),resume:{repository:'https://github.com/student/previous-game',sha:'a'.repeat(40),runId:42}};
+  const publishing=createWebPublishCommands(f.vscode,{project:f.host.project,isSimulation:()=>false,isBusy:()=>true,workspaceState:{get:()=>saved},publisherFactory:()=>({verifyLink:async()=>{verifyCalls++;accountChanged=accountDrift;const error=new Error('The connected repository changed');error.code='WEB_PUBLISH_REPOSITORY_CHANGED';throw error;}})});
+  t.after(()=>publishing.disposables.forEach(d=>d.dispose()));f.host.verifiedPublication=publishing.verifiedPublication;
+  f.host.auth.assertCurrent=async()=>{if(accountChanged)throw Error('The GitHub account changed');};
+  if(accountDrift) {await assert.rejects(f.editor.commands['zero.shareGame'](),/account changed/);assert.equal(f.opened.length,0);}
+  else {await f.editor.commands['zero.shareGame']();const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(f.opened[0]).searchParams.get('body'))[1]);assert.equal(request.repository.url,repository.url);assert.equal(request.commit,saved.sha);assert.equal(request.web,undefined);}
+  assert.equal(verifyCalls,1);assert.equal(f.stats().busy,false);
  }
 });

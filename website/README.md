@@ -1,6 +1,6 @@
 # Zero website
 
-Next.js App Router / TypeScript website for the Zero teaching kit and ZeroHub. Home uses the shared app header, Learn Java / Starting from zero., Download Zero (`/downloads`) and Start Learning (`/learn`). Java runs locally in VS Code.
+Next.js App Router / TypeScript website for the Zero teaching kit and ZeroHub. Home uses the shared app header, Learn Java / Starting from zero., Download Zero (`/downloads`) and Start Learning (`/learn`). Zero checks and compiles ordinary Java locally, then opens the app in the browser.
 
 Requires Node.js 22+. From this directory:
 
@@ -12,13 +12,13 @@ npm run build
 npm run dev -- --port 3000
 ```
 
-Preparation reads release metadata and canonical repository documents, lessons and teaching media. It writes ignored `.generated/content.json` and `public/generated/` assets, including the three local practice project ZIPs and optional game media from the shared project manifest. Re-run preparation/restart after changing canonical docs. Builds need the Zero repository sources outside `website/`; no sibling repository is required. The supplied logo paths come from `extension/media/zero.svg`, with the approved purple colour. Lucide SVGs supply navigation, disclosure, download and theme icons.
+Preparation reads release metadata and canonical repository documents, lessons and teaching media. It writes ignored `.generated/content.json` and `public/generated/` assets, including optional game media from the shared project manifest. Tutorial project ZIPs are no longer generated; tutorial template publication metadata is separate from the five existing example templates. Re-run preparation/restart after changing canonical docs. Builds need the Zero repository sources outside `website/`; no sibling repository is required. The supplied logo paths come from `extension/media/zero.svg`, with the approved purple colour. Lucide SVGs supply navigation, disclosure, download and theme icons.
 
 ## Learning routes
 
-`/learn` opens Lesson 0. Lessons 0, 3 and 8 offer **Start project** downloads for the Greeting app, Study quiz and Coin game. Later lessons ask students to continue their existing project and link back to its starting lesson. Lesson 10 reopens both the Study quiz and Coin game; Lesson 12 offers an optional media-only ZIP. Unzip a starter, open its folder in VS Code and click Run App. These local practice projects stay off GitHub. The frozen 0.5.8 kit can run downloaded project ZIPs; the native Start Project command requires the updated local extension. `/tutorials/[lesson]` renders the maintained lesson Markdown with all sections expanded by default, related docs and Next lesson navigation. Individual sections can still be collapsed, and section fragments open their enclosing disclosure. `/docs` opens the setup guide directly; `/docs/[slug]` shares that reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` redirect to the matching ZeroHub example view. Docs and ZeroHub examples share light/dark themes and labeled selectors on narrow screens.
+`/learn` opens Lesson0. Lessons0/3/8 require students to create their own repository from the matching empty tutorial template, then clone their own repository through **Project → Clone from GitHub… → Clone here**. The Clone location chooser defaults to `~/Zero Projects` and accepts another folder; an already-cloned Zero folder opens through **Project → Open local project…**. Newer VS Code opens a new window automatically; the 1.95 fallback may ask for Open in New Window. Only verified publication metadata enables Use template; pending templates show explicit unavailable guidance. The starting pages show a compact template action and Setup link to `/docs/setup#start-here`; continuing lessons omit generic setup cards. The full New branch, edit/Run, Commit & push and Merge to main workflow stays in the setup guide. Lesson10 reopens Study and Game; Lesson12 retains its optional media-only ZIP. Tutorial project-ZIP links are not accepted. New source behavior is unreleased; published kits keep their original instructions. `/tutorials/[lesson]` renders the maintained lesson Markdown with all sections expanded by default, related docs and Next lesson navigation. Individual sections can still be collapsed, and section fragments open their enclosing disclosure. `/docs` opens the searchable Zero API, with method names visible while their details scroll. `/docs/setup` opens the setup guide; other `/docs/[slug]` routes share that reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` redirect to the matching ZeroHub example view. Docs and ZeroHub examples share light/dark themes and labeled selectors on narrow screens.
 
-Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, traversal and repeated source query values return 404. Allowed absolute content links are the three fixed project ZIPs, optional game media ZIP and publication-gated ZeroHub project routes. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, read-only lesson checkpoints, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
+Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, traversal and repeated source query values return 404. Allowed absolute content links include the optional game media ZIP and publication-gated ZeroHub project routes; tutorial project ZIP links are rejected. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, read-only lesson checkpoints, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
 
 ## ZeroHub
 
@@ -37,7 +37,7 @@ required. Sidebar selection uses `?kind=example&example=<id>`.
 example sources. The prepared snapshot contains a separate `starter` entry and
 all 26 `projects`. Guided downloads include a concrete change, README planning and
 the actual student-owned repository workflow. `/docs/course-project` distinguishes
-Zero's individual Finish change from GitHub pull request practice. Five public GitHub templates are recorded in `content/project-templates.json` with
+Zero's individual Merge to main from GitHub pull request practice. Five public GitHub templates are recorded in `content/project-templates.json` with
 verified numeric repository IDs, main commits and trees. Preparation validates the
 complete publication snapshot before exposing template links. Empty metadata
 retains the source ZIP route; partial or invalid metadata fails preparation.
@@ -66,12 +66,18 @@ Maven instructions. Browsing does not install a dependency or run Java.
 `/hub/share` explains native Zero **Share game**, **Share library** and **Check
 library** commands and official GitHub publication forms. Students use their own
 existing game repository with optional `libraries/<name>/` folders. There is no
-website OAuth, reservation, folder-upload, submission queue or Neon database.
+website OAuth, reservation, folder-push, submission queue or Neon database.
 Public publication remains inactive while its operating and checker gates are
 unresolved. A local fixture or successful website build does not publish a release.
 
-The only sharing API is read-only `GET /api/sharing/catalog`. It returns the
-validated catalog, never registry request or operational state. The server uses
+Read-only `GET /api/sharing/catalog` returns the legacy catalog projection with
+optional web receipts removed for existing strict clients. `GET /api/sharing/catalog/web`
+returns the enriched catalog used by current discovery and new kits. Both validate
+the same canonical immutable snapshot before responding; neither returns registry
+request or operational state. Optional Play latest links open a student's hosted
+live app in a separate tab. Its stable Pages URL may change content after the exact
+source snapshot was shared. Source downloads remain editable Java projects; ZeroHub
+stores no compiled copy of the browser app. The server uses
 the pure schema from `extension/src/sharing/contracts.js`; include that source
 in website builds. Missing configuration, an uninitialized pointer, an invalid
 snapshot or an outage produces an honest unavailable state without fallback.

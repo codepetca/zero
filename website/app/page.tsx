@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Downloads } from "@/components/Downloads";
 import { LearnTheme } from "./learn/LearnTheme";
 import "../.generated/learn-theme.css";
 import "./learn/learn.css";
@@ -13,10 +13,7 @@ export default function Home() {
           <h1>Learn Java</h1>
           <p className="hub-lead">Starting from zero.</p>
         </div>
-        <div className="hub-actions">
-          <Link className="button" href="/downloads">Download Zero</Link>
-          <Link className="button" href="/learn">Start Learning</Link>
-        </div>
+        <Downloads />
       </main>
     </LearnTheme>
   );

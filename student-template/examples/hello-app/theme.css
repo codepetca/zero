@@ -1,4 +1,5 @@
-/* Change these colours, sizes and spacing to make the app your own. */
+/* Optional advanced native JavaFX reference. The default Hello Main does not load
+   this file. External stylesheets are outside Zero's supported browser profile. */
 .screen {
     -fx-background-color: #f6f5ff;
     -fx-font-family: "System";

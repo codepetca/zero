@@ -16,7 +16,7 @@ Use one font family, a larger bold heading, and a small palette:
 | Main action hover | `#5344cf` |
 | Main action pressed | `#4435b3` |
 
-Hello app uses 16 px body text and a 32 px heading, 12 px between buttons,
+Hello app uses platform-themed controls and a 32 px heading, 12 px between buttons,
 16 px between rows and 28 px inside the screen edge. Use layouts instead of
 individual control coordinates so controls can adapt to their text and window size.
 
@@ -42,12 +42,20 @@ JavaFX layouts still support `setPadding(new Insets(...))` when an individual
 container needs different padding. App and container padding add together;
 use one place for the outer margin.
 
-## App appearance: a stylesheet
+## Optional native JavaFX stylesheets
 
-Hello app supplies an editable `theme.css`. Copy it into your standalone starter
-at `src/main/resources/hello-app/theme.css`, along with Main as described in
-[its copy instructions](examples/hello-app/README.md).
+The default [Hello app](examples/hello-app/README.md) runs in the browser with
+ordinary JavaFX controls and an explicit heading `Font`; it needs no stylesheet.
+The following is an advanced **native JavaFX** experiment. External stylesheets
+and `getStylesheets()` are outside Zero's supported browser profile. Use an
+explicit native run (`./mvnw clean compile javafx:run`, or the Windows wrapper)
+for this experiment.
 
+Copy the optional `examples/hello-app/theme.css` reference into a separate
+project at `src/main/resources/hello-app/theme.css`. To try it with the Hello
+layout, add `screen.getStyleClass().add("screen")`,
+`heading.getStyleClass().add("heading")` and
+`hello.getStyleClass().add("primary")` after creating those controls.
 Load it onto your `VBox screen` in setup, before `show(screen)`:
 
 ```java

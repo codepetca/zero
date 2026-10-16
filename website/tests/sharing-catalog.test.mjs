@@ -87,3 +87,38 @@ test('redirected registry or snapshot responses are rejected',async()=>{
     })}),/could not be retrieved/);
   }
 });
+
+
+import {legacyCatalog,catalogResponse} from '../lib/sharing-catalog.mjs';
+import contracts from '../../extension/src/sharing/contracts.js';
+function webCatalog(){
+  const identity=contracts.identity('game','123','space-game'),path=contracts.artifactPath(identity,'0.1.0','zip');
+  return {schema:1,revision:'a'.repeat(40),releases:[{schema:1,kind:'game',id:identity.id,slug:identity.slug,version:'0.1.0',title:'Space',description:'Move a ship',license:'MIT',repository:{id:'123',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},contributor:{githubId:'7',login:'student'},source:{commit:'b'.repeat(40),folder:'.',sha256:'c'.repeat(64)},policyRevision:'d'.repeat(40),status:'available',artifacts:{zip:{path,url:env.ZERO_SHARING_ARTIFACT_ORIGIN+'/'+path,size:10,sha256:'e'.repeat(64)}},controls:'Arrows',web:{provider:'github-pages',url:'https://student.github.io/game/',commit:'b'.repeat(40),runId:42}}]};
+}
+test('legacy catalog keeps the original strict release allowlist while enriched catalog retains verified metadata',async()=>{
+  const snapshot=webCatalog(),original=structuredClone(snapshot),request=new Request('https://zero.codepet.ca/api/sharing/catalog');
+  const reader=async({signal})=>{assert.equal(signal,request.signal);return snapshot;};
+  const legacyResponse=await catalogResponse(request,{reader}),legacy=await legacyResponse.json();
+  const enrichedResponse=await catalogResponse(request,{reader,includeWeb:true}),enriched=await enrichedResponse.json();
+  assert.equal(legacyResponse.status,200);assert.equal(legacyResponse.headers.get('cache-control'),'no-store');
+  assert.deepEqual(enriched,snapshot);assert.deepEqual(snapshot,original);
+  assert.equal(Object.hasOwn(legacy.releases[0],'web'),false);
+  const originalFields=['schema','kind','id','slug','version','title','description','license','repository','contributor','source','policyRevision','status','artifacts','namespace','coordinate','libraryKind','components','controls'];
+  assert.ok(legacy.releases.every(release=>Object.keys(release).every(key=>originalFields.includes(key))));
+  assert.deepEqual(legacy.releases[0],(({web,...release})=>release)(snapshot.releases[0]));
+  assert.deepEqual(legacyCatalog(catalog),catalog);
+});
+test('both API projections fail closed on invalid provenance or unavailable snapshot without leaking provider data',async()=>{
+  for(const includeWeb of [false,true]){
+    const snapshot=webCatalog();snapshot.releases[0].web.url='javascript:alert(1)';
+    for(const reader of [async()=>snapshot,async()=>{throw Error('Bearer PRIVATE_PROVIDER_TOKEN');}]){
+      const result=await catalogResponse(new Request('https://zero.codepet.ca/api/sharing/catalog'),{reader,includeWeb});
+      assert.equal(result.status,503);assert.equal(result.headers.get('cache-control'),'no-store');assert.doesNotMatch(JSON.stringify(await result.json()),/PRIVATE_PROVIDER_TOKEN/);
+    }
+  }
+});
+test('legacy and enriched API routes explicitly select their distinct projections',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  assert.match(await readFile(new URL('../app/api/sharing/catalog/route.ts',import.meta.url),'utf8'),/return catalogResponse\(request\);/);
+  assert.match(await readFile(new URL('../app/api/sharing/catalog/web/route.ts',import.meta.url),'utf8'),/includeWeb:true/);
+});

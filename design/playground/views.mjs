@@ -26,11 +26,10 @@ export function webView(theme, downloads, screen = "learn") {
 <details><summary>Code and explanation</summary><p>This fixture previews the lesson layout. Read the complete lesson in the applied website.</p></details>
 </section>`).join('')}</article>
 </div>`;
-  const homeContent = `<div class="intro"><h1>Learn Java</h1><p class="lead">Starting from zero.</p></div>
-<div class="home-actions"><a class="primary" href="/web?screen=downloads&theme=${theme}" data-screen="downloads">Download Zero</a><a class="primary" href="/web?screen=learn&theme=${theme}" data-screen="learn">Start Learning</a></div>`;
   const downloadContent = `<section id="downloads" class="downloads" aria-label="Downloads">${downloads.mac ? `<button class="primary" data-fixture="Mac setup download" data-source-url="${escape(downloads.mac)}">
 ${icons.download}Download for Mac Silicon</button>` : ''}${downloads.windows ? `<button class="primary" data-fixture="Windows complete-kit ZIP download" aria-label="Download for Windows (ZIP), manual setup" data-source-url="${escape(downloads.windows)}">
 ${icons.download}Download for Windows (ZIP)</button>` : ''}</section>`;
+  const homeContent = `<div class="intro"><h1>Learn Java</h1><p class="lead">Starting from zero.</p></div>${downloadContent}`;
   return `<!doctype html>
 <html lang="en">
 <head>${head(screen === 'home' ? 'Zero · Home review' : screen === 'downloads' ? 'Zero · Downloads review' : 'Zero · Learn review', theme)}</head>

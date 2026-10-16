@@ -107,3 +107,12 @@ test('registry and accepted catalog share a single cumulative deadline',async()=
     assert.equal(signal,observed);return new Promise((_resolve,reject)=>signal.addEventListener('abort',()=>reject(new Error('deadline'))));
   }}),/deadline|abort/i);
 });
+
+test('public request status binds accepted web provenance and keeps receipts out of its legacy summary payload',async()=>{
+  const f=fixture(),oldId=f.record.id,web={provider:'github-pages',url:'https://student.github.io/game/',commit:f.record.frozen.commit,runId:42};
+  f.record.frozen.web=web;f.record.id=digest(f.record.frozen);delete f.state.requests[oldId];f.state.requests[f.record.id]=f.record;
+  const release=accept(f);release.web=web;f.state.releases[f.record.releaseKey].delivery='ready';
+  const snapshot=catalog(f.state,[release]),result=await readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)});
+  assert.equal(result.results[0].status,'available');assert.equal(Object.hasOwn(result.results[0],'web'),false);assert.doesNotMatch(JSON.stringify(result),/runId|github-pages|student.github.io/);
+  release.web={...web,runId:43};await assert.rejects(readRequestResults('123',{env,fetchImpl:fetcher(f.state,snapshot)}),/Invalid accepted source/);
+});

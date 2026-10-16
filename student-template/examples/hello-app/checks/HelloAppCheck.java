@@ -1,16 +1,16 @@
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-/** Synthetic behavior/style checks in the real JavaFX window. */
+/** Synthetic ordinary-control behavior checks in the real JavaFX window. */
 public class HelloAppCheck extends Application {
     private static void require(boolean value, String message) {
         if (!value) throw new AssertionError(message);
@@ -34,19 +34,29 @@ public class HelloAppCheck extends Application {
             app.start(stage);
             var root = stage.getScene().getRoot();
             root.applyCss(); root.layout();
-            VBox screen = (VBox) root.lookup(".screen");
-            Button hello = (Button) root.lookup(".primary");
-            TextField name = (TextField) root.lookup(".text-field");
+            VBox screen = (VBox) ((BorderPane) root).getCenter();
+            Label heading = (Label) screen.getChildren().get(0);
+            Label instructions = (Label) screen.getChildren().get(1);
+            TextField name = (TextField) screen.getChildren().get(2);
+            HBox actions = (HBox) screen.getChildren().get(3);
+            Button hello = (Button) actions.getChildren().get(0);
+            Button reset = (Button) actions.getChildren().get(1);
             Label feedback = (Label) screen.getChildren().get(4);
-            Button reset = (Button) root.lookupAll(".button").stream()
-                    .filter(node -> node instanceof Button b && b.getText().equals("Start again"))
-                    .findFirst().orElseThrow();
-            require(screen.getBackground().getFills().get(0).getFill().equals(Color.web("#f6f5ff")),
-                    "Copied classpath CSS applies to the screen");
-            require(((Label) root.lookup(".heading")).getFont().getSize() == 32,
-                    "Heading typography applies");
-            require(hello.getBackground().getFills().get(0).getFill().equals(Color.web("#6457e8")),
-                    "Primary button colour applies");
+            require(stage.isShowing() && screen.getStylesheets().isEmpty(),
+                    "Ordinary controls run without an external stylesheet");
+            require(heading.getText().equals("Hello, Java") && heading.getFont().getSize() == 32
+                    && heading.getFont().getStyle().contains("Bold"), "Clear heading typography");
+            require(screen.getPadding().getTop() == 28 && screen.getSpacing() == 16
+                    && actions.getSpacing() == 12, "Layout retains padding and spacing");
+            require(instructions.isWrapText() && feedback.isWrapText(), "Instruction and feedback text wrap");
+            for (var control : new javafx.scene.control.Labeled[] {heading, instructions, hello, reset, feedback}) {
+                require(control.getFont().getSize() >= 12 && control.getTextFill() != null
+                        && control.getOpacity() > 0, "Theme supplies readable control text");
+            }
+            require(name.getFont().getSize() >= 12 && name.getPromptText().equals("Your name"),
+                    "Name field retains a readable font and prompt");
+            require(name.isFocusTraversable() && hello.isFocusTraversable() && reset.isFocusTraversable(),
+                    "Ordinary controls retain keyboard focus traversal");
             require(hello.getBoundsInParent().getMaxX() <= screen.getWidth()
                     && feedback.getBoundsInParent().getMaxY() <= screen.getHeight(),
                     "Initial layout fits the configured window");
@@ -63,28 +73,16 @@ public class HelloAppCheck extends Application {
             reset.fire();
             require(name.getText().isEmpty()
                     && feedback.getText().equals("Your greeting will appear here."), "Reset restores fields");
+            require(stage.getScene().getFocusOwner() == name, "Reset returns scene focus to the name field");
+            save(screen, "focus.png");
             name.setText("Lin"); hello.fire();
             require(feedback.getText().equals("Hello, Lin!"), "Greeting after reset");
 
-            hello.pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), true);
-            root.applyCss();
-            require(hello.getBackground().getFills().get(0).getFill().equals(Color.web("#5344cf")),
-                    "Synthetic hover style");
-            hello.pseudoClassStateChanged(PseudoClass.getPseudoClass("pressed"), true);
-            root.applyCss();
-            require(hello.getBackground().getFills().get(0).getFill().equals(Color.web("#4435b3")),
-                    "Synthetic pressed style");
-            hello.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), true);
-            root.applyCss();
-            require(hello.getBorder().getStrokes().get(0).getTopStroke().equals(Color.web("#22213b")),
-                    "Synthetic focus remains visible");
-            save(screen, "focus.png");
             hello.setDisable(true); root.applyCss();
-            require(hello.getOpacity() == 0.55, "Disabled appearance");
             name.setText("Ignored");
             hello.fire();
             require(feedback.getText().equals("Hello, Lin!"), "Disabled button cannot act");
-            System.out.println("HELLO_APP_OK feedback reset CSS layout resource");
+            System.out.println("HELLO_APP_OK greeting Enter blank reset focus layout platform-theme");
         } catch (Throwable failure) {
             failure.printStackTrace(); System.exit(1);
         } finally {

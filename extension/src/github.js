@@ -141,7 +141,7 @@ async function uploadPrepared(plan, message, {run = core.git, networkRun, before
   const ready = await inspect(plan.root, run);
   if (ready.remote !== plan.remote || ready.branch !== plan.branch || ready.contentFingerprint !== plan.contentFingerprint || ready.status) throw new Error('The project changed while saving. Review again before pushing. Your local Git commit is preserved.');
   if (!ready.head) throw new Error('There is no commit to upload. Add your project files and review again.');
-  onProgress('Uploading your branch to GitHub…');
+  onProgress('Pushing your branch to GitHub…');
   await core.assertRepositoryRoot(plan.root, run);
   await assertNoUrlRewrites(plan.root, run);
   // Capture both the reviewed destination and commit, independent of later

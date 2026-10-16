@@ -47,3 +47,11 @@ test('synchronous captured-session guard uses the same checks without starting a
   const next=await auth.capture();await auth.assertCurrent(next);assert.equal(auth.assertCurrentNow(next).accountId,'student');
   auth.dispose();assert.throws(()=>auth.assertCurrentNow(next),/account or sign-in changed/);
 });
+
+test('workflow authorization is an explicit per-instance scope request; ordinary upload scope remains repo',async()=>{
+  const f=fixture();f.set({...session(),scopes:['repo','workflow']});
+  const publishing=createAuthentication(f.api,()=>{},['repo','workflow']);
+  const ticket=await publishing.capture();assert.deepEqual(f.calls.at(-1).scopes,['repo','workflow']);assert.deepEqual(f.calls.at(-1).options,{silent:true});assert.deepEqual(ticket.session.scopes,['repo','workflow']);
+  const ordinary=createAuthentication(f.api);await ordinary.refresh();assert.deepEqual(f.calls.at(-1).scopes,['repo']);
+  publishing.dispose();ordinary.dispose();
+});

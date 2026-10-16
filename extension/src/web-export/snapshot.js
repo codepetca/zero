@@ -1,0 +1,131 @@
+'use strict';
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const {zipFiles} = require('./zip');
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const abort = signal => {if(signal?.aborted){const error=new Error('Browser build cancelled.');error.name='AbortError';throw error;}};
+async function safePath(file) {
+  let current=path.parse(path.resolve(file)).root;
+  for(const part of path.resolve(file).slice(current.length).split(path.sep).filter(Boolean)) {
+    current=path.join(current,part);
+    try {if((await fs.lstat(current)).isSymbolicLink())throw new Error('Browser builds refuse symbolic links: '+current);}
+    catch(error){if(error.code!=='ENOENT')throw error;}
+  }
+}
+async function tree(root,optional=false) {
+  await safePath(root);
+  let stat;
+  try {stat=await fs.lstat(root);}catch(error){if(optional&&error.code==='ENOENT')return [];throw error;}
+  if(!stat.isDirectory())throw new Error('Expected a browser build folder: '+root);
+  const files=[];
+  async function walk(dir,prefix='') {
+    for(const item of (await fs.readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))) {
+      const relative=prefix+item.name, file=path.join(dir,item.name);
+      if(item.isSymbolicLink())throw new Error('Browser builds refuse symbolic links: '+file);
+      if(item.isDirectory())await walk(file,relative+'/');
+      else if(item.isFile())files.push({path:relative,bytes:await fs.readFile(file)});
+      else throw new Error('Unsupported browser build file: '+file);
+    }
+  }
+  await walk(root);return files;
+}
+function digest(files) {
+  const hash=crypto.createHash('sha256');
+  for(const file of [...files].sort((a,b)=>a.path.localeCompare(b.path)))hash.update(file.path).update('\0').update(file.bytes).update('\0');
+  return hash.digest('hex');
+}
+async function captureBuildInputs(projectRoot) {
+  await safePath(projectRoot);
+  const files=[];
+  for(const [name,optional] of [['src/main/java',false],['src/main/resources',true],['.mvn',false]]) {
+    for(const file of await tree(path.join(projectRoot,name),optional)) {
+      if(name==='src/main/resources'&&file.path==='.gitkeep')continue;
+      files.push({path:name+'/'+file.path,bytes:file.bytes});
+    }
+  }
+  for(const name of ['pom.xml','mvnw','mvnw.cmd']) {
+    const file=path.join(projectRoot,name);await safePath(file);
+    try {if(!(await fs.lstat(file)).isFile())throw new Error('Expected a regular build file: '+file);files.push({path:name,bytes:await fs.readFile(file)});}
+    catch(error){if(error.code!=='ENOENT'||name==='pom.xml')throw error;}
+  }
+  return {files,sourceHash:digest(files)};
+}
+async function buildProfileHash(engineRoot=__dirname) {return digest(await tree(engineRoot));}
+function validRelative(value) {return typeof value==='string'&&value!==''&&!value.includes('\\')&&!value.includes('\0')&&!path.posix.isAbsolute(value)&&value.split('/').every(p=>p&&p!=='.'&&p!=='..');}
+function inventoryMatches(files,expected) {
+  if(!Array.isArray(expected)||files.length!==expected.length)return false;
+  const map=new Map(expected.map(f=>[f.path,f]));
+  return map.size===expected.length&&files.every(f=>{const e=map.get(f.path);return e&&validRelative(e.path)&&e.bytes===f.bytes.length&&e.sha256===sha(f.bytes);});
+}
+async function validateExport({projectRoot,result,signal,engineRoot=__dirname}={}) {
+  abort(signal);
+  if(!projectRoot)throw new Error('Choose a project before validating its browser build.');
+  await safePath(projectRoot);
+  const root=await fs.realpath(projectRoot),output=path.join(root,'.zero','web-export');
+  await safePath(output);
+  const manifestPath=path.join(output,'manifest.json');
+  if(result?.manifestPath&&path.resolve(result.manifestPath)!==manifestPath)throw new Error('The browser build belongs to a different project.');
+  const manifest=JSON.parse(await fs.readFile(manifestPath,'utf8'));
+  if(manifest.schemaVersion!==1||typeof manifest.buildId!=='string'||!manifest.buildId||!manifest.compatibility||manifest.compatibility.status!=='passed')throw new Error('Run App again to validate this browser build with the current compatibility rules.');
+  if(result?.buildId&&result.buildId!==manifest.buildId)throw new Error('The browser build was replaced. Run App again.');
+  if(manifest.sitePath!==path.join(output,'site')||manifest.zipPath!==path.join(output,'web-export.zip'))throw new Error('Invalid browser build paths. Run App again.');
+  const before=await captureBuildInputs(root);
+  if(before.sourceHash!==manifest.sourceHash||!inventoryMatches(before.files,manifest.inputs))throw new Error('The project changed since its browser build. Run App again.');
+  const profileHash=await buildProfileHash(engineRoot);
+  if(manifest.profileHash!==profileHash)throw new Error('Zero’s browser compiler or compatibility rules changed. Run App again.');
+  const siteFiles=await tree(manifest.sitePath);
+  if(!inventoryMatches(siteFiles,manifest.files)||manifest.totalBytes!==siteFiles.reduce((sum,f)=>sum+f.bytes.length,0))throw new Error('The browser build files changed or are incomplete. Run App again.');
+  if(!siteFiles.some(f=>f.path==='index.html'&&f.bytes.length)||!siteFiles.some(f=>f.path==='zero_web.nocache.js'&&f.bytes.length)||!siteFiles.some(f=>/\.cache\.js$/.test(f.path)&&f.bytes.length))throw new Error('The browser build is incomplete. Run App again.');
+  await safePath(manifest.zipPath);
+  const zipBytes=await fs.readFile(manifest.zipPath);
+  const byPath=new Map(siteFiles.map(file=>[file.path,file]));
+  if(!zipBytes.equals(zipFiles(manifest.files.map(file=>byPath.get(file.path)))))throw new Error('The browser ZIP differs from the validated app. Run App again.');
+  const outputFiles=await tree(output);
+  const allowed=new Set(['manifest.json','web-export.zip',...siteFiles.map(f=>'site/'+f.path)]);
+  if(outputFiles.some(f=>!allowed.has(f.path)))throw new Error('The browser build folder contains unvalidated files. Run App again.');
+  abort(signal);
+  if((await captureBuildInputs(root)).sourceHash!==before.sourceHash||(await buildProfileHash(engineRoot))!==profileHash)throw new Error('The project or browser compiler changed during validation. Run App again.');
+  return {...result,sitePath:manifest.sitePath,zipPath:manifest.zipPath,manifestPath,buildId:manifest.buildId,sourceHash:manifest.sourceHash,profileHash,totalBytes:manifest.totalBytes,files:manifest.files,logPath:manifest.buildLog,manifest,siteFiles,zipBytes};
+}
+async function ensureValidatedExport(options={}) {
+  abort(options.signal);
+  if(!options.forceBuild) {
+    try {const result=await validateExport(options);options.onProgress?.('Validated browser build ready');return result;}
+    catch(error){abort(options.signal);if(error.code&&!['ENOENT','ENOTDIR'].includes(error.code))throw error;options.onProgress?.('Checking and building the current browser app');}
+  }
+  const {exportForWeb}=require('./index');
+  const result=await (options.engine?.exportForWeb||exportForWeb)(options);
+  return validateExport({...options,result});
+}
+// Compare bytes to the reviewed commit without executing Git clean filters or
+// reading an index that may omit ignored application files used by the compiler.
+async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=require('../core').git}={}) {
+  if(!/^[a-f0-9]{40}$/.test(sourceSha||''))throw new Error('Invalid uploaded source commit.');
+  const inputs=await captureBuildInputs(projectRoot);
+  if(inputs.sourceHash!==result?.sourceHash)throw new Error('The project changed since its browser build. Run App again.');
+  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn']);
+  const committed=new Map();
+  for(const entry of String(raw).split('\0').filter(Boolean)) {
+    const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);
+    if(!match)throw new Error('Uploaded browser inputs must be ordinary tracked files.');
+    if(match[3]==='src/main/resources/.gitkeep')continue;
+    committed.set(match[3],match[2]);
+  }
+  const gitBlob=bytes=>crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  const normalized=[];
+  if(committed.size!==inputs.files.length)throw new Error('The browser build uses files missing from the uploaded commit, or uploaded files are missing locally. Upload all Java, resources and Maven setup before publishing.');
+  for(const file of inputs.files) {
+    const expected=committed.get(file.path);
+    if(expected===gitBlob(file.bytes))continue;
+    // Ordinary Windows checkouts can use CRLF for Java/Maven source. These
+    // language/config inputs treat line endings equivalently. Never transform
+    // resources: their exact tested bytes must be present in the commit.
+    const textSource=/^src\/main\/java\/.+\.java$/.test(file.path)||['pom.xml','mvnw','mvnw.cmd'].includes(file.path)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(file.path);
+    if(expected&&textSource&&expected===gitBlob(Buffer.from(file.bytes.toString('utf8').replace(/\r\n/g,'\n')))){normalized.push(file.path);continue;}
+    throw new Error('The browser input '+file.path+' differs from the uploaded commit or is ignored/untracked. Upload the exact source and resources before publishing.');
+  }
+  if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Run App again.');
+  return {sourceSha,sourceHash:inputs.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
+}
+module.exports={captureBuildInputs,buildProfileHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

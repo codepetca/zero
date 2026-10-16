@@ -1,10 +1,11 @@
+import {coreSources} from './prepare-starter.mjs';
 import {readFileSync, writeFileSync, mkdirSync, readdirSync, lstatSync, existsSync, unlinkSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {deflateRawSync} from 'node:zlib';
 
 const repository = fileURLToPath(new URL('../', import.meta.url));
-import {practiceProjects, sampleGameAssets} from '../teaching/projects.mjs';
+import {practiceProjects, sampleGameAssets, publishedTutorialTemplate} from '../teaching/projects.mjs';
 function read(root, relative) {
   const parts = relative.split('/');
   if (path.isAbsolute(relative) || parts.some(p => !p || p === '.' || p === '..')) throw new Error(`Invalid maintained lesson path: ${relative}`);
@@ -21,21 +22,21 @@ function read(root, relative) {
 export function lessonProjects(root = repository) {
   const common = new Map();
   const add = (files, filename, bytes, mode = 0o644) => files.set(filename, {path:filename, content:Buffer.from(bytes).toString('base64'), mode});
-  for (const name of ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.vscode/tasks.json']) add(common, name, read(root, `student-template/${name}`), name === 'mvnw' ? 0o755 : 0o644);
+  for (const name of ['pom.xml','mvnw','mvnw.cmd','.mvn/wrapper/maven-wrapper.properties','.mvn/wrapper/LICENSE-APACHE-2.0.txt','.mvn/wrapper/NOTICE','.vscode/tasks.json']) add(common, name, read(root, `student-template/${name}`), name === 'mvnw' ? 0o755 : 0o644);
   const settings = JSON.parse(read(root, 'student-template/.vscode/settings.json'));
-  settings['git.enabled'] = false; settings['git.autofetch'] = false;
+  settings['git.enabled'] = true;
   add(common, '.vscode/settings.json', JSON.stringify(settings, null, 2) + '\n');
-  add(common, '.gitignore', '# Local practice: keep every file off GitHub.\n*\n');
+  add(common, '.gitignore', read(root, 'student-template/.gitignore'));
   add(common, 'LICENSE', read(root, 'LICENSE'));
-  for (const name of ['App','GameApp']) add(common, `src/main/java/zero/${name}.java`, read(root, `framework/src/main/java/zero/${name}.java`));
+  for (const name of coreSources) add(common, `src/main/java/zero/${name}`, read(root, `framework/src/main/java/zero/${name}`));
   const projects = practiceProjects.map(project => {
     const files = new Map(common);
     add(files, 'src/main/java/Main.java', read(root, `teaching/starters/${project.kind}/Main.java`));
-    add(files, 'zero.json', JSON.stringify({name:project.title,templateVersion:'0.1.0',mainClass:'Main',localOnly:true,practiceProjectId:project.id,lessonId:project.firstLesson}, null, 2) + '\n');
-    add(files, 'README.md', `# ${project.title}\n\nThis is your local practice project for lessons ${project.lessons[0]}–${project.lessons.at(-1)}. Keep using this folder as you write your own code. The scaffold contains only setup and an empty Main; the first run opens a blank window or canvas.\n\nOpen this folder in VS Code, then open src/main/java/Main.java. Read the [first lesson](https://zero.codepet.ca/tutorials/${project.firstLesson}) and build the program step by step. After edits, click **Run App again**.\n\nKeep practice off GitHub. Original work for sharing belongs in your own separate project. Do not replace this folder when continuing a lesson.\n`);
-    return {id:project.id,lesson:project.firstLesson,title:project.title,folder:`zero-project-${project.id}`,files:[...files.values()].sort((a,b) => a.path.localeCompare(b.path))};
+    add(files, 'zero.json', JSON.stringify({name:project.title,templateVersion:'0.1.0',mainClass:'Main',repositoryRequired:true,tutorialProjectId:project.id,lessonId:project.firstLesson}, null, 2) + '\n');
+    add(files, 'README.md', `# ${project.title}\n\nBefore lesson 0, have your own verified GitHub account, Git 2.31+ and school-approved access/privacy. Read the [account and privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy). Choose Private unless teacher/school policy says otherwise, invite your teacher as a collaborator and verify access; collaborators can edit. Use a teacher-approved commit identity and the exact GitHub noreply email for email privacy. Publishing is optional/public; private-repository Pages depends on the plan. No paid plan is needed for tutorial source work.\n\nCreate your own GitHub repository from the published tutorial template, then copy YOUR repository’s HTTPS URL. Sign in to Zero and choose **Project → Clone from GitHub…**. Paste that URL in **Clone from GitHub**. In **Clone location**, keep the default ~/Zero Projects or choose another folder outside any Git repository, then choose **Clone here**. Newer VS Code versions open the clone in a new window automatically; the VS Code 1.95 fallback may ask for **Open in New Window**. For an already-cloned Zero folder, use **Project → Open local project…** to open a new window without cloning again. A ZIP or a folder inside another repository cannot start this tutorial.\n\nKeep using your repository for lessons ${project.lessons[0]}–${project.lessons.at(-1)} as you write your own code. The scaffold contains only setup and an empty Main; the first run opens a blank window or canvas.\n\nOpen src/main/java/Main.java and read the [first lesson](https://zero.codepet.ca/tutorials/${project.firstLesson}). After edits, click **Run App again**. Run uses local Git checks and needs no GitHub sign-in. Sign in when you want to Commit & push, start a New branch, or Merge to main. Submit your repository link separately in Pika.\n\nZeroHub contributions belong in a separate original project. Keep this tutorial repository for learning.\n`);
+    return {id:project.id,lesson:project.firstLesson,title:project.title,folder:`zero-project-${project.id}`,template:publishedTutorialTemplate(project.id),files:[...files.values()].sort((a,b) => a.path.localeCompare(b.path))};
   });
-  return {schema:1, projects};
+  return {schema:2, projects};
 }
 export function gameAssetFiles(root = repository) {
   return sampleGameAssets.files.map(filename => ({path:filename,content:read(root, `student-template/examples/media-demo/resources/${filename}`).toString('base64'),mode:0o644}));
@@ -82,9 +83,14 @@ export function prepareLessonProjects(root = repository, {extension = true, webs
         if (entry.isFile() && /^zero-lesson-(?:[0-9]|1[0-2]|10-game|12-(?:scrolling|platforms|levels|full))\.zip$/.test(entry.name)) unlinkSync(path.join(oldDirectory,entry.name));
       }
     }
+    // Tutorial entry uses the published template + clone flow exclusively.
+    // Remove only known stale generated scaffold ZIPs from earlier local builds.
     for (const project of bundle.projects) {
       const destination = path.join(root, `website/public/generated/projects/${project.folder}.zip`);
-      mkdirSync(path.dirname(destination), {recursive:true}); writeFileSync(destination, lessonProjectZip(project));
+      if (existsSync(destination)) {
+        if (!lstatSync(destination).isFile() || lstatSync(destination).isSymbolicLink()) throw new Error('Generated tutorial ZIP must be an ordinary file.');
+        unlinkSync(destination);
+      }
     }
     const assetDestination = path.join(root, 'website/public',sampleGameAssets.href.slice(1));
     mkdirSync(path.dirname(assetDestination), {recursive:true});

@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const DEFAULTS = Object.freeze({schema:1, catalogUrl:'https://zero.codepet.ca/api/sharing/catalog', artifactOrigin:'', policyRevision:''});
+const DEFAULTS = Object.freeze({schema:1, catalogUrl:'https://zero.codepet.ca/api/sharing/catalog/web', artifactOrigin:'', policyRevision:''});
 function validateKitConfiguration(input) {
   if (!input || input.schema !== 1 || Object.keys(input).some(key=>!Object.hasOwn(DEFAULTS,key)) || Object.keys(DEFAULTS).some(key=>!Object.hasOwn(input,key))) throw new Error('Invalid bundled sharing configuration.');
   const url = new URL(input.catalogUrl);

@@ -1,21 +1,50 @@
 # My Zero App
 
+This source accompanies the local, unreleased Zero **0.5.18** candidate with
+core **0.2.1**. Published downloads keep their own bundled instructions.
+
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
-Choose **Zero: Start project** to create each once, then keep its folder and add
-to your own code in later lessons. Each practice scaffold contains an empty Main
-and build/framework setup. Practice stays local; coursework and GitHub sharing
-use a separate original project.
-Run App opens a separate JavaFX window. After editing, click Run App again;
-Zero saves your files and stops the previous run before rebuilding. The default build shortcut is
+Choose **Start tutorial** from Zero’s welcome or **…** menu to open each matching tutorial
+template once. On GitHub, use **Use this template → Create a new repository**
+to create your own repository. Copy its **Code → HTTPS** URL, return to Zero and
+sign in and choose **Project → Clone from GitHub…**. Paste your URL in
+**Clone from GitHub**. In **Clone location**, keep the default `~/Zero Projects`
+or choose another folder outside any Git repository, then choose **Clone here**.
+Newer VS Code versions open a new window automatically; the VS Code 1.95 fallback
+may ask for **Open in New Window**. For an already-cloned Zero folder, choose
+**Project → Open local project…** to open a new window without cloning again. Keep that clone and add your own code across its lessons. Each template contains only empty Main
+and build/framework setup. Tutorial repositories use New branch, Run App,
+Commit & push and Merge to main, like original coursework projects. Template links
+follow verified publication metadata; unavailable templates show that state.
+Run App checks and compiles your Java locally, then opens Zero’s browser preview.
+After editing, click Run App again; Zero saves your files and stops the previous
+preview before rebuilding. The default build shortcut is
 **Ctrl+Shift+B** on Windows or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
-The default build task is **Zero: Run App**, owned by the extension so its Stop
-button can stop it. Without the extension, use **Tasks: Run Task → Run App without
-Zero**, then close the app window or terminate that task before running again.
+The default build task is **Zero: Run App**, owned by the extension so **Stop**
+ends the preview and its audio. For native JavaFX troubleshooting, use
+**Zero: Run Native App (Diagnostic)**. Without the extension, **Tasks: Run Task →
+Run App without Zero** is a native diagnostic; close its window or terminate the
+task before running again. A native run does not check browser compatibility.
 
 ## First setup
+
+Before tutorial lesson 0, have **your own verified GitHub account and Git 2.31+**.
+Use [github.com/signup](https://github.com/signup) if needed. Follow your teacher's
+username/email policy and check GitHub access, VS Code sign-in and compiler
+downloads on your school machine; ask teacher/IT about restrictions. Choose Private
+for tutorial repositories unless teacher/school policy says otherwise. Invite the
+teacher's confirmed username as a collaborator on each repository and verify
+acceptance/access; a private link alone grants none, and collaborators can edit.
+Set your teacher-approved Git name/email per repository; for email privacy, copy
+the exact GitHub `noreply` address from Settings → Emails. Keep passwords/tokens
+out of projects. See [the account/privacy guide](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
+The ordinary local Hello World check below needs no account. After cloning and
+compiler caching, tutorial Run works offline; pushing needs internet/sign-in.
+Publishing is optional and public, and private-repository Pages depends on the
+account plan. No paid plan is needed for tutorial source work; keep approved privacy.
 
 This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
 Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
@@ -35,7 +64,7 @@ ZIP does not contain the launcher or Zero extension. You can use the steps below
 instead. Inside VS Code, **Zero: Setup Help** offers a checklist, repair actions
 and **Check again**. School IT can provide the tools before students start.
 
-1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for uploads. JDK 17 was tested. Check `java -version` and
+1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for tutorials and pushes. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
@@ -51,12 +80,13 @@ and **Check again**. School IT can provide the tools before students start.
    open that folder in VS Code,
    and trust the folder if you trust its source. Keep `zero.json`, `pom.xml`,
    both Maven wrappers, and the `.mvn` folder with it.
-4. Run App. The first run needs internet to download the pinned Maven and
-   JavaFX dependencies. You do not need a separate Maven or JavaFX installation.
+4. Run App. The first run needs internet to download the pinned browser compiler
+   and dependencies into Zero’s local cache; later projects reuse them. You do
+   not need Node.js, global Maven or a separate JavaFX installation.
    A school proxy/firewall can block these downloads; ask your teacher rather
    than adding passwords or tokens to project files.
 
-Terminal equivalent, from this folder:
+For a native JavaFX diagnostic only, from this folder:
 
 ```sh
 # Mac with Apple Silicon
@@ -77,7 +107,8 @@ artifact code do not make those platforms supported in this MVP.
 ## Make something
 
 Use the installed starter's **Run App** once to check setup: it opens a short
-Hello, world! demonstration. Then choose **Zero: Start project → Greeting app**
+Hello, world! demonstration in the browser preview. Then choose
+**Start tutorial → Greeting app** from Zero’s welcome or **…** menu
 to begin [Lesson 0](lessons/00-hello-world.md) with your own empty Main. Write the
 label, then continue lessons 1 and 2 in that same Greeting folder.
 
@@ -113,7 +144,7 @@ ordinary JavaFX component conventions.
 
 ### Animated apps
 
-Choose `GameApp` for games, animation or drawing. It extends the same App
+Choose `GameApp` for animation, drawing or games. It extends the same App
 startup, creates a canvas before setup, then calls `update(double seconds)` and
 `draw()` each frame. Your Main explicitly calls ordinary objects such as
 `player.update(...)` and `player.draw(this)`; there is no automatic object lifecycle.
@@ -137,6 +168,7 @@ Useful methods inherited from GameApp:
 | Text | `textSize(20); text("Hello", 20, 40);` (y is baseline) |
 | Mouse | `mouseX()`, `mouseY()`, `mouseDown(MouseButton.PRIMARY)` |
 | Held keys | `keyDown(KeyCode.LEFT)` |
+| Audio (local source) | `loadSound("/chime.wav")` / `loadMusic("/music.wav")` in setup; play on events, explicitly pause/stop music |
 | Images | `loadImage("/player.png")` in setup; `image(sprite, x, y)` in draw |
 
 Use imports from `javafx.scene.input` for KeyCode and MouseButton. Mouse positions
@@ -144,7 +176,16 @@ are canvas coordinates and can leave its bounds while dragging. **Click the
 canvas to play.** Held keys belong to the focused canvas; clicking or typing in
 native controls does not press game keys or mouse buttons. Moving focus to a
 control or another window clears held inputs. Releasing an owned button outside
-the canvas also clears it. Put images in `src/main/resources`; load once in setup.
+the canvas also clears it. Put images in `src/main/resources`; load once in setup. Sound/Music also work in ordinary App interfaces; see
+the [audio guide](APP-GUIDE.md#short-sound-effects). Owned audio closes automatically
+on shutdown and startup/frame failure. Game pause/restart policy stays in Main. Successful image loads
+share an app-scoped cache until shutdown. The local source starter also includes
+explicitly updated SpriteAnimation, ImageRegion, frame-edge input, centred/
+flipped image drawing, centred text and static Collisions predicates. These
+helpers are part of this local candidate; published Mac setup 0.5.15 ships the
+older core 0.1.2.
+See the [game helper guide](APP-GUIDE.md#sprite-frames-and-small-game-helpers) and
+[complete API](API.md).
 
 Use normal JavaFX through `graphics()` (GraphicsContext), `canvas()`, and
 `layout()` (BorderPane). In GameApp.setup(), `layout().setBottom(button)` adds a
@@ -158,13 +199,15 @@ component base class, scene routing, or object discovery.
 ## Try an example
 
 The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
-**Start project** at lessons 0, 3 and 8 to get an empty runnable scaffold. Keep
-the same Greeting, Study or Game folder for its following lessons. Students write
-their own controls and classes; lesson 12 offers only optional image/sound assets. For another
-example, make a fresh local copy of the starter and copy only that example's
+**Start tutorial** from Zero’s welcome or **…** menu at lessons 0, 3 and 8 to create your own
+repository from the matching empty template and clone it. Keep the same Greeting, Study or Game
+repository for its following lessons. Students write
+their own controls and classes; lesson 12 offers only optional image/sound assets. Some reference examples use native JavaFX APIs outside the browser subset;
+Run App reports unsupported calls, and the native diagnostic remains available.
+For another example, make a fresh local copy of the starter and copy only that example's
 listed files into the new folder. Open the new folder in VS Code and click
-**Run App**. Keep these practice projects local; your own game repository is
-separate.
+**Run App**. Optional reference copies are separate from the template-clone
+tutorial path. ZeroHub contributions use original projects of your own.
 
 | Example | Exact files to copy | Try it |
 | --- | --- | --- |
@@ -180,6 +223,8 @@ separate.
 | Composed study app | Main from `examples/composed-study/`, Question from `examples/study/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Start, answer questions, finish and restart using shared views. [Exact copy list](examples/composed-study/README.md). |
 | Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
+| Sprite playground | `examples/sprite-playground/Main.java` → `src/main/java/Main.java`; `examples/sprite-playground/src/main/resources/bird-flap-sheet.png` → `src/main/resources/bird-flap-sheet.png` | Independent sprite clocks share one image; arrows move, Space/click pauses, R resets, geometry changes the target colour. [Copy/run instructions](examples/sprite-playground/README.md). Local unreleased helpers required. |
+| Audio playground | `examples/audio-playground/Main.java` → `src/main/java/Main.java`; `examples/audio-playground/resources/audio-playground/` → `src/main/resources/audio-playground/` | Load once, trigger an effect and loop/pause/resume/stop/mute music with native buttons. [Copy/run instructions](examples/audio-playground/README.md). Local unreleased helpers required. |
 | Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
 | Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |
 | Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See [stage 3](lessons/12-media.md#3-gravity-platforms-and-collisions). |
@@ -208,25 +253,25 @@ modified component before copying an example over it.
 
 ## Your repository and Pika
 
-Click **Sign in** beside GitHub in Zero and complete VS Code's native browser
+Choose **Sign in** using the account control in Zero’s sidebar and complete VS Code's native browser
 flow. The control then shows your GitHub username; click it for account-change
 or sign-out actions. Sign-out opens VS Code Accounts, where you
 select the GitHub account and choose Sign Out.
 
 If you created your own repository from a ZeroHub template and cloned it,
 keep that clone and its existing origin; skip creating an empty repository.
-For an extracted ZIP, use **Connect a repository → Create a repository…**
-to open GitHub's page.
+For an extracted ZIP, open GitHub's new-repository page in your browser.
 Create your own **empty repository** on GitHub (leave README, license and
 gitignore uninitialized). Use your own account and follow your teacher's
 visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
-page URL through **Connect a repository → Connect an existing repository…**. Connect initializes Git in this standalone student folder if
+page URL through **Project → Connect to GitHub…** with the local Zero folder open. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
-or upload. Local running works without GitHub sign-in.
+or push. Local running works without GitHub sign-in.
 
-Before a real upload, configure Git's per-repository name/email identity.
-In a terminal opened in your project folder, replace the example name and email
-with your own, following your teacher's privacy instructions:
+Before a real push, configure Git's per-repository name/email identity.
+In your project terminal, replace the examples with your teacher-approved display
+name and commit email. For email privacy, use the exact GitHub `noreply` address
+shown in Settings → Emails, rather than your personal email:
 
 ```sh
 git config user.name "Your Name"
@@ -238,48 +283,73 @@ These commands apply only to this repository. For more help, read
 or ask your teacher.
 Signing in does not configure commit identity. Zero supplies the selected native
 GitHub session to its network operations without storing a token in your project
-or Git configuration. Account/session changes require a fresh upload review.
+or Git configuration. Account/session changes require a fresh push review.
 Never put a password or token in Java source, the marker or README.
 
-**Upload, Start and Finish default to simulation: no Git state changes or upload.**
-To use the implemented real-upload path, set `"zero.uploadMode": "live"` in
-workspace settings. Upload changes saves files, asks for a commit message, then shows a
-modal review of your repository, branch and changed files. Check it before
-choosing **Commit & Upload**. This creates a local commit when needed and pushes
-with Git HTTPS transport using your native sign-in; ignored files stay local. A failed upload may
-leave a local commit. A Mac teacher trial verified native sign-in and a private repository upload;
+**GitHub actions are live by default; nothing pushes automatically.**
+Commit & push saves files and asks for a commit message, showing your repository
+and branch in the input. Check your changes, enter a short message and press
+Enter. This creates a local commit when needed and pushes
+the current branch with Git HTTPS transport using your native sign-in; ignored files stay local. A failed push may
+leave a local commit. A Mac teacher trial verified native sign-in and a private repository push;
 other platforms and school environments still need trials.
 
-For a new repository, Upload changes once on **main** to save the starter.
+For a new repository, Commit & push once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
-1. Click **New branch** beside main, name your branch (for example `quiz-feedback`)
-   and review before creating it. Upload pending edits first. Main is updated
+1. Click **New branch** in the repository menu, name your branch (for example `quiz-feedback`)
+   and press Enter to create it. Commit & push pending edits first. Main is updated
    from GitHub when it can be advanced without combining separate histories.
-2. Edit and Run App. **Upload changes** saves and uploads progress to your branch;
+2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
    repeat as needed.
-3. Click **Finish change** beside the branch name. Upload pending edits first, run the
-   app and review before merging/uploading into main. If newer main code is added
-   to your branch, Zero pauses: run the combined app and review Finish again.
-4. After confirmed success, you are back on main. Remove the finished local
-   branch when prompted, or keep it; its GitHub branch remains.
+3. Click **Merge to main** beside the branch name. Commit & push pending edits first, run the
+   app before clicking. **Merge to main** merges your branch into main and pushes main. If newer main code is added
+   to your branch, Zero pauses: run and check the combined app, then choose Merge to main again.
+4. After confirmed success, you are back on main. Zero safely removes the
+   unchanged finished local branch; its GitHub branch remains. If cleanup cannot
+   be completed safely, Zero keeps the local branch and tells you to check Output.
 
-Older kits may use a profile icon and **Connect a repo**, with **Start a change**
-or **Finish change** in the branch-name menu. Their installed controls remain
+Older kits may use different account/repository controls, with **Start a change**
+and different labels for committing, pushing and merging. Their installed controls remain
 unchanged; the steps above describe the current editor.
 
 If an update conflicts, your work and merge state remain. In VS Code Source
 Control, inspect the conflicted files/Merge Editor, combine the intended changes,
-save and stage them, then commit the merge. Run App and review Finish again.
+save and stage them, then commit the merge. Run App and review Merge to main again.
 Ask your teacher for help with an unclear conflict or diverged main history.
-A failed Finish upload can leave local main advanced while your change branch
-remains selected; repair the network/access problem and review Finish again.
+A failed main push can leave local main advanced while your change branch
+remains selected; repair the network/access problem and review Merge to main again.
 Zero does not force-push or automatically discard work.
 
-After a successful real Finish, check the files on GitHub's main branch. Click the connected
+After a successful Merge to main, check the files on GitHub's main branch. Click the connected
 repository name and choose **Copy repository link**, then submit it separately
 in Pika. Give your teacher access if it is
 private. Zero does not submit assignments or change Pika grades.
+
+## Publish a playable app
+
+Use your own original project with Git **2.31+** and your own GitHub account.
+**Run App** and test it, then merge and push the completed version on **main**.
+Choose **Publish app** in Zero’s repository menu. The first publish reviews the public Pages
+destination, prepares publishing files, and uses the reviewed push flow.
+If VS Code requests workflow permission, use the same GitHub account as Zero.
+Enter a commit message if the setup files need to be pushed; Zero then continues
+publishing. The app and included assets will be
+public; your source repository keeps its visibility. Later explicit Publish actions
+revalidate and update that same approved site without another destination dialog.
+
+Zero deploys the locally checked build. Wait for **App published**,
+then choose **Open app** or **Copy playable link**. Later use **Zero: Open Published
+App** or **Zero: Copy Playable Link** in the Command Palette. Choose Publish app
+again to recheck a pending run; follow the stated next action if publication
+fails. The previous live page remains available after an unsuccessful update.
+The playable link is separate from your repository link for Pika.
+
+**Share project** prepares a separate ZeroHub source submission. This candidate
+attaches a playable link only when it can verify the saved publication for that
+exact pushed commit. ZeroHub’s **Play latest** opens the student-hosted app;
+**Download source project** stays an exact version. Checker acceptance and public
+activation are pending; public ZeroHub pushes are not open yet.
 
 ## Checking your changes
 
@@ -289,10 +359,13 @@ alone does not verify layout, focus or school-machine restrictions.
 
 Zero maintainers keep the finite framework and example GUI checks in the
 [Zero source repository](https://github.com/codepetca/zero). These contributor tools are separate from this student
-project; your normal Run App launches Main and needs only the Maven wrapper.
+project. Your normal Run App uses Zero’s pinned local browser compiler. If a
+download fails, repair the connection and Run App again. Use **Show Problems**
+for source or unsupported-API errors; a failed build does not start an old build
+as a successful new run.
 
-Pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**, official Apache Maven
-Wrapper **3.3.4** (only-script), JavaFX Maven plugin **0.0.8**, compiler plugin
+For native diagnostics, pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**,
+official Apache Maven Wrapper **3.3.4** (only-script), JavaFX Maven plugin **0.0.8**, compiler plugin
 **3.14.0**. The wrapper verifies the Maven distribution's SHA-256. Maven's normal
 local dependency cache is used; no account credentials are required.
 

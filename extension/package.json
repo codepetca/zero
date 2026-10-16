@@ -13,19 +13,27 @@
   ],
   "main": "./src/extension.js",
   "activationEvents": [
+    "onStartupFinished",
     "workspaceContains:zero.json",
     "workspaceContains:student-template/zero.json",
     "onTaskType:zero",
-    "onCommand:zero.startProject"
+    "onCommand:zero.startProject",
+    "onCommand:zero.cloneRepository",
+    "onCommand:zero.openLocalProject",
+    "onWebviewPanel:zero.tutorials"
   ],
   "scripts": {
     "test": "node --test",
     "package": "vsce package --no-dependencies --allow-missing-repository",
-    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension",
-    "pretest": "node ../scripts/lesson-projects.mjs && node ../design/prepare.mjs --extension"
+    "vscode:prepublish": "node ../scripts/lesson-projects.mjs && node ../scripts/prepare-tutorials.mjs && node ../design/prepare.mjs --extension",
+    "pretest": "node ../scripts/lesson-projects.mjs && node ../scripts/prepare-tutorials.mjs && node ../design/prepare.mjs --extension"
   },
   "contributes": {
     "commands": [
+      {
+        "command": "zero.getStarted",
+        "title": "Zero: Get Started"
+      },
       {
         "command": "zero.checkForUpdates",
         "title": "Zero: Check for Updates",
@@ -38,7 +46,15 @@
       },
       {
         "command": "zero.startProject",
-        "title": "Zero: Start Project"
+        "title": "Zero: Start Tutorial"
+      },
+      {
+        "command": "zero.cloneRepository",
+        "title": "Zero: Clone from GitHub"
+      },
+      {
+        "command": "zero.openLocalProject",
+        "title": "Zero: Open Local Project"
       },
       {
         "command": "zero.githubAccount",
@@ -49,12 +65,52 @@
         "title": "Zero: Repository Actions"
       },
       {
+        "command": "zero.switchBranch",
+        "title": "Zero: Switch Branch"
+      },
+      {
         "command": "zero.runApp",
         "title": "Zero: Run App"
       },
       {
+        "command": "zero.openRunningAppInBrowser",
+        "title": "Zero: Open Running App in Browser"
+      },
+      {
+        "command": "zero.runNativeApp",
+        "title": "Zero: Run Native App (Diagnostic)"
+      },
+      {
         "command": "zero.stopApp",
         "title": "Zero: Stop App"
+      },
+      {
+        "command": "zero.exportWeb",
+        "title": "Zero: Export for Web"
+      },
+      {
+        "command": "zero.publishWeb",
+        "title": "Zero: Publish App"
+      },
+      {
+        "command": "zero.copyPublishedWebLink",
+        "title": "Zero: Copy Playable Link"
+      },
+      {
+        "command": "zero.openPublishedWeb",
+        "title": "Zero: Open Published App"
+      },
+      {
+        "command": "zero.previewWebExport",
+        "title": "Zero: Preview Web Export"
+      },
+      {
+        "command": "zero.saveWebExport",
+        "title": "Zero: Save Web Export ZIP"
+      },
+      {
+        "command": "zero.shareWebExport",
+        "title": "Zero: Share Web Export"
       },
       {
         "command": "zero.signInToGitHub",
@@ -66,7 +122,7 @@
       },
       {
         "command": "zero.uploadToGitHub",
-        "title": "Zero: Upload Changes"
+        "title": "Zero: Commit & Push"
       },
       {
         "command": "zero.connectRepository",
@@ -78,7 +134,7 @@
       },
       {
         "command": "zero.openFirstLesson",
-        "title": "Zero: Open First Lesson",
+        "title": "Zero: Tutorials",
         "shortTitle": "Tutorials"
       },
       {
@@ -104,7 +160,7 @@
       },
       {
         "command": "zero.finishChange",
-        "title": "Zero: Finish Change"
+        "title": "Zero: Merge to Main"
       },
       {
         "command": "zero.sharingActions",
@@ -154,6 +210,10 @@
       {
         "command": "zero.browseZeroHub",
         "title": "Zero: Browse ZeroHub"
+      },
+      {
+        "command": "zero.showOutput",
+        "title": "Zero: Show Output"
       }
     ],
     "viewsContainers": {
@@ -172,11 +232,6 @@
           "id": "zero.actions",
           "name": "Zero",
           "icon": "media/zero.svg"
-        },
-        {
-          "id": "zero.files",
-          "name": "Files",
-          "icon": "$(files)"
         }
       ]
     },
@@ -190,7 +245,8 @@
           "task": {
             "type": "string",
             "enum": [
-              "run"
+              "run",
+              "native-run"
             ],
             "description": "Save and run the marked Zero Java project."
           }
@@ -222,13 +278,13 @@
             "simulation",
             "live"
           ],
-          "default": "simulation",
+          "default": "live",
           "scope": "resource",
-          "markdownDescription": "Simulation changes nothing in Git. Live mode reviews files, creates a local commit when needed, and uploads to your connected repository after confirmation using your VS Code GitHub sign-in. A local Git name/email identity is still required."
+          "markdownDescription": "Live is the default. GitHub actions require your explicit choice. Commit & push shows the repository and branch with the commit message; naming a new branch creates it directly. First Publish warns that the app and included assets will be public; later Publish actions update that site. Merge to main runs directly after its safety checks. After successful merging, guarded cleanup automatically deletes the finished local branch; the remote branch stays available. Repository replacement keeps a concise confirmation. Uploads commit when needed and send files to your connected repository using your VS Code GitHub sign-in. A local Git name/email identity is required. Simulation is an optional testing mode that makes no Git changes or uploads. Tutorial practice remains local-only in either mode."
         },
         "zero.sharingCatalogUrl": {
           "type": "string",
-          "default": "https://zero.codepet.ca/api/sharing/catalog",
+          "default": "https://zero.codepet.ca/api/sharing/catalog/web",
           "scope": "machine",
           "markdownDescription": "Exact generated games/library catalog URL. Public activation is pending; explicit loopback URLs support local verification."
         },
@@ -259,6 +315,21 @@
       ],
       "view/title": [
         {
+          "command": "zero.exportWeb",
+          "when": "view == zero.actions",
+          "group": "zero-web@1"
+        },
+        {
+          "command": "zero.copyPublishedWebLink",
+          "when": "view == zero.actions",
+          "group": "zero-web@2"
+        },
+        {
+          "command": "zero.openPublishedWeb",
+          "when": "view == zero.actions",
+          "group": "zero-web@3"
+        },
+        {
           "command": "zero.openFirstLesson",
           "when": "view == zero.actions",
           "group": "zero-help@1"
@@ -267,6 +338,16 @@
           "command": "zero.showSetup",
           "when": "view == zero.actions",
           "group": "zero-help@2"
+        },
+        {
+          "command": "zero.startProject",
+          "when": "view == zero.actions",
+          "group": "zero-help@0"
+        },
+        {
+          "command": "zero.showOutput",
+          "when": "view == zero.actions",
+          "group": "zero-help@3"
         }
       ]
     }

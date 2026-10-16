@@ -56,26 +56,26 @@ export function HubExamples({snapshot, project}: {snapshot: {starter: ExamplePro
           <h3 id="clone-title">Clone your own project</h3>
           <ol>
             <li>Choose Use template. On GitHub, select your own account as the owner and create a repository with a name you choose.</li>
-            <li>In your new repository, choose Code → HTTPS and copy its URL. Clone it into a folder outside any other Git repository.</li>
+            <li>In your new repository, choose Code → HTTPS and copy its URL. Sign in to Zero and choose Project → Clone from GitHub…. Paste your URL in Clone from GitHub, then choose Clone here in Clone location. Keep the default ~/Zero Projects or choose another folder outside any Git repository. Newer VS Code versions open a new window automatically; the VS Code 1.95 fallback may ask for Open in New Window.</li>
           </ol>
-          <p>In a terminal, replace the username and project name below with your own:</p>
+          <p>Terminal alternative: replace the username and project name below with your own:</p>
           <CodeBlock><code>{'git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git\ncd YOUR-PROJECT'}</code></CodeBlock>
-          <p>Open that cloned folder in Zero and choose Run App. Your repository already contains the starting project on main.</p>
-          <p className={styles.workflowHelp}>Using Download ZIP instead? Extract it into a new folder, then create and connect an empty repository in your own account and Upload the starting files.</p>
-        </section> : <p className={styles.openInstruction}>Extract the project, open it in Zero, and choose Run App.</p>}
+          <p>For an already-cloned Zero folder, use Project → Open local project… to open a new window without cloning again. Choose Run App. Your repository already contains the starting project on main.</p>
+          <p className={styles.workflowHelp}>Using Download ZIP instead? Extract it into a new folder, then create an empty repository in your own account. Choose Project → Open local project… for the extracted Zero folder, then Project → Connect to GitHub… and Commit & push the starting files.</p>
+        </section> : <p className={styles.openInstruction}>Extract the project, then sign in to Zero and choose Project → Open local project… for its Zero folder. Choose Run App.</p>}
         {guide && <section className={styles.projectWorkflow} aria-labelledby="project-workflow-title">
           <h3 id="project-workflow-title">{starter ? 'Build your project' : 'Make it yours'}</h3>
           <p>{guide.challenge}</p>
           <ol>
             <li>{project.templateHref
-              ? 'In Zero, connect your own cloned repository. Personalize the README and Upload those changes on main before starting a branch.'
-              : 'Create an empty GitHub repository in your own account. In Zero, connect that repository and Upload the starting project to main.'}</li>
-            <li>Choose New branch to create a branch for one small feature (Start a change in older kits).</li>
+              ? 'In Zero, check that your own cloned repository is open. Personalize the README and Commit & push those changes on main before starting a branch.'
+              : 'Create an empty GitHub repository in your own account. In Zero, choose Project → Connect to GitHub… and Commit & push the starting project to main.'}</li>
+            <li>Choose New branch in the repository menu for one small feature.</li>
             <li>Edit your Java and update the README with what your project does. Run App and check the result.</li>
-            <li>Upload changes with a commit message explaining what you changed.</li>
-            <li>Finish change, check your files on GitHub main, then submit your own repository link in Pika.</li>
+            <li>Choose Commit &amp; push. It creates a commit when needed and pushes the current branch; use a message explaining what you changed.</li>
+            <li>Choose Merge to main to merge your branch into main and push main. Check your files on GitHub main, then submit your own repository link in Pika.</li>
           </ol>
-          <p className={styles.workflowHelp}>Real uploads need GitHub sign-in, Git commit identity and simulation turned off.
+          <p className={styles.workflowHelp}>Real pushes need GitHub sign-in, Git commit identity and simulation turned off.
             {' '}<Link href="/docs/setup#your-individual-workflow">See the repository setup guide <Icon name="arrow-right" /></Link></p>
           <p className={styles.workflowHelp}>Later, practise pull requests and review on GitHub.
             {' '}<Link href="/docs/course-project#pull-request-practice">See the course project guide <Icon name="arrow-right" /></Link></p>

@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "templates": [
+    {
+      "id": "greeting",
+      "repository": "codepetca/zero-tutorial-greeting",
+      "publication": {
+        "repositoryId": 1421546221,
+        "visibility": "public",
+        "isTemplate": true,
+        "defaultBranch": "main",
+        "commit": "a00566d7e644ba46a79afbe2d0920b24dc0fba59",
+        "tree": "b0ed4cf836304cfa69cb7cd2dd0fe844042867a1"
+      }
+    },
+    {
+      "id": "study",
+      "repository": "codepetca/zero-tutorial-study",
+      "publication": {
+        "repositoryId": 1421546287,
+        "visibility": "public",
+        "isTemplate": true,
+        "defaultBranch": "main",
+        "commit": "4209ab9233595594af4c01e56a06d7c82ded6b4e",
+        "tree": "d7b2dffbfa9ddb3b06c19eb7c9b1798707a762fc"
+      }
+    },
+    {
+      "id": "game",
+      "repository": "codepetca/zero-tutorial-game",
+      "publication": {
+        "repositoryId": 1421546366,
+        "visibility": "public",
+        "isTemplate": true,
+        "defaultBranch": "main",
+        "commit": "a71cb084ae43c512852378521adb0b60f6e256be",
+        "tree": "3cdc2d7509f639fd236835175abbbd7a596d7c64"
+      }
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 # Teacher notes: Lessons 0–12
 
 Use [three continuing projects](README.md): Greeting (0–2), Study (3–7), Game
-(8–12). Students create each once and write their own program. The small scaffold
+(8–12). Students create each repository from its empty template, clone their own copy,
+and write their own program. The small scaffold
 contains only an empty Main and build/framework setup. Do not distribute completed
 checkpoints as starters. Keep students' current code and add the next lesson's changes.
 
@@ -9,6 +10,28 @@ Use the visible target and Done check first; expand detailed steps as needed.
 Illustrations are teaching drawings, not native-window screenshots. Pacing has
 not been measured with novice students. Lesson 12's advanced extensions can span
 several sessions or remain optional.
+
+## Before lesson 0
+
+Complete [the account and privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy)
+before student lesson work. Confirm school approval, account eligibility and its
+username/email/display-name policy. Each student creates and verifies their own
+GitHub account if needed and keeps their password private. On the school device/network, verify GitHub access, email
+verification, native VS Code sign-in, Git 2.31+ and pinned compiler/dependency downloads.
+
+Agree visibility before **Create**: private unless the teacher or school requires
+public. GitHub Free allows private collaborators. Invite the teacher by verified
+GitHub username, have them accept, then check actual private-repository access.
+Collaborators on personal repositories have write access, not a view-only role.
+Use per-repository Git identity with a school-approved display name and email;
+for privacy, copy the exact GitHub-provided noreply address from Settings → Emails.
+Do not guess it. Keep passwords, tokens and recovery codes out of source, logs and
+pilot evidence; native sign-in does not configure commit identity.
+
+A local starter smoke can check setup without Git; it is not the tutorial start.
+The candidate's lesson flow requires the student's own template repository and
+clone before lesson 0. Run App opens a browser preview. After cloning and caching
+the compiler/dependencies, Run works offline without an active GitHub session.
 
 ## Check each step
 
@@ -60,14 +83,23 @@ a normal and repeat/reset check, and explain their source.
 
 ## Sharing and readiness
 
-All three practice projects stay local. An optional fourth **original** app/game
-can have the student's GitHub repository and reusable library. Reuse their own
-component there; do not remove practice safeguards or publish a practice folder.
-Pika submission is separate. General hosted library acceptance and game publication
-remain pending; do not promise a live automatic listing from these lessons.
+All three tutorial projects use the student's own GitHub repositories. Teach the
+same New branch, edit/Run, Upload and Finish flow in each group; check the actual
+remote commit rather than only a copied link. An optional fourth **original**
+app/game is the place for a reusable ZeroHub contribution. Tutorial GitHub uploads
+and explicit optional Pages publishing are distinct from ZeroHub admission.
+Pika submission is separate from optional public game hosting. Pages availability
+for private repositories depends on the account plan; do not require payment or a
+visibility change to complete a lesson. Only publish work approved for public
+viewing. General hosted library acceptance and game publication remain pending;
+do not promise a live automatic listing from these lessons.
 
 Supported targets are Apple Silicon Mac and Windows. Physical Windows, school
 restrictions and novice classroom trials are still pending; Linux and Intel Macs
 are unsupported. See the [pilot checklist](../../docs/CLASSROOM-PILOT.md).
-Published kits remain immutable; website project ZIPs work with the existing Run
-App command. Native Start project is included in kits from0.5.9.
+Published kits retain their original local-practice behavior. The new candidate
+requires initial tutorial template creation and clone; the three template
+repositories still need verified publication and fresh student-account acceptance.
+These are release gates, not completed novice/account trials. Use the real
+sign-in/identity/cancel/upload trial in the pilot only with explicit authorization.
+No student ZIP bypass or completed checkpoint starter is provided.

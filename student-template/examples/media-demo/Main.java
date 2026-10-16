@@ -21,7 +21,7 @@ public class Main extends GameApp {
 
     @Override public void setup() {
         sprite = loadImage("/media-demo/player.png");
-        sound = loadSound("/media-demo/chime.wav");
+        sound = loadEffect("/media-demo/chime.wav");
         sound.setVolume(0.25);
         var status = new Label("Plays: 0");
         var play = new Button("Play sound");
@@ -44,7 +44,7 @@ public class Main extends GameApp {
         text("Your image. Your sound.", 80, 60);
     }
 
-    private AudioClip loadSound(String path) {
+    private AudioClip loadEffect(String path) {
         var resource = getClass().getResource(path);
         if (resource == null) {
             throw new IllegalArgumentException("Sound resource not found: " + path);

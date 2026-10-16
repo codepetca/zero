@@ -32,7 +32,9 @@ unreadable version does not pass. Setup reports the selected version and path,
 plus old or unusable candidates. It checks the PATH command and standard stable
 VS Code application locations on Windows and Mac; custom installations may need
 teacher/IT help to expose their supported CLI.
-**Git 2.31 or newer** is optional until you want to share with GitHub. A JDK
+**Git 2.31 or newer** is part of setup before tutorial lesson 0 because lessons
+use authenticated Zero uploads. Ordinary local starter apps can run without Git;
+after tutorial cloning, Run needs no active GitHub sign-in. A JDK
 includes both `java` and `javac` with matching major versions; a runtime alone is insufficient. You do
 not need Node.js, Python or a global Maven installation.
 

@@ -50,7 +50,9 @@ test('ordinary process cancellation and finite timeouts terminate local checks',
  const pending=processRun({command:process.execPath,args:['-e','setInterval(()=>{},1000)'],cwd:os.tmpdir()},{signal:controller.signal}); controller.abort(); await assert.rejects(pending,/cancelled/);
  await assert.rejects(processRun({command:process.execPath,args:['-e','setInterval(()=>{},1000)'],cwd:os.tmpdir()},{timeoutMs:30}),/timed out/);
 });
-test('real trusted sample produces actual JAR, checks its origin and compiles root in local mode', {timeout:240000},async t => {
+// This transaction runs several independently bounded Maven/JDK processes.
+// Keep its cumulative budget longer than a single build on a busy local Mac.
+test('real trusted sample produces actual JAR, checks its origin and compiles root in local mode', {timeout:900000},async t => {
  const root=await fixture(t), plan=await prepareLocalCheck(root,'counter');
  const result=await runLocalCheck(plan,{keepFiles:true,timeoutMs:180000}); t.after(() => fs.rm(plan.temp,{recursive:true,force:true}));
  assert.equal(result.passed,true); assert.equal(result.classes[0],'zero.contrib.r12345.counter.Counter'); assert.match(result.outputs.at(-1).output,/Actual JAR origins and 3 behavior checks\/examples passed/);

@@ -1,3 +1,4 @@
 /target/
+/.zero/web-export/
 *.class
 .DS_Store

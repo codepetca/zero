@@ -52,7 +52,13 @@ function templateSetup(template) {
    repository**. Select your personal account as owner, choose your own project
    name and follow your teacher's visibility instructions.
 2. Open the repository you just created in your own account. Choose **Code →
-   HTTPS** and copy its URL. Clone your own repository into a new local folder:
+   HTTPS** and copy its URL. Sign in to Zero and choose **Project → Clone from GitHub…**.
+   Paste your URL in **Clone from GitHub**. In **Clone location**, keep the default
+   ~/Zero Projects or choose another folder outside any Git repository, then
+   choose **Clone here**. Newer VS Code versions open a new window automatically;
+   the VS Code 1.95 fallback may ask for **Open in New Window**.
+
+Terminal alternative with your own account and repository name:
 
 \`\`\`sh
 git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git
@@ -61,7 +67,9 @@ cd YOUR-PROJECT
 
    Replace both placeholders with your own account and repository name. These
    commands work in macOS Terminal and Windows PowerShell with Git installed.
-3. Open that cloned root folder in Zero (the configured VS Code editor).
+3. The cloned root opens in Zero (the configured VS Code editor). For an
+   already-cloned Zero folder, choose **Project → Open local project…** to open
+   a new window without cloning again.
 4. Choose Run App in the Zero sidebar.
 
 Your own GitHub repository already contains the starter baseline on **main**.
@@ -72,37 +80,36 @@ The clone already connects to your own repository as origin.
 If you downloaded a ZIP instead, extract it into its own folder and open that
 root folder in Zero. A ZIP has no Git history. Create your own empty GitHub
 repository, leaving README, license and gitignore uninitialized. Sign in through
-Zero and use **Connect a repo → Connect an existing repository…** with your own
-repository's HTTPS URL, then review **Upload changes** on **main** for the initial
-project. Connection alone does not upload files.
+Zero and use **Project → Connect to GitHub…** with your own
+repository's HTTPS URL, then review **Commit & push** on **main** for the initial
+project. Connection alone does not push files.
 `;
 }
 
 function templateWorkflow() {
   return `## Your GitHub repository and Pika
 
-1. Sign in through Zero's GitHub profile control using your personal account.
+1. Sign in through the account control in Zero’s sidebar using your personal account.
    Configure Git's per-repository name/email identity manually; signing in does
-   not configure commit identity. Real uploads require native GitHub sign-in and
-   **\`zero.uploadMode\`: \`live\`** in workspace settings. The default
-   simulation makes no Git changes and uploads nothing; Start and Finish also
-   simulate without changing branches.
+   not configure commit identity. Real pushes require native GitHub sign-in.
+   GitHub actions are live by default; nothing pushes automatically. Check the
+   account, repository and branch before submitting a name or commit message.
 2. Personalize this README with your project idea and a short change plan.
-   If edits are pending, use **Upload changes** on **main** before starting a
-   change. Write a commit message, review your repository, branch and changed
-   files, then confirm Commit & Upload.
-3. With clean committed main, choose **New branch** beside main (**Start a change** in older kits) and review the new
-   branch. Edit the Java, choose **Run App**, and check the behavior you changed.
-4. **Upload changes** with an explanatory commit message. Review the destination
-   and changed files. Upload any pending edits before finishing.
-5. Click your branch → **Finish change** and review the completed change into
-   main. If Zero brings in newer main code, Run App again and review Finish again.
-   Finish merges into main directly; it does not create a pull request.
+   If edits are pending, use **Commit & push** on **main** before starting a
+   change. Check your repository, branch and changed files, then enter a commit
+   message to commit and push.
+3. With clean committed main, choose **New branch** in the repository menu and enter its name. Edit the Java, choose **Run App**, and check the behavior you changed.
+4. **Commit & push** creates a commit when needed and pushes the current branch.
+   Use an explanatory commit message. Review the destination
+   and changed files. Commit & push any pending edits before finishing.
+5. Click **Merge to main** beside your branch to merge and push the completed change.
+   If Zero brings in newer main code, Run App again, then click Merge to main again.
+   Merge to main merges the current branch into main and pushes main; it does not create a pull request.
 6. Check your actual files on GitHub's **main** branch. Submit your own repository
    link separately in Pika, giving your teacher access if it is private.
 
 Run App does not require GitHub sign-in. Ask your teacher for help with setup,
-conflicts or failed uploads. See the [repository and upload guide](https://github.com/codepetca/zero/blob/main/docs/GETTING-STARTED.md#your-individual-workflow).
+conflicts or failed pushes. See the [repository and push guide](https://github.com/codepetca/zero/blob/main/docs/GETTING-STARTED.md#your-individual-workflow).
 `;
 }
 
@@ -112,25 +119,27 @@ function repositoryWorkflow() {
 1. Create your own empty GitHub repository in your personal account. Follow your
    teacher's visibility instructions; leave README, license and gitignore
    uninitialized. This downloaded ZIP becomes the files in your repository.
-2. Sign in through Zero's GitHub profile control. Use **Connect a repo → Connect
-   an existing repository…** with your own repository's HTTPS URL. Connection
-   alone does not upload files.
-3. Configure Git's per-repository name/email identity. Real uploads require
-   native GitHub sign-in and **\`zero.uploadMode\`: \`live\`** in workspace settings;
-   the default simulation makes no Git changes and uploads nothing.
-4. Use **Upload changes** on **main** for the initial project. Write a commit
-   message, check the repository, branch and files, then confirm Commit & Upload.
-5. For an improvement, choose **New branch** beside main (**Start a change** in older kits) and review the new branch.
+2. Sign in through the account control in Zero’s sidebar. Use **Project → Connect to GitHub…** with your own repository's HTTPS URL. Connection
+   alone does not push files.
+3. Configure Git's per-repository name/email identity. Real pushes require
+   native GitHub sign-in. GitHub actions are live by default; nothing pushes
+   automatically. Check the account, repository and branch before submitting a name
+   or commit message.
+4. Use **Commit & push** on **main** for the initial project. Write a commit
+   message after checking the repository, branch and files; submitting it proceeds
+   with the commit and push.
+5. For an improvement, choose **New branch** in the repository menu and enter its name.
    Edit the Java, choose **Run App**, and check the behavior you changed.
-6. **Upload changes** with an explanatory commit message, such as "Add feedback
+6. **Commit & push** creates a commit when needed and pushes the current branch.
+   Use an explanatory commit message, such as "Add feedback
    after an incorrect answer". Review the destination and changed files.
-7. Click your branch → **Finish change** and review the completed change into
-   main. If Zero brings in newer main code, Run App again and review Finish again.
+7. Click **Merge to main** beside your branch to merge and push main.
+   If Zero brings in newer main code, Run App again, then click Merge to main again.
 8. Check your actual files on GitHub's **main** branch. Submit your own repository
    link separately in Pika, giving your teacher access if it is private.
 
 Run App does not require GitHub sign-in. Ask your teacher for help with setup,
-conflicts or failed uploads. See the [repository and upload guide](https://github.com/codepetca/zero/blob/main/docs/GETTING-STARTED.md#your-individual-workflow).
+conflicts or failed pushes. See the [repository and push guide](https://github.com/codepetca/zero/blob/main/docs/GETTING-STARTED.md#your-individual-workflow).
 `;
 }
 
@@ -159,7 +168,7 @@ ${project.description}
 This is a complete editable Zero project.
 
 ${template && !starter ? `![${title} app preview](preview.png)\n\n` : ""}${template ? templateSetup(template) : `1. Extract the downloaded ZIP into its own folder.
-2. Open that folder in Zero (the configured VS Code editor).
+2. Sign in to Zero and choose **Project → Open local project…** to open that Zero folder in a new window.
 3. Choose Run App in the Zero sidebar.`}
 
 A supported JDK 17 or later is required. Read and edit the Java files in
@@ -193,7 +202,7 @@ async function scaffoldInventory(root) {
     inventory.push({ path: file, data: await sourceBytes(root, `student-template/${file}`) });
   }
   inventory.push({ path: "LICENSE", data: await sourceBytes(root, "LICENSE") });
-  for (const name of ["App", "GameApp"]) {
+  for (const name of ["App", "GameApp", "ImageRegion", "SpriteAnimation", "Collisions", "Sound", "Music"]) {
     inventory.push({ path: `src/main/java/zero/${name}.java`, data: await sourceBytes(root, `framework/src/main/java/zero/${name}.java`) });
   }
   return inventory;

@@ -117,3 +117,25 @@ test('Windows terminal variable names are case insensitive; irrelevant settings 
   const report = await inspectSetup({...defaults,getTaskEnvironment:() => {throw new Error('Configuration unavailable');}});
   assert.equal(report.runReady,false);assert.match(report.taskEnvironment.text,/could not be read/);
 });
+
+
+test('tutorial preflight requires upload-capable Git before offering Run while ordinary local apps stay Git-free',async t=>{
+  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-tutorial-setup-')));
+  t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
+  for(const missing of [false,true]) {
+    const report=await inspectSetup({...defaults,project:async()=>root,execute:async command=>{
+      if(command==='git'){if(missing)throw Object.assign(new Error('Git not installed'),{code:'ENOENT'});return {stdout:'git version 2.30.9'};}
+      return defaults.execute(command);
+    }});
+    assert.equal(report.project.requiresGit,true);assert.equal(report.runReady,false);
+    assert.ok(!checklist(report).some(item=>item.action==='run'));
+    assert.match(checklist(report).find(item=>item.action==='git').description,/Tutorial setup incomplete/);
+    assert.match(checklist(report).find(item=>item.action==='git').label,/warning/);
+  }
+  const ready=await inspectSetup({...defaults,project:async()=>root});
+  assert.equal(ready.runReady,true);assert.ok(checklist(ready).some(item=>item.action==='run'));
+  await fs.writeFile(path.join(root,'zero.json'),'{}');
+  const ordinary=await inspectSetup({...defaults,project:async()=>root,execute:async command=>{if(command==='git')throw new Error('Missing Git');return defaults.execute(command);}});
+  assert.equal(ordinary.project.requiresGit,false);assert.equal(ordinary.runReady,true);
+});

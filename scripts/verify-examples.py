@@ -323,6 +323,36 @@ jar_check = '''var origin = Hud.class.getProtectionDomain().getCodeSource().getL
                 && ScoreDisplay.class.getProtectionDomain().getCodeSource().getLocation().equals(origin), "All three components come from one artifact");'''
 checks['packaged-study'] = checks['composed-study'] + jar_check
 checks['packaged-game'] = checks['composed-game'] + jar_check
+checks['audio-playground'] = '''require(app.chime == app.loadSound("/audio-playground/chime.wav"), "Short clips use the app cache");
+        require(app.theme != app.loadMusic("/audio-playground/theme.wav"), "Music players have independent state");
+        require(app.chime.getVolume() == .5 && app.theme.getVolume() == .25, "Example volumes are configured once");
+        button(stage.getScene().getRoot(), "Mute").fire();
+        require(app.chime.isMuted() && app.theme.isMuted(), "Mute reaches both resources");
+        button(stage.getScene().getRoot(), "Unmute").fire();
+        require(!app.chime.isMuted() && !app.theme.isMuted(), "Unmute restores both resources");
+        button(stage.getScene().getRoot(), "Loop music").fire();
+        button(stage.getScene().getRoot(), "Pause music").fire();
+        button(stage.getScene().getRoot(), "Resume music").fire();
+        button(stage.getScene().getRoot(), "Stop music").fire();
+        stage.hide();
+        try { app.chime.play(); throw new AssertionError("Hidden app sound must be closed"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().contains("closed"), "Window closure cleans up sounds"); }
+        try { app.theme.play(); throw new AssertionError("Hidden app music must be closed"); }
+        catch (IllegalStateException expected) { require(expected.getMessage().contains("closed"), "Window closure cleans up music"); }'''
+
+checks['sprite-playground'] = '''require(app.bird.image() == app.companion.image(), "Animations share the loaded sheet");
+        require(app.loadImage("/bird-flap-sheet.png") == app.bird.image(), "Example uses the app image cache");
+        app.bird.reset(); app.companion.reset(); app.paused = false;
+        app.update(0.09);
+        require(app.bird.frameIndex() == 1 && app.companion.frameIndex() == 0, "Independent clocks run at different rates");
+        app.paused = true;
+        app.update(0.2);
+        require(app.bird.frameIndex() == 1 && app.companion.frameIndex() == 0, "Example pause freezes both clocks");
+        app.x = 335; app.y = 220; app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(305, 160).equals(Color.web("#f1bd52")), "Overlap changes target color");
+        app.x = 140; app.draw();
+        require(app.canvas().snapshot(null, null).getPixelReader().getColor(305, 160).equals(Color.web("#769b89")), "Separated bird restores target color");'''
+
 standalone = {
     'media-demo': ('MediaDemoCheck', 'MEDIA_DEMO_OK'),
     'scrolling-game': ('ScrollingGameCheck', 'SCROLLING_GAME_OK'),
@@ -390,21 +420,34 @@ public class ExampleCheck extends Application {
     public void start(Stage stage) {
         Thread watchdog = new Thread(() -> {
             try { Thread.sleep(15_000); } catch (InterruptedException ignored) { return; }
-            System.err.println("EXAMPLE_TIMEOUT"); System.exit(1);
+            System.err.println("EXAMPLE_TIMEOUT KIND");
+            for (var entry : Thread.getAllStackTraces().entrySet()) {
+                if (entry.getKey().getName().equals("JavaFX Application Thread")) {
+                    System.err.println("FX thread state: " + entry.getKey().getState());
+                    for (var frame : entry.getValue()) System.err.println("    at " + frame);
+                }
+            }
+            System.exit(1);
         });
         watchdog.setDaemon(true); watchdog.start();
+        System.err.println("EXAMPLE_STAGE KIND starting");
         Main app = new Main();
         app.start(stage);
+        System.err.println("EXAMPLE_STAGE KIND started");
         PauseTransition wait = new PauseTransition(Duration.millis(200));
         wait.setOnFinished(event -> {
             try {
+                System.err.println("EXAMPLE_STAGE KIND checking");
                 CHECK
+                System.err.println("EXAMPLE_STAGE KIND checked");
                 System.out.println("EXAMPLE_OK KIND");
             } catch (Throwable failure) {
                 failure.printStackTrace();
                 System.exit(1);
             } finally {
+                System.err.println("EXAMPLE_STAGE KIND cleanup");
                 app.stop();
+                System.err.println("EXAMPLE_STAGE KIND stopped");
                 stage.close();
                 Platform.exit();
             }
@@ -424,7 +467,7 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
         if kind != 'hello-world':
             for previous in (dest/'src/main/java').glob('*.java'):
                 previous.unlink()
-        resources = source/'examples'/kind/'resources'
+        resources = source/'examples'/kind/('src/main/resources' if kind == 'sprite-playground' else 'resources')
         if resources.is_dir():
             shutil.copytree(resources, dest/'src/main/resources', dirs_exist_ok=True)
         for java in (source/'examples'/kind).glob('*.java'):

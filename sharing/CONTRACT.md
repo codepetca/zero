@@ -53,7 +53,7 @@ API/owner/namespace/coordinates/commands/URLs. Packaging checks media/license se
 Frozen request:
 {schema:1,kind,slug,version,repository:{id,ownerId,owner,name,url},
  requester:{githubId,login},commit:<40hex>,folder:'.'|safe relative path,
- descriptor:<descriptor>,policyRevision:<40hex>}.
+ descriptor:<descriptor>,policyRevision:<40hex>,web?}.
 Descriptor kind/slug/version match; library folder exactly libraries/<slug>,
 game folder '.' initially. Ingestion computes sourceDigest after fetching files.
 
@@ -62,13 +62,49 @@ Release:
  contributor:{githubId,login},source:{commit:<40hex>,folder,sha256:<64hex>},
  policyRevision:<40hex>,status:'available'|'withdrawn',
  artifacts:{jar?,sources?,pom?,zip?,preview?},namespace?,coordinate?,libraryKind?,
- components?,controls?}.
+ components?,controls?,web?}.
+Optional web (request and release only):
+{provider:'github-pages',url:<canonical public HTTPS page>,commit:<40hex>,
+ runId:<positive safe integer>}.
+Only root games may carry web; commit equals request.commit/release.source.commit.
+The enclosing numeric repository ID and verified owner bind the receipt. Authored
+descriptors remain unchanged; URLs/run receipts are not written into zero-game.json.
+Ingestion never trusts pasted receipts or editor workspace state: the trusted reader
+independently resolves public numeric repository ownership, actual public workflow
+Pages URL (including its verified custom domain), exact successful workflow-dispatch
+run on main at .github/workflows/zero-web.yml, source SHA/repository/owner IDs, and
+bounded unauthenticated public zero-source-sha.txt containing SHA and run ID.
+HTTPS readiness pins checked public DNS addresses, rejects redirects and limits the
+marker to 100 bytes. No credentials reach a student-hosted page. Network failures
+remain infrastructure retries; a mismatched hosted version requires republishing.
+Trusted evidence, immutable request fingerprint/deduplication and release acceptance
+all include web. Old records without web remain valid.
+
+Web provenance describes the hosted version observed at acceptance. Its Pages URL
+is mutable: later Publish app updates keep the same Play latest link without another
+Hub request. Play latest opens an external student-hosted live app; it does not claim
+to run the immutable catalog source snapshot. Source links/ZIPs remain exact source
+snapshots. Withdrawn/source-only releases offer no Play action. No iframe, proxy,
+compiled-game artifact, new hosting service or mutable registry pointer is added.
+
 Artifact {path,url,size:<positive integer>,sha256:<64hex>}.
 Library requires jar/sources/pom, namespace/coordinate including version.
 Game requires zip/controls. Optional generated components array entries
 {className:<qualified Java name>,description,usage,api:string[]} belong to namespace.
 URL exact configured origin+'/'+artifactPath, HTTPS or explicit loopback-test origin;
 no query/fragment/credentials/redirects. Unknown schema fields rejected.
+
+## Catalog rollout
+
+Schema-1 enrichment is not compatible with old strict validators. The original
+GET /api/sharing/catalog validates the canonical snapshot and projects out web,
+preserving the original release allowlist. GET /api/sharing/catalog/web returns
+the enriched validated catalog for the website and new kits. Registry snapshots
+remain canonical/immutable; both APIs use the same bounded verified reader and
+canonical contracts. Public request-status summaries expose no web receipt or
+operational state and still validate request/release web bindings. Existing kits
+keep their original configuration/bytes. Activation and a new kit's catalog URL
+are deliberate release decisions, not local-test effects.
 
 ## Ownership
 

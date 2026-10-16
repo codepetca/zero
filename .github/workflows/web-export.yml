@@ -1,0 +1,29 @@
+name: Browser export compatibility
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compatible:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Check reviewed helper profiles and export/publish safety
+        run: npm run test:web
+      - name: Install browser for behavioral checks
+        run: npx playwright-cli install-browser chrome --with-deps
+      - name: Real WebFX compiles and browser behavior
+        run: npm run verify:web

@@ -22,3 +22,38 @@ test('fresh issue-state authority ignores edited form bodies and binds the obser
   assert.deepEqual(await reader.publicationIssueState(1),{issueId:'1',issueState:'closed',authenticatedActor:{githubId:'7',login:'renamed'}});
   await assert.rejects(reader.publicationIssue(1),/JSON request/);
 });
+
+function webRequest(){return {...request,kind:'game',slug:'space-game',folder:'.',descriptor:{schema:1,kind:'game',slug:'space-game',version:'0.1.0',title:'Space',description:'Move a ship',license:'MIT',controls:'Arrow keys'},web:{provider:'github-pages',url:'https://student.github.io/game/',commit:request.commit,runId:42}};}
+function webReader({changedRepo,changedRun,changedPages,marker,publicResponse,publicError,apiError}={}) {
+  const checked=webRequest(),calls=[];
+  const run={id:42,head_sha:checked.commit,path:'.github/workflows/zero-web.yml',event:'workflow_dispatch',head_branch:'main',status:'completed',conclusion:'success',repository:{id:repo.id,owner:{id:repo.owner.id}}};
+  const pages={build_type:'workflow',public:true,html_url:checked.web.url};
+  const reader=createGitHubReader({token:'PRIVATE_TEST_TOKEN',fetcher:async(url,options)=>{
+    calls.push({url,options});assert.ok(url.startsWith('https://api.github.com/'));assert.equal(options.headers.authorization,'Bearer PRIVATE_TEST_TOKEN');assert.equal(options.redirect,'error');
+    if(apiError)throw Error('Bearer PRIVATE_TEST_TOKEN');
+    if(url.endsWith('/repositories/12345'))return response({...repo,...changedRepo});
+    if(url.endsWith('/actions/runs/42'))return response({...run,...changedRun});
+    if(url.endsWith('/pages'))return response({...pages,...changedPages});
+    assert.fail('Unexpected API '+url);
+  },publicFetcher:async(url,options)=>{
+    calls.push({url,options});assert.equal(options.headers,undefined);assert.equal(options.redirect,'error');assert.equal(options.cache,'no-store');
+    if(publicError)throw Error('private response body never shown');
+    return publicResponse||new Response(marker??checked.commit+'\n42\n');
+  }});
+  return {checked,calls,reader};
+}
+test('web receipt is independently bound to numeric ownership, exact successful run and public Pages marker without credentials',async()=>{
+  const f=webReader();assert.deepEqual(await f.reader.verifyWebPublication(f.checked),f.checked.web);
+  assert.equal(f.calls.filter(c=>c.url.startsWith('https://student.github.io/')).length,1);
+  const custom=webReader({changedPages:{html_url:'https://play.example.org/',cname:'play.example.org'}});custom.checked.web.url='https://play.example.org/';
+  assert.equal((await custom.reader.verifyWebPublication(custom.checked)).url,'https://play.example.org/');
+});
+test('forged or stale web provenance fails before acceptance and arbitrary Pages destinations never receive tokens',async()=>{
+  const cases=[{changedRepo:{id:88}},{changedRepo:{private:true}},{changedRepo:{owner:{...repo.owner,id:8}}},{changedRun:{id:43}},{changedRun:{head_sha:'c'.repeat(40)}},{changedRun:{path:'.github/workflows/other.yml'}},{changedRun:{event:'push'}},{changedRun:{head_branch:'feature'}},{changedRun:{status:'in_progress'}},{changedRun:{conclusion:'failure'}},{changedRun:{repository:{id:88,owner:{id:7}}}},{changedRun:{repository:{id:repo.id,owner:{id:8}}}},{changedPages:{html_url:'https://attacker.github.io/game/'}},{changedPages:{html_url:'https://evil.example/',cname:'other.example'}},{changedPages:{public:false}},{changedPages:{build_type:'legacy'}},{marker:'b'.repeat(40)+'\n42\n'},{marker:request.commit+'\n41\n'},{marker:'x'.repeat(101)},{publicResponse:new Response('missing',{status:404})}];
+  for(const options of cases){const f=webReader(options);await assert.rejects(f.reader.verifyWebPublication(f.checked),error=>!error.message.includes('PRIVATE_TEST_TOKEN'));assert.ok(f.calls.filter(c=>!c.url.startsWith('https://api.github.com/')).every(c=>c.options.headers===undefined));}
+  for(const url of ['https://127.0.0.1/','https://game.local/']){const f=webReader({changedPages:{html_url:url,cname:new URL(url).hostname}});f.checked.web.url=url;await assert.rejects(f.reader.verifyWebPublication(f.checked));assert.equal(f.calls.length,0);}
+});
+test('web transport errors remain infrastructure retries and public response redirects are not trusted',async()=>{
+  for(const options of [{apiError:true},{publicError:true}]){const f=webReader(options);await assert.rejects(f.reader.verifyWebPublication(f.checked),error=>!error.kind&&!error.message.includes('PRIVATE_TEST_TOKEN'));}
+  const redirected=new Response(request.commit+'\n42\n');Object.defineProperty(redirected,'redirected',{value:true});const f=webReader({publicResponse:redirected});await assert.rejects(f.reader.verifyWebPublication(f.checked),error=>error.kind==='source-failure');
+});

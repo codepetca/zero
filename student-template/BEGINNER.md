@@ -17,7 +17,8 @@ See [UI and app/game flow](UI.md) for the shared pattern.
 ## Apps: controls that respond to events
 
 Choose `App` for a quiz, calculator, study tool or small form. Start with
-the complete [Hello app](examples/hello-app/README.md), including its stylesheet.
+the complete [Hello app](examples/hello-app/README.md). Its ordinary JavaFX
+controls use the platform theme; no external stylesheet is required.
 
 ```text
 launch → settings() → setup() → show the window

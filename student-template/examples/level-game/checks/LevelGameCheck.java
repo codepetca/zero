@@ -69,7 +69,7 @@ public class LevelGameCheck extends Application {
         require(sound.getVolume() == 0.25, "Moderate effect volume");
         require(sound.getSource().endsWith("/media-demo/chime.wav"), "Canonical WAV loaded");
         sound.setVolume(0); // This check does not claim audible output.
-        var loader = Main.class.getDeclaredMethod("loadSound", String.class);
+        var loader = Main.class.getDeclaredMethod("loadEffect", String.class);
         loader.setAccessible(true);
         try {
             loader.invoke(app, "/media-demo/missing.wav");

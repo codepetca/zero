@@ -1,0 +1,373 @@
+// Loaded by the pinned Playwright CLI as an async function, not a test-runner spec.
+async (page) => {
+  const urls = __URLS__;
+  const results = [];
+  // JavaFX label peers also have aria-hidden text measurement nodes.
+  const visibleText = (text) =>
+    page.getByText(text, { exact: true }).filter({ visible: true });
+  const check = (condition, name, data) => {
+    results.push({ name, pass: !!condition, data });
+    if (!condition) throw new Error(JSON.stringify(results));
+  };
+  await page.addInitScript(() => {
+    window.__zeroAudio = [];
+    const create = document.createElement.bind(document);
+    document.createElement = function(name, ...args) {
+      const element = create(name, ...args);
+      if (name.toLowerCase() === 'audio') window.__zeroAudio.push(element);
+      return element;
+    };
+    window.__zeroCheck = { texts: [], images: [], last: null, errors: [], draws: 0 };
+    addEventListener('error', (event) =>
+      window.__zeroCheck.errors.push(event.message)
+    );
+    const p = CanvasRenderingContext2D.prototype,
+      clear = p.clearRect,
+      text = p.fillText,
+      image = p.drawImage;
+    p.clearRect = function (...args) {
+      const c = window.__zeroCheck;
+      if (c.texts.length) c.last = { texts: c.texts, images: c.images };
+      c.texts = [];
+      c.images = [];
+      return clear.apply(this, args);
+    };
+    p.fillText = function (...args) {
+      window.__zeroCheck.draws++;
+      window.__zeroCheck.texts.push(String(args[0]));
+      return text.apply(this, args);
+    };
+    p.drawImage = function (...args) {
+      window.__zeroCheck.images.push(args.slice(1));
+      return image.apply(this, args);
+    };
+  });
+  await page.goto(urls.helpers);
+  await page.waitForFunction(() =>
+    window.__zeroCheck?.last?.texts.includes('Web helpers ready')
+  );
+  const state = () => page.evaluate(() => window.__zeroCheck.last);
+  let s = await state();
+  check(
+    s.images.length === 12,
+    'Drawing and sprite overloads render',
+    s.images.length
+  );
+  check(
+    (await page.locator('canvas').getAttribute('aria-label')) ===
+      'Zero web helper check',
+    'Canvas accessible text preserved'
+  );
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(70);
+  s = await state();
+  check(s.texts.includes('Presses: 1'), 'New Space press');
+  await page.keyboard.down('Space');
+  await page.waitForTimeout(80);
+  await page.keyboard.down('Space');
+  await page.waitForTimeout(70);
+  await page.keyboard.up('Space');
+  s = await state();
+  check(
+    s.texts.includes('Presses: 2'),
+    'Held Space does not create repeated presses'
+  );
+  await page.keyboard.down('ArrowRight');
+  await page.waitForTimeout(170);
+  await page.keyboard.up('ArrowRight');
+  s = await state();
+  check(
+    Number(s.texts.find((t) => t.startsWith('Position:')).split(':')[1]) > 150,
+    'Held movement updates ordinary Java state'
+  );
+  const canvas = await page.locator('canvas').boundingBox();
+  await page.mouse.click(canvas.x + 100, canvas.y + 150);
+  await page.waitForTimeout(70);
+  s = await state();
+  check(s.texts.includes('Clicks: 1'), 'Mouse press reaches the canvas');
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await page.waitForTimeout(70);
+  s = await state();
+  check(
+    s.texts.includes('Paused'),
+    'Synthetic blur pauses through browser focus adapter'
+  );
+  check(
+    (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
+    'No JavaScript errors in helpers'
+  );
+  // A completed image at 10s must extend the 30s wait for a second at 35s.
+  // This exercises real loader timers without slowing every network resource.
+  const delayed = async route => {
+    await new Promise(resolve => setTimeout(resolve, route.request().url().endsWith('/tiles.png') ? 10000 : 35000));
+    await route.continue();
+  };
+  await page.route('**/tiles.png', delayed);
+  await page.route('**/late-image.png', delayed);
+  try {
+    await page.goto(urls.helpers, {waitUntil:'domcontentloaded'});
+    await page.waitForFunction(() => window.__zeroCheck?.last?.texts.includes('Web helpers ready'), null, {timeout:45000});
+    check((await state()).images.length === 12, 'Image progress extends startup beyond the original 30-second deadline');
+  } finally {
+    await page.unroute('**/tiles.png', delayed);
+    await page.unroute('**/late-image.png', delayed);
+  }
+  await page.addInitScript(() => {
+    const mode = new URL(location.href).searchParams.get('zero-loading-check');
+    if (!mode) return;
+    const schedule = window.setTimeout.bind(window);
+    window.setTimeout = (callback, delay, ...args) => schedule(callback,
+      delay === 30000 ? (mode === 'stall' ? 100 : 1000) : delay === 120000 ? (mode === 'total' ? 100 : 1000) : delay, ...args);
+  });
+  const held = async route => { await new Promise(resolve => setTimeout(resolve, 500)); await route.continue(); };
+  await page.route('**/tiles.png', held);
+  await page.route('**/late-image.png', held);
+  try {
+    for (const mode of ['stall', 'total']) {
+      await page.goto(urls.helpers + '?zero-loading-check=' + mode, {waitUntil:'domcontentloaded'});
+      const expected = mode === 'stall' ? 'Image loading stalled for 30 seconds' : 'Image loading exceeded two minutes';
+      await visibleText(new RegExp('^' + expected)).waitFor({timeout:5000});
+      await page.waitForTimeout(650);
+      check(!(await state())?.texts.includes('Web helpers ready'),
+        mode === 'stall' ? 'Accelerated stall deadline prevents late app startup' : 'Accelerated total deadline bounds image waits');
+    }
+  } finally {
+    await page.unroute('**/tiles.png', held);
+    await page.unroute('**/late-image.png', held);
+  }
+  await page.goto(urls.quiz);
+  await page.waitForSelector('input[type="text"]');
+  await page.locator('input[type="text"]').fill('41');
+  await page.getByRole('button', { name: 'Check answer', exact: true }).click();
+  // WebFX flushes JavaFX property changes to DOM peers on the next frame.
+  await visibleText('Try again.').waitFor({ state: 'visible' });
+  check((await visibleText('Try again.').count()) === 1, 'Quiz retry feedback');
+  check(
+    await visibleText('Score: 0').isVisible(),
+    'Quiz retry leaves score unchanged'
+  );
+  await page.locator('input[type="text"]').fill('42');
+  await page.getByRole('button', { name: 'Check answer', exact: true }).click();
+  await visibleText('Correct!').waitFor({ state: 'visible' });
+  await visibleText('Score: 10').waitFor({ state: 'visible' });
+  await page
+    .getByRole('button', { name: 'Check answer', exact: true, disabled: true })
+    .waitFor({ state: 'visible' });
+  check((await visibleText('Correct!').count()) === 1, 'Quiz success feedback');
+  check(
+    await page
+      .getByRole('button', { name: 'Check answer', exact: true })
+      .isDisabled(),
+    'Quiz awards a question only once'
+  );
+  check(
+    await visibleText('Score: 10').isVisible(),
+    'Java button handler updates shared score component'
+  );
+  check(
+    (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
+    'No JavaScript errors in quiz'
+  );
+  await page.goto(urls.drawing);
+  await page.waitForSelector('canvas');
+  const pixel = (x, y) =>
+    page.locator('canvas').evaluate(
+      (canvas, { x, y }) => {
+        const bounds = canvas.getBoundingClientRect();
+        return Array.from(
+          canvas
+            .getContext('2d')
+            .getImageData(
+              Math.floor((x * canvas.width) / bounds.width),
+              Math.floor((y * canvas.height) / bounds.height),
+              1,
+              1
+            ).data
+        );
+      },
+      { x, y }
+    );
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('canvas');
+    const c = canvas?.getContext('2d').getImageData(100, 100, 1, 1).data;
+    return c && c[0] === 255 && c[1] === 255 && c[2] === 255 && c[3] === 255;
+  });
+  const paintCanvas = await page.locator('canvas').boundingBox();
+  await page.mouse.move(paintCanvas.x + 100, paintCanvas.y + 100);
+  await page.mouse.down();
+  await page.mouse.move(paintCanvas.x + 160, paintCanvas.y + 100, { steps: 6 });
+  await page.mouse.up();
+  let painted = await pixel(130, 100);
+  check(
+    painted[0] === 0 &&
+      painted[1] === 0 &&
+      painted[2] === 139 &&
+      painted[3] === 255,
+    'Drawing drag leaves an ordinary Java paint stroke',
+    painted
+  );
+  await page.mouse.click(paintCanvas.x + 130, paintCanvas.y + 100, {
+    button: 'right'
+  });
+  painted = await pixel(130, 100);
+  check(
+    painted.every((value) => value === 255),
+    'Drawing secondary click clears the canvas',
+    painted
+  );
+  check(
+    (await page.evaluate(
+      () => window.__zeroCheck.last?.images?.length || 0
+    )) === 0,
+    'Ordinary drawing example starts without image dependencies'
+  );
+  check(
+    (await page.evaluate(() => window.__zeroCheck.errors)).length === 0,
+    'No JavaScript errors in drawing'
+  );
+  await page.goto(urls.audio);
+  await page.getByText(/^Audio checks ready:/).filter({ visible: true }).waitFor();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(text => text.startsWith('Audio API ready:')));
+  check((await state()).texts.some(text => text.startsWith('Audio API ready:')), 'Seven-helper audio setup validates aliases, cache, ownership and volume errors');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true'));
+  check((await state()).texts.includes('Independent playing: false'), 'Pre-ready pause and stop leave independent music stopped');
+  const musicState = () => page.evaluate(() => {
+    const audio = window.__zeroAudio.find(element => element.getAttribute('src') && element.volume === .19);
+    return {playing: !audio.paused, time: audio.currentTime, muted: audio.muted, loop: audio.loop, volume: audio.volume};
+  });
+  let audioState = await musicState();
+  check(audioState.playing && audioState.loop && audioState.muted && audioState.volume === .19, 'Music ready callback applies pre-ready intent and retained loop/volume');
+  await page.getByRole('button', {name: 'Loop', exact: true}).click();
+  await page.getByRole('button', {name: 'Play twice', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroAudio.filter(a => a.getAttribute('src') && a.volume === .23 && !a.paused).length === 2);
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: true'));
+  check((await state()).texts.includes('Effect playing: true'), 'Overlapping effect voices report actual playing status');
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: false'));
+  audioState = await musicState();
+  check(audioState.muted && audioState.volume === .19, 'Mute stops active effects and retains music volume');
+  await page.getByRole('button', {name: 'Play twice', exact: true}).click();
+  check((await page.evaluate(() => window.__zeroAudio.filter(a => a.getAttribute('src') && a.volume === .23 && !a.paused).length)) === 0, 'Muted effects do not create playing voices');
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.evaluate(() => {
+    window.__denyEffects = true;
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function() {
+      return window.__denyEffects && this.volume === .23 ? Promise.reject(new DOMException('Gesture required', 'NotAllowedError')) : play.call(this);
+    };
+  });
+  const beforeSpam = await page.evaluate(() => window.__zeroAudio.length);
+  await page.getByRole('button', {name: 'Spam effects', exact: true}).click();
+  await page.waitForFunction(() => document.body.innerText.includes('Click or press a key to enable sound.'));
+  const afterSpam = await page.evaluate(() => ({created: window.__zeroAudio.length, pending: window.__zeroAudio.filter(a => a.getAttribute('src') && a.volume === .23).length}));
+  check(afterSpam.created - beforeSpam <= 32 && afterSpam.pending === 1, 'Injected autoplay denial bounds 100 same-frame plays and coalesces pending voices', afterSpam);
+  await page.getByRole('button', {name: 'Spam effects', exact: true}).click();
+  check(await page.evaluate(count => window.__zeroAudio.length === count, afterSpam.created), 'Further blocked frames do not allocate additional voices');
+  await page.evaluate(() => window.__denyEffects = false);
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.getByRole('button', {name: 'Mute', exact: true}).click();
+  await page.getByRole('button', {name: 'Pause', exact: true}).click();
+  const heldAt = (await musicState()).time;
+  await page.waitForTimeout(120);
+  check(!(await musicState()).playing && Math.abs((await musicState()).time - heldAt) < .03, 'Music pause holds playback position');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForTimeout(120);
+  check((await musicState()).playing && Math.abs((await musicState()).time - heldAt) > .04, 'Music resumes from paused position');
+  await page.getByRole('button', {name: 'Rewind', exact: true}).click();
+  await page.waitForFunction(() => { const a = window.__zeroAudio.find(a => a.getAttribute('src') && a.volume === .19); return a.paused && a.currentTime < .03; });
+  check(!(await musicState()).playing && (await musicState()).time < .03, 'Music stop rewinds without discarding loop mode');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForTimeout(1150);
+  check((await musicState()).playing && (await musicState()).loop, 'Music repeats through an actual audio end boundary');
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: false'));
+  check(true, 'Natural end callback stops non-looping music status');
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  check(await page.evaluate(() => window.__zeroAudio.some(a => a.getAttribute('src') && a.volume === 1 && !a.paused && a.currentTime < .5)), 'Play after end rewinds and restarts');
+  await page.getByRole('button', {name: 'Check error', exact: true}).click();
+  await page.getByText('Named late failure: true', {exact: true}).filter({visible:true}).waitFor();
+  check(true, 'Actual malformed audio callback preserves named Music failure');
+  await page.evaluate(() => {
+    const activeOnce = window.__zeroAudio.find(a => a.getAttribute('src') && a.volume === 1 && !a.paused);
+    activeOnce.dispatchEvent(new Event('error'));
+  });
+  await page.getByRole('button', {name: 'Check late', exact: true}).click();
+  await page.getByText('Named playing failure: true', {exact:true}).filter({visible:true}).waitFor();
+  check((await musicState()).playing, 'Injected failure of playing music disposes only its player');
+  await page.getByRole('button', {name: 'Stop app', exact: true}).click();
+  await page.getByText('App cleanup: true', {exact:true}).filter({visible:true}).waitFor();
+  check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'App stop closes all effect voices and independent music');
+  await page.reload();
+  await page.getByText(/^Audio checks ready:/).filter({visible:true}).waitFor();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.some(text => text.startsWith('Audio API ready:')));
+  await page.getByRole('button', {name: 'Loop', exact: true}).click();
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true') && window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  await page.getByRole('button', {name: 'Pause', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: false'));
+  check((await state()).texts.includes('Once playing: true'), 'Independent music keeps playing when another player pauses');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true'));
+  const beforePersisted = await page.evaluate(() => {
+    const sources = window.__zeroAudio.filter(a => a.getAttribute('src'));
+    window.__retainedAudio = sources.map(a => ({audio: a, source: a.getAttribute('src')}));
+    window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: true}));
+    return {draws: window.__zeroCheck.draws, time: sources.find(a => a.volume === .19).currentTime};
+  });
+  check(await page.evaluate(() => window.__retainedAudio.every(({audio, source}) => audio.paused && audio.getAttribute('src') === source)), 'Persisted pagehide pauses audio and retains every player source');
+  await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true})));
+  await page.waitForFunction(before => window.__zeroCheck.draws > before + 5, beforePersisted.draws);
+  const restoredDraws = await page.evaluate(() => window.__zeroCheck.draws);
+  check(restoredDraws > beforePersisted.draws, 'Ordinary GameApp drawing continues after persisted pagehide and pageshow', {before: beforePersisted.draws, after: restoredDraws});
+  await page.waitForTimeout(100);
+  check(!(await musicState()).playing && Math.abs((await musicState()).time - beforePersisted.time) < .03, 'Restored music stays paused at its retained position');
+  await page.getByRole('button', {name: 'Resume', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Music playing: true'));
+  check((await state()).texts.includes('Once playing: false'), 'Restored music resumes independently without restarting another player');
+  await page.getByRole('button', {name: 'Once', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Once playing: true'));
+  check((await musicState()).playing, 'Second retained Music remains usable after restore');
+  await page.getByRole('button', {name: 'Play twice', exact: true}).click();
+  await page.waitForFunction(() => window.__zeroCheck.last?.texts.includes('Effect playing: true'));
+  check(true, 'Retained Sound can play after restore');
+  const finalDraws = await page.evaluate(() => {
+    window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: false}));
+    return window.__zeroCheck.draws;
+  });
+  check(await page.evaluate(() => window.__zeroAudio.every(a => a.paused && !a.getAttribute('src'))), 'Non-persisted pagehide still invokes app-owned cleanup after restore');
+  await page.waitForTimeout(100);
+  check(await page.evaluate(before => window.__zeroCheck.draws === before, finalDraws), 'Non-persisted pagehide stops the GameApp timer');
+  check((await page.evaluate(() => window.__zeroCheck.errors)).length === 0, 'No JavaScript errors in audio fixture');
+  await page.goto(urls.hello);
+  await page.locator('input[type="text"]').fill('Ada');
+  await page.getByRole('button',{name:'Say hello',exact:true}).click();
+  await visibleText('Hello, Ada!').waitFor();
+  check(true,'Ordinary greeting controls render and handle text/button input');
+  await page.locator('input[type="text"]').fill('Grace');
+  await page.locator('input[type="text"]').press('Enter');
+  await visibleText('Hello, Grace!').waitFor();
+  check(true,'Ordinary TextField action handles Enter');
+  await page.getByRole('button',{name:'Start again',exact:true}).click();
+  await visibleText('Your greeting will appear here.').waitFor();
+  check(await page.locator('input[type="text"]').inputValue()==='','Greeting reset preserves ordinary object updates');
+  const resourceLabel = page.getByText(/^Resource: /).filter({visible:true});
+  await resourceLabel.waitFor();
+  const displayedResource = (await resourceLabel.innerText()).slice('Resource: '.length);
+  const resourceUrl = new URL(displayedResource, page.url());
+  const resourceResponse = await page.request.get(resourceUrl.href);
+  check(resourceUrl.pathname.endsWith('/hello-app/theme.css') && resourceResponse.status() === 200,
+    'Cross-file resource URL with inferred var resolves packaged data (no CSS styling claim)',
+    {url:resourceUrl.href,status:resourceResponse.status()});
+  check((await page.evaluate(()=>window.__zeroCheck.errors)).length===0,'No JavaScript errors in greeting/resource probe');
+  return {
+    status: 'passed',
+    results,
+    browser: await page.evaluate(() => navigator.userAgent),
+    scope:
+      'Nested preview paths; physical tab switching and other browser engines need separate verification.'
+  };
+};

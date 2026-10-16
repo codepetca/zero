@@ -17,39 +17,39 @@ const waitFor = async (condition, message) => {
   }
 };
 
-test('individual change actions are reviewed, serialized, simulated and recover conflicts through native Git', async t => {
+test('branch creation and merges are direct, serialized and recover conflicts through native Git', async t => {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-workflow-ui-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.writeFile(path.join(root,'zero.json'),'{}');
   const original = {git:core.git,resolve:core.resolveProject,assert:core.assertRepositoryRoot,prepare:github.prepareUpload,...workflow};
   t.after(()=>{core.git=original.git;core.resolveProject=original.resolve;core.assertRepositoryRoot=original.assert;github.prepareUpload=original.prepare;for(const key of Object.keys(workflow))workflow[key]=original[key];});
   let projectResolves=0;
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
-  let branch='main',mode='simulation',session={id:'session',account:{id:'student',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider;
-  let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,confirm,reviewGate,pickGate,warningGate,finishError,finishUpdates=false,nativeScm=true;
-  const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],metadata={};
+  let branch='main',mode='simulation',session={id:'session',account:{id:'student',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
+  let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,finishUpdates=false,nativeScm=true;
+  const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={};
   core.assertRepositoryRoot=async()=>root;
   core.git=async(_,args)=>{if(args[0]==='remote')return 'https://github.com/student/app.git';if(args[0]==='symbolic-ref')return branch;throw new Error('Unexpected Git mutation');};
   github.prepareUpload=async()=>({remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,changes:[],summary:'No changes'});
   const plan = () => ({root,remote:'https://github.com/student/app.git',page:'https://github.com/student/app',branch,head:'f'.repeat(40),mainHead:'a'.repeat(40),remoteMainHead:'a'.repeat(40),summary:'Reviewed change',changedPaths:['Main.java']});
-  workflow.prepareStart=async()=>{prepared++;return plan();};workflow.prepareFinish=async()=>{prepared++;return plan();};
+  workflow.prepareStart=async()=>{prepared++;return plan();};workflow.prepareFinish=async()=>{prepared++;const captured=plan();if(prepareGate)await prepareGate;return captured;};
   workflow.startPrepared=async()=>{executed++;branch='add-score';return {branch,head:'f'.repeat(40)};};
-  workflow.finishPrepared=async(_,options)=>{executed++;await options.beforeNetwork();if(finishError)throw finishError;if(finishUpdates)return {updated:true,finished:false,branch,head:'f'.repeat(40)};branch='main';return {branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
-  workflow.deleteFinishedBranch=async(...args)=>{deleted++;deletions.push(args);};
+  workflow.finishPrepared=async(_,options)=>{executed++;await options.beforeNetwork();if(finishError)throw finishError;if(finishUpdates)return {updated:true,finished:false,branch,head:'f'.repeat(40)};branch='main';return {finished:true,branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
+  workflow.deleteFinishedBranch=async(...args)=>{deletions.push(args);if(cleanupError)throw cleanupError;deleted++;};
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
+    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    window:{createOutputChannel:()=>({appendLine(text){logs.push(text);},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return items.find(item=>item.action===choice);},showInputBox:async()=>input,
       showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;},
-      showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal){reviews.push({text,options});if(reviewGate)await reviewGate;return confirm;}},showErrorMessage:async text=>{errors.push(text);}},
+      showInformationMessage:async(text,options)=>{notices.push(text);if(options?.modal){reviews.push({text,options});assert.fail('Branch creation, merge and finished-branch cleanup must not confirm');}},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async id=>{dispatch.push(id);},getCommands:async()=>nativeScm?['workbench.view.scm']:[]},
     env:{clipboard:{writeText:async()=>{}},openExternal:async()=>true},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
-  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true}});
+  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
-  assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Upload changes/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
+  assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Commit &amp; push/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;
     metadata[event]({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes(`Current branch: ${branch}`), 'Native HEAD update should render');
@@ -67,22 +67,27 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   await commands.get('zero.startChange')();await commands.get('zero.finishChange')();await commands.get('zero.uploadToGitHub')();
   assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.match(warnings[0],/nothing changed/);
   assert.doesNotMatch(webview.html,/data-command="zero.startChange"[^>]* disabled/);releaseWarning();warningGate=undefined;
-  mode='live';input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
-  input='add-score';confirm=undefined;await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,0);assert.match(reviews.at(-1).options.detail,/student\/app.*\nGitHub account: student/);
-  confirm='Create branch';await commands.get('zero.startChange')();assert.equal(executed,1);assert.match(webview.html,/add-score<\/span>/);
+  mode=undefined;input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
+  input='add-score';await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,1);assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
-  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge & Upload main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1).text==='Finish this change?', 'Finish review should open');
+  let releasePrepare;prepareGate=new Promise(resolve=>{releasePrepare=resolve;});const preparedBeforeFinish=prepared;const pending=commands.get('zero.finishChange')();await waitFor(()=>prepared>preparedBeforeFinish, 'Finish preparation should start directly');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
   assert.deepEqual({saved,prepared,authCalls},before);assert.match(webview.html,/data-command="zero.finishChange"[^>]* disabled/);
-  session={...session,id:'changed'};authEvent({provider:{id:'github'}});releaseReview();await pending;reviewGate=undefined;
+  session={...session,id:'changed'};authEvent({provider:{id:'github'}});releasePrepare();await pending;prepareGate=undefined;
   assert.equal(executed,1,'Changed account cannot execute the reviewed finish');assert.equal(deleted,0);assert.match(errors.at(-1),/sign-in changed/);
   finishError=Object.assign(new Error('Merge conflicts need your attention'),{conflict:true});await commands.get('zero.finishChange')();assert.equal(dispatch.at(-1),'workbench.view.scm');assert.equal(deleted,0);assert.match(notices.join('\n'),/Stage the resolved files/);assert.match(webview.html,/add-score<\/span>/);
   nativeScm=false;await commands.get('zero.finishChange')();assert.match(notices.at(-1),/Open Source Control/);assert.equal(deleted,0);
-  finishError=undefined;finishUpdates=true;confirm='Merge & Upload main';const beforeUpdates=reviews.length;await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.equal(reviews.length,beforeUpdates+1);assert.match(notices.at(-1),/Run App.*Finish change again/);assert.equal(branch,'add-score');
-  finishUpdates=false;confirm='Merge & Upload main';await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.match(reviews.at(-1).text,/Delete the finished local branch/);assert.match(webview.html,/main<\/span>/);
-  // Answer each modal by its purpose for the successful optional cleanup.
-  branch='add-score';vscode.window.showInformationMessage=async(text,options)=>{if(options?.modal)return text.startsWith('Delete')?'Delete local branch':'Merge & Upload main';};
-  await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.deepEqual(deletions[0],[root,'add-score','f'.repeat(40)]);
+  finishError=undefined;finishUpdates=true;const beforeUpdates=reviews.length;await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.equal(reviews.length,beforeUpdates);assert.match(webview.html,/Branch updated\. Run App, then Merge to main\./);assert.equal(branch,'add-score');
+  finishUpdates=false;await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.equal(reviews.length,0,'Successful merge deletes the local branch without a popup');assert.match(webview.html,/main<\/span>/);assert.deepEqual(deletions[0],[root,'add-score','f'.repeat(40)]);assert.match(webview.html,/>Merged to main<\/p>/);assert.match(logs.at(-1),/Finished local branch deleted/);assert.ok(!notices.some(text=>/Started add-score|Merged change and pushed main|Main updates added/.test(text)),'Successful Git outcomes never toast');
+  // A guarded cleanup refusal must preserve the successful merge outcome.
+  branch='add-score';cleanupError=new Error('The finished branch changed; keep its new work.');const errorsBeforeCleanup=errors.length;
+  await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.equal(deletions.length,2);assert.equal(errors.length,errorsBeforeCleanup);assert.equal(reviews.length,0);assert.match(warnings.at(-1),/Merged to main.*local branch kept; see Output/);assert.match(logs.at(-1),/finished branch changed/);assert.equal(branch,'main');cleanupError=undefined;
+  publishedState={root,account:'student',resume:{repository:'https://github.com/student/app'}};provider.resolveWebviewView(candidate);
+  assert.match(webview.html,/data-command="zero.openPublishedWeb"/);assert.match(webview.html,/data-command="zero.copyPublishedWebLink"/);
+  for(const changed of [{root:'/other'}, {account:'other'}, {resume:{repository:'https://github.com/student/other'}}]) {
+    const saved=publishedState;publishedState={...saved,...changed};provider.resolveWebviewView(candidate);assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"/);publishedState=saved;
+  }
+  mode='simulation';provider.resolveWebviewView(candidate);assert.doesNotMatch(webview.html,/data-command="zero.copyPublishedWebLink"/);mode='live';publishedState=undefined;
   branch='<branch "x">';provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes('&lt;branch &quot;x&quot;&gt;'));assert.match(webview.html,/&lt;branch &quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
   branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.at(-1).options.title.includes('main'), 'Main branch menu should open');
   const beforeMenu=executed;await commands.get('zero.startChange')();assert.equal(executed,beforeMenu);branch='changed-elsewhere';releasePick();await menu;pickGate=undefined;assert.equal(executed,beforeMenu,'A changed branch invalidates the menu selection');

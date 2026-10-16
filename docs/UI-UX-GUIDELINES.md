@@ -24,12 +24,17 @@ marks a preferred pattern with documented, task-specific exceptions.
 - MUST retain ordinary Java/JavaFX controls and explicit student-owned state.
   Main updates and draws objects explicitly; UI polish does not authorize a new
   component engine, automatic object discovery or a hidden state system.
-- MUST keep local Run independent of GitHub sign-in. Students own their
+- MUST keep local Run independent of an active GitHub sign-in. Tutorials require
+  initial setup from a student-owned template repository and clone; after that,
+  Run works offline once compiler dependencies are cached. Original local projects
+  do not acquire a GitHub requirement. Students own their
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,
-  Starting from zero., Download Zero → `/downloads` and Start Learning → `/learn`.
-  Keep the centered stack and shared light/dark themes without promotional sections.
+  Starting from zero. and direct Mac Silicon and Windows ZIP download actions. Keep the
+  centered stack and shared light/dark themes without promotional sections.
+  GitHub connection belongs in downloaded Zero's welcome, using VS Code's native
+  session/consent UI. No website sign-in or separate Zero account is needed.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.
   Follow the editor's established controls, theme colors, keyboard behavior and
   native authentication/account flows. Retain light and dark editor support.
@@ -39,6 +44,11 @@ marks a preferred pattern with documented, task-specific exceptions.
 
 ## Decisions, hierarchy and language
 
+- MUST preserve the owner's [current interaction rules](../design.md#current-interaction-rules):
+  direct routine actions, guarded automatic local-branch cleanup, one short
+  first-publication warning, no success popups, and brief sidebar results with
+  longer details in Zero Output. Keep required decisions, warnings and useful
+  follow-up actions available.
 - MUST name actions by their result: Run App, Stop, Download Zero or Copy
   Repository Link. DEFAULT to one visually dominant action per decision region.
   Preserve secondary actions and explain unavailable actions where necessary.

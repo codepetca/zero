@@ -9,6 +9,7 @@ export function sameStableRequest(left,right,{includeSourceDigest=true}={}) {
   const stable=value=>({schema:value.schema,kind:value.kind,slug:value.slug,version:value.version,
     repository:{id:value.repository.id,ownerId:value.repository.ownerId},requester:{githubId:value.requester.githubId},
     commit:value.commit,folder:value.folder,descriptor:value.descriptor,policyRevision:value.policyRevision,
+    ...(value.web?{web:value.web}:{}),
     ...(includeSourceDigest?{sourceDigest:value.sourceDigest}:{})});
   return digest(stable(left))===digest(stable(right));
 }

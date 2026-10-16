@@ -6,7 +6,7 @@ used to guide implementation. The working versions now live in the
 [PRODUCT.md](../PRODUCT.md) for the current contract and
 [VERIFICATION.md](../VERIFICATION.md) for actual check evidence.
 The earlier starter's `App` was a canvas-based app; the new design separates
-ordinary interface apps from animated games.
+ordinary interface apps from animated sketches.
 
 ## The learning model
 
