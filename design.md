@@ -6,6 +6,44 @@ the canonical interaction, accessibility and verification standard; follow it
 rather than copying its rules into individual components. Product behavior stays
 in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md).
 
+## Current interaction rules
+
+Owner decisions consolidated on 2026-10-16. These are the current rules and
+supersede conflicting wording in the older dated notes below. Preserve them
+when adding features; a new feature does not reset the agreed interaction style.
+
+- Keep one continuous, minimal sidebar for controls and files. Use supported
+  VS Code APIs, native themes, accessible keyboard behavior and the existing
+  visual system. Avoid extra headings, duplicate controls and explanatory clutter.
+- Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
+  Entering a branch name or commit message proceeds directly; clicking Merge to
+  main starts its guarded operation. Do not add routine confirmation dialogs.
+- After a verified successful merge and push, automatically delete only the
+  unchanged finished **local** branch through the existing safety checks. Keep
+  the remote branch. Failed, paused or conflicted operations skip cleanup;
+  refused cleanup preserves the work and reports the condition briefly.
+- First publication, or a changed publishing destination, gets one short warning:
+  **“Your app and included assets will be public.”** Show the destination.
+  Do not ask again after setup/upload or for routine updates to the same site.
+  Keep native authorization, account, destination, source and conflict checks.
+- Show routine success in the sidebar, without success popups. Use brief results
+  such as **“Pushed to main”**, **“Merged to main”**, **“App published”**,
+  **“Export ready”**, **“ZIP saved”** and **“App running”**. Keep relevant branch
+  or library names. Put commit hashes, sizes and longer guidance in Zero Output.
+- Keep warnings, errors and required decisions visible. When attention is needed,
+  include the next step: for example, **“Branch updated. Run App, then Merge to
+  main.”** or **“Merged to main · local branch kept; see Output”**. A concise
+  message must still describe the actual outcome accurately.
+- Preserve useful follow-up actions in the sidebar: **Open app / Copy playable
+  link** for the saved verified publication and **Preview export / Save ZIP /
+  Share export** for the current project's completed export. Reuse their guarded
+  commands; removing a popup must not remove access to an action.
+
+These are student-product interaction decisions. They do not authorize agent
+pushes, merges to the integration branch, public publication, releases or account
+changes. Ordinary Java, explicit object updates, student-owned repositories and
+separate Pika submission remain the product baseline.
+
 ## Approved and proposed
 
 | Surface | Status |
