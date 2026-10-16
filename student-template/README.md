@@ -1,7 +1,7 @@
 # My Zero App
 
-This source accompanies the local, unreleased Zero **0.5.16** candidate with
-core **0.1.3**. Published downloads keep their own bundled instructions.
+This source accompanies the local, unreleased Zero **0.5.18** candidate with
+core **0.2.1**. Published downloads keep their own bundled instructions.
 
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
@@ -9,9 +9,12 @@ uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12
 Choose **Start tutorial** from Zero’s welcome or **…** menu to open each matching tutorial
 template once. On GitHub, use **Use this template → Create a new repository**
 to create your own repository. Copy its **Code → HTTPS** URL, return to Zero and
-choose **Clone repository** in the repository menu. Paste your URL, choose a destination
-outside any other Git repository, then choose **Open in New Window** when VS Code
-offers to open the clone. Keep that clone and add your own code across its lessons. Each template contains only empty Main
+sign in and choose **Project → Clone from GitHub…**. Paste your URL in
+**Clone from GitHub**. In **Clone location**, keep the default `~/Zero Projects`
+or choose another folder outside any Git repository, then choose **Clone here**.
+Newer VS Code versions open a new window automatically; the VS Code 1.95 fallback
+may ask for **Open in New Window**. For an already-cloned Zero folder, choose
+**Project → Open local project…** to open a new window without cloning again. Keep that clone and add your own code across its lessons. Each template contains only empty Main
 and build/framework setup. Tutorial repositories use New branch, Run App,
 Commit & push and Merge to main, like original coursework projects. Template links
 follow verified publication metadata; unavailable templates show that state.
@@ -257,12 +260,11 @@ select the GitHub account and choose Sign Out.
 
 If you created your own repository from a ZeroHub template and cloned it,
 keep that clone and its existing origin; skip creating an empty repository.
-For an extracted ZIP, use **Connect a repository → Create a repository…**
-to open GitHub's page.
+For an extracted ZIP, open GitHub's new-repository page in your browser.
 Create your own **empty repository** on GitHub (leave README, license and
 gitignore uninitialized). Use your own account and follow your teacher's
 visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
-page URL through **Connect a repository → Connect an existing repository…**. Connect initializes Git in this standalone student folder if
+page URL through **Project → Connect to GitHub…** with the local Zero folder open. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
 or push. Local running works without GitHub sign-in.
 
@@ -306,7 +308,7 @@ Then use this individual flow for each improvement:
 4. After confirmed success, you are back on main. Remove the finished local
    branch when prompted, or keep it; its GitHub branch remains.
 
-Older kits may use a profile icon and **Connect a repo**, with **Start a change**
+Older kits may use different account/repository controls, with **Start a change**
 and different labels for committing, pushing and merging. Their installed controls remain
 unchanged; the steps above describe the current editor.
 

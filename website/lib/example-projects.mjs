@@ -52,9 +52,11 @@ function templateSetup(template) {
    repository**. Select your personal account as owner, choose your own project
    name and follow your teacher's visibility instructions.
 2. Open the repository you just created in your own account. Choose **Code →
-   HTTPS** and copy its URL. In Zero’s repository menu, choose **Clone repository**,
-   paste your URL and choose a destination outside any other Git repository.
-   Choose **Open in New Window** when VS Code offers to open the clone.
+   HTTPS** and copy its URL. Sign in to Zero and choose **Project → Clone from GitHub…**.
+   Paste your URL in **Clone from GitHub**. In **Clone location**, keep the default
+   ~/Zero Projects or choose another folder outside any Git repository, then
+   choose **Clone here**. Newer VS Code versions open a new window automatically;
+   the VS Code 1.95 fallback may ask for **Open in New Window**.
 
 Terminal alternative with your own account and repository name:
 
@@ -65,7 +67,9 @@ cd YOUR-PROJECT
 
    Replace both placeholders with your own account and repository name. These
    commands work in macOS Terminal and Windows PowerShell with Git installed.
-3. Open that cloned root folder in Zero (the configured VS Code editor).
+3. The cloned root opens in Zero (the configured VS Code editor). For an
+   already-cloned Zero folder, choose **Project → Open local project…** to open
+   a new window without cloning again.
 4. Choose Run App in the Zero sidebar.
 
 Your own GitHub repository already contains the starter baseline on **main**.
@@ -76,7 +80,7 @@ The clone already connects to your own repository as origin.
 If you downloaded a ZIP instead, extract it into its own folder and open that
 root folder in Zero. A ZIP has no Git history. Create your own empty GitHub
 repository, leaving README, license and gitignore uninitialized. Sign in through
-Zero and use **Repository → Connect an existing repository…** with your own
+Zero and use **Project → Connect to GitHub…** with your own
 repository's HTTPS URL, then review **Commit & push** on **main** for the initial
 project. Connection alone does not push files.
 `;
@@ -115,7 +119,7 @@ function repositoryWorkflow() {
 1. Create your own empty GitHub repository in your personal account. Follow your
    teacher's visibility instructions; leave README, license and gitignore
    uninitialized. This downloaded ZIP becomes the files in your repository.
-2. Sign in through the account control in Zero’s sidebar. Use **Repository → Connect an existing repository…** with your own repository's HTTPS URL. Connection
+2. Sign in through the account control in Zero’s sidebar. Use **Project → Connect to GitHub…** with your own repository's HTTPS URL. Connection
    alone does not push files.
 3. Configure Git's per-repository name/email identity. Real pushes require
    native GitHub sign-in. GitHub actions are live by default; nothing pushes
@@ -164,7 +168,7 @@ ${project.description}
 This is a complete editable Zero project.
 
 ${template && !starter ? `![${title} app preview](preview.png)\n\n` : ""}${template ? templateSetup(template) : `1. Extract the downloaded ZIP into its own folder.
-2. Open that folder in Zero (the configured VS Code editor).
+2. Sign in to Zero and choose **Project → Open local project…** to open that Zero folder in a new window.
 3. Choose Run App in the Zero sidebar.`}
 
 A supported JDK 17 or later is required. Read and edit the Java files in

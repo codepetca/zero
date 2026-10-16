@@ -111,4 +111,11 @@ test('hosted starter and setup share download-aware guidance rather than package
   assert.match(guide,/Zero \.vsix included with your downloaded kit/);
   assert.match(guide,/If your extracted complete kit includes a `setup\/` folder/);
   assert.match(guide,/Use the versioned Zero VSIX included with your/);
+  assert.match(guide,/Project → Clone from GitHub…/);
+  assert.match(guide,/\*\*Clone location\*\*.*`~\/Zero Projects`/s);
+  assert.match(guide,/choose \*\*Clone here\*\*/);
+  assert.match(guide,/Project → Open local project…/);
+  assert.match(guide,/VS Code 1\.95 fallback/);
+  assert.match(guide,/Project → Connect to GitHub…/);
+  assert.doesNotMatch(guide,/Clone repository|Connect a repository|Connect GitHub/);
 });

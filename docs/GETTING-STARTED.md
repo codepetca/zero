@@ -16,18 +16,28 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 ## Start here
 
 1. Download and launch **Zero**. The website needs no sign-in.
-2. In desktop Zero, choose **Connect GitHub** if prompted. VS Code reuses an
-   authorized connection or guides sign-in and permission. If you need an account,
-   create it on GitHub and verify your email, then return to connect.
+2. In desktop Zero, choose **Sign in**. VS Code reuses an authorized connection
+   or guides sign-in and permission. If you need an account, create it on GitHub
+   and verify your email, then return to sign in.
 3. Choose **Start tutorial** from Zero’s welcome or **…** menu and select **Greeting app**.
    On GitHub, choose **Use this template → Create a new repository** under your
    own account. Copy **your new repository**’s **Code → HTTPS** URL.
-4. Return to Zero and open the **repository menu** and choose **Clone repository**. Paste your
-   URL and select a destination outside any other Git repository. Choose
-   **Open in New Window** when VS Code offers to open the clone.
+4. Return to Zero and choose **Project → Clone from GitHub…**. Paste your URL
+   in **Clone from GitHub**. In **Clone location**, keep the default `~/Zero Projects`
+   or choose another folder outside any Git repository, then choose **Clone here**.
+   The clone opens in a new window automatically on newer VS Code versions.
+   On the VS Code 1.95 fallback, choose **Open in New Window** if Git asks.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
    lesson 0 and choose **Run App**. **Open in browser** opens the lesson or running
    app in your default browser. Keep this repository for the following Greeting lessons.
+
+Already cloned your project? Choose **Project → Open local project…**, select
+its existing Zero folder and open it in a new window without cloning again.
+While signed out, the Git area shows only **Sign in**; local Run and Files stay
+available. After signing in, **Project** offers the clone and open actions. A
+local project without an origin also offers **Connect to GitHub…**. Connected
+projects show owner/repository and retain branch actions; **Publish app** is in
+that repository menu.
 
 Zero needs no separate account. **Later** leaves local Run available. To return
 to setup, use **Zero: Get Started** from VS Code's Command Palette.
@@ -234,12 +244,12 @@ The empty-repository steps below apply to an extracted source ZIP:
    sign-in; click it for **Change GitHub account…** or **Sign out…**. Sign out
    opens VS Code Accounts, where you choose your account and Sign Out. Canceling
    authentication leaves local Run available.
-2. Choose **Connect a repository → Create a repository…**. This opens GitHub's new-repository
-   page. Create your **own empty repository**, leaving README, license and
+2. Open GitHub's new-repository page in your browser and create your
+   **own empty repository**, leaving README, license and
    gitignore uninitialized to avoid a separate starting history. This workflow
    does not use GitHub Classroom.
-3. Return to **Connect a repository → Connect an existing repository…** and paste its
-   HTTPS page URL. Zero initializes
+3. With that local project open, choose **Project → Connect to GitHub…** and
+   paste its HTTPS page URL. Zero initializes
    Git in this standalone student folder if needed and adds its origin remote;
    it asks before replacing an existing origin. Connecting does not push or
    verify repository ownership, existence or access.

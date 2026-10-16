@@ -22,9 +22,11 @@ and check acceptance/access. Publishing a public game remains optional.
    your personal account as the owner, give the project your own name and follow
    your teacher's visibility instructions. Create the repository.
 2. In **your new repository**, choose **Code → HTTPS** and copy its URL.
-   Return to Zero and choose **Clone repository** in the repository menu. Paste your
-   URL and choose a destination outside any other Git repository. When VS Code
-   offers to open the clone, choose **Open in New Window**.
+   Return to Zero, sign in, and choose **Project → Clone from GitHub…**. Paste
+   your URL in **Clone from GitHub**. In **Clone location**, keep `~/Zero Projects`
+   or choose another folder outside any Git repository, then choose **Clone here**.
+   Newer VS Code versions open the clone in a new window automatically; the
+   VS Code 1.95 fallback may ask you to choose **Open in New Window**.
 
    Terminal alternative with your own username and project name:
 
@@ -35,7 +37,9 @@ and check acceptance/access. Publishing a public game remains optional.
 
    Replace the username and project name with your own. The same commands work
    in macOS Terminal and Windows PowerShell when Git is installed.
-3. Open that cloned root folder in Zero and choose **Run App**. Your repository
+3. The cloned root opens in Zero; choose **Run App**. If you cloned it earlier,
+   use **Project → Open local project…** to open its existing Zero folder in a
+   new window without cloning again. Your repository
    already contains the starting files on main; its origin points to your own
    repository. Check that Zero shows your own repository.
 4. In the README, describe who your project is for, what it should do and the
@@ -56,10 +60,13 @@ Study for3–7 and Game for8–12. At each group's first lesson, choose **Start
 tutorial** from Zero’s welcome or **…** menu and select the matching project, or choose the
 lesson page’s verified **Use template** action. On GitHub, choose **Use this
 template → Create a new repository** in your own account. Copy **your new
-repository**’s **Code → HTTPS** URL, then return to Zero and choose **Clone
-repository** in the sidebar. Paste your URL and choose a destination outside any
-other Git repository. Choose **Open in New Window** when VS Code offers to open
-the clone. Do not clone the teacher's shared repository directly. Open
+repository**’s **Code → HTTPS** URL, then sign in to Zero and choose
+**Project → Clone from GitHub…**. Paste your URL in **Clone from GitHub**, then
+choose **Clone here** in **Clone location**. The default is `~/Zero Projects`;
+you can choose another folder outside any Git repository. Newer VS Code versions
+open a new window automatically; the VS Code 1.95 fallback may ask for
+**Open in New Window**. Use **Project → Open local project…** for an already-cloned
+Zero folder. Do not clone the teacher's shared repository directly. Open
 `src/main/java/Main.java`, write the lesson’s ordinary Java and choose **Run App**.
 Template links follow verified publication metadata; unavailable templates show
 that state rather than an invented working link.
@@ -71,7 +78,9 @@ Commit & push → Merge to main**. Keep the same repository across that group's
 lessons. No mode switch is needed. Local Run after cloning uses read-only local
 repository checks and needs no active GitHub session or network after caching.
 
-Tutorials have no ZIP/local-folder alternative. A ZIP, a folder inside another
+Tutorials have no ZIP or unconnected local-folder alternative. Opening an
+already-cloned tutorial repository with **Open local project…** keeps its Git
+history and own GitHub origin. A ZIP, a folder inside another
 Git repository or a clone still pointing at the shared template receives setup
 guidance. This is teaching workflow validation, not tamper-proof provenance.
 Publish app is available as an explicit optional action; its game/assets are
@@ -84,7 +93,8 @@ automatically.
 Choose **Download ZIP** in ZeroHub, extract it into a new standalone folder and
 open it in Zero. A ZIP has no Git history. Create an **empty repository in your
 own GitHub account**, leaving GitHub's README, license and .gitignore options
-unchecked, connect that repository in Zero and make the initial **Commit & push**
+unchecked. With the extracted Zero folder open, sign in and choose
+**Project → Connect to GitHub…** with your own repository URL, then make the initial **Commit & push**
 on main. This is the alternative to creating and cloning from a template.
 
 ## Build one feature at a time

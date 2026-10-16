@@ -234,7 +234,7 @@ test("starter and featured downloads give concrete changes and the actual indivi
       assert.ok(readme.includes(guide.challenge));
     }
     assert.match(readme, /own empty GitHub repository/);
-    assert.match(readme, /Repository → Connect an existing repository/);
+    assert.match(readme, /Project → Connect to GitHub…/);
     assert.match(readme, /per-repository name\/email identity/);
     assert.match(readme, /native GitHub sign-in/);
     assert.match(readme, /GitHub actions are live by default/);
@@ -328,15 +328,21 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(clone, /Create a new\n   repository/);
     assert.match(clone, /personal account as owner/);
     assert.match(clone, /Code →\n   HTTPS/);
-    assert.match(clone, /Zero’s repository menu, choose \*\*Clone repository\*\*/);
-    assert.match(clone, /paste your URL and choose a destination outside any other Git repository/);
+    assert.match(clone, /Project → Clone from GitHub…/);
+    assert.match(clone, /Paste your URL in \*\*Clone from GitHub\*\*/);
+    assert.match(clone, /Clone location/);
+    assert.match(clone, /~\/Zero Projects/);
+    assert.match(clone, /choose \*\*Clone here\*\*/);
+    assert.match(clone, /Project → Open local project…/);
+    assert.match(clone, /new window automatically/);
     assert.match(clone, /Open in New Window/);
     assert.match(clone, /git clone https:\/\/github.com\/YOUR-USERNAME\/YOUR-PROJECT.git\ncd YOUR-PROJECT/);
-    assert.match(clone, /Open that cloned root folder in Zero/);
+    assert.match(clone, /The cloned root opens in Zero/);
     assert.match(clone, /baseline on \*\*main\*\*/);
     assert.doesNotMatch(clone, /empty GitHub|Connect a repo/);
     assert.match(alternative, /ZIP has no Git history/);
     assert.match(alternative, /own empty GitHub/);
+    assert.match(alternative, /Project → Connect to GitHub…/);
     assert.match(readme, /per-repository name\/email identity manually/);
     assert.match(readme, /signing in does\n   not configure commit identity/);
     assert.match(readme, /GitHub actions are live by default/);

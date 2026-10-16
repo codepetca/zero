@@ -26,12 +26,15 @@ is optional; tutorial pushes do not require buying a plan or making source publi
 At lessons **0, 3 and 8**, choose **Start tutorial** from Zero’s welcome or **…** menu and select
 the matching project, or use **Use template** on the tutorial page. On GitHub,
 choose **Use this template → Create a new repository** in **your own account**.
-Copy **your repository**’s **Code → HTTPS** URL, return to Zero and choose
-**Clone repository** in the repository menu. Paste your URL, choose a destination outside
-any other Git repository, then choose **Open in New Window** when VS Code offers
-to open the clone.
+Copy **your repository**’s **Code → HTTPS** URL, sign in to Zero and choose
+**Project → Clone from GitHub…**. Paste your URL in **Clone from GitHub**. In
+**Clone location**, keep `~/Zero Projects` or choose another folder outside any Git
+repository, then choose **Clone here**. The clone opens a new window automatically
+on newer VS Code versions; the VS Code 1.95 fallback may ask for
+**Open in New Window**. For an already-cloned Zero folder, use
+**Project → Open local project…** to open it in a new window without cloning.
 Do not clone Zero's shared template directly. There is no tutorial project ZIP
-or local-only folder path in this candidate. Template links follow verified
+or unconnected local-only folder path in this candidate. Template links follow verified
 publication metadata; unavailable templates show that state instead of an
 invented working link.
 

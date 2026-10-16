@@ -30,6 +30,23 @@ Publishing a game is optional and public; private-repository Pages eligibility
 depends on the GitHub plan. Do not change visibility or buy a plan just to finish
 lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
 
+## Open a tutorial project
+
+Choose **Sign in** in Zero. Use **Start tutorial** in welcome or the **…** menu
+to open the matching template, then create your own repository on GitHub and
+copy its **Code → HTTPS** URL. Choose **Project → Clone from GitHub…** and paste
+your URL in **Clone from GitHub**. In **Clone location**, keep `~/Zero Projects`
+or choose another folder outside any Git repository, then choose **Clone here**.
+Newer VS Code versions open the clone in a new window automatically; the
+VS Code 1.95 fallback may ask you to choose **Open in New Window**.
+
+Already cloned it? **Project → Open local project…** opens your existing Zero
+folder in a new window without cloning. With a local folder that has no origin,
+use **Project → Connect to GitHub…** for your own existing repository URL.
+Signed-out Git controls show only **Sign in**; local Run and Files remain.
+Connected projects keep their repository and branch controls, with **Publish app**
+in the repository menu. Keep tutorial source visibility under your teacher's rules.
+
 ## Zero app for Mac
 
 Open the downloaded DMG and drag **Zero.app** into **Applications**.

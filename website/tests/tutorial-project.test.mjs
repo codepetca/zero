@@ -25,7 +25,8 @@ test("only starting lessons offer the published template and a concise own-repos
     const html = render(lesson, template);
     assert.ok(html.includes(`href="${template.templateHref}">Use template</a>`));
     assert.match(html, /Create your own GitHub repository from the template/);
-    assert.match(html, /Clone repository<\/strong> in Zero.*repository menu/);
+    assert.match(html, /Project → Clone from GitHub…<\/strong> in Zero/);
+    assert.match(html, /paste your URL and choose <strong>Clone here<\/strong>/);
     assert.match(html, /href="\/docs\/setup#start-here">Setup<\/a>/);
     assert.equal((html.match(/<p>/g) || []).length, 1);
     assert.doesNotMatch(html, /Template not available yet|\.zip|download=|<ol|Publish app|New branch|Open in browser/);
@@ -48,7 +49,7 @@ test("continuing lessons omit repeated generic setup and workflow cards", () => 
     assert.equal(render(lesson), "", `Lesson ${lesson} has no project setup card`);
   }
   for (const lesson of ["10", "12"]) {
-    assert.doesNotMatch(render(lesson), /Setup|Use template|Clone repository|Continue your|New branch|Publish app|Open in browser/);
+    assert.doesNotMatch(render(lesson), /Setup|Use template|Clone from GitHub|Clone here|Continue your|New branch|Publish app|Open in browser/);
   }
 });
 

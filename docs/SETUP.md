@@ -24,6 +24,22 @@ tutorial repository and caching compiler dependencies, Run works offline without
 an active GitHub session; repository uploads require internet/sign-in. These are
 student/teacher setup steps, not automatic account creation or changes by Zero.
 
+## Open your project
+
+While signed out, Zero's Git area shows only **Sign in**; local Run and Files
+remain available. Sign in, then choose **Project → Clone from GitHub…** for your
+own template-created repository. Paste its HTTPS URL in **Clone from GitHub**.
+The **Clone location** folder chooser starts at `~/Zero Projects`; keep it or
+choose another folder outside any Git repository, then choose **Clone here**.
+Newer VS Code versions open the clone in a new window automatically. On the
+VS Code 1.95 fallback, choose **Open in New Window** if Git asks.
+
+For an existing cloned Zero folder, choose **Project → Open local project…**;
+it opens that valid project in a new window without cloning again. A local
+project without a GitHub origin offers **Project → Connect to GitHub…**. That
+connects your own repository URL; it does not push. Connected projects show
+owner/repository and retain branch actions, with **Publish app** in the menu.
+
 ## Native setup
 
 Published Mac0.5.14 uses **drag Zero.app to Applications → open Zero → Run App**.
