@@ -18,7 +18,7 @@ current task's content visually prominent.
 | --- | --- |
 | Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
 | Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
-| Secondary guidance | Put setup, continuation and optional hints in small muted helper cards. |
+| Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
 | API reference | Category titles scroll away; each method name sticks through its own details. |
 | Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
 | Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
@@ -142,8 +142,8 @@ Native themes, local-practice restrictions and existing command/review guards st
 
 The owner requested all five audited issues fixed. Keep the centered Downloads
 stack with a concise setup link and metadata-derived platform/version requirements
-below it. Initial lesson projects link to setup and explain that their ZIP does
-not install Zero or Java. Share your work uses the existing shared theme wrapper
+below it. The later tutorial-card correction removes the initial-lesson setup
+card; setup remains available through Downloads and Docs. Share your work uses the existing shared theme wrapper
 and controls; this is no broader Hub redesign. Release bytes stay immutable.
 
 ## Tutorial reading hierarchy — owner correction, 2026-10-16
@@ -151,9 +151,9 @@ and controls; this is no broader Hub redesign. Release bytes stay immutable.
 Remove Previous lesson prose and horizontal dividers from tutorial content,
 including section and Next lesson borders. Keep numbered step titles prominent
 on subtle theme surfaces, with existing disclosure controls and deep links.
-Setup, continuation and optional-resource guidance belongs in a smaller muted
-helper card; preserve visible prerequisites and functional links. Reuse approved
-light/dark tokens. The sidebar and Next lesson action remain available.
+The later correction below removes generic setup/continuation cards entirely;
+lesson-specific optional notes stay muted and unboxed. Reuse approved light/dark
+tokens. The sidebar and Next lesson action remain available.
 
 ## Docs sticky method names — owner correction, 2026-10-16
 
@@ -168,3 +168,10 @@ Themed website scrollbar tracks blend into their scrolling surface, including
 the page gutter. Use thin approved-gray thumbs and transparent tracks, retain
 normal scrolling, follow light/dark/system preference and defer to system
 scrollbar colors in forced-color mode.
+
+## Remove generic tutorial help cards — owner correction, 2026-10-16
+
+Remove the entire “First time?” card and all continuation cards containing
+“If you have not started it yet”. This supersedes the earlier helper-card choice.
+Keep Start project buttons on lessons0/3/8, the lesson instructions and specific
+component/media notes. Those specific notes stay small, muted and unboxed.

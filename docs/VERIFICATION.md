@@ -1,5 +1,14 @@
 # Verification
 
+## Remove generic tutorial help cards — 2026-10-16
+
+96website tests,typecheck/build and whitespace checks pass. All13 local tutorial
+HTTP renders have no generic help card or First time/not-started copy; only0/3/8
+have a Start button; lesson10/12 notes/assets remain. Browser8/9 phone layout has
+no empty card/section or overflow. Existing updater tracing warnings remain.
+No new Safari/physical-platform coverage. Review/CI/live publication verdict is
+recorded at the follow-up PR and .verification/tutorial-card-removal/ receipts.
+
 ## Website publication acceptance — 2026-10-16
 
 [PR71](https://github.com/codepetca/zero/pull/71) merged e268b93 after complete

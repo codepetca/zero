@@ -1,5 +1,22 @@
 # Delivery evidence index
 
+## Remove generic tutorial help cards — 2026-10-16
+
+Owner removed the First time card and all If you have not started it yet cards,
+refining the continuing website publication. Document omits the entire generic
+setup/continuation aside and empty continuation sections; stale card CSS is gone.
+Start project buttons remain at0/3/8; lesson10 component reminder and lesson12
+asset link remain as small muted,unboxed notes. Canonical lessons unchanged.
+Design/product guidance supersedes the earlier helper-card choice.
+
+96website tests,typecheck/build,whitespace checks and all13 local HTTP renders pass:
+zero generic cards/text; exactly three Start buttons; no empty continuation section;
+lesson-specific10/12 notes preserved. Browser lessons8/9 verify compact phone
+layout/no overflow. Logs:ignored .verification/tutorial-card-removal/. Existing
+updater tracing warnings and prior platform limits remain. One bounded Luna/medium
+review and exact-headCI/publication acceptance follow through this branch's PR;
+no release files,credentials,new goal/chat/automation or other worktree changes.
+
 ## Website reading cleanup published — 2026-10-16
 
 Owner explicitly authorized publication of all changes from this chat. Integrated
@@ -32,9 +49,8 @@ findings/fix batches. Effective model,tokens and reviewer elapsed unknown.
 Weekly56%remaining at publication start;storage healthy328GB. DeepSeek pause
 honored. Two unrelated updater tracing warnings remain;Safari/physical platforms,
 enlarged text and forced-color UI were not newly exercised. No binaries rebuilt,
-credentials/account changes,new goal/chat/automation. This final documentation
-receipt is local; the published implementation and remembered design choices are
-already on main through PR71.
+credentials/account changes,new goal/chat/automation. The implementation and remembered design choices were published on main
+through PR71; this receipt records acceptance after that publication.
 
 ## Subtle scrollbar tracks — 2026-10-16
 

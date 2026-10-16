@@ -240,12 +240,11 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
   assert.match(prepare,/"your-repository-and-pika": "your-individual-workflow"/);
 });
 
-test("only three lessons start a project; subsequent lessons continue it", () => {
+test("only three lessons start a project, without generic setup or continuation cards", () => {
   const document = readFileSync(new URL("../components/Document.jsx", import.meta.url), "utf8");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs", import.meta.url), "utf8");
   assert.match(document, /lesson === practiceProject.firstLesson/);
-  assert.match(document, /Continue your .*practiceProject.title.* project/);
-  assert.match(document, /start at lesson/);
+  assert.doesNotMatch(document, /First time\?|If you have not started it yet|className="lesson-help"/);
   assert.match(document, /lesson === "10"/);
   assert.match(document, /lesson === "12"/);
   assert.match(prepare, /prepareLessonProjects\(root, \{ website: true, extension: false \}\)/);
