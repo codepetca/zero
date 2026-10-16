@@ -1,5 +1,10 @@
 # Zero 0.5.16 release preparation
 
+Latest local installed extension: `zero-0.5.16-confirmations-6c3cde8`, integrated
+on codex/web-export at3238295. Routine confirmations removed; first public publish
+warns briefly. Current preview reloaded and new commit input verified; see
+[EVIDENCE.md](EVIDENCE.md). This does not change published release assets.
+
 Status: **local preview, not a student release**. Kit/extension0.5.16/core0.1.3
 are retained for isolated testing. Another chat published stable0.5.17/native17/
 core0.2.0 for its separately authorized App/GameApp release; this browser feature

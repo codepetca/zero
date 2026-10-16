@@ -1,5 +1,34 @@
 # Delivery evidence index
 
+## Simplified confirmations integrated and installed — 2026-10-16
+
+Owner authorized local browser-branch integration and installed-preview update.
+`codex/web-export` fast-forwarded ddbaf47→3238295; reviewed code6c3cde8 remains
+byte-identical. Integrated focused48/48pass; prior full471pass/1expected skip and
+clean independent reviews reused for unchanged source. No additional code delta
+or reviewer wave. The known archived-document link check blocker remains.
+
+Built candidate `dist/candidates/zero-0.5.16-confirmations-6c3cde8/zero-0.5.16.vsix`,
+SHA2563433dd9a6602af122611f16a59383cd714f25d2fc629cdc1dbb485e3bf8672d5.
+All87packaged extension files match source and installed nested Zero/editor profile;
+only VSCode's added package metadata is excluded. Previous extensions backed up
+under ignored .verification/confirmations-20261016/. Existing test projects,
+accounts and settings preserved; all7trial Main source hashes unchanged.
+
+Actual Mac preview Study window reloaded through Developer: Reload Window. Its
+Commit & push input shows the real repository and main branch; Escape cancels
+and restores actions/editor focus. No commit, push or live publish was performed.
+First-publish warning remains source/automated-test verified; physical Windows
+and new live publication untested. Other already-open windows need their own
+reload to activate newly installed code. No student release, website deployment,
+public GitHub change, new chat/goal/automation or credential change.
+
+Receipts: ignored .verification/confirmations-20261016/{integration-install.json,
+package-parity.json,integrated-focused.log,package.log,install.log}; source review
+and preservation receipts copied alongside. Direct integration/install reused
+reviewed source; no new implementation worker. Fresh storage327GBhealthy,
+weekly55%remaining reading reused; exact coordination time/tokens unknown.
+
 ## Routine confirmations — 2026-10-16
 
 Local implementation on `codex/simplify-confirmations`, based on browser-preview

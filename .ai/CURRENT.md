@@ -1,25 +1,17 @@
-# Current state — routine confirmations simplified, 2026-10-16
+# Current state — compact sidebar and simplified confirmations installed, 2026-10-16
 
-This chat's local follow-up is complete in isolated worktree
-`/Users/stew/.codex/worktrees/simplify-confirmations/zero`, branch
-`codex/simplify-confirmations`, code commits42140d4+6c3cde8 overddbaf47.
-Owner approved removing routine confirmations and keeping a short first-publish
-warning. Commit & push/New branch are direct; first Publish warns once through
-setup; repeat Publish revalidates silently. Merge/delete/replace still confirm.
-Successful upload receipt/exact SHA and all underlying guards remain binding;
-pending approval persists across restart. Two initial Sol/high reviews and one
-targeted review accepted final code after one fix batch. Initial full471pass/1skip,
-final48focused+34publisher boundary regressions pass; global check has an unchanged
-archived-doc link blocker. See docs/EVIDENCE.md and docs/VERIFICATION.md.
-
-No source push, merge, install, release, public app or credential change. Keep this
-worktree for integration into the parent browser-preview branch. Parent chat is
-active; its checkout, preview profile and private trials were not modified.
-No tool-backed goal, separate chat or automation created.
-
-## Inherited browser-preview context at base ddbaf47
-
-### Compact sidebar installed and tested, 2026-10-16
+Routine-confirmation follow-up integrated locally and installed, 2026-10-16:
+owner authorized this chat to fast-forward codex/web-export to3238295 and update
+the existing preview. Reviewed code6c3cde8 is unchanged by integration. Candidate
+`dist/candidates/zero-0.5.16-confirmations-6c3cde8/zero-0.5.16.vsix` now replaces
+the prior0.5.16extension in the owned nested Zero/editor profile. All87packaged
+files match current source/installation (native manifest metadata excluded).
+Actual Study preview window reloaded; new Commit & push input shows repository
+and branch, Escape restores ready controls; no commit/push performed. All7trial
+Main hashes preserved. Integrated48focused tests pass. Underlying source review
+remains clean; known archived-doc global-check blocker unchanged. No public
+release, GitHub publication, account change or new goal/task/automation.
+See docs/EVIDENCE.md and .verification/confirmations-20261016/integration-install.json.
 
 Coordinator Lead publishing task, thread01a13f98-55fc-7471-9038-1198b14d5a98.
 Use /Users/stew/.codex/worktrees/web-export/zero, branch codex/web-export.
