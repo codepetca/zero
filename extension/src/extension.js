@@ -390,6 +390,7 @@ function activate(context) {
       const items = connected ? [
         {label:'Open on GitHub', action:'open'},
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
+        ...(auth.signedIn ? [{label:'Publish app', action:'publish'}] : []),
         ...(branch === 'main' ? [{label:'New branch…', action:'start'}] : []),
         {label:'Switch branch…', action:'switch'},
         ...(!tutorial ? [{label:'Connect another repository…', action:'connect'}] : [])
@@ -408,6 +409,7 @@ function activate(context) {
       if (choice?.action === 'clone') await actions['zero.cloneRepository']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
       if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
+      if (choice?.action === 'publish') await actions['zero.publishWeb']();
       if (choice?.action === 'open' && !await vscode.env.openExternal(vscode.Uri.parse(currentRepository))) throw new Error('Could not open the repository. Try Open on GitHub again.');
       if (choice?.action === 'start') await actions['zero.startChange']();
       if (choice?.action === 'switch') await actions['zero.switchBranch']();
@@ -566,13 +568,12 @@ function activate(context) {
     const branchControl = connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
-    const publishControl = `<button class="link" data-command="zero.publishWeb" ${disabled || (!auth.signedIn || !connected ? 'disabled' : '')} title="${auth.signedIn && connected ? 'Publish your pushed app to GitHub Pages' : 'Sign in and connect your repository to publish'}">${icon('Upload')}Publish app</button>`;
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published?.root === projectRoot && published.account === auth.accountLabel && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
     const tutorialActions = projectRoot ? '' : `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>`;
-    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${repoControl}` : `${account}${tutorialActions}<div class="context-row">${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishControl}${publishedActions}`;
+    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${repoControl}` : `${account}${tutorialActions}<div class="context-row">${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishedActions}`;
     const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {

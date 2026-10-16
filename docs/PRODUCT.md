@@ -222,7 +222,7 @@ and hosted compilation are out of scope. A strict resolved-API gate rejects unsu
 application APIs before real WebFX compilation; see [browser builds](WEB-EXPORT.md).
 Final integrated acceptance and release remain separate.
 
-Browser sharing adds **Publish app** in the sidebar and **Export for
+Browser sharing adds **Publish app** in the repository dropdown and **Export for
 web** in the title menu. Students keep ordinary Java. A reviewed GitHub Pages
 setup leads to an exact-version verified playable link. Live is the student
 default; simulation is an explicit testing setting. Share game can attach the
@@ -235,7 +235,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Idle status is empty; app progress/errors
   appear when there is a message. The account row shows Sign in or the clickable
   username. The repository menu stays visible, including an existing origin while
-  signed out; it offers Clone repository, create/connect/open/copy and New branch
+  signed out; it offers Clone repository, create/connect/open/copy, Publish app when
+  signed in, and New branch
   or Switch branch as appropriate. The current branch stays visible. Commit & push
   and Merge to main remain direct actions. Simulation
   remains visibly labeled. ZeroHub offers Browse (project templates/examples on

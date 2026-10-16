@@ -112,7 +112,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
   assert.match(webview.html,/>Sign in<\/button>/);assert.match(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
   const githubSection=()=>webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)[1];
-  assert.match(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/);
+  assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/);
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
   assert.ok(authCalls.every(call=>call.options.silent));
   await commands.get('zero.browseZeroHub')();
@@ -141,10 +141,10 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   nextChoice='change';await commands.get('zero.githubAccount')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
   repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && />student\/app /.test(webview.html));
   assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/>student\/app /);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
-  assert.match(githubSection(),/data-command="zero.publishWeb"/);
-  assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/,'Signed-in connected students can publish');
+  assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/,'Publishing lives in repository actions');
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','start','switch','connect','clone']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','clone']);
+  const beforePublishAuth=authCalls.length;nextChoice='publish';await commands.get('zero.chooseRepository')();assert.match(webview.html,/Simulation only — no publishing files/);assert.equal(authCalls.length,beforePublishAuth,'Repository menu dispatch preserves publishing simulation isolation');
   session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle(()=>webview.html.includes('&lt;img src=x onerror=&quot;bad&quot;&gt;'));
   assert.match(webview.html,/&lt;img src=x onerror=&quot;bad&quot;&gt;/);assert.doesNotMatch(webview.html,/<img|PRIVATE/,'Account labels must be escaped and tokens excluded');
   session=undefined;authEvent({provider:{id:'github'}});await settle(()=>/Sign in to GitHub/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);

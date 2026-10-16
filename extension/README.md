@@ -69,7 +69,7 @@ The account row shows **Sign in** while signed out and the selected GitHub
 username while signed in. Click the username for **Change GitHub account…** or
 **Sign out…**; native VS Code Accounts owns sign-out and credentials.
 The repository menu stays visible, showing an existing `owner/name` even while
-signed out. It contains clone/create/connect/open/copy and branch actions.
+signed out. It contains clone/create/connect/open/copy and branch actions, plus **Publish app** when signed in and connected.
 **New branch** creates a feature branch after you enter its name; **Merge to main** beside
 a feature branch directly merges and pushes it to main. Its account, destination,
 source and conflict checks still run.
@@ -152,7 +152,7 @@ See the bundled `GETTING-STARTED.md` for the beginner workflow.
 ## Playable publication
 
 Run App and test the intended version, finish and upload it on **main**, then
-choose **Publish app** in the sidebar’s **GitHub** section. Sign in and connect
+choose **Publish app** in the repository dropdown. Sign in and connect
 your own repository to enable it. Live publication requires Git **2.31+**, your
 own GitHub account and live upload mode. Simulation exits without saving,
 requesting authentication, writing publishing files or making network calls.

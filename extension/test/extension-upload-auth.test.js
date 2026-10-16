@@ -82,8 +82,8 @@ test('tutorial sidebar retains normal GitHub controls and hides original-only Sh
   const h=await harness(t,{kit:false,tutorial:true});const webview=h.render();
   const deadline=Date.now()+5000;
   while(!webview.html.includes('data-command="zero.uploadToGitHub"')) {assert.ok(Date.now()<deadline,'Tutorial repository controls should finish rendering');await new Promise(resolve=>setImmediate(resolve));}
-  for(const command of ['zero.chooseRepository','zero.uploadToGitHub','zero.publishWeb','zero.browseZeroHub']) assert.ok(webview.html.includes(`data-command="${command}"`),command);
-  assert.doesNotMatch(webview.html,/data-command="zero.shareGame"|data-command="zero.startChange"|data-command="zero.cloneRepository"|Local practice/);
+  for(const command of ['zero.chooseRepository','zero.uploadToGitHub','zero.browseZeroHub']) assert.ok(webview.html.includes(`data-command="${command}"`),command);
+  assert.doesNotMatch(webview.html,/data-command="zero.publishWeb"|data-command="zero.shareGame"|data-command="zero.startChange"|data-command="zero.cloneRepository"|Local practice/);
   assert.match(webview.html,/Current branch: main/);
   await h.commands.get('zero.shareGame')();assert.match(h.errors.at(-1),/separate original project/);
 });
