@@ -110,9 +110,10 @@ and privacy steps, then create and clone their own tutorial repository. In that
 clone, configure its teacher-approved Git identity before the first upload.
 After cloning and caching the build tools, local Run works offline
 without an active GitHub session; uploads require sign-in and internet access.
-GitHub actions default to live. Upload and branch changes require
-review/confirmation; first Publish approves its destination and later explicit
-Publish actions update that site. Setup itself does not create accounts or
+GitHub actions default to live. Check your work before choosing an action;
+entering a branch name or commit message proceeds directly, and Merge to main
+starts when clicked. First Publish approves its public destination once; later
+explicit Publish actions update that site. Setup itself does not create accounts or
 repositories, upload, publish or submit anything in Pika.
 
 ## Verification contract

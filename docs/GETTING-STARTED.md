@@ -271,32 +271,34 @@ during review, sign in as needed and review the push again.
 
 `main` holds completed work. A change branch holds your next improvement.
 **GitHub actions are live by default.** Nothing pushes automatically: choose an
-action; Commit & push and branch changes review the account, repository, branch and files
-before confirmation. Local
-Run needs no active GitHub session. Tutorial projects require their initial own-repository clone.
+action. Check your code before choosing an action; the commit-message input shows
+your repository and branch. Entering a branch name or commit message proceeds
+directly, and Merge to main starts when you click it. Local Run needs no active
+GitHub session. Tutorial projects require their initial own-repository clone.
 
 For a new repository, **Commit & push once on main** to save and push the
-starter. Enter a short commit message and check the account, repository, branch
-and files before **Commit & push**. This is the starting version.
+starter. Check your changes and the repository and branch shown in the input,
+then enter a short commit message and press Enter. This is the starting version.
 
 For each improvement:
 
 1. Click **New branch** in the repository menu. Give it a short name such as `quiz-feedback`
-   using lowercase letters, numbers and dashes. Review before creating the branch.
+   using lowercase letters, numbers and dashes. Press Enter to create it.
    Commit & push pending edits first. Zero updates main from GitHub when it can do so
    without combining separate histories, then creates the branch.
 2. Edit and **Run App**. Check your change.
 3. **Commit & push** creates a commit when needed and pushes the current branch.
-   Describe what changed and review before **Commit & push**. You can repeat
-   this while building; it does not yet add the change to main.
+   Check the repository and branch in the input, describe what changed, then
+   press Enter. You can repeat this while building; it does not yet add the change to main.
 4. Click **Merge to main** beside the branch name. Commit & push any pending edits first.
-   Check the preview before approving. **Merge to main** merges the current
+   Run and check your app before clicking. **Merge to main** merges the current
    branch into main and pushes main. If GitHub
    has newer main changes, Zero incorporates them into your change branch and
-   pauses. Run the combined app, then choose Merge to main again for a fresh
-   review before pushing it to main.
-5. After confirmed success, Zero returns to main. You can remove the finished
-   local branch when prompted, or keep it. Its GitHub branch remains available.
+   pauses. Run and check the combined app, then choose Merge to main again to
+   merge and push it to main.
+5. After confirmed success, Zero returns to main and safely removes the unchanged
+   finished local branch. Its GitHub branch remains available. If cleanup cannot
+   be completed safely, Zero keeps the local branch and tells you to check Output.
 
 If an update creates conflicts, Zero keeps your work and opens VS Code's Source
 Control. Open the conflicted files or Merge Editor, inspect both changes and

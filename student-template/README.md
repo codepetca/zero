@@ -287,9 +287,9 @@ or Git configuration. Account/session changes require a fresh push review.
 Never put a password or token in Java source, the marker or README.
 
 **GitHub actions are live by default; nothing pushes automatically.**
-Commit & push saves files, asks for a commit message, then shows a
-modal review of your repository, branch and changed files. Check it before
-choosing **Commit & push**. This creates a local commit when needed and pushes
+Commit & push saves files and asks for a commit message, showing your repository
+and branch in the input. Check your changes, enter a short message and press
+Enter. This creates a local commit when needed and pushes
 the current branch with Git HTTPS transport using your native sign-in; ignored files stay local. A failed push may
 leave a local commit. A Mac teacher trial verified native sign-in and a private repository push;
 other platforms and school environments still need trials.
@@ -298,15 +298,16 @@ For a new repository, Commit & push once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
 1. Click **New branch** in the repository menu, name your branch (for example `quiz-feedback`)
-   and review before creating it. Commit & push pending edits first. Main is updated
+   and press Enter to create it. Commit & push pending edits first. Main is updated
    from GitHub when it can be advanced without combining separate histories.
 2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
    repeat as needed.
 3. Click **Merge to main** beside the branch name. Commit & push pending edits first, run the
-   app and review. **Merge to main** merges your branch into main and pushes main. If newer main code is added
-   to your branch, Zero pauses: run the combined app and review Merge to main again.
-4. After confirmed success, you are back on main. Remove the finished local
-   branch when prompted, or keep it; its GitHub branch remains.
+   app before clicking. **Merge to main** merges your branch into main and pushes main. If newer main code is added
+   to your branch, Zero pauses: run and check the combined app, then choose Merge to main again.
+4. After confirmed success, you are back on main. Zero safely removes the
+   unchanged finished local branch; its GitHub branch remains. If cleanup cannot
+   be completed safely, Zero keeps the local branch and tells you to check Output.
 
 Older kits may use different account/repository controls, with **Start a change**
 and different labels for committing, pushing and merging. Their installed controls remain
