@@ -379,28 +379,36 @@ function activate(context) {
     },
     'zero.chooseRepository': async () => {
       if (isBusy()) return;
-      const root = await project();
-      await lessonProjects.assertShareable(root);
-      const tutorial = await lessonProjects.tutorialMarker(root);
+      await repositoryStatus();
+      const root = projectRoot;
+      const tutorial = root && !localPractice && await lessonProjects.tutorialMarker(root);
       if (isBusy()) return;
       const connected = repository.startsWith('https://github.com/');
-      const choice = await quickPick(tutorial ? (connected ? [
-        {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'}
-      ] : [
-        {label:'Start tutorial…', description:'Create your own repository from a tutorial template', action:'tutorial'},
-        {label:'Clone repository…', description:'Open your own repository with native Git', action:'clone'}
-      ]) : connected ? [
+      const currentRepository = repository, currentBranch = branch;
+      const items = connected ? [
+        {label:'Open on GitHub', action:'open'},
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
-        {label:'Connect another repository…', action:'connect'}
+        ...(branch === 'main' ? [{label:'New branch…', action:'start'}] : []),
+        ...(branch ? [{label:'Switch branch…', action:'switch'}] : []),
+        ...(!tutorial ? [{label:'Connect another repository…', action:'connect'}] : [])
+      ] : !root || tutorial || localPractice ? [
+        {label:'Start tutorial…', action:'tutorial'}
       ] : [
         {label:'Create a repository…', description:'Open GitHub, then connect its link here', action:'create'},
         {label:'Connect an existing repository…', action:'connect'}
-      ], {title:connected ? repository : 'Connect a repo', placeHolder:'Choose a repository action'});
-      if (isBusy()) return;
+      ];
+      items.push({label:'Clone repository…', action:'clone'});
+      const choice = await quickPick(items, {title:connected ? repository : 'Repository', placeHolder:'Choose a repository action'});
+      if (isBusy() || !choice) return;
+      await repositoryStatus();
+      if (isBusy() || projectRoot !== root || repository !== currentRepository || branch !== currentBranch) return;
       if (choice?.action === 'tutorial') await actions['zero.startProject']();
       if (choice?.action === 'clone') await actions['zero.cloneRepository']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
       if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
+      if (choice?.action === 'open' && !await vscode.env.openExternal(vscode.Uri.parse(currentRepository))) throw new Error('Could not open the repository. Try Open on GitHub again.');
+      if (choice?.action === 'start') await actions['zero.startChange']();
+      if (choice?.action === 'switch') await actions['zero.switchBranch']();
       if (choice?.action === 'create') {
         if (!auth.signedIn) await actions['zero.signInToGitHub']();
         await actions['zero.createRepository']();
@@ -427,6 +435,23 @@ function activate(context) {
     },
     'zero.startChange': () => change('start'),
     'zero.finishChange': () => change('finish'),
+    'zero.switchBranch': async () => {
+      if (isBusy()) return;
+      changing = true; refresh();
+      try {
+        const root = await project();
+        await lessonProjects.assertShareable(root);
+        await core.assertRepositoryRoot(root);
+        if (uploadMode(root) !== 'live') {simulation('Switch branch'); return;}
+        const previous = (await core.git(root, ['symbolic-ref', '--short', 'HEAD'])).trim();
+        // Native Git owns branch selection and dirty-file/conflict recovery.
+        // Pass the exact project URI instead of asking it to choose a repository.
+        await vscode.commands.executeCommand('git.checkout', vscode.Uri.file(root));
+        if (await project() !== root) return;
+        await repositoryStatus();
+        if (branch && branch !== previous) report(`Switched to ${branch}`);
+      } finally {await repositoryStatus(); changing = false; refresh();}
+    },
     'zero.runNativeApp': async () => {browserRun.stop({quiet:true});await queuedRun();},
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
@@ -527,10 +552,10 @@ function activate(context) {
     const disabled = isBusy() ? 'disabled' : '';
     const connected = repository.startsWith('https://github.com/');
     const accountTitle = auth.signedIn ? `Signed in as ${auth.accountLabel}` : 'Sign in to GitHub';
-    const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in to GitHub'}</button>`;
-    const repoName = connected ? repository.slice('https://github.com/'.length) : 'Connect a repository';
-    const repoControl = auth.signedIn ? `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Create or connect a GitHub repository')}" aria-label="${escape(connected ? `Repository: ${repoName}. Open repository actions` : 'Connect a repository')}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>` : '';
-    const branchControl = auth.signedIn && connected && branch ? `<div class="branch-row"><span class="branch" title="${escape(`Current branch: ${branch}`)}">${icon('GitBranch')}${escape(branch)}</span><button class="link change" data-command="${branch === 'main' ? 'zero.startChange' : 'zero.finishChange'}" ${disabled}>${branch === 'main' ? 'New branch' : 'Merge to main'}</button></div>` : '';
+    const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in'}</button>`;
+    const repoName = connected ? repository.slice('https://github.com/'.length) : 'Repository';
+    const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Repository actions')}" aria-label="${escape(`Repository: ${repoName}. Open repository actions`)}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>`;
+    const branchControl = connected && branch ? `<div class="branch-row"><span class="branch" title="${escape(`Current branch: ${branch}`)}">${icon('GitBranch')}${escape(branch)}</span>${auth.signedIn && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const publishControl = `<button class="link" data-command="zero.publishWeb" ${disabled || (!auth.signedIn || !connected ? 'disabled' : '')} title="${auth.signedIn && connected ? 'Publish your pushed app to GitHub Pages' : 'Sign in and connect your repository to publish'}">${icon('Upload')}Publish app</button>`;
@@ -538,8 +563,8 @@ function activate(context) {
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published?.root === projectRoot && published.account === auth.accountLabel && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
-    const tutorialActions = `${projectRoot ? '' : `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>`}<button class="link clone" data-command="zero.cloneRepository" ${disabled}>Clone repository</button>`;
-    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${tutorialActions}` : `${tutorialActions}<div class="context-row">${account}${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishControl}${publishedActions}`;
+    const tutorialActions = projectRoot ? '' : `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>`;
+    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${repoControl}` : `${account}${tutorialActions}<div class="context-row">${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishControl}${publishedActions}`;
     const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {

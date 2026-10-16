@@ -59,6 +59,10 @@
         "title": "Zero: Repository Actions"
       },
       {
+        "command": "zero.switchBranch",
+        "title": "Zero: Switch Branch"
+      },
+      {
         "command": "zero.runApp",
         "title": "Zero: Run App"
       },

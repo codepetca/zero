@@ -79,16 +79,16 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
-  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[];let session,authEvent,webviewProvider,repo,nextChoice,inputCount=0,nativeAccountsAvailable=true;let gitChanges=0;
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[];let session,authEvent,webviewProvider,repo,nextChoice,inputCount=0,nativeAccountsAvailable=true,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate;let gitChanges=0;
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
-  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return root;if(args[0]==='symbolic-ref')return 'main';if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
+  const oldGit=core.git;core.git=async(_,args)=>{if(args[0]==='rev-parse') return root;if(args[0]==='symbolic-ref')return currentBranch;if(args[0]==='remote'&&args[1]==='get-url'){if(!repo)throw new Error('no origin');return repo;}gitChanges++;throw new Error('Unexpected mutation');};t.after(()=>{core.git=oldGit;});
   const vscode={
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?'simulation':fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return undefined;},showErrorMessage:async message=>{errors.push(message);}},
-    tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>nativeAccountsAvailable?['workbench.action.manageAccounts']:[],executeCommand:async id=>{dispatched.push(id);}},
+    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});if(pickEffect)await pickEffect();return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return undefined;},showErrorMessage:async message=>{errors.push(message);}},
+    tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>nativeAccountsAvailable?['workbench.action.manageAccounts']:[],executeCommand:async (id,uri)=>{dispatched.push(id);if(id==='git.checkout'){assert.equal(uri.fsPath,root);if(checkoutGate)await checkoutGate;if(checkout)await checkout();}}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
@@ -107,7 +107,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
-  assert.match(webview.html,/>Sign in to GitHub<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);
+  assert.match(webview.html,/>Sign in<\/button>/);assert.match(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
   const githubSection=()=>webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)[1];
   assert.match(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/);
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
@@ -117,7 +117,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   nextChoice='projects';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=example');
   nextChoice=undefined;
   await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['create','connect']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['create','connect','clone']);
   assert.equal(inputCount,0,'Cancelled repository menu has no input or mutation');
   nextChoice='connect';await commands.get('zero.chooseRepository')();
   assert.equal(inputCount,1,'Signed-out students can connect locally; cancelling input makes no changes');
@@ -141,14 +141,25 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.match(githubSection(),/data-command="zero.publishWeb"/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/,'Signed-in connected students can publish');
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['copy','connect']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','start','switch','connect','clone']);
   session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle(()=>webview.html.includes('&lt;img src=x onerror=&quot;bad&quot;&gt;'));
   assert.match(webview.html,/&lt;img src=x onerror=&quot;bad&quot;&gt;/);assert.doesNotMatch(webview.html,/<img|PRIVATE/,'Account labels must be escaped and tokens excluded');
   session=undefined;authEvent({provider:{id:'github'}});await settle(()=>/Sign in to GitHub/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
-  assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/,'Signed-out view only offers sign-in; local remote remains unchanged');
+  assert.match(webview.html,/data-command="zero.chooseRepository"/,'Signed-out students can still use repository actions');assert.match(webview.html,/>student\/app /);assert.match(webview.html,/Current branch: main/);
+  nextChoice='open';await commands.get('zero.chooseRepository')();assert.equal(opened.at(-1).url,'https://github.com/student/app');
+  const beforeSwitch=dispatched.length;nextChoice='switch';await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeSwitch,'Simulation does not switch a branch');
+  mode='live';checkout=async()=>{currentBranch='add-score';};const beforeSwitchAuth=authCalls.length;
+  let releaseCheckout;checkoutGate=new Promise(resolve=>{releaseCheckout=resolve;});
+  const switching=commands.get('zero.chooseRepository')();await settle(()=>dispatched.at(-1)==='git.checkout');
+  const pendingDispatches=dispatched.length;await commands.get('zero.cloneRepository')();await commands.get('zero.switchBranch')();assert.equal(dispatched.length,pendingDispatches,'Native checkout holds the operation lock');
+  releaseCheckout();await switching;checkoutGate=undefined;
+  assert.equal(authCalls.length,beforeSwitchAuth,'Local switching works signed out');assert.match(webview.html,/>Switched to add-score<\/p>/);assert.match(webview.html,/Current branch: add-score/);
+  const beforeCancel=notices.length;checkout=undefined;await commands.get('zero.switchBranch')();assert.equal(notices.length,beforeCancel,'Cancel creates no success popup');
+  nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(!picks.at(-1).items.some(item=>item.action==='start'),'New branch follows the existing main-only workflow');
+  nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['copy'],'A cloned tutorial cannot be offered a rejected origin replacement');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','start','switch','clone'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['tutorial','clone'],'An uncloned tutorial offers the supported creation and cloning path');

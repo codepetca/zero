@@ -200,22 +200,22 @@ test('pending native connect prevents a duplicate and disposal ignores its late 
 });
 
 
-test('visible tutorial and clone actions work without a project or GitHub session and native clone stays serialized', async t=>{
+test('tutorial and repository menu work without a project or GitHub session and native clone stays serialized', async t=>{
   let finishClone;
-  const f=await fixture(t,{empty:true,execute:async id=>{
+  const f=await fixture(t,{empty:true,pick:async items=>{assert.deepEqual(items.map(item=>item.action),['tutorial','clone']);return items.find(item=>item.action==='clone');},execute:async id=>{
     if(id==='git.clone')await new Promise(resolve=>{finishClone=resolve;});
   }});
   assert.match(f.webview.html,/data-command="zero.startProject"[^>]*>Start tutorial<\/button>/);
-  assert.match(f.webview.html,/data-command="zero.cloneRepository"[^>]*>Clone repository<\/button>/);
+  assert.match(f.webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"/);
   const authBefore=f.authCalls.length;
-  const clone=f.commands.get('zero.cloneRepository')();await settle(()=>finishClone);
-  assert.match(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  const clone=f.commands.get('zero.chooseRepository')();await settle(()=>finishClone);
+  assert.match(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
   assert.match(f.webview.html,/data-command="zero.startProject"[^>]*disabled/);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();await f.commands.get('zero.signInToGitHub')();
   assert.equal(f.calls.filter(([id])=>id==='git.clone').length,1);
   finishClone();await clone;
   assert.equal(f.authCalls.length,authBefore);assert.equal(f.errors.length,0);
-  assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
   assert.doesNotMatch(f.webview.html,/Cloned|Repository cloned/,'Native cancellation cannot imply clone success');
 });
 
@@ -224,7 +224,7 @@ test('native clone failures explain recovery and cancellation releases the busy 
   const f=await fixture(t,{empty:true,execute:async id=>{if(id==='git.clone'&&failure)throw failure;}});
   await f.commands.get('zero.cloneRepository')();
   assert.match(f.errors.at(-1),/Git: Clone.*Git is installed.*built-in Git extension.*Clone repository again/);
-  assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
   failure=Object.assign(new Error('Cancelled'),{name:'Canceled'});const before=f.errors.length;
   await f.commands.get('zero.cloneRepository')();assert.equal(f.errors.length,before);
   failure=undefined;await f.commands.get('zero.cloneRepository')();assert.equal(f.errors.length,before);
@@ -245,7 +245,7 @@ test('tutorial creation releases the shared busy guard after opening GitHub and 
   assert.match(f.calls.find(([id])=>id==='openExternal')[1].value,/^https:\/\/github.com\/codepetca\/zero-tutorial-greeting\/generate$/);
   assert.equal(f.notices.length,1,'Opening GitHub must not trigger another modal or notification');
   assert.match(f.notices[0].choices[0].detail,/YOUR new repository URL.*Return to Zero and choose Clone repository/);
-  assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
   assert.equal(f.calls.filter(([id])=>id==='git.clone').length,0,'Creating a repository never starts cloning automatically');
   await f.commands.get('zero.cloneRepository')();
   assert.deepEqual(f.calls.filter(([id])=>id==='git.clone'),[['git.clone']],'No template URL is prefilled for cloning');

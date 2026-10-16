@@ -15,6 +15,14 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
+- Put **Sign in** or the clickable GitHub username above the repository control.
+  Account actions use native VS Code account controls, including sign out.
+  Show the connected **owner/repository** in a repository dropdown even when
+  signed out, or **Repository** when unconnected. Put **Clone repository**,
+  open/copy/connect/create actions and **New branch / Switch branch** in that
+  menu as applicable. Keep the current branch visible; **Commit & push** and
+  **Merge to main** stay direct buttons. Do not duplicate Clone or New branch
+  as standalone sidebar actions. Local practice retains its sharing restriction.
 - Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
   Entering a branch name or commit message proceeds directly; clicking Merge to
   main starts its guarded operation. Do not add routine confirmation dialogs.
