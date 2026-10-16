@@ -22,7 +22,11 @@ and check acceptance/access. Publishing a public game remains optional.
    your personal account as the owner, give the project your own name and follow
    your teacher's visibility instructions. Create the repository.
 2. In **your new repository**, choose **Code → HTTPS** and copy its URL.
-   In a terminal, clone it into a folder outside any other Git repository:
+   Return to Zero and choose **Clone repository** in the sidebar. Paste your
+   URL and choose a destination outside any other Git repository. When VS Code
+   offers to open the clone, choose **Open in New Window**.
+
+   Terminal alternative with your own username and project name:
 
    ```sh
    git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git
@@ -33,7 +37,7 @@ and check acceptance/access. Publishing a public game remains optional.
    in macOS Terminal and Windows PowerShell when Git is installed.
 3. Open that cloned root folder in Zero and choose **Run App**. Your repository
    already contains the starting files on main; its origin points to your own
-   repository. Connect that same repository in Zero if prompted.
+   repository. Check that Zero shows your own repository.
 4. In the README, describe who your project is for, what it should do and the
    first small feature you will build. Upload this plan on main before starting
    a change branch. Follow [repository setup](GETTING-STARTED.md#your-github-repository)
@@ -48,12 +52,17 @@ when you are ready to upload. Students develop and submit their own repositories
 ## Tutorial repositories
 
 The continuing tutorials use three empty templates: Greeting for lessons0–2,
-Study for3–7 and Game for8–12. At each group's first lesson, choose its verified
-Use template action, create your own repository, then clone your repository using
-**Git: Clone** in VS Code or `git clone` with your own HTTPS URL. Do not clone the
-teacher's shared repository directly. Open the clone's root folder in Zero.
-These new tutorial templates require publication before the candidate is released;
-pending templates are unavailable rather than presented as working links.
+Study for3–7 and Game for8–12. At each group's first lesson, choose **Start
+tutorial** in Zero’s sidebar and select the matching project, or choose the
+lesson page’s verified **Use template** action. On GitHub, choose **Use this
+template → Create a new repository** in your own account. Copy **your new
+repository**’s **Code → HTTPS** URL, then return to Zero and choose **Clone
+repository** in the sidebar. Paste your URL and choose a destination outside any
+other Git repository. Choose **Open in New Window** when VS Code offers to open
+the clone. Do not clone the teacher's shared repository directly. Open
+`src/main/java/Main.java`, write the lesson’s ordinary Java and choose **Run App**.
+Template links follow verified publication metadata; unavailable templates show
+that state rather than an invented working link.
 
 Sign in through Zero for uploads, check the connected account/repository, and
 configure Git name/email in each repository. Personalize README, then Upload that

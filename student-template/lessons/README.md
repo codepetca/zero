@@ -23,13 +23,17 @@ Git 2.31+, school access and teacher-approved repository visibility. Use Private
 unless teacher/school policy says otherwise, invite your teacher as a collaborator
 on each repository, and verify their access. Publishing a public playable game
 is optional; tutorial uploads do not require buying a plan or making source public.
-At lessons **0, 3 and 8**, use **Use template** on the tutorial page or choose
-**Zero: Start project**. Create a repository in **your own account**, then use
-**Git: Clone** in VS Code to clone **your repository** and open its root folder.
+At lessons **0, 3 and 8**, choose **Start tutorial** in Zero’s sidebar and select
+the matching project, or use **Use template** on the tutorial page. On GitHub,
+choose **Use this template → Create a new repository** in **your own account**.
+Copy **your repository**’s **Code → HTTPS** URL, return to Zero and choose
+**Clone repository** in the sidebar. Paste your URL, choose a destination outside
+any other Git repository, then choose **Open in New Window** when VS Code offers
+to open the clone.
 Do not clone Zero's shared template directly. There is no tutorial project ZIP
-or local-only folder path in this candidate. The new templates still require
-verified publication before this candidate is released; unavailable templates
-show that state instead of an invented working link.
+or local-only folder path in this candidate. Template links follow verified
+publication metadata; unavailable templates show that state instead of an
+invented working link.
 
 Each template has an empty runnable `Main.java` and build/framework setup.
 The first run opens a blank browser preview or canvas. You write the controls,

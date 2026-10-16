@@ -28,7 +28,16 @@ test("all three starting lessons require a template and clone of the student's o
     assert.match(html, /create a repository under your own GitHub account/);
     assert.match(html, /your new repository/);
     assert.match(html, /Code → HTTPS/);
-    assert.match(html, /Git: Clone/);
+    assert.match(html, /Start tutorial<\/strong> → <strong>/);
+    assert.ok(html.includes(`<strong>${project.title}</strong> to open the matching template`));
+    assert.match(html, /Use this template → Create a new repository/);
+    assert.match(html, /reuses your GitHub connection; choose Connect GitHub if prompted/);
+    assert.match(html, /Return to Zero.*Clone repository/);
+    assert.match(html, /Paste your URL, choose a destination outside any other Git repository/);
+    assert.match(html, /Open in New Window/);
+    assert.match(html, /src\/main\/java\/Main.java/);
+    assert.match(html, /ordinary Java/);
+    assert.doesNotMatch(html, /Git: Clone|Command Palette/);
     assert.match(html, /your new repository<\/strong>.*Code → HTTPS/);
     assert.match(html, /empty Main/);
     assert.doesNotMatch(html, /Template not available yet|\.zip|download=|Unzip|Create an empty repository/);
@@ -53,7 +62,7 @@ test("every lesson uses the live branch, run, upload and finish workflow with lo
     const actions = ["New branch", "Run App", "Upload changes", "Finish change"];
     let previous = -1;
     for (const action of actions) {
-      const position = html.indexOf(`<strong>${action}</strong>`);
+      const position = html.indexOf(`<strong>${action}</strong>`, previous + 1);
       assert.ok(position > previous, `${lesson}: ${action} stays in workflow order`);
       previous = position;
     }
@@ -65,7 +74,7 @@ test("every lesson uses the live branch, run, upload and finish workflow with lo
     if (!["0", "3", "8"].includes(lesson)) {
       assert.match(html, /Continue your .* project in the same cloned repository/);
       assert.ok(html.includes(`href="/tutorials/${projectForLesson(lesson).firstLesson}"`));
-      assert.doesNotMatch(html, /Use template|Git: Clone|has not been published/);
+      assert.doesNotMatch(html, /Use template|Start tutorial|Clone repository|has not been published/);
     }
   }
 });

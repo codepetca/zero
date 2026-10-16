@@ -178,3 +178,18 @@ native welcome/consent controls, allow Later, and keep local Run available.
 
 Restore Mac Silicon and Windows ZIP download buttons on Home. Reuse the verified
 Downloads component and release availability rules. Desktop GitHub welcome remains.
+
+## Sidebar onboarding and density exploration — owner request, 2026-10-16
+
+Expose Start tutorial and Clone repository in the existing sidebar. Start tutorial
+retains its stable command ID; Clone repository opens supported native Git controls.
+Keep the existing two-view controls/Files structure for this functional update.
+
+Three visual density concepts are proposals pending selection: compact grouped
+controls, flatter controls without GitHub/ZeroHub headings, and one continuous
+controls/file-list view. The last requires integrating the file list into one
+supported view rather than hiding VS Code host chrome. Detailed logs belong in
+Zero Output/Problems with concise recoverable feedback retained in the sidebar;
+no large status/headings/collapsible overhaul is approved by generating concepts.
+Actual screenshot and concept paths are recorded in the ignored
+.verification/sidebar-onboarding-20261016/design-options.json receipt.

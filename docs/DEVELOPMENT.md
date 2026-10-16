@@ -257,3 +257,8 @@ browser-first Run App, deployment-only publishing kit and strict resolved-API
 gate. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.
+
+The sidebar exposes Start tutorial (`zero.startProject`, stable command ID) and
+Clone repository (`zero.cloneRepository`). Clone delegates to VS Code’s built-in
+`git.clone`; native Git owns authentication, URL/destination selection and opening.
+Website/tutorial instructions use the visible sidebar labels.

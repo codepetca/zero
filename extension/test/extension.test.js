@@ -146,6 +146,13 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.match(webview.html,/&lt;img src=x onerror=&quot;bad&quot;&gt;/);assert.doesNotMatch(webview.html,/<img|PRIVATE/,'Account labels must be escaped and tokens excluded');
   session=undefined;authEvent({provider:{id:'github'}});await settle(()=>/Sign in to GitHub/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
   assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/,'Signed-out view only offers sign-in; local remote remains unchanged');
+  await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
+  nextChoice=undefined;await commands.get('zero.chooseRepository')();
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['copy'],'A cloned tutorial cannot be offered a rejected origin replacement');
+  repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
+  await commands.get('zero.chooseRepository')();
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['tutorial','clone'],'An uncloned tutorial offers the supported creation and cloning path');
+  nextChoice='clone';await commands.get('zero.chooseRepository')();assert.equal(dispatched.at(-1),'git.clone');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });
 
@@ -155,4 +162,6 @@ test("Zero controls and Files remain separate native views with minimal overflow
   assert.equal(manifest.contributes.views.zero[0].name,"Zero");
   assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup"]);
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
+  assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startProject").title,"Zero: Start Tutorial");
+  assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.cloneRepository").title,"Zero: Clone Repository");
 });

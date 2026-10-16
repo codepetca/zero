@@ -6,12 +6,15 @@ core **0.1.3**. Published downloads keep their own bundled instructions.
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
-Choose **Zero: Start project** to open each tutorial template once. Create your
-own GitHub repository from it, clone your repository, then keep that clone and
-add your own code across its lessons. Each template contains only empty Main
+Choose **Start tutorial** in Zero’s sidebar to open each matching tutorial
+template once. On GitHub, use **Use this template → Create a new repository**
+to create your own repository. Copy its **Code → HTTPS** URL, return to Zero and
+choose **Clone repository** in the sidebar. Paste your URL, choose a destination
+outside any other Git repository, then choose **Open in New Window** when VS Code
+offers to open the clone. Keep that clone and add your own code across its lessons. Each template contains only empty Main
 and build/framework setup. Tutorial repositories use New branch, Run App,
-Upload changes and Finish change, like original coursework projects. These new
-tutorial templates need verified publication before this candidate is released.
+Upload changes and Finish change, like original coursework projects. Template links
+follow verified publication metadata; unavailable templates show that state.
 Run App checks and compiles your Java locally, then opens Zero’s browser preview.
 After editing, click Run App again; Zero saves your files and stops the previous
 preview before rebuilding. The default build shortcut is
@@ -102,7 +105,7 @@ artifact code do not make those platforms supported in this MVP.
 
 Use the installed starter's **Run App** once to check setup: it opens a short
 Hello, world! demonstration in the browser preview. Then choose
-**Zero: Start project → Greeting app**
+**Start tutorial → Greeting app** in Zero’s sidebar
 to begin [Lesson 0](lessons/00-hello-world.md) with your own empty Main. Write the
 label, then continue lessons 1 and 2 in that same Greeting folder.
 
@@ -193,8 +196,8 @@ component base class, scene routing, or object discovery.
 ## Try an example
 
 The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
-**Start project** at lessons 0, 3 and 8 to create your own repository from the
-matching empty template and clone it. Keep the same Greeting, Study or Game
+**Start tutorial** in Zero’s sidebar at lessons 0, 3 and 8 to create your own
+repository from the matching empty template and clone it. Keep the same Greeting, Study or Game
 repository for its following lessons. Students write
 their own controls and classes; lesson 12 offers only optional image/sound assets. Some reference examples use native JavaFX APIs outside the browser subset;
 Run App reports unsupported calls, and the native diagnostic remains available.

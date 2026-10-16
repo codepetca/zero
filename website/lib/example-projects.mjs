@@ -52,7 +52,11 @@ function templateSetup(template) {
    repository**. Select your personal account as owner, choose your own project
    name and follow your teacher's visibility instructions.
 2. Open the repository you just created in your own account. Choose **Code →
-   HTTPS** and copy its URL. Clone your own repository into a new local folder:
+   HTTPS** and copy its URL. In Zero’s sidebar, choose **Clone repository**,
+   paste your URL and choose a destination outside any other Git repository.
+   Choose **Open in New Window** when VS Code offers to open the clone.
+
+Terminal alternative with your own account and repository name:
 
 \`\`\`sh
 git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git

@@ -127,10 +127,10 @@ test('Start project cancels cleanly, explains unpublished templates, and opens o
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(item=>item.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:root});
   await commands.get('zero.startProject')();assert.equal(errors.length,0);assert.equal(opened.length,0);
-  choose=true;await commands.get('zero.startProject')();assert.match(errors.at(-1),/not published yet.*Git: Clone/);assert.equal(opened.length,0);
+  choose=true;await commands.get('zero.startProject')();assert.match(errors.at(-1),/not published yet.*Clone repository/);assert.equal(opened.length,0);
   bundle.projects[0].template={repository:'codepetca/zero-tutorial-greeting',repositoryUrl:'https://github.com/codepetca/zero-tutorial-greeting',templateHref:'https://github.com/codepetca/zero-tutorial-greeting/generate'};
   await fs.writeFile(bundlePath,JSON.stringify(bundle));
-  await commands.get('zero.startProject')();assert.equal(opened.length,0);assert.match(messages.at(-1).options.detail,/YOUR new repository URL.*Git: Clone/);
+  await commands.get('zero.startProject')();assert.equal(opened.length,0);assert.match(messages.at(-1).options.detail,/YOUR new repository URL.*Clone repository/);
   approve=true;await commands.get('zero.startProject')();assert.deepEqual(opened,['https://github.com/codepetca/zero-tutorial-greeting/generate']);
   bundle.projects[0].template.templateHref='https://github.com/attacker/template/generate';await fs.writeFile(bundlePath,JSON.stringify(bundle));
   await commands.get('zero.startProject')();assert.match(errors.at(-1),/invalid published template metadata/);assert.equal(opened.length,1);

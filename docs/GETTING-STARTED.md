@@ -19,8 +19,14 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 2. In desktop Zero, choose **Connect GitHub** if prompted. VS Code reuses an
    authorized connection or guides sign-in and permission. If you need an account,
    create it on GitHub and verify your email, then return to connect.
-3. Start your tutorial project from its template, clone your own repository and
-   open it in Zero. Follow lesson 0.
+3. Choose **Start tutorial** in Zero’s sidebar and select **Greeting app**.
+   On GitHub, choose **Use this template → Create a new repository** under your
+   own account. Copy **your new repository**’s **Code → HTTPS** URL.
+4. Return to Zero and choose **Clone repository** in the sidebar. Paste your
+   URL and select a destination outside any other Git repository. Choose
+   **Open in New Window** when VS Code offers to open the clone.
+5. Open `src/main/java/Main.java`, write the ordinary Java from lesson 0 and
+   choose **Run App**. Keep this repository for the following Greeting lessons.
 
 Zero needs no separate account. **Later** leaves local Run available. To return
 to setup, use **Zero: Get Started** from VS Code's Command Palette.
@@ -174,10 +180,10 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In this candidate, **Zero: Start project** opens the matching verified template
-path; it does not create a local-only practice folder. The three tutorial templates
-still need authorized publication before this candidate can be released. An
-unavailable template shows a specific message rather than a guessed download.
+In this candidate, **Start tutorial** in Zero’s sidebar opens the matching
+verified template path; it does not create a local-only practice folder. Template
+links follow verified publication metadata. An unavailable template shows a
+specific message rather than a guessed download.
 Older published kits keep their bundled local-practice behavior. New tutorials
 have no project-ZIP alternative. Read [the lesson guide](../student-template/lessons/README.md)
 for the three groups. Original ZeroHub contributions remain separate from tutorial exercises.

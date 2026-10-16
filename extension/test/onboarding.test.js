@@ -14,7 +14,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, externalResult=true, empty=false, profile, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined}={}) {
+async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, externalResult=true, empty=false, profile, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):'{}');
@@ -31,7 +31,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
     workspace:{workspaceFolders:empty?[]:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},openTextDocument:async uri=>({uri}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
     window:{tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
-    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);}},
+    commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
     Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
@@ -190,4 +190,57 @@ test('pending native connect prevents a duplicate and disposal ignores its late 
   await f.commands.get('zero.signInToGitHub')();assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1);
   const before=f.notices.length;f.subscriptions.forEach(item=>item.dispose());complete({id:'late',account:{id:'late',label:'late'},accessToken:'MOCK_ONLY'});await first;
   assert.equal(f.errors.length,0);assert.equal(f.notices.length,before);assert.doesNotMatch(f.webview.html,/Signed in as late/);
+});
+
+
+test('visible tutorial and clone actions work without a project or GitHub session and native clone stays serialized', async t=>{
+  let finishClone;
+  const f=await fixture(t,{empty:true,execute:async id=>{
+    if(id==='git.clone')await new Promise(resolve=>{finishClone=resolve;});
+  }});
+  assert.match(f.webview.html,/data-command="zero.startProject"[^>]*>Start tutorial<\/button>/);
+  assert.match(f.webview.html,/data-command="zero.cloneRepository"[^>]*>Clone repository<\/button>/);
+  const authBefore=f.authCalls.length;
+  const clone=f.commands.get('zero.cloneRepository')();await settle(()=>finishClone);
+  assert.match(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  assert.match(f.webview.html,/data-command="zero.startProject"[^>]*disabled/);
+  await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();await f.commands.get('zero.signInToGitHub')();
+  assert.equal(f.calls.filter(([id])=>id==='git.clone').length,1);
+  finishClone();await clone;
+  assert.equal(f.authCalls.length,authBefore);assert.equal(f.errors.length,0);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  assert.doesNotMatch(f.webview.html,/Cloned|Repository cloned/,'Native cancellation cannot imply clone success');
+});
+
+test('native clone failures explain recovery and cancellation releases the busy guard', async t=>{
+  let failure=new Error('Command git.clone not found');
+  const f=await fixture(t,{empty:true,execute:async id=>{if(id==='git.clone'&&failure)throw failure;}});
+  await f.commands.get('zero.cloneRepository')();
+  assert.match(f.errors.at(-1),/Git: Clone.*Git is installed.*built-in Git extension.*Clone repository again/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  failure=Object.assign(new Error('Cancelled'),{name:'Canceled'});const before=f.errors.length;
+  await f.commands.get('zero.cloneRepository')();assert.equal(f.errors.length,before);
+  failure=undefined;await f.commands.get('zero.cloneRepository')();assert.equal(f.errors.length,before);
+  assert.equal(f.calls.filter(([id])=>id==='git.clone').length,3);
+});
+
+test('tutorial creation releases the shared busy guard after opening GitHub and leaves cloning to the visible action', async t=>{
+  let finishPick;
+  const f=await fixture(t,{empty:true,pick:items=>new Promise(resolve=>{finishPick=()=>resolve(items[0]);}),information:(text,...choices)=>{
+    if(choices.includes('Open template'))return 'Open template';
+  }});
+  const authBefore=f.authCalls.length;
+  const start=f.commands.get('zero.startProject')();await settle(()=>finishPick);
+  await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();
+  assert.equal(f.calls.filter(([id])=>id==='git.clone').length,0);
+  finishPick();await start;
+  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
+  assert.match(f.calls.find(([id])=>id==='openExternal')[1].value,/^https:\/\/github.com\/codepetca\/zero-tutorial-greeting\/generate$/);
+  assert.equal(f.notices.length,1,'Opening GitHub must not trigger another modal or notification');
+  assert.match(f.notices[0].choices[0].detail,/YOUR new repository URL.*Return to Zero and choose Clone repository/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"[^>]*disabled/);
+  assert.equal(f.calls.filter(([id])=>id==='git.clone').length,0,'Creating a repository never starts cloning automatically');
+  await f.commands.get('zero.cloneRepository')();
+  assert.deepEqual(f.calls.filter(([id])=>id==='git.clone'),[['git.clone']],'No template URL is prefilled for cloning');
+  assert.equal(f.authCalls.length,authBefore);assert.deepEqual(f.errors,[]);
 });

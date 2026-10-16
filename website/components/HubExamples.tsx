@@ -56,9 +56,9 @@ export function HubExamples({snapshot, project}: {snapshot: {starter: ExamplePro
           <h3 id="clone-title">Clone your own project</h3>
           <ol>
             <li>Choose Use template. On GitHub, select your own account as the owner and create a repository with a name you choose.</li>
-            <li>In your new repository, choose Code → HTTPS and copy its URL. Clone it into a folder outside any other Git repository.</li>
+            <li>In your new repository, choose Code → HTTPS and copy its URL. In Zero’s sidebar, choose Clone repository, paste your URL and choose a destination outside any other Git repository. Choose Open in New Window when VS Code offers to open the clone.</li>
           </ol>
-          <p>In a terminal, replace the username and project name below with your own:</p>
+          <p>Terminal alternative: replace the username and project name below with your own:</p>
           <CodeBlock><code>{'git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git\ncd YOUR-PROJECT'}</code></CodeBlock>
           <p>Open that cloned folder in Zero and choose Run App. Your repository already contains the starting project on main.</p>
           <p className={styles.workflowHelp}>Using Download ZIP instead? Extract it into a new folder, then create and connect an empty repository in your own account and Upload the starting files.</p>
@@ -68,7 +68,7 @@ export function HubExamples({snapshot, project}: {snapshot: {starter: ExamplePro
           <p>{guide.challenge}</p>
           <ol>
             <li>{project.templateHref
-              ? 'In Zero, connect your own cloned repository. Personalize the README and Upload those changes on main before starting a branch.'
+              ? 'In Zero, check that your own cloned repository is open. Personalize the README and Upload those changes on main before starting a branch.'
               : 'Create an empty GitHub repository in your own account. In Zero, connect that repository and Upload the starting project to main.'}</li>
             <li>Choose New branch to create a branch for one small feature (Start a change in older kits).</li>
             <li>Edit your Java and update the README with what your project does. Run App and check the result.</li>

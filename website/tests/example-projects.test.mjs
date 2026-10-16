@@ -328,6 +328,9 @@ test("trusted templates clone the student's own repository and keep ZIP setup se
     assert.match(clone, /Create a new\n   repository/);
     assert.match(clone, /personal account as owner/);
     assert.match(clone, /Code →\n   HTTPS/);
+    assert.match(clone, /Zero’s sidebar, choose \*\*Clone repository\*\*/);
+    assert.match(clone, /paste your URL and choose a destination outside any other Git repository/);
+    assert.match(clone, /Open in New Window/);
     assert.match(clone, /git clone https:\/\/github.com\/YOUR-USERNAME\/YOUR-PROJECT.git\ncd YOUR-PROJECT/);
     assert.match(clone, /Open that cloned root folder in Zero/);
     assert.match(clone, /baseline on \*\*main\*\*/);

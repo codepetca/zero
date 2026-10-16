@@ -32,6 +32,7 @@ function activate(context) {
   let runGeneration = 0;
   let uploading = false;
   let connecting = false;
+  let startingTutorial = false;
   let signingIn = false;
   let disposed = false;
   context.subscriptions.push({dispose() { disposed = true; }});
@@ -44,7 +45,7 @@ function activate(context) {
   let publishingWeb = false;
   let branch = '';
   let statusGeneration = 0;
-  const isBusy = () => uploading || connecting || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb || browserBusy;
+  const isBusy = () => uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
@@ -373,9 +374,17 @@ function activate(context) {
     },
     'zero.chooseRepository': async () => {
       if (isBusy()) return;
-      await lessonProjects.assertShareable(await project());
+      const root = await project();
+      await lessonProjects.assertShareable(root);
+      const tutorial = await lessonProjects.tutorialMarker(root);
+      if (isBusy()) return;
       const connected = repository.startsWith('https://github.com/');
-      const choice = await quickPick(connected ? [
+      const choice = await quickPick(tutorial ? (connected ? [
+        {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'}
+      ] : [
+        {label:'Start tutorial…', description:'Create your own repository from a tutorial template', action:'tutorial'},
+        {label:'Clone repository…', description:'Open your own repository with native Git', action:'clone'}
+      ]) : connected ? [
         {label:'Copy repository link', description:'Submit the link separately in Pika', action:'copy'},
         {label:'Connect another repository…', action:'connect'}
       ] : [
@@ -383,6 +392,8 @@ function activate(context) {
         {label:'Connect an existing repository…', action:'connect'}
       ], {title:connected ? repository : 'Connect a repo', placeHolder:'Choose a repository action'});
       if (isBusy()) return;
+      if (choice?.action === 'tutorial') await actions['zero.startProject']();
+      if (choice?.action === 'clone') await actions['zero.cloneRepository']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
       if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
       if (choice?.action === 'create') {
@@ -422,14 +433,30 @@ function activate(context) {
       }
     },
     'zero.startProject': async () => {
-      const projects = await lessonProjects.loadBundle(context.extensionPath || path.resolve(__dirname,'..'));
-      const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]} · your GitHub repository`, project:item})), {title:'Start project', placeHolder:'Choose a tutorial repository to create and clone'});
-      if (!choice) return;
-      if (!choice.project.template) throw new Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available, then create YOUR repository from that template and use VS Code Git: Clone. No local project was created.`);
-      const template = choice.project.template;
-      const next = await vscode.window.showInformationMessage('Create your own tutorial repository, then clone it', {modal:true, detail:`On GitHub, use this template to create a repository under your own account. Copy YOUR new repository URL. Return to VS Code, run Git: Clone, paste that URL, and open the cloned folder.\n\n${template.repositoryUrl}`}, 'Open template');
-      if (next !== 'Open template') return;
-      if (!await vscode.env.openExternal(vscode.Uri.parse(template.templateHref))) throw new Error('Could not open the published tutorial template. Try Start project again.');
+      if (disposed || isBusy()) return;
+      startingTutorial = true; refresh();
+      try {
+        const projects = await lessonProjects.loadBundle(context.extensionPath || path.resolve(__dirname,'..'));
+        if (disposed) return;
+        const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]} · your GitHub repository`, project:item})), {title:'Start tutorial', placeHolder:'Choose a tutorial repository to create and clone'});
+        if (disposed || !choice) return;
+        if (!choice.project.template) throw new Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available, then create YOUR repository from that template and choose Clone repository in Zero. No local project was created.`);
+        const template = choice.project.template;
+        const next = await vscode.window.showInformationMessage('Create your own tutorial repository, then clone it', {modal:true, detail:`On GitHub, use this template to create a repository under your own account. Copy YOUR new repository URL. Return to Zero and choose Clone repository, paste that URL, and open the cloned folder.\n\n${template.repositoryUrl}`}, 'Open template');
+        if (disposed || next !== 'Open template') return;
+        if (!await vscode.env.openExternal(vscode.Uri.parse(template.templateHref))) throw new Error('Could not open the published tutorial template. Try Start tutorial again.');
+      } finally {startingTutorial = false; if (!disposed) refresh();}
+    },
+    'zero.cloneRepository': async () => {
+      if (disposed || isBusy()) return;
+      connecting = true; refresh();
+      try {
+        // VS Code owns the URL/destination pickers, authentication and opening.
+        // A cancelled native picker is a normal completion, not clone success.
+        await vscode.commands.executeCommand('git.clone');
+      } catch (error) {
+        if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') throw new Error('Could not open Git: Clone. Check that Git is installed and VS Code’s built-in Git extension is enabled, then choose Clone repository again.');
+      } finally {connecting = false; if (!disposed) refresh();}
     },
     'zero.browseZeroHub': async () => {
       if (isBusy()) return;
@@ -502,7 +529,8 @@ function activate(context) {
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Upload changes</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const publishControl = `<button class="link" data-command="zero.publishWeb" ${disabled || (!auth.signedIn || !connected ? 'disabled' : '')} title="${auth.signedIn && connected ? 'Publish your uploaded app to GitHub Pages' : 'Sign in and connect your repository to publish'}">Publish app</button>`;
-    const githubPanel = localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `<div class="github-header"><strong>GitHub</strong>${account}</div>${repoControl}${repositoryWarning}${branchControl}${githubActions}${publishControl}`;
+    const tutorialActions = `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button><button class="link" data-command="zero.cloneRepository" ${disabled}>Clone repository</button>`;
+    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${tutorialActions}` : `<div class="github-header"><strong>GitHub</strong>${account}</div>${tutorialActions}${repoControl}${repositoryWarning}${branchControl}${githubActions}${publishControl}`;
     webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">
       ${sidebarStyles()}
       </style></head><body><div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div><p class="muted status" role="status" aria-live="polite">${escape(state)}</p>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button>' : ''}</div><section class="repository">${githubPanel}</section><section class="repository"><strong>ZeroHub</strong><button class="secondary hub" data-command="zero.browseZeroHub" ${disabled}>${icon('Blocks')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section><script nonce="${nonce}">const api=acquireVsCodeApi();document.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>api.postMessage({command:button.dataset.command})));</script></body></html>`;

@@ -5,15 +5,18 @@ export function TutorialProject({ project, lesson, template, assets }) {
   return <section className="lesson-start" aria-label={`${project.title} project`}>
     {starting ? <>
       <h3>Start your {project.title} repository</h3>
-      <p>Launch Zero and connect GitHub there before starting. <a href="/downloads">Download Zero</a> · <a href="/docs/setup#before-lesson-0-github-and-privacy">Account and privacy help</a>.</p>
+      <p>Launch Zero. It reuses your GitHub connection; choose Connect GitHub if prompted. <a href="/downloads">Download Zero</a> · <a href="/docs/setup#before-lesson-0-github-and-privacy">Account and privacy help</a>.</p>
       {template ? <a className="button" href={template.templateHref}>Use template</a> :
         <p><strong>Template not available yet.</strong> The {project.title} tutorial template has not been published.
           Ask your teacher for the published tutorial template, or continue in your own already-cloned repository.</p>}
       <ol>
-        <li>{template ? 'Choose Use template' : 'When available, choose Use template'} and create a repository under your own GitHub account.</li>
+        <li>In Zero&apos;s sidebar, choose <strong>Start tutorial</strong> → <strong>{project.title}</strong> to open the matching template.
+          {' '}{template ? 'You can also choose Use template above.' : 'Continue when the template is available.'}
+          {' '}On GitHub, choose <strong>Use this template → Create a new repository</strong> and create a repository under your own GitHub account.</li>
         <li>Copy <strong>your new repository</strong>&apos;s <strong>Code → HTTPS</strong> URL.
-          Use VS Code&apos;s <strong>Git: Clone</strong> to clone it outside any other Git repository, then open that folder.</li>
-        <li>Start with its empty Main and keep this repository for lessons {project.lessons[0]}–{project.lessons.at(-1)}.</li>
+          Return to Zero&apos;s sidebar and choose <strong>Clone repository</strong>. Paste your URL, choose a destination outside any other Git repository,
+          then choose <strong>Open in New Window</strong> when VS Code offers to open the clone.</li>
+        <li>Open <code>src/main/java/Main.java</code>, write the lesson&apos;s ordinary Java, then choose <strong>Run App</strong>. Start with its empty Main and keep this repository for lessons {project.lessons[0]}–{project.lessons.at(-1)}.</li>
       </ol>
       {template && <p><a href={template.repositoryUrl}>View tutorial template</a></p>}
     </> : <>

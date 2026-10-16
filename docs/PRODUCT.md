@@ -137,14 +137,15 @@ ScoreDisplay source. No component/screen base
 class, registration system or new engine is required. Packages, interfaces,
 JavaFX properties and other JavaFX features remain available as later lessons.
 
-Start project supplies only empty Main boilerplate and build/framework setup.
+Start tutorial supplies only empty Main boilerplate and build/framework setup.
 There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Website start
 buttons appear at 0, 3 and 8; later pages say to continue the existing project.
 Before lesson 0, students complete account/privacy setup: their own verified GitHub
 account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
 repository visibility/commit identity. Tutorial source can stay private with teacher
-collaborator access; public game publishing remains optional. The native Start
-project command opens the matching verified tutorial template.
+collaborator access; public game publishing remains optional. The visible
+**Start tutorial** sidebar action opens the matching verified tutorial template. After creating their own repository, students choose the visible
+**Clone repository** action; VS Code owns its URL/destination/opening controls.
 Students create a repository in their own account, then clone their repository;
 there is no local-folder or project-ZIP tutorial alternative. Completed teacher
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
@@ -239,7 +240,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 - The first lesson opens once per project when the editor is empty; Open First
   Lesson in the view menu or Command Palette reopens it. An explicit command
   opens the hosted tutorials when no bundled lesson exists; idle activation and
-  Run do not invoke that fallback. Start project remains in the Command Palette.
+  Run do not invoke that fallback. Start tutorial and Clone repository are visible
+  in the sidebar and remain in the Command Palette.
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools
   have setup help; GitHub sign-in does not block local running.

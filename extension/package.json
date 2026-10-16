@@ -17,7 +17,8 @@
     "workspaceContains:zero.json",
     "workspaceContains:student-template/zero.json",
     "onTaskType:zero",
-    "onCommand:zero.startProject"
+    "onCommand:zero.startProject",
+    "onCommand:zero.cloneRepository"
   ],
   "scripts": {
     "test": "node --test",
@@ -43,7 +44,11 @@
       },
       {
         "command": "zero.startProject",
-        "title": "Zero: Start Project"
+        "title": "Zero: Start Tutorial"
+      },
+      {
+        "command": "zero.cloneRepository",
+        "title": "Zero: Clone Repository"
       },
       {
         "command": "zero.githubAccount",
