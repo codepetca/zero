@@ -1,7 +1,7 @@
 # Zero 0.5.16 release preparation
 
 Status: **local preview, not a student release**. Kit/extension0.5.16/core0.1.3
-are retained for isolated testing. Another chat reserved stable0.5.17/native17/
+are retained for isolated testing. Another chat published stable0.5.17/native17/
 core0.2.0 for its separately authorized App/GameApp release; this browser feature
 must advance beyond those versions before release. This branch preserves prior
 sealed public assets and does not publish or overwrite that chat’s artifacts.

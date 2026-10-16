@@ -8,10 +8,12 @@ Overall release remains incomplete; no new goal/task/automation.
 
 Authority: owner approved tutorial templates/private armorup trials and this compact
 sidebar/website follow-up. No feature source push/merge, website/Zero release/signing,
-new public game or ZeroHub activation authority added. Another chat reserved stable
+new public game or ZeroHub activation authority added. Another chat published stable
 0.5.17/native17/core0.2.0 for its separately authorized two-helper API release; our
 future browser feature release must advance beyond those versions and coordinate
-final pins. Do not overwrite its artifacts or claim its release includes this work.
+final pins. Independently verified public v0.5.17 metadata (3assets, target3a43f4c)
+and merged metadata PR70/e8e25cc; this phase did not reverify its DMG/signatures.
+Do not overwrite its artifacts or claim that release includes this work.
 
 Reviewed source e4e9629: initial19-file onboarding2e91259, complete40-file selected
 layout642a2f4 and8-file correction covered independently. One supported zero.actions
@@ -50,7 +52,8 @@ local Main changed;20tracked files/all7helpers canonical. Prior Study/Game Main
 hashes exactly preserved; original Greeting trial remains prior API and stopped.
 No fresh signup/grant, live push/merge or Pages/ZeroHub publication repeated.
 
-Website candidate localhost62570 has two platform buttons, correct0/3/8 template
+Website candidate localhost62570 was checked; the owned test server is stopped.
+It has two platform buttons, correct0/3/8 template
 links, continuation9 and matching Git/sidebar instructions. Hosted site and public
 template READMEs still need aligned release updates; do not silently republish them.
 Before release: integrate/review final source+version/pins/CI, align desktop/site/

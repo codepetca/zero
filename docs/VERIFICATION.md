@@ -41,8 +41,11 @@ website/student release, credentials or access grant. One authorized private tes
 repository was created. Native fresh signup/consent, live push/merge/Pages and
 physical Windows/clean installer/school/novice remain separate acceptance. Public
 template README Git wording and hosted website need the aligned release update.
-The separately coordinated stable0.5.17/native17/core0.2.0 reservation must be
-respected; this feature preview will use a later release version.
+The separately coordinated stable0.5.17/native17/core0.2.0 is now public. This
+coordinator independently verified public3asset metadata/target3a43f4c and merged
+[PR70/e8e25cc](https://github.com/codepetca/zero/pull/70); no new native binary/signature
+verification here. That release excludes these features; this preview must advance
+to a later version and integrate the new baseline before release.
 
 ## Installed Study/Game Clone → Run → Stop — 2026-10-16
 
