@@ -76,7 +76,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(error,/zero.showProblems/);
   const practice = sidebarSource('practice');
   assert.match(practice,/zero.browseZeroHub/);
-  assert.match(practice,/Local practice · no GitHub sharing/);
-  assert.match(practice,/data-command="zero.chooseRepository"/);
-  assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub|githubAccount)"/);
+  assert.match(practice,/>Sign in<\/button>/);
+  assert.doesNotMatch(practice,/data-command="zero.chooseRepository"/);
+  assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub)"/);
 });

@@ -8,6 +8,7 @@ const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
+const {createProjectFolders} = require('./project-folders');
 const {createWelcome} = require('./welcome');
 const {selectUploadAuthentication} = require('./web-publish-upload-auth');
 const {createTransport} = require('./transport');
@@ -64,11 +65,13 @@ function activate(context) {
   let localPractice = false;
   let originalWork = false;
   const project = async () => {
-    originalWork = false;
-    projectRoot = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));
-    localPractice = await lessonProjects.isLocalPractice(projectRoot);
-    originalWork = !localPractice && !await lessonProjects.tutorialMarker(projectRoot);
-    return projectRoot;
+    let root;
+    try {root = await core.resolveProject((vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath));}
+    catch(error) {projectRoot=undefined;localPractice=false;originalWork=false;throw error;}
+    const practice = await lessonProjects.isLocalPractice(root);
+    const original = !practice && !await lessonProjects.tutorialMarker(root);
+    projectRoot = root; localPractice = practice; originalWork = original;
+    return root;
   };
   const refresh = () => { if (view) render(view.webview); };
   const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
@@ -134,18 +137,13 @@ function activate(context) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  const auth = createAuthentication(vscode.authentication, refresh);
+  const projectFolders = createProjectFolders(vscode, {active:() => !disposed});
+  const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';refresh();});
   context.subscriptions.push(auth);
-  async function assertAccountAllowed() {
-    // Connecting a native account needs no project. Retain local-practice
-    // restrictions whenever a workspace is open, including damaged markers.
-    if (vscode.workspace.workspaceFolders?.length) await lessonProjects.assertShareable(await project());
-  }
   async function signIn(changeAccount = auth.signedIn) {
     if (disposed || isBusy()) return;
     signingIn = true; refresh();
     try {
-      await assertAccountAllowed();
       if (disposed) return;
       void vscode.window.showInformationMessage('VS Code will sign you into GitHub. Zero requests repository access (repo), including private repositories, so live uploads can use your chosen repository. VS Code stores the sign-in; Zero keeps no password or token file.');
       await auth.signIn(changeAccount);
@@ -361,7 +359,6 @@ function activate(context) {
     'zero.getStarted': () => welcome.show(true),
     'zero.githubAccount': async () => {
       if (isBusy()) return;
-      await assertAccountAllowed();
       if (!auth.signedIn) return actions['zero.signInToGitHub']();
       const choice = await quickPick([
         {label:'Change GitHub account…', action:'change'},
@@ -380,7 +377,7 @@ function activate(context) {
       }
     },
     'zero.chooseRepository': async () => {
-      if (isBusy()) return;
+      if (isBusy() || !auth.signedIn) return;
       await repositoryStatus();
       const root = projectRoot;
       const tutorial = root && !localPractice && await lessonProjects.tutorialMarker(root);
@@ -393,20 +390,21 @@ function activate(context) {
         ...(auth.signedIn ? [{label:'Publish app', action:'publish'}] : []),
         ...(branch === 'main' ? [{label:'New branch…', action:'start'}] : []),
         {label:'Switch branch…', action:'switch'},
-        ...(!tutorial ? [{label:'Connect another repository…', action:'connect'}] : [])
-      ] : !root || tutorial || localPractice ? [
-        {label:'Start tutorial…', action:'tutorial'}
+        ...(!tutorial ? [{label:'Connect to GitHub…', action:'connect'}] : [])
       ] : [
-        {label:'Create a repository…', description:'Open GitHub, then connect its link here', action:'create'},
-        {label:'Connect an existing repository…', action:'connect'}
+        ...(!root || tutorial || localPractice ? [] : [
+          {label:'Connect to GitHub…', action:'connect'},
+          {label:'Create a repository…', description:'Create on GitHub, then connect this project', action:'create'}
+        ])
       ];
-      items.push({label:'Clone repository…', action:'clone'});
-      const choice = await quickPick(items, {title:connected ? repository : 'Repository', placeHolder:'Choose a repository action'});
+      const projectChoices = [{label:'Clone from GitHub…', action:'clone'}, {label:'Open local project…', action:'local'}];
+      if (connected) items.push(...projectChoices); else items.unshift(...projectChoices);
+      const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project', placeHolder:'Choose a project action'});
       if (isBusy() || !choice) return;
       await repositoryStatus();
       if (isBusy() || projectRoot !== root || repository !== currentRepository || branch !== currentBranch) return;
-      if (choice?.action === 'tutorial') await actions['zero.startProject']();
       if (choice?.action === 'clone') await actions['zero.cloneRepository']();
+      if (choice?.action === 'local') await actions['zero.openLocalProject']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
       if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
       if (choice?.action === 'publish') await actions['zero.publishWeb']();
@@ -479,9 +477,9 @@ function activate(context) {
         if (disposed) return;
         const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]} · your GitHub repository`, project:item})), {title:'Start tutorial', placeHolder:'Choose a tutorial repository to create and clone'});
         if (disposed || !choice) return;
-        if (!choice.project.template) throw new Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available, then create YOUR repository from that template and choose Clone repository in Zero. No local project was created.`);
+        if (!choice.project.template) throw new Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available, then create YOUR repository from that template and choose Project → Clone from GitHub in Zero. No local project was created.`);
         const template = choice.project.template;
-        const next = await vscode.window.showInformationMessage('Create your own tutorial repository, then clone it', {modal:true, detail:`On GitHub, use this template to create a repository under your own account. Copy YOUR new repository URL. Return to Zero and choose Clone repository, paste that URL, and open the cloned folder.\n\n${template.repositoryUrl}`}, 'Open template');
+        const next = await vscode.window.showInformationMessage('Create your own tutorial repository, then clone it', {modal:true, detail:`On GitHub, use this template to create a repository under your own account. Copy YOUR new repository URL. Return to Zero and choose Project → Clone from GitHub, paste that URL, and open the cloned folder.\n\n${template.repositoryUrl}`}, 'Open template');
         if (disposed || next !== 'Open template') return;
         if (!await vscode.env.openExternal(vscode.Uri.parse(template.templateHref))) throw new Error('Could not open the published tutorial template. Try Start tutorial again.');
       } finally {startingTutorial = false; if (!disposed) refresh();}
@@ -490,12 +488,16 @@ function activate(context) {
       if (disposed || isBusy()) return;
       connecting = true; refresh();
       try {
-        // VS Code owns the URL/destination pickers, authentication and opening.
-        // A cancelled native picker is a normal completion, not clone success.
-        await vscode.commands.executeCommand('git.clone');
+        await projectFolders.clone();
       } catch (error) {
-        if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') throw new Error('Could not open Git: Clone. Check that Git is installed and VS Code’s built-in Git extension is enabled, then choose Clone repository again.');
+        if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') {output.appendLine(error.message);throw new Error('Could not clone this repository. Check the URL, GitHub access and built-in Git extension, then try Clone from GitHub again.');}
       } finally {connecting = false; if (!disposed) refresh();}
+    },
+    'zero.openLocalProject': async () => {
+      if (disposed || isBusy()) return;
+      connecting = true; refresh();
+      try {await projectFolders.openLocal();}
+      finally {connecting = false; if (!disposed) refresh();}
     },
     'zero.browseZeroHub': async () => {
       if (isBusy()) return;
@@ -563,17 +565,16 @@ function activate(context) {
     const connected = repository.startsWith('https://github.com/');
     const accountTitle = auth.signedIn ? `Signed in as ${auth.accountLabel}` : 'Sign in to GitHub';
     const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in'}</button>`;
-    const repoName = connected ? repository.slice('https://github.com/'.length) : 'Repository';
-    const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Repository actions')}" aria-label="${escape(`Repository: ${repoName}. Open repository actions`)}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>`;
-    const branchControl = connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
+    const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
+    const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>`;
+    const branchControl = auth.signedIn && connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
-    const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published?.root === projectRoot && published.account === auth.accountLabel && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
+    const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountLabel && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
-    const tutorialActions = projectRoot ? '' : `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>`;
-    const githubPanel = localPractice ? `<p class="muted">Local practice · no GitHub sharing</p>${repoControl}` : `${account}${tutorialActions}<div class="context-row">${repoControl}</div>${repositoryWarning}${branchControl}${githubActions}${publishedActions}`;
+    const githubPanel = !auth.signedIn ? account : `${account}<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
     const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {

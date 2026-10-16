@@ -15,14 +15,18 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
-- Put **Sign in** or the clickable GitHub username above the repository control.
-  Account actions use native VS Code account controls, including sign out.
-  Show the connected **owner/repository** in a repository dropdown even when
-  signed out, or **Repository** when unconnected. Put **Clone repository**,
-  **Publish app**, open/copy/connect/create actions and **New branch / Switch branch** in that
-  menu as applicable. Keep the current branch visible; **Commit & push** and
-  **Merge to main** stay direct buttons. Do not duplicate Clone or New branch
-  or Publish app as standalone sidebar actions. Local practice retains its sharing restriction.
+- When signed out, show only **Sign in** in the GitHub area; hide the project
+  dropdown and branch, while keeping local Run and files available. When signed
+  in, show the clickable username and **Project** dropdown, or the open folder
+  name / connected **owner/repository**. Account actions use native VS Code
+  controls. The menu offers **Clone from GitHub…** and **Open local project…**;
+  an eligible local project can **Connect to GitHub…**. Connected projects retain
+  branch actions and **Publish app** in the menu, with **Commit & push** and
+  **Merge to main** as direct controls. Local-practice sharing stays blocked.
+- Clone defaults to **~/Zero Projects**, with a native location picker to choose
+  another parent. Native Git owns transport, authentication and existing clones.
+  Open local project reuses a selected Zero folder in a new window. Sign-out
+  preserves local folders, Git history and the open project.
 - Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
   Entering a branch name or commit message proceeds directly; clicking Merge to
   main starts its guarded operation. Do not add routine confirmation dialogs.

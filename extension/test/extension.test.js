@@ -110,7 +110,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
-  assert.match(webview.html,/>Sign in<\/button>/);assert.match(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
+  assert.match(webview.html,/>Sign in<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
   const githubSection=()=>webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)[1];
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/);
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
@@ -120,10 +120,10 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   nextChoice='projects';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=example');
   nextChoice=undefined;
   await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['create','connect','clone']);
+  assert.equal(picks.at(-1).options.title,'ZeroHub','Signed-out Project menu is unavailable');
   assert.equal(inputCount,0,'Cancelled repository menu has no input or mutation');
   nextChoice='connect';await commands.get('zero.chooseRepository')();
-  assert.equal(inputCount,1,'Signed-out students can connect locally; cancelling input makes no changes');
+  assert.equal(inputCount,0,'Signed-out project menu remains hidden');
   let simulationFinished=false;const simulation=commands.get('zero.uploadToGitHub')().then(()=>{simulationFinished=true;});
   await warningShown;await settle(()=>simulationFinished);assert.equal(simulationFinished,true,'Simulation must release commands while its notification is still open');
   assert.doesNotMatch(webview.html,/data-command="zero.githubAccount"[^>]* disabled/,'Account icon must remain available before notification dismissal');
@@ -143,12 +143,14 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/>student\/app /);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/,'Publishing lives in repository actions');
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','clone']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','clone','local']);
   const beforePublishAuth=authCalls.length;nextChoice='publish';await commands.get('zero.chooseRepository')();assert.match(webview.html,/Simulation only — no publishing files/);assert.equal(authCalls.length,beforePublishAuth,'Repository menu dispatch preserves publishing simulation isolation');
   session={...session,account:{id:'student',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'github'}});await settle(()=>webview.html.includes('&lt;img src=x onerror=&quot;bad&quot;&gt;'));
   assert.match(webview.html,/&lt;img src=x onerror=&quot;bad&quot;&gt;/);assert.doesNotMatch(webview.html,/<img|PRIVATE/,'Account labels must be escaped and tokens excluded');
   session=undefined;authEvent({provider:{id:'github'}});await settle(()=>/Sign in to GitHub/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
-  assert.match(webview.html,/data-command="zero.chooseRepository"/,'Signed-out students can still use repository actions');assert.match(webview.html,/>student\/app /);assert.match(webview.html,/Current branch: main/);
+  assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"|Current branch:|student\/app/,'Signed-out GitHub area contains only Sign in');
+  nextChoice=undefined;const signedOutPicks=picks.length;await commands.get('zero.chooseRepository')();assert.equal(picks.length,signedOutPicks);
+  session={id:'student-session',account:{id:'student',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'github'}});await settle(()=>webview.html.includes('Signed in as student'));
   nextChoice='open';await commands.get('zero.chooseRepository')();assert.equal(opened.at(-1).url,'https://github.com/student/app');
   const beforeSwitch=dispatched.length;nextChoice='switch';await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeSwitch,'Simulation does not switch a branch');
   mode='live';checkout=async()=>{currentBranch='add-score';};const beforeSwitchAuth=authCalls.length;
@@ -156,7 +158,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const switching=commands.get('zero.chooseRepository')();await settle(()=>dispatched.at(-1)==='git.checkout');
   const pendingDispatches=dispatched.length;await commands.get('zero.cloneRepository')();await commands.get('zero.switchBranch')();assert.equal(dispatched.length,pendingDispatches,'Native checkout holds the operation lock');
   releaseCheckout();await switching;checkoutGate=undefined;
-  assert.equal(authCalls.length,beforeSwitchAuth,'Local switching works signed out');assert.match(webview.html,/>Switched to add-score<\/p>/);assert.match(webview.html,/Current branch: add-score/);
+  assert.equal(authCalls.length,beforeSwitchAuth,'Switching does not reauthorize');assert.match(webview.html,/>Switched to add-score<\/p>/);assert.match(webview.html,/Current branch: add-score/);
   const beforeCancel=notices.length;checkout=undefined;await commands.get('zero.switchBranch')();assert.equal(notices.length,beforeCancel,'Cancel creates no success popup');
   nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(!picks.at(-1).items.some(item=>item.action==='start'),'New branch follows the existing main-only workflow');
   currentBranch=undefined;nextChoice=undefined;await commands.get('zero.chooseRepository')();assert.ok(picks.at(-1).items.some(item=>item.action==='switch'));assert.match(webview.html,/>Detached HEAD<\/span>/);
@@ -167,11 +169,11 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','start','switch','clone'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','clone','local'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['tutorial','clone'],'An uncloned tutorial offers the supported creation and cloning path');
-  nextChoice='clone';await commands.get('zero.chooseRepository')();assert.equal(dispatched.at(-1),'git.clone');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['clone','local'],'An uncloned tutorial offers clone or opening an existing local copy');
+  nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });
 
@@ -182,5 +184,5 @@ test("Zero controls and Files share one supported view with minimal overflow",()
   assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startProject","zero.showOutput"]);
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startProject").title,"Zero: Start Tutorial");
-  assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.cloneRepository").title,"Zero: Clone Repository");
+  assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.cloneRepository").title,"Zero: Clone from GitHub");
 });

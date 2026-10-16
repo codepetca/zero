@@ -30,7 +30,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});if(authFailure)throw new Error('PRIVATE');if(options.createIfNone&&interactiveSession)session=typeof interactiveSession==='function'?await interactiveSession():interactiveSession;return session;},onDidChangeSessions:disposable},
     workspace:{workspaceFolders:empty?[]:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},openTextDocument:async uri=>({uri}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
-    window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,reveal(){},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
+    window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,reveal(){},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInputBox:async()=> 'https://github.com/student/app',showOpenDialog:async()=>[{fsPath:root}],showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
@@ -39,7 +39,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
   };
   const filename=require.resolve('../src/extension'), oldCache=require.cache[filename], load=Module._load;
   delete require.cache[filename];
-  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./core')return {...core,assertRepositoryRoot:async()=>{throw new Error('No repository');}};return load.call(this,id,...args);};
+  Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./project-folders'){const mod=load.call(this,id,...args);return {createProjectFolders:(vscode,options)=>mod.createProjectFolders(vscode,{...options,home:root})};}if(id==='./core')return {...core,assertRepositoryRoot:async()=>{throw new Error('No repository');}};return load.call(this,id,...args);};
   let extension;try{extension=require(filename);}finally{Module._load=load;}
   t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
   let extensionPath;
@@ -200,17 +200,16 @@ test('pending native connect prevents a duplicate and disposal ignores its late 
 });
 
 
-test('tutorial and repository menu work without a project or GitHub session and native clone stays serialized', async t=>{
+test('signed-out empty window only shows Sign in; direct clone remains serialized', async t=>{
   let finishClone;
-  const f=await fixture(t,{empty:true,pick:async items=>{assert.deepEqual(items.map(item=>item.action),['tutorial','clone']);return items.find(item=>item.action==='clone');},execute:async id=>{
+  const f=await fixture(t,{empty:true,execute:async id=>{
     if(id==='git.clone')await new Promise(resolve=>{finishClone=resolve;});
   }});
-  assert.match(f.webview.html,/data-command="zero.startProject"[^>]*>Start tutorial<\/button>/);
-  assert.match(f.webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(f.webview.html,/data-command="zero.cloneRepository"/);
+  assert.match(f.webview.html,/>Sign in<\/button>/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"|data-command="zero.cloneRepository"|Current branch:/);
   const authBefore=f.authCalls.length;
-  const clone=f.commands.get('zero.chooseRepository')();await settle(()=>finishClone);
-  assert.match(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
-  assert.match(f.webview.html,/data-command="zero.startProject"[^>]*disabled/);
+  const clone=f.commands.get('zero.cloneRepository')();await settle(()=>finishClone);
+  assert.match(f.webview.html,/data-command="zero.githubAccount"[^>]*disabled/);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();await f.commands.get('zero.signInToGitHub')();
   assert.equal(f.calls.filter(([id])=>id==='git.clone').length,1);
   finishClone();await clone;
@@ -223,7 +222,7 @@ test('native clone failures explain recovery and cancellation releases the busy 
   let failure=new Error('Command git.clone not found');
   const f=await fixture(t,{empty:true,execute:async id=>{if(id==='git.clone'&&failure)throw failure;}});
   await f.commands.get('zero.cloneRepository')();
-  assert.match(f.errors.at(-1),/Git: Clone.*Git is installed.*built-in Git extension.*Clone repository again/);
+  assert.match(f.errors.at(-1),/Could not clone.*GitHub access.*built-in Git extension.*Clone from GitHub again/);
   assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
   failure=Object.assign(new Error('Cancelled'),{name:'Canceled'});const before=f.errors.length;
   await f.commands.get('zero.cloneRepository')();assert.equal(f.errors.length,before);
@@ -244,10 +243,28 @@ test('tutorial creation releases the shared busy guard after opening GitHub and 
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,1);
   assert.match(f.calls.find(([id])=>id==='openExternal')[1].value,/^https:\/\/github.com\/codepetca\/zero-tutorial-greeting\/generate$/);
   assert.equal(f.notices.length,1,'Opening GitHub must not trigger another modal or notification');
-  assert.match(f.notices[0].choices[0].detail,/YOUR new repository URL.*Return to Zero and choose Clone repository/);
+  assert.match(f.notices[0].choices[0].detail,/YOUR new repository URL.*Return to Zero and choose Project → Clone from GitHub/);
   assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
   assert.equal(f.calls.filter(([id])=>id==='git.clone').length,0,'Creating a repository never starts cloning automatically');
   await f.commands.get('zero.cloneRepository')();
-  assert.deepEqual(f.calls.filter(([id])=>id==='git.clone'),[['git.clone']],'No template URL is prefilled for cloning');
+  assert.deepEqual(f.calls.filter(([id])=>id==='git.clone'),[['git.clone','https://github.com/student/app.git',f.root]],'Only the entered student URL is cloned into the chosen parent');
   assert.equal(f.authCalls.length,authBefore);assert.deepEqual(f.errors,[]);
+});
+
+test('signed-in empty Project menu offers Clone and Open local; opening reuses a local folder',async t=>{
+  let selection='local';const picks=[];
+  const f=await fixture(t,{empty:true,pick:async(items,options)=>{picks.push({items,options});return items.find(item=>item.action===selection);}});
+  assert.doesNotMatch(f.webview.html,/zero.chooseRepository|Current branch:|Start tutorial<\/button>/);
+  await f.commands.get('zero.chooseRepository')();assert.equal(picks.length,0);
+  f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
+  assert.match(f.webview.html,/>Project /);assert.match(f.webview.html,/zero.chooseRepository/);
+  await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>[item.label,item.action]),[['Clone from GitHub…','clone'],['Open local project…','local']]);assert.equal(picks[0].options.title,'Project');
+  assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceNewWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
+});
+
+test('sign-in is independent of local practice while sharing stays unavailable',async t=>{
+  const f=await fixture(t,{practice:true});assert.match(f.webview.html,/>Sign in<\/button>/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
+  f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
+  assert.match(f.webview.html,/Signed in as student/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
+  await f.commands.get('zero.uploadToGitHub')();assert.match(f.errors.at(-1),/local lesson practice/);
 });

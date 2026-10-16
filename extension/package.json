@@ -19,6 +19,7 @@
     "onTaskType:zero",
     "onCommand:zero.startProject",
     "onCommand:zero.cloneRepository",
+    "onCommand:zero.openLocalProject",
     "onWebviewPanel:zero.tutorials"
   ],
   "scripts": {
@@ -49,7 +50,11 @@
       },
       {
         "command": "zero.cloneRepository",
-        "title": "Zero: Clone Repository"
+        "title": "Zero: Clone from GitHub"
+      },
+      {
+        "command": "zero.openLocalProject",
+        "title": "Zero: Open Local Project"
       },
       {
         "command": "zero.githubAccount",

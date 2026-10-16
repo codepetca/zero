@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import crypto from 'node:crypto';
@@ -15,7 +16,7 @@ const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;',
 export function sidebarSource(state = 'ready') {
   const webview = {};
   runInNewContext(`${source.slice(start, end)}\nrender(webview);`, {
-    context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,browserRun:{canOpenInBrowser:false},
+    path,context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,browserRun:{canOpenInBrowser:false},
     projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebview: undefined, sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => false,
     repository: 'No repository connected', auth: { signedIn: false, accountLabel: '' },
     branch: '', branchDetached: false, uploadMode: () => 'simulation', execution: null, browserActive: false, localPractice: state === 'practice', originalWork: state !== 'practice',

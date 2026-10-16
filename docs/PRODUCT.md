@@ -153,7 +153,7 @@ account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approve
 repository visibility/commit identity. Tutorial source can stay private with teacher
 collaborator access; public game publishing remains optional. The visible
 **Start tutorial** action on the welcome screen or Zero’s **…** menu opens the matching verified tutorial template. After creating their own repository, students choose
-**Clone repository** in the repository menu; VS Code owns its URL/destination/opening controls.
+**Clone from GitHub…** in the project menu. The location picker starts at `~/Zero Projects` and can choose another parent; native Git owns transport and credentials.
 Students create a repository in their own account, then clone their repository;
 there is no local-folder or project-ZIP tutorial alternative. Completed teacher
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
@@ -234,11 +234,14 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 - One continuous Zero view contains Run App, Stop, repository actions and Files,
   without extra GitHub/ZeroHub headings or a separate collapsible controls row.
   Idle status is empty; app progress/errors
-  appear when there is a message. The account row shows Sign in or the clickable
-  username. The repository menu stays visible, including an existing origin while
-  signed out; it offers Clone repository, create/connect/open/copy, Publish app when
-  signed in, and New branch
-  or Switch branch as appropriate. The current branch stays visible. Commit & push
+  appear when there is a message. Signed-out GitHub controls show only Sign in;
+  the project dropdown and branch are hidden, and local Run/files remain usable.
+  Signed in shows a clickable username and Project dropdown (or current folder /
+  connected origin). Clone from GitHub starts its location picker at
+  `~/Zero Projects`, with another location selectable. Open local project opens
+  an existing Zero folder without cloning/moving it. An eligible unconnected local
+  project can Connect to GitHub. Connected projects keep publishing and branch
+  actions in the menu, and a visible current branch. Commit & push
   and Merge to main remain direct actions. Simulation
   remains visibly labeled. ZeroHub offers Browse (project templates/examples on
   the website, or native library browsing) and signed-in Share project for original
@@ -261,7 +264,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   supports native floating windows and moves back into editor groups. Open in
   browser opens the current canonical lesson on the website; website navigation
   does not synchronize back into the editor. Start tutorial stays in welcome and
-  overflow; Clone repository is in the repository menu. Neither lesson navigation nor opening
+  overflow; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
   a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;
   successful exits and explicit Stop do not show an error. Missing local tools
@@ -331,7 +334,7 @@ Zero shows the selected account username in the sidebar. Clicking it offers Chan
 VS Code's native Manage Accounts picker (or manual Accounts instructions on
 older editors), where the user chooses their GitHub account
 and signs out. Session changes still invalidate pending upload reviews. Zero has
-no custom logout/token deletion. Connect a repo → Create a repository opens GitHub's new-repository
+no custom logout/token deletion. Project menu → Create a repository opens GitHub's new-repository
 page; students create their own empty repository following teacher visibility
 instructions, leaving README, license and gitignore uninitialized. There is no
 GitHub Classroom flow and no automatic repository creation.

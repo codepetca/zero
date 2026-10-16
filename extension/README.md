@@ -65,11 +65,17 @@ Commands: `zero.runApp`, `zero.runNativeApp`, `zero.stopApp`, `zero.exportWeb`,
 
 ## Repository workflow
 
-The account row shows **Sign in** while signed out and the selected GitHub
-username while signed in. Click the username for **Change GitHub account…** or
-**Sign out…**; native VS Code Accounts owns sign-out and credentials.
-The repository menu stays visible, showing an existing `owner/name` even while
-signed out. It contains clone/create/connect/open/copy and branch actions, plus **Publish app** when signed in and connected.
+When signed out, the GitHub area shows only **Sign in**. Local Run and files
+stay available. When signed in, the username opens native account actions and
+**Project** (or the current folder / connected `owner/name`) opens project actions.
+**Clone from GitHub…** asks for a URL and a location starting at `~/Zero Projects`;
+choose another parent folder if needed. Native Git handles clone/authentication.
+Current editors open its resulting folder in a new window; older supported editors
+retain their native open-after-clone choice. **Open local project…** opens an
+existing Zero folder without cloning or moving it. An eligible local project can
+**Connect to GitHub…**, which attaches a remote rather than downloading files.
+Signing out preserves the open project and its local files/history.
+The menu retains publishing and branch actions for connected projects.
 **New branch** creates a feature branch after you enter its name; **Merge to main** beside
 a feature branch directly merges and pushes it to main. Its account, destination,
 source and conflict checks still run.
@@ -85,7 +91,7 @@ open the native authentication flow. Zero has no password or token form.
 Native session removal belongs to VS Code Accounts; Zero listens for session
 changes through the [VS Code authentication API](https://code.visualstudio.com/api/references/vscode-api#authentication).
 
-Connect a repo → Create a repository opens [GitHub's new repository page](https://github.com/new).
+Project menu → Create a repository opens [GitHub's new repository page](https://github.com/new).
 Use the same account as Zero and create an empty repository: leave README,
 .gitignore and license unselected. Return to Zero and connect its page link.
 Connect accepts `https://github.com/owner/repository`, optionally ending in
