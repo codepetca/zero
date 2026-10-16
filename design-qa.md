@@ -89,3 +89,11 @@ The full combined suite now passes510/one runtime skip and website109/types/buil
 Remaining guide wording mismatch is explicitly held for correction/review. Dark/
 high-contrast, physical Windows, smaller student devices and novice usability are
 not newly established by this addendum. No fresh visual comparison or WCAG claim.
+
+## Guide alignment resolved — 2026-10-16
+
+The previously recorded wording mismatch is resolved by reviewed4a9e889. Actual
+Chrome production-preview guide matches direct actions and safe local-only cleanup;
+screenshot guide-correction/chrome-guide.png was inspected. Website CSS/layout and
+installed editor visuals are unchanged; prior visual coverage is reused. No new
+Windows/high-contrast/novice or public-release acceptance is claimed.

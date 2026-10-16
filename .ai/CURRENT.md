@@ -1,88 +1,66 @@
-# Current state — installed Mac preview, 2026-10-16
+# Current state — Mac preview ready, public release held, 2026-10-16
 
 Coordinator: Lead publishing task, 01a13f98-55fc-7471-9038-1198b14d5a98.
-Worktree: /Users/stew/.codex/worktrees/release-readiness/zero,
-branch codex/release-readiness. Ordinary Java, strict seven-helper WebFX profile,
-browser-first Run, tutorial option 2 and simple student-owned GitHub publishing
-remain the goal. Public release is NOT ready. Mac preview first; physical Windows
-is explicitly deferred by the owner. No push, main merge, deployment, template or
-policy activation, Developer ID/notary or live publication authority in this phase.
+Canonical worktree /Users/stew/.codex/worktrees/release-readiness/zero,
+branch codex/release-readiness. Goal: ordinary Java, strict WebFX compatibility,
+browser-first Run, tutorial option2 and simple student-owned GitHub publishing.
+Mac preview first; owner deferred physical Windows. Goal remains incomplete.
 
-Installed and locally accepted preview source: 0f033c1 (runtime ce12fa7), kit/extension 0.5.18,
-core 0.2.1, native build 18. All 106 authored VSIX files match source and installed
-nested Zero profile (only VS Code package metadata differs). Latest kit/VSIX candidate is dist/candidates/zero-0.5.18-remember-0f033c1.
-Unsigned DMG candidate-3bf5304 is preserved historical evidence and predates the
-clone preference change; rebuild later with final approved guide/policy settings.
-Published 17 manifests/downloads/feed unchanged.
+Current reviewed implementation/kit source4a9e889, runtimece12fa7. Local versions:
+kit/extension0.5.18, core0.2.1, native18. Latest local kit/VSIX candidate:
+dist/candidates/zero-0.5.18-guides-4a9e889; unsigned universal Mac artifact:
+dist/installers/candidate-4a9e889. All106authored source/package/installed extension
+files match; no redundant reinstall/reload was needed for the three-guide-only
+change. Bundled starter README matches corrected source. Student projects untouched.
+Published17 download manifests/assets/updater feed remain exact and immutable.
 
-New Project/Clone milestone complete: signed-out Git area only Sign in; signed-in
-Project menu offers Clone from GitHub / Open local project, folder or connected
-owner/repository naming, Connect to GitHub where eligible. Clone location defaults
-to ~/Zero Projects, supports another folder, and falls back if default unavailable.
-Native public clone API preferred; VS Code 1.95 command fallback retained. Existing
-armorup session reused. Actual URL validation/default picker, native existing-clone
-reuse and Open local into a new window passed. All 23 owned local project files
-unchanged. This repeat did NOT establish fresh clone transport or a new OAuth grant.
-Actual Study Run → Chrome wrong 4 / right 5 → Stop with iframe removed passed.
-Main left, Tutorials lesson 3 right, window reopened, fitted and raised for user.
+Owner approved the prepared three-guide correction and ONE extra focused review.
+Correction4a9e889 updates GETTING-STARTED, SETUP and starter README: direct name/
+message submission, click-started Merge, main-update pause/run/retry, automatic
+safe local-only cleanup, retained remote branch and Output recovery. Sol/medium
+focused full three-file review clean. Legacy review ledger now6launches,1initial,
+5targetedwaves,5fixbatches; authorized extra batch/review complete. No further
+review/fix loop authorized. The former guide checkpoint is RESOLVED.
 
-Final combined root: 511 tests, 510 pass, one PowerShell runtime skip, no failures
-(297.116 seconds, ARM JDK 17). Website 109 pass, types/build pass. Check, package,
-extracted-kit verification pass. New feature Sol/high independent full 26-file
-review plus two targeted corrections clean: 3 turns, 2 fix batches. Root verified
-all 26 reviewed hashes exactly. Peer source c940d4b/39409ee/3dce5a1 integrated as
-9acc623/4adb2fa/3bf5304; peer owns no further UI/install work.
+Current checks:109website tests/check/build pass, Chrome actual rendered guide
+checks pass with no captured warnings/errors, package/extracted-kit pass. Prior
+unchanged-runtime full root510pass/1PowerShellskip, clone preference34focused and
+website types coverage reused. No redundant full suite. Unsigned Mac rebuild37.590s
+and payload verify5.097s pass, one attempt; local ad-hoc '-' only. No app/installer
+execution, DeveloperID, notarization or stapling. Source/kit/feed/prior candidates
+unchanged during build. Receipt final-mac-4a9e889/RESULT.json.
 
-All five corrected complete template drafts compile in WebFX and pass actual
-Chrome behavior checks; exact served-file hashes/lengths verified. Draft Java,
-resources and build inputs match the compiled inputs; later differences are README
-and Hello's standalone preview illustration only. Three public tutorial templates
-already match all 21 helper hashes. Five public complete examples still fail the
-strict helper profile and need separately authorized updates from prepared drafts.
+Installed native preview accepted: existing armorup session; signed-in Project
+menu Clone/Open/Connect where eligible; native default ~/Zero Projects; remember
+explicit chosen parent machine-locally, cancellation and window reload retain it.
+Test default restored via UI. Native Git reused already-open Study clone, so no
+fresh clone transport or new OAuth grant claimed. Open local opened a separate
+owned canonical project/new window;23authoredfiles unchanged. Main left / Tutorials3
+right restored. Run → Chrome wrong4/right5 → Stop iframe removal passed. Unavailable
+saved path/storage failure covered by tests, not native fault injection or Sync.
 
-Remember-clone-location follow-up COMPLETE locally: peer source87ba673 integrated
-asce12fa7; all five reviewed hashes exact. One independent Sol/medium initial
-review clean, no fixes. Root34focusedtests/check/package/extracted-kit pass; prior
-unchanged full root/website coverage reused. Latest VSIX all106authoredfiles match
-source and installed profile; SHA256cd802b11f41018bcfa344bc43a4c869d935f440be07d530812d985733fa9d1a6.
-Actual native Clone here saved an owned alternate parent; reopening, navigating
-elsewhere then cancelling, and window reload retained it. Restored the original
-~/Zero Projects through UI and verified another picker, then cancelled. Main left /
-Study Tutorials3right restored and raised. Existing account/Java unchanged, native
-Git reused existing clone; no fresh clone transport. Preference is machine-local,
-not registered for Settings Sync. Missing/invalid path and storage failures are
-covered by focused tests, not native fault injection; physical Windows still deferred.
-Receipts .verification/release-readiness-20261016/remember-clone/. Peer has received
-final installed acceptance and owns no more UI/package work. This new scope does
-not release the separate legacy-guide hold below.
+All five canonical complete templates compile and pass Chrome behavior with exact
+served manifests; final compiled inputs unchanged. Public complete templates still
+have old two-helper source and fail strict profile. Prepared local drafts need
+separate publication authority. Three public tutorial templates already match all
+21helperhashes; do not republish them needlessly. Trusted pinnedbeaaca4 policy
+rejects web receipts; local integrated contract accepts them. Never fake public pin.
 
-ACTIVE CHECKPOINT: Chrome setup inspection found legacy guides still describing
-removed modal confirmations and optional local-branch deletion. Prepared, NOT
-applied: .verification/release-readiness-20261016/guide-correction-proposal.patch
-(three guides). Async question requests explicit permission for this extra batch
-and one focused review. Legacy review CLOSED at one initial + four targeted waves,
-four fix batches; do not use the separate Project milestone to reset that budget.
-No dependent correction/review/package rebuild until approval. Continue only useful
-independent work. Prior direct user permission concerned the earlier ZIP fix, not
-this extension of the exhausted integration review.
+NEXT: request explicit permission to push reviewed codex/release-readiness and open
+one draft PR against codepetca/zero main for CI, using prepared local PR body.
+No push/mainmerge/deploy/template/policyactivation/DeveloperID/notary/live publishing
+authority currently. Read-only PR workflows run checks/prepare artifacts; release
+and publisher activation remain separate. Finish CI before claiming release ready.
+Other external gates: public complete templates; exact public publisher policy pin/
+operator activation and real ZeroHub Play; final authorized Git/Pages/consent/public
+byte acceptance; signed/notarized/sealed Mac distribution; school/novice trial.
+Physical Windows stays a deferred Windows release gate. Current native finite
+framework focus harness still lacks a pass; do not weaken or blindly retry it.
 
-Unsigned Mac artifact build/payload passed in 69.589 + 7.992 seconds, one attempt,
-Sol/medium worker. Local ad-hoc '-' only; no app execution, Developer ID or notary.
-Native finite framework focus harness remains inconclusive (old x86 helper phase 0;
-ARM smoke phase 2 twice); do not claim current full framework pass or blindly retry.
-Prior unchanged helper proof, three scaffold compiles, 16 progression variants,
-two media reruns, native Hello and 115 release tooling passes remain valid history.
-
-Release gates after guide correction: authorized push/draft PR and CI; public
-complete templates; public trusted publisher source/pin/operator activation and
-real ZeroHub Play acceptance; final authorized Git/Pages/consent/public-byte check;
-Mac Developer ID/notary/sealing; school/novice acceptance. Physical Windows remains
-a separate deferred Windows release gate. Pinned beaaca4 trusted policy rejects
-web receipts while integrated local contracts accept them; never fake a public pin.
-
-Receipts: .verification/release-readiness-20261016/ (native-combined-acceptance,
-combined-candidate, project-menu review/integration, final-mac-3bf5304, template
-Chrome/HTTP/input parity and tests). Older accepted evidence remains in web-export.
-Source and user projects preserved; no cleanup of valuable state. Recent weekly
-46% remaining / storage healthy 317.7 GB; account-wide usage is not task cost.
-DeepSeek automatic pilot paused through 2026-12-31. Goal remains incomplete.
+Evidence: docs/EVIDENCE.md, docs/VERIFICATION.md, docs/RELEASE-0.5.18.md;
+.verification/release-readiness-20261016/guide-correction/, final-mac-4a9e889/,
+remember-clone/, template receipts and prior web-export proofs. Prepared PR body:
+.verification/release-readiness-20261016/release-pr-draft.md. Peer source workers
+have no remaining UI/install assignment. Preserve useful worktrees/private state.
+Recent45%weeklyremaining and fresh healthy316.6GB are shared observations, not
+attributable task cost. DeepSeek automatic pilot paused through2026-12-31.

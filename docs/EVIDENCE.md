@@ -1,5 +1,40 @@
 # Delivery evidence index
 
+## Approved guide correction complete — 2026-10-16
+
+Direct owner approval released the prepared three-guide batch plus one focused
+review. Source4a9e889 corrects the removed confirmation prompts and optional local
+branch deletion in GETTING-STARTED, SETUP and starter README. One independent
+Sol/medium complete three-file delta review found no actionable issues against
+immediate Git/publish callers. Legacy ledger now6launches,1initial/5targetedwaves,
+5fixbatches; this authorized extension is complete, with no further loop requested.
+Effective reviewer model/tokens/elapsed unavailable. No new Java/runtime changes.
+
+Current109website tests/check/build pass; actual Chrome guide includes direct
+Enter/click actions, retained remote branch and safe-cleanup Output recovery, with
+obsolete prompts absent and no captured warnings/errors. Package/extracted-kit
+pass; corrected starter README is exact in the kit. All106source/package/installed
+extension files still match, so no redundant reinstall or native retest was needed.
+Existing student project READMEs were preserved. Prior510root/onePowerShellskip,
+34clone-preference and website type checks retain unchanged-runtime coverage.
+
+Local candidate dist/candidates/zero-0.5.18-guides-4a9e889 and unsigned universal
+Mac dist/installers/candidate-4a9e889 preserved. Sol/medium artifact worker rebuilt
+in37.590s and verified in5.097s, one attempt/no rework. Independently rehashed all
+preserved files. DMG4443455bytes SHA256
+`f4066be957e3f1cce16fa309bd772b9ac93e61e48eab61af2c6321e0503a3058`.
+Source/kit/release manifests/feed/historical candidates remained exact. Ad-hoc '-'
+only; no app execution, DeveloperID/notary/staple or public action.
+
+Mac preview is locally ready; public student release is not. Next missing authority
+is pushing reviewed codex/release-readiness and opening a draft PR for CI. A concrete
+PR body is prepared locally. Public template/policy/Play, final live Git/Pages,
+signing/classroom gates remain; Windows is separately deferred. Current native
+finite framework focus harness has no passing verdict and remains honestly reported.
+No workflow assertion was weakened. Receipts guide-correction/review.md,
+review-budget.json, candidate.json, chrome-guide.json/png and final-mac-4a9e889/RESULT.*.
+Weekly45%remaining and healthy316.6GB are shared observations, not attributable cost.
+
 ## Remember clone location installed and accepted — 2026-10-16
 
 Owner requested remembering the chosen clone parent. Peer source87ba673 integrated
