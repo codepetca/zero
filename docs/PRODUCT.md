@@ -87,7 +87,8 @@ then reuses unchanged ScoreDisplay in the study app and coin game.
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. These sources remain unreleased; published kits
 keep their original bytes.
-All thirteen lessons open with a subtly tinted card headed by the lesson title,
+Tutorial pages use the current project name as their main heading: Greeting App,
+Study Quiz or Coin Game. All thirteen lessons open with a subtly tinted card headed by the lesson title,
 containing their numbered actions, Done checkpoint and always-visible target
 illustration. Steps and image sit beside each other inside the card on desktop
 and stack on narrow screens. Duplicate titles and the redundant short lesson

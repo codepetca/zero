@@ -17,6 +17,7 @@ current task's content visually prominent.
 | Surface | Default |
 | --- | --- |
 | Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
+| Tutorial heading | Show the current project name in title case: Greeting App, Study Quiz or Coin Game. |
 | Tutorial summary | Use a subtly purple-tinted card headed by the lesson title, containing numbered actions, Done and the image. Steps/image sit beside each other on desktop and stack on phones. Omit duplicate titles and short lesson-description labels. |
 | Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
 | Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
