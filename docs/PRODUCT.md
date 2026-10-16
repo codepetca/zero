@@ -88,11 +88,11 @@ then reuses unchanged ScoreDisplay in the study app and coin game.
 welcome/result/countdown helpers. These sources remain unreleased; published kits
 keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,
-Study Quiz or Coin Game. All thirteen lessons open with a subtly tinted card headed by the lesson title,
-containing their numbered actions, Done checkpoint and always-visible target
-illustration. Steps and image sit beside each other inside the card on desktop
-and stack on narrow screens. Duplicate titles and the redundant short lesson
-description are omitted before detailed code. Optional
+Study Quiz or Coin Game. The large lesson title appears directly below that
+heading, followed by a subtly tinted Summary card containing numbered actions,
+Done checkpoint and always-visible target illustration. Steps and image sit beside each other inside the card on desktop
+and stack on narrow screens. The redundant short description is omitted. Each
+lesson ends its final code/explanation section with a short encouraging message. Optional
 composed-study/composed-game examples now demonstrate the same ordinary StartScreen
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).

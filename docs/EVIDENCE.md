@@ -1,5 +1,22 @@
 # Delivery evidence index
 
+## Tutorial project headings published — 2026-10-16
+
+[PR74](https://github.com/codepetca/zero/pull/74) merged
+`91169fc0b87f04cbf20a0986736a519fd7328b65`. Shared renderer uses existing project
+membership for Greeting App0–2,Study Quiz3–7,Coin Game8–12; Docs remains Docs.
+Owner default saved in design.md/PRODUCT. One Luna/medium independent full-diff
+review of227d599 found no issues;one launch/wave,zero fixes/rework/conflicts.
+Effective config,review elapsed and tokens unknown;account allowance not task cost.
+96 website tests,typecheck/build and all13 local/public rendered headings pass.
+1280px desktop live heading and320px local reflow/nooverflow verified. No new
+label-only tests;Safari/physical/enlarged-text/forced-color not newly run. Existing
+updater tracing warnings remain. [CI38916786229](https://github.com/codepetca/zero/actions/runs/38916786229)
+passed6m53s;production deployment7121817477 succeeded for merge SHA. Lesson/release
+inputs unchanged. Detailed receipts/screenshots:.verification/tutorial-project-heading/.
+Owned worktree fast-forwarded to main;original dirty funding checkout untouched.
+This post-publication documentation receipt is local.
+
 ## Lesson title card refinement — 2026-10-16
 
 Published [PR73](https://github.com/codepetca/zero/pull/73), merge

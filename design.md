@@ -18,7 +18,8 @@ current task's content visually prominent.
 | --- | --- |
 | Tutorials | No Previous links or horizontal dividers, including section/footer rules. |
 | Tutorial heading | Show the current project name in title case: Greeting App, Study Quiz or Coin Game. |
-| Tutorial summary | Use a subtly purple-tinted card headed by the lesson title, containing numbered actions, Done and the image. Steps/image sit beside each other on desktop and stack on phones. Omit duplicate titles and short lesson-description labels. |
+| Tutorial summary | Show the large lesson title below the project heading. Use “Summary” inside the subtly purple-tinted card containing actions, Done and image; columns on desktop, stacked on phones. Omit short description labels. |
+| Lesson ending | Close the final code/explanation section with a short encouraging message in plain text. |
 | Tutorial steps | Highlight numbered step titles with subtle theme backgrounds. |
 | Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
 | API reference | Category titles scroll away; each method name sticks through its own details. |
@@ -194,3 +195,10 @@ checkpoint. Use the lesson title (for example, “Lesson 1: Say hello with a but
 instead of “Summary”, with no duplicate title above. Give the whole card a subtle
 purple tint using shared theme tokens; retain desktop columns and phone stacking.
 This supersedes the preceding Summary card layout.
+
+## Lesson title and encouragement — owner correction, 2026-10-16
+
+Restore the large lesson title directly below the project heading and label the
+card “Summary”. Keep its tint and contained image. End each lesson’s final code
+and explanation section with short encouragement, such as “You wrote your first
+Zero program!” for lesson0. This supersedes the lesson-title-inside-card choice.
