@@ -5,13 +5,13 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const {createProjectFolders} = require('../src/project-folders');
-async function fixture(t) {
+async function fixture(t, remembered = new Map()) {
   const home = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-project-folders-')));
   t.after(()=>fs.rm(home,{recursive:true,force:true}));
-  const calls=[],dialogs=[];let input='https://github.com/student/app',selection,api,result,active=true;
+  const calls=[],dialogs=[],reports=[];let input='https://github.com/student/app',selection,api,result,active=true;
   const vscode={Uri:{file:fsPath=>({fsPath}),parse:value=>({value})},extensions:{getExtension:()=>api?{isActive:true,exports:{getAPI:()=>api}}:undefined},window:{showInputBox:async options=>{assert.equal(options.validateInput('bad'),'Use https://github.com/owner/repository (optionally ending in .git).');return input;},showOpenDialog:async options=>{dialogs.push(options);return selection;}},commands:{executeCommand:async(...args)=>{calls.push(args);return result;}}};
-  const folders=createProjectFolders(vscode,{home,active:()=>active});
-  return {home,folders,calls,dialogs,vscode,set input(value){input=value;},set selection(value){selection=value;},set api(value){api=value;},set active(value){active=value;}};
+  const folders=createProjectFolders(vscode,{home,globalState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)},report:text=>reports.push(text),active:()=>active});
+  return {home,folders,calls,dialogs,reports,remembered,vscode,set input(value){input=value;},set selection(value){selection=value;},set api(value){api=value;},set active(value){active=value;}};
 }
 test('clone location starts at Zero Projects and selected alternative is passed to native Git',async t=>{
  const f=await fixture(t);const alternative=path.join(f.home,'Elsewhere');await fs.mkdir(alternative);f.selection=[{fsPath:alternative}];
@@ -46,4 +46,23 @@ test('a blocked default still allows cloning elsewhere and opening an existing p
  const f=await fixture(t),blocked=path.join(f.home,'Zero Projects'),alternative=path.join(f.home,'Existing');await fs.writeFile(blocked,'keep');await fs.mkdir(alternative);await fs.writeFile(path.join(alternative,'zero.json'),'{}');f.selection=[{fsPath:alternative}];
  await f.folders.clone();assert.equal(f.dialogs[0].defaultUri.fsPath,f.home);assert.deepEqual(f.calls[0],['git.clone','https://github.com/student/app.git',alternative]);
  await f.folders.openLocal();assert.equal(f.dialogs[1].defaultUri.fsPath,f.home);assert.deepEqual(f.calls[1],['vscode.openFolder',{fsPath:alternative},{forceNewWindow:true}]);assert.equal(await fs.readFile(blocked,'utf8'),'keep');
+});
+
+test('clone remembers the chosen parent across instances, even when native clone is cancelled',async t=>{
+ const remembered=new Map(),f=await fixture(t,remembered),alternative=path.join(f.home,'Chosen');await fs.mkdir(alternative);f.selection=[{fsPath:alternative}];
+ f.api={clone:async()=>null};await f.folders.clone();assert.equal(remembered.get('zero.cloneParent'),alternative);
+ const next=await fixture(t,remembered);await next.folders.clone();assert.equal(next.dialogs[0].defaultUri.fsPath,alternative);assert.equal(next.calls.length,0);
+});
+test('cancelled location and opening a local project do not replace the remembered clone parent',async t=>{
+ const f=await fixture(t),alternative=path.join(f.home,'Chosen');await fs.mkdir(alternative);f.remembered.set('zero.cloneParent',alternative);
+ await f.folders.clone();assert.equal(f.remembered.get('zero.cloneParent'),alternative);
+ const project=path.join(f.home,'Existing');await fs.mkdir(project);await fs.writeFile(path.join(project,'zero.json'),'{}');f.selection=[{fsPath:project}];await f.folders.openLocal();assert.equal(f.remembered.get('zero.cloneParent'),alternative);
+});
+test('unavailable or invalid remembered parents fall back without recreating the saved folder',async t=>{
+ const f=await fixture(t),missing=path.join(f.home,'Removed');f.remembered.set('zero.cloneParent',missing);await f.folders.clone();assert.equal(f.dialogs[0].defaultUri.fsPath,path.join(f.home,'Zero Projects'));await assert.rejects(fs.stat(missing),/ENOENT/);
+ const file=path.join(f.home,'File');await fs.writeFile(file,'keep');
+ for(const saved of [file,'relative',{},'']) {f.remembered.set('zero.cloneParent',saved);await f.folders.clone();assert.equal(f.dialogs.at(-1).defaultUri.fsPath,path.join(f.home,'Zero Projects'));}
+});
+test('failure to save the preference still permits native cloning',async t=>{
+ const f=await fixture(t),folders=createProjectFolders(f.vscode,{home:f.home,globalState:{get:()=>undefined,update:async()=>{throw Error('Storage unavailable');}},report:text=>f.reports.push(text)});f.selection=[{fsPath:f.home}];await folders.clone();assert.equal(f.calls[0][0],'git.clone');assert.match(f.reports[0],/Could not remember/);
 });

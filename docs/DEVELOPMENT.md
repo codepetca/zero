@@ -265,8 +265,10 @@ tutorial (`zero.startProject`, stable command ID) is in welcome and the native
 remain available. Signed in reveals the project dropdown with **Clone from GitHub…**
 (`zero.cloneRepository`) and **Open local project…** (`zero.openLocalProject`).
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
-with another location selectable and a home-folder fallback if the default is
-unavailable. Native Git owns transport and credentials. Where its public clone
+with another location selectable. Zero remembers the selected clone parent in the
+local editor profile for future clones; cancelling the picker or opening a local
+project leaves that choice unchanged. An unavailable saved folder falls back to
+`~/Zero Projects`, then home if necessary. Native Git owns transport and credentials. Where its public clone
 API exists, Zero opens the returned folder in a new window; older supported hosts
 use `git.clone` and retain their native open-after-clone choice. Open local project
 validates and opens an existing Zero folder without cloning, moving it or creating

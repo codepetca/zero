@@ -137,7 +137,7 @@ function activate(context) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  const projectFolders = createProjectFolders(vscode, {active:() => !disposed, report:text => output.appendLine(text)});
+  const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text)});
   const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';refresh();});
   context.subscriptions.push(auth);
   async function signIn(changeAccount = auth.signedIn) {

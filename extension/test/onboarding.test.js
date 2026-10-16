@@ -268,3 +268,15 @@ test('sign-in is independent of local practice while sharing stays unavailable',
   assert.match(f.webview.html,/Signed in as student/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
   await f.commands.get('zero.uploadToGitHub')();assert.match(f.errors.at(-1),/local lesson practice/);
 });
+
+test('clone parent preference survives extension activation through the local profile',async t=>{
+  const profile=new Map(),first=await fixture(t,{empty:true,profile});
+  await first.commands.get('zero.cloneRepository')();
+  assert.equal(profile.get('zero.cloneParent'),first.root);
+  const next=await fixture(t,{empty:true,profile});let picker;
+  next.vscode.window.showOpenDialog=async options=>{picker=options;return undefined;};
+  await next.commands.get('zero.cloneRepository')();
+  assert.equal(picker.defaultUri.fsPath,first.root);
+  assert.equal(profile.get('zero.cloneParent'),first.root);
+  assert.equal(next.calls.filter(([id])=>id==='git.clone').length,0);
+});

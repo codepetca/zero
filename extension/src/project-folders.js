@@ -4,15 +4,25 @@ const path = require('node:path');
 const os = require('node:os');
 const core = require('./core');
 
+const CLONE_PARENT_KEY = 'zero.cloneParent';
+
 // Projects are ordinary folders. Native Git owns clone transport and credentials.
-function createProjectFolders(vscode, {home = os.homedir(), active = () => true, report = () => {}} = {}) {
+function createProjectFolders(vscode, {home = os.homedir(), globalState, active = () => true, report = () => {}} = {}) {
   const defaultParent = path.join(home, 'Zero Projects');
   async function chooseFolder(title, openLabel, createDefault = false) {
     if (!active()) return;
     let initial = defaultParent;
+    const remembered = createDefault && globalState?.get(CLONE_PARENT_KEY);
+    if (typeof remembered === 'string' && path.isAbsolute(remembered)) {
+      try {
+        if ((await fs.stat(remembered)).isDirectory()) initial = remembered;
+      } catch(error) {
+        report(`Saved clone folder unavailable; using the default location. ${error.message}`);
+      }
+    }
     try {
-      if (createDefault) await fs.mkdir(defaultParent, {recursive:true});
-      if (!(await fs.stat(defaultParent)).isDirectory()) throw new Error('The default project path is not a folder.');
+      if (createDefault && initial === defaultParent) await fs.mkdir(defaultParent, {recursive:true});
+      if (!(await fs.stat(initial)).isDirectory()) throw new Error('The default project path is not a folder.');
     } catch(error) {
       initial = home;
       if (createDefault || error.code !== 'ENOENT') report(`Default project folder unavailable; choose another location. ${error.message}`);
@@ -27,6 +37,14 @@ function createProjectFolders(vscode, {home = os.homedir(), active = () => true,
     const destination = core.parseRepositoryUrl(url);
     const parent = await chooseFolder('Clone location', 'Clone here', true);
     if (!parent || !active()) return;
+    // Remember the selected parent, rather than a returned clone folder, which
+    // native Git may resolve to an existing clone elsewhere. This stays local to
+    // the editor profile; it is not registered for Settings Sync.
+    if (globalState) {
+      try {await globalState.update(CLONE_PARENT_KEY, parent.fsPath);}
+      catch(error) {report(`Could not remember the clone location. ${error.message}`);}
+    }
+    if (!active()) return;
     const extension = vscode.extensions?.getExtension('vscode.git');
     const api = extension && (extension.isActive ? extension.exports : await extension.activate()).getAPI(1);
     if (!active()) return;
