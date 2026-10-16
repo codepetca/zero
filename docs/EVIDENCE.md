@@ -1,5 +1,48 @@
 # Delivery evidence index
 
+## Published template GameApp migration — 2026-10-15
+
+Owner requested the starter templates also use GameApp. Updated all eight public
+starter/practice/tutorial repositories with an identifier-only rename, including
+the framework filename, imports, inheritance and qualified timer self reference.
+No alias remains. Each repository's wrappers, resources, game logic and tutorial
+browser helper/profile adaptations retain their exact previous bytes apart from
+the API identifier. Template status and default branches remain unchanged.
+
+| Template | Verified published commit |
+| --- | --- |
+| [zero-starter](https://github.com/codepetca/zero-starter) | `4b9687d5207939299a6a1e066d796047e6c87ff3` |
+| [zero-hello-java](https://github.com/codepetca/zero-hello-java) | `9d4969bab0d4b1b31d10e946d03f60baa72ba168` |
+| [zero-study-session](https://github.com/codepetca/zero-study-session) | `86d021bb7cd64ca60f003b3415077d7ff1945402` |
+| [zero-coin-game](https://github.com/codepetca/zero-coin-game) | `e9875d5dafbeaa5c66dd7f5a7ff1f31fa00f58d6` |
+| [zero-drawing-pad](https://github.com/codepetca/zero-drawing-pad) | `838921410abe37236fecdf7151729f92a7fff95e` |
+| [zero-tutorial-greeting](https://github.com/codepetca/zero-tutorial-greeting) | `5e45a37f8f486d63d095634f771019cc25cbd2a2` |
+| [zero-tutorial-study](https://github.com/codepetca/zero-tutorial-study) | `71facc4b154e89af509489948794588383dc02e1` |
+| [zero-tutorial-game](https://github.com/codepetca/zero-tutorial-game) | `f1fab5c3adf6b2ac897170fabf42e1a84eaf45f3` |
+
+All eight own-wrapper clean compiles passed, with GameApp.class present and no
+old class. Anonymous GitHub metadata and commit-addressed ZIP downloads were
+verified against every committed file (15–20 per project), with no old API source
+or reference in the archives. No GUI/browser runtime or operating-system claim
+comes from these compilation checks. Existing student-created repositories are
+independent copies and are not rewritten by a template update.
+
+Independent template_gameapp_review/1 GPT-6.1 Sol/medium inspected all eight
+base/head diffs and central metadata, independently confirming exact identifier
+substitution and unchanged inventory/implementation. Zero actionable findings;
+one initial review turn, zero fixes. Effective configuration/tokens/worker elapsed
+unknown. Weekly62%remaining, cached/freshstorage337GBhealthy. No new task, goal,
+automation, editor/profile change or binary release.
+
+The five website template commit/tree records now point to these actual public
+versions; focused metadata tests and root configuration/docs check pass. The
+three tutorial publication records are owned by the active publishing workflow
+outside current main; exact replacement hashes/trees are preserved in ignored
+`.verification/gameapp-templates/tutorial-revisions.json` for that workflow.
+Do not overwrite its checkout/profile. Full receipts and build logs stay ignored
+under `.verification/gameapp-templates/`; this source branch's PR records final
+CI/merge status. The original funding checkout remains preserved.
+
 ## GameApp rename — source PR, 2026-10-15
 
 Owner requested a full `zero.SketchApp` → `zero.GameApp` rename without a
