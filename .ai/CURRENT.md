@@ -1,31 +1,25 @@
-# Current state — Tutorial and Docs reading cleanup, 2026-10-16
+# Current state — Website publication, 2026-10-16
 
-Owner requested removal of Previous links and tutorial dividers, clearer step
-headings and muted secondary hints. Local implementation is complete in the
-attached tutorial-reading-cleanup worktree, based on main e7b9b4d. Original funding
-checkout and other active worktrees are preserved. No push, PR, merge or deployment
-is authorized by this request; no release/account changes were made.
+Owner explicitly authorized publication of this chat's website changes. Branch
+codex/tutorial-reading-cleanup integrates origin/main e8e25cc (published0.5.17
+metadata) while preserving release bytes, downloads and signed update feed.
+Original dirty funding checkout and active web-export/release worktrees remain
+untouched. Other unpublished browser/sidebar work is excluded.
 
-Renderer removes introductory Previous prose and lesson thematic rules while
-preserving code/source documents. Existing light/dark surfaces highlight numbered
-step headings; smaller helper cards contain setup/continuation/optional hints.
-Tutorial section and pagination borders are removed. Sidebar, Next, anchors,
-default-open disclosures and code copying remain available.
+Tutorials omit Previous prose and horizontal dividers, highlight numbered step
+headings and mute secondary setup/continuation hints in helper cards. Docs sticks
+method names within their entries instead of category banners. Transparent
+scrollbar tracks and thin gray thumbs follow the shared light/dark/system theme.
+Continuing owner preferences are saved in design.md and referenced by AGENTS.md.
 
-96 website tests, typecheck, production build and browser checks pass; one complete
-Luna/medium independent review found no actionable issues. Two unrelated updater
-tracing warnings remain. Safari/physical devices/enlarged text were not tested.
-Full delivery/review evidence: docs/EVIDENCE.md and docs/VERIFICATION.md.
-Owner asked to remember the design choices: continuing website defaults are
-summarized in design.md and explicitly referenced by AGENTS.md.
-Screenshots/logs are ignored under .verification/tutorial-cleanup/.
-Docs follow-up is locally complete: category headings scroll normally and method
-name rows stick within their article, below the desktop header or at phone top0.
-Typecheck/build/96tests pass; complete Luna/medium review found no actionable
-issues. Browser checks cover light/dark,320/384/1280px and scroll handoff.
-Scrollbar follow-up is complete: root follows the shared theme; page/sidebar/code
-tracks blend into their backgrounds with thin gray thumbs.10design tests and
-website typecheck/build pass; Luna/medium complete review clean. Both themes and
-scrolling checked in-app; Safari/physical/forced-color UI remain untested.
-Local previews: http://127.0.0.1:3216/tutorials/8 and /docs#circle.
-Next action, if requested: publish through the repository's reviewed PR workflow.
+Prior local acceptance:96website tests,10design tests,typecheck/build and browser
+light/dark,narrow/desktop,anchors,keyboard disclosure/focus checks; three complete
+bounded Luna/medium implementation reviews found no actionable issues. Safari,
+physical platforms,enlarged text and forced-color UI were not newly verified.
+Two unrelated updater tracing warnings remain. Full evidence:docs/EVIDENCE.md,
+docs/VERIFICATION.md and ignored .verification/tutorial-cleanup/.
+
+Next: rerun affected checks on current-main integration, one bounded complete
+integration review, draft PR and exact-head CI, then merge under this authority
+and verify production deployment/live pages. No binary release rebuild or account
+changes. Retain all private/ignored evidence during worktree cleanup.
