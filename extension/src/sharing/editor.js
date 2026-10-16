@@ -103,7 +103,7 @@ function createSharingEditor(vscode,host,options={}) {
   if(!ignored?.split(/\r?\n/).includes(line))plan.changes.push({path:'.gitignore',before:ignored,after:(ignored||'')+((ignored&&!ignored.endsWith('\n'))?'\n':'')+line+'\n'});
   await host.auth.assertCurrent(resolved.ticket);
   if(await reviewPlan(root,plan,`Extract ${title} into libraries/${slug}?`)) {
-   await vscode.window.showInformationMessage('Library extracted. Run App, then write the scaffolded behavior check and two examples before Check library. Upload changes separately before sharing.');
+   await vscode.window.showInformationMessage('Library extracted. Run App, then write the scaffolded behavior check and two examples before Check library. Commit & push separately before sharing.');
    await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,`libraries/${slug}/src/test/java/LibraryCheck.java`))),{preview:false});
   }
  }
@@ -144,10 +144,10 @@ function createSharingEditor(vscode,host,options={}) {
  }
  async function saveDescriptor(root,filename,descriptor) {
   const before=await authoring.read(root,filename,true),after=JSON.stringify(c.validateDescriptor(descriptor),null,2)+'\n';if(before===after)return;
-  if(await vscode.window.showInformationMessage('Save these sharing details?',{modal:true,detail:after+'\nUpload changes separately before sharing this version.'},'Save details')!=='Save details')return false;
+  if(await vscode.window.showInformationMessage('Save these sharing details?',{modal:true,detail:after+'\nCommit & push separately before sharing this version.'},'Save details')!=='Save details')return false;
   await current(root);
   if(before===null)await fs.writeFile(await authoring.safePath(root,filename,{missing:true}),after,{flag:'wx'});
-  else {const document=await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,filename)));if(document.isDirty||document.getText()!==before)fail('Sharing metadata changed during review.');const editor=await vscode.window.showTextDocument(document,{preview:false});if(!await editor.edit(edit=>edit.replace(new vscode.Range(document.positionAt(0),document.positionAt(before.length)),after)))fail('Sharing metadata changed during the edit.');if(!await document.save())fail('Save the sharing metadata before Upload changes.');}
+  else {const document=await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(root,filename)));if(document.isDirty||document.getText()!==before)fail('Sharing metadata changed during review.');const editor=await vscode.window.showTextDocument(document,{preview:false});if(!await editor.edit(edit=>edit.replace(new vscode.Range(document.positionAt(0),document.positionAt(before.length)),after)))fail('Sharing metadata changed during the edit.');if(!await document.save())fail('Save the sharing metadata before Commit & push.');}
   return true;
  }
  async function gameDescriptor(root) {
@@ -171,7 +171,7 @@ function createSharingEditor(vscode,host,options={}) {
   let controls=descriptor.controls;if(descriptor.kind==='game'){controls=await input('Game controls','Explain movement and other controls.',controls);if(!controls)return;}
   const preview=await vscode.window.showInputBox({title:'Preview image',prompt:'Optional relative PNG file path. Leave blank to omit.',value:descriptor.preview||''});if(preview===undefined)return;
   const updated={...descriptor,title,description,version,license};if(descriptor.kind==='game')updated.controls=controls;if(preview)updated.preview=preview;else delete updated.preview;
-  if(await saveDescriptor(root,filename,updated)!==false)await vscode.window.showInformationMessage('Sharing details saved. Upload changes separately, then Share the committed version.');
+  if(await saveDescriptor(root,filename,updated)!==false)await vscode.window.showInformationMessage('Sharing details saved. Commit & push separately, then Share the committed version.');
  }
  async function share(kind) {
   trusted(vscode);const root=await host.project();await assertOriginalProject(root);assertSaved(vscode,root);let folder='.',filename='zero-game.json',descriptor;
@@ -180,11 +180,11 @@ function createSharingEditor(vscode,host,options={}) {
   const requestedVersion=await input('Sharing version','Reuse the saved exact version, or enter the next version. Metadata changes must be uploaded separately.',descriptor.version,c.validateVersion);if(!requestedVersion)return;
   if(requestedVersion!==descriptor.version) { descriptor={...descriptor,version:requestedVersion};if(await saveDescriptor(root,filename,descriptor)===false)return; }
   const policyRevision=operatorSetting('sharingPolicyRevision',bundled.policyRevision,'');if(!/^[a-f0-9]{40}$/.test(policyRevision))fail('Sharing setup needs an active reviewed policy. This kit can prepare local libraries; public sharing is not active yet.');
-  if((await api.git(root,['status','--porcelain','-z'])).length)fail('Upload changes through the reviewed GitHub action before sharing. Zero will not commit or upload from Share.');
+  if((await api.git(root,['status','--porcelain','-z'])).length)fail('Commit & push through the reviewed GitHub action before sharing. Zero will not commit or upload from Share.');
   const resolved=await repository(root),commit=(await api.git(root,['rev-parse','HEAD'])).trim();
-  if(!/^[a-f0-9]{40}$/.test(commit))fail('Upload your first committed version before sharing.');
-  let committed;try{committed=c.validateDescriptor(JSON.parse(await api.git(root,['show',`${commit}:${filename}`])));}catch{fail('Upload the sharing metadata first, then choose Share again.');}
-  if(JSON.stringify(committed)!==JSON.stringify(descriptor))fail('The committed sharing details differ. Upload changes before sharing.');
+  if(!/^[a-f0-9]{40}$/.test(commit))fail('Commit & push your first version before sharing.');
+  let committed;try{committed=c.validateDescriptor(JSON.parse(await api.git(root,['show',`${commit}:${filename}`])));}catch{fail('Commit & push the sharing metadata first, then choose Share again.');}
+  if(JSON.stringify(committed)!==JSON.stringify(descriptor))fail('The committed sharing details differ. Commit & push before sharing.');
   let request=c.validateRequest({schema:1,kind,slug:descriptor.slug,version:descriptor.version,repository:resolved.repository,requester:resolved.requester,commit,folder,descriptor:committed,policyRevision});
   // This read confirms the exact commit is uploaded and accessible in GitHub.
   await resolved.reader.source(request);

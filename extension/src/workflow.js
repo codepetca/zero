@@ -41,9 +41,9 @@ async function state(project, run) {
   return {...current, mainHead};
 }
 function clean(current) {
-  if (!current.head) throw new Error('Make your first Upload on main to save the initial project, then Start a new feature.');
-  if (current.status) throw new Error('Save and commit your project changes with Upload first, then review Start or Finish again. For the initial project, use Upload on main.');
-  if (!current.mainHead) throw new Error('This project needs a committed main branch. Save the initial project on main with Upload first.');
+  if (!current.head) throw new Error('Use Commit & push on main to save the initial project, then New branch.');
+  if (current.status) throw new Error('Use Commit & push first, then review New branch or Merge to main again. For the initial project, commit and push on main.');
+  if (!current.mainHead) throw new Error('This project needs a committed main branch. Save the initial project on main with Commit & push first.');
 }
 function same(a, b) {
   return ['root', 'page', 'remote', 'branch', 'head', 'mainHead', 'status', 'fingerprint'].every(key => a[key] === b[key]);
@@ -208,7 +208,7 @@ async function finishPrepared(plan, options = {}) {
   await local(opts.run, plan.root, ['update-ref', 'refs/heads/main', current.head, current.mainHead], 'fast-forward local main');
   const ready = {...current, mainHead: current.head, remoteMainHead: plan.remoteMainHead};
   await recheck(ready, opts.run);
-  opts.onProgress('Uploading the completed main…');
+  opts.onProgress('Pushing the merged main…');
   let confirmed;
   try {
     await protectedNetwork(ready, opts, () => network(opts.networkRun, plan.root, ['push', plan.remote, `${ready.head}:refs/heads/main`]));

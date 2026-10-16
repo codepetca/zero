@@ -193,3 +193,17 @@ Zero Output/Problems with concise recoverable feedback retained in the sidebar;
 no large status/headings/collapsible overhaul is approved by generating concepts.
 Actual screenshot and concept paths are recorded in the ignored
 .verification/sidebar-onboarding-20261016/design-options.json receipt.
+
+### Selected refinement — 2026-10-16
+
+Owner selected the third displayed concept: one continuous controls/file-list
+view. They requested Git/GitHub terminology. Use Commit & push for the existing
+commit-if-needed/current-branch push action, and Merge to main for the existing
+reviewed merge/push-main flow; preserve the stable command IDs and confirmations.
+Start tutorial is available in welcome/empty state and native overflow, freeing
+its permanent row when a project is open. Clone repository stays visible. Remove
+GitHub/ZeroHub section headings and the separate controls/Files view split through
+one supported webview view. Keep short actionable state and Problems recovery;
+long compiler details stay in Zero Output. Native themes and keyboard/file safety
+remain acceptance requirements. The refined generated visual is linked in the
+ignored design-options receipt; it is not native implementation evidence.

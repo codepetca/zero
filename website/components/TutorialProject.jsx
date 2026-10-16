@@ -10,7 +10,7 @@ export function TutorialProject({ project, lesson, template, assets }) {
         <p><strong>Template not available yet.</strong> The {project.title} tutorial template has not been published.
           Ask your teacher for the published tutorial template, or continue in your own already-cloned repository.</p>}
       <ol>
-        <li>In Zero&apos;s sidebar, choose <strong>Start tutorial</strong> → <strong>{project.title}</strong> to open the matching template.
+        <li>From Zero&apos;s welcome, choose <strong>Start tutorial</strong> → <strong>{project.title}</strong> to open the matching template. With a project open, use Zero&apos;s <strong>…</strong> menu to find Start tutorial.
           {' '}{template ? 'You can also choose Use template above.' : 'Continue when the template is available.'}
           {' '}On GitHub, choose <strong>Use this template → Create a new repository</strong> and create a repository under your own GitHub account.</li>
         <li>Copy <strong>your new repository</strong>&apos;s <strong>Code → HTTPS</strong> URL.
@@ -23,8 +23,10 @@ export function TutorialProject({ project, lesson, template, assets }) {
       <p>Continue your {project.title} project in the same cloned repository.
         {' '}Need that repository? <a href={`/tutorials/${project.firstLesson}`}>Start at lesson {project.firstLesson}</a>.</p>
     </>}
-    <p>For each lesson: <strong>New branch</strong> → edit and <strong>Run App</strong> → <strong>Upload changes</strong> → <strong>Finish change</strong>.
-      Review the account, repository, branch and files before confirming GitHub actions. Nothing uploads automatically.
+    <p>For each lesson: <strong>New branch</strong> → edit and <strong>Run App</strong> → <strong>Commit & push</strong> → <strong>Merge to main</strong>.
+      Commit &amp; push creates a commit when needed and pushes the current branch. Merge to main merges your branch into main and pushes main.
+      Review the account, repository, branch and files before confirming GitHub actions. Nothing pushes automatically.
+      Publish app is a separate action that deploys your playable app to GitHub Pages.
       Local Run App needs no GitHub sign-in.</p>
     <p><a href="/docs/course-project#tutorial-repositories">Tutorial repository and Git setup guide</a>.</p>
     {lesson === "10" && <p>Reopen your Study quiz and Coin game repositories to try the same component in both.</p>}

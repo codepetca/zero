@@ -6,14 +6,14 @@ core **0.1.3**. Published downloads keep their own bundled instructions.
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
-Choose **Start tutorial** in Zero’s sidebar to open each matching tutorial
+Choose **Start tutorial** from Zero’s welcome or **…** menu to open each matching tutorial
 template once. On GitHub, use **Use this template → Create a new repository**
 to create your own repository. Copy its **Code → HTTPS** URL, return to Zero and
 choose **Clone repository** in the sidebar. Paste your URL, choose a destination
 outside any other Git repository, then choose **Open in New Window** when VS Code
 offers to open the clone. Keep that clone and add your own code across its lessons. Each template contains only empty Main
 and build/framework setup. Tutorial repositories use New branch, Run App,
-Upload changes and Finish change, like original coursework projects. Template links
+Commit & push and Merge to main, like original coursework projects. Template links
 follow verified publication metadata; unavailable templates show that state.
 Run App checks and compiles your Java locally, then opens Zero’s browser preview.
 After editing, click Run App again; Zero saves your files and stops the previous
@@ -39,7 +39,7 @@ Set your teacher-approved Git name/email per repository; for email privacy, copy
 the exact GitHub `noreply` address from Settings → Emails. Keep passwords/tokens
 out of projects. See [the account/privacy guide](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
 The ordinary local Hello World check below needs no account. After cloning and
-compiler caching, tutorial Run works offline; uploading needs internet/sign-in.
+compiler caching, tutorial Run works offline; pushing needs internet/sign-in.
 Publishing is optional and public, and private-repository Pages depends on the
 account plan. No paid plan is needed for tutorial source work; keep approved privacy.
 
@@ -61,7 +61,7 @@ ZIP does not contain the launcher or Zero extension. You can use the steps below
 instead. Inside VS Code, **Zero: Setup Help** offers a checklist, repair actions
 and **Check again**. School IT can provide the tools before students start.
 
-1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for tutorials and uploads. JDK 17 was tested. Check `java -version` and
+1. Install a JDK (Java Development Kit), **17 or newer**, and **Git 2.31 or newer** for tutorials and pushes. JDK 17 was tested. Check `java -version` and
    `git --version` in a new terminal. This starter compiles to Java 17.
 2. Install VS Code and optionally import **Zero.code-profile first** for the
    quiet settings-only profile. Open the Command Palette (**Ctrl+Shift+P** on
@@ -105,7 +105,7 @@ artifact code do not make those platforms supported in this MVP.
 
 Use the installed starter's **Run App** once to check setup: it opens a short
 Hello, world! demonstration in the browser preview. Then choose
-**Start tutorial → Greeting app** in Zero’s sidebar
+**Start tutorial → Greeting app** from Zero’s welcome or **…** menu
 to begin [Lesson 0](lessons/00-hello-world.md) with your own empty Main. Write the
 label, then continue lessons 1 and 2 in that same Greeting folder.
 
@@ -196,7 +196,7 @@ component base class, scene routing, or object discovery.
 ## Try an example
 
 The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
-**Start tutorial** in Zero’s sidebar at lessons 0, 3 and 8 to create your own
+**Start tutorial** from Zero’s welcome or **…** menu at lessons 0, 3 and 8 to create your own
 repository from the matching empty template and clone it. Keep the same Greeting, Study or Game
 repository for its following lessons. Students write
 their own controls and classes; lesson 12 offers only optional image/sound assets. Some reference examples use native JavaFX APIs outside the browser subset;
@@ -250,7 +250,7 @@ modified component before copying an example over it.
 
 ## Your repository and Pika
 
-Click **Sign in** beside GitHub in Zero and complete VS Code's native browser
+Choose **Sign in** using the account control in Zero’s sidebar and complete VS Code's native browser
 flow. The control then shows your GitHub username; click it for account-change
 or sign-out actions. Sign-out opens VS Code Accounts, where you
 select the GitHub account and choose Sign Out.
@@ -264,9 +264,9 @@ gitignore uninitialized). Use your own account and follow your teacher's
 visibility instructions; there is no GitHub Classroom step. Connect its HTTPS
 page URL through **Connect a repository → Connect an existing repository…**. Connect initializes Git in this standalone student folder if
 needed and adds origin; it asks before replacing origin. It does not authenticate
-or upload. Local running works without GitHub sign-in.
+or push. Local running works without GitHub sign-in.
 
-Before a real upload, configure Git's per-repository name/email identity.
+Before a real push, configure Git's per-repository name/email identity.
 In your project terminal, replace the examples with your teacher-approved display
 name and commit email. For email privacy, use the exact GitHub `noreply` address
 shown in Settings → Emails, rather than your personal email:
@@ -281,44 +281,44 @@ These commands apply only to this repository. For more help, read
 or ask your teacher.
 Signing in does not configure commit identity. Zero supplies the selected native
 GitHub session to its network operations without storing a token in your project
-or Git configuration. Account/session changes require a fresh upload review.
+or Git configuration. Account/session changes require a fresh push review.
 Never put a password or token in Java source, the marker or README.
 
-**GitHub actions are live by default; nothing uploads automatically.**
-Upload changes saves files, asks for a commit message, then shows a
+**GitHub actions are live by default; nothing pushes automatically.**
+Commit & push saves files, asks for a commit message, then shows a
 modal review of your repository, branch and changed files. Check it before
-choosing **Commit & Upload**. This creates a local commit when needed and pushes
-with Git HTTPS transport using your native sign-in; ignored files stay local. A failed upload may
-leave a local commit. A Mac teacher trial verified native sign-in and a private repository upload;
+choosing **Commit & push**. This creates a local commit when needed and pushes
+the current branch with Git HTTPS transport using your native sign-in; ignored files stay local. A failed push may
+leave a local commit. A Mac teacher trial verified native sign-in and a private repository push;
 other platforms and school environments still need trials.
 
-For a new repository, Upload changes once on **main** to save the starter.
+For a new repository, Commit & push once on **main** to save the starter.
 Then use this individual flow for each improvement:
 
 1. Click **New branch** beside main, name your branch (for example `quiz-feedback`)
-   and review before creating it. Upload pending edits first. Main is updated
+   and review before creating it. Commit & push pending edits first. Main is updated
    from GitHub when it can be advanced without combining separate histories.
-2. Edit and Run App. **Upload changes** saves and uploads progress to your branch;
+2. Edit and Run App. **Commit & push** creates a commit when needed and pushes your current branch;
    repeat as needed.
-3. Click **Finish change** beside the branch name. Upload pending edits first, run the
-   app and review before merging/uploading into main. If newer main code is added
-   to your branch, Zero pauses: run the combined app and review Finish again.
+3. Click **Merge to main** beside the branch name. Commit & push pending edits first, run the
+   app and review. **Merge to main** merges your branch into main and pushes main. If newer main code is added
+   to your branch, Zero pauses: run the combined app and review Merge to main again.
 4. After confirmed success, you are back on main. Remove the finished local
    branch when prompted, or keep it; its GitHub branch remains.
 
 Older kits may use a profile icon and **Connect a repo**, with **Start a change**
-or **Finish change** in the branch-name menu. Their installed controls remain
+and different labels for committing, pushing and merging. Their installed controls remain
 unchanged; the steps above describe the current editor.
 
 If an update conflicts, your work and merge state remain. In VS Code Source
 Control, inspect the conflicted files/Merge Editor, combine the intended changes,
-save and stage them, then commit the merge. Run App and review Finish again.
+save and stage them, then commit the merge. Run App and review Merge to main again.
 Ask your teacher for help with an unclear conflict or diverged main history.
-A failed Finish upload can leave local main advanced while your change branch
-remains selected; repair the network/access problem and review Finish again.
+A failed main push can leave local main advanced while your change branch
+remains selected; repair the network/access problem and review Merge to main again.
 Zero does not force-push or automatically discard work.
 
-After a successful real Finish, check the files on GitHub's main branch. Click the connected
+After a successful Merge to main, check the files on GitHub's main branch. Click the connected
 repository name and choose **Copy repository link**, then submit it separately
 in Pika. Give your teacher access if it is
 private. Zero does not submit assignments or change Pika grades.
@@ -326,11 +326,11 @@ private. Zero does not submit assignments or change Pika grades.
 ## Publish a playable app
 
 Use your own original project with Git **2.31+** and your own GitHub account.
-**Run App** and test it, then finish and upload the completed version on **main**.
-Choose **Publish app** in Zero’s **GitHub** section. The first publish reviews the public Pages
-destination, prepares publishing files, and uses the reviewed upload flow.
+**Run App** and test it, then merge and push the completed version on **main**.
+Choose **Publish app** in Zero’s sidebar. The first publish reviews the public Pages
+destination, prepares publishing files, and uses the reviewed push flow.
 If VS Code requests workflow permission, use the same GitHub account as Zero.
-Confirm the uploaded version when asked. The app and included assets will be
+Confirm the pushed version when asked. The app and included assets will be
 public; your source repository keeps its visibility. Later explicit Publish actions
 revalidate and update that same approved site without another destination dialog.
 
@@ -343,9 +343,9 @@ The playable link is separate from your repository link for Pika.
 
 **Share project** prepares a separate ZeroHub source submission. This candidate
 attaches a playable link only when it can verify the saved publication for that
-exact uploaded commit. ZeroHub’s **Play latest** opens the student-hosted app;
+exact pushed commit. ZeroHub’s **Play latest** opens the student-hosted app;
 **Download source project** stays an exact version. Checker acceptance and public
-activation are pending; public ZeroHub uploads are not open yet.
+activation are pending; public ZeroHub pushes are not open yet.
 
 ## Checking your changes
 

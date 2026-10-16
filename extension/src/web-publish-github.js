@@ -89,7 +89,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     if(isSimulation())return simulation();
     const plan=await prepareUpload(root,git);
     if(plan.branch!=='main')throw new Error('Finish your change on main before publishing the web game.');
-    if(plan.status || !shaPattern.test(plan.head||''))throw new Error('Upload your changes on main before publishing. The public game must match your saved version.');
+    if(plan.status || !shaPattern.test(plan.head||''))throw new Error('Commit & push your changes on main before publishing. The public game must match your saved version.');
     const ticket=await authentication.capture();
     const slug=plan.page.slice('https://github.com/'.length);
     const state={root:plan.root,plan,ticket,slug};
@@ -100,7 +100,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     if(repo.default_branch!=='main')throw new Error('Web publishing needs main as the repository default branch. Check your GitHub repository settings.');
     if(!repo.permissions?.push)throw new Error('Your signed-in account needs permission to upload to this repository.');
     const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
-    if(remote.object?.sha!==plan.head)throw new Error('Upload your main version first. GitHub currently has a different commit.');
+    if(remote.object?.sha!==plan.head)throw new Error('Commit & push your main version first. GitHub currently has a different commit.');
     const files=providedFiles || await publishingFiles(engineRoot), missing=await inspectFiles(plan.root,files);
     const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
     if(pages && (pages.build_type!=='workflow' || missing.length))return action('This repository already has a Pages site or a different publishing setup. Keep it and choose another repository for this game.',plan.page+'/settings/pages');
@@ -126,7 +126,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
       if(isSimulation())throw new Error('Live publishing was disabled. Review publishing again.');
       await fs.writeFile(path.join(state.root,name),state.files.get(name),{flag:'wx'});
     }
-    return {status:'upload-required',message:'Publishing setup is ready. Upload these source files on main, then publish the game.'};
+    return {status:'upload-required',message:'Publishing setup is ready. Commit & push these source files on main, then publish the game.'};
   }
   async function publish(reviewed,{signal,onProgress=()=>{},onStaging=async()=>{},onPending=async()=>{}}={}) {
     if(isSimulation())return simulation();
@@ -135,7 +135,7 @@ function createGitHubPagesPublisher({authentication,fetch:request=globalThis.fet
     await guard(state,signal);
     if(unresolvedStages.has(state.root)) {await cleanupStaging(state,unresolvedStages.get(state.root));unresolvedStages.delete(state.root);await onStaging(undefined);}
     const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
-    if(remote.object?.sha!==state.plan.head)throw new Error('GitHub main changed after review. Upload or sync your project and review publishing again.');
+    if(remote.object?.sha!==state.plan.head)throw new Error('GitHub main changed after review. Commit & push or sync your project and review publishing again.');
     const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
     if(pages && (!state.pages || pages.build_type!=='workflow' || pages.public!==true || pages.html_url!==state.pages.html_url || pages.cname!==state.pages.cname))throw new Error('Pages settings changed after review. Review publishing again.');
     onProgress('Validating the browser app locally…');

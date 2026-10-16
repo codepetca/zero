@@ -4,7 +4,7 @@
 const MESSAGES=Object.freeze({
   'descriptor-missing':'Include the saved sharing descriptor in the uploaded commit, then prepare another Share request.',
   'descriptor-invalid':'Fix the sharing descriptor with Edit sharing details, upload it, then prepare another Share request.',
-  'descriptor-drift':'The uploaded sharing details differ from the request. Upload the intended details and prepare a fresh Share request.',
+  'descriptor-drift':'The uploaded sharing details differ from the request. Commit & push the intended details and prepare a fresh Share request.',
   'game-main':'Keep the main Java file, its package and main method consistent with zero.json and the Maven main-class setting.',
   'game-framework':'Include readable zero.App and zero.GameApp source from the Zero starter.',
   'game-license':'Include the applicable readable license and Maven wrapper notices in your uploaded project.',

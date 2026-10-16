@@ -49,7 +49,7 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:()=>true}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
-  assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Upload changes/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
+  assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Commit &amp; push/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;
     metadata[event]({fsPath:path.join(root,'.git','HEAD')});await waitFor(()=>webview.html.includes(`Current branch: ${branch}`), 'Native HEAD update should render');
@@ -71,17 +71,17 @@ test('individual change actions are reviewed, serialized, simulated and recover 
   input='add-score';confirm=undefined;await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,0);assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(reviews.at(-1).options.detail,/student\/app.*\nGitHub account: student/);
   confirm='Create branch';await commands.get('zero.startChange')();assert.equal(executed,1);assert.match(webview.html,/add-score<\/span>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
-  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge & Upload main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1).text==='Finish this change?', 'Finish review should open');
+  let releaseReview;reviewGate=new Promise(resolve=>{releaseReview=resolve;});confirm='Merge and push main';const pending=commands.get('zero.finishChange')();await waitFor(()=>reviews.at(-1).text==='Merge this branch to main?', 'Finish review should open');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
   assert.deepEqual({saved,prepared,authCalls},before);assert.match(webview.html,/data-command="zero.finishChange"[^>]* disabled/);
   session={...session,id:'changed'};authEvent({provider:{id:'github'}});releaseReview();await pending;reviewGate=undefined;
   assert.equal(executed,1,'Changed account cannot execute the reviewed finish');assert.equal(deleted,0);assert.match(errors.at(-1),/sign-in changed/);
   finishError=Object.assign(new Error('Merge conflicts need your attention'),{conflict:true});await commands.get('zero.finishChange')();assert.equal(dispatch.at(-1),'workbench.view.scm');assert.equal(deleted,0);assert.match(notices.join('\n'),/Stage the resolved files/);assert.match(webview.html,/add-score<\/span>/);
   nativeScm=false;await commands.get('zero.finishChange')();assert.match(notices.at(-1),/Open Source Control/);assert.equal(deleted,0);
-  finishError=undefined;finishUpdates=true;confirm='Merge & Upload main';const beforeUpdates=reviews.length;await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.equal(reviews.length,beforeUpdates+1);assert.match(notices.at(-1),/Run App.*Finish change again/);assert.equal(branch,'add-score');
-  finishUpdates=false;confirm='Merge & Upload main';await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.match(reviews.at(-1).text,/Delete the finished local branch/);assert.match(webview.html,/main<\/span>/);
+  finishError=undefined;finishUpdates=true;confirm='Merge and push main';const beforeUpdates=reviews.length;await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.equal(reviews.length,beforeUpdates+1);assert.match(notices.at(-1),/Run App.*Merge to main again/);assert.equal(branch,'add-score');
+  finishUpdates=false;confirm='Merge and push main';await commands.get('zero.finishChange')();assert.equal(deleted,0);assert.match(reviews.at(-1).text,/Delete the finished local branch/);assert.match(webview.html,/main<\/span>/);
   // Answer each modal by its purpose for the successful optional cleanup.
-  branch='add-score';vscode.window.showInformationMessage=async(text,options)=>{if(options?.modal)return text.startsWith('Delete')?'Delete local branch':'Merge & Upload main';};
+  branch='add-score';vscode.window.showInformationMessage=async(text,options)=>{if(options?.modal)return text.startsWith('Delete')?'Delete local branch':'Merge and push main';};
   await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.deepEqual(deletions[0],[root,'add-score','f'.repeat(40)]);
   branch='<branch "x">';provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes('&lt;branch &quot;x&quot;&gt;'));assert.match(webview.html,/&lt;branch &quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
   branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.at(-1).options.title.includes('main'), 'Main branch menu should open');

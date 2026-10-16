@@ -63,15 +63,15 @@ test('clean uploaded main dispatches exact reviewed source and confirms actual p
   assert.equal((await h.publisher.check(pending.resume)).status,'live');assert.equal((await h.publisher.check(pending.resume)).url,h.pages.html_url);
   assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending','Later updates reuse the configured destination');
 });
-test('setup creates source-only files then requires normal Upload changes, never remote commits',async t=>{
+test('setup creates source-only files then requires normal Commit & push, never remote commits',async t=>{
   const h=await fixture(t,{installed:false});const review=await h.publisher.review(h.root);assert.equal(review.setup,true);
   assert.equal((await h.publisher.setup(review)).status,'upload-required');
   assert.equal(await fs.readFile(path.join(h.root,'.zero-web/owner.json'),'utf8'),'owned');
   assert.equal(await h.git(['rev-parse','HEAD']),h.head);assert.ok(h.calls.every(c=>c.options.method==='GET'));
-  await assert.rejects(h.publisher.review(h.root),/Upload your changes/);
+  await assert.rejects(h.publisher.review(h.root),/Commit & push your changes/);
 });
 test('dirty, unuploaded, unfinished and changed reviews fail before publication',async t=>{
-  const h=await fixture(t);h.remoteHead='f'.repeat(40);await assert.rejects(h.publisher.review(h.root),/Upload your main/);h.remoteHead=h.head;
+  const h=await fixture(t);h.remoteHead='f'.repeat(40);await assert.rejects(h.publisher.review(h.root),/Commit & push your main/);h.remoteHead=h.head;
   const review=await h.publisher.review(h.root);await fs.writeFile(path.join(h.root,'New.java'),'class New {}');
   await assert.rejects(h.publisher.publish(review),/files changed/);assert.ok(h.calls.every(c=>c.options.method==='GET'));
   await fs.rm(path.join(h.root,'New.java'));await fs.writeFile(path.join(h.root,'.git/MERGE_HEAD'),h.head);await assert.rejects(h.publisher.review(h.root),/Finish or cancel/);

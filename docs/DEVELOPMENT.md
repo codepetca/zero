@@ -243,7 +243,7 @@ also cover the new paths. Native community catalog integration/publication polic
 is unchanged; first-party website downloads do not claim a registry release.
 The starter uses only canonical Main, framework and pinned build/config files;
 it excludes the lesson/example shelf. Guided READMEs cover student-owned GitHub
-repositories and Start/Upload/Finish; GitHub PR practice is separate. Five public GitHub template repositories are recorded in
+repositories and New branch/Commit & push/Merge to main; GitHub PR practice is separate. Five public GitHub template repositories are recorded in
 `website/content/project-templates.json`. To prepare fresh local template drafts,
 run `node scripts/prepare-project-templates.mjs`; publication remains a separate
 authorized action. Never copy the development repository or local private files.
@@ -258,7 +258,9 @@ gate. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.
 
-The sidebar exposes Start tutorial (`zero.startProject`, stable command ID) and
-Clone repository (`zero.cloneRepository`). Clone delegates to VS Code’s built-in
+One supported webview (`zero.actions`) contains controls and the project file list;
+with a single view VS Code merges its title into the container header. Start
+tutorial (`zero.startProject`, stable command ID) is on welcome/empty and the native
+**…** menu; Clone repository (`zero.cloneRepository`) stays visible. Clone delegates to VS Code’s built-in
 `git.clone`; native Git owns authentication, URL/destination selection and opening.
 Website/tutorial instructions use the visible sidebar labels.

@@ -1,4 +1,4 @@
-# Current state — native Study/Game trials accepted, 2026-10-16
+# Current state — selected compact sidebar integration, 2026-10-16
 
 Coordinator Lead publishing task, thread01a13f98-55fc-7471-9038-1198b14d5a98.
 Use /Users/stew/.codex/worktrees/web-export/zero, branch codex/web-export.
@@ -44,10 +44,27 @@ Strict gate demonstrated actual DODGERBLUE source30:14 error; ordinary Color.web
 recovery passed, policy unchanged. Command+A replacement on an outer preview
 field did not work in one automation attempt; Backspace worked. Cause unisolated.
 
-Sidebar groups Run/Stop → GitHub → ZeroHub make sense. Recommendations only:
-visible Start tutorial, direct Clone your repository, hide tutorial Connect another
-repository, shorter build progress. Live Study lesson rechecked2026-10-16 still links ZIP setup;
-no published end-to-end acceptance. Physical Windows/school hardware/network/sound,
+Active follow-up: user selected concept3, one continuous panel, then requested
+GitHub terms. Functional Start tutorial/Clone source2e91259 independently clean;
+451tests450pass/1PowerShellskip, website108/types/build, package/verify-kit passed.
+Selected refinement implements one supported webview for controls and files,
+removes separate zero.files/header and GitHub/ZeroHub headings, keeps Start
+tutorial on welcome/empty and native overflow, visible Clone repository, compact
+run status with detailed Zero Output. Commit & push commits if needed and pushes
+the current branch; Merge to main merges then pushes main (separate Publish app).
+No Java/helper/exporter changes. The installed native preview remains6258daf;
+new selected layout must be reviewed, packaged, installed and clicked through.
+One writer: /root/unified_sidebar owns extension runtime/styles/manifest/tests
+and design playground adapter/tests; website worker finished matching instructions.
+Parent owns docs, integration, UI tests and candidate. Active evidence/ledger:
+.verification/sidebar-onboarding-20261016/. Initial source review clean; new
+layout/terms delta awaits proportional independent review. Selected target:
+~/.codex/generated_images/01a13f98-55fc-7471-9038-1198b14d5a98/
+exec-2051d29b-f561-4f48-bb05-6306be3e0c83.png. Website candidate localhost62570
+shows correct0/3/8 template links and Git terms; native full flow and design QA
+remain. No source push, website deployment or release authority added.
+
+Physical Windows/school hardware/network/sound,
 final native consent/upload/branches/Finish/Publish/Open/Copy, ZeroHub trusted policy
 alignment/public Play, native focus timeout, source CI and Mac build3 signing/
 notarization/stapling/sealed release remain. Release aligned desktop+site only

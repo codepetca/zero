@@ -16,7 +16,7 @@ Preparation reads release metadata and canonical repository documents, lessons a
 
 ## Learning routes
 
-`/learn` opens Lesson0. Lessons0/3/8 require students to create their own repository from the matching empty tutorial template, then clone their own repository. Only verified publication metadata enables Use template; pending templates show explicit unavailable guidance. Later lessons continue the same repository with New branch, edit/Run, Upload changes and Finish change. Lesson10 reopens Study and Game; Lesson12 retains its optional media-only ZIP. Tutorial project-ZIP links are not accepted. New source behavior is unreleased; published kits keep their original instructions. `/tutorials/[lesson]` renders the maintained lesson Markdown with all sections expanded by default, related docs and Next lesson navigation. Individual sections can still be collapsed, and section fragments open their enclosing disclosure. `/docs` opens the setup guide directly; `/docs/[slug]` shares that reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` redirect to the matching ZeroHub example view. Docs and ZeroHub examples share light/dark themes and labeled selectors on narrow screens.
+`/learn` opens Lesson0. Lessons0/3/8 require students to create their own repository from the matching empty tutorial template, then clone their own repository. Only verified publication metadata enables Use template; pending templates show explicit unavailable guidance. Later lessons continue the same repository with New branch, edit/Run, Commit & push and Merge to main. Lesson10 reopens Study and Game; Lesson12 retains its optional media-only ZIP. Tutorial project-ZIP links are not accepted. New source behavior is unreleased; published kits keep their original instructions. `/tutorials/[lesson]` renders the maintained lesson Markdown with all sections expanded by default, related docs and Next lesson navigation. Individual sections can still be collapsed, and section fragments open their enclosing disclosure. `/docs` opens the setup guide directly; `/docs/[slug]` shares that reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` redirect to the matching ZeroHub example view. Docs and ZeroHub examples share light/dark themes and labeled selectors on narrow screens.
 
 Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, traversal and repeated source query values return 404. Allowed absolute content links include the optional game media ZIP and publication-gated ZeroHub project routes; tutorial project ZIP links are rejected. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, read-only lesson checkpoints, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
 
@@ -37,7 +37,7 @@ required. Sidebar selection uses `?kind=example&example=<id>`.
 example sources. The prepared snapshot contains a separate `starter` entry and
 all 26 `projects`. Guided downloads include a concrete change, README planning and
 the actual student-owned repository workflow. `/docs/course-project` distinguishes
-Zero's individual Finish change from GitHub pull request practice. Five public GitHub templates are recorded in `content/project-templates.json` with
+Zero's individual Merge to main from GitHub pull request practice. Five public GitHub templates are recorded in `content/project-templates.json` with
 verified numeric repository IDs, main commits and trees. Preparation validates the
 complete publication snapshot before exposing template links. Empty metadata
 retains the source ZIP route; partial or invalid metadata fails preparation.
@@ -66,7 +66,7 @@ Maven instructions. Browsing does not install a dependency or run Java.
 `/hub/share` explains native Zero **Share game**, **Share library** and **Check
 library** commands and official GitHub publication forms. Students use their own
 existing game repository with optional `libraries/<name>/` folders. There is no
-website OAuth, reservation, folder-upload, submission queue or Neon database.
+website OAuth, reservation, folder-push, submission queue or Neon database.
 Public publication remains inactive while its operating and checker gates are
 unresolved. A local fixture or successful website build does not publish a release.
 

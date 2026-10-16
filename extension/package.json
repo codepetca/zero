@@ -108,7 +108,7 @@
       },
       {
         "command": "zero.uploadToGitHub",
-        "title": "Zero: Upload Changes"
+        "title": "Zero: Commit & Push"
       },
       {
         "command": "zero.connectRepository",
@@ -146,7 +146,7 @@
       },
       {
         "command": "zero.finishChange",
-        "title": "Zero: Finish Change"
+        "title": "Zero: Merge to Main"
       },
       {
         "command": "zero.sharingActions",
@@ -196,6 +196,10 @@
       {
         "command": "zero.browseZeroHub",
         "title": "Zero: Browse ZeroHub"
+      },
+      {
+        "command": "zero.showOutput",
+        "title": "Zero: Show Output"
       }
     ],
     "viewsContainers": {
@@ -214,11 +218,6 @@
           "id": "zero.actions",
           "name": "Zero",
           "icon": "media/zero.svg"
-        },
-        {
-          "id": "zero.files",
-          "name": "Files",
-          "icon": "$(files)"
         }
       ]
     },
@@ -325,6 +324,16 @@
           "command": "zero.showSetup",
           "when": "view == zero.actions",
           "group": "zero-help@2"
+        },
+        {
+          "command": "zero.startProject",
+          "when": "view == zero.actions",
+          "group": "zero-help@0"
+        },
+        {
+          "command": "zero.showOutput",
+          "when": "view == zero.actions",
+          "group": "zero-help@3"
         }
       ]
     }

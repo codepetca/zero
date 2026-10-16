@@ -80,7 +80,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
         const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
         const sameDestination=!review.setup && previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl;
         if(!sameDestination) {
-          const chosen=await vscode.window.showInformationMessage(review.setup?'Set up and publish this browser game?':'Publish this version of your browser game?',{modal:true,detail:`Public destination: ${review.publicUrl || (review.repository + ' → GitHub Pages')}\nAccount: ${review.account}\nSource: main at ${review.sha.slice(0,12)}\n${review.setup?'Adds deployment source and a publishing workflow, then uses Upload changes. VS Code may ask once for permission to create GitHub workflows. ':''}The playable page and included assets will be public. Repository visibility stays the same. Zero checks and builds locally; GitHub Actions uses your account’s deployment allowance.`},review.setup?'Set up publishing':'Publish game');
+          const chosen=await vscode.window.showInformationMessage(review.setup?'Set up and publish this browser game?':'Publish this version of your browser game?',{modal:true,detail:`Public destination: ${review.publicUrl || (review.repository + ' → GitHub Pages')}\nAccount: ${review.account}\nSource: main at ${review.sha.slice(0,12)}\n${review.setup?'Adds deployment source and a publishing workflow, then uses Commit & push. VS Code may ask once for permission to create GitHub workflows. ':''}The playable page and included assets will be public. Repository visibility stays the same. Zero checks and builds locally; GitHub Actions uses your account’s deployment allowance.`},review.setup?'Set up publishing':'Publish game');
           if(!chosen || chosen!==(review.setup?'Set up publishing':'Publish game'))return;
         }
         await stillCurrent(expected);
@@ -100,7 +100,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
           result=await publisher.setup(review,{signal:controller.signal});
           if(result.status!=='upload-required'){await showAction(result);return result;}
           progress(result.message);
-          if(!uploadChanges){await showAction({...result,action:{message:'Choose Upload changes to save the publishing setup on main, then choose Publish web game again.'}});return result;}
+          if(!uploadChanges){await showAction({...result,action:{message:'Choose Commit & push to save the publishing setup on main, then choose Publish web game again.'}});return result;}
           // The coordinator's existing upload action owns its busy flag and
           // review. Keep this command's separate operation guard held throughout.
           setBusy(false);
@@ -108,7 +108,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
           if(review.status!=='review'){await showAction(review);return review;}
-          if(review.setup)throw new Error('The publishing setup was not uploaded completely. Upload changes on main and retry.');
+          if(review.setup)throw new Error('The publishing setup was not uploaded completely. Commit & push on main and retry.');
           const confirmed=await vscode.window.showInformationMessage('Publish the uploaded game now?',{modal:true,detail:`Public destination: ${review.publicUrl || (review.repository + ' → GitHub Pages')}\nSource: main at ${review.sha.slice(0,12)}\nThe browser game and included assets will be public.`},'Publish game');
           if(confirmed!=='Publish game')return;
         }

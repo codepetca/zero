@@ -124,7 +124,7 @@ account/network trial. Current development checks mock authentication and transp
 
 - Upload the starting version on main. Choose New branch beside main, cancel once
   and verify the branch/files are unchanged; then create a named branch. Make
-  and run a small app improvement, Upload changes to that branch, cancel Finish
+  and run a small app improvement, Commit & push to that branch, cancel Finish
   once, then review/approve Finish. Confirm the completed SHA and files on remote
   main, return to main and optional local branch cleanup. The remote change branch
   remains. Simulation must not perform any branch/update/merge actions.

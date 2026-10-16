@@ -69,9 +69,9 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   assert.equal(mutations,0,'Connect must not mutate origin while an upload review is pending');
   releaseReview(); await heldUpload;
   github.prepareUpload=async()=>({page:'https://github.com/student/app',remote:'https://github.com/student/app.git',branch:'main',summary:'1 changed path',changes:[{kind:'M',path:'Main.java'}]});
-  confirmUpload='Commit & Upload';
+  confirmUpload='Commit & push';
   await commands.get('zero.uploadToGitHub')();
-  assert.equal(uploaded,1);assert.match(notices.at(-1),/Uploaded aaaaaaa/);
+  assert.equal(uploaded,1);assert.match(notices.at(-1),/Pushed aaaaaaa/);
   assert.equal(mutations,0,'All real transport is mocked in the live UI test');
 });
 
@@ -136,8 +136,8 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const dispatchCount=dispatched.length;nativeAccountsAvailable=false;await commands.get('zero.githubAccount')();
   assert.equal(dispatched.length,dispatchCount);assert.match(notices.at(-1),/Accounts menu.*Sign Out/,'Older editors get usable native sign-out guidance');nativeAccountsAvailable=true;
   nextChoice='change';await commands.get('zero.githubAccount')();assert.equal(authCalls.at(-1).options.clearSessionPreference,true);
-  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Upload changes/.test(webview.html) && />student\/app /.test(webview.html));
-  assert.match(webview.html,/Upload changes/);assert.match(webview.html,/>student\/app /);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
+  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && />student\/app /.test(webview.html));
+  assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/>student\/app /);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   assert.match(githubSection(),/data-command="zero.publishWeb"/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"[^>]*disabled/,'Signed-in connected students can publish');
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
@@ -156,11 +156,11 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });
 
-test("Zero controls and Files remain separate native views with minimal overflow",()=>{
+test("Zero controls and Files share one supported view with minimal overflow",()=>{
   const manifest=require("../package.json");
-  assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions","zero.files"]);
+  assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions"]);
   assert.equal(manifest.contributes.views.zero[0].name,"Zero");
-  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup"]);
+  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startProject","zero.showOutput"]);
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startProject").title,"Zero: Start Tutorial");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.cloneRepository").title,"Zero: Clone Repository");

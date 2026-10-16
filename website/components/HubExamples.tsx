@@ -61,21 +61,21 @@ export function HubExamples({snapshot, project}: {snapshot: {starter: ExamplePro
           <p>Terminal alternative: replace the username and project name below with your own:</p>
           <CodeBlock><code>{'git clone https://github.com/YOUR-USERNAME/YOUR-PROJECT.git\ncd YOUR-PROJECT'}</code></CodeBlock>
           <p>Open that cloned folder in Zero and choose Run App. Your repository already contains the starting project on main.</p>
-          <p className={styles.workflowHelp}>Using Download ZIP instead? Extract it into a new folder, then create and connect an empty repository in your own account and Upload the starting files.</p>
+          <p className={styles.workflowHelp}>Using Download ZIP instead? Extract it into a new folder, then create and connect an empty repository in your own account and Commit & push the starting files.</p>
         </section> : <p className={styles.openInstruction}>Extract the project, open it in Zero, and choose Run App.</p>}
         {guide && <section className={styles.projectWorkflow} aria-labelledby="project-workflow-title">
           <h3 id="project-workflow-title">{starter ? 'Build your project' : 'Make it yours'}</h3>
           <p>{guide.challenge}</p>
           <ol>
             <li>{project.templateHref
-              ? 'In Zero, check that your own cloned repository is open. Personalize the README and Upload those changes on main before starting a branch.'
-              : 'Create an empty GitHub repository in your own account. In Zero, connect that repository and Upload the starting project to main.'}</li>
+              ? 'In Zero, check that your own cloned repository is open. Personalize the README and Commit & push those changes on main before starting a branch.'
+              : 'Create an empty GitHub repository in your own account. In Zero, connect that repository and Commit & push the starting project to main.'}</li>
             <li>Choose New branch to create a branch for one small feature (Start a change in older kits).</li>
             <li>Edit your Java and update the README with what your project does. Run App and check the result.</li>
-            <li>Upload changes with a commit message explaining what you changed.</li>
-            <li>Finish change, check your files on GitHub main, then submit your own repository link in Pika.</li>
+            <li>Choose Commit &amp; push. It creates a commit when needed and pushes the current branch; use a message explaining what you changed.</li>
+            <li>Choose Merge to main to merge your branch into main and push main. Check your files on GitHub main, then submit your own repository link in Pika.</li>
           </ol>
-          <p className={styles.workflowHelp}>Real uploads need GitHub sign-in, Git commit identity and simulation turned off.
+          <p className={styles.workflowHelp}>Real pushes need GitHub sign-in, Git commit identity and simulation turned off.
             {' '}<Link href="/docs/setup#your-individual-workflow">See the repository setup guide <Icon name="arrow-right" /></Link></p>
           <p className={styles.workflowHelp}>Later, practise pull requests and review on GitHub.
             {' '}<Link href="/docs/course-project#pull-request-practice">See the course project guide <Icon name="arrow-right" /></Link></p>

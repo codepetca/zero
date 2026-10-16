@@ -37,6 +37,8 @@ test("all three starting lessons require a template and clone of the student's o
     assert.match(html, /Open in New Window/);
     assert.match(html, /src\/main\/java\/Main.java/);
     assert.match(html, /ordinary Java/);
+    assert.match(html, /From Zero.*welcome/);
+    assert.match(html, /With a project open, use Zero.*menu to find Start tutorial/);
     assert.doesNotMatch(html, /Git: Clone|Command Palette/);
     assert.match(html, /your new repository<\/strong>.*Code → HTTPS/);
     assert.match(html, /empty Main/);
@@ -55,11 +57,11 @@ test("unpublished templates give a precise recovery without guessed GitHub links
   }
 });
 
-test("every lesson uses the live branch, run, upload and finish workflow with local Run available", () => {
+test("every lesson uses the live branch, run, commit, push and merge workflow with local Run available", () => {
   for (let id = 0; id <= 12; id++) {
     const lesson = String(id);
     const html = render(lesson);
-    const actions = ["New branch", "Run App", "Upload changes", "Finish change"];
+    const actions = ["New branch", "Run App", "Commit &amp; push", "Merge to main"];
     let previous = -1;
     for (const action of actions) {
       const position = html.indexOf(`<strong>${action}</strong>`, previous + 1);
@@ -67,7 +69,11 @@ test("every lesson uses the live branch, run, upload and finish workflow with lo
       previous = position;
     }
     assert.match(html, /Review the account, repository, branch and files before confirming GitHub actions/);
-    assert.match(html, /Nothing uploads automatically/);
+    assert.match(html, /Nothing pushes automatically/);
+    assert.match(html, /creates a commit when needed and pushes the current branch/);
+    assert.match(html, /merges your branch into main and pushes main/);
+    assert.match(html, /Publish app is a separate action.*GitHub Pages/);
+    assert.doesNotMatch(html, /Upload changes|Finish change/);
     assert.match(html, /Local Run App needs no GitHub sign-in/);
     assert.match(html, /href="\/docs\/course-project#tutorial-repositories"/);
     assert.doesNotMatch(html, /simulation|per-repository Git commit name and email|origin and starting history/);

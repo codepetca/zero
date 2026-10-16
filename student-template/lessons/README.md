@@ -22,8 +22,8 @@ and [Zero setup](../README.md#first-setup): your own verified GitHub account,
 Git 2.31+, school access and teacher-approved repository visibility. Use Private
 unless teacher/school policy says otherwise, invite your teacher as a collaborator
 on each repository, and verify their access. Publishing a public playable game
-is optional; tutorial uploads do not require buying a plan or making source public.
-At lessons **0, 3 and 8**, choose **Start tutorial** in Zero’s sidebar and select
+is optional; tutorial pushes do not require buying a plan or making source public.
+At lessons **0, 3 and 8**, choose **Start tutorial** from Zero’s welcome or **…** menu and select
 the matching project, or use **Use template** on the tutorial page. On GitHub,
 choose **Use this template → Create a new repository** in **your own account**.
 Copy **your repository**’s **Code → HTTPS** URL, return to Zero and choose
@@ -39,10 +39,12 @@ Each template has an empty runnable `Main.java` and build/framework setup.
 The first run opens a blank browser preview or canvas. You write the controls,
 game objects and logic. Completed lesson programs are not supplied as starters.
 
-Sign in through Zero for uploads and configure Git name/email for each repository.
-Write a short plan in README, then Upload that first change on main. For each
-lesson improvement: **New branch → edit and Run App → Upload changes → Finish
-change**. Review before uploading or merging. Keep the same repository across
+Sign in through Zero for pushes and configure Git name/email for each repository.
+Write a short plan in README, then Commit & push that first change on main. For each
+lesson improvement: **New branch → edit and Run App → Commit & push → Merge to
+main**. Commit & push creates a commit when needed and pushes the current branch.
+Merge to main merges your branch into main and pushes main. Review before pushing
+or merging. Keep the same repository across
 that group's lessons. After editing, Run App again; click the canvas before using
 game keys. Once cloned, running needs no active GitHub session and works offline
 after compiler dependencies are cached.

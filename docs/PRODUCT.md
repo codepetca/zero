@@ -144,7 +144,7 @@ Before lesson 0, students complete account/privacy setup: their own verified Git
 account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
 repository visibility/commit identity. Tutorial source can stay private with teacher
 collaborator access; public game publishing remains optional. The visible
-**Start tutorial** sidebar action opens the matching verified tutorial template. After creating their own repository, students choose the visible
+**Start tutorial** action on the welcome screen or Zero’s **…** menu opens the matching verified tutorial template. After creating their own repository, students choose the visible
 **Clone repository** action; VS Code owns its URL/destination/opening controls.
 Students create a repository in their own account, then clone their repository;
 there is no local-folder or project-ZIP tutorial alternative. Completed teacher
@@ -215,7 +215,7 @@ and hosted compilation are out of scope. A strict resolved-API gate rejects unsu
 application APIs before real WebFX compilation; see [browser builds](WEB-EXPORT.md).
 Final integrated acceptance and release remain separate.
 
-Browser sharing adds **Publish app** in the GitHub section and **Export for
+Browser sharing adds **Publish app** in the sidebar and **Export for
 web** in the title menu. Students keep ordinary Java. A reviewed GitHub Pages
 setup leads to an exact-version verified playable link. Live is the student
 default; simulation is an explicit testing setting. Share game can attach the
@@ -227,7 +227,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Files view keeps student Java, resources and project files beside the controls. Idle status is empty; app progress/errors
   appear when there is a message. GitHub shows Sign in or the selected username.
   Signed-in students can connect a repository, see its branch, choose New branch
-  on main or Finish change on a feature branch, and Upload changes. Simulation
+  on main or Merge to main on a feature branch, and Commit & push. Simulation
   remains visibly labeled. ZeroHub offers Browse (project templates/examples on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
@@ -321,25 +321,26 @@ reviewed changes, commits when needed and pushes the reviewed destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave
 a local commit. Ordinary per-repository Git name/email identity is configured
 manually; signing in does not configure commit identity. Optional explicit
-`simulation` remains available for maintainer/teacher testing: Upload, Start,
-Finish and Publish simulate without saving files or performing Git/network actions.
+`simulation` remains available for maintainer/teacher testing: Commit & push,
+New branch, Merge to main and Publish simulate without saving files or performing
+Git/network actions.
 Tutorial repositories use the same GitHub workflow; only legacy local-only markers remain blocked.
 
 The individual flow uses main for completed work and one short-lived branch per
-change. A new empty repository starts with a reviewed Upload changes on main.
+change. A new empty repository starts with a reviewed Commit & push on main.
 Choose New branch beside main, name it, and review its creation. New branch
 requires clean committed main and brings in remote main only by fast-forward;
-diverged histories require manual repair. Upload changes commits/pushes progress
+diverged histories require manual repair. Commit & push commits/pushes progress
 to the current branch. Run and check the app before finishing.
 
-Click the change branch → Finish change. Upload pending edits first; Finish
-requires a clean committed change branch and previews the branch, destination,
+Click the change branch → Merge to main. Commit & push pending edits first.
+Merge to main requires a clean committed change branch and previews the branch, destination,
 main snapshots and affected paths. Updated remote main is merged into the change
-branch, then Finish pauses for Run App and another Finish review before uploading
-the combined version. No rebase/force push is used. Conflicts preserve the branch and merge
+branch, then the action pauses for Run App and another Merge to main review before
+pushing the combined version. No rebase/force push is used. Conflicts preserve the branch and merge
 state, open native Source Control and require resolution/staging/commit before
-running the app and reviewing Finish again. Local main may not contain separate
-unpublished work outside the change branch. Finish advances local main, pushes
+running the app and reviewing Merge to main again. Local main may not contain separate
+unpublished work outside the change branch. The action advances local main, pushes
 the exact completed SHA to remote main and confirms it before switching to main.
 A failed push can leave main advanced locally while retaining the change branch
 for another Finish review. Optional cleanup removes only the unchanged local

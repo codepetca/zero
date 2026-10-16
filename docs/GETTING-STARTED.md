@@ -19,7 +19,7 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 2. In desktop Zero, choose **Connect GitHub** if prompted. VS Code reuses an
    authorized connection or guides sign-in and permission. If you need an account,
    create it on GitHub and verify your email, then return to connect.
-3. Choose **Start tutorial** in Zero’s sidebar and select **Greeting app**.
+3. Choose **Start tutorial** from Zero’s welcome or **…** menu and select **Greeting app**.
    On GitHub, choose **Use this template → Create a new repository** under your
    own account. Copy **your new repository**’s **Code → HTTPS** URL.
 4. Return to Zero and choose **Clone repository** in the sidebar. Paste your
@@ -34,7 +34,7 @@ to setup, use **Zero: Get Started** from VS Code's Command Palette.
 ## Before lesson 0: GitHub and privacy
 
 Tutorials require **your own GitHub account and Git 2.31+ before lesson 0**.
-This baseline supports the real upload workflow used in the lessons.
+This baseline supports the real push workflow used in the lessons.
 The kit's ordinary Hello World setup check can run without an account; the
 continuing tutorials start from your own template-created repository and clone.
 
@@ -48,7 +48,7 @@ continuing tutorials start from your own template-created repository and clone.
 3. Have **Git 2.31+** available locally; **Setup help** explains missing tools.
    On the school machine, check that you can open GitHub, complete VS Code's native
    sign-in and download Zero's compiler dependencies. Use the same account for
-   your repository, cloning and Zero uploads. Nothing uploads just by signing in.
+   your repository, cloning and Zero pushes. Nothing pushes just by signing in.
 4. Choose **Private** for tutorial repositories unless your teacher/school asks
    for Public. After creating each repository from its template, invite your
    teacher's confirmed GitHub username as a
@@ -57,7 +57,7 @@ continuing tutorials start from your own template-created repository and clone.
    open it. Collaborator access to a personal repository includes writing code.
    A private repository link alone does not grant access.
 
-Before your first upload, set the per-repository Git name/email following the
+Before your first push, set the per-repository Git name/email following the
 instructions below. A Git commit records that identity. For email privacy, enable
 **Keep my email addresses private** in GitHub Settings → Emails and copy the exact
 GitHub-provided `noreply` address into your repository's `user.email`; do not guess
@@ -69,9 +69,9 @@ public even if source stays private. GitHub Free supports private repositories
 and collaborators, but Pages from a private repository needs an eligible plan.
 Keep your teacher-approved visibility; if Pages is unavailable, skip Publish or
 ask your teacher about an approved option. No paid plan is needed to complete
-the tutorial repository/upload workflow. See [GitHub's Pages availability](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
+the tutorial repository/push workflow. See [GitHub's Pages availability](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
 After cloning and caching compiler dependencies, editing and Run App work offline
-without an active GitHub session; uploads still need sign-in and internet.
+without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
@@ -94,7 +94,7 @@ without repeating preparation when the current installation is ready.
 
 Complete the GitHub account/privacy steps above before starting tutorial lesson 0.
 The ordinary local starter smoke check does not require GitHub; tutorial creation,
-cloning and uploads do. Use Setup help for missing Git. You do not need
+cloning and pushes do. Use Setup help for missing Git. You do not need
 Python, Node.js, Homebrew or a separate Maven/JavaFX installation.
 If setup fails, **Details** shows technical output and useful errors.
 Clean-machine security prompts, physical Windows and novice classroom flows
@@ -180,7 +180,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In this candidate, **Start tutorial** in Zero’s sidebar opens the matching
+In this candidate, **Start tutorial** from Zero’s welcome or **…** menu opens the matching
 verified template path; it does not create a local-only practice folder. Template
 links follow verified publication metadata. An unavailable template shows a
 specific message rather than a guessed download.
@@ -219,7 +219,7 @@ not verify browser compatibility.
 
 ## Your GitHub repository
 
-Local running needs no GitHub sign-in. Live upload and publishing need Git
+Local running needs no GitHub sign-in. Live push and publishing need Git
 **2.31+** and your own GitHub account. For sharing work, follow your teacher's
 privacy, visibility and account instructions. If you used a ZeroHub GitHub template,
 create your own repository from it and clone **your repository** as described in
@@ -228,7 +228,7 @@ That clone already has Git history and its own origin: keep that repository,
 complete sign-in and identity setup below, and skip creating an empty repository.
 The empty-repository steps below apply to an extracted source ZIP:
 
-1. Click **Sign in** beside **GitHub** in Zero and complete VS Code's native
+1. Choose **Sign in** using the account control in Zero’s sidebar and complete VS Code's native
    browser authentication flow. The control shows your GitHub username after
    sign-in; click it for **Change GitHub account…** or **Sign out…**. Sign out
    opens VS Code Accounts, where you choose your account and Sign Out. Canceling
@@ -240,7 +240,7 @@ The empty-repository steps below apply to an extracted source ZIP:
 3. Return to **Connect a repository → Connect an existing repository…** and paste its
    HTTPS page URL. Zero initializes
    Git in this standalone student folder if needed and adds its origin remote;
-   it asks before replacing an existing origin. Connecting does not upload or
+   it asks before replacing an existing origin. Connecting does not push or
    verify repository ownership, existence or access.
 4. Set your Git commit identity if needed, using your teacher-approved display
    name and commit email (the exact GitHub `noreply` address for email privacy). These commands configure this repository
@@ -252,68 +252,69 @@ The empty-repository steps below apply to an extracted source ZIP:
    ```
 
 Signing in does not set Git's commit identity. Zero uses the selected native
-GitHub session for live upload and checks that the session is still current.
+GitHub session for live push and checks that the session is still current.
 Never put passwords or tokens in project files. If an account/session changes
-during review, sign in as needed and review the upload again.
+during review, sign in as needed and review the push again.
 
 ## Your individual workflow
 
 `main` holds completed work. A change branch holds your next improvement.
-**GitHub actions are live by default.** Nothing uploads automatically: choose an
-action; Upload and branch changes review the account, repository, branch and files
+**GitHub actions are live by default.** Nothing pushes automatically: choose an
+action; Commit & push and branch changes review the account, repository, branch and files
 before confirmation. Local
 Run needs no active GitHub session. Tutorial projects require their initial own-repository clone.
 
-For a new repository, **Upload changes once on main** to save and upload the
+For a new repository, **Commit & push once on main** to save and push the
 starter. Enter a short commit message and check the account, repository, branch
-and files before **Commit & Upload**. This is the starting version.
+and files before **Commit & push**. This is the starting version.
 
 For each improvement:
 
 1. Click **New branch** beside `main`. Give it a short name such as `quiz-feedback`
    using lowercase letters, numbers and dashes. Review before creating the branch.
-   Upload pending edits first. Zero updates main from GitHub when it can do so
+   Commit & push pending edits first. Zero updates main from GitHub when it can do so
    without combining separate histories, then creates the branch.
 2. Edit and **Run App**. Check your change.
-3. **Upload changes** to save a Git commit and upload progress to this branch.
-   Describe what changed and review before **Commit & Upload**. You can repeat
+3. **Commit & push** creates a commit when needed and pushes the current branch.
+   Describe what changed and review before **Commit & push**. You can repeat
    this while building; it does not yet add the change to main.
-4. Click **Finish change** beside the branch name. Upload any pending edits first.
-   Check the preview before approving the merge and upload to main. If GitHub
+4. Click **Merge to main** beside the branch name. Commit & push any pending edits first.
+   Check the preview before approving. **Merge to main** merges the current
+   branch into main and pushes main. If GitHub
    has newer main changes, Zero incorporates them into your change branch and
-   pauses. Run the combined app, then choose Finish change again for a fresh
-   review before uploading it to main.
+   pauses. Run the combined app, then choose Merge to main again for a fresh
+   review before pushing it to main.
 5. After confirmed success, Zero returns to main. You can remove the finished
    local branch when prompted, or keep it. Its GitHub branch remains available.
 
 If an update creates conflicts, Zero keeps your work and opens VS Code's Source
 Control. Open the conflicted files or Merge Editor, inspect both changes and
 choose/edit the combined result. Save, stage the resolved files and commit the
-merge through Source Control. Run the app, then choose **Finish change** again
+merge through Source Control. Run the app, then choose **Merge to main** again
 for a fresh review. Ask your teacher if the correct result is unclear.
 
-A failed upload can leave a local commit. A failed Finish upload can also leave
+A failed push can leave a local commit. A failed main push can also leave
 main updated locally, with your change branch still selected. Read the error,
-repair network/access problems and review Finish again. Zero never force-pushes
+repair network/access problems and review Merge to main again. Zero never force-pushes
 or silently discards work. Separate changes on local main, unrelated histories
 or unfinished Git operations need normal Git help before continuing.
 
-After a successful real Finish, open GitHub and check the files and commit on main.
+After a successful Merge to main, open GitHub and check the files and commit on main.
 Click the connected repository name, choose **Copy repository link**, and paste
 the link separately into the assignment
 in **Pika**. Give your teacher access if the repository is private. Copying a URL
-does not upload code, establish that the remote is current or submit in Pika.
+does not push code, establish that the remote is current or submit in Pika.
 
 ## Publish your playable app
 
 In your own project, **Run App** and test the version you want other people to
-play. Finish your change and upload it on **main**, then choose **Publish app**
-in Zero’s **GitHub** section. Sign in and connect your own repository to enable
-it. Publishing is a separate explicit action from uploading your source.
+play. Merge your change and push it on **main**, then choose **Publish app**
+in Zero’s sidebar. Sign in and connect your own repository to enable
+it. Publishing is a separate explicit action from pushing your source.
 
 The first publish reviews the public destination and prepares publishing files.
 If VS Code requests GitHub workflow permission, authorize the same account you
-selected in Zero. Review and upload those files through **Upload changes**, then
+selected in Zero. Review and push those files through **Commit & push**, then
 confirm publication. Zero uses the locally checked build; GitHub deploys it to
 Pages. The playable app and its included assets are public, even if your source
 repository is private and your GitHub plan supports Pages. Zero keeps the
@@ -330,16 +331,16 @@ an unsuccessful update keeps the previous live page.
 The playable link lets people use your app. **Copy repository link** identifies
 your source for the separate Pika submission. **Share project** prepares a
 separate ZeroHub source contribution. In this candidate, it includes a saved
-playable link only when Zero can verify it for that exact uploaded commit.
+playable link only when Zero can verify it for that exact pushed commit.
 ZeroHub’s **Play latest** opens the student-hosted app, which can change with
 later publishes; **Download source project** remains an exact source version.
-ZeroHub checker acceptance and activation are still pending, and public uploads
+ZeroHub checker acceptance and activation are still pending, and public pushes
 are not open yet.
 
 ## Before a class adopts it
 
 Use the [classroom pilot checklist](CLASSROOM-PILOT.md) on a student machine.
-A Mac teacher trial verified native sign-in and a private repository upload.
+A Mac teacher trial verified native sign-in and a private repository push.
 Physical Windows, school restrictions and novice trials remain unverified;
 automated authentication and transport checks continue to use mocks.
 

@@ -4,7 +4,25 @@ function feedback(text) {
   if (region) region.textContent = `Fixture only: ${text}. Nothing ran, downloaded, signed in or uploaded.`;
   if (window.parent !== window) window.parent.postMessage({type:'zero-fixture',text}, '*');
 }
-window.acquireVsCodeApi = () => ({postMessage: message => feedback(message.command === 'zero.showProblems' ? 'Show Problems would focus Main.java, line 8: missing semicolon' : `${message.command} selected`)});
+const fixtureFiles = {
+  root: [{id:'1'.repeat(32),label:'Main.java',directory:false},{id:'2'.repeat(32),label:'Resources',directory:true},{id:'3'.repeat(32),label:'Toolkit',directory:true},{id:'4'.repeat(32),label:'README.md',directory:false},{id:'5'.repeat(32),label:'Project files',directory:true}],
+  ['2'.repeat(32)]:[{id:'6'.repeat(32),label:'greeting.txt',directory:false}],
+  ['3'.repeat(32)]:[{id:'7'.repeat(32),label:'App.java',directory:false}],
+  ['5'.repeat(32)]:[{id:'8'.repeat(32),label:'zero.json',directory:false}]
+};
+let fixtureState;
+window.acquireVsCodeApi = () => ({
+  getState:()=>fixtureState,setState:value=>{fixtureState=value;},
+  postMessage: message => {
+    if (message.type === 'sidebar.ready') return;
+    if (message.type === 'files.list') {
+      setTimeout(()=>window.dispatchEvent(new MessageEvent('message',{data:{type:'files.result',result:{generation:'fixture',parent:message.id || null,items:fixtureFiles[message.id || 'root'] || [],truncated:false}}})),0);
+      return;
+    }
+    if (message.type === 'files.open') {feedback('A project file would open in VS Code');return;}
+    feedback(message.command === 'zero.showProblems' ? 'Show Problems would focus Main.java, line 8: missing semicolon' : `${message.command} selected`);
+  }
+});
 document.addEventListener('click', event => {
   const themeToggle = event.target.closest('[data-theme-toggle]');
   if (themeToggle) {
