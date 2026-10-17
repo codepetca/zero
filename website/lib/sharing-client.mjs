@@ -75,3 +75,10 @@ export function releaseImage(release, previews) {
     ? previews.find(preview => preview.id === release.id && preview.sourceCommit === release.source.commit)?.image
     : undefined);
 }
+
+export function releaseSummary(release, previews) {
+  const description = release.kind === 'game'
+    ? previews.find(preview => preview.id === release.id && preview.sourceCommit === release.source.commit)?.description
+    : undefined;
+  return projectSummary(description || release.description);
+}

@@ -1,25 +1,17 @@
-# ZeroHub gameplay images — 2026-10-17
+# Sky Hop description — 2026-10-17
 
-Owner requests an image for Sky Hop and Grove Guard. Previous PR89 is merged
-at605e38d; all three test versions are withdrawn and the live list contains
-Drawing Pad and Grove Guard only. Keep Sky Hop withdrawn unless the owner
-explicitly restores it. Accepted records, repositories and immutable bytes stay
-unchanged; publisher pinbe60b72 remains active.
+Owner requests a tiny gameplay description without maintainer/technology copy.
+Use: “Flap through gaps in the pipes without crashing.” Website editorial copy
+matches Sky Hop's exact accepted project/source, like its screenshot supplement.
+Keep original accepted metadata immutable and Sky Hop withdrawn from normal
+browsing. Main list remains Drawing Pad and Grove Guard.
 
-Worktree `/Users/stew/.codex/worktrees/zerohub-simplify/zero`, branch
-`codex/zerohub-game-images`. Add real square gameplay captures as website
-supplements matched by project ID and exact source commit. Accepted uploaded
-previews take precedence; other source revisions receive no inherited image.
-Sky Hop sourceb69879a/run38983460841; Grove Guard sourcece3bc788/run39057769700.
-Both public source markers match. No game source or accepted artifacts edited.
-
-Coordinator owns Grove capture/web manifest/UI; existing Sol/medium operator
-worker captured only Sky Hop PNG and private provenance. Captures use real
-mouse/keyboard play and browser clips, with no generated art or image editing.
-Next: local website checks/browser acceptance, one independent review, source
-PR/CI/merge and live image verification, including Sky Hop's withdrawn exact page.
-Private receipts:.verification/zerohub-game-images/. Preserve unrelated worktrees,
-prior native releases and all retirement backups. DeepSeek remains paused.
+Previous PR90 merged at994f599; both gameplay images are deployed and verified.
+Current branch `codex/sky-hop-description` in the existing ZeroHub worktree.
+Next: local checks, small independent review, source PR/CI/merge and live exact
+Sky Hop copy verification. Receipts:.verification/zerohub-game-images/.
+No game source, registry, accepted artifacts, policy or availability changes.
+Preserve unrelated funding checkout, previous releases and retirement backups.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

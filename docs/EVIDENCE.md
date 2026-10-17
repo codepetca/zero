@@ -5275,3 +5275,16 @@ Desktop/phone images inspected. Full-page phone capture was repeated after a
 fresh navigation/paint to avoid a transient browser capture artifact; DOM has one
 header/title. Receipt-only follow-up leaves all runtime and image bytes unchanged.
 Next source CI/merge and actual public asset/hash/browser verification.
+
+## Sky Hop short description — 2026-10-17
+
+Owner requested gameplay-only copy. New website text: “Flap through gaps in the
+pipes without crashing.” The existing legacy supplement supplies the exact
+project/source-bound description; the card still applies the normal tiny-summary
+format. Original accepted metadata and withdrawal remain unchanged. Grove Guard,
+Drawing Pad, previews, source links and Play behavior are unchanged.
+Website121tests/typecheck/build/check pass; direct actual-catalog selection proves
+matching Sky source returns the new copy without changing the accepted record.
+Small coordinator implementation, no new copy-mirroring tests or delegation of
+implementation. Independent review/source publication and live copy verification
+are next. Private receipts:.verification/zerohub-game-images/description-*.
