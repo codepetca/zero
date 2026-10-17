@@ -69,6 +69,11 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   const ready = sidebarSource();
   assert.match(ready,/zero.runApp/); assert.doesNotMatch(ready,/Ready to run/);
   assert.match(ready,/Sign in to GitHub/);
+  assert.match(ready,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
+  assert.match(ready,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
+  assert.doesNotMatch(ready,/data-command="zero.copyImportedAssetPaths"/);
+  const empty = sidebarSource('empty');
+  assert.doesNotMatch(empty,/data-command="zero.importAssets"|data-command="zero.recovery"/);
   assert.doesNotMatch(ready,/class="run"[^>]*disabled/);
   assert.doesNotMatch(ready,/Show Problems/);
   const error = sidebarSource('error');
@@ -76,6 +81,8 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(error,/zero.showProblems/);
   const practice = sidebarSource('practice');
   assert.match(practice,/zero.browseZeroHub/);
+  assert.match(practice,/data-command="zero.importAssets"/);
+  assert.match(practice,/data-command="zero.recovery"/);
   assert.match(practice,/>Sign in<\/button>/);
   assert.doesNotMatch(practice,/data-command="zero.chooseRepository"/);
   assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub)"/);

@@ -37,7 +37,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   workflow.deleteFinishedBranch=async(...args)=>{deletions.push(args);if(cleanupError)throw cleanupError;deleted++;};
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(text){logs.push(text);},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return items.find(item=>item.action===choice);},showInputBox:async()=>input,
       showWarningMessage:async text=>{warnings.push(text);if(warningGate)await warningGate;},
@@ -49,6 +49,8 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
+  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
+  assert.match(webview.html,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
   assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Commit &amp; push/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;

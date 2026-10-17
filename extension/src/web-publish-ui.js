@@ -79,10 +79,13 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
         await stillCurrent(expected);
         if(review.status!=='review'){await showAction(review);return review;}
         const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
-        const sameDestination=!review.setup && previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl;
+        const consent=workspaceState?.get('zero.webPublish.approval');
+        const sameDestination=(previous?.root===expected && previous.account===review.account && previous.resume?.repository===review.repository && previous.url===review.publicUrl) || (consent?.root===expected && consent.account===review.account && consent.repository===review.repository && consent.url===review.publicUrl);
         if(!sameDestination) {
           const chosen=await vscode.window.showInformationMessage('Publish this app publicly?',{modal:true,detail:`Your app and included assets will be public.\n${review.publicUrl || (review.repository + ' → GitHub Pages')}`},'Publish app');
           if(chosen!=='Publish app')return;
+          await stillCurrent(expected);
+          await workspaceState?.update('zero.webPublish.approval',{root:expected,account:review.account,repository:review.repository,url:review.publicUrl});
         }
         const approvedDestination=review;
         const assertDestination=()=>{
@@ -93,7 +96,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
           const base=await authentication.capture();
           const original=review;
           workflowAuth?.dispose();
-          workflowAuth=createAuthentication(vscode.authentication,()=>{},['repo','workflow']);
+          workflowAuth=createAuthentication(vscode.authentication,()=>{},['repo','workflow'],{id:base.session.accountId,label:base.session.label || review.account});
           try {await workflowAuth.capture();} catch {await workflowAuth.signIn();}
           const expanded=await workflowAuth.capture();
           if(expanded.session.accountId!==base.session.accountId)throw new Error('The GitHub account changed during authorization. Review publishing again with the intended account.');

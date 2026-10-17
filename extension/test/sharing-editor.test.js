@@ -12,7 +12,7 @@ async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40)
  showInformationMessage:async(message,options)=>{messages.push(message);if(options?.modal){if(drift&&message.startsWith('Extract'))await fs.appendFile(path.join(root,'src/main/java/Health.java'),'// newer');return approval;}return notification;},
  showTextDocument:async()=>{},withProgress:async(_opts,callback)=>callback({report(){}},{onCancellationRequested:()=>({dispose(){}})})
  }};
- const host={setState:message=>states.push(message),project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student'},revision:1}),assertCurrent:async()=>{}}};
+ const host={setState:message=>states.push(message),project:async()=>root,isBusy:()=>busy,setBusy:x=>{busy=x;},output:{appendLine(){},show(){}},auth:{capture:async()=>({session:{accessToken:'NEVER_LOG',label:'student',accountId:'7'},revision:1}),assertCurrent:async()=>{}}};
  const git=async(_root,args)=>{gitCalls.push(args);if(args[0]==='rev-parse')return args[1]==='--show-toplevel'?root:'a'.repeat(40);if(args[0]==='remote')return repository.url+'.git';if(args[0]==='status')return '';if(args[0]==='show')return JSON.stringify(descriptor);throw new Error('Unexpected Git action');};
  const reader=()=>({authenticatedUser:async()=>({githubId:owner,login:'student'}),repository:async()=>({...repository,visibility:'public',ownerType:'User'}),source:async()=>{sources++;return {};}});
  const api={...authoring,applyPlan:async plan=>{stagedPlan=plan;return authoring.applyPlan(plan);}};
@@ -138,5 +138,87 @@ test('reconnected same-folder same-commit projects can Share source without a st
   if(accountDrift) {await assert.rejects(f.editor.commands['zero.shareGame'](),/account changed/);assert.equal(f.opened.length,0);}
   else {await f.editor.commands['zero.shareGame']();const request=JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(f.opened[0]).searchParams.get('body'))[1]);assert.equal(request.repository.url,repository.url);assert.equal(request.commit,saved.sha);assert.equal(request.web,undefined);}
   assert.equal(verifyCalls,1);assert.equal(f.stats().busy,false);
+ }
+});
+
+async function guidedFixture(t) {
+ const f=await fixture(t,{approval:'Open GitHub form'});let dirty=true,sha='a'.repeat(40),web,uploads=0,publishes=0;const sourceCommits=[],verifiedCommits=[],prompts=[];
+ const git=async(root,args)=>args[0]==='status'?dirty?' M zero-game.json\0':'':args[0]==='rev-parse'&&args[1]==='HEAD'?sha:args[0]==='show'?await fs.readFile(path.join(root,'zero-game.json'),'utf8'):f.git(root,args);
+ const reader=()=>({...f.reader(),source:async request=>{sourceCommits.push(request.commit);return {};}});
+ f.vscode.window.showQuickPick=async(entries,options)=>{prompts.push(options.title);return entries[0];};
+ f.host.verifiedPublication=async(root,commit)=>{verifiedCommits.push(commit);return web?.commit===commit?web:undefined;};
+ f.host.uploadForSharing=async()=>{uploads++;dirty=false;sha='c'.repeat(40);return {uploaded:true};};
+ f.host.publishForSharing=async()=>{publishes++;sha='d'.repeat(40);web={provider:'github-pages',url:'https://student.github.io/game/',commit:sha,runId:42};return {status:'live'};};
+ const editor=createSharingEditor(f.vscode,f.host,{git,reader});
+ return Object.assign(f,{editor,prompts,sourceCommits,verifiedCommits,setDirty:value=>{dirty=value;},setSha:value=>{sha=value;},statsGuided:()=>({uploads,publishes,sha}),request:()=>JSON.parse(/```json\n([\s\S]*?)\n```/.exec(new URL(f.opened[0]).searchParams.get('body'))[1])});
+}
+test('guided game Share uploads, optionally publishes, and freezes the fresh post-publication revision',async t=>{
+ const f=await guidedFixture(t);await f.editor.commands['zero.shareGame']();
+ assert.deepEqual(f.statsGuided(),{uploads:1,publishes:1,sha:'d'.repeat(40)});assert.deepEqual(f.sourceCommits,['c'.repeat(40),'d'.repeat(40)]);assert.deepEqual(f.verifiedCommits,['c'.repeat(40),'d'.repeat(40)]);assert.equal(f.request().commit,'d'.repeat(40));assert.equal(f.request().web.commit,f.request().commit);assert.match(f.states.at(-1),/Form opened.*submit on GitHub/);assert.equal(f.stats().busy,false);
+});
+test('game Share can explicitly select source only after upload',async t=>{
+ const f=await guidedFixture(t);f.vscode.window.showQuickPick=async entries=>entries.find(e=>e.action==='source')||entries[0];await f.editor.commands['zero.shareGame']();assert.equal(f.statsGuided().uploads,1);assert.equal(f.statsGuided().publishes,0);assert.equal(f.request().web,undefined);assert.equal(f.request().commit,'c'.repeat(40));
+});
+test('cancelled upload decision keeps saved details and opens no form',async t=>{
+ const f=await guidedFixture(t),before=await fs.readFile(path.join(f.root,'zero-game.json'));f.vscode.window.showQuickPick=async()=>undefined;await f.editor.commands['zero.shareGame']();assert.equal(f.statsGuided().uploads,0);assert.equal(f.opened.length,0);assert.deepEqual(await fs.readFile(path.join(f.root,'zero-game.json')),before);assert.match(f.states.at(-1),/details kept.*Commit & push/);
+});
+test('cancelled or failed handoffs never fall back to a source-only form',async t=>{
+ for(const stage of ['upload','publish'])for(const result of ['cancel','fail']) {
+  const f=await guidedFixture(t);const callback=async()=>{if(result==='fail')throw Error('handoff failed');return undefined;};f.host[stage==='upload'?'uploadForSharing':'publishForSharing']=callback;
+  if(result==='fail')await assert.rejects(f.editor.commands['zero.shareGame'](),/handoff failed/);else await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,0);assert.equal(f.stats().busy,false);
+ }
+ const f=await guidedFixture(t);f.vscode.window.showQuickPick=async entries=>entries[0].action==='upload'?entries[0]:undefined;await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,0);assert.equal(f.statsGuided().publishes,0);
+});
+test('game Share local guard blocks reentry while host releases the global lock for upload',async t=>{
+ const f=await guidedFixture(t);let reentries=0;
+ f.host.uploadForSharing=async()=>{f.host.setBusy(false);await f.editor.commands['zero.shareGame']();await f.editor.commands['zero.sharingActions']();reentries++;f.setDirty(false);f.host.setBusy(true);return {uploaded:true};};
+ await f.editor.commands['zero.shareGame']();assert.equal(reentries,1);assert.equal(f.opened.length,1);assert.equal(f.prompts.filter(p=>p==='Upload your game before sharing').length,1);assert.equal(f.stats().busy,false);
+});
+test('handoffs recheck root, account, dirty files and committed metadata before opening a form',async t=>{
+ for(const drift of ['root','account','dirty','metadata','repository','trust']) {
+  const f=await guidedFixture(t);f.host.uploadForSharing=async()=>{f.setDirty(false);if(drift==='root')f.host.project=async()=>f.root+'-other';if(drift==='account')f.host.auth.assertCurrent=async()=>{throw Error('account changed');};if(drift==='dirty')f.setDirty(true);if(drift==='metadata'){const metadata=JSON.parse(await fs.readFile(path.join(f.root,'zero-game.json')));metadata.title='Unreviewed title';await fs.writeFile(path.join(f.root,'zero-game.json'),JSON.stringify(metadata));}if(drift==='repository')f.host.project=async()=>{throw Error('repository changed');};if(drift==='trust')f.vscode.workspace.isTrusted=false;return {uploaded:true};};
+  await assert.rejects(f.editor.commands['zero.shareGame'](),/changed|Commit & push|Trust your own/);assert.equal(f.opened.length,0);assert.equal(f.stats().busy,false);
+ }
+});
+test('new game metadata asks its version once and previews human-readable details',async t=>{
+ const f=await guidedFixture(t);await fs.unlink(path.join(f.root,'zero-game.json'));const titles=[],details=[];
+ f.vscode.window.showInputBox=async options=>{titles.push(options.title);return options.title==='Game name'?'game':options.value||'Game fixture';};
+ f.vscode.window.showInformationMessage=async(message,options)=>{details.push(options.detail);return message==='Save these sharing details?'?'Save details':'Open GitHub form';};
+ await f.editor.commands['zero.shareGame']();assert.equal(titles.filter(title=>title==='Game version').length,1);assert.equal(titles.includes('Sharing version'),false);assert.match(details[0],/License: MIT/);assert.doesNotMatch(details[0],/"schema"/);assert.equal(f.opened.length,1);
+});
+test('sharingActions delegates within its existing local guard and still opens Share game',async t=>{
+ const f=await guidedFixture(t),pick=f.vscode.window.showQuickPick;
+ f.vscode.window.showQuickPick=async(entries,options)=>options.title==='Libraries and games'?entries.find(e=>e.command==='zero.shareGame'):pick(entries,options);
+ await f.editor.commands['zero.sharingActions']();assert.equal(f.statsGuided().uploads,1);assert.equal(f.opened.length,1);assert.equal(f.stats().busy,false);
+});
+test('a successful publish handoff needs a newly verified receipt and never silently shares source only',async t=>{
+ const f=await guidedFixture(t);f.host.publishForSharing=async()=>({status:'live'});await assert.rejects(f.editor.commands['zero.shareGame'](),/could not be verified.*exact source/);assert.equal(f.opened.length,0);
+});
+test('post-upload source verification failures and committed descriptor mismatches stop Share',async t=>{
+ for(const failure of ['source','descriptor']) {
+  const f=await guidedFixture(t);const git=async(root,args)=>args[0]==='status'?'':args[0]==='show'&&failure==='descriptor'?JSON.stringify({...JSON.parse(await fs.readFile(path.join(root,'zero-game.json'))),version:'0.2.0'}):f.git(root,args);
+  const reader=()=>({...f.reader(),source:async()=>{if(failure==='source')throw Error('source not uploaded');return {};}});
+  const editor=createSharingEditor(f.vscode,f.host,{git,reader});await assert.rejects(editor.commands['zero.shareGame'](),/committed sharing details differ|source not uploaded/);assert.equal(f.opened.length,0);
+ }
+});
+test('library Share remains read-only even when game handoff callbacks exist',async t=>{
+ const f=await fixture(t,{approval:'Apply'});await f.editor.commands['zero.extractLibrary']();let handoffs=0;f.host.uploadForSharing=f.host.publishForSharing=async()=>{handoffs++;return {};};
+ const editor=createSharingEditor(f.vscode,f.host,{git:async(root,args)=>args[0]==='status'?' M pom.xml\0':f.git(root,args),reader:f.reader});
+ await assert.rejects(editor.commands['zero.shareLibrary'](),/Commit & push through the reviewed/);assert.equal(handoffs,0);assert.equal(f.opened.length,0);assert.equal(f.stats().busy,false);
+});
+test('upload and publish accept same-account native token rotations and reject account changes',async t=>{
+ for(const stage of ['upload','publish'])for(const changedAccount of [false,true]) {
+  const f=await guidedFixture(t);let revision=1,accountId='7';
+  f.host.auth.capture=async()=>({session:{accountId,accessToken:'native-token-'+revision,label:'student'},revision});
+  f.host.auth.assertCurrent=async ticket=>{if(ticket.revision!==revision||ticket.session.accountId!==accountId)throw Error('stale session');};
+  const key=stage==='upload'?'uploadForSharing':'publishForSharing',original=f.host[key];
+  f.host[key]=async root=>{const result=await original(root);revision++;if(changedAccount)accountId='8';return result;};
+  if(changedAccount){await assert.rejects(f.editor.commands['zero.shareGame'](),/account changed during sharing/);assert.equal(f.opened.length,0);}else{await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,1);assert.equal(f.request().web.commit,'d'.repeat(40));}
+  assert.equal(f.stats().busy,false);
+ }
+});
+test('simulated, incomplete and action-required handoff results cannot advance Share',async t=>{
+ for(const result of [{},{uploaded:false},{uploaded:'true'},{status:'simulated'},{status:'action-required'},{status:'ready'}])for(const stage of ['upload','publish']) {
+  const f=await guidedFixture(t);f.host[stage==='upload'?'uploadForSharing':'publishForSharing']=async()=>result;await f.editor.commands['zero.shareGame']();assert.equal(f.opened.length,0);assert.match(f.states.at(-1),/Share paused/);assert.equal(f.stats().busy,false);
  }
 });

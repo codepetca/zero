@@ -191,3 +191,12 @@ test('setup may create a new commit and publishes that exact upload receipt',asy
   const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(result.sha,'b'.repeat(40));
   assert.equal(h.published,1);assert.equal(h.messages.filter(message=>message[1]?.modal).length,1);
 });
+
+test('first destination consent survives a cancelled setup upload and later restart',async t=>{
+  const h=fixture(t,{cancelUpload:true});h.setup=true;h.choices.push('Publish app');
+  await h.api.publish();assert.equal(h.published,0);assert.equal(h.messages.filter(m=>m[1]?.modal).length,1);
+  const restarted=createWebPublishCommands(h.vscode,{project:async()=>'/student',authentication:{capture:async()=>({session:{accountId:'1'}})},workspaceState:h.workspaceState,isSimulation:()=>false,publisherFactory:()=>h.publisher,pollIntervalMs:0,maxChecks:2});
+  t.after(()=>restarted.disposables.forEach(d=>d.dispose()));
+  await restarted.publish();assert.equal(h.published,1);assert.equal(h.messages.filter(m=>m[1]?.modal).length,1);
+  assert.ok(h.authCalls.every(args=>args[2].account.id==='1'));
+});

@@ -1,5 +1,47 @@
 # Verification
 
+## Student friction candidate 0.5.19 — 2026-10-17
+
+Owner authorized local fixes from the armorup Grove Guard trial. Isolated branch
+`codex/student-friction` starts at 382b74f; runtime commits 2fd6087, 55bfac6 and
+fc7ac40 add exact browser APIs, native asset import, guided file recovery and game
+metadata/upload/publish/share handoffs. No published release, compiler/helper pin,
+credential store, armorup game or funding checkout was changed.
+
+Fifteen attribution tests, native shared JDK math/list and pinned JavaFX RGB
+checks, five real pinned WebFX/GWT builds and 56 Chrome assertions pass. Parent
+rehashing confirms those eight source fingerprints remain exact. Final full matrix: 587 passed, 3 platform skips, 0 failed. Focused
+assets/recovery/auth/publish/share matrix: 108 passed; sharing service: 48 passed.
+Native finite framework retry passes SMOKE, GAME_HELPERS and all 57 audio checks.
+The earlier framework run timed out at focus phase 2 during concurrent UI work;
+no runtime assertion was weakened. Three setup cases timed out during a loaded
+full run; all 62 setup tests passed on their isolated retry.
+
+Actual computer use in an isolated Mac development host imported a PNG via the
+native picker, exposed Copy asset paths, previewed/restored historical README text,
+verified native Undo/Redo, then used native per-file discard to restore the committed
+README while preserving the imported image. A native retest after reload confirms
+discard guidance leaves Zero controls enabled while its notification stays visible.
+VS Code auto-save preferences apply; Zero's restore does not call save.
+
+Two fresh Sol/high reviews covered security/correctness and compatibility/workflow.
+One initial P2 exposed normalization-equivalent Mac filenames causing endless
+EEXIST retries; 55bfac6 normalizes names and bounds/progresses attempts (18 asset
+tests). Native acceptance found guidance awaiting a nonmodal toast; fc7ac40 releases
+the guard and handles notification rejection (16 recovery tests). Both targeted
+reviews cleared the fixes; final metadata/documentation integration review is clear.
+Ledger: 5 launches, 1 initial wave, 2 targeted waves, 1 integration wave,
+3 batches (two runtime fixes plus candidate metadata), no unresolved P0–P2. Worker/reviewer tokens and per-worker elapsed
+are unavailable; the initial 30% weekly remaining is shared usage, not cost.
+
+Bulk receipts: ignored `.verification/student-friction/plan.json`, logs and native
+AX/screenshots; browser proof `.verification/student-friction-api/receipt.json`.
+Physical Windows, other browser engines, new installed-kit/live account-provider
+and new public deployment acceptance remain unverified. The package is local;
+public push/merge/release needs explicit authorization. Local 0.5.19 uses next
+native build counter 19; the published 0.5.18/build18 feed and installer remain exact. Student instructions:
+[Assets, recovery and game sharing](STUDENT-FRICTION.md).
+
 ## Approved guide correction complete — 2026-10-16
 
 Direct owner approval released the prepared three-guide batch plus one focused

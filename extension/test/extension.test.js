@@ -17,7 +17,7 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
     authentication:{getSession:async()=>({id:'test-session',account:{id:'student',label:'student'},accessToken:'INTERCEPTED'}),onDidChangeSessions:disposable},
-    workspace:{getConfiguration:(section,uri)=>({get:()=> {if(section!=='zero') return false; assert.equal(uri?.fsPath,root,'Upload mode must use the student folder scope, overriding global live'); return mode;}}),onDidChangeConfiguration:disposable,workspaceFolders:[{uri:{fsPath:root}}],saveAll:async()=>{saved++;if(saveGate) await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable},
+    workspace:{registerTextDocumentContentProvider:disposable,getConfiguration:(section,uri)=>({get:()=> {if(section!=='zero') return false; assert.equal(uri?.fsPath,root,'Upload mode must use the student folder scope, overriding global live'); return mode;}}),onDidChangeConfiguration:disposable,workspaceFolders:[{uri:{fsPath:root}}],saveAll:async()=>{saved++;if(saveGate) await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable},
     window:{createOutputChannel:()=>({appendLine:text=>results.push(text),clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async options=>{assert.equal(options.title,'Commit & push');assert.match(options.prompt,/https:\/\/github.com\/student\/app · main/);return commitMessage;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine upload must not open a confirmation');},showErrorMessage:async text=>{throw new Error(text);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTaskProcess:disposable,onDidEndTask:fn=>{ends.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{const execution={task,terminate(){ends.forEach(fn=>fn({execution}));}};launches.push(execution);starts.forEach(fn=>fn({execution}));return execution;}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
@@ -89,7 +89,7 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   const vscode={
     extensions:{getExtension:()=>({isActive:true,exports:{getAPI:()=>nativeApi}})},
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
-    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(_,fallback)=>section==='zero'?mode:fallback}),saveAll:async()=>true,createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showInformationMessage:async message=>{notices.push(message);},showWarningMessage:async message=>{notices.push(message);reportWarning();await warningPending;},showQuickPick:async(items,options)=>{picks.push({items,options});if(pickEffect)await pickEffect();return items.find(item=>item.action===nextChoice);},showInputBox:async()=>{inputCount++;return undefined;},showErrorMessage:async message=>{errors.push(message);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>nativeAccountsAvailable?['workbench.action.manageAccounts']:[],executeCommand:async (id,uri)=>{dispatched.push(id);if(id==='git.checkout'){assert.equal(uri.fsPath,root);if(checkoutGate)await checkoutGate;if(checkout)await checkout();}}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
@@ -108,6 +108,10 @@ test('minimal GitHub section follows native sign-in and connection state; browse
     }
   };await settle(()=>authCalls.length>0 && /Sign in to GitHub/.test(webview.html));
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
+  await settle(()=>webview.html.includes('data-command="zero.importAssets"'));
+  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
+  assert.match(webview.html,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
+  assert.equal(typeof commands.get('zero.importAssets'),'function');assert.equal(typeof commands.get('zero.recovery'),'function');
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
   assert.match(webview.html,/>Sign in<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
@@ -116,8 +120,9 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
   assert.ok(authCalls.every(call=>call.options.silent));
   await commands.get('zero.browseZeroHub')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries']);
-  nextChoice='projects';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=example');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','starters','libraries']);
+  nextChoice='projects';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=game');
+  nextChoice='starters';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=example');
   nextChoice=undefined;
   await commands.get('zero.chooseRepository')();
   assert.equal(picks.at(-1).options.title,'ZeroHub','Signed-out Project menu is unavailable');

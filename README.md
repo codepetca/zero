@@ -7,6 +7,7 @@ through CodeHS. Build interfaces with ordinary JavaFX controls and `App`,
 or animate a canvas with `GameApp` and explicitly updated Java objects.
 A minimal VS Code sidebar provides Run, Stop and GitHub controls.
 Students own their GitHub repositories and submit links separately in Pika.
+The local candidate adds [asset import, recovery and guided game sharing](docs/STUDENT-FRICTION.md).
 
 The MVP starts with a small quiz and includes animation, keyboard, counter,
 drawing and practice examples. A multi-question [study app](student-template/examples/study/README.md)
@@ -14,7 +15,7 @@ builds on the quiz with ordinary Question objects, feedback, score and next/rest
 Readable framework source ships with the starter;
 there is no required component or screen base class.
 
-The local, unreleased 0.5.16 candidate runs apps in the browser and defaults to
+The local, unreleased 0.5.19 candidate runs apps in the browser and defaults to
 live GitHub actions. Upload and branch changes retain their explicit review steps;
 tutorials use student-owned template clones and the same GitHub workflow. The individual flow is New branch →
 Commit & push → Merge to main into main, using VS Code's native GitHub session.

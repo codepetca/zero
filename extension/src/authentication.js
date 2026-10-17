@@ -9,15 +9,17 @@ function snapshot(session) {
 function same(a, b) {
   return a?.id === b?.id && a?.accountId === b?.accountId && a?.accessToken === b?.accessToken && (a?.scopes || []).join('\0') === (b?.scopes || []).join('\0');
 }
-function createAuthentication(api, onChange = () => {}, requestedScopes = scopes) {
+function createAuthentication(api, onChange = () => {}, requestedScopes = scopes, preferredAccount) {
   const sessionScopes = Object.freeze([...requestedScopes]);
+  // Supported native account hint; callers still enforce the captured account.
+  const account = preferredAccount && Object.freeze({id:preferredAccount.id,label:preferredAccount.label});
   let current, revision = 0, disposed = false, unavailable = false;
   let queue = Promise.resolve();
   function request(options) {
     const next = queue.then(async () => {
       if (disposed) return;
       let session;
-      try { session = snapshot(await api.getSession('github', sessionScopes, options)); unavailable = false; }
+      try { session = snapshot(await api.getSession('github', sessionScopes, account ? {...options,account} : options)); unavailable = false; }
       catch { unavailable = true; }
       if (disposed) return;
       if (!same(current, session)) revision++;

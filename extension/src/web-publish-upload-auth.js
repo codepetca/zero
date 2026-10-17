@@ -25,7 +25,7 @@ async function selectUploadAuthentication({root,authentication,initialTicket,pro
   await authentication.assertCurrent(initialTicket);
   if(initialTicket.session.scopes?.includes('workflow')||!await isManagedPublishingSetup(root))return {authentication,ticket:initialTicket,dispose(){}};
   await assertCurrentProject();
-  const scoped=createAuthentication(provider,()=>{},['repo','workflow']);
+  const scoped=createAuthentication(provider,()=>{},['repo','workflow'],{id:initialTicket.session.accountId,label:initialTicket.session.label});
   try {
     let ticket;
     try {ticket=await scoped.capture();}
