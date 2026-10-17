@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import contracts from '../../extension/src/sharing/contracts.js';
-import {dependencySnippet,playLink,projectSummary,releaseLink,selectMaintainedProjects,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
+import {dependencySnippet,maintainedPlayLink,playLink,projectSummary,releaseLink,selectMaintainedProjects,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
 const origin='https://artifacts.example';
 function fixture(kind,version='0.1.0',status='available') {
   const identity=contracts.identity(kind,'123','sample');
@@ -51,7 +51,10 @@ test('maintained projects are searchable without impersonating a community relea
   const {width,height}=preview.validateGamePreview(image);
   assert.equal(width,height);
   assert.match(projects[0].sourceCommit,/^[a-f0-9]{40}$/);
-  assert.equal(projects[0].playUrl,undefined);
+  assert.equal(maintainedPlayLink(projects[0]),'https://codepetca.github.io/zero-drawing-pad/');
+  assert.equal(maintainedPlayLink({...projects[0],web:undefined}),undefined);
+  assert.throws(()=>maintainedPlayLink({...projects[0],sourceCommit:'f'.repeat(40)}));
+  assert.throws(()=>maintainedPlayLink({...projects[0],web:{...projects[0].web,url:'javascript:alert(1)'}}));
 });
 test('links pin source and release; only available libraries yield Maven snippets',()=>{
   const library=fixture('library');

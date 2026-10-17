@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {dependencySnippet, playLink, projectSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
+import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import maintainedProjects from '@/content/projects.json';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
@@ -44,7 +44,7 @@ export function HubDiscovery() {
     {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'projects':'libraries'}</Link></p> : <div className="hub-form"><label htmlFor="sharing-search">Find {kind==='game'?'a project':'a library'}</label><input id="sharing-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="Title, author or description" /></div>}
     <div className={styles.cards}>
     {projects.map(project => <HubProjectCard key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
-      image={project.image} sourceHref={`${project.repositoryUrl}/tree/${project.sourceCommit}`} />)}
+      image={project.image} playHref={maintainedPlayLink(project)} sourceHref={`${project.repositoryUrl}/tree/${project.sourceCommit}`} />)}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'projects':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       {!releases.length && !projects.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${kind==='game'?'projects':'libraries'} match this search.` : `No ${kind==='game'?'projects':'libraries'} are available yet.`}</p>}
       {releases.map(release=><HubProjectCard key={`${release.id}/${release.version}`} title={release.title} description={projectSummary(release.description)} author={release.contributor.login}

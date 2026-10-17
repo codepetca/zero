@@ -5,7 +5,13 @@
     "description": "Draw with your mouse.",
     "author": "codepetca",
     "repositoryUrl": "https://github.com/codepetca/zero-drawing-pad",
-    "sourceCommit": "595065ae02c5a2a2b339373b447ebbc981d2615d",
-    "image": "/project-previews/drawing-pad.png"
+    "sourceCommit": "7e84f9b68d9444c976adb7c2b13eea3c4406fdf4",
+    "image": "/project-previews/drawing-pad.png",
+    "web": {
+      "provider": "github-pages",
+      "url": "https://codepetca.github.io/zero-drawing-pad/",
+      "commit": "7e84f9b68d9444c976adb7c2b13eea3c4406fdf4",
+      "runId": 39071731666
+    }
   }
 ]

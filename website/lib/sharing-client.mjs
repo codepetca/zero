@@ -62,3 +62,8 @@ export function playLink(release) {
   if(release.kind!=='game'||release.status!=='available'||!release.web)return undefined;
   return contracts.validateWebPublication(release.web,{commit:release.source.commit}).url;
 }
+
+export function maintainedPlayLink(project) {
+  if (!project.web) return undefined;
+  return contracts.validateWebPublication(project.web, {commit: project.sourceCommit}).url;
+}
