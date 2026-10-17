@@ -5241,3 +5241,26 @@ Ledger1initialwave/2reviewerturns/0findings/0fixbatches. Effective model/tokens/
 elapsed time unknown. Dispatch one release at a time and await its exact result;
 shared GitHub pending runs are not a durable queue. PR89 finalCI and live ops
 remain pending. Later receipt-only documentation does not change runtime code.
+
+## Grove Guard and Sky Hop gameplay previews — 2026-10-17
+
+Owner requested images for both games. Captured genuine running browser gameplay,
+not generated artwork: Grove Guard680square/30369bytes/SHA51695dd840864f9a548c2fa863d2122b9d8e424a9c588c65849b1510c01fab9e;
+Sky Hop480square/220463bytes/SHA401330fb5fdbdc2c3283309fc69bb10f6ff01c102596560efdfa1fa9d778fad1.
+Public source markers match ce3bc788/run39057769700 and b69879a/run38983460841
+before/after capture. Grove: Classic, two Seed towers, one Frost, wave1 enemies.
+Sky: click start and three keyboard flaps, bird and pipes visible. Browser clips
+only; no CSS changes or bitmap editing. Both PNGs pass the strict square validator.
+
+Website supplements match project ID and exact source commit; accepted uploaded
+previews take precedence, and later source revisions cannot inherit old images.
+Sky Hop remains withdrawn and hidden from ordinary browsing; its exact historical
+page can show the screenshot. No accepted release, registry or game source changed.
+Website121tests/typecheck/build and configuration checks pass. Independent review,
+local browser acceptance and source publication remain pending this snapshot.
+
+Existing operator Sol/medium owned only Sky PNG/capture provenance; coordinator
+owned Grove/website. No conflicts; Grove input clicks needed a frame-spanning press
+before the final capture. Worker effective model/tokens/time unknown. Usage90%
+weekly remaining; storage311.6GBhealthy. DeepSeek pause retained. Detailed capture
+and verification receipts:.verification/zerohub-game-images/.

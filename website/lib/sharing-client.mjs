@@ -67,3 +67,11 @@ export function maintainedPlayLink(project) {
   if (!project.web) return undefined;
   return contracts.validateWebPublication(project.web, {commit: project.sourceCommit}).url;
 }
+
+// Editorial screenshots supplement legacy releases without changing their
+// accepted artifacts. Match the exact source so later versions cannot inherit it.
+export function releaseImage(release, previews) {
+  return release.artifacts.preview?.url || (release.kind === 'game'
+    ? previews.find(preview => preview.id === release.id && preview.sourceCommit === release.source.commit)?.image
+    : undefined);
+}

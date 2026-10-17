@@ -1,28 +1,25 @@
-# ZeroHub test-project retirement — 2026-10-17
+# ZeroHub gameplay images — 2026-10-17
 
-Owner: “Remove the test projects from ZeroHub too. Just keep Grove Guard and
-Drawing Pad.” Source/site PR88 is merged atbe60b72; production and Drawing Pad
-Play/paint/clear checks passed. SquarePNG publisherbe60b72 is active; both game
-gates enabled, accepted records and13saved objects verified unchanged.
+Owner requests an image for Sky Hop and Grove Guard. Previous PR89 is merged
+at605e38d; all three test versions are withdrawn and the live list contains
+Drawing Pad and Grove Guard only. Keep Sky Hop withdrawn unless the owner
+explicitly restores it. Accepted records, repositories and immutable bytes stay
+unchanged; publisher pinbe60b72 remains active.
 
-Current branch `codex/zerohub-retire-tests` in the existing ZeroHub worktree.
-No local Blob credential exists; the publisher environment retains it. Add a
-manual-main-only workflow withdrawal option using the already reviewed CLI,
-existing configured source pin, publisher environment and concurrency. No source
-policy rotation, new admission authority or deletion of release bytes is needed.
-Workflow tests cover input rejection before credentials and literal CLI argv.
+Worktree `/Users/stew/.codex/worktrees/zerohub-simplify/zero`, branch
+`codex/zerohub-game-images`. Add real square gameplay captures as website
+supplements matched by project ID and exact source commit. Accepted uploaded
+previews take precedence; other source revisions receive no inherited image.
+Sky Hop sourceb69879a/run38983460841; Grove Guard sourcece3bc788/run39057769700.
+Both public source markers match. No game source or accepted artifacts edited.
 
-Withdraw exactly these available test versions after review/CI/merge:
-- game/game-r1417021749-hello-game/0.1.0
-- game/game-r1417021749-hello-game/0.1.1
-- game/game-r1417021749-sky-hop/0.1.1
-
-Preserve all Grove Guard releases, Drawing Pad, repositories and immutable
-accepted artifacts. Parent owns source/review; existing operator worker owns
-read-only freshbackup/preflight pending explicit parent GO for dispatch.
-Next: fixed-diff reviews, CI/merge, three exact dispatches and live two-card proof.
-Receipts:.verification/zerohub-simplify/retire-test-projects/. Preserve unrelated
-funding checkout and earlier native releases. DeepSeek remains paused.
+Coordinator owns Grove capture/web manifest/UI; existing Sol/medium operator
+worker captured only Sky Hop PNG and private provenance. Captures use real
+mouse/keyboard play and browser clips, with no generated art or image editing.
+Next: local website checks/browser acceptance, one independent review, source
+PR/CI/merge and live image verification, including Sky Hop's withdrawn exact page.
+Private receipts:.verification/zerohub-game-images/. Preserve unrelated worktrees,
+prior native releases and all retirement backups. DeepSeek remains paused.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

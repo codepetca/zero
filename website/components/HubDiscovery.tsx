@@ -2,8 +2,9 @@
 import Link from 'next/link';
 import {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
+import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseImage, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import maintainedProjects from '@/content/projects.json';
+import projectPreviews from '@/content/project-previews.json';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
@@ -48,7 +49,7 @@ export function HubDiscovery() {
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'projects':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       {!releases.length && !projects.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${kind==='game'?'projects':'libraries'} match this search.` : `No ${kind==='game'?'projects':'libraries'} are available yet.`}</p>}
       {releases.map(release=><HubProjectCard key={`${release.id}/${release.version}`} title={release.title} description={projectSummary(release.description)} author={release.contributor.login}
-        version={release.version} sourceHref={sourceLink(release)} image={release.artifacts.preview?.url} playHref={playLink(release)}>
+        version={release.version} sourceHref={sourceLink(release)} image={releaseImage(release, projectPreviews)} playHref={playLink(release)}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In Zero, choose Browse ZeroHub → {release.title} → Add library → Apply.</p>
           {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4><p>{component.description}</p><CodeBlock><code>{`import ${component.className};\n\n${component.usage}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
