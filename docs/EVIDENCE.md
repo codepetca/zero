@@ -5322,3 +5322,12 @@ entries without screenshots use a Play tile; withdrawn screenshots stay static.
 Local website121 tests, typecheck, build, root check and diff check pass.
 Review plan: one standard-risk Sol/medium independent UI review, one initial wave;
 max7launches/4fix batches/60minutes. Source/registry/availability unchanged.
+Independent review: Sol/medium complete/clean at3525b155 vs9df83c26,0findings,
+1launch/1wave/0fixes; effective configuration/token telemetry unknown. Browser
+verified hover reveals without navigation, image click/keyboard Enter/touch tap
+open the verified game, keyboard focus reveals overlay, touch keeps it visible,
+legacy0.1.1 Play tile remains reachable, and withdrawn Sky Hop image is static.
+Touch360px screenshot and hover capture retained in ignored output/playwright/;
+no horizontal overflow. No rework or integration conflicts. Review elapsed and
+coordinator active time not separately instrumented. Weekly85% remaining reported
+by reviewer; account allowance is not per-task cost.
