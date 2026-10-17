@@ -1,23 +1,25 @@
-# Current state — student friction fixes, 2026-10-17
+# Current state — student friction candidate, 2026-10-17
 
-Owner authorized implementation of Grove Guard audit fixes: browser API gaps,
-asset import, recovery controls and publish/share flow. Coordinator owns isolated
-`codex/student-friction` at `/Users/stew/.codex/worktrees/student-friction/zero`,
-based on origin/main 382b74f. Preserve the original funding checkout and armorup
-Grove Guard project. No Zero public push/merge/release is authorized by this task.
+Owner authorized local Grove Guard audit fixes. Isolated `codex/student-friction`
+in `/Users/stew/.codex/worktrees/student-friction/zero`, base 382b74f, contains
+browser API proof, safe asset import, guided recovery and game upload/publish/share
+integration. Runtime commits: 2fd6087, 55bfac6, fc7ac40. Public Mac stays 0.5.18;
+new kit/VSIX 0.5.19/build19 is local. No public push/merge/release is authorized here.
 
-Plan: exact-signature browser API proofs; safe native asset import; guided file
-history recovery and native discard handoff; coherent metadata/upload/publish/share
-handoffs; focused/full checks, isolated native UI, bounded independent review,
-local commit and versioned package. One writer per component. No credential
-storage, history rewriting, allowlist bypass or generic library execution opening.
+Both independent Sol/high reviews and targeted checks cleared two bounded fixes:
+Unicode asset collision retries and a native discard notification holding busy.
+Native Mac development-host import/Restore/Undo/Redo/per-file Discard passed;
+587 full-matrix passes/3 platform skips, 108 focused and 48 sharing checks,
+five pinned browser builds/56 Chrome checks,
+and native framework/audio retry pass. Final full matrix/package receipts are in
+ignored `.verification/student-friction/`; detailed browser source hashes live in
+`.verification/student-friction-api/receipt.json`. See docs/EVIDENCE.md and
+VERIFICATION.md. Student guide: docs/STUDENT-FRICTION.md.
 
-Browser worker owns contract/checker/fixtures; recovery worker owns recovery module;
-asset worker owns import module then sharing editor. Coordinator owns shared UI,
-auth, publication integration and final verification. DeepSeek remains paused.
-Weekly remaining was 30%; storage healthy (~324 GB). No usage cost inferred.
-
-Detailed plan/receipts: ignored `.verification/student-friction/plan.json` and
-`.verification/student-friction-api/`. Prior rollout context is archived in
-`.ai/history/mac-preview-rollout-20261017.md`. Public Mac remains 0.5.18; physical
-Windows and physical audio remain unverified. Generic library execution stays closed.
+Preserve original funding checkout and armorup game. No credential storage,
+history rewrite, compiler allowlist bypass or generic library execution opening.
+Physical Windows/new live account/provider/publication acceptance remain pending.
+DeepSeek remains paused. One coordinator/one writer per component; four bounded
+review launches/two fix batches. Initial usage 30% weekly remaining and ~324 GB
+free are shared observations, not attributable cost. Prior release context:
+.ai/history/mac-preview-rollout-20261017.md.

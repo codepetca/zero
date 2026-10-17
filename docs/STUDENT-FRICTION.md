@@ -107,8 +107,13 @@ range errors and the same math/list assertion source used on the JDK.
 
 Asset/recovery/sharing fixtures exercise cancellation, collisions, stale state,
 file preservation and handoff boundaries using disposable files/Git repositories
-and mocked editor/GitHub surfaces. These do not establish native dialog or live
-account-provider behavior. Fresh installed-app UI acceptance, physical Windows,
-other browser engines and physical audio remain pending. The original Grove
+and mocked editor/GitHub surfaces. An isolated Mac development host additionally
+verified native asset selection/import, historical diff/Restore, editor Undo/Redo,
+and native per-file discard while preserving the imported asset. A native retest
+verified discard guidance leaves Zero controls enabled while its notification
+remains visible. VS Code auto-save settings still govern whether restored text
+is saved automatically; Zero does not call save for restoration.
+Fresh installed-kit/live account-provider acceptance, physical Windows, other
+browser engines and physical audio remain pending. The original Grove
 Guard trial's public deployment is earlier evidence; this follow-up has not
 pushed, deployed or republished it.

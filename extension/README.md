@@ -1,6 +1,6 @@
 # Zero extension — local release candidate
 
-Zero **0.5.16**, with core **0.1.3**, is prepared locally and unreleased. Published
+Zero **0.5.19**, with core **0.2.1**, is prepared locally and unreleased. Published
 assets retain their existing versions and bytes.
 
 Open a student folder containing `zero.json`, or the kit with its
@@ -10,7 +10,7 @@ and open in the normal editor. Zero’s controls are collapsible above Files; id
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.5.16.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.5.19.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
@@ -51,7 +51,20 @@ Native success does not establish browser compatibility. Windows native tasks
 use the task shell with strong wrapper-path quoting; other platforms use a
 process task. Physical Windows/Linux behavior remains unverified.
 
-Commands: `zero.runApp`, `zero.runNativeApp`, `zero.stopApp`, `zero.exportWeb`,
+**Add assets…** copies selected images/audio into `src/main/resources`, preserving
+originals and existing assets with **Keep both** or **Skip existing**. Copy resource
+string literals with **Copy asset paths**. **Recovery…** opens native changes or
+previews an earlier tracked file version as an undoable edit. Save/test and Commit
+& push a correction; history is preserved. VS Code's auto-save preference applies.
+
+**Share project** guides game details, Commit & push and optional Publish app
+before the reviewed GitHub form. Cancel preserves saved details. Submit the form
+on GitHub; opening it does not mean gallery acceptance. Each handoff rechecks
+account, repository and exact uploaded source; workflow scope expansion hints the
+selected native account and still rejects an account change.
+
+Commands: `zero.importAssets`, `zero.copyImportedAssetPaths`, `zero.recovery`,
+`zero.runApp`, `zero.runNativeApp`, `zero.stopApp`, `zero.exportWeb`,
 `zero.publishWeb`, `zero.copyPublishedWebLink`, `zero.openPublishedWeb`,
 `zero.uploadToGitHub`,
 `zero.chooseBranch`, `zero.startChange`, `zero.finishChange`,
