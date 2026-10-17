@@ -1,7 +1,7 @@
 import test, {after, before} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {existsSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdtempSync, readFileSync, mkdirSync, rmSync, statSync, symlinkSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
@@ -65,12 +65,12 @@ function fixture(t) {
   writeFileSync(output, '');
   return {temporary, output, configFile:join(temporary, 'zero-sharing-config.json')};
 }
-function run(script, files, {configuration = config(), omitConfiguration = false, selected = sourceA, cwd = checkout} = {}) {
+function run(script, files, {configuration = config(), omitConfiguration = false, selected = sourceA, cwd = checkout, extraEnvironment = {}} = {}) {
   const environment = {PATH:`${dirname(process.execPath)}:${process.env.PATH}`,
     RUNNER_TEMP:files.temporary, GITHUB_OUTPUT:files.output,
     ZERO_TRUSTED_SOURCE_SHA:selected, GITHUB_WORKFLOW_SHA:metadataB, GITHUB_SHA:metadataB,
     // Untrusted issue/branch data must not select the checkout.
-    GITHUB_HEAD_REF:'student-branch', GITHUB_EVENT_PATH:join(files.temporary, 'untrusted-event.json')};
+    GITHUB_HEAD_REF:'student-branch', GITHUB_EVENT_PATH:join(files.temporary, 'untrusted-event.json'), ...extraEnvironment};
   if (!omitConfiguration) environment.ZERO_SHARING_CONFIG = typeof configuration === 'string' ? configuration : JSON.stringify(configuration);
   return spawnSync('bash', ['--noprofile', '--norc', '-eo', 'pipefail', '-c', script],
     {cwd, env:environment, encoding:'utf8'});
@@ -159,4 +159,65 @@ test('trusted inline full validation preserves platform schema and destination c
     assert.notEqual(result.status, 0, `Accepted ${JSON.stringify(options)}`);
     assert.equal(existsSync(files.configFile), false);
   }
+});
+
+const operationStep = namedStep('Validate the requested operator action');
+const operationScript = runBody(operationStep);
+const executeStep = namedStep('Execute the validated publisher action');
+const executeScript = runBody(executeStep);
+const releaseKey = 'game/game-r1417021749-hello-game/0.1.0';
+function operation(t, extraEnvironment = {}) {
+  const files = fixture(t);
+  return {files, result:run(operationScript,files,{cwd:files.temporary,extraEnvironment:{
+    ZERO_EVENT_NAME:'workflow_dispatch', GITHUB_REF:'refs/heads/main',
+    ZERO_REQUESTED_OPERATION:'withdraw', ZERO_REQUESTED_RELEASE:releaseKey, ...extraEnvironment}})};
+}
+test('operator action validation precedes checkout and publisher credentials', () => {
+  assert.ok(steps.indexOf(operationStep) < steps.indexOf(selectStep));
+  assert.match(operationStep,/ZERO_REQUESTED_OPERATION: \$\{\{ inputs.operation \}\}/);
+  assert.match(executeStep,/ZERO_OPERATOR_ACTION: \$\{\{ steps.operation.outputs.operation \}\}/);
+  assert.match(executeStep,/ZERO_OPERATOR_RELEASE: \$\{\{ steps.operation.outputs.release \}\}/);
+  assert.doesNotMatch(executeScript,/\$\{\{/);
+});
+test('scheduled, issue and ordinary manual runs retain reconciliation', t => {
+  for (const event of ['schedule','issues','workflow_dispatch']) {
+    const {files,result}=operation(t,{ZERO_EVENT_NAME:event,ZERO_REQUESTED_OPERATION:'',ZERO_REQUESTED_RELEASE:''});
+    assert.equal(result.status,0,result.stderr);
+    assert.equal(readFileSync(files.output,'utf8'),'operation=reconcile\nrelease=\n');
+  }
+});
+test('manual main withdrawal accepts exactly one complete game release key', t => {
+  const {files,result}=operation(t);
+  assert.equal(result.status,0,result.stderr);
+  assert.equal(readFileSync(files.output,'utf8'),`operation=withdraw\nrelease=${releaseKey}\n`);
+});
+test('invalid operations, event sources, refs and release injection fail before action output', t => {
+  for (const changes of [
+    {ZERO_EVENT_NAME:'issues'}, {ZERO_EVENT_NAME:'schedule'}, {GITHUB_REF:'refs/heads/student'},
+    {ZERO_REQUESTED_OPERATION:'restore'}, {ZERO_REQUESTED_OPERATION:'withdraw; echo injected'},
+    {ZERO_REQUESTED_OPERATION:'reconcile'}, {ZERO_REQUESTED_RELEASE:''},
+    {ZERO_REQUESTED_RELEASE:'library/lib-r123-sample/0.1.0'},
+    {ZERO_REQUESTED_RELEASE:'game/game-r123-sample'},
+    {ZERO_REQUESTED_RELEASE:releaseKey+'\noperation=reconcile'},
+    {ZERO_REQUESTED_RELEASE:releaseKey+',game/game-r123-sample/0.1.0'},
+    {ZERO_REQUESTED_RELEASE:'$(touch injected)'}, {ZERO_REQUESTED_RELEASE:releaseKey+';touch injected'}
+  ]) {
+    const {files,result}=operation(t,changes);
+    assert.notEqual(result.status,0,JSON.stringify(changes));
+    assert.equal(readFileSync(files.output,'utf8'),'');
+    assert.equal(existsSync(join(files.temporary,'injected')),false);
+  }
+});
+test('validated actions invoke the existing CLI with literal arguments and propagate failure', t => {
+  const files=fixture(t);mkdirSync(join(files.temporary,'sharing'));
+  writeFileSync(join(files.temporary,'sharing/cli.mjs'),`import {writeFileSync} from 'node:fs';writeFileSync(process.env.RUNNER_TEMP+'/argv.json',JSON.stringify(process.argv.slice(2)));process.exit(Number(process.env.TEST_EXIT||0));`);
+  for (const action of ['reconcile','withdraw']) {
+    const result=run(executeScript,files,{cwd:files.temporary,extraEnvironment:{ZERO_OPERATOR_ACTION:action,ZERO_OPERATOR_RELEASE:releaseKey}});
+    assert.equal(result.status,0,result.stderr);
+    const expected=[action,'--config',files.configFile,'--execute','--role','publisher'];
+    if(action==='withdraw')expected.push('--release',releaseKey);
+    assert.deepEqual(JSON.parse(readFileSync(join(files.temporary,'argv.json'),'utf8')),expected);
+  }
+  const failed=run(executeScript,files,{cwd:files.temporary,extraEnvironment:{ZERO_OPERATOR_ACTION:'withdraw',ZERO_OPERATOR_RELEASE:releaseKey,TEST_EXIT:'7'}});
+  assert.equal(failed.status,7);
 });

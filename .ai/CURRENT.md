@@ -1,29 +1,28 @@
-# ZeroHub publication — 2026-10-17
+# ZeroHub test-project retirement — 2026-10-17
 
-Owner authorized publication and Drawing Pad hosting with “Do all those”.
-Worktree `/Users/stew/.codex/worktrees/zerohub-simplify/zero`, branch
-`codex/zerohub-simplify`, source PR #88. Latest-only short cards, Projects/Libraries,
-Play/GitHub, separate sharing, retired example routes/ZIPs and alphabetical Docs
-are implemented and independently reviewed. Internal lesson sources remain.
+Owner: “Remove the test projects from ZeroHub too. Just keep Grove Guard and
+Drawing Pad.” Source/site PR88 is merged atbe60b72; production and Drawing Pad
+Play/paint/clear checks passed. SquarePNG publisherbe60b72 is active; both game
+gates enabled, accepted records and13saved objects verified unchanged.
 
-Drawing Pad is public at https://codepetca.github.io/zero-drawing-pad/.
-Drawing repo PR #2 merged at7e84f9b68d9444c976adb7c2b13eea3c4406fdf4;
-run39071731666 succeeded. All59 files/2161473 bytes anonymously hash-verified;
-public browser painting/clearing passed. ZeroHub links the verified receipt.
+Current branch `codex/zerohub-retire-tests` in the existing ZeroHub worktree.
+No local Blob credential exists; the publisher environment retains it. Add a
+manual-main-only workflow withdrawal option using the already reviewed CLI,
+existing configured source pin, publisher environment and concurrency. No source
+policy rotation, new admission authority or deletion of release bytes is needed.
+Workflow tests cover input rejection before credentials and literal CLI argv.
 
-Publisher7154b31 accepts the exact released1b63 game-request pin while enforcing
-square PNGs for every unaccepted game. Frozen request identity remains unchanged;
-trusted provenance records the actual publisher pin. Full sharing53 and website120
-checks pass; consequential independent correctness/compatibility reviews and final
-CI gate govern promotion. Source publication alone does not rotate operator policy.
-Fresh registry/history plus13-object backup and local isolated restore verified.
+Withdraw exactly these available test versions after review/CI/merge:
+- game/game-r1417021749-hello-game/0.1.0
+- game/game-r1417021749-hello-game/0.1.1
+- game/game-r1417021749-sky-hop/0.1.1
 
-Next: finish source PR88 CI/merge, verify Vercel live, then safely rotate publisher
-with both gates closed, read back configuration, reconcile and compare accepted
-object hashes. Current live operator pin remains1b63 until explicit cutover.
-Native0.5.19 binaries stay unchanged; their Preview image control already works,
-but older optional wording remains. Generic library execution stays closed.
-Private receipts:.verification/zerohub-simplify/. Preserve unrelated worktrees.
+Preserve all Grove Guard releases, Drawing Pad, repositories and immutable
+accepted artifacts. Parent owns source/review; existing operator worker owns
+read-only freshbackup/preflight pending explicit parent GO for dispatch.
+Next: fixed-diff reviews, CI/merge, three exact dispatches and live two-card proof.
+Receipts:.verification/zerohub-simplify/retire-test-projects/. Preserve unrelated
+funding checkout and earlier native releases. DeepSeek remains paused.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

@@ -5215,3 +5215,20 @@ provider-write drill. Full publication receipts remain ignored under
 Effective model/tokens unknown; no conflicts,0compatibilityfixbatches. DeepSeek
 pause honored. Native older optional screenshot wording and physical Windows
 remain outside this publication; website instructions explain Preview image.
+
+## Remove ZeroHub test projects — 2026-10-17
+
+Owner explicitly requested only Grove Guard and Drawing Pad. Live inventory
+confirms two available hello-game test versions0.1.0/0.1.1 and Sky Hop0.1.1.
+The existing CLI supports withdrawal but the only credential-bearing workflow
+previously exposed reconciliation alone. A manual-main-only dispatch option now
+validates one exact game release before credentials, then invokes that pinned
+CLI with literal argv. Normal issue/schedule/manual runs retain reconciliation.
+No credential extraction, raw registry editing or publisher pin rotation.
+
+Focused workflow11tests pass, including invalid events/branches/kinds/multiple
+keys/injection, exact accepted syntax, literal argv and failed CLI exit propagation.
+Independent review/CI and live withdrawal are pending this source change.
+Private freshbackup/dispatch/live receipts:.verification/zerohub-simplify/
+retire-test-projects/. Usage91%weekly remaining; storage313.6GBhealthy. Existing
+operator Sol/medium context reused; no new task/goal/automation or conflicts.
