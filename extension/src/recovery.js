@@ -206,7 +206,10 @@ function createRecoveryCommands(vscode, {project,isBusy,setBusy,setState,output,
         // surface so VS Code owns exact file selection and destructive consent.
         await vscode.commands.executeCommand('workbench.view.scm');
         report('Choose this file in Source Control',`In Source Control → Changes, find ${review.relative}. Choose its Discard Changes action and read VS Code’s confirmation. Do not choose Discard All Changes. Recovery has not changed any files.`);
-        await vscode.window.showInformationMessage(`In Source Control → Changes, find ${review.relative} and choose its Discard Changes action. VS Code will ask you to confirm. Your file has not been changed.`);
+        // Guidance has no decision to await. Keep native Git usable while its
+        // notification remains open, and retain the instructions in Output.
+        void Promise.resolve().then(() => vscode.window.showInformationMessage(`In Source Control → Changes, find ${review.relative} and choose its Discard Changes action. VS Code will ask you to confirm. Your file has not been changed.`))
+          .catch(error => output.appendLine(`Recovery guidance could not open: ${error.message}`));
         return;
       }
       if (choice.action === 'restore') await restore(review);

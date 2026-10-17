@@ -75,6 +75,25 @@ test('native review and discard handoff never call destructive Git commands or i
   }
 });
 
+test('discard guidance never holds the busy guard while a nonmodal notification remains open',{timeout:10000},async t=>{
+  const h=await harness(t);h.choices.splice(0,2,'discard');let notified=false;
+  h.vscode.window.showInformationMessage=()=>{notified=true;return new Promise(()=>{});};
+  await h.run();
+  assert.equal(notified,true);assert.equal(h.busy,false);assert.equal(h.applied,0);
+  assert.deepEqual(h.calls,[['workbench.view.scm']]);
+  assert.ok(h.gitCalls.every(args=>['rev-parse','symbolic-ref','ls-files','config'].includes(args[0])),'Guidance never invokes destructive Git');
+  assert.match(h.states.at(-1),/Choose this file in Source Control/);assert.match(h.logs[0],/Discard Changes.*has not changed any files/);
+});
+
+test('discard notification failures are handled in Output after releasing the busy guard',async t=>{
+  const h=await harness(t);h.choices.splice(0,2,'discard');
+  h.vscode.window.showInformationMessage=async()=>{throw new Error('Notification unavailable');};
+  await h.run();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.busy,false);assert.equal(h.applied,0);assert.deepEqual(h.calls,[['workbench.view.scm']]);
+  assert.match(h.logs.at(-1),/Recovery guidance could not open: Notification unavailable/);
+  assert.match(h.states.at(-1),/Choose this file in Source Control/);
+});
+
 test('unsaved edits block both guided restore and discard with no silent save or overwrite',async t=>{
   for(const action of ['restore','discard']) {
     const h=await harness(t);h.choices.splice(0,2,action);h.document.isDirty=true;h.document.content+='unsaved';
