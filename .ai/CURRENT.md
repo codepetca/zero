@@ -1,89 +1,62 @@
-# Current state — Mac preview accepted, 2026-10-17
+# Current state — Mac preview rollout, 2026-10-17
 
 Coordinator: Lead publishing task, 01a13f98-55fc-7471-9038-1198b14d5a98.
-Continue templates, GitHub publishing and ZeroHub Play work; test before student
-release. Preserve ordinary Java, strict WebFX, browser-first Run, own repositories
-and minimal sidebar. Physical Windows remains deferred. Root owns source/Git/
-operator/UI acceptance. Other completed chats are archived; do not reactivate.
+The owner explicitly approved the coordinated Mac 0.5.18 preview rollout and live
+verification. Preserve ordinary Java, strict WebFX, browser-first Run App, student
+GitHub ownership and the minimal sidebar. Physical Windows remains deferred;
+its public manual ZIP stays 0.5.17. Generic library execution remains closed under
+its separate checker rejection: do not retry or bypass it.
 
-Worktree /Users/stew/.codex/worktrees/release-readiness/zero, branch
-codex/mac-release-0.5.18. Preserve original funding checkout, old artifacts/projects,
-QA app/profile and accepted registry/Blob history. Public downloads/feed remain
-0.5.17. Student distribution/template-main promotion are held until final acceptance.
+## Delivered
 
-## Accepted evidence
+PR #80 merged as 8aec173119bf9d24f44307933ca876ac615d8788. Final c1b5123
+head passed all five CI checks. Signed/notarized/stapled Mac candidate built from
+3836224 and prepared at 1e9ac6d passed launcher preparation/opening/warm resume,
+installed extension parity, Study and Sky Hop Chrome Run/Stop, all 13 checksums,
+independent Ed25519 archive/feed signatures and build ordering 17 to 18.
 
-PR78 merged1b63ae6; exact reviewed treea267d41 passed Linux38960026817,
-browser38960026736 and Windows38960026787. Production website7128623333 and
-actual Chrome acceptance passed. Prior installed Study/tutorial/clone/menu checks
-are retained; latest 3836224 VSIX installed in isolated existing armorup profile.
-Audio timeout not reproduced, not fixed: local original/instrumented/early-close/
-rapid-control runs and fresh hosted38979041632 passed. Keep merged diagnostics.
+Native setup-v0.5.18 is now a public preview release containing exactly one DMG:
+4,514,655 bytes, SHA256 db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa.
+Its anonymous public download exactly matches the sealed tested candidate.
+The standalone three-file v0.5.18 kit remains local; published-kit.json stays 0.5.17.
 
-Five complete template candidates exactly match assembly and retained WebFX/
-Chrome inputs. Full Sol/medium batch review clean1launch/0fixes; five draft PRs
-are open, attached, main refs/website pins unchanged. Coordinate promotion with
-0.5.18 UI. Three tutorial scaffold helpers already current.
+All five reviewed complete template PRs are merged. Actual public main merge SHAs
+and reviewed trees are recorded in website/content/project-templates.json. An
+independent anonymous check matched all 109 archive files, Git paths/modes/blobs,
+repository IDs/template settings, Main.java and executable mvnw. Existing exact
+WebFX/Chrome evidence remains valid. Tutorial scaffolds were already current.
 
-Sky Hop migrated only retired base names/current7helpers in fresh owned clone
-/Users/stew/Zero Preview Testing/sky-hop-0.5.18-50q8o_aa. Independent source and
-guide-marker delta review clean2launches/1fixbatch. Native Commit & push/Run/
-Open in browser/Publish app/Open app passed. Chrome start/pause/resume/restart/
-click/Stop passed; audible output not verified. Publish refused stale guide and
-preserved it; maintained test repo corrected exact README/owner marker only.
-Public sourceb69879a477666f64328c4193759d7264c64baf80 and successful Pages run
-38983460841 serve exact68localfiles/8208615bytes/build0293f88e. Temporary staging
-release cleaned. Copy result visible, native paste verification inconclusive.
+Both game-only admission gates are now enabled under explicit rollout approval,
+using reviewed publisher policy 1b63ae6ce07f467ab4c4600d78507157ad3bdc7c.
+Reconciliation run 39034386434 succeeded. The preflight found registry sequence 22
+unchanged, only the three already-accepted fixture issues open, and all seven
+retained immutable object hashes unchanged. Never select old bea against enriched
+registry state. Rollback disables both admission gates while retaining compatible
+publisher/history/objects; use append-only withdrawal when needed.
 
-Bundled policy selects public reviewed1b63ae6. Independent security/rollout
-reviews complete:173security checks+63compatibility checks; one accepted P2
-rollback-plan correction independently closed. Publisher ledger3launches/1fixbatch.
-Managed run38983652894 accepted issue79/game-r1417021749-sky-hop/0.1.1 with
-verified Play receipt. Registrysequence22, all3releasesready. Both live admission
-gates false again, compatible1b63ae6 retained. Never select oldbea against enriched
-registry; disable admission for rollback, preserve immutable history/objects and
-use append-only withdrawal if needed. Generic library execution remains closed;
-its prior checker acceptance rejection must not be retried or bypassed.
-Chrome ZeroHub card/Play target and request status tested. Legacy API exact3release
-projection omits web; enriched API retains it. SourceZIP32files exactly match Git.
-Old2acceptedrecords/2ZIPs/3snapshots unchanged; fresh Git+Blob backup and isolated
-restore passed. Receipts .verification/mac-release-20261016/.
+Sky Hop remains at https://armorup.github.io/zero-sharing-proof/, source b69879a,
+Pages run 38983460841, 68 exact tested public files. ZeroHub accepted game 0.1.1
+has a verified Play receipt and immutable 32-file source snapshot. Legacy catalog
+projection omits web; enriched catalog retains it. Prior isolated backup/restore
+passed; current rollout must verify these public contracts again.
 
-## Current phase / next
+## Finish this phase
 
-Mac preview acceptance and immutable seal complete. Exact signed/notarized DMG
-4514655bytes/db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa
-built from3836224, prepared/reviewed at1e9ac6d. Sealed candidate:
-dist/candidates/mac-0.5.18-1e9ac6d93ca6; all13checksums pass. Signed updater build18
-and1178byte feedf249c5be2cfac3e4bbe36318e9d4afc79ebfad086421e44807aaadac5d20507e
-sealed; independent Ed25519/archive/feed/ordering/source/payload acceptance clean.
-Native app preparation/opening and warm resume passed after unlock, as did native
-ready1/allchecks1. InstalledkitVSIX exactlysealed,106installedextensionfiles match.
-Ran exact signed app from own DMG; existing Applications apps were preserved.
-No claim of replacement in Applications/Dock or a fresh-machine install.
+The publication metadata change uses the actual anonymously verified Mac URL,
+unchanged sealed signed appcast/build 18 and actual merged template SHAs. Complete
+its proportional independent review/CI/merge, then verify actual live Home/Downloads,
+served updater signatures/archive, template links, game availability notice and
+ZeroHub Play in Chrome. Record exact final merge/deployment and receipts in the
+existing plan. No new owner approval is required for this approved rollout.
 
-Study existing-project/sidebar/Tutorials/main layout and savedlesson4 restored;
-lesson Open in browser matches hosted4. Run/browserwrong/right/Stop passed after
-launcher. Existing workspace had saved Explorer preference; manual Show Sidebar
-preserved expected user control. No source edits/newOAuth/Git pushes in this repeat.
-Physical audible output/nativeclipboardpaste/fresh-machine/novice/Windows remain
-unverified; no regression or blanket classroom readiness claim.
+Root owns source/Git/operator/UI. Worktree:
+/Users/stew/.codex/worktrees/release-readiness/zero. Preserve original funding
+checkout, other Applications apps, student projects and accepted storage/history.
+Do not overwrite or reseal dist/candidates/mac-0.5.18-1e9ac6d93ca6.
 
-PR80 exactcandidateprep1e9 all5CIchecks green, mergeable/draft. Source/fallback
-review complete4launches/2fixbatches/1integrationwave,0openfindings. Public Mac and
-Windows fallback0.5.17buttons/labels preserved by website-only module; native
-protected validator/updatefeed source unchanged.117website/17focused/type/build and
-Chrome desktop/320/home/download checks pass. Final receipt-only documentation
-refresh may have newer CI; read exact currenthead/checks from plan before merge.
+Physical audio listening, native clipboard paste, fresh-machine/new-account OAuth,
+novice/school-network and physical Windows trials remain unverified. Audio CI
+timeout was not reproduced; retain diagnostics, do not claim an audio fix.
 
-Next: final owner approval for coordinated Mac preview publication/integration,
-verified template-default promotion/actualSHA snapshot update and public download/
-feed metadata. Both game admission gates remainfalse; deliberate general activation
-is part of a separately approved rollout. Genericlibraryexecution staysclosed.
-Do not release student assets, update feed or template defaults before approval.
-No source/runtime changes are needed for the accepted sealed candidate.
-
-Current review/operation plan .verification/mac-release-20261016/plan.json.
-Prior PR78-specific waiver not reused; old10fix/10targeted/12turn history retained.
-Weekly37%remaining observation is account-wide; DeepSeek paused through2026-12-31.
-Storage327GBhealthy at2026-10-17 resume; attributable tokens/time unknown.
+Detailed evidence/operation/review ledger: .verification/mac-release-20261016/plan.json,
+MAC-PREVIEW-PUBLICATION-PLAN.md and docs/EVIDENCE.md. DeepSeek remains paused.
