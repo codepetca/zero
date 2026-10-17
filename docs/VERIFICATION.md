@@ -3327,3 +3327,14 @@ live-template-verification.md, game-admission-rollout-preflight.json,
 game-admission-reconciliation.json and publication metadata review/live receipts.
 Physical Windows, fresh-machine/new-account OAuth, school/novice and physical audible
 output remain unverified; the latest native clipboard paste was inconclusive.
+
+## ZeroHub latest-only cards and screenshots — 2026-10-17
+
+Local implementation123dc2d: root592pass/3platform skips at77a5d9c, website119
+tests/typecheck/production build, sharing50tests, final native/PNG/diagnostic35
+tests. Focused final adapters cover screenshot rejection before writes, accepted
+legacy replay/restore and successful packaging. Independent full+targeted review
+clean. Browser: latest-only catalog, preserved exact links, search, light/dark,
+320px no overflow and mocked preview/library disclosure layouts. See EVIDENCE.md
+and website/design-qa.md. Native dialogs/physicalWindows and new policy deployment
+remain untested/unpublished; no public registry change.

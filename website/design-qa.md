@@ -78,3 +78,22 @@ heading IDs and URL fragments; the browser now follows exercises →
 `/docs/starter#try-an-example` and places Try an example at the viewport top.
 
 The historical browser checks above predate the ZeroHub route consolidation and do not verify the current /hub flow.
+
+## ZeroHub simplification — 2026-10-17
+
+Local production build77a5d9c, with screenshot-parser-only correction123dc2d.
+Real catalog: Grove Guard appears once at0.2.0; exact0.1.0 still opens; search
+filters cards. Titles are text, Play opens the validated student site in a new
+tab, GitHub pins the source commit. No Controls, source downloads or release
+internals. A single note explains student hosting. Shared theme toggle works;
+light/dark desktop and320px phone checks show no horizontal overflow. Phone Play
+is84px wide; secondary account link has matching dark background/light text.
+
+Inspected ignored output/playwright/zerohub-desktop.png, zerohub-dark.png,
+zerohub-phone-dark.png and zerohub-phone-preview.png. The latter deliberately
+substitutes a maintained game image in a mock catalog to exercise square contain
+frames; it is not a Grove Guard screenshot. Library usage/manual Maven disclosures
+were checked using a labeled Counter fixture, screenshot zerohub-library-fixture.png.
+Existing public games have no preview artifacts. No new image is claimed public.
+Only browser console error: existing favicon404. No installed native sharing
+dialog, physical Windows or new public submission acceptance in this task.

@@ -5093,3 +5093,40 @@ live-template-verification.md, game-admission-rollout-preflight.json,
 game-admission-reconciliation.json and publication metadata review/live receipts.
 Physical Windows, fresh-machine/new-account OAuth, school/novice and physical audible
 output remain unverified; the latest native clipboard paste was inconclusive.
+
+## ZeroHub simplification — local, 2026-10-17
+
+Owner requested latest-only projects, tiny descriptions, Play/GitHub, plain titles,
+no Controls/source download/release detail clutter, and a single hosting note.
+Owner explicitly confirmed square screenshots for new game submissions. Delivered
+in isolated `codex/zerohub-simplify`, implementation `77a5d9c`, final correction
+`123dc2d`; original funding and release checkouts preserved. Existing public
+Grove Guard0.1.0/0.1.1/0.2.0 share one ID; local discovery selects0.2.0. Exact
+version links and accepted screenshot-free releases remain usable. Maintainer
+withdrawal remains the removal path; immutable public artifact bytes are retained.
+
+New submissions validate committed square PNGs ≤2048×2048/4MiB in native prompts
+and trusted publication. Existing catalog schemas remain readable. Unaccepted
+queued requests must meet the new policy after its deliberate publisher promotion.
+Native release, publisher pin promotion, website/source publication and registry
+changes are pending explicit authorization; none occurred here.
+
+Checks: full root at77a5d9c592pass/3platform skips; website119pass/typecheck/build;
+sharing50pass; final native/PNG/diagnostics35pass. Final targeted adapter/check
+results are in ignored `.verification/zerohub-simplify/`. Production build retains
+three existing updater filesystem-tracing warnings. Browser checks: real public
+catalog projected through local server, latest-only0.2.0, exact0.1.0, search,
+light/dark and320px reflow, visible search focus, plain titles and external Play
+URLs. Preview/library layout uses explicitly mocked fixtures, not an accepted
+new public game. Only console error was the existing missing favicon404. New
+native screenshot dialogs and physical Windows were not exercised interactively.
+
+Orchestration: GPT6.1Sol/medium bounded audit→screenshot implementation (one owner),
+plus independent GPT6.1Sol/medium review. Full17file77a5d9c review clean; coordinator
+reproduced ASCII high-bit PNG acceptance, fixed in123dc2d with regression, then
+independent targeted review clean (4PNG checks). Ledger:1initial+1targeted wave,
+1fix batch,2reviewer turns. Effective model/tokens/worker elapsed unknown; review
+~3minutes manual estimate, coordination~3minutes estimate. Weekly99%remaining at
+start; storage healthy~317GB. One temporary dependency symlink rejected by
+Turbopack, replaced by normal pinned npm ci; no dependency/version changes or
+source conflicts. DeepSeek pause honored. No new task/goal/automation.

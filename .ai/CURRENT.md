@@ -1,3 +1,14 @@
+# Local ZeroHub follow-up — 2026-10-17
+
+Owner-requested cards/latest-only browsing and confirmed square screenshots are
+implemented and reviewed at123dc2d in `/Users/stew/.codex/worktrees/zerohub-simplify/zero`,
+branch `codex/zerohub-simplify`. Local preview127.0.0.1:3217/hub?kind=game.
+Root592pass/3skips, website119/type/build, sharing50 and final native35 pass;
+full+targeted independent review clean. Evidence: docs/EVIDENCE.md and website/design-qa.md.
+Next: explicit owner publication approval before source push/PR/merge/deploy,
+new native release or publisher-policy promotion. Existing releases/registry
+unchanged. Preserve other worktrees and prior release state below.
+
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 
 Owner authorized source push/merge, Mac release and full armorup student acceptance.
