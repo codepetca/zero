@@ -93,3 +93,39 @@ test('success reports Java paths in output and supports explicitly copying them,
  const f=await uiFixture(t);await f.commands.commands['zero.importAssets']();assert.equal(f.commands.canCopyPaths(),true);assert.ok(f.logs.includes('"/coin.wav"'));assert.match(f.states.at(-1),/Added 1 asset/);await f.commands.commands['zero.copyImportedAssetPaths']();assert.equal(f.copied,'"/coin.wav"');
  f.currentRoot='elsewhere';await assert.rejects(f.commands.commands['zero.copyImportedAssetPaths'](),/current trusted project/);f.commands.dispose();assert.equal(f.commands.canCopyPaths(),false);
 });
+test('normalization-equivalent Unicode names are detected and kept or skipped without overwriting',async t=>{
+ for(const policy of ['keep','skip']) {
+  const f=await fixture(t),sources=await f.files(['caf\u00e9.png']);await fs.mkdir(f.folder,{recursive:true});
+  const existing=path.join(f.folder,'cafe\u0301.png');await fs.writeFile(existing,'existing decomposed asset');
+  assert.equal(await hasCollisions(f.snapshot,sources,f.assertCurrent),true);
+  const result=await f.run({sources,policy});assert.equal(await fs.readFile(existing,'utf8'),'existing decomposed asset');
+  if(policy==='keep'){assert.equal(result.imported.length,1);assert.equal(result.imported[0].name,'caf\u00e9 (2).png');assert.equal(await fs.readFile(result.imported[0].path,'utf8'),'original caf\u00e9.png');}else{assert.equal(result.imported.length,0);assert.deepEqual(result.skipped,['caf\u00e9.png']);}
+ }
+});
+test('exclusive-create collisions absent from enumeration advance names, and Skip exits immediately',async t=>{
+ const {constants}=require('node:fs');
+ for(const policy of ['keep','skip']) {
+  const f=await fixture(t),sources=await f.files(),originalOpen=fs.open,candidates=[];
+  const mock=t.mock.method(fs,'open',async(filename,flags,...args)=>{
+   if(flags&constants.O_EXCL){candidates.push(path.basename(filename));if(candidates.length<=2)throw Object.assign(Error('filesystem alias or race'),{code:'EEXIST'});}
+   return originalOpen(filename,flags,...args);
+  });
+  try {
+   const result=await f.run({sources,policy});
+   if(policy==='keep'){assert.deepEqual(candidates,['coin.wav','coin (2).wav','coin (3).wav']);assert.equal(result.imported[0].name,'coin (3).wav');}else{assert.deepEqual(candidates,['coin.wav']);assert.deepEqual(result.skipped,['coin.wav']);assert.equal(result.imported.length,0);}
+  }finally{mock.mock.restore();}
+ }
+});
+test('continual exclusive-create races stop after a bounded number of distinct candidates',async t=>{
+ const {constants}=require('node:fs'),{MAX_NAME_ATTEMPTS}=require('../src/assets');
+ const f=await fixture(t),sources=await f.files(),originalOpen=fs.open,candidates=[];
+ await fs.mkdir(f.folder,{recursive:true});await fs.writeFile(path.join(f.folder,'keep.wav'),'untouched');
+ const mock=t.mock.method(fs,'open',async(filename,flags,...args)=>{
+  if(flags&constants.O_EXCL){candidates.push(filename);throw Object.assign(Error('racing file creation'),{code:'EEXIST'});}
+  return originalOpen(filename,flags,...args);
+ });
+ try {
+  await assert.rejects(f.run({sources}),error=>{assert.match(error.message,/Too many matching asset names.*Rename/);assert.equal(error.assetResult.imported.length,0);return true;});
+  assert.equal(candidates.length,MAX_NAME_ATTEMPTS);assert.equal(new Set(candidates).size,MAX_NAME_ATTEMPTS);assert.equal(await fs.readFile(path.join(f.folder,'keep.wav'),'utf8'),'untouched');assert.equal(await fs.readFile(sources[0].filename,'utf8'),'original coin.wav');
+ }finally{mock.mock.restore();}
+});

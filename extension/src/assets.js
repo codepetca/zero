@@ -5,6 +5,8 @@ const path = require('node:path');
 
 const EXTENSIONS = ['png','jpg','jpeg','gif','bmp','webp','wav','mp3','aiff','aif','m4a','ogg'];
 const LIMITS = Object.freeze({files:100, fileBytes:25*1024*1024, totalBytes:100*1024*1024});
+const MAX_NAME_ATTEMPTS = 128;
+const collisionKey = name => name.normalize('NFC').toLowerCase();
 const identity = stat => `${stat.dev}:${stat.ino}`;
 const missing = error => error.code === 'ENOENT';
 function javaResourcePath(name) {
@@ -70,8 +72,8 @@ async function inspectSources(filenames, limits=LIMITS) {
 async function hasCollisions(snapshot,sources,assertCurrent) {
   let folder;
   try {folder=await resourcesFolder(snapshot,assertCurrent);} catch(error) {if(missing(error))return false;throw error;}
-  const names=new Set((await fs.readdir(folder)).map(name=>name.toLowerCase()));
-  for(const source of sources) {const key=source.name.toLowerCase();if(names.has(key))return true;names.add(key);}
+  const names=new Set((await fs.readdir(folder)).map(collisionKey));
+  for(const source of sources) {const key=collisionKey(source.name);if(names.has(key))return true;names.add(key);}
   return false;
 }
 async function importFiles({snapshot,sources,assertCurrent,policy='keep',cancelled=()=>false,onImported=()=>{},limits=LIMITS}) {
@@ -97,19 +99,28 @@ async function importFiles({snapshot,sources,assertCurrent,policy='keep',cancell
       const folder=await resourcesFolder(snapshot,assertCurrent,true);
       const folderId=identity(await regularDirectory(folder));
       let destination,handle,name=source.name,number=1;
-      for(;;) {
+      const ext=path.extname(source.name);
+      const nextName=()=>`${path.basename(source.name,ext)} (${++number})${ext}`;
+      for(let attempt=0;;attempt++) {
+        if(attempt>=MAX_NAME_ATTEMPTS)throw Error('Too many matching asset names or concurrent changes. Rename the selected asset and add it again.');
         await validateRoot(snapshot,assertCurrent);await plainAncestors(folder);
         if(identity(await regularDirectory(folder))!==folderId)throw Error('The resources folder changed. Add assets again.');
         if(cancelled()){result.cancelled=true;break;}
-        const names=new Set((await fs.readdir(folder)).map(item=>item.toLowerCase()));
+        const names=new Set((await fs.readdir(folder)).map(collisionKey));
         destination=path.join(folder,name);
         if(path.dirname(destination)!==folder)throw Error('Invalid asset filename.');
-        if(names.has(name.toLowerCase())) {
+        if(names.has(collisionKey(name))) {
           if(policy==='skip'){result.skipped.push(source.name);break;}
-          const ext=path.extname(source.name);name=`${path.basename(source.name,ext)} (${++number})${ext}`;continue;
+          name=nextName();continue;
         }
         try {handle=await fs.open(destination,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|(constants.O_NOFOLLOW || 0),0o644);break;}
-        catch(error){if(error.code!=='EEXIST')throw error;}
+        catch(error){
+          if(error.code!=='EEXIST')throw error;
+          // Directory enumeration can miss filesystem aliases or racing writes.
+          // Every refused exclusive create must advance (or skip), never spin.
+          if(policy==='skip'){result.skipped.push(source.name);break;}
+          name=nextName();
+        }
       }
       if(result.cancelled)break;
       if(!handle)continue;
@@ -189,4 +200,4 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
   }
   return {commands:{'zero.importAssets':addAssets,'zero.copyImportedAssetPaths':copyPaths},canCopyPaths(){return Boolean(last) && !disposed;},dispose(){disposed=true;last=undefined;}};
 }
-module.exports={createAssetCommands,javaResourcePath,captureRoot,inspectSources,hasCollisions,importFiles,LIMITS};
+module.exports={createAssetCommands,javaResourcePath,captureRoot,inspectSources,hasCollisions,importFiles,LIMITS,MAX_NAME_ATTEMPTS};
