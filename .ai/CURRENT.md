@@ -1,4 +1,4 @@
-# Current state — Mac release acceptance, 2026-10-16
+# Current state — Mac preview accepted, 2026-10-17
 
 Coordinator: Lead publishing task, 01a13f98-55fc-7471-9038-1198b14d5a98.
 Continue templates, GitHub publishing and ZeroHub Play work; test before student
@@ -51,26 +51,39 @@ restore passed. Receipts .verification/mac-release-20261016/.
 
 ## Current phase / next
 
-3836224 kit/package/extracted Maven and unsigned Mac payload pass. Same-source
-Mac candidate Developer ID signed, Apple notarization Acceptedcc9b6541-1b5a-4350-
-95ac-e1e6a6f58db8, stapled and Gatekeeper/signature/payload verification passed.
-release/installer.json now records local0.5.18; published0.5.17 fallback unchanged.
-Final metadata/docs are in draftPR80; check exact head/review/CI in plan.json.
-Updater signing timed out while Maclocked; no feed/seal created. Retry only after
-unlock through existing Keychain, without credential extraction/access changes.
-Do not publish student assets/feed or merge template defaults before acceptance.
+Mac preview acceptance and immutable seal complete. Exact signed/notarized DMG
+4514655bytes/db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa
+built from3836224, prepared/reviewed at1e9ac6d. Sealed candidate:
+dist/candidates/mac-0.5.18-1e9ac6d93ca6; all13checksums pass. Signed updater build18
+and1178byte feedf249c5be2cfac3e4bbe36318e9d4afc79ebfad086421e44807aaadac5d20507e
+sealed; independent Ed25519/archive/feed/ordering/source/payload acceptance clean.
+Native app preparation/opening and warm resume passed after unlock, as did native
+ready1/allchecks1. InstalledkitVSIX exactlysealed,106installedextensionfiles match.
+Ran exact signed app from own DMG; existing Applications apps were preserved.
+No claim of replacement in Applications/Dock or a fresh-machine install.
 
-Mac locked during fresh notarized launcher QA; unlock request pending. Resume
-mounted signed app at .verification/mac-release-20261016/mounted-signed/Zero.app
-when unlocked; do not claim its interactive pass yet. Website sharing-copy alignment
-uses Share project/Publish app and metadata-before-publish ordering. Initial final delivery review383..97061clean; actual Chrome then found the local
-manifest hid the published Mac download. Corrected validated publishedInstaller
-fallback and matching labels;17focused/117website/typecheck/build pass, Chrome
-home/download show exactpublished0.5.17Mac+Windowschoices. New fix is one bounded
-targeted review in the existing session, not a new initial review. No template promotion or release/distribution occurred.
-School/novice, fresh-machine and physical Windows limits remain accurate.
+Study existing-project/sidebar/Tutorials/main layout and savedlesson4 restored;
+lesson Open in browser matches hosted4. Run/browserwrong/right/Stop passed after
+launcher. Existing workspace had saved Explorer preference; manual Show Sidebar
+preserved expected user control. No source edits/newOAuth/Git pushes in this repeat.
+Physical audible output/nativeclipboardpaste/fresh-machine/novice/Windows remain
+unverified; no regression or blanket classroom readiness claim.
+
+PR80 exactcandidateprep1e9 all5CIchecks green, mergeable/draft. Source/fallback
+review complete4launches/2fixbatches/1integrationwave,0openfindings. Public Mac and
+Windows fallback0.5.17buttons/labels preserved by website-only module; native
+protected validator/updatefeed source unchanged.117website/17focused/type/build and
+Chrome desktop/320/home/download checks pass. Final receipt-only documentation
+refresh may have newer CI; read exact currenthead/checks from plan before merge.
+
+Next: final owner approval for coordinated Mac preview publication/integration,
+verified template-default promotion/actualSHA snapshot update and public download/
+feed metadata. Both game admission gates remainfalse; deliberate general activation
+is part of a separately approved rollout. Genericlibraryexecution staysclosed.
+Do not release student assets, update feed or template defaults before approval.
+No source/runtime changes are needed for the accepted sealed candidate.
 
 Current review/operation plan .verification/mac-release-20261016/plan.json.
 Prior PR78-specific waiver not reused; old10fix/10targeted/12turn history retained.
-Weekly39%remaining observation is account-wide; DeepSeek paused through2026-12-31.
-Storage327GBhealthy fresh before native build; attributable tokens/time unknown.
+Weekly37%remaining observation is account-wide; DeepSeek paused through2026-12-31.
+Storage327GBhealthy at2026-10-17 resume; attributable tokens/time unknown.

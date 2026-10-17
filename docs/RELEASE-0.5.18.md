@@ -1,7 +1,7 @@
 # Zero 0.5.18 release readiness
 
-Status: **Mac candidate signed/notarized; final installed acceptance and student
-release held**. Public downloads and updater feed remain0.5.17. PR78/source and
+Status: **Mac preview acceptance and immutable seal complete; student release
+held for final owner approval**. Public downloads and updater feed remain0.5.17. PR78/source and
 website are integrated; this final release branch aligns the bundled publisher
 pin, records the local native candidate and matches sharing instructions to Zero.
 
@@ -47,10 +47,13 @@ pin, records the local native candidate and matches sharing instructions to Zero
 
 ## Remaining release gates
 
-- Finish notarized launcher/installed preview interaction after the Mac is unlocked.
-  Audible physical output, fresh-machine and novice/school-network use remain unverified.
-- Review/integrate final metadata, sharing-copy and policy-pin PR; pass applicable CI.
-  Seal the exact signed updater/feed and Mac candidate from clean committed source.
+- Signed launcher preparation/opening/warm resume and installed Run/Stop passed.
+  Study tutorial/browser wrong/right/Stop repeat passed; all13sealedchecksums and
+  independent updater signatures/source equivalence/ordering passed. Audible physical
+  output, fresh-machine and novice/school-network use remain unverified.
+- Integrate reviewed PR80 after final approval; all five checks at candidate preparation
+  source1e9ac6d are green. Later receipt-only documentation CI is tracked separately.
+  Sealed exact artifacts are in dist/candidates/mac-0.5.18-1e9ac6d93ca6.
 - Coordinate five reviewed template merges and actual public main SHA pins with the
   Mac release. Verify promoted public inventory; do not label drafts published.
 - Obtain final student-distribution approval before publishing immutable DMG/kit

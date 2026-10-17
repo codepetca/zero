@@ -3209,3 +3209,46 @@ existingKeychain, no signedfeed/candidate seal created. Unlock requested; do not
 bypass Keychain with anothercredential or privatekeypath. Final cleanseal and student
 release remain held. Receipts .verification/mac-release-20261016/plan.json and
 backup-after-acceptance.json; requested/effectiveusage distinctions retained.
+
+
+### Final Mac launcher and sealed updater acceptance — 2026-10-17
+
+User unlocked Mac and explicitly requested launcher/updater/remaining checks.
+Exact signed/notarized DMG app ran from own read-only mount: Preparing Zero →
+Opening Zero → restored isolated CodeQA workspace. Warm second launch went directly
+Opening Zero; handoff closed launcher without retry. Native read-only readiness
+reported ready1 and allcode/java/kit/profile/redhat/zerochecks1. Installed ~/Zero VSIX
+matches sealed bytes; all106installedextensionfiles exact except host__metadata.
+Existing /Applications/Zero.app0.5.14 and ~/Applications/Zero.app0.7.0 were preserved;
+no Applications/Dock replacement or fresh-machine installation is claimed.
+
+Sky Hop Run/Stop passed after launcher. Existing Study project opened through
+Open local project, preserving its saved Explorer preference. Show Sidebar and
+Tutorials restored Mainleft/Tutorialsright/bookmarkedlesson4. Open in browser opened
+hosted/tutorials/4 in actualChrome with matchinglesson. Study Run/Openbrowser:
+answer5→Tryagain,answer4→Correct,Stop→Appstopped passed. Trial code/history unchanged;
+no newOAuthgrant/account/Gitpublication in this repeat. Nativeclipboardpaste and
+physicalaudibleoutput remain unverified; school/novice/Windows trials deferred.
+
+ExistingKeychain updater signing succeeded. InitialMacseal resourcebusy due the
+owned GUItest mount; detached only that mount after launcher quit, then succeeded
+without source/artifact change. Immutablecandidate dist/candidates/mac-0.5.18-
+1e9ac6d93ca6 built3836224/prepared1e9ac6d contains13checksumverifiedfiles, signed
+DMG4514655bytes/db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa,
+updaterbuild18 and signedfeed1178bytes/f249c5be2cfac3e4bbe36318e9d4afc79ebfad086421e44807aaadac5d20507e.
+Actualkit/Maven/license/payload/signature/staple/Gatekeeper/source-equivalence checks
+passed. Independent Sol/high artifact integration verified all13actualfiles, exactset,
+Nodecrypto Ed25519DMG/feed signatures and update ordering17→18; no blockers/findings.
+Final delivery ledger4launches/2fixbatches/1integrationwave; no reset of prior budgets.
+
+PR80 exact1e9head is draft/mergeable and allchecksSUCCESS: Linux38984962492,
+browser38984962513,Windows38984962486,Vercelpreview/comment. Bothrelease/tag slots
+v0.5.18/setup-v0.5.18 absent; all5templatePRfixedheads/bases unchanged/open/draft.
+Publicdownloads/feed remain0.5.17; bothgameadmissiongatesfalse; genericlibrarygate
+closed. No studentrelease or defaulttemplatepromotion. Finalowner approval remains
+for coordinated publication/integration, exactpublicassetverification, metadata/feed
+promotion, templateactualmainSHA snapshots and deliberategameadmissionactivation.
+Receipts .verification/mac-release-20261016/launcher-acceptance-20261017.json,
+launcher-installed-parity-20261017.json,promotion-preflight-20261017.json,
+final-delivery-review.md and plan.json. This final tracked change is receipt/status
+only; native/runtime/package source and sealed bytes remain unchanged.
