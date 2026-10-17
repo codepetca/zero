@@ -3343,3 +3343,7 @@ ZeroHub navigation follow-up063f8e7: website119tests, typecheck/build, check and
 independent11file review pass. Browser verifies Projects default, two catalog links,
 separate sharing action,320px dark reflow, legacy example redirects/namedDrawing
 and unqualified exact library selection. Still local; no publication.
+
+Docs sidebar07bd442: website119tests/typecheck/build pass; independent review
+clean. Browser confirms alphabetized categories, Advanced anchor/expansion and
+circle search Enter/focus. No source/deployment or public content changes.

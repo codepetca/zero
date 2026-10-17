@@ -107,3 +107,7 @@ zerohub-navigation-phone.png (ignored). No horizontal overflow. Share opens
 /hub/share; bare example landings redirect to /learn; named Drawing pad and legacy
 exact library links still resolve. Website119tests/type/build and source review
 pass. Existing missing favicon404 remains the only browser console error.
+
+Docs sidebar07bd442 (2026-10-17): all11category names are A–Z. Inspected
+output/playwright/docs-categories-alphabetical.png; Advanced opens and jumps,
+circle search Enter focuses #circle. Reference content order preserved.

@@ -5146,3 +5146,11 @@ Independent hub_review Sol/medium complete11file delta clean, focused10tests pas
 unknown; coordinator verification~2minutes estimate. Small direct implementation
 plus bounded review, existing healthy317GB/99%weekly readings reused. No push,
 deploy, native/policy release, registry edit, new task/goal/automation.
+
+Docs sidebar follow-up07bd442 (2026-10-17): alphabetized displayed category names
+using a copied array; content, method and search order preserved. Website119tests,
+typecheck/build and whitespace checks pass. Browser inspected all11sorted names,
+Advanced expansion/link and circle search→Enter/focus. Screenshot inspected at
+output/playwright/docs-categories-alphabetical.png. Independent Luna/medium
+2file review clean,1turn/0fixes; effective model/tokens/time unknown. Small direct
+change; recent usage/storage reused, no publication.

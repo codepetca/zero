@@ -5,6 +5,7 @@ implemented and reviewed at123dc2d; catalog navigation follow-up at063f8e7 in `/
 branch `codex/zerohub-simplify`. Local preview127.0.0.1:3217/hub.
 ZeroHub now has Projects/Libraries only, separate Share your work, and Projects
 as default. Named example/lesson links survive; example landings go to Tutorials.
+Docs sidebar categories are alphabetical at07bd442; content/search order preserved.
 Root592pass/3skips, website119/type/build, sharing50 and final native35 pass;
 full+targeted independent review clean. Evidence: docs/EVIDENCE.md and website/design-qa.md.
 Next: explicit owner publication approval before source push/PR/merge/deploy,
