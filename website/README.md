@@ -59,7 +59,7 @@ To preview a new local version, package it from the repository root, then:
 ZERO_LOCAL_DOWNLOADS=1 npm run dev -- --port 3000
 ```
 
-`/download/kit`, `/download/starter` and `/download/extension` verify authored filenames, receipt versions, sizes and SHA-256 against `dist/` on every request. Local Mac setup additionally checks its signed/notarized provenance and unchanged source. Stale, missing or tampered artifacts fail closed. Installer/kit binaries stay out of `public/` and Git; the generated example ZIPs contain editable source projects. Vercel always disables local filesystem downloads. Published assets retain their public links even with the preview flag.
+`/download/kit`, `/download/starter` and `/download/extension` verify authored filenames, receipt versions, sizes and SHA-256 against `dist/` on every request. Local Mac setup additionally checks its signed/notarized provenance and unchanged source. Stale, missing or tampered artifacts fail closed. Installer/kit binaries stay out of `public/` and Git; retired example ZIPs are removed during preparation. Vercel always disables local filesystem downloads. Published assets retain their public links even with the preview flag.
 
 ## Hosting and verification
 
