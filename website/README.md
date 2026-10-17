@@ -22,17 +22,17 @@ Markdown renders on the server. The browser receives the current route's rendere
 
 ## ZeroHub
 
-`/hub` opens the minimal starter for a student's original course project. The
-sidebar offers four practice projects and three optional advanced projects;
-nineteen intermediate checkpoints stay accessible through their existing URLs.
-The narrow-screen selector groups those same choices. Each of the 26 examples shows
-actual JavaFX preview images, a description and a complete source download. The
-minimal starter and four featured examples offer **Use template**, **Download ZIP**
-and their standalone GitHub repository links; the other entries retain **Get
-project** and canonical source links. Get project downloads a complete standalone Maven project with
-its Main, helpers, framework, resources, pinned wrapper and Run App configuration.
-Extract it into a new folder, open it in Zero and Run App; no source splicing is
-required. Sidebar selection uses `?kind=example&example=<id>`.
+`/hub` opens community Projects by default. Catalog navigation contains only
+**Projects** and **Libraries**, with **Share your work** as a separate action.
+The former Starters section is removed. `/hub?kind=example` and `/examples`
+redirect to Tutorials; named example/checkpoint URLs remain compatible for
+existing lesson/docs links, including Drawing pad and the standalone starter.
+Unqualified exact-release links keep their historical library interpretation.
+The final tutorial's Explore projects action opens the community catalog; API
+learning links go directly to Tutorials.
+
+Legacy named example pages retain their sidebar, verified template/source links
+and complete downloads. They do not appear in the main catalog navigation.
 `example=zero-starter` selects the minimal starter, which excludes lessons and
 example sources. The prepared snapshot contains a separate `starter` entry and
 all 26 `projects`. Guided downloads include a concrete change, README planning and

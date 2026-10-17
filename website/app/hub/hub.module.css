@@ -2,6 +2,9 @@
 .discovery :global(.secondary) { background: var(--zero-page); color: var(--ink); }
 .discovery :global(.secondary):hover { background: var(--zero-surface); }
 .navigation { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+.catalogTools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin: 20px 0; }
+.catalogTools .navigation { margin: 0; }
+.catalogTools .shareAction { min-width: 0; margin: 0; }
 .navigation a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; font: inherit; background: var(--zero-page, white); }
 .navigation a[aria-current="page"] { color: var(--ink); border-color: var(--purple); font-weight: 600; }
 .navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
@@ -22,7 +25,8 @@
 .metadata { color: var(--muted); font-size: 16px; }
 .hash { overflow-wrap: anywhere; }
 .examples { min-width: 0; }
-.examples .navigation { margin: 0 0 28px; gap: 8px; }
+.examples .catalogTools { margin: 0 0 28px; }
+.examples .navigation { gap: 8px; }
 .examples .navigation a { font-size: 16px; text-decoration: none; }
 .previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); align-items: start; gap: 24px; margin: 28px 0; }
 .preview { display: block; width: auto; height: auto; max-width: 100%; max-height: 320px; object-fit: contain; border: 1px solid var(--zero-border); border-radius: 6px; }

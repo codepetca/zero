@@ -12,7 +12,7 @@ type Release = {kind:'library'|'game'; id:string; version:string; title:string; 
 type Catalog = {schema:number;revision:string;releases:Release[]};
 export function HubDiscovery() {
   const query = useSearchParams();
-  const requestedKind = query.get('kind') || 'library';
+  const requestedKind = query.get('kind') || (query.has('id') || query.has('version') ? 'library' : 'game');
   const kind = requestedKind === 'game' ? 'game' : 'library';
   const id = query.get('id') || '', version = query.get('version') || '';
   const [catalog, setCatalog] = useState<Catalog|null>(null);

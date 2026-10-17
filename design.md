@@ -400,3 +400,10 @@ Games and libraries subtitle, Controls, source-project downloads, release intern
 and per-card hosting note. Put student hosting once at the top. Keep library
 usage behind a disclosure and existing exact-version links working. Square
 screenshots are required for new game submissions; retain existing releases.
+
+## ZeroHub scope — owner correction, 2026-10-17
+
+Remove Starters from the ZeroHub catalog: its Hello/Study/Coin examples overlap
+with Tutorials. Show only Projects and Libraries, default to Projects, and make
+Share your work a separate button. Preserve named lesson/example links (including
+Drawing pad) without promoting a duplicate starter/example collection.

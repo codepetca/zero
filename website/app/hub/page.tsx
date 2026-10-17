@@ -1,5 +1,5 @@
 import {Suspense} from 'react';
-import {notFound} from 'next/navigation';
+import {notFound, redirect} from 'next/navigation';
 import {HubDiscovery} from '@/components/HubDiscovery';
 import {HubExamples} from '@/components/HubExamples';
 import {LearnTheme} from '@/app/learn/LearnTheme';
@@ -11,9 +11,10 @@ export default async function Hub({searchParams}: {searchParams: Promise<Record<
   const query = await searchParams;
   // Repeated selectors are ambiguous; never silently select the first value.
   if (Array.isArray(query.kind) || Array.isArray(query.example)) notFound();
-  const kind = query.kind ?? (query.id !== undefined || query.version !== undefined ? 'library' : 'example');
+  const kind = query.kind ?? (query.example !== undefined ? 'example' : query.id !== undefined || query.version !== undefined ? 'library' : 'game');
   if (kind === 'example') {
     if (query.id !== undefined || query.version !== undefined) notFound();
+    if (query.example === undefined) redirect('/learn');
     const project = selectHubProject(examples, query.example);
     if (!project) notFound();
     return <HubExamples snapshot={examples} project={project} />;
