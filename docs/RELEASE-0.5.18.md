@@ -1,67 +1,59 @@
-# Zero 0.5.18 release readiness
+# Zero 0.5.18 Mac preview
 
-Status: **Mac preview acceptance and immutable seal complete; student release
-held for final owner approval**. Public downloads and updater feed remain0.5.17. PR78/source and
-website are integrated; this final release branch aligns the bundled publisher
-pin, records the local native candidate and matches sharing instructions to Zero.
+The owner approved the Mac preview rollout on 2026-10-17. The public native release
+[setup-v0.5.18](https://github.com/codepetca/zero/releases/tag/setup-v0.5.18)
+contains the exact tested, signed, notarized and stapled Mac DMG. Its anonymous
+public download matches the sealed candidate: 4,514,655 bytes, SHA256
+`db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa`.
+The metadata promotion switches the Mac download and signed updater to this same
+artifact, pins the five actual template merge commits and reflects enabled game
+sharing. Windows retains its existing 0.5.17 manual kit ZIP; no Windows EXE or
+standalone v0.5.18 kit is published in this preview.
 
 ## Student flow
 
-1. Download Zero for Mac Silicon or the Windows manual ZIP. No website sign-in.
-2. Launch Zero; reuse GitHub sign-in or choose Sign in through VS Code.
-3. Start tutorial from welcome or …; create an own repository from its template.
-4. Project → Clone from GitHub… → own URL → choose parent. Default ~/Zero Projects;
-   an explicit parent is remembered. Open local project… reuses an existing folder.
+1. Website → Download Zero → Mac Silicon or Windows.
+2. Mac: drag Zero into Applications and open it. Wait for preparation; later opens
+   restore the saved editor session. Windows uses the existing manual ZIP setup.
+3. In Zero, choose Sign in if needed and use your own GitHub account.
+4. Start tutorial or use a ZeroHub template to create your own repository. Project
+   → Clone from GitHub… → your URL → choose a parent folder. Open local project…
+   reuses an existing folder.
 5. Read Tutorials beside ordinary Main.java, edit and Run App. Open in browser
-   opens the lesson or running app in the browser. Stop ends the local runtime.
-6. New branch → edit/Run → Commit & push → Merge to main. Safe cleanup removes
-   only the unchanged finished local branch; remote branches stay.
-7. First Share project saves sharing details. Commit & push those details, then
-   Project → Publish app. Confirm the first/new destination; wait for App published.
-   Open app and Copy playable link reuse the verified site.
-8. Share project again → review the exact source/version and Play link → submit
-   the prefilled GitHub form → check its result on ZeroHub. Later source changes
-   need commit/push/publish again. Play latest can update; source snapshots stay fixed.
+   opens the lesson or app in Chrome. Stop ends the local runtime.
+6. New branch → edit/Run → Commit & push → Merge to main. Local branch cleanup
+   removes only the unchanged finished branch; remote branches stay.
+7. Share project saves sharing details. Commit & push those details, then Project
+   → Publish app. Confirm a new destination and wait for App published. Open app
+   and Copy playable link reuse the verified site.
+8. Share project again → review the source/version and Play link → submit the
+   prefilled GitHub form → check ZeroHub. Later changes need commit/push/publish
+   again. Play latest can update; accepted source snapshots remain fixed.
 
-## Accepted
+## Accepted evidence and scope
 
-- PR78 merged1b63ae6 with Linux/browser/Windows CI and production Chrome acceptance.
-  Existing native Study/tutorial/menu/clone/remembered-folder checks retained.
-- Current kit packaging/extracted Maven, strict Sky Hop WebFX build and installed
-  preview browser-first Run/Chrome controls/Stop/publishing passed. Independent game
-  and publisher reviews complete; no open source findings.
-- Pages run38983460841 publishes sourceb69879a. All68publicfiles exactly match the
-  tested local build. Temporary staging release cleaned; public Chrome plays.
-- Managed publisher38983652894 accepted issue79 with verified Play receipt. Chrome
-  ZeroHub Play latest opens the game. All32downloadedsourcefiles match accepted Git.
-  Legacy/enriched catalogs and old accepted artifacts remain correct and unchanged.
-- Fresh registry Git bundle,2finalZIPs and3catalog snapshots backed up and restored
-  exactly in isolation. After the test both admission gates are false. Compatible
-  publisher1b63ae6 retained; never revert to oldbea against enriched state.
-- Five complete templates exactly match current assembly and retained WebFX/Chrome
-  proof. Full batch review clean; five draft PRs ready for coordinated promotion.
-  Main refs and website template pins remain unchanged. Tutorial scaffolds current.
-- Source3836224 native0.5.18 is Developer ID signed, Apple Accepted, stapled and
-  Gatekeeper/signature/payload verified. Local manifest records exact final bytes.
-  Public0.5.17 native fallback and update feed remain unchanged.
+- Source PR #80 merged as 8aec173; its final c1b5123 head passed all five checks.
+- Signed launcher preparation/opening/warm resume, native readiness, installed
+  106-file extension parity, Study tutorial/Chrome answers/Stop and Sky Hop browser
+  controls/Stop passed. All 13 sealed files and independent updater signatures,
+  provenance and build ordering 17 to 18 passed. Existing Applications apps and
+  student source were preserved; the signed app was run from its owned DMG mount.
+- Five reviewed templates are merged; independent anonymous checks matched all
+  109 files, Git modes/blobs, repository identities and default commits. Existing
+  exact WebFX and Chrome evidence remains valid; tutorial scaffolds are current.
+- Both game admission gates are enabled at reviewed policy 1b63ae6. Managed
+  reconciliation 39034386434 passed after an unchanged sequence-22 registry and
+  seven-object immutable-hash preflight. Generic library execution remains closed.
+- Sky Hop Pages run 38983460841 serves the tested 68-file build from b69879a.
+  Accepted ZeroHub game 0.1.1 retains its verified Play receipt and exact 32-file
+  source ZIP. Prior public Chrome and isolated backup/restore checks passed.
 
-## Remaining release gates
+Final metadata CI/merge and live Home/Downloads, updater, template-link and ZeroHub
+Play acceptance are recorded in the rollout receipts under
+`.verification/mac-release-20261016/`; do not substitute draft PR status for a live
+verification. Detailed evidence is indexed in EVIDENCE and VERIFICATION.
 
-- Signed launcher preparation/opening/warm resume and installed Run/Stop passed.
-  Study tutorial/browser wrong/right/Stop repeat passed; all13sealedchecksums and
-  independent updater signatures/source equivalence/ordering passed. Audible physical
-  output, fresh-machine and novice/school-network use remain unverified.
-- Integrate reviewed PR80 after final approval; all five checks at candidate preparation
-  source1e9ac6d are green. Later receipt-only documentation CI is tracked separately.
-  Sealed exact artifacts are in dist/candidates/mac-0.5.18-1e9ac6d93ca6.
-- Coordinate five reviewed template merges and actual public main SHA pins with the
-  Mac release. Verify promoted public inventory; do not label drafts published.
-- Obtain final student-distribution approval before publishing immutable DMG/kit
-  assets and promoting download/feed metadata. General game admission needs a
-  deliberate release activation; generic library execution remains separately held.
-- Physical Windows installation/trial is owner-deferred, not a Mac-release pass.
-
-Audio CI timeout was not reproduced; diagnostics remain, no audio fix claimed.
-Copy playable link shows copied; the latest automated native paste was inconclusive.
-Detailed actual receipts: EVIDENCE/VERIFICATION and ignored
-.verification/mac-release-20261016/. No student release or template-main promotion.
+Physical audio listening, the latest native clipboard paste, fresh-machine and
+new-account OAuth, novice/school-network and physical Windows trials remain
+unverified. Windows is owner-deferred. Audio CI timeout was not reproduced; no
+audio fix is claimed. This is a Mac preview rather than a classroom-wide pilot.

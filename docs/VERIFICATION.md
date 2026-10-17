@@ -3252,3 +3252,36 @@ Receipts .verification/mac-release-20261016/launcher-acceptance-20261017.json,
 launcher-installed-parity-20261017.json,promotion-preflight-20261017.json,
 final-delivery-review.md and plan.json. This final tracked change is receipt/status
 only; native/runtime/package source and sealed bytes remain unchanged.
+
+
+## 2026-10-17 — Approved Mac preview promotion
+
+The owner explicitly approved publishing the prepared Mac preview and verifying
+downloads, updater, templates and ZeroHub Play live. PR #80 merged as
+8aec173119bf9d24f44307933ca876ac615d8788 after final c1b5123 passed all five checks.
+Native public preview release setup-v0.5.18 (release 415802237) targets candidate
+preparation 1e9ac6d and contains exactly one DMG. Separate draft download and anonymous
+public download both match the tested 4,514,655-byte sealed artifact, SHA256
+db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa. No rebuild or asset
+overwrite occurred; kit v0.5.18 remains local and published Windows manual kit 0.5.17
+retains its existing URLs. The unchanged signed appcast is promoted with build 18.
+
+All five template PR #1s merged at actual heads b5dad6d/85c3fa5/ae65349/29f0bbe/595065a.
+Independent Sol/medium anonymous verification matched public identities/settings,
+main refs, all reviewed Git paths/modes/blobs, all 109 archive file hashes/sizes,
+Main.java and executable mvnw. Retained exact WebFX/Chrome evidence reused.
+Both game-only admission gates enabled under this approval, retaining policy
+1b63ae6 and closed generic library execution. Reconciliation 39034386434 succeeded.
+Fresh preflight matched sequence 22 and all seven immutable objects; only three
+already-accepted maintainer issues were open. No library rejection was retried.
+
+Local metadata checks passed: npm run check; updater tests; installer metadata tests;
+website typecheck, all 117 website tests and production build. This metadata change
+uses only the actual public URL, sealed feed, actual merged template pins and truthful
+sharing availability copy. Its independent review, GitHub CI/merge and final live
+acceptance are retained in .verification/mac-release-20261016/plan.json and linked
+rollout receipts: native-public-download-receipt.json, templates-promoted-20261017.json,
+live-template-verification.md, game-admission-rollout-preflight.json,
+game-admission-reconciliation.json and publication metadata review/live receipts.
+Physical Windows, fresh-machine/new-account OAuth, school/novice and physical audible
+output remain unverified; the latest native clipboard paste was inconclusive.
