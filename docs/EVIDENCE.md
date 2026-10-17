@@ -5232,3 +5232,12 @@ Independent review/CI and live withdrawal are pending this source change.
 Private freshbackup/dispatch/live receipts:.verification/zerohub-simplify/
 retire-test-projects/. Usage91%weekly remaining; storage313.6GBhealthy. Existing
 operator Sol/medium context reused; no new task/goal/automation or conflicts.
+
+Withdrawal source628fc9c: full sharing58/58 and configuration/syntax/document
+checks pass. Two independent Sol/high reviews inspected the complete five-file
+diff and relevant workflow/CLI/catalog callers: security11/11workflow tests;
+compatibility11/11workflow plus2existing withdrawal/recovery tests, both clean.
+Ledger1initialwave/2reviewerturns/0findings/0fixbatches. Effective model/tokens/
+elapsed time unknown. Dispatch one release at a time and await its exact result;
+shared GitHub pending runs are not a durable queue. PR89 finalCI and live ops
+remain pending. Later receipt-only documentation does not change runtime code.
