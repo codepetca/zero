@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
 import { availableKitRelease, releaseAssetHref, validateManifest, validatePublishedKit } from '../lib/contracts.mjs';
-import { installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
+import { availableInstaller, installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
 const authored = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
 validateManifest(authored);
 // Exercise local and published states independently of the live release phase.
@@ -17,13 +17,15 @@ const native = JSON.parse(await readFile(new URL('../../release/installer.json',
 native.publication.status = 'local';
 delete native.asset.url;
 const source = await readFile(new URL('../components/Downloads.jsx', import.meta.url), 'utf8');
-async function render(release, publishedKit, installer, local, windows = null) {
+async function render(release, publishedKit, currentInstaller, local, windows = null, publishedInstaller = null) {
+  const installer = availableInstaller(currentInstaller, publishedInstaller, local);
   const kit = availableKitRelease(release, publishedKit, local);
   const values = {release, installer, kit, mac:installerHref(installer, local), windows};
   const fixture = source.replace(/^import .*;\n/gm, '')
-    .replace('export function Downloads()', `const {release, installer, kit:available, mac:macHref, windows:windowsHref} = ${JSON.stringify(values)};
+    .replace('export function Downloads()', `const {release, installer:availableNative, kit:available, mac:macHref, windows:windowsHref} = ${JSON.stringify(values)};
 const DownloadIcon = () => null;
 const downloadableKit = () => available;
+const downloadableInstaller = () => availableNative;
 const macDownloadHref = () => macHref;
 const windowsDownloadHref = () => windowsHref;
 const downloadHref = (key = 'kit') => available?.publication.status === 'published' ? available.assets[key].url : '/download/' + key;
@@ -127,4 +129,22 @@ test('verified Windows installer replaces manual ZIP as the primary Windows down
   assert.ok(html.includes(`href="${url}"`));
   assert.match(html,/Download for Windows<\/a>/);
   assert.doesNotMatch(html,/Windows \(ZIP\)|zero-bootstrap.zip/);
+});
+
+
+test('a staged Mac candidate preserves both published platform choices without preview labels', async () => {
+  const publishedNative = JSON.parse(await readFile(new URL('../../release/published-installer.json', import.meta.url)));
+  for (const env of [{}, {ZERO_LOCAL_DOWNLOADS:'1', VERCEL:'1'}]) {
+    const html = await render(current, fallback, native, localDownloadsAllowed(env), null, publishedNative);
+    assert.ok(html.includes(`href="${publishedNative.asset.url}"`));
+    assert.ok(html.includes(`href="${fallback.assets.kit.url}"`));
+    assert.match(html, /Download for Mac Silicon<\/a>/);
+    assert.match(html, /Download for Windows \(ZIP\)<\/a>/);
+    assert.equal((html.match(/<a /g)||[]).length, 2);
+    assert.doesNotMatch(html, /local preview|href="\/download\//);
+  }
+  const local = await render(current, fallback, native, true, null, publishedNative);
+  assert.match(local, /href="\/download\/installer"/);
+  assert.match(local, /Download for Mac Silicon \(local preview\)/);
+  assert.ok(!local.includes(publishedNative.asset.url));
 });

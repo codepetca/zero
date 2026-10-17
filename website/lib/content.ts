@@ -1,5 +1,5 @@
 import snapshot from '../.generated/content.json';
-import { installerHref, landingDownloadHref, localDownloadsAllowed } from './installer.mjs';
+import { availableInstaller, installerHref, landingDownloadHref, localDownloadsAllowed } from './installer.mjs';
 import { availableKitRelease, releaseAssetHref } from './contracts.mjs';
 export const release = snapshot.release as {
   schema: number; kitVersion: string; coreVersion: string;
@@ -22,7 +22,8 @@ export function downloadableKit(): typeof release | null {
 
 export const sources: Record<string,string> = snapshot.sources;
 export const installer = snapshot.installer;
-export function macDownloadHref() { return installerHref(installer, localDownloadsEnabled()); }
+export function downloadableInstaller() { return availableInstaller(installer, snapshot.publishedInstaller, localDownloadsEnabled()); }
+export function macDownloadHref() { return installerHref(downloadableInstaller(), localDownloadsEnabled()); }
 export function landingHref() { return landingDownloadHref(downloadHref(), installer, localDownloadsEnabled()); }
 
 export const windowsInstaller = snapshot.windowsInstaller as {

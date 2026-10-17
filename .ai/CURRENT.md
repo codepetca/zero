@@ -55,16 +55,19 @@ restore passed. Receipts .verification/mac-release-20261016/.
 Mac candidate Developer ID signed, Apple notarization Acceptedcc9b6541-1b5a-4350-
 95ac-e1e6a6f58db8, stapled and Gatekeeper/signature/payload verification passed.
 release/installer.json now records local0.5.18; published0.5.17 fallback unchanged.
-Prepare final clean metadata/docs PR, CI, signed updater/feed and immutable seal.
+Final metadata/docs are in draftPR80; check exact head/review/CI in plan.json.
+Updater signing timed out while Maclocked; no feed/seal created. Retry only after
+unlock through existing Keychain, without credential extraction/access changes.
 Do not publish student assets/feed or merge template defaults before acceptance.
 
 Mac locked during fresh notarized launcher QA; unlock request pending. Resume
 mounted signed app at .verification/mac-release-20261016/mounted-signed/Zero.app
 when unlocked; do not claim its interactive pass yet. Website sharing-copy alignment
-uses Share project/Publish app and metadata-before-publish ordering. Current website
-115tests/typecheck/build passed before installer metadata update; focused recheck
-and actual local Chrome visual verification remain. Final independent delta review
-and source PR still needed. No template promotion or release/distribution occurred.
+uses Share project/Publish app and metadata-before-publish ordering. Initial final delivery review383..97061clean; actual Chrome then found the local
+manifest hid the published Mac download. Corrected validated publishedInstaller
+fallback and matching labels;17focused/117website/typecheck/build pass, Chrome
+home/download show exactpublished0.5.17Mac+Windowschoices. New fix is one bounded
+targeted review in the existing session, not a new initial review. No template promotion or release/distribution occurred.
 School/novice, fresh-machine and physical Windows limits remain accurate.
 
 Current review/operation plan .verification/mac-release-20261016/plan.json.

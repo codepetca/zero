@@ -1,6 +1,6 @@
 import { Downloads } from "@/components/Downloads";
 import Link from "next/link";
-import { downloadableKit, installer, macDownloadHref, windowsInstaller, windowsDownloadHref } from "@/lib/content";
+import { downloadableKit, downloadableInstaller, macDownloadHref, windowsInstaller, windowsDownloadHref } from "@/lib/content";
 import { LearnTheme } from "../learn/LearnTheme";
 import "../../.generated/learn-theme.css";
 import "../learn/learn.css";
@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default function DownloadPage() {
   const kit = downloadableKit();
+  const installer = downloadableInstaller();
   const mac = macDownloadHref();
   const windows = windowsDownloadHref();
   return (

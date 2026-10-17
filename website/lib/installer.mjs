@@ -40,6 +40,16 @@ export function installerHref(manifest, local = false) {
   if (manifest.publication.status === 'published') return manifest.asset.url;
   return local ? '/download/installer' : null;
 }
+export function validatePublishedInstaller(manifest, kit) {
+  if (!manifest) return null;
+  validateInstallerManifest(manifest, kit);
+  if (manifest.publication.status !== 'published') throw new Error('Published installer snapshot must be published');
+  return manifest;
+}
+export function availableInstaller(current, published, local = false) {
+  if (current && (current.publication.status === 'published' || local)) return current;
+  return published?.publication.status === 'published' ? published : null;
+}
 export function landingDownloadHref(_kitHref, _manifest, _local = false) {
   return '/downloads';
 }

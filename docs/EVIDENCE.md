@@ -4928,3 +4928,30 @@ records0.5.18; published0.5.17fallback unchanged. Fresh signed launcher interact
 blocked by locked Mac; unlock request pending. Final updater seal/source PR and
 student-distribution approval remain. Physical Windows/fresh-machine/novice trials
 and physical audible output not claimed. No student release or template promotion.
+
+
+### Final delivery review and public-download fallback correction — 2026-10-16
+
+Sol/high complete3836224..97061db final delivery review initially clean,1launch/0fixes;
+independently verified actualkit/DMG/source-equivalence and sourceZIP/registry proofs.
+Actual local Chrome GetZero then caught a missing integration boundary: registering
+local0.5.18 removed the public0.5.17Mac button despite retained published snapshot.
+Root corrected selection to validate/preserve the published native snapshot until
+current publication or explicit local preview. Button label and platform-version
+help use the same selected manifest; native local download route remains bound to
+current installer. Hosted local flag remains disabled. Update-feed snapshot validation
+shares the same published-only guard. Meaningful tests cover current/local/published/
+missing precedence, malformed/newer/local snapshot rejection, hostedflagboundary and
+rendered exactMac+Windowsbuttons.17focused/117website tests,typecheck,productionbuild
+pass. Actual Chrome home/downloads show both exact0.5.17publicURLs and correctversion,
+no localpreview labels. Sourcefix targeted review pending in existing session;
+1acceptedfixbatch. DraftPR80 tracks exactsourceCI; original97061browser/Windowschecks
+passed while Linux continued. Existing106installedVSIXfiles match383candidate.
+
+Current registrysequence22 and all3sourceZIPs/4catalogsnapshots backed up; Gitbundle
+and7final/snapshot objects restored exactly in new isolated directory. Both operator
+gates remainfalse. Maclauncher blockedbylockedMac; sign_update timedout through
+existingKeychain, no signedfeed/candidate seal created. Unlock requested; do not
+bypass Keychain with anothercredential or privatekeypath. Final cleanseal and student
+release remain held. Receipts .verification/mac-release-20261016/plan.json and
+backup-after-acceptance.json; requested/effectiveusage distinctions retained.
