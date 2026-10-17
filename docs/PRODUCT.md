@@ -56,7 +56,9 @@ available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
 Show only the latest available release of each project, with a plain title,
-one short sentence, author/version, Play and GitHub. Game cards omit controls,
+one short sentence, author/version and Play. The version opens the GitHub repository;
+unversioned maintained projects link through the author instead. There is no
+separate GitHub action. Game cards omit controls,
 source downloads and release internals; a single top note explains author hosting.
 Existing exact-version links remain valid, including withdrawn-release status.
 Library usage stays inside a disclosure. New game submissions require a committed

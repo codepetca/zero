@@ -1,17 +1,15 @@
-# Sky Hop description — 2026-10-17
+# ZeroHub repository links — 2026-10-17
 
-Owner requests a tiny gameplay description without maintainer/technology copy.
-Use: “Flap through gaps in the pipes without crashing.” Website editorial copy
-matches Sky Hop's exact accepted project/source, like its screenshot supplement.
-Keep original accepted metadata immutable and Sky Hop withdrawn from normal
-browsing. Main list remains Drawing Pad and Grove Guard.
+Owner requests clickable version numbers opening the GitHub repository, without
+a separate GitHub action. Unversioned Drawing Pad uses its author link for the
+repository. Keep titles plain, Play unchanged and withdrawn releases withdrawn.
 
-Previous PR90 merged at994f599; both gameplay images are deployed and verified.
-Current branch `codex/sky-hop-description` in the existing ZeroHub worktree.
-Next: local checks, small independent review, source PR/CI/merge and live exact
-Sky Hop copy verification. Receipts:.verification/zerohub-game-images/.
-No game source, registry, accepted artifacts, policy or availability changes.
-Preserve unrelated funding checkout, previous releases and retirement backups.
+Sky Hop copy PR91 merged at f10caaea and is live: “Flap through gaps in the pipes
+without crashing.” Default projects remain Drawing Pad and Grove Guard.
+Current branch `codex/hub-version-repository` in the existing ZeroHub worktree.
+Next: focused checks, independent small UI review, PR/CI/merge and live verification.
+No source artifacts, registry, publisher policy or availability changes. Preserve
+unrelated checkouts and ignored recovery receipts.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

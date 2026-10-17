@@ -5294,3 +5294,13 @@ diff/callers,1initialturn/0findings/0fixes; effective model/time/tokens unknown.
 Browser confirms exact new Sky text and withdrawal, while default discovery stays
 Drawing Pad/Grove Guard. Receipt-only follow-up changes no runtime code. Final
 source CI/merge and live copy verification remain next.
+
+## ZeroHub version repository links — 2026-10-17
+
+Owner requests version numbers open the GitHub repository without a separate
+GitHub action. Card callers now supply the repository root; version links include
+the project/version in their accessible name. Unversioned Drawing Pad links its
+author to the repository. Play, plain titles and withdrawal handling are unchanged.
+Local website121 tests, typecheck, production build, root check and diff check pass.
+Review budget: one low-risk initial Luna/medium reviewer; max7launches,
+4fix batches/60minutes; no implementation delegation or native changes.
