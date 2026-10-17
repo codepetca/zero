@@ -20,6 +20,8 @@ const {createWebExportCommands} = require('./web-export-ui');
 const {createBrowserRunCommands} = require('./web-run-ui');
 const {createTutorialReader} = require('./tutorial-reader');
 const {createWebPublishCommands} = require('./web-publish-ui');
+const {createAssetCommands} = require('./assets');
+const {createRecoveryCommands} = require('./recovery');
 const {sidebarStyles} = require('./sidebar-style');
 const {createSidebarFiles} = require('./sidebar-files');
 const {createSidebarBridge} = require('./sidebar-bridge');
@@ -43,6 +45,7 @@ function activate(context) {
   let changing = false;
   let menuOpen = false;
   let componentBusy = false;
+  let maintenanceBusy = false;
   let exportingWeb = false;
   let browserBusy = false;
   let browserActive = false;
@@ -51,7 +54,7 @@ function activate(context) {
   let branch = '';
   let branchDetached = false;
   let statusGeneration = 0;
-  const isBusy = () => uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || exportingWeb || publishingWeb || browserBusy;
+  const isBusy = () => uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || maintenanceBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
   let renderedWebview;
   let fileRefreshTimer;
@@ -317,11 +320,21 @@ function activate(context) {
           output.appendLine(`Main was merged and pushed. Finished local branch kept: ${error.message}`);
         }
       }
+      await refreshNativeGit(root);
       state = kind === 'start' ? `Created ${result.branch}` : cleanupError ? 'Merged to main · local branch kept; see Output' : 'Merged to main';
       if (cleanupError) void vscode.window.showWarningMessage(state);
       else report(state, kind === 'start' ? `Started ${result.branch}. Make your changes, then Commit & push.` : `Merged ${result.finishedBranch} to main and pushed ${result.head}. Finished local branch deleted.`);
     } catch(error) {if (error.conflict) await conflictHelp(); throw error;}
     finally {await repositoryStatus(); changing = false; refresh();}
+  }
+  async function refreshNativeGit(root) {
+    try {
+      const extension=vscode.extensions?.getExtension('vscode.git');
+      if(!extension)return;
+      const api=(extension.isActive ? extension.exports : await extension.activate()).getAPI(1);
+      const native=api.getRepository(vscode.Uri.file(root));
+      if(native && await fs.realpath(native.rootUri.fsPath)===root)await native.status();
+    } catch(error) {output.appendLine(`Source Control refresh: ${error.message}`);}
   }
   async function uploadProject(uploadAuth = auth) {
       if (isBusy()) return;
@@ -350,6 +363,7 @@ function activate(context) {
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
         const assertCurrent = async () => {await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
         const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
+        await refreshNativeGit(root);
         await repositoryStatus();
         report(`Pushed to ${result.branch}`, `Pushed ${result.head} to ${result.branch}. Copy your repository link for Pika.`);
         return result;
@@ -502,11 +516,12 @@ function activate(context) {
     'zero.browseZeroHub': async () => {
       if (isBusy()) return;
       const choice = await quickPick([
-        {label:'Projects', description:'Browse complete examples and templates', action:'projects'},
+        {label:'Projects', description:'Browse shared games', action:'projects'},
+        {label:'Starters', description:'Browse examples and templates', action:'starters'},
         {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'}
       ], {title:'ZeroHub', placeHolder:'What would you like to browse?'});
       if (isBusy()) return;
-      if (choice?.action === 'projects' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub?kind=example')))) {
+      if (['projects','starters'].includes(choice?.action) && !(await vscode.env.openExternal(vscode.Uri.parse(`https://zero.codepet.ca/hub?kind=${choice.action==='projects'?'game':'example'}`)))) {
         throw new Error('Could not open ZeroHub. Open https://zero.codepet.ca/hub in your browser.');
       }
       if (choice?.action === 'libraries') await actions['zero.browseHub']();
@@ -550,7 +565,16 @@ function activate(context) {
   const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
-  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setState:report,verifiedPublication:webPublish.verifiedPublication,setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
+  const sharingHandoff=async(root,action)=>{
+    if(await project()!==root)throw new Error('The project changed. Prepare sharing again.');
+    componentBusy=false;
+    try {return await action();} finally {componentBusy=true;refresh();}
+  };
+  const assets=createAssetCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
+  const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
+  Object.assign(actions,assets.commands,recovery.commands);
+  context.subscriptions.push(assets,recovery);
+  const sharing=createSharingEditor(vscode,{project,auth,output,isBusy,setState:report,verifiedPublication:webPublish.verifiedPublication,uploadForSharing:root=>sharingHandoff(root,()=>uploadProject()),publishForSharing:root=>sharingHandoff(root,()=>webPublish.publish()),setBusy:value=>{componentBusy=value;refresh();}},{kitConfiguration:readKitConfiguration(context.extensionPath || path.resolve(__dirname,'..'))});
   Object.assign(actions, sharing.commands);
   context.subscriptions.push(...sharing.disposables);
   const webExport=createWebExportCommands(vscode,{project:runnableProject,output,setAvailable:root=>{exportReadyRoot=root;},publish:()=>webPublish.publish(),openPreview:browserRun.preview,isBusy,setBusy:value=>{exportingWeb=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot});
@@ -575,7 +599,8 @@ function activate(context) {
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
     const githubPanel = !auth.signedIn ? account : `${account}<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
-    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>`;
+    const projectTools=projectRoot ? `<div class="row"><button class="link" data-command="zero.importAssets" ${disabled}>Add assets…</button><button class="link" data-command="zero.recovery" ${disabled}>Recovery…</button>${assets.canCopyPaths()?`<button class="link" data-command="zero.copyImportedAssetPaths" ${disabled}>Copy asset paths</button>`:''}</div>` : '';
+    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>${projectTools}`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,status:state,failed:buildFailed}); return;

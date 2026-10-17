@@ -54,6 +54,15 @@ public final class CheckCompatibility {
         TreePath p = path.getLeaf() == call ? path.getParentPath() : path.getParentPath().getParentPath();
         return p != null && p.getLeaf() instanceof MemberSelectTree select && select.getIdentifier().contentEquals("getResource") && p.getParentPath() != null && p.getParentPath().getLeaf() instanceof MethodInvocationTree;
     }
+    static String guidance(String key) {
+        return switch (key) {
+            case "M\tjava.util.ArrayList#<init>(int)" -> "Use new ArrayList<>() without an initial-capacity argument; add items normally.";
+            case "M\tjava.lang.String#format(java.lang.String,java.lang.Object[])" -> "Build simple labels with ordinary string concatenation, for example \"Score: \" + score.";
+            case "M\tjava.lang.Thread#sleep(long)" -> "For a GameApp delay, accumulate seconds in update(double seconds) and act when the timer reaches your target; keep the browser event loop responsive.";
+            case "M\tjavafx.scene.Parent#getStylesheets()" -> "Use setStyle(\"...\") for supported inline control styles; external JavaFX stylesheets require native Run App.";
+            default -> "Use a member listed in docs/WEB-EXPORT.md and the browser compatibility contract; a different overload or declaring type needs its own browser verification.";
+        };
+    }
     static void check(Element element, Tree tree, TreePath path, Set<CompilationUnitTree> trusted) {
         if (element == null) return; // javac error diagnostics below fail closed on unresolved symbols.
         String key = signature(element);
@@ -77,7 +86,7 @@ public final class CheckCompatibility {
             MethodInvocationTree call = invocation(path);
             if (call == null || !(call.getMethodSelect() instanceof MemberSelectTree select) || !(select.getExpression() instanceof MethodInvocationTree receiver) || !(receiver.getMethodSelect() instanceof IdentifierTree name) || !name.getName().contentEquals("canvas") || !receiver.getArguments().isEmpty()) { fail(path.getCompilationUnit(), tree, "Use canvas().setAccessibleText(...) so the browser adapter can label the actual canvas."); return; }
         }
-        if (!contract.contains(key)) fail(path.getCompilationUnit(), tree, "Unsupported browser API " + key.substring(2) + ". Use the approved Zero helpers or a member listed in the browser compatibility contract.");
+        if (!contract.contains(key)) fail(path.getCompilationUnit(), tree, "Unsupported browser API " + key.substring(2) + ". " + guidance(key));
     }
     public static void main(String[] args) throws Exception {
         root = Path.of(args[0]).toAbsolutePath();

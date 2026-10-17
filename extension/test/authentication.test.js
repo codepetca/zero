@@ -55,3 +55,13 @@ test('workflow authorization is an explicit per-instance scope request; ordinary
   const ordinary=createAuthentication(f.api);await ordinary.refresh();assert.deepEqual(f.calls.at(-1).scopes,['repo']);
   publishing.dispose();ordinary.dispose();
 });
+
+test('scope expansion supplies a native account hint on silent and interactive lookups',async()=>{
+  const f=fixture();f.set(session());const account={id:'student',label:'student'};
+  const auth=createAuthentication(f.api,()=>{},['repo','workflow'],account);
+  await auth.capture();assert.deepEqual(f.calls.at(-1).options,{silent:true,account});
+  await auth.signIn();assert.deepEqual(f.calls.at(-1).options,{createIfNone:true,account});
+  f.set(session('other'));const changed=await auth.capture();
+  assert.equal(changed.session.accountId,'other','Provider result remains observable for caller identity guards');
+  auth.dispose();
+});

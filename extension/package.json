@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.18",
+  "version": "0.5.19",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -214,6 +214,18 @@
       {
         "command": "zero.showOutput",
         "title": "Zero: Show Output"
+      },
+      {
+        "command": "zero.importAssets",
+        "title": "Zero: Add Assets\u2026"
+      },
+      {
+        "command": "zero.copyImportedAssetPaths",
+        "title": "Zero: Copy Imported Asset Paths"
+      },
+      {
+        "command": "zero.recovery",
+        "title": "Zero: Recovery\u2026"
       }
     ],
     "viewsContainers": {

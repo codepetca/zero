@@ -46,7 +46,7 @@ test('dependency gate rejects unpinned, injected, inherited and profile dependen
 });
 test('all seven reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
   const fixtures = [
-    { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/Main.java'), 'utf8') },
+    { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/Main.java'), 'utf8'), 'GameApiChecks.java': await fs.readFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/quiz/Main.java'), 'utf8'), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'student-template/examples/shared/ScoreDisplay.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/drawing/Main.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/audio/Main.java'), 'utf8') }
@@ -71,6 +71,9 @@ test('resolved owners, overloads, references, static imports, dead code and Java
   };
   try { await check(sources); assert.fail('Expected rejection'); }
   catch (error) {
+    assert.match(error.message, /Use new ArrayList<>\(\) without an initial-capacity argument/);
+    assert.match(error.message, /Build simple labels with ordinary string concatenation/);
+    assert.match(error.message, /accumulate seconds in update\(double seconds\)/);
     for (const [file, expected] of [['Inherited.java', 'javafx.scene.Node#setUserData(java.lang.Object)'], ['Overload.java', 'java.lang.String#format'], ['Constructor.java', 'java.util.ArrayList#<init>(int)'], ['Reference.java', 'javafx.scene.Node#setUserData'], ['ConstructorReference.java', 'java.util.ArrayList#<init>(int)'], ['StaticImport.java', 'java.lang.System#gc()'], ['JavaApi.java', 'java.lang.System#exit(int)'], ['ThreadApi.java', 'java.lang.Thread#sleep(long)'], ['Field.java', 'java.lang.System#in'], ['OverrideApi.java', 'createDefaultSkin()'], ['zero/PackageLoophole.java', 'zero.Sound#requireThread()'], ['Unresolved.java', 'Cannot resolve browser source']]) {
       assert.match(error.message, new RegExp(file.replace('.', '\\.') + ':\\d+:\\d+:'));
       assert.ok(error.message.includes(expected), expected + '\n' + error.message);
@@ -80,6 +83,27 @@ test('resolved owners, overloads, references, static imports, dead code and Java
 test('student classes, same-named methods and approved method references remain ordinary Java', { timeout: 240000 }, async () => {
   const result = await check({ 'Main.java': app('Worker w = new Worker(); Runnable r = w::setUserData; r.run(); new javafx.scene.control.Button("Go").setText("Ready");'), 'Worker.java': 'class Worker { void setUserData() { } }' });
   assert.equal(result.status, 'passed');
+});
+test('game APIs support resolved static imports and references without admitting neighboring overloads or owners', { timeout: 240000 }, async () => {
+  const result = await check({ 'Main.java': app('new GameApis().verify();'),
+    'GameApis.java': 'import static java.lang.Math.hypot; import static java.lang.Math.PI; class GameApis { interface Distance { double measure(double x, double y); } void verify() { Distance d = Math::hypot; double length = hypot(3, 4) + d.measure(3, 4) + PI; java.util.ArrayList<String> list = new java.util.ArrayList<>(); list.add("first"); list.remove((Object) "first"); list.isEmpty(); } }'
+  });
+  assert.equal(result.status, 'passed');
+  const denied = {
+    'MathOverload.java': 'class MathOverload { long unused() { return Math.abs(-3L); } }',
+    'MathReference.java': 'class MathReference { interface Absolute { long apply(long x); } Absolute unused() { return Math::abs; } }',
+    'CollectionOwner.java': 'class CollectionOwner { boolean unused(java.util.List<String> values) { return values.remove("first"); } }',
+    'CollectionBulk.java': 'class CollectionBulk { boolean unused(java.util.ArrayList<String> values) { return values.removeAll(values); } }',
+    'ColorOverload.java': 'class ColorOverload { Object unused() { return javafx.scene.paint.Color.rgb(1, 2, 3, .5); } }',
+    'KeyNeighbor.java': 'class KeyNeighbor { Object unused() { return javafx.scene.input.KeyCode.DIGIT4; } }'
+  };
+  await assert.rejects(check({ 'Main.java': app(''), ...denied }), error => {
+    for (const [file, api] of [['MathOverload.java', 'java.lang.Math#abs(long)'], ['MathReference.java', 'java.lang.Math#abs(long)'], ['CollectionOwner.java', 'java.util.List#remove(java.lang.Object)'], ['CollectionBulk.java', 'java.util.ArrayList#removeAll(java.util.Collection)'], ['ColorOverload.java', 'javafx.scene.paint.Color#rgb(int,int,int,double)'], ['KeyNeighbor.java', 'javafx.scene.input.KeyCode#DIGIT4']]) {
+      assert.match(error.message, new RegExp(file.replace('.', '\\.') + ':\\d+:\\d+:'));
+      assert.ok(error.message.includes(api), api + '\n' + error.message);
+    }
+    return true;
+  });
 });
 test('helper identity and package spoofing do not exempt student source', { timeout: 240000 }, async () => {
   const helpers = await helpersPromise;

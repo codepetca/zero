@@ -74,7 +74,7 @@ test('local practice sharing commands stop before authentication, saves, Git or 
   const disposable=()=>({dispose(){}});
   const vscode={
     authentication:{getSession:async()=>{authCalls++;return null;},onDidChangeSessions:disposable},
-    workspace:{workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable,textDocuments:[]},
+    workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable,textDocuments:[]},
     window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showErrorMessage:async text=>{errors.push(text);},showInformationMessage:async()=>{},showQuickPick:async items=>{repositoryPicks.push(items);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable,executeTask:async task=>{launches++;return {task,terminate(){}};}},
     Task:class{constructor(definition,scope,name,source,execution){Object.assign(this,{definition,scope,name,source,execution});}},TaskScope:{Workspace:1},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:1},ProcessExecution:class{constructor(command,args){Object.assign(this,{command,args});}},
@@ -118,7 +118,7 @@ test('Start project cancels cleanly, explains unpublished templates, and opens o
   const disposable=()=>({dispose(){}});
   const vscode={
     authentication:{getSession:async()=>null,onDidChangeSessions:disposable},
-    workspace:{workspaceFolders:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
+    workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async items=>choose?items[0]:undefined,showErrorMessage:async text=>errors.push(text),showInformationMessage:async(text,options)=>{messages.push({text,options});return approve?'Open template':undefined;}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{throw Error('No folder or clone should open automatically');}},

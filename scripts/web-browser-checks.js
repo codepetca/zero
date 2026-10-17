@@ -48,6 +48,19 @@ async (page) => {
   );
   const state = () => page.evaluate(() => window.__zeroCheck.last);
   let s = await state();
+  check(s.texts.includes('Game API checks ready'), 'Native/browser math and ArrayList semantics agree');
+  const rgbPixel = await page.locator('canvas').evaluate(canvas => {
+    const bounds = canvas.getBoundingClientRect();
+    return Array.from(canvas.getContext('2d').getImageData(
+      Math.floor(450 * canvas.width / bounds.width), Math.floor(340 * canvas.height / bounds.height), 1, 1).data);
+  });
+  check(JSON.stringify(rgbPixel) === '[17,99,203,255]', 'Color.rgb renders exact opaque channels and rejects invalid channels', rgbPixel);
+  for (const key of ['Digit1', 'Digit2', 'Digit3', 'Escape']) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(70);
+  }
+  s = await state();
+  check(s.texts.includes('Digits: 123 Escapes: 1'), 'Number-row and Escape keys reach ordinary Java KeyCode checks');
   check(
     s.images.length === 12,
     'Drawing and sprite overloads render',

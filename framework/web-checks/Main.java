@@ -15,12 +15,18 @@ public final class Main extends GameApp {
     private int presses, clicks, initCalls;
     private double x = 150;
     private boolean paused;
+    private int digits, escapes;
+    private String gameApiStatus;
     @Override public void init() {
         if (++initCalls != 1) throw new IllegalStateException("Application.init must run exactly once");
     }
     @Override public void settings() { title("Zero web helpers"); size(480, 400); padding(0); }
     @Override public void setup() {
         if (initCalls != 1) throw new IllegalStateException("Application.init must run before setup");
+        gameApiStatus = GameApiChecks.verify(3, 4, "pha");
+        boolean invalidRgb = false;
+        try { Color.rgb(256, 0, 0); } catch (IllegalArgumentException expected) { invalidRgb = true; }
+        if (!invalidRgb) throw new IllegalStateException("Color.rgb must reject out-of-range channels");
         sheet = loadImage("/tiles.png");
         if (sheet != loadImage("/./tiles.png")) throw new IllegalStateException("Image aliases lost cache identity");
         region = imageRegion(sheet, 0, 0, 12, 12);
@@ -41,6 +47,10 @@ public final class Main extends GameApp {
         if (!windowFocused()) paused = true;
         if (keyPressed(KeyCode.P)) paused = !paused;
         if (keyPressed(KeyCode.SPACE)) presses++;
+        if (keyPressed(KeyCode.DIGIT1)) digits = digits * 10 + 1;
+        if (keyPressed(KeyCode.DIGIT2)) digits = digits * 10 + 2;
+        if (keyPressed(KeyCode.DIGIT3)) digits = digits * 10 + 3;
+        if (keyPressed(KeyCode.ESCAPE)) escapes++;
         if (mousePressed(MouseButton.PRIMARY)) clicks++;
         if (!paused) {
             animation.update(seconds); sequence.update(seconds);
@@ -54,6 +64,9 @@ public final class Main extends GameApp {
         text("Clicks: " + clicks, 15, 86);
         text("Position: " + (int) x, 15, 114);
         text(paused ? "Paused" : "Playing", 15, 142);
+        text(gameApiStatus, 230, 30);
+        text("Digits: " + digits + " Escapes: " + escapes, 230, 58);
+        fill(Color.rgb(17, 99, 203)); rect(440, 330, 20, 20);
         textCentered("Centered", width() / 2, height() - 20);
         fill(Color.BLUE); rect(20, 170, 20, 20); circle(70, 180, 20);
         stroke(Color.BLACK); strokeWidth(2); outlineRect(90, 170, 20, 20); line(120, 170, 140, 190);

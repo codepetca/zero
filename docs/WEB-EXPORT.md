@@ -83,6 +83,22 @@ not all Java/JavaFX. New APIs require explicit contract review and positive/nega
 coverage, actual WebFX compilation and browser behavior checks. No per-control
 wrapper language or second transpiler is introduced.
 
+The verified game subset includes `Math.hypot(double, double)`, `Math.abs(double)`,
+`Math.atan2(double, double)`, `Math.sin(double)`, `Math.cos(double)` and `Math.PI`.
+Angles use radians. `ArrayList.isEmpty()` and `ArrayList.remove(Object)` work with
+ordinary Java semantics: object removal deletes the first equal item and returns
+whether it found one; `remove(int)` still removes by index and returns the item.
+The declared receiver must be an `ArrayList`; approval does not extend to every
+`List` implementation. Number-row `KeyCode.DIGIT1`, `DIGIT2`, `DIGIT3` and
+`KeyCode.ESCAPE` are verified through real browser key events. `Color.rgb(int,
+int, int)` accepts channels from 0 through 255 and creates an opaque color.
+Other overloads and neighboring key constants remain outside this verified subset.
+The same math and collection assertion source runs on the native JDK and in the
+pinned browser build; browser checks also verify RGB pixels and invalid channels.
+Some unsupported signatures include concrete alternatives in Problems, such as
+`new ArrayList<>()` instead of its capacity constructor, string concatenation for
+simple labels, and a timer advanced from `update(seconds)` instead of sleeping.
+
 ## Student flow
 
 Choose **Publish app** in Zero's sidebar after merging and pushing a

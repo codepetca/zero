@@ -7,6 +7,7 @@ import { deflateSync } from 'node:zlib';
 import { verifyWebProfiles } from './web-profiles.mjs';
 const require = createRequire(import.meta.url);
 const { exportForWeb } = require('../extension/src/web-export');
+const { prepareArtifacts } = require('../extension/src/web-export/compatibility');
 const { createWebPreview } = require('../extension/src/web-preview');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const outputIndex = process.argv.indexOf('--output');
@@ -20,6 +21,36 @@ const cacheRoot =
     : path.join(base, 'cache');
 verifyWebProfiles();
 await fs.mkdir(base, { recursive: true });
+if (!browserOnly) {
+  // Run the browser's math/list assertions unchanged on the native JDK too.
+  const nativeRoot = path.join(base, 'native-game-api');
+  await fs.mkdir(nativeRoot, { recursive: true });
+  const nativeClasspath = [nativeRoot, ...await prepareArtifacts(cacheRoot)].join(path.delimiter);
+  const probe = path.join(nativeRoot, 'NativeGameApiProbe.java');
+  await fs.writeFile(probe, `import javafx.scene.paint.Color;
+class NativeGameApiProbe {
+  public static void main(String[] args) {
+    Color rgb = Color.rgb(17, 99, 203);
+    if (Math.abs(rgb.getRed() - 17 / 255.0) > 1e-7 || Math.abs(rgb.getGreen() - 99 / 255.0) > 1e-7
+        || Math.abs(rgb.getBlue() - 203 / 255.0) > 1e-7 || rgb.getOpacity() != 1) throw new AssertionError("Native RGB channels");
+    boolean invalidRgb = false;
+    try { Color.rgb(256, 0, 0); } catch (IllegalArgumentException expected) { invalidRgb = true; }
+    if (!invalidRgb) throw new AssertionError("Native RGB range validation");
+    System.out.println(GameApiChecks.verify(3, 4, "pha"));
+  }
+}
+`);
+  const javaBin = name => process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', name + (process.platform === 'win32' ? '.exe' : '')) : name;
+  for (const [name, args] of [
+    ['javac', ['--release', '17', '-cp', nativeClasspath, '-d', nativeRoot, path.join(root, 'framework/web-checks/GameApiChecks.java'), probe]],
+    ['java', ['-cp', nativeClasspath, 'NativeGameApiProbe']]
+  ]) {
+    const result = spawnSync(javaBin(name), args, {encoding: 'utf8', timeout: 30000});
+    if (result.status !== 0) throw new Error('Native game API parity failed: ' + result.stdout + result.stderr);
+    if (name === 'java' && result.stdout.trim() !== 'Game API checks ready') throw new Error('Native game API parity probe did not finish.');
+  }
+  console.log('Native JDK game math, collection and JavaFX RGB semantics passed.');
+}
 function crc32(bytes) {
   let value = 0xffffffff;
   for (const byte of bytes) {
@@ -67,6 +98,8 @@ async function fixture(name, example) {
   await fs.mkdir(path.join(directory, 'src/main/java/zero'), {
     recursive: true
   });
+  if (name === 'helpers')
+    await fs.copyFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), path.join(directory, 'src/main/java/GameApiChecks.java'));
   for (const filename of await fs.readdir(
     path.join(root, 'framework/src/main/java/zero')
   ))
