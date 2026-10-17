@@ -97,3 +97,13 @@ were checked using a labeled Counter fixture, screenshot zerohub-library-fixture
 Existing public games have no preview artifacts. No new image is claimed public.
 Only browser console error: existing favicon404. No installed native sharing
 dialog, physical Windows or new public submission acceptance in this task.
+
+## ZeroHub catalog scope — 2026-10-17
+
+063f8e7 removes Starters, defaults /hub to Projects and separates Share your work
+from Projects/Libraries navigation. Actual desktop light and320px dark screenshots
+inspected: output/playwright/zerohub-navigation-desktop.png and
+zerohub-navigation-phone.png (ignored). No horizontal overflow. Share opens
+/hub/share; bare example landings redirect to /learn; named Drawing pad and legacy
+exact library links still resolve. Website119tests/type/build and source review
+pass. Existing missing favicon404 remains the only browser console error.

@@ -5130,3 +5130,19 @@ independent targeted review clean (4PNG checks). Ledger:1initial+1targeted wave,
 start; storage healthy~317GB. One temporary dependency symlink rejected by
 Turbopack, replaced by normal pinned npm ci; no dependency/version changes or
 source conflicts. DeepSeek pause honored. No new task/goal/automation.
+
+## ZeroHub navigation — local follow-up, 2026-10-17
+
+Owner requested removing overlapping Starters, leaving Projects/Libraries and a
+separate Share your work button. Delivered063f8e7, base0dc04a3; /hub defaults to
+Projects. Bare example landings go to Tutorials, while named Drawing pad, starter
+and checkpoint URLs remain compatible. Unqualified exact library links preserved;
+API learning/final tutorial links updated. Website119tests/type/build and check
+pass. Real browser confirms defaults, both redirects, Drawing pad, legacy library
+selection, share action and320px dark reflow without overflow. Screenshots:
+output/playwright/zerohub-navigation-{desktop,phone}.png (ignored).
+Independent hub_review Sol/medium complete11file delta clean, focused10tests pass;
+1initialwave/1turn/0fixes, no code changes after review. Effective model/tokens/time
+unknown; coordinator verification~2minutes estimate. Small direct implementation
+plus bounded review, existing healthy317GB/99%weekly readings reused. No push,
+deploy, native/policy release, registry edit, new task/goal/automation.

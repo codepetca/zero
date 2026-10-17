@@ -3338,3 +3338,8 @@ clean. Browser: latest-only catalog, preserved exact links, search, light/dark,
 320px no overflow and mocked preview/library disclosure layouts. See EVIDENCE.md
 and website/design-qa.md. Native dialogs/physicalWindows and new policy deployment
 remain untested/unpublished; no public registry change.
+
+ZeroHub navigation follow-up063f8e7: website119tests, typecheck/build, check and
+independent11file review pass. Browser verifies Projects default, two catalog links,
+separate sharing action,320px dark reflow, legacy example redirects/namedDrawing
+and unqualified exact library selection. Still local; no publication.
