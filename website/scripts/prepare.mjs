@@ -9,6 +9,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
 import { validateInstallerManifest } from "../lib/installer.mjs";
+import { validatePublishedInstaller } from "../lib/published-installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
@@ -104,6 +105,12 @@ try {
 } catch (error) {
   if (error.code !== 'ENOENT') throw error;
 }
+let publishedInstaller = null;
+try {
+  publishedInstaller = validatePublishedInstaller(JSON.parse(await readFile(resolve(root, "release/published-installer.json"), "utf8")), release);
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
 const updateFeed=await loadUpdateFeed(root,release,installer);
 const windowsInstaller = await loadWindowsInstaller(root,release);
 const windowsUpdateFeed = await loadWindowsUpdateFeed(root,release,windowsInstaller);
@@ -113,7 +120,7 @@ prepareLessonProjects(root, { website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, publishedKit, installer, updateFeed, windowsInstaller, windowsUpdateFeed, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, publishedKit, installer, publishedInstaller, updateFeed, windowsInstaller, windowsUpdateFeed, docs, sources }, null, 2) + "\n",
 );
 // Reuse supplied paths exactly; only the approved logo colour changes.
 const logo = (

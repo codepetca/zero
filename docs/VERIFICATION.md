@@ -3109,3 +3109,146 @@ preserved the original receipt. No app correction was involved.
 Windows/Linux/classroom hardware, physical speakers and first-time workflow OAuth
 grant remain untested. Separate ZeroHub checker acceptance/activation and broader
 Zero release holds persist; this scoped live test milestone is accepted.
+
+
+## 2026-10-16 native audio investigation
+
+On merged1b63ae6, unchanged audio-playground passed12LinuxARM and12emulated
+Linuxx86 runs with Java17/JavaFX21.0.12/PulseAudio and the original15sdeadline.
+Three instrumented x86 runs completed both READY and newly created UNKNOWN
+player disposal. Isolated probes completed60earlyclosures and60ready-player
+loop/pause/play/stop sequences. Original tests/assertions remain unchanged;
+no production helper correction or root-cause fix is claimed. Same-source hosted
+Linux diagnostic [run38979041632](https://github.com/codepetca/zero/actions/runs/38979041632)
+passed all gates, including the audio example. The historical timeout remains
+unexplained; no automatic repeats or speculative helper fixes are planned. Physical Windows,
+physical speakers and current-candidate live game publication were not tested.
+See `.verification/audio-investigation-20261016/evidence.json` and the current
+EVIDENCE entry for setup, architecture limits and source-analysis provenance.
+
+
+## Mac0.5.18 publisher and exact-build acceptance — 2026-10-16
+
+Local release source3836224 aligns bundled policy to public reviewed1b63ae6.
+Sol/high independent security/rollout initial review complete;173security and63
+compatibility fixture checks passed. P2 rollback-plan gap corrected and independently
+closed;3launches/1fixbatch/1targetedwave. Old frozen records remain immutable; keep
+compatible reader and disable gates rather than reverting oldbea after web admission.
+
+Five exact prepared template inventories and fixed candidate PRs passed independent
+Sol/medium full-batch review,1launch/0fixes; public main refs remain old. Retained
+WebFX/Chrome compile-input proof reused after exact hashes. Draft PRs are /pull/1
+in codepetca/zero-starter,zero-hello-java,zero-study-session,zero-coin-game and
+zero-drawing-pad. Promote with0.5.18, then record actual main SHAs; not yet published.
+
+Fresh Sky Hop trial /Users/stew/Zero Preview Testing/sky-hop-0.5.18-50q8o_aa only
+renames retired base types and installs7canonical helpers. Sol/medium source review
+clean. Native Zero Commit & push produced907782a; Publish preserved stale guide and
+refused overwrite. Maintainer migrated exact generated README/owner hash (no workflow/
+runner changes), targeted review clean, committedb69879a477666f64328c4193759d7264c64baf80.
+Game review2launches/1fixbatch. Strict WebFX build0293f88e-2b3b-47c2-8dad-545ebca6cfcf
+sourceHash041eea1de0a31054b37de369e8e671ebc1f75a8c3521052247fdedc414cf86e4
+passed. New383VSIX/kit packaging and extracted Maven passed.
+
+Actual installed preview Run App/Open in browser/Chrome start,pause,resume,restart,
+click andStop passed. Publish app confirmed the existing public test destination.
+[Pages run38983460841](https://github.com/armorup/zero-sharing-proof/actions/runs/38983460841)
+succeeded; all68publicfiles/8208615bytes exactly match local manifest, source/run
+marker matchesb69879a and38983460841. Open app renders/plays in actual Chrome.
+Temporary draft-release staging list is empty. Copy result visible; fresh native
+paste proof inconclusive. No claim of physical audible output or clean browser
+console: two Chrome extension listener-channel errors observed, gameplay unaffected.
+
+Native Share project automatically attached that exact verified receipt. Submitted
+[issue79](https://github.com/codepetca/zero/issues/79) asarmorup. Fresh queue preflight
+confirmed only maintained issues28/29/79 and unchanged sequence15, no pending queue.
+[Managed publisher38983652894](https://github.com/codepetca/zero/actions/runs/38983652894)
+selected exact1b63ae6, accepted game-r1417021749-sky-hop/0.1.1 and completed ready
+registrysequence22. Both admission gates restoredfalse and read back; compatible
+source1b63ae6 retained. Generic library execution stayed closed; no candidate Java
+executed in publisher. Chrome ZeroHub card/Play target passed. Legacy catalog is
+exact3release projection minusweb; enriched catalog retains correctsource/run/url.
+Downloaded sourceZIP5399567bytes has32files exactly matching accepted Git blobs.
+Old2acceptedrecords and2finalZIPs/3snapshots unchanged; fresh registrybundle+Blob
+backup and isolated exact restore passed. Public Pages/ZeroHub are tests, not student
+app distribution. Receipts .verification/mac-release-20261016/.
+
+Same383source unsigned universal Mac build/payload passed; Developer ID identity
+ACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8 signed candidate.
+AppleAcceptedcc9b6541-1b5a-4350-95ac-e1e6a6f58db8, stapled DMG4514655bytes
+SHA256db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa;
+signature,payload,staple and Gatekeeper DMG/app verification passed. Local manifest
+records0.5.18; published0.5.17fallback unchanged. Fresh signed launcher interaction
+blocked by locked Mac; unlock request pending. Final updater seal/source PR and
+student-distribution approval remain. Physical Windows/fresh-machine/novice trials
+and physical audible output not claimed. No student release or template promotion.
+
+
+### Final delivery review and public-download fallback correction — 2026-10-16
+
+Sol/high complete3836224..97061db final delivery review initially clean,1launch/0fixes;
+independently verified actualkit/DMG/source-equivalence and sourceZIP/registry proofs.
+Actual local Chrome GetZero then caught a missing integration boundary: registering
+local0.5.18 removed the public0.5.17Mac button despite retained published snapshot.
+Root corrected selection to validate/preserve the published native snapshot until
+current publication or explicit local preview. Button label and platform-version
+help use the same selected manifest; native local download route remains bound to
+current installer. Hosted local flag remains disabled. Published-only snapshot validation remains strict; native verifier/update-feed
+validation files retain the exact signed-build source bytes. Meaningful tests cover current/local/published/
+missing precedence, malformed/newer/local snapshot rejection, hostedflagboundary and
+rendered exactMac+Windowsbuttons.17focused/117website tests,typecheck,productionbuild
+pass. Actual Chrome home/downloads show both exact0.5.17publicURLs and correctversion,
+no localpreview labels. Sourcefix targeted review pending in existing session;
+1acceptedfixbatch. DraftPR80 tracks exactsourceCI; original97061browser/Windowschecks
+passed while Linux continued. Existing106installedVSIXfiles match383candidate.
+
+Current registrysequence22 and all3sourceZIPs/4catalogsnapshots backed up; Gitbundle
+and7final/snapshot objects restored exactly in new isolated directory. Both operator
+gates remainfalse. Maclauncher blockedbylockedMac; sign_update timedout through
+existingKeychain, no signedfeed/candidate seal created. Unlock requested; do not
+bypass Keychain with anothercredential or privatekeypath. Final cleanseal and student
+release remain held. Receipts .verification/mac-release-20261016/plan.json and
+backup-after-acceptance.json; requested/effectiveusage distinctions retained.
+
+
+### Final Mac launcher and sealed updater acceptance — 2026-10-17
+
+User unlocked Mac and explicitly requested launcher/updater/remaining checks.
+Exact signed/notarized DMG app ran from own read-only mount: Preparing Zero →
+Opening Zero → restored isolated CodeQA workspace. Warm second launch went directly
+Opening Zero; handoff closed launcher without retry. Native read-only readiness
+reported ready1 and allcode/java/kit/profile/redhat/zerochecks1. Installed ~/Zero VSIX
+matches sealed bytes; all106installedextensionfiles exact except host__metadata.
+Existing /Applications/Zero.app0.5.14 and ~/Applications/Zero.app0.7.0 were preserved;
+no Applications/Dock replacement or fresh-machine installation is claimed.
+
+Sky Hop Run/Stop passed after launcher. Existing Study project opened through
+Open local project, preserving its saved Explorer preference. Show Sidebar and
+Tutorials restored Mainleft/Tutorialsright/bookmarkedlesson4. Open in browser opened
+hosted/tutorials/4 in actualChrome with matchinglesson. Study Run/Openbrowser:
+answer5→Tryagain,answer4→Correct,Stop→Appstopped passed. Trial code/history unchanged;
+no newOAuthgrant/account/Gitpublication in this repeat. Nativeclipboardpaste and
+physicalaudibleoutput remain unverified; school/novice/Windows trials deferred.
+
+ExistingKeychain updater signing succeeded. InitialMacseal resourcebusy due the
+owned GUItest mount; detached only that mount after launcher quit, then succeeded
+without source/artifact change. Immutablecandidate dist/candidates/mac-0.5.18-
+1e9ac6d93ca6 built3836224/prepared1e9ac6d contains13checksumverifiedfiles, signed
+DMG4514655bytes/db08da032b99e8d0e9ed36ff06af2b75f250a81761b1f11995986c4f88e114fa,
+updaterbuild18 and signedfeed1178bytes/f249c5be2cfac3e4bbe36318e9d4afc79ebfad086421e44807aaadac5d20507e.
+Actualkit/Maven/license/payload/signature/staple/Gatekeeper/source-equivalence checks
+passed. Independent Sol/high artifact integration verified all13actualfiles, exactset,
+Nodecrypto Ed25519DMG/feed signatures and update ordering17→18; no blockers/findings.
+Final delivery ledger4launches/2fixbatches/1integrationwave; no reset of prior budgets.
+
+PR80 exact1e9head is draft/mergeable and allchecksSUCCESS: Linux38984962492,
+browser38984962513,Windows38984962486,Vercelpreview/comment. Bothrelease/tag slots
+v0.5.18/setup-v0.5.18 absent; all5templatePRfixedheads/bases unchanged/open/draft.
+Publicdownloads/feed remain0.5.17; bothgameadmissiongatesfalse; genericlibrarygate
+closed. No studentrelease or defaulttemplatepromotion. Finalowner approval remains
+for coordinated publication/integration, exactpublicassetverification, metadata/feed
+promotion, templateactualmainSHA snapshots and deliberategameadmissionactivation.
+Receipts .verification/mac-release-20261016/launcher-acceptance-20261017.json,
+launcher-installed-parity-20261017.json,promotion-preflight-20261017.json,
+final-delivery-review.md and plan.json. This final tracked change is receipt/status
+only; native/runtime/package source and sealed bytes remain unchanged.

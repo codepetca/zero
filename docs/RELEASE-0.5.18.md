@@ -1,69 +1,67 @@
 # Zero 0.5.18 release readiness
 
-Status: **Mac preview ready; public student release held**. Reviewed source4a9e889,
-runtimece12fa7, local kit/extension0.5.18/core0.2.1/native18. Published0.5.17 assets,
-download manifests and updater feed remain unchanged. No push, merge, deployment,
-public template/policy activation, DeveloperID/notary or release authority yet.
+Status: **Mac preview acceptance and immutable seal complete; student release
+held for final owner approval**. Public downloads and updater feed remain0.5.17. PR78/source and
+website are integrated; this final release branch aligns the bundled publisher
+pin, records the local native candidate and matches sharing instructions to Zero.
 
 ## Student flow
 
-1. Website: Download for Mac Silicon or Windows ZIP. No website sign-in.
-2. Desktop: reuse GitHub connection or Sign in through native VS Code.
-3. Start tutorial from welcome or …, create an own repository from its template.
-4. Project → Clone from GitHub… → own URL → Clone here. Initially ~/Zero Projects;
-   an explicitly chosen parent is remembered in this desktop profile. Cancellation
-   keeps the previous choice; unavailable saved paths fall back. Existing folders
-   use Open local project…. Modern VS Code opens automatically;1.95fallback may
-   ask Open in New Window.
-5. Tutorials beside ordinary Main.java → edit → Run App. Open in browser opens the
-   current lesson or tested app. Stop ends the owned browser runtime/audio.
-6. New branch → enter name; edit/Run → Commit & push → enter message → Merge to main.
-   Main updates pause for Run/check/retry. Successful merge safely removes only
-   the unchanged finished local branch; remote branch stays. Refused cleanup keeps
-   local work and points to Output. Publish app is in the repository menu and is
-   separate from source push, with one first/new-destination public warning.
+1. Download Zero for Mac Silicon or the Windows manual ZIP. No website sign-in.
+2. Launch Zero; reuse GitHub sign-in or choose Sign in through VS Code.
+3. Start tutorial from welcome or …; create an own repository from its template.
+4. Project → Clone from GitHub… → own URL → choose parent. Default ~/Zero Projects;
+   an explicit parent is remembered. Open local project… reuses an existing folder.
+5. Read Tutorials beside ordinary Main.java, edit and Run App. Open in browser
+   opens the lesson or running app in the browser. Stop ends the local runtime.
+6. New branch → edit/Run → Commit & push → Merge to main. Safe cleanup removes
+   only the unchanged finished local branch; remote branches stay.
+7. First Share project saves sharing details. Commit & push those details, then
+   Project → Publish app. Confirm the first/new destination; wait for App published.
+   Open app and Copy playable link reuse the verified site.
+8. Share project again → review the exact source/version and Play link → submit
+   the prefilled GitHub form → check its result on ZeroHub. Later source changes
+   need commit/push/publish again. Play latest can update; source snapshots stay fixed.
 
-## Accepted local evidence
+## Accepted
 
-- Independent baseline, Project/Clone, remembered-folder and final guide reviews
-  clean. Last guide checkpoint explicitly approved/completed: total legacy6launches,
-  1initial/5targetedwaves/5fixbatches; no additional loop requested.
-- Combined root510pass/1PowerShellruntime skip; remembered-folder34focused pass.
-  Current website109tests/check/build, package/extracted-kit pass; unchanged runtime
-  and type coverage reused. All106authored installed extension files match source.
-- Actual Mac menus/default picker/existing-clone reuse/Open local/new window pass.
-  Clone preference survives cancellation/reload; prior default restored. Study
-  Main/Tutorials layout, Run→Chrome wrong/right→Stop iframe removal pass.
-  This repeat does not claim fresh clone transport or new OAuth grant.
-- All five corrected complete templates compile in WebFX, pass Chrome behavior
-  and serve exact manifest bytes. Three public tutorial templates already match
-  all21helperhashes. Five public complete templates are old and fail strict profile.
-- Current unsigned universal Mac build/payload pass. Candidate kit/VSIX:
-  dist/candidates/zero-0.5.18-guides-4a9e889; DMG:
-  dist/installers/candidate-4a9e889. Local ad-hoc signing only, no installer execution
-  or trusted distribution claim. The three-guide correction is bundled and its
-  rendered website wording is Chrome-verified. Existing student projects preserved.
+- PR78 merged1b63ae6 with Linux/browser/Windows CI and production Chrome acceptance.
+  Existing native Study/tutorial/menu/clone/remembered-folder checks retained.
+- Current kit packaging/extracted Maven, strict Sky Hop WebFX build and installed
+  preview browser-first Run/Chrome controls/Stop/publishing passed. Independent game
+  and publisher reviews complete; no open source findings.
+- Pages run38983460841 publishes sourceb69879a. All68publicfiles exactly match the
+  tested local build. Temporary staging release cleaned; public Chrome plays.
+- Managed publisher38983652894 accepted issue79 with verified Play receipt. Chrome
+  ZeroHub Play latest opens the game. All32downloadedsourcefiles match accepted Git.
+  Legacy/enriched catalogs and old accepted artifacts remain correct and unchanged.
+- Fresh registry Git bundle,2finalZIPs and3catalog snapshots backed up and restored
+  exactly in isolation. After the test both admission gates are false. Compatible
+  publisher1b63ae6 retained; never revert to oldbea against enriched state.
+- Five complete templates exactly match current assembly and retained WebFX/Chrome
+  proof. Full batch review clean; five draft PRs ready for coordinated promotion.
+  Main refs and website template pins remain unchanged. Tutorial scaffolds current.
+- Source3836224 native0.5.18 is Developer ID signed, Apple Accepted, stapled and
+  Gatekeeper/signature/payload verified. Local manifest records exact final bytes.
+  Public0.5.17 native fallback and update feed remain unchanged.
 
-## Before public release
+## Remaining release gates
 
-- Obtain authority to push reviewed codex/release-readiness and open one draft PR
-  against main; pass the real CI checks. Local native finite framework focus checks
-  remain inconclusive, so do not claim a current full pass or weaken assertions.
-- Update five public complete-example templates from prepared tested drafts under
-  separate authority. Do not republish already-correct tutorial helpers needlessly.
-- Publish/select exact trusted publisher source and policy pin, update operator
-  configuration and activate the guarded game publisher; deploy compatible web
-  catalog/Play code and accept one real linked game. Current pinnedbeaaca4 policy
-  rejects valid web receipts; local fixtures do not establish live acceptance.
-- Perform final authorized Git/Pages publish/first-consent acceptance and verify
-  exact public bytes match the tested local build. Older Sky Hop public proof is
-  history, not this candidate's end-to-end verdict.
-- Rebuild/reseal after final policy settings; obtain separate DeveloperID signing,
-  notarization/stapling and publication authority. Keep immutable artifact/updater
-  ordering and existing published fallbacks intact.
-- Complete school/novice acceptance. Physical Windows is owner-deferred for this
-  Mac preview and remains a separate Windows release gate; Mac mocks are insufficient.
+- Signed launcher preparation/opening/warm resume and installed Run/Stop passed.
+  Study tutorial/browser wrong/right/Stop repeat passed; all13sealedchecksums and
+  independent updater signatures/source equivalence/ordering passed. Audible physical
+  output, fresh-machine and novice/school-network use remain unverified.
+- Integrate reviewed PR80 after final approval; all five checks at candidate preparation
+  source1e9ac6d are green. Later receipt-only documentation CI is tracked separately.
+  Sealed exact artifacts are in dist/candidates/mac-0.5.18-1e9ac6d93ca6.
+- Coordinate five reviewed template merges and actual public main SHA pins with the
+  Mac release. Verify promoted public inventory; do not label drafts published.
+- Obtain final student-distribution approval before publishing immutable DMG/kit
+  assets and promoting download/feed metadata. General game admission needs a
+  deliberate release activation; generic library execution remains separately held.
+- Physical Windows installation/trial is owner-deferred, not a Mac-release pass.
 
-Detailed receipts: EVIDENCE/VERIFICATION and ignored
-.verification/release-readiness-20261016/. Prepared draft PR body remains local at
-.verification/release-readiness-20261016/release-pr-draft.md. No public action taken.
+Audio CI timeout was not reproduced; diagnostics remain, no audio fix claimed.
+Copy playable link shows copied; the latest automated native paste was inconclusive.
+Detailed actual receipts: EVIDENCE/VERIFICATION and ignored
+.verification/mac-release-20261016/. No student release or template-main promotion.

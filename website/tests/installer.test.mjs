@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import {macArtifactIdentity} from '../../scripts/mac-artifact.mjs';
 import { validateInstallerManifest, installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
+import { validatePublishedInstaller, availableInstaller } from '../lib/published-installer.mjs';
 import { verifiedLocalInstaller, boundedFile } from '../lib/local-installer.mjs';
 import {sparkleComponents,updaterEnabledForVersion} from '../../scripts/mac-updater.mjs';
 const kit = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
@@ -179,4 +180,30 @@ test('current app filename and legacy setup filename cannot be interchanged acro
     invalid.asset.url = `https://github.com/codepetca/zero/releases/download/${invalid.publication.tag}/${invalid.asset.filename}`;
     assert.throws(() => validateInstallerManifest(invalid, current), /universal Mac DMG/);
   }
+});
+
+
+test('Mac candidate selection retains validated publication, correct version and hosted boundary', () => {
+  const published = publishedManifest('0.5.17');
+  const current = {...kit, kitVersion:'0.5.18'};
+  const local = structuredClone(authored);
+  local.kitVersion = current.kitVersion;
+  local.publication.tag = 'setup-v0.5.18';
+  local.asset.filename = macArtifactIdentity('0.5.18').filename;
+  validateInstallerManifest(local, current);
+  assert.equal(validatePublishedInstaller(published, current), published);
+  assert.equal(validatePublishedInstaller(null, current), null);
+  assert.throws(() => validatePublishedInstaller(local, current), /must be published/);
+  assert.throws(() => validatePublishedInstaller(publishedManifest('0.5.19'), current), /newer/);
+  assert.throws(() => validatePublishedInstaller({...published, asset:{...published.asset,url:'https://example.com/app.dmg'}}, current), /explicit exact/);
+  assert.equal(availableInstaller(local, published), published);
+  assert.equal(availableInstaller(local, published, localDownloadsAllowed({ZERO_LOCAL_DOWNLOADS:'1',VERCEL:'1'})), published);
+  assert.equal(availableInstaller(local, published, true), local);
+  assert.equal(availableInstaller(published, null), published);
+  assert.equal(availableInstaller(published, publishedManifest('0.5.16')), published);
+  assert.equal(availableInstaller(null, published), published);
+  assert.equal(availableInstaller(local, null), null);
+  assert.equal(availableInstaller(null, null), null);
+  assert.equal(availableInstaller(local, local), null);
+  assert.equal(installerHref(availableInstaller(local, published)), published.asset.url);
 });
