@@ -1,25 +1,26 @@
-# Current state — student friction candidate, 2026-10-17
+# Current state — authorized Mac 0.5.19 release, 2026-10-17
 
-Owner authorized local Grove Guard audit fixes. Isolated `codex/student-friction`
-in `/Users/stew/.codex/worktrees/student-friction/zero`, base 382b74f, contains
-browser API proof, safe asset import, guided recovery and game upload/publish/share
-integration. Runtime commits: 2fd6087, 55bfac6, fc7ac40. Public Mac stays 0.5.18;
-new kit/VSIX 0.5.19/build19 is local. No public push/merge/release is authorized here.
+Owner explicitly authorized pushing/merging student-friction changes, releasing
+Mac 0.5.19 and testing the updated full student flow/live publishing as armorup.
+Coordinator owns `/Users/stew/.codex/worktrees/student-friction/zero` and all
+operator/UI mutations. Source PR #83 is based on 382b74f at e339894; prior source
+reviews and 587 passing checks are reused. DeepSeek remains paused.
 
-Both independent Sol/high reviews and targeted checks cleared two bounded fixes:
-Unicode asset collision retries and a native discard notification holding busy.
-Native Mac development-host import/Restore/Undo/Redo/per-file Discard passed;
-587 full-matrix passes/3 platform skips, 108 focused and 48 sharing checks,
-five pinned browser builds/56 Chrome checks,
-and native framework/audio retry pass. Final full matrix/package receipts are in
-ignored `.verification/student-friction/`; detailed browser source hashes live in
-`.verification/student-friction-api/receipt.json`. See docs/EVIDENCE.md and
-VERIFICATION.md. Student guide: docs/STUDENT-FRICTION.md.
+Signed Mac 0.5.19/build19 was built cleanly from e339894. Apple submission
+035f6f5f-51f4-4437-8246-fb231994faa5 is Accepted; actual staple, DMG/app Gatekeeper,
+Developer ID signatures and embedded kit verification pass. Measured native
+manifest is local. Preserve published Mac 0.5.18 and Windows/manual kit 0.5.17
+until exact public Mac bytes are verified; no old release may be overwritten.
 
-Preserve original funding checkout and armorup game. No credential storage,
-history rewrite, compiler allowlist bypass or generic library execution opening.
-Physical Windows/new live account/provider/publication acceptance remain pending.
-DeepSeek remains paused. One coordinator/one writer per component; five bounded
-review launches/three batches (two runtime fixes plus candidate metadata). Initial usage 30% weekly remaining and ~324 GB
-free are shared observations, not attributable cost. Prior release context:
-.ai/history/mac-preview-rollout-20261017.md.
+Next: merge source after real CI, review measured native metadata/candidate, seal
+signed build19 feed and immutable candidate, publish one preview DMG, review/promote
+exact public download/feed metadata, then use normal installed Mac/student UI for
+armorup clone/edit/assets/recovery/Git/publish/share/Play acceptance. Verify native
+armorup identity before writes; browser armorup is already verified. Use a separate
+trial clone of Grove Guard and preserve its existing local folder and 0.1.0 snapshot.
+No maintainer Git/build/publication commands may substitute for student UI.
+
+Main funding checkout remains untouched. Physical Windows remains unverified;
+generic library execution remains closed. Full operation/review/evidence plan:
+ignored `.verification/mac-0.5.19/plan.json`. Prior local implementation record:
+.ai/history/student-friction-local-20261017.md. No new recurring automation.
