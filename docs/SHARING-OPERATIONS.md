@@ -87,6 +87,22 @@ are practical pilot ceilings, not an unlimited scaling claim. Inspect growth and
 API consumption before adding cohorts. Frozen source currently uses Git blob
 reads per file, so source size and repeated reads matter as much as student count.
 
+## Manual game withdrawal
+
+Maintainers can run **Sharing game publication → Run workflow** on `main`.
+Choose `withdraw` and provide one complete accepted game release key, for example
+`game/game-r12345-my-game/0.1.0`. Withdraw every available version to remove a
+project from normal browsing. Each dispatch uses the existing publisher
+credentials, configured source pin and serialized publication queue; it appends
+availability history and refreshes the catalog without deleting accepted bytes.
+Non-manual or non-main withdrawal, library keys, multiple keys and malformed
+inputs are rejected before publisher credentials are passed to the action.
+Leave the release field empty for ordinary `reconcile` runs. Operator withdrawal
+requires the existing enabled publication gates. Inspect and back up the accepted
+registry and objects before dispatch, then verify the exact run, catalog statuses
+and unchanged accepted identities/artifact hashes. The `restore` CLI remains an
+explicit operator recovery operation; it is not exposed by this workflow.
+
 ## Catalog visibility
 
 ZeroHub browsing shows the highest available semantic version per project ID.
