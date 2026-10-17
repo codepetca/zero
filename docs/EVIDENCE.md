@@ -5294,3 +5294,21 @@ diff/callers,1initialturn/0findings/0fixes; effective model/time/tokens unknown.
 Browser confirms exact new Sky text and withdrawal, while default discovery stays
 Drawing Pad/Grove Guard. Receipt-only follow-up changes no runtime code. Final
 source CI/merge and live copy verification remain next.
+
+## ZeroHub version repository links — 2026-10-17
+
+Owner requests version numbers open the GitHub repository without a separate
+GitHub action. Card callers now supply the repository root; version links include
+the project/version in their accessible name. Unversioned Drawing Pad links its
+author to the repository. Play, plain titles and withdrawal handling are unchanged.
+Local website121 tests, typecheck, production build, root check and diff check pass.
+Review budget: one low-risk initial Luna/medium reviewer; max7launches,
+4fix batches/60minutes; no implementation delegation or native changes.
+Independent review: Luna/medium, full six-file diff f10caaea→98467b00,
+complete/clean,0findings,0fixes,1launch/1wave. Effective model/token telemetry
+unknown. One bounded review turn finished in about90seconds wall time; no
+rework or integration conflicts. Browser followed Grove Guard v0.2.0 to its GitHub
+repository; default two cards have no separate GitHub action or linked title.
+Drawing Pad author destination is its repository. Exact withdrawn Sky Hop keeps
+its version repository link and no Play. At360px the cards have no horizontal
+overflow; screenshot:ignored output/playwright/hub-version-links-mobile.png.

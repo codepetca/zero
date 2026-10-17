@@ -75,10 +75,11 @@ test('Play uses a stable external page independently of the immutable source sna
   assert.throws(()=>playLink({...linked,web:{...web,commit:'f'.repeat(40)}}));
   assert.match(sourceLink(linked),new RegExp('/tree/'+game.source.commit+'$'));
 });
-test('discovery offers Play and GitHub without title links, controls or source downloads',async()=>{
+test('discovery offers Play and linked versions without separate GitHub actions',async()=>{
   const {readFile}=await import('node:fs/promises'),discovery=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8'),source=await readFile(new URL('../components/HubProjectCard.tsx',import.meta.url),'utf8');
   assert.match(discovery,/fetch\('\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer">Play<\/a>/);
-  assert.match(source,/<h3>\{title\}<\/h3>/);assert.match(source,/href=\{sourceHref\}>GitHub/);
+  assert.match(source,/<h3>\{title\}<\/h3>/);assert.match(source,/href=\{repositoryHref\} aria-label=/);
+  assert.doesNotMatch(source,/>GitHub(?:<|\{)/);
   assert.doesNotMatch(source,/Play latest|Controls:|Student-hosted live app|Download source project|Download sources|Release details/);
   assert.doesNotMatch(source,/<iframe|dangerouslySetInnerHTML|api\/sharing\/play/);
 });
