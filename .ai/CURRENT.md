@@ -1,17 +1,24 @@
-# ZeroHub image Play — 2026-10-17
+# Sky Hop sample library — local proof, 2026-10-17
 
-Owner requests clicking the game image to play, with Play shown over the image
-on hover, removing the separate Play action. Use an accessible keyboard link,
-visible focus/overlay, and persistent touch overlay. Hover only reveals the action;
-click or keyboard activation opens the verified hosted game in a new tab.
-Withdrawn releases stay static; playable legacy entries without screenshots get
-a Play tile. Preserve repository/version links and plain titles.
+Owner asks for a real sample library to demonstrate and test the complete flow.
+Prepared Flap Motion from Sky Hop bird physics in an isolated clone; sample
+commit8123249378dc143264b138bc3b07b06a545f1bd4, branch codex/flap-motion-library.
+Location:.verification/sky-hop-library/project. Actual extraction API/local Check,
+independent JAR examples, real game compilation/600-frame parity and isolated
+exact-version Maven consumer pass. No native student UI or public admission claim.
 
-Repository-link PR92 merged at9df83c26 and is live. Default projects remain
-Drawing Pad and Grove Guard. Branch: `codex/hub-image-play` in ZeroHub worktree.
-Next: focused checks, independent UI review, actual browser hover/focus/click/touch
-checks, PR/CI/merge and live verification. No publisher or availability changes.
-Preserve unrelated checkouts and ignored receipts.
+Public library execution is hard-disabled in sharing/platform.mjs; the prior
+rejected acceptance hold in docs/ZEROHUB-HOSTING.md remains binding. No equivalent
+review retry, provider switch, execution activation or publication bypass attempted.
+Browser exporter also omits extracted library roots. Released0.5.19 sharing policy
+is compatible only for games at the current publisher. Concrete remaining work
+and receipts:.verification/sky-hop-library/RESULTS.md. Independent sample-only
+Sol/medium full13file source review clean,0findings. Next: ask owner direction on
+reopening the held acceptance work before public end-to-end implementation.
+
+ZeroHub image Play PR93 merged atde56632d and verified live. Default projects
+remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn. Preserve unrelated
+checkouts, ignored backups and immutable public bytes. No new automation or goal.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

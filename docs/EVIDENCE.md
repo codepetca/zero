@@ -5331,3 +5331,32 @@ Touch360px screenshot and hover capture retained in ignored output/playwright/;
 no horizontal overflow. No rework or integration conflicts. Review elapsed and
 coordinator active time not separately instrumented. Weekly85% remaining reported
 by reviewer; account allowance is not per-task cost.
+
+## Sky Hop Flap Motion sample — local proof, 2026-10-17
+
+Owner requests a genuine sample library and end-to-end sharing/consumption proof.
+Prepared isolated Sky Hop clone at .verification/sky-hop-library/project, local
+branch codex/flap-motion-library; baseb69879a477666f64328c4193759d7264c64baf80,
+sample8123249378dc143264b138bc3b07b06a545f1bd4. Reusable FlapMotion preserves
+Sky Hop's positive-frame flap/gravity/fall cap; Bird retains game geometry.
+Actual authoring extraction preview/apply, independent local Check JAR origin,
+behavior and two examples pass. Real game Maven testcompile and600-frame original
+motion/flap/pause/reset checks pass. Separate exact-version Maven consumer uses
+isolated local file repository/cache and verifies actual JAR SHA256
+0a6dfdbf09c1a596328192607470a06a1a3343844b0bef5b2b26cb0d560e4d78.
+
+Sol/medium candidate inspection verified against original Bird/Game/Main. Separate
+Sol/medium initial full13-file sample review complete/clean,0findings/0fixes;
+1reviewlaunch/1wave. Effective configuration/token/timing telemetry unknown.
+No implementation delegation/rework/conflicts; weekly84%remaining and314GBfree
+are shared readings. Detailed plan/logs:.verification/sky-hop-library/RESULTS.md.
+
+No public source push/issue/registry/library acceptance, game restoration or
+native student UI proof. Existing docs/ZEROHUB-HOSTING.md hold remains binding;
+no equivalent checker review retry/provider switch/bypass was attempted. Current
+sharing/platform.mjs unconditionally rejects library publication. Browser input
+capture omits library roots; full browser compile was stopped during trusted
+compatibility preparation, with no success claim. Released0.5.19's old policy
+compatibility is game-only. Public managed checking, browser support and native
+Share/Add/Run/Update/Revert remain unfinished, awaiting owner direction on the
+explicit acceptance hold before proceeding with its dependent work.
