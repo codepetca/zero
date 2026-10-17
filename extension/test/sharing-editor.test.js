@@ -4,7 +4,8 @@ const {createSharingEditor,importEdits}=require('../src/sharing/editor');const a
 const repository={id:'12345',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'};
 async function fixture(t,{approval,dirty=false,drift=false,policy='b'.repeat(40),owner='7',notification}={}) {
  const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-editor-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.copyFile(path.resolve(__dirname,'../../student-template/pom.xml'),path.join(root,'pom.xml'));await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'public class Main { Health health = new Health(); }');await fs.writeFile(path.join(root,'src/main/java/Health.java'),'public class Health {}');
- const descriptor={schema:1,kind:'game',slug:'game',version:'0.1.0',title:'Game',description:'Finite fixture',controls:'Keys',license:'MIT'};await fs.writeFile(path.join(root,'zero-game.json'),JSON.stringify(descriptor,null,2)+'\n');
+ const descriptor={schema:1,kind:'game',slug:'game',version:'0.1.0',title:'Game',description:'Finite fixture',controls:'Keys',license:'MIT',preview:'preview.png'};await fs.writeFile(path.join(root,'zero-game.json'),JSON.stringify(descriptor,null,2)+'\n');
+ await fs.writeFile(path.join(root,'preview.png'),Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64'));
  let busy=false;const opened=[],gitCalls=[],messages=[],states=[];let sources=0,edits=0,saves=0,stagedPlan;
  const vscode={Uri:{file:fsPath=>({fsPath}),parse:x=>x},Range:class{},ProgressLocation:{Notification:1},workspace:{isTrusted:true,textDocuments:dirty?[{isDirty:true,uri:{fsPath:path.join(root,'src/main/java/Main.java')}}]:[],openTextDocument:async uri=>({uri,getText:()=>'',version:1,isDirty:false}),getConfiguration:()=>({get:(key,fallback)=>key==='sharingPolicyRevision'?policy:fallback})},env:{openExternal:async url=>{opened.push(url);return true;}},commands:{executeCommand:async()=>{}},window:{
  showInputBox:async options=>options.title==='Library name'?'health-bar':options.title==='Library title'?'Health':options.title==='Library description'?'An ordinary helper':options.value||'description',
@@ -184,7 +185,23 @@ test('new game metadata asks its version once and previews human-readable detail
  const f=await guidedFixture(t);await fs.unlink(path.join(f.root,'zero-game.json'));const titles=[],details=[];
  f.vscode.window.showInputBox=async options=>{titles.push(options.title);return options.title==='Game name'?'game':options.value||'Game fixture';};
  f.vscode.window.showInformationMessage=async(message,options)=>{details.push(options.detail);return message==='Save these sharing details?'?'Save details':'Open GitHub form';};
- await f.editor.commands['zero.shareGame']();assert.equal(titles.filter(title=>title==='Game version').length,1);assert.equal(titles.includes('Sharing version'),false);assert.match(details[0],/License: MIT/);assert.doesNotMatch(details[0],/"schema"/);assert.equal(f.opened.length,1);
+ await f.editor.commands['zero.shareGame']();assert.equal(titles.filter(title=>title==='Game version').length,1);assert.equal(titles.filter(title=>title==='Game screenshot').length,1);assert.equal(JSON.parse(await fs.readFile(path.join(f.root,'zero-game.json'))).preview,'preview.png');assert.equal(titles.includes('Sharing version'),false);assert.match(details[0],/License: MIT/);assert.doesNotMatch(details[0],/"schema"/);assert.equal(f.opened.length,1);
+});
+test('new game screenshot cancellation or invalid bytes preserve source and open no form',async t=>{
+ for(const scenario of ['cancel','invalid']){
+  const f=await guidedFixture(t);await fs.unlink(path.join(f.root,'zero-game.json'));const original=await fs.readFile(path.join(f.root,'src/main/java/Main.java'));
+  if(scenario==='invalid')await fs.writeFile(path.join(f.root,'preview.png'),'not a PNG');
+  f.vscode.window.showInputBox=async options=>options.title==='Game screenshot'&&scenario==='cancel'?undefined:options.title==='Game name'?'game':options.value||'Game fixture';
+  if(scenario==='invalid')await assert.rejects(f.editor.commands['zero.shareGame'](),/valid square PNG/);else await f.editor.commands['zero.shareGame']();
+  await assert.rejects(fs.access(path.join(f.root,'zero-game.json')));assert.equal(f.opened.length,0);assert.equal(f.statsGuided().uploads,0);assert.deepEqual(await fs.readFile(path.join(f.root,'src/main/java/Main.java')),original);
+ }
+});
+test('existing game without a screenshot saves its chosen path before the normal upload handoff',async t=>{
+ const f=await guidedFixture(t),filename=path.join(f.root,'zero-game.json'),descriptor=JSON.parse(await fs.readFile(filename));delete descriptor.preview;await fs.writeFile(filename,JSON.stringify(descriptor,null,2)+'\n');
+ let text=await fs.readFile(filename,'utf8');const document={isDirty:false,getText:()=>text,positionAt:value=>value,save:async()=>{await fs.writeFile(filename,text);return true;}};
+ f.vscode.workspace.openTextDocument=async()=>document;f.vscode.window.showTextDocument=async()=>({edit:async callback=>{callback({replace:(_range,value)=>{text=value;}});return true;}});
+ f.vscode.window.showInformationMessage=async message=>message==='Save these sharing details?'?'Save details':'Open GitHub form';
+ await f.editor.commands['zero.shareGame']();assert.equal(f.request().descriptor.preview,'preview.png');assert.equal(f.statsGuided().uploads,1);assert.equal(f.opened.length,1);
 });
 test('sharingActions delegates within its existing local guard and still opens Share game',async t=>{
  const f=await guidedFixture(t),pick=f.vscode.window.showQuickPick;

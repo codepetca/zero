@@ -5093,3 +5093,125 @@ live-template-verification.md, game-admission-rollout-preflight.json,
 game-admission-reconciliation.json and publication metadata review/live receipts.
 Physical Windows, fresh-machine/new-account OAuth, school/novice and physical audible
 output remain unverified; the latest native clipboard paste was inconclusive.
+
+## ZeroHub simplification — local, 2026-10-17
+
+Owner requested latest-only projects, tiny descriptions, Play/GitHub, plain titles,
+no Controls/source download/release detail clutter, and a single hosting note.
+Owner explicitly confirmed square screenshots for new game submissions. Delivered
+in isolated `codex/zerohub-simplify`, implementation `77a5d9c`, final correction
+`123dc2d`; original funding and release checkouts preserved. Existing public
+Grove Guard0.1.0/0.1.1/0.2.0 share one ID; local discovery selects0.2.0. Exact
+version links and accepted screenshot-free releases remain usable. Maintainer
+withdrawal remains the removal path; immutable public artifact bytes are retained.
+
+New submissions validate committed square PNGs ≤2048×2048/4MiB in native prompts
+and trusted publication. Existing catalog schemas remain readable. Unaccepted
+queued requests must meet the new policy after its deliberate publisher promotion.
+Native release, publisher pin promotion, website/source publication and registry
+changes are pending explicit authorization; none occurred here.
+
+Checks: full root at77a5d9c592pass/3platform skips; website119pass/typecheck/build;
+sharing50pass; final native/PNG/diagnostics35pass. Final targeted adapter/check
+results are in ignored `.verification/zerohub-simplify/`. Production build retains
+three existing updater filesystem-tracing warnings. Browser checks: real public
+catalog projected through local server, latest-only0.2.0, exact0.1.0, search,
+light/dark and320px reflow, visible search focus, plain titles and external Play
+URLs. Preview/library layout uses explicitly mocked fixtures, not an accepted
+new public game. Only console error was the existing missing favicon404. New
+native screenshot dialogs and physical Windows were not exercised interactively.
+
+Orchestration: GPT6.1Sol/medium bounded audit→screenshot implementation (one owner),
+plus independent GPT6.1Sol/medium review. Full17file77a5d9c review clean; coordinator
+reproduced ASCII high-bit PNG acceptance, fixed in123dc2d with regression, then
+independent targeted review clean (4PNG checks). Ledger:1initial+1targeted wave,
+1fix batch,2reviewer turns. Effective model/tokens/worker elapsed unknown; review
+~3minutes manual estimate, coordination~3minutes estimate. Weekly99%remaining at
+start; storage healthy~317GB. One temporary dependency symlink rejected by
+Turbopack, replaced by normal pinned npm ci; no dependency/version changes or
+source conflicts. DeepSeek pause honored. No new task/goal/automation.
+
+## ZeroHub navigation — local follow-up, 2026-10-17
+
+Owner requested removing overlapping Starters, leaving Projects/Libraries and a
+separate Share your work button. Delivered063f8e7, base0dc04a3; /hub defaults to
+Projects. Bare example landings go to Tutorials, while named Drawing pad, starter
+and checkpoint URLs remain compatible. Unqualified exact library links preserved;
+API learning/final tutorial links updated. Website119tests/type/build and check
+pass. Real browser confirms defaults, both redirects, Drawing pad, legacy library
+selection, share action and320px dark reflow without overflow. Screenshots:
+output/playwright/zerohub-navigation-{desktop,phone}.png (ignored).
+Independent hub_review Sol/medium complete11file delta clean, focused10tests pass;
+1initialwave/1turn/0fixes, no code changes after review. Effective model/tokens/time
+unknown; coordinator verification~2minutes estimate. Small direct implementation
+plus bounded review, existing healthy317GB/99%weekly readings reused. No push,
+deploy, native/policy release, registry edit, new task/goal/automation.
+
+Docs sidebar follow-up07bd442 (2026-10-17): alphabetized displayed category names
+using a copied array; content, method and search order preserved. Website119tests,
+typecheck/build and whitespace checks pass. Browser inspected all11sorted names,
+Advanced expansion/link and circle search→Enter/focus. Screenshot inspected at
+output/playwright/docs-categories-alphabetical.png. Independent Luna/medium
+2file review clean,1turn/0fixes; effective model/tokens/time unknown. Small direct
+change; recent usage/storage reused, no publication.
+
+## Retire duplicates; Drawing Pad project — local, 2026-10-17
+
+Owner confirmed codepetca. Existing public Drawing Pad repo1418151381, owner
+116690057, commit595065ae02c5a2a2b339373b447ebbc981d2615d/treebae012ae8c477573f9f626aa94ded8d5cccfbb82
+was anonymously verified and built unchanged for the browser (59files/2161473bytes,
+zero-webfx-2026-10-v2). Real click painting and secondary clear pass; the checked-in
+700×700 screenshot was captured from that app,12842bytes. Repo has_pages=false
+and Pages API404: no public Play URL is fabricated. Existing repo reused.
+
+Implementedb2f2eb4: public example gallery/detail components removed, old routes
+redirect Tutorials, generated public ZIPs/snapshot retired, guides link lessons.
+Drawing Pad appears as a maintained project from verified source, independent
+of community admission, including catalog outages. Not an accepted registry
+release or a policy/ownership exception. Docs2de2339 corrects stale development
+and download guidance. Internal lesson source and maintainer generators retained.
+
+Website120tests/typecheck/build/check pass. Browser: Drawingsearch/image/GitHub,
+no unverified Play, outage fallback plus honest error, no library/exact-version
+leak,4oldURL redirects, oldZIP404, guide without retired links,320px dark reflow.
+Only routine favicon404; injected catalog503 is an explicit outage test.
+Receipts:.verification/zerohub-simplify/{project-*,projects-browser.log,drawing-pad/};
+screenshots output/playwright/projects-drawing-pad{,-phone}.png.
+
+Sol/medium retire_examples owned8paths, source/code verified; Sol/medium
+hub_contract_audit verified/built Drawingrepo, source remained clean. Coordinator
+owned card/docs/integration; one TS annotation fixed before review, no conflicts.
+Independent Sol/high drawing_retirement_review inspected full25fileb2f2eb4 plus
+targeted docs2de2339:1P2docs finding fixed, finalclean. Ledger1initial+1targeted,
+1docsfixbatch/2reviewer turns. Model effectiveness/tokens/worker time unknown;
+coordinator verification~5minutes estimate. Start97%weekly remaining,~316GBhealthy.
+DeepSeek pause honored. No push/deploy/repo mutation/registry/publisher/native
+release/new task/goal/automation. These website changes remain local pending approval.
+
+## ZeroHub publication follow-through — 2026-10-17
+
+Owner authorized source/site publication and Drawing Pad hosting. Drawing repo
+PR #2 merged at7e84f9b68d9444c976adb7c2b13eea3c4406fdf4; actual Pages
+run39071731666 succeeded at https://codepetca.github.io/zero-drawing-pad/.
+All59 public files/2161473bytes match local hashes; source marker matches SHA/run.
+Public browser click paints dark blue and secondary click clears white. Five exact
+Zero deployment-kit files added; original21 files and14 build inputs unchanged.
+Two independent Sol/high kit reviews clean; temporary staging draft deleted.
+
+Websitea4507e9 links that verified deployment with commit-bound receipt validation;
+website120tests/typecheck/build pass. Publisher7154b31 preserves exact released
+1b63 game requests while applying squarePNG checks to all unaccepted games.
+Full sharing53/53 pass; accepted delivery-pending recovery preserves ZIP hashes.
+Two independent Sol/high consequential reviews cover policy, evidence and recovery;
+no native release, policy rewrite or generic library execution added.
+
+Source PR #88 is draft pending final checks/merge and live site acceptance.
+Fresh backup: registry526a8a5f0a580a9fd7aac5d5a8064005baf9cedc/seq131,
+133commits,6accepted readygames,0pending;13objects/7098152bytes verified and
+locally restored in isolation. Both operator gates remain enabled on old1b63 pin
+until the controlled promotion. This is local recovery evidence, not a new
+provider-write drill. Full publication receipts remain ignored under
+.verification/zerohub-simplify/{drawing-pad/deployment,publisher-cutover}.
+Effective model/tokens unknown; no conflicts,0compatibilityfixbatches. DeepSeek
+pause honored. Native older optional screenshot wording and physical Windows
+remain outside this publication; website instructions explain Preview image.

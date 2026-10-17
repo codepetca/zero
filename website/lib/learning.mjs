@@ -317,7 +317,7 @@ export const examples = [
   },
 ];
 export const quickLinks = [
-  { title: "ZeroHub", description: "Use and share small Java libraries.", href: "/hub" },
+  { title: "ZeroHub", description: "Explore projects and libraries.", href: "/hub" },
   {
     title: "Beginner toolkit",
     description: "Start with a small set for apps or games.",
@@ -337,11 +337,6 @@ export const quickLinks = [
     title: "Java API reference",
     description: "Look up the classes and methods you will use.",
     href: "/docs/api",
-  },
-  {
-    title: "Example projects",
-    description: "Get complete apps and games from ZeroHub.",
-    href: "/hub?kind=example",
   },
   {
     title: "For teachers",

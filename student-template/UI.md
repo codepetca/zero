@@ -23,8 +23,8 @@ calls an ordinary method that changes your fields and updates controls.
 JavaFX draws its controls automatically. In a game, `update(seconds)` changes
 the game and `draw()` draws the canvas; neither should rebuild the button row.
 
-The complete [one-coin controls example](examples/coin-game-controls/README.md)
-starts with these three controls in GameApp.setup():
+The [Coin Game tutorial](lessons/09-coin-game.md) adds controls in
+GameApp.setup(), using this pattern:
 
 ```java
 score = new Label();
@@ -66,7 +66,7 @@ score = new ScoreDisplay();
 score.setScore(points);
 ```
 
-and in [the component coin game](examples/coin-game-component/README.md):
+and in the [component lesson](lessons/10-components.md):
 
 ```java
 score = new ScoreDisplay();
@@ -82,10 +82,10 @@ which Main calls explicitly. A data helper does not need a visual view.
 
 ## Name your program's flow
 
-Try [the composed study app](examples/composed-study/README.md) and
-[the composed coin game](examples/composed-game/README.md). They use the same
-ordinary [StartScreen and Hud classes](examples/composition-shared/README.md).
-These are optional source examples, not new core APIs or published packages.
+A start screen and HUD can be ordinary Java classes. The optional
+[StartScreen](examples/composition-shared/StartScreen.java) and
+[Hud](examples/composition-shared/Hud.java) source examples demonstrate the pattern.
+They are not new core APIs or published packages.
 
 ```java
 startScreen = new StartScreen("My app", "Choose Start.", () -> restart());

@@ -391,3 +391,33 @@ Zero program!” for lesson0. This supersedes the lesson-title-inside-card choic
 Summary cards must stand out from the surrounding page, especially in dark mode.
 Use a14% accent tint in light mode and24% in dark mode, including system-selected
 dark. This supersedes the earlier8% tint; preserve readable text and links.
+
+## ZeroHub cards — owner correction, 2026-10-17
+
+Show only the latest available release per project. Titles are plain text; cards
+have one tiny description, author/version, Play and GitHub. Remove the repeated
+Games and libraries subtitle, Controls, source-project downloads, release internals
+and per-card hosting note. Put student hosting once at the top. Keep library
+usage behind a disclosure and existing exact-version links working. Square
+screenshots are required for new game submissions; retain existing releases.
+
+## ZeroHub scope — owner correction, 2026-10-17
+
+Remove Starters from the ZeroHub catalog: its Hello/Study/Coin examples overlap
+with Tutorials. Show only Projects and Libraries, default to Projects, and make
+Share your work a separate button. Preserve named lesson/example links (including
+Drawing pad) without promoting a duplicate starter/example collection.
+
+## Docs category navigation — owner correction, 2026-10-17
+
+Alphabetize the API sidebar categories by their displayed category name. Keep
+the reference content, method order within categories, search and direct links.
+
+## Retire duplicate projects — owner correction, 2026-10-17
+
+Remove the public starter/example collection and its links/downloads entirely,
+including hidden legacy detail pages. Redirect old example URLs to Tutorials.
+Keep lesson sources with the lessons. Drawing Pad becomes a regular Projects
+entry backed by the existing codepetca/zero-drawing-pad repository, with a square
+actual-app screenshot and GitHub source. Add Play only after verified public
+hosting. This supersedes the earlier decision to preserve named example pages.

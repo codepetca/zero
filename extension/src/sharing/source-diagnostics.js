@@ -13,6 +13,7 @@ const MESSAGES=Object.freeze({
   'game-wrapper':'Keep the pinned Maven wrapper supplied by Zero; use the supported starter wrapper files.',
   'game-ignore':'Keep private and generated files ignored. Remove rules that unignore these files.',
   'game-files':'Include the required Zero project files and use supported ordinary paths and source-size limits.',
+  'game-screenshot':'Use Edit sharing details to select a valid square PNG screenshot, at most 2048 × 2048 pixels and 4 MiB. Commit & push the image and details, then prepare another Share request.',
   'version-conflict':'This version already contains different accepted source. Choose a new version, upload its metadata and prepare another Share request.',
   'source-check':'Check the supported sharing structure, run your project locally, upload corrections and prepare a fresh Share request.'
 });
@@ -28,6 +29,7 @@ function diagnosticFromError(error) {
   else if(/^Committed sharing descriptor missing:/.test(message))code='descriptor-missing';
   else if(/^Committed sharing descriptor is invalid/.test(message))code='descriptor-invalid';
   else if(/^Committed descriptor differs/.test(message))code='descriptor-drift';
+  else if(/screenshot/i.test(message))code='game-screenshot';
   else if(/license|wrapper notices/i.test(message))code='game-license';
   else if(/main class|main method|main package|zero\.json/i.test(message))code='game-main';
   else if(/framework source/.test(message))code='game-framework';

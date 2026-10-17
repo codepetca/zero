@@ -223,8 +223,7 @@ VS Code development launch generate the required CSS automatically. Generated
 are ignored by Git; VSIX packaging includes the extension CSS. Do not edit these
 outputs or rebuild the frozen 0.5.8 artifacts to test styling.
 Home, Learn and Downloads share a circular header sun/moon light/dark toggle. The OS
-preference is the default until a mode is chosen; the choice persists. ZeroHub
-examples and Docs use the same themes; community Hub views retain their palette.
+preference is the default until a mode is chosen; the choice persists. ZeroHub and Docs use the same themes.
 Downloads live at `/downloads`. Download is a regular menu item. Old
 `/learn#downloads` links redirect there for compatibility.
 The sidebar uses native host colors/fonts/focus and high-contrast classes.
@@ -234,27 +233,28 @@ the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
 updates the reading pane and bookmarkable lesson URL; there is no overview landing.
 The tutorial reader shares the approved appearance controls with Downloads.
 
-Docs opens setup in the shared reader. Maintained examples now live in ZeroHub:
-`/hub` selects the minimal course starter (`zero-starter`);
-`?kind=example&example=<id>` selects another. The discovery curriculum lists four
-practice projects and three optional advanced projects separately from the full
-26-example inventory. Existing tutorial checkpoint URLs remain supported.
-`/examples` and `/examples/[slug]` redirect there. The top menu has no Examples entry.
-Website preparation generates the minimal starter and all 26 complete source projects, policy-inspected
-ZIPs and their metadata snapshot; it requires the tracked native app previews.
-`python3 scripts/capture-example-previews.py` captures disposable project copies
-on macOS. Generated packages/capture receipts remain ignored; previews are tracked.
-Tests: `node --test website/tests/example-projects.test.mjs`; website build/tests
-also cover the new paths. Native community catalog integration/publication policy
-is unchanged; first-party website downloads do not claim a registry release.
-The starter uses only canonical Main, framework and pinned build/config files;
-it excludes the lesson/example shelf. Guided READMEs cover student-owned GitHub
-repositories and New branch/Commit & push/Merge to main; GitHub PR practice is separate. Five public GitHub template repositories are recorded in
-`website/content/project-templates.json`. To prepare fresh local template drafts,
-run `node scripts/prepare-project-templates.mjs`; publication remains a separate
-authorized action. Never copy the development repository or local private files.
-The five template links and cloning path are separate from the ZIP + empty-repo
-alternative; source ZIPs continue to build from canonical maintained manifests.
+Docs opens the searchable API. Setup and longer guides use the shared reader.
+ZeroHub opens Projects by default, with Projects/Libraries and a separate Share
+your work action. Maintained project metadata lives in website/content/projects.json;
+Drawing Pad links to the verified codepetca repository and an actual square
+browser screenshot. It has no Play URL until public hosting is verified.
+Maintained entries are independent of community admission and remain visible
+when the shared catalog is unavailable; exact release links never substitute one.
+
+The public starter/example gallery, detail pages and generated ZIPs are retired.
+`/examples`, `/examples/[slug]` and legacy example selectors redirect to Tutorials.
+Website preparation removes stale public example downloads and their snapshot;
+it continues to prepare canonical docs, lessons, source views and lesson media.
+Internal lesson/example sources remain available to teaching and verification.
+
+The example generator, preview capture and template publication metadata remain
+maintainer tools. Run `node scripts/prepare-project-templates.mjs` to prepare
+local template drafts; this does not generate public website downloads or publish
+repositories. Publication remains a separate authorized action. Never copy the
+development repository or private files into a draft. Generator checks use
+`node --test website/tests/example-projects.test.mjs`; website tests also cover
+maintained-project search, exact-release exclusion and retired link behavior.
+Community catalog admission policy and its installed clients are unchanged.
 
 ## Browser export
 

@@ -1,3 +1,30 @@
+# ZeroHub publication — 2026-10-17
+
+Owner authorized publication and Drawing Pad hosting with “Do all those”.
+Worktree `/Users/stew/.codex/worktrees/zerohub-simplify/zero`, branch
+`codex/zerohub-simplify`, source PR #88. Latest-only short cards, Projects/Libraries,
+Play/GitHub, separate sharing, retired example routes/ZIPs and alphabetical Docs
+are implemented and independently reviewed. Internal lesson sources remain.
+
+Drawing Pad is public at https://codepetca.github.io/zero-drawing-pad/.
+Drawing repo PR #2 merged at7e84f9b68d9444c976adb7c2b13eea3c4406fdf4;
+run39071731666 succeeded. All59 files/2161473 bytes anonymously hash-verified;
+public browser painting/clearing passed. ZeroHub links the verified receipt.
+
+Publisher7154b31 accepts the exact released1b63 game-request pin while enforcing
+square PNGs for every unaccepted game. Frozen request identity remains unchanged;
+trusted provenance records the actual publisher pin. Full sharing53 and website120
+checks pass; consequential independent correctness/compatibility reviews and final
+CI gate govern promotion. Source publication alone does not rotate operator policy.
+Fresh registry/history plus13-object backup and local isolated restore verified.
+
+Next: finish source PR88 CI/merge, verify Vercel live, then safely rotate publisher
+with both gates closed, read back configuration, reconcile and compare accepted
+object hashes. Current live operator pin remains1b63 until explicit cutover.
+Native0.5.19 binaries stay unchanged; their Preview image control already works,
+but older optional wording remains. Generic library execution stays closed.
+Private receipts:.verification/zerohub-simplify/. Preserve unrelated worktrees.
+
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 
 Owner authorized source push/merge, Mac release and full armorup student acceptance.

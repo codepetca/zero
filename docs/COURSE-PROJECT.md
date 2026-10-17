@@ -1,13 +1,9 @@
 # New Project
 
 Build a project around your own idea: a study tool, game, drawing app, simulation
-or another small interface. Start with the [minimal Zero starter](https://zero.codepet.ca/hub?kind=example&example=zero-starter).
+or another small interface. Start with the [minimal Zero starter template](https://github.com/codepetca/zero-starter/generate).
 It supplies a working Hello, world! app, the Zero library, pinned build tools and
 Run App configuration. You choose the interface, data and behaviour.
-
-The four practice projects in ZeroHub are examples to explore and modify. You do
-not need to complete all four or base your course project on a finished example.
-The optional advanced projects can wait until you need their techniques.
 
 Before tutorial lesson 0, complete [GitHub account, school access and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy).
 Use your own verified account and Git 2.31+. Choose Private unless your teacher's
@@ -16,9 +12,8 @@ and check acceptance/access. Publishing a public game remains optional.
 
 ## Create your own repository and clone it
 
-1. On the [minimal starter page](https://zero.codepet.ca/hub?kind=example&example=zero-starter),
-   choose **Use template** when that action is available. If the page instead
-   offers **Get starter**, follow the ZIP alternative below. On GitHub, select
+1. Open the [minimal starter template](https://github.com/codepetca/zero-starter/generate).
+   On GitHub, select
    your personal account as the owner, give the project your own name and follow
    your teacher's visibility instructions. Create the repository.
 2. In **your new repository**, choose **Code → HTTPS** and copy its URL.
@@ -88,15 +83,6 @@ public. ZeroHub contributions remain for separate original work. Submit tutorial
 repository links in Pika only when the teacher assigns them; nothing is submitted
 automatically.
 
-## ZIP alternative for original example projects
-
-Choose **Download ZIP** in ZeroHub, extract it into a new standalone folder and
-open it in Zero. A ZIP has no Git history. Create an **empty repository in your
-own GitHub account**, leaving GitHub's README, license and .gitignore options
-unchecked. With the extracted Zero folder open, sign in and choose
-**Project → Connect to GitHub…** with your own repository URL, then make the initial **Commit & push**
-on main. This is the alternative to creating and cloning from a template.
-
 ## Build one feature at a time
 
 1. Write one small task in your README or as a GitHub issue. State what someone
@@ -129,20 +115,9 @@ does not create a pull request. After merging on GitHub, use ordinary Git or VS 
 Control to switch to main and pull the updated main before starting another
 change. Zero currently has no team or pull request mode.
 
-## Practice project templates
+## Explore Drawing Pad
 
-Each project page offers its verified template link or a complete source ZIP.
-Choose one to practise
-making a small change; you do not need to clone one large collection.
-
-| Template | Starting point |
-| --- | --- |
-| [Minimal starter](https://zero.codepet.ca/hub?kind=example&example=zero-starter) | Your original course project |
-| [Hello, Java](https://zero.codepet.ca/hub?kind=example&example=hello-app) | Greeting and styling |
-| [Study session](https://zero.codepet.ca/hub?kind=example&example=study) | Questions and scoring |
-| [Collect the coins](https://zero.codepet.ca/hub?kind=example&example=coin-game-component) | Movement and game rules |
-| [Drawing pad](https://zero.codepet.ca/hub?kind=example&example=drawing) | Mouse input and a brush |
-
-Use a template to create your own repository, then clone that repository. The
-teacher's template remains the starting point; your changes belong in your copy.
-For an advanced project or tutorial checkpoint, the standalone ZIP remains available.
+[Drawing Pad](https://github.com/codepetca/zero-drawing-pad) is a Codepet project
+in ZeroHub's Projects collection. Draw with the mouse and explore its Java on
+GitHub. Create your own repository from its template if you want to change it.
+The tutorial projects remain with their lessons.

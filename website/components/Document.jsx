@@ -123,7 +123,7 @@ export function Document({ id, lesson = "" }) {
                   <Icon name="arrow-right" />
                 </Link>
               ) : (
-                <a className="button" href="/hub?kind=example">
+                <a className="button" href="/hub">
                   Explore projects
                   <Icon name="arrow-right" />
                 </a>

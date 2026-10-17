@@ -28,24 +28,21 @@ Dragging to select text keeps manual copying available.
 `/downloads` is the separate platform download page;
 Download is a regular top-menu page, and platform buttons do not appear below tutorials.
 Docs opens the complete searchable Zero API directly; method names stay visible
-while their details scroll, and category headings scroll normally; setup and longer app guides remain linked from its sidebar. Examples is a curated collection inside
-ZeroHub, with actual app images, a description, Get project and a repository link.
-ZeroHub’s New Project action opens the published GitHub starter template directly.
-The starter details page remains available for ZIP downloads and setup instructions;
-without published template metadata, New Project falls back to that page. Four
-practice projects (Hello, Java; Study session; Collect the coins; Drawing pad)
-are featured, with three advanced projects optional. The other nineteen entries
-remain available through existing lesson/deep links rather than filling the
-initial picker. Students build one feature at a time in their own repository;
-GitHub/project workflow is part of the learning outcome. The primary distribution is five dedicated public GitHub template repositories.
-Students use a template to create their own repository, then clone their own copy.
-ZeroHub provides Use template, cloning instructions, a repository link and a
-Download ZIP alternative. ZIP users create and connect an empty own repository. See [the course project guide](COURSE-PROJECT.md).
-Each download is a complete runnable project with its Java, helpers, resources,
-framework and Maven wrapper. Open it in Zero and Run App without copying individual
-files. The top menu has no Examples entry; old Examples URLs forward to ZeroHub.
-Docs and ZeroHub examples use sidebar navigation, narrow-screen selectors and
-shared light/dark themes. Selection updates the content and bookmarkable URL.
+while their details scroll, and category headings scroll normally; setup and longer app guides remain linked from its sidebar.
+ZeroHub opens Projects by default and has only Projects and Libraries in its
+catalog navigation. Share your work is a separate button. Drawing Pad is a
+maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
+community projects with a tiny description, square screenshot and GitHub source.
+It has no Play action until public hosting is verified. Maintained projects do
+not claim a community admission record and stay visible if that catalog is down.
+Tutorial starters, practice projects and checkpoints are not a separate public
+collection. Legacy example routes send readers to Tutorials; their generated
+project downloads are retired. Supporting guides link to the lessons instead
+of finished-project pages. Lesson/reference source files remain readable.
+Students build one feature at a time in their own repository; GitHub/project
+workflow is part of the learning outcome. Tutorial setup and the minimal original
+project template remain available through their setup instructions. See
+[the course project guide](COURSE-PROJECT.md).
 Tutorials and Downloads use one circular sun/moon button in the header to switch
 light/dark mode. The OS preference is the initial default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
@@ -57,8 +54,13 @@ Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
 available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or
-media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
-libraries, inspect exact versions, source and verified GitHub contributor identity.
+media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
+Show only the latest available release of each project, with a plain title,
+one short sentence, author/version, Play and GitHub. Game cards omit controls,
+source downloads and release internals; a single top note explains author hosting.
+Existing exact-version links remain valid, including withdrawn-release status.
+Library usage stays inside a disclosure. New game submissions require a committed
+square PNG screenshot; existing accepted releases remain available.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
 Tutorials show the current project name (Greeting App, Study Quiz or Coin Game)
 as the main heading and the lesson title below it. Docs and ZeroHub retain their

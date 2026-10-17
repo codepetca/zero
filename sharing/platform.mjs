@@ -2,6 +2,7 @@ import contracts from '../extension/src/sharing/contracts.js';
 import { canonical } from './registry.mjs';
 import { freezeRequest, ingestRequest, reportAttempt, cancelRequest, retryRequest, sameStableRequest } from './requests.mjs';
 import sourceDiagnostics from '../extension/src/sharing/source-diagnostics.js';
+import gamePreview from '../extension/src/sharing/game-preview.js';
 import { PublicationService } from './publication.mjs';
 import { buildGamePackage } from './game-package.mjs';
 import { byteHash } from './file-storage.mjs';
@@ -9,9 +10,22 @@ import { REGISTRY_REPOSITORY, REGISTRY_BRANCH } from './github-registry.mjs';
 
 export const LIBRARY_EXECUTION_GATE = 'Library publication is closed pending managed execution acceptance';
 export const LIBRARY_EVIDENCE_CONTRACT = Object.freeze({schema:1,required:['requestFingerprint','sourceDigest','commit','policyRevision','artifacts','status','provenance'],authority:'Separately accepted fixed managed workflow verifier; student CI/local receipts grant no authority',implementationActive:false});
+// Released 0.5.19 clients stamp this reviewed game contract. Compatibility only
+// preserves that request identity; all unaccepted games use this publisher's
+// current source and screenshot checks, including already frozen queued work.
+const COMPATIBLE_GAME_REQUEST_POLICY = '1b63ae6ce07f467ab4c4600d78507157ad3bdc7c';
 
 function sourceFailure(message) { return Object.assign(new Error(message),{kind:'source-failure'}); }
 function executionGate() {return Object.assign(new Error(LIBRARY_EXECUTION_GATE),{code:'EXECUTION_GATE'});}
+function screenshot(request,files) {
+  if(request.kind!=='game')return;
+  if(!request.descriptor.preview)throw sourceFailure('Include a square PNG screenshot using Edit sharing details, then Commit & push and Share game again.');
+  const file=files.find(value=>value.path===request.descriptor.preview);
+  if(!file)throw sourceFailure('The committed game screenshot is missing. Commit & push the PNG and Share game again.');
+  const bytes=Buffer.from(file.bytes??file.data);
+  try{gamePreview.validateGamePreview(bytes);}catch{throw sourceFailure('Use a valid square PNG screenshot, at most 2048 × 2048 pixels and 4 MiB. Commit & push it, then Share game again.');}
+  return bytes;
+}
 function sourceDescriptor(request, files) {
   const name=request.kind==='game'?'zero-game.json':'zero-library.json';
   const file=files.find(value=>value.path===name);
@@ -26,6 +40,9 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
   if(!reader?.publicationIssue||!reader?.publicationIssueState||!reader?.source||!reader?.repository||!registry||!storage||! /^[a-f0-9]{40}$/.test(policyRevision||''))throw new Error('Trusted reader, registry, storage and exact policy revision required');
   if(!Number.isFinite(wallBudgetMs)||wallBudgetMs<1||wallBudgetMs>1200000||!Number.isInteger(sourceTimeoutMs)||sourceTimeoutMs<1||sourceTimeoutMs>60000)throw new Error('Invalid finite publication budget');
   const receipts=new WeakSet(), observedRepositories=new Map(), sourceCache=new Map(), publicationBudgets=new Map();
+  function assertRequestPolicy(request) {
+    if(request.policyRevision!==policyRevision && !(request.kind==='game' && request.policyRevision===COMPATIBLE_GAME_REQUEST_POLICY))throw sourceFailure('Request targets a different policy revision; prepare it again');
+  }
   function validationSignal(requestId){const budget=publicationBudgets.get(requestId);if(budget&&now()-budget.started>=wallBudgetMs)throw new Error('Publication wall budget exhausted before acceptance');return budget?AbortSignal.any([budget.signal,AbortSignal.timeout(sourceTimeoutMs)]):AbortSignal.timeout(sourceTimeoutMs);}
   async function assertOpen(record,{signal}={}) {
     for(const number of record.issueIds) {
@@ -51,7 +68,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
       if(persist){const records=Object.values((await registry.read()).state.requests).filter(record=>record.issueIds.includes(observed.issueId)&&!record.releaseKey);for(const record of records){try{await assertOpen(record,{signal});}catch(error){if(error.kind!=='source-failure')throw error;}}}
       return {record:{id:null,frozen:observed.request,status:'closed',releaseKey:null},files:[],included:[],publicationEnabled:false};
     }
-    if(observed.request.policyRevision!==policyRevision)throw sourceFailure('Request targets a different policy revision; prepare it again');
+    assertRequestPolicy(observed.request);
     const known=Object.values((await registry.read()).state.requests).find(record=>sameStableRequest(record.frozen,observed.request,{includeSourceDigest:false}));
     if(known){const record=persist?await ingestRequest(registry,{...observed,sourceDigest:known.frozen.sourceDigest}):structuredClone(known);return {record,files:null,included:[],publicationEnabled:record.frozen.kind==='game',cached:true};}
     const source=await reader.source(observed.request,{signal});
@@ -63,6 +80,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     else record={id:frozen.id,frozen:frozen.frozen,status:'preview',releaseKey:null};
     try{
       sourceDescriptor(observed.request,source.files);
+      screenshot(observed.request,source.files);
       const included=observed.request.kind==='game'?buildGamePackage({files:source.files}).files.map(file=>file.path):[];
       sourceCache.clear();sourceCache.set(record.id,source);
       return {record,files:source.files,included,publicationEnabled:observed.request.kind==='game'};
@@ -74,6 +92,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     }
   }
   async function prepareRecord(record) {
+    assertRequestPolicy(record.frozen);
     if(record.frozen.kind==='library')throw executionGate();
     const signal=validationSignal(record.id);
     await assertOpen(record,{signal});
@@ -91,14 +110,10 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
       web=await reader.verifyWebPublication(request,{signal});
       if(canonical(web)!==canonical(request.web))throw sourceFailure('Verified web publication differs from the frozen request');
     }
-    const previewName=request.descriptor.preview;
-    if(previewName) {
-      const preview=source.files.find(file=>file.path===previewName);
-      const bytes=preview&&Buffer.from(preview.bytes ?? preview.data);
-      if(!bytes||bytes.length>contracts.LIMITS.artifactBytes||!bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))throw sourceFailure('Committed PNG preview is missing or invalid');
-      artifacts.preview=bytes;
-    }
-    const evidence={...(web?{web}:{}),status:'passed',requestFingerprint:record.id,sourceDigest,commit:request.commit,policyRevision,
+    artifacts.preview=screenshot(request,source.files);
+    // Evidence preserves the frozen client contract; provenance records the
+    // exact operator-selected publisher source that performed current checks.
+    const evidence={...(web?{web}:{}),status:'passed',requestFingerprint:record.id,sourceDigest,commit:request.commit,policyRevision:request.policyRevision,
       artifacts:Object.fromEntries(Object.entries(artifacts).map(([kind,bytes])=>[kind,{size:bytes.length,sha256:byteHash(bytes)}])),
       provenance:{kind:'trusted-game-packaging',schema:1,policyRevision,execution:'none'}};
     receipts.add(evidence);
