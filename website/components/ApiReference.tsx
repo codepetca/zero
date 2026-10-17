@@ -144,7 +144,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
       <p className="api-search-status" role="status">{searching ? `${results.length} ${results.length === 1 ? 'method' : 'methods'} found` : ''}</p>
       {searching ? <nav className="api-results" aria-label="Search results">{results.length ? results.map(entry => <div key={entry.id}>{methodLink(entry, `${entry.name}()${entry.id === 'image-scaled' ? ' — scaled' : ''}`)}<small>{entry.categoryTitle} · {entry.owner}</small></div>) : <p>No matching methods. Try “drawing”, “keyboard” or “image”.</p>}</nav> :
         <div className={`api-contents ${mobileOpen ? 'is-open' : ''}`} id="api-contents">
-          <nav aria-label="Methods by category">{categories.map(category => {
+          <nav aria-label="Methods by category">{[...categories].sort((a, b) => a.title.localeCompare(b.title, 'en')).map(category => {
             const isOpen = expanded.includes(category.id);
             const isActive = category.id === active || category.entries.some(entry => entry.id === active);
             return <div className="api-nav-group" key={category.id}>

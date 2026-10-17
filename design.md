@@ -407,3 +407,8 @@ Remove Starters from the ZeroHub catalog: its Hello/Study/Coin examples overlap
 with Tutorials. Show only Projects and Libraries, default to Projects, and make
 Share your work a separate button. Preserve named lesson/example links (including
 Drawing pad) without promoting a duplicate starter/example collection.
+
+## Docs category navigation — owner correction, 2026-10-17
+
+Alphabetize the API sidebar categories by their displayed category name. Keep
+the reference content, method order within categories, search and direct links.
