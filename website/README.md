@@ -56,9 +56,8 @@ mouse stroke for Drawing pad. Capture output/receipts are ignored.
 `/hub?kind=game` and `?kind=library` retain community project/library discovery.
 Maintained examples are built from this repository; they do not fabricate an
 accepted community-registry release or alter native catalog/publication policy.
-Community cards show
-exact versions, verified GitHub contributor identity, pinned source commits,
-optional previews and artifact size/hash details. `?kind=library&id=lib-r12345-health-bar&version=0.1.0`
+Community cards show a short description, author/version and optional screenshot,
+with source links pinned to the shared commit. `?kind=library&id=lib-r12345-health-bar&version=0.1.0`
 inspects one exact release without substituting another. Discovery shows only the latest available version of each project; exact-version
 links still inspect their original release. Project titles are plain text, with
 one short sentence, author/version, **Play** (when hosted) and **GitHub**. There

@@ -28,3 +28,7 @@ test('indexed PNG scanlines must reference entries in their palette',()=>{
  assert.throws(()=>validateGamePreview(png({width:1,color:3,depth:8,raw:Buffer.from([0,1]),palette:Buffer.alloc(3)})),/valid square PNG/);
  assert.throws(()=>validateGamePreview(png({width:1,color:3,depth:8,raw:Buffer.from([0,0])})),/valid square PNG/);
 });
+test('PNG chunk names cannot disguise invalid high-bit bytes as ASCII letters',()=>{
+ const highBit=png();highBit[12]|=128;highBit.writeUInt32BE(crc(highBit.subarray(12,29)),29);
+ assert.throws(()=>validateGamePreview(highBit),/valid square PNG/);
+});

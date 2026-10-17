@@ -15,7 +15,7 @@ function validateGamePreview(input) {
  let offset=8,header,palette=0,ended=false,idatEnded=false;const data=[];
  while(offset<bytes.length){
   if(offset+12>bytes.length)invalid();const size=bytes.readUInt32BE(offset),end=offset+12+size;
-  if(end>bytes.length)invalid();const type=bytes.toString('ascii',offset+4,offset+8),chunk=bytes.subarray(offset+8,end-4);
+  if(end>bytes.length)invalid();const type=bytes.toString('latin1',offset+4,offset+8),chunk=bytes.subarray(offset+8,end-4);
   if(!/^[A-Za-z]{2}[A-Z][A-Za-z]$/.test(type)||crc32(bytes.subarray(offset+4,end-4))!==bytes.readUInt32BE(end-4))invalid();
   if(!header&&type!=='IHDR')invalid();
   if(type==='IHDR'){
