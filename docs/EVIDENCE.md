@@ -5264,3 +5264,14 @@ owned Grove/website. No conflicts; Grove input clicks needed a frame-spanning pr
 before the final capture. Worker effective model/tokens/time unknown. Usage90%
 weekly remaining; storage311.6GBhealthy. DeepSeek pause retained. Detailed capture
 and verification receipts:.verification/zerohub-game-images/.
+
+Gameplay image source4129cca independently reviewed clean by Sol/medium:
+complete9file diff, both PNGs, provenance receipts and source/availability callers;
+focused8tests passed. Ledger1initialreview/0findings/0fixes, effective model and
+elapsed/tokens unknown. Local production browser verifies Grove680square loads,
+normal catalog still Drawing+Grove, Sky480square loads on withdrawn exact page
+with no Play, older Grove source gets no wrong screenshot,320px reflow/no overflow.
+Desktop/phone images inspected. Full-page phone capture was repeated after a
+fresh navigation/paint to avoid a transient browser capture artifact; DOM has one
+header/title. Receipt-only follow-up leaves all runtime and image bytes unchanged.
+Next source CI/merge and actual public asset/hash/browser verification.
