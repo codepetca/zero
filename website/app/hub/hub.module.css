@@ -16,10 +16,15 @@
 .cardContent .metadata { margin: 0 0 12px; }
 .cardContent > details { margin-top: 16px; }
 .thumbnail { display: block; flex: 0 0 auto; width: 144px; height: 144px; object-fit: contain; background: var(--zero-surface, var(--pale)); border-radius: 6px; }
-.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-.actions > a { display: inline-flex; align-items: center; min-height: 44px; }
-.actions :global(.button) { min-width: 0; margin: 0; }
-@media (max-width: 540px) { .card { gap: 16px; } .thumbnail { width: 88px; height: 88px; } }
+.playImage { position: relative; display: block; flex: 0 0 auto; width: 144px; height: 144px; border-radius: 6px; }
+.playImage .thumbnail { width: 100%; height: 100%; }
+.playPlaceholder { display: block; width: 100%; height: 100%; border-radius: inherit; background: var(--zero-surface, var(--pale)); }
+.playOverlay { position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; background: rgb(0 0 0 / 45%); opacity: 0; }
+.playOverlay > span { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 6px; background: var(--purple); color: white; font-weight: 600; }
+.playImage:hover .playOverlay, .playImage:focus-visible .playOverlay, .playPlaceholder + .playOverlay { opacity: 1; }
+.playImage:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+@media (hover: none) { .playImage .playOverlay { opacity: 1; } }
+@media (max-width: 540px) { .card { gap: 16px; } .thumbnail, .playImage { width: 88px; height: 88px; } }
 @media (max-width: 360px) { .card { flex-direction: column; } }
 .card a { overflow-wrap: anywhere; }
 .metadata { color: var(--muted); font-size: 16px; }

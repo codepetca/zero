@@ -77,7 +77,7 @@ test('Play uses a stable external page independently of the immutable source sna
 });
 test('discovery offers Play and linked versions without separate GitHub actions',async()=>{
   const {readFile}=await import('node:fs/promises'),discovery=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8'),source=await readFile(new URL('../components/HubProjectCard.tsx',import.meta.url),'utf8');
-  assert.match(discovery,/fetch\('\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer">Play<\/a>/);
+  assert.match(discovery,/fetch\('\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer" aria-label=\{`Play \$\{title\}/);
   assert.match(source,/<h3>\{title\}<\/h3>/);assert.match(source,/href=\{repositoryHref\} aria-label=/);
   assert.doesNotMatch(source,/>GitHub(?:<|\{)/);
   assert.doesNotMatch(source,/Play latest|Controls:|Student-hosted live app|Download source project|Download sources|Release details/);
