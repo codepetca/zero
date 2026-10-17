@@ -1,25 +1,29 @@
-# Local ZeroHub and Docs follow-up — 2026-10-17
+# ZeroHub publication — 2026-10-17
 
+Owner authorized publication and Drawing Pad hosting with “Do all those”.
 Worktree `/Users/stew/.codex/worktrees/zerohub-simplify/zero`, branch
-`codex/zerohub-simplify`. Latest-only tiny cards, Play/GitHub, plain titles,
-separate Share action and Projects/Libraries default are implemented. Docs
-sidebar categories are alphabetical. New game square-PNG policy remains local.
+`codex/zerohub-simplify`, source PR #88. Latest-only short cards, Projects/Libraries,
+Play/GitHub, separate sharing, retired example routes/ZIPs and alphabetical Docs
+are implemented and independently reviewed. Internal lesson sources remain.
 
-Owner superseded legacy-page preservation: the public starter/example gallery,
-its hidden detail pages and generated ZIPs are retired; old example URLs go to
-Tutorials. Supporting guides point to lessons. Internal teaching sources and
-maintainer generators remain. Drawing Pad is a maintained Projects card backed
-by existing public codepetca/zero-drawing-pad595065a, with actual square screenshot.
-Unchanged source browser build and painting/clearing pass. No public Pages exists,
-so no Play URL is claimed. Local app preview3218; website preview3217/hub.
+Drawing Pad is public at https://codepetca.github.io/zero-drawing-pad/.
+Drawing repo PR #2 merged at7e84f9b68d9444c976adb7c2b13eea3c4406fdf4;
+run39071731666 succeeded. All59 files/2161473 bytes anonymously hash-verified;
+public browser painting/clearing passed. ZeroHub links the verified receipt.
 
-Implementationb2f2eb4 plus docs2de2339 independently reviewed clean after one
-docs correction. Website120/type/build/check pass; browser verifies catalog
-search/outage, exact-release isolation, old route redirects and ZIP404. Earlier
-PNG/root/Docs checks remain recorded in EVIDENCE.md and VERIFICATION.md.
-Next requires explicit owner source/site publication or publisher/native release
-approval. No GitHub repo creation/deletion, remote mutation, registry edit or
-policy promotion occurred. Preserve other worktrees and release state below.
+Publisher7154b31 accepts the exact released1b63 game-request pin while enforcing
+square PNGs for every unaccepted game. Frozen request identity remains unchanged;
+trusted provenance records the actual publisher pin. Full sharing53 and website120
+checks pass; consequential independent correctness/compatibility reviews and final
+CI gate govern promotion. Source publication alone does not rotate operator policy.
+Fresh registry/history plus13-object backup and local isolated restore verified.
+
+Next: finish source PR88 CI/merge, verify Vercel live, then safely rotate publisher
+with both gates closed, read back configuration, reconcile and compare accepted
+object hashes. Current live operator pin remains1b63 until explicit cutover.
+Native0.5.19 binaries stay unchanged; their Preview image control already works,
+but older optional wording remains. Generic library execution stays closed.
+Private receipts:.verification/zerohub-simplify/. Preserve unrelated worktrees.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

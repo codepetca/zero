@@ -3353,3 +3353,31 @@ full+targeted review pass. Unchanged verified Codepetca Drawing source browser
 build, click paint/right clear, square screenshot pass. Real website checks cover
 maintained search/outage and exact/library isolation, oldURL redirects, ZIP404,
 320px dark reflow. No public Pages/Play, registry admission or deployment claim.
+
+## ZeroHub publication follow-through — 2026-10-17
+
+Owner authorized source/site publication and Drawing Pad hosting. Drawing repo
+PR #2 merged at7e84f9b68d9444c976adb7c2b13eea3c4406fdf4; actual Pages
+run39071731666 succeeded at https://codepetca.github.io/zero-drawing-pad/.
+All59 public files/2161473bytes match local hashes; source marker matches SHA/run.
+Public browser click paints dark blue and secondary click clears white. Five exact
+Zero deployment-kit files added; original21 files and14 build inputs unchanged.
+Two independent Sol/high kit reviews clean; temporary staging draft deleted.
+
+Websitea4507e9 links that verified deployment with commit-bound receipt validation;
+website120tests/typecheck/build pass. Publisher7154b31 preserves exact released
+1b63 game requests while applying squarePNG checks to all unaccepted games.
+Full sharing53/53 pass; accepted delivery-pending recovery preserves ZIP hashes.
+Two independent Sol/high consequential reviews cover policy, evidence and recovery;
+no native release, policy rewrite or generic library execution added.
+
+Source PR #88 is draft pending final checks/merge and live site acceptance.
+Fresh backup: registry526a8a5f0a580a9fd7aac5d5a8064005baf9cedc/seq131,
+133commits,6accepted readygames,0pending;13objects/7098152bytes verified and
+locally restored in isolation. Both operator gates remain enabled on old1b63 pin
+until the controlled promotion. This is local recovery evidence, not a new
+provider-write drill. Full publication receipts remain ignored under
+.verification/zerohub-simplify/{drawing-pad/deployment,publisher-cutover}.
+Effective model/tokens unknown; no conflicts,0compatibilityfixbatches. DeepSeek
+pause honored. Native older optional screenshot wording and physical Windows
+remain outside this publication; website instructions explain Preview image.
