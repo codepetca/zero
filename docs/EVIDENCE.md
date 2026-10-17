@@ -1,5 +1,25 @@
 # Delivery evidence index
 
+## Mac 0.5.19 public preview — 2026-10-17
+
+Owner authorized publication. [Source PR83](https://github.com/codepetca/zero/pull/83)
+and [native PR84](https://github.com/codepetca/zero/pull/84) merged after real CI.
+Browser, release and Windows checks passed; the first Windows bootstrap timed out,
+then one unchanged fresh-runner retry passed install/editor/JavaFX/offline checks.
+[Public Mac release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.19)
+has exactly one DMG, Developer ID signed, Apple Accepted, stapled and Gatekeeper
+accepted. Its authenticated draft and anonymous public bytes match the immutable
+sealed candidate:4528801bytes, SHA256
+97ba130ee2b04455b6e9b276fbbf612900594e7af91f03b7d3442a74525e79d6.
+Original clean build e339894; preparation267120af; build19. Two independent Sol/high
+release reviews verified13checksums, signed feed/archive, source equivalence and
+promotion contracts with no findings. Runtime review is reused unchanged.
+
+The current metadata promotion preserves exact signed XML and only changes feed
+publication status. Website deployment and installed armorup acceptance remain
+pending; public release bytes alone do not establish those outcomes. Windows/manual
+ZIP remains0.5.17; no Windows native or three-asset0.5.19 kit was published.
+
 ## Student friction candidate 0.5.19 — 2026-10-17
 
 Owner authorized local fixes from the armorup Grove Guard trial. Isolated branch
