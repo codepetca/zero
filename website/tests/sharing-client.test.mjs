@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import contracts from '../../extension/src/sharing/contracts.js';
-import {dependencySnippet,maintainedPlayLink,playLink,projectSummary,releaseLink,selectMaintainedProjects,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
+import {dependencySnippet,maintainedPlayLink,playLink,projectSummary,releaseImage,releaseLink,selectMaintainedProjects,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
 const origin='https://artifacts.example';
 function fixture(kind,version='0.1.0',status='available') {
   const identity=contracts.identity(kind,'123','sample');
@@ -81,4 +81,12 @@ test('discovery offers Play and GitHub without title links, controls or source d
   assert.match(source,/<h3>\{title\}<\/h3>/);assert.match(source,/href=\{sourceHref\}>GitHub/);
   assert.doesNotMatch(source,/Play latest|Controls:|Student-hosted live app|Download source project|Download sources|Release details/);
   assert.doesNotMatch(source,/<iframe|dangerouslySetInnerHTML|api\/sharing\/play/);
+});
+
+test('legacy screenshot supplements match exact project source and never replace uploaded previews',()=>{
+  const release=fixture('game'),previews=[{id:release.id,sourceCommit:release.source.commit,image:'/project-previews/sample.png'}];
+  assert.equal(releaseImage(release,previews),previews[0].image);
+  assert.equal(releaseImage({...release,source:{...release.source,commit:'e'.repeat(40)}},previews),undefined);
+  assert.equal(releaseImage({...release,id:'game-r999-other'},previews),undefined);
+  assert.equal(releaseImage({...release,artifacts:{...release.artifacts,preview:{url:'https://artifacts.example/accepted.png'}}},previews),'https://artifacts.example/accepted.png');
 });
