@@ -1,15 +1,17 @@
-# ZeroHub repository links — 2026-10-17
+# ZeroHub image Play — 2026-10-17
 
-Owner requests clickable version numbers opening the GitHub repository, without
-a separate GitHub action. Unversioned Drawing Pad uses its author link for the
-repository. Keep titles plain, Play unchanged and withdrawn releases withdrawn.
+Owner requests clicking the game image to play, with Play shown over the image
+on hover, removing the separate Play action. Use an accessible keyboard link,
+visible focus/overlay, and persistent touch overlay. Hover only reveals the action;
+click or keyboard activation opens the verified hosted game in a new tab.
+Withdrawn releases stay static; playable legacy entries without screenshots get
+a Play tile. Preserve repository/version links and plain titles.
 
-Sky Hop copy PR91 merged at f10caaea and is live: “Flap through gaps in the pipes
-without crashing.” Default projects remain Drawing Pad and Grove Guard.
-Current branch `codex/hub-version-repository` in the existing ZeroHub worktree.
-Next: focused checks, independent small UI review, PR/CI/merge and live verification.
-No source artifacts, registry, publisher policy or availability changes. Preserve
-unrelated checkouts and ignored recovery receipts.
+Repository-link PR92 merged at9df83c26 and is live. Default projects remain
+Drawing Pad and Grove Guard. Branch: `codex/hub-image-play` in ZeroHub worktree.
+Next: focused checks, independent UI review, actual browser hover/focus/click/touch
+checks, PR/CI/merge and live verification. No publisher or availability changes.
+Preserve unrelated checkouts and ignored receipts.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

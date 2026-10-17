@@ -5312,3 +5312,13 @@ repository; default two cards have no separate GitHub action or linked title.
 Drawing Pad author destination is its repository. Exact withdrawn Sky Hop keeps
 its version repository link and no Play. At360px the cards have no horizontal
 overflow; screenshot:ignored output/playwright/hub-version-links-mobile.png.
+
+## ZeroHub image Play links — 2026-10-17
+
+Owner requests image activation instead of a separate Play button, with a hover
+Play overlay. The verified game URL now wraps the square image with an accessible
+new-tab link; hover/focus reveal the overlay, touch retains it. Legacy playable
+entries without screenshots use a Play tile; withdrawn screenshots stay static.
+Local website121 tests, typecheck, build, root check and diff check pass.
+Review plan: one standard-risk Sol/medium independent UI review, one initial wave;
+max7launches/4fix batches/60minutes. Source/registry/availability unchanged.
