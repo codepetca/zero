@@ -5,12 +5,28 @@ export function selectReleases(catalog, {kind = 'library', search = '', id = '',
   if (!!id !== !!version) throw new Error('An exact release link needs both its ID and version.');
   if (version) contracts.validateVersion(version);
   const phrase = id ? '' : search.trim().toLowerCase();
-  return catalog.releases.filter(release => release.kind === kind &&
-    (id ? release.id === id && release.version === version : release.status === 'available') &&
-    (!phrase || [release.title, release.description, release.id, release.contributor.login,
+  let releases = catalog.releases.filter(release => release.kind === kind &&
+    (id ? release.id === id && release.version === version : release.status === 'available'));
+  if (!id) {
+    const latest = new Map();
+    for (const release of releases) {
+      const previous = latest.get(release.id);
+      if (!previous || compareVersions(release.version, previous.version) > 0) latest.set(release.id, release);
+    }
+    releases = [...latest.values()];
+  }
+  return releases.filter(release => !phrase || [release.title, release.description, release.id, release.contributor.login,
       ...(release.components || []).map(component => `${component.className} ${component.description}`)]
-      .some(value => value.toLowerCase().includes(phrase))))
+      .some(value => value.toLowerCase().includes(phrase)))
     .sort((a, b) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id) || compareVersions(b.version, a.version));
+}
+
+export function projectSummary(description) {
+  const text = description.replace(/\s+/g, ' ').trim();
+  const sentence = text.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || text;
+  if (sentence.length <= 120) return sentence;
+  const short = sentence.slice(0, 119).replace(/\s+\S*$/, '').trimEnd();
+  return `${short || sentence.slice(0, 119)}…`;
 }
 function compareVersions(a, b) {
   const left = a.split('.').map(Number), right = b.split('.').map(Number);

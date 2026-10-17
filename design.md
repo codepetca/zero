@@ -391,3 +391,12 @@ Zero program!” for lesson0. This supersedes the lesson-title-inside-card choic
 Summary cards must stand out from the surrounding page, especially in dark mode.
 Use a14% accent tint in light mode and24% in dark mode, including system-selected
 dark. This supersedes the earlier8% tint; preserve readable text and links.
+
+## ZeroHub cards — owner correction, 2026-10-17
+
+Show only the latest available release per project. Titles are plain text; cards
+have one tiny description, author/version, Play and GitHub. Remove the repeated
+Games and libraries subtitle, Controls, source-project downloads, release internals
+and per-card hosting note. Put student hosting once at the top. Keep library
+usage behind a disclosure and existing exact-version links working. Square
+screenshots are required for new game submissions; retain existing releases.

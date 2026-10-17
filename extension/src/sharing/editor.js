@@ -1,5 +1,6 @@
 'use strict';
 const fs=require('node:fs/promises');const path=require('node:path');
+const {validateGamePreview,MAX_BYTES}=require('./game-preview');
 const core=require('../core');const {assertShareable,assertOriginalProject}=require('../lesson-projects');const c=require('./contracts');const authoring=require('./authoring');const checks=require('./local-check');const consumer=require('./consumer');const {createGitHubReader}=require('./github');const {parseXml,single,value}=require('../project-pom');
 const fail=message=>{throw new Error(message);};
 const escape=text=>text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -160,7 +161,14 @@ function createSharingEditor(vscode,host,options={}) {
   const controls=await input('Game controls','Explain movement and other controls.','');if(!controls)return;
   const version=await input('Game version','Exact version for this snapshot.','0.1.0',c.validateVersion);if(!version)return;
   const license=await input('Game license','Confirm the license for your own source.','MIT');if(!license)return;
-  const descriptor=c.validateDescriptor({schema:1,kind:'game',slug,title,description,controls,version,license});if(await saveDescriptor(root,'zero-game.json',descriptor)===false)return;if(creation)creation.created=true;return descriptor;
+  const preview=await gameScreenshot(root);if(!preview)return;
+  const descriptor=c.validateDescriptor({schema:1,kind:'game',slug,title,description,controls,version,license,preview});if(await saveDescriptor(root,'zero-game.json',descriptor)===false)return;if(creation)creation.created=true;return descriptor;
+ }
+ async function gameScreenshot(root,previous='preview.png') {
+  const preview=await input('Game screenshot','Required square PNG screenshot: at most 2048 × 2048 pixels and 4 MiB. Use preview.png or a PNG in assets/.',previous,value=>{c.validateFolder(value);if(!value.endsWith('.png'))fail('Use a PNG screenshot.');});if(!preview)return;
+  const filename=await authoring.safePath(root,preview);
+  try{if((await fs.stat(filename)).size>MAX_BYTES)fail('Screenshot too large');validateGamePreview(await fs.readFile(filename));}catch{fail('Use an existing valid square PNG screenshot, at most 2048 × 2048 pixels and 4 MiB.');}
+  return preview;
  }
  async function editDetails() {
   trusted(vscode);const root=await host.project();assertSaved(vscode,root);
@@ -171,7 +179,7 @@ function createSharingEditor(vscode,host,options={}) {
   const version=await input('Sharing version','Exact version; published versions cannot be replaced.',descriptor.version,c.validateVersion);if(!version)return;
   const license=await input('Sharing license','Confirm the license for your own source.',descriptor.license);if(!license)return;
   let controls=descriptor.controls;if(descriptor.kind==='game'){controls=await input('Game controls','Explain movement and other controls.',controls);if(!controls)return;}
-  const preview=await vscode.window.showInputBox({title:'Preview image',prompt:'Optional relative PNG file path. Leave blank to omit.',value:descriptor.preview||''});if(preview===undefined)return;
+  const preview=descriptor.kind==='game'?await gameScreenshot(root,descriptor.preview||'preview.png'):await vscode.window.showInputBox({title:'Preview image',prompt:'Optional relative PNG file path. Leave blank to omit.',value:descriptor.preview||''});if(preview===undefined||descriptor.kind==='game'&&!preview)return;
   const updated={...descriptor,title,description,version,license};if(descriptor.kind==='game')updated.controls=controls;if(preview)updated.preview=preview;else delete updated.preview;
   if(await saveDescriptor(root,filename,updated)!==false)report('Sharing details saved','Sharing details saved. Commit & push separately, then Share the committed version.');
  }
@@ -179,6 +187,7 @@ function createSharingEditor(vscode,host,options={}) {
   trusted(vscode);const root=await host.project();await assertOriginalProject(root);assertSaved(vscode,root);let folder='.',filename='zero-game.json',descriptor;const creation={};
   if(kind==='library'){const lib=await pickLibrary(root);if(!lib)return;folder=lib.folder;filename=`${folder}/zero-library.json`;descriptor=lib.descriptor;}else descriptor=await gameDescriptor(root,creation);
   if(!descriptor)return;
+  if(kind==='game'&&!descriptor.preview){const preview=await gameScreenshot(root);if(!preview)return;descriptor={...descriptor,preview};if(await saveDescriptor(root,filename,descriptor)===false)return;}
   if(!creation.created) {
    const requestedVersion=await input('Sharing version','Reuse the saved exact version, or enter the next version.',descriptor.version,c.validateVersion);if(!requestedVersion)return;
    if(requestedVersion!==descriptor.version) {descriptor={...descriptor,version:requestedVersion};if(await saveDescriptor(root,filename,descriptor)===false)return;}

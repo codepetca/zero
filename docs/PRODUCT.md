@@ -57,8 +57,13 @@ Share your work preserves the shared theme and appearance toggle.
 Tutorial steps and reference sections are expanded by default; full guides remain
 available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or
-media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover separate editable games and reusable
-libraries, inspect exact versions, source and verified GitHub contributor identity.
+media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
+Show only the latest available release of each project, with a plain title,
+one short sentence, author/version, Play and GitHub. Game cards omit controls,
+source downloads and release internals; a single top note explains student hosting.
+Existing exact-version links remain valid, including withdrawn-release status.
+Library usage stays inside a disclosure. New game submissions require a committed
+square PNG screenshot; existing accepted releases remain available.
 `/hub/share` explains native Zero Share commands and official GitHub forms.
 Tutorials show the current project name (Greeting App, Study Quiz or Coin Game)
 as the main heading and the lesson title below it. Docs and ZeroHub retain their

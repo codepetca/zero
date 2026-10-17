@@ -87,6 +87,23 @@ are practical pilot ceilings, not an unlimited scaling claim. Inspect growth and
 API consumption before adding cohorts. Frozen source currently uses Git blob
 reads per file, so source size and repeated reads matter as much as student count.
 
+## Catalog visibility
+
+ZeroHub browsing shows the highest available semantic version per project ID.
+Older releases retain their existing exact-version links and immutable artifacts;
+browsing no longer presents a card for each version. An older available release
+can reappear if every newer release is withdrawn. For project removal, operators
+withdraw every available version using the guarded command above; there is no
+student removal UI. Withdrawal changes catalog availability, not existing public
+Blob URLs or their cached bytes.
+
+New game submissions require a committed square PNG screenshot (up to 2048 ×
+2048 pixels and 4 MiB). Existing accepted releases stay readable without one.
+Use Zero's Edit sharing details to choose the PNG path, commit and push it, then
+share. New publisher validation takes effect only after deliberately promoting
+the reviewed publisher source and its policy pin; a website deployment alone
+does not change the pinned admission policy.
+
 ## Backups, withdrawal and retirement
 
 Back up both the authoritative Git registry history and every accepted final

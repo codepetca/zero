@@ -59,9 +59,14 @@ accepted community-registry release or alter native catalog/publication policy.
 Community cards show
 exact versions, verified GitHub contributor identity, pinned source commits,
 optional previews and artifact size/hash details. `?kind=library&id=lib-r12345-health-bar&version=0.1.0`
-inspects one exact release without substituting another. Games offer **Download
-project** into a separate folder; libraries expose Java usage/API and manual
-Maven instructions. Browsing does not install a dependency or run Java.
+inspects one exact release without substituting another. Discovery shows only the latest available version of each project; exact-version
+links still inspect their original release. Project titles are plain text, with
+one short sentence, author/version, **Play** (when hosted) and **GitHub**. There
+are no game source downloads or controls sections. Libraries keep Java usage/API
+and manual Maven instructions in a disclosure. Screenshots use square thumbnail
+frames without cropping the game image. New game submissions require a square
+PNG under the reviewed admission policy; accepted releases without previews remain
+browsable. Browsing does not install a dependency or run Java.
 
 `/hub/share` explains native Zero **Share game**, **Share library** and **Check
 library** commands and official GitHub publication forms. Students use their own
@@ -74,10 +79,10 @@ Read-only `GET /api/sharing/catalog` returns the legacy catalog projection with
 optional web receipts removed for existing strict clients. `GET /api/sharing/catalog/web`
 returns the enriched catalog used by current discovery and new kits. Both validate
 the same canonical immutable snapshot before responding; neither returns registry
-request or operational state. Optional Play latest links open a student's hosted
-live app in a separate tab. Its stable Pages URL may change content after the exact
-source snapshot was shared. Source downloads remain editable Java projects; ZeroHub
-stores no compiled copy of the browser app. The server uses
+request or operational state. Optional **Play** links open a student's hosted
+live app in a separate tab. A single note at the top explains student hosting. Its stable Pages URL may change content after the exact
+source snapshot was shared. Source is linked on GitHub; accepted source archives remain available to existing
+clients. ZeroHub stores no compiled copy of the browser app. The server uses
 the pure schema from `extension/src/sharing/contracts.js`; include that source
 in website builds. Missing configuration, an uninitialized pointer, an invalid
 snapshot or an outage produces an honest unavailable state without fallback.

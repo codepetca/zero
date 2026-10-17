@@ -67,10 +67,10 @@ function fakeGit({files=[],request,missing=false}={}) {
   return {fetcher,calls,state:()=>JSON.parse(bytes.toString()),sha:()=>sha,addIssue:number=>issueNumbers.push(number),rename:()=>{repository={...repository,name:'new-game',html_url:'https://github.com/renamed/new-game',owner:{...repository.owner,login:'renamed'}};}};
 }
 const config={schema:1,repository:'codepetca/zero',registryBranch:REGISTRY_BRANCH,artifactOrigin:origin,policyRevision:policy,gamePublicationEnabled:false};
-async function gameFixture() {
-  const descriptor={schema:1,kind:'game',slug:'coin-game',version:'0.1.0',title:'Coin game',description:'Collect a coin',license:'MIT',controls:'Arrow keys'};
+async function gameFixture({preview=true,previewBytes}={}) {
+  const descriptor={schema:1,kind:'game',slug:'coin-game',version:'0.1.0',title:'Coin game',description:'Collect a coin',license:'MIT',controls:'Arrow keys',...(preview?{preview:'preview.png'}:{})};
   const request={schema:1,kind:'game',slug:'coin-game',version:'0.1.0',repository:{id:'11',ownerId:'7',owner:'student',name:'game',url:'https://github.com/student/game'},requester:{githubId:'7',login:'student'},commit:'a'.repeat(40),folder:'.',descriptor,policyRevision:policy};
-  const files=[...minimalGameFiles().map(file=>({path:file.path,bytes:file.data})),{path:'zero-game.json',bytes:Buffer.from(JSON.stringify(descriptor))},{path:'assets/coin.png',bytes:Buffer.from('coin fixture')}];
+  const files=[...minimalGameFiles().map(file=>({path:file.path,bytes:file.data})),{path:'zero-game.json',bytes:Buffer.from(JSON.stringify(descriptor))},{path:'assets/coin.png',bytes:Buffer.from('coin fixture')},...(preview?[{path:'preview.png',bytes:previewBytes??Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=','base64')}]:[])];
   const remote=fakeGit({files,request}),blob=fakeBlob();
   const registry=new FileRegistry({adapter:createGitHubRegistryAdapter({fetcher:remote.fetcher,token:'registry-fixture-token'}),maxRetries:8});
   const storage=new BlobStorage({sdk:blob.sdk,fetcher:blob.fetcher,token:'blob-fixture-token',artifactOrigin:origin});
@@ -78,6 +78,28 @@ async function gameFixture() {
   const platform=createSharingPlatform({reader,registry,storage,artifactOrigin:origin,policyRevision:policy});
   return {request,files,remote,blob,registry,storage,reader,platform};
 }
+
+test('new game publication requires a committed valid square PNG before any artifact writes',async()=>{
+ for(const options of [{preview:false},{previewBytes:Buffer.from([137,80,78,71,13,10,26,10])}]){
+  const f=await gameFixture(options);await assert.rejects(f.platform.prepareIssue(1),/screenshot/);
+  await assert.rejects(f.platform.publishIssue(1),/screenshot/);assert.equal(Object.keys(f.remote.state().releases).length,0);assert.equal(f.blob.objects.size,0);
+  const record=Object.values(f.remote.state().requests)[0];assert.equal(formatPublicReport(record).correction.code,'game-screenshot');
+ }
+ const f=await gameFixture();const published=await f.platform.publishIssue(1);assert.ok(published.release.artifacts.preview);assert.ok(inspectGamePackage(await f.storage.get(published.release.artifacts.zip.path)).some(file=>file.path==='preview.png'));
+});
+
+test('accepted legacy games without screenshots still deliver and restore without source revalidation',async()=>{
+ const f=await gameFixture();const published=await f.platform.publishIssue(1),key=`game/${published.release.id}/0.1.0`;
+ const legacyRequest=structuredClone(f.request);delete legacyRequest.descriptor.preview;
+ await f.registry.update(state=>{
+  const oldId=state.releases[key].requestId,record=state.requests[oldId];delete record.frozen.descriptor.preview;const id=digest(record.frozen);record.id=id;delete state.requests[oldId];state.requests[id]=record;state.releases[key].requestId=id;delete state.releases[key].release.artifacts.preview;
+ });
+ const observed=await f.reader.publicationIssue(1);
+ const reader={...f.reader,publicationIssue:async()=>({...observed,request:legacyRequest}),source:async()=>{throw Error('Legacy source must not be revalidated');}};
+ const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+ const replay=await platform.publishIssue(1);assert.equal(replay.delivery,'ready');assert.equal(replay.release.artifacts.preview,undefined);
+ await platform.setAvailability(key,'withdrawn');await platform.setAvailability(key,'available');assert.equal((await f.registry.read()).state.availability.at(-1).status,'available');
+});
 
 test('GitHub Contents atomic CAS returns real blob revisions and never creates missing setup',async()=>{
   const remote=fakeGit(),adapter=createGitHubRegistryAdapter({fetcher:remote.fetcher,token:'fixture'});
@@ -301,7 +323,7 @@ test('trusted game pipeline verifies optional web receipt before issuing evidenc
   let calls=0;
   const platform=createSharingPlatform({reader:{...f.reader,verifyWebPublication:async(request,{signal})=>{calls++;assert.ok(signal instanceof AbortSignal);assert.deepEqual(request.web,f.request.web);return structuredClone(request.web);}},registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
   const published=await platform.publishIssue(1);assert.equal(calls,1);assert.deepEqual(published.release.web,f.request.web);
-  assert.deepEqual(Object.keys(published.release.artifacts),['zip']);
+  assert.deepEqual(Object.keys(published.release.artifacts).sort(),['preview','zip']);
   assert.ok([...f.blob.objects.keys()].every(key=>! /(?:web-export|site\/|\.html$|\.js$)/.test(key)));
   // Updating the student site later does not mutate an accepted source release or
   // rerun verification during immutable delivery/reconciliation.

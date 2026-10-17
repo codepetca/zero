@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {dependencySnippet, playLink, releaseLink, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
+import {dependencySnippet, playLink, projectSummary, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
@@ -36,26 +36,27 @@ export function HubDiscovery() {
     releases = selectReleases(catalog, {kind, search, id, version}) as Release[];
   } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
-    <h2 id="sharing-heading">Browse {kind === 'game' ? 'games' : 'libraries'}</h2>
+    <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>
     <HubNavigation active={kind} />
     {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'games':'libraries'}</Link></p> : <div className="hub-form"><label htmlFor="sharing-search">Find {kind==='game'?'a game':'a library'}</label><input id="sharing-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="Title, author or description" /></div>}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'games':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
-      <p className="fine-print">{kind==='game'?'Games include editable source snapshots. Play latest opens the student’s live app, which may change after sharing. Source packaging does not establish gameplay quality or safe execution.':'Libraries use exact Maven versions. You choose when to Add, Update or Revert in Zero; browsing does not change your project.'}</p>
       {!releases.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? 'No releases match this search.' : `No ${kind==='game'?'games':'libraries'} are available yet.`}</p>}
-      <div className="component-choices">{releases.map(release=><article className={`component-choice ${styles.card}`} key={`${release.id}/${release.version}`}>
-        <h3><Link href={releaseLink(release)}>{release.title}</Link></h3><p>{release.description}</p>
-        <p className={styles.metadata}>{release.id} · Version {release.version} · <a href={`https://github.com/${release.contributor.login}`}>@{release.contributor.login}</a> · {release.license}</p>
-        {release.artifacts.preview && <img className="hub-preview" src={release.artifacts.preview.url} alt={`${release.title} preview`} loading="lazy" />}
-        <p><a href={sourceLink(release)}>View source snapshot on GitHub</a></p>
-        {release.status !== 'available' ? <p role="status">This release was withdrawn and cannot be downloaded or added. Your existing local files have not changed.</p> : release.kind === 'game' ? <>
-          <p><strong>Controls:</strong> {release.controls}</p>{playLink(release) && <p><a className="button primary compact" href={playLink(release)} target="_blank" rel="noopener noreferrer">Play latest</a><span className="fine-print"> Student-hosted live app</span></p>}<a className={`button ${playLink(release)?'':'primary '}compact`} href={release.artifacts.zip?.url}>Download source project</a><p className="fine-print">Extract into a new folder, then open that folder in VS Code. Review workspace trust before choosing Run App. This is a separate project.</p>
-        </> : <details><summary>Use this library</summary>
-          <p>{release.libraryKind==='widget'?'JavaFX widget':'Java helper'} · Java 17 · JavaFX 21.0.12</p><p>In Zero, choose Browse ZeroHub, select this exact library version, then Add library and Apply. Use the Java example and choose Run App.</p>
+      <div className={styles.cards}>{releases.map(release=><article className={styles.card} key={`${release.id}/${release.version}`}>
+        {release.artifacts.preview && <img className={styles.thumbnail} src={release.artifacts.preview.url} alt={`${release.title} screenshot`} loading="lazy" />}
+        <div className={styles.cardContent}>
+        <h3>{release.title}</h3><p className={styles.description}>{projectSummary(release.description)}</p>
+        <p className={styles.metadata}><a href={`https://github.com/${release.contributor.login}`}>@{release.contributor.login}</a> · v{release.version}</p>
+        <div className={styles.actions}>
+          {playLink(release) && <a className="button primary compact" href={playLink(release)} target="_blank" rel="noopener noreferrer">Play</a>}
+          <a href={sourceLink(release)}>GitHub<span className="sr-only"> source for {release.title} v{release.version}</span></a>
+        </div>
+        {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
+          <p>In Zero, choose Browse ZeroHub → {release.title} → Add library → Apply.</p>
           {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4><p>{component.description}</p><CodeBlock><code>{`import ${component.className};\n\n${component.usage}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
           {!release.components?.length && <p>Read the exact source for this library’s Java API and examples. Namespace: <code>{release.namespace}</code>.</p>}
-          <details><summary>Manual Maven setup</summary><p>Merge these repository and dependency entries into the existing sections of your project’s pom.xml. Keep the exact version.</p><CodeBlock><code>{dependencySnippet(release)}</code></CodeBlock><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.sources?.url}>Download sources</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
-        </details>}
-        <details><summary>Release details</summary><p>Source commit: <code>{release.source.commit}</code></p><p className={styles.hash}>Source SHA-256: <code>{release.source.sha256}</code></p>{Object.entries(release.artifacts).filter(([name])=>name!=='preview').map(([name, artifact])=><p className={styles.hash} key={name}>{name}: {artifact.size.toLocaleString()} bytes · SHA-256 <code>{artifact.sha256}</code></p>)}</details>
+          <details><summary>Manual Maven setup</summary><p>Add these entries to pom.xml.</p><CodeBlock><code>{dependencySnippet(release)}</code></CodeBlock><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
+        </details> : null}
+        </div>
       </article>)}</div>
     </>}
   </section>;

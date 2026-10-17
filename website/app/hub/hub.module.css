@@ -1,9 +1,23 @@
 .catalog { min-width: 0; overflow-wrap: anywhere; }
+.discovery :global(.secondary) { background: var(--zero-page); color: var(--ink); }
+.discovery :global(.secondary):hover { background: var(--zero-surface); }
 .navigation { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
 .navigation a, .retry { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; font: inherit; background: var(--zero-page, white); }
 .navigation a[aria-current="page"] { color: var(--ink); border-color: var(--purple); font-weight: 600; }
 .navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
-.card { min-width: 0; }
+.cards { display: grid; gap: 24px; }
+.card { display: flex; gap: 24px; align-items: flex-start; min-width: 0; padding: 24px 0; border-top: 1px solid var(--zero-border, var(--outline)); }
+.cardContent { flex: 1; min-width: 0; }
+.cardContent h3 { margin: 0 0 8px; }
+.cardContent .description { margin: 0 0 8px; }
+.cardContent .metadata { margin: 0 0 12px; }
+.cardContent > details { margin-top: 16px; }
+.thumbnail { display: block; flex: 0 0 auto; width: 144px; height: 144px; object-fit: contain; background: var(--zero-surface, var(--pale)); border-radius: 6px; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.actions > a { display: inline-flex; align-items: center; min-height: 44px; }
+.actions :global(.button) { min-width: 0; margin: 0; }
+@media (max-width: 540px) { .card { gap: 16px; } .thumbnail { width: 88px; height: 88px; } }
+@media (max-width: 360px) { .card { flex-direction: column; } }
 .card a { overflow-wrap: anywhere; }
 .metadata { color: var(--muted); font-size: 16px; }
 .hash { overflow-wrap: anywhere; }
