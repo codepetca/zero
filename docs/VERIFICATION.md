@@ -3347,3 +3347,9 @@ and unqualified exact library selection. Still local; no publication.
 Docs sidebar07bd442: website119tests/typecheck/build pass; independent review
 clean. Browser confirms alphabetized categories, Advanced anchor/expansion and
 circle search Enter/focus. No source/deployment or public content changes.
+
+Drawing Pad/retirement2de2339: website120tests/type/build/check and independent
+full+targeted review pass. Unchanged verified Codepetca Drawing source browser
+build, click paint/right clear, square screenshot pass. Real website checks cover
+maintained search/outage and exact/library isolation, oldURL redirects, ZIP404,
+320px dark reflow. No public Pages/Play, registry admission or deployment claim.

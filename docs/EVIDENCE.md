@@ -5154,3 +5154,36 @@ Advanced expansion/link and circle search→Enter/focus. Screenshot inspected at
 output/playwright/docs-categories-alphabetical.png. Independent Luna/medium
 2file review clean,1turn/0fixes; effective model/tokens/time unknown. Small direct
 change; recent usage/storage reused, no publication.
+
+## Retire duplicates; Drawing Pad project — local, 2026-10-17
+
+Owner confirmed codepetca. Existing public Drawing Pad repo1418151381, owner
+116690057, commit595065ae02c5a2a2b339373b447ebbc981d2615d/treebae012ae8c477573f9f626aa94ded8d5cccfbb82
+was anonymously verified and built unchanged for the browser (59files/2161473bytes,
+zero-webfx-2026-10-v2). Real click painting and secondary clear pass; the checked-in
+700×700 screenshot was captured from that app,12842bytes. Repo has_pages=false
+and Pages API404: no public Play URL is fabricated. Existing repo reused.
+
+Implementedb2f2eb4: public example gallery/detail components removed, old routes
+redirect Tutorials, generated public ZIPs/snapshot retired, guides link lessons.
+Drawing Pad appears as a maintained project from verified source, independent
+of community admission, including catalog outages. Not an accepted registry
+release or a policy/ownership exception. Docs2de2339 corrects stale development
+and download guidance. Internal lesson source and maintainer generators retained.
+
+Website120tests/typecheck/build/check pass. Browser: Drawingsearch/image/GitHub,
+no unverified Play, outage fallback plus honest error, no library/exact-version
+leak,4oldURL redirects, oldZIP404, guide without retired links,320px dark reflow.
+Only routine favicon404; injected catalog503 is an explicit outage test.
+Receipts:.verification/zerohub-simplify/{project-*,projects-browser.log,drawing-pad/};
+screenshots output/playwright/projects-drawing-pad{,-phone}.png.
+
+Sol/medium retire_examples owned8paths, source/code verified; Sol/medium
+hub_contract_audit verified/built Drawingrepo, source remained clean. Coordinator
+owned card/docs/integration; one TS annotation fixed before review, no conflicts.
+Independent Sol/high drawing_retirement_review inspected full25fileb2f2eb4 plus
+targeted docs2de2339:1P2docs finding fixed, finalclean. Ledger1initial+1targeted,
+1docsfixbatch/2reviewer turns. Model effectiveness/tokens/worker time unknown;
+coordinator verification~5minutes estimate. Start97%weekly remaining,~316GBhealthy.
+DeepSeek pause honored. No push/deploy/repo mutation/registry/publisher/native
+release/new task/goal/automation. These website changes remain local pending approval.

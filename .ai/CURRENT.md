@@ -1,16 +1,25 @@
-# Local ZeroHub follow-up — 2026-10-17
+# Local ZeroHub and Docs follow-up — 2026-10-17
 
-Owner-requested cards/latest-only browsing and confirmed square screenshots are
-implemented and reviewed at123dc2d; catalog navigation follow-up at063f8e7 in `/Users/stew/.codex/worktrees/zerohub-simplify/zero`,
-branch `codex/zerohub-simplify`. Local preview127.0.0.1:3217/hub.
-ZeroHub now has Projects/Libraries only, separate Share your work, and Projects
-as default. Named example/lesson links survive; example landings go to Tutorials.
-Docs sidebar categories are alphabetical at07bd442; content/search order preserved.
-Root592pass/3skips, website119/type/build, sharing50 and final native35 pass;
-full+targeted independent review clean. Evidence: docs/EVIDENCE.md and website/design-qa.md.
-Next: explicit owner publication approval before source push/PR/merge/deploy,
-new native release or publisher-policy promotion. Existing releases/registry
-unchanged. Preserve other worktrees and prior release state below.
+Worktree `/Users/stew/.codex/worktrees/zerohub-simplify/zero`, branch
+`codex/zerohub-simplify`. Latest-only tiny cards, Play/GitHub, plain titles,
+separate Share action and Projects/Libraries default are implemented. Docs
+sidebar categories are alphabetical. New game square-PNG policy remains local.
+
+Owner superseded legacy-page preservation: the public starter/example gallery,
+its hidden detail pages and generated ZIPs are retired; old example URLs go to
+Tutorials. Supporting guides point to lessons. Internal teaching sources and
+maintainer generators remain. Drawing Pad is a maintained Projects card backed
+by existing public codepetca/zero-drawing-pad595065a, with actual square screenshot.
+Unchanged source browser build and painting/clearing pass. No public Pages exists,
+so no Play URL is claimed. Local app preview3218; website preview3217/hub.
+
+Implementationb2f2eb4 plus docs2de2339 independently reviewed clean after one
+docs correction. Website120/type/build/check pass; browser verifies catalog
+search/outage, exact-release isolation, old route redirects and ZIP404. Earlier
+PNG/root/Docs checks remain recorded in EVIDENCE.md and VERIFICATION.md.
+Next requires explicit owner source/site publication or publisher/native release
+approval. No GitHub repo creation/deletion, remote mutation, registry edit or
+policy promotion occurred. Preserve other worktrees and release state below.
 
 # Current state — Mac 0.5.19 public, metadata promotion, 2026-10-17
 

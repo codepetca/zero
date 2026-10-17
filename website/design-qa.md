@@ -111,3 +111,18 @@ pass. Existing missing favicon404 remains the only browser console error.
 Docs sidebar07bd442 (2026-10-17): all11category names are A–Z. Inspected
 output/playwright/docs-categories-alphabetical.png; Advanced opens and jumps,
 circle search Enter focuses #circle. Reference content order preserved.
+
+## Drawing Pad as a project; examples retired — 2026-10-17
+
+Finalruntimeb2f2eb4/docs2de2339. Inspected actual Codepet Drawing Pad in a700×700
+browser viewport: click paints dark blue, secondary click clears white. Drew the
+house using real pointer events and captured website/public/project-previews/
+drawing-pad.png without source edits/image transformations. It is a square
+screenshot of the unchanged public repository source. No public Pages URL exists.
+
+Actual Projects shows Drawing Pad/@codepetca/GitHub plus community entries;
+search, isolated outage display, exact-release and library exclusions pass.
+Legacy example pages now go to Tutorials; old project ZIP is404. Supporting
+guide no longer links the finished-example collection. Inspected desktop light
+and320px dark output/playwright/projects-drawing-pad{,-phone}.png; no overflow.
+The local screenshot/build does not claim public playable hosting or admission.
