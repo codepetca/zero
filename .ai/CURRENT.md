@@ -19,7 +19,7 @@ VERIFICATION.md. Student guide: docs/STUDENT-FRICTION.md.
 Preserve original funding checkout and armorup game. No credential storage,
 history rewrite, compiler allowlist bypass or generic library execution opening.
 Physical Windows/new live account/provider/publication acceptance remain pending.
-DeepSeek remains paused. One coordinator/one writer per component; four bounded
-review launches/two fix batches. Initial usage 30% weekly remaining and ~324 GB
+DeepSeek remains paused. One coordinator/one writer per component; five bounded
+review launches/three batches (two runtime fixes plus candidate metadata). Initial usage 30% weekly remaining and ~324 GB
 free are shared observations, not attributable cost. Prior release context:
 .ai/history/mac-preview-rollout-20261017.md.

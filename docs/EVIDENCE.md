@@ -29,8 +29,9 @@ One initial P2 exposed normalization-equivalent Mac filenames causing endless
 EEXIST retries; 55bfac6 normalizes names and bounds/progresses attempts (18 asset
 tests). Native acceptance found guidance awaiting a nonmodal toast; fc7ac40 releases
 the guard and handles notification rejection (16 recovery tests). Both targeted
-reviews cleared the fixes. Ledger: 4 launches, 1 initial wave, 2 targeted waves,
-2 fix batches, no unresolved P0–P2. Worker/reviewer tokens and per-worker elapsed
+reviews cleared the fixes; final metadata/documentation integration review is clear.
+Ledger: 5 launches, 1 initial wave, 2 targeted waves, 1 integration wave,
+3 batches (two runtime fixes plus candidate metadata), no unresolved P0–P2. Worker/reviewer tokens and per-worker elapsed
 are unavailable; the initial 30% weekly remaining is shared usage, not cost.
 
 Bulk receipts: ignored `.verification/student-friction/plan.json`, logs and native
