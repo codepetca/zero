@@ -99,25 +99,14 @@ test("tutorial navigation prose and rules are removed without changing instructi
   assert.match(guide, /<hr/);
 });
 
-test("the course guide renders a clickable local starter link while remaining usable as GitHub Markdown", () => {
+test("retired authored example links stay unlinked while external references remain usable", () => {
   const source = "docs/COURSE-PROJECT.md";
-  const markdown = readFileSync(new URL("../../docs/COURSE-PROJECT.md", import.meta.url), "utf8");
-  const html = renderToStaticMarkup(React.createElement(Markdown, {
-    components: {a: ({href, children}) => {
-      const target = resolveContentLink(source, href, {}, {});
-      return target ? React.createElement("a", {href: target}, children) : React.createElement("span", {}, children);
-    }}, children: markdown,
-  }));
-  assert.match(markdown, /\[minimal Zero starter\]\(https:\/\/zero\.codepet\.ca\/hub\?kind=example&example=zero-starter\)/);
-  assert.match(html, /<a href="\/hub\?kind=example&amp;example=zero-starter">minimal Zero starter<\/a>/);
-  assert.equal(resolveContentLink(source, "/hub?kind=example&example=zero-starter", {}, {}), "/hub?kind=example&example=zero-starter");
-  assert.equal(resolveContentLink(source, "/hub?kind=example&example=private", {}, {}), null);
-  assert.equal(resolveContentLink(source, "https://example.com/hub?kind=example&example=zero-starter", {}, {}), "https://example.com/hub?kind=example&example=zero-starter");
-  for (const id of ["hello-app", "study", "coin-game-component", "drawing"]) {
-    assert.match(html, new RegExp(`<a href="/hub\\?kind=example&amp;example=${id}">`));
+  for (const selector of ["kind=example", "kind=all", "example=drawing", "kind=game&example=drawing", "kind=game&kind=example", "kind=example&example=zero-starter"]) {
+    for (const prefix of ["", "https://zero.codepet.ca"]) {
+      assert.equal(resolveContentLink(source, `${prefix}/hub?${selector}`, {}, {}), null);
+    }
   }
-  assert.doesNotMatch(markdown, /https:\/\/github\.com\/codepetca\/zero-(?:starter|hello-java|study-session|coin-game|drawing-pad)(?:\/generate)?\)/);
-  assert.match(markdown, /Use template\*\* when that action is available/);
+  assert.equal(resolveContentLink(source, "https://example.com/hub?kind=example&example=zero-starter", {}, {}), "https://example.com/hub?kind=example&example=zero-starter");
 });
 
 test("lesson navigation starts at zero and reaches the button, name then quiz without looping", () => {
@@ -201,7 +190,7 @@ test("composed examples supply the same shared screens and every ordinary helper
     assert.deepEqual(example.files, [`${id}/Main.java`, ...helpers, ...shared]);
     for (const file of example.files) assert.ok(readFileSync(new URL(`../../student-template/examples/${file}`, import.meta.url), "utf8").length);
     const readme = readFileSync(new URL(`../../student-template/examples/${id}/README.md`, import.meta.url), "utf8");
-    assert.equal(resolveContentLink("student-template/UI.md", `examples/${id}/README.md`, {}, { [`student-template/examples/${id}/README.md`]: readme }), `/hub?kind=example&example=${id}`);
+    assert.equal(resolveContentLink("student-template/UI.md", `examples/${id}/README.md`, {}, { [`student-template/examples/${id}/README.md`]: readme }), `/source?file=${encodeURIComponent(`student-template/examples/${id}/README.md`)}`);
   }
 });
 
@@ -223,11 +212,11 @@ test("Lesson 12 stages expose every runnable helper and reuse canonical assets",
   }
 });
 
-test("stage guides open the runnable example page and unknown guides stay unlinked", () => {
+test("stage guides open read-only source and unknown guides stay unlinked", () => {
   const source = "student-template/lessons/12-media.md";
   for (const id of ["scrolling-game", "platform-game", "level-game", "full-game"]) {
     const key = `student-template/examples/${id}/README.md`;
-    assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, { [key]: "# Copy files" }), `/hub?kind=example&example=${id}`);
+    assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, { [key]: "# Copy files" }), `/source?file=${encodeURIComponent(`student-template/examples/${id}/README.md`)}`);
     assert.equal(resolveContentLink(source, `../examples/${id}/README.md`, {}, {}), null);
   }
   assert.equal(resolveContentLink(source, "../examples/private/README.md", {}, {}), null);

@@ -13,9 +13,8 @@ learn a small set first:
 | A game | `GameApp`: the same startup, plus `update(seconds)`, `draw()`, `keyDown(...)`, `width()`, `height()`, `background(...)`, `fill(...)`, `rect(...)`, `circle(...)`, `textSize(...)`, `text(...)`. |
 | Improve appearance | JavaFX fonts, a few colours, spacing/padding and an editable stylesheet; canvas fonts through `graphics().setFont(...)`. |
 
-Try [Hello, Java](examples/hello-app/README.md) for a complete styled app or
-[Reach the coin](examples/reach-the-coin/README.md) for a two-file game. Both use
-the pinned starter without additional dependencies or Zero APIs.
+Follow the [Greeting App tutorial](lessons/02-hello-name.md) for controls or
+the [Coin Game tutorial](lessons/08-movement.md) for a canvas game.
 
 This reference describes the bundled [App source](src/main/java/zero/App.java)
 and [GameApp source](src/main/java/zero/GameApp.java). Use these classes for

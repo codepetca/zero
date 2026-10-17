@@ -412,3 +412,12 @@ Drawing pad) without promoting a duplicate starter/example collection.
 
 Alphabetize the API sidebar categories by their displayed category name. Keep
 the reference content, method order within categories, search and direct links.
+
+## Retire duplicate projects — owner correction, 2026-10-17
+
+Remove the public starter/example collection and its links/downloads entirely,
+including hidden legacy detail pages. Redirect old example URLs to Tutorials.
+Keep lesson sources with the lessons. Drawing Pad becomes a regular Projects
+entry backed by the existing codepetca/zero-drawing-pad repository, with a square
+actual-app screenshot and GitHub source. Add Play only after verified public
+hosting. This supersedes the earlier decision to preserve named example pages.

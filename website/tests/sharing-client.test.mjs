@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import contracts from '../../extension/src/sharing/contracts.js';
-import {dependencySnippet,playLink,projectSummary,releaseLink,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
+import {dependencySnippet,playLink,projectSummary,releaseLink,selectMaintainedProjects,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
 const origin='https://artifacts.example';
 function fixture(kind,version='0.1.0',status='available') {
   const identity=contracts.identity(kind,'123','sample');
@@ -38,6 +38,21 @@ test('project summaries keep one short sentence and collapse multiline descripti
   assert.ok(projectSummary('Build towers '.repeat(30)).length<=120);
   assert.ok(projectSummary('x'.repeat(300)).length<=120);
 });
+test('maintained projects are searchable without impersonating a community release or appearing in libraries',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const projects=JSON.parse(await readFile(new URL('../content/projects.json',import.meta.url),'utf8'));
+  assert.equal(selectMaintainedProjects(projects,{search:'draw'})[0].repositoryUrl,'https://github.com/codepetca/zero-drawing-pad');
+  assert.equal(selectMaintainedProjects(projects,{search:'CODEPETCA'}).length,1);
+  assert.deepEqual(selectMaintainedProjects(projects,{search:'unrelated'}),[]);
+  assert.deepEqual(selectMaintainedProjects(projects,{kind:'library'}),[]);
+  assert.deepEqual(selectMaintainedProjects(projects,{id:'drawing-pad',version:'0.1.0'}),[]);
+  const {default:preview}=await import('../../extension/src/sharing/game-preview.js');
+  const image=await readFile(new URL(`../public${projects[0].image}`,import.meta.url));
+  const {width,height}=preview.validateGamePreview(image);
+  assert.equal(width,height);
+  assert.match(projects[0].sourceCommit,/^[a-f0-9]{40}$/);
+  assert.equal(projects[0].playUrl,undefined);
+});
 test('links pin source and release; only available libraries yield Maven snippets',()=>{
   const library=fixture('library');
   assert.match(releaseLink(library),/version=0.1.0/);
@@ -58,9 +73,9 @@ test('Play uses a stable external page independently of the immutable source sna
   assert.match(sourceLink(linked),new RegExp('/tree/'+game.source.commit+'$'));
 });
 test('discovery offers Play and GitHub without title links, controls or source downloads',async()=>{
-  const {readFile}=await import('node:fs/promises'),source=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8');
-  assert.match(source,/fetch\('\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer">Play<\/a>/);
-  assert.match(source,/<h3>\{release.title\}<\/h3>/);assert.match(source,/href=\{sourceLink\(release\)\}>GitHub/);
+  const {readFile}=await import('node:fs/promises'),discovery=await readFile(new URL('../components/HubDiscovery.tsx',import.meta.url),'utf8'),source=await readFile(new URL('../components/HubProjectCard.tsx',import.meta.url),'utf8');
+  assert.match(discovery,/fetch\('\/api\/sharing\/catalog\/web'/);assert.match(source,/target="_blank" rel="noopener noreferrer">Play<\/a>/);
+  assert.match(source,/<h3>\{title\}<\/h3>/);assert.match(source,/href=\{sourceHref\}>GitHub/);
   assert.doesNotMatch(source,/Play latest|Controls:|Student-hosted live app|Download source project|Download sources|Release details/);
   assert.doesNotMatch(source,/<iframe|dangerouslySetInnerHTML|api\/sharing\/play/);
 });

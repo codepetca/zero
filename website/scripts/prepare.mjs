@@ -4,6 +4,8 @@ import {
   mkdir,
   copyFile,
   readdir,
+  lstat,
+  rm,
 } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +15,6 @@ import { validatePublishedInstaller } from "../lib/published-installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
-import { prepareExampleProjects } from "../lib/example-projects.mjs";
 import { loadWindowsInstaller, loadWindowsUpdateFeed } from "../lib/windows-installer.mjs";
 import { loadUpdateFeed } from "../lib/update-feed.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -141,5 +142,11 @@ for (const [source, url] of Object.entries(lessonAssets)) {
   await copyFile(resolve(root, source), output);
 }
 
-const exampleProjects = await prepareExampleProjects({ root, requirePreviews: true });
-console.log(`Prepared the course starter and ${exampleProjects.projects.length} complete ZeroHub example projects.`);
+// Retire stale public example downloads left by an earlier website preparation.
+// These fixed generated paths contain no authored source or maintainer projects.
+for (const directory of ["public", "public/generated", ".generated"]) {
+  const info = await lstat(resolve(site, directory));
+  if (!info.isDirectory() || info.isSymbolicLink()) throw new Error(`Generated asset parent must be an ordinary directory: ${directory}`);
+}
+await rm(resolve(site, "public/generated/example-projects"), { recursive: true, force: true });
+await rm(resolve(site, ".generated/example-projects.json"), { force: true });

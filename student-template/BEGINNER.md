@@ -5,10 +5,7 @@ Use ordinary Java fields, methods and objects to hold your app's state.
 You can learn more JavaFX when your project needs it.
 
 The starter opens with **Hello, world!**. Start with [Lesson 0](lessons/00-hello-world.md),
-then follow an example's copy instructions to build your own app or game.
-Examples are outside `src/` until you copy them.
-If an older downloaded kit does not include these examples, the website's
-example pages show the complete files to copy into the same starter destinations.
+then continue the tutorials to build your own app or game.
 
 A GameApp can host ordinary buttons, labels and component views around its canvas.
 It already inherits App; create UI objects rather than a second application.
@@ -17,7 +14,7 @@ See [UI and app/game flow](UI.md) for the shared pattern.
 ## Apps: controls that respond to events
 
 Choose `App` for a quiz, calculator, study tool or small form. Start with
-the complete [Hello app](examples/hello-app/README.md). Its ordinary JavaFX
+the [Greeting App tutorial](lessons/02-hello-name.md). Its ordinary JavaFX
 controls use the platform theme; no external stylesheet is required.
 
 ```text
@@ -74,7 +71,7 @@ change its colours and spacing.
 ## Games: update the state, then draw it
 
 Choose `GameApp` for a drawing, moving objects or a small game. Start with
-the complete [Reach the coin game](examples/reach-the-coin/README.md).
+the [Coin Game tutorial](lessons/08-movement.md).
 
 ```text
 launch → settings() → create canvas → setup() → show the window

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "drawing-pad",
+    "title": "Drawing Pad",
+    "description": "Draw with your mouse.",
+    "author": "codepetca",
+    "repositoryUrl": "https://github.com/codepetca/zero-drawing-pad",
+    "sourceCommit": "595065ae02c5a2a2b339373b447ebbc981d2615d",
+    "image": "/project-previews/drawing-pad.png"
+  }
+]

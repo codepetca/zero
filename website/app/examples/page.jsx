@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-export const metadata = { title: "Examples · ZeroHub" };
+export const metadata = { title: "Tutorials" };
 export default function Examples() {
   redirect("/learn");
 }

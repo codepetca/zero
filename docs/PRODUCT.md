@@ -30,19 +30,19 @@ Download is a regular top-menu page, and platform buttons do not appear below tu
 Docs opens the complete searchable Zero API directly; method names stay visible
 while their details scroll, and category headings scroll normally; setup and longer app guides remain linked from its sidebar.
 ZeroHub opens Projects by default and has only Projects and Libraries in its
-catalog navigation. Share your work is a separate button. Tutorial starters,
-practice projects and checkpoints are not a ZeroHub discovery section; existing
-named example links and complete downloads remain available for lessons and docs.
-The former examples landing page sends readers to Tutorials. No Examples entry
-appears in the top menu. Existing example detail pages retain their source,
-preview, template/download and setup instructions.
+catalog navigation. Share your work is a separate button. Drawing Pad is a
+maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
+community projects with a tiny description, square screenshot and GitHub source.
+It has no Play action until public hosting is verified. Maintained projects do
+not claim a community admission record and stay visible if that catalog is down.
+Tutorial starters, practice projects and checkpoints are not a separate public
+collection. Legacy example routes send readers to Tutorials; their generated
+project downloads are retired. Supporting guides link to the lessons instead
+of finished-project pages. Lesson/reference source files remain readable.
 Students build one feature at a time in their own repository; GitHub/project
-workflow is part of the learning outcome. Five dedicated public GitHub template
-repositories remain available through the setup/tutorial links. Students create
-their own repository from a template and clone their own copy. ZIP users create
-and connect an empty own repository. Each maintained project download is a
-complete runnable project with Java, helpers, resources, framework and wrapper.
-See [the course project guide](COURSE-PROJECT.md).
+workflow is part of the learning outcome. Tutorial setup and the minimal original
+project template remain available through their setup instructions. See
+[the course project guide](COURSE-PROJECT.md).
 Tutorials and Downloads use one circular sun/moon button in the header to switch
 light/dark mode. The OS preference is the initial default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
@@ -57,7 +57,7 @@ dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
 Show only the latest available release of each project, with a plain title,
 one short sentence, author/version, Play and GitHub. Game cards omit controls,
-source downloads and release internals; a single top note explains student hosting.
+source downloads and release internals; a single top note explains author hosting.
 Existing exact-version links remain valid, including withdrawn-release status.
 Library usage stays inside a disclosure. New game submissions require a committed
 square PNG screenshot; existing accepted releases remain available.

@@ -1,7 +1,7 @@
 # Make it look good
 
-Start with the [Hello app](examples/hello-app/README.md) for controls or
-[Reach the coin](examples/reach-the-coin/README.md) for a canvas game.
+Start with the [Greeting App tutorial](lessons/02-hello-name.md) for controls or
+[Coin Game tutorial](lessons/08-movement.md) for a canvas game.
 Keep the layout clear, then change a few deliberate values.
 
 ## A small visual recipe
@@ -44,7 +44,7 @@ use one place for the outer margin.
 
 ## Optional native JavaFX stylesheets
 
-The default [Hello app](examples/hello-app/README.md) runs in the browser with
+The [Greeting App tutorial](lessons/02-hello-name.md) runs in the browser with
 ordinary JavaFX controls and an explicit heading `Font`; it needs no stylesheet.
 The following is an advanced **native JavaFX** experiment. External stylesheets
 and `getStylesheets()` are outside Zero's supported browser profile. Use an

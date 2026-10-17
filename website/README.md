@@ -16,75 +16,38 @@ Preparation reads release metadata and canonical repository documents, lessons a
 
 ## Learning routes
 
-`/learn` opens Lesson0. Lessons0/3/8 require students to create their own repository from the matching empty tutorial template, then clone their own repository through **Project → Clone from GitHub… → Clone here**. The Clone location chooser defaults to `~/Zero Projects` and accepts another folder; an already-cloned Zero folder opens through **Project → Open local project…**. Newer VS Code opens a new window automatically; the 1.95 fallback may ask for Open in New Window. Only verified publication metadata enables Use template; pending templates show explicit unavailable guidance. The starting pages show a compact template action and Setup link to `/docs/setup#start-here`; continuing lessons omit generic setup cards. The full New branch, edit/Run, Commit & push and Merge to main workflow stays in the setup guide. Lesson10 reopens Study and Game; Lesson12 retains its optional media-only ZIP. Tutorial project-ZIP links are not accepted. New source behavior is unreleased; published kits keep their original instructions. `/tutorials/[lesson]` renders the maintained lesson Markdown with all sections expanded by default, related docs and Next lesson navigation. Individual sections can still be collapsed, and section fragments open their enclosing disclosure. `/docs` opens the searchable Zero API, with method names visible while their details scroll. `/docs/setup` opens the setup guide; other `/docs/[slug]` routes share that reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` redirect to the matching ZeroHub example view. Docs and ZeroHub examples share light/dark themes and labeled selectors on narrow screens.
+`/learn` opens Lesson0. Lessons0/3/8 require students to create their own repository from the matching empty tutorial template, then clone their own repository through **Project → Clone from GitHub… → Clone here**. The Clone location chooser defaults to `~/Zero Projects` and accepts another folder; an already-cloned Zero folder opens through **Project → Open local project…**. Newer VS Code opens a new window automatically; the 1.95 fallback may ask for Open in New Window. Only verified publication metadata enables Use template; pending templates show explicit unavailable guidance. The starting pages show a compact template action and Setup link to `/docs/setup#start-here`; continuing lessons omit generic setup cards. The full New branch, edit/Run, Commit & push and Merge to main workflow stays in the setup guide. Lesson10 reopens Study and Game; Lesson12 retains its optional media-only ZIP. Tutorial project-ZIP links are not accepted. New source behavior is unreleased; published kits keep their original instructions. `/tutorials/[lesson]` renders the maintained lesson Markdown with all sections expanded by default, related docs and Next lesson navigation. Individual sections can still be collapsed, and section fragments open their enclosing disclosure. `/docs` opens the searchable Zero API, with method names visible while their details scroll. `/docs/setup` opens the setup guide; other `/docs/[slug]` routes share that reader. Desktop readers have a sidebar; mobile readers have a labeled guide selector. `/examples` and `/examples/[slug]` redirect to Tutorials. Docs and ZeroHub use the shared light/dark themes.
 
-Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, traversal and repeated source query values return 404. Allowed absolute content links include the optional game media ZIP and publication-gated ZeroHub project routes; tutorial project ZIP links are rejected. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, read-only lesson checkpoints, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
+Markdown renders on the server. The browser receives the current route's rendered content and small navigation/folding controllers. Relative file links map to tutorials, guides or the read-only `/source?file=<URL-encoded repository-relative key>` viewer. Unknown, traversal and repeated source query values return 404. Allowed absolute content links include the optional game media ZIP and GitHub project repositories; tutorial project ZIP links are rejected. Requests use an exact key lookup in the prepared snapshot and never read a filesystem path. The build-time allowlist contains regular teaching examples, read-only lesson checkpoints, docs, reader documents, project metadata, LICENSE/README and the two canonical framework Java files. Symlinks are skipped.
 
 ## ZeroHub
 
-`/hub` opens community Projects by default. Catalog navigation contains only
-**Projects** and **Libraries**, with **Share your work** as a separate action.
-The former Starters section is removed. `/hub?kind=example` and `/examples`
-redirect to Tutorials; named example/checkpoint URLs remain compatible for
-existing lesson/docs links, including Drawing pad and the standalone starter.
-Unqualified exact-release links keep their historical library interpretation.
-The final tutorial's Explore projects action opens the community catalog; API
-learning links go directly to Tutorials.
+`/hub` opens Projects, with Projects/Libraries navigation and a separate Share
+your work action. The starter/example collection and its generated project ZIPs
+are retired. All legacy example routes redirect to Tutorials. Supporting docs
+link to the relevant lessons; readable source remains available for reference.
+The internal example/template generators are maintainer tools, not public pages.
 
-Legacy named example pages retain their sidebar, verified template/source links
-and complete downloads. They do not appear in the main catalog navigation.
-`example=zero-starter` selects the minimal starter, which excludes lessons and
-example sources. The prepared snapshot contains a separate `starter` entry and
-all 26 `projects`. Guided downloads include a concrete change, README planning and
-the actual student-owned repository workflow. `/docs/course-project` distinguishes
-Zero's individual Merge to main from GitHub pull request practice. Five public GitHub templates are recorded in `content/project-templates.json` with
-verified numeric repository IDs, main commits and trees. Preparation validates the
-complete publication snapshot before exposing template links. Empty metadata
-retains the source ZIP route; partial or invalid metadata fails preparation.
-`node scripts/prepare-project-templates.mjs` from the repository root prepares
-fresh explicit source inventories outside parent Git repositories; it never publishes.
+`content/projects.json` records maintained first-party projects independently of
+community admission. Drawing Pad points to the anonymously verified public
+`codepetca/zero-drawing-pad` commit and an actual square screenshot of that source
+running in the browser. It stays visible during a community catalog outage and
+appears in project searches. It has no Play link because public hosting has not
+been verified. This entry does not manufacture an accepted community release.
 
-Preparation derives these first-party source ZIPs and their size/hash snapshot
-from the explicit maintained manifests, validates them against the shared project
-archive policy, and writes ignored `public/generated/example-projects/`,
-`.generated/example-projects.json` and `dist/example-projects/`. Required preview
-PNGs are tracked in `public/example-previews/`; regenerate them on macOS with
-`python3 scripts/capture-example-previews.py` after preparation. They are actual
-app Scene snapshots, including the two shared-screen started states and a real
-mouse stroke for Drawing pad. Capture output/receipts are ignored.
+Community discovery shows only each project's latest available release. Exact
+release links retain their original version and withdrawn status. Cards use tiny
+descriptions, plain titles, Play (when verified) and GitHub. No controls section,
+source-project download or release internals appear. Libraries keep usage and
+manual Maven setup in a disclosure. New game submissions require a valid square
+PNG under the reviewed publisher policy; existing accepted releases remain valid.
 
-`/hub?kind=game` and `?kind=library` retain community project/library discovery.
-Maintained examples are built from this repository; they do not fabricate an
-accepted community-registry release or alter native catalog/publication policy.
-Community cards show a short description, author/version and optional screenshot,
-with source links pinned to the shared commit. `?kind=library&id=lib-r12345-health-bar&version=0.1.0`
-inspects one exact release without substituting another. Discovery shows only the latest available version of each project; exact-version
-links still inspect their original release. Project titles are plain text, with
-one short sentence, author/version, **Play** (when hosted) and **GitHub**. There
-are no game source downloads or controls sections. Libraries keep Java usage/API
-and manual Maven instructions in a disclosure. Screenshots use square thumbnail
-frames without cropping the game image. New game submissions require a square
-PNG under the reviewed admission policy; accepted releases without previews remain
-browsable. Browsing does not install a dependency or run Java.
-
-`/hub/share` explains native Zero **Share game**, **Share library** and **Check
-library** commands and official GitHub publication forms. Students use their own
-existing game repository with optional `libraries/<name>/` folders. There is no
-website OAuth, reservation, folder-push, submission queue or Neon database.
-Public publication remains inactive while its operating and checker gates are
-unresolved. A local fixture or successful website build does not publish a release.
-
-Read-only `GET /api/sharing/catalog` returns the legacy catalog projection with
-optional web receipts removed for existing strict clients. `GET /api/sharing/catalog/web`
-returns the enriched catalog used by current discovery and new kits. Both validate
-the same canonical immutable snapshot before responding; neither returns registry
-request or operational state. Optional **Play** links open a student's hosted
-live app in a separate tab. A single note at the top explains student hosting. Its stable Pages URL may change content after the exact
-source snapshot was shared. Source is linked on GitHub; accepted source archives remain available to existing
-clients. ZeroHub stores no compiled copy of the browser app. The server uses
-the pure schema from `extension/src/sharing/contracts.js`; include that source
-in website builds. Missing configuration, an uninitialized pointer, an invalid
-snapshot or an outage produces an honest unavailable state without fallback.
+`/hub/share` explains native sharing and the official GitHub request forms.
+The website has no account session or write token. The catalog APIs validate the
+canonical snapshot; the legacy endpoint strips optional web receipts, while
+`/api/sharing/catalog/web` exposes checked Play links. Those links open the
+author's mutable hosted app in a new tab. Missing configuration or an outage
+shows an honest shared-catalog error and retry; maintained projects still render.
 
 ## Download states
 

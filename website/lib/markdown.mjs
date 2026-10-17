@@ -1,7 +1,5 @@
 import path from "node:path";
-import { isLessonDocumentId, examples } from "./learning.mjs";
-import {courseStarterId, featuredProjectIds, projectHref} from "./project-curriculum.mjs";
-const projectGuideLinks = new Set([courseStarterId, ...featuredProjectIds].map(projectHref));
+import { isLessonDocumentId } from "./learning.mjs";
 export const slugify = (text) =>
   text
     .toLowerCase()
@@ -20,10 +18,11 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
   const lessonDownload = href?.match(/^(?:https:\/\/zero\.codepet\.ca)?(\/generated\/learning-assets\/game-assets\.zip)$/);
   if (lessonDownload) return lessonDownload[1];
   if (href?.startsWith("/generated/") || href?.startsWith("https://zero.codepet.ca/generated/")) return null;
-  // Authored Hub links work on GitHub and use the local, publication-gated
-  // project pages on the website. Arbitrary root routes remain unlinked.
-  for (const projectLink of projectGuideLinks) {
-    if (href === projectLink || href === `https://zero.codepet.ca${projectLink}`) return projectLink;
+  // Retired example selectors must not become live links in older authored prose.
+  if (href?.startsWith("/hub?") || href?.startsWith("https://zero.codepet.ca/hub?")) {
+    const local = new URL(href, "https://zero.codepet.ca");
+    if (local.origin === "https://zero.codepet.ca" && local.pathname === "/hub" &&
+        (local.searchParams.has("example") || local.searchParams.getAll("kind").some(kind => ["example", "all"].includes(kind)))) return null;
   }
   if (!href || href.startsWith("#") || /^(https?:|mailto:)/.test(href))
     return href;
@@ -42,10 +41,6 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
   if (alias) {
     const anchor = fragment ? alias[1].aliases[key][fragment] : "";
     return documentHref(alias[0]) + (anchor ? `#${anchor}` : "");
-  }
-  if (!fragment && Object.hasOwn(sources, key)) {
-    const example = examples.find((item) => key === `student-template/examples/${item.id}/README.md`);
-    if (example) return `/hub?kind=example&example=${example.id}`;
   }
   if (Object.hasOwn(sources, key))
     return (

@@ -28,6 +28,16 @@ export function projectSummary(description) {
   const short = sentence.slice(0, 119).replace(/\s+\S*$/, '').trimEnd();
   return `${short || sentence.slice(0, 119)}…`;
 }
+
+// Maintained projects have verified GitHub source, independently of community
+// admission. Never substitute them for an exact community release request.
+export function selectMaintainedProjects(projects, {kind = 'game', search = '', id = '', version = ''} = {}) {
+  if (kind !== 'game' || id || version) return [];
+  const phrase = search.trim().toLowerCase();
+  return projects.filter(project => !phrase || [project.title, project.description, project.author]
+    .some(value => value.toLowerCase().includes(phrase)))
+    .sort((a, b) => a.title.localeCompare(b.title, 'en'));
+}
 function compareVersions(a, b) {
   const left = a.split('.').map(Number), right = b.split('.').map(Number);
   for (let index = 0; index < 3; index++) if (left[index] !== right[index]) return left[index] - right[index];
