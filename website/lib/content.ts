@@ -1,5 +1,6 @@
 import snapshot from '../.generated/content.json';
-import { availableInstaller, installerHref, landingDownloadHref, localDownloadsAllowed } from './installer.mjs';
+import { installerHref, landingDownloadHref, localDownloadsAllowed } from './installer.mjs';
+import { availableInstaller } from './published-installer.mjs';
 import { availableKitRelease, releaseAssetHref } from './contracts.mjs';
 export const release = snapshot.release as {
   schema: number; kitVersion: string; coreVersion: string;

@@ -8,7 +8,8 @@ import {
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessonAssets } from "../lib/learning.mjs";
-import { validateInstallerManifest, validatePublishedInstaller } from "../lib/installer.mjs";
+import { validateInstallerManifest } from "../lib/installer.mjs";
+import { validatePublishedInstaller } from "../lib/published-installer.mjs";
 import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";

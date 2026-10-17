@@ -5,7 +5,8 @@ import ts from 'typescript';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
 import { availableKitRelease, releaseAssetHref, validateManifest, validatePublishedKit } from '../lib/contracts.mjs';
-import { availableInstaller, installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
+import { installerHref, landingDownloadHref, localDownloadsAllowed } from '../lib/installer.mjs';
+import { availableInstaller } from '../lib/published-installer.mjs';
 const authored = JSON.parse(await readFile(new URL('../../release/kit.json', import.meta.url)));
 validateManifest(authored);
 // Exercise local and published states independently of the live release phase.

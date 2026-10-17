@@ -4939,8 +4939,8 @@ local0.5.18 removed the public0.5.17Mac button despite retained published snapsh
 Root corrected selection to validate/preserve the published native snapshot until
 current publication or explicit local preview. Button label and platform-version
 help use the same selected manifest; native local download route remains bound to
-current installer. Hosted local flag remains disabled. Update-feed snapshot validation
-shares the same published-only guard. Meaningful tests cover current/local/published/
+current installer. Hosted local flag remains disabled. Published-only snapshot validation remains strict; native verifier/update-feed
+validation files retain the exact signed-build source bytes. Meaningful tests cover current/local/published/
 missing precedence, malformed/newer/local snapshot rejection, hostedflagboundary and
 rendered exactMac+Windowsbuttons.17focused/117website tests,typecheck,productionbuild
 pass. Actual Chrome home/downloads show both exact0.5.17publicURLs and correctversion,
