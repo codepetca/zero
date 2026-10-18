@@ -17,9 +17,12 @@ when adding features; a new feature does not reset the agreed interaction style.
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
 - When signed out, show only **Sign in** in the GitHub area; hide the project
   dropdown and branch, while keeping local Run and files available. When signed
-  in, show the clickable username and **Project** dropdown, or the open folder
-  name / connected **owner/repository**. Account actions use native VS Code
-  controls through Zero's supported GitHub App provider. The menu offers **New
+  in, show the open folder / connected **owner/repository** as the project menu,
+  without a duplicate username row or visible chevron. Allow its label to wrap to
+  two lines; retain the full accessible name and tooltip. **GitHub account…** in
+  that menu opens account actions through Zero's supported GitHub App provider.
+  A single **ZeroHub** menu contains **Projects**, **Libraries** and **Share project**
+  for eligible signed-in original projects; tutorials and local practice cannot share. The menu offers **New
   project…**, **Clone from GitHub…** and **Open local project…**; an eligible
   original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain
   branch actions and **Publish app** in the menu, with **Commit & push** and

@@ -6,7 +6,10 @@ assets retain their existing versions and bytes.
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
 webview, tree, task and command APIs. Files use Zero’s Files view or native Explorer
-and open in the normal editor. Zero’s controls are collapsible above Files; idle status is empty. Tutorials
+and open in the normal editor. Controls and Files share one continuous view; idle status is empty. After GitHub
+sign-in, the project menu shows the folder or owner/repository on up to two lines,
+without a duplicate username row or chevron. Choose **GitHub account…** inside it
+for native account controls. Tutorials
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
@@ -57,7 +60,7 @@ string literals with **Copy asset paths**. **Recovery…** opens native changes 
 previews an earlier tracked file version as an undoable edit. Save/test and Commit
 & push a correction; history is preserved. VS Code's auto-save preference applies.
 
-**Share project** guides game details, Commit & push and optional Publish app
+**ZeroHub → Share project** guides game details, Commit & push and optional Publish app
 before the reviewed GitHub form. Cancel preserves saved details. Submit the form
 on GitHub; opening it does not mean gallery acceptance. Each handoff rechecks
 account, repository and exact uploaded source; workflow scope expansion hints the
@@ -222,7 +225,7 @@ remain pending. Review focused changes before classroom adoption.
 
 ## ZeroHub libraries
 
-Choose **Browse ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command Palette. **Browse ZeroHub → Projects** opens complete examples/templates on the website. Signed-in students can use **Share project**; advanced library authoring remains under **Zero: Libraries and Games** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
+Choose **ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command Palette. **ZeroHub → Projects** opens shared projects on the website. Signed-in students can use **ZeroHub → Share project** for eligible original projects; advanced library authoring remains under **Zero: Libraries and Games** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
 
 Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
 

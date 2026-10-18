@@ -157,7 +157,7 @@ test('empty-window welcome is silent until explicit native Connect and manual re
   answer('Connect GitHub');await settle(()=>f.notices.some(item=>item.text.includes('connected as student')));
   assert.ok(f.authCalls.every(call=>call.options.silent),'A newly existing account is reused without another grant');
   f.setSession(undefined);f.setFailure(true);await f.commands.get('zero.signInToGitHub')();assert.match(f.errors.at(-1),/cancelled or unavailable/);assert.doesNotMatch(f.errors.at(-1),/PRIVATE/);
-  f.setFailure(false);f.setSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/Signed in as retry/);
+  f.setFailure(false);f.setSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/zero.chooseRepository/);assert.doesNotMatch(f.webview.html,/Signed in as retry|data-command="zero.githubAccount"/);
   assert.deepEqual(f.authCalls.at(-1).scopes,[]);assert.deepEqual(f.authCalls.at(-1).options,{createIfNone:true});
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);assert.equal(await fs.readFile(path.join(f.root,'zero.json'),'utf8'),'{}');
 });
@@ -250,15 +250,15 @@ test('signed-in empty Project menu offers New, Clone and Open local; opening reu
   assert.doesNotMatch(f.webview.html,/zero.chooseRepository|Current branch:|Start tutorial<\/button>/);
   await f.commands.get('zero.chooseRepository')();assert.equal(picks.length,0);
   f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
-  assert.match(f.webview.html,/>Project /);assert.match(f.webview.html,/zero.chooseRepository/);
-  await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>[item.label,item.action]),[['New project…','new'],['Clone from GitHub…','clone'],['Open local project…','local']]);assert.equal(picks[0].options.title,'Project');
+  assert.match(f.webview.html,/class="repo-label">Project<\/span>/);assert.match(f.webview.html,/zero.chooseRepository/);
+  await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>[item.label,item.action]),[['New project…','new'],['Clone from GitHub…','clone'],['Open local project…','local'],['GitHub account…','account']]);assert.equal(picks[0].options.title,'Project');
   assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceNewWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
 });
 
 test('sign-in is independent of local practice while sharing stays unavailable',async t=>{
   const f=await fixture(t,{practice:true});assert.match(f.webview.html,/>Sign in<\/button>/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
   f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
-  assert.match(f.webview.html,/Signed in as student/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
+  assert.doesNotMatch(f.webview.html,/Signed in as student|data-command="zero.githubAccount"/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
   await f.commands.get('zero.uploadToGitHub')();assert.match(f.errors.at(-1),/local lesson practice/);
 });
 

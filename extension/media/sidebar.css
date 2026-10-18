@@ -21,14 +21,14 @@ button.secondary:hover { background:var(--vscode-button-secondaryHoverBackground
 button.account,button.link,button.repo-choice { border:1px solid transparent; background:transparent; color:var(--zero-link); text-align:left; justify-content:flex-start; padding:4px 0; margin:0; min-height:28px; }
 button.account { width:auto; min-width:0; font-size:.92em; color:var(--zero-muted); }
 button.account:hover,button.link:hover,button.repo-choice:hover { background:transparent; text-decoration:underline; }
-button.repo-choice { flex:1; width:auto; color:var(--zero-text); justify-content:space-between; }
+button.repo-choice { flex:1; width:auto; color:var(--zero-text); }
+.repo-label { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; min-width:0; }
 .branch-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:2px 0 5px; }
 .branch { display:inline-flex; align-items:center; gap:7px; min-width:0; overflow-wrap:anywhere; color:var(--zero-muted); }
 .branch svg { width:16px; height:16px; flex:none; }
 button.change { width:auto; flex-shrink:0; font-size:.92em; }
 button.upload { margin:1px 0 5px; }
 .hub-actions { margin-top:4px; }
-button.share { font-size:.92em; }
 .files-section { border-top:1px solid var(--vscode-panel-border,var(--zero-border)); margin-top:10px; padding-top:8px; }
 h2 { font:inherit; font-weight:500; color:var(--zero-muted); margin:0 0 4px; }
 .file-row { display:flex; align-items:center; gap:6px; padding:3px 3px 3px calc(3px + var(--depth,0)*12px); min-height:26px; cursor:pointer; overflow-wrap:anywhere; }

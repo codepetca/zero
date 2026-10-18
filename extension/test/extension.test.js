@@ -83,7 +83,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
-  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0;
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0,shareCalls=0;
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
@@ -98,7 +98,12 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},getCommands:async()=>['workbench.action.manageAccounts'],executeCommand:async (id,uri)=>{dispatched.push(id);if(id==='git.checkout'){assert.equal(uri.fsPath,root);if(checkoutGate)await checkoutGate;if(checkout)await checkout();}}},
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
-  const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
+  const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
+    if(id==='vscode')return vscode;
+    const loaded=originalLoad.call(this,id,...args);
+    if(id==='./sharing/editor')return {...loaded,createSharingEditor:(...options)=>{const editor=loaded.createSharingEditor(...options);editor.commands['zero.shareGame']=async()=>{shareCalls++;};return editor;}};
+    return loaded;
+  };
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));
   const appProvider={removeSession:async id=>{removed.push(id);session=undefined;},dispose(){}};
   const repositories={access:async()=>assert.fail('No live repository access is needed in this sidebar/checkout test'),create:async(input,{ticket})=>{assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);creations.push(input);return {ticket,repository:{id:12,html_url:'https://github.com/student/'+input.name},installation:{id:99}};}};
@@ -144,7 +149,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   await commands.get('zero.githubAccount')();assert.match(errors.at(-1),/Sign in to GitHub/);assert.equal(authCalls.at(-1).options.createIfNone,true);
   nextChoice='create';await commands.get('zero.chooseRepository')();assert.equal(opened.length,0,'Cancelled sign-in cannot open repository creation');
   session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};
-  await commands.get('zero.signInToGitHub')();assert.match(webview.html,/title="Signed in as student"/);assert.match(webview.html,/>student<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"|data-command="zero.signInToGitHub"/);
+  await commands.get('zero.signInToGitHub')();assert.doesNotMatch(webview.html,/Signed in as student|data-command="zero.githubAccount"/);assert.match(webview.html,/class="repo-label">zero-ui-/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"|data-command="zero.signInToGitHub"/);
   const beforeCreateInput=inputCount;
   await commands.get('zero.chooseRepository')();assert.equal(creations.length,0);assert.equal(inputCount,beforeCreateInput);assert.match(notices.at(-1),/Simulation only/);
   mode='live';inputs.push('score-game');nextChoice='new';await commands.get('zero.chooseRepository')();
@@ -155,21 +160,35 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['change','signOut']);
   const dispatchCount=dispatched.length;nextChoice='signOut';await commands.get('zero.githubAccount')();
   assert.deepEqual(removed,['student-session']);assert.equal(dispatched.length,dispatchCount,'Signing out removes only Zero’s App session');assert.match(webview.html,/Sign in to GitHub/);
-  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE',scopes:[]};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('Signed in as student'));
+  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE',scopes:[]};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
   connectionSession={...session,id:'replacement-session'};nextChoice='change';await commands.get('zero.githubAccount')();
   assert.deepEqual(removed,['student-session','student-session']);assert.equal(authCalls.at(-1).options.createIfNone,true);assert.equal(authCalls.at(-1).options.clearSessionPreference,undefined,'Account replacement stays within Zero’s provider');
-  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && />student\/app /.test(webview.html));
-  assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/>student\/app /);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
+  repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && /class="repo-label">student\/<wbr>app/.test(webview.html));
+  assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/class="repo-label">student\/<wbr>app/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/,'Publishing lives in repository actions');
+  assert.match(webview.html,/aria-haspopup="dialog"[^>]*><span class="repo-label">/);
+  assert.doesNotMatch(webview.html.match(/<button class="repo-choice"[\s\S]*?<\/button>/)[0],/<svg/,'The project menu needs no visible chevron');
+  assert.doesNotMatch(webview.html,/Browse ZeroHub|data-command="zero.shareGame"/,'Sharing belongs inside the single ZeroHub menu');
+  nextChoice=undefined;await commands.get('zero.browseZeroHub')();
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries','share']);
+  assert.equal(picks.at(-1).items.at(-1).label,'Share project');
+  nextChoice='share';await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Share project dispatches the existing guarded sharing command');
+  pickEffect=async()=>{await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));};
+  await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Changing to a tutorial while the menu is open cancels sharing');
+  pickEffect=undefined;await fs.writeFile(path.join(root,'zero.json'),'{}');
+  pickEffect=async()=>{session=undefined;authEvent({provider:{id:'zero-github'}});};
+  await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Signing out while the ZeroHub menu is open cancels sharing');
+  pickEffect=undefined;session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
+  nextChoice='account';await commands.get('zero.chooseRepository')();assert.equal(picks.at(-1).options.title,'GitHub: student','Native account actions remain reachable inside the project menu');
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','new','clone','local']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','new','clone','local','account']);
   const beforePublishAuth=authCalls.length;nextChoice='publish';await commands.get('zero.chooseRepository')();assert.match(webview.html,/Simulation only — no publishing files/);assert.equal(authCalls.length,beforePublishAuth,'Repository menu dispatch preserves publishing simulation isolation');
-  session={...session,account:{id:'1',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('&lt;img src=x onerror=&quot;bad&quot;&gt;'));
-  assert.match(webview.html,/&lt;img src=x onerror=&quot;bad&quot;&gt;/);assert.doesNotMatch(webview.html,/<img|PRIVATE/,'Account labels must be escaped and tokens excluded');
+  session={...session,account:{id:'1',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
+  assert.doesNotMatch(webview.html,/<img|&lt;img|PRIVATE/,'Account labels and tokens stay out of sidebar HTML');
   connectionSession=undefined;session=undefined;authEvent({provider:{id:'zero-github'}});await settle(()=>/Sign in to GitHub/.test(webview.html) && !/data-command="zero.uploadToGitHub"/.test(webview.html));assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"/);
   assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"|Current branch:|student\/app/,'Signed-out GitHub area contains only Sign in');
   nextChoice=undefined;const signedOutPicks=picks.length;await commands.get('zero.chooseRepository')();assert.equal(picks.length,signedOutPicks);
-  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('Signed in as student'));
+  session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
   nextChoice='open';await commands.get('zero.chooseRepository')();assert.equal(opened.at(-1).url,'https://github.com/student/app');
   const beforeSwitch=dispatched.length;nextChoice='switch';await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeSwitch,'Simulation does not switch a branch');
   mode='live';checkout=async()=>{currentBranch='add-score';};const beforeSwitchAuth=authCalls.length;
@@ -188,10 +207,11 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','new','clone','local'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','new','clone','local','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
+  await commands.get('zero.browseZeroHub')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries'],'Tutorial projects do not offer Share project');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['new','clone','local'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['new','clone','local','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
   nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });

@@ -209,7 +209,7 @@
       },
       {
         "command": "zero.browseZeroHub",
-        "title": "Zero: Browse ZeroHub"
+        "title": "Zero: ZeroHub"
       },
       {
         "command": "zero.showOutput",

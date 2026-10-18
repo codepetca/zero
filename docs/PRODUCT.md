@@ -279,8 +279,11 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Idle status is empty; app progress/errors
   appear when there is a message. Signed-out GitHub controls show only Sign in;
   the project dropdown and branch are hidden, and local Run/files remain usable.
-  Signed in shows a clickable username and Project dropdown (or current folder /
-  connected origin). Clone from GitHub starts its location picker at
+  Signed in shows the project menu as the current folder or connected owner/repository,
+  without a duplicate username or visible chevron. Its label wraps to two lines;
+  the full name stays accessible and in its tooltip. GitHub account… in that menu
+  opens the existing account actions. ZeroHub opens Projects, Libraries and Share
+  project for eligible signed-in original projects. Clone from GitHub starts its location picker at
   `~/Zero Projects`, with another location selectable. Open local project opens
   an existing Zero folder without cloning/moving it. New project collects its
   name, visibility and location before creating and cloning. An eligible

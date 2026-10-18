@@ -166,7 +166,7 @@ function activate(context, services = {}) {
       if (!appProvider) throw new Error('The Codepet GitHub App is not configured in this Zero release. Local running still works.');
       if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
       await auth.signIn(false);
-      if (!disposed) state = auth.status;
+      if (!disposed) {state = ''; output.appendLine(auth.status);}
     } catch (error) {
       if (!disposed) throw error;
     } finally { signingIn = false; if (!disposed) refresh(); }
@@ -427,6 +427,7 @@ function activate(context, services = {}) {
       const recoveryUrl=recovery&&typeof recovery.repositoryUrl==='string'?recovery.repositoryUrl:undefined;
       const projectChoices = [...(recoveryUrl?[{label:'Resume created project…',description:recoveryUrl,action:'recover'}]:[]), {label:'New project…',action:'new'}, {label:'Clone from GitHub…', action:'clone'}, {label:'Open local project…', action:'local'}];
       if (connected) items.push(...projectChoices); else items.unshift(...projectChoices);
+      items.push({label:'GitHub account…', action:'account'});
       const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project', placeHolder:'Choose a project action'});
       if (isBusy() || !choice) return;
       await repositoryStatus();
@@ -439,6 +440,7 @@ function activate(context, services = {}) {
       if (choice?.action === 'new') await actions['zero.newProject']();
       if (choice?.action === 'clone') await actions['zero.cloneRepository']();
       if (choice?.action === 'local') await actions['zero.openLocalProject']();
+      if (choice?.action === 'account') await actions['zero.githubAccount']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
       if (choice?.action === 'copy') await actions['zero.copyRepositoryLink']();
       if (choice?.action === 'publish') await actions['zero.publishWeb']();
@@ -533,15 +535,24 @@ function activate(context, services = {}) {
     },
     'zero.browseZeroHub': async () => {
       if (isBusy()) return;
+      await repositoryStatus();
+      if (isBusy()) return;
+      const root = projectRoot;
       const choice = await quickPick([
         {label:'Projects', description:'Browse shared games', action:'projects'},
-        {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'}
-      ], {title:'ZeroHub', placeHolder:'What would you like to browse?'});
+        {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'},
+        ...(auth.signedIn && originalWork ? [{label:'Share project', action:'share'}] : [])
+      ], {title:'ZeroHub', placeHolder:'Choose a ZeroHub action'});
       if (isBusy()) return;
       if (choice?.action === 'projects' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub?kind=game')))) {
         throw new Error('Could not open ZeroHub. Open https://zero.codepet.ca/hub in your browser.');
       }
       if (choice?.action === 'libraries') await actions['zero.browseHub']();
+      if (choice?.action === 'share') {
+        await repositoryStatus();
+        if (isBusy() || projectRoot !== root || !auth.signedIn || !originalWork) return;
+        await actions['zero.shareGame']();
+      }
     },
     'zero.showOutput': () => output.show(true),
     'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),
@@ -616,10 +627,9 @@ function activate(context, services = {}) {
     const nonce = crypto.randomBytes(16).toString('hex');
     const disabled = isBusy() ? 'disabled' : '';
     const connected = repository.startsWith('https://github.com/');
-    const accountTitle = auth.signedIn ? `Signed in as ${auth.accountLabel}` : 'Sign in to GitHub';
-    const account = `<button class="account" data-command="zero.githubAccount" title="${escape(accountTitle)}" aria-label="${escape(accountTitle)}" aria-haspopup="dialog" ${disabled}>${auth.signedIn ? escape(auth.accountLabel) : 'Sign in'}</button>`;
+    const account = `<button class="account" data-command="zero.githubAccount" title="Sign in to GitHub" aria-label="Sign in to GitHub" aria-haspopup="dialog" ${disabled}>Sign in</button>`;
     const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
-    const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}>${escape(repoName)} ${icon('ChevronDown')}</button>`;
+    const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span></button>`;
     const branchControl = auth.signedIn && connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
@@ -627,9 +637,9 @@ function activate(context, services = {}) {
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountId && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
-    const githubPanel = !auth.signedIn ? account : `${account}<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
+    const githubPanel = !auth.signedIn ? account : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
     const projectTools=projectRoot ? `<div class="row"><button class="link" data-command="zero.importAssets" ${disabled}>Add assets…</button><button class="link" data-command="zero.recovery" ${disabled}>Recovery…</button>${assets.canCopyPaths()?`<button class="link" data-command="zero.copyImportedAssetPaths" ${disabled}>Copy asset paths</button>`:''}</div>` : '';
-    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" ${disabled}>${icon('ExternalLink')}Browse ZeroHub</button>${!originalWork || !auth.signedIn ? '' : `<button class="link share" data-command="zero.shareGame" ${disabled}>Share project ${icon('ArrowUpRight')}</button>`}</section>${projectTools}`;
+    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>${icon('ExternalLink')}ZeroHub</button></section>${projectTools}`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,status:state,failed:buildFailed}); return;
