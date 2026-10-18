@@ -5905,3 +5905,55 @@ operative handoff is corrected with this receipt. Review turns1–2 cover initia
 source and owner correction; no native VS Code/Windows claim is added. This
 receipt/current-only metadata correction receives a separate short consistency
 check; source coverage is reused. Local-only delivery; no install or publication.
+
+
+## Public repository creation and shorter sign-in — 2026-10-18
+
+Owner explicitly requires all repositories created through Zero to be public and
+removes the visibility picker. Local source9e9143d sends private:false from all
+three project-creation entry points and rejects other creation visibility before
+credentials/network. Returned/verified visibility checks, numeric account binding,
+selected installation access, cancellation and uncertain-creation recovery stay.
+Existing repository clone/access visibility is unchanged. The name input says
+public; source82f95f5 adds Files you push will be public for existing local projects.
+The first device-code modal is Connect Zero to GitHub plus one short code sentence;
+copy/continue, clipboard-before-browser, progress code and cancellation remain.
+Matching active design/setup/product and student-template guidance is aligned;
+immutable published history is preserved. Ordinary Java is unchanged.
+
+Coordinator implemented code; public_repo_docs (requestedSol/medium, effective
+configuration unknown) supplied11documentation paths, inspected by coordinator.
+No conflicts or doc-worker rework. Independent public_repo_flow_review:
+- Turn1,3bf21cb..9e9143d:complete18-file diff plus immediate callers; accepted two
+  findings (obsolete onboarding test expectation, local-source public disclosure).
+- Turn2,9e9143d..82f95f5:complete4-file correction and immediate boundary, clean.
+- Turn3,82f95f5..faeeb4a:complete2-file test-only correction, clean. The broader
+  suite found a separate obsolete lesson fixture after turn2; local investigation
+  removed the retired visibility-cancel step, retained actual cancellation stages
+  and removed the final unused private-picker mock. Search found no more matching
+  creation fixtures. No runtime change after82f95f5. Initial unchanged coverage
+  reused; extra integration review would add no coverage.
+Ledger:3turns/launches,1initial wave,2targeted waves,2fix batches,0outstanding
+review findings. Requestedgpt-6-sol/medium; effective model/tokens/attributable
+reviewer and coordinator seconds unknown. Weekly remaining38% and storage301.6GB
+healthy at start; allowance is account-wide, not task cost. DeepSeek stays paused.
+
+Checks:64initial focused,88GitHub suite,55onboarding/extension correction and30
+lesson/onboarding correction tests pass; rootcheck anddiffcheck pass. The broad
+npmtest run completion is recorded below separately. Logs/receipt ignored under
+.verification/public-repo-flow-20261018. Native VSCode interactive modal/layout,
+live GitHub creation/sign-in and physical Windows were not tested. No source push,
+merge, account operation, preview install or release publication performed.
+
+The preceding sidebar owner-correction metadata review (sidebar_brand_title_review
+turn3, beb3986..3bf21cb) completed clean. Original height/activity-bar-only remains
+current. The superseded in-panel-heading screenshots are historical fixtures;
+no new native rendering claim is made. Its temporary preview server is closed.
+
+Broad run result:714tests,710passed,3skipped,1failed,554.2seconds. Sole failure
+was the obsolete lesson-project visibility cancellation assertion, already fixed
+infaeeb4a and covered by the clean30-test lesson/onboarding rerun. The full run
+loaded that test before its correction. Final acceptance combines unchanged broad
+coverage with the corrected-file pass and independent test-delta review; there
+was no second complete run. No unresolved test failure remains. This result does
+not imply native/live/Windows acceptance. Working source remains local-only.

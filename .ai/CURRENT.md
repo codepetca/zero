@@ -12,8 +12,15 @@ visibility, account, installation, cancellation and recovery checks. Existing
 repository access/clone visibility is unchanged. The name prompt says public.
 Modal: Connect Zero to GitHub; Copy this code and paste it on GitHub: CODE.
 The existing copy/continue button, clipboard, browser and cancellation flow remain.
-Setup/product guidance is aligned. Focused64tests and broader88GitHub tests pass;
-root check passes. Independent complete-diff review pending before local delivery.
+Setup/product guidance is aligned. Source82f95f5; test correctionsfaeeb4a.
+Focused64 and broader88GitHub tests pass;55onboarding/extension tests and30lesson/
+onboarding correction tests pass; rootcheck/diffcheck pass. Independent Sol/medium
+complete review plus two targeted corrections clean (3turns,2fixbatches). Review
+caught an obsolete onboarding expectation; the broad suite caught a separate old
+visibility-cancellation fixture. Both are corrected and reviewed. Full714-test run:710pass,3skip,1failure
+(the obsolete lesson fixture loaded before correction). Its corrected30-test
+suite passes; unchanged broad coverage reused without another9-minute full run.
+No unresolved failure; no remaining creation visibility fixture found by search. Native/live/Windows coverage remains separate.
 
 Previous sidebar refinements remain: current panel height/activity-bar logo only,
 text-only ZeroHub menu with eligible Share project, two-line owner/repository menu
