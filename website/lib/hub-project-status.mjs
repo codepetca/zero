@@ -23,8 +23,8 @@ export function canonicalPagesUrl(repositoryUrl) {
   const parts = repositoryParts(repositoryUrl);
   if (!parts) return null;
   const owner = parts.owner.toLowerCase();
-  const repo = parts.repo.toLowerCase();
-  return repo === `${owner}.github.io`
+  const repo = parts.repo;
+  return repo.toLowerCase() === `${owner}.github.io`
     ? `https://${owner}.github.io/`
     : `https://${owner}.github.io/${repo}/`;
 }

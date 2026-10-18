@@ -32,7 +32,7 @@ export function HubAccount(){
   useEffect(()=>{setCallbackError(['denied','invalid','failed','unavailable','error','expired'].includes(new URLSearchParams(window.location.search).get('github')||''));},[]);
   async function signOut(){
     if(!user||busy)return;setBusy(true);setFailure('');
-    try{const response=await fetch('/api/hub/github/logout',{method:'POST',credentials:'same-origin',headers:{'X-Hub-CSRF':user.csrfToken},redirect:'error',signal:AbortSignal.timeout(10000)});if(!response.ok)throw new Error();await refresh();}
+    try{const response=await fetch('/api/hub/github/logout',{method:'POST',credentials:'same-origin',headers:{'X-Hub-CSRF':user.csrfToken},redirect:'error',signal:AbortSignal.timeout(10000)});if(!response.ok&&response.status!==401)throw new Error();await refresh();}
     catch{setFailure('Could not sign out. Try again.');}finally{setBusy(false);}
   }
   return <div className={styles.account}>

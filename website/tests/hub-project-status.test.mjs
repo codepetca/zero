@@ -124,3 +124,17 @@ test('redirects, timeouts and custom domains never report a broken site', async 
   const timed = await timeout.status({kind:'game',id});
   assert.equal(timed.stars,null); assert.equal(timed.site.status,'unknown');
 });
+
+
+test('mixed-case repository paths preserve the accepted Pages receipt', async()=>{
+  const repositoryUrl='https://github.com/Student/MyGame',playUrl='https://student.github.io/MyGame/';
+  assert.equal(canonicalPagesUrl(repositoryUrl),playUrl);
+  const calls=[];
+  const service=createHubProjectStatusService({catalogReader:async()=>({releases:[release({repository:{url:repositoryUrl},web:{provider:'github-pages',url:playUrl,commit,runId:1}})]}),fetchImpl:async(url,options)=>{
+    calls.push(url);return options.method==='HEAD'?new Response(null,{status:200}):Response.json({stargazers_count:0,has_issues:true});
+  }});
+  const result=await service.status({kind:'game',id});
+  assert.equal(result.site.status,'reachable');
+  assert.ok(calls.includes(playUrl));
+  assert.equal(calls.includes(playUrl.toLowerCase()),false);
+});

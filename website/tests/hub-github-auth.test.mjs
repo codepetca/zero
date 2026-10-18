@@ -109,3 +109,12 @@ test('logout requires same origin and session CSRF, then clears the cookie', asy
   assert.equal(done.status, 200);
   assert.match(done.headers.get('set-cookie'), /Max-Age=0/);
 });
+
+
+test('an expired mounted account gets logout401 and anonymous session for UI recovery',async()=>{
+  const {session,cookie}=newSession('ghu_'+'c'.repeat(24),{id:55,login:'student'},120,config,now);
+  const expired=now+120_000;
+  const request=withCookie(`${config.origin}/api/hub/github/logout`,cookiePair(cookie),{Origin:config.origin,'X-Hub-CSRF':session.csrf});
+  assert.equal(logoutResponse(request,env,expired).status,401);
+  assert.equal((await sessionResponse(request,env,expired).json()).user,null);
+});
