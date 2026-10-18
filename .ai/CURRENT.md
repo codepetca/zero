@@ -13,11 +13,13 @@ Worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
 codex/zerohub-project-feedback; base41ba316. Parent owns UI/docs/integration;
 Sol/high hub_github_auth delivered auth/routes/tests, Sol/medium
 hub_project_status delivered bounded public resolver/checks/routes/tests. Both
-focused deliveries and integrated145tests/typecheck/build/rootcheck pass.
+focused deliveries and integrated147tests/typecheck/build/rootcheck pass.
 Two independent Sol/high reviews completed; no security blocker. Fix batch1
 addresses expired sign-out recovery and mixed-case Pages paths; focused tests,
-rebuild and simulated expired-session browser recovery pass. Final targeted
-review and owner activation approval remain; use ignored receipts for current status.
+rebuild and simulated expired-session browser recovery pass. Targeted
+review cleared both fixes. Public App visibility is required for students outside
+the owning organization. Owner activation approval remains; use ignored receipts
+for current status.
 Execution/review receipts live in .verification/hub-project-feedback/plan.json.
 Weekly usage65% remaining (account-wide, not attributable); storage healthy~310GB.
 DeepSeek paused; no task/goal/automation creation. Preserve unrelated main

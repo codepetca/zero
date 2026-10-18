@@ -29,6 +29,9 @@ and granting its access is a separate owner action after source/security review.
 Use this concrete configuration for an App owned by `codepetca`:
 
 - Name: ZeroHub Stars (choose an available equivalent if necessary).
+- Visibility: **Public** (the registration option allowing any account). A private
+  organization App limits authorization to organization members, so it cannot
+  serve students outside `codepetca`. Marketplace listing is unnecessary.
 - Homepage: `https://zero.codepet.ca/hub`.
 - Callback: `https://zero.codepet.ca/api/hub/github/callback`.
 - User permissions: **Starring — Read and write**.
@@ -88,4 +91,5 @@ report on GitHub. No issue is automatically posted, and no scheduled alert is
 promised.
 
 Primary provider references: [GitHub App user tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
+, [App visibility](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/making-a-github-app-public-or-private)
 and [GitHub starring API](https://docs.github.com/en/rest/activity/starring).
