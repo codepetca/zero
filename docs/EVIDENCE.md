@@ -5851,3 +5851,37 @@ run_browser_icon_review/turn1;1launch/initial wave,0fix batches,0outstanding gap
 in assigned code scope; coordinator completed the visual checks. Effective model,
 per-turn tokens and review/coordinator seconds unknown. Storage301.6GB healthy,
 no cleanup. Local source only; no source push,merge,install or release performed.
+
+
+## Zero heading and text-only ZeroHub — 2026-10-18
+
+Owner requested removing the external-link icon from ZeroHub and showing the
+Zero mark in the sidebar app title. Source4d047d9 makes ZeroHub text-only and
+adds a compact noninteractive logo + Zero heading inside extension content.
+The helper reads the trusted canonical packaged media/zero.svg once and adds
+decorative SVG attributes; native activity-bar/view icons remain configured.
+No copied geometry, fake title action, host DOM/CSS injection or new permissions.
+
+Installed VS Code CSS hides vertical pane icons and its native title renderer
+assigns plain text. Official reference:Microsoft vscode compositePart.ts
+createTitleLabel and viewPane.ts renderHeaderTitle; source URLs are recorded in
+the ignored receipt. A preference question offered the compact content heading
+vs retaining height. After at least70seconds without a reply, coordinator stated
+and applied the compact-heading assumption to fulfill the requested visible logo.
+This is not a claim of owner approval for that specific placement. The native
+VS Code title is outside the custom heading and outside preview frames.
+
+Root npm run check,diffcheck and8affected tests pass; prior711pass/3skip lifecycle
+coverage reused for this display-only change. Browser actual-render light/dark
+280px and180px frames confirm one Zero heading/decorative canonical mark,
+ZeroHub text with0SVGs, current-app browser action1SVG and no horizontal overflow.
+Fixtures simulate running; native VS Code/Windows rendering remains unverified.
+Temporary tab/server closed. Screenshots/options/logs/receipt remain ignored under
+.verification/sidebar-brand-title-20261018.
+
+Independent gpt-6-luna/medium complete8-file reviewb9bbb1a..4d047d9 and nearby
+renderer/style/asset/packaging scope:clean,0findings. Receipt
+sidebar_brand_title_review/turn1;1launch/initial wave,0fix batches. Effective model,
+per-turn tokens and review/coordinator seconds unknown. Weekly remaining39% at
+start,storage301.6GB healthy,no cleanup. Local-only source; no install/source
+push/merge or release publication authorized/performed.
