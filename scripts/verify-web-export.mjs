@@ -12,7 +12,8 @@ const { createWebPreview } = require('../extension/src/web-preview');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const outputIndex = process.argv.indexOf('--output');
 const base = outputIndex >= 0 ? path.resolve(process.argv[outputIndex + 1]) : path.join(root, '.verification/web-export-checks');
-const browserOnly = process.argv.includes('--browser-only');
+const mobileOnly = process.argv.includes('--mobile-only');
+const browserOnly = mobileOnly || process.argv.includes('--browser-only');
 const browser = browserOnly || process.argv.includes('--browser');
 const cacheIndex = process.argv.indexOf('--cache');
 const cacheRoot =
@@ -119,7 +120,9 @@ async function fixture(name, example) {
     { recursive: true }
   );
   await fs.chmod(path.join(directory, 'mvnw'), 0o755);
-  if (name === 'audio') {
+  if (name === 'mobile') {
+    await fs.copyFile(path.join(root, 'framework/web-checks/mobile/Main.java'), path.join(directory, 'src/main/java/Main.java'));
+  } else if (name === 'audio') {
     await fs.copyFile(path.join(root, 'framework/web-checks/audio/Main.java'), path.join(directory, 'src/main/java/Main.java'));
     await fs.mkdir(path.join(directory, 'src/main/resources/audio'), { recursive: true });
     const frames = 44100, wav = Buffer.alloc(44 + frames * 2);
@@ -179,7 +182,8 @@ if (!browserOnly)
     ['quiz', 'quiz'],
     ['drawing', 'drawing'],
     ['audio', null],
-    ['hello', 'hello-app']
+    ['hello', 'hello-app'],
+    ['mobile', null]
   ]) {
     const project = await fixture(name, example);
     const result = await exportForWeb({
@@ -195,12 +199,12 @@ if (!browserOnly)
     JSON.stringify(results, null, 2) + '\n'
   );
 if (
-  results.length !== 5 ||
-  ['helpers', 'quiz', 'drawing', 'audio', 'hello'].some(
+  results.length !== 6 ||
+  ['helpers', 'quiz', 'drawing', 'audio', 'hello', 'mobile'].some(
     (name) => !results.some((result) => result.name === name)
   )
 )
-  throw new Error('Build all five fixtures before using --browser-only.');
+  throw new Error('Build all six fixtures before using --browser-only or --mobile-only.');
 if (browser) {
   const previews = [];
   try {
@@ -232,15 +236,6 @@ if (browser) {
         throw Error(p.stdout + '\n' + p.stderr);
       return p.stdout;
     };
-    const script = path.join(base, 'browser-run.js');
-    const source = await fs.readFile(
-      path.join(root, 'scripts/web-browser-checks.js'),
-      'utf8'
-    );
-    await fs.writeFile(
-      script,
-      source.replace('__URLS__', JSON.stringify(urls)).trim().replace(/;$/, '')
-    );
     // The parent serves previews, so run the CLI asynchronously while its HTTP loop remains responsive.
     const { spawn } = await import('node:child_process');
     const asyncCommand = (args) =>
@@ -265,9 +260,18 @@ if (browser) {
       });
     try {
       await asyncCommand(['open', urls.helpers, '--browser', 'chrome']);
-      const receipt = await asyncCommand(['run-code', '--filename', script]);
-      await fs.writeFile(path.join(base, 'browser-checks.log'), receipt);
-      console.log(receipt.split('### Ran Playwright code')[0]);
+      for (const [sourceName, receiptName] of [
+        ...(!mobileOnly ? [['web-browser-checks.js', 'browser-checks.log']] : []),
+        ['web-mobile-checks.js', 'mobile-browser-checks.log']
+      ]) {
+        const script = path.join(base, sourceName);
+        const source = await fs.readFile(path.join(root, 'scripts', sourceName), 'utf8');
+        await fs.writeFile(script, source.replace('__URLS__', JSON.stringify(urls))
+          .replace('__ARTIFACT_ROOT__', JSON.stringify(base)).trim().replace(/;$/, ''));
+        const receipt = await asyncCommand(['run-code', '--filename', script]);
+        await fs.writeFile(path.join(base, receiptName), receipt);
+        console.log(receipt.split('### Ran Playwright code')[0]);
+      }
     } finally {
       command(['close']);
     }
@@ -275,4 +279,4 @@ if (browser) {
     previews.forEach((item) => item.dispose());
   }
 }
-console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, and greeting controls with cross-file resource URLs.');
+console.log('Real WebFX/GWT exports passed for helpers, quiz, drawing, audio, greeting controls with cross-file resource URLs, and portrait mobile controls.');

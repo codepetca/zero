@@ -46,9 +46,12 @@ function overlay(file, source) {
   if (!file.endsWith('GameApp.java') && !file.endsWith('SpriteAnimation.java')) return source;
   if (file.endsWith('SpriteAnimation.java')) return source.replace('frames.clone()', 'java.util.Arrays.copyOf(frames, frames.length)');
   source = source.replace('import java.net.URL;\n', '\n').replace('import java.nio.file.Path;\n', '\n');
+  source = source.replace('    private Canvas canvas;', '    private Canvas canvas; private zero.web.BrowserGameViewport browserViewport;');
+  source = source.replace('return new Scene(content);', 'browserViewport = new zero.web.BrowserGameViewport(content, canvas, this::clearInput); return browserViewport.scene();');
   source = source.replace('        window = stage;', '        window = stage; zero.web.BrowserFocus.install(this::clearInput);');
+  source = source.replace('        Scene scene = stage.getScene();', '        Scene scene = stage.getScene(); browserViewport.install();');
   source = source.replace('window != null && window.isFocused()', 'window != null && zero.web.BrowserFocus.focused()');
-  source = source.replace('        if (timer != null) timer.stop();', '        if (timer != null) timer.stop(); zero.web.BrowserFocus.uninstall();');
+  source = source.replace('        if (timer != null) timer.stop();', '        if (timer != null) timer.stop(); if (browserViewport != null) browserViewport.close(); zero.web.BrowserFocus.uninstall();');
   const start = source.indexOf('        var resource = getClass().getResource(resourcePath);');
   const end = source.indexOf('    public final SpriteAnimation loadAnimation(', start);
   const originalLines = source.slice(start, end).split('\n').length - 1;

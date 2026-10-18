@@ -50,3 +50,14 @@ The pinned upstream WebFX mouse adapter swaps the middle and secondary DOM butto
 masks. A generated GWT super-source corrects those two constants; the exact
 original/patch hashes are recorded in the toolchain lock, and the patched source
 accompanies the site under `licenses/sources/overrides/FxEvents.java`.
+
+The reviewed GameApp overlay also installs `BrowserGameViewport`. Its JavaFX
+transform fits the complete fixed logical content (including padding/controls)
+inside the scene, with aspect-preserving downscaling and centering. Native helper
+sources and ordinary App scene creation are unchanged. Input passes through
+`canvas.sceneToLocal`, so scaled DOM hit testing and Java coordinates agree.
+Only the canvas owns touch capture; cancellation emits a normal pointer release
+before clearing input, and shutdown removes the owned listeners. This runtime
+is included in the existing exporter profile hash, so old exports require a
+rebuild. `verify:web` covers landscape and padded portrait games with real Chrome
+touch dispatch; synthetic lifecycle checks are labeled separately in the receipt.
