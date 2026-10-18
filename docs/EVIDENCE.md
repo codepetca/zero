@@ -5825,3 +5825,29 @@ Student default browser Run, native preparation/owned active-task tests and
 actual DOM keyboard coverage are the verified boundaries. Weekly remaining42%
 at start,storage302.8GB healthy,no cleanup. Local source only; no source push,
 merge,installed-preview update or release publication authorized/performed.
+
+
+## Icon-only browser action beside Stop — 2026-10-18
+
+Owner requested Open in browser as an icon beside Run/Stop with no visible text.
+Source5fcf3cd puts the existing action in a dedicated horizontal run-controls row;
+the primary button flexes and the secondary icon keeps a32px column. Tooltip and
+aria-label remain Open in browser; SVG is decorative. Visibility retains the
+active/available-runtime check and hides immediately during Stop. Command/runtime
+implementation, cancellation/focus guards and Java/auth behavior are unchanged.
+
+Root npm run check,diffcheck and11affected tests pass. Existing full lifecycle
+coverage711passed/3skipped is reused for this display-only delta; full suite not
+repeated. Actual-render browser fixtures confirm light/dark280px and narrow180px:
+buttons share top10px,icon32px,empty visible text,full accessible name and tooltip,
+page width equals scroll width. Keyboard Tab from Stop reaches the icon with a
+visible outline. Fixtures use a simulated running state, not real Java execution.
+Native VS Code/Windows remain unverified. Temporary tab/server closed; screenshot,
+logs and receipt ignored under .verification/run-browser-icon-20261018.
+
+Independent gpt-6-luna/medium complete7-file review191d24a..5fcf3cd plus immediate
+renderer/style/click-handler scope:clean,0findings. Receipt
+run_browser_icon_review/turn1;1launch/initial wave,0fix batches,0outstanding gaps
+in assigned code scope; coordinator completed the visual checks. Effective model,
+per-turn tokens and review/coordinator seconds unknown. Storage301.6GB healthy,
+no cleanup. Local source only; no source push,merge,install or release performed.

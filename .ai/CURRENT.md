@@ -13,7 +13,14 @@ paths appears there after import. No separate tools row. Existing GitHub App
 identity, import/recovery policies, ordinary Java and local Run remain intact.
 Branding assets from “Simplify ZeroHub projects” are preserved.
 
-Latest source2cc0424:one Run/Stop button, with focusable/unavailable Stopping…
+Latest display source5fcf3cd:icon-only Open in browser beside Stop, with tooltip
+and accessible name; absent while building/stopped/stopping. Horizontal row
+verified at180px and280px in light/dark; keyboard focus verified. Root check and
+11affected tests pass; independent Luna/medium complete7-file review clean,
+1launch/no corrections. Backend lifecycle unchanged; prior full coverage reused.
+Receipt/screenshot:.verification/run-browser-icon-20261018.
+
+Earlier lifecycle source2cc0424:one Run/Stop button, with focusable/unavailable Stopping…
 until browser queue and native preparation/shutdown settle. Queued/checking/
 compiling/running work offers Stop immediately; errors/preview closure restore
 Run. Host guards handle stale clicks; aria-disabled plus client guard preserves
