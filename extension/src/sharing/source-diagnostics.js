@@ -14,6 +14,10 @@ const MESSAGES=Object.freeze({
   'game-ignore':'Keep private and generated files ignored. Remove rules that unignore these files.',
   'game-files':'Include the required Zero project files and use supported ordinary paths and source-size limits.',
   'game-screenshot':'Use Edit sharing details to select a valid square PNG screenshot, at most 2048 × 2048 pixels and 4 MiB. Commit & push the image and details, then prepare another Share request.',
+  'library-build':'Fix Java compilation errors in the library and its checks, then commit and share a new version.',
+  'library-api':'Fix the library API check so its expected public calls compile and run, then commit and share a new version.',
+  'library-behavior':'Fix the library behavior check or implementation so the check passes, then commit and share a new version.',
+  'library-example':'Fix both runnable library examples and their expected behavior, then commit and share a new version.',
   'version-conflict':'This version already contains different accepted source. Choose a new version, upload its metadata and prepare another Share request.',
   'source-check':'Check the supported sharing structure, run your project locally, upload corrections and prepare a fresh Share request.'
 });

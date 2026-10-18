@@ -12,9 +12,10 @@ const sha40 = /^[a-f0-9]{40}$/;
 
 export function validateRegistryState(state) {
   const required = ['schema','sequence','items','requests','releases','availability','catalog','inbox'];
-  if (!state || state.schema !== 1 || !Number.isSafeInteger(state.sequence) || state.sequence < 0 || Object.keys(state).some(key => !required.includes(key)) || required.some(key => !Object.hasOwn(state,key))) throw new Error('Registry schema is invalid');
+  if (!state || state.schema !== 1 || !Number.isSafeInteger(state.sequence) || state.sequence < 0 || Object.keys(state).some(key => ![...required,'libraryInbox'].includes(key)) || required.some(key => !Object.hasOwn(state,key))) throw new Error('Registry schema is invalid');
   if (Buffer.byteLength(canonical(state)) > REGISTRY_MAX_BYTES || Object.keys(state.requests).length > 50000 || Object.keys(state.releases).length > contracts.LIMITS.catalogReleases || !Array.isArray(state.availability)) throw new Error('Registry capacity exceeded');
   if(!state.inbox||Object.keys(state.inbox).some(key=>!['page','offset'].includes(key))||!Number.isInteger(state.inbox.page)||state.inbox.page<1||state.inbox.page>1000||!Number.isInteger(state.inbox.offset)||state.inbox.offset<0||state.inbox.offset>=100)throw new Error('Registry inbox cursor invalid');
+  if(state.libraryInbox!==undefined&&(!state.libraryInbox||Object.keys(state.libraryInbox).some(key=>!['page','offset'].includes(key))||!Number.isInteger(state.libraryInbox.page)||state.libraryInbox.page<1||state.libraryInbox.page>1000||!Number.isInteger(state.libraryInbox.offset)||state.libraryInbox.offset<0||state.libraryInbox.offset>=100))throw new Error('Registry library inbox cursor invalid');
   for(const [id,item]of Object.entries(state.items)) {
     if(Object.keys(item).some(key=>!['kind','slug','repositoryId','contributorId','folder'].includes(key))||contracts.identity(item.kind,item.repositoryId,item.slug).id!==id||! /^[1-9][0-9]*$/.test(item.contributorId)||item.folder!==(item.kind==='game'?'.':`libraries/${item.slug}`))throw new Error('Registry item binding invalid');
   }

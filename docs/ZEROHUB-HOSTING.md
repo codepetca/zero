@@ -6,4 +6,12 @@ See [website configuration](../website/README.md) for fixed registry and artifac
 
 Source changes remain local until reviewed and deliberately deployed. The existing public deployment and released kit bytes are not changed by a local build. Provisioning a registry branch, Blob store, secrets and jobs is a separate rollout step. Retiring the old Neon resource requires an explicit resource inventory and retention decision; removing its code does not delete hosted data.
 
-Generic submitted-library checking is still held by the earlier provider-rejected independent acceptance assignment. No equivalent retry, provider switch or public execution bypass is authorized. The replacement's game packaging path does not execute candidate Java. Local library checks are developer checks, not hosted admission evidence. Do not describe the full contribution service as activated.
+The owner explicitly reopened the earlier held checker acceptance work on
+2026-10-17 to complete the Flap Motion sample's public sharing/consumption flow.
+The old widget-only checker is not acceptance for the adopted helper/widget
+contract. Current-format source review, real isolated Linux checks, managed
+workflow provenance and separate publisher verification must pass before deliberate
+activation. Public library execution stays disabled until those gates pass; local
+Check receipts are not hosted admission evidence. Game packaging does not execute
+candidate Java. This authorization does not permit bypassing a provider rejection
+or weakening the execution/publication boundary.

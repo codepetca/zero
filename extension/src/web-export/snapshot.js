@@ -3,6 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const {zipFiles} = require('./zip');
+const {discoverBrowserLibraries,resolveLibrarySources}=require('./libraries');
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const abort = signal => {if(signal?.aborted){const error=new Error('Browser build cancelled.');error.name='AbortError';throw error;}};
 async function safePath(file) {
@@ -35,6 +36,9 @@ function digest(files) {
   for(const file of [...files].sort((a,b)=>a.path.localeCompare(b.path)))hash.update(file.path).update('\0').update(file.bytes).update('\0');
   return hash.digest('hex');
 }
+function boundSourceHash(localSourceHash,publishedLibraries) {
+  return publishedLibraries.length?sha(Buffer.from(localSourceHash+'\0'+JSON.stringify(publishedLibraries))):localSourceHash;
+}
 async function captureBuildInputs(projectRoot) {
   await safePath(projectRoot);
   const files=[];
@@ -49,7 +53,22 @@ async function captureBuildInputs(projectRoot) {
     try {if(!(await fs.lstat(file)).isFile())throw new Error('Expected a regular build file: '+file);files.push({path:name,bytes:await fs.readFile(file)});}
     catch(error){if(error.code!=='ENOENT'||name==='pom.xml')throw error;}
   }
-  return {files,sourceHash:digest(files)};
+  await safePath(path.join(projectRoot,'zero-libraries.json'));
+  const state=await fs.readFile(path.join(projectRoot,'zero-libraries.json')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+  const libraries=await discoverBrowserLibraries(projectRoot,files.find(file=>file.path==='pom.xml').bytes.toString('utf8'));
+  if(state!==null) {
+    files.push({path:'zero-libraries.json',bytes:state});
+    for(const library of libraries.filter(library=>library.source==='authored')) {
+      const folder=library.folder,descriptor=`${folder}/zero-library.json`;
+      await safePath(path.join(projectRoot,descriptor));
+      files.push({path:descriptor,bytes:await fs.readFile(path.join(projectRoot,descriptor))});
+      if(library.mode!=='local')continue;
+      for(const name of ['src/main/java','src/main/resources'])
+        for(const file of await tree(path.join(projectRoot,folder,name),name==='src/main/resources'))
+          files.push({path:`${folder}/${name}/${file.path}`,bytes:file.bytes});
+    }
+  }
+  return {files,sourceHash:digest(files),libraries};
 }
 async function buildProfileHash(engineRoot=__dirname) {return digest(await tree(engineRoot));}
 function validRelative(value) {return typeof value==='string'&&value!==''&&!value.includes('\\')&&!value.includes('\0')&&!path.posix.isAbsolute(value)&&value.split('/').every(p=>p&&p!=='.'&&p!=='..');}
@@ -58,7 +77,7 @@ function inventoryMatches(files,expected) {
   const map=new Map(expected.map(f=>[f.path,f]));
   return map.size===expected.length&&files.every(f=>{const e=map.get(f.path);return e&&validRelative(e.path)&&e.bytes===f.bytes.length&&e.sha256===sha(f.bytes);});
 }
-async function validateExport({projectRoot,result,signal,engineRoot=__dirname}={}) {
+async function validateExport({projectRoot,result,signal,engineRoot=__dirname,sharingSettings,fetcher}={}) {
   abort(signal);
   if(!projectRoot)throw new Error('Choose a project before validating its browser build.');
   await safePath(projectRoot);
@@ -71,7 +90,10 @@ async function validateExport({projectRoot,result,signal,engineRoot=__dirname}={
   if(result?.buildId&&result.buildId!==manifest.buildId)throw new Error('The browser build was replaced. Run App again.');
   if(manifest.sitePath!==path.join(output,'site')||manifest.zipPath!==path.join(output,'web-export.zip'))throw new Error('Invalid browser build paths. Run App again.');
   const before=await captureBuildInputs(root);
-  if(before.sourceHash!==manifest.sourceHash||!inventoryMatches(before.files,manifest.inputs))throw new Error('The project changed since its browser build. Run App again.');
+  if(!inventoryMatches(before.files,manifest.inputs))throw new Error('The project changed since its browser build. Run App again.');
+  const published=await resolveLibrarySources(root,before,{sharingSettings,fetcher,signal});
+  if(JSON.stringify(published.publishedLibraries)!==JSON.stringify(manifest.publishedLibraries||[]))throw new Error('The accepted library evidence changed since this browser build. Run App again.');
+  if(boundSourceHash(before.sourceHash,published.publishedLibraries)!==manifest.sourceHash||manifest.localSourceHash&&manifest.localSourceHash!==before.sourceHash)throw new Error('The project or accepted library changed since its browser build. Run App again.');
   const profileHash=await buildProfileHash(engineRoot);
   if(manifest.profileHash!==profileHash)throw new Error('Zero’s browser compiler or compatibility rules changed. Run App again.');
   const siteFiles=await tree(manifest.sitePath);
@@ -103,13 +125,13 @@ async function ensureValidatedExport(options={}) {
 async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=require('../core').git}={}) {
   if(!/^[a-f0-9]{40}$/.test(sourceSha||''))throw new Error('Invalid uploaded source commit.');
   const inputs=await captureBuildInputs(projectRoot);
-  if(inputs.sourceHash!==result?.sourceHash)throw new Error('The project changed since its browser build. Run App again.');
-  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn']);
+  if(inputs.sourceHash!==(result?.manifest?.localSourceHash||result?.sourceHash))throw new Error('The project changed since its browser build. Run App again.');
+  const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-libraries.json','libraries']);
   const committed=new Map();
   for(const entry of String(raw).split('\0').filter(Boolean)) {
     const match=/^(100644|100755) blob ([a-f0-9]{40})\t([\s\S]+)$/.exec(entry);
     if(!match)throw new Error('Uploaded browser inputs must be ordinary tracked files.');
-    if(match[3]==='src/main/resources/.gitkeep')continue;
+    if(match[3]==='src/main/resources/.gitkeep'||match[3].startsWith('libraries/')&&!inputs.files.some(file=>file.path===match[3]))continue;
     committed.set(match[3],match[2]);
   }
   const gitBlob=bytes=>crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
@@ -121,11 +143,11 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=requi
     // Ordinary Windows checkouts can use CRLF for Java/Maven source. These
     // language/config inputs treat line endings equivalently. Never transform
     // resources: their exact tested bytes must be present in the commit.
-    const textSource=/^src\/main\/java\/.+\.java$/.test(file.path)||['pom.xml','mvnw','mvnw.cmd'].includes(file.path)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(file.path);
+    const textSource=/(?:^|\/)src\/main\/java\/.+\.java$/.test(file.path)||['pom.xml','mvnw','mvnw.cmd','zero-libraries.json'].includes(file.path)||/^libraries\/[^/]+\/zero-library\.json$/.test(file.path)||/^\.mvn\/.+\.(?:properties|xml|config)$/.test(file.path);
     if(expected&&textSource&&expected===gitBlob(Buffer.from(file.bytes.toString('utf8').replace(/\r\n/g,'\n')))){normalized.push(file.path);continue;}
     throw new Error('The browser input '+file.path+' differs from the uploaded commit or is ignored/untracked. Upload the exact source and resources before publishing.');
   }
   if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Run App again.');
-  return {sourceSha,sourceHash:inputs.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
+  return {sourceSha,sourceHash:result.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
 }
-module.exports={captureBuildInputs,buildProfileHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};
+module.exports={captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

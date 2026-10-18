@@ -125,7 +125,7 @@ test('released game policy never bypasses screenshot admission or permits other 
  const source=await f.reader.source(observed.request);
  const queued=await ingestRequest(f.registry,{...observed,request:library,repositoryMetadata:source.repositoryMetadata,sourceDigest:source.sourceDigest});
  const result=await platform.reconcile({issueNumbers:[]});
- assert.equal(f.remote.state().requests[queued.id].status,'failed');assert.match(result.processing[0].error,/different policy revision/);
+  assert.equal(f.remote.state().requests[queued.id].status,'queued');assert.equal(result.processing.length,0);
  assert.equal(Object.keys(f.remote.state().releases).length,0);
 });
 

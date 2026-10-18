@@ -21,6 +21,6 @@ try {
  }
  const build=spawnSync('docker',['build','--platform','linux/'+arch,'--build-arg','POLICY_DIGEST='+policyDigest,'--iidfile',join(dir,'image.id'),dir],{stdio:'inherit'});if(build.status!==0)throw Error('Image build failed');
  const imageId=(await readFile(join(dir,'image.id'),'utf8')).trim();
- await writeFile(join(root,'image-lock.json'),JSON.stringify({policy:'zero-widgets-v1',policyDigest,imageId,platform:'linux-'+arch,base:'eclipse-temurin:17.0.16_8-jdk-noble@sha256:bbc959486c469c589091571ba524e6a98f27e19bd99489c683d9b465e4f8db8d'},null,2)+'\n');
+ await writeFile(join(root,'image-lock.json'),JSON.stringify({policy:'zero-libraries-v1',policyDigest,imageId,platform:'linux-'+arch,base:'eclipse-temurin:17.0.16_8-jdk-noble@sha256:bbc959486c469c589091571ba524e6a98f27e19bd99489c683d9b465e4f8db8d'},null,2)+'\n');
  console.log('Checker image pinned:',imageId);
 } finally {await rm(dir,{recursive:true,force:true});}

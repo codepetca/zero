@@ -159,3 +159,49 @@ compatible publisher; preserve the version reservation and source downloads.
 Recheck the queue before rotating pins: retry does not migrate frozen old-policy
 requests. Resume only after targeted repair/review and verify before/after hashes
 of accepted objects against the retained backup receipt.
+
+## Managed library pilot
+
+The owner reopened checker acceptance on2026-10-17 for a real sample library.
+Implementation is gated separately from games. Do not infer activation from
+local Check, a source merge or a student workflow result. See
+[the managed library contract](../sharing/LIBRARY-CHECKING.md) for phase gates.
+
+`Sharing managed library publication` uses three jobs: trusted intake reserves
+one exact queued request, the worker builds the pinned trusted image before
+fetching candidate source and checks in offline containers, then the publisher
+independently verifies official Actions provenance and immutable output hashes.
+Only the publisher job receives the existing `zero-sharing-publisher` environment
+and Blob credential. The worker's host may read public GitHub source with a
+read-only workflow token; candidate containers receive no host credentials.
+
+The separate repository variable `ZERO_SHARING_LIBRARY_CONFIG` has the same
+canonical repository/registry/origin/source fields as the game configuration,
+plus explicit `libraryPublicationEnabled` (default closed). The separate
+`ZERO_SHARING_LIBRARY_PUBLICATION_ENABLED` variable must also be `true`.
+Routine game configuration remains strict and separate. Before first library
+intake, promote the game publisher to the compatible reviewed source and drain
+old jobs: the independent optional `libraryInbox` cursor is unreadable to the
+older publisher. Rollback disables both library gates and retains a compatible
+publisher, registry/history and accepted bytes; never restore an old registry or
+an incompatible publisher over accepted work.
+
+The library workflow's source must exactly match the configured reviewed SHA.
+The official main-branch workflow definition must match the reviewed definition;
+document-only main commits do not require a policy repin. Publisher verifies run,
+attempt, repository, workflow/event/ref, successful finished checker job, artifact
+ID/name/ZIP digest, frozen request/source/commit/policy, fixed checker digest,
+image/platform and each exact artifact hash. Passing requires every fixed stage.
+Missing, cancelled or unverifiable output cannot accept a version.
+
+Contributor source/check failures record fixed compiler/API/behavior/example
+corrections. Infrastructure failures retry finitely and pause after three; the
+ledger and periodic intake retain queued work after interrupted events. Accepted
+delivery recovery uses staged bytes without running the candidate again. Existing
+accepted coordinates and artifact bytes never change.
+
+For an explicitly approved compatible client, its sharing policy must match the
+library operator pin. Released0.5.19's compatibility exception remains game-only.
+A local0.5.20 candidate supports browser builds from declared editable libraries
+or exact accepted source artifacts, with no local-source fallback for a missing
+published release. A pilot with that client does not update existing installers.

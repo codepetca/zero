@@ -16,7 +16,7 @@ public final class JarTracker {
         assertModuleIdentity();
         if (installed) throw new IllegalStateException("Observer already installed");
         String[] parameters = arg.split("\\|", -1);
-        if (parameters.length != 2 || !parameters[0].matches("zero\\.ui[1-9a-z][0-9a-z]{0,11}"))
+        if (parameters.length != 2 || !parameters[0].matches("zero\\.ui[1-9a-z][0-9a-z]{0,11}|zero\\.contrib\\.r[1-9][0-9]*\\.[a-z][a-z0-9_]*"))
             throw new IllegalArgumentException("Invalid trusted observer arguments");
         origin = Path.of(parameters[1]).toAbsolutePath().normalize();
         prefix = parameters[0].replace('.', '/') + "/";

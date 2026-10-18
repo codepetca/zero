@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';
 
 export const POLICY = 'zero-widgets-v1';
+export const LIBRARY_POLICY = 'zero-libraries-v1';
 const MAX_REQUEST = 1024 * 1024;
 const controls = /[\p{Cc}\p{Cf}]/u;
 const javaName = /^[A-Z][A-Za-z0-9]{0,63}$/;
@@ -138,4 +139,67 @@ export function expectedPom(bundle) {
   </dependencies>
 </project>
 `);
+}
+
+const namespacePattern = /^zero\.contrib\.r[1-9][0-9]*\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+const classPath = /^src\/main\/java\/([A-Za-z_$][\w$]*\/)*[A-Za-z_$][A-Za-z0-9_$]*\.java$/;
+const checkPath = /^(src\/test\/java|examples\/(first|second))\/([A-Za-z_$][\w$]*\/)*[A-Za-z_$][A-Za-z0-9_$]*\.java$/;
+const resourcePath = /^src\/main\/resources\/([A-Za-z_$][\w$]*\/)+[A-Za-z0-9][A-Za-z0-9_.-]*$/;
+const pathPackage = (path, prefix) => path.slice(prefix.length, -path.split('/').at(-1).length - 1).replaceAll('/', '.');
+const visibleJava = source => source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, match => match.replace(/[^\r\n]/g, ' '));
+
+/** Current contributor format. The adapter creates descriptor identity; this
+ * validator still checks every byte before passing data to the image. */
+export function validateLibraryBundle(bundle) {
+  object(bundle, ['descriptor','files'], 'library bundle');
+  const d=bundle.descriptor;
+  object(d,['schema','kind','slug','version','namespace','coordinate','libraryKind','classes','groups'],'library check descriptor');
+  if(d.schema!==2||d.kind!=='library'||!namespacePattern.test(d.namespace)||!['helper','widget'].includes(d.libraryKind)||!semver.test(d.version)||
+    !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(d.slug)||d.namespace.split('.').at(-1)!==d.slug.replaceAll('-','_'))throw Error('Invalid current library identity');
+  object(d.coordinate,['groupId','artifactId'],'library coordinate');
+  if(d.coordinate.groupId!==`ca.codepet.zero.contrib.${d.namespace.split('.')[2]}`||d.coordinate.artifactId!==d.slug)throw Error('Library coordinate differs from namespace');
+  if(!Array.isArray(d.classes)||!d.classes.length||d.classes.length>32||new Set(d.classes).size!==d.classes.length||
+    d.classes.some(name=>typeof name!=='string'||!name.startsWith(d.namespace+'.')||!/^([A-Za-z_$][\w$]*\.)+[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)))throw Error('Invalid declared library classes');
+  object(d.groups,['behavior','first','second'],'check groups');
+  for(const group of ['behavior','first','second'])if(!Array.isArray(d.groups[group])||!d.groups[group].length||d.groups[group].length>16||
+    d.groups[group].some(name=>typeof name!=='string'||!/^([A-Za-z_$][\w$]*\.)*[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)))throw Error('Each check group needs bounded main classes');
+  if(!bundle.files||typeof bundle.files!=='object'||Array.isArray(bundle.files)||Object.getPrototypeOf(bundle.files)!==Object.prototype)throw Error('Invalid library files');
+  const paths=Object.keys(bundle.files);if(paths.length>64||!paths.length)throw Error('Library file count exceeded');
+  const sourceClasses=[],groupFiles={behavior:[],first:[],second:[]};let total=0;
+  for(const path of paths){
+    if(path.includes('\\')||path.split('/').some(part=>!part||part==='.'||part==='..'))throw Error('Unsafe library path');
+    const value=bundle.files[path];
+    if(path==='LICENSE'){
+      if(typeof value!=='string'||!/^MIT License\n\nCopyright \(c\) [^\n]+\n\n/.test(value)||!value.endsWith(MIT_BODY))throw Error('Full MIT license required');
+    }else if(path==='preview.png'){validatePng(value);}
+    else if(classPath.test(path)||checkPath.test(path)){
+      text(value,path,65536,true);
+      if(/\\u+0*[0-9a-fA-F]{4}/.test(value))throw Error('Java Unicode escapes excluded');
+      const visible=visibleJava(value),packageMatches=[...visible.matchAll(/\bpackage\s+([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*;/g)];
+      const prefix=path.startsWith('src/main/java/')?'src/main/java/':path.startsWith('src/test/java/')?'src/test/java/':path.startsWith('examples/first/')?'examples/first/':'examples/second/';
+      const expected=pathPackage(path,prefix),actual=packageMatches[0]?.[1].replace(/\s/g,'')||'';
+      if(packageMatches.length>1||actual!==expected)throw Error(`Package/path mismatch: ${path}`);
+      const simple=path.split('/').at(-1).slice(0,-5),name=actual?actual+'.'+simple:simple;
+      if(!new RegExp(`\\bpublic\\s+(?:final\\s+|abstract\\s+)?class\\s+${simple}\\b`).test(visible))throw Error(`One declared public class required: ${path}`);
+      if(path.startsWith('src/main/java/')){if(actual!==d.namespace&&!actual.startsWith(d.namespace+'.'))throw Error('Foreign library namespace');sourceClasses.push(name);}
+      else {if(actual===d.namespace||actual.startsWith(d.namespace+'.'))throw Error('Check shadows library namespace');
+        const group=path.startsWith('src/test/java/')?'behavior':path.startsWith('examples/first/')?'first':'second';
+        if(/\bpublic\s+static\s+void\s+main\s*\(\s*String\s*(?:\[\s*\]\s*\w+|\w+\s*\[\s*\])\s*\)/.test(visible))groupFiles[group].push(name);
+      }
+    }else if(resourcePath.test(path)){
+      if(!path.startsWith('src/main/resources/'+d.namespace.replaceAll('.','/')+'/'))throw Error('Foreign resource namespace');
+      if(/\.(?:class|java|jar|zip|so|dll|dylib)$/i.test(path))throw Error('Executable library resources are excluded');
+      if(typeof value!=='string'||! /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)||Buffer.from(value,'base64').toString('base64')!==value)throw Error('Resource must be canonical base64');
+    }else throw Error(`Unsupported checked library file: ${path}`);
+    total+=Buffer.byteLength(value);
+  }
+  if(!Object.hasOwn(bundle.files,'LICENSE')||sourceClasses.sort().join(',')!==[...d.classes].sort().join(','))throw Error('Declared library source inventory mismatch');
+  for(const group of ['behavior','first','second'])if(groupFiles[group].sort().join(',')!==[...d.groups[group]].sort().join(','))throw Error(`Declared ${group} main inventory mismatch`);
+  if(total>1024*1024||Buffer.byteLength(JSON.stringify(bundle))>1400*1024)throw Error('Library bundle exceeds bounds');
+  return bundle;
+}
+
+export function expectedLibraryPom(bundle){
+  validateLibraryBundle(bundle);const {coordinate,version}=bundle.descriptor;
+  return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>\n<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>${coordinate.groupId}</groupId><artifactId>${coordinate.artifactId}</artifactId><version>${version}</version>\n  <properties><maven.compiler.release>17</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding></properties>\n  <licenses><license><name>MIT License</name><url>https://opensource.org/licenses/MIT</url><distribution>repo</distribution></license></licenses>\n  <dependencies>\n    <dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>21.0.12</version></dependency>\n    <dependency><groupId>org.openjfx</groupId><artifactId>javafx-swing</artifactId><version>21.0.12</version></dependency>\n  </dependencies>\n</project>\n`);
 }

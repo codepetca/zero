@@ -5,6 +5,7 @@ import { FileRegistry } from './registry.mjs';
 import { createGitHubRegistryAdapter, REGISTRY_REPOSITORY, REGISTRY_BRANCH } from './github-registry.mjs';
 import { BlobStorage } from './blob-storage.mjs';
 import { createSharingPlatform, platformSetupDocument, publicError } from './platform.mjs';
+import { writeLibraryCheck } from './managed-library.mjs';
 
 export function validatePlatformConfig(config) {
   const required=['schema','repository','registryBranch','artifactOrigin','policyRevision','gamePublicationEnabled'];
@@ -13,34 +14,48 @@ export function validatePlatformConfig(config) {
   if(origin.origin!==config.artifactOrigin || origin.protocol!=='https:' || !/^[a-z0-9]+\.public\.blob\.vercel-storage\.com$/.test(origin.hostname))throw new Error('Configured public Blob origin invalid');
   return {...config};
 }
+export function validateLibraryPlatformConfig(config) {
+  if(!config || typeof config!=='object' || Array.isArray(config) || Object.keys(config).some(key=>!['schema','repository','registryBranch','artifactOrigin','policyRevision','gamePublicationEnabled','libraryPublicationEnabled'].includes(key)) || typeof config.libraryPublicationEnabled!=='boolean')throw new Error('Platform configuration invalid');
+  const {libraryPublicationEnabled,...shared}=config;
+  return {...validatePlatformConfig(shared),libraryPublicationEnabled};
+}
 export function parseArguments(argv) {
-  const commands=['setup','status','prepare','publish','reconcile','deliver','retry','withdraw','restore'];
+  const commands=['setup','status','prepare','publish','reconcile','deliver','retry','withdraw','restore','library-intake','library-check','library-publish'];
   const options={command:argv[0]||'setup',execute:false};
   if(!commands.includes(options.command))throw new Error('Unknown sharing command');
   for(let index=1;index<argv.length;index++) {
     const flag=argv[index];
     if(flag==='--execute'){if(options.execute)throw new Error('Duplicate execution flag');options.execute=true;continue;}
-    const name={'--config':'config','--issue':'issue','--issues':'issues','--release':'release','--role':'role','--page':'page','--offset':'offset','--request':'request'}[flag];
+    const name={'--config':'config','--issue':'issue','--issues':'issues','--release':'release','--role':'role','--page':'page','--offset':'offset','--request':'request','--run':'run','--attempt':'attempt','--artifact':'artifact','--out':'out','--outcome':'outcome'}[flag];
     if(!name||options[name]!==undefined||!argv[index+1]||argv[index+1].startsWith('--'))throw new Error('Unsupported sharing argument');
     options[name]=argv[++index];
   }
   if(options.issue!==undefined){if(!/^[1-9][0-9]*$/.test(options.issue)||!Number.isSafeInteger(Number(options.issue)))throw new Error('Positive issue number required');options.issue=Number(options.issue);}
   if(options.issues!==undefined){if(!/^[1-9][0-9]*(?:,[1-9][0-9]*)*$/.test(options.issues))throw new Error('Use a finite comma-separated issue list');options.issues=options.issues.split(',').map(Number);if(options.issues.length>150||options.issues.some(value=>!Number.isSafeInteger(value)))throw new Error('At most 150 issue numbers supported');}
   for(const field of ['page','offset'])if(options[field]!==undefined){if(!/^[0-9]+$/.test(options[field]))throw new Error('Invalid bounded inbox continuation');options[field]=Number(options[field]);}
-  if(options.execute && options.role!=='publisher')throw new Error('Execution requires the explicit publisher role');
+  const libraryCommand=options.command.startsWith('library-');
+  if(options.execute && options.role!==(options.command==='library-intake'?'intake':options.command==='library-check'?'worker':'publisher'))throw new Error('Execution requires the explicit publisher role');
   if(['prepare','publish'].includes(options.command)&&!options.issue)throw new Error('An exact issue number is required');
   if(['deliver','withdraw','restore'].includes(options.command)&&!/^(game|library)\/(game|lib)-r[1-9][0-9]*-[a-z][a-z0-9]*(?:-[a-z0-9]+)*\/[0-9]+\.[0-9]+\.[0-9]+$/.test(options.release||''))throw new Error('An exact accepted release key is required');
   if(options.command==='retry'&&!/^[a-f0-9]{64}$/.test(options.request||''))throw new Error('An exact frozen request fingerprint is required');
+  if(libraryCommand) {
+    if(['library-check','library-publish'].includes(options.command)&&!/^[a-f0-9]{64}$/.test(options.request||''))throw new Error('An exact frozen request fingerprint is required');
+    for(const key of ['run','attempt',...(options.command==='library-publish'&&options.outcome==='success'?['artifact']:[])])if(options[key]!==undefined){if(!/^[1-9][0-9]*$/.test(options[key])||!Number.isSafeInteger(Number(options[key])))throw new Error('Exact managed workflow identity required');options[key]=Number(options[key]);}
+    if(['library-check','library-publish'].includes(options.command)&&(!options.run||!options.attempt))throw new Error('Exact managed workflow identity required');
+    if(options.command==='library-check'&&(!options.out||!options.out.startsWith('/')))throw new Error('Absolute managed check output required');
+    if(options.command==='library-publish'&&(!['success','failure','cancelled','timed_out','skipped'].includes(options.outcome)||options.outcome==='success'&&!options.artifact))throw new Error('Exact managed workflow outcome required');
+  }
   return options;
 }
-async function defaultDependencies(config,execute,environment) {
-  const adapter=createGitHubRegistryAdapter({token:execute?environment.ZERO_REGISTRY_TOKEN:undefined,readOnly:!execute});
+async function defaultDependencies(config,execute,environment,role) {
+  const publisher=execute&&role==='publisher',writer=execute&&role!=='worker';
+  const adapter=createGitHubRegistryAdapter({token:writer?environment.ZERO_REGISTRY_TOKEN:environment.ZERO_SOURCE_READ_TOKEN,readOnly:!writer});
   const registry=new FileRegistry({adapter,maxRetries:8});
   const reader=github.createGitHubReader({token:environment.ZERO_SOURCE_READ_TOKEN});
   let storage;
-  if(execute){const sdk=await import('@vercel/blob');storage=new BlobStorage({sdk,token:environment.ZERO_BLOB_TOKEN,artifactOrigin:config.artifactOrigin});}
+  if(publisher){const sdk=await import('@vercel/blob');storage=new BlobStorage({sdk,token:environment.ZERO_BLOB_TOKEN,artifactOrigin:config.artifactOrigin});}
   else storage={get:()=>{throw new Error('Dry run has no storage actions');}};
-  return createSharingPlatform({reader,registry,storage,artifactOrigin:config.artifactOrigin,policyRevision:config.policyRevision});
+  return createSharingPlatform({reader,registry,storage,artifactOrigin:config.artifactOrigin,policyRevision:config.policyRevision,libraryPublicationEnabled:config.libraryPublicationEnabled===true});
 }
 
 /** No comments are posted, credentials configured, branches provisioned,
@@ -49,9 +64,21 @@ export async function runCli(argv,{loadConfig=async filename=>JSON.parse(await r
   const options=parseArguments(argv);
   if(options.command==='setup')return platformSetupDocument();
   if(!options.config)throw new Error('Explicit platform configuration file required');
-  const config=validatePlatformConfig(await loadConfig(options.config));
-  if(options.execute&&!config.gamePublicationEnabled)throw new Error('Publication remains disabled in the reviewed platform configuration');
-  const platform=await createPlatform(config,options.execute,environment);
+  const libraryCommand=options.command.startsWith('library-');
+  const config=libraryCommand?validateLibraryPlatformConfig(await loadConfig(options.config)):validatePlatformConfig(await loadConfig(options.config));
+  if(options.execute&&!(libraryCommand?config.libraryPublicationEnabled:config.gamePublicationEnabled))throw new Error('Publication remains disabled in the reviewed platform configuration');
+  const platform=await createPlatform(config,options.execute,environment,options.role);
+  if(libraryCommand) {
+    if(!options.execute)return {mode:'dry-run',action:options.command,libraryPublicationEnabled:config.libraryPublicationEnabled};
+    if(options.command==='library-intake')return {selected:await platform.selectLibraryForCheck()};
+    if(options.command==='library-check'){
+      const {record,result}=await platform.checkLibraryRequest(options.request);
+      const written=await writeLibraryCheck(options.out,{record,result,runId:options.run,attempt:options.attempt});
+      return {requestId:record.id,artifactName:written.name,status:written.receipt.status};
+    }
+    const outcome=await platform.publishManagedLibrary({requestId:options.request,runId:options.run,attempt:options.attempt,artifactId:options.artifact,token:environment.ZERO_ACTIONS_READ_TOKEN,checkOutcome:options.outcome});
+    return {requestId:options.request,status:outcome.status||outcome.delivery};
+  }
   if(options.command==='status')return platform.readStatus();
   if(options.command==='prepare') {
     const result=await platform.prepareIssue(options.issue,{persist:options.execute});

@@ -9,5 +9,9 @@ test('public source corrections distinguish supported failures without reflectin
   }
   assert.deepEqual(diagnosticFromError(new Error('Bearer private account token https://private.example')),{code:'source-check'});
   assert.equal(publicCorrection({status:'paused',attempts:[{kind:'infrastructure-failure',sourceDiagnostic:{code:'game-pom'}}]}),undefined);
+  for(const code of ['library-build','library-api','library-behavior','library-example']){
+    const correction=publicCorrection({status:'failed',attempts:[{kind:'source-failure',message:'candidate private stderr',sourceDiagnostic:{code}}]});
+    assert.equal(correction.code,code);assert.doesNotMatch(correction.message,/candidate private stderr/);
+  }
   for(const input of [{code:'operator-note'},{code:'game-pom',message:'private'},{code:'game-files',file:'../.env'},{code:'game-license',file:'.env'}])assert.throws(()=>validateSourceDiagnostic(input));
 });
