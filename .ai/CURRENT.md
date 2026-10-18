@@ -1,42 +1,33 @@
-# Flap Motion public sample — final acceptance, 2026-10-18
+# Automatic browser game fit — local acceptance, 2026-10-18
 
-Owner explicitly authorized finishing real public library sharing and reuse.
-Source PR95 merged11c54518320b52a659104eaf01d685fe2dd93917, tree-identical to
-reviewed f794f0d; final release/browser/AMD64/Windows/Vercel checks pass. PR97
-mergeda1f0493408525e71ea68f58e6065355727e4c98b promotes the local0.5.20 client
-policy pin to11c5451; independent metadata review and all final checks pass.
-Compatible game reconcile39089111212 succeeded and old jobs drained before the
-separate library gate was enabled. Seven prior accepted records stayed unchanged.
+Owner requested planning and orchestration of shared automatic phone sizing and
+logical touch mapping. Implementation is complete locally on
+`codex/browser-mobile-scaling` in the student-friction worktree, based on
+main `2a55f789`. Reviewed implementation head is
+`c49b32fbc77d10921d8ba2292a1d41c4f72fe821`.
 
-Flap Motion0.1.0 is public from sample sourcea893e75429ebd20e3c9b18fedbcab4bcad1a8bb5,
-issue98, official managed run39089535922. Native Check, Commit/push, Merge and
-Share passed. Independent consumer with no authored state/library folder completed
-actual native Browse/Add/Apply/Run using accepted artifacts; manifestc5b09a86 binds
-all3artifact hashes and source provenance. Signed-out Add/Run passed. Empty-cache
-public Maven compile/source resolution/behavior and checksum/origin proof pass.
-Compatible metadata-only0.1.1 sourcec572ed625e0befc848c211fe8653a59fda643ce5 passed
-Luna/medium review, actual native Check/Commit/push/Share, issue99 and official
-run39090763159 intake/check/publish. Both versions' artifacts/sidecars verified;
-prior0.1.0 and seven old accepted records are unchanged. Actual native Update0.1.0→0.1.1 and Revert0.1.1→0.1.0 both passed Apply, exact
-POM/history checks and Run/flap/pause; each export binds accepted source/artifacts.
+Browser GameApp views fit both axes, preserve aspect ratio and Java canvas
+coordinates, center without upscaling, and include padding/ordinary controls.
+Primary touch maps to mouse input; extra contacts, cancellation, focus changes
+and resize have regression coverage. Ordinary App/native helpers are unchanged.
+Students still choose readable text, touch targets and keyboard alternatives.
 
-Coordinator worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
-codex/zerohub-native-navigation removes the stale native Starters browse choice.
-Actual development host menu shows only Projects/Libraries; focused3/3 tests,
-check and local0.5.20 packaging pass. The fixed navigation change passed independent Luna/medium review. Source
-completion is tracked by PR100; consult its checks/merge state for final delivery.
-Do not rotate operator policy for this navigation/documentation follow-up.
+Acceptance: check passes; web tests157/157 and current adapter8/8; six real
+WebFX/GWT fixtures; Chrome desktop56/56 and phone-sized136/136 assertions.
+Unchanged Grove Guard passes real touch placement/start/pause/restart at390x844
+and740x320, with14source/resource hashes preserved. Initial Sol/high review,
+two targeted input reviews and final viewport integration review are clear.
+Four correction batches used; no further review/fix loop is authorized by that
+budget. Any new blocker needs the documented human checkpoint.
 
-Default Projects remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn.
-No new installer publication: published0.5.19 bytes stay unchanged. Acceptance is
-Mac source-development client and public Maven/browser, not a published installer,
-physical Windows or student cohort. Keep these limits explicit.
+No push, PR, merge, new installer or game publication was performed. Next delivery
+needs owner-authorized PR/CI/merge, then an updated client and selected game
+rebuild/republish. Physical phones, Safari/other engines and interactive Windows
+are unverified. Native computer use reported a locked Mac; no lock bypass.
 
-Detailed evidence: docs/EVIDENCE.md and ignored
-.verification/sky-hop-library/{plan.json,RESULTS.md,status.json}. Before-activation
-7release/17object snapshot and full registry Git bundle retained; after0.1.1 backup
-contains9releases/41verified objects. Preserve all backups/profiles, unrelated
-funding checkout and concurrent Grove Guard0.3.0 work. DeepSeek paused; no task,
-goal or automation created. All sample library acceptance steps are complete. Final navigation/evidence
-delivery uses PR100 and its exact-head CI gate; preserve the ignored completion
-receipt. No repeat owner approval needed.
+Details: docs/EVIDENCE.md and ignored
+`.verification/mobile-canvas/{plan.json,receipt.json}`. Preserve source snapshots,
+logs, screenshots, caches, profiles, registry backups and unrelated worktrees.
+Previous Flap Motion acceptance remains recorded in EVIDENCE; operator policy and
+published0.5.19 bytes stay pinned. Default public Projects remain Drawing Pad and
+Grove Guard; Sky Hop stays withdrawn. No task, goal or automation was created.

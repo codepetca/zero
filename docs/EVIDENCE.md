@@ -5488,3 +5488,53 @@ Physical Windows, Safari, student cohort and new released-installer acceptance
 remain unverified. Native folder-picker automation was inconclusive; test-host
 restart opened the saved consumer. No Open-local-project acceptance claim.
 Default public Projects remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn.
+
+## Automatic browser game fit — local source acceptance, 2026-10-18
+
+Owner requested shared sizing/touch behavior with planning and orchestration.
+Branch `codex/browser-mobile-scaling`, based on `2a55f789`, has reviewed source
+head `c49b32fbc77d10921d8ba2292a1d41c4f72fe821`. The fingerprinted GameApp overlay
+fits complete logical content, including padding/controls, using a centered
+shrink-only transform. Canvas dimensions/student Java/native helpers stay intact.
+Ordinary App views keep their layout/input paths. Three pinned WebFX seams needed
+explicit handling: CSS transform origin/scene clipping, derived mouse-event
+coordinate copies, and separately targeted ancestor touch exits. Attached control
+measurement also replaces the early fallback size; an owned frame refresh is
+cancelled on shutdown.
+
+`npm run check` passes. Web tests157/157 and adapter8/8 pass; unchanged unit
+coverage was reused with final real compiler/browser verification. Six fixtures
+(helpers, quiz, drawing, audio, greeting/resources, padded portrait controls)
+compile through strict attribution and pinned WebFX/GWT with profile
+`a99532955746e08fe916a1810fa8b892aff38ee06ed65e38249638b901f06f9e`.
+Final Chrome155 receipts pass desktop56/56 and phone-sized136/136 assertions:
+logical/backing sizes, aspect fit, rotation, synthetic safe areas, real touch,
+quick taps, drags/outside release, mouse buttons/keys, cancellation and control
+focus. Secondary-only exits and lifecycle failures are explicitly synthetic;
+separate Chrome-specific partial-touch diagnostics confirm the actual extra-finger
+regression and correction. Primary real touch activates the scaled Button and
+TextField; keyboard typing remains with the field.
+
+An unchanged disposable Grove Guard copy passes9 real browser checks at390x844
+and740x320: Seed/Frost placement, wave start/pause/restart, fit and errors. All14
+source/resource hashes match the original repository. Viewport-only portrait and
+landscape screenshots were inspected; shared harness full-page captures include
+hidden measurement overflow and are not physical phone screenshots.
+
+Independent Sol/high review covers the initial11-file diff, two targeted input
+corrections and final complete-helper integration: no remaining actionable
+findings. Ledger:4review turns,1initial/2targeted/1integration wave,4correction
+batches. Sol/medium owned runtime and regression assignments; coordinator owned
+integration/docs. Effective models, per-worker elapsed/tokens and task-specific
+cost are unknown. Starting weekly remaining67%; final storage healthy307GB, no
+cleanup. Failed integration attempts and coordinator profile-drift rework are
+retained in the ignored plan; no efficiency savings are inferred.
+
+All large receipts/builds/screenshots live under ignored
+`.verification/mobile-canvas/`, especially `plan.json`, `receipt.json`,
+`exports/{browser-checks,mobile-browser-checks}.log`, `grove-browser-final.log`
+and `portrait-{390x844,740x320}.png`. This is local source acceptance: no push/PR,
+merge, installer release, account change or game republishing. Existing playable
+links need rebuilding with the updated client/runtime. Physical iPhone/Safari,
+other engines and interactive Windows remain unverified. Computer use reported
+Mac locked; automated browser checks proceeded without bypassing it.
