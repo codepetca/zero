@@ -234,11 +234,11 @@ test('authenticated clone failures explain recovery and cancellation releases th
 
 test('tutorial creation serializes form and clone, then releases the shared busy guard', async t=>{
   let finishPick,finishClone;const picks=[];
-  const f=await fixture(t,{empty:true,pick:(items,options)=>{picks.push(options.title);return options.title==='Start tutorial'?new Promise(resolve=>{finishPick=()=>resolve(items[0]);}):items.find(item=>item.private===true);},clone:async()=>new Promise(resolve=>{finishClone=resolve;})});
+  const f=await fixture(t,{empty:true,pick:(items,options)=>{picks.push(options.title);return options.title==='Start tutorial'?new Promise(resolve=>{finishPick=()=>resolve(items[0]);}):assert.fail('Unexpected picker: '+options.title);},clone:async()=>new Promise(resolve=>{finishClone=resolve;})});
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
   const start=f.commands.get('zero.startProject')();await settle(()=>finishPick);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();assert.equal(picks.length,1);assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,0);
-  finishPick();await settle(()=>finishClone);assert.deepEqual(f.calls.find(([id])=>id==='createRepository')[1],{name:'my-project',private:true,template:{owner:'codepetca',repo:'zero-tutorial-greeting'}});
+  finishPick();await settle(()=>finishClone);assert.deepEqual(picks,['Start tutorial']);assert.deepEqual(f.calls.find(([id])=>id==='createRepository')[1],{name:'my-project',private:false,template:{owner:'codepetca',repo:'zero-tutorial-greeting'}});
   assert.deepEqual(f.calls.find(([id])=>id==='cloneRepository')[1],{repositoryUrl:'https://github.com/student/my-project',parentPath:f.root});
   await f.commands.get('zero.cloneRepository')();assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,1);
   finishClone(path.join(f.root,'my-project'));await start;

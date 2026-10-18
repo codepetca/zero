@@ -15,7 +15,7 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     if(!isActive())return;
     const ticket=await authentication.capture(),draftKey=key+':'+ticket.session.accountId;
     const draft=drafts.get(draftKey)||{name:defaultName};
-    const name=await vscode.window.showInputBox({title,prompt:`Create a public repository in ${ticket.session.label}'s GitHub account.`,value:draft.name,validateInput:nameError});
+    const name=await vscode.window.showInputBox({title,prompt:`Create a public repository in ${ticket.session.label}'s GitHub account.${clone?'':' Files you push will be public.'}`,value:draft.name,validateInput:nameError});
     if(!name||!isActive())return;
     if(nameError(name))throw Error(nameError(name));
     draft.name=name;drafts.set(draftKey,draft);
