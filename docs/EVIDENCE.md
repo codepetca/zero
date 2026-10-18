@@ -5750,3 +5750,29 @@ unchanged after initial review; no extra integration wave needed. Effective mode
 per-turn tokens and review/coordinator seconds unknown. Weekly remaining44% at
 start, storage301.6GB cached/healthy; no cleanup. Local source delivery only;
 no new source publication, merge, native build or student release authorized.
+
+
+## Repository right chevron and Add assets label — 2026-10-18
+
+Owner requested a right chevron to indicate the repository button opens a menu,
+and Add assets… instead of Add images & sounds…. Sourced225275 reuses the pinned
+decorative chevron rotated-90degrees; the label remains flexible/two-line-clamped
+with full accessible name/tooltip and unchanged menu dispatch. Button, palette,
+file-picker/progress and current guides use Add assets…. Files placement,
+import/recovery policies, GitHub identity and ordinary Java are unchanged.
+
+Root npm run check,diffcheck and30affected tests pass, including extension,
+workflow,assets,sidebar refresh and playground. Browser actual-render fixtures
+confirm light/dark280px layout,right rotation,decorative SVG,two-line label and
+no horizontal overflow. Browser fixture account is not live-auth evidence.
+Unchanged prior workflow coverage is reused; full suite was not repeated for
+this display-only delta. Native VS Code/physical Windows remain unverified.
+Temporary browser tab/server closed; screenshot/logs are ignored under
+.verification/sidebar-chevron-20261018. No install,source publication or release.
+
+Independent gpt-6-luna/medium review of8267a18..d225275 covered all11changed files
+and immediate renderer/style/icon/asset callers:clean,0actionable findings.
+Receipt sidebar_chevron_review/turn1;1launch/initial wave,0fix batches; no further
+wave needed. Effective model,review/coordinator seconds and per-turn tokens are
+unknown. Recent account allowance44% weekly remaining; cached storage301.4GB
+healthy,no cleanup. Local source only,ready for next authorized native preview.
