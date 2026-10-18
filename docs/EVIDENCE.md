@@ -5776,3 +5776,52 @@ Receipt sidebar_chevron_review/turn1;1launch/initial wave,0fix batches; no furth
 wave needed. Effective model,review/coordinator seconds and per-turn tokens are
 unknown. Recent account allowance44% weekly remaining; cached storage301.4GB
 healthy,no cleanup. Local source only,ready for next authorized native preview.
+
+
+## One lifecycle-aware Run/Stop button — 2026-10-18
+
+Owner approved one Run/Stop control. Source8d0517b uses one stable zero.toggleApp
+host command, immediately offering Stop for queued/checking/compiling/running
+work. Shutdown is serialized, waits for browser queue/native preparation/task
+termination, and prevents stale repeated clicks or palette/build shortcuts from
+restarting during shutdown. Queued-generation tracking prevents a late result
+from reopening the runtime. Errors, closing the managed preview and completed
+stops return to Run. Explicit Run App still restarts, and Stop App remains.
+Ordinary Java, auth and Git merge/rebase semantics are unchanged.
+
+Independent Sol/medium complete12-file review ofd4856b1..8d0517b found one P2:
+disabled Stopping replacement lost keyboard focus. Accepted correction2cc0424
+uses focusable aria-disabled, unchanged host guard and a shared client activation
+guard with matching unavailable styling. Targeted complete8-file delta review
+8d0517b..2cc0424 is clean; initial lifecycle coverage reused. Receipt IDs
+run_toggle_review/turn1–2;2launches,1initial wave,1targeted wave,1fix batch,
+0outstanding findings. No further integration wave needed because targeted
+coverage includes the immediate input/focus interaction and backend is unchanged.
+Requested gpt-6.1-sol/medium; effective model, per-turn tokens and attributable
+review/coordinator seconds unknown. No inference of cost from account allowance.
+
+Final root npm run check passes. Stable corrected source2cc0424 full npm test:
+714tests,711passed,3skipped,0failed (194833ms);54focused tests pass. Tests cover
+queued start, cancellation during build/save/native resolution, failed save/
+compile, preview closure, late build rejection, duplicate clicks and shortcuts
+while stopping. Initial full run before correction also passed710/3skipped;
+initial focused setup required updating old two-button expectations and adapting
+a save-gate test to await the now-observable shutdown after releasing the save.
+Real Chrome keyboard fixture executes actual renderer/client with a simulated
+host:Stop → Stopping → Run retained focus; pressing Space while unavailable sent
+no extra command (count stayed1); deliberate movement to another link survived
+completion. The first automated disabled-locator press was rejected by browser
+automation and one unchecked rapid key landed before the unavailable update;
+rerun waited for visible Stopping and verified blocking. No hidden application
+state was used. Light/dark actual-render fixtures show idle/building/running/
+stopping; they are not real Java-runtime or sign-in evidence. Temporary tab/
+server closed. Screenshots/logs/structured receipt are ignored under
+.verification/run-toggle-20261018.
+
+Native installed VS Code and physical Windows are unverified. Review identified
+an optional pre-existing configured-native task resolution-to-start cancellation
+gap, present in the base; this scope does not resolve or claim that edge case.
+Student default browser Run, native preparation/owned active-task tests and
+actual DOM keyboard coverage are the verified boundaries. Weekly remaining42%
+at start,storage302.8GB healthy,no cleanup. Local source only; no source push,
+merge,installed-preview update or release publication authorized/performed.
