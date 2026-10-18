@@ -55,3 +55,16 @@ test('a live recovery guard and unknown main lock are never removed automaticall
  const lock=createCredentialLock({globalStorageUri:{scheme:'file',fsPath:dir},now:()=>time,sleep:async ms=>{time+=ms;},timeoutMs:100});
  await assert.rejects(lock(async()=>assert.fail()),error=>error.code==='connection-lock-repair-required');assert.equal(await fs.readFile(main,'utf8'),'unknown');assert.equal(await fs.readFile(guard,'utf8'),live);
 });
+
+test('desktop vscode-userdata storage shares the filesystem lock; remote and relative locations fail closed',async t=>{
+ const dir=await directory(t),file=path.join(dir,'github-app-refresh.lock');
+ const local=createCredentialLock({globalStorageUri:{scheme:'vscode-userdata',authority:'',fsPath:dir}});
+ const fileLock=createCredentialLock({globalStorageUri:{scheme:'file',fsPath:dir},timeoutMs:1});
+ await local(async()=>{
+  assert.equal(JSON.parse(await fs.readFile(file,'utf8')).pid,process.pid);
+  await assert.rejects(fileLock(async()=>assert.fail('shared local lock bypassed')),error=>error.code==='connection-busy');
+ });
+ assert.deepEqual(await fs.readdir(dir),[]);
+ for(const uri of [{scheme:'vscode-userdata',authority:'remote-host',fsPath:dir},{scheme:'vscode-userdata',authority:'',fsPath:'relative'},{scheme:'vscode-remote',fsPath:dir}])
+  assert.throws(()=>createCredentialLock({globalStorageUri:uri}),/local extension storage/);
+});

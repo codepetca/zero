@@ -47,7 +47,10 @@ function createCredentialStore({secrets, configuration}) {
 // Lock files contain ownership metadata only. A persisted refreshing state also
 // protects rotation if a host crashes after GitHub consumes its refresh token.
 function createCredentialLock({globalStorageUri, now = Date.now, sleep = wait, timeoutMs = 20000}) {
-  if (globalStorageUri?.scheme !== 'file' || !path.isAbsolute(globalStorageUri.fsPath || '')) {
+  // Desktop VS Code also exposes its local user-data directory through this
+  // authority-free scheme. Use the host filesystem path for the same lock.
+  const local = globalStorageUri?.scheme === 'file' || (globalStorageUri?.scheme === 'vscode-userdata' && !globalStorageUri.authority);
+  if (!local || !path.isAbsolute(globalStorageUri.fsPath || '')) {
     throw failure('local-storage-required', 'Zero GitHub sign-in requires local extension storage.');
   }
   const directory = globalStorageUri.fsPath;
