@@ -379,8 +379,8 @@ choices and the first-publication warning remain visible through native prompts.
 ## Repository and upload contract
 
 The unreleased source uses Zero's `zero-github` provider and GitHub device flow.
-The sidebar shows the connected username. Clicking it offers Change GitHub
-account and Sign out. Sign out clears only Zero's local connection; it preserves
+Project menu → GitHub account… offers Change GitHub account and Sign out.
+Sign out clears only Zero's local connection; it preserves
 projects, Git history and other extensions' accounts. Account, token or session
 changes invalidate pending remote work. There is no password/token entry form.
 Project menu → Create a repository collects a name and explicit visibility,
