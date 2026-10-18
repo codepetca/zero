@@ -13,7 +13,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     git(['init','-q','-b','main']);git(['add','zero.json']);git(['-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','Tutorial clone fixture']);git(['remote','add','origin','https://github.com/student/app.git']);
   }
   if(kit)for(const [name,bytes] of await publishingFiles()){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),bytes);}
-  const commands=new Map(),calls=[],errors=[],notices=[],results=[],listeners=new Set();let webviewProvider;let repositoryId=12,installationId=99,privacy=true;let saves=0,reviews=0,uploads=0,pushes=0,disposed=0,inputs=0,failPush=false,accountId='1',afterAccess=async()=>{},afterInput=async()=>{};
+  const commands=new Map(),calls=[],errors=[],notices=[],results=[],picks=[],listeners=new Set();let webviewProvider;let repositoryId=12,installationId=99,privacy=true;let saves=0,reviews=0,uploads=0,pushes=0,disposed=0,inputs=0,failPush=false,accountId='1',afterAccess=async()=>{},afterInput=async()=>{};
   const originalGit=core.git,originalPrepare=github.prepareUpload,originalUpload=github.uploadPrepared;
   core.git=async(_,args)=>{if(args[0]==='rev-parse')return root;if(args[0]==='remote')return 'https://github.com/student/app.git';if(args[0]==='symbolic-ref')return 'main';throw Error('Unexpected Git command in mocked native UI');};
   const plan={root,page:'https://github.com/student/app',remote:'https://github.com/student/app.git',branch:'main',head:'b'.repeat(40),status:'',summary:'No file changes; retry already committed branch',changes:[]};
@@ -43,13 +43,13 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     return {id:'zero-app-session-'+accountId,account:{id:accountId,label:accountId==='1'?'student':'other'},accessToken:'APP_TEST_ONLY',scopes:[]};
   },onDidChangeSessions:listener=>{listeners.add(listener);return {dispose(){disposed++;listeners.delete(listener);}};}},
   workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-  window:{createOutputChannel:()=>({appendLine:text=>results.push(text),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showWarningMessage:async text=>notices.push(text),showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;await afterInput();return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
+  window:{createOutputChannel:()=>({appendLine:text=>results.push(text),dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>{picks.push({items,options});},showWarningMessage:async text=>notices.push(text),showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine push needs no confirmation');},showInputBox:async()=>{inputs++;await afterInput();return cancelMessage?undefined:'Retry my uploaded source';},showErrorMessage:async text=>errors.push(text)},
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appProvider,repositories});await new Promise(resolve=>setImmediate(resolve));
   t.after(()=>{subscriptions.forEach(item=>item.dispose());core.git=originalGit;github.prepareUpload=originalPrepare;github.uploadPrepared=originalUpload;delete require.cache[require.resolve('../src/extension')];});
-  return {commands,calls,accessCalls,errors,notices,results,get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
+  return {commands,calls,accessCalls,errors,notices,results,picks,get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
 }
 test('native App Commit & push retries a failed push using the same reviewed repository and empty scopes',async t=>{
   const h=await harness(t);h.failPush=true;
@@ -120,10 +120,11 @@ test('tutorial sidebar retains normal GitHub controls and hides original-only Sh
   assert.match(webview.html,/Current branch: main/);
   await h.commands.get('zero.shareGame')();assert.match(h.errors.at(-1),/separate original project/);
 });
-test('original project sidebar continues offering Share project',async t=>{
+test('original project keeps Share project inside the ZeroHub menu',async t=>{
   const h=await harness(t,{kit:false});const webview=h.render();const deadline=Date.now()+5000;
-  while(!webview.html.includes('data-command="zero.shareGame"')) {assert.ok(Date.now()<deadline,'Original project should retain sharing');await new Promise(resolve=>setImmediate(resolve));}
-  assert.match(webview.html,/Share project/);
+  while(!webview.html.includes('data-command="zero.chooseRepository"')) {assert.ok(Date.now()<deadline,'Signed-in original project should finish rendering');await new Promise(resolve=>setImmediate(resolve));}
+  assert.doesNotMatch(webview.html,/data-command="zero.shareGame"/);
+  await h.commands.get('zero.browseZeroHub')();assert.equal(h.picks.at(-1).options.title,'ZeroHub');assert.ok(h.picks.at(-1).items.some(item=>item.label==='Share project' && item.action==='share'));
 });
 
 test('unchanged URL and account cannot push to a replacement repository or installation after review',async t=>{

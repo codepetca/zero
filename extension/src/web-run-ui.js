@@ -23,7 +23,8 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
   const build = options => (ensureValidatedExport || require('./web-export/snapshot').ensureValidatedExport)(options);
   const validate = options => (validateExport || require('./web-export/snapshot').validateExport)(options);
   const problems = vscode.languages?.createDiagnosticCollection('zero-browser');
-  let generation=0, operation, runtime, runtimeRoot, runtimeGeneration, disposed=false, queue=Promise.resolve();
+  let generation=0, queuedGeneration, operation, runtime, runtimeRoot, runtimeGeneration, disposed=false, queue=Promise.resolve();
+  const updateActive = () => setActive(Boolean(runtime || operation && !operation.signal.aborted || queuedGeneration===generation));
   const current = async (id,root) => !disposed && id===generation && await project()===root;
   function disposeRuntime() {const old=runtime;runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;old?.dispose();}
   function stop({quiet=false}={}) {
@@ -68,13 +69,14 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
     disposeRuntime();
     let opened;
     opened=await previewFactory(vscode,validated.sitePath,{siteFiles:validated.siteFiles,title:'Zero App',viewColumn:preferredPreviewColumn(root),onOpenInBrowser:openInBrowser,onError:error=>{output.appendLine(error.message);return vscode.window.showErrorMessage?.(error.message);},onDidDispose:()=>{
-      if(runtime===opened){runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;setActive(Boolean(operation));if(!operation&&!disposed)setState('App stopped');}
+      if(runtime===opened){runtime=undefined;runtimeRoot=undefined;runtimeGeneration=undefined;updateActive();if(!operation&&!disposed)setState('App stopped');}
     }});
     if (!await current(id,root)) {opened.dispose();return;}
     runtime=opened;runtimeRoot=root;runtimeGeneration=id;setActive(true);setFailed(false);setState('App running');
   }
   async function execute(id,expectedRoot) {
     if (disposed || id!==generation) return;
+    queuedGeneration=undefined;
     let root;const controller=new AbortController();operation=controller;setBusy(true);setActive(true);setFailed(false);problems?.clear();
     try {
       await beforeRun();
@@ -100,16 +102,16 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
       error.zeroRunMessage=root ? 'App could not run. Open Problems or check Zero output.' : error.message;
       setFailed(true);setState(error.zeroRunMessage);output.appendLine(error.message);output.show?.(true);await diagnostics(error,root);throw error;
     }finally{
-      if(operation===controller){operation=undefined;setBusy(false);setActive(Boolean(runtime));}
+      if(operation===controller){operation=undefined;setBusy(false);updateActive();}
     }
   }
   function run(expectedRoot) {
     if(disposed || isBusy() && !operation)return Promise.resolve();
-    stop({quiet:true});const id=generation;
-    const next=queue.then(()=>execute(id,expectedRoot));queue=next.catch(()=>{});return next;
+    stop({quiet:true});const id=generation;queuedGeneration=id;
+    const next=queue.then(()=>execute(id,expectedRoot));queue=next.catch(()=>{});setActive(true);return next;
   }
   async function preview(root,result) {stop({quiet:true});const id=generation;return showPreview(root,result,id);}
   const workspaceListener=vscode.workspace.onDidChangeWorkspaceFolders?.(()=>stop());
-  return {commands:{'zero.runApp':run,'zero.stopApp':stop,'zero.openRunningAppInBrowser':openInBrowser},run,stop,preview,openInBrowser,get canOpenInBrowser(){return !disposed && typeof runtime?.openInBrowser==='function';},get generation(){return generation;},disposables:[{dispose(){disposed=true;stop({quiet:true});workspaceListener?.dispose();problems?.dispose();}}]};
+  return {commands:{'zero.runApp':run,'zero.stopApp':stop,'zero.openRunningAppInBrowser':openInBrowser},run,stop,preview,openInBrowser,whenIdle:()=>queue,get canOpenInBrowser(){return !disposed && typeof runtime?.openInBrowser==='function';},get generation(){return generation;},disposables:[{dispose(){disposed=true;stop({quiet:true});workspaceListener?.dispose();problems?.dispose();}}]};
 }
 module.exports={createBrowserRunCommands,sourceDiagnostics};

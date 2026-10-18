@@ -12,18 +12,34 @@ Owner decisions consolidated through 2026-10-18. These are the current rules and
 supersede conflicting wording in the older dated notes below. Preserve them
 when adding features; a new feature does not reset the agreed interaction style.
 
+- Use one primary **Run**/**Stop** button. It offers Stop while queued, checking,
+  compiling or running; show disabled **Stopping…** until owned work settles.
+  Failures and closing the managed preview return to Run. Preserve explicit
+  Run App/Stop App palette commands and existing cancellation/generation guards.
+  While a managed browser app is running, put its icon-only **Open in browser**
+  button beside Stop, with a tooltip and accessible name. Hide it when stopped,
+  building or stopping. Keep the pair on one row at narrow widths.
+- Keep the current panel height; show the Zero mark only in its existing native
+  activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
 - When signed out, show only **Sign in** in the GitHub area; hide the project
   dropdown and branch, while keeping local Run and files available. When signed
-  in, show the clickable username and **Project** dropdown, or the open folder
-  name / connected **owner/repository**. Account actions use native VS Code
-  controls through Zero's supported GitHub App provider. The menu offers **New
+  in, show the open folder / connected **owner/repository** as the project menu,
+  without a duplicate username row. Show a right chevron to indicate the menu opens.
+  Allow its label to wrap to
+  two lines; retain the full accessible name and tooltip. **GitHub account…** in
+  that menu opens account actions through Zero's supported GitHub App provider.
+  A single text-only **ZeroHub** menu contains **Projects**, **Libraries** and **Share project**
+  for eligible signed-in original projects; tutorials and local practice cannot share. The menu offers **New
   project…**, **Clone from GitHub…** and **Open local project…**; an eligible
   original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain
   branch actions and **Publish app** in the menu, with **Commit & push** and
   **Merge to main** as direct controls. Local-practice sharing stays blocked.
+- Put **Add assets…** beside **Files**, with **Copy asset paths** there
+  after import. **Review or restore changes…** belongs in the project menu; it
+  opens the existing native review/discard/restore choices. No separate tools row.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose
   another parent. Zero's explicit clone commands use its guarded GitHub App
   transport and a fresh destination. General Source Control and terminal network
@@ -78,11 +94,13 @@ Keep local Run/files available offline after initial build setup.
 
 Recommend selected repositories when installing the App. Repositories the App
 creates gain access automatically; never silently select all repositories.
-Start tutorial chooses its verified scaffold, then collects repository name,
-explicit visibility and location before creating, verifying, cloning and opening.
+Start tutorial chooses its verified scaffold, then collects repository name and
+location before creating a public repository, verifying, cloning and opening.
 New project uses the original starter through the same flow. Create a repository
-for an existing original local project collects name/visibility, creates an empty
-remote and connects without pushing. Preserve recovery links and partial folders
+for an existing original local project collects a name, explains that subsequent
+pushes make source and included files public, creates an empty public remote and
+connects without pushing. Existing/cloned repository visibility stays unchanged.
+Preserve recovery links and partial folders
 after uncertain creation or clone failure; do not silently retry creation.
 
 The same App serves optional browser sign-in, with separate browser/editor
@@ -94,7 +112,7 @@ requires reconnection after eight hours.
 
 The App omits Administration permission. First-time Pages setup can require
 enabling GitHub Actions as the Pages source in GitHub settings, then rechecking
-Publish app. Preserve teacher-approved repository visibility and the existing
+Publish app. Preserve existing/cloned repository visibility and the existing
 single public-destination warning.
 
 ## Tutorial tab and browser actions — accepted 2026-10-16

@@ -49,9 +49,11 @@ marks a preferred pattern with documented, task-specific exceptions.
   Published kits keep their bundled behavior. See [the identity plan](ZERO-IDENTITY-PLAN.md).
 - MUST recommend selected repositories, with automatic access to App-created
   repositories. Never silently request all-repository access. Collect scaffold,
-  repository name, explicit visibility and location before creating/cloning;
-  Create a repository for an existing original local project collects name and
-  visibility before creating an empty remote and connecting it without pushing.
+  repository name and location before creating/cloning a public repository;
+  Create a repository for an existing original local project collects a name,
+  explains that subsequent pushes make its source and included files public,
+  then creates an empty public
+  remote and connects it without pushing. Existing/cloned repository visibility is unchanged.
   Preserve the account/destination review and recovery link after an uncertain
   creation, and preserve partial clone folders.
 - MUST describe Sign out as disconnecting only Zero on this computer; preserve

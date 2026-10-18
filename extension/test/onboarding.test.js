@@ -120,6 +120,7 @@ test('only failed owned native diagnostic tasks offer Problems; success and Stop
   f.finish(f.launches.at(-1),0);assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
   await f.commands.get('zero.runNativeApp')();await f.commands.get('zero.stopApp')();
   assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
+  assert.match(f.webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Run<\/button>/);
 });
 
 test('new local project opens its bundled guide beside Main without replacing an editor', async t=>{
@@ -157,7 +158,7 @@ test('empty-window welcome is silent until explicit native Connect and manual re
   answer('Connect GitHub');await settle(()=>f.notices.some(item=>item.text.includes('connected as student')));
   assert.ok(f.authCalls.every(call=>call.options.silent),'A newly existing account is reused without another grant');
   f.setSession(undefined);f.setFailure(true);await f.commands.get('zero.signInToGitHub')();assert.match(f.errors.at(-1),/cancelled or unavailable/);assert.doesNotMatch(f.errors.at(-1),/PRIVATE/);
-  f.setFailure(false);f.setSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/Signed in as retry/);
+  f.setFailure(false);f.setSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/zero.chooseRepository/);assert.doesNotMatch(f.webview.html,/Signed in as retry|data-command="zero.githubAccount"/);
   assert.deepEqual(f.authCalls.at(-1).scopes,[]);assert.deepEqual(f.authCalls.at(-1).options,{createIfNone:true});
   assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);assert.equal(await fs.readFile(path.join(f.root,'zero.json'),'utf8'),'{}');
 });
@@ -204,10 +205,12 @@ test('signed-out empty window only shows Sign in; direct authenticated clone rem
   let finishClone;
   const f=await fixture(t,{empty:true,clone:async()=>new Promise(resolve=>{finishClone=resolve;})});
   assert.match(f.webview.html,/>Sign in<\/button>/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.importAssets"|data-command="zero.recovery"/,'Empty windows have no file maintenance controls');
   assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"|data-command="zero.cloneRepository"|Current branch:/);
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
   const clone=f.commands.get('zero.cloneRepository')();await settle(()=>finishClone);
-  assert.match(f.webview.html,/data-command="zero.githubAccount"[^>]*disabled/);
+  assert.match(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.githubAccount"/);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();await f.commands.get('zero.signInToGitHub')();
   assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,1);assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1);
   finishClone();await clone;
@@ -231,11 +234,11 @@ test('authenticated clone failures explain recovery and cancellation releases th
 
 test('tutorial creation serializes form and clone, then releases the shared busy guard', async t=>{
   let finishPick,finishClone;const picks=[];
-  const f=await fixture(t,{empty:true,pick:(items,options)=>{picks.push(options.title);return options.title==='Start tutorial'?new Promise(resolve=>{finishPick=()=>resolve(items[0]);}):items.find(item=>item.private===true);},clone:async()=>new Promise(resolve=>{finishClone=resolve;})});
+  const f=await fixture(t,{empty:true,pick:(items,options)=>{picks.push(options.title);return options.title==='Start tutorial'?new Promise(resolve=>{finishPick=()=>resolve(items[0]);}):assert.fail('Unexpected picker: '+options.title);},clone:async()=>new Promise(resolve=>{finishClone=resolve;})});
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
   const start=f.commands.get('zero.startProject')();await settle(()=>finishPick);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();assert.equal(picks.length,1);assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,0);
-  finishPick();await settle(()=>finishClone);assert.deepEqual(f.calls.find(([id])=>id==='createRepository')[1],{name:'my-project',private:true,template:{owner:'codepetca',repo:'zero-tutorial-greeting'}});
+  finishPick();await settle(()=>finishClone);assert.deepEqual(picks,['Start tutorial']);assert.deepEqual(f.calls.find(([id])=>id==='createRepository')[1],{name:'my-project',private:false,template:{owner:'codepetca',repo:'zero-tutorial-greeting'}});
   assert.deepEqual(f.calls.find(([id])=>id==='cloneRepository')[1],{repositoryUrl:'https://github.com/student/my-project',parentPath:f.root});
   await f.commands.get('zero.cloneRepository')();assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,1);
   finishClone(path.join(f.root,'my-project'));await start;
@@ -250,15 +253,15 @@ test('signed-in empty Project menu offers New, Clone and Open local; opening reu
   assert.doesNotMatch(f.webview.html,/zero.chooseRepository|Current branch:|Start tutorial<\/button>/);
   await f.commands.get('zero.chooseRepository')();assert.equal(picks.length,0);
   f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
-  assert.match(f.webview.html,/>Project /);assert.match(f.webview.html,/zero.chooseRepository/);
-  await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>[item.label,item.action]),[['New project…','new'],['Clone from GitHub…','clone'],['Open local project…','local']]);assert.equal(picks[0].options.title,'Project');
+  assert.match(f.webview.html,/class="repo-label">Project<\/span>/);assert.match(f.webview.html,/zero.chooseRepository/);
+  await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>[item.label,item.action]),[['New project…','new'],['Clone from GitHub…','clone'],['Open local project…','local'],['GitHub account…','account']]);assert.equal(picks[0].options.title,'Project');
   assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceNewWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
 });
 
 test('sign-in is independent of local practice while sharing stays unavailable',async t=>{
   const f=await fixture(t,{practice:true});assert.match(f.webview.html,/>Sign in<\/button>/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
   f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
-  assert.match(f.webview.html,/Signed in as student/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
+  assert.doesNotMatch(f.webview.html,/Signed in as student|data-command="zero.githubAccount"/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
   await f.commands.get('zero.uploadToGitHub')();assert.match(f.errors.at(-1),/local lesson practice/);
 });
 
@@ -285,7 +288,7 @@ test('native Cancel aborts an active clone and releases the command busy guard',
  await f.commands.get('zero.cloneRepository')();assert.equal(attempts,2);assert.equal(notifications,2);
 });
 test('tutorial creation and its authenticated clone share one cancellable native notification',async t=>{
- const notifications=[];const f=await fixture(t,{empty:true,pick:async(items,options)=>options.title==='Start tutorial'?items[0]:items.find(item=>item.private===true),clone:async({parentPath,signal})=>{assert.equal(signal.aborted,false);return path.join(parentPath,'my-project');}});
+ const notifications=[];const f=await fixture(t,{empty:true,pick:async(items,options)=>options.title==='Start tutorial'?items[0]:assert.fail('Unexpected picker: '+options.title),clone:async({parentPath,signal})=>{assert.equal(signal.aborted,false);return path.join(parentPath,'my-project');}});
  f.vscode.ProgressLocation={Notification:15};f.vscode.window.withProgress=async(options,run)=>{notifications.push(options);return run({report(){}},{onCancellationRequested:()=>disposable()});};
  f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.startProject')();assert.equal(notifications.length,1);assert.equal(notifications[0].cancellable,true);assert.equal(f.calls.filter(c=>c[0]==='createRepository').length,1);assert.equal(f.calls.filter(c=>c[0]==='cloneRepository').length,1);assert.deepEqual(f.errors,[]);
 });
@@ -294,4 +297,19 @@ test('extension disposal aborts the pending clone and prevents opening its late 
  const f=await fixture(t,{empty:true,clone:async options=>{signal=options.signal;return new Promise(resolve=>{signal.addEventListener('abort',()=>resolve(path.join(options.parentPath,'late-project')),{once:true});entered();});}});
  f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});const pending=f.commands.get('zero.cloneRepository')();await ready;f.subscriptions.forEach(item=>item.dispose());await pending;
  assert.equal(signal.aborted,true);assert.equal(f.calls.filter(c=>c[0]==='vscode.openFolder').length,0);
+});
+
+test('one Run/Stop button cancels native preparation and stays Stopping until the save settles',async t=>{
+  const f=await fixture(t,{lesson:false});let release;
+  f.vscode.workspace.saveAll=()=>new Promise(resolve=>{release=()=>resolve(true);});
+  const running=f.commands.get('zero.runNativeApp')();
+  assert.match(f.webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Stop<\/button>/);
+  await settle(()=>release);
+  const stopping=f.commands.get('zero.toggleApp')(),again=f.commands.get('zero.toggleApp')();
+  assert.match(f.webview.html,/data-command="zero.toggleApp" aria-disabled="true">[\s\S]*Stopping…<\/button>/);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(f.webview.html,/Stopping…<\/button>/);
+  release();await Promise.all([running,stopping,again]);
+  assert.equal(f.launches.length,0);assert.match(f.webview.html,/Run<\/button>/);
+  assert.equal((f.webview.html.match(/data-command="zero.toggleApp"/g)||[]).length,1);
 });

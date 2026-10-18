@@ -32,6 +32,8 @@ Zero's GitHub connection, offers **Connect GitHub** when needed and leads to
 tutorial creation. Zero's supported `zero-github` provider uses GitHub device
 sign-in and stores expiring user/refresh tokens in VS Code SecretStorage. GitHub
 handles sign-in and consent; there is no separate Zero password or account.
+The first connection modal shows the device code and one short instruction to
+paste it on GitHub; the authorization and consent flow is unchanged.
 Connections show the username, while account checks use the numeric GitHub ID.
 Install the App on selected repositories; repositories the App creates become
 accessible automatically. Zero never silently requests all repositories.
@@ -189,11 +191,13 @@ There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Websi
 buttons appear at 0, 3 and 8; later pages say to continue the existing project.
 Before lesson 0, students complete account/privacy setup: their own verified GitHub
 account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
-repository visibility/commit identity. Tutorial source can stay private with teacher
-collaborator access; public game publishing remains optional. The visible
+commit identity. Repositories created through Zero are public, including their
+source and included files; students should keep secrets and private material out.
+Existing or GitHub-created repositories may retain their visibility, with teacher
+collaborator access where needed. Public game publishing remains optional. The visible
 **Start tutorial** action on the welcome screen or Zero’s **…** menu selects the
 matching verified tutorial scaffold. The unreleased flow collects a repository
-name, explicit Private/Public choice and parent folder before creating a copy in
+name and parent folder before creating a public copy in
 the connected personal account, verifying App access, cloning and opening it.
 The location picker starts at `~/Zero Projects` and can choose another parent.
 **New project…** uses the original-project template through the same flow.
@@ -278,16 +282,22 @@ exact verified publication automatically;
 ZeroHub offers Play latest on student hosting alongside exact source downloads.
 See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
-- One continuous Zero view contains Run App, Stop, repository actions and Files,
+- Preserve the current panel height, with the shared Zero mark in the existing
+  activity-bar/view icon. VS Code owns the native title; no content heading is added.
+- One continuous Zero view contains one Run/Stop button, repository actions and Files,
   without extra GitHub/ZeroHub headings or a separate collapsible controls row.
   Idle status is empty; app progress/errors
   appear when there is a message. Signed-out GitHub controls show only Sign in;
   the project dropdown and branch are hidden, and local Run/files remain usable.
-  Signed in shows a clickable username and Project dropdown (or current folder /
-  connected origin). Clone from GitHub starts its location picker at
+  Signed in shows the project menu as the current folder or connected owner/repository,
+  without a duplicate username, with a right chevron indicating its menu.
+  Its label wraps to two lines;
+  the full name stays accessible and in its tooltip. GitHub account… in that menu
+  opens the existing account actions. Text-only ZeroHub opens Projects, Libraries and Share
+  project for eligible signed-in original projects. Clone from GitHub starts its location picker at
   `~/Zero Projects`, with another location selectable. Open local project opens
   an existing Zero folder without cloning/moving it. New project collects its
-  name, visibility and location before creating and cloning. An eligible
+  name and location before creating and cloning a public repository. An eligible
   unconnected original local project can Create a repository to create and
   connect an empty remote, or Connect to GitHub using an existing repository.
   Connected projects keep publishing and branch
@@ -296,9 +306,16 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. Supported VS Code
+  overflow; Copy repository link lives in the repository menu. **Add assets…** sits beside **Files**, with **Copy asset paths** after import.
+  **Review or restore changes…** in the project menu opens the existing native
+  review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
-- Run saves files, checks ordinary Java against the supported browser API, builds
+- The primary button says Run when idle, Stop while queued/checking/building/running,
+  and disabled Stopping… while owned work settles. Failures or closing the managed
+  preview return it to Run. While running, an icon-only Open in browser button
+  sits beside Stop with its tooltip/accessible name; it is absent while building,
+  stopped or stopping. Explicit palette commands keep separate run/restart
+  and stop behavior. Run saves files, checks ordinary Java against the supported browser API, builds
   locally when inputs changed and opens an owned browser preview. Re-running
   destroys the old runtime; Stop cancels builds and destroys the managed frame.
   Open in browser opens a local page around the same immutable compiled files in
@@ -380,13 +397,14 @@ choices and the first-publication warning remain visible through native prompts.
 ## Repository and upload contract
 
 The unreleased source uses Zero's `zero-github` provider and GitHub device flow.
-The sidebar shows the connected username. Clicking it offers Change GitHub
-account and Sign out. Sign out clears only Zero's local connection; it preserves
+Project menu → GitHub account… offers Change GitHub account and Sign out.
+Sign out clears only Zero's local connection; it preserves
 projects, Git history and other extensions' accounts. Account, token or session
 changes invalidate pending remote work. There is no password/token entry form.
-Project menu → Create a repository collects a name and explicit visibility,
-creates an empty repository under that personal account, verifies access and
-connects the open original local project. It does not push source. New project
+Project menu → Create a repository collects a name, explains that subsequent
+pushes make source and included files public, creates an empty public repository
+under that personal account, verifies access and connects the open original local
+project. It does not push source. New project
 and Start tutorial create from the appropriate verified template and clone into
 the chosen location. There is no GitHub Classroom flow.
 

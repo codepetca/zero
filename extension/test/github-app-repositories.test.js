@@ -5,7 +5,7 @@ const {createGitHubAppRepositories}=require('../src/github-app/repositories');
 const configuration={appId:41,slug:'zero-development',owner:'codepetca'};
 const token='SECRET_FOR_FAKE_API_ONLY';
 function fixture() {
-  let active=true,created=false,postFailure,postStatus,visibility=true,postHook;
+  let active=true,created=false,postFailure,postStatus,visibility=false,postHook;
   const session={id:'one',accountId:'17',label:'student',accessToken:token};
   const ticket={session,revision:1};
   const authentication={capture:async()=>{if(!active)throw Error('account changed');return ticket;},assertCurrent:async value=>{if(!active||value!==ticket)throw Error('account changed');return session;},assertCurrentNow:value=>{if(!active||value!==ticket)throw Error('account changed');return session;}};
@@ -24,7 +24,7 @@ function fixture() {
     else if(options.method==='POST') {
       if(postHook)await postHook();
       if(postFailure)throw Error(token);
-      created=true;status=postStatus||201;data={...repo,private:visibility};
+      created=true;status=postStatus||201;repo.private=visibility;data={...repo};
     } else if(route==='/repos/student/project') {data=repo;if(!created&&calls.some(call=>call.url.endsWith('/user')))status=404;}
     else throw Error('Unexpected fake request '+route);
     return {status,ok:status<400,json:async()=>data};
@@ -60,37 +60,37 @@ test('invalid or unconfigured input and cancellation request no credentials or n
  await assert.rejects(createGitHubAppRepositories({authentication:f.authentication,configuration:null,fetchImpl:f.fetchImpl}).access(f.repo.html_url),/not configured/);
  await assert.rejects(f.api.access('https://evil.invalid/student/project'));
  const controller=new AbortController();controller.abort();await assert.rejects(f.api.access(f.repo.html_url,{signal:controller.signal}));
- await assert.rejects(f.api.create({name:'project'}));await assert.rejects(f.api.create({name:'../project',private:true}));assert.equal(f.calls.length,0);
+ await assert.rejects(f.api.create({name:'project'}));await assert.rejects(f.api.create({name:'project',private:true}),error=>error.code==='invalid-project');await assert.rejects(f.api.create({name:'../project',private:false}));assert.equal(f.calls.length,0);
 });
-test('create uses narrow repository creation, explicit privacy and verified post-create membership',async()=>{
- const f=fixture(),result=await f.api.create({name:'project',private:true});assert.equal(result.created,true);assert.equal(result.repository.id,32);
+test('create uses narrow repository creation, public visibility and verified post-create membership',async()=>{
+ const f=fixture(),result=await f.api.create({name:'project',private:false});assert.equal(result.created,true);assert.equal(result.repository.id,32);
  const posts=f.calls.filter(call=>call.options.method==='POST');assert.equal(posts.length,1);assert.equal(posts[0].url,'https://api.github.com/user/repos');
- assert.deepEqual(JSON.parse(posts[0].options.body),{name:'project',private:true,auto_init:false});
+ assert.deepEqual(JSON.parse(posts[0].options.body),{name:'project',private:false,auto_init:false});
  assert.ok(!f.calls.some(call=>/installations\/repositories|\/installation\/repositories/.test(call.url)));
 });
 test('template creation accepts only a verified public Codepet scaffold and uses the fixed generate route',async()=>{
- const f=fixture();await f.api.create({name:'project',private:true,template:{owner:'codepetca',repo:'zero-tutorial-game'}});
- const post=f.calls.find(call=>call.options.method==='POST');assert.equal(post.url,'https://api.github.com/repos/codepetca/zero-tutorial-game/generate');assert.deepEqual(JSON.parse(post.options.body),{name:'project',private:true,owner:'student',include_all_branches:false});
- for(const template of [{owner:'attacker',repo:'zero-tutorial-game'},{owner:'codepetca',repo:'../x'},{owner:'codepetca',repo:'zero-tutorial-game',url:'https://evil.invalid'}])await assert.rejects(f.api.create({name:'project',private:true,template}));
- for(const change of [{is_template:false},{private:true}]) {const g=fixture();g.template={full_name:'codepetca/zero-tutorial-game',private:false,is_template:true,...change};await assert.rejects(g.api.create({name:'project',private:true,template:{owner:'codepetca',repo:'zero-tutorial-game'}}));assert.ok(g.calls.every(call=>call.options.method==='GET'));}
+ const f=fixture();await f.api.create({name:'project',private:false,template:{owner:'codepetca',repo:'zero-tutorial-game'}});
+ const post=f.calls.find(call=>call.options.method==='POST');assert.equal(post.url,'https://api.github.com/repos/codepetca/zero-tutorial-game/generate');assert.deepEqual(JSON.parse(post.options.body),{name:'project',private:false,owner:'student',include_all_branches:false});
+ for(const template of [{owner:'attacker',repo:'zero-tutorial-game'},{owner:'codepetca',repo:'../x'},{owner:'codepetca',repo:'zero-tutorial-game',url:'https://evil.invalid'}])await assert.rejects(f.api.create({name:'project',private:false,template}));
+ for(const change of [{is_template:false},{private:true}]) {const g=fixture();g.template={full_name:'codepetca/zero-tutorial-game',private:false,is_template:true,...change};await assert.rejects(g.api.create({name:'project',private:false,template:{owner:'codepetca',repo:'zero-tutorial-game'}}));assert.ok(g.calls.every(call=>call.options.method==='GET'));}
 });
 test('existing destination is never silently adopted or modified',async()=>{
- const f=fixture();f.created=true;await assert.rejects(f.api.create({name:'project',private:true}),error=>error.code==='repository-exists'&&error.repositoryUrl===f.repo.html_url);
+ const f=fixture();f.created=true;await assert.rejects(f.api.create({name:'project',private:false}),error=>error.code==='repository-exists'&&error.repositoryUrl===f.repo.html_url);
  assert.ok(f.calls.every(call=>call.options.method==='GET'));
 });
 test('lost creation response gives a redacted recovery URL and never retries its POST',async()=>{
  const f=fixture();f.postFailure=true;
- for(let attempt=0;attempt<2;attempt++)await assert.rejects(f.api.create({name:'project',private:true}),error=>error.code==='creation-uncertain'&&error.repositoryUrl===f.repo.html_url&&!error.message.includes(token));
+ for(let attempt=0;attempt<2;attempt++)await assert.rejects(f.api.create({name:'project',private:false}),error=>error.code==='creation-uncertain'&&error.repositoryUrl===f.repo.html_url&&!error.message.includes(token));
  assert.equal(f.calls.filter(call=>call.options.method==='POST').length,1);
  f.postFailure=false;f.created=true;const recovered=await f.api.access(f.repo.html_url);assert.equal(recovered.repository.id,32);
 });
 test('post-create membership failure, wrong visibility and identity drift preserve uncertainty',async()=>{
- for(const change of [f=>{f.members=[];},f=>{f.visibility=false;},f=>{f.postHook=async()=>{f.active=false;};}]) {
-  const f=fixture();change(f);await assert.rejects(f.api.create({name:'project',private:true}),error=>error.code==='creation-uncertain');assert.equal(f.calls.filter(call=>call.options.method==='POST').length,1);
+ for(const change of [f=>{f.members=[];},f=>{f.visibility=true;},f=>{f.postHook=async()=>{f.active=false;};}]) {
+  const f=fixture();change(f);await assert.rejects(f.api.create({name:'project',private:false}),error=>error.code==='creation-uncertain');assert.equal(f.calls.filter(call=>call.options.method==='POST').length,1);
  }
 });
 test('definitive rejected create is reported without leaking raw provider details',async()=>{
- const f=fixture();f.postStatus=422;await assert.rejects(f.api.create({name:'project',private:true}),error=>error.status===422&&!error.message.includes(token));
+ const f=fixture();f.postStatus=422;await assert.rejects(f.api.create({name:'project',private:false}),error=>error.status===422&&!error.message.includes(token));
 });
 test('session change between installation and repository read stops further requests',async()=>{
  const f=fixture();let calls=0;
@@ -99,8 +99,8 @@ test('session change between installation and repository read stops further requ
 });
 test('creation reuses the reviewed form ticket and refuses drift without capturing a replacement',async()=>{
  const f=fixture();f.authentication.capture=async()=>{throw Error('must not capture');};
- const result=await f.api.create({name:'project',private:true},{ticket:f.ticket});assert.equal(result.ticket,f.ticket);
- const g=fixture();g.authentication.capture=async()=>{throw Error('must not capture');};g.active=false;await assert.rejects(g.api.create({name:'project',private:true},{ticket:g.ticket}),/account changed/);assert.equal(g.calls.length,0);
+ const result=await f.api.create({name:'project',private:false},{ticket:f.ticket});assert.equal(result.ticket,f.ticket);
+ const g=fixture();g.authentication.capture=async()=>{throw Error('must not capture');};g.active=false;await assert.rejects(g.api.create({name:'project',private:false},{ticket:g.ticket}),/account changed/);assert.equal(g.calls.length,0);
 });
 test('missing installation and repository selection expose only the pinned App setup link',async()=>{
  for(const change of [f=>{f.installations=[];},f=>{f.members=[];},f=>{f.installed.permissions.contents='read';}]) {

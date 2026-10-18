@@ -6,9 +6,11 @@ It supplies a working Hello, world! app, the Zero library, pinned build tools an
 Run App configuration. You choose the interface, data and behaviour.
 
 Before tutorial lesson 0, complete [GitHub account, school access and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy).
-Use your own verified account and Git 2.31+. Choose Private unless your teacher's
-policy says otherwise; invite the teacher as a collaborator on each repository
-and check acceptance/access. Publishing a public game remains optional.
+Use your own verified account and Git 2.31+. Repositories created through Zero
+are public, including source and included files; keep private material out.
+Existing or GitHub-created repositories may be private under your teacher's policy;
+invite the teacher as a collaborator when needed and check access. Publishing a
+playable game remains optional.
 
 ## Create your own repository and clone it
 
@@ -52,16 +54,14 @@ when you are ready to push. Students develop and submit their own repositories.
 
 The continuing tutorials use three empty templates: Greeting for lessons0–2,
 Study for3–7 and Game for8–12. At each group's first lesson, choose **Start
-tutorial** from Zero’s welcome or **…** menu and select the matching project, or choose the
-lesson page’s verified **Use template** action. On GitHub, choose **Use this
-template → Create a new repository** in your own account. Copy **your new
-repository**’s **Code → HTTPS** URL, then sign in to Zero and choose
-**Project → Clone from GitHub…**. Paste your URL in **Clone from GitHub**, then
-choose **Clone here** in **Clone location**. The default is `~/Zero Projects`;
-you can choose another folder outside any Git repository. Newer VS Code versions
-open a new window automatically; the VS Code 1.95 fallback may ask for
-**Open in New Window**. Use **Project → Open local project…** for an already-cloned
-Zero folder. Do not clone the teacher's shared repository directly. Open
+tutorial** from Zero’s welcome or **…** menu and select the matching project.
+Enter a name and choose a clone location (default `~/Zero Projects`). Zero creates
+a public repository in your GitHub account from the verified template, then clones
+and opens it. Its source and included files are public. The lesson page's
+**Use template** action offers a separate GitHub creation route; follow your
+teacher's visibility instructions there, then clone your own repository with
+**Project → Clone from GitHub…**. Use **Project → Open local project…** for an
+already-cloned Zero folder. Do not clone the teacher's shared repository directly. Open
 `src/main/java/Main.java`, write the lesson’s ordinary Java and choose **Run App**.
 Template links follow verified publication metadata; unavailable templates show
 that state rather than an invented working link.

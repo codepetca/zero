@@ -31,11 +31,11 @@ an ordinary local starter smoke test.
 - On the target school device/network, confirm GitHub access, email verification,
   native VS Code GitHub sign-in and the pinned compiler/dependency downloads.
   Include Git 2.31+ in the tutorial setup. Do not bypass school restrictions.
-- Agree repository visibility **before Create**: use private unless the teacher or
-  school requires public. GitHub Free supports private repositories with collaborators.
-  Invite the teacher using their verified GitHub username; the teacher must accept
-  and open the actual private repository. A personal-repository collaborator has
-  write access; do not describe this as view-only access.
+- Confirm that public source is allowed before using Zero's creation commands;
+  created repositories and included files are public. Keep private material out.
+  For an existing or GitHub-created private repository, invite the teacher using
+  their verified GitHub username; the teacher must accept and open the repository.
+  A personal-repository collaborator has write access, not view-only access.
 - Configure Git identity per repository using a school-approved display name and
   email. For email privacy, copy the exact GitHub-provided noreply address from
   GitHub Settings → Emails; do not guess its form. Native sign-in does not set
@@ -103,11 +103,11 @@ account/network trial. Current development checks mock authentication and transp
 - Use a fresh VS Code window/profile to test actual native browser sign-in,
   cancellation and denied authentication. Confirm local Run still works, retry
   successfully, and check the displayed account. Record browser/school restrictions.
-- For an original local app, use Connect a repo → Create a repository to create a
-  student-owned empty repository. Apply the agreed private/public choice before
-  Create; leave README, license and gitignore uninitialized. Skip this step for a
-  tutorial clone.
-  Connect its HTTPS URL from the standalone student folder and confirm the target.
+- For an original local app, use **Project → Create a repository…** to create a
+  student-owned empty public repository. Confirm the displayed account and
+  public destination. Skip this step for a tutorial clone. If using an existing
+  GitHub-created repository instead, connect its HTTPS URL from the standalone
+  student folder and confirm the target; its visibility stays unchanged.
 - Check the student's per-repository Git name/email against the preflight policy.
   For the optional simulation check, explicitly set `"zero.uploadMode": "simulation"`;
   confirm it says nothing was uploaded and makes no Git changes, then remove the

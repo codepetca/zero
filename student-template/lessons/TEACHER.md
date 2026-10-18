@@ -19,9 +19,10 @@ username/email/display-name policy. Each student creates and verifies their own
 GitHub account if needed and keeps their password private. On the school device/network, verify GitHub access, email
 verification, native VS Code sign-in, Git 2.31+ and pinned compiler/dependency downloads.
 
-Agree visibility before **Create**: private unless the teacher or school requires
-public. GitHub Free allows private collaborators. Invite the teacher by verified
-GitHub username, have them accept, then check actual private-repository access.
+Confirm that public source is allowed before students create through Zero; those
+repositories and included files are public. Keep private material out. For an
+existing or GitHub-created private repository, invite the teacher by verified
+GitHub username, have them accept, then check actual access.
 Collaborators on personal repositories have write access, not a view-only role.
 Use per-repository Git identity with a school-approved display name and email;
 for privacy, copy the exact GitHub-provided noreply address from Settings → Emails.

@@ -6,7 +6,11 @@ assets retain their existing versions and bytes.
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
 webview, tree, task and command APIs. Files use Zero’s Files view or native Explorer
-and open in the normal editor. Zero’s controls are collapsible above Files; idle status is empty. Tutorials
+and open in the normal editor. The shared Zero logo remains in the activity bar; no extra title row is added.
+Controls and Files share one continuous view; idle status is empty. After GitHub
+sign-in, the project menu shows the folder or owner/repository on up to two lines,
+without a duplicate username row, with a right chevron indicating the menu. Choose **GitHub account…** inside it
+for native account controls. Tutorials
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
@@ -14,7 +18,7 @@ Import the settings-only Zero profile first, then install the local
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
-Run App saves files, checks original Java against the supported browser API
+The sidebar’s single **Run**/**Stop** button saves files, checks original Java against the supported browser API
 subset, compiles locally when needed with the pinned WebFX/GWT pipeline, validates
 the build and opens Zero’s managed browser preview. Students need a supported
 JDK **17+**, with no global Maven or Node.js installation. The first build needs
@@ -33,13 +37,17 @@ The default build shortcut uses the same browser run action:
 {"version":"2.0.0","tasks":[{"type":"zero","task":"run","label":"Zero: Run App","group":{"kind":"build","isDefault":true},"problemMatcher":"$zero-java"}]}
 ```
 
-Run App again after edits to rebuild and restart. Stop aborts owned work and
+Click **Stop**, then **Run** after edits to rebuild and restart. The palette’s
+Run App command can still restart directly. **Stopping…** stays disabled until
+owned work settles; failures and closing the managed preview restore **Run**.
+Stop aborts owned work and
 ends the preview and its audio. Build/source/compatibility errors appear in Zero’s
 output and Problems; **Show Problems** opens the source diagnostics. Repair a
 failed download or the indicated code, then Run App again. A failed build does
 not reopen old output as a successful new run.
 
-Choose **Open in browser** in the running preview or sidebar to test the same
+Choose **Open in browser** in the running preview, or the browser icon beside
+**Stop** in the sidebar (tooltip: Open in browser), to test the same
 compiled app in your default browser, such as Chrome. This local URL is not a
 public link. Stop or rerun removes the app from responsive external preview tabs;
 suspended or blocked browser execution can delay that cleanup. **Publish app** is
@@ -51,13 +59,14 @@ Native success does not establish browser compatibility. Windows native tasks
 use the task shell with strong wrapper-path quoting; other platforms use a
 process task. Physical Windows/Linux behavior remains unverified.
 
-**Add assets…** copies selected images/audio into `src/main/resources`, preserving
+**Add assets…**, beside **Files**, copies selected images/audio into `src/main/resources`, preserving
 originals and existing assets with **Keep both** or **Skip existing**. Copy resource
-string literals with **Copy asset paths**. **Recovery…** opens native changes or
+string literals with **Copy asset paths** beside it. **Project menu → Review or
+restore changes…** opens native changes or
 previews an earlier tracked file version as an undoable edit. Save/test and Commit
 & push a correction; history is preserved. VS Code's auto-save preference applies.
 
-**Share project** guides game details, Commit & push and optional Publish app
+**ZeroHub → Share project** guides game details, Commit & push and optional Publish app
 before the reviewed GitHub form. Cancel preserves saved details. Submit the form
 on GitHub; opening it does not mean gallery acceptance. Each handoff rechecks
 account, repository and exact uploaded source; workflow scope expansion hints the
@@ -222,7 +231,7 @@ remain pending. Review focused changes before classroom adoption.
 
 ## ZeroHub libraries
 
-Choose **Browse ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command Palette. **Browse ZeroHub → Projects** opens complete examples/templates on the website. Signed-in students can use **Share project**; advanced library authoring remains under **Zero: Libraries and Games** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
+Choose **ZeroHub → Libraries**, or **Zero: Browse Libraries** in the Command Palette. **ZeroHub → Projects** opens shared projects on the website. Signed-in students can use **ZeroHub → Share project** for eligible original projects; advanced library authoring remains under **Zero: Libraries and Games** in the Command Palette. Inspect a component's API/checks at `/hub`, then Add its exact library version. Related classes share a dependency. Update/Revert preserve independent library histories and change only reviewed managed POM blocks using the native undoable editor.
 
 Dirty/drifted POMs, incompatible layouts and source copies that shadow installed classes require correction before editing. No automatic upgrade, Git commit or upload occurs. Use the card's exact Java import and ordinary methods, then Run App.
 

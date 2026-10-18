@@ -1,36 +1,27 @@
-# Browser mobile delivery — 2026-10-18
+# Zero sidebar PR integration — 2026-10-18
 
-Worktree: /Users/stew/.codex/worktrees/student-friction/zero.
-Branch codex/browser-mobile-scaling. Preserve unrelated dirty primary checkout.
-Owner authorized PR, merge, Mac release and Grove Guard rebuild/republish after
-local acceptance. Version0.5.20/build20 remains unused; published0.5.19 and
-standalone kit0.5.17 remain immutable until verified replacements are public.
+Worktree:/Users/stew/.codex/worktrees/release-readiness/zero.
+Branch:codex/sidebar-zerohub-actions. Owner explicitly authorized creating a PR
+for the latest sidebar changes and merging once checks pass. Preserve the dirty
+primary checkout. Source delivery ef5d9b9 is being integrated with main8564ea9;
+only CURRENT conflicted. Mobile game source and published Mac0.5.20 metadata are
+preserved; no new native build/release or credential change is part of this task.
 
-Reviewed browser implementation c49b32f fits complete logical GameApp content to
-both viewport axes without changing student Java/canvas dimensions. Primary touch
-maps correctly; ordinary App/native helpers are unchanged. Six GWT fixtures,
-Chrome desktop56/56 and phone-sized136/136 checks pass. Unchanged Grove Guard
-passes9 real-touch checks with14source/resource hashes preserved. Independent
-Sol/high initial, two targeted and final integration reviews are clean. Four
-implementation correction batches used; preserve that exhausted fix budget.
+Approved refinements:one lifecycle-aware Run/Stop/Stopping control,icon-only
+Open in browser beside Stop,text-only ZeroHub menu with eligible Share project,
+two-line repository menu with right chevron and no duplicate username row,
+Add assets/Copy asset paths beside Files,recovery/account actions in Project menu.
+Keep existing panel height and activity-bar-only branding. The latest source
+also makes Zero-created repositories public with a concise consequence notice,
+removes the visibility picker and shortens the device-code modal. Existing
+repository visibility/account/installation/recovery checks remain. GitHub-only
+avatar export adds padding; shared branding consumers are unchanged.
 
-Integrating main f719d18 (merged PR102 shared GitHub identity/branding and PR101
-sample attribution). No browser exporter source overlaps. Preserve reviewed App
-identity, selected-repository boundaries and safe auth recovery guide. No new
-credentials/permissions or browser sign-in activation are part of this release.
-Registration and private clone/upload passed in prior isolated native acceptance;
-first-account/create/refresh/revocation/account drift and browser stars remain
-unverified. Browser stars remain disabled without server credentials.
-
-Next: bounded main-integration review/checks, source PR/CI/merge, signed/notarized
-Mac20 candidate and measured release/metadata delivery, then supported armorup
-Zero UI rebuild/publication of existing Grove Guard. Computer use reports locked
-Mac; manual unlock requested, no bypass. Physical iPhone/Safari and interactive
-Windows remain unverified. Students still choose readable text/touch targets and
-keyboard alternatives. Existing browser exports need rebuild/republish.
-
-Evidence: docs/EVIDENCE.md and ignored .verification/mobile-canvas/plan.json.
-Preserve all logs/builds/screenshots/caches/profiles/backups and prior sealed Mac19
-candidate. No new task, tool-backed goal or automation was created. Default public
-Projects remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn. DeepSeek paused
-through2026-12-31. Latest weekly42% remaining is account-wide; storage303GB healthy.
+Individual source deltas passed independent reviews and affected checks; prior
+714-test broad results and corrected-fixture evidence are in docs/EVIDENCE.md.
+Next:integrated checks,one cumulative source review, draft PR/CI,then authorized
+merge of the verified head. Native VS Code/Windows interaction remains unverified.
+Browser stars stay disabled without production credentials. Preserve published
+installer0.5.20,kit0.5.17 and publisher policy. DeepSeek remains paused; weekly36%
+remaining and299GB available at start; account-wide usage is not task cost.
+Detailed receipts:.verification/sidebar-pr-20261018. No tool-backed goal created.

@@ -23,12 +23,13 @@ bundled sign-in and project instructions. See [the identity plan](ZERO-IDENTITY-
 
 Complete [GitHub account and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy)
 before the first tutorial: student-owned verified account, Git 2.31+, school
-GitHub device sign-in and compiler-download access, agreed repository visibility
-and teacher collaborator access. Keep tutorial source Private unless teacher/school
-policy says otherwise. Configure teacher-approved per-repository commit identity;
+GitHub device sign-in and compiler-download access, awareness that repositories
+created through Zero are public, and teacher access where needed. Keep secrets and
+private files out of those repositories. Existing or GitHub-created private repositories
+may use teacher collaborator access. Configure teacher-approved per-repository commit identity;
 copy the exact GitHub `noreply` email when using email privacy. Publishing remains
 optional and public, and private-repository Pages eligibility depends on the plan.
-No paid plan or public source is required for tutorial work.
+No paid plan is required for tutorial work.
 
 The local starter smoke check can run before account setup. After cloning a
 tutorial repository and caching compiler dependencies, Run works offline without
@@ -46,9 +47,9 @@ SecretStorage. Sign out disconnects only Zero on this computer. While signed
 out, Zero's Git area shows only **Sign in**; local Run and Files remain available.
 
 Choose **Start tutorial** and its scaffold, or **Project → New project…** for
-original work. Enter a repository name, choose Private/Public according to your
-teacher's instructions and choose a parent folder before creation. Zero creates
-your repository, verifies access, clones and opens the project in a new window.
+original work. Enter a repository name and choose a parent folder before creation.
+Zero creates a public repository in your GitHub account, verifies access, clones
+and opens the project in a new window. Its source and included files are public.
 The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
 For an existing repository, choose **Project → Clone from GitHub…**, paste its
@@ -59,7 +60,7 @@ clone keeps its partial folder. Check those before retrying or creating another 
 For an existing cloned Zero folder, choose **Project → Open local project…**;
 it opens that valid project in a new window without cloning again. An original
 local project without a GitHub origin offers **Project → Create a repository…**
-to create and connect an empty remote after choosing its name and visibility.
+to create and connect an empty public remote after entering its name.
 **Project → Connect to GitHub…** connects an existing repository URL locally;
 it does not push or prove remote access. Connected projects show
 owner/repository and retain branch actions, with **Publish app** in the menu.
@@ -93,7 +94,7 @@ downloads and platform limits.
    Choose Run first app and confirm the greeting in the browser preview for this
    candidate (older kits retain their bundled native-run instructions).
 6. Complete the account/privacy preflight above before lesson 0. In the unreleased
-   flow after activation, Start tutorial collects the repository name, visibility and location
+   flow after activation, Start tutorial collects the repository name and location
    before creating and cloning the verified Greeting template into your own account.
    Earlier published kits use their bundled create-on-GitHub/clone instructions.
    Submit repository links in Pika separately when assigned.

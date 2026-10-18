@@ -5725,3 +5725,310 @@ per-turn tokens and exact elapsed worker/reviewer time unavailable. No inference
 of cost savings from account-wide allowance. Latest weekly47% remaining and
 storage306.7GB healthy; no cleanup. Existing authority covers draft PR push only;
 merge,production deployment and native release remain separate gates.
+
+
+## Signed-in sidebar and ZeroHub actions — 2026-10-18
+
+Owner requested removing the duplicate username row, allowing a two-line
+repository name without a visual chevron, and grouping Share project under one
+ZeroHub button. Implemented on codex/sidebar-zerohub-actions in the release-readiness
+worktree, based on merged GitHub App/branding PR102:f719d18. Authentication,
+account selection/sign-out, repository workflows and guarded sharing commands
+are preserved. Account actions now remain reachable through Project menu →
+GitHub account…. Local Run has no added authentication gate; ordinary Java and
+branding assets are unchanged. Source106beeb, reviewed corrections through1a590f2.
+
+Final npm run check and npm test pass:710tests,707passed,3skipped,0failed.
+Focused sidebar/onboarding/upload tests:45passed. The first integrated full run
+found one stale workflow test waiting for the intentionally removed username;
+its replacement checks published-action restoration after auth refresh and name
+absence, passes in isolation and in the final full suite. Initial integration
+also required two fixture/expectation updates; no implementation defect found.
+Actual extension-render browser fixtures at280px confirm light/dark layout,
+two lines totaling36.4px, full accessible repository name, keyboard focus outline and no
+horizontal overflow, duplicate account row, repository chevron or inline Share.
+Fixtures use a disposable account and do not prove live authentication. Native
+isolated VS Code automation timed out; actual native click-through and Windows
+remain unverified. Disposable host/server/tab were closed; installed apps,
+credentials, source checkout and the owner's fresh-install state were preserved.
+
+Independent Sol/medium initial review106beeb covered the complete9-file diff
+fromf719d18 and immediate auth/picker/sharing/bridge dependencies:0blockers,
+1optional P3 account-guide correction accepted. Targeted reviewa52a6c6 verified
+that correction; targeted review1a590f2 verified the test-only auth-refresh delta.
+All assigned coverage complete; no outstanding findings. Three reviewer turns,
+one initial wave,two targeted waves,two correction batches; no integration wave
+needed because implementation remained unchanged. Requested model gpt-6.1-sol,
+medium; effective configuration, per-turn tokens, review/coordinator active
+seconds unavailable. Review receipt IDs:sidebar_refinement_review/turn1–3.
+Account-wide weekly remaining45% at start; storage301.6GB healthy, no cleanup.
+Bulky logs, screenshot and structured receipt remain ignored under
+.verification/sidebar-refinement-20261018. Local branch only; no new source push,
+merge, installer build or live release is claimed or authorized for this request.
+
+
+## Files media action and clearer recovery placement — 2026-10-18
+
+Owner approved Add images & sounds… beside Files and moving recovery into the
+project menu. Sourcefc92551 removes the tools row, places import and post-import
+Copy asset paths by the Files heading, and offers Review or restore changes…
+through the existing guarded native recovery command. Import dialog, progress,
+palette and retry guidance match the names. Underlying import/recovery policy,
+ordinary Java, GitHub identity and local Run are preserved. Incremental fileActions
+updates leave file-tree nodes/focus intact, update busy state and clear with no
+project. Header wraps in narrow widths without horizontal overflow.
+
+Root npm run check passes.66focused tests pass across extension/workflow,
+assets/recovery,onboarding and sidebar refresh. Full npm test on sourcefc92551
+ran711tests:707passed,3skipped,1failed because the playground expected the removed
+labels/buttons. Test-only correctionbf3fd2f passed the entire3-test playground
+file; unchanged707passing checks are reused. No clean single full-suite rerun
+is claimed. Initial focused run similarly needed an updated menu-array expectation.
+Browser actual-render fixtures confirm light/dark280px Files/action placement,
+visible keyboard focus and180px wrapping without horizontal overflow. Fixtures
+are not real sign-in or native-menu evidence. Actual VS Code click-through and
+physical Windows remain unverified; no new attempt or installer change claimed.
+Temporary browser tab/server closed; screenshots/logs remain ignored under
+.verification/sidebar-tools-20261018.
+
+Independent gpt-6.1-sol/medium review of5dff1b9..fc92551 covered the complete14-file
+diff and immediate menu/auth/assets/recovery/client dependencies:clean,0findings.
+Targeted reviewfc92551..bf3fd2f confirmed the complete test-only correction and
+retained coverage:clean. Receipt IDs:sidebar_tools_review/turn1–2;2launches,
+1initial wave,1targeted wave,1test correction batch,0outstanding findings. Source
+unchanged after initial review; no extra integration wave needed. Effective model,
+per-turn tokens and review/coordinator seconds unknown. Weekly remaining44% at
+start, storage301.6GB cached/healthy; no cleanup. Local source delivery only;
+no new source publication, merge, native build or student release authorized.
+
+
+## Repository right chevron and Add assets label — 2026-10-18
+
+Owner requested a right chevron to indicate the repository button opens a menu,
+and Add assets… instead of Add images & sounds…. Sourced225275 reuses the pinned
+decorative chevron rotated-90degrees; the label remains flexible/two-line-clamped
+with full accessible name/tooltip and unchanged menu dispatch. Button, palette,
+file-picker/progress and current guides use Add assets…. Files placement,
+import/recovery policies, GitHub identity and ordinary Java are unchanged.
+
+Root npm run check,diffcheck and30affected tests pass, including extension,
+workflow,assets,sidebar refresh and playground. Browser actual-render fixtures
+confirm light/dark280px layout,right rotation,decorative SVG,two-line label and
+no horizontal overflow. Browser fixture account is not live-auth evidence.
+Unchanged prior workflow coverage is reused; full suite was not repeated for
+this display-only delta. Native VS Code/physical Windows remain unverified.
+Temporary browser tab/server closed; screenshot/logs are ignored under
+.verification/sidebar-chevron-20261018. No install,source publication or release.
+
+Independent gpt-6-luna/medium review of8267a18..d225275 covered all11changed files
+and immediate renderer/style/icon/asset callers:clean,0actionable findings.
+Receipt sidebar_chevron_review/turn1;1launch/initial wave,0fix batches; no further
+wave needed. Effective model,review/coordinator seconds and per-turn tokens are
+unknown. Recent account allowance44% weekly remaining; cached storage301.4GB
+healthy,no cleanup. Local source only,ready for next authorized native preview.
+
+
+## One lifecycle-aware Run/Stop button — 2026-10-18
+
+Owner approved one Run/Stop control. Source8d0517b uses one stable zero.toggleApp
+host command, immediately offering Stop for queued/checking/compiling/running
+work. Shutdown is serialized, waits for browser queue/native preparation/task
+termination, and prevents stale repeated clicks or palette/build shortcuts from
+restarting during shutdown. Queued-generation tracking prevents a late result
+from reopening the runtime. Errors, closing the managed preview and completed
+stops return to Run. Explicit Run App still restarts, and Stop App remains.
+Ordinary Java, auth and Git merge/rebase semantics are unchanged.
+
+Independent Sol/medium complete12-file review ofd4856b1..8d0517b found one P2:
+disabled Stopping replacement lost keyboard focus. Accepted correction2cc0424
+uses focusable aria-disabled, unchanged host guard and a shared client activation
+guard with matching unavailable styling. Targeted complete8-file delta review
+8d0517b..2cc0424 is clean; initial lifecycle coverage reused. Receipt IDs
+run_toggle_review/turn1–2;2launches,1initial wave,1targeted wave,1fix batch,
+0outstanding findings. No further integration wave needed because targeted
+coverage includes the immediate input/focus interaction and backend is unchanged.
+Requested gpt-6.1-sol/medium; effective model, per-turn tokens and attributable
+review/coordinator seconds unknown. No inference of cost from account allowance.
+
+Final root npm run check passes. Stable corrected source2cc0424 full npm test:
+714tests,711passed,3skipped,0failed (194833ms);54focused tests pass. Tests cover
+queued start, cancellation during build/save/native resolution, failed save/
+compile, preview closure, late build rejection, duplicate clicks and shortcuts
+while stopping. Initial full run before correction also passed710/3skipped;
+initial focused setup required updating old two-button expectations and adapting
+a save-gate test to await the now-observable shutdown after releasing the save.
+Real Chrome keyboard fixture executes actual renderer/client with a simulated
+host:Stop → Stopping → Run retained focus; pressing Space while unavailable sent
+no extra command (count stayed1); deliberate movement to another link survived
+completion. The first automated disabled-locator press was rejected by browser
+automation and one unchecked rapid key landed before the unavailable update;
+rerun waited for visible Stopping and verified blocking. No hidden application
+state was used. Light/dark actual-render fixtures show idle/building/running/
+stopping; they are not real Java-runtime or sign-in evidence. Temporary tab/
+server closed. Screenshots/logs/structured receipt are ignored under
+.verification/run-toggle-20261018.
+
+Native installed VS Code and physical Windows are unverified. Review identified
+an optional pre-existing configured-native task resolution-to-start cancellation
+gap, present in the base; this scope does not resolve or claim that edge case.
+Student default browser Run, native preparation/owned active-task tests and
+actual DOM keyboard coverage are the verified boundaries. Weekly remaining42%
+at start,storage302.8GB healthy,no cleanup. Local source only; no source push,
+merge,installed-preview update or release publication authorized/performed.
+
+
+## Icon-only browser action beside Stop — 2026-10-18
+
+Owner requested Open in browser as an icon beside Run/Stop with no visible text.
+Source5fcf3cd puts the existing action in a dedicated horizontal run-controls row;
+the primary button flexes and the secondary icon keeps a32px column. Tooltip and
+aria-label remain Open in browser; SVG is decorative. Visibility retains the
+active/available-runtime check and hides immediately during Stop. Command/runtime
+implementation, cancellation/focus guards and Java/auth behavior are unchanged.
+
+Root npm run check,diffcheck and11affected tests pass. Existing full lifecycle
+coverage711passed/3skipped is reused for this display-only delta; full suite not
+repeated. Actual-render browser fixtures confirm light/dark280px and narrow180px:
+buttons share top10px,icon32px,empty visible text,full accessible name and tooltip,
+page width equals scroll width. Keyboard Tab from Stop reaches the icon with a
+visible outline. Fixtures use a simulated running state, not real Java execution.
+Native VS Code/Windows remain unverified. Temporary tab/server closed; screenshot,
+logs and receipt ignored under .verification/run-browser-icon-20261018.
+
+Independent gpt-6-luna/medium complete7-file review191d24a..5fcf3cd plus immediate
+renderer/style/click-handler scope:clean,0findings. Receipt
+run_browser_icon_review/turn1;1launch/initial wave,0fix batches,0outstanding gaps
+in assigned code scope; coordinator completed the visual checks. Effective model,
+per-turn tokens and review/coordinator seconds unknown. Storage301.6GB healthy,
+no cleanup. Local source only; no source push,merge,install or release performed.
+
+
+## Zero heading and text-only ZeroHub — 2026-10-18
+
+Owner requested removing the external-link icon from ZeroHub and showing the
+Zero mark in the sidebar app title. Source4d047d9 makes ZeroHub text-only and
+adds a compact noninteractive logo + Zero heading inside extension content.
+The helper reads the trusted canonical packaged media/zero.svg once and adds
+decorative SVG attributes; native activity-bar/view icons remain configured.
+No copied geometry, fake title action, host DOM/CSS injection or new permissions.
+
+Installed VS Code CSS hides vertical pane icons and its native title renderer
+assigns plain text. Official reference:Microsoft vscode compositePart.ts
+createTitleLabel and viewPane.ts renderHeaderTitle; source URLs are recorded in
+the ignored receipt. A preference question offered the compact content heading
+vs retaining height. After at least70seconds without a reply, coordinator stated
+and applied the compact-heading assumption to fulfill the requested visible logo.
+This is not a claim of owner approval for that specific placement. The native
+VS Code title is outside the custom heading and outside preview frames.
+
+Root npm run check,diffcheck and8affected tests pass; prior711pass/3skip lifecycle
+coverage reused for this display-only change. Browser actual-render light/dark
+280px and180px frames confirm one Zero heading/decorative canonical mark,
+ZeroHub text with0SVGs, current-app browser action1SVG and no horizontal overflow.
+Fixtures simulate running; native VS Code/Windows rendering remains unverified.
+Temporary tab/server closed. Screenshots/options/logs/receipt remain ignored under
+.verification/sidebar-brand-title-20261018.
+
+Independent gpt-6-luna/medium complete8-file reviewb9bbb1a..4d047d9 and nearby
+renderer/style/asset/packaging scope:clean,0findings. Receipt
+sidebar_brand_title_review/turn1;1launch/initial wave,0fix batches. Effective model,
+per-turn tokens and review/coordinator seconds unknown. Weekly remaining39% at
+start,storage301.6GB healthy,no cleanup. Local-only source; no install/source
+push/merge or release publication authorized/performed.
+
+
+## Owner correction: keep sidebar height — 2026-10-18
+
+Owner answered the pending preference question:Keep the current height;
+activity-bar logo only. Sourcebeb3986 removes the temporary compact content
+heading/helper/import/CSS and updates design/product/extension guidance. The
+existing native activity-bar/view media/zero.svg configuration is preserved.
+ZeroHub remains text-only; the current-app browser icon stays beside Stop.
+This explicit decision supersedes the preceding compact-heading assumption.
+
+Rootcheck and8affected tests pass. The first rerun's no-heading assertion also
+matched a stale generated CSS selector; it now checks actual header markup,
+and the generated design assets were refreshed. No runtime heading remained.
+Independent Luna/medium targeted source review4d047d9..beb3986 confirms clean
+code removal and unchanged controls. It caught stale CURRENT wording; that
+operative handoff is corrected with this receipt. Review turns1–2 cover initial
+source and owner correction; no native VS Code/Windows claim is added. This
+receipt/current-only metadata correction receives a separate short consistency
+check; source coverage is reused. Local-only delivery; no install or publication.
+
+
+## Public repository creation and shorter sign-in — 2026-10-18
+
+Owner explicitly requires all repositories created through Zero to be public and
+removes the visibility picker. Local source9e9143d sends private:false from all
+three project-creation entry points and rejects other creation visibility before
+credentials/network. Returned/verified visibility checks, numeric account binding,
+selected installation access, cancellation and uncertain-creation recovery stay.
+Existing repository clone/access visibility is unchanged. The name input says
+public; source82f95f5 adds Files you push will be public for existing local projects.
+The first device-code modal is Connect Zero to GitHub plus one short code sentence;
+copy/continue, clipboard-before-browser, progress code and cancellation remain.
+Matching active design/setup/product and student-template guidance is aligned;
+immutable published history is preserved. Ordinary Java is unchanged.
+
+Coordinator implemented code; public_repo_docs (requestedSol/medium, effective
+configuration unknown) supplied11documentation paths, inspected by coordinator.
+No conflicts or doc-worker rework. Independent public_repo_flow_review:
+- Turn1,3bf21cb..9e9143d:complete18-file diff plus immediate callers; accepted two
+  findings (obsolete onboarding test expectation, local-source public disclosure).
+- Turn2,9e9143d..82f95f5:complete4-file correction and immediate boundary, clean.
+- Turn3,82f95f5..faeeb4a:complete2-file test-only correction, clean. The broader
+  suite found a separate obsolete lesson fixture after turn2; local investigation
+  removed the retired visibility-cancel step, retained actual cancellation stages
+  and removed the final unused private-picker mock. Search found no more matching
+  creation fixtures. No runtime change after82f95f5. Initial unchanged coverage
+  reused; extra integration review would add no coverage.
+Ledger:3turns/launches,1initial wave,2targeted waves,2fix batches,0outstanding
+review findings. Requestedgpt-6-sol/medium; effective model/tokens/attributable
+reviewer and coordinator seconds unknown. Weekly remaining38% and storage301.6GB
+healthy at start; allowance is account-wide, not task cost. DeepSeek stays paused.
+
+Checks:64initial focused,88GitHub suite,55onboarding/extension correction and30
+lesson/onboarding correction tests pass; rootcheck anddiffcheck pass. The broad
+npmtest run completion is recorded below separately. Logs/receipt ignored under
+.verification/public-repo-flow-20261018. Native VSCode interactive modal/layout,
+live GitHub creation/sign-in and physical Windows were not tested. No source push,
+merge, account operation, preview install or release publication performed.
+
+The preceding sidebar owner-correction metadata review (sidebar_brand_title_review
+turn3, beb3986..3bf21cb) completed clean. Original height/activity-bar-only remains
+current. The superseded in-panel-heading screenshots are historical fixtures;
+no new native rendering claim is made. Its temporary preview server is closed.
+
+Broad run result:714tests,710passed,3skipped,1failed,554.2seconds. Sole failure
+was the obsolete lesson-project visibility cancellation assertion, already fixed
+infaeeb4a and covered by the clean30-test lesson/onboarding rerun. The full run
+loaded that test before its correction. Final acceptance combines unchanged broad
+coverage with the corrected-file pass and independent test-delta review; there
+was no second complete run. No unresolved test failure remains. This result does
+not imply native/live/Windows acceptance. Working source remains local-only.
+
+
+## GitHub App avatar padding — 2026-10-18
+
+Owner requested slightly more room between the GitHub App mark and its boundary.
+Source f58cbdf derives a host-specific purple-on-white SVG/1024px PNG from the
+canonical source, scaling only its mark to88% around center. The full square
+background remains white. Internal spacing increases from7.5% to12.6%; all shared
+website/editor/native consumers and the existing three-variant ZIP are unchanged.
+Export and node syntax checks pass; independent pixel scan gives canonical
+bounds77..946 and GitHub bounds129..894 on both axes, with1024square dimensions
+and white corners. Root check/diffcheck pass. Coordinator visually inspected PNG.
+Independent github_icon_padding_review/turn1,requestedgpt-6-luna/medium:
+complete4c4c298..f58cbdf2-file diff and canonical/export dependencies, clean,
+0findings.1launch/initial wave,0fix batches. Effective configuration, elapsed
+review/coordinator seconds and per-turn tokens unavailable. Prior recent usage/
+healthy storage reading reused; no install or large generated data needed.
+
+Owner's avatar request authorizes this specific public appearance change. Chrome
+uploaded only zero-github-app.png through Codepet Zero App's existing Display
+information control and Set new avatar. GitHub confirmed the avatar was updated;
+public https://github.com/apps/codepet-zero visibly shows the new padded mark.
+Screenshot:.verification/github-icon-padding-20261018/public-icon.png. No general
+settings save, credentials, permissions, source push, native install or product
+release performed. GitHub notes other surfaces may take minutes to refresh.

@@ -119,7 +119,7 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
   }
   async function create({name,private:privacy,template}={}, {ticket:reviewedTicket,onProgress=()=>{},signal}={}) {
     configured();cancelled(signal);
-    if (!safeName(name) || typeof privacy!=='boolean') throw failure('Choose a repository name and explicitly choose Public or Private.', 'invalid-project');
+    if (!safeName(name) || privacy!==false) throw failure('Choose a repository name. Zero creates public repositories.', 'invalid-project');
     if (template && (Object.keys(template).some(key=>!['owner','repo'].includes(key)) || template.owner!==configuration.owner || !safeName(template.repo))) throw failure('Choose a verified Zero project template.', 'invalid-template');
     const ticket=reviewedTicket || await authentication.capture();await current(ticket);
     const user=await api(ticket,'GET','/user',{signal});
