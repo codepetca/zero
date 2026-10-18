@@ -5617,3 +5617,14 @@ ID and short temporary profile; its first long profile exceeded macOS's socket
 path limit. No user editor/profile was changed. Fresh storage305.7GB healthy;
 no cleanup. Live App repo creation/empty-account onboarding, refresh/revocation,
 account drift, Pages/browser stars and physical Windows/Safari remain unproven.
+
+
+## GitHub welcome subtitle — 2026-10-18
+
+Owner requested removal of the explanatory subtitle below the local GitHub
+welcome prompt. Source c6bdf47 removes only the signed-out modal detail; title,
+Connect GitHub/Later, cancellation and authentication are preserved. Existing
+welcome suite:6passed; diff check passed. Independent Luna/medium source review
+of7ece3fb..c6bdf47 and callers is clean; one launch, no rework. Effective model,
+tokens and elapsed review time unavailable. Interactive dialog/released kits were
+not retested or rebuilt. This copy-only delta does not reopen prior auth reviews.

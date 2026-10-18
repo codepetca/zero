@@ -39,3 +39,7 @@ before activation. Production/native release and merge remain separate gates.
 Preserve dirty main, ignored evidence, installer0.5.19 and publisher policy11c5451.
 DeepSeek paused through2026-12-31; weekly51% remaining was account-wide. Latest
 fresh storage305.7GB healthy; no cleanup.
+
+Latest owner copy correction: c6bdf47 removes the signed-out welcome subtitle,
+keeping heading and Connect GitHub/Later. Six welcome tests and diffcheck pass;
+one Luna/medium independent review clean. No release or merge.
