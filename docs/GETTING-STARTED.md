@@ -1,7 +1,10 @@
 # Getting started with Zero
 
-This guide describes the local, unreleased **Zero 0.5.18** candidate with
-core **0.2.1**. Published downloads keep their bundled instructions.
+This guide describes local, unreleased Zero source. The new shared GitHub App
+is registered as Codepet Zero under `codepetca`, and its public IDs are pinned
+in source. Live acceptance, production activation and an authorized native release
+remain pending. Published downloads keep their bundled instructions and
+original bytes. See [the identity plan](ZERO-IDENTITY-PLAN.md).
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
 compile locally and open a browser preview. This MVP targets **Mac with Apple
@@ -16,17 +19,19 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 ## Start here
 
 1. Download and launch **Zero**. The website needs no sign-in.
-2. In desktop Zero, choose **Sign in**. VS Code reuses an authorized connection
-   or guides sign-in and permission. If you need an account, create it on GitHub
-   and verify your email, then return to sign in.
+2. After App activation, choose **Sign in** in desktop Zero. Continue to GitHub
+   and enter Zero's displayed device code using your personal account. If you
+   need an account, create it on GitHub and verify your email first. Install the
+   Codepet App with selected repositories; Zero-created repositories receive
+   access automatically. Local Run remains available if you cancel.
 3. Choose **Start tutorial** from Zero’s welcome or **…** menu and select **Greeting app**.
-   On GitHub, choose **Use this template → Create a new repository** under your
-   own account. Copy **your new repository**’s **Code → HTTPS** URL.
-4. Return to Zero and choose **Project → Clone from GitHub…**. Paste your URL
-   in **Clone from GitHub**. In **Clone location**, keep the default `~/Zero Projects`
+   Enter a repository name and choose **Private** or **Public** following your
+   teacher's instructions.
+4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
-   The clone opens in a new window automatically on newer VS Code versions.
-   On the VS Code 1.95 fallback, choose **Open in New Window** if Git asks.
+   Zero creates your repository from the verified template, checks App access,
+   clones it and opens the project in a new window. No repository is created
+   until you have chosen its name, visibility and location.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
    lesson 0 and choose **Run App**. **Open in browser** opens the lesson or running
    app in your default browser. Keep this repository for the following Greeting lessons.
@@ -34,13 +39,25 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 Already cloned your project? Choose **Project → Open local project…**, select
 its existing Zero folder and open it in a new window without cloning again.
 While signed out, the Git area shows only **Sign in**; local Run and Files stay
-available. After signing in, **Project** offers the clone and open actions. A
-local project without an origin also offers **Connect to GitHub…**. Connected
+available. After signing in, **Project** offers the clone and open actions. An
+original local project without an origin also offers **Create a repository…** to
+create and connect an empty remote, or **Connect to GitHub…** for an existing URL. Connected
 projects show owner/repository and retain branch actions; **Publish app** is in
 that repository menu.
 
 Zero needs no separate account. **Later** leaves local Run available. To return
 to setup, use **Zero: Get Started** from VS Code's Command Palette.
+For an existing remote, **Project → Clone from GitHub…** accepts its HTTPS URL
+and uses the same location picker; add that repository to the App's selection
+when needed. **Project → New project…** creates original work from Zero's starter.
+If creation or cloning is interrupted, choose **Project → Resume created project…**
+when offered, review its saved link and check any preserved project folder before
+trying again. Zero does not blindly repeat an
+uncertain creation request or remove the repository.
+
+Older published kits may use the VS Code 1.95 fallback for native Git cloning;
+follow that release's bundled open-in-new-window instructions. This candidate
+uses Zero's guarded authenticated clone service.
 
 ## Before lesson 0: GitHub and privacy
 
@@ -50,14 +67,14 @@ The kit's ordinary Hello World setup check can run without an account; the
 continuing tutorials start from your own template-created repository and clone.
 
 1. Ask your teacher which username, email and repository visibility to use, and
-   confirm that GitHub and VS Code sign-in are allowed on your school device/network.
+   confirm that GitHub device sign-in is allowed on your school device/network.
    If access is blocked, ask your teacher or IT; do not bypass school restrictions.
 2. [Create a personal GitHub account](https://github.com/signup) if you do not
    already have one, and verify its email; [GitHub's account guide](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github) explains this step. Use an email you can access under the
    school's instructions. Keep the account yours; never share its password or
    put passwords, tokens or recovery codes in project files.
 3. Have **Git 2.31+** available locally; **Setup help** explains missing tools.
-   On the school machine, check that you can open GitHub, complete VS Code's native
+   On the school machine, check that you can open GitHub, complete Zero's device
    sign-in and download Zero's compiler dependencies. Use the same account for
    your repository, cloning and Zero pushes. Nothing pushes just by signing in.
 4. Choose **Private** for tutorial repositories unless your teacher/school asks
@@ -176,9 +193,9 @@ confirm its browser preview, since tool detection is not a build test.
 ## Edit and run
 
 Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
-use the Greeting template to **create a new repository in your own GitHub account**,
-then clone **your repository**, not Zero's shared template. Open that cloned root
-folder in Zero. The template has empty `setup()`; its first browser preview is
+choose **Start tutorial → Greeting app** in Zero to create and clone a repository
+in your own GitHub account after selecting its name, visibility and location.
+Use **your repository**, not Zero's shared template. The template has empty `setup()`; its first browser preview is
 blank. Write your label following the lesson and Run App again after edits.
 Keep that repository for lessons 1 and 2 as you add a button and name field.
 GitHub/Git setup is part of the tutorial; see [tutorial repository setup](COURSE-PROJECT.md#tutorial-repositories).
@@ -191,9 +208,10 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In this candidate, **Start tutorial** from Zero’s welcome or **…** menu opens the matching
-verified template path; it does not create a local-only practice folder. Template
-links follow verified publication metadata. An unavailable template shows a
+In this candidate after activation, **Start tutorial** from Zero’s welcome or
+**…** menu uses the matching verified template to create your repository and clone
+it; it does not create a local-only practice folder. Templates
+follow verified publication metadata. An unavailable template shows a
 specific message rather than a guessed download.
 Older published kits keep their bundled local-practice behavior. New tutorials
 have no project-ZIP alternative. Read [the lesson guide](../student-template/lessons/README.md)
@@ -232,27 +250,27 @@ not verify browser compatibility.
 
 Local running needs no GitHub sign-in. Live push and publishing need Git
 **2.31+** and your own GitHub account. For sharing work, follow your teacher's
-privacy, visibility and account instructions. If you used a ZeroHub GitHub template,
-create your own repository from it and clone **your repository** as described in
-[the course project guide](COURSE-PROJECT.md#create-your-own-repository-and-clone-it).
+privacy, visibility and account instructions. If you used **Start tutorial** or
+**New project…**, Zero already created and cloned **your repository**.
 That clone already has Git history and its own origin: keep that repository,
 complete sign-in and identity setup below, and skip creating an empty repository.
 The empty-repository steps below apply to an extracted source ZIP:
 
-1. Choose **Sign in** using the account control in Zero’s sidebar and complete VS Code's native
-   browser authentication flow. The control shows your GitHub username after
-   sign-in; click it for **Change GitHub account…** or **Sign out…**. Sign out
-   opens VS Code Accounts, where you choose your account and Sign Out. Canceling
-   authentication leaves local Run available.
-2. Open GitHub's new-repository page in your browser and create your
-   **own empty repository**, leaving README, license and
-   gitignore uninitialized to avoid a separate starting history. This workflow
-   does not use GitHub Classroom.
-3. With that local project open, choose **Project → Connect to GitHub…** and
-   paste its HTTPS page URL. Zero initializes
-   Git in this standalone student folder if needed and adds its origin remote;
-   it asks before replacing an existing origin. Connecting does not push or
-   verify repository ownership, existence or access.
+1. Choose **Sign in** in Zero's sidebar and complete the device-code flow on
+   GitHub with your personal account. The control shows your username; click it
+   for **Change GitHub account…** or **Sign out**. Sign out clears only Zero's
+   connection on this computer and preserves local work and other extensions'
+   accounts. Canceling authentication leaves local Run available.
+2. With your original local project open, choose **Project → Create a repository…**.
+   Enter a name and explicitly choose visibility. Zero creates an empty remote
+   in your personal account, verifies App access and connects this project.
+   No source is uploaded by creation. This workflow does not use GitHub Classroom.
+3. If you already created an empty repository on GitHub, use **Project → Connect to GitHub…**
+   and paste its HTTPS URL instead. Zero initializes Git in this
+   standalone folder if needed and adds its origin; it asks before replacing an
+   existing origin. This local connection does not prove remote ownership,
+   existence or access. Before remote work, Zero checks your personal ownership,
+   App permissions and explicit installation membership.
 4. Set your Git commit identity if needed, using your teacher-approved display
    name and commit email (the exact GitHub `noreply` address for email privacy). These commands configure this repository
    only, from the student folder:
@@ -262,10 +280,19 @@ The empty-repository steps below apply to an extracted source ZIP:
    git config user.email "your-email@example.com"
    ```
 
-Signing in does not set Git's commit identity. Zero uses the selected native
-GitHub session for live push and checks that the session is still current.
+Signing in does not set Git's commit identity. Zero's `zero-github` provider
+stores expiring user/refresh tokens in VS Code SecretStorage. Its clone, push
+and publish commands use transient credentials and check the captured account
+and access again. General Source Control and terminal network commands do not
+automatically share this connection; they use their normal Git authentication.
 Never put passwords or tokens in project files. If an account/session changes
 during review, sign in as needed and review the push again.
+
+ZeroHub's optional browser connection uses the same Codepet App and numeric
+GitHub identity with a separate credential family. Its ordinary user token can
+carry the App's installed repository permissions as well as starring; it is not
+a star-only credential. Browser sessions require reconnection after eight hours.
+Desktop sign-in does not pair the browser or transfer credentials to it.
 
 ## Your individual workflow
 
@@ -326,8 +353,11 @@ in Zero’s repository menu. Sign in and connect your own repository to enable
 it. Publishing is a separate explicit action from pushing your source.
 
 The first publish reviews the public destination and prepares publishing files.
-If VS Code requests GitHub workflow permission, authorize the same account you
-selected in Zero. Enter a commit message if the setup files need to be pushed; Zero then continues
+Keep the repository selected for Zero's App and review any missing Contents,
+Workflows, Actions or Pages permission on GitHub. The App omits Administration:
+for first-time Pages setup, enable GitHub Actions as the Pages source in the
+repository's GitHub settings, then return to Publish app and recheck. Enter a
+commit message if the setup files need to be pushed; Zero then continues
 publishing without another publication confirmation. Zero uses the locally checked build; GitHub deploys it to
 Pages. The playable app and its included assets are public, even if your source
 repository is private and your GitHub plan supports Pages. Zero keeps the
@@ -353,7 +383,12 @@ are not open yet.
 ## Before a class adopts it
 
 Use the [classroom pilot checklist](CLASSROOM-PILOT.md) on a student machine.
-A Mac teacher trial verified native sign-in and a private repository push.
+A prior Mac teacher trial verified the earlier VS Code GitHub sign-in and a
+private repository push. That evidence does not verify this unactivated App
+migration. Selected installation, automatic access to created repositories,
+device renewal/revocation, new/private clone, browser identity and Pages setup
+need live acceptance before production activation and release. Registered public
+App IDs alone do not verify those flows.
 Physical Windows, school restrictions and novice trials remain unverified;
 automated authentication and transport checks continue to use mocks.
 

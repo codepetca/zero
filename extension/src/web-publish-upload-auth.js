@@ -1,8 +1,8 @@
 'use strict';
 const fs=require('node:fs/promises');
 const path=require('node:path');
-const {createAuthentication}=require('./authentication');
 const {publishingFiles}=require('./web-publish-github');
+const {repositoryIdentity}=require('./github-app/repositories');
 
 // Inspect the current pinned kit, including its workflow and ownership digest.
 // Checking working files also covers a clean commit whose first push failed.
@@ -20,25 +20,18 @@ async function isManagedPublishingSetup(root) {
   return true;
 }
 
-async function selectUploadAuthentication({root,authentication,initialTicket,provider,assertCurrentProject=async()=>{}}) {
+async function selectUploadAuthentication({root,authentication,initialTicket,repositories,repositoryUrl,assertCurrentProject=async()=>{}}) {
   await assertCurrentProject();
   await authentication.assertCurrent(initialTicket);
-  if(initialTicket.session.scopes?.includes('workflow')||!await isManagedPublishingSetup(root))return {authentication,ticket:initialTicket,dispose(){}};
+  if(!repositories?.access)throw Error('Zero GitHub App repository access is not configured.');
+  const permissions={contents:'write'};
+  if(await isManagedPublishingSetup(root))permissions.workflows='write';
   await assertCurrentProject();
-  const scoped=createAuthentication(provider,()=>{},['repo','workflow'],{id:initialTicket.session.accountId,label:initialTicket.session.label});
-  try {
-    let ticket;
-    try {ticket=await scoped.capture();}
-    catch {await assertCurrentProject();await scoped.signIn();ticket=await scoped.capture();}
-    await assertCurrentProject();
-    // Native scope expansion can rotate the original session. Compare freshly
-    // observed accounts while retaining the original account as the boundary.
-    const base=await authentication.capture();
-    if(ticket.session.accountId!==initialTicket.session.accountId||base.session.accountId!==initialTicket.session.accountId)throw Error('The GitHub account changed during workflow authorization. Review the upload again with the intended account.');
-    if(!ticket.session.scopes.includes('workflow'))throw Error('Authorize GitHub workflow access through VS Code before uploading this publishing setup.');
-    await scoped.assertCurrent(ticket);
-    await assertCurrentProject();
-    return {authentication:scoped,ticket,dispose:()=>scoped.dispose()};
-  } catch(error) {scoped.dispose();throw error;}
+  const identity=repositoryIdentity(await repositories.access(repositoryUrl,{ticket:initialTicket,permissions}));
+  await authentication.assertCurrent(initialTicket);
+  await assertCurrentProject();
+  // The same Zero App session owns upload; never expand OAuth scopes or fall
+  // back to VS Code's general GitHub credentials.
+  return {authentication,ticket:initialTicket,identity,permissions:Object.freeze({...permissions}),dispose(){}};
 }
 module.exports={isManagedPublishingSetup,selectUploadAuthentication};

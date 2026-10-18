@@ -17,7 +17,7 @@ function createWelcome({window, globalState, authentication, connect, startProje
     if (globalState) await globalState.update(WELCOME_KEY, true);
     if (disposed) return;
     if (authentication.signedIn) return showConnected();
-    const choice = await window.showInformationMessage('Welcome to Zero. Connect GitHub to start learning.', {modal:true, detail:'Create your own tutorial repository using your GitHub account. Choose Later to continue locally. You can return with Zero: Get Started.'}, 'Connect GitHub', 'Later');
+    const choice = await window.showInformationMessage('Welcome to Zero. Connect GitHub to start learning.', {modal:true}, 'Connect GitHub', 'Later');
     if (disposed || isBusy() || choice !== 'Connect GitHub') return;
     // The account may have changed while this dialog was open.
     await authentication.refresh();

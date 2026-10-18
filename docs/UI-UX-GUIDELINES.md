@@ -33,11 +33,36 @@ marks a preferred pattern with documented, task-specific exceptions.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,
   Starting from zero. and direct Mac Silicon and Windows ZIP download actions. Keep the
   centered stack and shared light/dark themes without promotional sections.
-  GitHub connection belongs in downloaded Zero's welcome, using VS Code's native
-  session/consent UI. No website sign-in or separate Zero account is needed.
+  GitHub development connection belongs in downloaded Zero's welcome, using the
+  supported `zero-github` provider, native editor controls and GitHub device-code
+  consent. Download/browse/Play require no sign-in; optional ZeroHub stars use
+  the same Codepet-owned App with a separate browser credential family. There is
+  no separate Zero password/account or automatic browser/editor pairing.
 - MUST keep the option-2 sidebar minimal and use supported VS Code APIs.
   Follow the editor's established controls, theme colors, keyboard behavior and
-  native authentication/account flows. Retain light and dark editor support.
+  supported authentication/account flows. Retain light and dark editor support.
+- MUST distinguish the unreleased shared-App source from available downloads.
+  Codepet Zero is registered and its public IDs are pinned, while live acceptance,
+  production activation and an authorized native release remain pending. Do not
+  show a working connection or claim live provider acceptance from registration
+  or mocked checks. Browser sign-in stays disabled without server credentials.
+  Published kits keep their bundled behavior. See [the identity plan](ZERO-IDENTITY-PLAN.md).
+- MUST recommend selected repositories, with automatic access to App-created
+  repositories. Never silently request all-repository access. Collect scaffold,
+  repository name, explicit visibility and location before creating/cloning;
+  Create a repository for an existing original local project collects name and
+  visibility before creating an empty remote and connecting it without pushing.
+  Preserve the account/destination review and recovery link after an uncertain
+  creation, and preserve partial clone folders.
+- MUST describe Sign out as disconnecting only Zero on this computer; preserve
+  local work and other extensions' accounts. Desktop credentials use VS Code SecretStorage
+  and guarded transient transport, without password/token entry forms. General
+  Source Control and terminal network commands do not automatically share it.
+- MUST not call the one-App browser user token star-only: it can carry installed
+  repository permissions. Keep browser/editor credentials separate, explain
+  reconnection when needed and do not claim indefinite browser login. The current
+  browser policy is eight hours. First-time Pages setup uses GitHub settings and
+  recheck rather than requesting Administration or changing source visibility.
 - DEFAULT to platform controls in native setup and JavaFX examples, and semantic
   HTML controls on the website. HIG informs hierarchy and ergonomics; native
   iOS navigation, pickers and visual chrome are not a universal Zero design.

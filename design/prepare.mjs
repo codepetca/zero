@@ -2,10 +2,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { webThemeCss, vscodeThemeCss } from './adapters.mjs';
+import { editorBrandSvg } from '../scripts/brand-icon.mjs';
 
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export function designOutputs() {
   return {
+    'extension/media/zero.svg': editorBrandSvg(root),
     'website/.generated/learn-theme.css': `${webThemeCss('light', '.learn-theme, html:has(.learn-theme)')}\n${webThemeCss('dark', '.learn-theme[data-theme="dark"], html:has(.learn-theme[data-theme="dark"])')}\n@media (prefers-color-scheme: dark) {\n${webThemeCss('dark', '.learn-theme[data-theme="system"], html:has(.learn-theme[data-theme="system"])')}\n}\n`,
     'extension/media/generated-theme.css': `${vscodeThemeCss()}\n${readFileSync(new URL('../extension/media/sidebar.css', import.meta.url), 'utf8')}`,
   };

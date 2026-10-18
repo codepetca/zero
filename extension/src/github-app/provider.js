@@ -1,0 +1,195 @@
+'use strict';
+
+const {randomUUID} = require('node:crypto');
+const {deviceFlow, refreshTokens, requestJson, failure} = require('./device-flow');
+const {SECRET_KEY, binding, createCredentialStore, createCredentialLock} = require('./credential-store');
+function session(record) {
+  return Object.freeze({id:record.sessionId, account:Object.freeze({...record.account}), accessToken:record.accessToken, scopes:Object.freeze([])});
+}
+function supportedScopes(scopes) {
+  if (scopes && (!Array.isArray(scopes) || scopes.length)) throw failure('unsupported-scopes', 'Zero uses GitHub App permissions. OAuth scopes are not supported.');
+}
+function samePermissions(actual, expected) {
+  return actual && expected && Object.keys(actual).length === Object.keys(expected).length && Object.entries(expected).every(([key,value]) => actual[key] === value);
+}
+async function verifyApp(configuration, fetchImpl, signal, token) {
+  const app = await requestJson(fetchImpl, `https://api.github.com/apps/${configuration.slug}`, {signal,token});
+  if (app.id !== configuration.appId || app.client_id !== configuration.clientId || app.slug !== configuration.slug ||
+      app.owner?.login?.toLowerCase() !== configuration.owner || !samePermissions(app.permissions, configuration.permissions)) {
+    throw failure('app-mismatch', 'The Codepet GitHub App does not match this Zero release. Connection is unavailable until its configuration is reviewed.');
+  }
+}
+function configurationKey(value) {
+  if (Array.isArray(value)) return value.map(configurationKey);
+  if (value && typeof value === 'object') return Object.keys(value).sort().map(key=>[key,configurationKey(value[key])]);
+  return value;
+}
+async function accountFor(record, fetchImpl, signal) {
+  const user = await requestJson(fetchImpl, 'https://api.github.com/user', {token:record.accessToken, signal});
+  if (!Number.isSafeInteger(user.id) || user.id < 1 || typeof user.login !== 'string' || !/^[A-Za-z0-9-]{1,39}$/.test(user.login) || user.type !== 'User') {
+    throw failure('invalid-account', 'GitHub did not return a valid personal account.');
+  }
+  return {id:String(user.id), label:user.login};
+}
+function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}}) {
+  const emitter = new vscode.EventEmitter();
+  let disposed = false, cached, signInPromise, verifiedConfiguration;
+  const controllers = new Set();
+  const store = configuration ? createCredentialStore({secrets:context.secrets, configuration}) : undefined;
+  // Delay local-path validation until connection use; an unconfigured build and
+  // offline Run must activate normally on every supported extension host.
+  let lock;
+  const withLock = (callback, signal) => {
+    lock ||= createCredentialLock({globalStorageUri:context.globalStorageUri, now});
+    return lock(callback, signal);
+  };
+  function invalidate(force = false) {
+    const removed = cached ? [cached] : [];
+    cached = undefined;
+    if (!disposed && (force || removed.length)) emitter.fire({added:[], removed, changed:[]});
+  }
+  const subscription = context.secrets.onDidChange(event => { if (event.key === SECRET_KEY) invalidate(true); });
+  function available() {
+    if (disposed) throw failure('disposed', 'The Zero connection is closed.');
+    if (!configuration) throw failure('unconfigured', 'The Codepet GitHub App is not configured in this Zero release. Local running still works.');
+  }
+  async function operation(callback) {
+    const controller = new AbortController(); controllers.add(controller);
+    try { return await callback(controller); }
+    catch(error){if(error.code==='connection-lock-repair-required'&&!disposed)onDiagnostic(error.message);throw error;}
+    finally { controllers.delete(controller); }
+  }
+  async function clearInvalid() { await store.clear(); invalidate(); }
+  async function verifyExistingApp(record,signal) {
+    const key=JSON.stringify(configurationKey(configuration));
+    if(verifiedConfiguration?.key===key && verifiedConfiguration.expiresAt>now())return;
+    // Cache only a complete successful comparison. A mismatch or failed request
+    // must not retain an earlier grant, including after configuration changes.
+    verifiedConfiguration=undefined;
+    await verifyApp(configuration,fetchImpl,signal,record.accessToken);
+    verifiedConfiguration={key,expiresAt:now()+60000};
+  }
+  async function load(signal) {
+    available();
+    return withLock(async () => {
+      // Always reread under the cross-window lock, including after a waiter wins.
+      let record;
+      try { record = await store.read(); }
+      catch (error) { invalidate(); throw error; }
+      if (!record) { invalidate(); return []; }
+      if (record.state !== 'active' || record.refreshExpiresAt <= now()) { invalidate(); return []; }
+      if (record.expiresAt <= now() + 60000) {
+        const original = record;
+        // This write precedes dispatch: a crash/timeout has an uncertain outcome,
+        // so restart must reconnect rather than reuse a rotating refresh token.
+        await store.write({...record, state:'refreshing'});
+        try {
+          const pair = await refreshTokens({clientId:configuration.clientId, refreshToken:record.refreshToken, fetchImpl, now, signal});
+          record = {...record, ...pair, state:'active'};
+          // Verify identity before replacing the pair atomically.
+          const account = await accountFor(record, fetchImpl, signal);
+          if (account.id !== original.account.id) { await clearInvalid(); throw failure('account-changed', 'Your GitHub account changed. Sign in to Zero again.'); }
+          record.account = account;
+          const current = await store.read();
+          if (current?.sessionId !== original.sessionId || current.state !== 'refreshing' || current.refreshToken !== original.refreshToken) {
+            invalidate(); throw failure('connection-changed', 'Your Zero connection changed. Sign in again.');
+          }
+          await store.write(record);
+        } catch (error) {
+          // Reread before requiring reconnection. A completed new pair may have
+          // landed despite an uncertain local storage acknowledgement.
+          const current = await store.read();
+          if (current?.state === 'active' && current.sessionId === original.sessionId && current.refreshToken !== original.refreshToken) record = current;
+          else {
+            if (current?.state === 'refreshing' && current.sessionId === original.sessionId) await store.write({...current, state:'reconnect'});
+            invalidate();
+            throw failure('reconnect-required', 'GitHub did not confirm renewal of the Zero connection. Sign in again; local running still works.');
+          }
+        }
+      }
+      // Expired credentials are renewed first: metadata uses the valid user
+      // token instead of spending the anonymous shared-IP rate limit on every
+      // capture/assert-current check in one repository operation.
+      try { await verifyExistingApp(record,signal); }
+      catch (error) { if(error.code==='unauthorized')await clearInvalid();else invalidate();throw error; }
+      let account;
+      try { account = await accountFor(record, fetchImpl, signal); }
+      catch (error) { if (error.code === 'unauthorized' || error.code === 'invalid-account') await clearInvalid(); throw error; }
+      if (account.id !== record.account.id) { await clearInvalid(); throw failure('account-changed', 'Your GitHub account changed. Sign in to Zero again.'); }
+      const latest = await store.read();
+      if (!latest || latest.state !== 'active' || latest.sessionId !== record.sessionId || latest.accessToken !== record.accessToken || latest.refreshToken !== record.refreshToken || latest.account.id !== record.account.id) {
+        invalidate(); throw failure('connection-changed', 'Your Zero connection changed. Try sign-in again.');
+      }
+      if (account.label !== record.account.label) { record = {...record, account}; await store.write(record); }
+      const result = session(record);
+      if (!cached) { cached = result; emitter.fire({added:[result], removed:[], changed:[]}); }
+      else if (cached.accessToken !== result.accessToken || cached.account.label !== result.account.label) { cached = result; emitter.fire({added:[], removed:[], changed:[result]}); }
+      return [result];
+    }, signal);
+  }
+  async function signIn(controller) {
+    available();
+    // Reject non-local storage before issuing any authorization request.
+    lock ||= createCredentialLock({globalStorageUri:context.globalStorageUri, now});
+    await verifyApp(configuration, fetchImpl, controller.signal);
+    const baseline = await store.raw();
+    const run = async (progress, cancellation) => {
+      const cancellationSubscription = cancellation?.onCancellationRequested(() => controller.abort());
+      try {
+        if (cancellation?.isCancellationRequested) controller.abort();
+        const pair = await deviceFlow({clientId:configuration.clientId, fetchImpl, now, signal:controller.signal,
+          async onCode({userCode, verificationUri}) {
+            progress.report({message:`Code ${userCode} · enter on github.com/login/device`});
+            const choice = await vscode.window.showInformationMessage(`Enter ${userCode} on GitHub to connect Zero.`, {modal:true, detail:'Copy the code, then open GitHub using the account that owns your projects. The code remains in this connection’s progress notification while you sign in.'}, 'Copy code and continue');
+            if (choice !== 'Copy code and continue' || controller.signal.aborted) { controller.abort(); throw failure('cancelled', 'GitHub sign-in was cancelled. Local running still works.'); }
+            try { await vscode.env.clipboard.writeText(userCode); }
+            catch { throw failure('clipboard-unavailable','The GitHub code could not be copied. Sign in again to retry; the browser was not opened.'); }
+            if(controller.signal.aborted)throw failure('cancelled','GitHub sign-in was cancelled. Local running still works.');
+            if (!await vscode.env.openExternal(vscode.Uri.parse(verificationUri))) throw failure('browser-unavailable', 'Open https://github.com/login/device in your browser to sign in again.');
+          }});
+        const account = await accountFor(pair, fetchImpl, controller.signal);
+        return await withLock(async () => {
+          if (disposed || controller.signal.aborted) throw failure('cancelled', 'GitHub sign-in was cancelled.');
+          if (await store.raw() !== baseline) throw failure('connection-changed', 'Another Zero window changed the connection. Try sign-in again.');
+          const record = {schema:1, app:binding(configuration), sessionId:randomUUID(), account, ...pair, state:'active'};
+          await store.write(record);
+          const result = session(record); cached = result;
+          emitter.fire({added:[result], changed:[], removed:[]});
+          return result;
+        }, controller.signal);
+      } finally { cancellationSubscription?.dispose(); }
+    };
+    return vscode.window.withProgress({location:vscode.ProgressLocation.Notification, title:'Connecting Zero to GitHub', cancellable:true}, run);
+  }
+  return {
+    onDidChangeSessions:emitter.event,
+    async getSessions(scopes, options) {
+      supportedScopes(scopes);
+      if (!configuration || disposed) return [];
+      const sessions = await operation(controller => load(controller.signal));
+      return options?.account ? sessions.filter(value => value.account.id === options.account.id) : sessions;
+    },
+    async createSession(scopes) {
+      supportedScopes(scopes); available();
+      if (!signInPromise) signInPromise = operation(signIn).finally(() => { signInPromise = undefined; });
+      return signInPromise;
+    },
+    async removeSession(id) {
+      if (disposed || !configuration) return;
+      // Abort this window's pending login before clearing. Other windows observe
+      // the immediate SecretStorage invalidation and compare their baseline.
+      for (const controller of controllers) controller.abort();
+      return withLock(async () => {
+        let record;
+        try { record = await store.read(); } catch { await clearInvalid(); return; }
+        if (!record || record.sessionId === id) await clearInvalid();
+      });
+    },
+    dispose() {
+      disposed = true; cached = undefined;
+      for (const controller of controllers) controller.abort();
+      subscription.dispose(); emitter.dispose();
+    }
+  };
+}
+module.exports = {createGitHubAppProvider, verifyApp};
