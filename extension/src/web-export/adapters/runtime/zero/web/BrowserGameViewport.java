@@ -10,6 +10,7 @@ import elemental2.dom.PointerEventInit;
 import elemental2.dom.ViewCSS;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
@@ -27,7 +28,8 @@ public final class BrowserGameViewport {
     private final Runnable clearInput;
     private final Scene scene;
     private double fittedScale = 1;
-    private final double logicalWidth, logicalHeight;
+    private double logicalWidth, logicalHeight;
+    private int initialMeasureFrame = -1;
     private final ChangeListener<Number> sizeChanged = (observable, before, after) -> fit();
     private final EventListener resized = event -> fit();
     private final EventListener interrupted = event -> interruptInput();
@@ -44,8 +46,9 @@ public final class BrowserGameViewport {
         this.content = content;
         this.canvas = canvas;
         this.clearInput = clearInput;
-        // setup has already added App padding and any GameApp side controls. Measure
-        // their natural logical size once; viewport changes only alter the transform.
+        // setup has added padding and controls, but unattached WebFX controls can
+        // still report their fallback skin size. This is an initial scene estimate;
+        // install remeasures after attachment, before fixing the logical viewport.
         logicalWidth = Math.max(1, content.prefWidth(-1));
         logicalHeight = Math.max(1, content.prefHeight(logicalWidth));
         content.resize(logicalWidth, logicalHeight);
@@ -81,8 +84,7 @@ public final class BrowserGameViewport {
     public void install() {
         if (installed || closed) return;
         installed = true;
-        content.resize(logicalWidth, logicalHeight);
-        content.layout();
+        measureContent();
         scene.widthProperty().addListener(sizeChanged);
         scene.heightProperty().addListener(sizeChanged);
         DomGlobal.window.addEventListener("resize", resized);
@@ -102,6 +104,28 @@ public final class BrowserGameViewport {
             element.addEventListener(type, pointer, true);
         }
         fit();
+        // Let initial DOM peer styles/layout settle once. Subsequent viewport
+        // resizes only fit these natural dimensions and cannot feed back into them.
+        initialMeasureFrame = DomGlobal.requestAnimationFrame(timestamp -> {
+            initialMeasureFrame = -1;
+            if (closed) return;
+            measureContent();
+            fit();
+        });
+    }
+
+    private void measureContent() {
+        invalidateMeasurements(content);
+        logicalWidth = Math.max(1, content.prefWidth(-1));
+        logicalHeight = Math.max(1, content.prefHeight(logicalWidth));
+        content.resize(logicalWidth, logicalHeight);
+        content.layout();
+    }
+
+    private static void invalidateMeasurements(Parent parent) {
+        for (javafx.scene.Node child : parent.getChildrenUnmodifiable())
+            if (child instanceof Parent) invalidateMeasurements((Parent) child);
+        parent.requestLayout();
     }
 
     private void fit() {
@@ -223,6 +247,10 @@ public final class BrowserGameViewport {
         if (closed) return;
         releaseTouch();
         closed = true;
+        if (initialMeasureFrame != -1) {
+            DomGlobal.cancelAnimationFrame(initialMeasureFrame);
+            initialMeasureFrame = -1;
+        }
         if (!installed) return;
         scene.widthProperty().removeListener(sizeChanged);
         scene.heightProperty().removeListener(sizeChanged);
