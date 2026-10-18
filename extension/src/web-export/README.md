@@ -61,6 +61,9 @@ this avoids a pinned WebFX derived-event copy applying local coordinates twice
 after a click or touch release.
 Only the canvas owns touch capture; cancellation emits a normal pointer release
 before clearing input, and shutdown removes the owned listeners. This runtime
+filters nonprimary touch events before WebFX's scene-level ancestor exit handlers,
+so an extra finger cannot move the primary pointer during or after its release.
+Ordinary App views do not install the filter. The runtime
 is included in the existing exporter profile hash, so old exports require a
 rebuild. `verify:web` covers landscape and padded portrait games with real Chrome
 touch dispatch; synthetic lifecycle checks are labeled separately in the receipt.

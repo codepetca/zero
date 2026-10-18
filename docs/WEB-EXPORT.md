@@ -147,7 +147,8 @@ the fit. Ordinary `App` forms keep their normal JavaFX layout.
 A finger on the game canvas acts as the primary mouse button. `mouseX()` and
 `mouseY()` use the original game coordinates after scaling, and dragging can
 continue outside the canvas until release. The canvas owns one touch at a time;
-an additional finger does not create another game press. Cancelled touches and
+the GameApp view ignores additional fingers before they can change mouse input.
+Cancelled touches and
 lost focus release held input. Normal buttons and text fields retain their own
 browser interactions.
 Desktop games can check `MouseButton.PRIMARY`, `MIDDLE` and `SECONDARY` through

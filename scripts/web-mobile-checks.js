@@ -9,7 +9,16 @@ async (page) => {
   };
   await page.addInitScript(() => {
     window.__mobileCheck = { texts: [], last: [], errors: [] };
-    addEventListener('pointerdown', event => { if (event.pointerType === 'touch') window.__activeTouchId = event.pointerId; }, true);
+    window.__mobileTouchDowns = [];
+    window.__mobileTouchUps = [];
+    addEventListener('pointerdown', event => {
+      if (event.pointerType !== 'touch') return;
+      window.__mobileTouchDowns.push({id:event.pointerId,primary:event.isPrimary});
+      if (event.isPrimary) window.__activeTouchId = event.pointerId;
+    }, true);
+    addEventListener('pointerup', event => {
+      if (event.pointerType === 'touch') window.__mobileTouchUps.push({id:event.pointerId,primary:event.isPrimary});
+    }, true);
     addEventListener('error', event => window.__mobileCheck.errors.push(event.message));
     const p = CanvasRenderingContext2D.prototype, clear = p.clearRect, fill = p.fillText;
     p.clearRect = function(...args) {
@@ -148,8 +157,8 @@ async (page) => {
         await touch('touchStart',[quick]);
         await touch('touchEnd',[]);
         await waitState(0,beforeQuick[0]+1);
-        const afterQuick = await state();
-        check(!afterQuick[3] && Math.abs(afterQuick[6]-width/2)<=2 && Math.abs(afterQuick[7]-height/2)<=2,
+        const afterQuick = await waitState(3,false);
+        check(afterQuick[0]===beforeQuick[0]+1 && Math.abs(afterQuick[6]-width/2)<=2 && Math.abs(afterQuick[7]-height/2)<=2,
           fixture + ': short touch without a render wait retains one press and logical release coordinates', {beforeQuick,afterQuick});
       }
       await page.setViewportSize({width:740,height:320});
@@ -173,11 +182,35 @@ async (page) => {
       const twoContacts = await state();
       check(twoContacts[0] === before[0]+1 && Math.abs(twoContacts[6]-width/2) <= 2 && Math.abs(twoContacts[7]-height/2) <= 2,
         fixture + ': secondary real contact does not press or move primary input', twoContacts);
-      await touch('touchEnd',[at]);
+      const upsBefore = await page.evaluate(() => window.__mobileTouchUps.length);
+      // CDP documents touchEnd with no points (ending all contacts). Model the
+      // secondary-only exit explicitly, including its non-bubbling ancestor
+      // leaves; a canvas-only guard misses the FX-SCENE-targeted event.
+      const secondaryExit = (includeUp) => page.evaluate(({x,y,includeUp}) => {
+        const secondary = [...window.__mobileTouchDowns].reverse().find(event => !event.primary);
+        const canvas = document.querySelector('canvas');
+        const init = {pointerType:'touch',pointerId:secondary.id,isPrimary:false,
+          button:0,buttons:0,clientX:x,clientY:y};
+        if (includeUp) canvas.dispatchEvent(new PointerEvent('pointerup',{...init,bubbles:true}));
+        for (let target=canvas; target && target.tagName!=='BODY'; target=target.parentElement)
+          target.dispatchEvent(new PointerEvent('pointerleave',init));
+      },{x:at.x+15,y:at.y+15,includeUp});
+      await secondaryExit(true);
       await settle();
-      check((await state())[3] === true, fixture + ': secondary contact release leaves owned touch held');
+      const ups = await page.evaluate(() => window.__mobileTouchUps);
+      const afterSecondary = await state();
+      check(afterSecondary[3] && afterSecondary[0]===before[0]+1
+        && Math.abs(afterSecondary[6]-width/2)<=2 && Math.abs(afterSecondary[7]-height/2)<=2
+        && ups.length===upsBefore+1 && !ups[ups.length-1].primary,
+        fixture + ': synthetic secondary release and ancestor exits preserve owned touch and coordinates',
+        {afterSecondary,ups:ups.slice(upsBefore)});
       await touch('touchEnd',[]);
       await waitState(3,false);
+      await secondaryExit(false);
+      await settle();
+      const allReleased = await state();
+      check(allReleased[0]===before[0]+1 && Math.abs(allReleased[6]-width/2)<=2 && Math.abs(allReleased[7]-height/2)<=2,
+        fixture + ': real all-contact release and synthetic trailing exits keep last primary coordinates',allReleased);
       // CDP produces actual touch/pointer dispatch above. Cancellation/lost capture
       // and lifecycle transitions below are explicitly synthetic failure paths.
       for (const event of ['pointercancel','lostpointercapture','blur','pagehide']) {
@@ -237,20 +270,31 @@ async (page) => {
         before = await state();
         await page.keyboard.press('a');
         await waitState(10,before[10]+1);
-        check(!(await state())[11], fixture + ': synthetic ' + event + ' clears held keyboard input and permits fresh press');
+        await waitState(11,false);
+        check(true, fixture + ': synthetic ' + event + ' clears held keyboard input and permits fresh press');
       }
       if (fixture === 'mobile') {
         await input.fill('Ada');
-        await button.click();
+        await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
+        const buttonBounds = await button.boundingBox();
+        await touch('touchStart',[point(buttonBounds.x+buttonBounds.width/2,buttonBounds.y+buttonBounds.height/2)]);
+        await touch('touchEnd',[]);
         await page.waitForFunction(() => window.__mobileCheck.last.includes('Hello, Ada'));
+        check(true,'Primary real touch still activates scaled ordinary GameApp buttons');
         await input.fill('Grace');
+        const inputBounds = await input.boundingBox();
+        await touch('touchStart',[point(inputBounds.x+inputBounds.width/2,inputBounds.y+inputBounds.height/2)]);
+        await touch('touchEnd',[]);
+        check(await input.evaluate(element=>document.activeElement===element),'Primary real touch focuses scaled ordinary TextField');
         before = await state();
-        await input.press('a');
-        await input.press('ArrowLeft');
-        await input.press('Enter');
+        await page.keyboard.press('End');
+        await page.keyboard.press('a');
+        await page.keyboard.press('ArrowLeft');
+        await page.keyboard.press('Enter');
         await page.waitForFunction(() => window.__mobileCheck.last.includes('Enter, Gracea'));
         after = await state();
         check(after[10] === before[10] && !after[11], 'Scaled ordinary TextField typing/Enter/arrows keep control focus and do not feed game input');
+        await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});
         await page.mouse.click(at.x,at.y);
         await page.keyboard.press('a');
         await waitState(10,before[10]+1);
@@ -264,5 +308,5 @@ async (page) => {
     await cdp.detach();
   }
   return {status:'passed',results,browser:await page.evaluate(() => navigator.userAgent),
-    scope:'Headless Chrome with real CDP touch dispatch and viewport resizing; cancel, lost capture, blur and persisted pagehide are synthetic. Physical phones and other engines remain untested.'};
+    scope:'Headless Chrome with real CDP touch dispatch and viewport resizing; secondary-only release/ancestor exits, cancel, lost capture, blur and persisted pagehide are synthetic. Physical phones and other engines remain untested.'};
 };

@@ -33,6 +33,7 @@ public final class BrowserGameViewport {
     private final EventListener interrupted = event -> interruptInput();
     private final EventListener visibility = event -> { if (DomGlobal.document.hidden) interruptInput(); };
     private final EventListener pointer = event -> handlePointer((PointerEvent) event);
+    private final EventListener secondaryTouch = event -> ignoreSecondaryTouch((PointerEvent) event);
     private HTMLElement element;
     private String previousTouchAction;
     private PointerEvent lastTouch;
@@ -94,8 +95,12 @@ public final class BrowserGameViewport {
         element = (HTMLElement) HtmlSvgNodePeer.toContainerElement(canvas);
         previousTouchAction = element.style.getPropertyValue("touch-action");
         element.style.setProperty("touch-action", "none");
-        for (String type : new String[]{"pointerdown", "pointermove", "pointerup", "pointerenter", "pointerleave", "pointercancel", "lostpointercapture"})
+        for (String type : new String[]{"pointerdown", "pointermove", "pointerup", "pointerenter", "pointerleave", "pointercancel", "lostpointercapture"}) {
+            // Enter/leave also target ancestors separately. Guard before the
+            // scene peer, including trailing exits after the primary finger lifts.
+            DomGlobal.window.addEventListener(type, secondaryTouch, true);
             element.addEventListener(type, pointer, true);
+        }
         fit();
     }
 
@@ -143,6 +148,13 @@ public final class BrowserGameViewport {
         if (!value.endsWith("px")) return 0;
         try { return Math.max(0, Double.parseDouble(value.substring(0, value.length() - 2))); }
         catch (NumberFormatException ignored) { return 0; }
+    }
+
+    private void ignoreSecondaryTouch(PointerEvent event) {
+        // GameApp exposes one mouse pointer. Ordinary primary touch on controls,
+        // desktop mouse/keyboard, and the captured owned pointer still pass.
+        if ("touch".equals(event.pointerType) && !event.isPrimary && event.pointerId != activePointer)
+            event.stopImmediatePropagation();
     }
 
     private void handlePointer(PointerEvent event) {
@@ -219,8 +231,10 @@ public final class BrowserGameViewport {
         DomGlobal.window.removeEventListener("blur", interrupted);
         DomGlobal.window.removeEventListener("pagehide", interrupted);
         DomGlobal.document.removeEventListener("visibilitychange", visibility);
-        for (String type : new String[]{"pointerdown", "pointermove", "pointerup", "pointerenter", "pointerleave", "pointercancel", "lostpointercapture"})
+        for (String type : new String[]{"pointerdown", "pointermove", "pointerup", "pointerenter", "pointerleave", "pointercancel", "lostpointercapture"}) {
+            DomGlobal.window.removeEventListener(type, secondaryTouch, true);
             element.removeEventListener(type, pointer, true);
+        }
         if (previousTouchAction.isEmpty()) element.style.removeProperty("touch-action");
         else element.style.setProperty("touch-action", previousTouchAction);
     }
