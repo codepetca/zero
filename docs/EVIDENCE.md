@@ -5957,3 +5957,28 @@ loaded that test before its correction. Final acceptance combines unchanged broa
 coverage with the corrected-file pass and independent test-delta review; there
 was no second complete run. No unresolved test failure remains. This result does
 not imply native/live/Windows acceptance. Working source remains local-only.
+
+
+## GitHub App avatar padding — 2026-10-18
+
+Owner requested slightly more room between the GitHub App mark and its boundary.
+Source f58cbdf derives a host-specific purple-on-white SVG/1024px PNG from the
+canonical source, scaling only its mark to88% around center. The full square
+background remains white. Internal spacing increases from7.5% to12.6%; all shared
+website/editor/native consumers and the existing three-variant ZIP are unchanged.
+Export and node syntax checks pass; independent pixel scan gives canonical
+bounds77..946 and GitHub bounds129..894 on both axes, with1024square dimensions
+and white corners. Root check/diffcheck pass. Coordinator visually inspected PNG.
+Independent github_icon_padding_review/turn1,requestedgpt-6-luna/medium:
+complete4c4c298..f58cbdf2-file diff and canonical/export dependencies, clean,
+0findings.1launch/initial wave,0fix batches. Effective configuration, elapsed
+review/coordinator seconds and per-turn tokens unavailable. Prior recent usage/
+healthy storage reading reused; no install or large generated data needed.
+
+Owner's avatar request authorizes this specific public appearance change. Chrome
+uploaded only zero-github-app.png through Codepet Zero App's existing Display
+information control and Set new avatar. GitHub confirmed the avatar was updated;
+public https://github.com/apps/codepet-zero visibly shows the new padded mark.
+Screenshot:.verification/github-icon-padding-20261018/public-icon.png. No general
+settings save, credentials, permissions, source push, native install or product
+release performed. GitHub notes other surfaces may take minutes to refresh.

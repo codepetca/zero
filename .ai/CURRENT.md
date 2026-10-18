@@ -4,7 +4,15 @@ Worktree: /Users/stew/.codex/worktrees/release-readiness/zero.
 Branch: codex/sidebar-zerohub-actions, based on merged GitHub App/branding
 PR102 f719d18. Preserve the dirty /Users/stew/Repos/zero checkout.
 
-Current owner request: repositories created through Zero are public; remove the
+Latest owner request completed: more padding in the live Codepet Zero GitHub
+App avatar. Source f58cbdf adds a reproducible GitHub-only export scaled to88%
+inside the full white square (12.6%edge padding). Uploaded via authorized Chrome;
+GitHub confirmed updated and the public page visibly shows the smaller mark.
+Original shared brand consumers unchanged. Export/pixel/syntax/root checks and
+one Luna/medium complete-diff review clean. Screenshot and detail:
+.verification/github-icon-padding-20261018; docs/EVIDENCE.md.
+
+Previous completed request: repositories created through Zero are public; remove the
 Private/Public picker and shorten only the first device-code sign-in modal.
 Implementation sends private:false from tutorial/new/local-repository creation,
 rejects other creation visibility before credentials/network, and retains response
@@ -33,8 +41,8 @@ Current source through3bf21cb had clean code and final metadata review. Prior
 these local refinements remain unverified. Branch-history layout remains proposed;
 merge semantics unchanged. Detailed history: docs/EVIDENCE.md.
 
-Local-only authority: no source push, merge, preview installation, account change
-or release authorized by these refinements. Next: finish review/evidence, then
-owner-authorized integration/native preview. Ordinary Java and selected App access
+Other implementation remains local-only: no source push, merge, preview install,
+authentication/permission change or release authorized by these refinements.
+The avatar-only live update above was explicitly authorized by the latest request. Next: owner-authorized integration/native preview. Ordinary Java and selected App access
 remain. DeepSeek paused through2026-12-31. Weekly remaining38%; storage301.6GB
 healthy. Prior temporary sidebar server closed; screenshot fixtures are ignored.
