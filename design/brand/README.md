@@ -1,7 +1,9 @@
 # Zero icon assets
 
-The existing slashed-zero mark, in the shared purple `#683bef` and white.
-Each SVG is an editable square vector. The mark occupies five-sixths of the
+The Zero slashed-circle mark, in the shared purple `#683bef` and white.
+Owner-selected softened slash corners and 20% thicker strokes (2.4 on a 24-unit
+canvas) apply to the circle and slash. Slash corner radius is 0.6.
+Each SVG is an editable square vector. The mark occupies 85% of the
 canvas, with equal spacing on every side. Backgrounds stay square so the host
 can apply its own rounded or circular mask.
 
@@ -24,6 +26,5 @@ node /path/to/zero/design/brand/export.mjs
 
 This uses the website's existing Sharp dependency; no new package is installed.
 Generated PNGs, preview and ZIP are in `exports/` and are intentionally ignored.
-The ZIP includes all three SVGs, all three PNGs and this usage guide. The current
-website/editor/native icon consumers have their own existing integration; these
-files provide reusable, explicit-color assets for deliberate adoption.
+The ZIP includes all three SVGs, all three PNGs and this usage guide. The website, editor and future native builds use this shared mark. Published
+release assets remain immutable.

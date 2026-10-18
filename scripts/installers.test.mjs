@@ -4,6 +4,7 @@ import {zipSync} from 'fflate';
 import {mkdtempSync, readFileSync, statSync, rmSync, existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {kitEntries, extractKit} from './installer-payload.mjs';
 
 const member = (text, mode = 0o100644) => [new TextEncoder().encode(text), {os:3, attrs:(mode << 16) >>> 0}];
@@ -124,6 +125,8 @@ import {mkdirSync, symlinkSync, readlinkSync} from 'node:fs';
 import {inflateSync} from 'node:zlib';
 import {macArtifactIdentity} from './mac-artifact.mjs';
 import {iconPng, verifyMacIcon} from './mac-icon.mjs';
+import {readBrand, editorBrandSvg, brandSample} from './brand-icon.mjs';
+import {windowsIcon} from './windows-icon.mjs';
 import {verifyMacVolume, verifyMacPlist, macInstallInstructions} from './mac-volume.mjs';
 
 test('Mac release generation binds conventional app and immutable legacy artifact identities', () => {
@@ -253,4 +256,31 @@ test('styled build writes Finder metadata on a mounted intermediate before conve
   for (const source of [build, helper, python]) assert.doesNotMatch(source, /osascript|System Events|tell application|AppleScript|open -a/);
   const protectedSource = readFileSync(new URL('../website/lib/local-installer.mjs', import.meta.url), 'utf8');
   for (const file of ['mac-dmg-layout.mjs', 'mac-dmg-layout.py', 'mac-dmg-layout.json', 'mac-dmg-layout-requirements.txt']) assert.ok(protectedSource.includes(`scripts/${file}`), `${file} must be protected by installer provenance`);
+});
+
+test('editor and native icons use the canonical thicker ring and softened slash geometry', () => {
+  const root = fileURLToPath(new URL('../', import.meta.url));
+  const brand = readBrand(root);
+  assert.equal(brand.stroke, 2.4); assert.equal(brand.corner, .6);
+  assert.equal(editorBrandSvg(root), readFileSync(new URL('../extension/media/zero.svg', import.meta.url),'utf8'));
+  assert.match(editorBrandSvg(root), /stroke="currentColor"/);
+  assert.doesNotMatch(editorBrandSvg(root), /#683bef/);
+  assert.ok(brandSample(12, 1.9, brand), 'Thicker ring includes the new outer edge');
+  assert.ok(!brandSample(12, 1.7, brand), 'Ring has a defined outer boundary');
+  const rotate = (u,v) => [12 + (u+v)/Math.SQRT2, 12 + (-u+v)/Math.SQRT2];
+  assert.ok(brandSample(...rotate(brand.width/2-.1,0), brand), 'Slash endpoint has a flat center');
+  assert.ok(!brandSample(...rotate(brand.width/2-.05,brand.height/2-.05), brand), 'Slash corner is softened');
+  const ico = windowsIcon(root);
+  assert.deepEqual([...ico.subarray(0,6)], [0,0,1,0,7,0]);
+  let cursor = 6 + 7 * 16;
+  for (let index = 0; index < 7; index++) {
+    const entry=6+index*16, size=ico[entry] || 256;
+    const count=ico.readUInt32LE(entry+8), offset=ico.readUInt32LE(entry+12);
+    assert.equal(offset,cursor); assert.equal(ico.readUInt16LE(entry+6),32);
+    const png=ico.subarray(offset,offset+count);
+    assert.equal(png.toString('ascii',12,16),'IHDR');
+    assert.equal(png.readUInt32BE(16),size); assert.equal(png.readUInt32BE(20),size);
+    cursor += count;
+  }
+  assert.equal(cursor,ico.length);
 });

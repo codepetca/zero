@@ -41,8 +41,11 @@ export function handle(request, response) {
       body = readFileSync(new URL(`../../student-template/lessons/visuals/${url.pathname.split('/').at(-1)}`, import.meta.url));
     } else if (url.pathname === '/assets/zero.svg') {
       type = 'image/svg+xml';
-      // Same supplied geometry and recoloring as website/scripts/prepare.mjs.
-      body = readFileSync(new URL('../../extension/media/zero.svg', import.meta.url), 'utf8').replaceAll('currentColor', json('../tokens.json').themes.light.accent);
+      // Use the same explicit-color asset as the website header.
+      body = readFileSync(new URL('../brand/zero-purple.svg', import.meta.url), 'utf8');
+    } else if (url.pathname === '/assets/zero-inverse.svg') {
+      type = 'image/svg+xml';
+      body = readFileSync(new URL('../brand/zero-white-on-purple.svg', import.meta.url), 'utf8');
     } else if (url.pathname === '/guide') {
       body = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Zero review instructions</title><link rel="stylesheet" href="/tokens-web.css"><link rel="stylesheet" href="/preview.css"></head><body class="guide"><a href="/">Back to playground</a><h1>Review the connected themes</h1><p>Compare Learn/downloads with Ready and Error. Switch website and editor themes independently, inspect 320/390 px web and 200/240 px sidebar widths, then try 200% text.</p><p>These screens are proposed. Fixtures never run Java, download releases, authenticate or upload. Windows uses the published complete-kit ZIP; the unsigned native EXE remains unavailable.</p><p>Website structure reuses actual lesson/help data and release selection. Sidebar HTML comes from the actual extension renderer. Proposed CSS lives only in this playground.</p><p>Review identity, hierarchy, spacing, readability, focus, error recovery and native theme adaptation. Approval remains with the owner.</p></body></html>`;
     } else if (staticFiles.has(url.pathname)) {

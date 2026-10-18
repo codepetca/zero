@@ -152,7 +152,12 @@ signing and physical Windows verification remain deferred.
 ## Shared baseline
 
 Reusable explicit-color SVGs and PNG export instructions are in
-[Zero icon assets](design/brand/README.md).
+[Zero icon assets](design/brand/README.md). Owner-selected2026-10-18: softened
+slash corners and20%thicker circle/slash (2.4-unit stroke,0.6-unit slash corner
+radius on the24-unit canvas). Use the purple transparent mark on light web
+surfaces and white-on-purple inverse on dark surfaces and browser/share icons.
+Derive theme-aware editor and native raster geometry from these shared assets;
+keep action icons distinct from branding.
 
 Use the existing Zero brand assets. Preserve the restrained white/purple
 identity and `#683bef` accent. [Shared tokens](design/tokens.json) describe the

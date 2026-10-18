@@ -1267,3 +1267,14 @@ pre code {
   font-size: clamp(28px, 3vw, 36px);
 }
 .markdown .lesson-encouragement { margin: 24px 0 0; font-weight: 600; }
+
+/* Shared Zero mark: explicit light and inverse assets, including saved themes. */
+:is(.brand, .hero-brand) .brand-mark-dark { display: none; }
+:is(.brand, .hero-brand) .brand-mark-light { display: block; }
+:is(.brand, .hero-brand) .brand-mark-dark { border-radius: 20%; }
+[data-theme="dark"] :is(.brand, .hero-brand) .brand-mark-light { display: none; }
+[data-theme="dark"] :is(.brand, .hero-brand) .brand-mark-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] :is(.brand, .hero-brand) .brand-mark-light { display: none; }
+  [data-theme="system"] :is(.brand, .hero-brand) .brand-mark-dark { display: block; }
+}

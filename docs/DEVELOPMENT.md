@@ -335,3 +335,15 @@ permission consent, creation, refresh or Pages behavior. Those checks require th
 registered App and disposable student-owned repositories. GitHub’s **Only select
 repositories** installation form requires at least one repository; empty-account
 onboarding has not been verified.
+
+
+## Shared branding assets
+
+Editable SVGs live in [design/brand](../design/brand/README.md). Website
+preparation copies the light/inverse marks and generates PNG browser/Apple/share
+assets with pinned Sharp. Shared design preparation synchronizes the theme-aware
+editor SVG from the canonical geometry. Native packaging reads the same geometry
+and creates ICNS/ICO files only in build directories; Windows embeds the icon in
+the executable and passes it to Velopack. Source changes do not replace released
+installer bytes. Use the existing website/design/installer checks plus actual
+light/dark web inspection; physical Windows icon rendering remains separate.

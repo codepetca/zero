@@ -35,7 +35,7 @@ ${icons.download}Download for Windows (ZIP)</button>` : ''}</section>`;
 <head>${head(screen === 'home' ? 'Zero · Home review' : screen === 'downloads' ? 'Zero · Downloads review' : 'Zero · Learn review', theme)}</head>
 <body class="web-preview" data-theme="${theme}">${label(`${screen === 'home' ? 'Home' : screen === 'downloads' ? 'Downloads' : 'Learn'} · ${theme}`)}<header class="site-header">
 <a class="brand" href="/web?screen=home&theme=${theme}" data-screen="home" aria-label="Zero home">
-<img src="/assets/zero.svg" width="30" height="30" alt="">
+<img src="/assets/${theme === 'dark' ? 'zero-inverse.svg' : 'zero.svg'}" width="30" height="30" alt="">
 <span>zero</span>
 </a>
 <nav aria-label="Main navigation">

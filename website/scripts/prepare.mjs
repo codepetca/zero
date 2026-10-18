@@ -17,6 +17,7 @@ import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
 import { loadWindowsInstaller, loadWindowsUpdateFeed } from "../lib/windows-installer.mjs";
 import { loadUpdateFeed } from "../lib/update-feed.mjs";
+import { prepareBrandAssets } from "../lib/brand-assets.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const root = resolve(site, "..");
 const documentPaths = {
@@ -123,11 +124,7 @@ await writeFile(
   resolve(site, ".generated/content.json"),
   JSON.stringify({ release, publishedKit, installer, publishedInstaller, updateFeed, windowsInstaller, windowsUpdateFeed, docs, sources }, null, 2) + "\n",
 );
-// Reuse supplied paths exactly; only the approved logo colour changes.
-const logo = (
-  await readFile(resolve(root, "extension/media/zero.svg"), "utf8")
-).replaceAll("currentColor", "#683BEF");
-await writeFile(resolve(site, "public/generated/zero.svg"), logo);
+await prepareBrandAssets(root,site);
 await copyFile(
   resolve(root, "docs/design/actual-zero-editor.png"),
   resolve(site, "public/generated/editor.jpg"),

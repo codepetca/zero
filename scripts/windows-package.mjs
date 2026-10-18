@@ -2,6 +2,7 @@ import {readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, exist
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {unzipSync} from 'fflate';
+import {buildWindowsIcon} from './windows-icon.mjs';
 import {windowsSigningPolicy,windowsSignatureVerifier,readWindowsSignatureResult,NEWTONSOFT_SIGNER_SHA1} from './windows-signing.mjs';
 import {readWindowsUpdaterConfig, validateWindowsUpdaterConfig, VELOPACK_VERSION} from './windows-updater.mjs';
 
@@ -50,9 +51,11 @@ export function buildWindowsPackage({root,kitFile,version,output,work,run,produc
   mkdirSync(output,{recursive:true});
   const updaterFile = path.join(work,'windows-updater-build.json');
   writeFileSync(updaterFile,`${JSON.stringify(config,null,2)}\n`,{flag:'wx'});
+  const iconFile = path.join(work,'Zero.ico');
+  buildWindowsIcon(root, iconFile);
   const kit = readFileSync(kitFile);
   execute('dotnet',['publish',path.join(root,'native-installer/windows/ZeroSetup.csproj'),'-c','Release','-o',publishedDirectory,
-    `-p:ZeroKitZip=${kitFile}`,`-p:ZeroUpdaterConfig=${updaterFile}`,`-p:Version=${version}`,`-p:AssemblyVersion=${version}.0`,
+    `-p:ZeroIcon=${iconFile}`,`-p:ZeroKitZip=${kitFile}`,`-p:ZeroUpdaterConfig=${updaterFile}`,`-p:Version=${version}`,`-p:AssemblyVersion=${version}.0`,
     `-p:BaseIntermediateOutputPath=${path.join(work,'windows-obj')}${path.sep}`,`-p:BaseOutputPath=${path.join(work,'windows-bin')}${path.sep}`,
     `-p:RestorePackagesPath=${path.join(root,'.verification/native-installer/nuget')}`,'-p:NuGetAudit=false','-p:RestoreLockedMode=true'],240000);
   const executable = path.join(publishedDirectory,'Zero.exe'), executableBytes = readFileSync(executable);
@@ -62,7 +65,7 @@ export function buildWindowsPackage({root,kitFile,version,output,work,run,produc
   if (JSON.stringify(dlls) !== JSON.stringify(['Newtonsoft.Json.dll','Velopack.dll'])) throw new Error(`Unexpected Windows runtime dependencies: ${dlls.join(', ')}`);
   const packArgs = [...tool.prefix,'[win]','pack','--packId','Zero','--packTitle','Zero','--packVersion',version,'--packDir',publishedDirectory,
     '--mainExe','Zero.exe','--runtime','win10.0.19041-x64','--channel','win','--outputDir',packageDirectory,'--delta','None','--noPortable',
-    '--shortcuts','StartMenuRoot','--skip-updates','--yes'];
+    '--icon',iconFile,'--shortcuts','StartMenuRoot','--skip-updates','--yes'];
   if (production) {
     if (signingPolicy.mode === 'azure-artifact-signing') {
       // Snapshot only the three validated public configuration values. Never pass

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 24 24" fill="none" role="img" aria-label="Zero">
   <rect width="24" height="24" fill="#683bef"/>
-  <g stroke="#ffffff" stroke-width="2">
+  <g stroke="#ffffff" stroke-width="2.4">
     <circle cx="12" cy="12" r="9"/>
-    <path d="m7 17 10-10"/>
+    <rect x="4.928932188" y="10.8" width="14.142135624" height="2.4" rx="0.6" transform="rotate(-45 12 12)" fill="#ffffff" stroke="none"/>
   </g>
 </svg>

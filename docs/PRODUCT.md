@@ -7,6 +7,13 @@ through CodeHS. Students make interfaces, games, drawings, simulations and quizz
 using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
+The shared Zero brand uses the softened, thicker slashed-circle mark from
+`design/brand`. Website headers use purple in light mode and the white-on-purple
+inverse in dark mode; browser tabs, Apple touch icons and share previews use the
+same inverse. Editor icons follow native theme colors; future Mac and Windows
+installer builds derive their icons from the same geometry. Existing published
+installers remain unchanged.
+
 The download website is a separately built part of this repository. Its landing
 page has the shared app header, **Learn Java**, **Starting from zero.**, and two
 direct download buttons: **Download for Mac Silicon** and **Download for Windows
