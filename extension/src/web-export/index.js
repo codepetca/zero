@@ -7,7 +7,9 @@ const https = require('node:https');
 const { spawn } = require('node:child_process');
 const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
-const { captureBuildInputs, buildProfileHash } = require('./snapshot');
+const { captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
+const { resolveLibrarySources } = require('./libraries');
+const { discoverLibraries, declaration } = require('../sharing/authoring');
 const { prepareMavenDistribution, verifyMavenDistribution } = require('./compatibility/maven-distribution');
 const { checkCompatibility, validateDependencies, verifyArtifactInventory, validateWrapperInputs } = require('./compatibility');
 const toolchain = require('./toolchain-lock.json');
@@ -425,8 +427,9 @@ async function exportForWeb(options = {}) {
     onProgress('Checking Java sources and resources');
     const profileHash = await buildProfileHash();
     const captured = await captureBuildInputs(projectRoot);
-    const javaFiles = captured.files.filter(file => file.path.startsWith('src/main/java/')).map(file => ({ ...file, path: file.path.slice('src/main/java/'.length) }));
-    const resources = captured.files.filter(file => file.path.startsWith('src/main/resources/')).map(file => ({ ...file, path: file.path.slice('src/main/resources/'.length) }));
+    const libraries=captured.files.some(file=>file.path==='zero-libraries.json')?await discoverLibraries(projectRoot):[];
+    const javaFiles = captured.files.filter(file => file.path.startsWith('src/main/java/')).map(file => ({ ...file, originalPath:file.path,path: file.path.slice('src/main/java/'.length) }));
+    const resources = captured.files.filter(file => file.path.startsWith('src/main/resources/')).map(file => ({ ...file, originalPath:file.path,path: file.path.slice('src/main/resources/'.length) }));
     if (!javaFiles.some((file) => file.path.endsWith('.java')))
       throw new Error('No Java sources found in src/main/java.');
     for (const file of javaFiles)
@@ -456,7 +459,25 @@ async function exportForWeb(options = {}) {
         );
     await noSymlinks(path.join(projectRoot, 'pom.xml'));
     const pom = captured.files.find(file => file.path === 'pom.xml').bytes.toString('utf8');
-    validateDependencies(pom);
+    validateDependencies(pom,{libraries});
+    if (libraries.length) {
+      for (const file of javaFiles) {
+        const pkg = declaration(file.bytes.toString('utf8'),file.originalPath).packageName;
+        for (const library of libraries)
+          if (pkg === library.identity.namespace || pkg.startsWith(library.identity.namespace+'.'))
+            throw new Error('Application source shadows library namespace: '+file.originalPath);
+      }
+    }
+    const libraryInputs=await resolveLibrarySources(projectRoot,captured,options);
+    for(const file of libraryInputs.sources) {
+      if(javaFiles.some(existing=>existing.path.toLowerCase()===file.path.toLowerCase()))throw new Error('Browser Java source collision: '+file.path);
+      javaFiles.push(file);
+    }
+    for(const file of libraryInputs.resources) {
+      if(resources.some(existing=>existing.path.toLowerCase()===file.path.toLowerCase()))throw new Error('Browser resource collision: '+file.path);
+      resources.push(file);
+    }
+    const sourceOrigins=Object.fromEntries(javaFiles.map(file=>[file.path,file.originalPath]));
     const wrapper = path.join(
       projectRoot,
       process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw'
@@ -468,7 +489,7 @@ async function exportForWeb(options = {}) {
       );
     const wrapperInput = validateWrapperInputs(captured.files);
     const originals = captured.files;
-    const sourceHash = captured.sourceHash;
+    const sourceHash = boundSourceHash(captured.sourceHash,libraryInputs.publishedLibraries);
     const artifacts = path.join(cacheRoot, 'artifacts');
     await prepareArtifacts(artifacts, signal, onProgress);
     const builds = path.join(cacheRoot, 'builds');
@@ -482,14 +503,15 @@ async function exportForWeb(options = {}) {
     buildRoot = await fs.mkdtemp(path.join(builds, 'export-'));
     const compatibility = await checkCompatibility({
       sources: Object.fromEntries(javaFiles.map(file => [file.path, file.bytes.toString('utf8')])),
-      pom, workRoot: buildRoot, cacheRoot, env: options.env, signal, onProgress, getArtifact: get
+      pom, libraries, sourceOrigins, workRoot: buildRoot, cacheRoot, env: options.env, signal, onProgress, getArtifact: get
     });
     const adapted = require('./adapters').adaptSources({
       sources: Object.fromEntries(
         javaFiles.map((file) => [file.path, file.bytes.toString('utf8')])
       ),
       resourcePaths: resources.map((file) => file.path),
-      urlReferences: compatibility.resourceUrlReferences
+      urlReferences: compatibility.resourceUrlReferences,
+      originalPaths:sourceOrigins
     });
     if (!/^(?:[a-zA-Z_$][\w$]*\.)+[a-zA-Z_$][\w$]*$/.test(adapted.mainClass))
       throw new Error('Invalid browser launcher class.');
@@ -552,7 +574,7 @@ async function exportForWeb(options = {}) {
           'The browser build did not preserve resource: ' + resource.path
         );
     }
-    if ((await captureBuildInputs(projectRoot)).sourceHash !== sourceHash)
+    if ((await captureBuildInputs(projectRoot)).sourceHash !== captured.sourceHash)
       throw new Error('Java sources, resources or build settings changed during export. Run App again to build the saved version.');
     if ((await buildProfileHash()) !== profileHash)
       throw new Error('The browser compiler or compatibility contract changed during export. Run App again.');
@@ -578,7 +600,9 @@ async function exportForWeb(options = {}) {
       schemaVersion: 1,
       buildId,
       sourceHash,
+      localSourceHash:captured.sourceHash,
       profileHash,
+      publishedLibraries:libraryInputs.publishedLibraries,
       compatibility,
       createdAt: new Date().toISOString(),
       sitePath: path.join(outputRoot, 'site'),

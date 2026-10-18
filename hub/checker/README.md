@@ -1,4 +1,28 @@
-# Local isolated hub checker
+# Isolated library checker
+
+The current `zero-libraries-v1` path accepts the repository-owned
+`libraries/<slug>` source layout through `sharing/library-checker.mjs`.
+`checkLibrarySource({request,files,sourceDigest}, options)` receives an exact
+frozen request and folder-relative files from the trusted GitHub reader. It
+derives the namespace and Maven coordinate from the numeric repository ID,
+checks the committed descriptor, and returns the reader's original source
+digest. The supplied `pom.xml` and local Check receipt are never run or used as
+publication evidence. The fixed policy compiles ordinary Java 17 sources and
+three separately compiled behavior/example groups against the built JAR. Helper
+classes need no JavaFX view; each public widget class needs `Node view()`.
+Bounded resources stay under the library namespace and cannot replace classes.
+The output includes deterministic JAR/sources/POM bytes and a compiled public
+API inventory. Invalid source and failed candidate checks return `passed:false`;
+checker infrastructure failures throw.
+
+The trusted image carries its exact source digest, including the adapter,
+sharing contracts, parser, runner, image and dependency pins. The ignored local
+`image-lock.json` must match the image ID, Linux architecture, policy label and
+current digest exactly. Build a fresh image on each target managed Linux runner;
+the local Docker image ID is not a portable registry artifact. The publisher
+must separately verify managed workflow provenance before accepting artifacts.
+The legacy widget bundle fixture and `checkSubmission` remain for regression
+coverage; they are not the current public library request format.
 
 The checker accepts the generic `hub/CONTRACT.md` bundle. It runs no contributor
 Java, Maven, build scripts or submitted processes on the host. This is a local

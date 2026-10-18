@@ -8,11 +8,11 @@ function sourceDiagnostics(text, root) {
   const diagnostics = []; let file;
   for (const line of String(text).split('\n')) {
     const source = line.match(/Errors in '([^']+\.java)'/);
-    if (source) {const suffix = source[1].match(/(?:^|\/)src\/main\/java\/(.+)$/);file = suffix ? path.join(root,'src/main/java',suffix[1]) : undefined;}
+    if (source) {const suffix = source[1].match(/(?:^|\/)(src\/main\/java\/.+|libraries\/[^/]+\/src\/main\/java\/.+)$/);file = suffix ? path.join(root,suffix[1]) : undefined;}
     const maven = line.match(/(?:\[ERROR\]\s*)?(.+\.java):\[(\d+),(\d+)\]\s*(.*)/);
     if (maven) diagnostics.push({file:path.resolve(root,maven[1].replace(/^\[ERROR\]\s*/,'')),line:Number(maven[2]),column:Number(maven[3]),message:maven[4]});
     const attributed = line.match(/^([^\r\n]+\.java):(\d+):(\d+):\s*(.*)$/);
-    if(attributed){const filename=attributed[1];diagnostics.push({file:path.isAbsolute(filename)?filename:path.join(root,filename.startsWith('src/main/java/')?'':'src/main/java',filename),line:Number(attributed[2]),column:Number(attributed[3]),message:attributed[4]});}
+    if(attributed){const filename=attributed[1];diagnostics.push({file:path.isAbsolute(filename)?filename:path.join(root,filename.startsWith('src/main/java/')||filename.startsWith('libraries/')?'':'src/main/java',filename),line:Number(attributed[2]),column:Number(attributed[3]),message:attributed[4]});}
     const gwt = line.match(/Line (\d+):\s*(.*)/);
     if (file && gwt) diagnostics.push({file,line:Number(gwt[1]),column:1,message:gwt[2]});
   }

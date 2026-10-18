@@ -9,7 +9,7 @@ export function canonical(value) {
   return JSON.stringify(value);
 }
 export const digest = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : canonical(value)).digest('hex');
-export const initialState = () => ({schema: 1, sequence: 0, items: {}, requests: {}, releases: {}, availability: [], catalog: null, inbox:{page:1,offset:0}});
+export const initialState = () => ({schema: 1, sequence: 0, items: {}, requests: {}, releases: {}, availability: [], catalog: null, inbox:{page:1,offset:0},libraryInbox:{page:1,offset:0}});
 export const revisionOf = state => digest(state);
 
 async function reclaimDeadLock(lock) {

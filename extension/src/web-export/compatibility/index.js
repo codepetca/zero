@@ -11,7 +11,7 @@ const contract = require('./contract.json');
 const mavenArtifacts = require('./maven-artifacts.json');
 const digest = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
 function abort(signal) { if (signal?.aborted) { const error = new Error('Browser compatibility check cancelled.'); error.name = 'AbortError'; throw error; } }
-function validateDependencies(pom) {
+function validateDependencies(pom,{libraries=[]}={}) {
   const project = parseXml(pom);
   const nodes = allNodes(project);
   if (nodes.some(n => ['parent', 'profiles', 'dependencyManagement', 'systemPath', 'extensions'].includes(n.name))) throw new Error('Browser compatibility requires the ordinary Zero POM without inherited, profile, BOM or build-extension dependencies.');
@@ -19,13 +19,17 @@ function validateDependencies(pom) {
   const version = properties && single(properties, 'javafx.version', true);
   const deps = single(project, 'dependencies', true);
   for (const node of nodes.filter(n => n.name === 'dependency')) {
-    if (node.parent !== deps || node.children.some(n => !['groupId', 'artifactId', 'version'].includes(n.name)) || value(single(node, 'groupId')) !== 'org.openjfx' || !['javafx-base', 'javafx-graphics', 'javafx-controls', 'javafx-media'].includes(value(single(node, 'artifactId')))) throw new Error('Unsupported browser dependency. Use included Java helper sources and the pinned JavaFX controls/media dependencies.');
-    const declared = value(single(node, 'version'));
+    if (node.parent !== deps || node.children.length !== 3 || node.children.some(n => !['groupId', 'artifactId', 'version'].includes(n.name))) throw new Error('Unsupported browser dependency. Use included Java helper sources and the pinned JavaFX controls/media dependencies.');
+    const group=value(single(node,'groupId')),artifact=value(single(node,'artifactId')),declared=value(single(node,'version'));
+    const managed=libraries.find(l=>l.mode==='published'&&l.identity.coordinate.groupId===group&&l.identity.coordinate.artifactId===artifact&&l.version===declared);
+    if(managed)continue;
+    if (group !== 'org.openjfx' || !['javafx-base', 'javafx-graphics', 'javafx-controls', 'javafx-media'].includes(artifact)) throw new Error('Unsupported browser dependency. Use included Java helper sources and the pinned JavaFX controls/media dependencies.');
     if ((declared === '${javafx.version}' ? version && value(version) : declared) !== contract.javafxVersion) throw new Error(`Browser compatibility requires JavaFX ${contract.javafxVersion}; update the project setup before running.`);
   }
   return { javafxVersion: contract.javafxVersion, dependencies: (deps?.children || []).map(n => {
     if (n.name !== 'dependency') throw new Error('Unsupported browser dependency declaration.');
-    return 'org.openjfx:' + value(single(n, 'artifactId')) + ':' + contract.javafxVersion;
+    const group=value(single(n,'groupId')),version=value(single(n,'version'));
+    return group+':'+value(single(n,'artifactId'))+':'+(group==='org.openjfx'?contract.javafxVersion:version);
   }).sort() };
 }
 async function ordinary(file) {
@@ -90,9 +94,9 @@ function verifyArtifactInventory(inventory) {
 async function compatibilityProfile() {
   return { id: contract.id, schemaVersion: contract.schemaVersion, contractHash: digest(await fs.readFile(path.join(__dirname, 'contract.json'))), checkerHash: digest(await fs.readFile(path.join(__dirname, 'CheckCompatibility.java'))), mavenArtifactCatalogueHash: digest(await fs.readFile(path.join(__dirname, 'maven-artifacts.json'))), javaRelease: contract.javaRelease, javafxVersion: contract.javafxVersion, attributionArtifacts: contract.attributionArtifacts.map(({ file, sha256 }) => ({ file, sha256 })) };
 }
-async function checkCompatibility({ sources, pom, workRoot, cacheRoot, env, signal, onProgress = () => {}, getArtifact }) {
+async function checkCompatibility({ sources, pom, libraries=[], sourceOrigins={}, workRoot, cacheRoot, env, signal, onProgress = () => {}, getArtifact }) {
   abort(signal);
-  const dependencyProfile = validateDependencies(pom);
+  const dependencyProfile = validateDependencies(pom,{libraries});
   const profile = await compatibilityProfile();
   const jars = await prepareArtifacts(cacheRoot, signal, getArtifact);
   const root = path.join(workRoot, 'compatibility'); await ordinary(root); await fs.mkdir(root, { recursive: true });
@@ -123,7 +127,13 @@ async function checkCompatibility({ sources, pom, workRoot, cacheRoot, env, sign
     const receive = chunk => { output += chunk.toString(); if (output.length > 1024 * 1024) { output = output.slice(0, 1024 * 1024); stop(); } };
     child.stdout.on('data', receive); child.stderr.on('data', receive);
     child.on('error', error => { if (!settled) { settled = true; cleanup(); reject(new Error('Cannot start the local JDK browser compatibility checker: ' + error.message)); } });
-    child.on('close', code => { if (settled) return; settled = true; cleanup(); try { abort(signal); if (code !== 0) throw new Error('Browser compatibility check failed:\n' + (output.trim() || 'The JDK checker timed out or stopped. Check the project and local JDK.')); resolve(output); } catch (error) { reject(error); } });
+    child.on('close', code => { if (settled) return; settled = true; cleanup(); try { abort(signal); if (code !== 0) {
+      const diagnostic=(output.trim() || 'The JDK checker timed out or stopped. Check the project and local JDK.').split(/\r?\n/).map(line=>{
+        const match=/^(.+\.java)(:\d+:\d+:.*)$/.exec(line);
+        return match&&sourceOrigins[match[1]]?sourceOrigins[match[1]]+match[2]:line;
+      }).join('\n');
+      throw new Error('Browser compatibility check failed:\n' + diagnostic);
+    } resolve(output); } catch (error) { reject(error); } });
   });
   abort(signal);
   const resourceUrlReferences=Object.create(null);

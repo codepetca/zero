@@ -1,0 +1,170 @@
+name: Sharing managed library publication
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+  schedule:
+    - cron: '23,53 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# The registry is the queue. A later schedule retries a retained queued request.
+# Serialize this workflow while the shared registry adapter uses CAS with games.
+concurrency:
+  group: zero-sharing-libraries
+  cancel-in-progress: false
+
+jobs:
+  intake:
+    if: vars.ZERO_SHARING_LIBRARY_PUBLICATION_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      request_id: ${{ steps.select.outputs.request_id }}
+      recovery: ${{ steps.select.outputs.recovery }}
+      source_sha: ${{ steps.policy.outputs.source_sha }}
+    steps:
+      - name: Select reviewed library policy before checkout
+        id: policy
+        env:
+          ZERO_SHARING_LIBRARY_CONFIG: ${{ vars.ZERO_SHARING_LIBRARY_CONFIG }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {appendFileSync} from 'node:fs';
+          const config=JSON.parse(process.env.ZERO_SHARING_LIBRARY_CONFIG||'{}');
+          if(config.libraryPublicationEnabled!==true || !/^[a-f0-9]{40}$/.test(config.policyRevision||''))throw Error('Reviewed library policy and explicit gate required');
+          appendFileSync(process.env.GITHUB_OUTPUT,`source_sha=${config.policyRevision}\n`);
+          NODE
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.policy.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - name: Validate reviewed library configuration
+        env:
+          ZERO_SHARING_LIBRARY_CONFIG: ${{ vars.ZERO_SHARING_LIBRARY_CONFIG }}
+          ZERO_TRUSTED_SOURCE_SHA: ${{ steps.policy.outputs.source_sha }}
+          ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync,readFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';
+          import {validateLibraryPlatformConfig} from './sharing/cli.mjs';
+          const config=validateLibraryPlatformConfig(JSON.parse(process.env.ZERO_SHARING_LIBRARY_CONFIG||'{}'));
+          if(!config.libraryPublicationEnabled||config.policyRevision!==process.env.ZERO_TRUSTED_SOURCE_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim()!==config.policyRevision)throw Error('Reviewed library source mismatch');
+          if(process.env.GITHUB_REPOSITORY!=='codepetca/zero'||process.env.GITHUB_REF!=='refs/heads/main'||!/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||''))throw Error('Managed libraries require the official main-branch workflow');
+          const response=await fetch(`https://api.github.com/repos/codepetca/zero/contents/.github/workflows/sharing-libraries.yml?ref=${process.env.GITHUB_SHA}`,{headers:{accept:'application/vnd.github+json',authorization:`Bearer ${process.env.ZERO_SOURCE_READ_TOKEN}`,'x-github-api-version':'2026-03-10'},redirect:'error',signal:AbortSignal.timeout(15000)});
+          if(!response.ok)throw Error('Official workflow definition unavailable');
+          const observed=await response.json();
+          if(observed.encoding!=='base64'||Buffer.compare(Buffer.from(observed.content.replace(/\s/g,''),'base64'),readFileSync('.github/workflows/sharing-libraries.yml'))!==0)throw Error('Workflow bytes differ from reviewed policy');
+          writeFileSync(process.env.RUNNER_TEMP+'/zero-library-config.json',JSON.stringify(config),{mode:0o600});
+          NODE
+      - name: Select one durable queued library
+        id: select
+        env:
+          ZERO_REGISTRY_TOKEN: ${{ github.token }}
+          ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
+        run: |
+          node sharing/cli.mjs library-intake --config "$RUNNER_TEMP/zero-library-config.json" --execute --role intake > "$RUNNER_TEMP/library-intake.json"
+          node --input-type=module <<'NODE'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          const selected=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/library-intake.json','utf8')).selected;
+          if(selected){appendFileSync(process.env.GITHUB_OUTPUT,`request_id=${selected.requestId}\n`);if(selected.recovery)appendFileSync(process.env.GITHUB_OUTPUT,'recovery=true\n');}
+          NODE
+
+  check:
+    needs: intake
+    if: needs.intake.outputs.request_id != '' && needs.intake.outputs.recovery != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.intake.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - name: Validate read-only worker policy
+        env:
+          ZERO_SHARING_LIBRARY_CONFIG: ${{ vars.ZERO_SHARING_LIBRARY_CONFIG }}
+          ZERO_TRUSTED_SOURCE_SHA: ${{ needs.intake.outputs.source_sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';
+          import {validateLibraryPlatformConfig} from './sharing/cli.mjs';
+          const config=validateLibraryPlatformConfig(JSON.parse(process.env.ZERO_SHARING_LIBRARY_CONFIG||'{}'));
+          if(!config.libraryPublicationEnabled||config.policyRevision!==process.env.ZERO_TRUSTED_SOURCE_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim()!==config.policyRevision)throw Error('Reviewed library source mismatch');
+          writeFileSync(process.env.RUNNER_TEMP+'/zero-library-config.json',JSON.stringify(config),{mode:0o600});
+          NODE
+      - name: Build fixed trusted checker image before candidate retrieval
+        run: node hub/checker/build-image.mjs amd64
+      - name: Check exactly one frozen public source
+        env:
+          ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
+          ZERO_REQUEST_ID: ${{ needs.intake.outputs.request_id }}
+        run: |
+          node sharing/cli.mjs library-check --config "$RUNNER_TEMP/zero-library-config.json" --execute --role worker --request "$ZERO_REQUEST_ID" --run "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" --out "$RUNNER_TEMP/zero-library-output" > "$RUNNER_TEMP/library-check.json"
+      - name: Upload bounded checker output
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: zero-library-${{ github.run_id }}-${{ github.run_attempt }}-${{ needs.intake.outputs.request_id }}
+          path: ${{ runner.temp }}/zero-library-output/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [intake, check]
+    if: always() && needs.intake.result == 'success' && needs.intake.outputs.request_id != ''
+    environment: zero-sharing-publisher
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.intake.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - name: Validate reviewed publisher policy
+        env:
+          ZERO_SHARING_LIBRARY_CONFIG: ${{ vars.ZERO_SHARING_LIBRARY_CONFIG }}
+          ZERO_TRUSTED_SOURCE_SHA: ${{ needs.intake.outputs.source_sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';
+          import {validateLibraryPlatformConfig} from './sharing/cli.mjs';
+          const config=validateLibraryPlatformConfig(JSON.parse(process.env.ZERO_SHARING_LIBRARY_CONFIG||'{}'));
+          if(!config.libraryPublicationEnabled||config.policyRevision!==process.env.ZERO_TRUSTED_SOURCE_SHA||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim()!==config.policyRevision)throw Error('Reviewed library source mismatch');
+          writeFileSync(process.env.RUNNER_TEMP+'/zero-library-config.json',JSON.stringify(config),{mode:0o600});
+          NODE
+      - name: Verify official check and publish exact bytes
+        env:
+          ZERO_REGISTRY_TOKEN: ${{ github.token }}
+          ZERO_SOURCE_READ_TOKEN: ${{ github.token }}
+          ZERO_ACTIONS_READ_TOKEN: ${{ github.token }}
+          ZERO_BLOB_TOKEN: ${{ secrets.ZERO_BLOB_TOKEN }}
+          ZERO_REQUEST_ID: ${{ needs.intake.outputs.request_id }}
+          ZERO_CHECK_OUTCOME: ${{ needs.intake.outputs.recovery == 'true' && 'skipped' || needs.check.result }}
+          ZERO_ARTIFACT_ID: ${{ needs.check.outputs.artifact_id }}
+        run: |
+          arguments=(library-publish --config "$RUNNER_TEMP/zero-library-config.json" --execute --role publisher --request "$ZERO_REQUEST_ID" --run "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" --outcome "$ZERO_CHECK_OUTCOME")
+          if [ "$ZERO_CHECK_OUTCOME" = success ]; then arguments+=(--artifact "$ZERO_ARTIFACT_ID"); fi
+          node sharing/cli.mjs "${arguments[@]}"

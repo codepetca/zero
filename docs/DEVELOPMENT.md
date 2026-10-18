@@ -209,7 +209,7 @@ student contributions remain in their existing game repositories.
 
 ## GitHub sharing
 
-Run `npm run test:sharing` for registry, ZIP and immutable publication contracts. Native student integration tests run with `npm test`. See [the adoption plan](GITHUB-SHARING-PLAN.md), [shared contract](../sharing/CONTRACT.md) and [website configuration](../website/README.md). The former Hub service, database dependencies and upload/OAuth adapters are removed. Retained `hub/checker/` source is a disconnected held-acceptance reference, not a live service.
+Run `npm run test:sharing` for registry, ZIP and immutable publication contracts. Native student integration tests run with `npm test`. See [the adoption plan](GITHUB-SHARING-PLAN.md), [shared contract](../sharing/CONTRACT.md) and [website configuration](../website/README.md). The former Hub service, database dependencies and upload/OAuth adapters are removed. Managed library checking uses `hub/checker/` through a separate default-off workflow; enabling publication requires the acceptance and rollout procedure below and in [sharing operations](SHARING-OPERATIONS.md).
 
 Run `node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-new` for two real Maven consumers over scoped local HTTPS. Use a fresh output directory; no global trust is changed. Packaging reads reviewed `release/sharing.json` containing schema, catalogUrl, artifactOrigin and publisher policyRevision. Local and CI builds preserve its exact bytes; release/kit/native provenance checks reject stale or substituted settings. Environment overrides do not select release settings. Students receive verified settings with the kit, not manual hash-copy instructions.
 
@@ -284,3 +284,22 @@ Windows signing-account choices and private feed-key custody are documented in
 [Windows signing](WINDOWS-SIGNING.md). Use [Windows trial](WINDOWS-TRIAL.md) for
 the disposable real-install smoke and owner acceptance checklist; configuring CI
 is not a passing Windows run.
+
+## Library checker acceptance
+
+Current-format library checking and its managed job/publisher separation are
+specified in [the shared contract](../sharing/LIBRARY-CHECKING.md). Local Check
+and hosted acceptance remain separate. Build the fixed image before candidate
+input; use actual Linux architecture evidence rather than a Mac image identifier
+as managed-runner proof:
+
+```sh
+node hub/checker/build-image.mjs
+node --test sharing/test/library-checker.test.mjs sharing/test/managed-library*.test.mjs
+ZERO_DOCKER_TEST=1 node --test hub/checker/test/docker.test.mjs sharing/test/library-checker-docker.test.mjs
+```
+
+The unprivileged **Library checker acceptance** GitHub workflow builds/tests on
+Linux AMD64. Its successful fixture run alone does not publish a library or
+activate the managed publication gates. Native student UI and a public exact-JAR
+consumer require separate actual acceptance.

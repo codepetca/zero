@@ -15,7 +15,10 @@ export function expectedPolicyDigest() {
   const paths = [
     ...imageFiles.map(name => `image/${name}`),
     'dependencies.json', 'policy.mjs', 'runner.mjs',
-    'image-policy.mjs', 'build-image.mjs'
+    'image-policy.mjs', 'build-image.mjs',
+    '../../sharing/library-checker.mjs',
+    '../../extension/src/sharing/contracts.js',
+    '../../sharing/registry.mjs'
   ];
   for (const path of paths) {
     const contentHash = createHash('sha256').update(readFileSync(join(root, path))).digest('hex');

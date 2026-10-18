@@ -7,6 +7,7 @@ import { PublicationService } from './publication.mjs';
 import { buildGamePackage } from './game-package.mjs';
 import { byteHash } from './file-storage.mjs';
 import { REGISTRY_REPOSITORY, REGISTRY_BRANCH } from './github-registry.mjs';
+import { fetchOfficialLibraryEvidence, verifyOfficialLibraryEvidence, verifyOfficialLibraryRun, reviewedWorkflowBytes } from './managed-library.mjs';
 
 export const LIBRARY_EXECUTION_GATE = 'Library publication is closed pending managed execution acceptance';
 export const LIBRARY_EVIDENCE_CONTRACT = Object.freeze({schema:1,required:['requestFingerprint','sourceDigest','commit','policyRevision','artifacts','status','provenance'],authority:'Separately accepted fixed managed workflow verifier; student CI/local receipts grant no authority',implementationActive:false});
@@ -36,9 +37,10 @@ function sourceDescriptor(request, files) {
 
 /** Game snapshots undergo structural packaging only. No submitted Java,
  * scripts, POM, tests, workflow or local passing receipt is ever executed. */
-export function createSharingPlatform({reader,registry,storage,artifactOrigin,policyRevision,now=Date.now,wallBudgetMs=900000,sourceTimeoutMs=30000}) {
+export function createSharingPlatform({reader,registry,storage,artifactOrigin,policyRevision,libraryPublicationEnabled=false,checkLibrarySource,officialLibraryEvidence=fetchOfficialLibraryEvidence,now=Date.now,wallBudgetMs=900000,sourceTimeoutMs=30000}) {
   if(!reader?.publicationIssue||!reader?.publicationIssueState||!reader?.source||!reader?.repository||!registry||!storage||! /^[a-f0-9]{40}$/.test(policyRevision||''))throw new Error('Trusted reader, registry, storage and exact policy revision required');
   if(!Number.isFinite(wallBudgetMs)||wallBudgetMs<1||wallBudgetMs>1200000||!Number.isInteger(sourceTimeoutMs)||sourceTimeoutMs<1||sourceTimeoutMs>60000)throw new Error('Invalid finite publication budget');
+  if(typeof libraryPublicationEnabled!=='boolean')throw new Error('Invalid library publication gate');
   const receipts=new WeakSet(), observedRepositories=new Map(), sourceCache=new Map(), publicationBudgets=new Map();
   function assertRequestPolicy(request) {
     if(request.policyRevision!==policyRevision && !(request.kind==='game' && request.policyRevision===COMPATIBLE_GAME_REQUEST_POLICY))throw sourceFailure('Request targets a different policy revision; prepare it again');
@@ -119,8 +121,98 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     receipts.add(evidence);
     return {evidence,artifacts};
   }
+  function requireLibrary(record) {
+    if(!libraryPublicationEnabled)throw executionGate();
+    if(!record || record.frozen.kind!=='library')throw new Error('An exact queued library request is required');
+    assertRequestPolicy(record.frozen);
+    return record;
+  }
+  async function managedPublish({requestId,runId,attempt,artifactId,token,checkOutcome='success'}) {
+    const record=(await registry.read()).state.requests[requestId];
+    if(!libraryPublicationEnabled)throw executionGate();
+    if(!record||record.frozen.kind!=='library')throw new Error('An exact managed library request is required');
+    if(record.releaseKey){if(checkOutcome!=='skipped')throw new Error('Accepted library recovery must skip candidate checks');return service.deliver(record.releaseKey);}
+    requireLibrary(record);
+    if(record.status!=='queued')throw new Error('Managed library request is not queued');
+    if(checkOutcome==='skipped')throw new Error('Unaccepted library requires a completed check');
+    try {
+    const reviewedWorkflow=await reviewedWorkflowBytes();
+    const official=await officialLibraryEvidence({token,runId,artifactId:checkOutcome==='success'?artifactId:undefined});
+    if(checkOutcome!=='success') {
+      verifyOfficialLibraryRun({record,official,runId,attempt,reviewedWorkflow,expectedConclusion:checkOutcome});
+      await reportAttempt(registry,record.id,{kind:'infrastructure-failure',message:'Managed checker job did not complete',maxInfrastructureRetries:3});
+      return {requestId:record.id,status:(await registry.read()).state.requests[record.id].status};
+    }
+    const {expectedPolicyDigest}=await import('../hub/checker/image-policy.mjs');
+    const verified=verifyOfficialLibraryEvidence({record,official,runId,attempt,artifactId,reviewedWorkflow,expectedPolicyDigest:expectedPolicyDigest()});
+    if(verified.receipt.status==='failed') {
+      const failedStage=verified.receipt.checks.find(check=>check.passed===false)?.id;
+      const code=({'fixed-build':'library-build',api:'library-api',behavior:'library-behavior',first:'library-example',second:'library-example'})[failedStage]||'source-check';
+      await reportAttempt(registry,record.id,{kind:'source-failure',message:'Managed source checks failed',sourceDiagnostic:{code}});
+      return {requestId:record.id,status:'failed'};
+    }
+    const evidence={status:'passed',requestFingerprint:record.id,sourceDigest:record.frozen.sourceDigest,
+      commit:record.frozen.commit,policyRevision:record.frozen.policyRevision,
+      artifacts:verified.receipt.artifacts,componentsDigest:verified.receipt.componentsDigest,
+      provenance:{kind:'managed-library-check',schema:1,runId,attempt,artifactId,checkerPolicy:verified.receipt.checkerPolicy,checkerPolicyDigest:verified.receipt.checkerPolicyDigest,image:verified.receipt.image}};
+    receipts.add(evidence);
+    await assertOpen(record,{signal:AbortSignal.timeout(sourceTimeoutMs)});
+    observedRepositories.set(record.frozen.repository.id,`${record.frozen.repository.owner}/${record.frozen.repository.name}`);
+    return service.publish({requestId:record.id,evidence,artifacts:verified.artifacts,components:verified.components});
+    } catch(error) {
+      await reportAttempt(registry,record.id,{kind:error.kind==='source-failure'?'source-failure':'infrastructure-failure',message:'Managed publication or official evidence unavailable',maxInfrastructureRetries:3});
+      throw error;
+    }
+  }
   return {
     prepareIssue,
+    async selectLibraryForCheck() {
+      if(!libraryPublicationEnabled)throw executionGate();
+      const started=now();
+      const state=(await registry.read()).state;
+      const pending=Object.values(state.requests).find(record=>record.frozen.kind==='library'&&record.status==='delivery-pending'&&record.releaseKey);
+      if(pending)return {requestId:pending.id,commit:pending.frozen.commit,recovery:true};
+      const stale=Object.values(state.requests).find(record=>record.frozen.kind==='library'&&record.status==='queued'&&!record.releaseKey&&record.frozen.policyRevision!==policyRevision);
+      if(stale)await reportAttempt(registry,stale.id,{kind:'source-failure',message:'Library request targets a different reviewed policy',sourceDiagnostic:{code:'source-check'}});
+      for(const queued of Object.values((await registry.read()).state.requests).filter(record=>record.frozen.kind==='library'&&record.status==='queued'&&!record.releaseKey&&record.frozen.policyRevision===policyRevision)) {
+        if(now()-started+sourceTimeoutMs>480000)return null;
+        try {await assertOpen(queued,{signal:AbortSignal.timeout(sourceTimeoutMs)});return {requestId:queued.id,commit:queued.frozen.commit};}
+        catch(error){if(error.kind!=='source-failure')throw error;}
+      }
+      if(!reader.publicationIssues)throw new Error('Trusted publication inbox listing required');
+      const cursor=state.libraryInbox||{page:1,offset:0};
+      const page=await reader.publicationIssues({repository:REGISTRY_REPOSITORY,page:cursor.page,perPage:100,signal:AbortSignal.timeout(sourceTimeoutMs)});
+      for(let index=cursor.offset;index<page.issueNumbers.length;index++) {
+        if(now()-started+sourceTimeoutMs>480000)break;
+        const number=page.issueNumbers[index];
+        const next=index===page.issueNumbers.length-1&&page.exhausted?{page:1,offset:0}:index===page.issueNumbers.length-1?{page:Math.min(cursor.page+1,1000),offset:0}:{page:cursor.page,offset:index+1};
+        let selected;
+        try {
+          const observed=await reader.publicationIssue(number,{repository:REGISTRY_REPOSITORY,signal:AbortSignal.timeout(sourceTimeoutMs)});
+          if(observed.request.kind==='library'&&observed.issueState==='open') {
+            const {record}=await prepareIssue(number,{persist:true});
+            if(record.status==='queued')selected={requestId:record.id,commit:record.frozen.commit};
+          }
+        } catch { /* Invalid/closed inbox entries cannot starve durable scanning. */ }
+        await registry.update(state=>{state.libraryInbox=next;});
+        sourceCache.clear();
+        if(selected)return selected;
+      }
+      if(page.issueNumbers.length===0)await registry.update(state=>{state.libraryInbox=page.exhausted?{page:1,offset:0}:{page:Math.min(cursor.page+1,1000),offset:0};});
+      return null;
+    },
+    async checkLibraryRequest(requestId) {
+      const record=requireLibrary((await registry.read()).state.requests[requestId]);
+      if(record.status!=='queued'||record.releaseKey)throw new Error('Managed library request is not queued');
+      const {sourceDigest,...request}=record.frozen;
+      const source=await reader.source(request,{signal:AbortSignal.timeout(sourceTimeoutMs)});
+      if(source.sourceDigest!==sourceDigest)throw sourceFailure('Frozen source digest changed');
+      const checker=checkLibrarySource|| (await import('./library-checker.mjs')).checkLibrarySource;
+      const result=await checker({request,files:source.files,sourceDigest});
+      if(result?.sourceDigest!==sourceDigest)throw new Error('Managed checker source digest mismatch');
+      return {record,result};
+    },
+    publishManagedLibrary:managedPublish,
     async publishIssue(issueNumber) {
       const started=now(),signal=AbortSignal.timeout(wallBudgetMs);
       const {record}=await prepareIssue(issueNumber,{persist:true,signal:AbortSignal.any([signal,AbortSignal.timeout(sourceTimeoutMs)])});
@@ -152,7 +244,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
         return cursorOwned;
       }
       async function processOne(record) {
-        if(!record||!['queued','delivery-pending'].includes(record.status)||attempted.has(record.id)||processing.length>=limit||!hasTime())return;
+        if(!record||record.frozen.kind==='library'||!['queued','delivery-pending'].includes(record.status)||attempted.has(record.id)||processing.length>=limit||!hasTime())return;
         attempted.add(record.id);publicationBudgets.set(record.id,{started,signal:deadline});
         try{
           const release=record.releaseKey?await service.deliver(record.releaseKey):await service.publish({requestId:record.id,...await prepareRecord(record)});
@@ -167,7 +259,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
       const durable=Object.values(initial.requests).sort((a,b)=>Number(!!b.releaseKey)-Number(!!a.releaseKey));
       for(const record of durable){if(!hasTime())break;await processOne(record);}
       async function ingestNumber(number) {
-        try{const {record}=await prepareIssue(number,{persist:true,signal:operationSignal()});intake.push({issueNumber:number,requestId:record.id});return record;}
+        try{const observed=await reader.publicationIssue(number,{repository:REGISTRY_REPOSITORY,signal:operationSignal()});if(observed.request.kind==='library')return null;const {record}=await prepareIssue(number,{persist:true,signal:operationSignal()});intake.push({issueNumber:number,requestId:record.id});return record;}
         catch(error){intake.push({issueNumber:number,status:'rejected',message:publicError(error)});return null;}
       }
       if(issueNumbers) {
@@ -202,13 +294,13 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     async retryPaused(requestId) {
       const record=(await registry.read()).state.requests[requestId];
       if(!record)throw new Error('Unknown request');
-      if(record.frozen.kind!=='game')throw executionGate();
+      if(record.frozen.kind!=='game'&&!libraryPublicationEnabled)throw executionGate();
       return retryRequest(registry,requestId);
     },
     async setAvailability(key,status) {
       const accepted=(await registry.read()).state.releases[key];
       if(!accepted)throw new Error('Unknown accepted release');
-      if(accepted.release.kind!=='game')throw executionGate();
+      if(accepted.release.kind!=='game'&&!libraryPublicationEnabled)throw executionGate();
       if(status==='available')await service.deliver(key);
       return service.setAvailability(key,status);
     },

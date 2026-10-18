@@ -147,7 +147,7 @@ function readRuntime(directory, result = {}) {
   }
   return result;
 }
-function adaptSources({ sources, resourcePaths = [], urlReferences }) {
+function adaptSources({ sources, resourcePaths = [], urlReferences, originalPaths = {} }) {
   if (!sources || typeof sources !== 'object' || Array.isArray(sources)) throw new TypeError('Web export needs a source path/string map.');
   const output = {}, sourceMap = {}, changes = [], warnings = [];
   const apps = [];
@@ -161,7 +161,7 @@ function adaptSources({ sources, resourcePaths = [], urlReferences }) {
     const destination = adapted.pkg.replaceAll('.', '/') + '/' + path.posix.basename(file);
     if (output[destination]) fail(file, `duplicate exported source ${destination}`);
     output[destination] = adapted.source;
-    sourceMap[destination] = { originalPath: file, lineOffset: adapted.lineOffset };
+    sourceMap[destination] = { originalPath: originalPaths[file] || file, lineOffset: adapted.lineOffset };
     const ts = tokens(source);
     for (let i = 0; i < ts.length - 3; i++) if (ts[i].text === 'class' && !ts.slice(Math.max(0, i - 3), i).some(token => token.text === 'abstract') && ts[i + 2].text === 'extends' && ['GameApp', 'App', 'Application'].includes(ts[i + 3].text)) apps.push(`${adapted.pkg}.${ts[i + 1].text}`);
   }

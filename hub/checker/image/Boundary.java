@@ -16,9 +16,17 @@ public final class Boundary {
       for (CompilationUnitTree unit : task.parse()) {
         Path path = Path.of(unit.getSourceFile().toUri());
         String expected = path.getFileName().toString().replace(".java", "");
-        boolean library = path.toString().contains("/src/");
+        boolean current = path.toString().contains("/src/main/java/") || path.toString().contains("/src/test/java/") || path.toString().contains("/examples/");
+        boolean library = path.toString().contains("/src/main/java/") || (!current && path.toString().contains("/src/"));
         String pkg = unit.getPackageName() == null ? "" : unit.getPackageName().toString();
-        if (!pkg.equals(library ? namespace : "")) throw new IllegalArgumentException("Foreign or missing namespace: " + path);
+        if (current) {
+          String marker = library ? "/src/main/java/" : path.toString().contains("/src/test/java/") ? "/src/test/java/"
+              : path.toString().contains("/examples/first/") ? "/examples/first/" : "/examples/second/";
+          String relative = path.toString().substring(path.toString().indexOf(marker) + marker.length());
+          String expectedPackage = relative.contains("/") ? relative.substring(0, relative.lastIndexOf('/')).replace('/', '.') : "";
+          if (!pkg.equals(expectedPackage) || (library && !pkg.equals(namespace) && !pkg.startsWith(namespace + ".")))
+            throw new IllegalArgumentException("Foreign or missing namespace: " + path);
+        } else if (!pkg.equals(library ? namespace : "")) throw new IllegalArgumentException("Foreign or missing namespace: " + path);
         if (unit.getTypeDecls().size() != 1 || !(unit.getTypeDecls().get(0) instanceof ClassTree type)
             || type.getKind() != Tree.Kind.CLASS || !type.getSimpleName().contentEquals(expected)
             || !type.getModifiers().getFlags().contains(Modifier.PUBLIC))

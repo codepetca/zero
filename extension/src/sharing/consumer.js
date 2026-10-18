@@ -68,10 +68,13 @@ function checkPom(bytes,release) {
 async function verifyLibrary(context,release,options={}) {
  if(release.kind!=='library')fail('Games open as separate projects.');
  const deadline=AbortSignal.timeout(options.timeoutMs||30000),signal=options.signal?AbortSignal.any([deadline,options.signal]):deadline;
+ const verified={};
  for(const kind of ['jar','sources','pom']) {
   const bytes=await downloadArtifact(context,release,kind,{signal,timeoutMs:options.timeoutMs||30000});
   if(kind==='pom')checkPom(bytes,release);else if(bytes.length<4||bytes.readUInt32LE(0)!==0x04034b50)fail('A library artifact is not an ordinary JAR.');
+  verified[kind]=bytes;
  }
+ return verified;
 }
 function managed(parent,text,label) {
  const start=` zero-sharing ${label} start `,end=` zero-sharing ${label} end `;

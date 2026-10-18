@@ -13,11 +13,17 @@ public final class TrustedRun {
   public static void main(String[] args) throws Exception {
     JarTracker.assertModuleIdentity();
     if (args[0].equals("api")) {
-      for (int i = 1; i < args.length; i++) {
+      boolean current = args.length > 1 && (args[1].equals("helper") || args[1].equals("widget"));
+      boolean widget = !current || args[1].equals("widget");
+      for (int i = current ? 2 : 1; i < args.length; i++) {
         Class<?> type = Class.forName(args[i], false, ClassLoader.getSystemClassLoader());
         if (!Modifier.isPublic(type.getModifiers()) || !Path.of(type.getProtectionDomain().getCodeSource().getLocation().toURI()).equals(Path.of("/input/library.jar"))) throw new AssertionError("Declared public class must originate in built JAR");
-        Method view = type.getMethod("view");
-        if (view.getReturnType() != Node.class || Modifier.isStatic(view.getModifiers()) || !Modifier.isPublic(view.getModifiers())) throw new AssertionError("Each component needs public Node view()");
+        if (widget) {
+          Method view = type.getMethod("view");
+          if ((current ? !Node.class.isAssignableFrom(view.getReturnType()) : view.getReturnType() != Node.class)
+              || Modifier.isStatic(view.getModifiers()) || !Modifier.isPublic(view.getModifiers()))
+            throw new AssertionError("Each widget needs public Node view()");
+        }
       }
       return;
     }

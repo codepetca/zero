@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, writeFile, readFile, rm, mkdir, chmod } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { POLICY, validateBundle, sourceDigest, expectedPom } from './policy.mjs';
+import { POLICY, LIBRARY_POLICY, validateBundle, validateLibraryBundle, sourceDigest, expectedPom, expectedLibraryPom } from './policy.mjs';
 import { policyDigest } from './image-policy.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -26,10 +26,16 @@ async function container(image, input, stage, timeout) {
 export * from './policy.mjs';
 export { expectedPolicyDigest } from './image-policy.mjs';
 export async function checkSubmission(bundle, options = {}) {
-  validateBundle(bundle);
+  return checkBundle(bundle,options,false);
+}
+export async function checkLibrarySubmission(bundle, options = {}) {
+  return checkBundle(bundle,options,true);
+}
+async function checkBundle(bundle,options,current) {
+  if(current)validateLibraryBundle(bundle);else validateBundle(bundle);
   // Copy canonical JSON now: queued input cannot mutate while the worker awaits Docker.
   bundle=JSON.parse(JSON.stringify(bundle));
-  const digest=sourceDigest(bundle);
+  const digest=current?null:sourceDigest(bundle);
   for(const [key,value] of Object.entries(options)) {
     if(!['image','scratchRoot','buildTimeoutMs','runTimeoutMs'].includes(key)) throw new Error('Unknown checker option');
     if(key.endsWith('TimeoutMs') && (!Number.isInteger(value) || value < 250 || value > (key==='buildTimeoutMs'?30000:15000))) throw new Error('Checker timeout outside policy bounds');
@@ -37,21 +43,22 @@ export async function checkSubmission(bundle, options = {}) {
   const lock=JSON.parse(await readFile(join(here,'image-lock.json'),'utf8'));
   const image=options.image || lock.imageId;
   if (!/^sha256:[a-f0-9]{64}$/.test(image)) throw new Error('Checker requires an immutable locally built image ID');
+  if(image!==lock.imageId||lock.policy!==LIBRARY_POLICY)throw new Error('Checker image differs from exact trusted lock');
   const inspect=await execute(['image','inspect',image,'--format','{{.Id}} {{.Os}} {{.Architecture}} {{index .Config.Labels "zero.policy"}} {{index .Config.Labels "zero.policy-source"}}']);
   if(inspect.code!==0) throw new Error('Pinned checker image unavailable; run build-image.mjs');
   const parts=inspect.stdout.toString().trim().split(' ');
-  const sourceLock=JSON.parse(await readFile(join(here,'image-lock.json'),'utf8'));
-  if(parts[0]!==image || parts[1]!=='linux' || !['amd64','arm64'].includes(parts[2]) || parts[3]!==POLICY || parts[4]!==sourceLock.policyDigest || sourceLock.policyDigest!==await policyDigest()) throw new Error('Checker image policy/architecture mismatch');
+  const sourceLock=lock;
+  if(parts[0]!==image || parts[1]!=='linux' || !['amd64','arm64'].includes(parts[2]) || sourceLock.platform!==`linux-${parts[2]}` || parts[3]!==lock.policy || parts[4]!==sourceLock.policyDigest || sourceLock.policyDigest!==await policyDigest()) throw new Error('Checker image policy/architecture mismatch');
   const scratch=resolve(options.scratchRoot || join(here,'../../.verification/hub-checker'));
   if(/[\u0000-\u001f,]/.test(scratch))throw new Error('Unsafe scratch path');
   await mkdir(scratch,{recursive:true,mode:0o700});
   const dir=await mkdtemp(join(scratch,'run-'));
   await chmod(dir,0o755);
   const checks=[{id:'bundle',passed:true,detail:'Canonical descriptor, exact source paths, MIT license, bounded decoded PNG validated.'}];
-  const result={passed:false,policy:POLICY,policyDigest:sourceLock.policyDigest,sourceDigest:digest,checks,platforms:[`linux-${parts[2]}`]};
+  const result={passed:false,policy:current?LIBRARY_POLICY:POLICY,policyDigest:sourceLock.policyDigest,sourceDigest:digest,checks,platforms:[`linux-${parts[2]}`],...(current?{components:[],image:{id:image,platform:`linux-${parts[2]}`}}:{})};
   try {
     for(const [path,value] of Object.entries(bundle.files)) {
-      const full=join(dir,path);await mkdir(dirname(full),{recursive:true});await writeFile(full,path==='preview.png'?Buffer.from(value,'base64'):value,{mode:0o444});
+      const full=join(dir,path);await mkdir(dirname(full),{recursive:true});await writeFile(full,path==='preview.png'||path.startsWith('src/main/resources/')?Buffer.from(value,'base64'):value,{mode:0o444});
     }
     await writeFile(join(dir,'descriptor.json'),JSON.stringify(bundle.descriptor),{mode:0o444});
     const build=await container(image,dir,'build',options.buildTimeoutMs || 30000);
@@ -60,7 +67,7 @@ export async function checkSubmission(bundle, options = {}) {
     add('fixed-build',build);
     if(!checks.at(-1).passed)return result;
     let artifacts;
-    try {const output=JSON.parse(build.stdout.toString());if(Object.keys(output).sort().join(',')!=='jar,sources')throw Error('Unexpected output'); artifacts={jar:Buffer.from(output.jar,'base64'),sources:Buffer.from(output.sources,'base64'),pom:expectedPom(bundle)};if(!artifacts.jar.length||!artifacts.sources.length||artifacts.jar.length>1024*1024||artifacts.sources.length>1024*1024)throw Error('Artifact bound');}catch(e){throw new Error(`Trusted build protocol failure: ${e.message}`);}
+    try {const output=JSON.parse(build.stdout.toString());if(Object.keys(output).sort().join(',')!==(current?'components,jar,sources':'jar,sources'))throw Error('Unexpected output'); artifacts={jar:Buffer.from(output.jar,'base64'),sources:Buffer.from(output.sources,'base64'),pom:current?expectedLibraryPom(bundle):expectedPom(bundle)};if(!artifacts.jar.length||!artifacts.sources.length||artifacts.jar.length>1024*1024||artifacts.sources.length>1024*1024)throw Error('Artifact bound');if(current){if(!Array.isArray(output.components)||output.components.length!==bundle.descriptor.classes.length)throw Error('Invalid compiled API inventory');result.components=output.components;}}catch(e){throw new Error(`Trusted build protocol failure: ${e.message}`);}
     await writeFile(join(dir,'library.jar'),artifacts.jar,{mode:0o444});
     for(const stage of ['api','behavior','first','second']) {
       const run=await container(image,dir,stage,options.runTimeoutMs || 15000);
