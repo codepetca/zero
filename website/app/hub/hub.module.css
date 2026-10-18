@@ -10,7 +10,7 @@
 .navigation a:focus-visible, .retry:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .cards { display: grid; gap: 24px; }
 .card { display: flex; gap: 24px; align-items: flex-start; min-width: 0; padding: 24px 0; border-top: 1px solid var(--zero-border, var(--outline)); }
-.cardContent { flex: 1; min-width: 0; }
+.cardContent { flex: 1; min-width: 0; max-width: 100%; }
 .cardContent h3 { margin: 0 0 8px; }
 .cardContent .description { margin: 0 0 8px; }
 .cardContent .metadata { margin: 0 0 12px; }

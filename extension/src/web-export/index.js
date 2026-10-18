@@ -9,7 +9,7 @@ const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
 const { captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
 const { resolveLibrarySources } = require('./libraries');
-const { discoverLibraries, declaration } = require('../sharing/authoring');
+const { declaration } = require('../sharing/authoring');
 const { prepareMavenDistribution, verifyMavenDistribution } = require('./compatibility/maven-distribution');
 const { checkCompatibility, validateDependencies, verifyArtifactInventory, validateWrapperInputs } = require('./compatibility');
 const toolchain = require('./toolchain-lock.json');
@@ -427,7 +427,7 @@ async function exportForWeb(options = {}) {
     onProgress('Checking Java sources and resources');
     const profileHash = await buildProfileHash();
     const captured = await captureBuildInputs(projectRoot);
-    const libraries=captured.files.some(file=>file.path==='zero-libraries.json')?await discoverLibraries(projectRoot):[];
+    const libraries=captured.libraries;
     const javaFiles = captured.files.filter(file => file.path.startsWith('src/main/java/')).map(file => ({ ...file, originalPath:file.path,path: file.path.slice('src/main/java/'.length) }));
     const resources = captured.files.filter(file => file.path.startsWith('src/main/resources/')).map(file => ({ ...file, originalPath:file.path,path: file.path.slice('src/main/resources/'.length) }));
     if (!javaFiles.some((file) => file.path.endsWith('.java')))

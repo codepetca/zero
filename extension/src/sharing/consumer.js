@@ -85,6 +85,51 @@ function managed(parent,text,label) {
  if(nodes.length!==1||text.slice(a[0].end,nodes[0].start).trim()||text.slice(nodes[0].end,b[0].start).trim())fail('A managed sharing POM block is ambiguous.');
  return {start:a[0].start,end:b[0].end,node:nodes[0]};
 }
+// Browser export reads the exact dependency blocks written by independent
+// Browse/Add without changing that editor's Add/Update/Revert write path.
+function inspectManagedLibraryPins(text,{artifactOrigin}={}) {
+ const project=parseXml(text),properties=single(project,'properties',true),deps=single(project,'dependencies',true),repos=single(project,'repositories',true);
+ const ids=new Set();let repositoryMarked=false;
+ for(const node of allNodes(project))for(const comment of node.comments) {
+  if(!comment.text.startsWith(' zero-sharing '))continue;
+  if(comment.text===' zero-sharing source roots '||comment.text===' zero-sharing published libraries ')continue;
+  const marker=/^ zero-sharing (.+) (start|end) $/.exec(comment.text);
+  if(!marker)fail('A managed sharing POM marker was changed.');
+  if(marker[1]==='repository') {
+   if(node!==repos)fail('The managed artifact repository marker is misplaced.');
+   repositoryMarked=true;continue;
+  }
+  const label=/^(lib-r([1-9][0-9]{0,19})-([a-z][a-z0-9]*(?:-[a-z0-9]+)*)) (dependency|history)$/.exec(marker[1]);
+  if(!label||node!==(label[4]==='dependency'?deps:properties))fail('A managed library marker is invalid or misplaced.');
+  ids.add(label[1]);
+ }
+ const repo=repositoryMarked&&repos&&managed(repos,text,'repository');
+ if(repositoryMarked&&!repo||ids.size&&!repo)fail('The managed artifact repository is missing.');
+ let repositoryOrigin=null;
+ if(repo) {
+  const matches=allNodes(project).filter(n=>n.name==='repository'&&value(single(n,'id'))==='zero-sharing');
+  if(matches.length!==1||matches[0]!==repo.node||repo.node.children.length!==4||value(single(repo.node,'id'))!=='zero-sharing'||value(single(single(repo.node,'releases'),'enabled'))!=='true'||value(single(single(repo.node,'snapshots'),'enabled'))!=='false')fail('The managed artifact repository changed.');
+  const url=value(single(repo.node,'url'));
+  try{repositoryOrigin=origin(new URL(url).origin);}catch{fail('The managed artifact repository URL is invalid.');}
+  if(url!==repositoryOrigin+'/maven'||artifactOrigin&&repositoryOrigin!==origin(artifactOrigin))fail('The managed artifact repository changed.');
+ }
+ const pins=[];
+ for(const id of [...ids].sort()) {
+  const parts=/^lib-r([1-9][0-9]{0,19})-([a-z][a-z0-9]*(?:-[a-z0-9]+)*)$/.exec(id),identity=c.identity('library',parts[1],parts[2]);
+  if(identity.id!==id)fail('The managed library identity changed.');
+  const owned=deps&&managed(deps,text,`${id} dependency`),history=properties&&managed(properties,text,`${id} history`);
+  if(!owned||!history||owned.node.name!=='dependency'||owned.node.children.length!==3||history.node.name!==`zero.sharing.${id}.previous`)fail('The managed dependency or version history changed.');
+  const group=value(single(owned.node,'groupId')),artifact=value(single(owned.node,'artifactId')),version=c.validateVersion(value(single(owned.node,'version')));
+  const previous=value(history.node);
+  if(previous!=='none')c.validateVersion(previous);
+  if(group!==identity.coordinate.groupId||artifact!==identity.coordinate.artifactId)fail('The managed dependency or version history changed.');
+  const matches=allNodes(project).filter(n=>n.name==='dependency'&&value(single(n,'groupId'))===group&&value(single(n,'artifactId'))===artifact);
+  const histories=allNodes(project).filter(n=>n.name===`zero.sharing.${id}.previous`);
+  if(matches.length!==1||matches[0]!==owned.node||histories.length!==1||histories[0]!==history.node)fail('The managed dependency or version history changed.');
+  pins.push({identity,slug:identity.slug,mode:'published',version,source:'consumer',repositoryOrigin});
+ }
+ return pins;
+}
 function addArtifactRepository(text,artifactOrigin) {
  artifactOrigin=origin(artifactOrigin);const doc=parseXml(text),repos=single(doc,'repositories',true),owned=repos&&managed(repos,text,'repository');
  const matches=allNodes(doc).filter(n=>n.name==='repository'&&value(single(n,'id'))==='zero-sharing');
@@ -145,4 +190,4 @@ async function validatePlan(plan,context,options={}) {
  if(again.beforeText!==plan.beforeText||again.afterText!==plan.afterText)fail('The POM changed during review. No dependency edit applied.');
 }
 async function downloadGame(context,release,options={}) {if(release.kind!=='game')fail('Choose a game.');return downloadArtifact(context,release,'zip',options);}
-module.exports={origin,catalogUrl,readBytes,loadCatalog,downloadArtifact,verifyLibrary,planChange,validatePlan,downloadGame,assertNoShadow,addArtifactRepository};
+module.exports={origin,catalogUrl,readBytes,loadCatalog,downloadArtifact,verifyLibrary,inspectManagedLibraryPins,planChange,validatePlan,downloadGame,assertNoShadow,addArtifactRepository};

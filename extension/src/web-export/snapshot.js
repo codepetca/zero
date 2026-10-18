@@ -3,8 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const {zipFiles} = require('./zip');
-const {discoverLibraries} = require('../sharing/authoring');
-const {resolveLibrarySources}=require('./libraries');
+const {discoverBrowserLibraries,resolveLibrarySources}=require('./libraries');
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const abort = signal => {if(signal?.aborted){const error=new Error('Browser build cancelled.');error.name='AbortError';throw error;}};
 async function safePath(file) {
@@ -56,10 +55,10 @@ async function captureBuildInputs(projectRoot) {
   }
   await safePath(path.join(projectRoot,'zero-libraries.json'));
   const state=await fs.readFile(path.join(projectRoot,'zero-libraries.json')).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+  const libraries=await discoverBrowserLibraries(projectRoot,files.find(file=>file.path==='pom.xml').bytes.toString('utf8'));
   if(state!==null) {
-    const libraries=await discoverLibraries(projectRoot);
     files.push({path:'zero-libraries.json',bytes:state});
-    for(const library of libraries) {
+    for(const library of libraries.filter(library=>library.source==='authored')) {
       const folder=library.folder,descriptor=`${folder}/zero-library.json`;
       await safePath(path.join(projectRoot,descriptor));
       files.push({path:descriptor,bytes:await fs.readFile(path.join(projectRoot,descriptor))});
@@ -69,7 +68,7 @@ async function captureBuildInputs(projectRoot) {
           files.push({path:`${folder}/${name}/${file.path}`,bytes:file.bytes});
     }
   }
-  return {files,sourceHash:digest(files)};
+  return {files,sourceHash:digest(files),libraries};
 }
 async function buildProfileHash(engineRoot=__dirname) {return digest(await tree(engineRoot));}
 function validRelative(value) {return typeof value==='string'&&value!==''&&!value.includes('\\')&&!value.includes('\0')&&!path.posix.isAbsolute(value)&&value.split('/').every(p=>p&&p!=='.'&&p!=='..');}

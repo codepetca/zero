@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases} from '@/lib/sharing-client.mjs';
+import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import maintainedProjects from '@/content/projects.json';
 import projectPreviews from '@/content/project-previews.json';
 import styles from '@/app/hub/hub.module.css';
@@ -52,7 +52,8 @@ export function HubDiscovery() {
         version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In Zero, choose Browse ZeroHub → {release.title} → Add library → Apply.</p>
-          {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4><p>{component.description}</p><CodeBlock><code>{`import ${component.className};\n\n${component.usage}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
+          <p><a href={`${sourceLink(release)}/examples`}>View examples</a></p>
+          {release.components?.map(component=><div key={component.className}><h4>{component.className}</h4>{component.description && <p>{component.description}</p>}<CodeBlock><code>{`import ${component.className};${component.usage ? `\n\n${component.usage}` : ''}`}</code></CodeBlock><details><summary>Public API</summary><CodeBlock><code>{component.api.join('\n')}</code></CodeBlock></details></div>)}
           {!release.components?.length && <p>Read the exact source for this library’s Java API and examples. Namespace: <code>{release.namespace}</code>.</p>}
           <details><summary>Manual Maven setup</summary><p>Add these entries to pom.xml.</p><CodeBlock><code>{dependencySnippet(release)}</code></CodeBlock><div className="resource-links"><a href={release.artifacts.jar?.url}>Download JAR</a><a href={release.artifacts.pom?.url}>View POM</a></div></details>
         </details> : null}

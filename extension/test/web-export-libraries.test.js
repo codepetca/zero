@@ -2,6 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
 const authoring=require('../src/sharing/authoring'),contracts=require('../src/sharing/contracts');
+const consumer=require('../src/sharing/consumer');
 const {captureBuildInputs,boundSourceHash,assertBuildInputsAtCommit}=require('../src/web-export/snapshot');
 const {resolveLibrarySources,inspectJar}=require('../src/web-export/libraries');
 const {validateDependencies}=require('../src/web-export/compatibility');
@@ -71,4 +72,50 @@ test('uploaded local library Java and descriptor may use checkout CRLF, while re
  const result={sourceHash:inputs.sourceHash,manifest:{localSourceHash:inputs.sourceHash}};
  const checked=await assertBuildInputsAtCommit({projectRoot:root,result,sourceSha:'a'.repeat(40),git:async()=>entries});
  assert.deepEqual(checked.normalizedSourceLineEndings.sort(),[source,descriptorPath].sort());
+});
+test('independent Browse/Add, Update and Revert feed exact accepted browser source without authored state',async t=>{
+ const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-web-independent-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
+ const template=path.resolve(__dirname,'../../student-template');
+ await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.mkdir(path.join(root,'src/main/resources'));
+ await fs.cp(path.join(template,'.mvn'),path.join(root,'.mvn'),{recursive:true});
+ for(const name of ['pom.xml','mvnw','mvnw.cmd'])await fs.copyFile(path.join(template,name),path.join(root,name));
+ await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'src/main/java/Main.java'),'public class Main {}\n');
+ const id=contracts.identity('library',repository.id,descriptor.slug),sourcePath=id.namespace.replaceAll('.','/')+'/Health.java';
+ const settings={catalogUrl:'https://zero.example/catalog',artifactOrigin:'https://files.example'},artifactBytes=new Map(),releases=[];
+ for(const [version,answer]of [['0.1.0',10],['0.1.1',11]]) {
+  const values={jar:zipFiles([{path:sourcePath.replace('.java','.class'),bytes:Buffer.from('class')}]),sources:zipFiles([{path:sourcePath,bytes:Buffer.from(`package ${id.namespace}; public class Health { public int value() { return ${answer}; } }`)}]),pom:Buffer.from(`<project><modelVersion>4.0.0</modelVersion><groupId>${id.coordinate.groupId}</groupId><artifactId>${id.coordinate.artifactId}</artifactId><version>${version}</version></project>`)};
+  const artifacts={};for(const [kind,bytes]of Object.entries(values)) {const artifactPath=contracts.artifactPath(id,version,kind),url='https://files.example/'+artifactPath;artifactBytes.set(url,bytes);artifacts[kind]={path:artifactPath,url,size:bytes.length,sha256:hash(bytes)};}
+  releases.push({schema:1,kind:'library',id:id.id,slug:descriptor.slug,version,title:descriptor.title,description:descriptor.description,license:'MIT',repository,contributor:{githubId:'7',login:'student'},source:{commit:'a'.repeat(40),folder:'libraries/health-bar',sha256:'b'.repeat(64)},policyRevision:'c'.repeat(40),status:'available',artifacts,namespace:id.namespace,coordinate:{...id.coordinate,version},libraryKind:'helper'});
+ }
+ const catalog={schema:1,revision:'d'.repeat(40),releases};
+ const fetcher=async url=>new Response(url===settings.catalogUrl?JSON.stringify(catalog):artifactBytes.get(url));
+ const context=await consumer.loadCatalog(settings,{fetcher}),pomPath=path.join(root,'pom.xml');
+ await fs.writeFile(pomPath,consumer.addArtifactRepository(await fs.readFile(pomPath,'utf8'),settings.artifactOrigin));
+ assert.equal((await captureBuildInputs(root)).libraries.length,0);
+ const apply=async(release,operation)=>{
+  const plan=await consumer.planChange(root,context,release,{operation});await fs.writeFile(pomPath,plan.afterText);
+  await assert.rejects(fs.access(path.join(root,'zero-libraries.json')),{code:'ENOENT'});
+  const captured=await captureBuildInputs(root);
+  assert.equal(captured.libraries.length,1);assert.equal(captured.libraries[0].source,'consumer');
+  assert.ok(validateDependencies(plan.afterText,{libraries:captured.libraries}));
+  const resolved=await resolveLibrarySources(root,captured,{sharingSettings:settings,fetcher});
+  assert.equal(resolved.publishedLibraries[0].version,release.version);
+  return {plan,captured,resolved};
+ };
+ const added=await apply(releases[0],'add');assert.match(added.resolved.sources[0].bytes.toString(),/return 10/);
+ const updated=await apply(releases[1],'update');assert.match(updated.resolved.sources[0].bytes.toString(),/return 11/);assert.notEqual(updated.captured.sourceHash,added.captured.sourceHash);
+ const reverted=await apply(releases[0],'revert');assert.match(reverted.resolved.sources[0].bytes.toString(),/return 10/);assert.match(reverted.plan.afterText,/<zero\.sharing\.lib-r12345-health-bar\.previous>0\.1\.1/);
+ const goodPom=reverted.plan.afterText;
+ await fs.writeFile(pomPath,goodPom.replace(/<!-- zero-sharing lib-r12345-health-bar history (?:start|end) -->\s*/g,''));
+ await assert.rejects(captureBuildInputs(root),/managed dependency or version history|managed library marker/);
+ await fs.writeFile(pomPath,goodPom.replace(/<!-- zero-sharing repository (?:start|end) -->\s*/g,''));
+ await assert.rejects(captureBuildInputs(root),/managed artifact repository/);
+ await fs.writeFile(pomPath,goodPom.replace(/<!-- zero-sharing lib-r12345-health-bar (?:dependency|history) (?:start|end) -->\s*/g,''));
+ const manual=await captureBuildInputs(root);assert.throws(()=>validateDependencies((manual.files.find(file=>file.path==='pom.xml')).bytes.toString(),{libraries:manual.libraries}),/Unsupported browser dependency/);
+ await fs.writeFile(pomPath,goodPom.replaceAll('https://files.example/maven','https://other.example/maven'));
+ await assert.rejects(resolveLibrarySources(root,await captureBuildInputs(root),{sharingSettings:settings,fetcher}),/repository origin changed/);
+ await fs.writeFile(pomPath,goodPom);
+ catalog.releases[0].status='withdrawn';await assert.rejects(resolveLibrarySources(root,await captureBuildInputs(root),{sharingSettings:settings,fetcher}),/not an available accepted release/);
+ catalog.releases[0].status='available';artifactBytes.set(releases[0].artifacts.sources.url,Buffer.from('changed'));
+ await assert.rejects(resolveLibrarySources(root,await captureBuildInputs(root),{sharingSettings:settings,fetcher}),/hash|size/);
 });

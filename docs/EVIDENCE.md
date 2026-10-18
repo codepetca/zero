@@ -5360,3 +5360,56 @@ compatibility preparation, with no success claim. Released0.5.19's old policy
 compatibility is game-only. Public managed checking, browser support and native
 Share/Add/Run/Update/Revert remain unfinished, awaiting owner direction on the
 explicit acceptance hold before proceeding with its dependent work.
+
+## Flap Motion managed-library implementation — 2026-10-18
+
+Owner explicitly answered Yes to reopen the held checker acceptance on2026-10-17.
+Implementation PR #95 initially freezes136e245: separate default-off intake/check/
+publisher jobs, current-format helper/widget fixed checking and verified browser
+library sources. Check and managed12/12 pass; sharing74pass/4Docker-only skips.
+Local0.5.20 packaging/kit verification passes without replacing published0.5.19.
+Actual isolated Mac source-development host is connected as armorup; native Check
+Library and Sky Hop Run pass. Required WebFX verification builds five fixtures,
+passes56Chrome assertions/native parity. Final Sky Hop buildb7782554 uses30
+committed inputs from8123249, sourceHash6db9c0b5d65c4790b2fb2e34e98ffc549551499f6ec85859e9403d076ef1470a;
+actual paused-game screenshot inspected. Browser/server proof sessions closed.
+
+Initial changed-source review wave: two independent Sol/high assignments,2launches.
+Execution/publication review complete with no blocker; compatibility review finds
+P1 browser discovery missing native Add-managed POM pins, and P2 empty checked
+component usage lacking example guidance. Both accepted for one correction batch;
+unused implementationActive:false metadata is nonblocking while admission remains
+inactive. No source findings were supplied to initial reviewers. Effective model,
+tokens and reviewer elapsed telemetry unknown. Weekly74%remaining/storage310GB
+are shared readings, not task cost. DeepSeek pause honored; no writer conflicts.
+
+Current implementation remains under review; final checker proof, corrected-source
+review and real CI results are recorded in .verification/sky-hop-library/plan.json.
+No public library intake/acceptance or compatible policy activation has occurred.
+Actual native independent Add/Run/Update/Revert, public Maven/cache verification,
+physical Windows and released-installer library acceptance remain unfinished.
+The earlier local-proof receipt's hold/browser omissions above are historical and
+superseded by this explicit reopening and implemented browser support. Immutable
+old kits/releases and withdrawn Sky Hop status remain intact.
+
+Initial136e245 actual GitHub checks all pass: release39087991872, browser39087991875,
+Linux AMD64 checker39087991892, Windows39087991861 and Vercel preview. Final ARM
+checker digest1f85b336d4993ae558186344bdf7af835b789c304d4191297cebf1b47aa31886,
+image sha256:45f7ff0a118f77857710cb76e9483b2f479a89f55b8c33f91d30f2f084f25dbb;
+current-format Docker6/6, targeted legacy2/2, JDK boundary1/1 and static5/5 pass.
+An earlier concurrent full legacy suite was4/6 with two15s timeouts; unchanged
+focused retries passed, and the real AMD64 full suite now passes. Sky Hop all six
+managed stages pass with exact deterministic artifact hashes in the local receipt.
+Website correction links commit-bound examples, omits empty descriptions and
+contains code cards at320px. Typecheck/121tests/production build pass; mocked-card
+Chrome proof covers keyboard disclosure,1280/390/320px, dark/rootfont200% and open
+API/Maven code without page overflow. Safari and physical-device UI are untested.
+
+Correction batch1 makes browser discovery share the authored modes and exact
+native consumer-managed POM pins, validating markers/history/repository before
+accepted-release/source verification. Real consumer.planChange Add0.1.0→Update0.1.1
+→Revert0.1.0 plus tampering/withdrawal/hash negatives pass in focused41/41 tests.
+An independent Sky Hop copy with no authored state/library folder, using actual
+applied Add POM and synthetic accepted test artifacts, completes GWT export and
+validateExport: build020b6a2a,68files/7009368bytes. This proves the managed consumer
+compiler path, not public admission. Corrected-source review and CI are pending.

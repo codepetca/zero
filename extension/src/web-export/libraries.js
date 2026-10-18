@@ -1,8 +1,9 @@
 'use strict';
 const path=require('node:path');
+const fs=require('node:fs/promises');
 const zlib=require('node:zlib');
 const {discoverLibraries,declaration}=require('../sharing/authoring');
-const {loadCatalog,verifyLibrary}=require('../sharing/consumer');
+const {loadCatalog,verifyLibrary,inspectManagedLibraryPins}=require('../sharing/consumer');
 const {readKitConfiguration}=require('../sharing/configuration');
 
 const MAX_JAR_FILES=256,MAX_JAR_BYTES=2*1024*1024;
@@ -58,10 +59,21 @@ function add(target,name,bytes,kind,originalPath=name) {
  if(target.some(entry=>entry.path.toLowerCase()===folded))fail(`${kind} collision: ${name}`);
  target.push({path:name,bytes,originalPath});
 }
+async function discoverBrowserLibraries(projectRoot,pomText) {
+ const state=await fs.access(path.join(projectRoot,'zero-libraries.json')).then(()=>true,error=>{if(error.code==='ENOENT')return false;throw error;});
+ const authored=state?(await discoverLibraries(projectRoot)).map(library=>({...library,source:'authored'})):[];
+ const managed=pomText.includes('zero-sharing')?inspectManagedLibraryPins(pomText):[];
+ const ids=new Set(authored.map(library=>library.identity.id));
+ for(const library of managed) {
+  if(ids.has(library.identity.id))fail(`authored and independent library modes overlap: ${library.identity.id}`);
+  ids.add(library.identity.id);
+ }
+ return [...authored,...managed];
+}
 async function resolveLibrarySources(projectRoot,captured,options={}) {
- const state=captured.files.find(file=>file.path==='zero-libraries.json');
- if(!state)return {sources:[],resources:[],publishedLibraries:[]};
- const libraries=await discoverLibraries(projectRoot),sources=[],resources=[],publishedLibraries=[];
+ const pom=captured.files.find(file=>file.path==='pom.xml')?.bytes.toString('utf8');
+ if(!pom)fail('the project POM is missing');
+ const libraries=captured.libraries||await discoverBrowserLibraries(projectRoot,pom),sources=[],resources=[],publishedLibraries=[];
  const published=libraries.filter(library=>library.mode==='published');
  const settings=options.sharingSettings||readKitConfiguration(path.resolve(__dirname,'../..'));
  const context=published.length?await loadCatalog(settings,{fetcher:options.fetcher,signal:options.signal}):null;
@@ -84,6 +96,7 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
    }
    continue;
   }
+  if(library.source==='consumer'&&library.repositoryOrigin!==context.artifactOrigin)fail(`managed repository origin changed for ${library.slug}`);
   const release=context.catalog.releases.find(item=>item.kind==='library'&&item.id===library.identity.id&&item.version===library.version&&item.status==='available');
   if(!release)fail(`published ${library.slug} ${library.version} is not an available accepted release`);
   const verified=await verifyLibrary(context,release,{signal:options.signal});
@@ -112,4 +125,4 @@ async function resolveLibrarySources(projectRoot,captured,options={}) {
  }
  return {sources,resources,publishedLibraries};
 }
-module.exports={resolveLibrarySources,inspectJar};
+module.exports={discoverBrowserLibraries,resolveLibrarySources,inspectJar};
