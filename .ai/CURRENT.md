@@ -1,30 +1,29 @@
 # Zero shared GitHub identity — 2026-10-18
 
-Owner requested plan+orchestration and explicitly chose ONE Codepet GitHub App
-for desktop Zero and ZeroHub. GitHub is the identity provider. Selected existing
-repos plus App-created repos; no all-repos requirement or broad native OAuth
-fallback. Preserve local offline Run, ordinary Java, minimal UI, public browse/
-Play, student-owned repositories and separate Pika submission.
+Owner chose ONE Codepet GitHub App for desktop Zero and ZeroHub. Canonical plan:
+docs/ZERO-IDENTITY-PLAN.md. GitHub identity, selected+App-created repositories,
+local offline Run, ordinary Java, minimal UI and separate Pika submission remain.
+Browser/editor have separate credential families; browser tokens can inherit the
+selected repository authority. No pairing or broad native OAuth fallback.
 
-Canonical execution plan: docs/ZERO-IDENTITY-PLAN.md. Coordinator owns architecture,
-interfaces, extension.js, config/docs/integration. Sol/high native/security
-investigations and native modules complete; initial regression575pass/1skip and two independent reviews complete; six
-accepted fixes in one batch now undergoing final checks and targeted review. Runtime ownership, receipts and
-review budget live in .verification/zero-identity/plan.json. One writer per file.
+Implementation and one remediation batch are complete locally in
+/Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
+codex/zerohub-project-feedback. Reviewed codehead1548a0e from baseline4fbcfe2.
+Two independent initial reviews, Astra/high targeted correction review and
+Sol/high cumulative integration review: no unresolved source blockers. Four
+launches, one fix batch, within original budget; receipts in
+.verification/zero-identity/plan.json and tracked docs/EVIDENCE.md.
 
-One App means web tokens can inherit selected-repository authority; owner chose
-this tradeoff after it was explained. Native device refresh can remain local,
-without a shipped/server App secret. Keep token families separate. Omit broad
-Administration: initial Pages setup may require GitHub settings then recheck.
-Provider creation/permissions, secrets, activation, push/merge/deploy and native
-publication need concrete owner approval after review. Earlier star-only App
-activation question is superseded; no live App/secret exists.
+Exact codehead:598extensiontests,597pass0fail1existing skip;148website tests,
+typecheck/finalbuild/rootcheck pass. Native UI unavailable while Mac locked;
+live App consent/install/create/private clone/refresh/revocation/upload/Pages/stars,
+physical Windows and Safari unverified. New recovery guide must publish before
+activation. Pinned App configuration remains honestly unconfigured.
 
-Worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, current branch
-codex/zerohub-project-feedback base4fbcfe2. PR102 remains draft: original147tests,
-typecheck/build/rootcheck and all4CI passed; new website148tests/rootcheck/recovery23 pass; full extension integration pending.
-Mac is locked: native CUA smoke unavailable; no live App or physical Windows test.
-Account-wide weekly56% remaining; storagehealthy~310GB; DeepSeekpaused through
-2026-12-31. Preserve dirty main funding work and ignored earlier evidence/profiles.
-Prior authorPR101 merged41ba316; publisher policy11c5451 and installer0.5.19 stay
-unchanged. Public projects DrawingPad/GroveGuard; SkyHopwithdrawn.
+NEXT: concrete owner approval for App registration/permissions and external
+publication/activation, then approved live acceptance. No new App/secret/GitHub
+write/push/merge/deploy/native release performed. PR102 remains the earlier draft
+at4fbcfe2; its fourCIchecks are baseline only. One App supersedes the old star-only
+activation proposal. Published installer0.5.19 and publisher policy11c5451 unchanged.
+Preserve dirty main funding work and ignored evidence/profiles. DeepSeek paused
+through2026-12-31; account-wide56% weekly remaining at start is not task cost.
