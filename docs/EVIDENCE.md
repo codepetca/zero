@@ -5628,3 +5628,19 @@ welcome suite:6passed; diff check passed. Independent Luna/medium source review
 of7ece3fb..c6bdf47 and callers is clean; one launch, no rework. Effective model,
 tokens and elapsed review time unavailable. Interactive dialog/released kits were
 not retested or rebuilt. This copy-only delta does not reopen prior auth reviews.
+
+
+## Reusable Zero icon assets — 2026-10-18
+
+Owner requested proper icon SVG/images and inverse colors. Source f36c276 adds
+three explicit-color SVGs under design/brand: purple transparent, purple on white,
+and white on purple. Geometry matches extension/media/zero.svg and purple matches
+shared #683bef. Equal8.33%edge spacing, square backgrounds for host masking.
+The existing installed Sharp and repository ZIP helper generate ignored1024px
+PNGs, a three-variant preview and a fixed seven-file SVG/PNG/guide archive.
+Coordinator inspected the rendered preview; verified dimensions, corner alpha/
+background, exact ring/slash pixels, ZIP integrity, root check and diffcheck.
+Independent Luna/medium review ofbe38800..f36c276 and dependencies is clean;
+one launch/no rework. Effective model, review seconds and tokens unknown.
+No clean-install/Windows export test or product deployment is claimed. Assets
+are ready for deliberate adoption; existing product icon consumers are unchanged.

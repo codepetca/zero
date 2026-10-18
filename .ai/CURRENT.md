@@ -43,3 +43,7 @@ fresh storage305.7GB healthy; no cleanup.
 Latest owner copy correction: c6bdf47 removes the signed-out welcome subtitle,
 keeping heading and Connect GitHub/Later. Six welcome tests and diffcheck pass;
 one Luna/medium independent review clean. No release or merge.
+
+Owner-requested reusable icon sources: f36c276 in design/brand, with three SVG
+colors/backgrounds and ignored1024px PNG/preview/ZIP exports. Render/pixels/ZIP/
+rootcheck verified; Luna/medium review clean. No product icon integration/deploy.
