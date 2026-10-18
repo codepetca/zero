@@ -9,7 +9,7 @@ function fixture({current, choices = [], remembered = new Map(), eligible = true
   let listener, next = current, failure = false, starts = 0, busy = false;
   const auth = createAuthentication({
     async getSession(provider, scopes, options) {
-      calls.push({provider,scopes,options});
+      assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);calls.push({provider,scopes,options});
       if (failure) throw new Error('PRIVATE_PROVIDER_DETAIL');
       return next;
     },
@@ -20,16 +20,16 @@ function fixture({current, choices = [], remembered = new Map(), eligible = true
     globalState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)},
     authentication:auth, connect:()=>auth.signIn(), startProject:async()=>{starts++;},eligible:async()=>eligible,isBusy:()=>busy
   });
-  return {auth,welcome,calls,messages,remembered,set(value){next=value;},fail(value=true){failure=value;},event(){listener({provider:{id:'github'}});},busy(value){busy=value;},get starts(){return starts;}};
+  return {auth,welcome,calls,messages,remembered,set(value){next=value;},fail(value=true){failure=value;},event(){listener({provider:{id:'zero-github'}});},busy(value){busy=value;},get starts(){return starts;}};
 }
-test('connected first launch uses silent repo lookup and offers the tutorial with the actual username',async()=>{
+test('connected first launch uses silent Zero App lookup and offers the tutorial with the actual username',async()=>{
   const f=fixture({current:session('learner'),choices:['Start tutorial']});await f.welcome.show();
   assert.match(f.messages[0].text,/connected as learner/);assert.deepEqual(f.messages[0].actions,[{modal:true,detail:'Welcome to Zero. Create your own tutorial repository to start learning.'},'Start tutorial','Later']);assert.equal(f.starts,1);
-  assert.deepEqual(f.calls,[{provider:'github',scopes:['repo'],options:{silent:true}}]);assert.equal(f.remembered.get(WELCOME_KEY),true);
+  assert.deepEqual(f.calls,[{provider:'zero-github',scopes:[],options:{silent:true}}]);assert.equal(f.remembered.get(WELCOME_KEY),true);
 });
 test('disconnected modal Later and Escape never create sessions, and profile state prevents repeat offers after session changes',async()=>{
   for(const choice of ['Later',undefined]) {
-    const f=fixture({choices:[choice]});await f.welcome.show();assert.match(f.messages[0].text,/Connect GitHub/);assert.equal(f.messages[0].actions[0].modal,true);assert.match(f.messages[0].actions[0].detail,/Later.*locally.*Zero: Get Started/);assert.deepEqual(f.messages[0].actions.slice(1),['Connect GitHub','Later']);assert.equal(f.calls.filter(call=>call.options.createIfNone).length,0);
+    const f=fixture({choices:[choice]});await f.welcome.show();assert.match(f.messages[0].text,/Connect GitHub/);assert.deepEqual(f.messages[0].actions[0],{modal:true});assert.deepEqual(f.messages[0].actions.slice(1),['Connect GitHub','Later']);assert.equal(f.calls.filter(call=>call.options.createIfNone).length,0);
     f.set(session('other'));f.event();await f.auth.refresh();await f.welcome.show();assert.equal(f.messages.length,1);
     const next=fixture({remembered:f.remembered,current:session('other')});await next.welcome.show();assert.equal(next.messages.length,0);assert.ok(next.calls.every(call=>call.options.silent));
   }

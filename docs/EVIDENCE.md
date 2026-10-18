@@ -5538,3 +5538,190 @@ merge, installer release, account change or game republishing. Existing playable
 links need rebuilding with the updated client/runtime. Physical iPhone/Safari,
 other engines and interactive Windows remain unverified. Computer use reported
 Mac locked; automated browser checks proceeded without bypassing it.
+
+## Maintained Flap Motion attribution — 2026-10-18
+
+Owner corrected the sample's displayed author to Codepet (`codepetca`). Website
+credits match lib-r1417021749-flap-motion and only source commitsa893e754 and
+c572ed625. Card/search use this presentation credit; the accepted publication
+record, contributor, repository/version/example links, coordinates, artifacts and
+policy stay intact. Different library IDs/kinds/source commits keep their existing
+GitHub attribution. The GitHub examples link opens two Java usage examples at the
+exact published revision; it is not a playable demo.
+
+Website122tests, typecheck and production build pass. The focused new check covers
+both credited sources, search, unchanged publication provenance and unrelated/
+future-source attribution. Final browser, independent review and exact-head
+CI/merge receipts are retained in .verification/flap-motion-attribution/ and linked
+from the delivery PR. This is a website presentation correction only.
+
+## Shared GitHub identity source — 2026-10-18
+
+Owner chose one public Codepet GitHub App for Zero development and ZeroHub.
+Implementation from baseline4fbcfe2 replaces broad built-in OAuth requests with
+Zero’s supported provider, local device-flow rotation, explicit installation and
+repository membership, guarded clone, create/connect/recovery and publishing
+capability checks. Pinned public configuration remains unconfigured. No new App,
+secret, GitHub write, push, deployment or native release was performed.
+
+Focused native checks passed: provider/storage/device22, repositories/clone26,
+auth/folders/project UI39, onboarding/lessons26, transport/welcome/workflow19,
+upload integration16, extension integration3 and project recovery23. These overlap;
+they are not a unique total. Website148tests, typecheck/production build and root
+configuration/syntax/command/link checks pass. Full native regression and two
+independent fixed-head reviews are pending at this source snapshot. Evidence and
+review budget: `.verification/zero-identity/plan.json` and adjacent logs.
+
+Native CUA smoke could not run because the Mac is locked. Real consent, selected
+installation, empty-account creation, private clone/upload, token renewal/revocation,
+Pages fallback and inline stars remain owner-approved live acceptance. Physical
+Windows, Safari and school/novice pilots remain untested. Prior PR102 CI covers
+only its earlier stars draft. See [the plan](ZERO-IDENTITY-PLAN.md) for activation
+permissions and the broader browser-token trust boundary chosen by the owner.
+
+Delegation used focused Sol/high implementation and Sol/medium regression workers
+with separate file ownership. Coordinator inspected contracts, integrated commands
+and added recovery checks. No ownership conflicts; initial regression failures
+were stale provider/browser-creation expectations and were migrated. Actual
+per-worker tokens/effective configuration and attributable cost are unknown;
+account-wide allowance is not task cost. No savings claim.
+
+Initial review at2833ba8 completed independently: Astra/high security/correctness
+and Sol/high architecture/compatibility read the full49-file diff and callers.
+Six accepted findings are batched: authenticate/cache App metadata; bind upload
+and branch operations to captured repository/installation IDs; numeric publication
+shortcuts; cancellable create/access/clone/disposal; clipboard-first device code
+with retained progress; explicit abandoned-lock diagnostics and closed-editor
+rename-only repair preserving credential state. The repair diagnostic is also
+written directly to Zero Output, since the authentication facade sanitizes provider
+errors. See [recovery guidance](ZERO-AUTH-RECOVERY.md).
+
+Initial full regression:576tests,575passed,0failed,1existing skip. Remediation
+focused checks include68upload/workflow/publication integration and66project/
+cancellation tests. Final full regression and targeted review remain pending here.
+No publication, live acceptance or security grant is implied by source review.
+
+Final source receipt: codehead1548a0e2dd4feecaf97509848a59eedd393746ae,
+cumulative baseline4fbcfe2. Astra/high targeted review read the full23-file fix
+delta and callers, clean. Sol/high cumulative integration reviewed the combined
+50-file change using its initial coverage plus correction delta, clean. Four
+reviewer launches total, one initial wave, one targeted wave, one integration
+wave and one fix batch; within the original limits. Per-turn elapsed/tokens and
+effective runtime model remain unknown; session wall time is in the ignored ledger.
+
+Exact final-code full suite:598tests,597passed,0failed,1existing skip,139.7seconds.
+Website148tests, typecheck and final production build pass. Root configuration,
+syntax, command/link checks and diff checks pass. An added Output-diagnostic test
+first used a constant fake clock and hung; only that owned test process was stopped,
+the fixture corrected, and the exact-head full suite passed afterward.
+
+The implementation is committed locally and unpushed. Current App configuration
+remains unconfigured. Registration/grants, live acceptance and publication still
+require concrete owner authority. The Mac remains locked, so native UI, real
+SecretStorage propagation and provider behavior are unverified; physical Windows
+and Safari remain untested. Later evidence-only documentation does not alter
+the reviewed code. No live App, credentials, repo write or deployment was created.
+
+Owner approval received2026-10-18 for registering Codepet Zero with the reviewed
+permission matrix and pushing the implementation to the draft PR. The registration
+page currently requires GitHub owner sign-in; the browser handoff is open. This
+approval does not by itself prove App creation, installation, live acceptance,
+production activation, merge or native release.
+
+Registration and scoped installation completed2026-10-18 in owner-authenticated
+Chrome with explicit authority. Public Appcodepet-zero5367740/client
+Iv23liWzC8OE2WN5f6qV belongs tocodepetca116690057; public API and actualverifyApp
+confirmed the exact seven permission entries. No private key/clientsecret was
+generated. Owner approved one private test repository (trusted public starter template);
+the test installation selects it alone, with exact IDs kept in ignored receipts. Registration
+and installed-repository screenshots are ignored under.verification/zero-identity.
+All five CI checks passed for drafthead474fe06. Public-ID pin/config-test/fixture
+and factual docs updates are being reviewed; no production activation or native
+release. User authorization/transport remains pending; empty-account selected
+installation needs at least one repository and remains an acceptance gap.
+
+
+## Registered App native acceptance — 2026-10-18
+
+Public-ID pin a11d982 passed the complete targeted Sol/high review and all five
+CI checks. Chrome completed the separately owner-confirmed device user grant;
+GitHub success and the actual supported Zero provider account were both observed.
+Guarded clone opened the sole selected private test repository in an isolated
+Mac development host. Connection restoration worked in the new host. Zero's
+Commit & push then uploaded only a small acceptance-test text file; GitHub
+confirmed its commit/message, and the local tree is clean. Private repository
+IDs, commit and screenshots remain in ignored .verification/zero-identity.
+
+Actual current VS Code uses vscode-userdata for local global storage, exposing a
+file-only guard bug before consent. Fix8ed733a accepts an authority-free absolute
+local user-data path, with the existing filesystem lock. Regression proves
+contention across file/user-data URIs; remote authorities/relative paths fail.
+26focused checks and full598tests(597pass/1existing skip), root check pass.
+Independent targeted Sol/high review is clean; six total reviewer launches,
+two fix batches, all source reviews within the original session budget. Website
+148tests/typecheck/build reused because its source is unchanged. New fix CI is
+running; PR102 remains draft. No production credentials or release/merge.
+
+Test host used a copy of the official installed Code with a distinct test bundle
+ID and short temporary profile; its first long profile exceeded macOS's socket
+path limit. No user editor/profile was changed. Fresh storage305.7GB healthy;
+no cleanup. Live App repo creation/empty-account onboarding, refresh/revocation,
+account drift, Pages/browser stars and physical Windows/Safari remain unproven.
+
+
+## GitHub welcome subtitle — 2026-10-18
+
+Owner requested removal of the explanatory subtitle below the local GitHub
+welcome prompt. Source c6bdf47 removes only the signed-out modal detail; title,
+Connect GitHub/Later, cancellation and authentication are preserved. Existing
+welcome suite:6passed; diff check passed. Independent Luna/medium source review
+of7ece3fb..c6bdf47 and callers is clean; one launch, no rework. Effective model,
+tokens and elapsed review time unavailable. Interactive dialog/released kits were
+not retested or rebuilt. This copy-only delta does not reopen prior auth reviews.
+
+
+## Reusable Zero icon assets — 2026-10-18
+
+Owner requested proper icon SVG/images and inverse colors. Source f36c276 adds
+three explicit-color SVGs under design/brand: purple transparent, purple on white,
+and white on purple. Geometry matches extension/media/zero.svg and purple matches
+shared #683bef. Equal8.33%edge spacing, square backgrounds for host masking.
+The existing installed Sharp and repository ZIP helper generate ignored1024px
+PNGs, a three-variant preview and a fixed seven-file SVG/PNG/guide archive.
+Coordinator inspected the rendered preview; verified dimensions, corner alpha/
+background, exact ring/slash pixels, ZIP integrity, root check and diffcheck.
+Independent Luna/medium review ofbe38800..f36c276 and dependencies is clean;
+one launch/no rework. Effective model, review seconds and tokens unknown.
+No clean-install/Windows export test or product deployment is claimed. Assets
+are ready for deliberate adoption; existing product icon consumers are unchanged.
+
+
+## Shared Zero branding rollout — 2026-10-18
+
+Owner selected softened slash corners and thicker lines. Source b01fe94 replaces
+ring/slash weight2 with2.4, adds0.6-unit slash corners and preserves #683bef.
+Three canonical SVGs drive web light/dark headers, favicon/touch/share images,
+playground, currentColor editor icon and future Mac/Windows installer assets.
+The public Codepet Zero GitHub App avatar was updated in authorized Chrome;
+GitHub confirmed the change and the public page was visually checked. GitHub
+places its41px image inside a larger platform-owned circle. Screenshots/exports
+remain ignored under .verification/zero-branding and design/brand/exports.
+
+151 website tests,13 design tests,37 native checks and2 Windows source checks
+pass; one existing PowerShell skip. Website typecheck/build,root check,diff check
+pass. Actual iconutil ICNS conversion and independent Sharp pixel comparisons
+passed. Local desktop light/dark and390px Hub/Docs/menu behavior were checked;
+favicon/touch/share metadata and the actual dark editor mark were observed.
+No physical Windows/Safari,actual Windows/vpk packaging or native release claimed.
+The local community catalog lacked server configuration, so full live catalog
+coverage is not implied. Released installer0.5.19 and publisher policy are preserved.
+
+Sol/medium worker delivered bounded native/editor changes; coordinator inspected
+and verified integration. Sol/high independent review of932fb33..b01fe94 inspected
+all28 changed files and callers, reused valid checks and independently checked the
+diff/clean tree:clean,zero actionable findings. One reviewer launch/initial wave,
+zero remediation batches. Requested configurations recorded; effective models,
+per-turn tokens and exact elapsed worker/reviewer time unavailable. No inference
+of cost savings from account-wide allowance. Latest weekly47% remaining and
+storage306.7GB healthy; no cleanup. Existing authority covers draft PR push only;
+merge,production deployment and native release remain separate gates.

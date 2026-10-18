@@ -1,6 +1,10 @@
 import contracts from '../../extension/src/sharing/contracts.js';
 
-export function selectReleases(catalog, {kind = 'library', search = '', id = '', version = ''} = {}) {
+/**
+ * @param {{releases: any[]}} catalog
+ * @param {{kind?: string, search?: string, id?: string, version?: string, attributions?: {id:string, sourceCommits:string[], author:string}[]}} [options]
+ */
+export function selectReleases(catalog, {kind = 'library', search = '', id = '', version = '', attributions = []} = {}) {
   if (!['library', 'game'].includes(kind)) throw new Error('Choose games or libraries.');
   if (!!id !== !!version) throw new Error('An exact release link needs both its ID and version.');
   if (version) contracts.validateVersion(version);
@@ -15,7 +19,7 @@ export function selectReleases(catalog, {kind = 'library', search = '', id = '',
     }
     releases = [...latest.values()];
   }
-  return releases.filter(release => !phrase || [release.title, release.description, release.id, release.contributor.login,
+  return releases.filter(release => !phrase || [release.title, release.description, release.id, release.contributor.login, releaseAuthor(release, attributions),
       ...(release.components || []).map(component => `${component.className} ${component.description}`)]
       .some(value => value.toLowerCase().includes(phrase)))
     .sort((a, b) => a.title.localeCompare(b.title) || a.id.localeCompare(b.id) || compareVersions(b.version, a.version));
@@ -81,4 +85,12 @@ export function releaseSummary(release, previews) {
     ? previews.find(preview => preview.id === release.id && preview.sourceCommit === release.source.commit)?.description
     : undefined;
   return projectSummary(description || release.description);
+}
+
+// Maintainer-authored credits are presentation only. Match immutable source so
+// student submissions and later unreviewed sources keep their GitHub attribution.
+export function releaseAuthor(release, attributions = []) {
+  const credit = release.kind === 'library' && attributions.find(item =>
+    item.id === release.id && item.sourceCommits.includes(release.source.commit));
+  return credit ? credit.author : release.contributor.login;
 }

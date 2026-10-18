@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,readdirSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,readdirSync,copyFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createHash,generateKeyPairSync} from 'node:crypto';
@@ -12,6 +12,8 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 function pe(embedded = Buffer.alloc(0)) { const bytes=Buffer.alloc(512); bytes.writeUInt16LE(0x5a4d); bytes.writeUInt32LE(0x80,0x3c); bytes.writeUInt32LE(0x00004550,0x80); return Buffer.concat([bytes,embedded]); }
 function fixture({enabled=false,packLog='Verified VelopackApp.Run() in Program.Main',toolVersion='1.2.161',tamperIndex=false,signature=false,extraDll=false,wrongPublisher=false,wrongThumbprint=false,signatureStatus='Valid',timestamped=true,tamperUpstream=false,extraPackagePe=false,rotateSigner=false}={}) {
   const root=mkdtempSync(path.join(tmpdir(),'zero-windows-package-')),work=path.join(root,'work'),output=path.join(root,'output'),kitFile=path.join(root,'kit.zip');
+  mkdirSync(path.join(root,'design/brand'),{recursive:true});
+  for (const name of ['zero-purple.svg','zero-purple-on-white.svg']) copyFileSync(new URL(`../../design/brand/${name}`,import.meta.url),path.join(root,'design/brand',name));
   mkdirSync(work);mkdirSync(path.join(root,'release'));writeFileSync(kitFile,'measured exact kit bytes');
   let publicKeyXml='';
   if(enabled) { const pair=generateKeyPairSync('rsa',{modulusLength:3072}); const jwk=pair.publicKey.export({format:'jwk'}); publicKeyXml=`<RSAKeyValue><Modulus>${Buffer.from(jwk.n,'base64url').toString('base64')}</Modulus><Exponent>${Buffer.from(jwk.e,'base64url').toString('base64')}</Exponent></RSAKeyValue>`; }
@@ -54,6 +56,10 @@ test('Windows development cross-package forces disabled updater, verifies hook, 
     assert.deepEqual(result.artifacts.map(asset=>asset.kind),['installer','update-package']);
     assert.equal(result.hookVerified,true);assert.equal(result.authenticodeSigned,false);assert.equal(result.updaterEnabled,false);assert.equal(result.nativeWindowsTested,false);
     assert.equal(JSON.parse(readFileSync(path.join(f.work,'windows-updater-build.json'))).enabled,false);
+    const icon = path.join(f.work,'Zero.ico');
+    assert.equal(pack.args[pack.args.indexOf('--icon')+1],icon);
+    assert.ok(f.calls.find(call=>call.args[0]==='publish').args.includes(`-p:ZeroIcon=${icon}`));
+    assert.equal(readFileSync(icon).readUInt16LE(2),1);
     assert.ok(pack.args.includes('[win]'));assert.equal(pack.args[pack.args.indexOf('--packId')+1],'Zero');assert.equal(pack.args[pack.args.indexOf('--mainExe')+1],'Zero.exe');
     assert.equal(pack.args[pack.args.indexOf('--runtime')+1],'win10.0.19041-x64');assert.ok(pack.args.includes('--noPortable'));assert.ok(!pack.args.includes('--skipVeloAppCheck'));assert.ok(!pack.args.includes('--signParams'));
     assert.equal(result.artifacts[0].sha256,hash(readFileSync(path.join(f.output,result.artifacts[0].filename))));

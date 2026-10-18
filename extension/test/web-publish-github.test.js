@@ -19,9 +19,16 @@ async function fixture(t,{installed=true,publisherOptions={},memoizeGit=false}={
   let run={id:42,head_sha:head,path:'.github/workflows/zero-web.yml',event:'workflow_dispatch',head_branch:'main',repository:{id:12,full_name:'student/game'},status:'completed',conclusion:'success'};
   let marker=head+'\n42\n',publicStatus=200,dispatchStatus=200,createStatus=201;
   let repo={id:12,full_name:'student/game',owner:{id:1,type:'User'},default_branch:'main',permissions:{push:true},private:false};
-  let release,asset,afterUpload=async()=>{},assetPatch={},loseCreationResponse=false,listError=false;const calls=[];const session={accountId:'1',label:'student',accessToken:'TEST_SECRET',scopes:['repo','workflow']};
+  let release,asset,afterUpload=async()=>{},assetPatch={},loseCreationResponse=false,listError=false;const calls=[];const session={accountId:'1',label:'student',accessToken:'TEST_SECRET',scopes:[]};
   const ticket={session};
   const authentication={capture:async()=>ticket,assertCurrent:async value=>{if(!current || value!==ticket)throw Error('Account changed');return session;},assertCurrentNow:value=>{if(!current || value!==ticket)throw Error('Account changed');return session;}};
+  let allowed=true,installationId=99,deniedPermission,afterAccess=async()=>{};
+  const accessCalls=[];
+  const repositories={access:async(url,{ticket:observed,permissions})=>{
+    await authentication.assertCurrent(observed);accessCalls.push({url,permissions});
+    if(!allowed || (deniedPermission && permissions[deniedPermission]))throw Error('Zero GitHub App repository access was removed');
+    await afterAccess();return {ticket:observed,repository:repo,installation:{id:installationId}};
+  }};
   const response=(value,status=200)=>new Response(status===204?null:JSON.stringify(value),{status,headers:{'content-type':'application/json'}});
   const fetch=async(url,options)=>{
     if(options.signal?.aborted)throw options.signal.reason;
@@ -49,8 +56,8 @@ async function fixture(t,{installed=true,publisherOptions={},memoizeGit=false}={
   const result={manifestPath:path.join(root,'.zero/web-export/manifest.json'),sitePath:site,sourceHash:'b'.repeat(64),profileHash:'c'.repeat(64)};await fs.writeFile(result.manifestPath,JSON.stringify({files:outputFiles}));
   const localBuild=async()=>result;let validationError;const validateExport=async()=>{if(validationError)throw validationError;const siteFiles=[];for(const file of outputFiles)siteFiles.push({path:file.path,bytes:await fs.readFile(path.join(site,file.path))});if(siteFiles.some(file=>require('../src/web-publish-bundle').hash(file.bytes)!==outputFiles.find(output=>output.path===file.path).sha256))throw Error('browser output changed');return {...result,manifest:{files:outputFiles},siteFiles};};
   const gitReads=new Map();const guardedGit=memoizeGit?((cwd,args)=>{const key=JSON.stringify([cwd,args]);if(!gitReads.has(key))gitReads.set(key,core.git(cwd,args));return gitReads.get(key);}):core.git;
-  const publisher=createGitHubPagesPublisher({git:guardedGit,authentication,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
-  return {root,git,head,files,publisher,calls,authentication,result,set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
+  const publisher=createGitHubPagesPublisher({git:guardedGit,authentication,repositories,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
+  return {root,git,head,files,publisher,calls,authentication,result,accessCalls,set afterAccess(v){afterAccess=v;},set allowed(v){allowed=v;},set installationId(v){installationId=v;},set deniedPermission(v){deniedPermission=v;},set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
@@ -98,7 +105,7 @@ test('unknown run IDs, unrelated runs, old public version and failed deployment 
 });
 test('Pages creation denial provides one guided action and never changes repository visibility',async t=>{
   const h=await fixture(t);h.pages=null;h.createStatus=403;const result=await h.publisher.publish(await h.publisher.review(h.root));assert.equal(result.status,'action-required');
-  const post=h.calls.find(c=>c.options.method==='POST');assert.deepEqual(JSON.parse(post.options.body),{build_type:'workflow'});
+  assert.match(result.action.url,/settings\/pages$/);assert.ok(h.calls.every(c=>c.options.method==='GET'));assert.equal(h.repo.private,false);
 });
 test('generated workflow pins source, separates build and deployment privileges and leaves generated site out of Git',async()=>{
   assert.match(pagesPublishWorkflow,/ref: \$\{\{ inputs.source_sha \}\}/);assert.match(pagesPublishWorkflow,/inputs.source_sha == github.sha/);assert.match(pagesPublishWorkflow,/ZERO_BUNDLE_SHA256/);assert.doesNotMatch(pagesPublishWorkflow,/setup-java|mvn|exportForWeb|Build the browser/);assert.match(pagesPublishWorkflow,/if: always\(\)/);
@@ -145,7 +152,7 @@ test('simulation enabled during the final asynchronous guard blocks dispatch and
   const setup=await fixture(t,{installed:false}),setupReview=await setup.publisher.review(setup.root);
   const check=setup.authentication.assertCurrent;let checks=0;
   setup.authentication.assertCurrent=async ticket=>{const value=await check(ticket);if(++checks===2)setup.simulation=true;return value;};
-  await assert.rejects(setup.publisher.setup(setupReview),/Live publishing was disabled/);
+  await assert.rejects(setup.publisher.setup(setupReview),/Live publishing (?:was|is) disabled/);
   for(const name of setup.files.keys())await assert.rejects(fs.stat(path.join(setup.root,name)),{code:'ENOENT'});
 });
 test('repository changes return a typed stale-run error without requesting the old destination',async t=>{
@@ -187,7 +194,7 @@ test('simulation enabled during Pages response validation blocks public readines
 
 
 test('local validation failure never creates Pages, stages bytes or dispatches a workflow',async t=>{
-  const h=await fixture(t);h.pages=null;const reviewed=await h.publisher.review(h.root);h.validationError=Error('local source no longer matches uploaded HEAD');
+  const h=await fixture(t);const reviewed=await h.publisher.review(h.root);h.validationError=Error('local source no longer matches uploaded HEAD');
   await assert.rejects(h.publisher.publish(reviewed),/uploaded HEAD/);assert.ok(h.calls.every(call=>call.options.method==='GET'));
 });
 test('ignored output and source drift after upload remove temporary draft without dispatching',async t=>{
@@ -253,15 +260,13 @@ test('approved Pages destination persists through restart and rejects changed de
   assert.equal(h.calls.filter(call=>!call.url.startsWith('https://api.github.com/')).length,before,'An unapproved domain is never queried or returned live');
   delete saved.destination;await assert.rejects(h.publisher.restore(h.root,saved),/public destination/);
 });
-test('first Pages creation accepts only the reviewed default repository URL without a custom domain',async t=>{
+test('initial Pages setup uses settings without requesting Administration or building/staging bytes',async t=>{
   const h=await fixture(t,{memoizeGit:true});h.pages=null;const reviewed=await h.publisher.review(h.root);assert.equal(reviewed.needsPages,true);
-  h.afterUpload=async()=>{h.pages={build_type:'workflow',public:true,html_url:'https://play.example.org/',cname:'play.example.org'};};
-  await assert.rejects(h.publisher.publish(reviewed),/Pages settings changed/);
-  assert.ok(h.calls.some(call=>call.url.endsWith('/pages')&&call.options.method==='POST'));
-  assert.ok(!h.calls.some(call=>call.url.endsWith('/dispatches')));
-  h.pages=null;h.afterUpload=async()=>{};
-  const pending=await h.publisher.publish(await h.publisher.review(h.root));
-  assert.equal(pending.status,'pending');assert.equal(pending.resume.destination.url,'https://student.github.io/game/');assert.equal(pending.resume.destination.cname,null);
+  h.validationError=Error('must not build');
+  const result=await h.publisher.publish(reviewed);assert.equal(result.status,'action-required');assert.match(result.action.message,/Enable GitHub Actions/);
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));assert.ok(h.accessCalls.every(call=>!call.permissions.administration));
+  h.pages={build_type:'workflow',public:true,html_url:'https://student.github.io/game/'};h.validationError=undefined;
+  assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending');
 });
 test('abort during the release guard sends no create request and clears its preflight stage receipt',async t=>{
   const h=await fixture(t,{memoizeGit:true}),controller=new AbortController(),stages=[];
@@ -271,4 +276,29 @@ test('abort during the release guard sends no create request and clears its pref
   assert.equal(h.calls.filter(call=>call.url.endsWith('/releases')&&call.options.method==='POST').length,0);
   assert.equal(stages.at(-1),undefined);assert.ok(!h.calls.some(call=>call.url.includes('/releases?')),'No uncertain-request recovery is recorded for a request never sent');
   assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending','Cancellation does not leave a nonexistent draft blocking retry');
+});
+
+test('App repository access, capability removal and installation replacement invalidate reviewed mutations',async t=>{
+  for(const change of ['allowed','installationId','deniedPermission']) {
+    const h=await fixture(t,{memoizeGit:true}),reviewed=await h.publisher.review(h.root);
+    h[change]=change==='allowed'?false:change==='installationId'?100:'contents';
+    const before=h.calls.length;await assert.rejects(h.publisher.publish(reviewed),/access was removed|installation changed/);
+    assert.ok(h.calls.slice(before).every(call=>call.options.method==='GET'));
+  }
+});
+test('App workflow capability is checked before writing local setup',async t=>{
+  const h=await fixture(t,{installed:false}),reviewed=await h.publisher.review(h.root);h.deniedPermission='workflows';
+  await assert.rejects(h.publisher.setup(reviewed),/access was removed/);
+  for(const name of h.files.keys())await assert.rejects(fs.stat(path.join(h.root,name)),{code:'ENOENT'});
+});
+test('saved run cannot move to a replacement App installation',async t=>{
+  const h=await fixture(t,{memoizeGit:true}),pending=await h.publisher.publish(await h.publisher.review(h.root));
+  h.installationId=100;await assert.rejects(h.publisher.restore(h.root,JSON.parse(JSON.stringify(pending.resume))),/installation changed/);
+});
+
+test('local source changing while App access awaits blocks staging before any write request',async t=>{
+  const h=await fixture(t),reviewed=await h.publisher.review(h.root);let armed=false;
+  h.afterAccess=async()=>{if(armed){armed=false;await fs.writeFile(path.join(h.root,'Changed.java'),'changed');}};
+  await assert.rejects(h.publisher.publish(reviewed,{onStaging:async value=>{if(value)armed=true;}}),/files changed/);
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
 });

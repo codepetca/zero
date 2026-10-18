@@ -19,7 +19,9 @@ registry commits do not trigger website builds. Keep that file in registry backu
 Configure a dedicated publisher environment and selected public Blob store. Keep
 `ZERO_BLOB_TOKEN` private. GitHub's workflow token supplies registry write and
 source read, with checkout credentials disabled. No candidate Java receives any
-of these credentials. Do not add a website write token or OAuth application.
+of these credentials. Never add a website publisher/registry write token.
+The optional [ZeroHub star connection](ZEROHUB-FEEDBACK.md) uses a separate
+GitHub App with only user Starring permission; it has no publication authority.
 
 The reviewed configuration has these fields:
 

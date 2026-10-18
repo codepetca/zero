@@ -28,6 +28,7 @@ namespace ZeroSetup
         internal MainForm(string dataRoot, LauncherRequest initial)
         {
             Text = "Zero";
+            Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             ClientSize = new Size(440, 190);
             MinimumSize = new Size(400, 220);
             StartPosition = FormStartPosition.CenterScreen;

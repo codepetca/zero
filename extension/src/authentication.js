@@ -1,7 +1,7 @@
 'use strict';
 
-// VS Code owns the session and its storage. Zero only keeps an in-memory copy.
-const scopes = Object.freeze(['repo']);
+// Zero’s registered GitHub App provider owns secure storage; this façade holds only a guarded snapshot.
+const scopes = Object.freeze([]);
 const changedMessage = 'Your GitHub account or sign-in changed. Sign in and review the upload again. A local commit may already be saved.';
 function snapshot(session) {
   return session && Object.freeze({id: session.id, accountId: session.account.id, label: session.account.label, accessToken: session.accessToken, scopes: Object.freeze([...(session.scopes || [])])});
@@ -9,7 +9,7 @@ function snapshot(session) {
 function same(a, b) {
   return a?.id === b?.id && a?.accountId === b?.accountId && a?.accessToken === b?.accessToken && (a?.scopes || []).join('\0') === (b?.scopes || []).join('\0');
 }
-function createAuthentication(api, onChange = () => {}, requestedScopes = scopes, preferredAccount) {
+function createAuthentication(api, onChange = () => {}, requestedScopes = scopes, preferredAccount, providerId = 'zero-github') {
   const sessionScopes = Object.freeze([...requestedScopes]);
   // Supported native account hint; callers still enforce the captured account.
   const account = preferredAccount && Object.freeze({id:preferredAccount.id,label:preferredAccount.label});
@@ -19,7 +19,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
     const next = queue.then(async () => {
       if (disposed) return;
       let session;
-      try { session = snapshot(await api.getSession('github', sessionScopes, account ? {...options,account} : options)); unavailable = false; }
+      try { session = snapshot(await api.getSession(providerId, sessionScopes, account ? {...options,account} : options)); unavailable = false; }
       catch { unavailable = true; }
       if (disposed) return;
       if (!same(current, session)) revision++;
@@ -35,7 +35,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
     return current;
   }
   const subscription = api.onDidChangeSessions(event => {
-    if (event.provider.id !== 'github' || disposed) return;
+    if (event.provider.id !== providerId || disposed) return;
     // Invalidate a pending review immediately, before asynchronous refresh.
     revision++; current = undefined; onChange();
     void refresh();
@@ -48,6 +48,8 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
     },
     get status() { return current ? `Signed in as ${current.label}` : unavailable ? 'GitHub sign-in unavailable. Try Sign in to GitHub; local running still works.' : 'Not signed in'; },
     get signedIn() { return Boolean(current); },
+    get sessionId() { return current?.id; },
+    get accountId() { return current?.accountId; },
     get accountLabel() { return current?.label; },
     async capture() {
       await refresh();

@@ -5,14 +5,15 @@ function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:tru
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,uploaded=0,sha='a'.repeat(40);
   const messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
-  const session={id:'native',account:{id:'1',label:'student'},accessToken:'TEST',scopes:['repo','workflow']};
+  const session={id:'native',account:{id:'1',label:'student'},accessToken:'TEST',scopes:[]};
   const vscode={workspace:{isTrusted:true},authentication:{getSession:async(...args)=>{authCalls.push(args);return session;},onDidChangeSessions:()=>({dispose(){}})},window:{showInformationMessage:async(...args)=>{messages.push(args);return choices.shift();}},env:{clipboard:{writeText:async url=>copied.push(url)},openExternal:async uri=>{opened.push(uri);return true;}},Uri:{parse:url=>url}};
-  const auth={capture:async()=>({session:{accountId:'1'}})};
-  const review=()=>({status:'review',setup,repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha,account:'student'});
+  const auth={capture:async()=>({session:{accountId:'1'}}),assertCurrent:async()=>{}};
+  const repositories={access:async(url,options)=>{authCalls.push({url,...options});}};
+  const review=()=>({status:'review',setup,repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha,account:'1'});
   const calls=[];
   const publisher={review:async()=>{calls.push('review');reviewed++;return review();},setup:async()=>{calls.push('setup');return {status:'upload-required',message:'Upload setup'};},publish:async()=>{calls.push('publish');published++;return {status:'pending',resume:{runId:42}};},check:async()=>{checks++;return {status:'live',url:'https://student.github.io/game/',sha,resume:{runId:42,sha,repository:'https://github.com/student/game'}};}};
   publisher.verifyLink=async()=>publisher.check();
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async()=>{assert.equal(busy,false);uploaded++;setup=false;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async()=>{assert.equal(busy,false);uploaded++;setup=false;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set active(v){active=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -27,8 +28,8 @@ test('publish completion reports in sidebar and its verified copy command remain
   assert.equal(warning[0],'Publish this app publicly?');
   assert.equal(warning[1].detail,'Your app and included assets will be public.\nhttps://student.github.io/game/');
 });
-test('first setup warns once, authorizes workflows, uploads and revalidates before publishing',async t=>{
-  const h=fixture(t);h.setup=true;h.choices.push('Publish app');const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(h.uploaded,1);assert.deepEqual(h.calls,['review','review','setup','review','publish']);assert.ok(h.authCalls.every(args=>args[0]==='github' && args[1].join() ==='repo,workflow' && args[2].silent));assert.equal(h.messages.filter(m=>m[1]?.modal).length,1);
+test('first setup warns once, checks App workflow access, uploads and revalidates before publishing',async t=>{
+  const h=fixture(t);h.setup=true;h.choices.push('Publish app');const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(h.uploaded,1);assert.deepEqual(h.calls,['review','review','setup','review','publish']);assert.deepEqual(h.authCalls.map(call=>call.permissions),[{contents:'write',workflows:'write'}]);assert.equal(h.messages.filter(m=>m[1]?.modal).length,1);
 });
 test('cancelled consent and project drift never publish or expose a URL',async t=>{
   const h=fixture(t);await h.api.publish();assert.equal(h.published,0);assert.deepEqual(h.authCalls,[]);
@@ -128,7 +129,7 @@ test('unresolved predispatch staging survives errors and is cleaned before a new
 test('dispatch tracking persists before publish returns, so subsequent errors cannot start a duplicate run',async t=>{
   const h=fixture(t),value={runId:42,sha:'a'.repeat(40),repository:'https://github.com/student/game'};
   h.choices.push('Publish app');let count=0;h.publisher.publish=async(review,options)=>{count++;await options.onStaging({staging:{tag:'temporary'}});await options.onPending(value);throw Error('editor interrupted');};
-  await assert.rejects(h.api.publish(),/interrupted/);assert.deepEqual(h.stored.get('zero.webPublish.pending'),{root:'/student',value,account:'student'});assert.equal(h.stored.has('zero.webPublish.staging'),false);
+  await assert.rejects(h.api.publish(),/interrupted/);assert.deepEqual(h.stored.get('zero.webPublish.pending'),{root:'/student',value,account:'1'});assert.equal(h.stored.has('zero.webPublish.staging'),false);
   h.publisher.restore=async(root,saved)=>{assert.deepEqual(saved,value);return {status:'live',resume:value,url:'https://student.github.io/game/',sha:value.sha};};
   await h.api.publish();assert.equal(count,1);assert.equal(h.stored.has('zero.webPublish.pending'),false);
 });
@@ -176,12 +177,12 @@ test('setup publication is pinned to its successfully uploaded commit',async t=>
 test('a pending publish retains its approved account across restart and repeat publication',async t=>{
   const h=fixture(t);h.choices.push('Publish app');const ready=h.publisher.check;
   h.publisher.check=async value=>({status:'pending',resume:value});await h.api.publish();
-  assert.equal(h.stored.get('zero.webPublish.pending').account,'student');
+  assert.equal(h.stored.get('zero.webPublish.pending').account,'1');
   const warnings=h.messages.filter(message=>message[1]?.modal).length;
   h.publisher.check=ready;
   const restarted=createWebPublishCommands(h.vscode,{project:async()=>'/student',workspaceState:h.workspaceState,isSimulation:()=>false,publisherFactory:()=>h.publisher,pollIntervalMs:0});
   t.after(()=>restarted.disposables.forEach(d=>d.dispose()));
-  await restarted.publish();assert.equal(h.stored.get('zero.webPublish.lastLive').account,'student');
+  await restarted.publish();assert.equal(h.stored.get('zero.webPublish.lastLive').account,'1');
   await restarted.publish();assert.equal(h.published,2);
   assert.equal(h.messages.filter(message=>message[1]?.modal).length,warnings);
 });
@@ -198,5 +199,5 @@ test('first destination consent survives a cancelled setup upload and later rest
   const restarted=createWebPublishCommands(h.vscode,{project:async()=>'/student',authentication:{capture:async()=>({session:{accountId:'1'}})},workspaceState:h.workspaceState,isSimulation:()=>false,publisherFactory:()=>h.publisher,pollIntervalMs:0,maxChecks:2});
   t.after(()=>restarted.disposables.forEach(d=>d.dispose()));
   await restarted.publish();assert.equal(h.published,1);assert.equal(h.messages.filter(m=>m[1]?.modal).length,1);
-  assert.ok(h.authCalls.every(args=>args[2].account.id==='1'));
+  assert.ok(h.authCalls.every(call=>call.ticket.session.accountId==='1'));
 });

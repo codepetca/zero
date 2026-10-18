@@ -13,11 +13,17 @@ Download choices show the Windows ZIP alongside Mac. The independently published
 0.5.10 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
 continues to be an ordinary editable Java project.
 
+The GitHub connection and project commands described below are local, unreleased
+source. The Codepet Zero GitHub App is registered under `codepetca`, with its
+public IDs pinned in source. Live acceptance, production activation and an
+authorized native release remain pending. Published kits keep their
+bundled sign-in and project instructions. See [the identity plan](ZERO-IDENTITY-PLAN.md).
+
 ## Before tutorial lesson 0
 
 Complete [GitHub account and privacy setup](GETTING-STARTED.md#before-lesson-0-github-and-privacy)
 before the first tutorial: student-owned verified account, Git 2.31+, school
-GitHub/VS Code sign-in and compiler-download access, agreed repository visibility
+GitHub device sign-in and compiler-download access, agreed repository visibility
 and teacher collaborator access. Keep tutorial source Private unless teacher/school
 policy says otherwise. Configure teacher-approved per-repository commit identity;
 copy the exact GitHub `noreply` email when using email privacy. Publishing remains
@@ -27,23 +33,38 @@ No paid plan or public source is required for tutorial work.
 The local starter smoke check can run before account setup. After cloning a
 tutorial repository and caching compiler dependencies, Run works offline without
 an active GitHub session; repository uploads require internet/sign-in. These are
-student/teacher setup steps, not automatic account creation or changes by Zero.
+student/teacher setup steps. GitHub account creation stays on GitHub; Zero's
+explicit project commands create repositories only after collecting the choices below.
 
 ## Open your project
 
-While signed out, Zero's Git area shows only **Sign in**; local Run and Files
-remain available. Sign in, then choose **Project → Clone from GitHub…** for your
-own template-created repository. Paste its HTTPS URL in **Clone from GitHub**.
-The **Clone location** folder chooser starts at `~/Zero Projects`; keep it or
-choose another folder outside any Git repository, then choose **Clone here**.
-Newer VS Code versions open the clone in a new window automatically. On the
-VS Code 1.95 fallback, choose **Open in New Window** if Git asks.
+After App activation, choose **Sign in** in Zero and enter the displayed device
+code on GitHub using your personal account. GitHub handles consent. Install the
+Codepet App with selected repositories; repositories Zero creates become
+accessible automatically. Zero stores expiring credentials in VS Code
+SecretStorage. Sign out disconnects only Zero on this computer. While signed
+out, Zero's Git area shows only **Sign in**; local Run and Files remain available.
+
+Choose **Start tutorial** and its scaffold, or **Project → New project…** for
+original work. Enter a repository name, choose Private/Public according to your
+teacher's instructions and choose a parent folder before creation. Zero creates
+your repository, verifies access, clones and opens the project in a new window.
+The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
+another folder outside any Git repository, then choose **Clone here**.
+For an existing repository, choose **Project → Clone from GitHub…**, paste its
+HTTPS URL and ensure it is available to Zero's App. A failed or uncertain creation
+keeps its recovery link and offers **Project → Resume created project…**; a failed
+clone keeps its partial folder. Check those before retrying or creating another repository.
 
 For an existing cloned Zero folder, choose **Project → Open local project…**;
-it opens that valid project in a new window without cloning again. A local
-project without a GitHub origin offers **Project → Connect to GitHub…**. That
-connects your own repository URL; it does not push. Connected projects show
+it opens that valid project in a new window without cloning again. An original
+local project without a GitHub origin offers **Project → Create a repository…**
+to create and connect an empty remote after choosing its name and visibility.
+**Project → Connect to GitHub…** connects an existing repository URL locally;
+it does not push or prove remote access. Connected projects show
 owner/repository and retain branch actions, with **Publish app** in the menu.
+Zero's own clone/push/publish commands use its guarded connection. General Source
+Control and terminal network commands do not inherit that connection automatically.
 
 ## Native setup
 
@@ -71,8 +92,10 @@ downloads and platform limits.
 5. In Zero, use Setup help to check project tools and the current profile.
    Choose Run first app and confirm the greeting in the browser preview for this
    candidate (older kits retain their bundled native-run instructions).
-6. Complete the account/privacy preflight above before lesson 0. Create your own
-   repository from the verified Greeting template, clone it and open that root.
+6. Complete the account/privacy preflight above before lesson 0. In the unreleased
+   flow after activation, Start tutorial collects the repository name, visibility and location
+   before creating and cloning the verified Greeting template into your own account.
+   Earlier published kits use their bundled create-on-GitHub/clone instructions.
    Submit repository links in Pika separately when assigned.
 
 ## Automation boundaries
@@ -118,8 +141,18 @@ without an active GitHub session; uploads require sign-in and internet access.
 GitHub actions default to live. Check your work before choosing an action;
 entering a branch name or commit message proceeds directly, and Merge to main
 starts when clicked. First Publish approves its public destination once; later
-explicit Publish actions update that site. Setup itself does not create accounts or
-repositories, upload, publish or submit anything in Pika.
+explicit Publish actions update that site. The App omits Administration permission.
+For first-time Pages setup, enable GitHub Actions as the Pages source in GitHub
+settings, then return to Publish app and recheck. Keep your repository visibility.
+Setup Help and installer checks do not create accounts or repositories, upload,
+publish or submit anything in Pika; the separate project commands above create
+repositories only when explicitly chosen.
+
+Optional ZeroHub browser sign-in uses the same Codepet App and numeric GitHub
+identity, with a separate credential family. Its user token can carry the App's
+installed repository permissions as well as starring; it is not a star-only
+credential. Browser sessions currently require reconnection after eight hours.
+Desktop sign-in does not pair the browser or transfer credentials to it.
 
 ## Verification contract
 
@@ -136,6 +169,9 @@ manager availability, proxies/school policy and novice usability need separate
 verification. Retained Linux wrappers and universal Mac artifacts are legacy
 technical capabilities, not supported MVP setup paths. No unattended installer or
 fully automated school enrollment is claimed.
+Earlier native sign-in evidence does not verify the new App flow. Live selected
+installation, automatic access to created repositories, private clone, refresh,
+revocation, browser identity and Windows acceptance remain activation checks.
 
 Primary references: [VS Code CLI](https://code.visualstudio.com/docs/configure/command-line),
 [VS Code built-in commands](https://code.visualstudio.com/api/references/commands),

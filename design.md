@@ -8,7 +8,7 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
-Owner decisions consolidated on 2026-10-16. These are the current rules and
+Owner decisions consolidated through 2026-10-18. These are the current rules and
 supersede conflicting wording in the older dated notes below. Preserve them
 when adding features; a new feature does not reset the agreed interaction style.
 
@@ -19,12 +19,15 @@ when adding features; a new feature does not reset the agreed interaction style.
   dropdown and branch, while keeping local Run and files available. When signed
   in, show the clickable username and **Project** dropdown, or the open folder
   name / connected **owner/repository**. Account actions use native VS Code
-  controls. The menu offers **Clone from GitHub…** and **Open local project…**;
-  an eligible local project can **Connect to GitHub…**. Connected projects retain
+  controls through Zero's supported GitHub App provider. The menu offers **New
+  project…**, **Clone from GitHub…** and **Open local project…**; an eligible
+  original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain
   branch actions and **Publish app** in the menu, with **Commit & push** and
   **Merge to main** as direct controls. Local-practice sharing stays blocked.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose
-  another parent. Native Git owns transport, authentication and existing clones.
+  another parent. Zero's explicit clone commands use its guarded GitHub App
+  transport and a fresh destination. General Source Control and terminal network
+  commands do not automatically share Zero's authentication.
   Open local project reuses a selected Zero folder in a new window. Sign-out
   preserves local folders, Git history and the open project.
 - Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
@@ -55,6 +58,44 @@ These are student-product interaction decisions. They do not authorize agent
 pushes, merges to the integration branch, public publication, releases or account
 changes. Ordinary Java, explicit object updates, student-owned repositories and
 separate Pika submission remain the product baseline.
+
+## Shared GitHub identity — owner decision, 2026-10-18
+
+The local, unreleased source uses one public Codepet-owned GitHub App for native
+development and optional ZeroHub stars. Codepet Zero is registered under
+`codepetca`, and the public App IDs are pinned in source. Live acceptance,
+production activation and an authorized native release remain pending. Published
+kits keep their original behavior. This section supersedes the older VS Code
+GitHub-provider and browser-only repository-creation decisions below; those dated
+entries remain historical design records. See [the identity plan](docs/ZERO-IDENTITY-PLAN.md).
+
+Use GitHub device sign-in through Zero's supported `zero-github` provider and
+native editor controls. Store expiring credentials in VS Code SecretStorage;
+no password or token-entry form. Show username as the account label and bind
+remote actions to its numeric GitHub ID. Sign out disconnects only Zero on this
+computer, preserves local work and leaves other extensions' accounts alone.
+Keep local Run/files available offline after initial build setup.
+
+Recommend selected repositories when installing the App. Repositories the App
+creates gain access automatically; never silently select all repositories.
+Start tutorial chooses its verified scaffold, then collects repository name,
+explicit visibility and location before creating, verifying, cloning and opening.
+New project uses the original starter through the same flow. Create a repository
+for an existing original local project collects name/visibility, creates an empty
+remote and connects without pushing. Preserve recovery links and partial folders
+after uncertain creation or clone failure; do not silently retry creation.
+
+The same App serves optional browser sign-in, with separate browser/editor
+credential families and no automatic pairing or token transfer. An ordinary
+browser user token can carry the installed repository permissions as well as
+starring. Do not describe it as star-only or imply that desktop sign-in creates
+a browser session. Browsing/learning/playing stay public; the browser currently
+requires reconnection after eight hours.
+
+The App omits Administration permission. First-time Pages setup can require
+enabling GitHub Actions as the Pages source in GitHub settings, then rechecking
+Publish app. Preserve teacher-approved repository visibility and the existing
+single public-destination warning.
 
 ## Tutorial tab and browser actions — accepted 2026-10-16
 
@@ -110,6 +151,14 @@ signing and physical Windows verification remain deferred.
 
 ## Shared baseline
 
+Reusable explicit-color SVGs and PNG export instructions are in
+[Zero icon assets](design/brand/README.md). Owner-selected2026-10-18: softened
+slash corners and20%thicker circle/slash (2.4-unit stroke,0.6-unit slash corner
+radius on the24-unit canvas). Use the purple transparent mark on light web
+surfaces and white-on-purple inverse on dark surfaces and browser/share icons.
+Derive theme-aware editor and native raster geometry from these shared assets;
+keep action icons distinct from branding.
+
 Use the existing Zero brand assets. Preserve the restrained white/purple
 identity and `#683bef` accent. [Shared tokens](design/tokens.json) describe the
 approved palette, typography, spacing and control treatment; adapters translate
@@ -137,7 +186,8 @@ those roles to each surface. The approved dark companion applies to Home, Learn 
 
 Home uses the shared app header above **Learn Java**, **Starting from zero.**
 and two direct buttons: **Download for Mac Silicon** and **Download for Windows (ZIP)**. GitHub connection is handled
-by the downloaded app's native welcome, using VS Code sessions and consent.
+by the downloaded app's native welcome, using Zero's GitHub App connection and
+GitHub's device-code/consent flow after activation.
 It uses the centered full-viewport layout and shared appearance toggle. Tutorials opens
 lesson 0 directly with the complete lesson sidebar and a reading pane. The owner
 removed the overview landing on 2026-10-13. The separate Download page offers

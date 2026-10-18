@@ -1,33 +1,36 @@
-# Automatic browser game fit — local acceptance, 2026-10-18
+# Browser mobile delivery — 2026-10-18
 
-Owner requested planning and orchestration of shared automatic phone sizing and
-logical touch mapping. Implementation is complete locally on
-`codex/browser-mobile-scaling` in the student-friction worktree, based on
-main `2a55f789`. Reviewed implementation head is
-`c49b32fbc77d10921d8ba2292a1d41c4f72fe821`.
+Worktree: /Users/stew/.codex/worktrees/student-friction/zero.
+Branch codex/browser-mobile-scaling. Preserve unrelated dirty primary checkout.
+Owner authorized PR, merge, Mac release and Grove Guard rebuild/republish after
+local acceptance. Version0.5.20/build20 remains unused; published0.5.19 and
+standalone kit0.5.17 remain immutable until verified replacements are public.
 
-Browser GameApp views fit both axes, preserve aspect ratio and Java canvas
-coordinates, center without upscaling, and include padding/ordinary controls.
-Primary touch maps to mouse input; extra contacts, cancellation, focus changes
-and resize have regression coverage. Ordinary App/native helpers are unchanged.
-Students still choose readable text, touch targets and keyboard alternatives.
+Reviewed browser implementation c49b32f fits complete logical GameApp content to
+both viewport axes without changing student Java/canvas dimensions. Primary touch
+maps correctly; ordinary App/native helpers are unchanged. Six GWT fixtures,
+Chrome desktop56/56 and phone-sized136/136 checks pass. Unchanged Grove Guard
+passes9 real-touch checks with14source/resource hashes preserved. Independent
+Sol/high initial, two targeted and final integration reviews are clean. Four
+implementation correction batches used; preserve that exhausted fix budget.
 
-Acceptance: check passes; web tests157/157 and current adapter8/8; six real
-WebFX/GWT fixtures; Chrome desktop56/56 and phone-sized136/136 assertions.
-Unchanged Grove Guard passes real touch placement/start/pause/restart at390x844
-and740x320, with14source/resource hashes preserved. Initial Sol/high review,
-two targeted input reviews and final viewport integration review are clear.
-Four correction batches used; no further review/fix loop is authorized by that
-budget. Any new blocker needs the documented human checkpoint.
+Integrating main f719d18 (merged PR102 shared GitHub identity/branding and PR101
+sample attribution). No browser exporter source overlaps. Preserve reviewed App
+identity, selected-repository boundaries and safe auth recovery guide. No new
+credentials/permissions or browser sign-in activation are part of this release.
+Registration and private clone/upload passed in prior isolated native acceptance;
+first-account/create/refresh/revocation/account drift and browser stars remain
+unverified. Browser stars remain disabled without server credentials.
 
-No push, PR, merge, new installer or game publication was performed. Next delivery
-needs owner-authorized PR/CI/merge, then an updated client and selected game
-rebuild/republish. Physical phones, Safari/other engines and interactive Windows
-are unverified. Native computer use reported a locked Mac; no lock bypass.
+Next: bounded main-integration review/checks, source PR/CI/merge, signed/notarized
+Mac20 candidate and measured release/metadata delivery, then supported armorup
+Zero UI rebuild/publication of existing Grove Guard. Computer use reports locked
+Mac; manual unlock requested, no bypass. Physical iPhone/Safari and interactive
+Windows remain unverified. Students still choose readable text/touch targets and
+keyboard alternatives. Existing browser exports need rebuild/republish.
 
-Details: docs/EVIDENCE.md and ignored
-`.verification/mobile-canvas/{plan.json,receipt.json}`. Preserve source snapshots,
-logs, screenshots, caches, profiles, registry backups and unrelated worktrees.
-Previous Flap Motion acceptance remains recorded in EVIDENCE; operator policy and
-published0.5.19 bytes stay pinned. Default public Projects remain Drawing Pad and
-Grove Guard; Sky Hop stays withdrawn. No task, goal or automation was created.
+Evidence: docs/EVIDENCE.md and ignored .verification/mobile-canvas/plan.json.
+Preserve all logs/builds/screenshots/caches/profiles/backups and prior sealed Mac19
+candidate. No new task, tool-backed goal or automation was created. Default public
+Projects remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn. DeepSeek paused
+through2026-12-31. Latest weekly42% remaining is account-wide; storage303GB healthy.

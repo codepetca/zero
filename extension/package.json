@@ -226,6 +226,10 @@
       {
         "command": "zero.recovery",
         "title": "Zero: Recovery\u2026"
+      },
+      {
+        "command": "zero.newProject",
+        "title": "Zero: New Project"
       }
     ],
     "viewsContainers": {
@@ -362,6 +366,12 @@
           "group": "zero-help@3"
         }
       ]
-    }
+    },
+    "authentication": [
+      {
+        "id": "zero-github",
+        "label": "Zero GitHub"
+      }
+    ]
   }
 }

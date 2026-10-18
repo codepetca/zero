@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 import {deflateSync, inflateSync} from 'node:zlib';
 import path from 'node:path';
+import {readBrand, brandSample} from './brand-icon.mjs';
 
 function crc32(bytes) {
   let crc = 0xffffffff;
@@ -17,22 +18,19 @@ function chunk(type, bytes) {
   output.writeUInt32BE(crc32(Buffer.concat([name, bytes])), bytes.length + 8);
   return output;
 }
-export function iconPng(size, color) {
+export function iconPng(size, color, brand = readBrand(path.resolve(import.meta.dirname, '..')), inset = .1) {
   assert.ok(Number.isInteger(size) && size >= 16 && size <= 1024);
   assert.match(color, /^#[0-9a-f]{6}$/i);
   const purple = [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16));
   const rows = Buffer.alloc(size * (size * 4 + 1));
-  // The approved 24px SVG circle (radius9/stroke2) and diagonal7,17→17,7
-  // sit on a plain white tile with the ordinary macOS icon safe-area inset.
+  // Match the canonical circle and softly rounded slash on its white tile.
+  // macOS keeps its established safe-area inset; Windows uses the full tile.
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     let mark = 0;
     for (let sy = 0; sy < 4; sy++) for (let sx = 0; sx < 4; sx++) {
-      const px = ((x + (sx + .5) / 4) / size - .1) * 30;
-      const py = ((y + (sy + .5) / 4) / size - .1) * 30;
-      const ring = Math.abs(Math.hypot(px - 12, py - 12) - 9) <= 1;
-      const along = ((px - 7) * 10 - (py - 17) * 10) / 200;
-      const diagonal = along >= 0 && along <= 1 && Math.abs(px + py - 24) / Math.SQRT2 <= 1;
-      if (ring || diagonal) mark++;
+      const px = ((x + (sx + .5) / 4) / size - inset) * 24 / (1 - 2 * inset);
+      const py = ((y + (sy + .5) / 4) / size - inset) * 24 / (1 - 2 * inset);
+      if (brandSample(px, py, brand)) mark++;
     }
     const offset = y * (size * 4 + 1) + 1 + x * 4;
     for (let channel = 0; channel < 3; channel++) rows[offset + channel] = Math.round(255 + (purple[channel] - 255) * mark / 16);
@@ -42,14 +40,11 @@ export function iconPng(size, color) {
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk('IHDR', header), chunk('IDAT', deflateSync(rows)), chunk('IEND', Buffer.alloc(0))]);
 }
 export function buildMacIcon(run, root, work, destination) {
-  const svg = readFileSync(path.join(root, 'extension/media/zero.svg'), 'utf8');
-  // Fail closed if the shared brand geometry changes; update this small renderer
-  // deliberately with that source rather than silently shipping a stale mark.
-  assert.equal(svg.trim(), '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/><path fill="none" stroke="currentColor" stroke-width="2" d="m7 17 10-10"/></svg>', 'Shared Zero brand geometry changed; update the native icon renderer');
-  const color = JSON.parse(readFileSync(path.join(root, 'design/tokens.json'), 'utf8')).themes.light.accent;
+  const brand = readBrand(root);
+  const color = brand.color;
   const folder = path.join(work, 'Zero.iconset'); mkdirSync(folder);
   for (const size of [16, 32, 128, 256, 512]) for (const scale of [1, 2]) {
-    writeFileSync(path.join(folder, `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`), iconPng(size * scale, color));
+    writeFileSync(path.join(folder, `icon_${size}x${size}${scale === 2 ? '@2x' : ''}.png`), iconPng(size * scale, color, brand));
   }
   run('/usr/bin/iconutil', ['--convert', 'icns', '--output', destination, folder]);
   verifyMacIcon(readFileSync(destination));

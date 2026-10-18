@@ -3381,3 +3381,24 @@ provider-write drill. Full publication receipts remain ignored under
 Effective model/tokens unknown; no conflicts,0compatibilityfixbatches. DeepSeek
 pause honored. Native older optional screenshot wording and physical Windows
 remain outside this publication; website instructions explain Preview image.
+
+## Shared GitHub App source — 2026-10-18
+
+Codehead1548a0e: extension598tests,597passed,0failed,1existing skip; website148
+tests, typecheck, final production build and root configuration/syntax/command/
+link checks passed. Independent security/correctness and compatibility reviews,
+one batched remediation, targeted and cumulative integration reviews report no
+unresolved source blockers. See [evidence](EVIDENCE.md) and [identity plan](ZERO-IDENTITY-PLAN.md).
+
+App configuration is unconfigured and source is unpushed. Live registration,
+consent/installation, creation/private clone/upload, refresh/revocation, Pages
+and stars remain unverified. Mac native UI was blocked by the locked computer;
+physical Windows and Safari remain untested. No new credentials or publication.
+
+Registration acceptance continuation: public Codepet Zero registration and exact
+permission binding verified against the real GitHub API. Approved selected-only
+installation completed on one private test repository without a private key.
+Registered configuration suite:598extension tests (597pass, one existing skip),
+148website tests and root checks pass. Public App IDs are pinned; user authorization
+and real clone/upload/refresh remain pending. Website secrets/production activation
+and a native release have not occurred.

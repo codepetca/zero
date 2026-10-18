@@ -90,7 +90,7 @@ jobs:
 function publishingGuide(repositoryPage) {
   return `# Share your app
 
-Choose **Publish app** in the Zero sidebar to publish a completed version using your connected GitHub repository. The first time, Zero reviews the public destination, prepares the publishing files, asks VS Code for workflow permission if needed, and uses the normal reviewed upload. Later updates use the same button and keep the same page URL.
+Choose **Publish app** in the Zero sidebar to publish a completed version using your connected GitHub repository. The first time, Zero reviews the public destination, prepares the publishing files, checks the Zero GitHub App’s access to this repository, and uses the normal reviewed upload. Later updates use the same button and keep the same page URL.
 
 Wait for **Your app is live**. Then choose **Open app** or **Copy playable link**. You can retrieve the verified link later with **Zero: Copy Playable Link** or **Zero: Open Published App** in the command palette. This playable link is separate from the source repository link submitted in Pika.
 
