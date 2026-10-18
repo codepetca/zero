@@ -50,6 +50,7 @@ function overlay(file, source) {
   source = source.replace('return new Scene(content);', 'browserViewport = new zero.web.BrowserGameViewport(content, canvas, this::clearInput); return browserViewport.scene();');
   source = source.replace('        window = stage;', '        window = stage; zero.web.BrowserFocus.install(this::clearInput);');
   source = source.replace('        Scene scene = stage.getScene();', '        Scene scene = stage.getScene(); browserViewport.install();');
+  source = source.replace('canvas.sceneToLocal(event.getSceneX(), event.getSceneY())', 'zero.web.BrowserGameViewport.canvasPoint(canvas, event)');
   source = source.replace('window != null && window.isFocused()', 'window != null && zero.web.BrowserFocus.focused()');
   source = source.replace('        if (timer != null) timer.stop();', '        if (timer != null) timer.stop(); if (browserViewport != null) browserViewport.close(); zero.web.BrowserFocus.uninstall();');
   const start = source.indexOf('        var resource = getClass().getResource(resourcePath);');

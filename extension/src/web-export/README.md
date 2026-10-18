@@ -56,6 +56,9 @@ transform fits the complete fixed logical content (including padding/controls)
 inside the scene, with aspect-preserving downscaling and centering. Native helper
 sources and ordinary App scene creation are unchanged. Input passes through
 `canvas.sceneToLocal`, so scaled DOM hit testing and Java coordinates agree.
+The adapter reconstructs scene coordinates from the stable JavaFX pick result;
+this avoids a pinned WebFX derived-event copy applying local coordinates twice
+after a click or touch release.
 Only the canvas owns touch capture; cancellation emits a normal pointer release
 before clearing input, and shutdown removes the owned listeners. This runtime
 is included in the existing exporter profile hash, so old exports require a

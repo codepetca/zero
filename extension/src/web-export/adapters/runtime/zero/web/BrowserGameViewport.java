@@ -11,6 +11,8 @@ import elemental2.dom.ViewCSS;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.PickResult;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.transform.Scale;
@@ -58,6 +60,22 @@ public final class BrowserGameViewport {
     }
 
     public Scene scene() { return scene; }
+
+    /** The pinned MouseEvent.copyFor can copy local x/y into sceneX/sceneY.
+     * Its PickResult retains the original intersection, including for generated
+     * click/enter/exit events; reconstruct the scene point before converting once.
+     */
+    public static javafx.geometry.Point2D canvasPoint(Canvas canvas, MouseEvent event) {
+        PickResult pick = event.getPickResult();
+        if (pick == null || pick.getIntersectedPoint() == null)
+            return canvas.sceneToLocal(event.getSceneX(), event.getSceneY());
+        com.sun.javafx.geom.Point2D point = pick.getIntersectedPoint();
+        javafx.scene.Node node = pick.getIntersectedNode();
+        if (node == null) return canvas.sceneToLocal(point.x, point.y);
+        javafx.geometry.Point2D scenePoint = node.localToScene(point.x, point.y);
+        return canvas.sceneToLocal(scenePoint.getX(), scenePoint.getY());
+    }
+
 
     public void install() {
         if (installed || closed) return;

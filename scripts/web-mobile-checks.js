@@ -144,6 +144,13 @@ async (page) => {
           check(after[0] === before[0] + 1 && Math.abs(after[6]-x) <= 2 && Math.abs(after[7]-y) <= 2,
             fixture + ': real CDP touch maps logical corner/center exactly once', {x,y,before,after});
         }
+        const beforeQuick = await state(), quick = await canvasPoint(width/2,height/2,width,height);
+        await touch('touchStart',[quick]);
+        await touch('touchEnd',[]);
+        await waitState(0,beforeQuick[0]+1);
+        const afterQuick = await state();
+        check(!afterQuick[3] && Math.abs(afterQuick[6]-width/2)<=2 && Math.abs(afterQuick[7]-height/2)<=2,
+          fixture + ': short touch without a render wait retains one press and logical release coordinates', {beforeQuick,afterQuick});
       }
       await page.setViewportSize({width:740,height:320});
       await settle();
