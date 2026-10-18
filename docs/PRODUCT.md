@@ -274,7 +274,7 @@ exact verified publication automatically;
 ZeroHub offers Play latest on student hosting alongside exact source downloads.
 See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
-- One continuous Zero view contains Run App, Stop, repository actions and Files,
+- One continuous Zero view contains one Run/Stop button, repository actions and Files,
   without extra GitHub/ZeroHub headings or a separate collapsible controls row.
   Idle status is empty; app progress/errors
   appear when there is a message. Signed-out GitHub controls show only Sign in;
@@ -300,7 +300,10 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   **Review or restore changes…** in the project menu opens the existing native
   review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
-- Run saves files, checks ordinary Java against the supported browser API, builds
+- The primary button says Run when idle, Stop while queued/checking/building/running,
+  and disabled Stopping… while owned work settles. Failures or closing the managed
+  preview return it to Run. Explicit palette commands keep separate run/restart
+  and stop behavior. Run saves files, checks ordinary Java against the supported browser API, builds
   locally when inputs changed and opens an owned browser preview. Re-running
   destroys the old runtime; Stop cancels builds and destroys the managed frame.
   Open in browser opens a local page around the same immutable compiled files in

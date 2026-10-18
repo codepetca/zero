@@ -17,7 +17,7 @@ Import the settings-only Zero profile first, then install the local
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
-Run App saves files, checks original Java against the supported browser API
+The sidebar’s single **Run**/**Stop** button saves files, checks original Java against the supported browser API
 subset, compiles locally when needed with the pinned WebFX/GWT pipeline, validates
 the build and opens Zero’s managed browser preview. Students need a supported
 JDK **17+**, with no global Maven or Node.js installation. The first build needs
@@ -36,7 +36,10 @@ The default build shortcut uses the same browser run action:
 {"version":"2.0.0","tasks":[{"type":"zero","task":"run","label":"Zero: Run App","group":{"kind":"build","isDefault":true},"problemMatcher":"$zero-java"}]}
 ```
 
-Run App again after edits to rebuild and restart. Stop aborts owned work and
+Click **Stop**, then **Run** after edits to rebuild and restart. The palette’s
+Run App command can still restart directly. **Stopping…** stays disabled until
+owned work settles; failures and closing the managed preview restore **Run**.
+Stop aborts owned work and
 ends the preview and its audio. Build/source/compatibility errors appear in Zero’s
 output and Problems; **Show Problems** opens the source diagnostics. Repair a
 failed download or the indicated code, then Run App again. A failed build does

@@ -67,7 +67,7 @@ test('download review shows a published Mac fixture and omits a local Mac candid
 
 test('actual sidebar renderer retains local Run while signed out and useful Error recovery', async () => {
   const ready = sidebarSource();
-  assert.match(ready,/zero.runApp/); assert.doesNotMatch(ready,/Ready to run/);
+  assert.match(ready,/zero.toggleApp/); assert.doesNotMatch(ready,/Ready to run/);
   assert.match(ready,/Sign in to GitHub/);
   assert.match(ready,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
   assert.doesNotMatch(ready,/data-command="zero.recovery"/);
@@ -87,4 +87,15 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(practice,/>Sign in<\/button>/);
   assert.doesNotMatch(practice,/data-command="zero.chooseRepository"/);
   assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub)"/);
+});
+
+test('actual sidebar renderer has one Run/Stop control across idle, build, running and stopping states',()=>{
+  for(const [state,label] of [['ready','Run'],['building','Stop'],['running','Stop'],['stopping','Stopping…'],['error','Run']]){
+    const html=sidebarSource(state);
+    assert.equal((html.match(/data-command="zero.toggleApp"/g)||[]).length,1);
+    assert.doesNotMatch(html,/data-command="zero.runApp"|data-command="zero.stopApp"/);
+    const button=html.match(/<button class="run"[^>]*>[\s\S]*?<\/button>/)[0];
+    assert.ok(button.endsWith(label+'</button>'));
+    if(state==='stopping')assert.match(button,/ disabled>/);else assert.doesNotMatch(button,/ disabled>/);
+  }
 });

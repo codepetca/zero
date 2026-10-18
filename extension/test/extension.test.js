@@ -51,10 +51,17 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   const pendingRun = commands.get('zero.runNativeApp')();
   const queuedRun = commands.get('zero.runNativeApp')();
   while(saved < 5) await new Promise(resolve => setImmediate(resolve));
-  await commands.get('zero.stopApp')();
+  const stopping=commands.get('zero.stopApp')();
   releaseSave();
-  await Promise.all([pendingRun,queuedRun]);
+  await Promise.all([pendingRun,queuedRun,stopping]);
   assert.equal(launches.length,4,'Stop must cancel saving and queued Run requests');
+  let releaseResolution;
+  saveGate=new Promise(resolve=>{releaseResolution=resolve;});const beforeResolution=saved;
+  const resolution=provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2});
+  while(saved===beforeResolution)await new Promise(resolve=>setImmediate(resolve));
+  let settled=false;const cancelledResolution=commands.get('zero.stopApp')().then(()=>{settled=true;});
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false,'Stopping waits for native task preparation');
+  releaseResolution();assert.equal(await resolution,undefined,'Cancelled task resolution cannot launch later');await cancelledResolution;
   saveGate=undefined; mode='live';
   const originals={prepare:github.prepareUpload,upload:github.uploadPrepared};
   t.after(()=>{github.prepareUpload=originals.prepare;github.uploadPrepared=originals.upload;});
@@ -217,7 +224,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   await commands.get('zero.chooseRepository')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['new','clone','local','recovery','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
   nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
-  assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
+  assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.toggleApp'),'Local Run is always available');
 });
 
 test("Zero controls and Files share one supported view with minimal overflow",()=>{

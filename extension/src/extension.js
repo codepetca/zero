@@ -41,6 +41,14 @@ function activate(context, services = {}) {
   const output = vscode.window.createOutputChannel('Zero');
   let execution, ending, view, pendingLaunch;
   let runGeneration = 0;
+  let nativeStarting = 0, stopPromise;
+  const nativeIdleWaiters = new Set();
+  function nativePrepared() {
+    nativeStarting--;
+    if (!nativeStarting) {for (const resolve of nativeIdleWaiters) resolve();nativeIdleWaiters.clear();}
+    refresh();
+  }
+  const nativeIdle = () => nativeStarting ? new Promise(resolve=>nativeIdleWaiters.add(resolve)) : Promise.resolve();
   let uploading = false;
   let connecting = false;
   let startingTutorial = false;
@@ -59,7 +67,7 @@ function activate(context, services = {}) {
   let branch = '';
   let branchDetached = false;
   let statusGeneration = 0;
-  const isBusy = () => uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || maintenanceBusy || exportingWeb || publishingWeb || browserBusy;
+  const isBusy = () => Boolean(stopPromise) || uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || maintenanceBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
   let renderedWebview;
   let fileRefreshTimer;
@@ -246,19 +254,23 @@ function activate(context, services = {}) {
         return new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', new vscode.CustomExecution(async () => {
           const closed=new vscode.EventEmitter();
           let ticket,settled=false;
-          return {onDidClose:closed.event,open(){const running=browserRun.run();ticket=browserRun.generation;void running.then(()=>{settled=true;closed.fire(0);},error=>{settled=true;output.appendLine(error.message);closed.fire(1);});},close(){if(!settled && ticket===browserRun.generation)browserRun.stop();closed.dispose();}};
+          return {onDidClose:closed.event,open(){const running=actions['zero.runApp']();ticket=browserRun.generation;void running.then(()=>{settled=true;closed.fire(0);},error=>{settled=true;output.appendLine(error.message);closed.fire(1);});},close(){if(!settled && ticket===browserRun.generation)browserRun.stop();closed.dispose();}};
         }));
       }
       if (configured.definition.task !== 'native-run') return undefined;
-      browserRun.stop({quiet:true});
-      const generation = runGeneration;
-      await stop();
-      if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
-      const root=await project();await core.assertTutorialRepository(root);
-      const task = await makeTask(root, configured.definition, configured.scope);
-      if (generation !== runGeneration) return undefined;
-      task.group = configured.group || vscode.TaskGroup.Build;
-      return task;
+      if (stopPromise) return undefined;
+      nativeStarting++;refresh();
+      try {
+        browserRun.stop({quiet:true});
+        const generation = runGeneration;
+        await stop();
+        if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
+        const root=await project();await core.assertTutorialRepository(root);
+        const task = await makeTask(root, configured.definition, configured.scope);
+        if (generation !== runGeneration) return undefined;
+        task.group = configured.group || vscode.TaskGroup.Build;
+        return task;
+      } finally {nativePrepared();}
     }
   }));
   async function run(generation, expectedRoot) {
@@ -277,7 +289,8 @@ function activate(context, services = {}) {
   }
   function queuedRun(expectedRoot) {
     const generation = runGeneration;
-    const next = runQueue.then(() => run(generation,expectedRoot));
+    nativeStarting++;refresh();
+    const next = runQueue.then(() => run(generation,expectedRoot)).finally(nativePrepared);
     runQueue = next.catch(() => {});
     return next;
   }
@@ -503,7 +516,7 @@ function activate(context, services = {}) {
         if (branch && branch !== previous) report(`Switched to ${branch}`);
       } finally {await repositoryStatus(); changing = false; refresh();}
     },
-    'zero.runNativeApp': async () => {browserRun.stop({quiet:true});await queuedRun();},
+    'zero.runNativeApp': async () => {if(stopPromise)return stopPromise;browserRun.stop({quiet:true});await queuedRun();},
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
       if (!(vscode.workspace.workspaceFolders || []).length) {await tutorials.open(undefined,'0');return;}
@@ -590,7 +603,20 @@ function activate(context, services = {}) {
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
   const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested,preferredPreviewColumn:root=>tutorials.columnFor(root)});
   Object.assign(actions,browserRun.commands);
-  actions['zero.stopApp']=async()=>{browserRun.stop();await stopRequested();};
+  actions['zero.runApp']=expectedRoot=>stopPromise || browserRun.run(expectedRoot);
+  actions['zero.stopApp']=()=>{
+    if (stopPromise) return stopPromise;
+    stopPromise=Promise.resolve().then(async()=>{
+      browserRun.stop();
+      await Promise.all([stopRequested(),browserRun.whenIdle(),nativeIdle()]);
+    }).finally(()=>{stopPromise=undefined;refresh();});
+    refresh();return stopPromise;
+  };
+  actions['zero.toggleApp']=()=>{
+    if (stopPromise) return stopPromise;
+    if (execution || pendingLaunch || nativeStarting || browserActive || browserBusy) return actions['zero.stopApp']();
+    if (!isBusy()) return actions['zero.runApp']();
+  };
   context.subscriptions.push(...browserRun.disposables);
   const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
   Object.assign(actions,webPublish.commands);
@@ -641,7 +667,10 @@ function activate(context, services = {}) {
     const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
     const githubPanel = !auth.signedIn ? account : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
     const fileActions=projectRoot ? `<button class="link" data-command="zero.importAssets" ${disabled}>Add assets…</button>${assets.canCopyPaths()?`<button class="link" data-command="zero.copyImportedAssetPaths" ${disabled}>Copy asset paths</button>`:''}` : '';
-    const controls = `<div class="main-controls"><div class="row"><button class="run" data-command="zero.runApp">${icon('Play')}Run App</button><button class="secondary" data-command="zero.stopApp" ${execution || browserActive ? '' : 'disabled'}>${icon('Square')}Stop</button></div>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>${icon('ExternalLink')}ZeroHub</button></section>`;
+    const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
+    const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : 'Run';
+    const runDisabled = stopPromise || !activeRun && isBusy() ? 'disabled' : '';
+    const controls = `<div class="main-controls"><button class="run" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>${icon('ExternalLink')}ZeroHub</button></section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;

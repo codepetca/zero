@@ -12,6 +12,10 @@ Owner decisions consolidated through 2026-10-18. These are the current rules and
 supersede conflicting wording in the older dated notes below. Preserve them
 when adding features; a new feature does not reset the agreed interaction style.
 
+- Use one primary **Run**/**Stop** button. It offers Stop while queued, checking,
+  compiling or running; show disabled **Stopping…** until owned work settles.
+  Failures and closing the managed preview return to Run. Preserve explicit
+  Run App/Stop App palette commands and existing cancellation/generation guards.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.

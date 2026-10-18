@@ -120,6 +120,7 @@ test('only failed owned native diagnostic tasks offer Problems; success and Stop
   f.finish(f.launches.at(-1),0);assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
   await f.commands.get('zero.runNativeApp')();await f.commands.get('zero.stopApp')();
   assert.match(f.webview.html,/App stopped/);assert.doesNotMatch(f.webview.html,/data-command="zero.showProblems"/);
+  assert.match(f.webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Run<\/button>/);
 });
 
 test('new local project opens its bundled guide beside Main without replacing an editor', async t=>{
@@ -296,4 +297,19 @@ test('extension disposal aborts the pending clone and prevents opening its late 
  const f=await fixture(t,{empty:true,clone:async options=>{signal=options.signal;return new Promise(resolve=>{signal.addEventListener('abort',()=>resolve(path.join(options.parentPath,'late-project')),{once:true});entered();});}});
  f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});const pending=f.commands.get('zero.cloneRepository')();await ready;f.subscriptions.forEach(item=>item.dispose());await pending;
  assert.equal(signal.aborted,true);assert.equal(f.calls.filter(c=>c[0]==='vscode.openFolder').length,0);
+});
+
+test('one Run/Stop button cancels native preparation and stays Stopping until the save settles',async t=>{
+  const f=await fixture(t,{lesson:false});let release;
+  f.vscode.workspace.saveAll=()=>new Promise(resolve=>{release=()=>resolve(true);});
+  const running=f.commands.get('zero.runNativeApp')();
+  assert.match(f.webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Stop<\/button>/);
+  await settle(()=>release);
+  const stopping=f.commands.get('zero.toggleApp')(),again=f.commands.get('zero.toggleApp')();
+  assert.match(f.webview.html,/data-command="zero.toggleApp" disabled>[\s\S]*Stopping…<\/button>/);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(f.webview.html,/Stopping…<\/button>/);
+  release();await Promise.all([running,stopping,again]);
+  assert.equal(f.launches.length,0);assert.match(f.webview.html,/Run<\/button>/);
+  assert.equal((f.webview.html.match(/data-command="zero.toggleApp"/g)||[]).length,1);
 });
