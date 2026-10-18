@@ -288,7 +288,7 @@ test('native Cancel aborts an active clone and releases the command busy guard',
  await f.commands.get('zero.cloneRepository')();assert.equal(attempts,2);assert.equal(notifications,2);
 });
 test('tutorial creation and its authenticated clone share one cancellable native notification',async t=>{
- const notifications=[];const f=await fixture(t,{empty:true,pick:async(items,options)=>options.title==='Start tutorial'?items[0]:items.find(item=>item.private===true),clone:async({parentPath,signal})=>{assert.equal(signal.aborted,false);return path.join(parentPath,'my-project');}});
+ const notifications=[];const f=await fixture(t,{empty:true,pick:async(items,options)=>options.title==='Start tutorial'?items[0]:assert.fail('Unexpected picker: '+options.title),clone:async({parentPath,signal})=>{assert.equal(signal.aborted,false);return path.join(parentPath,'my-project');}});
  f.vscode.ProgressLocation={Notification:15};f.vscode.window.withProgress=async(options,run)=>{notifications.push(options);return run({report(){}},{onCancellationRequested:()=>disposable()});};
  f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.startProject')();assert.equal(notifications.length,1);assert.equal(notifications[0].cancellable,true);assert.equal(f.calls.filter(c=>c[0]==='createRepository').length,1);assert.equal(f.calls.filter(c=>c[0]==='cloneRepository').length,1);assert.deepEqual(f.errors,[]);
 });
