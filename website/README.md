@@ -32,18 +32,22 @@ The internal example/template generators are maintainer tools, not public pages.
 community admission. Drawing Pad points to the anonymously verified public
 `codepetca/zero-drawing-pad` commit and an actual square screenshot of that source
 running in the browser. It stays visible during a community catalog outage and
-appears in project searches. It has no Play link because public hosting has not
-been verified. This entry does not manufacture an accepted community release.
+appears in project searches. Its screenshot opens its verified GitHub Pages app. This entry does not manufacture an accepted community release.
 
 Community discovery shows only each project's latest available release. Exact
 release links retain their original version and withdrawn status. Cards use tiny
-descriptions, plain titles, Play (when verified) and GitHub. No controls section,
+descriptions and plain titles; screenshots open Play and versions link to GitHub. No controls section,
 source-project download or release internals appear. Libraries keep usage and
 manual Maven setup in a disclosure. New game submissions require a valid square
 PNG under the reviewed publisher policy; existing accepted releases remain valid.
 
 `/hub/share` explains native sharing and the official GitHub request forms.
-The website has no account session or write token. The catalog APIs validate the
+The website never receives publisher credentials. An optional, short-lived GitHub
+App session enables inline repository stars; browsing and playing stay public.
+See [ZeroHub feedback](../docs/ZEROHUB-FEEDBACK.md) for the exact permissions,
+server environment and activation procedure. Public checks and counts are bounded
+and cached; issue reports open on GitHub for the user to submit.
+The catalog APIs validate the
 canonical snapshot; the legacy endpoint strips optional web receipts, while
 `/api/sharing/catalog/web` exposes checked Play links. Those links open the
 author's mutable hosted app in a new tab. Missing configuration or an outage

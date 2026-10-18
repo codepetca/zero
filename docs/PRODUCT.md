@@ -12,10 +12,9 @@ page has the shared app header, **Learn Java**, **Starting from zero.**, and two
 direct download buttons: **Download for Mac Silicon** and **Download for Windows
 (ZIP)**. It uses the shared light/dark toggle and
 centered full-viewport layout. The old `/get-started` address redirects to Downloads.
-The website requires no GitHub sign-in. Download and launch desktop Zero first;
+Browsing, learning and playing require no GitHub sign-in. ZeroHub optionally connects GitHub for inline repository stars. Download and launch desktop Zero first;
 its welcome checks VS Code's existing GitHub connection, offers **Connect GitHub**
-when needed, and then leads to creating a tutorial project. VS Code owns sign-in,
-permission and credentials; no website OAuth or separate Zero account. Existing
+when needed, and then leads to creating a tutorial project. VS Code owns desktop sign-in, permissions and credentials. Optional ZeroHub stars use a separate, least-privilege GitHub App connection; there is no separate Zero account. Existing
 connections show the username. Dismissing welcome leaves local Run available;
 setup guidance remains accessible later. Publication and uploads remain explicit.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
@@ -75,14 +74,16 @@ Tutorials show the current project name (Greeting App, Study Quiz or Coin Game)
 as the main heading and the lesson title below it. Docs and ZeroHub retain their
 section heading and muted topic subtitle.
 Purple eyebrow labels and back controls are removed; top navigation, reader
-sidebars and Next lesson remain available. Hub browsing/downloads are public;
-its Sign in to GitHub and Create GitHub account buttons open GitHub's official
-pages in a new browser tab, without creating a Hub session or detecting account state.
-Contribution instructions explicitly require GitHub sign-in in Zero and the same
-personal account for the browser publication form. The
-local replacement has no website sign-in, reservation or folder-upload service.
-Public publication remains inactive; library candidate execution still needs its
-outstanding acceptance. Existing kit/installer downloads have separate release records.
+sidebars and Next lesson remain available. Hub browsing/downloads remain public.
+An optional GitHub connection lets users star and unstar repositories directly
+on ZeroHub, with one star per GitHub account per repository. Short-lived sessions
+require reconnection after expiry. Public counts may lag; no separate vote store
+is created. Site checks show cached page reachability, not verified gameplay.
+Report a problem opens a prefilled GitHub issue for the user to review and submit.
+See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
+Contribution instructions require GitHub sign-in in Zero and the same personal
+account for the browser publication form. The replacement has no reservation or
+folder-upload service. Existing kit/installer downloads have separate release records.
 See [repository boundaries](ARCHITECTURE.md) and [website plan](WEBSITE-PLAN.md).
 
 ## App and learning contract
@@ -212,7 +213,7 @@ are the intended automatic publication path, without routine maintainer approval
 but the unresolved library checker acceptance gate remains binding.
 
 The replacement uses a Git CAS registry ledger and immutable public Blob artifacts
-with generated catalog snapshots, not Neon or website OAuth. Accepted versions
+with generated catalog snapshots. Optional website star sessions are separate from publication and cannot change the registry. Accepted versions
 never change source. ZeroHub keeps contributions open without lifetime contributor
 storage or library-count allowances; technical bounds and shared capacity controls
 remain. Owners and designated maintainers retain curation/withdrawal authority.

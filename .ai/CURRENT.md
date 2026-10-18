@@ -1,24 +1,28 @@
-# Flap Motion author credit — 2026-10-18
+# ZeroHub inline stars and project feedback — 2026-10-18
 
-Owner corrected the maintained sample's ZeroHub author to Codepet (`codepetca`).
-Use a trusted website attribution tied to the library ID and its two exact
-published source commits. Preserve accepted contributor/publisher identity,
-repository links, artifacts, coordinates and admission policy. Other community
-submissions and future unreviewed sources retain their GitHub attribution.
-Search should find the displayed author. View examples remains a GitHub link to
-two Java usage examples at the exact published source revision, not a live demo.
+Owner asked for broken-project visibility and one GitHub like per account, then
+refined GitHub stars to work directly from ZeroHub. Implement optional minimal
+GitHub App sign-in, inline star/unstar, cached public page reachability/counts
+and prefilled issue reports. Browsing/Play remain public; no publisher token,
+registry writes, background monitor or separate votes database. Code and source
+review first; new App registration/security grant and production secrets require
+specific owner approval after the reviewed result is concrete. Do not use the
+maintainer account to star projects as a test without authorization.
 
-Coordinator worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
-codex/flap-motion-attribution. Website122tests, typecheck and production build pass.
-Local browser proof, independent review and exact-head CI/merge complete the fix;
-retain final receipts in .verification/flap-motion-attribution/. Existing owner
-publication authority persists for this correction; no repeat approval needed.
+Worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
+codex/zerohub-project-feedback; base41ba316. Parent owns UI/docs/integration;
+Sol/high hub_github_auth delivered auth/routes/tests, Sol/medium
+hub_project_status delivered bounded public resolver/checks/routes/tests. Both
+focused deliveries and integrated website typecheck pass. Parent added revoked
+session clearing and UI/report integration. Next: full local checks/browser,
+frozen-head two independent high-risk reviews, then concrete App approval.
+Execution/review receipts live in .verification/hub-project-feedback/plan.json.
+Weekly usage65% remaining (account-wide, not attributable); storage healthy~310GB.
+DeepSeek paused; no task/goal/automation creation. Preserve unrelated main
+checkout funding work and all earlier ignored verification/profiles/backups.
 
-Flap Motion0.1.0/0.1.1 public Share/check/publish and independent native Add/Run/
-Update/Revert plus empty-cache public Maven acceptance are complete. RuntimePR95,
-client pinPR97 and navigationPR100 merged; policy remains11c5451. Public Projects
-remain Drawing Pad/Grove Guard, Sky Hop withdrawn. Acceptance used the Mac source
-client; published0.5.19 bytes remain unchanged. New installer, physical Windows,
-Safari and student cohort acceptance remain separate. Preserve prior evidence,
-backups/profiles and unrelated funding/GroveGuard work. DeepSeek paused; no new
-thread, goal or automation.
+Prior Flap Motion authorPR101 merged41ba316, public0.1.0/0.1.1 native/browser
+acceptance complete. Publisher policy stays11c5451; installer0.5.19 unchanged.
+Public Projects Drawing Pad/Grove Guard; Sky Hop withdrawn. Current work is
+website-only. Real provider OAuth/consent, physical Windows and Safari are not
+proven by local unit/build tests.
