@@ -5413,3 +5413,78 @@ An independent Sky Hop copy with no authored state/library folder, using actual
 applied Add POM and synthetic accepted test artifacts, completes GWT export and
 validateExport: build020b6a2a,68files/7009368bytes. This proves the managed consumer
 compiler path, not public admission. Corrected-source review and CI are pending.
+
+## Flap Motion public admission and independent consumption — 2026-10-18
+
+Source [PR95](https://github.com/codepetca/zero/pull/95) merged11c54518320b52a659104eaf01d685fe2dd93917,
+tree-identical to reviewedf794f0d. Two initial independent Sol/high reviews plus
+one targeted correction pass completed; P1 managed Add/browser discovery and P2
+examples guidance resolved in one batch. All final release39088488367,
+browser39088488360, AMD64 checker39088488355, Windows39088488401 and Vercel checks
+pass. [PR97](https://github.com/codepetca/zero/pull/97) mergeda1f0493408525e71ea68f58e6065355727e4c98b,
+tree-identical to reviewed25f0bdc; one Luna/medium metadata review and all final
+checks pass. Local0.5.20 client uses reviewed policy11c5451. No new installer was
+published; existing0.5.19 release bytes remain pinned.
+
+Operator rollout first promoted the compatible game publisher and completed
+[reconcile39089111212](https://github.com/codepetca/zero/actions/runs/39089111212),
+drained old jobs and compared all seven prior accepted records unchanged. Only
+then was the separate library config/gate enabled. Warmup39089211640 succeeded
+with no queued library. Before-activation backup retains seven releases,
+17verified objects and complete registry Git history; after0.1.1 backup retains
+nine releases/41objects including all library sidecars and staging bytes.
+
+Actual Mac source-development client Check/Run/Commit/push/Merge/Share produced
+sourcea893e75429ebd20e3c9b18fedbcab4bcad1a8bb5 and
+[request98](https://github.com/codepetca/zero/issues/98).
+[Official run39089535922](https://github.com/codepetca/zero/actions/runs/39089535922)
+passed intake, isolated check and privileged publisher. Flap Motion0.1.0 is
+available under lib-r1417021749-flap-motion, coordinate
+ca.codepet.zero.contrib.r1417021749:flap-motion:0.1.0, namespace
+zero.contrib.r1417021749.flap_motion. Public JAR2587bytes/SHA256
+9351d5fa6b954aa72fb52bd66ef47b2f7f114e59026c9b5724fea544913204f8,
+sources2561bytes/44a07897361e1ad0e98ced9f49aec2a28f22888b0457907fef4931b7b17e98b7,
+POM985bytes/796b6e20b163ce4f43009dc1a54381da3f895bee56a748615c8e9dfcbc345f53.
+All three public artifacts and SHA256/SHA1 sidecars match accepted metadata.
+
+An independent consumer based onb69879a with no zero-libraries.json or local
+library folder used actual native Browse→Libraries→Add→Apply→Run, signed out.
+Its managed POM pins0.1.0 with previous=none and the actual public Maven origin.
+The game rendered and responded to flap/pause. Export manifestc5b09a86-80db-4e92-a4fd-777e11faa5bb
+binds sourceHash203f3d48732e72f17253bd1468a8c14216a8fd88597cf79d438404a220f66927,
+all three accepted artifact hashes and source commita893/sourceDigest0525b6db.
+Independent Sol/medium empty-cache Maven proof compiled an ordinary consumer,
+resolved public sources, verified actual CodeSource and SHA, exercised flap/
+gravity/cap/reset and compared all3cached/public artifacts plus both sidecars.
+Coordinator inspected the receipt; no local artifact seeding or file repository.
+
+A metadata-only compatible0.1.1 patch received complete independent Luna/medium
+review at diffSHA2567b6051edc165cc512efa79c1755f95aa355c2ad694a9db8b2c8070e2d4366286.
+Native Check and Commit/push producedc572ed625e0befc848c211fe8653a59fda643ce5;
+actual Share opened and submitted [request99](https://github.com/codepetca/zero/issues/99).
+[Official run39090763159](https://github.com/codepetca/zero/actions/runs/39090763159)
+passed all3jobs. Both public versions' artifacts/sidecars match; original0.1.0
+release and all seven prior accepted records compare unchanged. After normal registry cache propagation, actual native Update/Apply changed the
+independent POM0.1.0→0.1.1 with previous0.1.0; Run/flap/pause passed. Build
+1b90c3b6-752e-43b4-a160-8a9792e11243/sourceHash49149df86ad1ae65cfe068a083cd75f73c6a9fd635ff4e5e029811e70a7bb6cf
+binds exact0.1.1 source/artifacts. Actual native Revert/Apply changed0.1.1→0.1.0
+with previous0.1.1; Run/flap/pause passed again. Build
+7fe51e78-54ce-459c-b94d-e8abb9899631/sourceHash03ade7155216c0e7cacad5d28b6953a1c96d7e2f966a38931deaf28cd25ae378
+binds original0.1.0 source/artifacts. Both manifest/accepted byte comparisons pass;
+POMs and actual paused-game screenshots retained. App stopped after acceptance.
+
+Live Hub card has tiny description, version→GitHub, Use this library, API/Maven
+disclosures and commit-bound View examples. Native browse navigation now removes
+retired Starters, retaining Projects/Libraries; actual development-host picker and
+focused3/3 checks pass. Navigation [PR100](https://github.com/codepetca/zero/pull/100) received a complete
+independent Luna/medium review ofa1f0493→39dd36a with no blockers, then a bounded
+review of the factual completion-notes delta. Source behavior is unchanged after
+that first review. Local check/package/verifykit and navigation3/3 pass; exact-head
+GitHub checks/merge are linked from the PR and retained in the ignored plan. Bulky artifacts,
+logs, screenshots, manifests and per-turn receipts remain in ignored
+.verification/sky-hop-library/. Effective worker models/tokens/elapsed telemetry
+are unknown where not exposed; account-wide usage is not task cost.
+Physical Windows, Safari, student cohort and new released-installer acceptance
+remain unverified. Native folder-picker automation was inconclusive; test-host
+restart opened the saved consumer. No Open-local-project acceptance claim.
+Default public Projects remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn.

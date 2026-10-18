@@ -120,9 +120,9 @@ test('minimal GitHub section follows native sign-in and connection state; browse
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
   assert.ok(authCalls.every(call=>call.options.silent));
   await commands.get('zero.browseZeroHub')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','starters','libraries']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries']);
   nextChoice='projects';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=game');
-  nextChoice='starters';await commands.get('zero.browseZeroHub')();assert.equal(opened.pop().url,'https://zero.codepet.ca/hub?kind=example');
+  nextChoice='starters';await commands.get('zero.browseZeroHub')();assert.equal(opened.length,0,'Retired starters cannot open an old catalog route');
   nextChoice=undefined;
   await commands.get('zero.chooseRepository')();
   assert.equal(picks.at(-1).options.title,'ZeroHub','Signed-out Project menu is unavailable');

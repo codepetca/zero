@@ -517,11 +517,10 @@ function activate(context) {
       if (isBusy()) return;
       const choice = await quickPick([
         {label:'Projects', description:'Browse shared games', action:'projects'},
-        {label:'Starters', description:'Browse examples and templates', action:'starters'},
         {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'}
       ], {title:'ZeroHub', placeHolder:'What would you like to browse?'});
       if (isBusy()) return;
-      if (['projects','starters'].includes(choice?.action) && !(await vscode.env.openExternal(vscode.Uri.parse(`https://zero.codepet.ca/hub?kind=${choice.action==='projects'?'game':'example'}`)))) {
+      if (choice?.action === 'projects' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub?kind=game')))) {
         throw new Error('Could not open ZeroHub. Open https://zero.codepet.ca/hub in your browser.');
       }
       if (choice?.action === 'libraries') await actions['zero.browseHub']();
