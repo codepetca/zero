@@ -151,6 +151,9 @@ signing and physical Windows verification remain deferred.
 
 ## Shared baseline
 
+Reusable explicit-color SVGs and PNG export instructions are in
+[Zero icon assets](design/brand/README.md).
+
 Use the existing Zero brand assets. Preserve the restrained white/purple
 identity and `#683bef` accent. [Shared tokens](design/tokens.json) describe the
 approved palette, typography, spacing and control treatment; adapters translate
