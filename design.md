@@ -19,6 +19,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   While a managed browser app is running, put its icon-only **Open in browser**
   button beside Stop, with a tooltip and accessible name. Hide it when stopped,
   building or stopping. Keep the pair on one row at narrow widths.
+- Show the shared Zero mark with a compact **Zero** heading inside the panel.
+  The native VS Code title remains host-owned; do not modify host CSS/DOM or
+  add a fake title action. Keep the header non-interactive and non-collapsible.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
@@ -29,7 +32,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   Allow its label to wrap to
   two lines; retain the full accessible name and tooltip. **GitHub account…** in
   that menu opens account actions through Zero's supported GitHub App provider.
-  A single **ZeroHub** menu contains **Projects**, **Libraries** and **Share project**
+  A single text-only **ZeroHub** menu contains **Projects**, **Libraries** and **Share project**
   for eligible signed-in original projects; tutorials and local practice cannot share. The menu offers **New
   project…**, **Clone from GitHub…** and **Open local project…**; an eligible
   original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain

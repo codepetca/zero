@@ -2,6 +2,9 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin:0; padding:10px 12px; background:var(--zero-page); color:var(--zero-text); font-family:var(--zero-font); font-size:var(--zero-font-size); line-height:1.4; }
+.sidebar-brand { display:flex; align-items:center; gap:7px; margin:0 0 8px; min-height:20px; }
+.sidebar-brand svg { width:18px; height:18px; flex:none; }
+.sidebar-brand h1 { font:inherit; font-weight:600; margin:0; }
 button { width:100%; margin:0; padding:6px 8px; border:1px solid var(--vscode-button-border,transparent); border-radius:3px; background:var(--zero-accent); color:var(--zero-on-accent); font:inherit; line-height:1.4; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; white-space:normal; overflow-wrap:anywhere; min-width:0; }
 button svg { width:16px; height:16px; flex:none; }
 button:hover { background:var(--zero-accent-hover); }

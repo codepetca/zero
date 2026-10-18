@@ -274,6 +274,8 @@ exact verified publication automatically;
 ZeroHub offers Play latest on student hosting alongside exact source downloads.
 See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
+- A compact shared Zero logo + Zero heading identifies the extension content;
+  VS Code owns the native title. The heading has no action or disclosure.
 - One continuous Zero view contains one Run/Stop button, repository actions and Files,
   without extra GitHub/ZeroHub headings or a separate collapsible controls row.
   Idle status is empty; app progress/errors
@@ -283,7 +285,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   without a duplicate username, with a right chevron indicating its menu.
   Its label wraps to two lines;
   the full name stays accessible and in its tooltip. GitHub account… in that menu
-  opens the existing account actions. ZeroHub opens Projects, Libraries and Share
+  opens the existing account actions. Text-only ZeroHub opens Projects, Libraries and Share
   project for eligible signed-in original projects. Clone from GitHub starts its location picker at
   `~/Zero Projects`, with another location selectable. Open local project opens
   an existing Zero folder without cloning/moving it. New project collects its
