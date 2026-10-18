@@ -2,9 +2,10 @@
 import Link from 'next/link';
 import {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
+import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseAuthor, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import maintainedProjects from '@/content/projects.json';
 import projectPreviews from '@/content/project-previews.json';
+import releaseAuthors from '@/content/release-authors.json';
 import styles from '@/app/hub/hub.module.css';
 import {HubNavigation} from './HubNavigation';
 import {CodeBlock} from './CodeBlock';
@@ -37,7 +38,7 @@ export function HubDiscovery() {
   let releases:Release[] = [], selectionError = '';
   if (catalog) try {
     if (!['game','library'].includes(requestedKind)) throw new Error('Choose games or libraries.');
-    releases = selectReleases(catalog, {kind, search, id, version}) as Release[];
+    releases = selectReleases(catalog, {kind, search, id, version, attributions:releaseAuthors}) as Release[];
   } catch (failure) {selectionError = failure instanceof Error ? failure.message : 'This release link is invalid.';}
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>
@@ -48,7 +49,7 @@ export function HubDiscovery() {
       image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} />)}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'projects':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       {!releases.length && !projects.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${kind==='game'?'projects':'libraries'} match this search.` : `No ${kind==='game'?'projects':'libraries'} are available yet.`}</p>}
-      {releases.map(release=><HubProjectCard key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={release.contributor.login}
+      {releases.map(release=><HubProjectCard key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
         version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In Zero, choose Browse ZeroHub → {release.title} → Add library → Apply.</p>

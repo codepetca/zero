@@ -5488,3 +5488,19 @@ Physical Windows, Safari, student cohort and new released-installer acceptance
 remain unverified. Native folder-picker automation was inconclusive; test-host
 restart opened the saved consumer. No Open-local-project acceptance claim.
 Default public Projects remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn.
+
+## Maintained Flap Motion attribution — 2026-10-18
+
+Owner corrected the sample's displayed author to Codepet (`codepetca`). Website
+credits match lib-r1417021749-flap-motion and only source commitsa893e754 and
+c572ed625. Card/search use this presentation credit; the accepted publication
+record, contributor, repository/version/example links, coordinates, artifacts and
+policy stay intact. Different library IDs/kinds/source commits keep their existing
+GitHub attribution. The GitHub examples link opens two Java usage examples at the
+exact published revision; it is not a playable demo.
+
+Website122tests, typecheck and production build pass. The focused new check covers
+both credited sources, search, unchanged publication provenance and unrelated/
+future-source attribution. Final browser, independent review and exact-head
+CI/merge receipts are retained in .verification/flap-motion-attribution/ and linked
+from the delivery PR. This is a website presentation correction only.
