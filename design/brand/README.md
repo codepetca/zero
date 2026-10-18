@@ -28,3 +28,9 @@ This uses the website's existing Sharp dependency; no new package is installed.
 Generated PNGs, preview and ZIP are in `exports/` and are intentionally ignored.
 The ZIP includes all three SVGs, all three PNGs and this usage guide. The website, editor and future native builds use this shared mark. Published
 release assets remain immutable.
+
+The export also generates `zero-github-app.svg` and `zero-github-app.png` for the
+Codepet Zero GitHub App avatar. This purple-on-white version scales only the mark
+to 88%, increasing its internal edge padding from 7.5% to about 12.6%. Its square
+background remains full size. This host-specific export stays outside the general
+three-variant ZIP; website, editor and native icon geometry is unchanged.

@@ -19,6 +19,11 @@ for (const {name} of variants) {
   await sharp(await readFile(svg)).resize(1024,1024).png().toFile(path.join(output,`${name}.png`));
   await copyFile(svg,path.join(output,`${name}.svg`));
 }
+// GitHub crops this upload into several small avatar shapes; give its mark more air.
+const githubSvg=(await readFile(path.join(directory,'zero-purple-on-white.svg'),'utf8'))
+  .replace('<g stroke=', '<g transform="translate(1.44 1.44) scale(0.88)" stroke=');
+await writeFile(path.join(output,'zero-github-app.svg'),githubSvg);
+await sharp(Buffer.from(githubSvg)).resize(1024,1024).png().toFile(path.join(output,'zero-github-app.png'));
 await copyFile(path.join(directory,'README.md'),path.join(output,'README.md'));
 
 const tiles = [];
@@ -33,4 +38,4 @@ await sharp(backdrop).composite(tiles).png().toFile(path.join(output,'zero-icons
 const archiveNames=[...variants.flatMap(({name})=>[`${name}.svg`,`${name}.png`]),'README.md'];
 const files=await Promise.all(archiveNames.map(async name=>({path:name,bytes:await readFile(path.join(output,name))})));
 await writeFile(path.join(output,'zero-icons.zip'),zip.zipFiles(files));
-console.log(`Exported three SVG/PNG variants, preview and ZIP to ${output}`);
+console.log(`Exported three SVG/PNG variants, GitHub avatar, preview and ZIP to ${output}`);
