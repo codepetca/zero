@@ -78,8 +78,9 @@ session and preserves local work and other extensions' accounts.
 
 A pinned, public App configuration must be packaged with Zero and checked against
 GitHub's public App metadata. The owner-approved public registration is now pinned: App5367740, client
-`Iv23liWzC8OE2WN5f6qV`, slug`codepet-zero`, owned by`codepetca`. The approved test installation selects one private repository; user authorization,
-transport and production/native release acceptance remain pending.
+`Iv23liWzC8OE2WN5f6qV`, slug`codepet-zero`, owned by`codepetca`. The approved test installation selects one private repository. Native user
+authorization, private clone and upload passed; remaining acceptance and
+production/native release gates are pending.
 Workspace settings cannot redirect credentials to another App or origin.
 
 Zero's explicit clone/new-project commands use guarded authenticated Git clone.
@@ -124,20 +125,34 @@ No new chat, scheduler or tool-backed goal is created merely to orchestrate.
 ## Current state and receipts
 
 Planning investigations and native modules completed from base4fbcfe2. The
-shared configuration, device provider, local refresh locking, selected-repository
-access, create/clone/recovery and publishing commands are integrated in source.
-Focused lifecycle, repository, UI and transport checks pass. The updated website
-has148passing tests, typecheck and production build; root configuration checks
-pass. The initial full extension suite passed575with one existing skip. Two independent
-reviews completed and identified six accepted fixes: request budgeting, immutable
-repository/installation binding, numeric publication shortcuts, cancellable project
-operations, retrievable sign-in codes and explicit safe lock repair. One batched
-remediation is complete. Exact codehead1548a0e passes598extension tests
-(597pass, one existing skip). Astra/high targeted and Sol/high cumulative reviews
-report no unresolved source blockers. Root checks and the final website build
-pass. Phase6 remains pending owner approval and actual provider/native acceptance. PR102's original four CI checks are baseline coverage only; the new source
-has not been pushed. Mac native UI smoke is unavailable while the computer is
-locked. No live App, credentials, GitHub write or native release was created.
+shared configuration, device provider, refresh locking, selected-repository
+access, create/clone/recovery and publishing commands are integrated. Two initial
+reviews found six accepted issues, fixed in one batch; targeted security and
+cumulative compatibility reviews found no unresolved source blockers at1548a0e.
+The public registration pin a11d982 passed a separate targeted review.
+
+Live Mac acceptance found current desktop VS Code exposes local extension
+storage as authority-free vscode-userdata. Fix8ed733a accepts its absolute host
+path while preserving the same filesystem locks and rejecting remote authorities
+and relative locations. A cross-scheme contention regression and26focused tests
+pass; independent targeted compatibility review is clean. Full extension tests:
+598total,597passed, one existing skip. Root checks pass. Unchanged website tests
+148passed, typecheck and production build remain valid. Six reviewer launches and
+two fix batches completed within the original source review budget.
+
+Owner-approved registration and selected installation completed. After explicit
+confirmation of the final user grant, Chrome reported the device connected and
+Zero showed the expected account. Real guarded private clone opened the expected
+repository/main branch, and Zero Commit & push uploaded an acceptance-test file;
+GitHub confirmed the commit and the local tree is clean. This used a separate
+Mac development host/profile, not a released kit. No production credentials,
+client secret, private key, merge, deployment or native release was created.
+
+PR102 remains draft. All five checks passed at a11d982; CI for8ed733a is running.
+Remaining acceptance includes empty-account initial installation/App-created
+repositories, refresh/revocation, account drift, Pages/browser stars and physical
+Windows/Safari. Source review, registration and native transport evidence do not
+complete production activation or release acceptance.
 
 Runtime receipts and worker/review budgets: `.verification/zero-identity/plan.json`.
 The coordinator updates the operative state in `.ai/CURRENT.md`. Weekly allowance
@@ -174,5 +189,6 @@ empty-account onboarding remains an acceptance gap. No all-repository grant.
 Native source configuration now uses the verified public IDs. Unit activation
 fixtures inject supported providers instead of relying on an unconfigured
 release. Config/website tests pass; full extension597pass/1skip and website148pass
-remain green after the pin. This delta awaits bounded independent review before
-the next draft push.
+remain green after the pin. The pin passed independent review and was pushed to draft PR102. Native
+device authorization, private clone and upload subsequently passed as recorded
+above; remaining acceptance and activation gates still apply.

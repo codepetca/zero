@@ -5589,3 +5589,31 @@ All five CI checks passed for drafthead474fe06. Public-ID pin/config-test/fixtur
 and factual docs updates are being reviewed; no production activation or native
 release. User authorization/transport remains pending; empty-account selected
 installation needs at least one repository and remains an acceptance gap.
+
+
+## Registered App native acceptance — 2026-10-18
+
+Public-ID pin a11d982 passed the complete targeted Sol/high review and all five
+CI checks. Chrome completed the separately owner-confirmed device user grant;
+GitHub success and the actual supported Zero provider account were both observed.
+Guarded clone opened the sole selected private test repository in an isolated
+Mac development host. Connection restoration worked in the new host. Zero's
+Commit & push then uploaded only a small acceptance-test text file; GitHub
+confirmed its commit/message, and the local tree is clean. Private repository
+IDs, commit and screenshots remain in ignored .verification/zero-identity.
+
+Actual current VS Code uses vscode-userdata for local global storage, exposing a
+file-only guard bug before consent. Fix8ed733a accepts an authority-free absolute
+local user-data path, with the existing filesystem lock. Regression proves
+contention across file/user-data URIs; remote authorities/relative paths fail.
+26focused checks and full598tests(597pass/1existing skip), root check pass.
+Independent targeted Sol/high review is clean; six total reviewer launches,
+two fix batches, all source reviews within the original session budget. Website
+148tests/typecheck/build reused because its source is unchanged. New fix CI is
+running; PR102 remains draft. No production credentials or release/merge.
+
+Test host used a copy of the official installed Code with a distinct test bundle
+ID and short temporary profile; its first long profile exceeded macOS's socket
+path limit. No user editor/profile was changed. Fresh storage305.7GB healthy;
+no cleanup. Live App repo creation/empty-account onboarding, refresh/revocation,
+account drift, Pages/browser stars and physical Windows/Safari remain unproven.

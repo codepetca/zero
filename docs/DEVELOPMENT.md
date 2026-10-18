@@ -323,7 +323,9 @@ available without a connection. The extension registers the supported
 and uses no shipped client secret. Website OAuth uses the same client ID with
 its own credential family and eight-hour reconnect policy. Browser sign-in remains
 disabled without the required server credentials; registration did not provision
-a client secret, private key or user tokens. Installation, live acceptance,
+a client secret, private key or user tokens. The subsequent owner-approved native
+flow issued its own user tokens. A selected test installation, native device sign-in, private clone and guarded
+Commit & push have passed in an isolated Mac profile. The remaining live acceptance,
 production activation and an authorized native release remain pending.
 
 Focused native checks are `node --test extension/test/github-app-*.test.js`,

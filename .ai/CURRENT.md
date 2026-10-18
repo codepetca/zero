@@ -1,37 +1,41 @@
 # Zero shared GitHub identity — 2026-10-18
 
-Owner chose ONE Codepet GitHub App for desktop Zero and ZeroHub. Canonical plan:
-docs/ZERO-IDENTITY-PLAN.md. GitHub identity, selected+App-created repositories,
-local offline Run, ordinary Java, minimal UI and separate Pika submission remain.
-Browser/editor have separate credential families; browser tokens can inherit the
+Owner chose one Codepet-owned GitHub App for desktop Zero and ZeroHub. Canonical
+plan: docs/ZERO-IDENTITY-PLAN.md. Keep GitHub identity, selected plus App-created
+repositories, offline local Run, ordinary Java and separate Pika submission.
+Browser/editor use separate credential families; browser tokens can inherit
 selected repository authority. No pairing or broad native OAuth fallback.
 
-Implementation and one remediation batch are complete locally in
-/Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
-codex/zerohub-project-feedback. Reviewed codehead1548a0e from baseline4fbcfe2.
-Two independent initial reviews, Astra/high targeted correction review and
-Sol/high cumulative integration review: no unresolved source blockers. Four
-launches, one fix batch, within original budget; receipts in
-.verification/zero-identity/plan.json and tracked docs/EVIDENCE.md.
+Worktree: /Users/stew/.codex/worktrees/zerohub-simplify/zero.
+Branch codex/zerohub-project-feedback, draft PR102. Core migration1548a0e and
+public registration pin a11d982 passed independent reviews. Live desktop testing
+found that current VS Code uses authority-free vscode-userdata storage. Fix8ed733a
+accepts that absolute local path and preserves cross-scheme filesystem locking;
+remote authorities/relative paths remain rejected. Targeted Sol/high review clean.
+Six reviewer launches, two fix batches; all source reviews completed within the
+original review budget. Details in ignored .verification/zero-identity/plan.json.
 
-Exact codehead:598extensiontests,597pass0fail1existing skip;148website tests,
-typecheck/finalbuild/rootcheck pass. Native UI unavailable while Mac locked;
-live App consent/install/create/private clone/refresh/revocation/upload/Pages/stars,
-physical Windows and Safari unverified. New recovery guide must publish before
-activation. Public App configuration is now pinned to the verified registration.
+Registered Codepet Zero under codepetca (owner116690057): App5367740,
+clientIv23liWzC8OE2WN5f6qV, slugcodepet-zero. Exact public metadata and seven
+permissions verified. Owner approved registration, draft push, one private test
+repo and installation limited to it, then explicitly confirmed user authorization.
+Chrome reports device connected; real Zero provider shows Signed in as armorup.
+Guarded private clone opened the expected main branch, restored the connection
+in the new host, and Commit & push uploaded only the acceptance-test text file.
+GitHub confirmed the expected commit and clean local tree. Exact private IDs and
+screenshots stay in ignored receipts. Tests used an isolated official Code copy
+and temporary profile, preserving user editor state. No private key/client secret
+was generated. No production credentials, merge, deployment or native release.
 
-Owner approved registration, draft push, and a private test repo with installation
-limited to it. Codepet Zero registered undercodepetca: App5367740,
-clientIv23liWzC8OE2WN5f6qV, slugcodepet-zero. Real public API/verifyApp pass exact
-binding and permissions. Chrome owner confirmation succeeded; the approved private test repository was
-created from the trusted starter and is the only selected installation repository.
-Exact private test IDs remain in the ignored receipt. No private key/clientsecret generated. Userauthorization,
-clone/upload/refresh/revocation/Pages/stars unverified; production/native release
-and merge not newly authorized. Selected install requires≥1repo; empty-account
-onboarding still an acceptance gap.
+At8ed733a:26focused credential/provider tests; full extension598tests,
+597pass/1existing skip/0fail; root check passes. Website148tests/typecheck/build
+from a11d982 reused because website source is unchanged. All five CI checks passed
+at a11d982; latest fix CI is running. PR remains draft.
 
-NEXT: review public-ID pin/config-fixture/docs delta, update draft PR102 (all5CI
-passed at474fe06); perform approved one-repo native acceptance when available.
-No server credentials/production activation/native release. Preserve dirty main,
-ignored evidence and released installer0.5.19/publisher policy11c5451.
-DeepSeek paused through2026-12-31; last weekly51% remaining is account-wide.
+Remaining acceptance: fresh empty account/first repo, actual App repo creation,
+refresh/revocation, account drift, Pages and browser stars; physical Windows/Safari.
+Selected installation requires at least one repository. Publish recovery guide
+before activation. Production/native release and merge remain separate gates.
+Preserve dirty main, ignored evidence, installer0.5.19 and publisher policy11c5451.
+DeepSeek paused through2026-12-31; weekly51% remaining was account-wide. Latest
+fresh storage305.7GB healthy; no cleanup.

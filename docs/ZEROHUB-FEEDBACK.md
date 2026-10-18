@@ -37,8 +37,9 @@ editor for native development; the website uses its own separate web-token famil
 Registered on2026-10-18 with owner approval: [Codepet Zero](https://github.com/apps/codepet-zero),
 owned by `codepetca` (App ID5367740, Client ID`Iv23liWzC8OE2WN5f6qV`). Public IDs
 are pinned in source. The approved personal-account test installation selects one private repository. No private key or client secret was
-generated; no server credentials or production activation exist. Live user
-authorization and transport acceptance remain pending. Registered settings:
+generated; no server credentials or production activation exist. Native user
+authorization, private clone and guarded upload passed in an isolated Mac profile.
+Browser stars and remaining provider acceptance are pending. Registered settings:
 
 - Name: Codepet Zero; slug `codepet-zero`.
 - Visibility: **Public** (the registration option allowing any account). A private
