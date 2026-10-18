@@ -50,8 +50,9 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
-  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
-  assert.match(webview.html,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
+  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add images &amp; sounds…<\/button>/);
+  assert.doesNotMatch(webview.html,/data-command="zero.recovery"/);
+  assert.match(webview.html,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
   assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Commit &amp; push/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;

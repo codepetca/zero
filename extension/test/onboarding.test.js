@@ -204,6 +204,7 @@ test('signed-out empty window only shows Sign in; direct authenticated clone rem
   let finishClone;
   const f=await fixture(t,{empty:true,clone:async()=>new Promise(resolve=>{finishClone=resolve;})});
   assert.match(f.webview.html,/>Sign in<\/button>/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.importAssets"|data-command="zero.recovery"/,'Empty windows have no file maintenance controls');
   assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"|data-command="zero.cloneRepository"|Current branch:/);
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
   const clone=f.commands.get('zero.cloneRepository')();await settle(()=>finishClone);

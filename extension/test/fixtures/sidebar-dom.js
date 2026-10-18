@@ -20,7 +20,7 @@ function sidebarDOM() {
     querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
     addEventListener(type,listener){this.listeners[type]=listener;} focus(){document.activeElement=this;}
   }
-  const nodes=Object.fromEntries(['files','file-status','controls','run-status','recovery'].map(id=>[id,new Element()]));
+  const nodes=Object.fromEntries(['files','file-status','controls','file-actions','run-status','recovery'].map(id=>[id,new Element()]));
   document={body:new Element(),getElementById:id=>nodes[id],createElement:()=>new Element(),addEventListener(){}};
   document.activeElement=document.body;document.body.append(...Object.values(nodes));
   const listeners={},sent=[];let saved,handler;

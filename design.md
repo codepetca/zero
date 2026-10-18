@@ -27,6 +27,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain
   branch actions and **Publish app** in the menu, with **Commit & push** and
   **Merge to main** as direct controls. Local-practice sharing stays blocked.
+- Put **Add images & sounds…** beside **Files**, with **Copy asset paths** there
+  after import. **Review or restore changes…** belongs in the project menu; it
+  opens the existing native review/discard/restore choices. No separate tools row.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose
   another parent. Zero's explicit clone commands use its guarded GitHub App
   transport and a fresh destination. General Source Control and terminal network

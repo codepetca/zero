@@ -54,9 +54,10 @@ Native success does not establish browser compatibility. Windows native tasks
 use the task shell with strong wrapper-path quoting; other platforms use a
 process task. Physical Windows/Linux behavior remains unverified.
 
-**Add assets…** copies selected images/audio into `src/main/resources`, preserving
+**Add images & sounds…**, beside **Files**, copies selected images/audio into `src/main/resources`, preserving
 originals and existing assets with **Keep both** or **Skip existing**. Copy resource
-string literals with **Copy asset paths**. **Recovery…** opens native changes or
+string literals with **Copy asset paths** beside it. **Project menu → Review or
+restore changes…** opens native changes or
 previews an earlier tracked file version as an undoable edit. Save/test and Commit
 & push a correction; history is preserved. VS Code's auto-save preference applies.
 

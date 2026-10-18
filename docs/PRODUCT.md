@@ -295,7 +295,10 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. Supported VS Code
+  overflow; Copy repository link lives in the repository menu. **Add images &
+  sounds…** sits beside **Files**, with **Copy asset paths** after import.
+  **Review or restore changes…** in the project menu opens the existing native
+  review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
 - Run saves files, checks ordinary Java against the supported browser API, builds
   locally when inputs changed and opens an owned browser preview. Re-running

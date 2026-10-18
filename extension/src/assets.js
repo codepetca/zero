@@ -165,7 +165,7 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
         if(await project()!==root)throw Error('The student project changed. Add assets in the current project.');
       };
       await assertCurrent();const snapshot=await captureRoot(root);
-      const selected=await vscode.window.showOpenDialog({title:'Add assets',openLabel:'Add assets',canSelectFiles:true,canSelectFolders:false,canSelectMany:true,filters:{'Images and audio':EXTENSIONS}});
+      const selected=await vscode.window.showOpenDialog({title:'Add images & sounds',openLabel:'Add images & sounds',canSelectFiles:true,canSelectFolders:false,canSelectMany:true,filters:{'Images and audio':EXTENSIONS}});
       if(!selected?.length)return;
       await assertCurrent();
       if(selected.some(uri=>uri.scheme && uri.scheme!=='file'))throw Error('Choose local image or audio files.');
@@ -177,7 +177,7 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
       }
       await assertCurrent();setState('Adding assets…');
       const work=async(progress,token)=>importFiles({snapshot,sources,assertCurrent,policy,cancelled:()=>disposed || Boolean(token?.isCancellationRequested),onImported:item=>progress?.report({message:item.name})});
-      result=vscode.window.withProgress ? await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Add assets',cancellable:true},work):await work();
+      result=vscode.window.withProgress ? await vscode.window.withProgress({location:vscode.ProgressLocation.Notification,title:'Add images & sounds',cancellable:true},work):await work();
       report(result,root);
       return result;
     }catch(error){

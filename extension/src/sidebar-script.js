@@ -72,14 +72,16 @@ function sidebarClient() {
     const message = event.data;
     if (message?.type === 'sidebar.update') {
       // Status-only updates leave every interactive node and file row intact.
-      const controls = document.getElementById('controls');
-      if (controls.dataset.content !== message.controls) {
-        const active = document.activeElement;
-        const command = controls.contains(active) ? active.dataset.command : null;
-        const oldScroll = window.scrollY;
-        controls.innerHTML = message.controls; controls.dataset.content = message.controls;
-        if (command) controls.querySelector(`[data-command="${command}"]`)?.focus({preventScroll:true});
-        window.scrollTo(0,oldScroll);
+      for (const [id,content] of [['controls',message.controls],['file-actions',message.fileActions]]) {
+        const controls = document.getElementById(id);
+        if (controls && typeof content === 'string' && controls.dataset.content !== content) {
+          const active = document.activeElement;
+          const command = controls.contains(active) ? active.dataset.command : null;
+          const oldScroll = window.scrollY;
+          controls.innerHTML = content; controls.dataset.content = content;
+          if (command) controls.querySelector(`[data-command="${command}"]`)?.focus({preventScroll:true});
+          window.scrollTo(0,oldScroll);
+        }
       }
       document.getElementById('run-status').textContent = message.status;
       const recovery = document.getElementById('recovery');

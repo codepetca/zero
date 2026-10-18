@@ -83,7 +83,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-ui-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
   await core.git(root,['init','-b','main']);
-  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0,shareCalls=0;
+  const commands=new Map(),authCalls=[],notices=[],errors=[],opened=[],picks=[],dispatched=[],copied=[],registered=[],removed=[],creations=[],clones=[],inputs=[];let session,connectionSession,authEvent,webviewProvider,repo,nextChoice,inputCount=0,currentBranch='main',mode='simulation',pickEffect,checkout,checkoutGate,nativeRoot=root;let gitChanges=0,shareCalls=0,recoveryCalls=0;
   let dismissWarning; const warningPending=new Promise(resolve=>{dismissWarning=resolve;});t.after(()=>dismissWarning());
   let reportWarning; const warningShown=new Promise(resolve=>{reportWarning=resolve;});
   const oldAssert=core.assertRepositoryRoot;core.assertRepositoryRoot=async()=>root;t.after(()=>{core.assertRepositoryRoot=oldAssert;});
@@ -101,6 +101,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
     if(id==='vscode')return vscode;
     const loaded=originalLoad.call(this,id,...args);
+    if(id==='./recovery')return {...loaded,createRecoveryCommands:(...options)=>{const editor=loaded.createRecoveryCommands(...options);editor.commands['zero.recovery']=async()=>{recoveryCalls++;};return editor;}};
     if(id==='./sharing/editor')return {...loaded,createSharingEditor:(...options)=>{const editor=loaded.createSharingEditor(...options);editor.commands['zero.shareGame']=async()=>{shareCalls++;};return editor;}};
     return loaded;
   };
@@ -122,8 +123,9 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   };await settle(()=>authCalls.length>0 && /Sign in to GitHub/.test(webview.html));
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   await settle(()=>webview.html.includes('data-command="zero.importAssets"'));
-  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
-  assert.match(webview.html,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
+  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add images &amp; sounds…<\/button>/);
+  assert.doesNotMatch(webview.html,/data-command="zero.recovery"/);
+  assert.match(webview.html,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
   assert.equal(typeof commands.get('zero.importAssets'),'function');assert.equal(typeof commands.get('zero.recovery'),'function');
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
@@ -180,8 +182,10 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   await commands.get('zero.browseZeroHub')();assert.equal(shareCalls,1,'Signing out while the ZeroHub menu is open cancels sharing');
   pickEffect=undefined;session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE'};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
   nextChoice='account';await commands.get('zero.chooseRepository')();assert.equal(picks.at(-1).options.title,'GitHub: student','Native account actions remain reachable inside the project menu');
+  nextChoice='recovery';await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'The repository menu dispatches the existing guarded file recovery command');
+  pickEffect=async()=>{repo='https://github.com/student/changed.git';};await commands.get('zero.chooseRepository')();assert.equal(recoveryCalls,1,'Changing repository cancels pending file recovery');pickEffect=undefined;repo='https://github.com/student/app.git';
   nextChoice='copy';await commands.get('zero.chooseRepository')();assert.equal(copied.at(-1),'https://github.com/student/app');
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','new','clone','local','account']);
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','connect','new','clone','local','recovery','account']);
   const beforePublishAuth=authCalls.length;nextChoice='publish';await commands.get('zero.chooseRepository')();assert.match(webview.html,/Simulation only — no publishing files/);assert.equal(authCalls.length,beforePublishAuth,'Repository menu dispatch preserves publishing simulation isolation');
   session={...session,account:{id:'1',label:'<img src=x onerror="bad">'}};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
   assert.doesNotMatch(webview.html,/<img|&lt;img|PRIVATE/,'Account labels and tokens stay out of sidebar HTML');
@@ -207,11 +211,11 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   nextChoice='clone';pickEffect=async()=>{repo='https://github.com/student/changed.git';};const beforeDrift=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeDrift,'A changed destination invalidates a pending menu selection');pickEffect=undefined;repo='https://github.com/student/app.git';currentBranch='main';
   await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({tutorialProjectId:'greeting',repositoryRequired:true,lessonId:'0'}));
   nextChoice=undefined;await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','new','clone','local','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['open','copy','publish','start','switch','new','clone','local','recovery','account'],'A cloned tutorial keeps repository actions without offering rejected origin replacement');
   await commands.get('zero.browseZeroHub')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries'],'Tutorial projects do not offer Share project');
   repo=undefined;webviewProvider.resolveWebviewView(candidate);await settle(()=>!webview.html.includes('student/app'));
   await commands.get('zero.chooseRepository')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['new','clone','local','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
+  assert.deepEqual(picks.at(-1).items.map(item=>item.action),['new','clone','local','recovery','account'],'An uncloned tutorial offers a new project, clone or opening an existing local copy');
   nextChoice='clone';const beforeClone=dispatched.length;await commands.get('zero.chooseRepository')();assert.equal(dispatched.length,beforeClone,'Cancelled clone URL does not launch Git');
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.runApp'),'Local Run is always available');
 });

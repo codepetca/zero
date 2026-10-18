@@ -217,7 +217,7 @@
       },
       {
         "command": "zero.importAssets",
-        "title": "Zero: Add Assets\u2026"
+        "title": "Zero: Add images & sounds\u2026"
       },
       {
         "command": "zero.copyImportedAssetPaths",
@@ -225,7 +225,7 @@
       },
       {
         "command": "zero.recovery",
-        "title": "Zero: Recovery\u2026"
+        "title": "Zero: Review or restore changes\u2026"
       },
       {
         "command": "zero.newProject",
