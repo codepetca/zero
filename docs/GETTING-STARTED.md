@@ -25,13 +25,13 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
    Codepet App with selected repositories; Zero-created repositories receive
    access automatically. Local Run remains available if you cancel.
 3. Choose **Start tutorial** from Zero’s welcome or **…** menu and select **Greeting app**.
-   Enter a repository name and choose **Private** or **Public** following your
-   teacher's instructions.
+   Enter a repository name. Zero creates a public repository in your GitHub
+   account; its source and included files will be public.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
    Zero creates your repository from the verified template, checks App access,
    clones it and opens the project in a new window. No repository is created
-   until you have chosen its name, visibility and location.
+   until you have chosen its name and location.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
    lesson 0 and choose **Run App**. **Open in browser** opens the lesson or running
    app in your default browser. Keep this repository for the following Greeting lessons.
@@ -66,7 +66,9 @@ This baseline supports the real push workflow used in the lessons.
 The kit's ordinary Hello World setup check can run without an account; the
 continuing tutorials start from your own template-created repository and clone.
 
-1. Ask your teacher which username, email and repository visibility to use, and
+1. Ask your teacher which username and email to use, and confirm that public
+   tutorial source is allowed. For existing or GitHub-created repositories,
+   follow your teacher's visibility instructions. Also
    confirm that GitHub device sign-in is allowed on your school device/network.
    If access is blocked, ask your teacher or IT; do not bypass school restrictions.
 2. [Create a personal GitHub account](https://github.com/signup) if you do not
@@ -77,9 +79,9 @@ continuing tutorials start from your own template-created repository and clone.
    On the school machine, check that you can open GitHub, complete Zero's device
    sign-in and download Zero's compiler dependencies. Use the same account for
    your repository, cloning and Zero pushes. Nothing pushes just by signing in.
-4. Choose **Private** for tutorial repositories unless your teacher/school asks
-   for Public. After creating each repository from its template, invite your
-   teacher's confirmed GitHub username as a
+4. Repositories created through Zero are public. Keep passwords, personal data
+   and other private files out of your project. If you create a private repository
+   separately on GitHub, invite your teacher's confirmed GitHub username as a
    [collaborator](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository) through repository
    Settings → Collaborators → Add people. The teacher must accept; check they can
    open it. Collaborator access to a personal repository includes writing code.
@@ -93,9 +95,9 @@ its spelling. This setting does not rewrite old commits. See
 [GitHub's commit email guide](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address).
 
 **Publishing a playable game is optional.** Its app and included assets become
-public even if source stays private. GitHub Free supports private repositories
+public; existing or GitHub-created source can stay private. GitHub Free supports private repositories
 and collaborators, but Pages from a private repository needs an eligible plan.
-Keep your teacher-approved visibility; if Pages is unavailable, skip Publish or
+Keep existing repository visibility; if Pages is unavailable, skip Publish or
 ask your teacher about an approved option. No paid plan is needed to complete
 the tutorial repository/push workflow. See [GitHub's Pages availability](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
 After cloning and caching compiler dependencies, editing and Run App work offline
@@ -194,7 +196,7 @@ confirm its browser preview, since tool detection is not a build test.
 
 Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
 choose **Start tutorial → Greeting app** in Zero to create and clone a repository
-in your own GitHub account after selecting its name, visibility and location.
+in your own GitHub account after selecting its name and location. It is public.
 Use **your repository**, not Zero's shared template. The template has empty `setup()`; its first browser preview is
 blank. Write your label following the lesson and Run App again after edits.
 Keep that repository for lessons 1 and 2 as you add a button and name field.
@@ -250,7 +252,8 @@ not verify browser compatibility.
 
 Local running needs no GitHub sign-in. Live push and publishing need Git
 **2.31+** and your own GitHub account. For sharing work, follow your teacher's
-privacy, visibility and account instructions. If you used **Start tutorial** or
+privacy and account instructions. Repositories created through Zero are public;
+existing/cloned repositories keep their visibility. If you used **Start tutorial** or
 **New project…**, Zero already created and cloned **your repository**.
 That clone already has Git history and its own origin: keep that repository,
 complete sign-in and identity setup below, and skip creating an empty repository.
@@ -262,7 +265,7 @@ The empty-repository steps below apply to an extracted source ZIP:
    connection on this computer and preserves local work and other extensions'
    accounts. Canceling authentication leaves local Run available.
 2. With your original local project open, choose **Project → Create a repository…**.
-   Enter a name and explicitly choose visibility. Zero creates an empty remote
+   Enter a name. Zero creates an empty public remote
    in your personal account, verifies App access and connects this project.
    No source is uploaded by creation. This workflow does not use GitHub Classroom.
 3. If you already created an empty repository on GitHub, use **Project → Connect to GitHub…**

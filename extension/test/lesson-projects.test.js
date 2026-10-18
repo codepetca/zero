@@ -115,12 +115,12 @@ test('local practice sharing commands stop before authentication, saves, Git or 
 test('Start project cancels cleanly and creates only from verified tutorial metadata through the App', async t => {
   const Module=require('node:module'),root=await temporary(t),media=path.join(root,'media');await fs.mkdir(media);
   const bundle=sample(),bundlePath=path.join(media,'lesson-projects.json');await fs.writeFile(bundlePath,JSON.stringify(bundle));
-  const commands=new Map(),opened=[],errors=[],creates=[],clones=[],authCalls=[],dialogs=[];let choose=false,name='my-greeting',privacy=true,location=true;
+  const commands=new Map(),opened=[],errors=[],creates=[],clones=[],authCalls=[],dialogs=[];let choose=false,name='my-greeting',location=true;
   const disposable=()=>({dispose(){}}),session={id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY',scopes:[]};
   const vscode={
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});return session;},onDidChangeSessions:disposable,registerAuthenticationProvider:(id,label)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');return disposable();}},
     workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[],getConfiguration:()=>({get:(_,fallback)=>fallback}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
-    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>options.title==='Start tutorial'?(choose?items[0]:undefined):privacy===undefined?undefined:items.find(item=>item.private===privacy),showInputBox:async()=>name,showOpenDialog:async options=>{dialogs.push(options);return location?[{fsPath:root}]:undefined;},showErrorMessage:async text=>errors.push(text),showInformationMessage:async()=>undefined},
+    window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showQuickPick:async(items,options)=>options.title==='Start tutorial'?(choose?items[0]:undefined):assert.fail('Unexpected picker: '+options.title),showInputBox:async()=>name,showOpenDialog:async options=>{dialogs.push(options);return location?[{fsPath:root}]:undefined;},showErrorMessage:async text=>errors.push(text),showInformationMessage:async()=>undefined},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(id,uri,options)=>{assert.equal(id,'vscode.openFolder');opened.push({uri,options});}},
     env:{openExternal:async()=>{throw Error('Tutorial repository creation must use the App');}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})},EventEmitter:class{event(){}fire(){}dispose(){}}
@@ -133,8 +133,7 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
   choose=true;await commands.get('zero.startProject')();assert.match(errors.at(-1),/not published yet/);assert.equal(creates.length,0);assert.equal(opened.length,0);
   bundle.projects[0].template={repository:'codepetca/zero-tutorial-greeting',repositoryUrl:'https://github.com/codepetca/zero-tutorial-greeting',templateHref:'https://github.com/codepetca/zero-tutorial-greeting/generate'};await fs.writeFile(bundlePath,JSON.stringify(bundle));
   name=undefined;await commands.get('zero.startProject')();assert.equal(creates.length,0);
-  name='my-greeting';privacy=undefined;await commands.get('zero.startProject')();assert.equal(creates.length,0);
-  privacy=false;location=false;await commands.get('zero.startProject')();assert.equal(creates.length,0);
+  name='my-greeting';location=false;await commands.get('zero.startProject')();assert.equal(creates.length,0);
   location=true;const beforeErrors=errors.length;await commands.get('zero.startProject')();assert.equal(errors.length,beforeErrors);
   assert.deepEqual(creates,[{input:{name:'my-greeting',private:false,template:{owner:'codepetca',repo:'zero-tutorial-greeting'}},account:'student'}]);
   assert.deepEqual(clones,[{repositoryUrl:'https://github.com/student/my-greeting',parentPath:root}]);assert.deepEqual(opened,[{uri:{fsPath:path.join(root,'my-greeting')},options:{forceNewWindow:true}}]);assert.equal(profile.get('zero.repositoryCreationRecovery'),undefined);assert.ok(dialogs.every(dialog=>dialog.canSelectFolders&&!dialog.canSelectFiles));

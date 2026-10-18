@@ -55,3 +55,22 @@ test('overflow, stale, error and empty outcomes release requests so folders can 
   for(let round=0;round<10;round++){for(const release of gates.splice(0))release(null);await tick();}
   assert.equal(responses.length,73,'Every valid request has a terminal outcome, even beyond the queue bound');
 });
+
+test('Files actions update with project/busy state without replacing the file tree or stealing focus',()=>{
+  const h=prepared(),sound=h.row(id(3));
+  h.emit({type:'sidebar.update',controls:'Run',fileActions:'Add assets',status:'Ready',failed:false});
+  assert.equal(h.nodes['file-actions'].innerHTML,'Add assets');
+  h.emit({type:'sidebar.update',controls:'Run',fileActions:'<button disabled>Add assets</button>',status:'Working',failed:false});
+  assert.match(h.nodes['file-actions'].innerHTML,/disabled/);
+  assert.equal(h.row(id(3)),sound);assert.equal(h.document.activeElement,sound);
+  h.emit({type:'sidebar.update',controls:'Run',fileActions:'',status:'Open a project',failed:false});
+  assert.equal(h.nodes['file-actions'].innerHTML,'');assert.equal(h.document.activeElement,sound);
+});
+
+test('focusable unavailable run control blocks activation until shutdown finishes',()=>{
+  const h=sidebarDOM(),button=h.document.createElement('button');button.dataset.command='zero.toggleApp';
+  button.setAttribute('aria-disabled','true');h.clickCommand(button);
+  assert.equal(h.sent.filter(message=>message.command==='zero.toggleApp').length,0);
+  button.setAttribute('aria-disabled','false');h.clickCommand(button);
+  assert.equal(h.sent.filter(message=>message.command==='zero.toggleApp').length,1);
+});

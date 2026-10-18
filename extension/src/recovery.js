@@ -10,7 +10,7 @@ const MAX_FILE_BYTES = 512 * 1024;
 const MAX_OUTPUT_BYTES = 1024 * 1024;
 const HISTORY_LIMIT = 40;
 const SCHEME = 'zero-recovery';
-const driftMessage = 'The project, file or Git history changed. Open the file and choose Recovery again.';
+const driftMessage = 'The project, file or Git history changed. Open the file and choose Review or restore changes again.';
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
 // Only local inspection commands are used. Preserve exact blob bytes, including
@@ -84,7 +84,7 @@ function createRecoveryCommands(vscode, {project,isBusy,setBusy,setState,output,
   const uriKey = uri => uri?.toString();
   const branchFor = root => meta(root,['symbolic-ref','-q','HEAD']).catch(error => {if (error.code === 1) return 'detached'; throw error;});
   async function context() {
-    if (disposed) throw new Error('Recovery closed. Choose Recovery again.');
+    if (disposed) throw new Error('Recovery closed. Choose Review or restore changes again.');
     if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before using Recovery.');
     const root = await project();
     const canonical = await fs.realpath(root);
@@ -191,7 +191,7 @@ function createRecoveryCommands(vscode, {project,isBusy,setBusy,setState,output,
         {label:'Review changes',description:'Open native Source Control',action:'review'},
         {label:'Discard changes in current file…',description:'Use the file’s native Discard Changes confirmation',action:'discard'},
         {label:'Restore an earlier file version…',description:'Preview a saved version, then restore only this file',action:'restore'}
-      ],{title:'Recovery',placeHolder:'Review or recover a file without rewriting Git history'});
+      ],{title:'Review or restore changes',placeHolder:'Review or recover a file without rewriting Git history'});
       if (!choice) return;
       if (choice.action === 'review') {
         const now = await context();

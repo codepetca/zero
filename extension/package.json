@@ -69,6 +69,10 @@
         "title": "Zero: Switch Branch"
       },
       {
+        "command": "zero.toggleApp",
+        "title": "Zero: Run or Stop App"
+      },
+      {
         "command": "zero.runApp",
         "title": "Zero: Run App"
       },
@@ -209,7 +213,7 @@
       },
       {
         "command": "zero.browseZeroHub",
-        "title": "Zero: Browse ZeroHub"
+        "title": "Zero: ZeroHub"
       },
       {
         "command": "zero.showOutput",
@@ -217,7 +221,7 @@
       },
       {
         "command": "zero.importAssets",
-        "title": "Zero: Add Assets\u2026"
+        "title": "Zero: Add assets\u2026"
       },
       {
         "command": "zero.copyImportedAssetPaths",
@@ -225,7 +229,7 @@
       },
       {
         "command": "zero.recovery",
-        "title": "Zero: Recovery\u2026"
+        "title": "Zero: Review or restore changes\u2026"
       },
       {
         "command": "zero.newProject",

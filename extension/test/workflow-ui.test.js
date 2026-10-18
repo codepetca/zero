@@ -51,7 +51,8 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
   assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
-  assert.match(webview.html,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
+  assert.doesNotMatch(webview.html,/data-command="zero.recovery"/);
+  assert.match(webview.html,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
   assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Commit &amp; push/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;
@@ -87,7 +88,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.equal(deletions.length,2);assert.equal(errors.length,errorsBeforeCleanup);assert.equal(reviews.length,0);assert.match(warnings.at(-1),/Merged to main.*local branch kept; see Output/);assert.match(logs.at(-1),/finished branch changed/);assert.equal(branch,'main');cleanupError=undefined;
   publishedState={root,account:'1',resume:{repository:'https://github.com/student/app'}};provider.resolveWebviewView(candidate);
   assert.match(webview.html,/data-command="zero.openPublishedWeb"/);assert.match(webview.html,/data-command="zero.copyPublishedWebLink"/);
-  session={...session,account:{id:'1',label:'renamed-student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>webview.html.includes('renamed-student'));assert.match(webview.html,/data-command="zero.openPublishedWeb"/,'Numeric identity survives username changes');
+  session={...session,account:{id:'1',label:'renamed-student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>webview.html.includes('data-command="zero.openPublishedWeb"'));assert.match(webview.html,/data-command="zero.openPublishedWeb"/,'Numeric identity survives username changes');assert.doesNotMatch(webview.html,/renamed-student/,'Account refresh does not restore the removed username row');
   session={...session,account:{id:'2',label:'renamed-student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>!webview.html.includes('data-command="zero.openPublishedWeb"'));
   session={...session,account:{id:'1',label:'student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>webview.html.includes('data-command="zero.openPublishedWeb"'));
   for(const changed of [{root:'/other'}, {account:'other'}, {resume:{repository:'https://github.com/student/other'}}]) {

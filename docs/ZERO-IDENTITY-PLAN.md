@@ -15,9 +15,10 @@ Pika. Ordinary Java, the current minimal sidebar and deliberate Publish remain.
 
 Installation defaults to **selected repositories**, with the App automatically
 receiving access to repositories it creates. Never require or silently select
-all repositories. The new-project flow should collect the scaffold, name,
-visibility and location, create under the connected personal account, then clone
-and open the verified repository. Existing repositories require explicit access.
+all repositories. The new-project flow collects the scaffold, name and location,
+creates a public repository under the connected personal account, then clones
+and opens the verified repository. The created source and included files are public.
+Existing repositories require explicit access and keep their visibility.
 
 One App does not mean one reusable token or automatic shared browser/editor
 sessions. Both surfaces bind to the immutable GitHub numeric user ID; usernames

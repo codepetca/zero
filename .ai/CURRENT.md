@@ -1,48 +1,56 @@
-# Mobile runtime released — 2026-10-18
+# Zero mobile delivery and student publishing — 2026-10-18
 
 Worktree: /Users/stew/.codex/worktrees/student-friction/zero.
-Preserve unrelated dirty primary checkout and all prior sealed candidates.
-Owner authorized PR, merge, Mac release and supported armorup Grove republish.
-Source PR103 merged628b389 after reviewed7f59175 and allfive checks passed.
-Mac metadata PR104 merged8564ea9 after reviewedebd5f8e and allfive checks passed.
-Public release: https://github.com/codepetca/zero/releases/tag/setup-v0.5.20.
-Native20/build20 is signed, Apple-notarized, stapled and Gatekeeper accepted.
-Draft, anonymous public and actual Chrome downloads match sealed4568123bytes,
-SHA256776ed521cb0c541ede68e3aa9ef0319ca02881fe4c3ad84238b27a93defbb77f.
-Live /downloads anchor and exact signed feed verified. Standalone kit17 remains
-published independently; current kit20 remains local. Never replace old assets.
+Branch: codex/mobile-delivery-evidence. Preserve the unrelated dirty primary
+checkout, all source snapshots, profiles, caches and sealed release candidates.
+This task owns documentation completion and the existing armorup Grove Guard
+student publication. No further installer build, release or installation is
+running here; the Lead publishing task owns its newer preview work.
 
-Browser GameApp source c49b32f remains unchanged: six GWT fixtures, Chrome
-56desktop/136phone-sized assertions and unchanged Grove9real-touch checks pass.
-Integrated root710tests:707pass/3skip; website151tests/typecheck/build pass.
-Core review budget remains exhausted at4correction batches. Release review used
-2initialSol/high reviewers,1targeted notes pass and1finalmetadata integration;
-1documentation correction, all clear. No new runtime/credential/permission edits.
+Browser mobile source PR103 merged at 628b389 after independent source and
+integration reviews and all CI checks. Mac metadata PR104 merged at 8564ea9.
+Mac 0.5.20/build20 is public, signed, Apple-notarized and stapled. Draft, anonymous
+public and real Chrome downloads match the sealed 4,568,123-byte DMG, SHA256
+776ed521cb0c541ede68e3aa9ef0319ca02881fe4c3ad84238b27a93defbb77f.
+The live download anchor and exact signed feed were verified. Standalone kit17
+is independently published; current local kit metadata belongs to newer work.
+Published assets remain immutable. Sidebar and simpler GitHub project setup
+source subsequently merged in PR105; preserve those changes when integrating.
 
-Installed /Applications/Zero.app verifies0.5.20/build20. Native preparation reached
-Opening Zero and exited. Computer-use selected a different same-path Code process;
-no launcher defect inferred. Existing officialVSCode Zero Grove Guard profile was
-updated through the documented ~/Zero/zero-0.5.20.vsix UI and reloaded. Zero Open
-Local Project opened existing /Users/stew/Repos/zero-grove-guard. Run App rebuilt
-successfully with reviewed profile a99532955746e08fe916a1810fa8b892aff38ee06ed65e38249638b901f06f9e;
-all14source/resource hashes unchanged. CUA phone390x844 and740x320 checks confirm
-fit, Seed/Frost placement, economy, wave start, pause and restart after rotation.
-Those CUA clicks are mouse input at phone sizes; prior realCDPtouch proof is separate.
-Physical iPhone/Safari, Intel and interactive Windows remain unverified.
+Reviewed mobile implementation c49b32f is unchanged. Six GWT fixtures and Chrome
+56 desktop/136 phone-sized assertions pass; unchanged Grove has 9 real-touch
+checks. Combined root suite: 707 passed, 3 skipped; website: 151 passed plus
+successful typecheck/build. Core remediation budget remains exhausted at four
+correction batches. Release review used two initial Sol/high reviewers, one
+notes correction and targeted pass, and one final metadata integration; clear.
+This documentation completion does not authorize another runtime correction loop.
 
-Zero native UI verified Signed in as armorup and armorup/zero-grove-guard/main.
-Publish App correctly refused unavailable selected-repository access. GitHub App
-settings have ONLY this task-owned repository staged for addition, preserving all
-existing selections; Save has NOT been clicked by this coordinator. An action-time
-confirmation question is pending because this expands repository write access.
-Browser handoff: GitHub settings/installations/172672389 in Dev Chrome. Do not
-save without owner's confirmation or actual owner-completed UI evidence. No new
-credentials/account settings were changed by this coordinator outside routine
-requested sign-in. Never use CLI Git/build/publication to bypass the student flow.
+Installed /Applications/Zero.app verifies 0.5.20/build20. Native preparation reached
+Opening Zero and exited. Computer use selected another same-path Code process;
+no launcher defect was established. The existing official VS Code profile
+Zero Grove Guard was updated through the documented bundled VSIX UI and reloaded.
+Zero Open Local Project reopened /Users/stew/Repos/zero-grove-guard. Zero Run App
+rebuilt with reviewed exporter profile
+a99532955746e08fe916a1810fa8b892aff38ee06ed65e38249638b901f06f9e.
+All 14 recorded source/resource hashes remain unchanged. CUA checks at 390x844
+and 740x320 confirm full-content fit, Seed/Frost placement, economy, wave start,
+pause and restart after rotation. These are mouse clicks at phone sizes; prior
+real CDP touch evidence is separate. Physical iPhone/Safari, Intel Mac and
+interactive Windows acceptance remain unverified.
 
-Next after approval: save only prepared Grove access (or verify owner saved it),
-retry Zero Publish App, verify public deployment and phone fit/controls, update
-final evidence. Existing public game still uses its previous export until then.
-No new goal/task/automation created. DeepSeek paused through2026-12-31.
-Receipts:docs/EVIDENCE.md; ignored .verification/mobile-canvas/plan.json and
-.verification/mac-0.5.20/. Preserve logs/screenshots/caches/profiles/backups.
+Native Zero verified armorup and armorup/zero-grove-guard on main. Publish App
+correctly refused unavailable selected-repository access. The owner explicitly
+approved adding only Grove Guard to the existing Codepet Zero installation and
+finishing publication. Existing repository selections must be preserved. On
+resumption GitHub requires fresh passkey/2FA verification before that settings
+page is accessible; the owner has been asked to finish the passkey prompt in
+Dev Chrome. Do not synthesize authentication or broaden repository selection.
+
+Next: after that existing-account verification, save only the approved Grove
+selection, retry supported Zero Publish App, verify the public deployment and
+phone fit/controls, then complete this evidence PR through review and CI. Do not
+use terminal Git/build commands or direct publication to bypass the student UI.
+No new goal/task/automation was created. DeepSeek is paused through 2026-12-31.
+Evidence: docs/EVIDENCE.md; ignored .verification/mobile-canvas/plan.json and
+.verification/mac-0.5.20/. Current weekly remaining 29% is account-wide; storage
+is healthy at about 299GB. Neither reading establishes task-specific cost.

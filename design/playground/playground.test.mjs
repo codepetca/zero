@@ -67,10 +67,14 @@ test('download review shows a published Mac fixture and omits a local Mac candid
 
 test('actual sidebar renderer retains local Run while signed out and useful Error recovery', async () => {
   const ready = sidebarSource();
-  assert.match(ready,/zero.runApp/); assert.doesNotMatch(ready,/Ready to run/);
+  assert.match(ready,/zero.toggleApp/); assert.doesNotMatch(ready,/Ready to run/);
   assert.match(ready,/Sign in to GitHub/);
+  assert.doesNotMatch(ready,/<header class="sidebar-brand"|<h1>Zero<\/h1>/,'Keep the current panel height; branding stays in the activity bar');
+  const hub=ready.match(/<button[^>]*data-command="zero.browseZeroHub"[^>]*>[\s\S]*?<\/button>/)[0];
+  assert.ok(hub.endsWith('>ZeroHub</button>'));assert.doesNotMatch(hub,/<svg/);
   assert.match(ready,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
-  assert.match(ready,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
+  assert.doesNotMatch(ready,/data-command="zero.recovery"/);
+  assert.match(ready,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
   assert.doesNotMatch(ready,/data-command="zero.copyImportedAssetPaths"/);
   const empty = sidebarSource('empty');
   assert.doesNotMatch(empty,/data-command="zero.importAssets"|data-command="zero.recovery"/);
@@ -82,8 +86,26 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   const practice = sidebarSource('practice');
   assert.match(practice,/zero.browseZeroHub/);
   assert.match(practice,/data-command="zero.importAssets"/);
-  assert.match(practice,/data-command="zero.recovery"/);
+  assert.doesNotMatch(practice,/data-command="zero.recovery"/);
   assert.match(practice,/>Sign in<\/button>/);
   assert.doesNotMatch(practice,/data-command="zero.chooseRepository"/);
   assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub)"/);
+});
+
+test('actual sidebar renderer has one Run/Stop control across idle, build, running and stopping states',()=>{
+  for(const [state,label] of [['ready','Run'],['building','Stop'],['running','Stop'],['stopping','Stopping…'],['error','Run']]){
+    const html=sidebarSource(state);
+    assert.equal((html.match(/data-command="zero.toggleApp"/g)||[]).length,1);
+    assert.doesNotMatch(html,/data-command="zero.runApp"|data-command="zero.stopApp"/);
+    const button=html.match(/<button class="run"[^>]*>[\s\S]*?<\/button>/)[0];
+    assert.ok(button.endsWith(label+'</button>'));
+    const browser=html.match(/<button[^>]*data-command="zero.openRunningAppInBrowser"[^>]*>[\s\S]*?<\/button>/);
+    if(state==='running'){
+      assert.ok(browser);assert.match(browser[0],/title="Open in browser" aria-label="Open in browser"/);
+      assert.match(browser[0],/<svg/);assert.equal(browser[0].replace(/<[^>]*>/g,''),'');
+      assert.match(html,/<div class="run-controls">[\s\S]*zero.toggleApp[\s\S]*zero.openRunningAppInBrowser[\s\S]*?<\/div>/);
+    }else assert.equal(browser,null);
+
+    if(state==='stopping')assert.match(button,/aria-disabled="true"/);else assert.doesNotMatch(button,/ disabled>|aria-disabled="true"/);
+  }
 });

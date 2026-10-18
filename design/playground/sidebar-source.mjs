@@ -16,10 +16,10 @@ const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;',
 export function sidebarSource(state = 'ready') {
   const webview = {};
   runInNewContext(`${source.slice(start, end)}\nrender(webview);`, {
-    path,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,browserRun:{canOpenInBrowser:false},
-    projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebview: undefined, sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => false,
+    path,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,browserRun:{canOpenInBrowser:state==='running'},
+    projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebview: undefined, sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => ['building','stopping'].includes(state),
     repository: 'No repository connected', auth: { signedIn: false, accountLabel: '' },
-    branch: '', branchDetached: false, uploadMode: () => 'simulation', execution: null, browserActive: false, localPractice: state === 'practice', originalWork: state !== 'practice',
+    branch: '', branchDetached: false, uploadMode: () => 'simulation', execution: null, pendingLaunch:undefined, nativeStarting:0, stopPromise:state==='stopping'?Promise.resolve():undefined, browserBusy:state==='building', browserActive:['building','running'].includes(state), localPractice: state === 'practice', originalWork: state !== 'practice',
     state: state === 'error' ? 'Your app could not build. Main.java, line 8: add a semicolon after the greeting. Choose Show Problems to find the line.' : '',
     buildFailed: state === 'error',
   }, { timeout: 1000 });
