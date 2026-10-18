@@ -69,7 +69,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   const ready = sidebarSource();
   assert.match(ready,/zero.runApp/); assert.doesNotMatch(ready,/Ready to run/);
   assert.match(ready,/Sign in to GitHub/);
-  assert.match(ready,/data-command="zero.importAssets"[^>]*>Add images &amp; sounds…<\/button>/);
+  assert.match(ready,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
   assert.doesNotMatch(ready,/data-command="zero.recovery"/);
   assert.match(ready,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
   assert.doesNotMatch(ready,/data-command="zero.copyImportedAssetPaths"/);

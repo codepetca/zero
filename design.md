@@ -18,7 +18,8 @@ when adding features; a new feature does not reset the agreed interaction style.
 - When signed out, show only **Sign in** in the GitHub area; hide the project
   dropdown and branch, while keeping local Run and files available. When signed
   in, show the open folder / connected **owner/repository** as the project menu,
-  without a duplicate username row or visible chevron. Allow its label to wrap to
+  without a duplicate username row. Show a right chevron to indicate the menu opens.
+  Allow its label to wrap to
   two lines; retain the full accessible name and tooltip. **GitHub account…** in
   that menu opens account actions through Zero's supported GitHub App provider.
   A single **ZeroHub** menu contains **Projects**, **Libraries** and **Share project**
@@ -27,7 +28,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain
   branch actions and **Publish app** in the menu, with **Commit & push** and
   **Merge to main** as direct controls. Local-practice sharing stays blocked.
-- Put **Add images & sounds…** beside **Files**, with **Copy asset paths** there
+- Put **Add assets…** beside **Files**, with **Copy asset paths** there
   after import. **Review or restore changes…** belongs in the project menu; it
   opens the existing native review/discard/restore choices. No separate tools row.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose

@@ -58,9 +58,9 @@ test('overflow, stale, error and empty outcomes release requests so folders can 
 
 test('Files actions update with project/busy state without replacing the file tree or stealing focus',()=>{
   const h=prepared(),sound=h.row(id(3));
-  h.emit({type:'sidebar.update',controls:'Run',fileActions:'Add images & sounds',status:'Ready',failed:false});
-  assert.equal(h.nodes['file-actions'].innerHTML,'Add images & sounds');
-  h.emit({type:'sidebar.update',controls:'Run',fileActions:'<button disabled>Add images & sounds</button>',status:'Working',failed:false});
+  h.emit({type:'sidebar.update',controls:'Run',fileActions:'Add assets',status:'Ready',failed:false});
+  assert.equal(h.nodes['file-actions'].innerHTML,'Add assets');
+  h.emit({type:'sidebar.update',controls:'Run',fileActions:'<button disabled>Add assets</button>',status:'Working',failed:false});
   assert.match(h.nodes['file-actions'].innerHTML,/disabled/);
   assert.equal(h.row(id(3)),sound);assert.equal(h.document.activeElement,sound);
   h.emit({type:'sidebar.update',controls:'Run',fileActions:'',status:'Open a project',failed:false});

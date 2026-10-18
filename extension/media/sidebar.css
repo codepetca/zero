@@ -22,7 +22,8 @@ button.account,button.link,button.repo-choice { border:1px solid transparent; ba
 button.account { width:auto; min-width:0; font-size:.92em; color:var(--zero-muted); }
 button.account:hover,button.link:hover,button.repo-choice:hover { background:transparent; text-decoration:underline; }
 button.repo-choice { flex:1; width:auto; color:var(--zero-text); }
-.repo-label { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; min-width:0; }
+button.repo-choice > svg { transform:rotate(-90deg); }
+.repo-label { flex:1; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; min-width:0; }
 .branch-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:2px 0 5px; }
 .branch { display:inline-flex; align-items:center; gap:7px; min-width:0; overflow-wrap:anywhere; color:var(--zero-muted); }
 .branch svg { width:16px; height:16px; flex:none; }

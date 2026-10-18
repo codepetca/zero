@@ -123,7 +123,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   };await settle(()=>authCalls.length>0 && /Sign in to GitHub/.test(webview.html));
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   await settle(()=>webview.html.includes('data-command="zero.importAssets"'));
-  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add images &amp; sounds…<\/button>/);
+  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
   assert.doesNotMatch(webview.html,/data-command="zero.recovery"/);
   assert.match(webview.html,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
   assert.equal(typeof commands.get('zero.importAssets'),'function');assert.equal(typeof commands.get('zero.recovery'),'function');
@@ -169,7 +169,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/class="repo-label">student\/<wbr>app/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/,'Publishing lives in repository actions');
   assert.match(webview.html,/aria-haspopup="dialog"[^>]*><span class="repo-label">/);
-  assert.doesNotMatch(webview.html.match(/<button class="repo-choice"[\s\S]*?<\/button>/)[0],/<svg/,'The project menu needs no visible chevron');
+  assert.match(webview.html.match(/<button class="repo-choice"[\s\S]*?<\/button>/)[0],/lucide-chevron-down[\s\S]*aria-hidden="true"/,'A decorative right-pointing chevron identifies the project menu');
   assert.doesNotMatch(webview.html,/Browse ZeroHub|data-command="zero.shareGame"/,'Sharing belongs inside the single ZeroHub menu');
   nextChoice=undefined;await commands.get('zero.browseZeroHub')();
   assert.deepEqual(picks.at(-1).items.map(item=>item.action),['projects','libraries','share']);

@@ -217,7 +217,7 @@
       },
       {
         "command": "zero.importAssets",
-        "title": "Zero: Add images & sounds\u2026"
+        "title": "Zero: Add assets\u2026"
       },
       {
         "command": "zero.copyImportedAssetPaths",

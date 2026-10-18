@@ -280,7 +280,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   appear when there is a message. Signed-out GitHub controls show only Sign in;
   the project dropdown and branch are hidden, and local Run/files remain usable.
   Signed in shows the project menu as the current folder or connected owner/repository,
-  without a duplicate username or visible chevron. Its label wraps to two lines;
+  without a duplicate username, with a right chevron indicating its menu.
+  Its label wraps to two lines;
   the full name stays accessible and in its tooltip. GitHub account… in that menu
   opens the existing account actions. ZeroHub opens Projects, Libraries and Share
   project for eligible signed-in original projects. Clone from GitHub starts its location picker at
@@ -295,8 +296,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. **Add images &
-  sounds…** sits beside **Files**, with **Copy asset paths** after import.
+  overflow; Copy repository link lives in the repository menu. **Add assets…** sits beside **Files**, with **Copy asset paths** after import.
   **Review or restore changes…** in the project menu opens the existing native
   review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
