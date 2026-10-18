@@ -5675,3 +5675,43 @@ per-turn tokens and exact elapsed worker/reviewer time unavailable. No inference
 of cost savings from account-wide allowance. Latest weekly47% remaining and
 storage306.7GB healthy; no cleanup. Existing authority covers draft PR push only;
 merge,production deployment and native release remain separate gates.
+
+
+## Signed-in sidebar and ZeroHub actions — 2026-10-18
+
+Owner requested removing the duplicate username row, allowing a two-line
+repository name without a visual chevron, and grouping Share project under one
+ZeroHub button. Implemented on codex/sidebar-zerohub-actions in the release-readiness
+worktree, based on merged GitHub App/branding PR102:f719d18. Authentication,
+account selection/sign-out, repository workflows and guarded sharing commands
+are preserved. Account actions now remain reachable through Project menu →
+GitHub account…. Local Run has no added authentication gate; ordinary Java and
+branding assets are unchanged. Source106beeb, reviewed corrections through1a590f2.
+
+Final npm run check and npm test pass:710tests,707passed,3skipped,0failed.
+Focused sidebar/onboarding/upload tests:45passed. The first integrated full run
+found one stale workflow test waiting for the intentionally removed username;
+its replacement checks published-action restoration after auth refresh and name
+absence, passes in isolation and in the final full suite. Initial integration
+also required two fixture/expectation updates; no implementation defect found.
+Actual extension-render browser fixtures at280px confirm light/dark layout,
+two lines totaling36.4px, full accessible repository name, keyboard focus outline and no
+horizontal overflow, duplicate account row, repository chevron or inline Share.
+Fixtures use a disposable account and do not prove live authentication. Native
+isolated VS Code automation timed out; actual native click-through and Windows
+remain unverified. Disposable host/server/tab were closed; installed apps,
+credentials, source checkout and the owner's fresh-install state were preserved.
+
+Independent Sol/medium initial review106beeb covered the complete9-file diff
+fromf719d18 and immediate auth/picker/sharing/bridge dependencies:0blockers,
+1optional P3 account-guide correction accepted. Targeted reviewa52a6c6 verified
+that correction; targeted review1a590f2 verified the test-only auth-refresh delta.
+All assigned coverage complete; no outstanding findings. Three reviewer turns,
+one initial wave,two targeted waves,two correction batches; no integration wave
+needed because implementation remained unchanged. Requested model gpt-6.1-sol,
+medium; effective configuration, per-turn tokens, review/coordinator active
+seconds unavailable. Review receipt IDs:sidebar_refinement_review/turn1–3.
+Account-wide weekly remaining45% at start; storage301.6GB healthy, no cleanup.
+Bulky logs, screenshot and structured receipt remain ignored under
+.verification/sidebar-refinement-20261018. Local branch only; no new source push,
+merge, installer build or live release is claimed or authorized for this request.
