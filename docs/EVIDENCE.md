@@ -5725,3 +5725,53 @@ per-turn tokens and exact elapsed worker/reviewer time unavailable. No inference
 of cost savings from account-wide allowance. Latest weekly47% remaining and
 storage306.7GB healthy; no cleanup. Existing authority covers draft PR push only;
 merge,production deployment and native release remain separate gates.
+
+## Browser mobile runtime and Mac 0.5.20 delivery — 2026-10-18
+
+Owner authorized publication after local mobile acceptance. [Source PR103](https://github.com/codepetca/zero/pull/103)
+merged628b389e686141c8562a19c08731ad14e36d6dc7 after fixedhead7f59175 and allfive
+checks passed, including [release CI39130920575](https://github.com/codepetca/zero/actions/runs/39130920575).
+Main identity/branding integration received one bounded independent Sol/high
+review; mobile source stays byte-identical to acceptedc49b32f. Repeated browser
+checks56desktop/136phone-sized pass. Combined root710tests:707passed,3skipped,
+zero failures. All14Grove source/resource hashes remain unchanged.
+
+[Mac0.5.20](https://github.com/codepetca/zero/releases/tag/setup-v0.5.20) contains
+one immutable DMG built from clean628b389 and prepared atff5d96873a01fb6d5c1584c629f5bedd380be1d2.
+Apple accepted submission178eb9f0-799f-4eb1-899f-ce1be69e3fbe. Actual staple,
+DeveloperID and DMG/app Gatekeeper checks pass. Final4568123bytes SHA256
+776ed521cb0c541ede68e3aa9ef0319ca02881fe4c3ad84238b27a93defbb77f match sealed,
+draft, anonymous public and real Chrome downloads. All13candidate checksums,
+protected-source equivalence, source/license/archive/modes and pinned Sparkle
+Ed25519 archive/feed checks pass. Old19 assets/candidate remain untouched;
+standalone published kit17 remains independent of local embedded kit20.
+
+[Metadata PR104](https://github.com/codepetca/zero/pull/104) merged8564ea9f8f4c2a48fff33632daf170c7b9bc85de
+at reviewedebd5f8e after allfive checks, including [CI39132214098](https://github.com/codepetca/zero/actions/runs/39132214098).
+Website typecheck,151tests and production build pass. Live /downloads contains
+the exact20asset anchor; deployed appcast matches sealed SHA256
+ a033b24f6af41613afa86c2ae2dcc8a82f809182edfa8f08b863e891a8082308.
+Release review:two initial Sol/high reviewers,one targeted notes correction pass,
+one final metadata integration pass;one documentation correction,zero remaining
+release blockers. Requested configurations recorded; effective models/tokens and
+per-worker elapsed telemetry unknown. No account-wide usage cost attribution.
+
+Actual Finder/Zero UI installed20/build20 and preparation reached Opening Zero.
+Computer-use attached to a different same-path VSCode process; this does not
+establish a launcher defect. Existing official Zero Grove Guard profile was updated
+via documented VSIX UI from ~/Zero, reloaded, and Zero Open Local Project reopened
+the task-owned existing repo. Zero Run App reported Web export ready with reviewed
+profilea99532955746e08fe916a1810fa8b892aff38ee06ed65e38249638b901f06f9e.
+CUA phone390x844 and landscape740x320 show complete content centered without
+clipping; Seed/Frost placements, economy, wave start, pause and rotation/restart
+worked. These CUA inputs are mouse clicks at phone-sized viewports; realCDP touch
+acceptance remains the separately recorded192assertion browser proof. No physical
+iPhone/Safari, Intel Mac or interactive Windows acceptance is claimed.
+
+Native Zero verified armorup and the correct repo/main. Publish App refused the
+repo because the GitHub App's selected-repository grant excludes Grove. Only Grove
+is staged for addition; existing selections preserved, Save not clicked. Owner
+confirmation is pending under the computer-use account-access policy. Public Grove
+republishing and public phone acceptance remain outstanding; no terminal/direct
+publication bypass. Private phase evidence and live status are retained in
+.verification/mobile-canvas/plan.json and .verification/mac-0.5.20/.
