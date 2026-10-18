@@ -4,7 +4,17 @@ Worktree: /Users/stew/.codex/worktrees/release-readiness/zero.
 Branch codex/sidebar-zerohub-actions, based on merged GitHub App/branding
 PR102 at f719d18. Preserve the original dirty /Users/stew/Repos/zero checkout.
 
-Owner requested no standalone signed-in username row, a clickable repository
+Latest approved refinement: **Add images & sounds…** is beside **Files**;
+**Review or restore changes…** is in the project menu. Copy asset paths appears
+beside Files after import; the separate tools row is removed. Sourcefc92551 and
+test-only correctionbf3fd2f are independently reviewed clean. Root check,66focused
+tests and3playground tests pass. Full run:707passed,3skipped,1stale playground
+expectation; that failed check was corrected and its3-test file rerun successfully.
+Unchanged full-suite coverage is reused; no clean single full rerun is claimed.
+Browser light/dark280px and narrow180px show no overflow; native VS Code remains
+unverified. Receipt:.verification/sidebar-tools-20261018.
+
+Earlier refinement: no standalone signed-in username row, a clickable repository
 name using at most two lines without a visual chevron, and one ZeroHub button
 with Projects, Libraries and eligible Share project actions. Account controls
 remain in Project menu → GitHub account…. Existing GitHub App identity guards,

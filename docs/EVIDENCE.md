@@ -5715,3 +5715,38 @@ Account-wide weekly remaining45% at start; storage301.6GB healthy, no cleanup.
 Bulky logs, screenshot and structured receipt remain ignored under
 .verification/sidebar-refinement-20261018. Local branch only; no new source push,
 merge, installer build or live release is claimed or authorized for this request.
+
+
+## Files media action and clearer recovery placement — 2026-10-18
+
+Owner approved Add images & sounds… beside Files and moving recovery into the
+project menu. Sourcefc92551 removes the tools row, places import and post-import
+Copy asset paths by the Files heading, and offers Review or restore changes…
+through the existing guarded native recovery command. Import dialog, progress,
+palette and retry guidance match the names. Underlying import/recovery policy,
+ordinary Java, GitHub identity and local Run are preserved. Incremental fileActions
+updates leave file-tree nodes/focus intact, update busy state and clear with no
+project. Header wraps in narrow widths without horizontal overflow.
+
+Root npm run check passes.66focused tests pass across extension/workflow,
+assets/recovery,onboarding and sidebar refresh. Full npm test on sourcefc92551
+ran711tests:707passed,3skipped,1failed because the playground expected the removed
+labels/buttons. Test-only correctionbf3fd2f passed the entire3-test playground
+file; unchanged707passing checks are reused. No clean single full-suite rerun
+is claimed. Initial focused run similarly needed an updated menu-array expectation.
+Browser actual-render fixtures confirm light/dark280px Files/action placement,
+visible keyboard focus and180px wrapping without horizontal overflow. Fixtures
+are not real sign-in or native-menu evidence. Actual VS Code click-through and
+physical Windows remain unverified; no new attempt or installer change claimed.
+Temporary browser tab/server closed; screenshots/logs remain ignored under
+.verification/sidebar-tools-20261018.
+
+Independent gpt-6.1-sol/medium review of5dff1b9..fc92551 covered the complete14-file
+diff and immediate menu/auth/assets/recovery/client dependencies:clean,0findings.
+Targeted reviewfc92551..bf3fd2f confirmed the complete test-only correction and
+retained coverage:clean. Receipt IDs:sidebar_tools_review/turn1–2;2launches,
+1initial wave,1targeted wave,1test correction batch,0outstanding findings. Source
+unchanged after initial review; no extra integration wave needed. Effective model,
+per-turn tokens and review/coordinator seconds unknown. Weekly remaining44% at
+start, storage301.6GB cached/healthy; no cleanup. Local source delivery only;
+no new source publication, merge, native build or student release authorized.
