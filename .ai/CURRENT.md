@@ -1,49 +1,40 @@
-# Zero shared GitHub identity — 2026-10-18
-
-Owner chose one Codepet-owned GitHub App for desktop Zero and ZeroHub. Canonical
-plan: docs/ZERO-IDENTITY-PLAN.md. Keep GitHub identity, selected plus App-created
-repositories, offline local Run, ordinary Java and separate Pika submission.
-Browser/editor use separate credential families; browser tokens can inherit
-selected repository authority. No pairing or broad native OAuth fallback.
+# Zero branding and shared identity — 2026-10-18
 
 Worktree: /Users/stew/.codex/worktrees/zerohub-simplify/zero.
-Branch codex/zerohub-project-feedback, draft PR102. Core migration1548a0e and
-public registration pin a11d982 passed independent reviews. Live desktop testing
-found that current VS Code uses authority-free vscode-userdata storage. Fix8ed733a
-accepts that absolute local path and preserves cross-scheme filesystem locking;
-remote authorities/relative paths remain rejected. Targeted Sol/high review clean.
-Six reviewer launches, two fix batches; all source reviews completed within the
-original review budget. Details in ignored .verification/zero-identity/plan.json.
+Branch codex/zerohub-project-feedback; draft PR102. Preserve dirty main.
 
-Registered Codepet Zero under codepetca (owner116690057): App5367740,
-clientIv23liWzC8OE2WN5f6qV, slugcodepet-zero. Exact public metadata and seven
-permissions verified. Owner approved registration, draft push, one private test
-repo and installation limited to it, then explicitly confirmed user authorization.
-Chrome reports device connected; real Zero provider shows Signed in as armorup.
-Guarded private clone opened the expected main branch, restored the connection
-in the new host, and Commit & push uploaded only the acceptance-test text file.
-GitHub confirmed the expected commit and clean local tree. Exact private IDs and
-screenshots stay in ignored receipts. Tests used an isolated official Code copy
-and temporary profile, preserving user editor state. No private key/client secret
-was generated. No production credentials, merge, deployment or native release.
+Owner selected softened slash corners and thicker lines. Source b01fe94 uses
+2.4-unit ring/slash weight (20% thicker), 0.6-unit slash corner radius and #683bef.
+Canonical three-color SVGs live in design/brand; PNG/ZIP exports are ignored.
+Web header, favicon/touch/share images, playground, currentColor editor mark and
+future Mac/Windows installer icons derive from these assets. Public Codepet Zero
+GitHub App avatar was updated and visually verified in Chrome. Released installer
+0.5.19, kit bytes and publisher policy11c5451 remain unchanged.
 
-At8ed733a:26focused credential/provider tests; full extension598tests,
-597pass/1existing skip/0fail; root check passes. Website148tests/typecheck/build
-from a11d982 reused because website source is unchanged. All five CI checks passed
-at a11d982; latest fix CI is running. PR remains draft.
+Verification at b01fe94:151 website tests,13 design tests,37 native checks and
+2 Windows source checks pass; one existing PowerShell skip. Website typecheck,
+production build, root check and diff check pass. Actual ICNS conversion and
+independent raster comparisons pass. Local desktop light/dark,390px Hub/Docs/menu,
+metadata and actual dark editor mark observed. Physical Windows/Safari and actual
+Windows/vpk packaging remain untested. Local preview runs on port3268.
+Independent Sol/high review of932fb33..b01fe94 covered all28 files and callers,
+clean:one launch/initial wave,zero findings/fix batches. Evidence and resource
+receipts:docs/EVIDENCE.md and ignored .verification/zero-branding/plan.json.
+Next:push evidence with source to existing draft; verify remote head/CI status.
+No merge, production deployment or native release authorized for this phase.
 
-Remaining acceptance: fresh empty account/first repo, actual App repo creation,
-refresh/revocation, account drift, Pages and browser stars; physical Windows/Safari.
-Selected installation requires at least one repository. Publish recovery guide
-before activation. Production/native release and merge remain separate gates.
-Preserve dirty main, ignored evidence, installer0.5.19 and publisher policy11c5451.
-DeepSeek paused through2026-12-31; weekly51% remaining was account-wide. Latest
-fresh storage305.7GB healthy; no cleanup.
+Shared identity remains governed by docs/ZERO-IDENTITY-PLAN.md and
+recovery guide docs/ZERO-AUTH-RECOVERY.md. Registered public App codepet-zero
+belongs to codepetca; App5367740/clientIv23liWzC8OE2WN5f6qV. Core1548a0e,
+registration pin a11d982 and local vscode-userdata fix8ed733a independently reviewed.
+Owner-approved isolated Mac acceptance passed real device consent, provider,
+guarded private clone and Commit & push; private details stay ignored. No client
+secret/private key or production server credentials generated. Browser stars stay
+disabled without credentials. Remaining acceptance:empty-account/first repo,
+actual App repo creation,refresh/revocation,account drift,Pages/browser stars and
+physical Windows/Safari. Publish recovery guide before activation.
 
-Latest owner copy correction: c6bdf47 removes the signed-out welcome subtitle,
-keeping heading and Connect GitHub/Later. Six welcome tests and diffcheck pass;
-one Luna/medium independent review clean. No release or merge.
-
-Owner-requested reusable icon sources: f36c276 in design/brand, with three SVG
-colors/backgrounds and ignored1024px PNG/preview/ZIP exports. Render/pixels/ZIP/
-rootcheck verified; Luna/medium review clean. No product icon integration/deploy.
+Latest available weekly allowance47% remaining (account-wide); storage306.7GB
+healthy,no cleanup. DeepSeek paused through2026-12-31. Adjacent Lead publishing
+work owns sidebar rendering/menu refinement in another worktree; branding source
+only changed extension/media/zero.svg and its generation, not sidebar rendering.

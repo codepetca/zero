@@ -5644,3 +5644,34 @@ Independent Luna/medium review ofbe38800..f36c276 and dependencies is clean;
 one launch/no rework. Effective model, review seconds and tokens unknown.
 No clean-install/Windows export test or product deployment is claimed. Assets
 are ready for deliberate adoption; existing product icon consumers are unchanged.
+
+
+## Shared Zero branding rollout — 2026-10-18
+
+Owner selected softened slash corners and thicker lines. Source b01fe94 replaces
+ring/slash weight2 with2.4, adds0.6-unit slash corners and preserves #683bef.
+Three canonical SVGs drive web light/dark headers, favicon/touch/share images,
+playground, currentColor editor icon and future Mac/Windows installer assets.
+The public Codepet Zero GitHub App avatar was updated in authorized Chrome;
+GitHub confirmed the change and the public page was visually checked. GitHub
+places its41px image inside a larger platform-owned circle. Screenshots/exports
+remain ignored under .verification/zero-branding and design/brand/exports.
+
+151 website tests,13 design tests,37 native checks and2 Windows source checks
+pass; one existing PowerShell skip. Website typecheck/build,root check,diff check
+pass. Actual iconutil ICNS conversion and independent Sharp pixel comparisons
+passed. Local desktop light/dark and390px Hub/Docs/menu behavior were checked;
+favicon/touch/share metadata and the actual dark editor mark were observed.
+No physical Windows/Safari,actual Windows/vpk packaging or native release claimed.
+The local community catalog lacked server configuration, so full live catalog
+coverage is not implied. Released installer0.5.19 and publisher policy are preserved.
+
+Sol/medium worker delivered bounded native/editor changes; coordinator inspected
+and verified integration. Sol/high independent review of932fb33..b01fe94 inspected
+all28 changed files and callers, reused valid checks and independently checked the
+diff/clean tree:clean,zero actionable findings. One reviewer launch/initial wave,
+zero remediation batches. Requested configurations recorded; effective models,
+per-turn tokens and exact elapsed worker/reviewer time unavailable. No inference
+of cost savings from account-wide allowance. Latest weekly47% remaining and
+storage306.7GB healthy; no cleanup. Existing authority covers draft PR push only;
+merge,production deployment and native release remain separate gates.
