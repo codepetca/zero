@@ -20,10 +20,13 @@ live App consent/install/create/private clone/refresh/revocation/upload/Pages/st
 physical Windows and Safari unverified. New recovery guide must publish before
 activation. Pinned App configuration remains honestly unconfigured.
 
-NEXT: concrete owner approval for App registration/permissions and external
-publication/activation, then approved live acceptance. No new App/secret/GitHub
-write/push/merge/deploy/native release performed. PR102 remains the earlier draft
-at4fbcfe2; its fourCIchecks are baseline only. One App supersedes the old star-only
-activation proposal. Published installer0.5.19 and publisher policy11c5451 unchanged.
-Preserve dirty main funding work and ignored evidence/profiles. DeepSeek paused
-through2026-12-31; account-wide56% weekly remaining at start is not task cost.
+Owner explicitly approved App registration with the reviewed permissions and
+pushing the implementation to draft PR102 on2026-10-18. Registration currently
+needs an authenticated GitHub owner browser session; sign-in tab is open. Proceed
+with approved registration, pin public IDs, validate/review the configuration delta,
+and update the draft PR. Merge, production activation and native release are not
+newly authorized by this approval. Live acceptance and native UI remain pending.
+
+Published installer0.5.19 and publisher policy11c5451 unchanged. Preserve dirty
+main funding work and ignored evidence/profiles. DeepSeek paused through2026-12-31.
+Account-wide51% weekly remaining at this continuation is not task cost.

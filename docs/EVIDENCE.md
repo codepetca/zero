@@ -5571,3 +5571,9 @@ require concrete owner authority. The Mac remains locked, so native UI, real
 SecretStorage propagation and provider behavior are unverified; physical Windows
 and Safari remain untested. Later evidence-only documentation does not alter
 the reviewed code. No live App, credentials, repo write or deployment was created.
+
+Owner approval received2026-10-18 for registering Codepet Zero with the reviewed
+permission matrix and pushing the implementation to the draft PR. The registration
+page currently requires GitHub owner sign-in; the browser handoff is open. This
+approval does not by itself prove App creation, installation, live acceptance,
+production activation, merge or native release.
