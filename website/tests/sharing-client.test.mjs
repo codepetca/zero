@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import contracts from '../../extension/src/sharing/contracts.js';
-import {dependencySnippet,maintainedPlayLink,playLink,projectSummary,releaseImage,releaseLink,selectMaintainedProjects,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
+import {dependencySnippet,maintainedPlayLink,playLink,projectSummary,releaseAuthor,releaseImage,releaseLink,selectMaintainedProjects,selectReleases,sourceLink} from '../lib/sharing-client.mjs';
 const origin='https://artifacts.example';
 function fixture(kind,version='0.1.0',status='available') {
   const identity=contracts.identity(kind,'123','sample');
@@ -90,4 +90,22 @@ test('legacy screenshot supplements match exact project source and never replace
   assert.equal(releaseImage({...release,source:{...release.source,commit:'e'.repeat(40)}},previews),undefined);
   assert.equal(releaseImage({...release,id:'game-r999-other'},previews),undefined);
   assert.equal(releaseImage({...release,artifacts:{...release.artifacts,preview:{url:'https://artifacts.example/accepted.png'}}},previews),'https://artifacts.example/accepted.png');
+});
+
+test('Codepet sample credits match exact library sources without changing publication provenance',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const attributions=JSON.parse(await readFile(new URL('../content/release-authors.json',import.meta.url),'utf8'));
+  const base=fixture('library'),entry=attributions[0];
+  for(const commit of entry.sourceCommits) {
+    const release={...base,id:entry.id,title:'Flap Motion',source:{...base.source,commit}};
+    const before=JSON.stringify(release);
+    assert.equal(releaseAuthor(release,attributions),'codepetca');
+    assert.equal(selectReleases({releases:[release]},{search:'codepetca',attributions})[0],release);
+    assert.equal(JSON.stringify(release),before,'Display credits preserve accepted contributor/source/artifacts');
+    assert.match(sourceLink(release),new RegExp('/tree/'+commit+'/'));
+    assert.equal(releaseAuthor({...release,id:base.id},attributions),'student');
+    assert.equal(releaseAuthor({...release,kind:'game'},attributions),'student');
+  }
+  assert.equal(releaseAuthor({...base,id:entry.id,title:'Flap Motion'},attributions),'student','Other source commits cannot inherit the credit');
+  assert.equal(releaseAuthor(base,attributions),'student');
 });
