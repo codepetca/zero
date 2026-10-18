@@ -1,3 +1,4 @@
+import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual} from 'node:crypto';
 
 export const SESSION_COOKIE = 'zero_hub_gh_session';
@@ -8,6 +9,10 @@ const GITHUB_API_VERSION = '2026-03-10';
 
 const noStore = {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'};
 const tokenPattern = /^[A-Za-z0-9_-]{32,256}$/;
+
+export function sharedAppMatches(clientId, configuration = zeroApp) {
+  return configuration.status === 'unconfigured' || configuration.status === 'configured' && configuration.clientId === clientId;
+}
 
 export function hubConfig(env = process.env) {
   const originText = env.ZERO_HUB_ORIGIN || 'https://zero.codepet.ca';
@@ -23,7 +28,7 @@ export function hubConfig(env = process.env) {
   const clientId = env.ZERO_HUB_GITHUB_CLIENT_ID;
   const clientSecret = env.ZERO_HUB_GITHUB_CLIENT_SECRET;
   const secret = env.ZERO_HUB_GITHUB_SESSION_SECRET;
-  if (!clientId || !/^[A-Za-z0-9_-]{10,128}$/.test(clientId) || !clientSecret ||
+  if (!clientId || !sharedAppMatches(clientId) || !/^[A-Za-z0-9_-]{10,128}$/.test(clientId) || !clientSecret ||
     !/^[\x21-\x7e]{20,256}$/.test(clientSecret) || !secret) return null;
   let key;
   if (/^[a-fA-F0-9]{64}$/.test(secret)) key = Buffer.from(secret, 'hex');
@@ -111,6 +116,7 @@ export function newFlow(returnTo, config, now = Date.now()) {
   url.searchParams.set('client_id', config.clientId);
   url.searchParams.set('redirect_uri', `${config.origin}/api/hub/github/callback`);
   url.searchParams.set('state', state);
+  url.searchParams.set('prompt', 'select_account');
   url.searchParams.set('code_challenge', challenge);
   url.searchParams.set('code_challenge_method', 'S256');
   return {url: url.toString(), cookie};

@@ -1,32 +1,30 @@
-# ZeroHub inline stars and project feedback — 2026-10-18
+# Zero shared GitHub identity — 2026-10-18
 
-Owner asked for broken-project visibility and one GitHub like per account, then
-refined GitHub stars to work directly from ZeroHub. Implement optional minimal
-GitHub App sign-in, inline star/unstar, cached public page reachability/counts
-and prefilled issue reports. Browsing/Play remain public; no publisher token,
-registry writes, background monitor or separate votes database. Code and source
-review first; new App registration/security grant and production secrets require
-specific owner approval after the reviewed result is concrete. Do not use the
-maintainer account to star projects as a test without authorization.
+Owner requested plan+orchestration and explicitly chose ONE Codepet GitHub App
+for desktop Zero and ZeroHub. GitHub is the identity provider. Selected existing
+repos plus App-created repos; no all-repos requirement or broad native OAuth
+fallback. Preserve local offline Run, ordinary Java, minimal UI, public browse/
+Play, student-owned repositories and separate Pika submission.
 
-Worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
-codex/zerohub-project-feedback; base41ba316. Parent owns UI/docs/integration;
-Sol/high hub_github_auth delivered auth/routes/tests, Sol/medium
-hub_project_status delivered bounded public resolver/checks/routes/tests. Both
-focused deliveries and integrated147tests/typecheck/build/rootcheck pass.
-Two independent Sol/high reviews completed; no security blocker. Fix batch1
-addresses expired sign-out recovery and mixed-case Pages paths; focused tests,
-rebuild and simulated expired-session browser recovery pass. Targeted
-review cleared both fixes. Public App visibility is required for students outside
-the owning organization. Owner activation approval remains; use ignored receipts
-for current status.
-Execution/review receipts live in .verification/hub-project-feedback/plan.json.
-Weekly usage65% remaining (account-wide, not attributable); storage healthy~310GB.
-DeepSeek paused; no task/goal/automation creation. Preserve unrelated main
-checkout funding work and all earlier ignored verification/profiles/backups.
+Canonical execution plan: docs/ZERO-IDENTITY-PLAN.md. Coordinator owns architecture,
+interfaces, extension.js, config/docs/integration. Sol/high native/security
+investigations and native modules complete; integration/regression checks and
+affected documentation are in progress before the two independent reviews. Runtime ownership, receipts and
+review budget live in .verification/zero-identity/plan.json. One writer per file.
 
-Prior Flap Motion authorPR101 merged41ba316, public0.1.0/0.1.1 native/browser
-acceptance complete. Publisher policy stays11c5451; installer0.5.19 unchanged.
-Public Projects Drawing Pad/Grove Guard; Sky Hop withdrawn. Current work is
-website-only. Real provider OAuth/consent, physical Windows and Safari are not
-proven by local unit/build tests.
+One App means web tokens can inherit selected-repository authority; owner chose
+this tradeoff after it was explained. Native device refresh can remain local,
+without a shipped/server App secret. Keep token families separate. Omit broad
+Administration: initial Pages setup may require GitHub settings then recheck.
+Provider creation/permissions, secrets, activation, push/merge/deploy and native
+publication need concrete owner approval after review. Earlier star-only App
+activation question is superseded; no live App/secret exists.
+
+Worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, current branch
+codex/zerohub-project-feedback base4fbcfe2. PR102 remains draft: original147tests,
+typecheck/build/rootcheck and all4CI passed; new website148tests/rootcheck/recovery23 pass; full extension integration pending.
+Mac is locked: native CUA smoke unavailable; no live App or physical Windows test.
+Account-wide weekly56% remaining; storagehealthy~310GB; DeepSeekpaused through
+2026-12-31. Preserve dirty main funding work and ignored earlier evidence/profiles.
+Prior authorPR101 merged41ba316; publisher policy11c5451 and installer0.5.19 stay
+unchanged. Public projects DrawingPad/GroveGuard; SkyHopwithdrawn.

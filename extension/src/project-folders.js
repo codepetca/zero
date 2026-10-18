@@ -6,8 +6,8 @@ const core = require('./core');
 
 const CLONE_PARENT_KEY = 'zero.cloneParent';
 
-// Projects are ordinary folders. Native Git owns clone transport and credentials.
-function createProjectFolders(vscode, {home = os.homedir(), globalState, active = () => true, report = () => {}} = {}) {
+// Projects are ordinary folders; Zero owns only its explicit authenticated clone action.
+function createProjectFolders(vscode, {home = os.homedir(), globalState, active = () => true, report = () => {}, cloneRepository} = {}) {
   const defaultParent = path.join(home, 'Zero Projects');
   async function chooseFolder(title, openLabel, createDefault = false) {
     if (!active()) return;
@@ -31,31 +31,25 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     const selection = await vscode.window.showOpenDialog({title, openLabel, canSelectFiles:false, canSelectFolders:true, canSelectMany:false, defaultUri:vscode.Uri.file(initial)});
     return active() ? selection?.[0] : undefined;
   }
-  async function clone() {
-    const url = await vscode.window.showInputBox({title:'Clone from GitHub', prompt:'Paste your GitHub repository link.', placeHolder:'https://github.com/you/your-project', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
+  async function clone({repositoryUrl, parent: selectedParent} = {}) {
+    const url = repositoryUrl || await vscode.window.showInputBox({title:'Clone from GitHub', prompt:'Paste your GitHub repository link.', placeHolder:'https://github.com/you/your-project', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
     if (!url || !active()) return;
     const destination = core.parseRepositoryUrl(url);
+    const parent = selectedParent || await chooseCloneParent();
+    if (!parent || !active()) return;
+    if (typeof cloneRepository !== 'function') throw new Error('Connect Zero to GitHub before cloning this project.');
+    const result = await cloneRepository({repositoryUrl:destination.page,parentPath:parent.fsPath});
+    if (result && active()) await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(result), {forceNewWindow:true});
+    return result;
+  }
+  async function chooseCloneParent() {
     const parent = await chooseFolder('Clone location', 'Clone here', true);
     if (!parent || !active()) return;
-    // Remember the selected parent, rather than a returned clone folder, which
-    // native Git may resolve to an existing clone elsewhere. This stays local to
-    // the editor profile; it is not registered for Settings Sync.
     if (globalState) {
       try {await globalState.update(CLONE_PARENT_KEY, parent.fsPath);}
       catch(error) {report(`Could not remember the clone location. ${error.message}`);}
     }
-    if (!active()) return;
-    const extension = vscode.extensions?.getExtension('vscode.git');
-    const api = extension && (extension.isActive ? extension.exports : await extension.activate()).getAPI(1);
-    if (!active()) return;
-    if (typeof api?.clone === 'function') {
-      const result = await api.clone(vscode.Uri.parse(destination.remote), {parentPath:parent, postCloneAction:'none'});
-      if (result && active()) await vscode.commands.executeCommand('vscode.openFolder', result, {forceNewWindow:true});
-    } else {
-      // VS Code 1.95 has no public clone API. Its native command owns opening
-      // and cancellation, including the user's existing open-after-clone choice.
-      await vscode.commands.executeCommand('git.clone', destination.remote, parent.fsPath);
-    }
+    return active() ? parent : undefined;
   }
   async function openLocal() {
     const folder = await chooseFolder('Open local project', 'Open project');
@@ -63,6 +57,6 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     const root = await core.resolveProject([folder.fsPath]);
     if (active()) await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(root), {forceNewWindow:true});
   }
-  return {clone, openLocal};
+  return {clone, openLocal, chooseCloneParent};
 }
 module.exports = {createProjectFolders};

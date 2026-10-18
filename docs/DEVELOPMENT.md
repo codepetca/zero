@@ -162,7 +162,7 @@ Study checks should exercise retries, duplicate scoring, advance/completion and
 restart, including a second run. Keep question data in ordinary Java objects.
 
 Test project resolution, Git URL parsing/root guards, simulation side effects,
-native authentication states, review cancellation, account/session drift and
+Zero GitHub App authentication states, review cancellation, account/session drift and
 credential isolation. Git/authentication tests use mocks and intercept transport;
 no real sign-in, upload or account/configuration changes are authorized by a
 local development check. Live is the student default; simulation tests must explicitly select it. Signing in is separate
@@ -269,14 +269,15 @@ with a single view VS Code merges its title into the container header. Start
 tutorial (`zero.startProject`, stable command ID) is in welcome and the native
 **…** menu. Signed-out GitHub controls show only **Sign in**; local Run and files
 remain available. Signed in reveals the project dropdown with **Clone from GitHub…**
-(`zero.cloneRepository`) and **Open local project…** (`zero.openLocalProject`).
+(`zero.cloneRepository`), **New project…** and **Open local project…** (`zero.openLocalProject`).
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
 with another location selectable. Zero remembers the selected clone parent in the
 local editor profile for future clones; cancelling the picker or opening a local
 project leaves that choice unchanged. An unavailable saved folder falls back to
-`~/Zero Projects`, then home if necessary. Native Git owns transport and credentials. Where its public clone
-API exists, Zero opens the returned folder in a new window; older supported hosts
-use `git.clone` and retain their native open-after-clone choice. Open local project
+`~/Zero Projects`, then home if necessary. The unreleased shared-identity source uses Zero’s guarded authenticated clone and
+opens the returned folder in a new window. It requires the pinned Codepet App
+configuration and never falls back to the built-in broad GitHub OAuth provider.
+General Git/terminal network actions do not inherit Zero’s credentials. Open local project
 validates and opens an existing Zero folder without cloning, moving it or creating
 the default folder. Website/tutorial instructions use these visible labels.
 
@@ -303,3 +304,19 @@ The unprivileged **Library checker acceptance** GitHub workflow builds/tests on
 Linux AMD64. Its successful fixture run alone does not publish a library or
 activate the managed publication gates. Native student UI and a public exact-JAR
 consumer require separate actual acceptance.
+
+## Shared GitHub identity (unreleased)
+
+See [the identity plan](ZERO-IDENTITY-PLAN.md) for the one-App permission matrix,
+implementation phases and owner activation gate. Public App metadata is pinned in
+`extension/src/github-app/config.json`; the current placeholder keeps development
+sign-in unavailable while local Run remains usable. The extension registers the
+supported `zero-github` provider, keeps device-flow token pairs in SecretStorage,
+and uses no shipped client secret. Website OAuth uses the same client ID after
+activation, with its own credential family and eight-hour reconnect policy.
+
+Focused native checks are `node --test extension/test/github-app-*.test.js`,
+followed by the full extension suite. Mocked API/device-flow tests and disposable
+local Git exercise lifecycle and authority guards; they do not prove real GitHub
+permission consent, creation, refresh or Pages behavior. Those checks require the
+concrete owner-approved App setup and disposable student-owned repositories.

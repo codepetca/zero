@@ -12,11 +12,22 @@ page has the shared app header, **Learn Java**, **Starting from zero.**, and two
 direct download buttons: **Download for Mac Silicon** and **Download for Windows
 (ZIP)**. It uses the shared light/dark toggle and
 centered full-viewport layout. The old `/get-started` address redirects to Downloads.
-Browsing, learning and playing require no GitHub sign-in. ZeroHub optionally connects GitHub for inline repository stars. Download and launch desktop Zero first;
-its welcome checks VS Code's existing GitHub connection, offers **Connect GitHub**
-when needed, and then leads to creating a tutorial project. VS Code owns desktop sign-in, permissions and credentials. Optional ZeroHub stars use a separate, least-privilege GitHub App connection; there is no separate Zero account. Existing
-connections show the username. Dismissing welcome leaves local Run available;
-setup guidance remains accessible later. Publication and uploads remain explicit.
+Browsing, learning and playing require no GitHub sign-in. The local, unreleased
+shared-identity source uses one public Codepet-owned GitHub App for desktop
+development and optional ZeroHub stars. Its pinned App configuration remains
+unconfigured; live activation and a native release need owner approval and
+provider acceptance. Published downloads keep their bundled authentication flow.
+See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
+
+After activation, download and launch desktop Zero first. Its welcome checks
+Zero's GitHub connection, offers **Connect GitHub** when needed and leads to
+tutorial creation. Zero's supported `zero-github` provider uses GitHub device
+sign-in and stores expiring user/refresh tokens in VS Code SecretStorage. GitHub
+handles sign-in and consent; there is no separate Zero password or account.
+Connections show the username, while account checks use the numeric GitHub ID.
+Install the App on selected repositories; repositories the App creates become
+accessible automatically. Zero never silently requests all repositories.
+Dismissing welcome leaves local Run available. Publication and uploads remain explicit.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
 are listed under three quiet project headings (Greeting app, Study quiz and Coin
 game); selecting one updates the reading pane and its bookmarkable
@@ -76,8 +87,12 @@ section heading and muted topic subtitle.
 Purple eyebrow labels and back controls are removed; top navigation, reader
 sidebars and Next lesson remain available. Hub browsing/downloads remain public.
 An optional GitHub connection lets users star and unstar repositories directly
-on ZeroHub, with one star per GitHub account per repository. Short-lived sessions
-require reconnection after expiry. Public counts may lag; no separate vote store
+on ZeroHub, with one star per GitHub account per repository. The browser uses the
+same App with a separate credential family and an eight-hour reconnect policy.
+Its ordinary user token can carry the App/user intersection of installed
+repository permissions; the current star routes do not make that token star-only.
+Desktop and browser sessions do not pair or transfer credentials automatically.
+Short-lived browser sessions require reconnection after expiry. Public counts may lag; no separate vote store
 is created. Site checks show cached page reachability, not verified gameplay.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
@@ -164,9 +179,17 @@ Before lesson 0, students complete account/privacy setup: their own verified Git
 account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
 repository visibility/commit identity. Tutorial source can stay private with teacher
 collaborator access; public game publishing remains optional. The visible
-**Start tutorial** action on the welcome screen or Zero’s **…** menu opens the matching verified tutorial template. After creating their own repository, students choose
-**Clone from GitHub…** in the project menu. The location picker starts at `~/Zero Projects` and can choose another parent; native Git owns transport and credentials.
-Students create a repository in their own account, then clone their repository;
+**Start tutorial** action on the welcome screen or Zero’s **…** menu selects the
+matching verified tutorial scaffold. The unreleased flow collects a repository
+name, explicit Private/Public choice and parent folder before creating a copy in
+the connected personal account, verifying App access, cloning and opening it.
+The location picker starts at `~/Zero Projects` and can choose another parent.
+**New project…** uses the original-project template through the same flow.
+Existing repositories use **Clone from GitHub…** with explicit selected-repository
+access. Zero owns these guarded clone commands and their transient credentials.
+If creation or cloning is interrupted, preserve the repository and partial folder
+and offer explicit recovery instead of blindly creating another repository.
+Students own the created repository and clone;
 there is no local-folder or project-ZIP tutorial alternative. Completed teacher
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
 media resources; students may use their own assets or drawing fallback.
@@ -251,11 +274,14 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Signed in shows a clickable username and Project dropdown (or current folder /
   connected origin). Clone from GitHub starts its location picker at
   `~/Zero Projects`, with another location selectable. Open local project opens
-  an existing Zero folder without cloning/moving it. An eligible unconnected local
-  project can Connect to GitHub. Connected projects keep publishing and branch
+  an existing Zero folder without cloning/moving it. New project collects its
+  name, visibility and location before creating and cloning. An eligible
+  unconnected original local project can Create a repository to create and
+  connect an empty remote, or Connect to GitHub using an existing repository.
+  Connected projects keep publishing and branch
   actions in the menu, and a visible current branch. Commit & push
   and Merge to main remain direct actions. Simulation
-  remains visibly labeled. ZeroHub offers Browse (project templates/examples on
+  remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
   overflow; Copy repository link lives in the repository menu. Supported VS Code
@@ -341,15 +367,16 @@ choices and the first-publication warning remain visible through native prompts.
 
 ## Repository and upload contract
 
-Students sign in through VS Code's native GitHub authentication/browser flow.
-Zero shows the selected account username in the sidebar. Clicking it offers Change GitHub Account and Sign out; Sign out opens
-VS Code's native Manage Accounts picker (or manual Accounts instructions on
-older editors), where the user chooses their GitHub account
-and signs out. Session changes still invalidate pending upload reviews. Zero has
-no custom logout/token deletion. Project menu → Create a repository opens GitHub's new-repository
-page; students create their own empty repository following teacher visibility
-instructions, leaving README, license and gitignore uninitialized. There is no
-GitHub Classroom flow and no automatic repository creation.
+The unreleased source uses Zero's `zero-github` provider and GitHub device flow.
+The sidebar shows the connected username. Clicking it offers Change GitHub
+account and Sign out. Sign out clears only Zero's local connection; it preserves
+projects, Git history and other extensions' accounts. Account, token or session
+changes invalidate pending remote work. There is no password/token entry form.
+Project menu → Create a repository collects a name and explicit visibility,
+creates an empty repository under that personal account, verifies access and
+connects the open original local project. It does not push source. New project
+and Start tutorial create from the appropriate verified template and clone into
+the chosen location. There is no GitHub Classroom flow.
 
 Connect accepts ordinary GitHub HTTPS repository URLs. It initializes/adds
 origin only in the exact standalone student Git root, with confirmation before
@@ -361,7 +388,11 @@ sign-in or connection alone. First/new-destination Publish shows a short warning
 that the app and included assets will be public;
 later explicit Publish actions revalidate and update that approved site without
 another destination dialog. Publishing setup continues through its upload without
-a second publish confirmation. Commit & push saves files and shows the repository
+a second publish confirmation. The App requests Contents, Workflows, Actions and
+Pages capabilities on permitted repositories, without Administration. First-time
+Pages setup therefore asks the student to enable GitHub Actions as the Pages
+source in GitHub settings and recheck; Zero does not silently broaden permission
+or change repository visibility. Commit & push saves files and shows the repository
 and branch with the commit-message input; submitting the message proceeds directly.
 It validates and stages the captured changes, commits when needed and pushes the
 captured destination/SHA,
@@ -396,16 +427,22 @@ completed and the local branch is kept with a concise notice and Zero Output
 details. The uploaded remote change branch remains. Shared worktrees and
 unusual histories require normal Git tools. No automatic source rollback occurs.
 
-Live transport uses transient credentials from the captured native GitHub session.
+Live transport uses transient credentials from the captured Zero GitHub App session.
 It requires Git 2.31+ for runtime credential configuration and rejects older Git
 before credential dispatch.
 The session is revalidated before network actions, so account/session changes
-require another review. Zero does not store tokens or place them in Git command
-arguments or logs. It has no custom password/token UI. Automated checks mock
+require another review. Expiring tokens are stored in VS Code SecretStorage.
+Git transport injects them only into guarded credential-bearing children
+temporarily; they do not appear in Git configuration files, command arguments,
+URLs or logs. No client secret or App
+private key ships in the extension. It has no custom password/token UI. Automated checks mock
 sessions and intercept transport; they do not prove a real upload.
 The same guarded transport permits only exact-destination pushes, branch-head
 queries and SHA-pinned fetches needed to update main. Local Git receives no native
-credentials. Preparation queries remote main without changing local files/refs;
+credentials. Zero's separate clone service also authenticates only its exact
+verified destination. General Source Control and terminal network commands do
+not automatically inherit Zero's credentials; their normal Git configuration and
+authentication remain separate. Preparation queries remote main without changing local files/refs;
 the reviewed executor performs updates, with drift/session checks throughout.
 
 Copy Repository Link returns a page URL for separate Pika submission. A copied
@@ -431,8 +468,11 @@ JDK 17+ for builds. JDK 17 was tested; editor runtime requirements may differ.
 ## Verification and distribution limits
 
 See [VERIFICATION.md](VERIFICATION.md) for actual local checks and their scope.
-A Mac teacher trial verified native authentication and a private repository
-upload. The current MVP targets Mac with Apple Silicon and Windows; Linux and
+A prior Mac teacher trial verified the earlier VS Code GitHub authentication and
+a private repository upload. It does not verify this unactivated App/device-flow
+migration. Real selected-repository installation, new/private clone, renewal,
+revocation, account switching, Pages setup and browser identity need acceptance
+after owner activation. The current MVP targets Mac with Apple Silicon and Windows; Linux and
 Intel Macs are unsupported. Windows uses the published complete-kit ZIP for
 manual setup; its native EXE remains unpublished. Local0.5.18 source implements
 a per-user native Windows launcher with automatic private Java/editor preparation,

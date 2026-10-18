@@ -8,6 +8,11 @@ const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
+const {githubAppConfiguration} = require('./github-app/config');
+const {createGitHubAppProvider} = require('./github-app/provider');
+const {createGitHubAppRepositories} = require('./github-app/repositories');
+const {createGitHubAppClone} = require('./github-app/clone');
+const {createGitHubProjectCommands} = require('./github-app/projects-ui');
 const {createProjectFolders} = require('./project-folders');
 const {createWelcome} = require('./welcome');
 const {selectUploadAuthentication} = require('./web-publish-upload-auth');
@@ -29,7 +34,7 @@ const {sidebarScript} = require('./sidebar-script');
 const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
-function activate(context) {
+function activate(context, services = {}) {
   for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
     context.subscriptions.push(vscode.commands.registerCommand(id, action));
   }
@@ -140,16 +145,26 @@ function activate(context) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text)});
   const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';refresh();});
   context.subscriptions.push(auth);
+  const appConfiguration = githubAppConfiguration();
+  const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration}) : null);
+  if (appProvider) {
+    context.subscriptions.push(appProvider);
+    context.subscriptions.push(vscode.authentication.registerAuthenticationProvider('zero-github','Zero GitHub',appProvider,{supportsMultipleAccounts:false}));
+  }
+  const repositories = services.repositories || createGitHubAppRepositories({authentication:auth,configuration:appConfiguration});
+  const cloneRepository = services.cloneRepository || createGitHubAppClone({authentication:auth,repositories});
+  const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository});
+  const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
   async function signIn(changeAccount = auth.signedIn) {
     if (disposed || isBusy()) return;
     signingIn = true; refresh();
     try {
       if (disposed) return;
-      void vscode.window.showInformationMessage('VS Code will sign you into GitHub. Zero requests repository access (repo), including private repositories, so live uploads can use your chosen repository. VS Code stores the sign-in; Zero keeps no password or token file.');
-      await auth.signIn(changeAccount);
+      if (!appProvider) throw new Error('The Codepet GitHub App is not configured in this Zero release. Local running still works.');
+      if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
+      await auth.signIn(false);
       if (!disposed) state = auth.status;
     } catch (error) {
       if (!disposed) throw error;
@@ -298,7 +313,7 @@ function activate(context) {
       const ticket = await auth.capture();
       if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the change.');
       const destination = await github.prepareUpload(root);
-      const assertCurrent = () => auth.assertCurrent(ticket);
+      const assertCurrent = async () => {await repositories.access(destination.page,{ticket,permissions:{contents:'write'}});return auth.assertCurrent(ticket);};
       const networkRun = createTransport(destination.remote, assertCurrent, {assertCurrentNow:() => auth.assertCurrentNow(ticket)});
       const options = {networkRun, beforeNetwork:assertCurrent, onProgress:text => {state=text; refresh();}};
       const plan = kind === 'start' ? await workflow.prepareStart(root, name, options) : await workflow.prepareFinish(root, options);
@@ -356,12 +371,12 @@ function activate(context) {
           if(uploadMode(root)!=='live')throw new Error('Live uploads were disabled. Review the upload again.');
         };
         const plan = await github.prepareUpload(root);
-        selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,provider:vscode.authentication,assertCurrentProject});
+        selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
         const message = await vscode.window.showInputBox({title:'Commit & push', prompt:`${plan.page} · ${plan.branch}`, placeHolder:'Describe your changes', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
-        const assertCurrent = async () => {await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
+        const assertCurrent = async () => {await assertCurrentProject();await repositories.access(plan.page,{ticket,permissions:selectedAuth.permissions});await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
         const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
         await refreshNativeGit(root);
         await repositoryStatus();
@@ -376,18 +391,13 @@ function activate(context) {
       if (!auth.signedIn) return actions['zero.signInToGitHub']();
       const choice = await quickPick([
         {label:'Change GitHub account…', action:'change'},
-        {label:'Sign out…', description:'Use VS Code’s Accounts controls', action:'signOut'}
+        {label:'Sign out', description:'Disconnect Zero on this computer', action:'signOut'}
       ], {title:`GitHub: ${auth.accountLabel}`, placeHolder:'Choose an account action'});
       if (isBusy()) return;
       if (choice?.action === 'change') await actions['zero.signInToGitHub']();
       if (choice?.action === 'signOut') {
-        const available = await vscode.commands.getCommands(true);
-        if (isBusy()) return;
-        if (available.includes('workbench.action.manageAccounts')) {
-          await vscode.commands.executeCommand('workbench.action.manageAccounts');
-        } else {
-          void vscode.window.showInformationMessage('Open VS Code’s Accounts menu, select your GitHub account and choose Sign Out. You can also update VS Code to use its Manage Accounts picker. Zero does not sign out other extensions itself.');
-        }
+        if (appProvider && auth.sessionId) await appProvider.removeSession(auth.sessionId);
+        await auth.refresh();report('Signed out of Zero');
       }
     },
     'zero.chooseRepository': async () => {
@@ -408,15 +418,23 @@ function activate(context) {
       ] : [
         ...(!root || tutorial || localPractice ? [] : [
           {label:'Connect to GitHub…', action:'connect'},
-          {label:'Create a repository…', description:'Create on GitHub, then connect this project', action:'create'}
+          {label:'Create a repository…', description:'Create and connect this project', action:'create'}
         ])
       ];
-      const projectChoices = [{label:'Clone from GitHub…', action:'clone'}, {label:'Open local project…', action:'local'}];
+      const recovery=context.globalState?.get('zero.repositoryCreationRecovery');
+      const recoveryUrl=recovery&&typeof recovery.repositoryUrl==='string'?recovery.repositoryUrl:undefined;
+      const projectChoices = [...(recoveryUrl?[{label:'Resume created project…',description:recoveryUrl,action:'recover'}]:[]), {label:'New project…',action:'new'}, {label:'Clone from GitHub…', action:'clone'}, {label:'Open local project…', action:'local'}];
       if (connected) items.push(...projectChoices); else items.unshift(...projectChoices);
       const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project', placeHolder:'Choose a project action'});
       if (isBusy() || !choice) return;
       await repositoryStatus();
       if (isBusy() || projectRoot !== root || repository !== currentRepository || branch !== currentBranch) return;
+      if (choice?.action === 'recover') {
+        connecting=true;refresh();
+        try{if(uploadMode()!=='live')return simulation('Resume created project');await githubProjects.resumeCreated(recovery);}
+        finally{connecting=false;refresh();}
+      }
+      if (choice?.action === 'new') await actions['zero.newProject']();
       if (choice?.action === 'clone') await actions['zero.cloneRepository']();
       if (choice?.action === 'local') await actions['zero.openLocalProject']();
       if (choice?.action === 'connect') await actions['zero.connectRepository']();
@@ -432,11 +450,16 @@ function activate(context) {
     },
     'zero.signInToGitHub': signIn,
     'zero.createRepository': async () => {
-      if (isBusy()) return;
-      await lessonProjects.assertShareable(await project());
-      if (!auth.signedIn) throw new Error('Sign in to GitHub first.');
-      void vscode.window.showInformationMessage('Create your own empty GitHub repository: choose Public or Private, and leave README, .gitignore and license unselected. Use the same account shown in Zero. Then return here and choose the Project menu → Connect to GitHub.');
-      if (!(await vscode.env.openExternal(vscode.Uri.parse('https://github.com/new')))) throw new Error('Could not open GitHub. Open https://github.com/new in your browser, create an empty repository, then connect its link.');
+      if (disposed || isBusy()) return;
+      connecting=true;refresh();
+      try {if(uploadMode()!=='live')return simulation('Create repository');return await githubProjects.createRepository();}
+      finally {connecting=false;await repositoryStatus();refresh();}
+    },
+    'zero.newProject': async () => {
+      if (disposed || isBusy()) return;
+      startingTutorial=true;refresh();
+      try {if(uploadMode()!=='live')return simulation('New project');return await githubProjects.newProject();}
+      finally {startingTutorial=false;if(!disposed)refresh();}
     },
     'zero.chooseBranch': async () => {
       if (isBusy()) return;
@@ -485,26 +508,19 @@ function activate(context) {
     },
     'zero.startProject': async () => {
       if (disposed || isBusy()) return;
-      startingTutorial = true; refresh();
-      try {
-        const projects = await lessonProjects.loadBundle(context.extensionPath || path.resolve(__dirname,'..'));
-        if (disposed) return;
-        const choice = await quickPick(projects.map(item => ({label:item.title, description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]} · your GitHub repository`, project:item})), {title:'Start tutorial', placeHolder:'Choose a tutorial repository to create and clone'});
-        if (disposed || !choice) return;
-        if (!choice.project.template) throw new Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available, then create YOUR repository from that template and choose Project → Clone from GitHub in Zero. No local project was created.`);
-        const template = choice.project.template;
-        const next = await vscode.window.showInformationMessage('Create your own tutorial repository, then clone it', {modal:true, detail:`On GitHub, use this template to create a repository under your own account. Copy YOUR new repository URL. Return to Zero and choose Project → Clone from GitHub, paste that URL, and open the cloned folder.\n\n${template.repositoryUrl}`}, 'Open template');
-        if (disposed || next !== 'Open template') return;
-        if (!await vscode.env.openExternal(vscode.Uri.parse(template.templateHref))) throw new Error('Could not open the published tutorial template. Try Start tutorial again.');
-      } finally {startingTutorial = false; if (!disposed) refresh();}
+      startingTutorial=true;refresh();
+      try {if(uploadMode()!=='live')return simulation('Start tutorial');return await githubProjects.startTutorial();}
+      finally {startingTutorial=false;if(!disposed)refresh();}
     },
     'zero.cloneRepository': async () => {
       if (disposed || isBusy()) return;
       connecting = true; refresh();
       try {
+        if(uploadMode()!=='live')return simulation('Clone from GitHub');
+        if(!auth.signedIn)await auth.signIn();
         await projectFolders.clone();
       } catch (error) {
-        if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') {output.appendLine(error.message);throw new Error('Could not clone this repository. Check the URL, GitHub access and built-in Git extension, then try Clone from GitHub again.');}
+        if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') {output.appendLine(error.message);throw new Error(`Could not clone this repository. ${error.message} Check Zero’s GitHub access, then try Clone from GitHub again.`);}
       } finally {connecting = false; if (!disposed) refresh();}
     },
     'zero.openLocalProject': async () => {
@@ -561,7 +577,7 @@ function activate(context) {
   Object.assign(actions,browserRun.commands);
   actions['zero.stopApp']=async()=>{browserRun.stop();await stopRequested();};
   context.subscriptions.push(...browserRun.disposables);
-  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
+  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{
@@ -580,7 +596,19 @@ function activate(context) {
   Object.assign(actions,webExport.commands);
   context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
-    try {await action();} catch(error) {state = error.zeroRunMessage || error.message; refresh(); output.appendLine(error.message); vscode.window.showErrorMessage(`Zero: ${state}`);}
+    try {await action();} catch(error) {
+      state = error.zeroRunMessage || error.message;refresh();output.appendLine(error.message);
+      const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
+      if(installUrl && error.actionUrl===installUrl){
+        const choice=await vscode.window.showErrorMessage(`Zero: ${state}`,'Open GitHub');
+        if(choice==='Open GitHub'&&!disposed)await vscode.env.openExternal(vscode.Uri.parse(installUrl));
+      }else if(error.code==='creation-uncertain'&&typeof error.repositoryUrl==='string'){
+        const destination=core.parseRepositoryUrl(error.repositoryUrl);
+        const prior=context.globalState?.get('zero.repositoryCreationRecovery');
+        await context.globalState?.update('zero.repositoryCreationRecovery',{...(prior?.repositoryUrl===destination.page?prior:{}),repositoryUrl:destination.page,at:Date.now()});
+        vscode.window.showErrorMessage(`Zero: ${state} Use Project → Resume created project to continue.`);
+      }else vscode.window.showErrorMessage(`Zero: ${state}`);
+    }
   }));
   function render(webview) {
     const nonce = crypto.randomBytes(16).toString('hex');

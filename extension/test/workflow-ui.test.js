@@ -25,6 +25,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   let projectResolves=0;
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
   let branch='main',mode='simulation',session={id:'session',account:{id:'student',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
+  let accessFailure;const accesses=[];
   let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,finishUpdates=false,nativeScm=true;
   const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={};
   core.assertRepositoryRoot=async()=>root;
@@ -36,7 +37,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   workflow.finishPrepared=async(_,options)=>{executed++;await options.beforeNetwork();if(finishError)throw finishError;if(finishUpdates)return {updated:true,finished:false,branch,head:'f'.repeat(40)};branch='main';return {finished:true,branch,finishedBranch:'add-score',head:'f'.repeat(40)};};
   workflow.deleteFinishedBranch=async(...args)=>{deletions.push(args);if(cleanupError)throw cleanupError;deleted++;};
   const vscode={
-    authentication:{getSession:async()=>{authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
+    authentication:{getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);authCalls++;return session;},onDidChangeSessions:fn=>{authEvent=fn;return disposable();},registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();}},
     workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:section=>({get:(key,fallback)=>section==='zero'&&key==='uploadMode'?(mode??fallback):fallback}),saveAll:async()=>{saved++;return true;},createFileSystemWatcher:pattern=>pattern==='**/.git/{HEAD,config}'?{onDidCreate:fn=>{metadata.create=fn;return disposable();},onDidChange:fn=>{metadata.change=fn;return disposable();},onDidDelete:fn=>{metadata.delete=fn;return disposable();},dispose(){}}:{onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}},onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable},
     window:{createOutputChannel:()=>({appendLine(text){logs.push(text);},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,value)=>{provider=value;return disposable();},registerTreeDataProvider:disposable,
       showQuickPick:async(items,options)=>{picks.push({items,options});if(pickGate)await pickGate;return items.find(item=>item.action===choice);},showInputBox:async()=>input,
@@ -47,7 +48,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   };
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
-  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}});
+  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'student');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket};}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
   assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
   assert.match(webview.html,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
@@ -67,15 +68,15 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['start']);
   let releaseWarning;warningGate=new Promise(resolve=>{releaseWarning=resolve;});const authBefore=authCalls;
   await commands.get('zero.startChange')();await commands.get('zero.finishChange')();await commands.get('zero.uploadToGitHub')();
-  assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.match(warnings[0],/nothing changed/);
+  assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.equal(accesses.length,0);assert.match(warnings[0],/nothing changed/);
   assert.doesNotMatch(webview.html,/data-command="zero.startChange"[^>]* disabled/);releaseWarning();warningGate=undefined;
   mode=undefined;input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
-  input='add-score';await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,1);assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
+  input='add-score';await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,1);assert.equal(accesses.length,1);assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
   let releasePrepare;prepareGate=new Promise(resolve=>{releasePrepare=resolve;});const preparedBeforeFinish=prepared;const pending=commands.get('zero.finishChange')();await waitFor(()=>prepared>preparedBeforeFinish, 'Finish preparation should start directly');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
   assert.deepEqual({saved,prepared,authCalls},before);assert.match(webview.html,/data-command="zero.finishChange"[^>]* disabled/);
-  session={...session,id:'changed'};authEvent({provider:{id:'github'}});releasePrepare();await pending;prepareGate=undefined;
+  session={...session,id:'changed'};authEvent({provider:{id:'zero-github'}});releasePrepare();await pending;prepareGate=undefined;
   assert.equal(executed,1,'Changed account cannot execute the reviewed finish');assert.equal(deleted,0);assert.match(errors.at(-1),/sign-in changed/);
   finishError=Object.assign(new Error('Merge conflicts need your attention'),{conflict:true});await commands.get('zero.finishChange')();assert.equal(dispatch.at(-1),'workbench.view.scm');assert.equal(deleted,0);assert.match(notices.join('\n'),/Stage the resolved files/);assert.match(webview.html,/add-score<\/span>/);
   nativeScm=false;await commands.get('zero.finishChange')();assert.match(notices.at(-1),/Open Source Control/);assert.equal(deleted,0);
@@ -93,4 +94,9 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   branch='<branch "x">';provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes('&lt;branch &quot;x&quot;&gt;'));assert.match(webview.html,/&lt;branch &quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
   branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.at(-1).options.title.includes('main'), 'Main branch menu should open');
   const beforeMenu=executed;await commands.get('zero.startChange')();assert.equal(executed,beforeMenu);branch='changed-elsewhere';releasePick();await menu;pickGate=undefined;assert.equal(executed,beforeMenu,'A changed branch invalidates the menu selection');
+  input='add-score';accessFailure=new Error('This repository is not available to Zero. Add it to Zero’s selected repositories on GitHub.');
+  const beforeDenied={executed,deleted};await commands.get('zero.startChange')();
+  assert.deepEqual({executed,deleted},beforeDenied,'Denied selected-repository access must stop branch creation before dispatch');assert.match(errors.at(-1),/selected repositories/);
+  accessFailure=undefined;
+
 });

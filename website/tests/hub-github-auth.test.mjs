@@ -3,7 +3,7 @@ import {randomBytes} from 'node:crypto';
 import test from 'node:test';
 import {
   callbackResponse, FLOW_COOKIE, hubConfig, loginResponse, logoutResponse, newSession,
-  readFlow, readSession, safeHubReturnTo, sessionResponse, SESSION_COOKIE, unseal
+  readFlow, readSession, safeHubReturnTo, sessionResponse, SESSION_COOKIE, unseal, sharedAppMatches
 } from '../lib/hub-github-auth.mjs';
 
 const now = 1_800_000_000_000;
@@ -117,4 +117,12 @@ test('an expired mounted account gets logout401 and anonymous session for UI rec
   const request=withCookie(`${config.origin}/api/hub/github/logout`,cookiePair(cookie),{Origin:config.origin,'X-Hub-CSRF':session.csrf});
   assert.equal(logoutResponse(request,env,expired).status,401);
   assert.equal((await sessionResponse(request,env,expired).json()).user,null);
+});
+
+
+test('the website client ID matches the reviewed native App once configured',()=>{
+  const configured={status:'configured',clientId:'Iv1234567890'};
+  assert.equal(sharedAppMatches('Iv1234567890',configured),true);
+  assert.equal(sharedAppMatches('IvDifferent123',configured),false);
+  assert.equal(sharedAppMatches('Iv1234567890',{status:'broken'}),false);
 });

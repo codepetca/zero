@@ -1,19 +1,11 @@
 'use strict';
 const path = require('node:path');
-const {createAuthentication} = require('./authentication');
 const {createGitHubPagesPublisher} = require('./web-publish-github');
 
-function createWebPublishCommands(vscode,{project,authentication,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
+function createWebPublishCommands(vscode,{project,authentication,repositories,isSimulation=()=>true,isBusy=()=>false,setBusy=()=>{},setState=()=>{},output,uploadChanges,workspaceState,engineRoot=path.join(__dirname,'web-export'),cacheRoot,localBuild,publisherFactory=createGitHubPagesPublisher,pollIntervalMs=5000,maxChecks=180}={}) {
   let disposed=false,controller,publishing=false,resume,recheckRequested=false,lastLive;
-  let workflowAuth;
-  // No provider lookup or scope request happens until an explicit live command.
-  const activeAuth={
-    capture:()=> (workflowAuth || authentication).capture(),
-    assertCurrent:ticket=>(workflowAuth || authentication).assertCurrent(ticket),
-    assertCurrentNow:ticket=>(workflowAuth || authentication).assertCurrentNow(ticket)
-  };
   let root;
-  const publisher=publisherFactory({authentication:activeAuth,isSimulation:()=>!root || isSimulation(root),engineRoot,cacheRoot,localBuild});
+  const publisher=publisherFactory({authentication,repositories,isSimulation:()=>!root || isSimulation(root),engineRoot,cacheRoot,localBuild});
   async function stillCurrent(expected) {
     if(disposed || controller?.signal.aborted || await project()!==expected)throw new Error('The project changed or publishing was cancelled. Check GitHub Actions for any run already started.');
   }
@@ -95,12 +87,10 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
         if(review.setup) {
           const base=await authentication.capture();
           const original=review;
-          workflowAuth?.dispose();
-          workflowAuth=createAuthentication(vscode.authentication,()=>{},['repo','workflow'],{id:base.session.accountId,label:base.session.label || review.account});
-          try {await workflowAuth.capture();} catch {await workflowAuth.signIn();}
-          const expanded=await workflowAuth.capture();
-          if(expanded.session.accountId!==base.session.accountId)throw new Error('The GitHub account changed during authorization. Review publishing again with the intended account.');
-          // Native authorization changes invalidate the old review. Never reuse it.
+          if(!repositories?.access)throw Error('Zero GitHub App repository access is not configured.');
+          await repositories.access(review.repository,{ticket:base,permissions:{contents:'write',workflows:'write'},signal:controller.signal});
+          await authentication.assertCurrent(base);
+          // Repository access changes invalidate the old review. Never reuse it.
           review=await publisher.review(expected,{signal:controller.signal});
           if(review.status!=='review'){await showAction(review);return review;}
           assertDestination();
@@ -114,7 +104,7 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
           // input. Keep this command's separate operation guard held throughout.
           setBusy(false);
           let uploaded;
-          try {uploaded=await uploadChanges(workflowAuth || authentication);} finally {setBusy(true);}
+          try {uploaded=await uploadChanges(authentication);} finally {setBusy(true);}
           if(!uploaded?.uploaded)return;
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
@@ -187,6 +177,6 @@ function createWebPublishCommands(vscode,{project,authentication,isSimulation=()
       return {provider:'github-pages',url:checked.url,commit,runId:checked.resume.runId};
     } finally {controller=undefined;publishing=false;setBusy(false);}
   }
-  return {publish,verifiedPublication,commands:{'zero.publishWeb':publish,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true)},disposables:[{dispose(){disposed=true;controller?.abort();workflowAuth?.dispose();}}]};
+  return {publish,verifiedPublication,commands:{'zero.publishWeb':publish,'zero.copyPublishedWebLink':()=>publishedLink(false),'zero.openPublishedWeb':()=>publishedLink(true)},disposables:[{dispose(){disposed=true;controller?.abort();}}]};
 }
 module.exports={createWebPublishCommands};

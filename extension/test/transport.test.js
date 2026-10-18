@@ -48,11 +48,11 @@ test('secret child errors and malformed confirmation output are redacted and con
 test('native account removal/drift stops before credential-bearing process; revoke between push and confirmation never reports success', async t => {
   for (const revokeAt of ['review','push']) {
     const root=await project(t);let session={id:'one',account:{id:'student',label:'student'},accessToken:token};let listener;let calls=0;
-    const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:fn=>{listener=fn;return {dispose(){}};}});t.after(()=>auth.dispose());
+    const auth=createAuthentication({getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);return session;},onDidChangeSessions:fn=>{listener=fn;return {dispose(){}};}});t.after(()=>auth.dispose());
     const ticket=await auth.capture();const plan=await prepareUpload(root);
     const check=()=>auth.assertCurrent(ticket);
-    const networkRun=createTransport(remote,check,{assertCurrentNow:()=>auth.assertCurrentNow(ticket),spawn:async()=>{calls++;session=undefined;listener({provider:{id:'github'}});return {stdout:''};}});
-    if(revokeAt==='review') {session={...session,account:{id:'other',label:'other'}};listener({provider:{id:'github'}});}
+    const networkRun=createTransport(remote,check,{assertCurrentNow:()=>auth.assertCurrentNow(ticket),spawn:async()=>{calls++;session=undefined;listener({provider:{id:'zero-github'}});return {stdout:''};}});
+    if(revokeAt==='review') {session={...session,account:{id:'other',label:'other'}};listener({provider:{id:'zero-github'}});}
     await assert.rejects(uploadPrepared(plan,'Save',{beforeUpload:check,networkRun}),/account or sign-in changed/);
     assert.equal(calls,revokeAt==='review'?0:1);
   }
@@ -111,9 +111,9 @@ test('persistent Git Trace2 config cannot write native-session secrets through e
 test('account removal or switch during asynchronous preparation stops dispatch and removes the hook directory', async t => {
   for(const preparation of ['root','rewrite','temporary-directory']) for(const change of ['remove','switch']) {
     const root=await project(t);let session={id:'one',account:{id:'student',label:'student'},accessToken:token};let listener,hookPath;let calls=0,nativeChecks=0,changed=false;
-    const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:fn=>{listener=fn;return {dispose(){}};}});
+    const auth=createAuthentication({getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);return session;},onDidChangeSessions:fn=>{listener=fn;return {dispose(){}};}});
     const ticket=await auth.capture();
-    const revoke=()=>{if(changed)return;changed=true;session=change==='remove'?undefined:{...session,id:'other',account:{id:'other',label:'other'}};listener({provider:{id:'github'}});};
+    const revoke=()=>{if(changed)return;changed=true;session=change==='remove'?undefined:{...session,id:'other',account:{id:'other',label:'other'}};listener({provider:{id:'zero-github'}});};
     const originalMkdtemp=fs.mkdtemp;
     fs.mkdtemp=async prefix=>{const result=await originalMkdtemp(prefix);if(prefix.includes('zero-upload-hooks-')){hookPath=result;if(preparation==='temporary-directory')revoke();}return result;};
     const localRun=async(cwd,args)=>{

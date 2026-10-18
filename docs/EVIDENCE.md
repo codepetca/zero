@@ -5504,3 +5504,34 @@ both credited sources, search, unchanged publication provenance and unrelated/
 future-source attribution. Final browser, independent review and exact-head
 CI/merge receipts are retained in .verification/flap-motion-attribution/ and linked
 from the delivery PR. This is a website presentation correction only.
+
+## Shared GitHub identity source — 2026-10-18
+
+Owner chose one public Codepet GitHub App for Zero development and ZeroHub.
+Implementation from baseline4fbcfe2 replaces broad built-in OAuth requests with
+Zero’s supported provider, local device-flow rotation, explicit installation and
+repository membership, guarded clone, create/connect/recovery and publishing
+capability checks. Pinned public configuration remains unconfigured. No new App,
+secret, GitHub write, push, deployment or native release was performed.
+
+Focused native checks passed: provider/storage/device22, repositories/clone26,
+auth/folders/project UI39, onboarding/lessons26, transport/welcome/workflow19,
+upload integration16, extension integration3 and project recovery23. These overlap;
+they are not a unique total. Website148tests, typecheck/production build and root
+configuration/syntax/command/link checks pass. Full native regression and two
+independent fixed-head reviews are pending at this source snapshot. Evidence and
+review budget: `.verification/zero-identity/plan.json` and adjacent logs.
+
+Native CUA smoke could not run because the Mac is locked. Real consent, selected
+installation, empty-account creation, private clone/upload, token renewal/revocation,
+Pages fallback and inline stars remain owner-approved live acceptance. Physical
+Windows, Safari and school/novice pilots remain untested. Prior PR102 CI covers
+only its earlier stars draft. See [the plan](ZERO-IDENTITY-PLAN.md) for activation
+permissions and the broader browser-token trust boundary chosen by the owner.
+
+Delegation used focused Sol/high implementation and Sol/medium regression workers
+with separate file ownership. Coordinator inspected contracts, integrated commands
+and added recovery checks. No ownership conflicts; initial regression failures
+were stale provider/browser-creation expectations and were migrated. Actual
+per-worker tokens/effective configuration and attributable cost are unknown;
+account-wide allowance is not task cost. No savings claim.

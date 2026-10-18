@@ -203,7 +203,7 @@ function createSharingEditor(vscode,host,options={}) {
   }
   async function afterHandoff(ticket) {
    trusted(vscode);await current(root);
-   // Native workflow-scope consent may replace the base session. Keep account
+   // App session refresh may replace the base credential. Keep account
    // ownership stable while accepting a fresh token/revision after that action.
    const fresh=await host.auth.capture();
    if(!ticket.session.accountId||fresh.session.accountId!==ticket.session.accountId)fail('The GitHub account changed during sharing. Share again with the original account.');

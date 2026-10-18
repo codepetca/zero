@@ -13,7 +13,9 @@ button state only after GitHub confirms the write. Public counts are cached and
 may take up to about 16 minutes to catch up. Signing out ends the local session;
 it does not remove stars or revoke the GitHub App authorization.
 
-The website uses a GitHub App user authorization flow with state and PKCE S256.
+The website uses the shared GitHub App user authorization flow with state and PKCE S256.
+GitHub shows an account picker; the displayed account must be the one the student
+intends to use. This does not silently sign the editor into the website.
 Encrypted HttpOnly, Secure, SameSite=Lax cookies contain the short-lived token;
 the browser receives only identity and a session CSRF token. Cookies are scoped
 to the host and the session lasts at most eight hours, minus a safety margin.
@@ -26,20 +28,32 @@ catalog, shared cache, client storage, or publication environment.
 Implementation can be deployed without credentials: stars stay disabled and
 public browsing, site checks and reports remain available. Registering the App
 and granting its access is a separate owner action after source/security review.
-Use this concrete configuration for an App owned by `codepetca`:
+The owner selected one App for native Zero and ZeroHub. Follow the authoritative
+[shared identity plan](ZERO-IDENTITY-PLAN.md) for the full reviewed permission
+matrix. Ordinary website user tokens can inherit selected-repository powers;
+they must not be described as star-only. Repository credentials stay in the
+editor for native development; the website uses its own separate web-token family.
 
-- Name: ZeroHub Stars (choose an available equivalent if necessary).
+Use this proposed configuration for an App owned by `codepetca`:
+
+- Name: Codepet Zero (choose an available equivalent if necessary).
 - Visibility: **Public** (the registration option allowing any account). A private
   organization App limits authorization to organization members, so it cannot
   serve students outside `codepetca`. Marketplace listing is unnecessary.
 - Homepage: `https://zero.codepet.ca/hub`.
 - Callback: `https://zero.codepet.ca/api/hub/github/callback`.
 - User permissions: **Starring — Read and write**.
-- Repository permissions: implicit/default **Metadata — Read-only** only.
+- Repository permissions: **Metadata — Read**, **Repository creation — Write**,
+  **Contents — Write**, **Workflows — Write**, **Actions — Write**, **Pages — Write**.
+  Omit **Administration**; first-time Pages creation uses GitHub settings.
+- Device flow: enabled. Installation: selected repositories. The App automatically
+  receives access to repositories it creates. Zero does not select all repositories.
 - Organization permissions: none. Webhooks: inactive. No events subscribed.
-- User access tokens: expiring. No repository installation or publisher token
-  is used by this integration. Do not request Contents write, classic OAuth
-  `public_repo`, or broader permissions to make a failed test pass.
+- User access tokens: expiring. No App private key or installation-token service
+  is deployed. Do not request classic OAuth `repo`/`public_repo`, Administration
+  or additional permissions to make a failed test pass.
+- Pin the same App ID/client ID/slug in the native reviewed source configuration
+  and production website. A configured native client ID mismatch disables web sign-in.
 
 Configure these **server-only**, production-scoped environment variables:
 

@@ -44,6 +44,10 @@ PNG under the reviewed publisher policy; existing accepted releases remain valid
 `/hub/share` explains native sharing and the official GitHub request forms.
 The website never receives publisher credentials. An optional, short-lived GitHub
 App session enables inline repository stars; browsing and playing stay public.
+It uses the same Codepet App as native Zero, with separate browser credentials.
+The shared App has selected-repository development permissions; ordinary browser
+tokens are not a GitHub-enforced star-only boundary. See the
+[identity plan](../docs/ZERO-IDENTITY-PLAN.md) for that owner-selected tradeoff.
 See [ZeroHub feedback](../docs/ZEROHUB-FEEDBACK.md) for the exact permissions,
 server environment and activation procedure. Public checks and counts are bounded
 and cached; issue reports open on GitHub for the user to submit.
