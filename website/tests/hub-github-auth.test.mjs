@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import test from 'node:test';
+import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {
   callbackResponse, FLOW_COOKIE, hubConfig, loginResponse, logoutResponse, newSession,
   readFlow, readSession, safeHubReturnTo, sessionResponse, SESSION_COOKIE, unseal, sharedAppMatches
@@ -8,7 +9,7 @@ import {
 
 const now = 1_800_000_000_000;
 const env = {NODE_ENV: 'test', ZERO_HUB_ORIGIN: 'http://127.0.0.1:3000',
-  ZERO_HUB_GITHUB_CLIENT_ID: 'Iv1234567890', ZERO_HUB_GITHUB_CLIENT_SECRET: 'a'.repeat(32),
+  ZERO_HUB_GITHUB_CLIENT_ID: zeroApp.clientId, ZERO_HUB_GITHUB_CLIENT_SECRET: 'a'.repeat(32),
   ZERO_HUB_GITHUB_SESSION_SECRET: randomBytes(32).toString('base64url')};
 const config = hubConfig(env);
 const cookiePair = setCookie => setCookie.split(';')[0];
@@ -19,6 +20,7 @@ test('configuration is explicit and local HTTP is limited to non-Vercel developm
   assert.equal(hubConfig({...env, VERCEL: '1'}), null);
   assert.equal(hubConfig({...env, ZERO_HUB_ORIGIN: 'http://evil.example'}), null);
   assert.equal(hubConfig({...env, ZERO_HUB_GITHUB_SESSION_SECRET: 'weak'}), null);
+  assert.equal(hubConfig({...env,ZERO_HUB_GITHUB_CLIENT_ID:'IvDifferentApp123'}),null);
   assert.equal(hubConfig(env).origin, 'http://127.0.0.1:3000');
   const production = hubConfig({...env, NODE_ENV: 'production', ZERO_HUB_ORIGIN: 'https://zero.codepet.ca'});
   assert.match(newSession('ghu_' + 'a'.repeat(24), {id: 1, login: 'person'}, 28800, production, now).cookie,

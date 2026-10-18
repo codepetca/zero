@@ -18,15 +18,20 @@ Exact codehead:598extensiontests,597pass0fail1existing skip;148website tests,
 typecheck/finalbuild/rootcheck pass. Native UI unavailable while Mac locked;
 live App consent/install/create/private clone/refresh/revocation/upload/Pages/stars,
 physical Windows and Safari unverified. New recovery guide must publish before
-activation. Pinned App configuration remains honestly unconfigured.
+activation. Public App configuration is now pinned to the verified registration.
 
-Owner explicitly approved App registration with the reviewed permissions and
-pushing the implementation to draft PR102 on2026-10-18. Registration currently
-needs an authenticated GitHub owner browser session; sign-in tab is open. Proceed
-with approved registration, pin public IDs, validate/review the configuration delta,
-and update the draft PR. Merge, production activation and native release are not
-newly authorized by this approval. Live acceptance and native UI remain pending.
+Owner approved registration, draft push, and a private test repo with installation
+limited to it. Codepet Zero registered undercodepetca: App5367740,
+clientIv23liWzC8OE2WN5f6qV, slugcodepet-zero. Real public API/verifyApp pass exact
+binding and permissions. Chrome owner confirmation succeeded; the approved private test repository was
+created from the trusted starter and is the only selected installation repository.
+Exact private test IDs remain in the ignored receipt. No private key/clientsecret generated. Userauthorization,
+clone/upload/refresh/revocation/Pages/stars unverified; production/native release
+and merge not newly authorized. Selected install requires≥1repo; empty-account
+onboarding still an acceptance gap.
 
-Published installer0.5.19 and publisher policy11c5451 unchanged. Preserve dirty
-main funding work and ignored evidence/profiles. DeepSeek paused through2026-12-31.
-Account-wide51% weekly remaining at this continuation is not task cost.
+NEXT: review public-ID pin/config-fixture/docs delta, update draft PR102 (all5CI
+passed at474fe06); perform approved one-repo native acceptance when available.
+No server credentials/production activation/native release. Preserve dirty main,
+ignored evidence and released installer0.5.19/publisher policy11c5451.
+DeepSeek paused through2026-12-31; last weekly51% remaining is account-wide.

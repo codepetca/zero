@@ -34,9 +34,13 @@ matrix. Ordinary website user tokens can inherit selected-repository powers;
 they must not be described as star-only. Repository credentials stay in the
 editor for native development; the website uses its own separate web-token family.
 
-Use this proposed configuration for an App owned by `codepetca`:
+Registered on2026-10-18 with owner approval: [Codepet Zero](https://github.com/apps/codepet-zero),
+owned by `codepetca` (App ID5367740, Client ID`Iv23liWzC8OE2WN5f6qV`). Public IDs
+are pinned in source. The approved personal-account test installation selects one private repository. No private key or client secret was
+generated; no server credentials or production activation exist. Live user
+authorization and transport acceptance remain pending. Registered settings:
 
-- Name: Codepet Zero (choose an available equivalent if necessary).
+- Name: Codepet Zero; slug `codepet-zero`.
 - Visibility: **Public** (the registration option allowing any account). A private
   organization App limits authorization to organization members, so it cannot
   serve students outside `codepetca`. Marketplace listing is unnecessary.
@@ -46,7 +50,7 @@ Use this proposed configuration for an App owned by `codepetca`:
 - Repository permissions: **Metadata — Read**, **Repository creation — Write**,
   **Contents — Write**, **Workflows — Write**, **Actions — Write**, **Pages — Write**.
   Omit **Administration**; first-time Pages creation uses GitHub settings.
-- Device flow: enabled. Installation: selected repositories. The App automatically
+- Device flow: enabled. Test installation: selected repositories. The App automatically
   receives access to repositories it creates. Zero does not select all repositories.
 - Organization permissions: none. Webhooks: inactive. No events subscribed.
 - User access tokens: expiring. No App private key or installation-token service

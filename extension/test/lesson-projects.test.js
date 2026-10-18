@@ -72,8 +72,9 @@ test('local practice sharing commands stop before authentication, saves, Git or 
   const root=await temporary(t);await fs.writeFile(path.join(root,'zero.json'),JSON.stringify({localOnly:true,practiceProjectId:'greeting',lessonId:'0'}));await fs.writeFile(path.join(root,'mvnw'),'');
   const commands=new Map(),errors=[];let authCalls=0,saves=0,external=0,launches=0;const repositoryPicks=[];
   const disposable=()=>({dispose(){}});
+  const appProvider={dispose(){},async removeSession(){assert.fail('Local practice must not remove a GitHub session');}};
   const vscode={
-    authentication:{getSession:async()=>{authCalls++;return null;},onDidChangeSessions:disposable},
+    authentication:{getSession:async(provider,scopes,options)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);assert.equal(options.silent,true);authCalls++;return null;},onDidChangeSessions:disposable,registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.equal(provider,appProvider);assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();}},
     workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>{saves++;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable,onDidChangeConfiguration:disposable,textDocuments:[]},
     window:{createOutputChannel:()=>({appendLine(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showErrorMessage:async text=>{errors.push(text);},showInformationMessage:async()=>{},showQuickPick:async items=>{repositoryPicks.push(items);}},
     tasks:{onDidStartTask:disposable,onDidEndTaskProcess:disposable,onDidEndTask:disposable,registerTaskProvider:disposable,executeTask:async task=>{launches++;return {task,terminate(){}};}},
@@ -84,7 +85,7 @@ test('local practice sharing commands stop before authentication, saves, Git or 
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(item=>item.dispose()));
-  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:path.resolve(__dirname,'..')});
+  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:path.resolve(__dirname,'..')},{provider:appProvider});
   await commands.get('zero.chooseRepository')();assert.equal(repositoryPicks.length,0,'Signed-out practice hides the project menu');
   for(const id of ['zero.switchBranch','zero.connectRepository','zero.createRepository','zero.uploadToGitHub','zero.startChange','zero.finishChange','zero.extractLibrary','zero.shareGame','zero.shareLibrary']) {
     await commands.get(id)();assert.match(errors.at(-1),/local lesson practice/i,id);

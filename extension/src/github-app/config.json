@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "status": "unconfigured",
+  "status": "configured",
   "owner": "codepetca",
-  "appId": null,
-  "clientId": null,
-  "slug": null,
+  "appId": 5367740,
+  "clientId": "Iv23liWzC8OE2WN5f6qV",
+  "slug": "codepet-zero",
   "websiteOrigin": "https://zero.codepet.ca"
 }

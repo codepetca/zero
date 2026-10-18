@@ -308,15 +308,28 @@ consumer require separate actual acceptance.
 ## Shared GitHub identity (unreleased)
 
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the one-App permission matrix,
-implementation phases and owner activation gate. Public App metadata is pinned in
-`extension/src/github-app/config.json`; the current placeholder keeps development
-sign-in unavailable while local Run remains usable. The extension registers the
-supported `zero-github` provider, keeps device-flow token pairs in SecretStorage,
-and uses no shipped client secret. Website OAuth uses the same client ID after
-activation, with its own credential family and eight-hour reconnect policy.
+implementation phases and production activation gate. Codepet Zero is registered
+as the public [`codepet-zero` App](https://github.com/apps/codepet-zero) under
+`codepetca` (owner ID `116690057`). Its configured public metadata is pinned in
+`extension/src/github-app/config.json`: App ID `5367740` and client ID
+`Iv23liWzC8OE2WN5f6qV`. Registration enables device flow and expiring user tokens;
+wildcard callbacks and webhooks are off, with no webhook events selected. Reviewed
+permissions are Actions, Contents, Pages, repository creation, Workflows and
+starring write, plus Metadata read; no broad Administration permission is used.
+Registration and pinning do not prove installation, device authorization, token
+issuance or live acceptance. The source remains unreleased and local Run stays
+available without a connection. The extension registers the supported
+`zero-github` provider, keeps device-flow token pairs in SecretStorage,
+and uses no shipped client secret. Website OAuth uses the same client ID with
+its own credential family and eight-hour reconnect policy. Browser sign-in remains
+disabled without the required server credentials; registration did not provision
+a client secret, private key or user tokens. Installation, live acceptance,
+production activation and an authorized native release remain pending.
 
 Focused native checks are `node --test extension/test/github-app-*.test.js`,
 followed by the full extension suite. Mocked API/device-flow tests and disposable
 local Git exercise lifecycle and authority guards; they do not prove real GitHub
 permission consent, creation, refresh or Pages behavior. Those checks require the
-concrete owner-approved App setup and disposable student-owned repositories.
+registered App and disposable student-owned repositories. GitHub’s **Only select
+repositories** installation form requires at least one repository; empty-account
+onboarding has not been verified.

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import test from 'node:test';
+import zeroApp from '../../extension/src/github-app/config.json' with {type:'json'};
 import {hubConfig, newSession} from '../lib/hub-github-auth.mjs';
 import {getStarResponse, postStarResponse, publicGithubRepository} from '../lib/hub-stars.mjs';
 
 const now = 1_800_000_000_000;
 const env = {NODE_ENV: 'test', ZERO_HUB_ORIGIN: 'http://127.0.0.1:3000',
-  ZERO_HUB_GITHUB_CLIENT_ID: 'Iv1234567890', ZERO_HUB_GITHUB_CLIENT_SECRET: 'a'.repeat(32),
+  ZERO_HUB_GITHUB_CLIENT_ID: zeroApp.clientId, ZERO_HUB_GITHUB_CLIENT_SECRET: 'a'.repeat(32),
   ZERO_HUB_GITHUB_SESSION_SECRET: randomBytes(32).toString('base64url')};
 const config = hubConfig(env);
 const {session, cookie} = newSession('ghu_' + 'a'.repeat(24), {id: 123, login: 'student'}, 28800, config, now);

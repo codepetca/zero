@@ -1,11 +1,13 @@
 # Recovering a blocked Zero connection lock
 
 This procedure applies to the local, unreleased GitHub App connection. It repairs
-an abandoned lock after a crash; it does not activate the unconfigured App.
+an abandoned lock after a crash; it does not activate or authorize the registered
+Codepet Zero App.
 Local editing and Run remain available without the connection.
 The diagnostic links to this canonical GitHub guide so installed kits need no
 checkout of Zero's source. Publish this guide before activating or releasing the
-connection; the App currently remains unconfigured.
+connection. The App is registered and its public IDs are pinned, while live
+acceptance, production activation and an authorized native release remain pending.
 
 `connection-busy` normally means another Zero editor is using the connection.
 Wait for it to finish. `connection-lock-repair-required` means the bounded wait

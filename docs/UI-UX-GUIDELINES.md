@@ -42,9 +42,11 @@ marks a preferred pattern with documented, task-specific exceptions.
   Follow the editor's established controls, theme colors, keyboard behavior and
   supported authentication/account flows. Retain light and dark editor support.
 - MUST distinguish the unreleased shared-App source from available downloads.
-  The App is unconfigured until owner-approved activation; do not show a working
-  connection or claim live provider acceptance from mocked checks. Published
-  kits keep their bundled behavior. See [the identity plan](ZERO-IDENTITY-PLAN.md).
+  Codepet Zero is registered and its public IDs are pinned, while live acceptance,
+  production activation and an authorized native release remain pending. Do not
+  show a working connection or claim live provider acceptance from registration
+  or mocked checks. Browser sign-in stays disabled without server credentials.
+  Published kits keep their bundled behavior. See [the identity plan](ZERO-IDENTITY-PLAN.md).
 - MUST recommend selected repositories, with automatic access to App-created
   repositories. Never silently request all-repository access. Collect scaffold,
   repository name, explicit visibility and location before creating/cloning;

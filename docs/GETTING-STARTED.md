@@ -1,8 +1,9 @@
 # Getting started with Zero
 
 This guide describes local, unreleased Zero source. The new shared GitHub App
-connection is unconfigured and cannot be activated until owner approval and
-provider acceptance. Published downloads keep their bundled instructions and
+is registered as Codepet Zero under `codepetca`, and its public IDs are pinned
+in source. Live acceptance, production activation and an authorized native release
+remain pending. Published downloads keep their bundled instructions and
 original bytes. See [the identity plan](ZERO-IDENTITY-PLAN.md).
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
@@ -386,7 +387,8 @@ A prior Mac teacher trial verified the earlier VS Code GitHub sign-in and a
 private repository push. That evidence does not verify this unactivated App
 migration. Selected installation, automatic access to created repositories,
 device renewal/revocation, new/private clone, browser identity and Pages setup
-need live acceptance after owner approval.
+need live acceptance before production activation and release. Registered public
+App IDs alone do not verify those flows.
 Physical Windows, school restrictions and novice trials remain unverified;
 automated authentication and transport checks continue to use mocks.
 

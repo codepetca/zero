@@ -5577,3 +5577,15 @@ permission matrix and pushing the implementation to the draft PR. The registrati
 page currently requires GitHub owner sign-in; the browser handoff is open. This
 approval does not by itself prove App creation, installation, live acceptance,
 production activation, merge or native release.
+
+Registration and scoped installation completed2026-10-18 in owner-authenticated
+Chrome with explicit authority. Public Appcodepet-zero5367740/client
+Iv23liWzC8OE2WN5f6qV belongs tocodepetca116690057; public API and actualverifyApp
+confirmed the exact seven permission entries. No private key/clientsecret was
+generated. Owner approved one private test repository (trusted public starter template);
+the test installation selects it alone, with exact IDs kept in ignored receipts. Registration
+and installed-repository screenshots are ignored under.verification/zero-identity.
+All five CI checks passed for drafthead474fe06. Public-ID pin/config-test/fixture
+and factual docs updates are being reviewed; no production activation or native
+release. User authorization/transport remains pending; empty-account selected
+installation needs at least one repository and remains an acceptance gap.

@@ -14,9 +14,10 @@ direct download buttons: **Download for Mac Silicon** and **Download for Windows
 centered full-viewport layout. The old `/get-started` address redirects to Downloads.
 Browsing, learning and playing require no GitHub sign-in. The local, unreleased
 shared-identity source uses one public Codepet-owned GitHub App for desktop
-development and optional ZeroHub stars. Its pinned App configuration remains
-unconfigured; live activation and a native release need owner approval and
-provider acceptance. Published downloads keep their bundled authentication flow.
+development and optional ZeroHub stars. Codepet Zero is registered under
+`codepetca`, and its public App IDs are pinned in source. Live provider acceptance,
+production activation and an authorized native release remain pending. Published
+downloads keep their bundled authentication flow.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
 After activation, download and launch desktop Zero first. Its welcome checks
@@ -472,8 +473,9 @@ A prior Mac teacher trial verified the earlier VS Code GitHub authentication and
 a private repository upload. It does not verify this unactivated App/device-flow
 migration. Real selected-repository installation, new/private clone, renewal,
 revocation, account switching, Pages setup and browser identity need acceptance
-after owner activation. The current MVP targets Mac with Apple Silicon and Windows; Linux and
-Intel Macs are unsupported. Windows uses the published complete-kit ZIP for
+before production activation and release. Registration and pinned public IDs do
+not establish those live results. The current MVP targets Mac with Apple Silicon
+and Windows; Linux and Intel Macs are unsupported. Windows uses the published complete-kit ZIP for
 manual setup; its native EXE remains unpublished. Local0.5.18 source implements
 a per-user native Windows launcher with automatic private Java/editor preparation,
 session resume and authenticated updates; see [the Windows contract](WINDOWS-INSTALLER.md).

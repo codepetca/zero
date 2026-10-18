@@ -62,8 +62,9 @@ separate Pika submission remain the product baseline.
 ## Shared GitHub identity — owner decision, 2026-10-18
 
 The local, unreleased source uses one public Codepet-owned GitHub App for native
-development and optional ZeroHub stars. Configuration remains unconfigured;
-live activation, provider acceptance and release need owner approval. Published
+development and optional ZeroHub stars. Codepet Zero is registered under
+`codepetca`, and the public App IDs are pinned in source. Live acceptance,
+production activation and an authorized native release remain pending. Published
 kits keep their original behavior. This section supersedes the older VS Code
 GitHub-provider and browser-only repository-creation decisions below; those dated
 entries remain historical design records. See [the identity plan](docs/ZERO-IDENTITY-PLAN.md).

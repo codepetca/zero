@@ -3394,3 +3394,11 @@ App configuration is unconfigured and source is unpushed. Live registration,
 consent/installation, creation/private clone/upload, refresh/revocation, Pages
 and stars remain unverified. Mac native UI was blocked by the locked computer;
 physical Windows and Safari remain untested. No new credentials or publication.
+
+Registration acceptance continuation: public Codepet Zero registration and exact
+permission binding verified against the real GitHub API. Approved selected-only
+installation completed on one private test repository without a private key.
+Registered configuration suite:598extension tests (597pass, one existing skip),
+148website tests and root checks pass. Public App IDs are pinned; user authorization
+and real clone/upload/refresh remain pending. Website secrets/production activation
+and a native release have not occurred.

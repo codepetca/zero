@@ -45,6 +45,11 @@ PNG under the reviewed publisher policy; existing accepted releases remain valid
 The website never receives publisher credentials. An optional, short-lived GitHub
 App session enables inline repository stars; browsing and playing stay public.
 It uses the same Codepet App as native Zero, with separate browser credentials.
+The public [Codepet Zero App](https://github.com/apps/codepet-zero) is registered
+under `codepetca`, and its public IDs are pinned in source. Browser sign-in remains
+disabled without the required server credentials. Registration did not provision
+server secrets or user tokens; installation, live acceptance, production activation
+and an authorized native release remain pending.
 The shared App has selected-repository development permissions; ordinary browser
 tokens are not a GitHub-enforced star-only boundary. See the
 [identity plan](../docs/ZERO-IDENTITY-PLAN.md) for that owner-selected tradeoff.

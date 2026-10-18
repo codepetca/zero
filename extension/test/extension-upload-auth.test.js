@@ -35,7 +35,8 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     await afterAccess();
     return {ticket,repository:{id:repositoryId,private:privacy,full_name:'student/app',owner:{id:1,type:'User'},default_branch:'main'},installation:{id:installationId}};
   }};
-  const vscode={authentication:{getSession:async(provider,scopes,options)=>{
+  const appProvider={dispose(){},async removeSession(){assert.fail('Upload must not remove a GitHub session');}};
+  const vscode={authentication:{registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.equal(provider,appProvider);assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();},getSession:async(provider,scopes,options)=>{
     calls.push({provider,scopes,options});
     assert.equal(provider,'zero-github','Zero must never fall back to the built-in broad GitHub provider');
     assert.deepEqual(scopes,[],'GitHub App sessions never request repo/workflow OAuth scopes');
@@ -46,7 +47,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
   tasks:{onDidStartTask:disposable,onDidEndTask:disposable,onDidEndTaskProcess:disposable,registerTaskProvider:disposable},commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},Uri:{file:fsPath=>({fsPath})},EventEmitter:class{event(){}fire(){}dispose(){}}};
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
-  const subscriptions=[];extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{repositories});await new Promise(resolve=>setImmediate(resolve));
+  const subscriptions=[];extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appProvider,repositories});await new Promise(resolve=>setImmediate(resolve));
   t.after(()=>{subscriptions.forEach(item=>item.dispose());core.git=originalGit;github.prepareUpload=originalPrepare;github.uploadPrepared=originalUpload;delete require.cache[require.resolve('../src/extension')];});
   return {commands,calls,accessCalls,errors,notices,results,get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
 }

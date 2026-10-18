@@ -77,8 +77,9 @@ blindly retry a consumed rotating refresh token. Sign out clears only Zero's
 session and preserves local work and other extensions' accounts.
 
 A pinned, public App configuration must be packaged with Zero and checked against
-GitHub's public App metadata. Until owner activation supplies the real reviewed
-App ID/client ID/slug, the development connection is honestly unconfigured.
+GitHub's public App metadata. The owner-approved public registration is now pinned: App5367740, client
+`Iv23liWzC8OE2WN5f6qV`, slug`codepet-zero`, owned by`codepetca`. The approved test installation selects one private repository; user authorization,
+transport and production/native release acceptance remain pending.
 Workspace settings cannot redirect credentials to another App or origin.
 
 Zero's explicit clone/new-project commands use guarded authenticated Git clone.
@@ -152,3 +153,26 @@ check healthy~310GB. DeepSeek automatic delegation is paused through2026-12-31.
 - [Permission-scoped user tokens](https://docs.github.com/en/rest/apps/apps#create-a-scoped-access-token)
 - [Pages creation permission](https://docs.github.com/en/rest/pages/pages#create-a-github-pages-site)
 - [VS Code authentication and SecretStorage](https://code.visualstudio.com/api/references/vscode-api)
+
+## Registration acceptance — 2026-10-18
+
+Owner approved registration and draft publication, then explicitly approved a
+private test repository and installation limited to it. Chrome owner confirmation
+completed as`armorup` (numeric4050555). Registered public Codepet Zero under
+`codepetca` (owner116690057); public API and the real verifyApp implementation
+confirmed exact App identity and all seven reviewed permission entries. Callback
+is the exact production URL; wildcards/hooks/events disabled, expiring user tokens
+and device flow enabled. The registration banner mentioned a private key, but
+installation completed without generating one. No client secret, private key or
+production credentials were created.
+
+One private template repository was created with owner authority. The test
+installation selects that repository alone; exact IDs remain in ignored receipts. The
+installer explicitly requires at least one repository for selected access, so
+empty-account onboarding remains an acceptance gap. No all-repository grant.
+
+Native source configuration now uses the verified public IDs. Unit activation
+fixtures inject supported providers instead of relying on an unconfigured
+release. Config/website tests pass; full extension597pass/1skip and website148pass
+remain green after the pin. This delta awaits bounded independent review before
+the next draft push.

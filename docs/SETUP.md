@@ -14,8 +14,9 @@ Download choices show the Windows ZIP alongside Mac. The independently published
 continues to be an ordinary editable Java project.
 
 The GitHub connection and project commands described below are local, unreleased
-source. The one Codepet-owned GitHub App remains unconfigured; live activation
-and release require owner approval and acceptance. Published kits keep their
+source. The Codepet Zero GitHub App is registered under `codepetca`, with its
+public IDs pinned in source. Live acceptance, production activation and an
+authorized native release remain pending. Published kits keep their
 bundled sign-in and project instructions. See [the identity plan](ZERO-IDENTITY-PLAN.md).
 
 ## Before tutorial lesson 0
