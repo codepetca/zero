@@ -86,7 +86,7 @@ test('student classes, same-named methods and approved method references remain 
 });
 test('game APIs support resolved static imports and references without admitting neighboring overloads or owners', { timeout: 240000 }, async () => {
   const result = await check({ 'Main.java': app('new GameApis().verify();'),
-    'GameApis.java': 'import static java.lang.Math.hypot; import static java.lang.Math.PI; class GameApis { interface Distance { double measure(double x, double y); } void verify() { Distance d = Math::hypot; double length = hypot(3, 4) + d.measure(3, 4) + PI; java.util.ArrayList<String> list = new java.util.ArrayList<>(); list.add("first"); list.remove((Object) "first"); list.isEmpty(); } }'
+    'GameApis.java': 'import static java.lang.Math.hypot; import static java.lang.Math.PI; class GameApis { interface Distance { double measure(double x, double y); } void verify() { Distance d = Math::hypot; double length = hypot(3, 4) + d.measure(3, 4) + PI; java.util.ArrayList<String> list = new java.util.ArrayList<>(); list.add("first"); list.remove((Object) "first"); list.isEmpty(); javafx.scene.input.MouseButton middle = javafx.scene.input.MouseButton.MIDDLE; javafx.scene.input.MouseButton secondary = javafx.scene.input.MouseButton.SECONDARY; } }'
   });
   assert.equal(result.status, 'passed');
   const denied = {

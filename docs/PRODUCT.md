@@ -149,6 +149,10 @@ While the canvas is focused, arrow presses stay with game input instead of movin
 focus to a nearby control. Tab still moves focus to ordinary JavaFX controls;
 arrows in a focused text field keep their normal caret behavior.
 Useful startup errors explain invalid sizes and lifecycle misuse.
+Browser games shrink to fit smaller screens while keeping their Java canvas
+coordinates and aspect ratio. A canvas touch maps to the primary mouse input;
+students still choose readable text, touch targets and any keyboard alternatives.
+Ordinary App forms and native JavaFX window sizing keep their existing behavior.
 
 Local, unreleased `Sound` and `Music` helpers are available to both App and
 GameApp. Load once with `loadSound` or `loadMusic`; short clips share a per-app
