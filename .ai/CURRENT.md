@@ -13,16 +13,14 @@ paths appears there after import. No separate tools row. Existing GitHub App
 identity, import/recovery policies, ordinary Java and local Run remain intact.
 Branding assets from “Simplify ZeroHub projects” are preserved.
 
-Latest display source4d047d9:ZeroHub is text-only, reserving the external-link
-icon for the running app. A compact noninteractive shared Zero logo + Zero h1
-heading sits inside the panel. Native title/view icons were already configured;
-installed and official VS Code source show native title text-only. A preference
-question offered compact content heading vs preserving height; no answer arrived
-within70seconds, so coordinator explicitly assumed compact heading from the logo
-request. This is not a native host-title modification or a separate user approval.
-Rootcheck and8affected tests pass; Luna/medium complete8-file review clean,
-1launch/no corrections. Light/dark280px and180px confirm one decorative mark,
-ZeroHub0icons, browser1icon and no overflow. Receipt/screenshot ignored under
+Latest owner decision/sourcebeb3986:keep the original panel height, with the
+Zero mark only in the existing activity-bar/view icon configuration. Removed
+the temporary content heading, helper and CSS. ZeroHub remains text-only;
+current-app browser icon remains beside Stop. No native host title changes.
+Rootcheck and8affected tests pass; independent follow-up source review confirms
+code/markup/style removal and unchanged run/menu behavior. That review flagged
+stale CURRENT wording; corrected here to record the explicit owner choice.
+The earlier compact-heading assumption is superseded. Receipt/screenshots:
 .verification/sidebar-brand-title-20261018.
 
 Earlier display source5fcf3cd:icon-only Open in browser beside Stop, with tooltip

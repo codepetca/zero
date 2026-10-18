@@ -5885,3 +5885,23 @@ sidebar_brand_title_review/turn1;1launch/initial wave,0fix batches. Effective mo
 per-turn tokens and review/coordinator seconds unknown. Weekly remaining39% at
 start,storage301.6GB healthy,no cleanup. Local-only source; no install/source
 push/merge or release publication authorized/performed.
+
+
+## Owner correction: keep sidebar height — 2026-10-18
+
+Owner answered the pending preference question:Keep the current height;
+activity-bar logo only. Sourcebeb3986 removes the temporary compact content
+heading/helper/import/CSS and updates design/product/extension guidance. The
+existing native activity-bar/view media/zero.svg configuration is preserved.
+ZeroHub remains text-only; the current-app browser icon stays beside Stop.
+This explicit decision supersedes the preceding compact-heading assumption.
+
+Rootcheck and8affected tests pass. The first rerun's no-heading assertion also
+matched a stale generated CSS selector; it now checks actual header markup,
+and the generated design assets were refreshed. No runtime heading remained.
+Independent Luna/medium targeted source review4d047d9..beb3986 confirms clean
+code removal and unchanged controls. It caught stale CURRENT wording; that
+operative handoff is corrected with this receipt. Review turns1–2 cover initial
+source and owner correction; no native VS Code/Windows claim is added. This
+receipt/current-only metadata correction receives a separate short consistency
+check; source coverage is reused. Local-only delivery; no install or publication.
