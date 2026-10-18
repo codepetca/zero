@@ -19,19 +19,18 @@ Lesson 12's larger game stages are optional extensions of the same Game project.
 
 Before lesson 0, complete [account/privacy setup](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy)
 and [Zero setup](../README.md#first-setup): your own verified GitHub account,
-Git 2.31+, school access and teacher-approved repository visibility. Use Private
-unless teacher/school policy says otherwise, invite your teacher as a collaborator
-on each repository, and verify their access. Publishing a public playable game
-is optional; tutorial pushes do not require buying a plan or making source public.
-At lessons **0, 3 and 8**, choose **Start tutorial** from Zero’s welcome or **…** menu and select
-the matching project, or use **Use template** on the tutorial page. On GitHub,
-choose **Use this template → Create a new repository** in **your own account**.
-Copy **your repository**’s **Code → HTTPS** URL, sign in to Zero and choose
-**Project → Clone from GitHub…**. Paste your URL in **Clone from GitHub**. In
-**Clone location**, keep `~/Zero Projects` or choose another folder outside any Git
-repository, then choose **Clone here**. The clone opens a new window automatically
-on newer VS Code versions; the VS Code 1.95 fallback may ask for
-**Open in New Window**. For an already-cloned Zero folder, use
+Git 2.31+, school access and teacher approval for public tutorial source.
+Repositories created through Zero are public, including source and included
+files; keep secrets and private material out. An existing or GitHub-created
+private repository can retain its visibility; invite your teacher as a
+collaborator there and verify access. Publishing a playable game is optional.
+At lessons **0, 3 and 8**, choose **Start tutorial** from Zero’s welcome or **…** menu
+and select the matching project. Enter a name and choose a clone location
+(default `~/Zero Projects`), then choose **Clone here**. Zero creates a public
+repository in your GitHub account from the verified template and opens its clone.
+You can instead use **Use template** on the tutorial page to create a repository
+on GitHub, then clone your own repository through **Project → Clone from GitHub…**.
+For an already-cloned Zero folder, use
 **Project → Open local project…** to open it in a new window without cloning.
 Do not clone Zero's shared template directly. There is no tutorial project ZIP
 or unconnected local-only folder path in this candidate. Template links follow verified

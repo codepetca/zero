@@ -1,58 +1,33 @@
-# Zero sidebar refinement — 2026-10-18
+# Zero — current local delivery, 2026-10-18
 
-Worktree:/Users/stew/.codex/worktrees/release-readiness/zero.
-Branch codex/sidebar-zerohub-actions, based on merged GitHub App/branding
-PR102:f719d18. Preserve the original dirty /Users/stew/Repos/zero checkout.
+Worktree: /Users/stew/.codex/worktrees/release-readiness/zero.
+Branch: codex/sidebar-zerohub-actions, based on merged GitHub App/branding
+PR102 f719d18. Preserve the dirty /Users/stew/Repos/zero checkout.
 
-Current approved UI: no separate signed-in username row; repository button has
-a right-pointing chevron, a label wrapping to at most two lines and its full
-accessible name/tooltip. It opens the existing project menu, including GitHub
-account… and Review or restore changes…. One ZeroHub menu contains Projects,
-Libraries and eligible Share project. Add assets… is beside Files; Copy asset
-paths appears there after import. No separate tools row. Existing GitHub App
-identity, import/recovery policies, ordinary Java and local Run remain intact.
-Branding assets from “Simplify ZeroHub projects” are preserved.
+Current owner request: repositories created through Zero are public; remove the
+Private/Public picker and shorten only the first device-code sign-in modal.
+Implementation sends private:false from tutorial/new/local-repository creation,
+rejects other creation visibility before credentials/network, and retains response
+visibility, account, installation, cancellation and recovery checks. Existing
+repository access/clone visibility is unchanged. The name prompt says public.
+Modal: Connect Zero to GitHub; Copy this code and paste it on GitHub: CODE.
+The existing copy/continue button, clipboard, browser and cancellation flow remain.
+Setup/product guidance is aligned. Focused64tests and broader88GitHub tests pass;
+root check passes. Independent complete-diff review pending before local delivery.
 
-Latest owner decision/sourcebeb3986:keep the original panel height, with the
-Zero mark only in the existing activity-bar/view icon configuration. Removed
-the temporary content heading, helper and CSS. ZeroHub remains text-only;
-current-app browser icon remains beside Stop. No native host title changes.
-Rootcheck and8affected tests pass; independent follow-up source review confirms
-code/markup/style removal and unchanged run/menu behavior. That review flagged
-stale CURRENT wording; corrected here to record the explicit owner choice.
-The earlier compact-heading assumption is superseded. Receipt/screenshots:
-.verification/sidebar-brand-title-20261018.
+Previous sidebar refinements remain: current panel height/activity-bar logo only,
+text-only ZeroHub menu with eligible Share project, two-line owner/repository menu
+with right chevron and no separate username row, Add assets beside Files,
+recovery/account actions in the project menu. One Run/Stop control offers Stop
+while queued/building/running and focusable unavailable Stopping until settled;
+icon-only Open in browser appears beside Stop only for an active browser app.
+Current source through3bf21cb had clean code and final metadata review. Prior
+714-test lifecycle suite passed with3skips; native VS Code/Windows checks for
+these local refinements remain unverified. Branch-history layout remains proposed;
+merge semantics unchanged. Detailed history: docs/EVIDENCE.md.
 
-Earlier display source5fcf3cd:icon-only Open in browser beside Stop, with tooltip
-and accessible name; absent while building/stopped/stopping. Horizontal row
-verified at180px and280px in light/dark; keyboard focus verified. Root check and
-11affected tests pass; independent Luna/medium complete7-file review clean,
-1launch/no corrections. Backend lifecycle unchanged; prior full coverage reused.
-Receipt/screenshot:.verification/run-browser-icon-20261018.
-
-Earlier lifecycle source2cc0424:one Run/Stop button, with focusable/unavailable Stopping…
-until browser queue and native preparation/shutdown settle. Queued/checking/
-compiling/running work offers Stop immediately; errors/preview closure restore
-Run. Host guards handle stale clicks; aria-disabled plus client guard preserves
-keyboard focus without accepting activation. Explicit Run App/Stop App palette
-commands remain. Native diagnostic starts/ends and preparation are tracked.
-
-Root check and final npm test pass:714tests,711passed,3skipped,0failed;54focused
-checks pass. Independent Sol/medium complete review plus targeted focus fix
-review are clean:2launches,1correction batch,0outstanding findings. Real Chrome
-keyboard fixture using actual renderer/client confirms focus through Stop →
-Stopping → Run, ignored unavailable activation and no focus steal after deliberate
-movement. Layout fixtures show all4states. Logs/screenshot/receipt are ignored
-under .verification/run-toggle-20261018. Native VS Code/Windows remain unverified;
-pre-existing configured-native resolution-to-start cancellation gap is unchanged.
-Earlier sidebar review/history evidence remains in docs/EVIDENCE.md.
-The side-by-side branch/history suggestion remains a proposal; merge (not rebase)
-semantics and current branch controls are unchanged by the toggle delivery.
-Temporary preview tab/server closed.
-
-Local-only delivery. No new source push, merge, installer build or release is
-authorized by these sidebar requests. Next:owner-authorized integration and a
-new native preview. Shared identity/recovery guidance:docs/ZERO-IDENTITY-PLAN.md
-and docs/ZERO-AUTH-RECOVERY.md; earlier identity acceptance limits remain.
-DeepSeek paused through2026-12-31. Recent weekly remaining42%; storage
-302.8GB healthy,no cleanup. Receipts and historical verification:docs/EVIDENCE.md.
+Local-only authority: no source push, merge, preview installation, account change
+or release authorized by these refinements. Next: finish review/evidence, then
+owner-authorized integration/native preview. Ordinary Java and selected App access
+remain. DeepSeek paused through2026-12-31. Weekly remaining38%; storage301.6GB
+healthy. Prior temporary sidebar server closed; screenshot fixtures are ignored.

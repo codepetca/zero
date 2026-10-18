@@ -12,35 +12,35 @@ function bundle(){return {schema:2,projects:[['greeting','0'],['study','3'],['ga
 async function fixture(t){
  t.mock.method(core,'repositoryRoot',async()=>undefined);
  const root=await fs.mkdtemp(path.join(os.tmpdir(),'zero-projects-ui-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));await fs.mkdir(path.join(root,'media'));await fs.writeFile(path.join(root,'media','lesson-projects.json'),JSON.stringify(bundle()));
- const calls=[],progress=[],recovery=[],inputs=[],picks=[];let name='my-project',visibility=true,tutorialChoice=true,parent={fsPath:root},current=root,enabled=true,afterName=()=>{},afterPick=()=>{},afterCreate=()=>{},cloneFailure,cloneResult=path.join(root,'my-project');
+ const calls=[],progress=[],recovery=[],inputs=[],picks=[];let name='my-project',tutorialChoice=true,parent={fsPath:root},current=root,enabled=true,afterName=()=>{},afterPick=()=>{},afterCreate=()=>{},cloneFailure,cloneResult=path.join(root,'my-project');
  let session={id:'session',account:{id:'1',label:'student'},accessToken:'TEST_SECRET',scopes:[]};
  const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
- const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(tutorialChoice?items[0]:undefined):visibility===undefined?undefined:items.find(item=>item.private===visibility);}}};
+ const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(tutorialChoice?items[0]:undefined):undefined;}}};
  const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,...input})=>{assert.ok(signal instanceof AbortSignal);calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
  const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);await afterCreate(options);return {repository:{html_url:remote}};}};
  const commands=createGitHubProjectCommands({vscode,authentication:auth,repositories,folders,extensionPath:root,project:async()=>current,active:()=>enabled,onProgress:value=>progress.push(value),onRecovery:value=>recovery.push(value)});
- return {root,commands,calls,progress,recovery,inputs,picks,auth,vscode,repositories,folders,set name(v){name=v;},set visibility(v){visibility=v;},set tutorialChoice(v){tutorialChoice=v;},set parent(v){parent=v;},set current(v){current=v;},set active(v){enabled=v;},set afterName(v){afterName=v;},set afterPick(v){afterPick=v;},set afterCreate(v){afterCreate=v;},set cloneFailure(v){cloneFailure=v;},set cloneResult(v){cloneResult=v;},drift(){session={...session,account:{id:'2',label:'other'}};}};
+ return {root,commands,calls,progress,recovery,inputs,picks,auth,vscode,repositories,folders,set name(v){name=v;},set tutorialChoice(v){tutorialChoice=v;},set parent(v){parent=v;},set current(v){current=v;},set active(v){enabled=v;},set afterName(v){afterName=v;},set afterPick(v){afterPick=v;},set afterCreate(v){afterCreate=v;},set cloneFailure(v){cloneFailure=v;},set cloneResult(v){cloneResult=v;},drift(){session={...session,account:{id:'2',label:'other'}};}};
 }
 test('repository names are portable folder names including Windows device restrictions',()=>{
  for(const value of ['',null,'../app','a..b','a/b','a\\b',' leading','trailing.','a.git','.git','CON','con.txt','PRN','AUX','nul','COM1','com9.md','LPT1','lpt9.java','x'.repeat(101)])assert.equal(typeof nameError(value),'string',String(value));
  for(const value of ['app','My-Project_2','v1.2','a','x'.repeat(100),'console','com10','lpt10'])assert.equal(nameError(value),undefined,value);
 });
-test('new original project collects name, explicit privacy and parent before POST then clones exact remote',async t=>{
- const f=await fixture(t);f.visibility=false;await f.commands.newProject();
+test('new original project collects name and parent for a public repository before POST then clones exact remote',async t=>{
+ const f=await fixture(t);await f.commands.newProject();
  assert.equal(f.inputs[0].value,'my-project');assert.match(f.inputs[0].prompt,/student/);assert.equal(f.inputs[0].validateInput('CON'),nameError('CON'));
- assert.deepEqual(f.picks[0].items.map(({label,private:privacy})=>({label,privacy})),[{label:'Private',privacy:true},{label:'Public',privacy:false}]);
+ assert.equal(f.picks.length,0);assert.match(f.inputs[0].prompt,/public repository/);
  assert.deepEqual(f.calls.map(call=>call[0]),['parent','create','clone']);assert.deepEqual(f.calls[1][1],{name:'my-project',private:false,template:{owner:'codepetca',repo:'zero-starter'}});
  assert.equal(f.calls[1][2].ticket.session.accountId,'1');assert.deepEqual(f.calls[2][1],{repositoryUrl:remote,parent:{fsPath:f.root}});
  assert.equal(f.progress.at(-1),'Project created');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'created'},undefined]);
 });
 test('all cancelled form inputs stop before repository creation',async t=>{
- for(const stop of ['name','visibility','parent']){const f=await fixture(t);f[stop]=undefined;await f.commands.newProject();assert.ok(f.calls.every(call=>call[0]!=='create'&&call[0]!=='clone'),stop);}
+ for(const stop of ['name','parent']){const f=await fixture(t);f[stop]=undefined;await f.commands.newProject();assert.ok(f.calls.every(call=>call[0]!=='create'&&call[0]!=='clone'),stop);}
 });
 test('invalid names are rejected even when host input validation is bypassed',async t=>{
  const f=await fixture(t);f.name='nul.txt';await assert.rejects(f.commands.newProject(),/ordinary folder name/);assert.equal(f.calls.length,0);
 });
 test('tutorial creation uses verified bundle template rather than original starter',async t=>{
- const f=await fixture(t);await f.commands.startTutorial();assert.equal(f.inputs[0].value,'my-greeting');assert.deepEqual(f.calls.find(call=>call[0]==='create')[1].template,{owner:'codepetca',repo:'zero-tutorial-greeting'});
+ const f=await fixture(t);await f.commands.startTutorial();assert.equal(f.inputs[0].value,'my-greeting');assert.equal(f.picks.length,1);assert.equal(f.picks[0].options.title,'Start tutorial');assert.equal(f.calls.find(call=>call[0]==='create')[1].private,false);assert.deepEqual(f.calls.find(call=>call[0]==='create')[1].template,{owner:'codepetca',repo:'zero-tutorial-greeting'});
 });
 test('cancelled tutorial selection and unpublished or forged template metadata cannot POST',async t=>{
  const f=await fixture(t);f.tutorialChoice=false;await f.commands.startTutorial();assert.equal(f.calls.length,0);
@@ -62,9 +62,9 @@ test('existing local project drift during form collection never creates or conne
 test('project drift after creation retains remote and never connects the wrong project',async t=>{
  const f=await fixture(t);let connects=0;t.mock.method(core,'connectRepository',async()=>{connects++;});f.afterCreate=()=>{f.current=path.join(f.root,'other');};await assert.rejects(f.commands.createRepository(),error=>error.message.includes(remote)&&/intended project/.test(error.message));assert.equal(connects,0);assert.equal(f.calls.filter(call=>call[0]==='create').length,1);
 });
-test('existing project creation asks explicit privacy and connects only intended root and remote',async t=>{
+test('existing project creation is public and connects only intended root and remote',async t=>{
  const f=await fixture(t);const connected=[];t.mock.method(core,'connectRepository',async(...args)=>{connected.push(args);return {page:remote};});await f.commands.createRepository();
- assert.deepEqual(f.calls[0][1],{name:'my-project',private:true});assert.equal(connected.length,1);assert.equal(connected[0][0],f.root);assert.equal(connected[0][1],remote);assert.equal(await connected[0][2](),false);assert.equal(f.progress.at(-1),'Repository connected');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'created'},undefined]);
+ assert.deepEqual(f.calls[0][1],{name:'my-project',private:false});assert.equal(connected.length,1);assert.equal(connected[0][0],f.root);assert.equal(connected[0][1],remote);assert.equal(await connected[0][2](),false);assert.equal(f.progress.at(-1),'Repository connected');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'created'},undefined]);
 });
 test('local practice stops existing repository creation before sign-in, inputs or POST',async t=>{
  const f=await fixture(t);await fs.writeFile(path.join(f.root,'zero.json'),'{"localOnly":true}');await assert.rejects(f.commands.createRepository(),/local lesson practice/i);assert.equal(f.inputs.length,0);assert.equal(f.calls.length,0);assert.equal(f.auth.signedIn,false);

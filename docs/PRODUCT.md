@@ -32,6 +32,8 @@ Zero's GitHub connection, offers **Connect GitHub** when needed and leads to
 tutorial creation. Zero's supported `zero-github` provider uses GitHub device
 sign-in and stores expiring user/refresh tokens in VS Code SecretStorage. GitHub
 handles sign-in and consent; there is no separate Zero password or account.
+The first connection modal shows the device code and one short instruction to
+paste it on GitHub; the authorization and consent flow is unchanged.
 Connections show the username, while account checks use the numeric GitHub ID.
 Install the App on selected repositories; repositories the App creates become
 accessible automatically. Zero never silently requests all repositories.
@@ -185,11 +187,13 @@ There are three scaffolds: Greeting (0–2), Study (3–7), Game (8–12). Websi
 buttons appear at 0, 3 and 8; later pages say to continue the existing project.
 Before lesson 0, students complete account/privacy setup: their own verified GitHub
 account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approved
-repository visibility/commit identity. Tutorial source can stay private with teacher
-collaborator access; public game publishing remains optional. The visible
+commit identity. Repositories created through Zero are public, including their
+source and included files; students should keep secrets and private material out.
+Existing or GitHub-created repositories may retain their visibility, with teacher
+collaborator access where needed. Public game publishing remains optional. The visible
 **Start tutorial** action on the welcome screen or Zero’s **…** menu selects the
 matching verified tutorial scaffold. The unreleased flow collects a repository
-name, explicit Private/Public choice and parent folder before creating a copy in
+name and parent folder before creating a public copy in
 the connected personal account, verifying App access, cloning and opening it.
 The location picker starts at `~/Zero Projects` and can choose another parent.
 **New project…** uses the original-project template through the same flow.
@@ -289,7 +293,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   project for eligible signed-in original projects. Clone from GitHub starts its location picker at
   `~/Zero Projects`, with another location selectable. Open local project opens
   an existing Zero folder without cloning/moving it. New project collects its
-  name, visibility and location before creating and cloning. An eligible
+  name and location before creating and cloning a public repository. An eligible
   unconnected original local project can Create a repository to create and
   connect an empty remote, or Connect to GitHub using an existing repository.
   Connected projects keep publishing and branch
@@ -393,9 +397,10 @@ Project menu → GitHub account… offers Change GitHub account and Sign out.
 Sign out clears only Zero's local connection; it preserves
 projects, Git history and other extensions' accounts. Account, token or session
 changes invalidate pending remote work. There is no password/token entry form.
-Project menu → Create a repository collects a name and explicit visibility,
-creates an empty repository under that personal account, verifies access and
-connects the open original local project. It does not push source. New project
+Project menu → Create a repository collects a name, explains that subsequent
+pushes make source and included files public, creates an empty public repository
+under that personal account, verifies access and connects the open original local
+project. It does not push source. New project
 and Start tutorial create from the appropriate verified template and clone into
 the chosen location. There is no GitHub Classroom flow.
 

@@ -94,11 +94,13 @@ Keep local Run/files available offline after initial build setup.
 
 Recommend selected repositories when installing the App. Repositories the App
 creates gain access automatically; never silently select all repositories.
-Start tutorial chooses its verified scaffold, then collects repository name,
-explicit visibility and location before creating, verifying, cloning and opening.
+Start tutorial chooses its verified scaffold, then collects repository name and
+location before creating a public repository, verifying, cloning and opening.
 New project uses the original starter through the same flow. Create a repository
-for an existing original local project collects name/visibility, creates an empty
-remote and connects without pushing. Preserve recovery links and partial folders
+for an existing original local project collects a name, explains that subsequent
+pushes make source and included files public, creates an empty public remote and
+connects without pushing. Existing/cloned repository visibility stays unchanged.
+Preserve recovery links and partial folders
 after uncertain creation or clone failure; do not silently retry creation.
 
 The same App serves optional browser sign-in, with separate browser/editor
@@ -110,7 +112,7 @@ requires reconnection after eight hours.
 
 The App omits Administration permission. First-time Pages setup can require
 enabling GitHub Actions as the Pages source in GitHub settings, then rechecking
-Publish app. Preserve teacher-approved repository visibility and the existing
+Publish app. Preserve existing/cloned repository visibility and the existing
 single public-destination warning.
 
 ## Tutorial tab and browser actions — accepted 2026-10-16

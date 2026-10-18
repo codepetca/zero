@@ -6,12 +6,13 @@ core **0.2.1**. Published downloads keep their own bundled instructions.
 Open **this folder** in VS Code, complete the setup below, then start with
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
-Choose **Start tutorial** from Zero’s welcome or **…** menu to open each matching tutorial
-template once. On GitHub, use **Use this template → Create a new repository**
-to create your own repository. Copy its **Code → HTTPS** URL, return to Zero and
-sign in and choose **Project → Clone from GitHub…**. Paste your URL in
-**Clone from GitHub**. In **Clone location**, keep the default `~/Zero Projects`
-or choose another folder outside any Git repository, then choose **Clone here**.
+Choose **Start tutorial** from Zero’s welcome or **…** menu to create each matching
+tutorial project once. Enter a name and choose a clone location (default
+`~/Zero Projects`), then choose **Clone here**. Zero creates a public repository
+in your GitHub account from the verified template and opens its clone. Its source
+and included files are public. The lesson page's **Use template** action also lets
+you create a repository on GitHub; clone your own repository through **Project →
+Clone from GitHub…**.
 Newer VS Code versions open a new window automatically; the VS Code 1.95 fallback
 may ask for **Open in New Window**. For an already-cloned Zero folder, choose
 **Project → Open local project…** to open a new window without cloning again. Keep that clone and add your own code across its lessons. Each template contains only empty Main
@@ -34,17 +35,18 @@ task before running again. A native run does not check browser compatibility.
 Before tutorial lesson 0, have **your own verified GitHub account and Git 2.31+**.
 Use [github.com/signup](https://github.com/signup) if needed. Follow your teacher's
 username/email policy and check GitHub access, VS Code sign-in and compiler
-downloads on your school machine; ask teacher/IT about restrictions. Choose Private
-for tutorial repositories unless teacher/school policy says otherwise. Invite the
-teacher's confirmed username as a collaborator on each repository and verify
-acceptance/access; a private link alone grants none, and collaborators can edit.
+downloads on your school machine; ask teacher/IT about restrictions. Confirm that
+public tutorial source is allowed before creating through Zero. Keep private files
+out of public repositories. For an existing or GitHub-created private repository,
+invite the teacher's confirmed username as a collaborator and verify access;
+a private link alone grants none, and collaborators can edit.
 Set your teacher-approved Git name/email per repository; for email privacy, copy
 the exact GitHub `noreply` address from Settings → Emails. Keep passwords/tokens
 out of projects. See [the account/privacy guide](https://zero.codepet.ca/docs/setup#before-lesson-0-github-and-privacy).
 The ordinary local Hello World check below needs no account. After cloning and
 compiler caching, tutorial Run works offline; pushing needs internet/sign-in.
-Publishing is optional and public, and private-repository Pages depends on the
-account plan. No paid plan is needed for tutorial source work; keep approved privacy.
+Publishing is optional and public; Pages from an existing private repository depends
+on the account plan. No paid plan is needed for tutorial source work.
 
 This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
 Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the

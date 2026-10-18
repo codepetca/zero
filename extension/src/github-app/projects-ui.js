@@ -14,23 +14,18 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     if(!authentication.signedIn)await authentication.signIn();
     if(!isActive())return;
     const ticket=await authentication.capture(),draftKey=key+':'+ticket.session.accountId;
-    const draft=drafts.get(draftKey)||{name:defaultName,private:true};
-    const name=await vscode.window.showInputBox({title,prompt:`Create a repository in ${ticket.session.label}'s GitHub account.`,value:draft.name,validateInput:nameError});
+    const draft=drafts.get(draftKey)||{name:defaultName};
+    const name=await vscode.window.showInputBox({title,prompt:`Create a public repository in ${ticket.session.label}'s GitHub account.`,value:draft.name,validateInput:nameError});
     if(!name||!isActive())return;
     if(nameError(name))throw Error(nameError(name));
     draft.name=name;drafts.set(draftKey,draft);
-    const choices=[{label:'Private',description:'Only you and people you invite can view the source.',private:true},{label:'Public',description:'Anyone can view the source and included files.',private:false}];
-    if(!draft.private)choices.reverse();
-    const visibility=await vscode.window.showQuickPick(choices,{title:'Repository visibility',placeHolder:'Choose the visibility required by your teacher'});
-    if(!visibility||!isActive())return;
-    draft.private=visibility.private;
     const parent=clone?await folders.chooseCloneParent():undefined;
     if(!isActive()||clone&&!parent)return;
     await authentication.assertCurrent(ticket);
     return {ticket,draft,parent,draftKey};
   }
   async function createRemote(input,template,signal,notify){
-    try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:input.draft.private,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal});}
+    try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:false,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal});}
     catch(error){if(error.code&&error.code!=='creation-uncertain')await onRecovery(undefined);throw error;}
   }
   async function createAndClone(title,template,key,defaultName){
