@@ -669,7 +669,7 @@ function activate(context, services = {}) {
     const fileActions=projectRoot ? `<button class="link" data-command="zero.importAssets" ${disabled}>Add assets…</button>${assets.canCopyPaths()?`<button class="link" data-command="zero.copyImportedAssetPaths" ${disabled}>Copy asset paths</button>`:''}` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : 'Run';
-    const runDisabled = stopPromise || !activeRun && isBusy() ? 'disabled' : '';
+    const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && isBusy() ? 'disabled' : '';
     const controls = `<div class="main-controls"><button class="run" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${browserAction}${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>${icon('ExternalLink')}ZeroHub</button></section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {

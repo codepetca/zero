@@ -66,3 +66,11 @@ test('Files actions update with project/busy state without replacing the file tr
   h.emit({type:'sidebar.update',controls:'Run',fileActions:'',status:'Open a project',failed:false});
   assert.equal(h.nodes['file-actions'].innerHTML,'');assert.equal(h.document.activeElement,sound);
 });
+
+test('focusable unavailable run control blocks activation until shutdown finishes',()=>{
+  const h=sidebarDOM(),button=h.document.createElement('button');button.dataset.command='zero.toggleApp';
+  button.setAttribute('aria-disabled','true');h.clickCommand(button);
+  assert.equal(h.sent.filter(message=>message.command==='zero.toggleApp').length,0);
+  button.setAttribute('aria-disabled','false');h.clickCommand(button);
+  assert.equal(h.sent.filter(message=>message.command==='zero.toggleApp').length,1);
+});

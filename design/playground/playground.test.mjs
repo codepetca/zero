@@ -96,6 +96,6 @@ test('actual sidebar renderer has one Run/Stop control across idle, build, runni
     assert.doesNotMatch(html,/data-command="zero.runApp"|data-command="zero.stopApp"/);
     const button=html.match(/<button class="run"[^>]*>[\s\S]*?<\/button>/)[0];
     assert.ok(button.endsWith(label+'</button>'));
-    if(state==='stopping')assert.match(button,/ disabled>/);else assert.doesNotMatch(button,/ disabled>/);
+    if(state==='stopping')assert.match(button,/aria-disabled="true"/);else assert.doesNotMatch(button,/ disabled>|aria-disabled="true"/);
   }
 });

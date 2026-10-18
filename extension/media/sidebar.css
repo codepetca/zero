@@ -6,7 +6,7 @@ button { width:100%; margin:0; padding:6px 8px; border:1px solid var(--vscode-bu
 button svg { width:16px; height:16px; flex:none; }
 button:hover { background:var(--zero-accent-hover); }
 button:focus-visible,.file-row:focus-visible { outline:1px solid var(--zero-focus); outline-offset:-1px; }
-button:disabled { opacity:.45; cursor:default; }
+button:disabled,button[aria-disabled="true"] { opacity:.45; cursor:default; }
 button.secondary { color:var(--vscode-button-secondaryForeground,var(--zero-text)); background:var(--vscode-button-secondaryBackground,var(--zero-surface)); }
 button.secondary:hover { background:var(--vscode-button-secondaryHoverBackground,var(--zero-surface)); }
 .row { display:flex; gap:6px; }

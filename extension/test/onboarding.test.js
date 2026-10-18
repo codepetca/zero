@@ -306,7 +306,7 @@ test('one Run/Stop button cancels native preparation and stays Stopping until th
   assert.match(f.webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Stop<\/button>/);
   await settle(()=>release);
   const stopping=f.commands.get('zero.toggleApp')(),again=f.commands.get('zero.toggleApp')();
-  assert.match(f.webview.html,/data-command="zero.toggleApp" disabled>[\s\S]*Stopping…<\/button>/);
+  assert.match(f.webview.html,/data-command="zero.toggleApp" aria-disabled="true">[\s\S]*Stopping…<\/button>/);
   await new Promise(resolve=>setImmediate(resolve));
   assert.match(f.webview.html,/Stopping…<\/button>/);
   release();await Promise.all([running,stopping,again]);

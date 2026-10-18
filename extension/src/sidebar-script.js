@@ -65,7 +65,7 @@ function sidebarClient() {
   });
   document.addEventListener('click', event => {
     const button = event.target.closest('button[data-command]');
-    if (button && !button.disabled) api.postMessage({command:button.dataset.command});
+    if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') api.postMessage({command:button.dataset.command});
   });
   window.addEventListener('scroll',save,{passive:true});
   window.addEventListener('message', event => {

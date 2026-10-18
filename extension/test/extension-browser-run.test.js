@@ -45,7 +45,7 @@ test('registered Run App and configured run task own browser lifecycle without n
  const blockedRun=commands.get('zero.runApp')();
  const blockedTask=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:1});
  const blockedTerminal=await blockedTask.execution.callback();const blockedTaskFinished=new Promise(resolve=>blockedTerminal.onDidClose(resolve));blockedTerminal.open();
- assert.match(webview.html,/data-command="zero.toggleApp" disabled>[\s\S]*Stopping…<\/button>/);
+ assert.match(webview.html,/data-command="zero.toggleApp" aria-disabled="true">[\s\S]*Stopping…<\/button>/);
  await new Promise(resolve=>setImmediate(resolve));assert.equal(signal.aborted,true);
  releaseBuild();await Promise.all([run,stopping,duplicate,blockedRun,blockedTaskFinished]);blockedTerminal.close();
  assert.equal(opens,before,'Cancelled build results cannot reopen the app');
