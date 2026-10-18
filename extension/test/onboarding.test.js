@@ -207,7 +207,8 @@ test('signed-out empty window only shows Sign in; direct authenticated clone rem
   assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"|data-command="zero.cloneRepository"|Current branch:/);
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
   const clone=f.commands.get('zero.cloneRepository')();await settle(()=>finishClone);
-  assert.match(f.webview.html,/data-command="zero.githubAccount"[^>]*disabled/);
+  assert.match(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
+  assert.doesNotMatch(f.webview.html,/data-command="zero.githubAccount"/);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();await f.commands.get('zero.signInToGitHub')();
   assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,1);assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1);
   finishClone();await clone;
