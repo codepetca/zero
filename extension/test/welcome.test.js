@@ -29,7 +29,7 @@ test('connected first launch uses silent Zero App lookup and offers the tutorial
 });
 test('disconnected modal Later and Escape never create sessions, and profile state prevents repeat offers after session changes',async()=>{
   for(const choice of ['Later',undefined]) {
-    const f=fixture({choices:[choice]});await f.welcome.show();assert.match(f.messages[0].text,/Connect GitHub/);assert.equal(f.messages[0].actions[0].modal,true);assert.match(f.messages[0].actions[0].detail,/Later.*locally.*Zero: Get Started/);assert.deepEqual(f.messages[0].actions.slice(1),['Connect GitHub','Later']);assert.equal(f.calls.filter(call=>call.options.createIfNone).length,0);
+    const f=fixture({choices:[choice]});await f.welcome.show();assert.match(f.messages[0].text,/Connect GitHub/);assert.deepEqual(f.messages[0].actions[0],{modal:true});assert.deepEqual(f.messages[0].actions.slice(1),['Connect GitHub','Later']);assert.equal(f.calls.filter(call=>call.options.createIfNone).length,0);
     f.set(session('other'));f.event();await f.auth.refresh();await f.welcome.show();assert.equal(f.messages.length,1);
     const next=fixture({remembered:f.remembered,current:session('other')});await next.welcome.show();assert.equal(next.messages.length,0);assert.ok(next.calls.every(call=>call.options.silent));
   }
