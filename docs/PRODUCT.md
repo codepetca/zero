@@ -302,7 +302,9 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   user controls can still move/hide views. There is no team/PR mode.
 - The primary button says Run when idle, Stop while queued/checking/building/running,
   and disabled Stopping… while owned work settles. Failures or closing the managed
-  preview return it to Run. Explicit palette commands keep separate run/restart
+  preview return it to Run. While running, an icon-only Open in browser button
+  sits beside Stop with its tooltip/accessible name; it is absent while building,
+  stopped or stopping. Explicit palette commands keep separate run/restart
   and stop behavior. Run saves files, checks ordinary Java against the supported browser API, builds
   locally when inputs changed and opens an owned browser preview. Re-running
   destroys the old runtime; Stop cancels builds and destroys the managed frame.

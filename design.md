@@ -16,6 +16,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   compiling or running; show disabled **Stopping…** until owned work settles.
   Failures and closing the managed preview return to Run. Preserve explicit
   Run App/Stop App palette commands and existing cancellation/generation guards.
+  While a managed browser app is running, put its icon-only **Open in browser**
+  button beside Stop, with a tooltip and accessible name. Hide it when stopped,
+  building or stopping. Keep the pair on one row at narrow widths.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.

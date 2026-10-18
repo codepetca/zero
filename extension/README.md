@@ -45,7 +45,8 @@ output and Problems; **Show Problems** opens the source diagnostics. Repair a
 failed download or the indicated code, then Run App again. A failed build does
 not reopen old output as a successful new run.
 
-Choose **Open in browser** in the running preview or sidebar to test the same
+Choose **Open in browser** in the running preview, or the browser icon beside
+**Stop** in the sidebar (tooltip: Open in browser), to test the same
 compiled app in your default browser, such as Chrome. This local URL is not a
 public link. Stop or rerun removes the app from responsive external preview tabs;
 suspended or blocked browser execution can delay that cleanup. **Publish app** is
