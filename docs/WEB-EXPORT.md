@@ -135,6 +135,31 @@ visibility there themselves.
 
 ## Ordinary Java and compatibility
 
+### Screen size and touch
+
+Browser builds of `GameApp` fit the complete game view inside the available
+screen, preserving its aspect ratio. Small screens shrink the view; larger
+screens keep its original size and center it. The canvas, `width()`, `height()`
+and game coordinates stay unchanged. Padding and controls added around the canvas
+are included in the fitted view. Resizing or rotating the browser recalculates
+the fit. Ordinary `App` forms keep their normal JavaFX layout.
+
+A finger on the game canvas acts as the primary mouse button. `mouseX()` and
+`mouseY()` use the original game coordinates after scaling, and dragging can
+continue outside the canvas until release. The canvas owns one touch at a time;
+the GameApp view ignores additional fingers before they can change mouse input.
+Cancelled touches and
+lost focus release held input. Normal buttons and text fields retain their own
+browser interactions.
+Desktop games can check `MouseButton.PRIMARY`, `MIDDLE` and `SECONDARY` through
+the same `mouseDown(...)` and `mousePressed(...)` methods.
+
+Fitting the view does not make every game suitable for a phone. Students still
+choose readable text, large enough targets and controls that work without a
+keyboard. Zero does not create on-screen arrow keys or a joystick. Native JavaFX
+window behavior is unchanged. Existing exported or published games need a fresh
+build with this runtime before they receive the fitting behavior.
+
 Students keep `Main.java`, explicit object updates, ordinary Java classes and
 JavaFX APIs. The exporter compiles a temporary copy with pinned WebFX/GWT modules.
 Its adapters cover the reviewed Zero helpers, canvas images and sprite regions,
@@ -158,7 +183,8 @@ previous successful export.
 
 `npm run check` enforces the reviewed helper inventory and adapter fingerprints.
 `npm run verify:web` performs real WebFX/GWT compilation of the helper fixture,
-quiz/shared score component, drawing, dedicated audio and resource/control greeting fixtures, then checks interaction in
+quiz/shared score component, drawing, dedicated audio, resource/control greeting
+and padded portrait-game fixtures, then checks interaction in
 Chrome. The pull-request workflow runs those same checks. New framework methods
 need corresponding fixture coverage; new or changed adapter-sensitive helpers
 must be reviewed before their profile fingerprints are updated. Publishing requires a validated local compiler result; the PR workflow exposes the separate

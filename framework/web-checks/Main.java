@@ -16,6 +16,7 @@ public final class Main extends GameApp {
     private double x = 150;
     private boolean paused;
     private int digits, escapes;
+    private int middleClicks, rightClicks, keyPresses;
     private String gameApiStatus;
     @Override public void init() {
         if (++initCalls != 1) throw new IllegalStateException("Application.init must run exactly once");
@@ -52,6 +53,9 @@ public final class Main extends GameApp {
         if (keyPressed(KeyCode.DIGIT3)) digits = digits * 10 + 3;
         if (keyPressed(KeyCode.ESCAPE)) escapes++;
         if (mousePressed(MouseButton.PRIMARY)) clicks++;
+        if (mousePressed(MouseButton.MIDDLE)) middleClicks++;
+        if (mousePressed(MouseButton.SECONDARY)) rightClicks++;
+        if (keyPressed(KeyCode.A)) keyPresses++;
         if (!paused) {
             animation.update(seconds); sequence.update(seconds);
             if (keyDown(KeyCode.RIGHT)) x += 100 * seconds;
@@ -60,6 +64,10 @@ public final class Main extends GameApp {
     @Override public void draw() {
         background(Color.WHITE); fill(Color.BLACK); textSize(20);
         text("Web helpers ready", 15, 30);
+        text("Mobile state: " + clicks + "," + middleClicks + "," + rightClicks + ","
+                + mouseDown(MouseButton.PRIMARY) + "," + mouseDown(MouseButton.MIDDLE) + ","
+                + mouseDown(MouseButton.SECONDARY) + "," + (int) mouseX() + "," + (int) mouseY()
+                + "," + (int) width() + "," + (int) height() + "," + keyPresses + "," + keyDown(KeyCode.A), 5, 390);
         text("Presses: " + presses, 15, 58);
         text("Clicks: " + clicks, 15, 86);
         text("Position: " + (int) x, 15, 114);
