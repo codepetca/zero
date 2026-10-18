@@ -6,6 +6,8 @@ const os=require('node:os');
 const path=require('node:path');
 const {createGitHubAppProvider}=require('../src/github-app/provider');
 const {binding,SECRET_KEY}=require('../src/github-app/credential-store');
+const {createAuthentication}=require('../src/authentication');
+const {createGitHubAppRepositories}=require('../src/github-app/repositories');
 const permissions={metadata:'read',repository_creation:'write',contents:'write',workflows:'write',actions:'write',pages:'write',starring:'write'};
 const configuration={appId:123,clientId:'Iv1234567890',owner:'codepetca',slug:'codepet-zero',permissions};
 class Emitter{constructor(){this.listeners=new Set();this.event=listener=>{this.listeners.add(listener);return{dispose:()=>this.listeners.delete(listener)}};}fire(value){for(const listener of this.listeners)listener(value);}dispose(){this.listeners.clear();}}
@@ -13,15 +15,15 @@ const record=(time=1000000)=>({schema:1,app:binding(configuration),sessionId:'12
 const pair={access_token:'ghu_newaccessabcdefgh',refresh_token:'ghr_newrefreshabcdefgh',expires_in:28800,refresh_token_expires_in:15897600,token_type:'bearer',scope:''};
 const metadata={id:123,client_id:configuration.clientId,slug:configuration.slug,owner:{login:'codepetca'},permissions};
 const response=value=>new Response(JSON.stringify(value),{status:200});
-async function fixture(t,{saved=record(),overrides={},config=configuration}={}){
+async function fixture(t,{saved=record(),overrides={},config=configuration,clock}={}){
  const directory=await fs.mkdtemp(path.join(os.tmpdir(),'zero-provider-'));t.after(()=>fs.rm(directory,{recursive:true,force:true}));
- const events=new Emitter(),data=new Map(saved?[[SECRET_KEY,JSON.stringify(saved)]]:[]),calls=[];
+ const events=new Emitter(),data=new Map(saved?[[SECRET_KEY,JSON.stringify(saved)]]:[]),calls=[],diagnostics=[];
  const context={globalStorageUri:{scheme:'file',fsPath:directory},secrets:{onDidChange:events.event,get:async k=>data.get(k),store:async(k,v)=>{data.set(k,v);events.fire({key:k});},delete:async k=>{data.delete(k);events.fire({key:k});}}};
- let cancelListener;
- const vscode={EventEmitter:Emitter,ProgressLocation:{Notification:15},Uri:{parse:value=>value},env:{openExternal:async()=>true},window:{showInformationMessage:async()=> 'Continue to GitHub',withProgress:async(_options,callback)=>callback({}, {onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};},isCancellationRequested:false})}};
+ let cancelListener,time=1000000;const progress=[];
+ const vscode={EventEmitter:Emitter,ProgressLocation:{Notification:15},Uri:{parse:value=>value},env:{clipboard:{writeText:async()=>{}},openExternal:async()=>true},window:{showInformationMessage:async()=> 'Copy code and continue',withProgress:async(_options,callback)=>callback({report:value=>progress.push(value)}, {onCancellationRequested:listener=>{cancelListener=listener;return{dispose(){}};},isCancellationRequested:false})}};
  const fetchImpl=async(url,options)=>{calls.push([url,options]);if(overrides.fetch)return overrides.fetch(url,options);if(url.includes('/apps/'))return response(metadata);if(url.endsWith('/user'))return response({id:42,login:'learner',type:'User'});if(url.endsWith('/access_token'))return response(pair);return response({device_code:'device_code_abcdefgh',user_code:'ABCD-1234',verification_uri:'https://github.com/login/device',expires_in:900,interval:5});};
- const create=()=>createGitHubAppProvider({vscode,context,configuration:config,fetchImpl,now:()=>1000000});
- const provider=create();t.after(()=>provider.dispose());return{provider,create,vscode,context,data,calls,events,cancel:()=>cancelListener?.()};
+ const create=()=>createGitHubAppProvider({vscode,context,configuration:config,fetchImpl,now:clock||(()=>time),onDiagnostic:value=>diagnostics.push(value)});
+ const provider=create();t.after(()=>provider.dispose());return{provider,create,vscode,context,data,calls,events,progress,diagnostics,fetchImpl,advance:ms=>{time+=ms;},cancel:()=>cancelListener?.()};
 }
 test('unconfigured activation leaves local work available and never acquires other provider sessions',async t=>{
  const f=await fixture(t,{config:null});assert.deepEqual(await f.provider.getSessions([]),[]);await assert.rejects(f.provider.createSession([]),error=>error.code==='unconfigured');assert.equal(f.calls.length,0);
@@ -57,7 +59,7 @@ test('crash marker, expired refresh and malformed secret require reconnection wi
 });
 test('cancelled required code step and native cancellation do not poll or save credentials',async t=>{
  const f=await fixture(t,{saved:null});f.vscode.window.showInformationMessage=async()=>undefined;await assert.rejects(f.provider.createSession([]),error=>error.code==='cancelled');assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,0);assert.equal(f.data.has(SECRET_KEY),false);
- const g=await fixture(t,{saved:null});g.vscode.window.showInformationMessage=async()=>{g.cancel();return 'Continue to GitHub';};await assert.rejects(g.provider.createSession([]),error=>error.code==='cancelled');assert.equal(g.data.has(SECRET_KEY),false);
+ const g=await fixture(t,{saved:null});g.vscode.window.showInformationMessage=async()=>{g.cancel();return 'Copy code and continue';};await assert.rejects(g.provider.createSession([]),error=>error.code==='cancelled');assert.equal(g.data.has(SECRET_KEY),false);
 });
 test('completed device sign-in stores one expiring pair and verifies personal numeric identity',async t=>{
  const f=await fixture(t,{saved:null});const events=[];f.provider.onDidChangeSessions(value=>events.push(value));
@@ -78,4 +80,77 @@ test('rotation persisted despite uncertain storage acknowledgement is reread and
 test('a secret change while identity is in flight cannot resurrect the previous session',async t=>{
  let fixtureValue;const f=await fixture(t,{overrides:{fetch:async url=>{if(url.includes('/apps/'))return response(metadata);await fixtureValue.context.secrets.delete(SECRET_KEY);return response({id:42,login:'learner',type:'User'});}}});fixtureValue=f;
  await assert.rejects(f.provider.getSessions([]),error=>error.code==='connection-changed');assert.equal(f.data.has(SECRET_KEY),false);
+});
+test('existing connection metadata uses its valid token, caches success briefly and refreshes before checking expired credentials',async t=>{
+ const f=await fixture(t);await f.provider.getSessions([]);await f.provider.getSessions([]);
+ let checks=f.calls.filter(([url])=>url.includes('/apps/'));assert.equal(checks.length,1);assert.equal(checks[0][1].headers.Authorization,'Bearer '+record().accessToken);
+ f.advance(60001);await f.provider.getSessions([]);checks=f.calls.filter(([url])=>url.includes('/apps/'));assert.equal(checks.length,2);
+ const g=await fixture(t,{saved:{...record(),expiresAt:999999}});await g.provider.getSessions([]);
+ assert(g.calls[0][0].endsWith('/access_token'),'Renew before any metadata request');const metadataCall=g.calls.find(([url])=>url.includes('/apps/'));assert.equal(metadataCall[1].headers.Authorization,'Bearer '+pair.access_token);
+});
+test('metadata cache binds the complete pinned configuration and never caches a mismatch',async t=>{
+ const config={...configuration,permissions:{...permissions}};const f=await fixture(t,{config});await f.provider.getSessions([]);
+ config.permissions.administration='write';
+ for(let attempt=0;attempt<2;attempt++)await assert.rejects(f.provider.getSessions([]),error=>error.code==='app-mismatch');
+ assert.equal(f.calls.filter(([url])=>url.includes('/apps/')).length,3);assert.ok(f.calls.every(([,options])=>options.headers.Authorization==='Bearer '+record().accessToken));
+});
+function integratedAuthentication(f,t) {
+ const events=new Emitter();const subscription=f.provider.onDidChangeSessions(()=>events.fire({provider:{id:'zero-github'}}));
+ const auth=createAuthentication({onDidChangeSessions:events.event,getSession:async(id,scopes)=>{assert.equal(id,'zero-github');return (await f.provider.getSessions(scopes))[0];}});
+ t.after(()=>{auth.dispose();subscription.dispose();events.dispose();});return auth;
+}
+test('actual provider, facade and repository access have a bounded authenticated metadata request budget',async t=>{
+ const repo={id:75,name:'project',full_name:'learner/project',owner:{id:42,login:'learner',type:'User'},html_url:'https://github.com/learner/project',clone_url:'https://github.com/learner/project.git',default_branch:'main',private:true,permissions:{push:true}};
+ const installation={id:65,app_id:123,app_slug:configuration.slug,account:{id:42,type:'User'},target_type:'User',repository_selection:'selected',suspended_at:null,permissions};
+ const f=await fixture(t,{overrides:{fetch:async url=>{
+  if(url.includes('/apps/'))return response(metadata);
+  if(url.endsWith('/user'))return response({id:42,login:'learner',type:'User'});
+  if(url.includes('/user/installations?'))return response({installations:[installation]});
+  if(url.includes('/user/installations/65/repositories?'))return response({repositories:[repo]});
+  if(url.endsWith('/repos/learner/project'))return response(repo);
+  throw Error('Unexpected request');
+ }}});
+ const authentication=integratedAuthentication(f,t),repositories=createGitHubAppRepositories({authentication,configuration,fetchImpl:f.fetchImpl});
+ assert.equal((await repositories.access(repo.html_url)).repository.id,75);
+ assert.equal(f.calls.filter(([url])=>url.includes('/apps/')).length,1);
+ assert.equal(f.calls.filter(([,options])=>!options.headers.Authorization).length,0,'Existing sessions spend no anonymous IP quota');
+ assert(f.calls.length<=14,`One repository check unexpectedly used ${f.calls.length} requests`);
+});
+test('integrated metadata mismatch stops repository work and is retried rather than cached',async t=>{
+ const f=await fixture(t,{overrides:{fetch:async url=>{assert(url.includes('/apps/'));return response({...metadata,id:999});}}});
+ const authentication=integratedAuthentication(f,t),repositories=createGitHubAppRepositories({authentication,configuration,fetchImpl:f.fetchImpl});
+ for(let attempt=0;attempt<2;attempt++)await assert.rejects(repositories.access('https://github.com/learner/project'),/Sign in to GitHub/);
+ assert.equal(f.calls.length,2);assert.ok(f.calls.every(([,options])=>options.headers.Authorization==='Bearer '+record().accessToken));
+});
+test('device code is copied before browser opening and remains in progress while polling',async t=>{
+ let resolvePoll,pollStarted;const polling=new Promise(resolve=>{pollStarted=resolve;});
+ const f=await fixture(t,{saved:null,overrides:{fetch:async url=>{
+  if(url.includes('/apps/'))return response(metadata);
+  if(url.endsWith('/device/code'))return response({device_code:'device_code_abcdefgh',user_code:'ABCD-1234',verification_uri:'https://github.com/login/device',expires_in:900,interval:5});
+  if(url.endsWith('/access_token')){pollStarted();return new Promise(resolve=>{resolvePoll=resolve;});}
+  return response({id:42,login:'learner',type:'User'});
+ }}});
+ const actions=[];f.vscode.env.clipboard.writeText=async text=>actions.push(['copy',text]);f.vscode.env.openExternal=async uri=>{actions.push(['open',uri]);return true;};
+ const signingIn=f.provider.createSession([]);await polling;
+ assert.deepEqual(actions,[['copy','ABCD-1234'],['open','https://github.com/login/device']]);assert.match(f.progress.at(-1).message,/ABCD-1234/);
+ assert.equal(f.calls.find(([url])=>url.includes('/apps/'))[1].headers.Authorization,undefined,'First authorization retains anonymous pinned-App precheck');
+ resolvePoll(response(pair));await signingIn;
+});
+test('cancel or clipboard failure never opens a browser or polls for a token',async t=>{
+ for(const mode of ['cancel','clipboard','cancel-copy']) {
+  const f=await fixture(t,{saved:null});let opened=0,copied=0;f.vscode.env.openExternal=async()=>{opened++;return true;};
+  f.vscode.env.clipboard.writeText=async()=>{copied++;if(mode==='clipboard')throw Error('private clipboard error');if(mode==='cancel-copy')f.cancel();};
+  if(mode==='cancel')f.vscode.window.showInformationMessage=async()=>undefined;
+  await assert.rejects(f.provider.createSession([]),error=>['cancelled','clipboard-unavailable'].includes(error.code)&&!error.message.includes('private clipboard error'));
+  assert.equal(opened,0);assert.equal(copied,mode==='cancel'?0:1);assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,0);assert.equal(f.data.has(SECRET_KEY),false);
+ }
+});
+
+test('lock repair diagnostic reaches Zero Output callback even when authentication facade sanitizes its error',async t=>{
+ let time=1000000;const f=await fixture(t,{clock:()=>time+=10000});
+ await fs.writeFile(path.join(f.context.globalStorageUri.fsPath,'github-app-refresh.lock'),'{}');
+ await fs.writeFile(path.join(f.context.globalStorageUri.fsPath,'github-app-refresh.recovery.lock'),'');
+ const {createAuthentication}=require('../src/authentication');
+ const auth=createAuthentication({getSession:async()=> (await f.provider.getSessions([]))[0],onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
+ await auth.refresh();assert.equal(auth.signedIn,false);assert.ok(f.diagnostics.length>0);assert.match(f.diagnostics[0],/https:\/\/github.com\/codepetca\/zero\/blob\/main\/docs\/ZERO-AUTH-RECOVERY.md/);assert.ok(f.diagnostics[0].includes(f.context.globalStorageUri.fsPath));
 });

@@ -9,7 +9,7 @@ function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:tru
   const vscode={workspace:{isTrusted:true},authentication:{getSession:async(...args)=>{authCalls.push(args);return session;},onDidChangeSessions:()=>({dispose(){}})},window:{showInformationMessage:async(...args)=>{messages.push(args);return choices.shift();}},env:{clipboard:{writeText:async url=>copied.push(url)},openExternal:async uri=>{opened.push(uri);return true;}},Uri:{parse:url=>url}};
   const auth={capture:async()=>({session:{accountId:'1'}}),assertCurrent:async()=>{}};
   const repositories={access:async(url,options)=>{authCalls.push({url,...options});}};
-  const review=()=>({status:'review',setup,repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha,account:'student'});
+  const review=()=>({status:'review',setup,repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha,account:'1'});
   const calls=[];
   const publisher={review:async()=>{calls.push('review');reviewed++;return review();},setup:async()=>{calls.push('setup');return {status:'upload-required',message:'Upload setup'};},publish:async()=>{calls.push('publish');published++;return {status:'pending',resume:{runId:42}};},check:async()=>{checks++;return {status:'live',url:'https://student.github.io/game/',sha,resume:{runId:42,sha,repository:'https://github.com/student/game'}};}};
   publisher.verifyLink=async()=>publisher.check();
@@ -129,7 +129,7 @@ test('unresolved predispatch staging survives errors and is cleaned before a new
 test('dispatch tracking persists before publish returns, so subsequent errors cannot start a duplicate run',async t=>{
   const h=fixture(t),value={runId:42,sha:'a'.repeat(40),repository:'https://github.com/student/game'};
   h.choices.push('Publish app');let count=0;h.publisher.publish=async(review,options)=>{count++;await options.onStaging({staging:{tag:'temporary'}});await options.onPending(value);throw Error('editor interrupted');};
-  await assert.rejects(h.api.publish(),/interrupted/);assert.deepEqual(h.stored.get('zero.webPublish.pending'),{root:'/student',value,account:'student'});assert.equal(h.stored.has('zero.webPublish.staging'),false);
+  await assert.rejects(h.api.publish(),/interrupted/);assert.deepEqual(h.stored.get('zero.webPublish.pending'),{root:'/student',value,account:'1'});assert.equal(h.stored.has('zero.webPublish.staging'),false);
   h.publisher.restore=async(root,saved)=>{assert.deepEqual(saved,value);return {status:'live',resume:value,url:'https://student.github.io/game/',sha:value.sha};};
   await h.api.publish();assert.equal(count,1);assert.equal(h.stored.has('zero.webPublish.pending'),false);
 });
@@ -177,12 +177,12 @@ test('setup publication is pinned to its successfully uploaded commit',async t=>
 test('a pending publish retains its approved account across restart and repeat publication',async t=>{
   const h=fixture(t);h.choices.push('Publish app');const ready=h.publisher.check;
   h.publisher.check=async value=>({status:'pending',resume:value});await h.api.publish();
-  assert.equal(h.stored.get('zero.webPublish.pending').account,'student');
+  assert.equal(h.stored.get('zero.webPublish.pending').account,'1');
   const warnings=h.messages.filter(message=>message[1]?.modal).length;
   h.publisher.check=ready;
   const restarted=createWebPublishCommands(h.vscode,{project:async()=>'/student',workspaceState:h.workspaceState,isSimulation:()=>false,publisherFactory:()=>h.publisher,pollIntervalMs:0});
   t.after(()=>restarted.disposables.forEach(d=>d.dispose()));
-  await restarted.publish();assert.equal(h.stored.get('zero.webPublish.lastLive').account,'student');
+  await restarted.publish();assert.equal(h.stored.get('zero.webPublish.lastLive').account,'1');
   await restarted.publish();assert.equal(h.published,2);
   assert.equal(h.messages.filter(message=>message[1]?.modal).length,warnings);
 });

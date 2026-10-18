@@ -2,60 +2,67 @@
 const path=require('node:path');
 const lessonProjects=require('../lesson-projects');
 const core=require('../core');
+const {createProjectProgress,throwIfCancelled}=require('../project-folders');
 const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
 function nameError(value){
   if(typeof value!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value)||value.includes('..')||value.endsWith('.')||value.toLowerCase().endsWith('.git')||/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value))return 'Use 1–100 letters, numbers, dots, hyphens or underscores; choose an ordinary folder name.';
 }
 function createGitHubProjectCommands({vscode,authentication,repositories,folders,extensionPath,project,active=()=>true,onProgress=()=>{},onRecovery=async()=>{}}){
-  const drafts=new Map();
+  const drafts=new Map();let disposed=false;const isActive=()=>!disposed&&active();const progress=createProjectProgress(vscode,isActive);
   async function collect(title,key,{clone=false,defaultName='my-project'}={}){
+    if(!isActive())return;
     if(!authentication.signedIn)await authentication.signIn();
-    if(!active())return;
+    if(!isActive())return;
     const ticket=await authentication.capture(),draftKey=key+':'+ticket.session.accountId;
     const draft=drafts.get(draftKey)||{name:defaultName,private:true};
     const name=await vscode.window.showInputBox({title,prompt:`Create a repository in ${ticket.session.label}'s GitHub account.`,value:draft.name,validateInput:nameError});
-    if(!name||!active())return;
+    if(!name||!isActive())return;
     if(nameError(name))throw Error(nameError(name));
     draft.name=name;drafts.set(draftKey,draft);
     const choices=[{label:'Private',description:'Only you and people you invite can view the source.',private:true},{label:'Public',description:'Anyone can view the source and included files.',private:false}];
     if(!draft.private)choices.reverse();
     const visibility=await vscode.window.showQuickPick(choices,{title:'Repository visibility',placeHolder:'Choose the visibility required by your teacher'});
-    if(!visibility||!active())return;
+    if(!visibility||!isActive())return;
     draft.private=visibility.private;
     const parent=clone?await folders.chooseCloneParent():undefined;
-    if(!active()||clone&&!parent)return;
+    if(!isActive()||clone&&!parent)return;
     await authentication.assertCurrent(ticket);
     return {ticket,draft,parent,draftKey};
   }
-  async function createRemote(input,template){
-    try{return await repositories.create({name:input.draft.name,private:input.draft.private,...(template?{template}:{})},{ticket:input.ticket,onProgress});}
+  async function createRemote(input,template,signal,notify){
+    try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:input.draft.private,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal});}
     catch(error){if(error.code&&error.code!=='creation-uncertain')await onRecovery(undefined);throw error;}
   }
   async function createAndClone(title,template,key,defaultName){
     const input=await collect(title,key,{clone:true,defaultName});
-    if(!input||!active())return;
+    if(!input||!isActive())return;
     await authentication.assertCurrent(input.ticket);
-    const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
-    await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'creating'});
-    onProgress('Creating your GitHub project…');
-    const result=await createRemote(input,template);
-    await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'created'});
-    if(!active())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
-    try{
-      onProgress('Opening your project…');
-      const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent});
-      if(!cloned||!active())throw Error('The project was not opened.');
-      drafts.delete(input.draftKey);
-      await onRecovery(undefined);
-      onProgress('Project created');
-      return result;
-    }catch(error){throw Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);}
+    return progress.run('Create GitHub project',async(signal,reportProgress)=>{
+      const notify=text=>{if(isActive()&&!signal.aborted){onProgress(text);reportProgress(text);}};
+      throwIfCancelled(signal);
+      const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
+      await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'creating'});
+      notify('Creating your GitHub project…');
+      const result=await createRemote(input,template,signal,notify);
+      await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'created'});
+      if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
+      try{
+        throwIfCancelled(signal);notify('Opening your project…');
+        const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal});
+        throwIfCancelled(signal);
+        if(!cloned||!isActive())throw Error('The project was not opened.');
+        drafts.delete(input.draftKey);
+        await onRecovery(undefined);
+        notify('Project created');
+        return result;
+      }catch(error){throw Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);}
+    });
   }
   async function startTutorial(){
     const projects=await lessonProjects.loadBundle(extensionPath);
-    if(!active())return;
+    if(!isActive())return;
     const choice=await vscode.window.showQuickPick(projects.map(item=>({label:item.title,description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]}`,project:item})),{title:'Start tutorial',placeHolder:'Choose a tutorial project'});
-    if(!choice||!active())return;
+    if(!choice||!isActive())return;
     if(!choice.project.template)throw Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available; no project was created.`);
     const [owner,repo]=choice.project.template.repository.split('/');
     return createAndClone(choice.project.title,{owner,repo},choice.project.id,`my-${choice.project.id}`);
@@ -69,45 +76,56 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
       if(existing)throw Error('This project already has a repository. Use its existing GitHub connection.');
     }
     const input=await collect('Create repository','existing:'+root,{defaultName:path.basename(root)});
-    if(!input||!active())return;
+    if(!input||!isActive())return;
     if(await project()!==root)throw Error('The student project changed. Create the repository again from the intended project.');
     await authentication.assertCurrent(input.ticket);
-    const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
-    await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,projectRoot:root,stage:'creating'});
-    onProgress('Creating your GitHub repository…');
-    const result=await createRemote(input);
-    if(!active()||await project()!==root)throw Error(`Your repository was created at ${result.repository.html_url}. Open the intended project and Connect to GitHub to use it.`);
-    await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,projectRoot:root,stage:'created'});
-    try{await authentication.assertCurrent(input.ticket);const connected=await core.connectRepository(root,result.repository.html_url,async()=>false);if(!connected)throw Error('The existing repository connection was kept.');}
-    catch(error){throw Error(`Your repository was created at ${result.repository.html_url}. ${error.message} Use Connect to GitHub to continue; the repository was kept.`);}
-    drafts.delete(input.draftKey);await onRecovery(undefined);onProgress('Repository connected');return result;
+    return progress.run('Create GitHub repository',async(signal,reportProgress)=>{
+      const notify=text=>{if(isActive()&&!signal.aborted){onProgress(text);reportProgress(text);}};
+      throwIfCancelled(signal);
+      const intended=core.parseRepositoryUrl(`https://github.com/${input.ticket.session.label}/${input.draft.name}`).page;
+      await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,projectRoot:root,stage:'creating'});
+      notify('Creating your GitHub repository…');
+      const result=await createRemote(input,undefined,signal,notify);
+      if(!isActive()||await project()!==root)throw Error(`Your repository was created at ${result.repository.html_url}. Open the intended project and Connect to GitHub to use it.`);
+      await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,projectRoot:root,stage:'created'});
+      try{throwIfCancelled(signal);await authentication.assertCurrent(input.ticket);throwIfCancelled(signal);const connected=await core.connectRepository(root,result.repository.html_url,async()=>false);throwIfCancelled(signal);if(!connected)throw Error('The existing repository connection was kept.');}
+      catch(error){throw Error(`Your repository was created at ${result.repository.html_url}. ${error.message} Use Connect to GitHub to continue; the repository was kept.`);}
+      drafts.delete(input.draftKey);await onRecovery(undefined);notify('Repository connected');return result;
+    });
   }
   async function resumeCreated(record){
     if(!record||typeof record.repositoryUrl!=='string'||!/^\d+$/.test(record.accountId||''))throw Error('This recovery record is incomplete. Check the repository on GitHub before connecting or cloning it.');
     const destination=core.parseRepositoryUrl(record.repositoryUrl);
+    if(!isActive())return;
     if(!authentication.signedIn)await authentication.signIn();
-    if(!active())return false;
+    if(!isActive())return false;
     const ticket=await authentication.capture();
     if(ticket.session.accountId!==record.accountId)throw Error('Sign in with the GitHub account that created this project to resume it.');
-    await repositories.access(destination.page,{ticket,permissions:{contents:'write'}});
-    if(!active())return false;
-    await authentication.assertCurrent(ticket);
-    if(record.projectRoot){
-      const root=await project();
-      if(root!==record.projectRoot)throw Error('Open the original local project before resuming its repository connection.');
-      await lessonProjects.assertOriginalProject(root);
+    return progress.run('Resume GitHub project',async signal=>{
+      throwIfCancelled(signal);
+      await repositories.access(destination.page,{ticket,permissions:{contents:'write'},signal});
+      throwIfCancelled(signal);
+      if(!isActive())return false;
       await authentication.assertCurrent(ticket);
-      if(!active()||await project()!==root)return false;
-      const connected=await core.connectRepository(root,destination.page,async()=>false);
-      if(!connected)throw Error('The existing repository connection was kept.');
-      onProgress('Repository connected');
-    }else{
-      const cloned=await folders.clone({repositoryUrl:destination.page});
-      if(!cloned||!active())return false;
-      onProgress('Project opened');
-    }
-    await onRecovery(undefined);return true;
+      if(record.projectRoot){
+        const root=await project();
+        if(root!==record.projectRoot)throw Error('Open the original local project before resuming its repository connection.');
+        await lessonProjects.assertOriginalProject(root);
+        await authentication.assertCurrent(ticket);
+        if(!isActive()||await project()!==root)return false;
+        throwIfCancelled(signal);const connected=await core.connectRepository(root,destination.page,async()=>false);
+        throwIfCancelled(signal);
+        if(!connected)throw Error('The existing repository connection was kept.');
+        onProgress('Repository connected');
+      }else{
+        const cloned=await folders.clone({repositoryUrl:destination.page,signal});
+        throwIfCancelled(signal);
+        if(!cloned||!isActive())return false;
+        onProgress('Project opened');
+      }
+      await onRecovery(undefined);return true;
+    });
   }
-  return {startTutorial,resumeCreated,newProject:()=>createAndClone('New project',ORIGINAL_TEMPLATE,'original','my-project'),createRepository};
+  return {startTutorial,resumeCreated,newProject:()=>createAndClone('New project',ORIGINAL_TEMPLATE,'original','my-project'),createRepository,dispose(){disposed=true;progress.dispose();}};
 }
 module.exports={createGitHubProjectCommands,nameError};

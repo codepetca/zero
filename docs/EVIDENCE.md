@@ -5535,3 +5535,18 @@ and added recovery checks. No ownership conflicts; initial regression failures
 were stale provider/browser-creation expectations and were migrated. Actual
 per-worker tokens/effective configuration and attributable cost are unknown;
 account-wide allowance is not task cost. No savings claim.
+
+Initial review at2833ba8 completed independently: Astra/high security/correctness
+and Sol/high architecture/compatibility read the full49-file diff and callers.
+Six accepted findings are batched: authenticate/cache App metadata; bind upload
+and branch operations to captured repository/installation IDs; numeric publication
+shortcuts; cancellable create/access/clone/disposal; clipboard-first device code
+with retained progress; explicit abandoned-lock diagnostics and closed-editor
+rename-only repair preserving credential state. The repair diagnostic is also
+written directly to Zero Output, since the authentication facade sanitizes provider
+errors. See [recovery guidance](ZERO-AUTH-RECOVERY.md).
+
+Initial full regression:576tests,575passed,0failed,1existing skip. Remediation
+focused checks include68upload/workflow/publication integration and66project/
+cancellation tests. Final full regression and targeted review remain pending here.
+No publication, live acceptance or security grant is implied by source review.

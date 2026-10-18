@@ -28,6 +28,30 @@ test('active/unknown lock is bounded, dead old local owner may recover, non-loca
  await assert.rejects(lock(async()=>assert.fail('live lock stolen')),error=>error.code==='connection-busy');
  await fs.writeFile(file,JSON.stringify({pid:2147483647,host:os.hostname(),nonce:'dead',startedAt:1}));
  assert.equal(await lock(async()=>42),42);
- await fs.writeFile(file,'malformed');await assert.rejects(lock(async()=>assert.fail()),error=>error.code==='connection-busy');
+ await fs.writeFile(file,'malformed');await assert.rejects(lock(async()=>assert.fail()),error=>error.code==='connection-lock-repair-required');
  assert.throws(()=>createCredentialLock({globalStorageUri:{scheme:'vscode-remote',fsPath:dir}}),/local extension storage/);
+});
+test('abandoned recovery guard is diagnosed without deletion and closed-editor rename repair preserves credential state',async t=>{
+ for(const state of ['active','refreshing','reconnect']) {
+  const dir=await directory(t),main=path.join(dir,'github-app-refresh.lock'),guard=path.join(dir,'github-app-refresh.recovery.lock');let time=200000;
+  const lock=createCredentialLock({globalStorageUri:{scheme:'file',fsPath:dir},now:()=>time,sleep:async ms=>{time+=ms;},timeoutMs:200});
+  const stale=JSON.stringify({pid:2147483647,host:os.hostname(),nonce:'dead-owner',startedAt:1});await fs.writeFile(main,stale);await fs.writeFile(guard,'');
+  await assert.rejects(lock(async()=>assert.fail('unknown recovery guard stolen')),error=>error.code==='connection-lock-repair-required'&&error.recoveryDirectory===dir&&error.recoveryGuide==='https://github.com/codepetca/zero/blob/main/docs/ZERO-AUTH-RECOVERY.md'&&error.message.includes(error.recoveryGuide)&&!/ghu_|ghr_/.test(error.message));
+  assert.equal(await fs.readFile(main,'utf8'),stale);assert.equal(await fs.readFile(guard,'utf8'),'');
+  const data=new Map([[SECRET_KEY,JSON.stringify({...record(),state})],['other.extension','preserve']]);
+  const secrets={get:async key=>data.get(key),store:async(key,value)=>data.set(key,value),delete:async key=>data.delete(key)};
+  const store=createCredentialStore({secrets,configuration});const original=await store.raw();
+  // This simulates the documented manual step only after all editor processes
+  // have stopped. Production never performs this rename or removes the guard.
+  await fs.rename(main,main+'.closed-editor-backup');await fs.rename(guard,guard+'.closed-editor-backup');
+  assert.equal(await lock(async()=>(await store.read()).state),state);
+  assert.equal(await store.raw(),original,'Repair cannot reset a refreshing/reconnect marker or credentials');assert.equal(data.get('other.extension'),'preserve');
+  assert.equal(await fs.readFile(main+'.closed-editor-backup','utf8'),stale);assert.equal(await fs.readFile(guard+'.closed-editor-backup','utf8'),'');
+ }
+});
+test('a live recovery guard and unknown main lock are never removed automatically',async t=>{
+ const dir=await directory(t);let time=200000;const main=path.join(dir,'github-app-refresh.lock'),guard=path.join(dir,'github-app-refresh.recovery.lock');
+ const live=JSON.stringify({pid:process.pid,host:os.hostname(),nonce:'live-recovery',startedAt:1});await fs.writeFile(main,'unknown');await fs.writeFile(guard,live);
+ const lock=createCredentialLock({globalStorageUri:{scheme:'file',fsPath:dir},now:()=>time,sleep:async ms=>{time+=ms;},timeoutMs:100});
+ await assert.rejects(lock(async()=>assert.fail()),error=>error.code==='connection-lock-repair-required');assert.equal(await fs.readFile(main,'utf8'),'unknown');assert.equal(await fs.readFile(guard,'utf8'),live);
 });

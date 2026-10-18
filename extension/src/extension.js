@@ -10,7 +10,7 @@ const workflow = require('./workflow');
 const {createAuthentication} = require('./authentication');
 const {githubAppConfiguration} = require('./github-app/config');
 const {createGitHubAppProvider} = require('./github-app/provider');
-const {createGitHubAppRepositories} = require('./github-app/repositories');
+const {createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity} = require('./github-app/repositories');
 const {createGitHubAppClone} = require('./github-app/clone');
 const {createGitHubProjectCommands} = require('./github-app/projects-ui');
 const {createProjectFolders} = require('./project-folders');
@@ -148,7 +148,7 @@ function activate(context, services = {}) {
   const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';refresh();});
   context.subscriptions.push(auth);
   const appConfiguration = githubAppConfiguration();
-  const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration}) : null);
+  const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,onDiagnostic:message=>output.appendLine(message)}) : null);
   if (appProvider) {
     context.subscriptions.push(appProvider);
     context.subscriptions.push(vscode.authentication.registerAuthenticationProvider('zero-github','Zero GitHub',appProvider,{supportsMultipleAccounts:false}));
@@ -157,6 +157,7 @@ function activate(context, services = {}) {
   const cloneRepository = services.cloneRepository || createGitHubAppClone({authentication:auth,repositories});
   const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository});
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
+  context.subscriptions.push(projectFolders,githubProjects);
   async function signIn(changeAccount = auth.signedIn) {
     if (disposed || isBusy()) return;
     signingIn = true; refresh();
@@ -313,7 +314,8 @@ function activate(context, services = {}) {
       const ticket = await auth.capture();
       if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the change.');
       const destination = await github.prepareUpload(root);
-      const assertCurrent = async () => {await repositories.access(destination.page,{ticket,permissions:{contents:'write'}});return auth.assertCurrent(ticket);};
+      const identity=repositoryIdentity(await repositories.access(destination.page,{ticket,permissions:{contents:'write'}}));
+      const assertCurrent = async () => {assertRepositoryIdentity(identity,await repositories.access(destination.page,{ticket,permissions:{contents:'write'}}));return auth.assertCurrent(ticket);};
       const networkRun = createTransport(destination.remote, assertCurrent, {assertCurrentNow:() => auth.assertCurrentNow(ticket)});
       const options = {networkRun, beforeNetwork:assertCurrent, onProgress:text => {state=text; refresh();}};
       const plan = kind === 'start' ? await workflow.prepareStart(root, name, options) : await workflow.prepareFinish(root, options);
@@ -376,7 +378,7 @@ function activate(context, services = {}) {
         const message = await vscode.window.showInputBox({title:'Commit & push', prompt:`${plan.page} · ${plan.branch}`, placeHolder:'Describe your changes', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
-        const assertCurrent = async () => {await assertCurrentProject();await repositories.access(plan.page,{ticket,permissions:selectedAuth.permissions});await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
+        const assertCurrent = async () => {await assertCurrentProject();assertRepositoryIdentity(selectedAuth.identity,await repositories.access(plan.page,{ticket,permissions:selectedAuth.permissions}));await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
         const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
         await refreshNativeGit(root);
         await repositoryStatus();
@@ -622,7 +624,7 @@ function activate(context, services = {}) {
     const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
-    const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountLabel && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
+    const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountId && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && browserRun.canOpenInBrowser ? `<button class="link" data-command="zero.openRunningAppInBrowser" ${disabled}>${icon('ExternalLink')}Open in browser</button>` : '';
     const githubPanel = !auth.signedIn ? account : `${account}<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;

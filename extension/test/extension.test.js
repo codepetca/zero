@@ -101,7 +101,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));
   const appProvider={removeSession:async id=>{removed.push(id);session=undefined;},dispose(){}};
   const repositories={access:async()=>assert.fail('No live repository access is needed in this sidebar/checkout test'),create:async(input,{ticket})=>{assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);creations.push(input);return {ticket,repository:{id:12,html_url:'https://github.com/student/'+input.name},installation:{id:99}};}};
-  const cloneRepository=async input=>{clones.push(input);return path.join(root,'new-project');};
+  const cloneRepository=async input=>{assert.ok(input.signal instanceof AbortSignal);assert.equal(input.signal.aborted,false);const {signal,...reviewed}=input;clones.push(reviewed);return path.join(root,'new-project');};
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>key==='zero.cloneParent'?root:undefined,update:async()=>{}}},{provider:appProvider,repositories,cloneRepository});
   assert.deepEqual(registered.map(item=>item.id),['zero-github']);
   assert.equal(typeof commands.get('zero.checkForUpdates'),'function');

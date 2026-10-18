@@ -13,7 +13,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     git(['init','-q','-b','main']);git(['add','zero.json']);git(['-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','Tutorial clone fixture']);git(['remote','add','origin','https://github.com/student/app.git']);
   }
   if(kit)for(const [name,bytes] of await publishingFiles()){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),bytes);}
-  const commands=new Map(),calls=[],errors=[],notices=[],results=[],listeners=new Set();let webviewProvider;let saves=0,reviews=0,uploads=0,pushes=0,disposed=0,inputs=0,failPush=false,accountId='1',afterAccess=async()=>{},afterInput=async()=>{};
+  const commands=new Map(),calls=[],errors=[],notices=[],results=[],listeners=new Set();let webviewProvider;let repositoryId=12,installationId=99,privacy=true;let saves=0,reviews=0,uploads=0,pushes=0,disposed=0,inputs=0,failPush=false,accountId='1',afterAccess=async()=>{},afterInput=async()=>{};
   const originalGit=core.git,originalPrepare=github.prepareUpload,originalUpload=github.uploadPrepared;
   core.git=async(_,args)=>{if(args[0]==='rev-parse')return root;if(args[0]==='remote')return 'https://github.com/student/app.git';if(args[0]==='symbolic-ref')return 'main';throw Error('Unexpected Git command in mocked native UI');};
   const plan={root,page:'https://github.com/student/app',remote:'https://github.com/student/app.git',branch:'main',head:'b'.repeat(40),status:'',summary:'No file changes; retry already committed branch',changes:[]};
@@ -33,7 +33,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     if(!selected)throw Error('Add this repository to Zero’s selected repositories on GitHub.');
     for(const [name,level] of Object.entries(permissions))if(capabilities[name]!==level)throw Error('Zero GitHub App '+name+' permission was removed. Review its permissions on GitHub.');
     await afterAccess();
-    return {ticket,repository:{id:12,full_name:'student/app',owner:{id:1,type:'User'},default_branch:'main'},installation:{id:99}};
+    return {ticket,repository:{id:repositoryId,private:privacy,full_name:'student/app',owner:{id:1,type:'User'},default_branch:'main'},installation:{id:installationId}};
   }};
   const vscode={authentication:{getSession:async(provider,scopes,options)=>{
     calls.push({provider,scopes,options});
@@ -48,7 +48,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{repositories});await new Promise(resolve=>setImmediate(resolve));
   t.after(()=>{subscriptions.forEach(item=>item.dispose());core.git=originalGit;github.prepareUpload=originalPrepare;github.uploadPrepared=originalUpload;delete require.cache[require.resolve('../src/extension')];});
-  return {commands,calls,accessCalls,errors,notices,results,get pushes(){return pushes;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
+  return {commands,calls,accessCalls,errors,notices,results,get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
 }
 test('native App Commit & push retries a failed push using the same reviewed repository and empty scopes',async t=>{
   const h=await harness(t);h.failPush=true;
@@ -123,4 +123,11 @@ test('original project sidebar continues offering Share project',async t=>{
   const h=await harness(t,{kit:false});const webview=h.render();const deadline=Date.now()+5000;
   while(!webview.html.includes('data-command="zero.shareGame"')) {assert.ok(Date.now()<deadline,'Original project should retain sharing');await new Promise(resolve=>setImmediate(resolve));}
   assert.match(webview.html,/Share project/);
+});
+
+test('unchanged URL and account cannot push to a replacement repository or installation after review',async t=>{
+ for(const kind of ['repository','installation'])await t.test(kind,async t=>{
+  const h=await harness(t);h.afterInput=async()=>{if(kind==='repository'){h.repositoryId=13;h.privacy=false;}else h.installationId=100;};
+  await h.commands.get('zero.uploadToGitHub')();assert.equal(h.inputs,1);assert.equal(h.pushes,0);assert.match(h.errors.at(-1),/repository or Zero installation changed/);
+ });
 });

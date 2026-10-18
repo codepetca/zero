@@ -16,10 +16,10 @@ async function fixture(t){
  let session={id:'session',account:{id:'1',label:'student'},accessToken:'TEST_SECRET',scopes:[]};
  const auth=createAuthentication({getSession:async()=>session,onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
  const vscode={window:{showInputBox:async options=>{inputs.push(options);afterName();return name;},showQuickPick:async(items,options)=>{picks.push({items,options});afterPick(options);return options.title==='Start tutorial'?(tutorialChoice?items[0]:undefined):visibility===undefined?undefined:items.find(item=>item.private===visibility);}}};
- const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async input=>{calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
- const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);afterCreate();return {repository:{html_url:remote}};}};
+ const folders={chooseCloneParent:async()=>{calls.push(['parent']);return parent;},clone:async({signal,...input})=>{assert.ok(signal instanceof AbortSignal);calls.push(['clone',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}};
+ const repositories={access:async(url,options)=>{calls.push(['access',url,options]);return {};},create:async(input,options)=>{calls.push(['create',input,options]);await afterCreate(options);return {repository:{html_url:remote}};}};
  const commands=createGitHubProjectCommands({vscode,authentication:auth,repositories,folders,extensionPath:root,project:async()=>current,active:()=>enabled,onProgress:value=>progress.push(value),onRecovery:value=>recovery.push(value)});
- return {root,commands,calls,progress,recovery,inputs,picks,auth,set name(v){name=v;},set visibility(v){visibility=v;},set tutorialChoice(v){tutorialChoice=v;},set parent(v){parent=v;},set current(v){current=v;},set active(v){enabled=v;},set afterName(v){afterName=v;},set afterPick(v){afterPick=v;},set afterCreate(v){afterCreate=v;},set cloneFailure(v){cloneFailure=v;},set cloneResult(v){cloneResult=v;},drift(){session={...session,account:{id:'2',label:'other'}};}};
+ return {root,commands,calls,progress,recovery,inputs,picks,auth,vscode,repositories,folders,set name(v){name=v;},set visibility(v){visibility=v;},set tutorialChoice(v){tutorialChoice=v;},set parent(v){parent=v;},set current(v){current=v;},set active(v){enabled=v;},set afterName(v){afterName=v;},set afterPick(v){afterPick=v;},set afterCreate(v){afterCreate=v;},set cloneFailure(v){cloneFailure=v;},set cloneResult(v){cloneResult=v;},drift(){session={...session,account:{id:'2',label:'other'}};}};
 }
 test('repository names are portable folder names including Windows device restrictions',()=>{
  for(const value of ['',null,'../app','a..b','a/b','a\\b',' leading','trailing.','a.git','.git','CON','con.txt','PRN','AUX','nul','COM1','com9.md','LPT1','lpt9.java','x'.repeat(101)])assert.equal(typeof nameError(value),'string',String(value));
@@ -110,4 +110,35 @@ test('resume rejects account drift, wrong project and changed origin without cle
 });
 test('successful resumed clone clears receipt only after opening',async t=>{
  const f=await fixture(t);assert.equal(await f.commands.resumeCreated({repositoryUrl:remote,accountId:'1'}),true);assert.deepEqual(f.calls.map(c=>c[0]),['access','clone']);assert.deepEqual(f.recovery,[undefined]);
+});
+
+function nativeProgress(f,{cancelled=false}={}){
+ const notifications=[];let cancel,disposed=0;
+ f.vscode.ProgressLocation={Notification:15};f.vscode.window.withProgress=async(options,run)=>{notifications.push(options);return run({report(){}},{isCancellationRequested:cancelled,onCancellationRequested(fn){cancel=fn;return {dispose(){disposed++;}};}});};
+ return {notifications,cancel:()=>cancel(),get disposed(){return disposed;}};
+}
+test('cancelling native progress before dispatch creates no remote or recovery receipt',async t=>{
+ for(const command of ['newProject','startTutorial','createRepository']){
+  const f=await fixture(t),native=nativeProgress(f,{cancelled:true});await assert.rejects(f.commands[command](),error=>error.code==='cancelled');assert.equal(f.calls.filter(c=>c[0]==='create'||c[0]==='clone').length,0);assert.equal(f.recovery.length,0);assert.equal(native.notifications.length,1);assert.equal(native.disposed,1);
+ }
+});
+test('cancellation after creation keeps remote recovery and never starts cloning or connecting',async t=>{
+ for(const command of ['newProject','startTutorial','createRepository']){
+  const f=await fixture(t),native=nativeProgress(f);let connects=0;t.mock.method(core,'connectRepository',async()=>{connects++;});f.afterCreate=({signal})=>{assert.ok(signal instanceof AbortSignal);native.cancel();assert.equal(signal.aborted,true);};
+  await assert.rejects(f.commands[command](),error=>error.message.includes(remote));assert.equal(f.calls.filter(c=>c[0]==='clone').length,0);assert.equal(connects,0);assert.equal(f.recovery.at(-1).stage,'created');assert.equal(f.recovery.at(-1).repositoryUrl,remote);assert.equal(native.notifications.length,1);
+ }
+});
+test('disposal aborts pending creation and preserves uncertain creation recovery',async t=>{
+ const f=await fixture(t),native=nativeProgress(f);let entered,signal;const ready=new Promise(resolve=>{entered=resolve;});
+ f.repositories.create=async(_,options)=>{signal=options.signal;return new Promise((resolve,reject)=>{signal.addEventListener('abort',()=>reject(Object.assign(Error('Creation response uncertain'),{code:'creation-uncertain'})),{once:true});entered();});};
+ const pending=f.commands.newProject();const rejected=assert.rejects(pending,/uncertain/);await ready;f.commands.dispose();await rejected;assert.equal(signal.aborted,true);assert.equal(f.recovery.at(-1).stage,'creating');assert.equal(f.recovery.at(-1).repositoryUrl,remote);assert.equal(native.disposed,1);assert.ok(!f.calls.some(c=>c[0]==='clone'));
+});
+test('resumed access receives cancellation and retains recovery without cloning',async t=>{
+ const f=await fixture(t),native=nativeProgress(f);let entered,signal;const ready=new Promise(resolve=>{entered=resolve;});
+ f.repositories.access=async(_,options)=>{signal=options.signal;return new Promise((resolve,reject)=>{signal.addEventListener('abort',()=>reject(Object.assign(Error('Cancelled access'),{code:'cancelled'})),{once:true});entered();});};
+ const pending=f.commands.resumeCreated({repositoryUrl:remote,accountId:'1'});const rejected=assert.rejects(pending,/Cancelled access/);await ready;native.cancel();await rejected;assert.equal(signal.aborted,true);assert.equal(f.recovery.length,0);assert.ok(!f.calls.some(c=>c[0]==='clone'));assert.equal(native.notifications.length,1);
+});
+test('cancellation while finishing a local connection retains the created repository receipt',async t=>{
+ const f=await fixture(t),native=nativeProgress(f);t.mock.method(core,'connectRepository',async()=>{native.cancel();return {page:remote};});
+ await assert.rejects(f.commands.createRepository(),error=>error.message.includes(remote));assert.equal(f.recovery.at(-1).stage,'created');assert.ok(!f.progress.includes('Repository connected'));
 });

@@ -6,6 +6,7 @@ const os = require('node:os');
 const {randomUUID} = require('node:crypto');
 const {failure, wait} = require('./device-flow');
 const SECRET_KEY = 'zero.githubApp.credentials.v1';
+const RECOVERY_GUIDE = 'https://github.com/codepetca/zero/blob/main/docs/ZERO-AUTH-RECOVERY.md';
 function binding(configuration) { return `${configuration.appId}:${configuration.clientId}:${configuration.owner}:${configuration.slug}`; }
 function validateRecord(record, configuration) {
   if (!record || record.schema !== 1 || record.app !== binding(configuration) ||
@@ -52,26 +53,41 @@ function createCredentialLock({globalStorageUri, now = Date.now, sleep = wait, t
   const directory = globalStorageUri.fsPath;
   const lockPath = path.join(directory, 'github-app-refresh.lock');
   const recoveryPath = path.join(directory, 'github-app-refresh.recovery.lock');
-  async function readLock() {
+  async function readOwnership(file=lockPath) {
     try {
-      const stat = await fs.lstat(lockPath);
+      const stat = await fs.lstat(file);
       if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 2048) return undefined;
-      return JSON.parse(await fs.readFile(lockPath, 'utf8'));
+      return JSON.parse(await fs.readFile(file, 'utf8'));
     } catch { return undefined; }
+  }
+  function repairRequired() {
+    const error=failure('connection-lock-repair-required',`Zero's connection lock needs attention. Close all Zero/VS Code editors before following ${RECOVERY_GUIDE}. Lock directory: ${directory}. Preserve SecretStorage and project files.`);
+    error.recoveryDirectory=directory;
+    error.recoveryGuide=RECOVERY_GUIDE;
+    return error;
   }
   async function recover() {
     let recovery;
     try { recovery = await fs.open(recoveryPath, 'wx', 0o600); }
-    catch (error) { if (error.code === 'EEXIST') return; throw error; }
+    catch (error) { if (error.code === 'EEXIST') return 'guard-blocked'; throw failure('storage-unavailable','Zero connection storage is unavailable.'); }
+    const recoveryNonce=randomUUID();
     try {
-      const owner = await readLock();
-      if (!owner || owner.host !== os.hostname() || !Number.isInteger(owner.pid) || owner.pid < 1 || !Number.isFinite(owner.startedAt) || now() - owner.startedAt < 120000) return;
-      try { process.kill(owner.pid, 0); return; }
-      catch (error) { if (error.code !== 'ESRCH') return; }
+      await recovery.writeFile(JSON.stringify({nonce:recoveryNonce,pid:process.pid,host:os.hostname(),startedAt:now()}));
+      const owner = await readOwnership();
+      if (!owner || owner.host !== os.hostname() || !Number.isInteger(owner.pid) || owner.pid < 1 || !Number.isFinite(owner.startedAt) || typeof owner.nonce!=='string' || !owner.nonce || owner.nonce.length>128) return 'unknown-lock';
+      if(now()-owner.startedAt<120000)return 'waiting';
+      try { process.kill(owner.pid, 0); return 'live'; }
+      catch (error) { if (error.code !== 'ESRCH') return 'unknown-lock'; }
       // The recovery lock serializes stale inspection/removal among contenders.
-      const current = await readLock();
+      const current = await readOwnership();
       if (current?.nonce === owner.nonce) await fs.unlink(lockPath);
-    } finally { await recovery.close(); await fs.unlink(recoveryPath).catch(() => {}); }
+      return 'recovered';
+    } finally {
+      await recovery.close();
+      // Never delete a replacement/unknown guard. A crash before this metadata
+      // write leaves an empty guard for the explicit closed-editor procedure.
+      if((await readOwnership(recoveryPath))?.nonce===recoveryNonce)await fs.unlink(recoveryPath).catch(()=>{});
+    }
   }
   return async function withLock(callback, signal) {
     await fs.mkdir(directory, {recursive:true, mode:0o700});
@@ -84,8 +100,11 @@ function createCredentialLock({globalStorageUri, now = Date.now, sleep = wait, t
       try { handle = await fs.open(lockPath, 'wx', 0o600); }
       catch (error) {
         if (error.code !== 'EEXIST') throw failure('storage-unavailable', 'Zero connection storage is unavailable.');
-        await recover();
-        if (now() >= deadline) throw failure('connection-busy', 'Another Zero window is updating this connection. Try again shortly.');
+        const recovery=await recover();
+        if (now() >= deadline) {
+          if(['guard-blocked','unknown-lock'].includes(recovery))throw repairRequired();
+          throw failure('connection-busy', 'Another Zero window is updating this connection. Try again shortly.');
+        }
         await sleep(100, signal); continue;
       }
       try {
@@ -94,7 +113,7 @@ function createCredentialLock({globalStorageUri, now = Date.now, sleep = wait, t
         return await callback();
       } finally {
         await handle?.close();
-        const owner = await readLock();
+        const owner = await readOwnership();
         if (owner?.nonce === nonce) await fs.unlink(lockPath).catch(() => {});
       }
     }

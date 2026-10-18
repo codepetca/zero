@@ -2,6 +2,7 @@
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const {publishingFiles}=require('./web-publish-github');
+const {repositoryIdentity}=require('./github-app/repositories');
 
 // Inspect the current pinned kit, including its workflow and ownership digest.
 // Checking working files also covers a clean commit whose first push failed.
@@ -26,11 +27,11 @@ async function selectUploadAuthentication({root,authentication,initialTicket,rep
   const permissions={contents:'write'};
   if(await isManagedPublishingSetup(root))permissions.workflows='write';
   await assertCurrentProject();
-  await repositories.access(repositoryUrl,{ticket:initialTicket,permissions});
+  const identity=repositoryIdentity(await repositories.access(repositoryUrl,{ticket:initialTicket,permissions}));
   await authentication.assertCurrent(initialTicket);
   await assertCurrentProject();
   // The same Zero App session owns upload; never expand OAuth scopes or fall
   // back to VS Code's general GitHub credentials.
-  return {authentication,ticket:initialTicket,permissions:Object.freeze({...permissions}),dispose(){}};
+  return {authentication,ticket:initialTicket,identity,permissions:Object.freeze({...permissions}),dispose(){}};
 }
 module.exports={isManagedPublishingSetup,selectUploadAuthentication};

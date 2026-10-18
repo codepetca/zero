@@ -24,8 +24,8 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   t.after(()=>{core.git=original.git;core.resolveProject=original.resolve;core.assertRepositoryRoot=original.assert;github.prepareUpload=original.prepare;for(const key of Object.keys(workflow))workflow[key]=original[key];});
   let projectResolves=0;
   core.resolveProject=(...args)=>{projectResolves++;return original.resolve(...args);};
-  let branch='main',mode='simulation',session={id:'session',account:{id:'student',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
-  let accessFailure;const accesses=[];
+  let branch='main',mode='simulation',session={id:'session',account:{id:'1',label:'student'},accessToken:'NEVER_RENDER_TOKEN'},authEvent,provider,publishedState;
+  let accessFailure,repositoryId=12,installationId=99;const accesses=[];
   let saved=0,authCalls=0,prepared=0,executed=0,deleted=0,input,choice,prepareGate,pickGate,warningGate,finishError,cleanupError,finishUpdates=false,nativeScm=true;
   const commands=new Map(),picks=[],reviews=[],warnings=[],errors=[],notices=[],dispatch=[],deletions=[],logs=[],metadata={};
   core.assertRepositoryRoot=async()=>root;
@@ -48,7 +48,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   };
   const oldLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:oldLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
-  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'student');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket};}}});
+  const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
   assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
   assert.match(webview.html,/data-command="zero.recovery"[^>]*>Recovery…<\/button>/);
@@ -71,7 +71,7 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   assert.equal(saved,0);assert.equal(prepared,0);assert.equal(executed,0);assert.equal(authCalls,authBefore);assert.equal(accesses.length,0);assert.match(warnings[0],/nothing changed/);
   assert.doesNotMatch(webview.html,/data-command="zero.startChange"[^>]* disabled/);releaseWarning();warningGate=undefined;
   mode=undefined;input=undefined;await commands.get('zero.startChange')();assert.equal(saved,0);assert.equal(prepared,0);
-  input='add-score';await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,1);assert.equal(accesses.length,1);assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
+  input='add-score';await commands.get('zero.startChange')();assert.equal(prepared,1);assert.equal(executed,1);assert.equal(accesses.length,2);assert.equal(reviews.length,0,'Naming a branch needs no additional confirmation');assert.doesNotMatch(webview.html,/Simulation — nothing will be uploaded/);assert.match(webview.html,/add-score<\/span>/);
   await commands.get('zero.chooseBranch')();assert.deepEqual(picks.at(-1).items.map(item=>item.action),['finish']);
   let releasePrepare;prepareGate=new Promise(resolve=>{releasePrepare=resolve;});const preparedBeforeFinish=prepared;const pending=commands.get('zero.finishChange')();await waitFor(()=>prepared>preparedBeforeFinish, 'Finish preparation should start directly');
   const before={saved,prepared,authCalls};for(const id of ['zero.startChange','zero.finishChange','zero.uploadToGitHub','zero.githubAccount','zero.chooseRepository','zero.chooseBranch','zero.connectRepository','zero.signInToGitHub'])await commands.get(id)();
@@ -85,8 +85,11 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   // A guarded cleanup refusal must preserve the successful merge outcome.
   branch='add-score';cleanupError=new Error('The finished branch changed; keep its new work.');const errorsBeforeCleanup=errors.length;
   await commands.get('zero.finishChange')();assert.equal(deleted,1);assert.equal(deletions.length,2);assert.equal(errors.length,errorsBeforeCleanup);assert.equal(reviews.length,0);assert.match(warnings.at(-1),/Merged to main.*local branch kept; see Output/);assert.match(logs.at(-1),/finished branch changed/);assert.equal(branch,'main');cleanupError=undefined;
-  publishedState={root,account:'student',resume:{repository:'https://github.com/student/app'}};provider.resolveWebviewView(candidate);
+  publishedState={root,account:'1',resume:{repository:'https://github.com/student/app'}};provider.resolveWebviewView(candidate);
   assert.match(webview.html,/data-command="zero.openPublishedWeb"/);assert.match(webview.html,/data-command="zero.copyPublishedWebLink"/);
+  session={...session,account:{id:'1',label:'renamed-student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>webview.html.includes('renamed-student'));assert.match(webview.html,/data-command="zero.openPublishedWeb"/,'Numeric identity survives username changes');
+  session={...session,account:{id:'2',label:'renamed-student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>!webview.html.includes('data-command="zero.openPublishedWeb"'));
+  session={...session,account:{id:'1',label:'student'}};authEvent({provider:{id:'zero-github'}});await waitFor(()=>webview.html.includes('data-command="zero.openPublishedWeb"'));
   for(const changed of [{root:'/other'}, {account:'other'}, {resume:{repository:'https://github.com/student/other'}}]) {
     const saved=publishedState;publishedState={...saved,...changed};provider.resolveWebviewView(candidate);assert.doesNotMatch(webview.html,/data-command="zero.openPublishedWeb"/);publishedState=saved;
   }
@@ -94,6 +97,12 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   branch='<branch "x">';provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes('&lt;branch &quot;x&quot;&gt;'));assert.match(webview.html,/&lt;branch &quot;x&quot;&gt;/);assert.doesNotMatch(webview.html,/<branch|NEVER_RENDER_TOKEN/);
   branch='main';choice='start';let releasePick;pickGate=new Promise(resolve=>{releasePick=resolve;});const menu=commands.get('zero.chooseBranch')();await waitFor(()=>picks.at(-1).options.title.includes('main'), 'Main branch menu should open');
   const beforeMenu=executed;await commands.get('zero.startChange')();assert.equal(executed,beforeMenu);branch='changed-elsewhere';releasePick();await menu;pickGate=undefined;assert.equal(executed,beforeMenu,'A changed branch invalidates the menu selection');
+  for(const action of ['zero.startChange','zero.finishChange'])for(const replacement of ['repository','installation']){
+    branch=action==='zero.startChange'?'main':'add-score';input='add-score';
+    const field=action==='zero.startChange'?'prepareStart':'prepareFinish',before=workflow[field],count=executed;
+    workflow[field]=async()=>{prepared++;if(replacement==='repository')repositoryId++;else installationId++;return plan();};
+    await commands.get(action)();assert.equal(executed,count,'Replacement IDs must stop before branch mutation');assert.match(errors.at(-1),/repository or Zero installation changed/);workflow[field]=before;
+  }
   input='add-score';accessFailure=new Error('This repository is not available to Zero. Add it to Zero’s selected repositories on GitHub.');
   const beforeDenied={executed,deleted};await commands.get('zero.startChange')();
   assert.deepEqual({executed,deleted},beforeDenied,'Denied selected-repository access must stop branch creation before dispatch');assert.match(errors.at(-1),/selected repositories/);

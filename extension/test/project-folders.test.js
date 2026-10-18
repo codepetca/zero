@@ -10,7 +10,7 @@ async function fixture(t, remembered = new Map()) {
   t.after(()=>fs.rm(home,{recursive:true,force:true}));
   const calls=[],dialogs=[],reports=[];let input='https://github.com/student/app',selection,cloneResult,cloneFailure,active=true;
   const vscode={Uri:{file:fsPath=>({fsPath}),parse:value=>({value})},extensions:{getExtension:()=>{throw Error('Legacy native Git fallback must not be used');}},window:{showInputBox:async options=>{assert.equal(options.validateInput('bad'),'Use https://github.com/owner/repository (optionally ending in .git).');return input;},showOpenDialog:async options=>{dialogs.push(options);return selection;}},commands:{executeCommand:async(...args)=>{calls.push(args);return undefined;}}};
-  const folders=createProjectFolders(vscode,{home,globalState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)},report:text=>reports.push(text),active:()=>active,cloneRepository:async input=>{calls.push(['cloneRepository',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}});
+  const folders=createProjectFolders(vscode,{home,globalState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)},report:text=>reports.push(text),active:()=>active,cloneRepository:async({signal,...input})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',input]);if(cloneFailure)throw cloneFailure;return cloneResult;}});
   return {home,folders,calls,dialogs,reports,remembered,vscode,set input(value){input=value;},set selection(value){selection=value;},set cloneResult(value){cloneResult=value;},set cloneFailure(value){cloneFailure=value;},set active(value){active=value;}};
 }
 test('clone location starts at Zero Projects and selected alternative is passed to authenticated cloning',async t=>{
@@ -76,4 +76,26 @@ test('disposal while clone completes preserves result without opening a window',
  const f=await fixture(t);let finish;const pending=new Promise(resolve=>{finish=resolve;});let enabled=true;
  const folders=createProjectFolders(f.vscode,{home:f.home,active:()=>enabled,cloneRepository:async()=>{enabled=false;return pending;}});
  const clone=folders.clone({repositoryUrl:'https://github.com/student/app',parent:{fsPath:f.home}});finish(path.join(f.home,'created'));await clone;assert.equal(f.calls.length,0);
+});
+
+test('native cancellable clone notification aborts the child and preserves partial work',async t=>{
+ const {createGitHubAppClone}=require('../src/github-app/clone');
+ const {promisify}=require('node:util'),{execFile}=require('node:child_process');
+ for(const action of ['cancel','dispose']){
+  const f=await fixture(t);let cancel,signal,entered;const ready=new Promise(resolve=>{entered=resolve;});const notifications=[];let listenerDisposed=false;
+  f.vscode.ProgressLocation={Notification:15};f.vscode.window.withProgress=async(options,run)=>{notifications.push(options);return run({report(){}},{isCancellationRequested:false,onCancellationRequested(fn){cancel=fn;return {dispose(){listenerDisposed=true;}};}});};
+  const ticket={session:{accountId:'1',accessToken:'TEST_SECRET'}};
+  const clone=createGitHubAppClone({authentication:{assertCurrent:async()=>ticket.session,assertCurrentNow:()=>ticket.session},repositories:{access:async()=>({ticket,repository:{id:2,name:'partial',owner:{id:1},html_url:'https://github.com/student/partial',clone_url:'https://github.com/student/partial.git'},installation:{id:3}})},localRun:async(_,args)=>args[0]==='--version'?'git version 2.53.0':'',spawn:async(_,args,options)=>{
+   signal=options.signal;await fs.writeFile(path.join(args.at(-1),'saved.txt'),'keep partial work');
+   const child=promisify(execFile)(process.execPath,['-e','setInterval(()=>{},1000)'],options);entered();return child;
+  }});
+  const folders=createProjectFolders(f.vscode,{home:f.home,cloneRepository:clone});
+  const pending=folders.clone({repositoryUrl:'https://github.com/student/partial',parent:{fsPath:f.home}});const rejected=assert.rejects(pending,error=>error.code==='cancelled'&&/folder was preserved/.test(error.message));
+  await ready;if(action==='cancel')cancel();else folders.dispose();await rejected;
+  assert.equal(signal.aborted,true);assert.equal(listenerDisposed,true);assert.deepEqual(notifications,[{location:15,title:'Clone from GitHub',cancellable:true}]);assert.equal(await fs.readFile(path.join(f.home,'partial','saved.txt'),'utf8'),'keep partial work');assert.equal(f.calls.length,0);
+ }
+});
+test('outer cancellation shares one operation without a nested notification or clone side effects',async t=>{
+ const f=await fixture(t);let notifications=0;f.vscode.window.withProgress=async()=>{notifications++;throw Error('Nested progress');};
+ const controller=new AbortController();controller.abort();await assert.rejects(f.folders.clone({repositoryUrl:'https://github.com/student/app',parent:{fsPath:f.home},signal:controller.signal}),error=>error.code==='cancelled');assert.equal(notifications,0);assert.equal(f.calls.length,0);
 });

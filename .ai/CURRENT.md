@@ -8,8 +8,8 @@ Play, student-owned repositories and separate Pika submission.
 
 Canonical execution plan: docs/ZERO-IDENTITY-PLAN.md. Coordinator owns architecture,
 interfaces, extension.js, config/docs/integration. Sol/high native/security
-investigations and native modules complete; integration/regression checks and
-affected documentation are in progress before the two independent reviews. Runtime ownership, receipts and
+investigations and native modules complete; initial regression575pass/1skip and two independent reviews complete; six
+accepted fixes in one batch now undergoing final checks and targeted review. Runtime ownership, receipts and
 review budget live in .verification/zero-identity/plan.json. One writer per file.
 
 One App means web tokens can inherit selected-repository authority; owner chose

@@ -9,7 +9,7 @@ async function fixture(t,{kit=true}={}) {
   let current=true,allowed=true,afterAccess=()=>{};
   const calls=[],session={accountId:'1',label:'student',scopes:[]},initialTicket={session};
   const authentication={assertCurrent:async ticket=>{assert.equal(ticket,initialTicket);if(!current)throw Error('GitHub account changed');}};
-  const repositories={access:async(url,options)=>{calls.push({url,...options});if(!allowed)throw Error('Select this repository in the Zero GitHub App installation');afterAccess();return {ticket:initialTicket};}};
+  const repositories={access:async(url,options)=>{calls.push({url,...options});if(!allowed)throw Error('Select this repository in the Zero GitHub App installation');afterAccess();return {ticket:initialTicket,repository:{id:12},installation:{id:99}};}};
   return {root,repositoryUrl:'https://github.com/student/game',authentication,initialTicket,repositories,calls,set current(v){current=v;},set allowed(v){allowed=v;},set afterAccess(v){afterAccess=v;}};
 }
 test('canonical kit checks App Contents and Workflows capabilities using the same empty-scope session',async t=>{

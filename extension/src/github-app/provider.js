@@ -12,12 +12,17 @@ function supportedScopes(scopes) {
 function samePermissions(actual, expected) {
   return actual && expected && Object.keys(actual).length === Object.keys(expected).length && Object.entries(expected).every(([key,value]) => actual[key] === value);
 }
-async function verifyApp(configuration, fetchImpl, signal) {
-  const app = await requestJson(fetchImpl, `https://api.github.com/apps/${configuration.slug}`, {signal});
+async function verifyApp(configuration, fetchImpl, signal, token) {
+  const app = await requestJson(fetchImpl, `https://api.github.com/apps/${configuration.slug}`, {signal,token});
   if (app.id !== configuration.appId || app.client_id !== configuration.clientId || app.slug !== configuration.slug ||
       app.owner?.login?.toLowerCase() !== configuration.owner || !samePermissions(app.permissions, configuration.permissions)) {
     throw failure('app-mismatch', 'The Codepet GitHub App does not match this Zero release. Connection is unavailable until its configuration is reviewed.');
   }
+}
+function configurationKey(value) {
+  if (Array.isArray(value)) return value.map(configurationKey);
+  if (value && typeof value === 'object') return Object.keys(value).sort().map(key=>[key,configurationKey(value[key])]);
+  return value;
 }
 async function accountFor(record, fetchImpl, signal) {
   const user = await requestJson(fetchImpl, 'https://api.github.com/user', {token:record.accessToken, signal});
@@ -26,9 +31,9 @@ async function accountFor(record, fetchImpl, signal) {
   }
   return {id:String(user.id), label:user.login};
 }
-function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now}) {
+function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}}) {
   const emitter = new vscode.EventEmitter();
-  let disposed = false, cached, signInPromise;
+  let disposed = false, cached, signInPromise, verifiedConfiguration;
   const controllers = new Set();
   const store = configuration ? createCredentialStore({secrets:context.secrets, configuration}) : undefined;
   // Delay local-path validation until connection use; an unconfigured build and
@@ -51,9 +56,19 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
   async function operation(callback) {
     const controller = new AbortController(); controllers.add(controller);
     try { return await callback(controller); }
+    catch(error){if(error.code==='connection-lock-repair-required'&&!disposed)onDiagnostic(error.message);throw error;}
     finally { controllers.delete(controller); }
   }
   async function clearInvalid() { await store.clear(); invalidate(); }
+  async function verifyExistingApp(record,signal) {
+    const key=JSON.stringify(configurationKey(configuration));
+    if(verifiedConfiguration?.key===key && verifiedConfiguration.expiresAt>now())return;
+    // Cache only a complete successful comparison. A mismatch or failed request
+    // must not retain an earlier grant, including after configuration changes.
+    verifiedConfiguration=undefined;
+    await verifyApp(configuration,fetchImpl,signal,record.accessToken);
+    verifiedConfiguration={key,expiresAt:now()+60000};
+  }
   async function load(signal) {
     available();
     return withLock(async () => {
@@ -63,8 +78,6 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
       catch (error) { invalidate(); throw error; }
       if (!record) { invalidate(); return []; }
       if (record.state !== 'active' || record.refreshExpiresAt <= now()) { invalidate(); return []; }
-      try { await verifyApp(configuration, fetchImpl, signal); }
-      catch (error) { invalidate(); throw error; }
       if (record.expiresAt <= now() + 60000) {
         const original = record;
         // This write precedes dispatch: a crash/timeout has an uncertain outcome,
@@ -94,6 +107,11 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
           }
         }
       }
+      // Expired credentials are renewed first: metadata uses the valid user
+      // token instead of spending the anonymous shared-IP rate limit on every
+      // capture/assert-current check in one repository operation.
+      try { await verifyExistingApp(record,signal); }
+      catch (error) { if(error.code==='unauthorized')await clearInvalid();else invalidate();throw error; }
       let account;
       try { account = await accountFor(record, fetchImpl, signal); }
       catch (error) { if (error.code === 'unauthorized' || error.code === 'invalid-account') await clearInvalid(); throw error; }
@@ -115,14 +133,18 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     lock ||= createCredentialLock({globalStorageUri:context.globalStorageUri, now});
     await verifyApp(configuration, fetchImpl, controller.signal);
     const baseline = await store.raw();
-    const run = async (_progress, cancellation) => {
+    const run = async (progress, cancellation) => {
       const cancellationSubscription = cancellation?.onCancellationRequested(() => controller.abort());
       try {
         if (cancellation?.isCancellationRequested) controller.abort();
         const pair = await deviceFlow({clientId:configuration.clientId, fetchImpl, now, signal:controller.signal,
           async onCode({userCode, verificationUri}) {
-            const choice = await vscode.window.showInformationMessage(`Enter ${userCode} on GitHub to connect Zero.`, {modal:true, detail:'Continue opens GitHub. Use the account that owns your projects.'}, 'Continue to GitHub');
-            if (choice !== 'Continue to GitHub' || controller.signal.aborted) { controller.abort(); throw failure('cancelled', 'GitHub sign-in was cancelled. Local running still works.'); }
+            progress.report({message:`Code ${userCode} · enter on github.com/login/device`});
+            const choice = await vscode.window.showInformationMessage(`Enter ${userCode} on GitHub to connect Zero.`, {modal:true, detail:'Copy the code, then open GitHub using the account that owns your projects. The code remains in this connection’s progress notification while you sign in.'}, 'Copy code and continue');
+            if (choice !== 'Copy code and continue' || controller.signal.aborted) { controller.abort(); throw failure('cancelled', 'GitHub sign-in was cancelled. Local running still works.'); }
+            try { await vscode.env.clipboard.writeText(userCode); }
+            catch { throw failure('clipboard-unavailable','The GitHub code could not be copied. Sign in again to retry; the browser was not opened.'); }
+            if(controller.signal.aborted)throw failure('cancelled','GitHub sign-in was cancelled. Local running still works.');
             if (!await vscode.env.openExternal(vscode.Uri.parse(verificationUri))) throw failure('browser-unavailable', 'Open https://github.com/login/device in your browser to sign in again.');
           }});
         const account = await accountFor(pair, fetchImpl, controller.signal);

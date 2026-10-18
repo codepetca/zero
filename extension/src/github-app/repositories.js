@@ -17,6 +17,15 @@ function cancelled(signal) { if (signal?.aborted) throw failure('GitHub operatio
 function capabilities(actual, required) {
   return Object.entries(required).every(([name,level]) => levels[level] && (levels[actual?.[name]] || 0) >= levels[level]);
 }
+function repositoryIdentity(access) {
+  const repositoryId=access?.repository?.id,installationId=access?.installation?.id;
+  if(!positive(repositoryId)||!positive(installationId))throw failure('GitHub did not identify the repository and Zero installation. Review the operation again.', 'invalid-access');
+  return Object.freeze({repositoryId,installationId});
+}
+function assertRepositoryIdentity(expected,access) {
+  const current=repositoryIdentity(access);
+  if(current.repositoryId!==expected.repositoryId||current.installationId!==expected.installationId)throw failure('The GitHub repository or Zero installation changed. Review the operation again.', 'repository-access-changed');
+}
 function createGitHubAppRepositories({authentication,configuration,fetchImpl=globalThis.fetch,now=Date.now}={}) {
   // An uncertain POST is never repeated by this instance. Recovery is read-only
   // access(repositoryUrl); the caller must retain/display that URL across restarts.
@@ -145,4 +154,4 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
   }
   return {access,create};
 }
-module.exports={createGitHubAppRepositories};
+module.exports={createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity};

@@ -50,7 +50,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
     for (const project of bundle.projects) project.template=null;
     await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
   }
-  extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async value=>{calls.push(['cloneRepository',value]);return clone(value);}});
+  extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
@@ -273,4 +273,25 @@ test('clone parent preference survives extension activation through the local pr
   assert.equal(picker.defaultUri.fsPath,first.root);
   assert.equal(profile.get('zero.cloneParent'),first.root);
   assert.equal(next.calls.filter(([id])=>id==='git.clone').length,0);
+});
+
+test('native Cancel aborts an active clone and releases the command busy guard',async t=>{
+ let entered,signal,cancel;const ready=new Promise(resolve=>{entered=resolve;});let attempts=0,notifications=0;
+ const f=await fixture(t,{empty:true,clone:async options=>{attempts++;signal=options.signal;if(attempts>1)return;return new Promise((resolve,reject)=>{signal.addEventListener('abort',()=>reject(Object.assign(Error('Cancelled'),{name:'CancellationError',code:'cancelled'})),{once:true});entered();});}});
+ f.vscode.ProgressLocation={Notification:15};f.vscode.window.withProgress=async(options,run)=>{notifications++;assert.equal(options.cancellable,true);return run({report(){}},{onCancellationRequested(fn){cancel=fn;return disposable();}});};
+ f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
+ const pending=f.commands.get('zero.cloneRepository')();await ready;await f.commands.get('zero.cloneRepository')();assert.equal(attempts,1);cancel();await pending;
+ assert.equal(signal.aborted,true);assert.deepEqual(f.errors,[]);assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
+ await f.commands.get('zero.cloneRepository')();assert.equal(attempts,2);assert.equal(notifications,2);
+});
+test('tutorial creation and its authenticated clone share one cancellable native notification',async t=>{
+ const notifications=[];const f=await fixture(t,{empty:true,pick:async(items,options)=>options.title==='Start tutorial'?items[0]:items.find(item=>item.private===true),clone:async({parentPath,signal})=>{assert.equal(signal.aborted,false);return path.join(parentPath,'my-project');}});
+ f.vscode.ProgressLocation={Notification:15};f.vscode.window.withProgress=async(options,run)=>{notifications.push(options);return run({report(){}},{onCancellationRequested:()=>disposable()});};
+ f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.startProject')();assert.equal(notifications.length,1);assert.equal(notifications[0].cancellable,true);assert.equal(f.calls.filter(c=>c[0]==='createRepository').length,1);assert.equal(f.calls.filter(c=>c[0]==='cloneRepository').length,1);assert.deepEqual(f.errors,[]);
+});
+test('extension disposal aborts the pending clone and prevents opening its late result',async t=>{
+ let entered,signal;const ready=new Promise(resolve=>{entered=resolve;});
+ const f=await fixture(t,{empty:true,clone:async options=>{signal=options.signal;return new Promise(resolve=>{signal.addEventListener('abort',()=>resolve(path.join(options.parentPath,'late-project')),{once:true});entered();});}});
+ f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});const pending=f.commands.get('zero.cloneRepository')();await ready;f.subscriptions.forEach(item=>item.dispose());await pending;
+ assert.equal(signal.aborted,true);assert.equal(f.calls.filter(c=>c[0]==='vscode.openFolder').length,0);
 });

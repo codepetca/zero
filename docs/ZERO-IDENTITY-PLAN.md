@@ -127,8 +127,11 @@ shared configuration, device provider, local refresh locking, selected-repositor
 access, create/clone/recovery and publishing commands are integrated in source.
 Focused lifecycle, repository, UI and transport checks pass. The updated website
 has148passing tests, typecheck and production build; root configuration checks
-pass. The full extension suite and independent high-risk review are the current
-phase. PR102's original four CI checks are baseline coverage only; the new source
+pass. The initial full extension suite passed575with one existing skip. Two independent
+reviews completed and identified six accepted fixes: request budgeting, immutable
+repository/installation binding, numeric publication shortcuts, cancellable project
+operations, retrievable sign-in codes and explicit safe lock repair. One batched
+remediation is undergoing targeted review and final regression checks. PR102's original four CI checks are baseline coverage only; the new source
 has not been pushed. Mac native UI smoke is unavailable while the computer is
 locked. No live App, credentials, GitHub write or native release was created.
 
