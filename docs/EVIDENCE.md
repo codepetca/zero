@@ -5464,13 +5464,23 @@ Native Check and Commit/push producedc572ed625e0befc848c211fe8653a59fda643ce5;
 actual Share opened and submitted [request99](https://github.com/codepetca/zero/issues/99).
 [Official run39090763159](https://github.com/codepetca/zero/actions/runs/39090763159)
 passed all3jobs. Both public versions' artifacts/sidecars match; original0.1.0
-release and all seven prior accepted records compare unchanged. Native Update/
-Revert results follow after public catalog propagation.
+release and all seven prior accepted records compare unchanged. After normal registry cache propagation, actual native Update/Apply changed the
+independent POM0.1.0→0.1.1 with previous0.1.0; Run/flap/pause passed. Build
+1b90c3b6-752e-43b4-a160-8a9792e11243/sourceHash49149df86ad1ae65cfe068a083cd75f73c6a9fd635ff4e5e029811e70a7bb6cf
+binds exact0.1.1 source/artifacts. Actual native Revert/Apply changed0.1.1→0.1.0
+with previous0.1.1; Run/flap/pause passed again. Build
+7fe51e78-54ce-459c-b94d-e8abb9899631/sourceHash03ade7155216c0e7cacad5d28b6953a1c96d7e2f966a38931deaf28cd25ae378
+binds original0.1.0 source/artifacts. Both manifest/accepted byte comparisons pass;
+POMs and actual paused-game screenshots retained. App stopped after acceptance.
 
 Live Hub card has tiny description, version→GitHub, Use this library, API/Maven
 disclosures and commit-bound View examples. Native browse navigation now removes
 retired Starters, retaining Projects/Libraries; actual development-host picker and
-focused3/3 checks pass. Final navigation review/CI follows. Bulky artifacts,
+focused3/3 checks pass. Navigation [PR100](https://github.com/codepetca/zero/pull/100) received a complete
+independent Luna/medium review ofa1f0493→39dd36a with no blockers, then a bounded
+review of the factual completion-notes delta. Source behavior is unchanged after
+that first review. Local check/package/verifykit and navigation3/3 pass; exact-head
+GitHub checks/merge are linked from the PR and retained in the ignored plan. Bulky artifacts,
 logs, screenshots, manifests and per-turn receipts remain in ignored
 .verification/sky-hop-library/. Effective worker models/tokens/elapsed telemetry
 are unknown where not exposed; account-wide usage is not task cost.

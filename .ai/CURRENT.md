@@ -17,13 +17,14 @@ public Maven compile/source resolution/behavior and checksum/origin proof pass.
 Compatible metadata-only0.1.1 sourcec572ed625e0befc848c211fe8653a59fda643ce5 passed
 Luna/medium review, actual native Check/Commit/push/Share, issue99 and official
 run39090763159 intake/check/publish. Both versions' artifacts/sidecars verified;
-prior0.1.0 and seven old accepted records are unchanged. Native Update/Revert is
-being completed after public catalog propagation.
+prior0.1.0 and seven old accepted records are unchanged. Actual native Update0.1.0→0.1.1 and Revert0.1.1→0.1.0 both passed Apply, exact
+POM/history checks and Run/flap/pause; each export binds accepted source/artifacts.
 
 Coordinator worktree /Users/stew/.codex/worktrees/zerohub-simplify/zero, branch
 codex/zerohub-native-navigation removes the stale native Starters browse choice.
 Actual development host menu shows only Projects/Libraries; focused3/3 tests,
-check and local0.5.20 packaging pass. Final review/CI/merge pending.
+check and local0.5.20 packaging pass. The fixed navigation change passed independent Luna/medium review. Source
+completion is tracked by PR100; consult its checks/merge state for final delivery.
 Do not rotate operator policy for this navigation/documentation follow-up.
 
 Default Projects remain Drawing Pad/Grove Guard; Sky Hop stays withdrawn.
@@ -36,5 +37,6 @@ Detailed evidence: docs/EVIDENCE.md and ignored
 7release/17object snapshot and full registry Git bundle retained; after0.1.1 backup
 contains9releases/41verified objects. Preserve all backups/profiles, unrelated
 funding checkout and concurrent Grove Guard0.3.0 work. DeepSeek paused; no task,
-goal or automation created. Remaining: native Update/Revert, final source review,
-real CI/merge and compact completion receipt. No repeat owner approval needed.
+goal or automation created. All sample library acceptance steps are complete. Final navigation/evidence
+delivery uses PR100 and its exact-head CI gate; preserve the ignored completion
+receipt. No repeat owner approval needed.
