@@ -69,8 +69,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   const ready = sidebarSource();
   assert.match(ready,/zero.toggleApp/); assert.doesNotMatch(ready,/Ready to run/);
   assert.match(ready,/Sign in to GitHub/);
-  assert.match(ready,/<header class="sidebar-brand"><svg aria-hidden="true" focusable="false"[\s\S]*?<h1>Zero<\/h1><\/header>/);
-  assert.equal((ready.match(/<h1>Zero<\/h1>/g)||[]).length,1);
+  assert.doesNotMatch(ready,/<header class="sidebar-brand"|<h1>Zero<\/h1>/,'Keep the current panel height; branding stays in the activity bar');
   const hub=ready.match(/<button[^>]*data-command="zero.browseZeroHub"[^>]*>[\s\S]*?<\/button>/)[0];
   assert.ok(hub.endsWith('>ZeroHub</button>'));assert.doesNotMatch(hub,/<svg/);
   assert.match(ready,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);

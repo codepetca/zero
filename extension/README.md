@@ -6,7 +6,7 @@ assets retain their existing versions and bytes.
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
 webview, tree, task and command APIs. Files use Zero’s Files view or native Explorer
-and open in the normal editor. The shared Zero logo and a compact Zero heading identify the panel content.
+and open in the normal editor. The shared Zero logo remains in the activity bar; no extra title row is added.
 Controls and Files share one continuous view; idle status is empty. After GitHub
 sign-in, the project menu shows the folder or owner/repository on up to two lines,
 without a duplicate username row, with a right chevron indicating the menu. Choose **GitHub account…** inside it

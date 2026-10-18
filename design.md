@@ -19,9 +19,8 @@ when adding features; a new feature does not reset the agreed interaction style.
   While a managed browser app is running, put its icon-only **Open in browser**
   button beside Stop, with a tooltip and accessible name. Hide it when stopped,
   building or stopping. Keep the pair on one row at narrow widths.
-- Show the shared Zero mark with a compact **Zero** heading inside the panel.
-  The native VS Code title remains host-owned; do not modify host CSS/DOM or
-  add a fake title action. Keep the header non-interactive and non-collapsible.
+- Keep the current panel height; show the Zero mark only in its existing native
+  activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.

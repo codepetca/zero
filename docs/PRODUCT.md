@@ -274,8 +274,8 @@ exact verified publication automatically;
 ZeroHub offers Play latest on student hosting alongside exact source downloads.
 See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
-- A compact shared Zero logo + Zero heading identifies the extension content;
-  VS Code owns the native title. The heading has no action or disclosure.
+- Preserve the current panel height, with the shared Zero mark in the existing
+  activity-bar/view icon. VS Code owns the native title; no content heading is added.
 - One continuous Zero view contains one Run/Stop button, repository actions and Files,
   without extra GitHub/ZeroHub headings or a separate collapsible controls row.
   Idle status is empty; app progress/errors
