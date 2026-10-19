@@ -44,7 +44,7 @@ test('failed staging leaves source untouched; short-write retry installs the own
   const fail={...fs,writeSync(...args){if(++calls===2)throw Error('disk write failed');return fs.writeSync(...args);}};
   assert.throws(()=>migration.apply(h.root,h.current,review.original,fail),/not replaced/);unchanged(h);
   const installed=[];
-  const io={...fs,writeSync(fd,data,offset,length,position){return fs.writeSync(fd,data,offset,Math.min(length,11),position);},linkSync(source,target){installed.push(path.relative(h.root,target));return fs.linkSync(source,target);},ftruncateSync(){assert.fail('No inode is truncated');}};
+  const io={...fs,writeSync(fd,data,offset,length,position){return fs.writeSync(fd,data,offset,Math.min(length,11),position);},linkSync(source,target){installed.push(path.relative(h.root,target).split(path.sep).join('/'));return fs.linkSync(source,target);},ftruncateSync(){assert.fail('No inode is truncated');}};
   migration.apply(h.root,h.current,migration.inspect(h.root,h.current).original,io);
   assert.deepEqual(installed,['.zero-web/README.md','.zero-web/owner.json']);
   for(const [name,data]of h.current)assert.deepEqual(fs.readFileSync(path.join(h.root,name)),data);
@@ -69,7 +69,7 @@ test('writes through an old open descriptor survive replacement in a retained in
 });
 test('oversized concurrent growth before a failed owner install is preserved without unbounded recovery reads',async t=>{
   const h=await fixture(t),review=migration.inspect(h.root,h.current),readme=path.join(h.root,'.zero-web/README.md'),old=fs.openSync(readme,'a');t.after(()=>fs.closeSync(old));let failed=false,maxRead=0;
-  const io={...fs,readFileSync(){assert.fail('Unbounded recovery read');},readSync(fd,buffer,offset,length,position){maxRead=Math.max(maxRead,length);assert.ok(length<=256*1024);return fs.readSync(fd,buffer,offset,length,position);},linkSync(source,target){if(target.endsWith('/owner.json')&&!failed){failed=true;fs.writeSync(old,Buffer.alloc(1024*1024,120));throw Error('Owner install failed');}return fs.linkSync(source,target);}};
+  const io={...fs,readFileSync(){assert.fail('Unbounded recovery read');},readSync(fd,buffer,offset,length,position){maxRead=Math.max(maxRead,length);assert.ok(length<=256*1024);return fs.readSync(fd,buffer,offset,length,position);},linkSync(source,target){if(path.basename(target)==='owner.json'&&!failed){failed=true;fs.writeSync(old,Buffer.alloc(1024*1024,120));throw Error('Owner install failed');}return fs.linkSync(source,target);}};
   assert.throws(()=>migration.apply(h.root,h.current,review.original,io),/could not be restored[\s\S]*Recovery copies/);
   assert.ok(maxRead<=256*1024);
   assert.equal(fs.statSync(path.join(copies(h)[0],'original-README.md')).size,h.legacy.get('.zero-web/README.md').length+1024*1024);
@@ -91,7 +91,7 @@ test('a replacement immediately before the original move is preserved in recover
 });
 test('new source edits survive failed owner installation and rollback',async t=>{
   const h=await fixture(t),review=migration.inspect(h.root,h.current),readme=path.join(h.root,'.zero-web/README.md');let failed=false;
-  const io={...fs,linkSync(source,target){if(target.endsWith('/owner.json')&&!failed){failed=true;fs.writeFileSync(readme,'New source edit');throw Error('Owner install failed');}return fs.linkSync(source,target);}};
+  const io={...fs,linkSync(source,target){if(path.basename(target)==='owner.json'&&!failed){failed=true;fs.writeFileSync(readme,'New source edit');throw Error('Owner install failed');}return fs.linkSync(source,target);}};
   assert.throws(()=>migration.apply(h.root,h.current,review.original,io),/could not be restored/);
   assert.equal(fs.readFileSync(readme,'utf8'),'New source edit');
 });
@@ -104,5 +104,27 @@ test('hardlinks, Git-file worktrees and substituted parent directories fail clos
     let changed=false;const io={...fs,writeSync(...args){const count=fs.writeSync(...args);if(!changed){changed=true;fs.renameSync(path.join(h.root,'.zero-web'),path.join(h.root,'moved'));fs.symlinkSync(path.join(h.root,'moved'),path.join(h.root,'.zero-web'));}return count;}};
     assert.throws(()=>migration.apply(h.root,h.current,review.original,io),/paths changed/);
     assert.deepEqual(fs.readFileSync(path.join(h.root,'moved/README.md')),h.legacy.get('.zero-web/README.md'));
+  });
+});
+
+// Keep native filesystem paths while making relative() return Windows-style
+// separators. The former directory classifier rejected every file in this case.
+test('Windows-style relative paths distinguish file leaves from guarded parent directories',async t=>{
+  const vm=require('node:vm'),loaded={exports:{}};
+  const windowsRelative={...path,relative:(...args)=>path.relative(...args).split(path.sep).join('\\')};
+  assert.ok(windowsRelative.relative('/root','/root/.zero-web/README.md').includes('\\'));
+  vm.runInNewContext(fs.readFileSync(require.resolve('../src/web-publish-migration'),'utf8'),{module:loaded,Buffer,require:specifier=>specifier==='node:path'?windowsRelative:require(specifier)},{filename:'web-publish-migration-windows-relative.js'});
+  const windowsMigration=loaded.exports;
+  for(const kind of ['clean','parent','leaf'])await t.test(kind,async t=>{
+    const h=await fixture(t),review=windowsMigration.inspect(h.root,h.current),readme=path.join(h.root,'.zero-web/README.md');let changed=false;
+    const io={...fs,writeSync(...args){const count=fs.writeSync(...args);if(!changed){changed=true;if(kind==='parent'){fs.renameSync(path.join(h.root,'.zero-web'),path.join(h.root,'moved'));fs.symlinkSync(path.join(h.root,'moved'),path.join(h.root,'.zero-web'));}if(kind==='leaf')fs.writeFileSync(readme,'Concurrent leaf edit');}return count;}};
+    if(kind==='clean') {
+      windowsMigration.apply(h.root,h.current,review.original,io);
+      for(const [name,data]of h.current)assert.deepEqual(fs.readFileSync(path.join(h.root,name)),data);
+    }else {
+      assert.throws(()=>windowsMigration.apply(h.root,h.current,review.original,io),/changed/);
+      if(kind==='leaf')assert.equal(fs.readFileSync(readme,'utf8'),'Concurrent leaf edit');
+      else assert.deepEqual(fs.readFileSync(path.join(h.root,'moved/README.md')),h.legacy.get('.zero-web/README.md'));
+    }
   });
 });

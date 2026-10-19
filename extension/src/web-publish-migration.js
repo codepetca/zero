@@ -92,6 +92,7 @@ function apply(root,files,original,io=fs) {
   io.mkdirSync(recovery,{mode:0o700});
   const recoveryStat=io.lstatSync(recovery);
   const items=changed.map(([name,data],index)=>({name,data,before:original.entries.get(name),target:path.join(root,name),backup:path.join(recovery,'original-'+path.basename(name)),stage:path.join(recovery,'new-'+path.basename(name))}));
+  const leafPaths=new Set([...original.entries.keys()].map(name=>path.join(root,name)));
   const sameNode=(a,b)=>a.split(':').slice(0,3).join(':')===b.split(':').slice(0,3).join(':');
   function readExact(target,expected,node) {
     const stat=io.lstatSync(target);
@@ -101,7 +102,7 @@ function apply(root,files,original,io=fs) {
     return identity(stat);
   }
   function assertParents() {
-    for(const [target,before]of original.paths)if(!original.entries.has(path.relative(root,target))) {
+    for(const [target,before]of original.paths)if(!leafPaths.has(target)) {
       const stat=io.lstatSync(target);
       if(!stat.isDirectory()||stat.isSymbolicLink()||!sameNode(identity(stat),before))throw Error('Publishing paths changed during the update.');
     }
