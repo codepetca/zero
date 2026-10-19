@@ -1,8 +1,9 @@
 # Product goal audit — 2026-10-19
 
-Owner requested revisiting the app goal, auditing gaps and addressing feasible
-issues before manual smoke. Local work only: no push/PR/merge/release/deployment,
-account/profile changes or student-repository mutation authorized by this request.
+Owner requested a goal audit and feasible fixes, then explicitly said Fix and
+publish after the website/API documentation follow-up. Source PR/merge and the
+existing website Git deployment are authorized. No account/profile changes,
+student-repository actions or new installer release are part of this publication.
 
 Baseline main79b0762; local branch `codex/goal-gap-audit` in the attached isolated
 worktree. Reviewed implementation5289d28 fixes native preparation after project
@@ -27,9 +28,10 @@ Follow-up API/docs check: live API98IDs/signatures match current framework;
 AppGuide/setup/starter release notes were stale. Local31b50d3/27d2a94 corrections
 and one Luna/medium targeted doc review resolve them; website157/API11/type/build/
 check pass. Browser/native limits and tutorial-first instructions are explicit.
-No docs deployment performed. See newest docs/EVIDENCE.md entry.
+Docs publication is now authorized and in progress. See newest docs/EVIDENCE.md entry.
 
-Next: owner smoke test of publishedMac0.5.23; inspect the local fixes/audit.
+Next: publish the reviewed source/docs through PR/CI and verify live guides;
+owner smoke test of publishedMac0.5.23 remains separate.
 Empty-account GitHub onboarding, token expiry/revocation/account drift, first and
 repeat Pages publication, novice/school trial and physical Windows remain open.
 Windows unsigned0.5.21 lacks Mac0.5.23 tutorial-first onboarding. Generic managed
