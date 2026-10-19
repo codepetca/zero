@@ -1,6 +1,6 @@
 # My Zero App
 
-This source accompanies the local, unreleased Zero **0.5.21** candidate with
+This source accompanies the local, unreleased Zero **0.5.22** candidate with
 core **0.2.1**. Published downloads keep their own bundled instructions.
 
 Open **this folder** in VS Code, complete the setup below, then start with

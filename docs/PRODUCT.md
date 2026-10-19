@@ -426,8 +426,12 @@ a second publish confirmation. The App requests Contents, Workflows, Actions and
 Pages capabilities on permitted repositories, without Administration. First-time
 Pages setup therefore asks the student to enable GitHub Actions as the Pages
 source in GitHub settings and recheck; Zero does not silently broaden permission
-or change repository visibility. Commit & push saves files and shows the repository
-and branch with the commit-message input; submitting the message proceeds directly.
+or change repository visibility. Commit & push shows **Preparing commit…** on its
+button while checking the project and GitHub access, then **Committing & pushing…**
+after confirmation. Progress clears on completion, cancellation or failure.
+It saves files and opens an empty **Commit Message** input with the **Commit message**
+placeholder and native Enter/Escape hint. Repository and branch remain in the sidebar;
+submitting the message proceeds directly.
 It validates and stages the captured changes, commits when needed and pushes the
 captured destination/SHA,
 then checks the remote branch before reporting success. A failed push can leave

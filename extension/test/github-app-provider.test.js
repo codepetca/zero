@@ -133,7 +133,7 @@ test('device code is copied before browser opening and remains in progress while
  const dialogs=[];f.vscode.window.showInformationMessage=async(...args)=>{dialogs.push(args);return 'Copy code and continue';};
  const actions=[];f.vscode.env.clipboard.writeText=async text=>actions.push(['copy',text]);f.vscode.env.openExternal=async uri=>{actions.push(['open',uri]);return true;};
  const signingIn=f.provider.createSession([]);await polling;
- assert.deepEqual(dialogs,[['Connect Zero to GitHub',{modal:true,detail:'Copy this code and paste it on GitHub: ABCD-1234'},'Copy code and continue']]);
+ assert.deepEqual(dialogs,[['Connect Zero to GitHub',{modal:true,detail:'Paste ABCD-1234 on GitHub. Once connected, close the GitHub tab and return to Zero.'},'Copy code and continue']]);
  assert.deepEqual(actions,[['copy','ABCD-1234'],['open','https://github.com/login/device']]);assert.match(f.progress.at(-1).message,/ABCD-1234/);
  assert.equal(f.calls.find(([url])=>url.includes('/apps/'))[1].headers.Authorization,undefined,'First authorization retains anonymous pinned-App precheck');
  resolvePoll(response(pair));await signingIn;

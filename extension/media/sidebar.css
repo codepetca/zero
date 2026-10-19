@@ -32,6 +32,10 @@ button.repo-choice > svg { transform:rotate(-90deg); }
 .branch svg { width:16px; height:16px; flex:none; }
 button.change { width:auto; flex-shrink:0; font-size:.92em; }
 button.upload { margin:1px 0 5px; }
+button.upload[aria-busy="true"] { opacity:.85; }
+.busy-indicator { width:14px; height:14px; flex:none; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:zero-busy 1s linear infinite; }
+@keyframes zero-busy { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .busy-indicator { animation:none; } }
 .hub-actions { margin-top:4px; }
 .files-section { border-top:1px solid var(--vscode-panel-border,var(--zero-border)); margin-top:10px; padding-top:8px; }
 .files-header { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
