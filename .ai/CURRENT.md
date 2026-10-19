@@ -23,7 +23,8 @@ phone-size Chrome viewports; physical iPhone/Safari, touch and audibility were
 not tested in this live acceptance. Scaling preserves canvas geometry; students
 still choose readable text and tap targets. No new Mac installer was released.
 
-Final task: review/merge this small delivery-evidence delta, then report completion.
-Source reviews remain valid; no runtime or game edits accompany these docs.
+Publication and live acceptance are complete. This delivery-evidence PR records
+the result; its merge completes the task. Source reviews remain valid, and no
+runtime or game edits accompany these docs.
 Detailed evidence: docs/EVIDENCE.md; ignored receipts and review budget:
 .verification/mobile-canvas/plan.json. DeepSeek remains paused.
