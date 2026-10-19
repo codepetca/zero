@@ -6296,3 +6296,21 @@ DeepSeek dated pause honored. Starting19%weekly remaining, healthy302GB storage.
 Effective model, worker tokens/elapsed unknown; coordinator review~4min estimate,
 no integration conflicts. Original funding/source checkout and prior worktrees
 preserved; no account change, student repo creation, new goal/task/automation.
+
+## Tutorial-first onboarding candidate — 2026-10-19
+
+Owner’s smoke test found completed setup code beside lesson 0. Fresh native and
+manual launchers now open an empty Start tutorial window; existing sessions
+restore. Tutorial creation retains its verified student-repository flow. Setup
+help explicitly opens the bundled Hello World installation check in a separate
+window, labelled Installation test/Run test, without an automatic lesson.
+
+Focused extension checks:73 passed. Launcher/source checks:66 passed,1 skipped
+(PowerShell runtime unavailable). Native Swift harness:294 assertions passed.
+Actual .NET/Mono Windows harness:986 checks plus updater harness passed, clean
+builds. Configuration passed. Isolated VS Code development host showed Welcome
+to Zero → Start tutorial/Later; Later retained Start tutorial in the empty
+sidebar. Setup help exposed Test installation separately. No account/repository
+created by UI verification; physical Windows/clean-machine installs untested.
+Native implementation worker requested GPT-6.1-Sol/medium; effective model and
+per-turn tokens not exposed. No rework; coordinator verified diff and logs.

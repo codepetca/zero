@@ -142,8 +142,9 @@ internal static class RuntimeHarness
             f.Host.ZeroVersion = "0.9.0";
             f.Prepare(); Assert(f.Host.Downloads == 2 && f.Host.Installs == 2, "repair reuses verified private tools and newer extensions");
             runtime.Open(false, CancellationToken.None).GetAwaiter().GetResult();
-            Assert(f.Host.Launched.Arguments.Contains("--new-window") && f.Host.Launched.Arguments.Contains(f.Project), "first editor opens starter in new window");
+            Assert(f.Host.Launched.Arguments.Contains("--new-window") && !f.Host.Launched.Arguments.Contains(f.Project), "first editor opens empty tutorial window");
             Assert(f.Host.Launched.WorkingDirectory == f.Project, "editor working directory uses persistent project");
+            Assert(f.Host.Launched.EnvironmentVariables["ZERO_KIT_DIR"] == f.Kit, "editor receives installed kit path for explicit installation testing");
             Assert(!f.Host.Launched.UseShellExecute && !f.Host.Launched.RedirectStandardOutput && f.Host.Launched.EnvironmentVariables["ELECTRON_RUN_AS_NODE"] == null, "standalone editor launch is not node or a shell");
             runtime.Open(true, CancellationToken.None).GetAwaiter().GetResult();
             Assert(!f.Host.Launched.Arguments.Contains("--new-window") && !f.Host.Launched.Arguments.Contains(f.Project), "resume lets isolated editor restore last session");

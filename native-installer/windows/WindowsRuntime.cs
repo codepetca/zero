@@ -108,6 +108,7 @@ namespace ZeroSetup
                 RedirectStandardOutput = cli, RedirectStandardError = cli, RedirectStandardInput = cli
             };
             info.EnvironmentVariables["JAVA_HOME"] = java;
+            info.EnvironmentVariables["ZERO_KIT_DIR"] = kit;
             info.EnvironmentVariables["PATH"] = Path.Combine(java, "bin") + ";" + (Environment.GetEnvironmentVariable("PATH") ?? "");
             info.EnvironmentVariables.Remove("VSCODE_PORTABLE");
             info.EnvironmentVariables.Remove("VSCODE_CWD");
@@ -403,7 +404,7 @@ namespace ZeroSetup
                 await VerifyJava(cancellation); await FindEditor(cancellation);
                 if (editor == null || !SettingsReady() || !ExtensionsReady(await ExtensionState(cancellation))) throw new IOException("Zero's editor support needs repair. Run setup again.");
                 cancellation.ThrowIfCancellationRequested();
-                host.Launch(Info(Path.Combine(editor, "Code.exe"), Isolated.Concat(resume ? new string[0] : new[] { "--new-window", project }), false));
+                host.Launch(Info(Path.Combine(editor, "Code.exe"), Isolated.Concat(resume ? new string[0] : new[] { "--new-window" }), false));
             }
         }
     }

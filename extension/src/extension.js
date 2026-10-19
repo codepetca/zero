@@ -20,6 +20,7 @@ const {createTransport} = require('./transport');
 const {createSharingEditor} = require('./sharing/editor');
 const {readKitConfiguration} = require('./sharing/configuration');
 const {createSetupHelp} = require('./setup');
+const {isSetupProject,findSetupProject} = require('./setup-project');
 const {createNativeUpdateCommands} = require('./native-updates');
 const {createWebExportCommands} = require('./web-export-ui');
 const {createBrowserRunCommands} = require('./web-run-ui');
@@ -96,6 +97,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(tutorials);
   const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
+    if (isSetupProject(root)) return false;
     let filename;
     // Older kits start with the quiz; preserve their first-lesson entry point.
     const practice = await lessonProjects.isLocalPractice(root);
@@ -144,12 +146,15 @@ function activate(context, services = {}) {
     return true;
   }
   async function introduceProject() {
-    const root = await project();
+    const folders = vscode.workspace.workspaceFolders || [];
+    if (!folders.length && hasOpenEditors()) return;
+    const root = folders.length ? await project() : undefined;
     if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
     if (!context.workspaceState.get('zero.sidebarShown')) {
       await actions['zero.showSidebar']();
       await context.workspaceState.update('zero.sidebarShown', true);
     }
+    if (!root || isSetupProject(root)) return;
     const key = `zero.firstLessonShown:${root}`;
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
@@ -600,7 +605,7 @@ function activate(context, services = {}) {
       await vscode.env.clipboard.writeText(page);
       report('Repository link copied', 'Repository link copied. Paste it into Pika when submitting.');
     },
-    'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),uploadMode})
+    'zero.showSetup': createSetupHelp(vscode,{project,output,run:root => actions['zero.runApp'](root),testInstallation:async()=>{const root=await findSetupProject();await vscode.commands.executeCommand('vscode.openFolder',vscode.Uri.file(root),{forceNewWindow:true});},uploadMode})
   };
   const webCacheRoot=context.globalStorageUri ? path.join(context.globalStorageUri.fsPath,'web-compiler') : undefined;
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
@@ -671,9 +676,10 @@ function activate(context, services = {}) {
     const githubPanel = !auth.signedIn ? account : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
     const fileActions=projectRoot ? `<button class="link" data-command="zero.importAssets" ${disabled}>Add assets…</button>${assets.canCopyPaths()?`<button class="link" data-command="zero.copyImportedAssetPaths" ${disabled}>Copy asset paths</button>`:''}` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
-    const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : 'Run';
+    const setupCheck = projectRoot && isSetupProject(projectRoot);
+    const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : setupCheck ? 'Run test' : 'Run';
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && isBusy() ? 'disabled' : '';
-    const controls = `<div class="main-controls"><div class="run-controls"><button class="run" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${browserAction}</div>${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
+    const controls = !projectRoot ? `<div class="main-controls"><button class="run" data-command="zero.startProject" ${disabled}>Start tutorial</button><button class="link" data-command="zero.openLocalProject" ${disabled}>Open local project…</button><button class="link" data-command="zero.showSetup" ${disabled}>Setup help</button></div><section class="repository">${githubPanel}</section>` : `${setupCheck ? `<p class="muted">Installation test · Hello World</p><button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>` : ''}<div class="main-controls"><div class="run-controls"><button class="run" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${browserAction}</div>${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;
@@ -711,7 +717,7 @@ function activate(context, services = {}) {
   const welcome = createWelcome({window:vscode.window,globalState:context.globalState,authentication:auth,connect:() => signIn(false),startProject:() => actions['zero.startProject'](),isBusy,
     eligible:async () => {
       if (!(vscode.workspace.workspaceFolders || []).length) return !hasOpenEditors();
-      try {await lessonProjects.assertShareable(await project());return true;} catch {return false;}
+      try {return isSetupProject(await project());} catch {return false;}
     }});
   context.subscriptions.push(welcome);
   const startup = welcome.show().catch(error => {

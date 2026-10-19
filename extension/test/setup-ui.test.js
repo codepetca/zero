@@ -32,6 +32,15 @@ test('cancel after read-only checks installs nothing and launches nothing',async
   assert.ok(records.lines.some(line => /Checks do not build/.test(line)));
   assert.ok(records.lines.some(line => /Simulation makes no Git changes/.test(line)));
 });
+test('Test installation is explicit and remains available without an open student project',async()=>{
+  const {records,vscode,options}=await fixture(['test'],{report:{runReady:false,project:{ok:false,text:'No student project is open'}}});
+  let opened=0;options.testInstallation=async()=>{opened++;};
+  await createSetupHelp(vscode,options)();
+  assert.equal(opened,1);assert.deepEqual(records.runs,[]);assert.deepEqual(records.commands,[]);
+  assert.ok(records.picks[0].items.some(item=>item.label.includes('Test installation')&&item.description.includes('separate from your tutorial')));
+  const cancelled=await fixture();cancelled.options.testInstallation=async()=>{assert.fail('Cancellation must not open the test');};
+  await createSetupHelp(cancelled.vscode,cancelled.options)();
+});
 test('explicit selected extension installs with supported native command, then checks current profile again',async () => {
   const {help,records} = await fixture(['redhat.java','check']);await help();
   assert.deepEqual(records.commands,[['workbench.extensions.installExtension','redhat.java']]);
@@ -80,7 +89,7 @@ test('first build is only launched by user selection, rechecked and limited to e
   assert.equal(records.checks,2);assert.deepEqual(records.runs,['/student']);
   assert.match(records.notices[0],/Confirm that the browser preview opens.*Zero Output and Problems/);
 });
-test('Run first app launches without waiting for the explanatory notice to be dismissed',async t => {
+test('Run current app launches without waiting for the explanatory notice to be dismissed',async t => {
   let dismiss,timer;
   const notification=new Promise(resolve=>{dismiss=resolve;});
   t.after(()=>dismiss());
@@ -135,7 +144,7 @@ test('Setup reads terminal environment in displayed project scope and matching p
       assert.match(records.picks[0].items[0].label,/Run environment unverified/);
       assert.ok(records.lines.some(line => /Host-process Java tools/.test(line)));
       assert.ok(records.lines.some(line => /Run environment unverified/.test(line)));
-      assert.ok(!records.lines.some(line => /Choose Run first app/.test(line)));
+      assert.ok(!records.lines.some(line => /Choose Run current app/.test(line)));
       assert.deepEqual(records.runs,[]);assert.deepEqual(records.commands,[]);assert.deepEqual(records.urls,[]);
     });
   }

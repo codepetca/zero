@@ -89,15 +89,15 @@ downloads and platform limits.
    [manual setup steps](GETTING-STARTED.md#one-time-setup).
 3. Check existing installations. Choose installation/help only for missing or
    incompatible items. A working school/personal installation should be reused.
-4. Follow profile prompts, install Zero and Java extensions, and open starter.
-5. In Zero, use Setup help to check project tools and the current profile.
-   Choose Run first app and confirm the greeting in the browser preview for this
-   candidate (older kits retain their bundled native-run instructions).
-6. Complete the account/privacy preflight above before lesson 0. In the unreleased
-   flow after activation, Start tutorial collects the repository name and location
-   before creating and cloning the verified Greeting template into your own account.
-   Earlier published kits use their bundled create-on-GitHub/clone instructions.
+4. Follow profile prompts, install Zero and Java extensions, and open Zero.
+5. Complete the account/privacy preflight above before lesson 0. Choose
+   **Start tutorial**, connect GitHub if needed, then name and save your own
+   **Greeting app** repository. Zero opens your clone with Main and Tutorials.
    Submit repository links in Pika separately when assigned.
+6. If setup needs troubleshooting, **Setup help → Test installation** opens the
+   completed bundled Hello World app in a separate window marked Installation
+   test. Choose **Run test** and confirm its browser preview. This is optional;
+   it is separate from your tutorial. Older kits retain their bundled instructions.
 
 ## Automation boundaries
 
@@ -127,7 +127,7 @@ extensions in another profile do not satisfy this check.
 Extension repair invokes VS Code's supported extension installer on explicit
 selection. Java/Git repair opens an official installer page. Fully quit/reopen
 VS Code after installing tools or repairing environment variables, then Check
-again. Run first app saves the project, checks browser compatibility, builds it
+again. Run current app saves the project, checks browser compatibility, builds it
 and opens the browser preview. Build errors appear in Zero Output and Problems.
 A missing or malformed project, timeout, unparseable version or failed tool check
 must not be reported as ready. On a supported Mac, the wrapper must also have

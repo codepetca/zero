@@ -543,7 +543,7 @@ struct SetupTests {
         firstController.launch(); firstController.launch()
         try pump(until: { !firstController.busy })
         try expect(firstController.stage == .opened && firstHandoffs == 1, "first app launch prepares then hands off exactly once")
-        try expect(firstRunner.commands.map { $0.arguments.last! } == ["--native-check", "--approved", "--native-check", "--native-open"], "first launch checks, prepares and opens starter")
+        try expect(firstRunner.commands.map { $0.arguments.last! } == ["--native-check", "--approved", "--native-check", "--native-open"], "first launch checks, prepares and opens Zero")
         let appKit = appHome.appendingPathComponent("Zero")
         let currentPlan = try KitUpdatePlan(kit: kit, destination: appKit)
         try expect(try currentPlan.matches(kit), "copied runtime matches current app without writes")
@@ -617,7 +617,7 @@ struct SetupTests {
         }
         try manifest()
         let argumentRuntime = try MacRuntime(kit: runtimeKit.root, home: temporary.appendingPathComponent("argument home"))
-        try expect(argumentRuntime.editorArguments(resuming: false) == argumentRuntime.isolated + ["--new-window", runtimeKit.root.appendingPathComponent("starter").path], "first runtime opening selects starter and separate Zero environment")
+        try expect(argumentRuntime.editorArguments(resuming: false) == argumentRuntime.isolated + ["--new-window"], "first runtime opening selects empty window and separate Zero environment")
         try expect(argumentRuntime.editorArguments(resuming: true) == argumentRuntime.isolated, "resume uses separate Zero environment and lets VS Code restore session")
         let runtimeHome = temporary.appendingPathComponent("private runtime home")
         try MacRuntime.mkdir(runtimeHome)
@@ -628,6 +628,7 @@ struct SetupTests {
         let selected = try runtime.javaHome()!
         try expect(selected.path.hasPrefix(runtime.root.path), "private verified Java selected independently of host JAVA_HOME")
         try expect(runtime.environment(selected)["JAVA_HOME"] == selected.path, "editor and task environment receives private Java")
+        try expect(runtime.environment(selected)["ZERO_KIT_DIR"] == runtimeKit.root.path, "editor receives kit location for explicit installation testing")
         try expect(runtime.environment(selected)["PATH"]!.hasPrefix(selected.appendingPathComponent("bin").path + ":"), "private compiler wins PATH")
         runtime.testDownload = { _, _ in throw SetupFailure(message: "Unexpected repeat download") }
         try runtime.install("jdk")
@@ -703,8 +704,8 @@ struct SetupTests {
         try manager.removeItem(at: launcher)
         try runtime.launcher(cli: URL(fileURLWithPath: "/fake editor/code"), java: selected)
         let generated = try String(contentsOf: launcher)
-        try expect(generated.contains("--new-window") && generated.contains(runtimeKit.root.appendingPathComponent("starter").path), "standalone fallback deliberately continues opening starter in new window")
-        try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME="), "standalone launcher preserves private editor and Java after DMG closes")
+        try expect(generated.contains("--new-window") && !generated.contains(runtimeKit.root.appendingPathComponent("starter").path), "standalone fallback opens empty tutorial window")
+        try expect(generated.contains("--user-data-dir") && generated.contains("--extensions-dir") && generated.contains("export JAVA_HOME=") && generated.contains("export ZERO_KIT_DIR=" + MacRuntime.quote(runtimeKit.root.path)), "standalone launcher preserves private editor, Java and kit location after DMG closes")
         try manager.removeItem(at: launcher)
         runtime.testBeforeExchange = { try "student newly created launcher".write(to: launcher, atomically: true, encoding: .utf8) }
         try rejected("concurrent launcher creation") { try runtime.launcher(cli: URL(fileURLWithPath: "/fake code"), java: selected) }

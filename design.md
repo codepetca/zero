@@ -494,3 +494,14 @@ Keep lesson sources with the lessons. Drawing Pad becomes a regular Projects
 entry backed by the existing codepetca/zero-drawing-pad repository, with a square
 actual-app screenshot and GitHub source. Add Play only after verified public
 hosting. This supersedes the earlier decision to preserve named example pages.
+
+## Tutorial-first onboarding — owner approved, 2026-10-19
+
+The owner’s novice smoke test found that opening the completed bundled starter
+with lesson 0 made it look as if students had already done the exercise. Fresh
+launches now open an empty window with Start tutorial as the primary action.
+The welcome uses one Start tutorial choice, connects GitHub when needed, and
+continues to repository creation. Cancel keeps the sidebar action available.
+Student clones open Main beside Tutorials. Preserve existing student sessions.
+Keep the completed starter under Setup help → Test installation, in a separate
+window labelled Installation test with Run test. It does not auto-open a lesson.

@@ -73,6 +73,7 @@ function Invoke-Tool([string]$File, [string[]]$Arguments, [bool]$NodeCli = $fals
     $info.RedirectStandardOutput = $true
     $info.RedirectStandardError = $true
     $info.RedirectStandardInput = $true
+    $info.EnvironmentVariables['ZERO_KIT_DIR'] = $KitDir
     if ($NodeCli) { $info.EnvironmentVariables['ELECTRON_RUN_AS_NODE'] = '1' }
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $info
@@ -304,7 +305,7 @@ function Invoke-NativeAction {
     if ($NativeOpen) {
         Show-Check
         if (-not (Is-Ready)) { Write-Host 'Readiness changed; check again before opening Zero.'; return 1 }
-        $result = Invoke-Code @('--new-window', '--profile', 'Zero', $Starter)
+        $result = Invoke-Code @('--new-window', '--profile', 'Zero')
         Write-Host $result.Output
         return $result.Exit
     }
@@ -330,7 +331,7 @@ try {
     :menu while ($true) {
         Write-Host "`n1 VS Code install help   2 JDK install help   3 Git install help"
         Write-Host '4 Open/create Zero profile   5 Install missing extensions in Zero'
-        Write-Host '6 Check again   7 Open starter   0 Exit'
+        Write-Host '6 Check again   7 Open Zero   0 Exit'
         switch (Read-Host 'Choice') {
             '1' { Help-Tool code }
             '2' { Help-Tool java }
@@ -362,11 +363,11 @@ try {
             '6' { Show-Check }
             '7' {
                 Show-Check
-                if ((Is-Ready) -and (Confirm-Choice 'Open starter in Zero? Close all VS Code windows first if you just changed Java.')) {
-                    $result = Invoke-Code @('--new-window', '--profile', 'Zero', $Starter)
+                if ((Is-Ready) -and (Confirm-Choice 'Open Zero to start a tutorial? Close all VS Code windows first if you just changed Java.')) {
+                    $result = Invoke-Code @('--new-window', '--profile', 'Zero')
                     Write-Host "VS Code exit code: $($result.Exit) $($result.Output)"
-                    Write-Host 'Choose Run App in Zero. First run downloads Maven/JavaFX and needs internet.'
-                } else { Write-Host 'Finish required setup checks before opening starter.' }
+                    Write-Host 'Choose Start tutorial in Zero to create your project.'
+                } else { Write-Host 'Finish required setup checks before opening Zero.' }
             }
             '0' { break menu }
             default { Write-Host 'Choose a number from the menu.' }

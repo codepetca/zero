@@ -40,3 +40,9 @@ test('PowerShell parser and mocked native workflow (portable PowerShell; not Win
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.match(result.stdout, /Windows PowerShell mocked backend: \d+ checks passed/);
 });
+
+test('manual and native Windows editor opens omit starter and carry kit location', () => {
+  assert.doesNotMatch(source, /Invoke-Code @\('[^\n]*\$Starter/);
+  assert.match(source, /\$info.EnvironmentVariables\['ZERO_KIT_DIR'\] = \$KitDir/);
+  assert.match(source, /7 Open Zero/);
+});
