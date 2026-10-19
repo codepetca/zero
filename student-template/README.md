@@ -50,9 +50,10 @@ Publishing is optional and public; Pages from an existing private repository dep
 on the account plan. No paid plan is needed for tutorial source work.
 
 This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
-Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
-Windows 0.5.21 native EXE is a published unsigned preview with updates disabled. Physical Windows/classroom verification
-remains pending, so the support target is not a claim of completed testing.
+Macs are unsupported. Choose Mac setup. For Windows, choose the unsigned
+0.5.21 preview installer or its matching complete-kit ZIP. Windows automatic
+updates are disabled. Physical Windows/classroom verification remains pending,
+so the support target is not a claim of completed testing.
 
 If you used the current **Download for Mac**, open the DMG and drag **Zero.app**
 into **Applications**, then open Zero to prepare the editor and Java tools.

@@ -1,5 +1,29 @@
 # Delivery evidence index
 
+## Website API and guide currency follow-up — 2026-10-19
+
+Live HTTP200 `/docs` was parsed and compared with canonical API entries: all98
+IDs/signatures match, with no missing/different/unexpected declaration. The11API
+tests also compare every declared public/protected member in the7framework classes.
+Live `/docs/app-guide` and `/docs/setup` still contained stale unreleased/0.5.15
+or unactivated wording. This follow-up closes a gap missed by the broader audit.
+
+Local31b50d3 +27d2a94 refresh API/AppGuide/starter/setup notes for shipped Mac0.5.23/
+core0.2.1, older Windows/ZIP behavior, browser-versus-native compatibility,
+tutorial-first Start tutorial/device-code labels, installation-check separation,
+and gated managed library admission. No API/runtime/release metadata changes.
+No publication; live guides keep their prior wording until authorized deployment.
+
+Website157tests,11APItests, typecheck, production build, root check and whitespace
+pass. Initial full website run rejected a guessed auth label; source inspection
+corrected it to the actual Copy code and continue action, retaining that test.
+Independent Luna/medium review of05b7f36..31b50d3 found remaining stale claims;
+one correction batch27d2a94 and targeted review resolved them. Two review turns,
+one initial/one targeted wave, no remaining blockers. The final advisory Windows
+choice wording was replaced with the reviewer's recommendation and checked by the
+coordinator; no runtime code changed. Effective model/tokens/elapsed unknown.
+Receipts: ignored `.verification/goal-audit/api-docs-followup/`.
+
 ## Product goal audit and local corrections — 2026-10-19
 
 Owner requested a full gap audit and locally addressable fixes while manual smoke

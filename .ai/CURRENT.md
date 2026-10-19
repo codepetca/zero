@@ -23,6 +23,12 @@ compatibility, zero findings at5289d28.2launches/1wave/0reviewfixes; no source
 changes after review. Effective telemetry unknown; start weekly12%account-wide,
 storage healthy293GB; DeepSeek dated pause honored.
 
+Follow-up API/docs check: live API98IDs/signatures match current framework;
+AppGuide/setup/starter release notes were stale. Local31b50d3/27d2a94 corrections
+and one Luna/medium targeted doc review resolve them; website157/API11/type/build/
+check pass. Browser/native limits and tutorial-first instructions are explicit.
+No docs deployment performed. See newest docs/EVIDENCE.md entry.
+
 Next: owner smoke test of publishedMac0.5.23; inspect the local fixes/audit.
 Empty-account GitHub onboarding, token expiry/revocation/account drift, first and
 repeat Pages publication, novice/school trial and physical Windows remain open.
