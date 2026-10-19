@@ -1,19 +1,22 @@
-# Windows manual fallback and centered downloads — 2026-10-19
+# Tutorial-first onboarding — 2026-10-19
 
-Owner authorized publishing the exact ZIP embedded in Windows0.5.21, adding
-Manual setup (ZIP) beside the unsigned installer, and fixing landing centering.
-Implementation6edda2b starts from main57741ca. No installer/runtime rebuild,
-credential change or old release mutation. Original funding checkout preserved.
+Owner authorized fixing onboarding, merging and publishing so the novice smoke
+ test can restart. Work is isolated from the dirty funding checkout, based on
+main a8bbf88. Native launchers open an empty tutorial welcome on fresh launch;
+returning student sessions restore normally. Start tutorial connects GitHub and
+continues to the verified student-owned repository flow. The bundled completed
+Hello World project is explicit Setup help → Test installation, labelled and
+separate from Tutorials. Docs and local version/build move to 0.5.23/23.
 
-The manual prerelease windows-manual-v0.5.21 has one zero-bootstrap.zip;
-authenticated draft and anonymous public size/SHA256 match the embedded kit.
-Optional strict manualSetup metadata ties its link to the current preview;
-a signed installer suppresses that older preview link. Windows updates stay off.
+Checks: 73 focused extension tests; 66 launcher/source tests (1 PowerShell skip);
+actual Swift harness 294 assertions; Windows .NET/Mono harness 986 checks and
+updater harness pass. Configuration passes; full suite and website checks running.
+Actual isolated VS Code welcome, Later recovery and Setup help action observed.
+No new account/repository is created by verification. Physical Windows and a
+clean-machine install remain untested. Native worker Sol/medium completed its
+bounded component; coordinator owns extension, integration and publication.
 
-Home/Downloads constrain the section and controls to340px; old desktop offset
-was-40.375px and new button centers match the viewport at1440/390/320px.
-157website tests/typecheck/build and Chromium layout/focus/200%text/dark checks
-pass. Sol/medium complete review at6edda2b has no blockers;13focused tests pass.
-Metadata PR/CI/merge and live-page verification follow the normal release gates.
-Evidence: docs/EVIDENCE.md and ignored .verification/windows-manual-download/.
-Actual Windows installation and other browser/device coverage remain untested.
+Next: independent source review, exact-head CI, source merge, signed/notarized
+Mac 0.5.23 candidate and exact-byte release/promotion. Preserve Windows preview
+and manual ZIP metadata from main, prior releases, student work and credentials.
+Evidence: docs/EVIDENCE.md; ignored .verification/onboarding-* and /tmp logs.

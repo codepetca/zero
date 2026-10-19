@@ -545,3 +545,12 @@ Preferred choices and promotion into core remain deliberate future decisions
 based on usefulness, API stability and maintenance. They do not change installed
 pins. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
 [single-repo boundaries](ARCHITECTURE.md).
+
+## Tutorial-first installation — 2026-10-19
+
+A fresh Zero launch opens the tutorial welcome in an empty editor window.
+Start tutorial connects GitHub when needed and creates and clones the student's
+verified tutorial scaffold. Their clone opens Main beside Tutorials. Existing
+student sessions resume normally. The completed bundled Hello World project is
+only an explicit Setup help → Test installation action, opens in a separate
+window labelled Installation test, and never automatically opens tutorial lesson 0.

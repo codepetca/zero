@@ -4,6 +4,7 @@ set -u
 SETUP_DIR=$(cd "$(dirname "$0")" && pwd) || exit 1
 KIT_DIR=$(cd "$SETUP_DIR/.." && pwd) || exit 1
 STARTER="$KIT_DIR/starter"
+export ZERO_KIT_DIR="$KIT_DIR"
 CHECK_ONLY=0
 NATIVE_MODE=''
 case "${1:-}" in
@@ -288,7 +289,7 @@ if [ -n "$NATIVE_MODE" ]; then
       [ "$#" = 1 ] || exit 2
       summary || :
       ready || { echo 'Readiness changed; check again before opening Zero.'; exit 1; }
-      "$CODE" --new-window --profile Zero "$STARTER" ;;
+      "$CODE" --new-window --profile Zero ;;
   esac
   exit $?
 fi
@@ -302,7 +303,7 @@ echo 'The optional quiet profile must be imported BEFORE extension installation:
 echo "In VS Code: Profiles > Import Profile > Select File: $KIT_DIR/optional/Zero.code-profile"
 echo 'Choose the name Zero. Or use action 4 for an empty Zero profile without those optional settings.'
 while :; do
-  printf '\n1 VS Code install help   2 JDK install help   3 Git install help\n4 Open/create Zero profile   5 Install missing extensions in Zero\n6 Check again   7 Open starter   0 Exit\nChoice: '
+  printf '\n1 VS Code install help   2 JDK install help   3 Git install help\n4 Open/create Zero profile   5 Install missing extensions in Zero\n6 Check again   7 Open Zero   0 Exit\nChoice: '
   read -r choice || break
   case "$choice" in
     1) help_tool code ;;
@@ -327,11 +328,11 @@ while :; do
     6) summary || : ;;
     7)
       summary || :
-      if ready && yes 'Open your starter in the Zero profile? Close all VS Code windows first if you just changed Java.'; then
-        "$CODE" --new-window --profile Zero "$STARTER"
+      if ready && yes 'Open Zero to start a tutorial? Close all VS Code windows first if you just changed Java.'; then
+        "$CODE" --new-window --profile Zero
         echo "VS Code exit code: $?"
-        echo 'In the Zero sidebar, choose Run App. First run downloads Maven/JavaFX and needs internet.'
-      else echo 'Finish the required setup checks before opening the starter.'; fi ;;
+        echo 'Choose Start tutorial in Zero to create your project.'
+      else echo 'Finish the required setup checks before opening Zero.'; fi ;;
     0) break ;;
     *) echo 'Choose a number from the menu.' ;;
   esac

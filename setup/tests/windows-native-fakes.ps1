@@ -67,7 +67,7 @@ $calls.Clear(); $flags.Profile = $false; $output = @(Invoke-NativeAction)
 Assert ($output[-1] -eq 1 -and $calls.Count -eq 0) 'profile drift blocks extension mutation'
 Reset-Native; $NativeOpen = $true; $flags.Profile = $true; $flags.Zero = $true; $flags.Redhat = $true
 $output = @(Invoke-NativeAction)
-Assert ($calls[0] -eq '--new-window|--profile|Zero|C:\Kit & spaces\starter') 'ready opens starter literal argv'
+Assert ($calls[0] -eq '--new-window|--profile|Zero') 'ready opens empty tutorial window literal argv'
 $calls.Clear(); $flags.Java = $false; $output = @(Invoke-NativeAction)
 Assert ($output[-1] -eq 1 -and $calls.Count -eq 0) 'final open rechecks readiness'
 # Exercise request rejection through the actual entry point; each exits before tools.

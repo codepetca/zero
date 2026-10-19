@@ -123,17 +123,20 @@ published update.
 2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**
    and its progress bar prepare Java and the editor. A recognized existing kit
    receives setup-file updates; your code, assets and saved projects are kept.
-3. Zero opens its configured VS Code editor automatically. Review the starter
-   before granting workspace trust if VS Code asks, then choose **Run App**.
-   Zero’s browser preview shows **Hello, world!**. The first build needs internet
-   for the pinned browser compiler and dependencies, cached locally for reuse.
+3. Zero opens its configured VS Code editor with **Start tutorial**. Choose it,
+   connect GitHub if needed, and create your **Greeting app** repository. Zero
+   opens your clone with `Main.java` beside **Tutorials**. Review your project
+   before granting workspace trust if VS Code asks, then follow lesson 0.
+   The first build needs internet for compiler dependencies, cached for reuse.
 
 You can eject the DMG after copying Zero. Later, open **Zero** from Applications
 or the Dock to return to the saved Zero editor session. Reopening checks readiness
 without repeating preparation when the current installation is ready.
 
 Complete the GitHub account/privacy steps above before starting tutorial lesson 0.
-The ordinary local starter smoke check does not require GitHub; tutorial creation,
+The optional **Setup help → Test installation** opens the bundled completed
+Hello World project in a separate window marked **Installation test**. It does
+not require GitHub and is separate from your tutorial; tutorial creation,
 cloning and pushes do. Use Setup help for missing Git. You do not need
 Python, Node.js, Homebrew or a separate Maven/JavaFX installation.
 If setup fails, **Details** shows technical output and useful errors.
@@ -154,7 +157,7 @@ The downloaded filename and release page identify the version.
 If your extracted complete kit includes a `setup/` folder, you may instead open
 `setup/Setup.cmd` on Windows or `setup/Setup.command` on a supported Mac.
 Its checker reuses suitable installations, offers explicit
-install/help actions and opens the starter. Keep the whole kit together.
+install/help actions and opens Zero’s tutorial welcome. Keep the whole kit together.
 No Node.js or separate Maven is needed.
 Actual Windows installers, school policies and clean personal-machine installation
 remain unverified; see [setup behaviour and limits](SETUP.md).
@@ -163,7 +166,8 @@ With the current extension, **Setup help** inside VS Code shows a native checkli
 with **Check again**. Older extensions may show a simpler setup guide.
 Java editor/debugger repair uses VS Code's extension installer in the current
 profile. Java/Git repair opens an official download page and explains installation
-and restarting VS Code. **Run first app** uses the usual save/build/launch flow;
+and restarting VS Code. **Run current app** uses the usual save/build/launch flow.
+For an optional setup check, choose **Test installation**, then **Run test**;
 confirm its browser preview, since tool detection is not a build test.
 
 1. Install VS Code and a supported **JDK 17 or later**; install **Git 2.31 or newer** for repository
@@ -188,19 +192,17 @@ confirm its browser preview, since tool detection is not a build test.
    If you downloaded only the starter,
    get the separately labelled Zero extension from [GitHub releases](https://github.com/codepetca/zero/releases).
    Zero is not published in the Marketplace.
-3. Move or copy the kit's **starter folder** into your own location, outside any
-   other Git repository. For the separate starter-only ZIP, extract its
-   **zero-starter folder** instead. Open that folder, rather than a single
-   Java file. Keep its hidden `.mvn` and `.vscode` folders. Trust it only after
-   checking its source and build scripts.
-4. Open the starter's `lessons/00-hello-world.md` for **Lesson 0: Hello, world!**.
-   Choose **Zero: Show Sidebar** in the Command Palette, then **Run App**.
-   The first build needs internet to download the pinned browser compiler and
-   dependencies into Zero’s local cache. Students do not
-   need Node.js, global Maven or a separate JavaFX installation. On a supported Mac,
-   a ZIP that loses executable permissions may need `chmod +x mvnw` once.
-   Record school proxy/firewall problems with your teacher; do not place
-   credentials in the project to work around them.
+3. Open Zero using its setup launcher, then choose **Start tutorial**. Connect
+   GitHub when asked, choose **Greeting app**, and name and save your repository.
+   Zero opens your clone with `Main.java` and **Tutorials** ready for lesson 0.
+   Review its source and build scripts before granting workspace trust.
+4. Follow lesson 0 in your project. The first build needs internet to download
+   compiler dependencies into Zero’s local cache. Record school proxy/firewall
+   problems with your teacher; do not place credentials in the project.
+
+The bundled `starter` is a completed installation check, available through
+**Setup help → Test installation**. It is separate from your tutorial repository.
+Older starter-only downloads retain their bundled instructions.
 
 ## Edit and run
 

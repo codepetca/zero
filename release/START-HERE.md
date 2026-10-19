@@ -1,6 +1,6 @@
 # Start with Zero
 
-This guide is prepared for the local, unreleased Zero **0.5.22** candidate
+This guide is prepared for the local, unreleased Zero **0.5.23** candidate
 with core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
@@ -32,13 +32,10 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 
 ## Open a tutorial project
 
-Choose **Sign in** in Zero. Use **Start tutorial** in welcome or the **…** menu
-to open the matching template, then create your own repository on GitHub and
-copy its **Code → HTTPS** URL. Choose **Project → Clone from GitHub…** and paste
-your URL in **Clone from GitHub**. In **Clone location**, keep `~/Zero Projects`
-or choose another folder outside any Git repository, then choose **Clone here**.
-Newer VS Code versions open the clone in a new window automatically; the
-VS Code 1.95 fallback may ask you to choose **Open in New Window**.
+Choose **Start tutorial** in Zero’s welcome or sidebar, connect GitHub if
+needed, and choose **Greeting app**. Name your repository and choose where to
+save its clone. Zero creates your repository from the verified scaffold and
+opens your clone with `Main.java` beside **Tutorials** for lesson 0.
 
 Already cloned it? **Project → Open local project…** opens your existing Zero
 folder in a new window without cloning. With a local folder that has no origin,
@@ -52,9 +49,10 @@ in the repository menu. Keep tutorial source visibility under your teacher's rul
 Open the downloaded DMG and drag **Zero.app** into **Applications**.
 Open **Zero** from Applications. The first launch shows **Preparing Zero…**
 with a progress bar below the text while it prepares Java, editor settings and extensions.
-Zero then opens its configured VS Code editor automatically. Choose **Run App**
-and confirm the greeting in Zero’s browser preview. GitHub sign-in is needed
-only for repository and sharing actions.
+Zero then opens its configured VS Code editor with **Start tutorial**. Follow
+the tutorial flow above. Setup help → Test installation is an optional completed
+Hello World check in a separate window marked Installation test; choose Run test
+there to verify the browser preview without a GitHub account.
 
 After copying Zero into Applications, you can eject the DMG. Later, open **Zero**
 again from Applications or the Dock to return to your saved Zero editor session.
@@ -73,16 +71,16 @@ On a supported Mac, double-click `setup/Setup.command`.
 Setup checks your existing tools first. Choose an installation or help action
 only for items that need attention. It can help install missing tools through an
 existing system package manager, install the Zero/Java extensions, and open the
-starter. It does not install a package manager or silently replace working tools.
+tutorial welcome. It does not install a package manager or silently replace working tools.
 Your computer may ask for permission; if a school policy blocks setup, ask your
 teacher or IT. Follow the setup prompts about choosing/importing a VS Code profile.
 
 Inside VS Code, choose **Zero: Setup Help**, or **Setup help** in the sidebar.
 The checklist explains what is ready, offers extension installation and official
-Java/Git installer links, and has **Check again** and **Run first app** actions.
-Run first app downloads the pinned browser compiler and dependencies as needed.
-Confirm the greeting in the browser preview; a passed tool check alone does not
-prove the app runs.
+Java/Git installer links, and has **Check again**, **Run current app**, and **Test installation** actions.
+Run current app downloads compiler dependencies as needed. Test installation
+opens the separate completed Hello World check; choose Run test and confirm
+its browser preview. A passed tool check alone does not prove the app runs.
 
 You can use the manual steps below instead. The ordinary first-app tool check
 needs no GitHub account. Complete the account/privacy setup above before tutorial
@@ -96,30 +94,26 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.22.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.23.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors
    and debugging support.
-3. In VS Code, open the **starter** folder beside this file. Keep the whole folder
-   together, including its hidden `.mvn` and `.vscode` folders.
-4. Open **starter/lessons/00-hello-world.md** (Lesson 0: Hello, world!), then
-   `src/main/java/Main.java`. Use **Zero: Run App** to see **Hello, world!**.
-   Change the greeting to **Hello, Java!**, then click Run App again.
-5. For the lessons, choose **Zero: Start project** to open Greeting's template.
-   Create your own GitHub repository from it, then clone your repository and open
-   its root folder in Zero. Use Study's template at lesson3 and Game's at lesson8.
-   Keep each repository across its group's lessons. Use New branch, edit/Run,
-   Upload changes and Finish change as you progress. These empty tutorial templates
-   need verified publication before this candidate is released. Read
-   **starter/lessons/README.md** or the online Tutorials for the next steps.
-   **starter/README.md** covers running, examples and GitHub;
-   **starter/API.md** describes the readable framework in your project.
+3. Open Zero through the kit’s setup launcher and choose **Start tutorial**.
+   Create and clone your Greeting repository using the flow above.
+4. Follow lesson 0 beside Main. Use **Run App** to preview your own code.
+   Keep each tutorial repository across its group’s lessons. Use Study’s template
+   at lesson 3 and Game’s at lesson 8. Use New branch, edit/Run, Upload changes
+   and Finish change as you progress.
+5. The bundled `starter` is a completed setup check under **Setup help →
+   Test installation**, separate from the tutorial. Its README and API remain
+   optional framework reference.
 
 The optional profile uses a light theme and autosave. The optional keybindings
 file contains F6/F7 shortcuts you can add yourself.
 
-Zero opens the first lesson's preview once per project when the editor is empty.
+Tutorial projects open Main beside Tutorials. Other student projects can open
+the first lesson once when their editor is empty; the installation test does not.
 Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
 Zero run offers **Show Problems** to reach source errors. Run App saves, checks
 and compiles your Java locally; after editing, Run App again rebuilds and restarts

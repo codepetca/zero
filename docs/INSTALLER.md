@@ -24,7 +24,8 @@ apps and immutable bytes.
 2. Open **Zero** from Applications. On first launch it shows **Preparing Zero…**
    with a progress bar below the text, prepares Java/editor support and `~/Zero`, and opens the
    configured VS Code editor automatically.
-3. In the editor, review workspace trust if asked and choose **Run App**.
+3. Choose **Start tutorial** in the editor, connect GitHub if needed, and create
+   your Greeting app repository. Your clone opens with Main and Tutorials.
 
 Dragging copies the application only. Java/editor preparation happens when Zero
 is opened for the first time; later openings verify and reuse the existing setup.
@@ -38,8 +39,11 @@ is repaired once; failure retains Try again and Details rather than looping.
 
 Details is hidden during healthy preparation. The bar advances with completed
 stages and fills only after final readiness; it does not estimate download/time
-percentages. Opening retains a fresh backend check. First launch selects the
-starter; reopening lets VS Code restore its own isolated saved UI/workspace state.
+percentages. Opening retains a fresh backend check. First launch opens an empty
+window with Start tutorial; reopening lets VS Code restore its own isolated saved
+UI/workspace state. Setup help → Test installation explicitly opens the completed
+bundled starter in a separate window labelled Installation test. Launchers pass
+ZERO_KIT_DIR so the extension can find this optional check in the installed kit.
 Git/GitHub and the first student app run remain separate choices. Published
 ZIP/manual launchers keep their guided flow. The local Windows candidate now
 uses automatic preparation and a restrained native progress bar.

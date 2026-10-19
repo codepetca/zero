@@ -26,7 +26,7 @@ function fixture(options = {}) {
   executable(bin, 'git', options.git === false ? 'exit 1' : 'echo "git version ' + (options.gitVersion || '2.31.0') + '"');
   let codeBin = bin;
   if (options.macApp) { codeBin = path.join(root, 'Applications/Visual Studio Code.app/Contents/Resources/app/bin'); mkdirSync(codeBin, {recursive: true}); }
-  const codeBody = 'printf "%s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n --version) ' + (options.code === false ? 'exit 1' : 'echo ' + (options.codeVersion || '1.100.0')) + ' ;;\n "--profile Zero --list-extensions --show-versions") ' + (options.profile === false ? 'echo "Profile Zero not found"; exit 1' : 'printf "zero.zero@' + (options.extension || '0.5.4') + '\\n' + (options.javaExtension === false ? '' : 'redhat.java@1.40.0\\n') + (options.debugger === false ? '' : 'vscjava.vscode-java-debug@0.58.0\\n') + '"') + ' ;;\n "--profile Zero --install-extension"*) ' + (options.allowMutation ? 'echo fake-install; exit ' + (options.installExit || 0) : 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99') + ' ;;\n --new-window*) ' + (options.allowMutation ? 'echo fake-open' : 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99') + ' ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac';
+  const codeBody = 'printf "%s\\n" "$ZERO_KIT_DIR" > "$PROBE_LOG.kit"\nprintf "%s\\n" "$*" >> "$PROBE_LOG"\ncase "$*" in\n --version) ' + (options.code === false ? 'exit 1' : 'echo ' + (options.codeVersion || '1.100.0')) + ' ;;\n "--profile Zero --list-extensions --show-versions") ' + (options.profile === false ? 'echo "Profile Zero not found"; exit 1' : 'printf "zero.zero@' + (options.extension || '0.5.4') + '\\n' + (options.javaExtension === false ? '' : 'redhat.java@1.40.0\\n') + (options.debugger === false ? '' : 'vscjava.vscode-java-debug@0.58.0\\n') + '"') + ' ;;\n "--profile Zero --install-extension"*) ' + (options.allowMutation ? 'echo fake-install; exit ' + (options.installExit || 0) : 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99') + ' ;;\n --new-window*) ' + (options.allowMutation ? 'echo fake-open' : 'echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99') + ' ;;\n *) echo UNEXPECTED_MUTATION >> "$PROBE_LOG"; exit 99 ;;\nesac';
   executable(codeBin, 'code', codeBody);
   if (options.macApp && options.pathCodeVersion) executable(bin, 'code', codeBody.replace('echo ' + (options.codeVersion || '1.100.0'), 'echo ' + options.pathCodeVersion));
   executable(jdk + '/bin', 'java', 'echo \'openjdk version "' + (options.java || '17.0.12') + '"\' >&2');
@@ -204,7 +204,7 @@ test('native profile handoff preserves existing profile and deliberately opens a
 test('native open rechecks readiness and Git remains optional', () => {
   for (const ready of [true, false]) {
     const kit = fixture({git: false, extension: ready ? '0.5.4' : '0.5.3', allowMutation: true});
-    try { const result = kit.runArgs(['--native-open']); assert.equal(result.status, ready ? 0 : 1, result.stdout); const commands = readFileSync(kit.log, 'utf8'); if (ready) assert.match(commands, /--new-window --profile Zero .*starter/); else assert.doesNotMatch(commands, /new-window/); }
+    try { const result = kit.runArgs(['--native-open']); assert.equal(result.status, ready ? 0 : 1, result.stdout); const commands = readFileSync(kit.log, 'utf8'); if (ready) { assert.match(commands, /--new-window --profile Zero\n/); assert.equal(readFileSync(kit.log + '.kit', 'utf8').trim(), kit.root); assert.doesNotMatch(commands, /--new-window[^\n]*starter/); } else assert.doesNotMatch(commands, /new-window/); }
     finally { kit.cleanup(); }
   }
 });
@@ -217,4 +217,10 @@ test('fresh Mac missing Java returns successful manual vendor plan', () => {
     assert.match(result.stdout, /action=manual/);
     assert.doesNotMatch(readFileSync(kit.log, 'utf8'), /brew |install|new-window/);
   } finally { kit.cleanup(); }
+});
+
+test('manual setup opens Zero without a bundled project path', () => {
+  const source = readFileSync(new URL('../setup.sh', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /"\$CODE" --new-window[^\n]*"\$STARTER"/);
+  assert.match(source, /7 Open Zero/);
 });
