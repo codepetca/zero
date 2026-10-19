@@ -18,18 +18,19 @@ const native = JSON.parse(await readFile(new URL('../../release/installer.json',
 native.publication.status = 'local';
 delete native.asset.url;
 const source = await readFile(new URL('../components/Downloads.jsx', import.meta.url), 'utf8');
-async function render(release, publishedKit, currentInstaller, local, windows = null, publishedInstaller = null, unsigned = false, requirements = false) {
+async function render(release, publishedKit, currentInstaller, local, windows = null, publishedInstaller = null, unsigned = false, requirements = false, manual = null) {
   const installer = availableInstaller(currentInstaller, publishedInstaller, local);
   const kit = availableKitRelease(release, publishedKit, local);
-  const values = {release, installer, kit, mac:installerHref(installer, local), windows, unsigned};
+  const values = {release, installer, kit, mac:installerHref(installer, local), windows, unsigned, manual};
   const fixture = source.replace(/^import .*;\n/gm, '')
-    .replace('export function Downloads()', `const {release, installer:availableNative, kit:available, mac:macHref, windows:windowsHref, unsigned} = ${JSON.stringify(values)};
+    .replace('export function Downloads()', `const {release, installer:availableNative, kit:available, mac:macHref, windows:windowsHref, unsigned, manual} = ${JSON.stringify(values)};
 const DownloadIcon = () => null;
 const downloadableKit = () => available;
 const downloadableInstaller = () => availableNative;
 const macDownloadHref = () => macHref;
 const windowsDownloadHref = () => windowsHref;
 const windowsDownloadIsUnsigned = () => unsigned;
+const windowsManualDownloadHref = () => manual;
 const downloadableWindowsInstaller = () => windowsHref ? {kitVersion:'0.5.21'} : null;
 const downloadHref = (key = 'kit') => available?.publication.status === 'published' ? available.assets[key].url : '/download/' + key;
 export function Downloads()`);
@@ -148,6 +149,19 @@ test('unsigned Windows download is explicit before clicking and setup help state
   assert.match(help,/Interactive Windows testing is pending/);
   const signed=await render(current,fallback,null,false,url);
   assert.doesNotMatch(signed,/unsigned|security warning|windows-unsigned-note/);
+});
+
+test('matching manual ZIP is a secondary action grouped with the Windows installer', async () => {
+  const installer='https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.21/Zero-Setup-0.5.21-windows-development.exe';
+  const manual='https://github.com/codepetca/zero/releases/download/windows-manual-v0.5.21/zero-bootstrap.zip';
+  const html=await render(current,fallback,null,false,installer,null,true,false,manual);
+  assert.match(html,/class="windows-download">.*Download for Windows \(unsigned\)<\/a><a class="manual-download"/);
+  assert.ok(html.includes(`href="${manual}">Manual setup (ZIP)</a>`));
+  assert.equal((html.match(/Manual setup \(ZIP\)/g)||[]).length,1);
+  assert.doesNotMatch(html,/Windows \(ZIP\)/);
+  const noInstaller=await render(current,fallback,null,false,null,null,false,false,manual);
+  assert.doesNotMatch(noInstaller,/Manual setup \(ZIP\)/);
+  assert.match(noInstaller,/Download for Windows \(ZIP\)/);
 });
 
 

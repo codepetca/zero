@@ -134,7 +134,10 @@ and the published ZIP are different versions. Local-preview controls are labeled
 as such; unavailable platform buttons are omitted. The unsigned Windows button
 and its security-warning note are driven by strict `release/windows-preview.json`
 metadata. A signed Windows manifest takes precedence; the preview never supplies
-an update feed. Without either installer manifest, Windows falls back to the
+an update feed. Its optional strict `manualSetup` asset describes the byte-matched
+embedded kit, published separately under `windows-manual-v<version>` without
+changing earlier release assets. The secondary manual link is hidden if a signed
+installer replaces that preview. Without either installer manifest, Windows falls back to the
 published complete-kit ZIP. The current MVP supports Apple Silicon Macs and Windows.
 Local native download verifies bounded exact bytes, clean signed/notarized build
 provenance and unchanged packaged/native source. `VERCEL` always disables local

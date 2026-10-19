@@ -236,6 +236,8 @@ html:has(.learn-theme),
 }
 .learn-theme .download-section .hub-actions { align-items: stretch; }
 .learn-theme .download-section .button { overflow-wrap: anywhere; }
+.learn-theme .windows-download { display: flex; flex-direction: column; align-items: center; gap: var(--zero-space-3); min-width: 0; }
+.learn-theme .manual-download { font-size: .9rem; }
 .learn-theme .download-icon { width: 18px; height: 18px; }
 
 @media (max-width: 760px) {
@@ -273,6 +275,7 @@ html:has(.learn-theme),
 
 .learn-theme .home-page .download-section,
 .learn-theme .downloads-page .download-section {
+  width: min(100%, 340px);
   margin-top: var(--zero-space-5);
   padding-top: 0;
   border-top: 0;
@@ -372,7 +375,6 @@ html:has(.learn-theme),
   justify-content: center;
   text-align: center;
 }
-.learn-theme .downloads-page .download-section { width: min(100%, 340px); }
 .learn-theme .downloads-page .hub-actions { flex-direction: column; }
 .learn-theme .downloads-page .button { width: 100%; }
 .learn-theme .download-help { max-width: 40ch; margin-top: var(--zero-space-4); font-size: .9rem; color: var(--zero-muted); }
@@ -395,7 +397,7 @@ html:has(.learn-theme),
   text-align: center;
 }
 .learn-theme .home-page .hub-actions {
-  width: min(100%, 340px);
+  width: 100%;
   flex-direction: column;
 }
 .learn-theme .home-page .button { width: 100%; }
