@@ -6,6 +6,7 @@ const {safePagesUrl:safeUrl,publicAddress,publicReadiness,boundedText}=require('
 const core = require('./core');
 const {prepareUpload} = require('./github');
 const {pagesFiles, pagesWorkflow} = require('./web-publishing');
+const migration = require('./web-publish-migration');
 
 const workflowPath = '.github/workflows/zero-web.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
@@ -121,17 +122,20 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(!repo.permissions?.push)throw new Error('Your signed-in account needs permission to upload to this repository.');
     const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
     if(remote.object?.sha!==plan.head)throw new Error('Commit & push your main version first. GitHub currently has a different commit.');
-    const files=providedFiles || await publishingFiles(engineRoot), missing=await inspectFiles(plan.root,files);
+    const files=providedFiles || await publishingFiles(engineRoot);
+    const inspection=migration.inspect(plan.root,files),{missing,upgrade}=inspection;
+    if(upgrade)await migration.assertRecoverable(plan.root,plan.head,inspection.original,git);
     const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
     if(pages && (pages.build_type!=='workflow' || missing.length))return action('This repository already has a Pages site or a different publishing setup. Keep it and choose another repository for this game.',plan.page+'/settings/pages');
     if(pages && pages.public!==true)return action('This Pages site is not a public playable page. Review its access settings in GitHub and recheck.',plan.page+'/settings/pages');
-    const result=Object.freeze({status:'review',root:plan.root,repository:plan.page,sha:plan.head,setup:missing.length>0,needsPages:!pages,publicUrl:pages?.html_url ? safeUrl(pages.html_url,pages.cname):undefined,account:ticket.session.accountId});
-    reviews.set(result,{...state,files,missing,pages,approvedDestination:pages?pagesDestination(pages):defaultDestination(repo.full_name)});return result;
+    const result=Object.freeze({status:'review',root:plan.root,repository:plan.page,sha:plan.head,setup:missing.length>0,upgrade:upgrade?Object.freeze({files:Object.freeze([...inspection.changed]),previousSha:plan.head}):undefined,needsPages:!pages,publicUrl:pages?.html_url ? safeUrl(pages.html_url,pages.cname):undefined,account:ticket.session.accountId});
+    reviews.set(result,{...state,files,missing,pages,upgrade,original:inspection.original,approvedDestination:pages?pagesDestination(pages):defaultDestination(repo.full_name)});return result;
   }
   async function setup(reviewed,{signal}={}) {
     if(isSimulation())return simulation();
     const state=reviews.get(reviewed);if(!state)throw new Error('Review web publishing before setting it up.');
     await guard(state,signal);
+    if(state.upgrade)throw Error('Choose Update publishing files before publishing this older Zero kit.');
     if(!state.missing.length)return {status:'ready'};
     await access(state,{contents:'write',workflows:'write'},signal);
     await guard(state,signal);
@@ -149,9 +153,32 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     }
     return {status:'upload-required',message:'Publishing setup is ready. Commit & push these source files on main, then publish the game.'};
   }
+  async function update(reviewed,{signal}={}) {
+    if(isSimulation())return simulation();
+    const state=reviews.get(reviewed);
+    if(!state?.upgrade)throw Error('Review the older publishing kit before updating its files.');
+    await guard(state,signal);
+    await access(state,{contents:'write',workflows:'write'},signal);
+    const repo=await api(state,'GET','',null,{signal});
+    if(repo.id!==state.repositoryId||repo.default_branch!=='main'||!repo.permissions?.push)throw Error('The publishing repository changed. Review publishing again.');
+    const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
+    if(remote.object?.sha!==state.plan.head)throw Error('GitHub main changed after review. Review publishing again.');
+    const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
+    if(state.pages)assertDestination(pages,state.approvedDestination);
+    else if(pages)throw Error('Pages settings changed after review. Review publishing again.');
+    await migration.assertRecoverable(state.root,state.plan.head,state.original,git);
+    await guard(state,signal);
+    authentication.assertCurrentNow(state.ticket);
+    if(signal?.aborted)throw Error('Web publishing cancelled.');
+    if(isSimulation())throw Error('Live publishing is disabled. Review publishing again.');
+    migration.apply(state.root,state.files,state.original);
+    reviews.delete(reviewed);
+    return {status:'upload-required',message:'Publishing files updated. Commit & push on main, then publish to the same page. The previous files remain in Git history.'};
+  }
   async function publish(reviewed,{signal,onProgress=()=>{},onStaging=async()=>{},onPending=async()=>{}}={}) {
     if(isSimulation())return simulation();
     const state=reviews.get(reviewed);if(!state)throw new Error('Review the public destination before publishing.');
+    if(state.upgrade)return action('Update the older publishing files and Commit & push on main, then publish.');
     if(state.missing.length)return action('Set up web publishing and upload the added source files on main, then publish.');
     await guard(state,signal);
     if(unresolvedStages.has(state.root)) {await cleanupStaging(state,unresolvedStages.get(state.root));unresolvedStages.delete(state.root);await onStaging(undefined);}
@@ -279,6 +306,6 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),cleanupSha:saved.sha},saved.staging);
     unresolvedStages.delete(plan.root);
   }
-  return {review,setup,publish,check,restore,verifyLink,cleanup};
+  return {review,setup,update,publish,check,restore,verifyLink,cleanup};
 }
 module.exports={createGitHubPagesPublisher,publishingFiles,workflowPath,pagesPublishWorkflow:compiledWorkflow,publicAddress,_test:{publicReadiness,boundedText}};

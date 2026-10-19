@@ -107,6 +107,16 @@ shows a short public-visibility warning and destination, prepares a small
 deployment-only publishing kit, asks VS Code for GitHub workflow permission,
 and uses the Commit & push message input. Zero validates the uploaded version
 and continues publishing without another confirmation.
+When an unchanged publishing kit from a recognized earlier Zero version needs
+an update, **Publish app** offers **Update publishing files**. The review lists
+the affected deployment files and the previous saved version; the app source and
+public destination stay the same. The old files remain recoverable in project
+history. Zero then uses ordinary **Commit & push** and checks the exact uploaded
+version again before publishing. Cancelling leaves the old kit and live site
+untouched. Edited, incomplete, unknown or symbolic-link setups are preserved and
+need review; Zero does not treat an ownership marker alone as permission to
+overwrite files.
+
 Later publishes reuse the approved destination and stable URL. Repository
 visibility is never changed. The deployed game and its included assets are public,
 including when the source repository is private and the account supports Pages.

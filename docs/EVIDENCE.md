@@ -6081,3 +6081,34 @@ public https://github.com/apps/codepet-zero visibly shows the new padded mark.
 Screenshot:.verification/github-icon-padding-20261018/public-icon.png. No general
 settings save, credentials, permissions, source push, native install or product
 release performed. GitHub notes other surfaces may take minutes to refresh.
+
+## Publishing kit upgrade — 2026-10-19
+
+Owner-authorized fix for an existing armorup/zero-grove-guard Pages site whose
+unchanged pre-identity publishing guide differed from the current kit. Read-only
+comparison confirmed all four managed files hash to the stored legacy digest
+56217bc19e0f9009202e3096274d035810b3ecb46c33d862d52a63ae76d3fd92;
+GitHub access was saved for only that additional repository, preserving the
+three existing selections. All14game source/resource hashes remain unchanged.
+
+The migration pins that historical baseline independently, requires saved regular
+tracked originals, offers native Update publishing files review, updates only
+changed files with the ownership marker last, and uses normal upload and exact
+source/destination re-review. Edited, unknown, incomplete and symlinked/hardlinked
+setups are preserved. Failed writes attempt guarded restoration; Git history is
+the fallback when concurrent edits prevent safe rollback.
+
+Sol/high implementation checks: existing publisher/UI68passed, current UI39passed,
+final migration helper19passed, npm run check and diff check passed. Two duplicate
+Git-backed suites were stopped incomplete when the coordinator's full root suite
+started; their partial output is not a completed test result. Full root checks,
+fixed-head security/compatibility review and native trial are pending at this
+source checkpoint. The original mobile-runtime review budget is unchanged; this
+new bounded migration phase has its own recorded receipts in the existing ignored
+.verification/mobile-canvas/plan.json.
+
+Live baseline at390x844 still has an800x520canvas and horizontal clipping. Native
+Temp1 profile was created through supported VS Code UI for a separate preview
+extension, preserving the original zero.zero installation and commit-form preview.
+No public installer assets were replaced and no game publishing files were
+manufactured outside Zero. Updated live/mobile acceptance remains pending.

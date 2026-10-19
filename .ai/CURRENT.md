@@ -1,56 +1,40 @@
-# Zero mobile delivery and student publishing — 2026-10-18
+# Publishing kit upgrade and Grove Guard delivery — 2026-10-19
 
 Worktree: /Users/stew/.codex/worktrees/student-friction/zero.
-Branch: codex/mobile-delivery-evidence. Preserve the unrelated dirty primary
-checkout, all source snapshots, profiles, caches and sealed release candidates.
-This task owns documentation completion and the existing armorup Grove Guard
-student publication. No further installer build, release or installation is
-running here; the Lead publishing task owns its newer preview work.
+Branch: codex/publishing-kit-upgrade, base 086e037. Preserve the unrelated dirty
+primary checkout, existing profiles, caches, sealed releases and student projects.
 
-Browser mobile source PR103 merged at 628b389 after independent source and
-integration reviews and all CI checks. Mac metadata PR104 merged at 8564ea9.
-Mac 0.5.20/build20 is public, signed, Apple-notarized and stapled. Draft, anonymous
-public and real Chrome downloads match the sealed 4,568,123-byte DMG, SHA256
-776ed521cb0c541ede68e3aa9ef0319ca02881fe4c3ad84238b27a93defbb77f.
-The live download anchor and exact signed feed were verified. Standalone kit17
-is independently published; current local kit metadata belongs to newer work.
-Published assets remain immutable. Sidebar and simpler GitHub project setup
-source subsequently merged in PR105; preserve those changes when integrating.
+The owner explicitly authorized fixing the publishing-kit upgrade bug, PR/merge,
+and finishing Grove Guard publication/live mobile verification. Source/mobile,
+Mac 0.5.20 and prior delivery docs are merged (PRs103/104/106). Public release
+assets remain immutable. This is a new, bounded publishing-migration phase; the
+completed mobile runtime's review/remediation budget is not reset.
 
-Reviewed mobile implementation c49b32f is unchanged. Six GWT fixtures and Chrome
-56 desktop/136 phone-sized assertions pass; unchanged Grove has 9 real-touch
-checks. Combined root suite: 707 passed, 3 skipped; website: 151 passed plus
-successful typecheck/build. Core remediation budget remains exhausted at four
-correction batches. Release review used two initial Sol/high reviewers, one
-notes correction and targeted pass, and one final metadata integration; clear.
-This documentation completion does not authorize another runtime correction loop.
+GitHub verification as armorup succeeded. Only armorup/zero-grove-guard was added
+to Codepet Zero's selected repositories; three existing selections were preserved.
+Native Zero confirms armorup and /Users/stew/Repos/zero-grove-guard on main.
+Publish now rejects its older .zero-web/README.md. All four old kit files hash to
+the marker's 56217bc1…3fd92; all 14 game source/resource hashes remain unchanged.
+Existing Pages stays live. There is no current UI migration path; independent
+read-only source inspection confirmed that blocker.
 
-Installed /Applications/Zero.app verifies 0.5.20/build20. Native preparation reached
-Opening Zero and exited. Computer use selected another same-path Code process;
-no launcher defect was established. The existing official VS Code profile
-Zero Grove Guard was updated through the documented bundled VSIX UI and reloaded.
-Zero Open Local Project reopened /Users/stew/Repos/zero-grove-guard. Zero Run App
-rebuilt with reviewed exporter profile
-a99532955746e08fe916a1810fa8b892aff38ee06ed65e38249638b901f06f9e.
-All 14 recorded source/resource hashes remain unchanged. CUA checks at 390x844
-and 740x320 confirm full-content fit, Seed/Frost placement, economy, wave start,
-pause and restart after rotation. These are mouse clicks at phone sizes; prior
-real CDP touch evidence is separate. Physical iPhone/Safari, Intel Mac and
-interactive Windows acceptance remain unverified.
+One Sol/high writer owns publisher/UI/migration tests; coordinator owns docs,
+integration, package/UI trial, PR/merge and final acceptance. Recognize only known
+unchanged legacy kits, preserve edited/unknown setups, review the exact update,
+retain source/session/destination/cancellation/simulation guards and normal upload.
+Use separate security/correctness and compatibility reviews for the fixed head.
+New phase ceiling:7launches,4targeted waves,4fix batches,60review minutes; each
+reviewer at most30minutes. Track actual receipts in the existing ignored plan.
 
-Native Zero verified armorup and armorup/zero-grove-guard on main. Publish App
-correctly refused unavailable selected-repository access. The owner explicitly
-approved adding only Grove Guard to the existing Codepet Zero installation and
-finishing publication. Existing repository selections must be preserved. On
-resumption GitHub requires fresh passkey/2FA verification before that settings
-page is accessible; the owner has been asked to finish the passkey prompt in
-Dev Chrome. Do not synthesize authentication or broaden repository selection.
+After source acceptance, install the reviewed extension through supported VS Code
+UI as a clearly identified local preview; do not rebuild/replace public installer
+assets or compete with other release writers. Build/publish the student game only
+through supported Zero UI; no terminal Git/build, direct publication or manual
+manufacture of publishing files to bypass product gaps. Verify exact public
+deployment, then phone portrait/landscape fit and controls. Physical iPhone/Safari
+is not yet verified. No gameplay expansion or source changes are requested.
 
-Next: after that existing-account verification, save only the approved Grove
-selection, retry supported Zero Publish App, verify the public deployment and
-phone fit/controls, then complete this evidence PR through review and CI. Do not
-use terminal Git/build commands or direct publication to bypass the student UI.
-No new goal/task/automation was created. DeepSeek is paused through 2026-12-31.
-Evidence: docs/EVIDENCE.md; ignored .verification/mobile-canvas/plan.json and
-.verification/mac-0.5.20/. Current weekly remaining 29% is account-wide; storage
-is healthy at about 299GB. Neither reading establishes task-specific cost.
+Evidence and current plan: .verification/mobile-canvas/plan.json; historical
+delivery in docs/EVIDENCE.md and .verification/mac-0.5.20/. DeepSeek remains paused
+through2026-12-31. Latest weekly remaining26% is account-wide; storage healthy
+at about299GB. No new goal, task or automation is created by this phase.

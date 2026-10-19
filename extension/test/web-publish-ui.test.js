@@ -2,20 +2,21 @@
 const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
 function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)}}={}) {
-  let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,uploaded=0,sha='a'.repeat(40);
+  let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
   const session={id:'native',account:{id:'1',label:'student'},accessToken:'TEST',scopes:[]};
   const vscode={workspace:{isTrusted:true},authentication:{getSession:async(...args)=>{authCalls.push(args);return session;},onDidChangeSessions:()=>({dispose(){}})},window:{showInformationMessage:async(...args)=>{messages.push(args);return choices.shift();}},env:{clipboard:{writeText:async url=>copied.push(url)},openExternal:async uri=>{opened.push(uri);return true;}},Uri:{parse:url=>url}};
   const auth={capture:async()=>({session:{accountId:'1'}}),assertCurrent:async()=>{}};
   const repositories={access:async(url,options)=>{authCalls.push({url,...options});}};
-  const review=()=>({status:'review',setup,repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha,account:'1'});
+  const review=()=>({status:'review',setup,upgrade:upgrade?{files:['.zero-web/README.md','.zero-web/owner.json'],previousSha:sha}:undefined,repository:'https://github.com/student/game',publicUrl:'https://student.github.io/game/',sha,account:'1'});
   const calls=[];
   const publisher={review:async()=>{calls.push('review');reviewed++;return review();},setup:async()=>{calls.push('setup');return {status:'upload-required',message:'Upload setup'};},publish:async()=>{calls.push('publish');published++;return {status:'pending',resume:{runId:42}};},check:async()=>{checks++;return {status:'live',url:'https://student.github.io/game/',sha,resume:{runId:42,sha,repository:'https://github.com/student/game'}};}};
+  publisher.update=async()=>{calls.push('update');return {status:'upload-required',message:'Updated publishing files'};};
   publisher.verifyLink=async()=>publisher.check();
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async()=>{assert.equal(busy,false);uploaded++;setup=false;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async()=>{assert.equal(busy,false);uploaded++;setup=false;upgrade=false;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
-  return {api,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set active(v){active=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
+  return {api,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
 test('simulation publish never saves, authenticates, writes setup or calls publisher',async t=>{
   const h=fixture(t);h.simulation=true;const result=await h.api.publish();assert.equal(result.status,'simulated');assert.deepEqual(h.calls,[]);assert.deepEqual(h.authCalls,[]);assert.equal(h.busy,false);
@@ -200,4 +201,29 @@ test('first destination consent survives a cancelled setup upload and later rest
   t.after(()=>restarted.disposables.forEach(d=>d.dispose()));
   await restarted.publish();assert.equal(h.published,1);assert.equal(h.messages.filter(m=>m[1]?.modal).length,1);
   assert.ok(h.authCalls.every(call=>call.ticket.session.accountId==='1'));
+});
+
+test('upgrade asks for file-update consent then uploads and re-reviews the exact new commit at the same destination',async t=>{
+  const h=fixture(t,{uploadResult:{uploaded:true,head:'b'.repeat(40)}});h.upgrade=true;
+  h.stored.set('zero.webPublish.approval',{root:'/student',account:'1',repository:'https://github.com/student/game',url:'https://student.github.io/game/'});
+  h.choices.push('Update publishing files');const result=await h.api.publish();
+  assert.equal(result.status,'live');assert.equal(result.sha,'b'.repeat(40));assert.deepEqual(h.calls,['review','review','update','review','publish']);
+  assert.equal(h.messages.length,1);assert.equal(h.messages[0][0],'Update publishing files?');
+  assert.match(h.messages[0][1].detail,/README.md[\s\S]*owner.json[\s\S]*Git history[\s\S]*destination stay the same/);
+});
+test('cancelled upgrade decision never authorizes workflows, updates files, uploads or publishes',async t=>{
+  const h=fixture(t);h.upgrade=true;h.choices.push('Publish app');
+  await h.api.publish();assert.deepEqual(h.calls,['review']);assert.equal(h.uploaded,0);assert.deepEqual(h.authCalls,[]);
+});
+test('upgrade cancellation during upload preserves normal upload semantics and skips publish',async t=>{
+  const h=fixture(t,{cancelUpload:true});h.upgrade=true;h.choices.push('Publish app','Update publishing files');
+  await h.api.publish();assert.deepEqual(h.calls,['review','review','update']);assert.equal(h.uploaded,1);assert.equal(h.published,0);
+});
+test('upgrade rejects project and kit drift after consent or workflow authorization',async t=>{
+  const h=fixture(t);h.upgrade=true;
+  h.vscode.window.showInformationMessage=async message=>{if(message==='Update publishing files?')h.active='/other';return message==='Update publishing files?'?'Update publishing files':'Publish app';};
+  await assert.rejects(h.api.publish(),/project changed/);assert.equal(h.uploaded,0);
+  const kit=fixture(t);kit.upgrade=true;kit.choices.push('Publish app','Update publishing files');
+  const original=kit.publisher.review;let n=0;kit.publisher.review=async()=>{const r=await original();if(++n===2)r.upgrade={...r.upgrade,files:['different']};return r;};
+  await assert.rejects(kit.api.publish(),/kit changed/);assert.equal(kit.uploaded,0);assert.ok(!kit.calls.includes('update'));
 });
