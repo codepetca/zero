@@ -6112,3 +6112,15 @@ Temp1 profile was created through supported VS Code UI for a separate preview
 extension, preserving the original zero.zero installation and commit-form preview.
 No public installer assets were replaced and no game publishing files were
 manufactured outside Zero. Updated live/mobile acceptance remains pending.
+
+Initial fixed-head review at b161183: Sol/high compatibility review completed
+with no blockers and58helper/UI checks passed. Separate Sol/high security review
+found two blocking concurrency/bounds defects; coordinator reproduced both. One
+remediation batch replaces in-place writes with staged exclusive installation and
+retained original inodes under the ordinary clone's private Git recovery folder.
+Linked-worktree migration is refused with guidance; no game source is changed.
+The full baseline root suite completed745passed/3skipped/0failed; final correction
+checks and targeted reviews remain pending. Native Temp1 preview displayed only
+README/owner changes for the expected public URL; cancelling the update preserved
+the legacy digest and all14game hashes. Source/package/evidence receipts remain
+in the ignored existing phase plan, including the two reproduced findings.
