@@ -6154,3 +6154,13 @@ reviewed upgrade fix; no unmerged popup preview or student game changes are
 included. Signed candidate, notarization, independent artifact/metadata review,
 immutable single-DMG publication and verified feed/website promotion remain
 pending. Existing ignored mobile-canvas plan tracks this separate release phase.
+
+Version preparation PR109 merged30c9959 after clean Sol/medium review and all
+five CI checks. Local package/kit verification passed; signed native build records
+clean30c9959 and exact embedded kit. Apple accepted notarization submission
+5c09ad6b-0a74-44d3-a2a0-d7fa31097a8b. DMG staple validation and actual DMG/app
+Gatekeeper assessment passed as Notarized Developer ID. Final measured DMG is
+4580453bytes, SHA25684617473283db5303ec2e8529d0effec17eb4efee515c8bc62c584520af1d8e6.
+Signed payload verification and configuration checks passed. No installed profile
+or student repository was replaced. Native manifest remains local for sealing;
+public0.5.20feed/download remains unchanged at this checkpoint.
