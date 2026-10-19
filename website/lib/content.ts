@@ -1,6 +1,7 @@
 import snapshot from '../.generated/content.json';
 import { installerHref, landingDownloadHref, localDownloadsAllowed } from './installer.mjs';
 import { availableInstaller } from './published-installer.mjs';
+import { availableWindowsDownload } from './windows-preview.mjs';
 import { availableKitRelease, releaseAssetHref } from './contracts.mjs';
 export const release = snapshot.release as {
   schema: number; kitVersion: string; coreVersion: string;
@@ -32,4 +33,7 @@ export const windowsInstaller = snapshot.windowsInstaller as {
   publication: {status: 'published'; repository: string; tag: string};
   asset: {url: string; minimumOS: string; architectures: string[]};
 } | null;
-export function windowsDownloadHref() { return windowsInstaller?.publication.status === 'published' ? windowsInstaller.asset.url : null; }
+const windowsPreview = snapshot.windowsPreview as (NonNullable<typeof windowsInstaller> & {kind: 'unsigned-preview'}) | null;
+export function downloadableWindowsInstaller(): typeof windowsInstaller { return availableWindowsDownload(windowsInstaller, windowsPreview); }
+export function windowsDownloadIsUnsigned() { return !windowsInstaller && !!windowsPreview; }
+export function windowsDownloadHref() { return downloadableWindowsInstaller()?.asset.url ?? null; }

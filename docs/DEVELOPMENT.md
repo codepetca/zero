@@ -54,8 +54,10 @@ and its read-only CI preparation workflow.
 The Windows0.5.18 local candidate uses native private-runtime setup and pinned
 Velopack packaging. See [Windows installation and updates](WINDOWS-INSTALLER.md)
 for .NET8+ tooling, repository-local `dotnet tool restore`, `npm run test:windows`,
-signing/feed preparation and actual-Windows acceptance. No new Windows download
-is public until those release gates pass.
+signing/feed preparation and actual-Windows acceptance. The owner authorized
+publishing the unsigned 0.5.21 installer preview on 2026-10-19, with automatic
+updates disabled and interactive Windows testing explicitly pending. Signed
+production releases still require their existing acceptance gates.
 
 Native development installers are built locally with `npm run package:installers`.
 This rebuilds and verifies the kit, then produces a universal macOS app/DMG and
@@ -125,12 +127,15 @@ even with the flag enabled. No guessed public release URL is shown.
 The optional `release/installer.json` adds **Download for Mac Silicon** on the Download page.
 When that installer is published or local downloads are enabled, the public
 Download Zero action on Home opens platform choices at `/downloads`. Mac setup
-and the Windows complete-kit ZIP are the only visible download controls, with no
+and the unsigned Windows installer preview are the visible download controls, with no
 extra instructions or version prose. The complete ZIP, starter and VSIX remain
 available on GitHub releases with their own kit version, even when Mac setup
 and the published ZIP are different versions. Local-preview controls are labeled
-as such; unavailable platform buttons are omitted. No unsigned Windows
-EXE is offered. The current MVP supports Apple Silicon Macs and Windows.
+as such; unavailable platform buttons are omitted. The unsigned Windows button
+and its security-warning note are driven by strict `release/windows-preview.json`
+metadata. A signed Windows manifest takes precedence; the preview never supplies
+an update feed. Without either installer manifest, Windows falls back to the
+published complete-kit ZIP. The current MVP supports Apple Silicon Macs and Windows.
 Local native download verifies bounded exact bytes, clean signed/notarized build
 provenance and unchanged packaged/native source. `VERCEL` always disables local
 filesystem downloads even with the preview flag set. A hosted build reads only
