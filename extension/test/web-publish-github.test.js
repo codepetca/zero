@@ -6,13 +6,13 @@ const os=require('node:os');
 const path=require('node:path');
 const core=require('../src/core');
 const {createGitHubPagesPublisher,pagesPublishWorkflow,publishingFiles}=require('../src/web-publish-github');
-async function fixture(t,{installed=true,publisherOptions={},memoizeGit=false}={}) {
+async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoizeGit=false}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-pages-test-')));t.after(()=>fs.rm(root,{recursive:true,force:true}));
   const git=args=>core.git(root,args);
   await git(['init','-b','main']);await git(['config','user.name','Test']);await git(['config','user.email','test@example.invalid']);await git(['remote','add','origin','https://github.com/student/game.git']);
   await fs.writeFile(path.join(root,'zero.json'),'{}');
-  const files=new Map([['.zero-web/owner.json',Buffer.from('owned')],['.github/workflows/zero-web.yml',Buffer.from('workflow')]]);
-  if(installed)for(const [name,data] of files){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),data);}
+  const files=publisherOptions.files || new Map([['.zero-web/owner.json',Buffer.from('owned')],['.github/workflows/zero-web.yml',Buffer.from('workflow')]]);
+  if(installed)for(const [name,data] of sourceFiles || files){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),data);}
   await git(['add','.']);await git(['commit','-m','initial']);
   const head=await git(['rev-parse','HEAD']);
   let current=true,simulation=false,remoteHead=head,pages=installed?{build_type:'workflow',public:true,html_url:'https://student.github.io/game/'}:null;
@@ -61,7 +61,7 @@ async function fixture(t,{installed=true,publisherOptions={},memoizeGit=false}={
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
-  assert.equal((await p.review('/missing')).status,'simulated');assert.equal((await p.setup({})).status,'simulated');assert.equal((await p.publish({})).status,'simulated');assert.equal((await p.check({})).status,'simulated');
+  assert.equal((await p.review('/missing')).status,'simulated');assert.equal((await p.setup({})).status,'simulated');assert.equal((await p.update({})).status,'simulated');assert.equal((await p.publish({})).status,'simulated');assert.equal((await p.check({})).status,'simulated');
 });
 test('clean uploaded main dispatches exact reviewed source and confirms actual public run marker without token',async t=>{
   const h=await fixture(t);const review=await h.publisher.review(h.root);assert.equal(review.setup,false);
@@ -301,4 +301,54 @@ test('local source changing while App access awaits blocks staging before any wr
   h.afterAccess=async()=>{if(armed){armed=false;await fs.writeFile(path.join(h.root,'Changed.java'),'changed');}};
   await assert.rejects(h.publisher.publish(reviewed,{onStaging:async value=>{if(value)armed=true;}}),/files changed/);
   assert.ok(h.calls.every(call=>call.options.method==='GET'));
+});
+
+test('verified historical kit can update an existing Pages site without changing source, history or destination',async t=>{
+  const {current,legacy}=await require('./web-publish-legacy-fixture')();
+  const h=await fixture(t,{publisherOptions:{files:current},sourceFiles:legacy});
+  const {isManagedPublishingSetup}=require('../src/web-publish-upload-auth');
+  assert.equal(await isManagedPublishingSetup(h.root),false);
+  const reviewed=await h.publisher.review(h.root);
+  assert.equal(reviewed.setup,false);assert.deepEqual([...reviewed.upgrade.files].sort(),['.zero-web/README.md','.zero-web/owner.json']);
+  assert.equal(reviewed.upgrade.previousSha,h.head);assert.equal(reviewed.publicUrl,h.pages.html_url);
+  assert.equal((await h.publisher.publish(reviewed)).status,'action-required');
+  assert.equal((await h.publisher.update(reviewed)).status,'upload-required');
+  assert.equal(await isManagedPublishingSetup(h.root),true,'The normal uploader now sees the exact current workflow-capable kit');
+  assert.equal(await h.git(['rev-parse','HEAD']),h.head);
+  for(const [name,bytes]of current)assert.deepEqual(await fs.readFile(path.join(h.root,name)),bytes);
+  assert.equal(await fs.readFile(path.join(h.root,'zero.json'),'utf8'),'{}');
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
+  assert.ok(h.accessCalls.some(call=>call.permissions.workflows==='write'));
+  await assert.rejects(h.publisher.update(reviewed),/Review the older/);
+  await assert.rejects(h.publisher.review(h.root),/Commit & push/);
+  await h.git(['add','.']);await h.git(['commit','-m','Update publishing files']);h.remoteHead=await h.git(['rev-parse','HEAD']);
+  const ready=await h.publisher.review(h.root);assert.equal(ready.upgrade,undefined);assert.equal(ready.sha,await h.git(['rev-parse','HEAD']));
+});
+
+test('older kit update refuses source, session, repository, remote and Pages drift without writes',async t=>{
+  const {current,legacy}=await require('./web-publish-legacy-fixture')();
+  for(const kind of ['source','session','remote','pages','repository','permission','simulation','cancel'])await t.test(kind,async t=>{
+    const h=await fixture(t,{publisherOptions:{files:current},sourceFiles:legacy}),review=await h.publisher.review(h.root);
+    const controller=new AbortController();
+    if(kind==='source')await fs.writeFile(path.join(h.root,'New.java'),'class New {}');
+    if(kind==='session')h.current=false;
+    if(kind==='remote')h.remoteHead='f'.repeat(40);
+    if(kind==='pages')h.pages={...h.pages,html_url:'https://student.github.io/other/'};
+    if(kind==='repository')h.repo={...h.repo,id:13};
+    if(kind==='permission')h.deniedPermission='workflows';
+    if(kind==='simulation')h.simulation=true;
+    if(kind==='cancel')controller.abort();
+    if(kind==='simulation')assert.equal((await h.publisher.update(review)).status,'simulated');
+    else await assert.rejects(h.publisher.update(review,{signal:controller.signal}));
+    for(const [name,bytes]of legacy)assert.deepEqual(await fs.readFile(path.join(h.root,name)),bytes);
+    assert.ok(h.calls.every(call=>call.options.method==='GET'));
+  });
+});
+
+test('upgrade review refuses legacy bytes that are not recoverable tracked regular files',async t=>{
+  const {current,legacy}=await require('./web-publish-legacy-fixture')();
+  const h=await fixture(t,{publisherOptions:{files:current},sourceFiles:legacy});
+  await h.git(['rm','--cached','.zero-web/README.md']);await fs.appendFile(path.join(h.root,'.git/info/exclude'),'.zero-web/README.md\n');
+  await h.git(['commit','-m','Untrack guide']);h.remoteHead=await h.git(['rev-parse','HEAD']);
+  await assert.rejects(h.publisher.review(h.root),/saved unchanged in Git history/);
 });

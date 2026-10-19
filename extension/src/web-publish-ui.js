@@ -84,7 +84,13 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           if(review.repository!==approvedDestination.repository || review.account!==approvedDestination.account || review.publicUrl!==approvedDestination.publicUrl || review.needsPages!==approvedDestination.needsPages)throw new Error('The publishing account or destination changed. Choose Publish app again to review it.');
         };
         await stillCurrent(expected);
-        if(review.setup) {
+        if(review.setup || review.upgrade) {
+          const updating=Boolean(review.upgrade);
+          if(updating) {
+            const chosen=await vscode.window.showInformationMessage('Update publishing files?',{modal:true,detail:`Zero recognizes this unchanged older publishing kit. Only these files will change:\n${review.upgrade.files.join('\n')}\nThe previous files remain in Git history. Your app source and publishing destination stay the same.\n${review.publicUrl || review.repository}`},'Update publishing files');
+            if(chosen!=='Update publishing files')return;
+            await stillCurrent(expected);
+          }
           const base=await authentication.capture();
           const original=review;
           if(!repositories?.access)throw Error('Zero GitHub App repository access is not configured.');
@@ -94,9 +100,10 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           review=await publisher.review(expected,{signal:controller.signal});
           if(review.status!=='review'){await showAction(review);return review;}
           assertDestination();
+          if(Boolean(review.upgrade)!==updating || (updating && JSON.stringify(review.upgrade)!==JSON.stringify(original.upgrade)))throw new Error('The publishing kit changed during authorization. Review publishing again.');
           if(review.sha!==original.sha)throw new Error('The project version changed during GitHub authorization. Review publishing again.');
           await stillCurrent(expected);
-          result=await publisher.setup(review,{signal:controller.signal});
+          result=await publisher[updating?'update':'setup'](review,{signal:controller.signal});
           if(result.status!=='upload-required'){await showAction(result);return result;}
           progress(result.message);
           if(!uploadChanges){await showAction({...result,action:{message:'Choose Commit & push to save the publishing setup on main, then choose Publish web game again.'}});return result;}
@@ -109,7 +116,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
           if(review.status!=='review'){await showAction(review);return review;}
-          if(review.setup)throw new Error('The publishing setup was not uploaded completely. Commit & push on main and retry.');
+          if(review.setup || review.upgrade)throw new Error('The publishing setup was not uploaded completely. Commit & push on main and retry.');
           assertDestination();
           if(review.sha!==uploaded.head)throw new Error('The project version changed after the setup upload. Choose Publish app again to publish the intended version.');
         }
