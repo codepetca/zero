@@ -1,5 +1,29 @@
 # Delivery evidence index
 
+## Unsigned Windows download preview — 2026-10-19
+
+Owner explicitly authorized publishing the existing unsigned Windows EXE on the
+Downloads page. [PR114](https://github.com/codepetca/zero/pull/114) adds a separate
+strict preview manifest, unsigned button/warning and setup limitations. A signed
+Windows release takes precedence; signed installer/feed validation is unchanged.
+The Mac metadata and all earlier release bytes are preserved.
+
+[Windows preview release](https://github.com/codepetca/zero/releases/tag/windows-preview-v0.5.21)
+contains only Zero-Setup-0.5.21-windows-development.exe:13289143bytes, SHA256
+538ac64174f5d2296451d6e406574f2f8b207d581fac49ee83a0bdf7f05d159a.
+Authenticated draft and anonymous public bytes match the locally verified build
+from clean bf27c09528ab39a2c07ce22343a477c2fee522f8. No rebuild or signing credentials.
+Automatic updates are disabled; interactive Windows installation remains untested.
+
+Local155website tests, typecheck and production build passed. Chromium desktop,
+320/390px, dark mode, keyboard-next-focus, 200% text enlargement and setup-help
+checks passed. Other browser engines/physical devices were not tested.
+One Sol/medium complete review at237af97 found no blockers; independently passed
+16focused tests and verified EXE/manifest/receipt hashes. No runtime rework;
+reviewer time/tokens and coordinator tokens are unknown. Starting weekly allowance
+was19% remaining (account-wide, not task cost). CI/deployment status is attached
+to PR114; detailed receipts are retained in ignored .verification/unsigned-windows-download/.
+
 ## Mac 0.5.19 public preview — 2026-10-17
 
 Owner authorized publication. [Source PR83](https://github.com/codepetca/zero/pull/83)

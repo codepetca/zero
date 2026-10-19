@@ -16,6 +16,7 @@ import { validateManifest, validatePublishedKit } from "../lib/contracts.mjs";
 import { prepareDesign } from "../../design/prepare.mjs";
 import { prepareLessonProjects } from "../../scripts/lesson-projects.mjs";
 import { loadWindowsInstaller, loadWindowsUpdateFeed } from "../lib/windows-installer.mjs";
+import { loadWindowsPreview } from "../lib/windows-preview.mjs";
 import { loadUpdateFeed } from "../lib/update-feed.mjs";
 import { prepareBrandAssets } from "../lib/brand-assets.mjs";
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -116,13 +117,14 @@ try {
 const updateFeed=await loadUpdateFeed(root,release,installer);
 const windowsInstaller = await loadWindowsInstaller(root,release);
 const windowsUpdateFeed = await loadWindowsUpdateFeed(root,release,windowsInstaller);
+const windowsPreview = await loadWindowsPreview(root,release);
 await mkdir(resolve(site, ".generated"), { recursive: true });
 await prepareDesign({ website: true, extension: false });
 prepareLessonProjects(root, { website: true, extension: false });
 await mkdir(resolve(site, "public/generated"), { recursive: true });
 await writeFile(
   resolve(site, ".generated/content.json"),
-  JSON.stringify({ release, publishedKit, installer, publishedInstaller, updateFeed, windowsInstaller, windowsUpdateFeed, docs, sources }, null, 2) + "\n",
+  JSON.stringify({ release, publishedKit, installer, publishedInstaller, updateFeed, windowsInstaller, windowsUpdateFeed, windowsPreview, docs, sources }, null, 2) + "\n",
 );
 await prepareBrandAssets(root,site);
 await copyFile(

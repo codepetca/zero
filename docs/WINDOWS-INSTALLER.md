@@ -1,5 +1,15 @@
 # Windows automatic setup and updates
 
+## Unsigned preview — owner decision, 2026-10-19
+
+The owner authorized publishing the existing unsigned 0.5.21 development EXE on
+the download page for now. Its separate `release/windows-preview.json` records
+the original clean build source and verified public bytes. The download is
+explicitly labeled unsigned; automatic Zero updates are disabled and interactive
+Windows acceptance remains pending. This supersedes the unpublished-development
+wording below only for this preview. The signed production and feed gates remain.
+The manual ZIP stays available through GitHub releases.
+
 The 0.5.18 source adds a per-user Windows launcher with automatic setup and
 authenticated updates. It is a local development candidate. Published Windows
 0.5.17 remains the manual complete-kit ZIP until a signed candidate passes actual

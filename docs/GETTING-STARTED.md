@@ -9,9 +9,17 @@ original bytes. See [the identity plan](ZERO-IDENTITY-PLAN.md).
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
 compile locally and open a browser preview. This MVP targets **Mac with Apple
 Silicon** and **Windows**; Linux and Intel Macs are unsupported. On a supported Mac, use
-**Zero** for automatic setup. Windows is offered alongside Mac as the
-published **complete kit ZIP** for manual setup; the Windows native EXE is not
-published. The ZIP is also a manual alternative for a supported Mac;
+**Zero** for automatic setup. Windows now has an **unsigned installer preview**
+for x64 Windows 10 (build 19041) or later. Run the Setup EXE; Zero prepares Java
+and its configured editor on first launch, then opens the editor. Internet is
+required for initial setup. Later, open Zero from the Start menu.
+Windows may show an unknown-publisher or SmartScreen warning because this
+preview is unsigned. Follow your school or device policies; ask your teacher or
+IT if installation is blocked. Automatic Zero updates are off, and interactive
+Windows installation testing is still pending. Download a newer installer
+manually when needed.
+The published **complete kit ZIP** remains available on GitHub for manual setup
+on Windows or a supported Mac;
 it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.

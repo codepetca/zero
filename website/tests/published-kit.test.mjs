@@ -18,23 +18,25 @@ const native = JSON.parse(await readFile(new URL('../../release/installer.json',
 native.publication.status = 'local';
 delete native.asset.url;
 const source = await readFile(new URL('../components/Downloads.jsx', import.meta.url), 'utf8');
-async function render(release, publishedKit, currentInstaller, local, windows = null, publishedInstaller = null) {
+async function render(release, publishedKit, currentInstaller, local, windows = null, publishedInstaller = null, unsigned = false, requirements = false) {
   const installer = availableInstaller(currentInstaller, publishedInstaller, local);
   const kit = availableKitRelease(release, publishedKit, local);
-  const values = {release, installer, kit, mac:installerHref(installer, local), windows};
+  const values = {release, installer, kit, mac:installerHref(installer, local), windows, unsigned};
   const fixture = source.replace(/^import .*;\n/gm, '')
-    .replace('export function Downloads()', `const {release, installer:availableNative, kit:available, mac:macHref, windows:windowsHref} = ${JSON.stringify(values)};
+    .replace('export function Downloads()', `const {release, installer:availableNative, kit:available, mac:macHref, windows:windowsHref, unsigned} = ${JSON.stringify(values)};
 const DownloadIcon = () => null;
 const downloadableKit = () => available;
 const downloadableInstaller = () => availableNative;
 const macDownloadHref = () => macHref;
 const windowsDownloadHref = () => windowsHref;
+const windowsDownloadIsUnsigned = () => unsigned;
+const downloadableWindowsInstaller = () => windowsHref ? {kitVersion:'0.5.21'} : null;
 const downloadHref = (key = 'kit') => available?.publication.status === 'published' ? available.assets[key].url : '/download/' + key;
 export function Downloads()`);
   const js = ts.transpileModule(fixture, {compilerOptions:{jsx:ts.JsxEmit.ReactJSX, module:ts.ModuleKind.ESNext}}).outputText
     .replace('"react/jsx-runtime"', JSON.stringify(import.meta.resolve('react/jsx-runtime')));
-  const {Downloads} = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
-  return renderToStaticMarkup(createElement(Downloads));
+  const {Downloads, DownloadRequirements} = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+  return renderToStaticMarkup(createElement(requirements ? DownloadRequirements : Downloads));
 }
 test('fallback preserves exact published versions, filenames, digests and explicit URLs', () => {
   validateManifest(current);
@@ -130,6 +132,22 @@ test('verified Windows installer replaces manual ZIP as the primary Windows down
   assert.ok(html.includes(`href="${url}"`));
   assert.match(html,/Download for Windows<\/a>/);
   assert.doesNotMatch(html,/Windows \(ZIP\)|zero-bootstrap.zip/);
+});
+
+test('unsigned Windows download is explicit before clicking and setup help states its limits', async () => {
+  const url='https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.21/Zero-Setup-0.5.21-windows-development.exe';
+  const html=await render(current,fallback,null,false,url,null,true);
+  assert.ok(html.includes(`href="${url}"`));
+  assert.match(html,/Download for Windows \(unsigned\)<\/a>/);
+  assert.match(html,/aria-describedby="windows-unsigned-note"/);
+  assert.match(html,/id="windows-unsigned-note">Unsigned preview\. Windows may show a security warning\./);
+  assert.doesNotMatch(html,/Windows \(ZIP\)|zero-bootstrap.zip/);
+  const help=await render(current,fallback,null,false,url,null,true,true);
+  assert.match(help,/Windows 0\.5\.21: x64, Windows 10 \(build 19041\) or later/);
+  assert.match(help,/automatic updates are off/);
+  assert.match(help,/Interactive Windows testing is pending/);
+  const signed=await render(current,fallback,null,false,url);
+  assert.doesNotMatch(signed,/unsigned|security warning|windows-unsigned-note/);
 });
 
 

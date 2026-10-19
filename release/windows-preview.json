@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "kind": "unsigned-preview",
+  "kitVersion": "0.5.21",
+  "sourceRevision": "bf27c09528ab39a2c07ce22343a477c2fee522f8",
+  "publication": {
+    "status": "published",
+    "repository": "codepetca/zero",
+    "tag": "windows-preview-v0.5.21"
+  },
+  "asset": {
+    "filename": "Zero-Setup-0.5.21-windows-development.exe",
+    "platform": "windows",
+    "architectures": [
+      "x64"
+    ],
+    "size": 13289143,
+    "sha256": "538ac64174f5d2296451d6e406574f2f8b207d581fac49ee83a0bdf7f05d159a",
+    "minimumOS": "10.0.19041",
+    "url": "https://github.com/codepetca/zero/releases/download/windows-preview-v0.5.21/Zero-Setup-0.5.21-windows-development.exe"
+  },
+  "authenticodeSigned": false,
+  "updaterEnabled": false,
+  "nativeWindowsTested": false
+}

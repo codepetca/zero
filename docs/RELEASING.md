@@ -214,7 +214,12 @@ published0.5.8 installer. The planned0.5.9 candidate will use independent tag
 `setup-v0.5.9`; `v0.5.9` is the separate three-asset kit release. Update the native
 manifest only after measuring and verifying the new0.5.9 artifact. The existing
 `release:publish` command and Linux CI preparation do not publish or rebuild native
-installers. The unsigned Windows EXE is never a website/student download.
+installers. The historical prohibition on unsigned Windows downloads was
+superseded by the owner's 2026-10-19 authorization for the explicit 0.5.21 preview.
+Its `windows-preview-v0.5.21` release contains only the measured development EXE;
+`release/windows-preview.json` records its source, size, SHA256 and limitations.
+Verify authenticated draft bytes and anonymous public bytes before merging that
+metadata. It does not publish an update feed or weaken signed production checks.
 
 For0.5.9, first build and verify a new kit and Mac installer from a clean reviewed
 source, sign with the authorized existing identity, then notarize/staple/verify.
