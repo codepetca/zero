@@ -41,6 +41,21 @@ test('request freeze, edits, duplicate events, owner/visibility checks and cance
   assert.equal((await f.registry.read()).state.requests[edited.id].status,'queued');
 });
 
+test('open-issue recovery preserves failed and paused states and retains cancellation history',async t=>{
+  const f=await fixture(t);const record=await f.ingest();
+  const input={issueId:'2',request:fixtureRequest(),authenticatedActor:fixtureRequest().requester,
+    repositoryMetadata:metadata(fixtureRequest()),sourceDigest:record.frozen.sourceDigest};
+  await reportAttempt(f.registry,record.id,{kind:'source-failure',message:'bad source'});
+  assert.equal((await ingestRequest(f.registry,input,{resumeCancelled:true})).status,'failed');
+  await reportAttempt(f.registry,record.id,{kind:'infrastructure-failure',message:'offline',maxInfrastructureRetries:1});
+  assert.equal((await ingestRequest(f.registry,input,{resumeCancelled:true})).status,'paused');
+  await cancelRequest(f.registry,record.id);
+  assert.equal((await ingestRequest(f.registry,input)).status,'cancelled');
+  const resumed=await ingestRequest(f.registry,input,{resumeCancelled:true});
+  assert.equal(resumed.status,'queued');assert.equal(resumed.id,record.id);
+  assert.equal(resumed.attempts.length,2);assert.equal(resumed.infrastructureFailures,1);
+});
+
 test('immutable acceptance, concurrent duplicates and competing sources',async t=>{
   const f=await fixture(t); const first=await f.ingest(), other=await f.ingest(fixtureRequest(1,{commit:'c'.repeat(40)}));
   const results=await Promise.allSettled([first,first,other].map(record=>f.service.publish({requestId:record.id,evidence:evidence(record),artifacts})));

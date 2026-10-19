@@ -70,6 +70,19 @@ test('clean uploaded main dispatches exact reviewed source and confirms actual p
   assert.equal((await h.publisher.check(pending.resume)).status,'live');assert.equal((await h.publisher.check(pending.resume)).url,h.pages.html_url);
   assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending','Later updates reuse the configured destination');
 });
+test('tracking a dispatched publication permits later edits while retaining repository and account guards',async t=>{
+  const h=await fixture(t);const pending=await h.publisher.publish(await h.publisher.review(h.root));
+  await fs.writeFile(path.join(h.root,'Working.java'),'class Working {}');
+  assert.equal((await h.publisher.check(pending.resume)).status,'live');
+  let edited=false;
+  h.afterAccess=async()=>{if(!edited){edited=true;await fs.writeFile(path.join(h.root,'Working.java'),'class Working { int next; }');}};
+  assert.equal((await h.publisher.check(pending.resume)).status,'live','Editing during a permission check must not interrupt deployment tracking');
+  assert.equal(h.calls.filter(call=>call.url.endsWith('/dispatches')).length,1,'Tracking must never dispatch again');
+  h.current=false;await assert.rejects(h.publisher.check(pending.resume),/Account changed/);h.current=true;
+  h.installationId=100;await assert.rejects(h.publisher.check(pending.resume),/installation changed/);h.installationId=99;
+  await h.git(['remote','set-url','origin','https://github.com/student/another.git']);
+  await assert.rejects(h.publisher.check(pending.resume),/repository.*changed|project.*changed/i);
+});
 test('setup creates source-only files then requires normal Commit & push, never remote commits',async t=>{
   const h=await fixture(t,{installed:false});const review=await h.publisher.review(h.root);assert.equal(review.setup,true);
   assert.equal((await h.publisher.setup(review)).status,'upload-required');

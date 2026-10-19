@@ -84,6 +84,7 @@ test('own tutorial opens Main and its lesson while installation check never open
   assert.equal(tutorial.panels[0].title,'Tutorials');
   assert.equal(tutorial.calls.filter(([id])=>id==='markdown.showPreview').length,0);
   const setup=await fixture(t,{setupCheck:true});
+  await settle(()=>setup.webview.html.includes('Installation test · Hello World'));
   assert.match(setup.webview.html,/Installation test · Hello World/);
   assert.match(setup.webview.html,/Run test<\/button>/);
   assert.equal(setup.panels.length,0);assert.equal(setup.calls.filter(([id])=>id==='markdown.showPreview').length,0);

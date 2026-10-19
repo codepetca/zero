@@ -271,27 +271,37 @@ function activate(context, services = {}) {
         browserRun.stop({quiet:true});
         const generation = runGeneration;
         await stop();
+        const root=await project();
         if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
-        const root=await project();await core.assertTutorialRepository(root);
+        if (disposed || generation !== runGeneration) return undefined;
+        if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
         const task = await makeTask(root, configured.definition, configured.scope);
-        if (generation !== runGeneration) return undefined;
+        if (disposed || generation !== runGeneration) return undefined;
+        if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
+        if (disposed || generation !== runGeneration) return undefined;
         task.group = configured.group || vscode.TaskGroup.Build;
         return task;
       } finally {nativePrepared();}
     }
   }));
   async function run(generation, expectedRoot) {
-    if (generation !== runGeneration) return;
+    if (disposed || generation !== runGeneration) return;
     await stop();
     const root = await project();
     if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running the dependency update. Run the original app explicitly.');
     await core.assertTutorialRepository(root);
     if (generation !== runGeneration) return;
     if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
+    if (disposed || generation !== runGeneration) return;
     const task = await makeTask(root);
-    if (expectedRoot && await project() !== expectedRoot) throw new Error('The student project changed during run preparation. Run the original app explicitly.');
-    if (generation !== runGeneration) return;
-    pendingLaunch = vscode.tasks.executeTask(task).then(active => {track(active); return active;});
+    if (disposed || generation !== runGeneration) return;
+    if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
+    if (disposed || generation !== runGeneration) return;
+    pendingLaunch = vscode.tasks.executeTask(task).then(active => {
+      if (disposed || generation !== runGeneration) {stoppedTasks.add(active);active.terminate();}
+      else track(active);
+      return active;
+    });
     try {await pendingLaunch;} finally {pendingLaunch = undefined;}
   }
   function queuedRun(expectedRoot) {
@@ -725,8 +735,12 @@ function activate(context, services = {}) {
     if (!disposed) {output.appendLine(`Getting started: ${error.message}`);void vscode.window.showErrorMessage(`Zero: ${error.message}`);}
   });
   const introduceAfterWelcome = () => startup.then(() => {if (!disposed) return introduceProject();}).catch(error => output.appendLine(`Getting started: ${error.message}`));
-  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {projectRoot = undefined; files.reset(); refreshFiles(); repositoryStatus(); void introduceAfterWelcome();}));
-  context.subscriptions.push({dispose:() => {if (execution) execution.terminate();}});
+  context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
+    runGeneration++;
+    if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
+    projectRoot = undefined; files.reset(); refreshFiles(); repositoryStatus(); void introduceAfterWelcome();
+  }));
+  context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
   void introduceAfterWelcome();
 }
 module.exports = {activate};

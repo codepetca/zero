@@ -12,14 +12,14 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-extension-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
-  const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[],results=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', commitMessage;
+  const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[],results=[],errors=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', commitMessage;
   const originalGit=core.git;core.git=async(_,args)=>{if (args[0] === 'remote' || args[0] === 'rev-parse' || args[0] === 'symbolic-ref') throw new Error('No repository'); mutations++;throw new Error('Unexpected git');};t.after(()=>{core.git=originalGit;});
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const appProvider={dispose(){},async removeSession(){assert.fail('Run and upload must not remove a GitHub session');}};
   const vscode={
     authentication:{registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.equal(provider,appProvider);assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();},getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);return {id:'test-session',account:{id:'1',label:'student'},accessToken:'INTERCEPTED',scopes:[]};},onDidChangeSessions:disposable},
     workspace:{registerTextDocumentContentProvider:disposable,getConfiguration:(section,uri)=>({get:()=> {if(section!=='zero') return false; assert.equal(uri?.fsPath,root,'Upload mode must use the student folder scope, overriding global live'); return mode;}}),onDidChangeConfiguration:disposable,workspaceFolders:[{uri:{fsPath:root}}],saveAll:async()=>{saved++;if(saveGate) await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable},
-    window:{createOutputChannel:()=>({appendLine:text=>results.push(text),clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async options=>{assert.equal(options.title,'Commit Message');assert.equal(options.prompt,undefined);assert.equal(options.placeHolder,'Commit message');assert.equal(options.value,undefined);return commitMessage;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine upload must not open a confirmation');},showErrorMessage:async text=>{throw new Error(text);}},
+    window:{createOutputChannel:()=>({appendLine:text=>results.push(text),clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async options=>{assert.equal(options.title,'Commit Message');assert.equal(options.prompt,undefined);assert.equal(options.placeHolder,'Commit message');assert.equal(options.value,undefined);return commitMessage;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine upload must not open a confirmation');},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTaskProcess:disposable,onDidEndTask:fn=>{ends.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{const execution={task,terminate(){ends.forEach(fn=>fn({execution}));}};launches.push(execution);starts.forEach(fn=>fn({execution}));return execution;}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
     Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ShellQuoting:{Strong:2},ProcessExecution:class{constructor(command,args,options){Object.assign(this,{command,args,options});}},ShellExecution:class{},
@@ -62,6 +62,26 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   let settled=false;const cancelledResolution=commands.get('zero.stopApp')().then(()=>{settled=true;});
   await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false,'Stopping waits for native task preparation');
   releaseResolution();assert.equal(await resolution,undefined,'Cancelled task resolution cannot launch later');await cancelledResolution;
+  const otherRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'zero-other-project-'));
+  t.after(() => fs.rm(otherRoot, {recursive:true, force:true}));
+  await fs.writeFile(path.join(otherRoot, 'zero.json'), '{}');
+  await fs.writeFile(path.join(otherRoot, 'mvnw'), '');
+  // Both entry points must retain the project selected before the save dialog.
+  for (const [index, launch] of [() => commands.get('zero.runNativeApp')(),
+    () => provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2})].entries()) {
+    let release;
+    saveGate = new Promise(resolve => {release = resolve;});
+    const beforeSave = saved;
+    const preparation = launch();
+    const completion = index ? assert.rejects(preparation, /project changed/i) : preparation;
+    while (saved === beforeSave) await new Promise(resolve => setImmediate(resolve));
+    vscode.workspace.workspaceFolders = [{uri:{fsPath:otherRoot}}];
+    release();
+    await completion;
+    if (!index) assert.match(errors.at(-1), /project changed/i);
+    assert.equal(launches.length, 4, 'Changing projects during preparation must not launch either project');
+    vscode.workspace.workspaceFolders = [{uri:{fsPath:root}}];
+  }
   saveGate=undefined; mode='live';
   const originals={prepare:github.prepareUpload,upload:github.uploadPrepared};
   t.after(()=>{github.prepareUpload=originals.prepare;github.uploadPrepared=originals.upload;});
@@ -84,6 +104,15 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   await commands.get('zero.uploadToGitHub')();
   assert.equal(uploaded,1);assert.match(results.at(-1),/Pushed aaaaaaa/);assert.ok(!notices.some(text=>text.startsWith('Pushed ')),'Successful upload stays in sidebar/Output');
   assert.equal(mutations,0,'All real transport is mocked in the live UI test');assert.ok(accessCalls.length>0);assert.ok(accessCalls.every(permissions=>permissions.contents==='write'&&!permissions.workflows));
+  let releaseDisposedSave;
+  saveGate = new Promise(resolve => {releaseDisposedSave = resolve;});
+  const beforeDispose = saved;
+  const disposedRun = commands.get('zero.runNativeApp')();
+  while (saved === beforeDispose) await new Promise(resolve => setImmediate(resolve));
+  subscriptions.forEach(item => item.dispose());
+  releaseDisposedSave();
+  await disposedRun;
+  assert.equal(launches.length, 4, 'Disposing the extension cancels preparation before a task can escape cleanup');
 });
 
 test('minimal GitHub section follows Zero App sign-in and connection state; project creation and simulation stay explicit', async t => {

@@ -1,22 +1,42 @@
-# Tutorial-first onboarding release — 2026-10-19
+# Product goal audit — 2026-10-19
 
-Owner authorized fixing onboarding, merging and publishing for a restarted smoke
- test. Source PR116 merged at1c151fe; reviewed source c66736b, exact merged tree.
-Fresh native/manual launches open Start tutorial. Student-owned clones open Main
-beside Tutorials; completed Hello World is explicit Setup help → Test installation.
-Existing student sessions restore normally. Windows21preview/manual metadata kept.
+Owner requested a goal audit and feasible fixes, then explicitly said Fix and
+publish after the website/API documentation follow-up. Source PR/merge and the
+existing website Git deployment are authorized. No account/profile changes,
+student-repository actions or new installer release are part of this publication.
 
-Mac0.5.23/build23 is public at setup-v0.5.23, one DMG4582736bytes, SHA256
-4fadc5a37d758e1782ad4a0ee1aaf152c354a378b21ff6f1ec91174fc1ea3f92.
-Notary17d23e9d-5b9a-47d2-86c8-5225508561d6 Accepted; staple/Gatekeeper pass.
-Preparation74b1e81 sealed13files; anonymous public download matches exact bytes.
-Source Sol/high initial+targeted reviews and sealed release review have no open
-findings. Local768pass/3skip;157website tests/type/build; native Swift294assertions,
-Windows986checks/updater; configuration, kit parity and extracted Maven pass.
-Actual isolated native-style/manual-profile UI verified; physical Windows and
-clean-machine installs remain untested. No account/repo created by verification.
+Baseline main79b0762; local branch `codex/goal-gap-audit` in the attached isolated
+worktree. Reviewed implementation5289d28 fixes native preparation after project
+switch/disposal, publication tracking during later edits, cancelled submission
+recovery through verified open-owner intake, and ambiguous Hub release selectors.
+PRODUCT now distinguishes shipped Mac source, Windows/ZIP versions and remaining
+acceptance. Original dirty funding checkout and installed0.5.23 are preserved.
 
-Next: final public metadata delta review/CI on PR117, merge and verify live download
-anchor and feed bytes. Then update smoke guide and preserve receipts before
-retiring this task’s worktree. Keep dirty funding checkout and student work intact.
-Evidence: docs/EVIDENCE.md; ignored .verification/onboarding-release/ and candidate.
+Final root769pass/3skip, focused integration134pass, latest native30pass;
+sharing75pass/4skip plus4final recovery checks; website157/type/build;
+release86/installer17/update11pass+2skip;3scaffold compiles; local package,
+exact-source/ZIP/license checks and extracted Maven compile pass. Both dependency
+audits0known vulnerabilities; check/diff pass. One initial onboarding timing-test
+failure was corrected by waiting for its expected rendered state.
+
+Independent complete-diff reviews: two fresh Sol/high workers, safety and
+compatibility, zero findings at5289d28.2launches/1wave/0reviewfixes; no source
+changes after review. Effective telemetry unknown; start weekly12%account-wide,
+storage healthy293GB; DeepSeek dated pause honored.
+
+Follow-up API/docs check: live API98IDs/signatures match current framework;
+AppGuide/setup/starter release notes were stale. Local31b50d3/27d2a94 corrections
+and one Luna/medium targeted doc review resolve them; website157/API11/type/build/
+check pass. Browser/native limits and tutorial-first instructions are explicit.
+Docs publication is now authorized and in progress. See newest docs/EVIDENCE.md entry.
+
+Next: publish the reviewed source/docs through PR/CI and verify live guides;
+owner smoke test of publishedMac0.5.23 remains separate.
+Empty-account GitHub onboarding, token expiry/revocation/account drift, first and
+repeat Pages publication, novice/school trial and physical Windows remain open.
+Windows unsigned0.5.21 lacks Mac0.5.23 tutorial-first onboarding. Generic managed
+library admission remains gated. No new release is created; verified local
+artifacts are test outputs and cannot replace immutable published0.5.23 bytes.
+Evidence: docs/EVIDENCE.md and the dated audit matrix in docs/VERIFICATION.md;
+bulky receipts in ignored .verification/goal-audit/. Keep this deliverable worktree
+for review; the user's existing worktrees/projects remain intact.

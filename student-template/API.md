@@ -3,8 +3,8 @@
 The complete public/protected API declared by `zero.App`, `zero.GameApp`,
 `zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Collisions`, `zero.Sound` and
 `zero.Music`.
-The game helpers are local, unreleased source additions. Published Mac setup
-0.5.15 still ships the older core 0.1.2; these additions need this source starter.
+Mac setup 0.5.23 includes these helpers with core 0.2.1. Older downloads keep
+their bundled API; use their own reference when working with an older kit.
 For setup, explanations and complete examples, see the [app guide](APP-GUIDE.md)
 or [starter guide](README.md).
 
@@ -20,6 +20,11 @@ or [starter guide](README.md).
 Extend `zero.App` for event-driven interfaces. It has an implicit public
 no-argument constructor. The default window is resizable, 800 × 500 pixels,
 with title `"Zero"` and zero content-edge padding. Import JavaFX `Node` from `javafx.scene`.
+
+Normal Run builds a browser preview and checks the supported Java/JavaFX subset.
+Availability in native JavaFX does not imply browser support; unsupported calls
+produce source diagnostics. The explicit native diagnostic runs a JavaFX window.
+See [running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
 
 ### Callbacks
 
@@ -333,4 +338,5 @@ The source starter includes JavaFX controls, graphics and media. Use `loadSound`
 [app guide](APP-GUIDE.md#short-sound-effects). Raw JavaFX AudioClip/MediaPlayer
 remain available. Persistence, FXML and web need their own dependencies.
 ZeroHub provides exact-version shared libraries through ordinary Java imports;
-it does not change this core API or require a component base class. Public activation is pending.
+it does not change this core API or require a component base class. Public managed library admission remains gated; local checks and pinned
+consumption do not establish public acceptance.

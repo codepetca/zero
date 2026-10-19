@@ -1,9 +1,10 @@
 # My Zero App
 
-This source accompanies the local, unreleased Zero **0.5.22** candidate with
-core **0.2.1**. Published downloads keep their own bundled instructions.
+This source is included in Mac setup **0.5.23** with core **0.2.1**.
+Older downloads keep their own bundled instructions and API.
 
-Open **this folder** in VS Code, complete the setup below, then start with
+This bundled Hello World project is an installation check, not your lesson 0
+repository. Use it to check local setup; create your own tutorial clone for
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
 Choose **Start tutorial** from Zero’s welcome or **…** menu to create each matching
@@ -49,9 +50,10 @@ Publishing is optional and public; Pages from an existing private repository dep
 on the account plan. No paid plan is needed for tutorial source work.
 
 This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
-Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
-native Windows EXE is not published. Physical Windows/classroom verification
-remains pending, so the support target is not a claim of completed testing.
+Macs are unsupported. Choose Mac setup. For Windows, choose the unsigned
+0.5.21 preview installer or its matching complete-kit ZIP. Windows automatic
+updates are disabled. Physical Windows/classroom verification remains pending,
+so the support target is not a claim of completed testing.
 
 If you used the current **Download for Mac**, open the DMG and drag **Zero.app**
 into **Applications**, then open Zero to prepare the editor and Java tools.
@@ -170,7 +172,7 @@ Useful methods inherited from GameApp:
 | Text | `textSize(20); text("Hello", 20, 40);` (y is baseline) |
 | Mouse | `mouseX()`, `mouseY()`, `mouseDown(MouseButton.PRIMARY)` |
 | Held keys | `keyDown(KeyCode.LEFT)` |
-| Audio (local source) | `loadSound("/chime.wav")` / `loadMusic("/music.wav")` in setup; play on events, explicitly pause/stop music |
+| Audio | `loadSound("/chime.wav")` / `loadMusic("/music.wav")` in setup; play on events, explicitly pause/stop music |
 | Images | `loadImage("/player.png")` in setup; `image(sprite, x, y)` in draw |
 
 Use imports from `javafx.scene.input` for KeyCode and MouseButton. Mouse positions
@@ -181,11 +183,11 @@ control or another window clears held inputs. Releasing an owned button outside
 the canvas also clears it. Put images in `src/main/resources`; load once in setup. Sound/Music also work in ordinary App interfaces; see
 the [audio guide](APP-GUIDE.md#short-sound-effects). Owned audio closes automatically
 on shutdown and startup/frame failure. Game pause/restart policy stays in Main. Successful image loads
-share an app-scoped cache until shutdown. The local source starter also includes
+share an app-scoped cache until shutdown. The starter also includes
 explicitly updated SpriteAnimation, ImageRegion, frame-edge input, centred/
 flipped image drawing, centred text and static Collisions predicates. These
-helpers are part of this local candidate; published Mac setup 0.5.15 ships the
-older core 0.1.2.
+helpers are included in Mac setup 0.5.23/core 0.2.1. Older downloads keep their
+bundled API.
 See the [game helper guide](APP-GUIDE.md#sprite-frames-and-small-game-helpers) and
 [complete API](API.md).
 
@@ -225,8 +227,8 @@ tutorial path. ZeroHub contributions use original projects of your own.
 | Composed study app | Main from `examples/composed-study/`, Question from `examples/study/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Start, answer questions, finish and restart using shared views. [Exact copy list](examples/composed-study/README.md). |
 | Composed coin game | Main from `examples/composed-game/`, Player/Coin from `examples/coin-game/`, StartScreen/Hud from `examples/composition-shared/`, and `examples/shared/ScoreDisplay.java` | Use the same views with an explicitly gated canvas game. [Exact copy list](examples/composed-game/README.md). |
 | Move a player | `examples/movement/Main.java`, `examples/movement/Player.java` | Arrow keys move a square. See [Lesson 8](lessons/08-movement.md). |
-| Sprite playground | `examples/sprite-playground/Main.java` → `src/main/java/Main.java`; `examples/sprite-playground/src/main/resources/bird-flap-sheet.png` → `src/main/resources/bird-flap-sheet.png` | Independent sprite clocks share one image; arrows move, Space/click pauses, R resets, geometry changes the target colour. [Copy/run instructions](examples/sprite-playground/README.md). Local unreleased helpers required. |
-| Audio playground | `examples/audio-playground/Main.java` → `src/main/java/Main.java`; `examples/audio-playground/resources/audio-playground/` → `src/main/resources/audio-playground/` | Load once, trigger an effect and loop/pause/resume/stop/mute music with native buttons. [Copy/run instructions](examples/audio-playground/README.md). Local unreleased helpers required. |
+| Sprite playground | `examples/sprite-playground/Main.java` → `src/main/java/Main.java`; `examples/sprite-playground/src/main/resources/bird-flap-sheet.png` → `src/main/resources/bird-flap-sheet.png` | Independent sprite clocks share one image; arrows move, Space/click pauses, R resets, geometry changes the target colour. [Copy/run instructions](examples/sprite-playground/README.md). Included in Mac setup 0.5.23/core 0.2.1; older kits retain their bundled API. |
+| Audio playground | `examples/audio-playground/Main.java` → `src/main/java/Main.java`; `examples/audio-playground/resources/audio-playground/` → `src/main/resources/audio-playground/` | Load once, trigger an effect and loop/pause/resume/stop/mute music with native buttons. [Copy/run instructions](examples/audio-playground/README.md). Included in Mac setup 0.5.23/core 0.2.1; older kits retain their bundled API. |
 | Sprite and sound | `examples/media-demo/Main.java`; its `resources/media-demo/` → `src/main/resources/media-demo/` | Draw your PNG, play your WAV. See [Lesson 12 stage 1](lessons/12-media.md#1-your-sprite-and-sound). |
 | Scrolling game | `examples/scrolling-game/`: Main.java, Camera.java, Player.java, Coin.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Scroll a wide world with a fixed native HUD. See [stage 2](lessons/12-media.md#2-a-scrolling-world-and-fixed-score). |
 | Platform game | `examples/platform-game/`: Main.java, Camera.java, Player.java, Coin.java, Platform.java; `examples/shared/ScoreDisplay.java`; media-demo resources as above | Jump, land and collide with platforms. See [stage 3](lessons/12-media.md#3-gravity-platforms-and-collisions). |
@@ -347,11 +349,12 @@ again to recheck a pending run; follow the stated next action if publication
 fails. The previous live page remains available after an unsuccessful update.
 The playable link is separate from your repository link for Pika.
 
-**Share project** prepares a separate ZeroHub source submission. This candidate
-attaches a playable link only when it can verify the saved publication for that
-exact pushed commit. ZeroHub’s **Play latest** opens the student-hosted app;
-**Download source project** stays an exact version. Checker acceptance and public
-activation are pending; public ZeroHub pushes are not open yet.
+**Share project** prepares a separate ZeroHub source submission. Zero attaches
+a playable link only when it can verify the saved publication for that exact
+pushed commit. ZeroHub's screenshot or Play tile opens the student-hosted app;
+its version link opens the GitHub repository. Public managed library admission
+remains gated; local Check is not public acceptance. Repository pushes, app
+publication and ZeroHub submission remain separate explicit actions.
 
 ## Checking your changes
 

@@ -1,10 +1,11 @@
 # Getting started with Zero
 
-This guide describes local, unreleased Zero source. The new shared GitHub App
-is registered as Codepet Zero under `codepetca`, and its public IDs are pinned
-in source. Live acceptance, production activation and an authorized native release
-remain pending. Published downloads keep their bundled instructions and
-original bytes. See [the identity plan](ZERO-IDENTITY-PLAN.md).
+This guide describes current Zero source, included in Mac setup 0.5.23.
+The shared GitHub App is registered as Codepet Zero under `codepetca` with
+public IDs pinned in source. Device sign-in, selected private clone and guarded
+push have development-host evidence; the remaining provider and classroom
+acceptance is listed below. Windows keeps the unsigned 0.5.21 preview and its
+matching manual ZIP. Each download retains its bundled behavior.
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
 compile locally and open a browser preview. This MVP targets **Mac with Apple
@@ -29,12 +30,14 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 ## Start here
 
 1. Download and launch **Zero**. The website needs no sign-in.
-2. After App activation, choose **Sign in** in desktop Zero. Continue to GitHub
-   and enter Zero's displayed device code using your personal account. If you
+2. In Mac 0.5.23, choose **Start tutorial** from **Welcome to Zero**. If a
+   connection is needed, choose **Copy code and continue**, then paste Zero's
+   displayed device code on GitHub using your personal account. If you
    need an account, create it on GitHub and verify your email first. Install the
    Codepet App with selected repositories; Zero-created repositories receive
    access automatically. Local Run remains available if you cancel.
-3. Choose **Start tutorial** from Zero’s welcome or **…** menu and select **Greeting app**.
+3. After connection, select **Greeting app**. You can also reopen **Start tutorial**
+   from the welcome or **…** menu.
    Enter a repository name. Zero creates a public repository in your GitHub
    account; its source and included files will be public.
 4. In **Clone location**, keep the default `~/Zero Projects`
@@ -55,7 +58,9 @@ create and connect an empty remote, or **Connect to GitHub…** for an existing 
 projects show owner/repository and retain branch actions; **Publish app** is in
 that repository menu.
 
-Zero needs no separate account. **Later** leaves local Run available. To return
+Zero needs no separate account. **Later** leaves **Start tutorial** in the empty
+sidebar; an existing local project's Run remains available. **Setup help → Test
+installation** opens the bundled Hello World separately as **Installation test**. To return
 to setup, use **Zero: Get Started** from VS Code's Command Palette.
 For an existing remote, **Project → Clone from GitHub…** accepts its HTTPS URL
 and uses the same location picker; add that repository to the App's selection
@@ -66,7 +71,7 @@ trying again. Zero does not blindly repeat an
 uncertain creation request or remove the repository.
 
 Older published kits may use the VS Code 1.95 fallback for native Git cloning;
-follow that release's bundled open-in-new-window instructions. This candidate
+follow that release's bundled open-in-new-window instructions. Current source
 uses Zero's guarded authenticated clone service.
 
 ## Before lesson 0: GitHub and privacy
@@ -115,9 +120,8 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-The Mac app uses the familiar drag-to-Applications flow. Existing published
-downloads keep their original setup apps and bytes; this candidate is not yet a
-published update.
+Mac setup 0.5.23 uses the familiar drag-to-Applications flow and tutorial-first
+welcome. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
 2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**
@@ -222,7 +226,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In this candidate after activation, **Start tutorial** from Zero’s welcome or
+In current source, **Start tutorial** from Zero’s welcome or
 **…** menu uses the matching verified template to create your repository and clone
 it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a
@@ -388,22 +392,23 @@ an unsuccessful update keeps the previous live page.
 
 The playable link lets people use your app. **Copy repository link** identifies
 your source for the separate Pika submission. **Share project** prepares a
-separate ZeroHub source contribution. In this candidate, it includes a saved
+separate ZeroHub source contribution. It includes a saved
 playable link only when Zero can verify it for that exact pushed commit.
-ZeroHub’s **Play latest** opens the student-hosted app, which can change with
-later publishes; **Download source project** remains an exact source version.
-ZeroHub checker acceptance and activation are still pending, and public pushes
-are not open yet.
+ZeroHub's screenshot or Play tile opens the student-hosted app, which can change
+with later publishes. Its version link opens the GitHub repository. Public
+managed library admission remains gated; local Check is not public acceptance.
+Repository pushes, publishing an app and submitting a ZeroHub contribution are
+separate explicit actions.
 
 ## Before a class adopts it
 
 Use the [classroom pilot checklist](CLASSROOM-PILOT.md) on a student machine.
-A prior Mac teacher trial verified the earlier VS Code GitHub sign-in and a
-private repository push. That evidence does not verify this unactivated App
-migration. Selected installation, automatic access to created repositories,
-device renewal/revocation, new/private clone, browser identity and Pages setup
-need live acceptance before production activation and release. Registered public
-App IDs alone do not verify those flows.
+The earlier native-provider trial and later development-host GitHub App/device
+sign-in, selected private clone and guarded push are separate evidence. A released
+installer and registered App IDs do not establish every live flow. Empty-account
+onboarding, automatic access to App-created repositories, renewal/revocation,
+account switching, browser identity and first/repeat Pages publication still
+need observed acceptance. Follow [the recorded limits](VERIFICATION.md).
 Physical Windows, school restrictions and novice trials remain unverified;
 automated authentication and transport checks continue to use mocks.
 

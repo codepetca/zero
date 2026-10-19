@@ -1,5 +1,68 @@
 # Verification
 
+## Goal and gap audit — 2026-10-19
+
+Audited current `main` at `79b0762638ef9cfb153a3a516b9194be76dadb79` in an
+isolated worktree. The older funding checkout, installed apps/profiles, accounts,
+student repositories and published artifacts were preserved. This task authorizes
+local audit/fixes only; there is no push, release, deployment or account change.
+
+The goal remains student understanding: start an owned tutorial repository, write
+ordinary Java, run and repair it, explain state/events/object updates, and retain
+the work in GitHub. Optional publishing and community reuse support that goal.
+The audit does not propose a new engine, account system or required hosting step.
+
+| Student outcome / boundary | Audit result | Remaining evidence or work |
+| --- | --- | --- |
+| Install and reach the right starting project | Mac 0.5.23 has tutorial-first onboarding; setup test is separate. Launcher/kit checks and extracted build pass. | Fresh-device, novice and school-network installation; measure time and interventions. |
+| Start a student-owned repository | Verified scaffolds and guarded creation/clone source exist. | Empty-account first installation/App-created repository flow, cancellation and recovery with the released app. |
+| Learn without replacing prior work | Greeting, Study and Game scaffolds compile; lessons keep explicit objects/updates and unchanged shared source. | A novice completing lessons 0–12 and explaining changes; no complete lesson walkthrough performed here. |
+| Run, stop and diagnose | Broad unit/compatibility checks; native pending-run bug fixed below. | Actual browser focus, keyboard/touch, audio, cold/warm build and Stop/rerun in the installed release. No new native-window or real WebFX browser-build acceptance claimed. |
+| Keep source and recover from Git failures | Real disposable local-Git and mocked transport tests cover drift, conflicts, retries and guarded cleanup. | Live two-account, expired/revoked authorization and branch/merge cycle in an authorized disposable repository. |
+| Publish an optional app | Local build/exact run verification exists; editing during deployment no longer interrupts tracking. | Real first/repeat Pages publication, setup permission guidance and exact public-version confirmation. |
+| Share original work | Game admission/publication source and immutable artifacts are tested; cancellation recovery fixed below. | Owner-authorized submit/cancel/reopen and public discovery. Tutorials remain ineligible for original-work admission. |
+| Reuse and contribute libraries | Pinned consumption/local checking and managed-admission source are present. | Generic managed library admission remains gated by `LIBRARY_EVIDENCE_CONTRACT.implementationActive:false` and deployment/workflow acceptance. Local Check does not establish public admission. |
+| Browse and learn without sign-in | Website tests/type/build pass; Home, Learn, Docs, Downloads and Hub serve locally. | Live provider/network failure UX, optional browser stars, clipboard/keyboard/mobile and Safari observations. |
+| Download the intended version | Mac 0.5.23, Windows unsigned 0.5.21 + matching ZIP, general fallback kit 0.5.17 are explicit metadata selections. | Windows lacks Mac's 0.5.23 tutorial-first onboarding; physical Windows/signing/update acceptance remains separate. No installer release changed here. |
+| Understand readiness | PRODUCT now separates shipped Mac source, older Windows/ZIP versions and unobserved acceptance. | Keep the version-specific smoke receipt; do not convert historical mocks or a public download into classroom acceptance. |
+
+Accepted local corrections:
+
+- P2: native diagnostic command/task preparation could launch the old project
+  after a workspace switch, or launch after extension disposal. Capture/recheck
+  root, generation and disposal; invalidate on workspace changes/disposal and
+  terminate late task results. Delayed-save regressions cover command/task entry
+  and disposal; existing Stop/queue ownership checks remain.
+- P2: publication status checks unnecessarily required unchanged local source
+  after dispatch. Only the narrow read-only tracking path tolerates later edits;
+  source mutations/dispatch retain strict guards. Session, origin, repository ID,
+  installation, Pages destination and exact source/run marker remain checked.
+  Tests edit before and during access checks, reject account/install/origin drift,
+  and confirm no second dispatch.
+- P2: a cancelled immutable request stayed cancelled when its owner reopened or
+  resubmitted it. Only trusted intake observing an open authenticated owner issue
+  may requeue cancellation. Duplicate events alone do not resume; failed, paused
+  and accepted states/history remain intact. Closure is rechecked at acceptance.
+- P3: Hub repeated `id`/`version` query selectors silently selected the first value.
+  They now return 404 consistently with repeated `kind` selectors. Actual local
+  production HTTP checks verify both invalid cases and ordinary Hub navigation.
+- Verification repair: the onboarding check waited for sidebar initialization,
+  which can precede asynchronous project rendering. Wait for its expected setup
+  label before asserting it; no runtime assertion or timeout was relaxed.
+
+Scope and limits: three bounded read-only Sol/high audits covered learning/native
+lifecycle, GitHub/publishing/sharing and website/download/feedback. Coordinator
+verified accepted findings. An initial collapsed-native-code candidate was rejected:
+the approved native design intentionally makes full code/explanation optional.
+This is a coverage-oriented repository audit, not a claim that every compiler,
+sandbox, OS or provider path was independently exercised. Automated checks cannot
+replace the owner's smoke test or novice classroom trial.
+
+Local evidence and final review receipts are summarized in [EVIDENCE.md](EVIDENCE.md).
+Bulky logs remain ignored under `.verification/goal-audit/`. Locally packaged
+0.5.23 artifacts are verification outputs, not a new published version; these
+corrections need a newly versioned authorized release to reach installed users.
+
 ## Student friction candidate 0.5.19 — 2026-10-17
 
 Owner authorized local fixes from the armorup Grove Guard trial. Isolated branch

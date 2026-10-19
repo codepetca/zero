@@ -277,6 +277,35 @@ test('observed closed issues cancel pending snapshots without withdrawing accept
   await acceptedClosed.reconcile({issueNumbers:[1]});assert.equal(Object.values(g.remote.state().requests)[0].status,'available');assert.equal(Object.values(g.remote.state().releases)[0].delivery,'ready');
 });
 
+test('verified open owner issues resume cancelled source without changing its immutable identity',async()=>{
+  for(const issueNumber of [1,2]) {
+    const f=await gameFixture();const prepared=await f.platform.prepareIssue(1,{persist:true});
+    const observed=await f.reader.publicationIssue(1);
+    const reader={...f.reader,
+      publicationIssue:async()=>({...observed,issueState:'closed'}),
+      publicationIssueState:async number=>({...observed,issueId:String(number),issueState:'closed'})};
+    const platform=createSharingPlatform({reader,registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});
+    await platform.reconcile({issueNumbers:[1]});
+    assert.equal(f.remote.state().requests[prepared.record.id].status,'cancelled');
+    const duplicate=await ingestRequest(f.registry,{...observed,sourceDigest:prepared.record.frozen.sourceDigest});
+    assert.equal(duplicate.status,'cancelled','A duplicate event alone must not undo cancellation');
+    reader.publicationIssue=async()=>({...observed,issueId:String(issueNumber),issueState:'open',authenticatedActor:{githubId:'8',login:'other'}});
+    await assert.rejects(platform.prepareIssue(issueNumber,{persist:true}),/actor/);
+    assert.equal(f.remote.state().requests[prepared.record.id].status,'cancelled');
+    reader.publicationIssue=async()=>({...observed,issueId:String(issueNumber),issueState:'open'});
+    reader.publicationIssueState=async number=>({...observed,issueId:String(number),issueState:number===issueNumber?'open':'closed'});
+    const resumed=await platform.prepareIssue(issueNumber,{persist:true});
+    assert.equal(resumed.record.id,prepared.record.id);
+    assert.deepEqual(resumed.record.frozen,prepared.record.frozen);
+    assert.equal(resumed.record.status,'queued');
+    const result=await platform.publishIssue(issueNumber);
+    assert.equal(result.delivery,'ready');
+    assert.equal(result.requestId,prepared.record.id);
+    await platform.prepareIssue(issueNumber,{persist:true});
+    assert.equal(f.remote.state().requests[prepared.record.id].status,'available','Accepted requests must never be requeued');
+  }
+});
+
 test('queued requests recheck closure outside the current inbox page and immediately before acceptance',async()=>{
   const f=await gameFixture();const prepared=await f.platform.prepareIssue(1,{persist:true});
   const closed=createSharingPlatform({reader:{...f.reader,publicationIssues:async()=>({issueNumbers:[],exhausted:true}),publicationIssueState:async()=>({issueId:'1',issueState:'closed',authenticatedActor:{githubId:'7',login:'student'}})},registry:f.registry,storage:f.storage,artifactOrigin:origin,policyRevision:policy});

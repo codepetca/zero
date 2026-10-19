@@ -115,7 +115,7 @@ test('documents current padding, arrow handling, bundled media and retained app 
   assert.match(category('input').notes, /arrow presses are consumed/);
   assert.match(category('input').notes, /Tab still moves focus/);
   assert.match(category('advanced').notes, /includes JavaFX controls, graphics and media/);
-  assert.match(category('advanced').notes, /Public activation is pending/);
+  assert.match(category('advanced').notes, /Public managed library admission remains gated/);
   const guide = await readFile(new URL('../../student-template/APP-GUIDE.md', import.meta.url), 'utf8');
   assert.match(guide, /^# Building apps with Zero/);
   assert.match(guide, /\[API reference\]\(API.md\)/);

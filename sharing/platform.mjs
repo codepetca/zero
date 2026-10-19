@@ -72,7 +72,7 @@ export function createSharingPlatform({reader,registry,storage,artifactOrigin,po
     }
     assertRequestPolicy(observed.request);
     const known=Object.values((await registry.read()).state.requests).find(record=>sameStableRequest(record.frozen,observed.request,{includeSourceDigest:false}));
-    if(known){const record=persist?await ingestRequest(registry,{...observed,sourceDigest:known.frozen.sourceDigest}):structuredClone(known);return {record,files:null,included:[],publicationEnabled:record.frozen.kind==='game',cached:true};}
+    if(known){const record=persist?await ingestRequest(registry,{...observed,sourceDigest:known.frozen.sourceDigest},{resumeCancelled:observed.issueState==='open'}):structuredClone(known);return {record,files:null,included:[],publicationEnabled:record.frozen.kind==='game',cached:true};}
     const source=await reader.source(observed.request,{signal});
     const input={...observed,repositoryMetadata:source.repositoryMetadata,sourceDigest:source.sourceDigest};
     const frozen=freezeRequest(input);

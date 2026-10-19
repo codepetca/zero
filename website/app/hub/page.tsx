@@ -10,7 +10,7 @@ export const metadata = {title:'ZeroHub'};
 export default async function Hub({searchParams}: {searchParams: Promise<Record<string, string | string[] | undefined>>}) {
   const query = await searchParams;
   // Repeated selectors are ambiguous; never silently select the first value.
-  if (Array.isArray(query.kind) || Array.isArray(query.example)) notFound();
+  if (['kind', 'example', 'id', 'version'].some(key => Array.isArray(query[key]))) notFound();
   if (query.example !== undefined || query.kind === 'example' || query.kind === 'all') redirect('/learn');
   return <LearnTheme active="ZeroHub"><HubGitHubProvider><main id="page-content" tabIndex={-1} className={`reading ${styles.discovery}`}><div className="intro"><h1>ZeroHub</h1><p className="fine-print">Projects are hosted by their authors and may change after sharing.</p><HubAccount /></div><Suspense fallback={<p role="status">Loading ZeroHub…</p>}><HubDiscovery /></Suspense></main></HubGitHubProvider></LearnTheme>;
 }
