@@ -6082,45 +6082,64 @@ Screenshot:.verification/github-icon-padding-20261018/public-icon.png. No genera
 settings save, credentials, permissions, source push, native install or product
 release performed. GitHub notes other surfaces may take minutes to refresh.
 
-## Publishing kit upgrade — 2026-10-19
+## Publishing kit upgrade and live Grove Guard acceptance — 2026-10-19
 
-Owner-authorized fix for an existing armorup/zero-grove-guard Pages site whose
-unchanged pre-identity publishing guide differed from the current kit. Read-only
-comparison confirmed all four managed files hash to the stored legacy digest
-56217bc19e0f9009202e3096274d035810b3ecb46c33d862d52a63ae76d3fd92;
-GitHub access was saved for only that additional repository, preserving the
-three existing selections. All14game source/resource hashes remain unchanged.
+The owner authorized fixing the unchanged older publishing kit, PR/merge, and
+finishing Grove Guard publication/live mobile verification. PR107 merged as
+7240650e0ed4c3b4b2f585d5d3c6e0e7d479bdfc. All five checks passed for reviewed
+head5826e6d: compatible39253217931, review39253217873, Windows39253218193 and
+both Vercel checks. Full baseline root745passed/3skipped/0failed; final helper30
+and UI39passed. Configuration and diff checks passed.
 
-The migration pins that historical baseline independently, requires saved regular
-tracked originals, offers native Update publishing files review, updates only
-changed files with the ownership marker last, and uses normal upload and exact
-source/destination re-review. Edited, unknown, incomplete and symlinked/hardlinked
-setups are preserved. Failed writes attempt guarded restoration; Git history is
-the fallback when concurrent edits prevent safe rollback.
+Separate Sol/high security and compatibility reviews covered the complete source.
+Coordinator reproduced two security findings and a later Windows separator issue;
+two remediation batches and targeted reviews resolved them. Final native-path
+classification leaves unchanged staging/auth/caller coverage valid. Review used
+five reviewer turns; no extra full source wave was needed. Original inodes remain
+in private ordinary-clone Git recovery storage; exclusive installation preserves
+replaced targets and bounded rollback reads. Unknown/edited/incomplete or linked
+kit files are preserved; linked-worktree migration fails with guidance.
 
-Sol/high implementation checks: existing publisher/UI68passed, current UI39passed,
-final migration helper19passed, npm run check and diff check passed. Two duplicate
-Git-backed suites were stopped incomplete when the coordinator's full root suite
-started; their partial output is not a completed test result. Full root checks,
-fixed-head security/compatibility review and native trial are pending at this
-source checkpoint. The original mobile-runtime review budget is unchanged; this
-new bounded migration phase has its own recorded receipts in the existing ignored
-.verification/mobile-canvas/plan.json.
+The legacy kit digest matched its pinned historical baseline
+56217bc19e0f9009202e3096274d035810b3ecb46c33d862d52a63ae76d3fd92.
+Native Cancel preserved that digest and all14game source/resource hashes. The
+accepted Update publishing files dialog listed only .zero-web/README.md and
+owner.json and kept the existing Pages URL. The new marker digest is
+292808492ceceb80fefcc6ac8f0e756275cc357aee6bd2d22f3d0f2195631805.
+Only Grove Guard was added to Codepet Zero's selected repositories; the three
+existing selections were preserved. Native Zero confirmed armorup.
 
-Live baseline at390x844 still has an800x520canvas and horizontal clipping. Native
-Temp1 profile was created through supported VS Code UI for a separate preview
-extension, preserving the original zero.zero installation and commit-form preview.
-No public installer assets were replaced and no game publishing files were
-manufactured outside Zero. Updated live/mobile acceptance remains pending.
+For the trial, a uniquely identified local extension preview was installed through
+VS Code's supported VSIX UI in Temp1, preserving the original extension and other
+profiles. All94installed source files match reviewed5826e6d; preview VSIX SHA256
+8bf4e3d92315274aac1153e1b15f69720ccb4388982f95c1fe293ec7cd4c250d.
+No public Mac installer was rebuilt or replaced. This proves the merged source
+through a local preview; it does not claim a newly distributed native release.
 
-Initial fixed-head review at b161183: Sol/high compatibility review completed
-with no blockers and58helper/UI checks passed. Separate Sol/high security review
-found two blocking concurrency/bounds defects; coordinator reproduced both. One
-remediation batch replaces in-place writes with staged exclusive installation and
-retained original inodes under the ordinary clone's private Git recovery folder.
-Linked-worktree migration is refused with guidance; no game source is changed.
-The full baseline root suite completed745passed/3skipped/0failed; final correction
-checks and targeted reviews remain pending. Native Temp1 preview displayed only
-README/owner changes for the expected public URL; cancelling the update preserved
-the legacy digest and all14game hashes. Source/package/evidence receipts remain
-in the ignored existing phase plan, including the two reproduced findings.
+Normal Zero Commit & push uploaded the kit update as
+535f20807eaa5ff6718891434320ce5f91807d65 on main. All14game source/resource
+hashes stayed unchanged. Publish app completed with App published and Open app /
+Copy playable link. A Mac lock interrupted observation, not deployment; after
+manual unlock, the existing result was inspected without starting another run.
+[GitHub run39254812616](https://github.com/armorup/zero-grove-guard/actions/runs/39254812616)
+shows Success,24seconds total, stage8seconds and deploy9seconds. The public
+zero-source-sha.txt serves that exact commit and run. The successful workflow
+also reports Node20action-deprecation warnings; these did not fail deployment.
+No student terminal Git/build, direct publication or manual kit-file manufacture
+was used.
+
+[Live Grove Guard](https://armorup.github.io/zero-grove-guard/) previously clipped
+an800x520canvas at390x844. The updated live page has a390x253.5canvas atx0,y295.25
+and no horizontal overflow. Browser clicks placed Seed and Frost, reducing150coins
+to100then35; Start advanced wave0/3to1/3, enemies moved and rewards increased
+coins. Pause visibly displayed PAUSED. Resizing while paused to740x320retained the
+state and fit a492.3077x320canvas centered atx123.8462 with no horizontal overflow.
+Resume advanced enemies/rewards; Restart restored150coins/5lives/0of3waves and
+removed the towers. Key-state screenshots were visually inspected through CUA.
+
+These live checks used mouse input at phone-size Chrome viewports. They do not
+prove physical touch, iPhone/Safari behavior or audible output. Canvas scaling
+preserves Java geometry and aspect ratio; students still design readable text,
+touch targets and keyboard alternatives. Local preview/profile isolation and
+ignored receipt/log locations remain in .verification/mobile-canvas/plan.json;
+bulky artifacts are not committed.
