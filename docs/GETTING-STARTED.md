@@ -120,9 +120,8 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-The Mac app uses the familiar drag-to-Applications flow. Existing published
-downloads keep their original setup apps and bytes; this candidate is not yet a
-published update.
+Mac setup 0.5.23 uses the familiar drag-to-Applications flow and tutorial-first
+welcome. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
 2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**
@@ -393,7 +392,7 @@ an unsuccessful update keeps the previous live page.
 
 The playable link lets people use your app. **Copy repository link** identifies
 your source for the separate Pika submission. **Share project** prepares a
-separate ZeroHub source contribution. In this candidate, it includes a saved
+separate ZeroHub source contribution. It includes a saved
 playable link only when Zero can verify it for that exact pushed commit.
 ZeroHub's screenshot or Play tile opens the student-hosted app, which can change
 with later publishes. Its version link opens the GitHub repository. Public

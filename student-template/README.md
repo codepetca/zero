@@ -1,9 +1,10 @@
 # My Zero App
 
-This source accompanies the local, unreleased Zero **0.5.22** candidate with
-core **0.2.1**. Published downloads keep their own bundled instructions.
+This source is included in Mac setup **0.5.23** with core **0.2.1**.
+Older downloads keep their own bundled instructions and API.
 
-Open **this folder** in VS Code, complete the setup below, then start with
+This bundled Hello World project is an installation check, not your lesson 0
+repository. Use it to check local setup; create your own tutorial clone for
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
 uses three continuing projects: Greeting (0–2), Study (3–7) and Game (8–12).
 Choose **Start tutorial** from Zero’s welcome or **…** menu to create each matching
@@ -50,7 +51,7 @@ on the account plan. No paid plan is needed for tutorial source work.
 
 This MVP targets **Mac with Apple Silicon** and **Windows**. Linux and Intel
 Macs are unsupported. Choose Mac setup or the Windows complete-kit ZIP; the
-native Windows EXE is not published. Physical Windows/classroom verification
+Windows 0.5.21 native EXE is a published unsigned preview with updates disabled. Physical Windows/classroom verification
 remains pending, so the support target is not a claim of completed testing.
 
 If you used the current **Download for Mac**, open the DMG and drag **Zero.app**
@@ -181,11 +182,11 @@ control or another window clears held inputs. Releasing an owned button outside
 the canvas also clears it. Put images in `src/main/resources`; load once in setup. Sound/Music also work in ordinary App interfaces; see
 the [audio guide](APP-GUIDE.md#short-sound-effects). Owned audio closes automatically
 on shutdown and startup/frame failure. Game pause/restart policy stays in Main. Successful image loads
-share an app-scoped cache until shutdown. The local source starter also includes
+share an app-scoped cache until shutdown. The starter also includes
 explicitly updated SpriteAnimation, ImageRegion, frame-edge input, centred/
 flipped image drawing, centred text and static Collisions predicates. These
-helpers are part of this local candidate; published Mac setup 0.5.15 ships the
-older core 0.1.2.
+helpers are included in Mac setup 0.5.23/core 0.2.1. Older downloads keep their
+bundled API.
 See the [game helper guide](APP-GUIDE.md#sprite-frames-and-small-game-helpers) and
 [complete API](API.md).
 
@@ -347,11 +348,12 @@ again to recheck a pending run; follow the stated next action if publication
 fails. The previous live page remains available after an unsuccessful update.
 The playable link is separate from your repository link for Pika.
 
-**Share project** prepares a separate ZeroHub source submission. This candidate
-attaches a playable link only when it can verify the saved publication for that
-exact pushed commit. ZeroHub’s **Play latest** opens the student-hosted app;
-**Download source project** stays an exact version. Checker acceptance and public
-activation are pending; public ZeroHub pushes are not open yet.
+**Share project** prepares a separate ZeroHub source submission. Zero attaches
+a playable link only when it can verify the saved publication for that exact
+pushed commit. ZeroHub's screenshot or Play tile opens the student-hosted app;
+its version link opens the GitHub repository. Public managed library admission
+remains gated; local Check is not public acceptance. Repository pushes, app
+publication and ZeroHub submission remain separate explicit actions.
 
 ## Checking your changes
 
