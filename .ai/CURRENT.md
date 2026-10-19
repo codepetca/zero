@@ -1,30 +1,24 @@
-# Grove Guard delivery complete — 2026-10-19
+# Mac 0.5.21 release — 2026-10-19
 
-Owned worktree: /Users/stew/.codex/worktrees/student-friction/zero. Preserve the
-unrelated dirty primary checkout, original Zero extension and other profiles.
+Owner explicitly authorized releasing a new Mac installer containing the merged
+publishing-kit upgrade fix. Owned worktree: student-friction/zero; branch
+codex/mac-0.5.21-release from af07403. Preserve the dirty primary checkout,
+other task's unmerged popup preview, existing profiles and student repositories.
 
-Publishing-kit fix merged as PR107, commit7240650. Final reviewed head5826e6d
-passed all five CI checks and independent security/compatibility reviews after
-two bounded remediation batches. Full baseline root745passed/3skipped; final
-helper/UI69passed. Public installer assets are unchanged.
+Prepare version 0.5.21/build21. Keep public 0.5.20 installer/feed and published-kit
+snapshot unchanged until a new signed/notarized/stapled candidate is reviewed,
+published and anonymously verified. This publishes one Mac DMG and signed feed;
+no standalone kit or Windows release is requested. No new runtime edits.
 
-Native Temp1 used a uniquely identified local Zero Kit Upgrade Preview, with
-all94source files identical to reviewed5826e6d. As armorup, Publish app updated
-only the recognized old .zero-web/README.md and owner.json; normal Commit & push
-uploaded535f208. All14game source/resource hashes stayed unchanged. Zero showed
-App published. GitHub run39254812616 succeeded and the live public source marker
-matches535f208 and that run.
+Plan: review/merge version preparation; build from clean merged source; sign,
+notarize and staple; seal installer/feed; independent artifact and metadata
+reviews; publish exact single DMG; reviewed feed/download metadata promotion;
+verify public website/feed/DMG and installed extension provenance. Existing
+publishing fix reviews and Grove native/live checks remain valid.
 
-Public game: https://armorup.github.io/zero-grove-guard/.
-Live390x844portrait and740x320landscape fit without horizontal clipping. Real
-browser input verified Seed/Frost placement, costs/rewards, wave progression,
-pause/resume, resizing while paused and restart. These were mouse actions at
-phone-size Chrome viewports; physical iPhone/Safari, touch and audibility were
-not tested in this live acceptance. Scaling preserves canvas geometry; students
-still choose readable text and tap targets. No new Mac installer was released.
-
-Publication and live acceptance are complete. This delivery-evidence PR records
-the result; its merge completes the task. Source reviews remain valid, and no
-runtime or game edits accompany these docs.
-Detailed evidence: docs/EVIDENCE.md; ignored receipts and review budget:
-.verification/mobile-canvas/plan.json. DeepSeek remains paused.
+Coordinator owns writes and release decisions. New release phase budget: up to
+7 reviewer turns,4fix batches,4targeted waves,60review minutes; reviewer max30min.
+Use one standard version review, then artifact/security and metadata/compatibility
+reviews of concrete sealed bytes; reuse accepted source coverage. No new goal,
+task or automation. DeepSeek remains paused. Details/receipts in existing
+.verification/mobile-canvas/plan.json; bulky binaries/logs stay ignored.
