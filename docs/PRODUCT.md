@@ -20,6 +20,9 @@ direct download buttons: **Download for Mac Silicon** and **Download for Windows
 (unsigned)**. The Windows button offers the owner-authorized 0.5.21 installer
 preview, labels its unsigned status and links to setup limits. Automatic Windows
 updates remain disabled; the signed installer/feed contract is separate.
+The secondary **Manual setup (ZIP)** link beside Windows offers the exact kit
+embedded in that installer. Home and Downloads keep both primary buttons centered
+at the same width regardless of warning length.
 It uses the shared light/dark toggle and
 centered full-viewport layout. The old `/get-started` address redirects to Downloads.
 Browsing, learning and playing require no GitHub sign-in. The local, unreleased

@@ -18,8 +18,10 @@ preview is unsigned. Follow your school or device policies; ask your teacher or
 IT if installation is blocked. Automatic Zero updates are off, and interactive
 Windows installation testing is still pending. Download a newer installer
 manually when needed.
-The published **complete kit ZIP** remains available on GitHub for manual setup
-on Windows or a supported Mac;
+Choose **Manual setup (ZIP)** beside the Windows installer on the download page
+for the matching 0.5.21 complete kit. You can skip its setup scripts and follow
+**One-time setup** below using existing tools or help from IT. The ZIP also
+supports manual setup on a supported Mac;
 it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.

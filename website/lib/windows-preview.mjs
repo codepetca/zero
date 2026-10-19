@@ -11,7 +11,9 @@ function exactKeys(value, keys) {
 // An unsigned download is separate from the signed installer and update feed.
 export function validateWindowsPreview(manifest, kit) {
   if (manifest === null) return null;
-  exactKeys(manifest, ['schema', 'kind', 'kitVersion', 'sourceRevision', 'publication', 'asset', 'authenticodeSigned', 'updaterEnabled', 'nativeWindowsTested']);
+  const keys = ['schema', 'kind', 'kitVersion', 'sourceRevision', 'publication', 'asset', 'authenticodeSigned', 'updaterEnabled', 'nativeWindowsTested'];
+  if (Object.hasOwn(manifest, 'manualSetup')) keys.push('manualSetup');
+  exactKeys(manifest, keys);
   exactKeys(manifest.publication, ['status', 'repository', 'tag']);
   exactKeys(manifest.asset, ['filename', 'platform', 'architectures', 'minimumOS', 'size', 'sha256', 'url']);
   const version = manifest.kitVersion;
@@ -36,6 +38,17 @@ export function validateWindowsPreview(manifest, kit) {
       asset.url !== `https://github.com/codepetca/zero/releases/download/${publication.tag}/${asset.filename}`) {
     throw new Error('Invalid Windows preview: exact measured Windows x64 asset required');
   }
+  if (manifest.manualSetup) {
+    const manual = manifest.manualSetup;
+    exactKeys(manual, ['filename', 'size', 'sha256', 'url']);
+    if (manual.filename !== 'zero-bootstrap.zip' || !Number.isSafeInteger(manual.size) || manual.size <= 0 || manual.size > 256 * 1024 * 1024 ||
+        typeof manual.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(manual.sha256) ||
+        manual.url !== `https://github.com/codepetca/zero/releases/download/windows-manual-v${version}/zero-bootstrap.zip`) {
+      throw new Error('Invalid Windows preview: exact measured matching manual ZIP required');
+    }
+  } else if (Object.hasOwn(manifest, 'manualSetup')) {
+    throw new Error('Invalid Windows preview: manual ZIP metadata required when present');
+  }
   return manifest;
 }
 
@@ -48,4 +61,9 @@ export async function loadWindowsPreview(root, kit) {
 
 export function availableWindowsDownload(signed, preview) {
   return signed ?? preview;
+}
+
+export function windowsManualHref(signed, preview) {
+  // Do not attach an older preview's ZIP to a future signed installer.
+  return signed ? null : preview?.manualSetup?.url ?? null;
 }

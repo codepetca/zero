@@ -16,9 +16,10 @@ marks a preferred pattern with documented, task-specific exceptions.
 - MUST label the current MVP support as **Mac with Apple Silicon** and
   **Windows**. Linux and Intel Macs are unsupported in this MVP. Universal
   artifact architecture or retained cross-platform source is not a support claim.
-- MUST offer Windows alongside Mac in download choices. Label the published
-  Windows complete-kit ZIP as manual setup; the native Windows EXE is unpublished
-  and must not appear as an available download. Distinguish the Windows support
+- MUST offer Windows alongside Mac in download choices. The owner authorized the
+  unsigned Windows installer preview and its matching **Manual setup (ZIP)**
+  secondary link on 2026-10-19. Keep the unsigned warning visible and both primary
+  buttons centered. Release metadata determines availability. Distinguish the Windows support
   target from physical Windows verification, which remains pending.
 
 - MUST retain ordinary Java/JavaFX controls and explicit student-owned state.
@@ -31,7 +32,7 @@ marks a preferred pattern with documented, task-specific exceptions.
   repositories and submit links separately in Pika. Connecting a repository,
   copying its link, uploading a branch and completing main are distinct states.
 - MUST preserve the owner-approved home page: shared app header, Learn Java,
-  Starting from zero. and direct Mac Silicon and Windows ZIP download actions. Keep the
+  Starting from zero. and direct Mac Silicon and Windows download actions. Keep the
   centered stack and shared light/dark themes without promotional sections.
   GitHub development connection belongs in downloaded Zero's welcome, using the
   supported `zero-github` provider, native editor controls and GitHub device-code

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {validateWindowsPreview, loadWindowsPreview, availableWindowsDownload} from '../lib/windows-preview.mjs';
+import {validateWindowsPreview, loadWindowsPreview, availableWindowsDownload, windowsManualHref} from '../lib/windows-preview.mjs';
 import {validateWindowsInstallerManifest, publishedWindowsFeedResponse} from '../lib/windows-installer.mjs';
 
 const kit = {kitVersion:'0.5.22'};
@@ -42,6 +42,27 @@ test('a future signed release takes precedence; unsigned metadata cannot become 
   assert.equal(availableWindowsDownload(null,null),null);
   assert.throws(()=>validateWindowsInstallerManifest(unsigned,kit));
   assert.equal(publishedWindowsFeedResponse(null).status,503);
+});
+
+test('manual ZIP is measured, immutable and version-matched, and cannot follow a different signed installer', () => {
+  const valid=preview();
+  valid.manualSetup={filename:'zero-bootstrap.zip',size:321,sha256:'c'.repeat(64),
+    url:'https://github.com/codepetca/zero/releases/download/windows-manual-v0.5.21/zero-bootstrap.zip'};
+  assert.equal(validateWindowsPreview(valid,kit),valid);
+  assert.equal(windowsManualHref(null,valid),valid.manualSetup.url);
+  assert.equal(windowsManualHref({kitVersion:'0.5.22'},valid),null);
+  assert.equal(windowsManualHref(null,preview()),null);
+  assert.equal(windowsManualHref(null,null),null);
+  for (const mutate of [
+    m=>m.manualSetup=null,m=>m.manualSetup={},m=>m.manualSetup.filename='starter.zip',
+    m=>m.manualSetup.size=0,m=>m.manualSetup.size=256*1024*1024+1,m=>m.manualSetup.sha256='bad',
+    m=>m.manualSetup.url=m.manualSetup.url.replace('0.5.21','0.5.17'),
+    m=>m.manualSetup.url+='?other',m=>m.manualSetup.url='https://other.invalid/kit.zip',
+    m=>m.manualSetup.extra=true,m=>delete m.manualSetup.sha256
+  ]) {
+    const invalid=structuredClone(valid);mutate(invalid);
+    assert.throws(()=>validateWindowsPreview(invalid,kit));
+  }
 });
 
 test('missing preview falls back while malformed authored metadata fails the build', async t => {
