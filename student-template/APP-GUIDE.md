@@ -2,6 +2,11 @@
 
 For the complete list of Zero methods, see the [API reference](API.md).
 
+Normal Run builds a browser preview and checks the supported Java/JavaFX subset.
+Native JavaFX may provide methods that browser builds reject with source
+locations. For the run/stop flow and explicit native diagnostic, see
+[running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
+
 
 New to Zero? Start with the [beginner toolkit](BEGINNER.md), then
 [make it look good](STYLE.md) and [UI and app/game flow](UI.md). This page is the complete reference; you can
@@ -197,8 +202,8 @@ assets in setup to make their ownership and any errors easy to find.
 
 ### Sprite frames and small game helpers
 
-These helpers are local, unreleased source additions. Published Mac setup 0.5.15
-ships the older core 0.1.2; use this source starter for these APIs. Import
+Mac setup 0.5.23 includes these helpers with core 0.2.1. Older downloads keep
+their bundled API. Import
 `zero.SpriteAnimation`, `zero.ImageRegion` and `zero.Collisions` as needed.
 
 Keep a `SpriteAnimation walk;` field. In setup, load a regular sheet whose four
@@ -250,10 +255,9 @@ own Java objects. The [API reference](API.md) lists every overload and construct
 
 ### Short sound effects
 
-The local source starter provides `zero.Sound` for short effects and `zero.Music`
-for longer tracks, in both App and GameApp. These helpers are unreleased;
-published core 0.1.2/setup 0.5.15 retain their original API. The source starter
-already pins JavaFX media. Put `chime.wav` and `music.wav` in `src/main/resources`.
+The starter provides `zero.Sound` for short effects and `zero.Music` for longer
+tracks, in both App and GameApp. Mac setup 0.5.23 includes these helpers with
+core 0.2.1. Older downloads keep their bundled API. The starter pins JavaFX media. Put `chime.wav` and `music.wav` in `src/main/resources`.
 Keep fields and load once in setup:
 
 ```java
@@ -375,8 +379,9 @@ package; move its helpers into named packages too. Resource-root image paths
 such as `/player.png` keep working.
 
 The source starter includes JavaFX controls, graphics and media. Persistence,
-FXML and web need their own dependencies. The local Sound/Music helpers wrap
-JavaFX media; raw AudioClip and MediaPlayer are also available. ZeroHub provides exact-version shared libraries through ordinary Java imports; it does not change this core API or require a component base class. Public activation is pending.
+FXML and web need their own dependencies. The Sound/Music helpers wrap
+JavaFX media; raw AudioClip and MediaPlayer are also available. ZeroHub provides exact-version shared libraries through ordinary Java imports; it does not change this core API or require a component base class. Public managed library admission remains gated; local checks and pinned
+consumption do not establish public acceptance.
 
 Try the local [Sprite playground](examples/sprite-playground/README.md) in a fresh project,
 copying one example at a time. It shares one bird sheet across two independent
