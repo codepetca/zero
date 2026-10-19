@@ -1,16 +1,19 @@
-# Mac 0.5.22 publication — 2026-10-19
+# Windows manual fallback and centered downloads — 2026-10-19
 
-Owner authorized merge/publication of final sidebar for fresh-user smoke test.
-PR112 merged1fbc98c after all5checks and clean Sol/medium complete review.
-Root761pass/3skip,47focused,151website/type/build and kit/release checks pass.
+Owner authorized publishing the exact ZIP embedded in Windows0.5.21, adding
+Manual setup (ZIP) beside the unsigned installer, and fixing landing centering.
+Implementation6edda2b starts from main57741ca. No installer/runtime rebuild,
+credential change or old release mutation. Original funding checkout preserved.
 
-Signed/notarized/stapled Mac build22 accepted. Builtf420293 equals merged source;
-clean preparationf5cfe754b148 sealed source-equivalent DMG/feed. Independent
-candidate review validates hashes/Ed25519/provenance/order. One immutable DMG
-published at setup-v0.5.22; anonymous bytes match4580558/SHA2562d603773…714214d.
+The manual prerelease windows-manual-v0.5.21 has one zero-bootstrap.zip;
+authenticated draft and anonymous public size/SHA256 match the embedded kit.
+Optional strict manualSetup metadata ties its link to the current preview;
+a signed installer suppresses that older preview link. Windows updates stay off.
 
-PR113 promotes exact native manifest and signed feed. Final delta review/CI/merge
-and live download/feed verification pending. Preserve WindowsZIP0.5.17 and old
-release bytes. Keep owner's fresh-install state intact; do not install app.
-Original dirty funding checkout and historical worktrees untouched. Receipts and
-source/review limits: docs/EVIDENCE.md, ignored .verification/sidebar-release/.
+Home/Downloads constrain the section and controls to340px; old desktop offset
+was-40.375px and new button centers match the viewport at1440/390/320px.
+157website tests/typecheck/build and Chromium layout/focus/200%text/dark checks
+pass. Sol/medium complete review at6edda2b has no blockers;13focused tests pass.
+Metadata PR/CI/merge and live-page verification follow the normal release gates.
+Evidence: docs/EVIDENCE.md and ignored .verification/windows-manual-download/.
+Actual Windows installation and other browser/device coverage remain untested.

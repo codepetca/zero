@@ -1,5 +1,31 @@
 # Delivery evidence index
 
+## Matching Windows manual ZIP and centered downloads — 2026-10-19
+
+Owner authorized matching manual ZIP publication and landing-page centering repair.
+[Manual ZIP prerelease](https://github.com/codepetca/zero/releases/tag/windows-manual-v0.5.21)
+contains one immutable zero-bootstrap.zip:2996690bytes, SHA256
+ e2951a504bd04ae77077698b717afefa968f624f81928b03357542a5ffb5c85d.
+These are the exact kit bytes in the already published Windows0.5.21 installer
+from bf27c09528ab39a2c07ce22343a477c2fee522f8, including VSIX and manual instructions.
+Verified lineage through measured app/full-package/EXE, authenticated draft and
+anonymous public bytes. Existing Mac/Windows/kit releases remain unchanged.
+
+Optional strict manualSetup metadata supplies a secondary Manual setup (ZIP)
+link beside the Windows preview; a future signed installer suppresses that older
+manual link. Signed feed gates are unchanged. A shared340px section width fixes
+the landing's-40.375px horizontal button offset caused by its wider warning.
+
+Local157website tests, typecheck and production build passed. Chromium Home and
+Downloads at1440/390/320px have equal-width buttons centered on the viewport,
+visible warning/manual link, no horizontal overflow and Windows-to-ZIP keyboard
+order.200%text enlargement and dark mode pass; other engines/devices not tested.
+One Sol/medium complete review at6edda2b finds no blockers and independently passes
+13focused tests and ZIP hash verification. No fixes; reviewer time/tokens unknown.
+Starting17%weekly allowance is account-wide, not task cost. Final PR/CI/deployment
+and review receipts are retained in ignored .verification/windows-manual-download/.
+Actual Windows installation remains untested; this change does not rebuild it.
+
 ## Unsigned Windows download preview — 2026-10-19
 
 Owner explicitly authorized publishing the existing unsigned Windows EXE on the
