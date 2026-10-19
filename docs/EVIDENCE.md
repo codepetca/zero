@@ -6143,3 +6143,14 @@ preserves Java geometry and aspect ratio; students still design readable text,
 touch targets and keyboard alternatives. Local preview/profile isolation and
 ignored receipt/log locations remain in .verification/mobile-canvas/plan.json;
 bulky artifacts are not committed.
+
+## Mac 0.5.21 release preparation — 2026-10-19
+
+Owner requested distributing the publishing-kit fix to students after PR107 and
+Grove live acceptance. Version0.5.21/build21 is unused; preparation advances only
+kit/extension/native update versions and bundled guide version labels. Public
+0.5.20 installer/feed/snapshot stay intact. Source starts from af07403 with the
+reviewed upgrade fix; no unmerged popup preview or student game changes are
+included. Signed candidate, notarization, independent artifact/metadata review,
+immutable single-DMG publication and verified feed/website promotion remain
+pending. Existing ignored mobile-canvas plan tracks this separate release phase.
