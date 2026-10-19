@@ -6144,23 +6144,55 @@ touch targets and keyboard alternatives. Local preview/profile isolation and
 ignored receipt/log locations remain in .verification/mobile-canvas/plan.json;
 bulky artifacts are not committed.
 
-## Mac 0.5.21 release preparation — 2026-10-19
+## Mac 0.5.21 distribution — 2026-10-19
 
-Owner requested distributing the publishing-kit fix to students after PR107 and
-Grove live acceptance. Version0.5.21/build21 is unused; preparation advances only
-kit/extension/native update versions and bundled guide version labels. Public
-0.5.20 installer/feed/snapshot stay intact. Source starts from af07403 with the
-reviewed upgrade fix; no unmerged popup preview or student game changes are
-included. Signed candidate, notarization, independent artifact/metadata review,
-immutable single-DMG publication and verified feed/website promotion remain
-pending. Existing ignored mobile-canvas plan tracks this separate release phase.
+Owner requested shipping PR107's publishing-kit fix to students. Version/build21
+preparation [PR109](https://github.com/codepetca/zero/pull/109) merged
+30c9959c763217a7d98a0461a4edbe5b38bf7d01 after complete Sol/medium review and
+all5CI checks. Only versions and bundled guide labels changed; no runtime edit.
+Kit/extension0.5.21 remains local as a separate three-asset kit; Windows/manual
+ZIP snapshot0.5.17 is retained. DeepSeek remains paused; weekly23%remaining was
+account-wide, not a task-cost measure. Fresh storage check286.3GB was healthy.
 
-Version preparation PR109 merged30c9959 after clean Sol/medium review and all
-five CI checks. Local package/kit verification passed; signed native build records
-clean30c9959 and exact embedded kit. Apple accepted notarization submission
-5c09ad6b-0a74-44d3-a2a0-d7fa31097a8b. DMG staple validation and actual DMG/app
-Gatekeeper assessment passed as Notarized Developer ID. Final measured DMG is
+Built clean30c9959, preparationc19621731f9a6d431bb8ff93a31c319e4442e7cb;
+sealed candidate dist/candidates/mac-0.5.21-c19621731f9a. Package/kit checks,
+signed native payload verification, exact licenses/modes, staple and Gatekeeper
+DMG/app checks passed. Apple Accepted submission
+5c09ad6b-0a74-44d3-a2a0-d7fa31097a8b. Actual Developer ID team88FT6QZJP8 and
+identityACE8EE40F3615C5062CBBD5F085E299E049BAE08 match the existing signer.
+
+Separate fresh Sol/high reviewers completed artifact/security and metadata/
+compatibility reviews with no blockers. Artifact review independently verified
+all13checksum entries (14files including SHA256SUMS), all41protected source paths,
+exact169file bootstrap payload/modes, exact156file starter and embedded VSIX with
+all94source files matching the build, including PR107. Strict app/dependency/DMG
+signatures, hardened runtime and timestamps passed. Previous0.5.20candidate
+remains checksum-identical. Owned read-only review mount was detached; no app
+installation or launch was performed.
+
+Metadata review independently verified Ed25519 DMG and complete-feed signatures,
+version/build ordering, enclosure/source/size/hash agreement, preserved public
+snapshots and the strict promotion path. Focused feed/installer checks15passed,
+1optional official-signer test skipped; actual pinned signer ran during sealing.
+Source review1turn plus these2candidate turns; no remediation. Effective model,
+reviewer token totals and attributable active time are unavailable.
+
+[Public Mac release](https://github.com/codepetca/zero/releases/tag/setup-v0.5.21)
+targets the exact preparation commit and contains only Zero-0.5.21-macos.dmg:
 4580453bytes, SHA25684617473283db5303ec2e8529d0effec17eb4efee515c8bc62c584520af1d8e6.
-Signed payload verification and configuration checks passed. No installed profile
-or student repository was replaced. Native manifest remains local for sealing;
-public0.5.20feed/download remains unchanged at this checkpoint.
+Draft and anonymous public downloads matched those exact bytes; tag target was
+read back and verified. Initial by-tag draft lookup returned404; the existing
+draft was recovered by release ID/list and verified without recreating anything.
+No old release/tag/asset was replaced. Existing published feed was independently
+verified as0.5.20before promotion.
+
+Promotion copies the sealed XML unchanged and changes only publication status
+and the independently verified public URL in metadata, with matching installer
+snapshot. Build21feed SHA256:
+2b3302757bc212edad5ebce68fbe20fe1c886241f6422ca132e2910efde5613c.
+The publication PR records final integration review, CI/merge and actual deployed
+/downloads and /updates/macos/appcast.xml verification; detailed ignored receipts
+are in .verification/mobile-canvas/plan.json and .verification/mac-0.5.21/.
+Native install/update GUI, fresh-machine/classroom, physical Intel/Windows and
+physical iPhone/Safari acceptance are not claimed. Prior Grove UI/live publishing
+acceptance is reused for the identical authored extension runtime.
