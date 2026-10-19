@@ -13,13 +13,13 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     git(['init','-q','-b','main']);git(['add','zero.json']);git(['-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','Tutorial clone fixture']);git(['remote','add','origin','https://github.com/student/app.git']);
   }
   if(kit)for(const [name,bytes] of await publishingFiles()){await fs.mkdir(path.dirname(path.join(root,name)),{recursive:true});await fs.writeFile(path.join(root,name),bytes);}
-  const commands=new Map(),calls=[],errors=[],notices=[],results=[],picks=[],listeners=new Set();let webviewProvider;let repositoryId=12,installationId=99,privacy=true;let saves=0,reviews=0,uploads=0,pushes=0,disposed=0,inputs=0,failPush=false,accountId='1',afterAccess=async()=>{},afterInput=async()=>{};
+  const commands=new Map(),calls=[],errors=[],notices=[],results=[],picks=[],listeners=new Set();let webviewProvider;let repositoryId=12,installationId=99,privacy=true;let saves=0,reviews=0,uploads=0,pushes=0,disposed=0,inputs=0,failPush=false,accountId='1',afterAccess=async()=>{},afterInput=async()=>{},afterUpload=async()=>{};
   const originalGit=core.git,originalPrepare=github.prepareUpload,originalUpload=github.uploadPrepared;
   core.git=async(_,args)=>{if(args[0]==='rev-parse')return root;if(args[0]==='remote')return 'https://github.com/student/app.git';if(args[0]==='symbolic-ref')return 'main';throw Error('Unexpected Git command in mocked native UI');};
   const plan={root,page:'https://github.com/student/app',remote:'https://github.com/student/app.git',branch:'main',head:'b'.repeat(40),status:'',summary:'No file changes; retry already committed branch',changes:[]};
   github.prepareUpload=async()=>{reviews++;return plan;};
   github.uploadPrepared=async(reviewed,message,options)=>{
-    uploads++;assert.equal(reviewed,plan);
+    uploads++;assert.equal(reviewed,plan);await afterUpload();
     const session=await options.beforeUpload();
     assert.deepEqual(session.scopes,[]);assert.equal(session.accountId,'1');assert.equal(session.accessToken,'APP_TEST_ONLY');
     pushes++;if(failPush){failPush=false;throw Error('GitHub transport failed. Your local commit is preserved.');}
@@ -49,7 +49,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appProvider,repositories});await new Promise(resolve=>setImmediate(resolve));
   t.after(()=>{subscriptions.forEach(item=>item.dispose());core.git=originalGit;github.prepareUpload=originalPrepare;github.uploadPrepared=originalUpload;delete require.cache[require.resolve('../src/extension')];});
-  return {commands,calls,accessCalls,errors,notices,results,picks,get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
+  return {commands,calls,accessCalls,errors,notices,results,picks,get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},set afterUpload(value){afterUpload=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
 }
 test('native App Commit & push retries a failed push using the same reviewed repository and empty scopes',async t=>{
   const h=await harness(t);h.failPush=true;
@@ -132,4 +132,65 @@ test('unchanged URL and account cannot push to a replacement repository or insta
   const h=await harness(t);h.afterInput=async()=>{if(kind==='repository'){h.repositoryId=13;h.privacy=false;}else h.installationId=100;};
   await h.commands.get('zero.uploadToGitHub')();assert.equal(h.inputs,1);assert.equal(h.pushes,0);assert.match(h.errors.at(-1),/repository or Zero installation changed/);
  });
+});
+
+
+async function uploadSidebar(h) {
+  const webview=h.render(),deadline=Date.now()+5000;
+  while(!webview.html.includes('data-command="zero.uploadToGitHub"')) {
+    assert.ok(Date.now()<deadline,'Upload controls should finish initial rendering');
+    await new Promise(resolve=>setImmediate(resolve));
+  }
+  return webview;
+}
+
+function uploadButton(webview) {
+  return webview.html.match(/<button[^>]*data-command="zero.uploadToGitHub"[^>]*>[\s\S]*?<\/button>/)?.[0] || '';
+}
+
+test('Commit & push shows preparation during slow access, rejects duplicates and resets after message cancellation',async t=>{
+  const h=await harness(t,{kit:false,tutorial:true,cancelMessage:true}),webview=await uploadSidebar(h);
+  let releaseAccess,accessStarted;
+  const started=new Promise(resolve=>{accessStarted=resolve;});
+  const accessGate=new Promise(resolve=>{releaseAccess=resolve;});
+  h.afterAccess=async()=>{accessStarted();await accessGate;};
+  h.afterInput=async()=>{
+    assert.doesNotMatch(uploadButton(webview),/Preparing commit…|Committing &amp; pushing…|aria-busy="true"/,'Preparation ends when the input opens');
+    assert.match(uploadButton(webview),/data-command="zero.uploadToGitHub"[^>]*disabled/,'Input keeps duplicate submissions disabled');
+  };
+  const pending=h.commands.get('zero.uploadToGitHub')();
+  try {
+    await started;
+    assert.match(uploadButton(webview),/data-command="zero.uploadToGitHub"[^>]*aria-busy="true"[^>]*disabled>[\s\S]*?busy-indicator[\s\S]*?Preparing commit…<\/button>/);
+    assert.equal(h.inputs,0);assert.equal(h.uploads,0);
+    await h.commands.get('zero.uploadToGitHub')();assert.equal(h.reviews,1,'Repeated clicks cannot start a second preparation');
+  } finally {releaseAccess();await pending;}
+  assert.equal(h.inputs,1);assert.equal(h.uploads,0);
+  assert.doesNotMatch(uploadButton(webview),/Preparing commit…|aria-busy="true"/);
+  assert.match(uploadButton(webview),/data-command="zero.uploadToGitHub"[^>]*>.*Commit &amp; push<\/button>/);
+  assert.doesNotMatch(uploadButton(webview),/data-command="zero.uploadToGitHub"[^>]*disabled/);
+});
+
+test('Commit & push clears its indicator on preparation failure and after a confirmed push succeeds or fails',async t=>{
+  await t.test('access denied',async t=>{
+    const h=await harness(t,{kit:false,tutorial:true,selected:false}),webview=await uploadSidebar(h);
+    await h.commands.get('zero.uploadToGitHub')();
+    assert.equal(h.inputs,0);assert.equal(h.uploads,0);assert.match(h.errors[0],/selected repositories/);
+    assert.doesNotMatch(uploadButton(webview),/Preparing commit…|aria-busy="true"|data-command="zero.uploadToGitHub"[^>]*disabled/);
+  });
+  for(const fail of [false,true])await t.test(fail?'push failed':'push completed',async t=>{
+    const h=await harness(t,{kit:false,tutorial:true}),webview=await uploadSidebar(h);h.failPush=fail;
+    let releaseUpload,uploadStarted;
+    const started=new Promise(resolve=>{uploadStarted=resolve;});
+    const uploadGate=new Promise(resolve=>{releaseUpload=resolve;});
+    h.afterUpload=async()=>{uploadStarted();await uploadGate;};
+    const pending=h.commands.get('zero.uploadToGitHub')();
+    try {
+      await started;
+      assert.match(uploadButton(webview),/data-command="zero.uploadToGitHub"[^>]*aria-busy="true"[^>]*disabled>[\s\S]*?Committing &amp; pushing…<\/button>/);
+      assert.equal(h.inputs,1);
+    } finally {releaseUpload();await pending;}
+    assert.equal(h.pushes,1);assert.equal(h.errors.length,fail?1:0);
+    assert.doesNotMatch(uploadButton(webview),/Preparing commit…|Committing &amp; pushing…|aria-busy="true"|data-command="zero.uploadToGitHub"[^>]*disabled/);
+  });
 });

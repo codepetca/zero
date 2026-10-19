@@ -50,6 +50,7 @@ function activate(context, services = {}) {
   }
   const nativeIdle = () => nativeStarting ? new Promise(resolve=>nativeIdleWaiters.add(resolve)) : Promise.resolve();
   let uploading = false;
+  let uploadProgress = '';
   let connecting = false;
   let startingTutorial = false;
   let signingIn = false;
@@ -368,7 +369,7 @@ function activate(context, services = {}) {
   }
   async function uploadProject(uploadAuth = auth) {
       if (isBusy()) return;
-      uploading = true; refresh();
+      uploading = true; uploadProgress = 'Preparing commit…'; refresh();
       let selectedAuth;
       try {
         const root = await project();
@@ -388,8 +389,10 @@ function activate(context, services = {}) {
         const plan = await github.prepareUpload(root);
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
-        const message = await vscode.window.showInputBox({title:'Commit & push', prompt:`${plan.page} · ${plan.branch}`, placeHolder:'Describe your changes', value:'Update my app', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
+        uploadProgress = ''; refresh();
+        const message = await vscode.window.showInputBox({title:'Commit Message', placeHolder:'Commit message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
+        uploadProgress = 'Committing & pushing…'; refresh();
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
         const assertCurrent = async () => {await assertCurrentProject();assertRepositoryIdentity(selectedAuth.identity,await repositories.access(plan.page,{ticket,permissions:selectedAuth.permissions}));await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
         const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
@@ -397,7 +400,7 @@ function activate(context, services = {}) {
         await repositoryStatus();
         report(`Pushed to ${result.branch}`, `Pushed ${result.head} to ${result.branch}. Copy your repository link for Pika.`);
         return result;
-      } finally {selectedAuth?.dispose();await repositoryStatus(); uploading = false; refresh();}
+      } finally {selectedAuth?.dispose();await repositoryStatus(); uploadProgress = ''; uploading = false; refresh();}
   }
   const actions = {
     'zero.getStarted': () => welcome.show(true),
@@ -659,7 +662,7 @@ function activate(context, services = {}) {
     const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
     const branchControl = auth.signedIn && connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
-    const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${disabled}>${icon('CloudUpload')}Commit &amp; push</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
+    const githubActions = connected && auth.signedIn ? `<button class="secondary upload" data-command="zero.uploadToGitHub" ${uploadProgress ? 'aria-busy="true"' : ''} ${disabled}>${uploadProgress ? '<span class="busy-indicator" aria-hidden="true"></span>' : icon('CloudUpload')}${uploadProgress ? escape(uploadProgress) : 'Commit &amp; push'}</button>${uploadMode() === 'live' ? '' : '<p class="badge">Simulation — nothing will be uploaded</p>'}` : '';
     const repositoryWarning = auth.signedIn && !connected && repository !== 'No repository connected' ? `<p class="muted status">${escape(repository)}</p>` : '';
     const published = context.workspaceState?.get('zero.webPublish.lastLive');
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountId && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';

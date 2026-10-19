@@ -301,13 +301,13 @@ Desktop sign-in does not pair the browser or transfer credentials to it.
 
 `main` holds completed work. A change branch holds your next improvement.
 **GitHub actions are live by default.** Nothing pushes automatically: choose an
-action. Check your code before choosing an action; the commit-message input shows
-your repository and branch. Entering a branch name or commit message proceeds
+action. Check your code before choosing an action; the **Commit Message** input shows
+only the native Enter/Escape hint. Repository and branch stay visible in the sidebar. Entering a branch name or commit message proceeds
 directly, and Merge to main starts when you click it. Local Run needs no active
 GitHub session. Tutorial projects require their initial own-repository clone.
 
 For a new repository, **Commit & push once on main** to save and push the
-starter. Check your changes and the repository and branch shown in the input,
+starter. Check your changes, the repository and branch in the sidebar,
 then enter a short commit message and press Enter. This is the starting version.
 
 For each improvement:
@@ -318,7 +318,7 @@ For each improvement:
    without combining separate histories, then creates the branch.
 2. Edit and **Run App**. Check your change.
 3. **Commit & push** creates a commit when needed and pushes the current branch.
-   Check the repository and branch in the input, describe what changed, then
+   Check the repository and branch in the sidebar, describe what changed, then
    press Enter. You can repeat this while building; it does not yet add the change to main.
 4. Click **Merge to main** beside the branch name. Commit & push any pending edits first.
    Run and check your app before clicking. **Merge to main** merges the current
