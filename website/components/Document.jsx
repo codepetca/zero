@@ -17,6 +17,7 @@ import { FoldingReader } from "./FoldingReader";
 import { ReaderNavigation } from "./ReaderNavigation";
 import { CodeBlock } from "./CodeBlock";
 import { TutorialProject } from "./TutorialProject";
+import { DownloadRequirements } from "./Downloads";
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
   const title =
@@ -59,6 +60,7 @@ export function Document({ id, lesson = "" }) {
           <h2 className="page-subtitle" id={slugify(doc.markdown.match(/^# (.+)$/m)?.[1] || title)}>
             {lesson ? `Lesson ${lesson}: ${title}` : title}
           </h2>
+          {id === "setup" && <DownloadRequirements />}
           {practiceProject && (lesson === practiceProject.firstLesson || lesson === "10" || lesson === "12") && (
             <TutorialProject project={practiceProject} lesson={lesson}
               template={publishedTutorialTemplate(practiceProject.id)} assets={sampleGameAssets} />
