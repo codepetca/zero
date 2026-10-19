@@ -14,7 +14,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):tutorial?JSON.stringify({repositoryRequired:true,tutorialProjectId:'greeting',lessonId:'0',templateVersion:'0.1.0',mainClass:'Main'}):'{}');
@@ -50,7 +50,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
     for (const project of bundle.projects) project.template=null;
     await fs.writeFile(path.join(extensionPath,'media/lesson-projects.json'),JSON.stringify(bundle));
   }
-  extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
+  extension.activate({extensionPath,subscriptions,globalState:profile?{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)}:undefined,workspaceState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)}},{env:zeroLaunch?{ZERO_KIT_DIR:root}:{},provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async create(value){calls.push(['createRepository',value]);return {repository:{html_url:'https://github.com/student/my-project'}};}},cloneRepository:async({signal,...value})=>{assert.ok(signal instanceof AbortSignal);calls.push(['cloneRepository',value]);return clone({...value,signal});}});
   const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});
   if(!empty && !profile)await settle(()=>remembered.has('zero.sidebarShown'));
   const finish=(active,exitCode)=>{processEnds.forEach(fn=>fn({execution:active,exitCode}));ends.forEach(fn=>fn({execution:active}));};
@@ -197,6 +197,16 @@ test('empty window with existing editor waits for explicit account action withou
   const profile=new Map();const f=await fixture(t,{empty:true,profile,openTabs:[{}]});
   await settle(()=>f.authCalls.length>0);await new Promise(resolve=>setImmediate(resolve));
   assert.equal(profile.size,0);assert.equal(f.notices.length,0);assert.equal(f.calls.length,0);
+});
+
+test('manual Zero launch introduces onboarding beside VS Code startup tabs without closing them',async t=>{
+  const profile=new Map(),tabs=[{input:{viewType:'welcome'}}];
+  const f=await fixture(t,{empty:true,profile,zeroLaunch:true,openTabs:tabs});
+  await settle(()=>f.remembered.has('zero.sidebarShown'));
+  assert.equal(f.notices.length,1);assert.match(f.notices[0].text,/Welcome to Zero/);
+  assert.match(f.webview.html,/data-command="zero.startProject"[^>]*>Start tutorial/);
+  assert.deepEqual(f.vscode.window.tabGroups.all[0].tabs,tabs);
+  assert.equal(f.calls.filter(([id])=>/close|showTextDocument|markdown.showPreview/.test(id)).length,0);
 });
 
 test('explicit welcome connection succeeds in an empty window and unpublished tutorial stays unavailable',async t=>{

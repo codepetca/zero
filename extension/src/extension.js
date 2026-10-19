@@ -36,6 +36,7 @@ const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 function activate(context, services = {}) {
+  const launchedForZero = path.isAbsolute((services.env || process.env).ZERO_KIT_DIR || '');
   for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
     context.subscriptions.push(vscode.commands.registerCommand(id, action));
   }
@@ -147,7 +148,7 @@ function activate(context, services = {}) {
   }
   async function introduceProject() {
     const folders = vscode.workspace.workspaceFolders || [];
-    if (!folders.length && hasOpenEditors()) return;
+    if (!folders.length && hasOpenEditors() && !launchedForZero) return;
     const root = folders.length ? await project() : undefined;
     if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
     if (!context.workspaceState.get('zero.sidebarShown')) {
@@ -716,7 +717,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
   const welcome = createWelcome({window:vscode.window,globalState:context.globalState,authentication:auth,connect:() => signIn(false),startProject:() => actions['zero.startProject'](),isBusy,
     eligible:async () => {
-      if (!(vscode.workspace.workspaceFolders || []).length) return !hasOpenEditors();
+      if (!(vscode.workspace.workspaceFolders || []).length) return launchedForZero || !hasOpenEditors();
       try {return isSetupProject(await project());} catch {return false;}
     }});
   context.subscriptions.push(welcome);

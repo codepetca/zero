@@ -6314,3 +6314,14 @@ sidebar. Setup help exposed Test installation separately. No account/repository
 created by UI verification; physical Windows/clean-machine installs untested.
 Native implementation worker requested GPT-6.1-Sol/medium; effective model and
 per-turn tokens not exposed. No rework; coordinator verified diff and logs.
+
+Source review c4918a3: complete Sol/high pass found one P2 blocker: manual
+folderless launches with VS Code’s Welcome tab suppressed onboarding. Fixed
+using the explicit absolute ZERO_KIT_DIR launcher marker; unrelated editor
+windows remain quiet and no tabs are closed. Added regression; actual plain
+Zero Manual QA profile retained VS Code Welcome while showing Zero’s welcome
+and Start tutorial sidebar. Full-suite discovery also found the design renderer
+adapter needed the new setup-project dependency; fixed adapter, reused real helper.
+78 affected extension/playground tests passed. Review ledger:1 initial launch,
+1 remediation batch; targeted delta review pending. Website157tests/typecheck/
+production build and extracted-kit Maven verification pass.

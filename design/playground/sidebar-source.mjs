@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import sidebarStyle from '../../extension/src/sidebar-style.js';
 import sidebarClient from '../../extension/src/sidebar-script.js';
 import sidebarIcons from '../../extension/src/sidebar-icons.js';
+import setupProject from '../../extension/src/setup-project.js';
 
 // Reuse the trusted extension's renderer without activating VS Code or changing
 // production code. Fail visibly if its function boundary changes.
@@ -16,7 +17,7 @@ const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;',
 export function sidebarSource(state = 'ready') {
   const webview = {};
   runInNewContext(`${source.slice(start, end)}\nrender(webview);`, {
-    path,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,browserRun:{canOpenInBrowser:state==='running'},
+    path,isSetupProject:setupProject.isSetupProject,assets:{canCopyPaths:()=>false},context:{workspaceState:{get:()=>undefined}},exportReadyRoot:undefined,browserRun:{canOpenInBrowser:state==='running'},
     projectRoot: state === 'empty' ? undefined : '/fixture/project', renderedWebview: undefined, sidebarScript: sidebarClient.sidebarScript, crypto, webview, escape, icon:sidebarIcons.icon, sidebarStyles: sidebarStyle.sidebarStyles, isBusy: () => ['building','stopping'].includes(state),
     repository: 'No repository connected', auth: { signedIn: false, accountLabel: '' },
     branch: '', branchDetached: false, uploadMode: () => 'simulation', execution: null, pendingLaunch:undefined, nativeStarting:0, stopPromise:state==='stopping'?Promise.resolve():undefined, browserBusy:state==='building', browserActive:['building','running'].includes(state), localPractice: state === 'practice', originalWork: state !== 'practice',
