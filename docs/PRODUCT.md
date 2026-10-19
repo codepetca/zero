@@ -7,6 +7,19 @@ through CodeHS. Students make interfaces, games, drawings, simulations and quizz
 using ordinary Java, then contribute understandable examples and helpers for
 later cohorts. Students own their repositories; Pika submission is separate.
 
+Success means a student can start their own tutorial repository, make and explain
+a small Java change, run it, repair a useful compiler error, and save their work
+to GitHub. Browser publication and ZeroHub contributions extend that learning;
+they are optional for completing the lessons. Keep ordinary Java and explicit
+object updates central as setup, publishing and community features grow.
+
+Current delivery, checked 2026-10-19: Mac 0.5.23 ships tutorial-first onboarding
+and the browser-run/GitHub App source. Windows remains the unsigned 0.5.21
+preview and matching manual ZIP, with updates disabled and physical acceptance
+pending. The general manual kit fallback remains 0.5.17. Source availability,
+released versions and observed student/provider acceptance are separate; see
+[the goal audit](VERIFICATION.md#goal-and-gap-audit--2026-10-19).
+
 The shared Zero brand uses the softened, thicker slashed-circle mark from
 `design/brand`. Website headers use purple in light mode and the white-on-purple
 inverse in dark mode; browser tabs, Apple touch icons and share previews use the
@@ -25,15 +38,14 @@ embedded in that installer. Home and Downloads keep both primary buttons centere
 at the same width regardless of warning length.
 It uses the shared light/dark toggle and
 centered full-viewport layout. The old `/get-started` address redirects to Downloads.
-Browsing, learning and playing require no GitHub sign-in. The local, unreleased
-shared-identity source uses one public Codepet-owned GitHub App for desktop
-development and optional ZeroHub stars. Codepet Zero is registered under
-`codepetca`, and its public App IDs are pinned in source. Live provider acceptance,
-production activation and an authorized native release remain pending. Published
-downloads keep their bundled authentication flow.
+Browsing, learning and playing require no GitHub sign-in. Current desktop
+source uses one public Codepet-owned GitHub App for development and optional
+ZeroHub stars. Codepet Zero is registered under `codepetca`, and its public App
+IDs are pinned in source. Mac 0.5.23 includes this source; remaining live-provider
+acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
-After activation, download and launch desktop Zero first. Its welcome checks
+Download and launch desktop Zero first. Its welcome checks
 Zero's GitHub connection, offers **Connect GitHub** when needed and leads to
 tutorial creation. Zero's supported `zero-github` provider uses GitHub device
 sign-in and stores expiring user/refresh tokens in VS Code SecretStorage. GitHub
@@ -78,7 +90,7 @@ appear inside that linked setup guide, keeping Downloads uncluttered;
 initial tutorial entries offer the verified empty template and a concise Setup link.
 Longer guidance in Docs explains creating and cloning the student-owned repository.
 Share your work preserves the shared theme and appearance toggle.
-Tutorial steps and reference sections are expanded by default; full guides remain
+Website tutorial steps and reference sections are expanded by default; full guides remain
 available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
@@ -138,8 +150,7 @@ The new local tutorial pass inserts one-coin native controls before arrays/win,
 then reuses unchanged ScoreDisplay in the study app and coin game.
 [UI and flow](../student-template/UI.md) explains controls/components in games;
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
-welcome/result/countdown helpers. These sources remain unreleased; published kits
-keep their original bytes.
+welcome/result/countdown helpers. Existing published kits keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,
 Study Quiz or Coin Game. The large lesson title appears directly below that
 heading, followed by a clearly tinted Summary card (stronger in dark mode) containing numbered actions,
@@ -163,7 +174,7 @@ coordinates and aspect ratio. A canvas touch maps to the primary mouse input;
 students still choose readable text, touch targets and any keyboard alternatives.
 Ordinary App forms and native JavaFX window sizing keep their existing behavior.
 
-Local, unreleased `Sound` and `Music` helpers are available to both App and
+`Sound` and `Music` helpers are available to both App and
 GameApp. Load once with `loadSound` or `loadMusic`; short clips share a per-app
 canonical-resource cache, while each music object has an independent buffered
 player. Ordinary Java event handlers decide when to play/pause/stop/mute. App
@@ -172,7 +183,7 @@ when custom shutdown fails. Sky Hop and the separate audio playground demonstrat
 reuse. Published core0.1.2 and released kit bytes remain unchanged.
 
 
-Local, unreleased game helpers add `SpriteAnimation`, shared-pixel `ImageRegion`
+Game helpers add `SpriteAnimation`, shared-pixel `ImageRegion`
 views, one-frame press input, window focus, centered/rotated and vertically flipped
 image drawing, centered text and `Collisions` geometry predicates. Animations
 advance only through explicit `update(seconds)` calls. Images are cached per app;
@@ -203,7 +214,7 @@ source and included files; students should keep secrets and private material out
 Existing or GitHub-created repositories may retain their visibility, with teacher
 collaborator access where needed. Public game publishing remains optional. The visible
 **Start tutorial** action on the welcome screen or Zero’s **…** menu selects the
-matching verified tutorial scaffold. The unreleased flow collects a repository
+matching verified tutorial scaffold. The flow collects a repository
 name and parent folder before creating a public copy in
 the connected personal account, verifying App access, cloning and opening it.
 The location picker starts at `~/Zero Projects` and can choose another parent.
@@ -273,13 +284,13 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-Local, unreleased implementation: Run App targets the browser after local
+Run App targets the browser after local
 compatibility checking and WebFX compilation. Students keep ordinary Java and
 approved ordinary JavaFX APIs. Publish app stays in GitHub and deploys the same
 validated local build; ZeroHub links to the student-hosted app. Cloud development
 and hosted compilation are out of scope. A strict resolved-API gate rejects unsupported
 application APIs before real WebFX compilation; see [browser builds](WEB-EXPORT.md).
-Final integrated acceptance and release remain separate.
+Local checks and a released installer do not replace the remaining student/provider acceptance.
 
 Browser sharing adds **Publish app** in the repository dropdown and **Export for
 web** in the title menu. Students keep ordinary Java. A reviewed GitHub Pages
@@ -337,6 +348,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   once when the editor is empty. Tutorials in the view menu or Command Palette
   reopens it; ordinary older-kit Markdown guides remain supported. All13 lessons,
   illustrations, code and linked Java references are bundled for offline reading.
+  Its concise tasks stay visible; full code/explanations are optional disclosures.
   The tab retains the selected lesson, scroll and disclosures per project. It
   supports native floating windows and moves back into editor groups. Open in
   browser opens the current canonical lesson on the website; website navigation
@@ -373,8 +385,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Command Palette. Existing0.5.14 needs one manual replacement to gain updating;
   school policies may still require administrator approval. A loaded extension
   may require a student-chosen editor reload; no forced reload is performed.
-  Signed/notarized Mac0.5.14 is published; Windows remains a local unsigned
-  development build. Native setup uses a `Zero` folder
+  Signed/notarized Mac0.5.23 is published; Windows0.5.21 is a published unsigned
+  preview with automatic updates disabled. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while
   preserving the entire student project; an unrelated folder named Zero is
@@ -406,7 +418,7 @@ choices and the first-publication warning remain visible through native prompts.
 
 ## Repository and upload contract
 
-The unreleased source uses Zero's `zero-github` provider and GitHub device flow.
+Current desktop source uses Zero's `zero-github` provider and GitHub device flow.
 Project menu → GitHub account… offers Change GitHub account and Sign out.
 Sign out clears only Zero's local connection; it preserves
 projects, Git history and other extensions' accounts. Account, token or session
@@ -498,9 +510,11 @@ link separately in Pika. A branch upload alone does not finish a change on main.
 
 `zero.json` marks a student project in the workspace root, or its
 `student-template/` child for kit development. The project includes `mvnw`,
-`mvnw.cmd`, `pom.xml` and `.vscode/tasks.json`. Run executes the wrapper with
-`clean compile javafx:run` in that project. Cleaning avoids stale classes from
-the Java language server. Arguments are passed separately from untrusted text.
+`mvnw.cmd`, `pom.xml` and `.vscode/tasks.json`. Normal Run uses local browser
+compatibility checking/building and an owned preview. The explicit native
+diagnostic runs the wrapper with `clean compile javafx:run` in that project;
+cleaning avoids stale classes from the Java language server. Arguments are
+passed separately from untrusted text.
 
 The default build task has type `zero`, task `run` and matcher `$zero-java`.
 The extension TaskProvider owns sidebar and shortcut runs. A separate wrapper
@@ -512,17 +526,18 @@ JDK 17+ for builds. JDK 17 was tested; editor runtime requirements may differ.
 ## Verification and distribution limits
 
 See [VERIFICATION.md](VERIFICATION.md) for actual local checks and their scope.
-A prior Mac teacher trial verified the earlier VS Code GitHub authentication and
-a private repository upload. It does not verify this unactivated App/device-flow
-migration. Real selected-repository installation, new/private clone, renewal,
-revocation, account switching, Pages setup and browser identity need acceptance
-before production activation and release. Registration and pinned public IDs do
-not establish those live results. The current MVP targets Mac with Apple Silicon
-and Windows; Linux and Intel Macs are unsupported. Windows uses the published complete-kit ZIP for
-manual setup; its native EXE remains unpublished. Local0.5.18 source implements
-a per-user native Windows launcher with automatic private Java/editor preparation,
-session resume and authenticated updates; see [the Windows contract](WINDOWS-INSTALLER.md).
-It still needs signing, actual Windows acceptance and authorized publication. Physical Windows, school
+The earlier native-provider trial and later development-host App/device-flow
+sign-in, selected private clone and guarded push are recorded separately in
+[the identity plan](ZERO-IDENTITY-PLAN.md). Empty-account onboarding, App-created
+repositories, renewal/revocation, account switching, Pages setup/repeat publishing
+and browser identity still need observed acceptance. Registration, mocks and a
+released installer do not establish those live results. The current MVP targets
+Mac with Apple Silicon and Windows; Linux and Intel Macs are unsupported.
+Windows offers an unsigned 0.5.21 native preview and its matching manual ZIP;
+automatic updates remain disabled. Signed production Windows releases still need
+signing, physical acceptance and authorization; see
+[the Windows contract](WINDOWS-INSTALLER.md).
+Physical Windows, school
 restrictions and novice classroom pilots still need verification. Retained
 universal/cross-platform artifacts and historical checks do not expand support.
 First-time builds need internet for Maven/JavaFX. Use the [pilot checklist](CLASSROOM-PILOT.md) before

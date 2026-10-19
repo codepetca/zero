@@ -27,12 +27,16 @@ export function freezeRequest({request, repositoryMetadata, sourceDigest, authen
   return {id: digest(frozen), frozen};
 }
 
-export async function ingestRequest(registry, input) {
+export async function ingestRequest(registry, input, {resumeCancelled=false}={}) {
+  if(typeof resumeCancelled!=='boolean')throw new Error('Invalid cancelled request recovery option');
   if (!/^[1-9][0-9]*$/.test(String(input.issueId))) throw new Error('Positive issue ID required');
   const {id, frozen} = freezeRequest(input);
   const result = await registry.update(state => {
     let record = state.requests[id]||Object.values(state.requests).find(value=>sameStableRequest(value.frozen,frozen));
     if (!record) record = state.requests[id] = {id, frozen, issueIds: [], status: 'queued', attempts: [], attemptCount: 0, releaseKey: null};
+    // Only trusted intake that has observed an open owner-authored issue may
+    // resume cancellation. Duplicates alone never reset failed/paused/accepted work.
+    if(resumeCancelled && !record.releaseKey && record.status==='cancelled')record.status='queued';
     const issueId = String(input.issueId);
     if (!record.issueIds.includes(issueId)) record.issueIds.push(issueId);
     return structuredClone(record);
