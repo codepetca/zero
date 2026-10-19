@@ -1,5 +1,66 @@
 # Delivery evidence index
 
+## Product goal audit and local corrections — 2026-10-19
+
+Owner requested a full gap audit and locally addressable fixes while manual smoke
+remains pending. Audit baseline `79b0762638ef9cfb153a3a516b9194be76dadb79`; reviewed
+implementation `5289d28275366bff97f32b2e75193778b9076d90` on local
+`codex/goal-gap-audit`. [Audit matrix and remaining work](VERIFICATION.md#goal-and-gap-audit--2026-10-19).
+No push, PR, merge, release, deployment, account/profile change or student-repo
+mutation. The dirty funding checkout and installed public app were preserved.
+
+Fixed native diagnostic preparation after project switch/disposal, publication
+tracking during subsequent local edits, trusted cancellation/reopen recovery,
+and ambiguous exact-release query selectors. PRODUCT now distinguishes actual
+released source and remaining acceptance. A timing-dependent onboarding test now
+waits for its expected asynchronous rendered state instead of an earlier flag.
+
+Checks actually performed:
+
+| Check | Result |
+| --- | --- |
+| Final full root suite | 772 total: 769 passed, 3 platform skips, 0 failures; 187.03s. |
+| Focused native/onboarding/publishing integration | 134 passed; latest native/onboarding follow-up 30 passed. |
+| Sharing full suite | 75 passed, 4 managed Java-execution skips; final recovery selection 4 passed, including the subsequently added state/history unit case. |
+| Website | 157 passed; typecheck and production build passed. |
+| Production localhost HTTP | Home/Learn/Docs/Downloads/Hub 200; repeated release id/version 404; legacy Examples redirects to Learn. No visual or live clipboard acceptance claimed. |
+| Release / installer / Mac update tests | 86 / 17 / 11 passed respectively; 2 signing/environment update cases skipped. No installer actions run. |
+| Scaffolds / kit | Greeting, Study and Game compile; package and exact-source/license/ZIP checks pass; extracted starter Maven build passes. Local artifacts are verification outputs only. |
+| Dependency audit | Root and website each report 0 known vulnerabilities. |
+| Configuration / whitespace | `npm run check` and `git diff --check` pass. |
+
+Initial broad run had one onboarding render-timing failure (767 passed, 3 skipped);
+the final suite passes after correcting the wait. Publication regression failed
+before the fix and passes after it. Independent audit mock reproductions proved
+obsolete-project and post-disposal native launches, and cancelled-request stalling.
+Workspace-change callback and delayed task-result branches were source-inspected;
+the new executed native regressions delay save in both entry points and disposal.
+
+Three read-only audit workers requested GPT-6.1 Sol/high, with disjoint learning,
+GitHub/sharing and website scopes. Coordinator verified findings and owned every
+source edit. One proposed disclosure issue was rejected as intentional design.
+Two fresh GPT-6.1 Sol/high reviewers then read the complete `79b0762..5289d28` diff:
+
+- `audit_fix_safety_review/1`: complete publication/trusted-intake/state/authority
+  scope; zero findings; 3 focused regressions and whitespace check passed.
+- `audit_fix_compat_review/1`: complete lifecycle/compatibility/docs/site scope;
+  zero findings; supplied checks reused and whitespace check passed.
+
+Review ledger: 2 launches, 1 initial wave, 0 review remediation batches, 0 targeted
+or integration waves. No subsequent source changes; this receipt/current-state
+update is documentation only. No conflicts or worker edits. Effective model,
+per-worker tokens and attributable coordinator time are unknown. Review elapsed
+approximately 3 minutes (manual estimate). Starting weekly remaining 12% was
+account-wide, not task cost. DeepSeek's dated pause was honored. Fresh storage
+check reported healthy, about293GB free; no cleanup required.
+
+Detailed logs/dependency reports/reproductions are ignored under
+`.verification/goal-audit/` in the task worktree. Physical Windows, native-window
+focus/audio, actual WebFX play, school-network/novice trials and live GitHub/Pages/
+browser-star acceptance were not performed by this audit. Generic library
+admission remains gated. Published artifacts keep their earlier bytes; reaching
+installed users requires a separately authorized new version/release.
+
 ## Matching Windows manual ZIP and centered downloads — 2026-10-19
 
 Owner authorized matching manual ZIP publication and landing-page centering repair.
