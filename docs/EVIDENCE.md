@@ -6203,3 +6203,46 @@ Owner requested a less cluttered Downloads page. Platform/version details move
 to the existing linked setup guide using the same release-aware source values;
 Mac and Windows buttons and their availability/URLs are preserved. This is a
 website-only change; published Mac0.5.21installer/feed are unchanged.
+
+
+## Sidebar and signed Mac 0.5.22 publication — 2026-10-19
+
+Owner explicitly authorized merging/publishing latest sidebar for a fresh-user
+smoke test. PR112 merged1fbc98c after all5checks passed at reviewedf420293:
+https://github.com/codepetca/zero/pull/112
+Final native popup is empty, titled Commit Message, with native hint. Existing
+button shows Preparing commit… then Committing & pushing…; completion/cancel/error
+clear progress. Sign-in tells students to close GitHub and return to Zero.
+Main's publishing-kit repair and download-page changes preserved.
+
+Independent sidebar_review/1 requested GPT6.1Sol/medium covered all15changed
+paths and upload/auth/transport/render/publishing callers, complete/clean;1launch,
+1initialwave,0fixbatches. Root configuration,47focused,761pass/3skipfullsuite,
+151website tests/typecheck/build, kit packaging/source/license/Maven and release/
+update guard tests pass. First direct focused run lacked generated theme; normal
+preparation resolved it without source changes. Prior native popup/ESC acceptance
+for identical restored implementation reused from release-readiness receipt.
+Fresh-machine, physicalWindows and new native interactive trial not claimed.
+
+Mac build22 uses reviewed cleanf420293, full tree equal to merged1fbc98c. Developer
+ID ACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8; Apple accepted
+7c92f799-1905-46f6-888a-a1a88f9a8691. Staple and actual Gatekeeper app/DMG checks pass.
+Preparationf5cfe754b148 seals unchanged protected source, three kit assets and signed
+feed. Separate candidate review by sidebar_review/2 independently verified all13
+SHA256SUMS entries, source ancestry/parity, installer/feed validators, Ed25519 DMG
+signature and21→22 ordering, complete/clean;1initialwave0fixes.
+
+One native DMG published after draft hash verification:
+https://github.com/codepetca/zero/releases/tag/setup-v0.5.22
+Anonymous download matches4580558bytes/SHA256
+2d6037737906036896c195b225020f35a5f8a9bc4b0572fd3b13fcf62714214d.
+Windows manualZIP0.5.17/published kit snapshot and all prior release bytes unchanged.
+PR113 promotes exact verified native manifest and sealed signed feed; final delta
+review,CI,merge and live-site/feed acceptance pending at this commit.
+
+Receipts/binaries/logs: ignored .verification/sidebar-release/ and
+dist/candidates/mac-0.5.22-f5cfe754b148/. Release-recipe audit Sol/medium accepted;
+DeepSeek dated pause honored. Starting19%weekly remaining, healthy302GB storage.
+Effective model, worker tokens/elapsed unknown; coordinator review~4min estimate,
+no integration conflicts. Original funding/source checkout and prior worktrees
+preserved; no account change, student repo creation, new goal/task/automation.
