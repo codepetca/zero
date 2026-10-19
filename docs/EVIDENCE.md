@@ -6325,3 +6325,29 @@ adapter needed the new setup-project dependency; fixed adapter, reused real help
 78 affected extension/playground tests passed. Review ledger:1 initial launch,
 1 remediation batch; targeted delta review pending. Website157tests/typecheck/
 production build and extracted-kit Maven verification pass.
+
+### Mac0.5.23 exact-byte publication
+
+Source PR116 merged1c151fe0dc7c4972f9ba8b32a355fc5c7a6913ac, tree identical to
+reviewed c66736bd95fbd7c349b508434052340e94666c9d. Final local suite768passed/3skipped,
+all5exact-head CI checks passed. Source review ledger2turns (initial+targeted),
+1fixbatch; original P2 resolved, no remaining findings. Final UI check opened the
+explicit installation test with its label/Run test and no automatic lesson.
+
+Clean build c66736b; preparation74b1e81bb78d41832da5661b7e0c4cec33d3770e.
+Independent Sol/high release review completed the one-file preparation delta,
+all13sealed file hashes, exact kit/VSIX/source, actual app/DMG signatures, staple,
+Gatekeeper and signed feed/enclosure signatures/order22→23. No findings. This
+third reviewer turn reused unchanged source coverage; no extra integration wave.
+Effective model, per-turn elapsed seconds/tokens unavailable.
+
+Public setup-v0.5.23 release417637457 has exactly one DMG4582736bytes, SHA256
+4fadc5a37d758e1782ad4a0ee1aaf152c354a378b21ff6f1ec91174fc1ea3f92. Authenticated
+draft and anonymous public downloads both match the sealed candidate. Notary
+17d23e9d-5b9a-47d2-86c8-5225508561d6 Accepted; actual staple/Gatekeeper pass.
+Signed appcast1178bytes SHA256
+8dfaa5f8a474ae89a390d33ca83ec9fcf929d1ac58a540b93df1665d9be790cb.
+Promotion copies exact sealed feed bytes and changes only publication status/URL
+in measured metadata. Windows preview/manual ZIP and published kit remain intact.
+Proofs: ignored .verification/onboarding-release/ and sealed dist/candidates/.
+Final promotion review/CI/live URL verification remain the next gate.

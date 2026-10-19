@@ -1,22 +1,22 @@
-# Tutorial-first onboarding — 2026-10-19
+# Tutorial-first onboarding release — 2026-10-19
 
-Owner authorized fixing onboarding, merging and publishing so the novice smoke
- test can restart. Work is isolated from the dirty funding checkout, based on
-main a8bbf88. Native launchers open an empty tutorial welcome on fresh launch;
-returning student sessions restore normally. Start tutorial connects GitHub and
-continues to the verified student-owned repository flow. The bundled completed
-Hello World project is explicit Setup help → Test installation, labelled and
-separate from Tutorials. Docs and local version/build move to 0.5.23/23.
+Owner authorized fixing onboarding, merging and publishing for a restarted smoke
+ test. Source PR116 merged at1c151fe; reviewed source c66736b, exact merged tree.
+Fresh native/manual launches open Start tutorial. Student-owned clones open Main
+beside Tutorials; completed Hello World is explicit Setup help → Test installation.
+Existing student sessions restore normally. Windows21preview/manual metadata kept.
 
-Checks: 73 focused extension tests; 66 launcher/source tests (1 PowerShell skip);
-actual Swift harness 294 assertions; Windows .NET/Mono harness 986 checks and
-updater harness pass. Configuration passes; full suite and website checks running.
-Actual isolated VS Code welcome, Later recovery and Setup help action observed.
-No new account/repository is created by verification. Physical Windows and a
-clean-machine install remain untested. Native worker Sol/medium completed its
-bounded component; coordinator owns extension, integration and publication.
+Mac0.5.23/build23 is public at setup-v0.5.23, one DMG4582736bytes, SHA256
+4fadc5a37d758e1782ad4a0ee1aaf152c354a378b21ff6f1ec91174fc1ea3f92.
+Notary17d23e9d-5b9a-47d2-86c8-5225508561d6 Accepted; staple/Gatekeeper pass.
+Preparation74b1e81 sealed13files; anonymous public download matches exact bytes.
+Source Sol/high initial+targeted reviews and sealed release review have no open
+findings. Local768pass/3skip;157website tests/type/build; native Swift294assertions,
+Windows986checks/updater; configuration, kit parity and extracted Maven pass.
+Actual isolated native-style/manual-profile UI verified; physical Windows and
+clean-machine installs remain untested. No account/repo created by verification.
 
-Next: independent source review, exact-head CI, source merge, signed/notarized
-Mac 0.5.23 candidate and exact-byte release/promotion. Preserve Windows preview
-and manual ZIP metadata from main, prior releases, student work and credentials.
-Evidence: docs/EVIDENCE.md; ignored .verification/onboarding-* and /tmp logs.
+Next: final public metadata delta review/CI on PR117, merge and verify live download
+anchor and feed bytes. Then update smoke guide and preserve receipts before
+retiring this task’s worktree. Keep dirty funding checkout and student work intact.
+Evidence: docs/EVIDENCE.md; ignored .verification/onboarding-release/ and candidate.
