@@ -67,7 +67,8 @@ Tutorials and Downloads use one circular sun/moon button in the header to switch
 light/dark mode. The OS preference is the initial default; a chosen mode persists.
 These pages fill the viewport width and at least its height; longer lessons scroll.
 Downloads centers its heading and equal-width platform buttons in a vertical stack.
-Concise platform/version requirements and a setup link appear below the buttons;
+A setup-help link appears below the buttons; current platform/version requirements
+appear inside that linked setup guide, keeping Downloads uncluttered;
 initial tutorial entries offer the verified empty template and a concise Setup link.
 Longer guidance in Docs explains creating and cloning the student-owned repository.
 Share your work preserves the shared theme and appearance toggle.

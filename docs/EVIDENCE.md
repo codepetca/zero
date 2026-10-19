@@ -6196,3 +6196,10 @@ are in .verification/mobile-canvas/plan.json and .verification/mac-0.5.21/.
 Native install/update GUI, fresh-machine/classroom, physical Intel/Windows and
 physical iPhone/Safari acceptance are not claimed. Prior Grove UI/live publishing
 acceptance is reused for the identical authored extension runtime.
+
+## Download setup details — 2026-10-19
+
+Owner requested a less cluttered Downloads page. Platform/version details move
+to the existing linked setup guide using the same release-aware source values;
+Mac and Windows buttons and their availability/URLs are preserved. This is a
+website-only change; published Mac0.5.21installer/feed are unchanged.

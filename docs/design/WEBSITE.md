@@ -14,7 +14,9 @@ sign-in; old `/get-started` links redirect to Downloads. Preserve keyboard focus
 Tutorials opens lesson 0 directly, with all thirteen lessons in a desktop sidebar
 and a native lesson selector on narrow screens. Selecting updates the reading
 pane and bookmarkable lesson URL. Downloads is a separate page with a centered
-heading and stacked Mac/Windows platform actions; Download is a regular menu item.
+heading, stacked Mac/Windows platform actions and a setup-help link; platform
+versions and requirements belong inside the linked setup guide. Download is a
+regular menu item.
 
 Home, Tutorials and Downloads use shared light/dark semantic tokens and a circular header
 sun/moon toggle. Default to the OS preference until a mode is chosen, then save
