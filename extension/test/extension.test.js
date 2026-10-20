@@ -8,7 +8,7 @@ const path = require('node:path');
 const core = require('../src/core');
 const github = require('../src/github');
 const disposable = () => ({dispose(){}});
-test('commands simulate upload without Git and explicit native diagnostic tasks retain restart and stop ownership', async t => {
+test('commands simulate upload without Git and native Run App tasks retain restart and stop ownership', async t => {
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-extension-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
@@ -36,20 +36,20 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   await commands.get('zero.publishWeb')();
   assert.equal(saved,0,'Simulated publishing must not save student files');
   assert.equal(mutations,0,'Simulated publishing must not change Git or setup files');
-  await commands.get('zero.runNativeApp')();assert.equal(launches.length,1);assert.equal(saved,1);
+  await commands.get('zero.runApp')();assert.equal(launches.length,1);assert.equal(saved,1);
   assert.deepEqual(launches[0].task.execution.args,['clean','compile','javafx:run']);assert.equal(launches[0].task.matcher,'$zero-java');
-  await commands.get('zero.runNativeApp')();assert.equal(launches.length,2);
+  await commands.get('zero.runApp')();assert.equal(launches.length,2);
   await commands.get('zero.stopApp')();
   assert.deepEqual(await provider.provideTasks(),[], 'Detected executable tasks would bypass the save/restart resolver');
-  const shortcut=await provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2});
+  const shortcut=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
   await vscode.tasks.executeTask(shortcut);assert.equal(saved,3);
-  const rerun=await provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2});
+  const rerun=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
   await vscode.tasks.executeTask(rerun);assert.equal(saved,4);
   await commands.get('zero.stopApp')();assert.equal(launches.length,4);
   let releaseSave;
   saveGate = new Promise(resolve => {releaseSave=resolve;});
-  const pendingRun = commands.get('zero.runNativeApp')();
-  const queuedRun = commands.get('zero.runNativeApp')();
+  const pendingRun = commands.get('zero.runApp')();
+  const queuedRun = commands.get('zero.runApp')();
   while(saved < 5) await new Promise(resolve => setImmediate(resolve));
   const stopping=commands.get('zero.stopApp')();
   releaseSave();
@@ -57,7 +57,7 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   assert.equal(launches.length,4,'Stop must cancel saving and queued Run requests');
   let releaseResolution;
   saveGate=new Promise(resolve=>{releaseResolution=resolve;});const beforeResolution=saved;
-  const resolution=provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2});
+  const resolution=provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
   while(saved===beforeResolution)await new Promise(resolve=>setImmediate(resolve));
   let settled=false;const cancelledResolution=commands.get('zero.stopApp')().then(()=>{settled=true;});
   await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false,'Stopping waits for native task preparation');
@@ -67,8 +67,8 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   await fs.writeFile(path.join(otherRoot, 'zero.json'), '{}');
   await fs.writeFile(path.join(otherRoot, 'mvnw'), '');
   // Both entry points must retain the project selected before the save dialog.
-  for (const [index, launch] of [() => commands.get('zero.runNativeApp')(),
-    () => provider.resolveTask({definition:{type:'zero',task:'native-run'},scope:2})].entries()) {
+  for (const [index, launch] of [() => commands.get('zero.runApp')(),
+    () => provider.resolveTask({definition:{type:'zero',task:'run'},scope:2})].entries()) {
     let release;
     saveGate = new Promise(resolve => {release = resolve;});
     const beforeSave = saved;
@@ -107,7 +107,7 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   let releaseDisposedSave;
   saveGate = new Promise(resolve => {releaseDisposedSave = resolve;});
   const beforeDispose = saved;
-  const disposedRun = commands.get('zero.runNativeApp')();
+  const disposedRun = commands.get('zero.runApp')();
   while (saved === beforeDispose) await new Promise(resolve => setImmediate(resolve));
   subscriptions.forEach(item => item.dispose());
   releaseDisposedSave();

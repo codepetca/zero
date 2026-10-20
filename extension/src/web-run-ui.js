@@ -33,11 +33,11 @@ function createBrowserRunCommands(vscode, {project,output,isBusy=()=>false,setBu
   }
   async function openInBrowser() {
     const opened=runtime,id=runtimeGeneration,root=runtimeRoot;
-    if(disposed || !opened || typeof opened.openInBrowser!=='function')throw Error('Run App before opening it in your browser.');
+    if(disposed || !opened || typeof opened.openInBrowser!=='function')throw Error('Preview a web export before opening it in your browser.');
     let selectedRoot;
     try {selectedRoot=await project();} catch(error) {if(runtime===opened)stop();throw error;}
-    if(disposed || runtime!==opened || id!==generation)throw Error('App stopped. Run App before opening it in your browser.');
-    if(selectedRoot!==root){stop();throw Error('The student project changed. Run App in the current project before opening it in your browser.');}
+    if(disposed || runtime!==opened || id!==generation)throw Error('Browser preview stopped. Preview a web export before opening it in your browser.');
+    if(selectedRoot!==root){stop();throw Error('The student project changed. Preview a web export from the current project before opening it in your browser.');}
     return opened.openInBrowser();
   }
   async function diagnostics(error,root) {

@@ -6686,3 +6686,22 @@ fast-edit workaround. Single warm native2.93s vs browser32.45s compile-only; no
 GUI measurement, no optimized flags/caching shipped. FreshOS/liveGitHub/physical
 Windows remain smoke coverage. Whole candidate/receipts/benchmarks preserved under
 primary ignored .verification/tutorial-instructions-0.5.26 before retirement.
+
+## Native-default Run implementation — 2026-10-20
+
+Owner requested faster native Run App with browser compilation deferred to Publish
+or explicit advanced Export. Main command/sidebar and configured zero run task now
+share native Maven ProcessExecution/Windows ShellExecution. Existing legacy native
+command remains a hidden alias. Task ownership, Stop settlement, save/project/
+generation/trust checks and Errors/Problems behavior retained. Publishing/browser
+validators and generated artifact contract unchanged; native success does not
+prove browser compatibility. Current Mac0.5.26 retains its bundled behavior.
+
+123affected checks and rootcheck passed before source review. Real isolated Mac
+VSCode sidebar Run launched actual wrapper/JavaFX child; Stop ended both exact
+owned processes and restoredRun. Native JavaFX window inaccessible to current CUA
+inventory, so visualHello/OS-window close not certified; close/exit covered by
+lifecycle tests. Fullsuite still running under heavy host contention at this commit.
+No public release/credentials/student repo/profile changes. Source review and
+separate owner publication decision pending; ignored .verification/native-run
+receipts record final validation without another docs-only cycle.

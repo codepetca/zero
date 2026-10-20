@@ -3,6 +3,10 @@
 Zero **0.5.19**, with core **0.2.1**, is prepared locally and unreleased. Published
 assets retain their existing versions and bytes.
 
+Current source changes Run App to a native JavaFX window. This change is
+unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
+their bundled behavior.
+
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
 webview, tree, task and command APIs. Files use Zero’s Files view or native Explorer
@@ -18,20 +22,21 @@ Import the settings-only Zero profile first, then install the local
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
-The sidebar’s single **Run**/**Stop** button saves files, checks original Java against the supported browser API
-subset, compiles locally when needed with the pinned WebFX/GWT pipeline, validates
-the build and opens Zero’s managed browser preview. Students need a supported
+The sidebar’s single **Run**/**Stop** button saves files and runs the project’s
+Maven wrapper with `clean compile javafx:run`, opening the app in its own native
+JavaFX window. Local Run does not invoke browser compatibility checks or WebFX.
+Students need a supported
 JDK **17+**, with no global Maven or Node.js installation. The first build needs
-internet for compiler/dependency downloads; later projects reuse Zero’s local
+internet for Maven and JavaFX dependency downloads; later runs reuse the local
 cache.
 
 Tutorial repositories open **Tutorials** beside `Main.java`. Use the lesson picker,
-Previous/Next and **Code and explanation** to read the bundled lessons offline.
+and full numbered instructions to read the bundled lessons offline.
 **Open in browser** opens the current website lesson. Native tab controls can move
 Tutorials into a floating window and back; the selected lesson and reading position
 are kept for that project. Tutorials is also available in Zero's **…** menu.
 
-The default build shortcut uses the same browser run action:
+The default build shortcut uses the same native run action:
 
 ```json
 {"version":"2.0.0","tasks":[{"type":"zero","task":"run","label":"Zero: Run App","group":{"kind":"build","isDefault":true},"problemMatcher":"$zero-java"}]}
@@ -39,23 +44,18 @@ The default build shortcut uses the same browser run action:
 
 Click **Stop**, then **Run** after edits to rebuild and restart. The palette’s
 Run App command can still restart directly. **Stopping…** stays disabled until
-owned work settles; failures and closing the managed preview restore **Run**.
-Stop aborts owned work and
-ends the preview and its audio. Build/source/compatibility errors appear in Zero’s
-output and Problems; **Show Problems** opens the source diagnostics. Repair a
+owned work settles; failures and closing the JavaFX window restore **Run**.
+Stop cancels the owned build or app process. Build/source errors appear in the
+task terminal and Problems; **Show Problems** opens the source diagnostics. Repair a
 failed download or the indicated code, then Run App again. A failed build does
 not reopen old output as a successful new run.
 
-Choose **Open in browser** in the running preview, or the browser icon beside
-**Stop** in the sidebar (tooltip: Open in browser), to test the same
-compiled app in your default browser, such as Chrome. This local URL is not a
-public link. Stop or rerun removes the app from responsive external preview tabs;
-suspended or blocked browser execution can delay that cleanup. **Publish app** is
-the separate action for a playable public link.
-
-**Zero: Run Native App (Diagnostic)** explicitly runs the project’s Maven wrapper
-with separate `clean`, `compile` and `javafx:run` arguments in a native window.
-Native success does not establish browser compatibility. Windows native tasks
+**Publish app** performs browser compatibility checks and production compilation
+before the guarded publication flow. Advanced **Export for web** performs the
+same browser checks for manual publishing preparation and offers **Preview export**.
+Its local URL is not a public link. Native success does not establish browser
+compatibility. The existing `zero.runNativeApp` command remains a compatible
+alias for native Run. Windows native tasks
 use the task shell with strong wrapper-path quoting; other platforms use a
 process task. Physical Windows/Linux behavior remains unverified.
 
@@ -239,4 +239,4 @@ Library authors use **Extract library** inside their existing game repository, t
 
 ## Setup checklist
 
-**Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm the browser preview. No installation or account changes occur just by opening the checklist.
+**Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm the native JavaFX window. No installation or account changes occur just by opening the checklist.

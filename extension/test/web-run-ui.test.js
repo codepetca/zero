@@ -21,10 +21,10 @@ function harness(t) {
 
 test('Open in browser requires a running app and reuses it without saving, rebuilding or revalidating source',async t=>{
  const h=harness(t);assert.equal(h.api.canOpenInBrowser,false);
- await assert.rejects(h.api.commands['zero.openRunningAppInBrowser'](),/Run App before/);assert.equal(h.opens,0);
+ await assert.rejects(h.api.commands['zero.openRunningAppInBrowser'](),/Preview a web export before/);assert.equal(h.opens,0);
  await h.api.run();assert.equal(h.api.canOpenInBrowser,true);h.events.length=0;h.valid=false;
  await h.api.openInBrowser();await h.api.commands['zero.openRunningAppInBrowser']();assert.equal(h.opens,2);assert.equal(h.builds,1);assert.equal(h.previews,1);assert.deepEqual(h.events,[]);
- h.api.stop();assert.equal(h.api.canOpenInBrowser,false);await assert.rejects(h.api.openInBrowser(),/Run App before/);assert.equal(h.opens,2);
+ h.api.stop();assert.equal(h.api.canOpenInBrowser,false);await assert.rejects(h.api.openInBrowser(),/Preview a web export before/);assert.equal(h.opens,2);
 });
 
 test('Open in browser rejects changed project, stopped runtime and replacement generation',async t=>{
@@ -32,7 +32,7 @@ test('Open in browser rejects changed project, stopped runtime and replacement g
  for(const mode of ['stop','workspace','rerun','dispose']) {
   const h=harness(t);await h.api.run();let release;h.projectGate=new Promise(resolve=>{release=resolve;});const pending=h.api.openInBrowser();
   if(mode==='stop')h.api.stop();else if(mode==='workspace')h.workspaceChanged();else if(mode==='dispose')h.api.disposables[0].dispose();
-  let next;if(mode==='rerun')next=h.api.run();release();await assert.rejects(pending,/App stopped/);await next;assert.equal(h.opens,0,mode);
+  let next;if(mode==='rerun')next=h.api.run();release();await assert.rejects(pending,/Browser preview stopped/);await next;assert.equal(h.opens,0,mode);
  }
 });
 
@@ -40,7 +40,7 @@ test('browser open failure preserves the running app and does not recompile',asy
  const h=harness(t);await h.api.run();h.openResult=Error('browser refused');await assert.rejects(h.api.openInBrowser(),/browser refused/);assert.equal(h.api.canOpenInBrowser,true);assert.equal(h.stops,0);assert.equal(h.builds,1);h.openResult=true;await h.api.openInBrowser();assert.equal(h.opens,2);
 });
 
-test('primary Run saves, checks/builds, validates and opens one managed preview; restart closes it first',async t=>{
+test('browser runner saves, checks/builds, validates and opens one managed preview; restart closes it first',async t=>{
  const h=harness(t);await h.api.run();assert.equal(h.builds,1);assert.equal(h.previews,1);assert.equal(h.busy,false);
  assert.deepEqual(h.events.filter(v=>['save','build','validate','preview'].includes(v)),['save','build','validate','preview']);
  assert.ok(h.states.includes('Checking app…'));assert.ok(h.states.includes('Building app…'));assert.match(h.states.at(-1),/running/);

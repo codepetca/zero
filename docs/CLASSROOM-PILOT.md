@@ -46,7 +46,9 @@ an ordinary local starter smoke test.
 An ordinary extracted starter may be used outside another Git repository to check
 setup: follow its README, retain hidden folders and run its default Hello, world!
 app. This local smoke does not complete lesson 0 or the required tutorial setup.
-The candidate's Run App opens a browser preview; verify rerun and Stop there.
+Current source Run App opens a native JavaFX window; verify rerun, Stop during
+build/running, and close-to-idle there. This change is unreleased; published Mac
+0.5.26 retains browser Run. Record which version you test.
 
 The three empty tutorial templates are published, with verified exact pins in
 `teaching/tutorial-templates.json`. Their seven canonical helpers match the tested
@@ -72,8 +74,8 @@ the lessons. A public playable site should contain only work approved for public
 ## Build, edit and explain
 
 - In the student's Greeting clone, follow lesson 0 to write a greeting label.
-  Change the greeting and click Run App again. Confirm the browser preview updates,
-  repeated rebuild/restart saves edits, and Stop ends the preview runtime. Check
+  Change the greeting and click Run App again. Confirm the native JavaFX window
+  updates, repeated rebuild/restart saves edits, and Stop ends the app process. Check
   profile autosave and a dark theme if used; try optional F6/F7 only if installed.
 - Introduce one clear compile error. Open its source location from Problems,
   repair it and run again. Record whether a novice can use the error unaided.

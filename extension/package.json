@@ -78,11 +78,11 @@
       },
       {
         "command": "zero.openRunningAppInBrowser",
-        "title": "Zero: Open Running App in Browser"
+        "title": "Zero: Open Web Export Preview in Browser"
       },
       {
         "command": "zero.runNativeApp",
-        "title": "Zero: Run Native App (Diagnostic)"
+        "title": "Zero: Run Native App"
       },
       {
         "command": "zero.stopApp",
@@ -328,6 +328,7 @@
     },
     "menus": {
       "commandPalette": [
+        {"command": "zero.runNativeApp", "when": "false"},
         {
           "command": "zero.checkForUpdates",
           "when": "isMac || isWindows"

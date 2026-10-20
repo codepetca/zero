@@ -267,8 +267,12 @@ Community catalog admission policy and its installed clients are unchanged.
 ## Browser export
 
 See [WEB-EXPORT.md](WEB-EXPORT.md) for the implemented WebFX/GWT teaching profile,
-browser-first Run App, deployment-only publishing kit and strict resolved-API
-gate. Run
+explicit browser export/preview, deployment-only publishing kit and strict
+resolved-API gate. Normal Run App, setup Run test and the configured Zero run task
+use the project Maven wrapper for native JavaFX, without browser compatibility
+checking or WebFX compilation. Publish app and advanced Export for web retain
+the full browser production build and validation. The native-default change is
+unreleased; published Mac 0.5.26 retains browser Run. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.
 
