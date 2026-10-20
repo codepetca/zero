@@ -3,9 +3,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://zero.codepet.ca"),
   icons: {
-    icon: [
-      { url: "/generated/brand/favicon.svg", type: "image/svg+xml", sizes: "any" },
-    ],
     apple: [{ url: "/generated/brand/apple-touch-icon.png", sizes: "180x180" }],
   },
   openGraph: {
@@ -20,6 +17,9 @@ export const metadata: Metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link id="zero-favicon" rel="icon" href="/generated/brand/favicon.svg" type="image/svg+xml" sizes="any" />
+      </head>
       <body>
         <a className="skip-link" href="#page-content">
           Skip to content
