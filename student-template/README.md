@@ -1,6 +1,6 @@
 # My Zero App
 
-This source is included in Mac setup **0.5.30** with core **0.2.1**.
+This source is included in Mac setup **0.5.31** with core **0.2.1**.
 Older downloads keep their own bundled instructions and API.
 
 Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other

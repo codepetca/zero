@@ -8,8 +8,13 @@ it is disabled while active. No auth/transport or publish consent changes.
 
 Main05b571ae / published Mac0.5.29 integrated before building. Latest minimal
 prompt and ZeroHub diagnostics changes preserved. CURRENT/PRODUCT conflicts
-consolidated; shared menu code remains the reviewed implementation. New Mac0.5.30
+consolidated; shared menu code remains the reviewed implementation. New Mac0.5.31
 candidate preparation/review/CI/signing/notarization/publication/live verification
 are next. Windows21/manual/generalkit17 and all prior release bytes stay pinned.
 Receipts .verification/run-publish-menu; original funding checkout, student work
 and credentials untouched. No real student publication is authorized as a test.
+
+The sealed30candidate and authenticatedprivateDraft418870917 are retained unchanged.
+Full CI found one obsolete tutorial assertion forbidding any visible Publish control.
+The corrected assertion requires Publish inside Run while retaining original-only
+Share restrictions. Source/build31 reserved;30 remains private, never promoted.
