@@ -1,5 +1,19 @@
 # Delivery evidence index
 
+## Transparent dark website logo — 2026-10-20
+
+Owner corrected the published dark title: use the shared dark accent `#b19aff`
+for the icon, with no tile/background. White outlined lowercase lettering, icon
+geometry, sizing, theme selection and all light-mode assets remain unchanged.
+Production build (including TypeScript), whitespace and SVG checks pass: no
+background rectangle, exact original lettering/geometry, dark accent color and
+generated copy match. Actual dark Home preview visually verified at phone width.
+The prior157website tests are reused for unchanged code; CI reruns its full suite.
+This follow-up continues the authorized logo publication. Verification and
+independent review receipts are attached to the follow-up PR; screenshots and
+public-byte receipts stay in ignored .verification/dark-logo/. Browser/tab/share
+icons and immutable releases keep their separate existing inverse treatment.
+
 ## Lowercase website title logo — 2026-10-20
 
 Owner selected the first title, the approved thicker softened Zero icon followed
