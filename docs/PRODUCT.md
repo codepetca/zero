@@ -133,7 +133,7 @@ Desktop and browser sessions do not pair or transfer credentials automatically.
 Short-lived browser sessions require reconnection after expiry. Public counts may lag; no separate vote store
 is created. Site checks show cached page reachability, not verified gameplay.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
-Project cards show a circled check for reachable sites, a warning triangle for
+Project cards show a green circled check for reachable sites, a yellow warning triangle for
 unreachable sites and a question mark for an unknown check, followed by a local
 check time such as **Oct 20 · 12:56 PM**. Reporting uses a flag icon; stars show
 only a star icon and count, filled when starred. Accessible labels describe each

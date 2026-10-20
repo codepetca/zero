@@ -42,3 +42,5 @@
 .siteStatus, .feedbackError { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
 .siteStatus { display: flex; align-items: center; gap: 8px; }
 .siteStatus time { white-space: nowrap; }
+.siteStatus[data-status="reachable"] :global(.icon) { color: light-dark(#15803d, #4ade80); }
+.siteStatus[data-status="unreachable"] :global(.icon) { color: light-dark(#a17a00, #facc15); }
