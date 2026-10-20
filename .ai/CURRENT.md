@@ -1,13 +1,13 @@
-# Browser tab branding — publication in progress, 2026-10-20
+# Uniform website tab title — 2026-10-20
 
-Owner authorized publication. PR124 has reviewed themed transparent favicon and
-lowercase home title, synced with published Mac0.5.25 main a545c78.
-All5checks passed atadc53aa; latest synchronization has record conflicts only.
-Website source matches reviewed bbeb9c8. Upstream setup-test timing race fixed
-with retained label/launch assertions,34tests pass and targeted review clean.
-Next: synchronized CI, merge and live Chrome title/theme verification.
-See docs/EVIDENCE.md and ignored .verification/tab-branding/.
-The concurrent Mac publication task's record is preserved below.
+Prior tab branding PR124/6448259 is published, with transparent themed favicon.
+Owner now requests lowercase zero on every regular website page. Root template
+changed from page-title suffix to constant zero; docs/product contract updated.
+157tests/build/TypeScript pass;39successful page URLs and Chrome Tutorials verify
+zero title. Next: independent review, reviewed PR/CI, merge and production checks
+under the ongoing website publication authorization. Primary dirty funding work
+untouched; task worktree zero-uniform-tab-title. Logs .verification/uniform-tab-title/.
+Prior concurrent task record preserved below.
 
 # Sidebar-guided setup — Mac0.5.25
 

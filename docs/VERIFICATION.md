@@ -3475,3 +3475,9 @@ with page theme opposite OS. Sharp confirms transparent corners in both variants
 Independent Luna/medium initial+targeted review accepted one corrected lifecycle
 finding. No publication or physical Chrome/Safari/other-OS tab-rendering claim.
 See EVIDENCE.md and ignored `.verification/tab-branding/`.
+
+## Uniform website tab title — 2026-10-20
+
+157website tests/build/TypeScript and whitespace pass.39successful page URLs
+render exactly one lowercase zero title; Chrome Tutorials verified. Regular
+site pages use one shared title template. Logs .verification/uniform-tab-title/.
