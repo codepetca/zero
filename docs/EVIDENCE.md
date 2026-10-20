@@ -1,5 +1,21 @@
 # Delivery evidence index
 
+## Popup keyboard helper — local, 2026-10-20
+
+Owner requested the small **Enter to confirm · Esc to cancel** helper in text-entry
+popups, superseding the earlier no-helper preference. The shared native QuickPick
+title displays it for all Zero text inputs and preserves existing repository or
+publication context. Validation, acceptance and cancellation paths are unchanged.
+Source review of `33879d05` by independent GPT-6 Luna/medium found no issues.
+85 affected input/caller tests, source syntax and diff whitespace pass after
+preparing generated assets and updating the superseded commit-prompt assertion.
+Actual VS Code rendering, screen readers and physical Windows were not retested.
+No push, merge, installer build or publication was requested for this change.
+Review ledger: one initial wave/launch, no source remediation, one test expectation
+correction; effective model/tokens unknown. Weekly allowance reading was 72%
+remaining (account-wide); cached storage check healthy at 283 GB available.
+
+
 ## Minimal prompts — Mac 0.5.29 publication, 2026-10-20
 
 Owner authorized publication. [Source PR 135](https://github.com/codepetca/zero/pull/135)
