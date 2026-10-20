@@ -1,20 +1,29 @@
-# Run dropdown publication preparation
+# Run dropdown — Mac 0.5.31 publication
 
-Owner authorized merge and publication on 2026-10-20. Source implementation4c3ceff9
-passed complete13file Sol/medium review with zero findings;78affected checks and
-safe-browser keyboard/theme/narrow200px/200%text checks passed. Primary Run/Stop
-stays native. Ready connected projects gain an arrow with existing Publish app;
-it is disabled while active. No auth/transport or publish consent changes.
+Owner authorized merge/publication on 2026-10-20. Source PR137 merged as
+`907f0a7635cd7fe25b71e189286a8a4f0ca39961` after independent source/integration/candidate review
+and all five checks at corrected head `0f7863d8`. Main05b571ae's minimal prompts
+and ZeroHub diagnostics are preserved. Run stays native; its adjacent arrow opens
+existing Publish app for ready connected projects. Stop before publishing.
 
-Main05b571ae / published Mac0.5.29 integrated before building. Latest minimal
-prompt and ZeroHub diagnostics changes preserved. CURRENT/PRODUCT conflicts
-consolidated; shared menu code remains the reviewed implementation. New Mac0.5.31
-candidate preparation/review/CI/signing/notarization/publication/live verification
-are next. Windows21/manual/generalkit17 and all prior release bytes stay pinned.
-Receipts .verification/run-publish-menu; original funding checkout, student work
-and credentials untouched. No real student publication is authorized as a test.
+Signed/notarized/stapled Mac31 is public: https://github.com/codepetca/zero/releases/download/setup-v0.5.31/Zero-0.5.31-macos.dmg
+DMG 4,584,441 bytes, SHA256 `55232bdff4d5c9eec04159cc2a2988cb25bb7f902065ede71f5aaf6bf7c3434f`. Draft and anonymous public bytes
+match sealed `mac-0.5.31-5dce553ba98e`. Buildsource0f7863d8 and the sealed preparation commit have equal protected inputs. Apple
+accepted 50946434-c96d-49cd-9992-8e799bd3eb2b. Actual Developer ID, Gatekeeper,
+staple, both Ed25519 signatures and update build29→31 checks passed. This commit
+promotes exact feed, download snapshots and current guides. Final promotion
+review/CI/live checks are recorded in the ignored completion receipt after merge.
 
-The sealed30candidate and authenticatedprivateDraft418870917 are retained unchanged.
-Full CI found one obsolete tutorial assertion forbidding any visible Publish control.
-The corrected assertion requires Publish inside Run while retaining original-only
-Share restrictions. Source/build31 reserved;30 remains private, never promoted.
+110 affected tests and rootcheck passed. The full local extension suite passed
+717 tests with one platform skip. 159 website tests/typecheck/build passed.
+Two obsolete test assertions were corrected before the clean31build; the private
+30candidate/draft are retained unchanged. Browser fixture covered light/dark/high contrast,
+200px sidebar/200%text, keyboard, Publish dispatch and focus; actual VS Code,
+screenreader, fresh machine, physical Windows and live publishing remain smoke
+coverage. No student repository or credentials changed. Windows21/manual and
+general kit17 retain their versions; prior immutable releases are preserved.
+
+Detailed review/build/publication receipts and screenshots are ignored under
+.verification/run-publish-menu. Preserve these and sealed candidate to the primary
+checkout's .verification/run-publish-menu-0.5.31 before retiring this owned
+worktree. Original dirty funding checkout and unrelated worktrees are preserved.

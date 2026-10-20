@@ -6912,3 +6912,21 @@ changed files and immediate callers found no actionable issues. No actual VS Cod
 host, screen reader, Windows or live publishing acceptance is claimed. Receipts
 and screenshots: ignored `.verification/run-publish-menu`. This change is local;
 Mac 0.5.28 and existing release metadata retain their published bytes.
+
+## Run dropdown Mac release — 2026-10-20
+
+[PR137](https://github.com/codepetca/zero/pull/137) merged as
+`907f0a7635cd7fe25b71e189286a8a4f0ca39961` after all five corrected-head checks and independent
+source, integration and candidate reviews. 110 affected tests and root check pass;
+the full local extension suite passed717 with one platformskip.159website tests,
+typecheck and production build pass. Obsolete website/tutorial assertions were corrected before the clean build;
+protected installer inputs remain unchanged after building.
+
+The public Mac0.5.31 DMG is 4,584,441 bytes, SHA256 `55232bdff4d5c9eec04159cc2a2988cb25bb7f902065ede71f5aaf6bf7c3434f`. Authenticated
+draft and anonymous public downloads match the sealed candidate. Actual signing,
+notarization/staple/Gatekeeper and both update signatures/build ordering pass.
+Safe renderer keyboard, narrow sidebar, enlarged text and theme evidence is
+retained; actual VS Code/live publishing and fresh-device/platform acceptance
+remain manual. Final metadata review, exact-head CI, merge, live feed/download
+checks and owned-worktree retirement are recorded in the ignored completion
+receipt under primary .verification/run-publish-menu-0.5.31.
