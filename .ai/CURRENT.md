@@ -1,3 +1,13 @@
+# Browser tab branding — local, 2026-10-20
+
+Task worktree `zero-tab-branding`, branch `codex/zero-tab-branding`, source bbeb9c8.
+Home title zero; transparent favicon follows exact page icon colors and persisted
+light/dark mode, with one stable link across client navigation.157 tests/typecheck/
+build and alpha/browser checks pass. Luna/medium complete+targeted review clean
+after one lifecycle fix. Ready locally; no publication authorized/performed.
+See docs/EVIDENCE.md, docs/VERIFICATION.md and .verification/tab-branding/.
+Other task's prior current-state record follows, preserved.
+
 # Guided GitHub setup — Mac0.5.24 publication
 
 Owner authorized guided first-launch sign-in/access, merge and Mac publication;

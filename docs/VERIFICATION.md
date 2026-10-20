@@ -3465,3 +3465,13 @@ Registered configuration suite:598extension tests (597pass, one existing skip),
 148website tests and root checks pass. Public App IDs are pinned; user authorization
 and real clone/upload/refresh remain pending. Website secrets/production activation
 and a native release have not occurred.
+
+## Browser tab branding — 2026-10-20
+
+Local source bbeb9c8:157 website tests, typecheck/build and whitespace pass.
+Final root-link fix build/TypeScript passes. IAB verified lowercase home title,
+transparent palette-matched assets, both toggles, saved reload and client navigation
+with page theme opposite OS. Sharp confirms transparent corners in both variants.
+Independent Luna/medium initial+targeted review accepted one corrected lifecycle
+finding. No publication or physical Chrome/Safari/other-OS tab-rendering claim.
+See EVIDENCE.md and ignored `.verification/tab-branding/`.

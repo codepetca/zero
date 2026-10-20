@@ -6525,3 +6525,27 @@ Receipts: ignored .verification/github-onboarding-0.5.24/receipts and sealed
 candidate dist/candidates/mac-0.5.24-916f00c1faac; preserved in primary checkout
 before this managed worktree is retired. No real GitHub grant or student repo
 was created during automated/native testing; classroom smoke coverage remains.
+
+## Browser tab branding — 2026-10-20
+
+Local branch `codex/zero-tab-branding`, source `bbeb9c8` from `be84e39`.
+Home tab title is lowercase zero; transparent favicon derives the approved mark
+and exact light/dark wordmark colors. Saved page choice, toggle and system default
+share the existing theme state. A stable root-head link survives client navigation.
+Apple/share assets retain their existing inverse appearance. No publication.
+
+157 website tests, typecheck and production build pass; final lifecycle fix build
+(including TypeScript) and whitespace check pass. Sharp verifies both 32px variants
+have transparent corners/opaque marks and colors #683bef/#b19aff. IAB Chromium
+verifies home title, both toggle directions, reload persistence and Home→Learn→Home
+with explicit light page against dark OS: exactly one matching favicon link.
+Physical Chrome chrome, Safari/WebKit and other OS tab rendering not certified.
+Evidence: ignored `.verification/tab-branding/` (build log and dark Home screenshot).
+
+Independent Luna/medium complete 5-file review at9f1729b found one navigation
+lifecycle issue, reproduced by coordinator. One fix batch, targeted 2-file review
+atbbeb9c8 clean:2launches/1initial+1targeted, zero unresolved. No conflicts.
+One local alpha-check invocation used an obsolete Sharp path; corrected module
+resolution passed. Weekly85%remaining/storage283GB at start; task-specific tokens,
+effective worker config and elapsed time unknown. Small direct implementation;
+review coordination about3min estimated. Primary dirty funding checkout preserved.
