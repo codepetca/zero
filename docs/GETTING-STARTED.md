@@ -1,11 +1,9 @@
 # Getting started with Zero
 
-This guide records shipped Mac setup 0.5.23 behavior and the next local 0.5.24
-release candidate. The 0.5.24 candidate adds a guided, read-only check of the
-Codepet App's project access before tutorial choices or repository details; the
-published 0.5.23 installer keeps its original flow until promotion. The shared
-GitHub App is registered as Codepet Zero under `codepetca` with public IDs pinned
-in source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
+This guide describes Mac setup 0.5.24, including guided GitHub sign-in and
+project access before tutorial choices or repository details. The shared GitHub
+App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
+source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
@@ -31,14 +29,11 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 ## Start here
 
 1. Download and launch **Zero**. The website needs no sign-in.
-2. In published Mac 0.5.23, follow its bundled **Start tutorial** flow. In the
-   local 0.5.24 candidate, choose **Start tutorial** from **Welcome to Zero**.
-   Complete the existing device sign-in if needed. Before tutorial choices or
-   repository details, Zero checks Codepet App access. If setup is needed,
-   approve selected repositories through the native **Install Zero for
-   GitHub** picker; return to Zero to continue. See [the setup guide](SETUP.md#start-a-tutorial-or-project)
-   for the complete flow and recovery steps. Local Run remains available if you
-   cancel.
+2. Choose **Start tutorial** from **Welcome to Zero**. Complete GitHub device
+   sign-in if needed. If **Install Zero for GitHub** appears, choose **Open
+   GitHub**, approve selected repositories, then return to Zero to continue.
+   See [the setup guide](SETUP.md#start-a-tutorial-or-project) for recovery steps.
+   Local Run remains available if you cancel.
 3. After access is ready, select **Greeting app**. You can also reopen **Start
    tutorial** from the welcome or **…** menu.
    Enter a repository name. Zero creates a public repository in your GitHub
@@ -229,7 +224,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In the local 0.5.24 candidate, **Start tutorial** from Zero’s welcome or
+In Mac 0.5.24, **Start tutorial** from Zero’s welcome or
 **…** menu checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a

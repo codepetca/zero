@@ -1,23 +1,16 @@
 # Guided student setup
 
-Windows0.5.18 native automatic setup is a local development candidate; see
-[Windows installation and updates](WINDOWS-INSTALLER.md). The published Windows
-download still uses the ZIP/manual instructions below until a signed, tested
-release is authorized.
+The signed, notarized Mac 0.5.24 app prepares Java and the editor, then guides
+GitHub sign-in and project access before the tutorial choices. The current MVP
+targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
+unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
+manual ZIP; automatic Windows updates and physical acceptance remain pending.
+The general manual kit fallback remains 0.5.17. Each download retains its bundled
+instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
-The current MVP targets **Mac with Apple Silicon** and **Windows**. Linux and
-Intel Macs are unsupported. The signed Mac0.5.14 app provides automatic
-Java/editor preparation for supported personal and school Macs. Windows uses
-the published complete-kit ZIP for manual setup; its native EXE is unpublished.
-Download choices show the Windows ZIP alongside Mac. The independently published
-0.5.10 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
-continues to be an ordinary editable Java project.
-
-The guided project-access check below describes the local 0.5.24 release
-candidate. Mac 0.5.23 and other published kits retain their bundled sign-in and
-project instructions. The Codepet Zero GitHub App is registered under
-`codepetca`, with its public IDs pinned in source. Live acceptance, production
-activation and release promotion remain pending. See [the identity plan](ZERO-IDENTITY-PLAN.md).
+The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
+pinned in source. Students approve access on GitHub. See
+[the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
 ## Before tutorial lesson 0
 

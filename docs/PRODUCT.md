@@ -13,14 +13,13 @@ to GitHub. Browser publication and ZeroHub contributions extend that learning;
 they are optional for completing the lessons. Keep ordinary Java and explicit
 object updates central as setup, publishing and community features grow.
 
-Current delivery, checked 2026-10-19: Mac 0.5.23 ships tutorial-first onboarding
-and the browser-run/GitHub App source. Windows remains the unsigned 0.5.21
+Current delivery, checked 2026-10-20: Mac 0.5.24 ships tutorial-first onboarding,
+guided GitHub setup and the browser-run/GitHub App source. Windows remains the unsigned 0.5.21
 preview and matching manual ZIP, with updates disabled and physical acceptance
 pending. The general manual kit fallback remains 0.5.17. Source availability,
 released versions and observed student/provider acceptance are separate; see
 [the goal audit](VERIFICATION.md#goal-and-gap-audit--2026-10-19).
-The local 0.5.24 candidate adds guided GitHub project-access setup before
-tutorial choices and repository details; it has not been promoted.
+GitHub setup verifies project access before tutorial choices and repository details.
 
 The shared Zero brand uses the softened, thicker slashed-circle mark from
 `design/brand`. Website headers use purple in light mode and the white-on-purple
@@ -43,7 +42,7 @@ centered full-viewport layout. The old `/get-started` address redirects to Downl
 Browsing, learning and playing require no GitHub sign-in. Current desktop
 source uses one public Codepet-owned GitHub App for development and optional
 ZeroHub stars. Codepet Zero is registered under `codepetca`, and its public App
-IDs are pinned in source. Mac 0.5.23 includes this source; remaining live-provider
+IDs are pinned in source. Mac 0.5.24 includes this source; remaining live-provider
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 

@@ -1,31 +1,30 @@
-# Guided GitHub setup — 2026-10-20
+# Guided GitHub setup — Mac0.5.24 publication
 
-Owner explicitly authorized first-launch GitHub sign-in and repository access,
-then merge/publication of a new Mac release so the smoke test can restart. This
-supersedes the prior audit phase’s no-new-installer scope for this task only.
-Base main43926b7; isolated codex/github-onboarding-0.5.24 worktree. Preserve the
-46dirty funding-checkout paths, other worktrees, accounts and student repositories.
+Owner authorized guided first-launch sign-in/access, merge and Mac publication;
+follow-up requests short Install Zero for GitHub popup. Source PR119 merged
+3477ab2217c1f6ec8030bf33b8923288e826f570; tree equals reviewed clean730ac8b.
+All5exact-head CI checks passed. Full local790pass/3skip; final64affected and
+root check pass; website157/typecheck/build pass before metadata promotion.
 
-Coordinator owns setup UI, integration/tests, release and evidence. Sol/high
-worker completed GET-only repositories.checkSetup and22tests in its two files;
-Luna/medium worker completed five setup/product/design docs; coordinator inspected. No recursive delegation.
-Weekly remaining89%at start; storage healthy284GB; dated DeepSeek pause honored.
+Start tutorial checks existing personal-account App access before tutorial/name
+choices; explicit pinned GitHub approval, automatic return/recheck, Escape/retry.
+Existing credentials, selected-repo and per-repo checks preserved. Sign-in retry
+and managed Zero reopen reveal sidebar. Starter remains under Setup help.
+Isolated real native UI verified using fake account/access without GitHub writes;
+live approval, new OS user/empty account and physical Windows remain untested.
 
-Flow: Start tutorial → saved/sign-in GitHub session → verify personal-account
-App access → native Open GitHub/Check again picker when needed → recheck on
-return → tutorial picker/name/clone. No repository is created before approval.
-Keep selected repositories and per-repo checks; no scope/credential changes.
-Explicit sign-in retry reveals Zero; Zero-launched reopen reveals its sidebar.
-Completed installation starter remains under Setup help.
+Signed/notarized/stapled DMG published setup-v0.5.24, release418426592. Draft and
+anonymous downloads match sealed4584867bytes/SHA3095ae4d9683dae0f728343942e1d03d5dc35b5a5cfd541161585ee4a5f64e86.
+Notary3e926af8-b266-4563-81cc-96288c83258d Accepted; actual Gatekeeper app/DMG pass.
+Built730ac8b, prep916f00c. Candidate dist/candidates/mac-0.5.24-916f00c1faac.
 
-80focused checks pass; full suite790passed/3skipped, website157/typecheck/build
-and root check pass. Isolated native VS Code verified welcome, setup picker,
-Escape/retry, browser return→tutorial picker→name using fake account/access;
-no GitHub writes. Real consent/fresh-machine/Windows acceptance stays untested.
-Standard-risk review: Sol/high full diff,1initial wave, budget7launches/4fix
-batches/4targeted/1integration/60min; no authority/scope expansion. Next:
-initial review905a30f clean; owner requested concise popup copy.1launch,
-1initialwave,1copy batch; targeted copy review next, then exact-head CI/source merge,
-Mac0.5.24/build24 signing/notarization and exact-byte promotion. Windows21 and
-published kit remain unchanged. No installed app or profile is reset by this work.
-Evidence: docs/EVIDENCE.md and ignored .verification/github-onboarding/.
+Sol/high complete initial source, copy delta and candidate reviews clean;3turns,
+1initial/2targeted waves/1copy batch; final promotion delta review next. Budget
+7launches/4targeted/4fixbatches/60min from13:08UTC. Luna/medium docs worker verified.
+DeepSeek pause honored; weekly89%remaining at start/storage284GB. No conflicts.
+
+PR121 promotes exact sealed feed and measured metadata, updates current guides.
+Next: final delta checks/review, exact-head CI/merge, live downloads/feed bytes,
+smoke-guide update, preserve ignored receipts then archive this worktree. Windows21,
+published kit and old release bytes unchanged. Dirty primary funding work and
+accounts/student repositories/profile remain untouched. See docs/EVIDENCE.md.
