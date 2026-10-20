@@ -11,7 +11,7 @@ export default function GlobalError({ reset }: { error: Error & { digest?: strin
         <main id="page-content" style={{ minHeight: "100vh", display: "grid", placeItems: "center", textAlign: "center" }}>
           <div>
             <h1>This page couldn’t load</h1>
-            <button type="button" onClick={() => reset()}>Try again</button>
+            <button type="button" style={{ minHeight: 44, padding: "8px 16px" }} onClick={() => reset()}>Try again</button>
           </div>
         </main>
       </body>

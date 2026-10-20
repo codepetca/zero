@@ -6,7 +6,7 @@ export default function NotFound() {
       <div>
         <h1>404</h1>
         <p>This page could not be found.</p>
-        <Link href="/">Go home</Link>
+        <Link href="/" style={{ minHeight: 44, display: "inline-flex", alignItems: "center" }}>Go home</Link>
       </div>
     </main>
   );
