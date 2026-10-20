@@ -19,6 +19,8 @@ preview and matching manual ZIP, with updates disabled and physical acceptance
 pending. The general manual kit fallback remains 0.5.17. Source availability,
 released versions and observed student/provider acceptance are separate; see
 [the goal audit](VERIFICATION.md#goal-and-gap-audit--2026-10-19).
+The local 0.5.24 candidate adds guided GitHub project-access setup before
+tutorial choices and repository details; it has not been promoted.
 
 The shared Zero brand uses the softened, thicker slashed-circle mark from
 `design/brand`. Website headers use purple in light mode and the white-on-purple
@@ -45,17 +47,24 @@ IDs are pinned in source. Mac 0.5.23 includes this source; remaining live-provid
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
-Download and launch desktop Zero first. Its welcome checks
-Zero's GitHub connection, offers **Connect GitHub** when needed and leads to
-tutorial creation. Zero's supported `zero-github` provider uses GitHub device
-sign-in and stores expiring user/refresh tokens in VS Code SecretStorage. GitHub
-handles sign-in and consent; there is no separate Zero password or account.
-The first connection modal shows the device code and one short instruction to
-paste it on GitHub; the authorization and consent flow is unchanged.
-Connections show the username, while account checks use the numeric GitHub ID.
-Install the App on selected repositories; repositories the App creates become
-accessible automatically. Zero never silently requests all repositories.
-Dismissing welcome leaves local Run available. Publication and uploads remain explicit.
+Download and launch desktop Zero first. Its native **Start tutorial** welcome
+uses Zero's existing GitHub device sign-in when needed. Sign-in and credential
+storage remain unchanged: the supported `zero-github` provider stores expiring
+user/refresh tokens in VS Code SecretStorage; GitHub handles sign-in and consent,
+and Zero has no separate password or account. After sign-in, before showing the
+tutorial picker or collecting a repository name or location, Zero checks the
+current personal account's Codepet App access for repository creation and
+contents writing. This check is read-only. If access is missing, a native
+**Connect GitHub · project access** picker opens with **Open GitHub** for the
+pinned App page and **Check again**. The student reviews and approves selected
+repositories on GitHub; Zero never requests access to all repositories, and
+repositories Zero creates are accessible automatically. Returning to Zero
+rechecks and continues to the tutorial picker when access is ready. Network or
+account changes during recheck do not create a repository. Escape cancels this
+step and leaves **Start tutorial** available for retry; a direct palette **Sign
+in** follows the same access guidance and reveals the Zero sidebar. Opening Zero
+again reveals that sidebar while preserving editor tabs and work. Local Run
+remains available without GitHub. Publication and uploads remain explicit.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
 are listed under three quiet project headings (Greeting app, Study quiz and Coin
 game); selecting one updates the reading pane and its bookmarkable

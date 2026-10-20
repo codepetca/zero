@@ -53,12 +53,12 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     try {
       onSend?.();
       response = await fetchImpl(API + suffix, {method,redirect:'error',cache:'no-store',signal:AbortSignal.any([AbortSignal.timeout(15000),...(signal?[signal]:[])]),headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+token,'X-GitHub-Api-Version':API_VERSION,...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});
-    } catch { throw failure('GitHub could not be reached. Check your connection and try again.', 'network-error'); }
+    } catch { cancelled(signal); throw failure('GitHub could not be reached. Check your connection and try again.', 'network-error'); }
     await current(ticket);
     cancelled(signal);
     if (allow404 && response.status === 404) return null;
     if (!response.ok) {
-      const error = failure(response.status===401?'GitHub sign-in expired. Reconnect GitHub.':response.status===403?'GitHub refused access. Check Zero’s selected repositories and App permissions.':`GitHub could not complete this request (HTTP ${response.status}).`, 'github-error');
+      const error = failure(response.status===401?'GitHub sign-in expired. Reconnect GitHub.':response.status===403?'Allow Zero to create and save projects on your personal GitHub account. Review its access on GitHub.':`GitHub could not complete this request (HTTP ${response.status}).`, 'github-error');
       if(response.status===403)error.actionUrl=`https://github.com/apps/${configuration.slug}/installations/new`;
       error.status = response.status; throw error;
     }
@@ -69,18 +69,30 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     const accountId = String(ticket.session.accountId);
     for (let page=1;page<=100;page++) {
       const result = await api(ticket,'GET',`/user/installations?per_page=100&page=${page}`,{signal});
-      if (!Array.isArray(result?.installations) || result.installations.length>100) throw failure('GitHub returned an invalid installation list.', 'invalid-response');
+      if (!Array.isArray(result?.installations) || result.installations.length>100 || result.installations.some(item=>!item || typeof item!=='object' || Array.isArray(item))) throw failure('GitHub returned an invalid installation list.', 'invalid-response');
       const matches = result.installations.filter(item=>item.app_id===configuration.appId && item.app_slug===configuration.slug && String(item.account?.id)===accountId);
       if (matches.length>1) throw failure('GitHub returned conflicting Zero installations.', 'invalid-response');
       if (matches.length) {
         const item=matches[0];
-        if (!positive(item.id) || item.account?.type!=='User' || item.target_type!=='User' || item.suspended_at || !['selected','all'].includes(item.repository_selection)) throw setupFailure('Install or resume Zero on your personal GitHub account using selected repositories.', 'installation-required');
-        if (!capabilities(item.permissions,required)) throw setupFailure('Zero’s GitHub App installation needs the requested repository permissions. Review its permissions on GitHub.', 'permission-required');
+        if (!positive(item.id) || !positive(item.account?.id) || item.account?.type!=='User' || item.target_type!=='User' || item.suspended_at || !['selected','all'].includes(item.repository_selection)) throw setupFailure('Allow Zero to create and save projects on your personal GitHub account. Review its access on GitHub.', 'installation-required');
+        if (!capabilities(item.permissions,required)) throw setupFailure('Allow Zero to create and save projects on your personal GitHub account. Review its permissions on GitHub.', 'permission-required');
         return item;
       }
       if (result.installations.length<100) break;
     }
-    throw setupFailure('Install Zero on your personal GitHub account and select the repository you want to use.', 'installation-required');
+    throw setupFailure('Allow Zero to create and save projects on your personal GitHub account.', 'installation-required');
+  }
+  async function checkSetup({ticket,signal}={}) {
+    configured(); cancelled(signal);
+    ticket ||= await authentication.capture();
+    await current(ticket);
+    const user=await api(ticket,'GET','/user',{signal});
+    if (!positive(user?.id) || String(user.id)!==String(ticket.session.accountId) || user.type!=='User' || !safeOwner(user.login)) throw failure('Connect the same personal GitHub account to check Zero’s access.', 'account-mismatch');
+    // Installation access is enough before the student's first project exists.
+    // Preserve the user's selected/all choice without reading repository lists.
+    const installed=await installation(ticket,{repository_creation:'write',contents:'write'},signal);
+    await current(ticket); cancelled(signal);
+    return Object.freeze({ticket,installation:Object.freeze(installed),checkedAt:now()});
   }
   function repository(value, parsed, accountId) {
     if (!value || !positive(value.id) || !positive(value.owner?.id) || String(value.owner.id)!==String(accountId) || value.owner.type!=='User' || !safeOwner(value.owner.login) || !safeName(value.name) || value.full_name!==`${value.owner.login}/${value.name}` || value.full_name.toLowerCase()!==parsed.page.slice('https://github.com/'.length).toLowerCase() || value.html_url!==`https://github.com/${value.full_name}` || value.clone_url!==`${value.html_url}.git` || typeof value.default_branch!=='string' || !value.default_branch || typeof value.private!=='boolean') throw failure('Use a repository owned by the same personal GitHub account connected to Zero.', 'repository-mismatch');
@@ -152,6 +164,6 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       throw error;
     } finally {creating.delete(key);}
   }
-  return {access,create};
+  return {checkSetup,access,create};
 }
 module.exports={createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity};

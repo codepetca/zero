@@ -15,6 +15,7 @@ const {createGitHubAppClone} = require('./github-app/clone');
 const {createGitHubProjectCommands} = require('./github-app/projects-ui');
 const {createProjectFolders} = require('./project-folders');
 const {createWelcome} = require('./welcome');
+const {createGitHubSetup} = require('./github-app/setup-ui');
 const {selectUploadAuthentication} = require('./web-publish-upload-auth');
 const {createTransport} = require('./transport');
 const {createSharingEditor} = require('./sharing/editor');
@@ -151,7 +152,7 @@ function activate(context, services = {}) {
     if (!folders.length && hasOpenEditors() && !launchedForZero) return;
     const root = folders.length ? await project() : undefined;
     if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
-    if (!context.workspaceState.get('zero.sidebarShown')) {
+    if (launchedForZero || !context.workspaceState.get('zero.sidebarShown')) {
       await actions['zero.showSidebar']();
       await context.workspaceState.update('zero.sidebarShown', true);
     }
@@ -171,8 +172,26 @@ function activate(context, services = {}) {
   const repositories = services.repositories || createGitHubAppRepositories({authentication:auth,configuration:appConfiguration});
   const cloneRepository = services.cloneRepository || createGitHubAppClone({authentication:auth,repositories});
   const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository});
-  const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
+  const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
   context.subscriptions.push(projectFolders,githubProjects);
+  const githubSetup = createGitHubSetup({vscode, authentication:auth, repositories,
+    installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,
+    active:() => !disposed, report});
+  context.subscriptions.push(githubSetup);
+  async function prepareGitHub() {
+    await actions['zero.showSidebar']();
+    if (disposed) return false;
+    await auth.refresh();
+    if (disposed) return false;
+    if (!auth.signedIn) await auth.signIn(false);
+    if (disposed) return false;
+    const ticket = await auth.capture();
+    if (disposed) return false;
+    const ready = await githubSetup.ensure();
+    if (!disposed && ready) await auth.assertCurrent(ticket);
+    if (!disposed && !ready) report('GitHub setup paused · Start tutorial to continue');
+    return !disposed && ready ? ticket : false;
+  }
   async function signIn(changeAccount = auth.signedIn) {
     if (disposed || isBusy()) return;
     signingIn = true; refresh();
@@ -180,8 +199,8 @@ function activate(context, services = {}) {
       if (disposed) return;
       if (!appProvider) throw new Error('The Codepet GitHub App is not configured in this Zero release. Local running still works.');
       if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
-      await auth.signIn(false);
-      if (!disposed) {state = ''; output.appendLine(auth.status);}
+      await prepareGitHub();
+      if (!disposed) output.appendLine(auth.status);
     } catch (error) {
       if (!disposed) throw error;
     } finally { signingIn = false; if (!disposed) refresh(); }
@@ -725,7 +744,7 @@ function activate(context, services = {}) {
     if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  const welcome = createWelcome({window:vscode.window,globalState:context.globalState,authentication:auth,connect:() => signIn(false),startProject:() => actions['zero.startProject'](),isBusy,
+  const welcome = createWelcome({window:vscode.window,globalState:context.globalState,authentication:auth,startProject:() => actions['zero.startProject'](),isBusy,
     eligible:async () => {
       if (!(vscode.workspace.workspaceFolders || []).length) return launchedForZero || !hasOpenEditors();
       try {return isSetupProject(await project());} catch {return false;}

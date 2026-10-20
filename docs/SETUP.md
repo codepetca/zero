@@ -13,11 +13,11 @@ Download choices show the Windows ZIP alongside Mac. The independently published
 0.5.10 ZIP remains unchanged. The complete kit owns setup launchers; the starter-only ZIP
 continues to be an ordinary editable Java project.
 
-The GitHub connection and project commands described below are local, unreleased
-source. The Codepet Zero GitHub App is registered under `codepetca`, with its
-public IDs pinned in source. Live acceptance, production activation and an
-authorized native release remain pending. Published kits keep their
-bundled sign-in and project instructions. See [the identity plan](ZERO-IDENTITY-PLAN.md).
+The guided project-access check below describes the local 0.5.24 release
+candidate. Mac 0.5.23 and other published kits retain their bundled sign-in and
+project instructions. The Codepet Zero GitHub App is registered under
+`codepetca`, with its public IDs pinned in source. Live acceptance, production
+activation and release promotion remain pending. See [the identity plan](ZERO-IDENTITY-PLAN.md).
 
 ## Before tutorial lesson 0
 
@@ -37,19 +37,26 @@ an active GitHub session; repository uploads require internet/sign-in. These are
 student/teacher setup steps. GitHub account creation stays on GitHub; Zero's
 explicit project commands create repositories only after collecting the choices below.
 
-## Open your project
+## Start a tutorial or project
 
-After App activation, choose **Sign in** in Zero and enter the displayed device
-code on GitHub using your personal account. GitHub handles consent. Install the
-Codepet App with selected repositories; repositories Zero creates become
-accessible automatically. Zero stores expiring credentials in VS Code
-SecretStorage. Sign out disconnects only Zero on this computer. While signed
-out, Zero's Git area shows only **Sign in**; local Run and Files remain available.
+Choose **Start tutorial** in the native welcome. If needed, complete the existing
+GitHub device sign-in with your personal account. Before showing tutorial choices
+or asking for a repository name or location, Zero makes a read-only check of the Codepet App's
+access in that account for repository creation and contents writing.
+If access is missing, use the native **Connect GitHub · project access** picker:
+**Open GitHub** opens the pinned App page, where you review and approve selected
+repositories. Zero never asks for all-repository access. Return to Zero; it
+rechecks and continues automatically when ready. **Check again** is available if
+the automatic check does not finish. Escape cancels and leaves **Start tutorial**
+available to retry. Rechecks that detect network or account changes never create
+a repository. A direct palette **Sign in** follows the same access guidance and
+reveals the Zero sidebar. App-created repositories are accessible automatically.
 
-Choose **Start tutorial** and its scaffold, or **Project → New project…** for
-original work. Enter a repository name and choose a parent folder before creation.
-Zero creates a public repository in your GitHub account, verifies access, clones
-and opens the project in a new window. Its source and included files are public.
+After access is ready, choose **Start tutorial** and its scaffold, or
+**Project → New project…** for original work. Enter a repository name and choose
+a parent folder before creation. Zero creates a public repository in your GitHub
+account, verifies access, clones and opens the project in a new window. Its
+source and included files are public.
 The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
 For an existing repository, choose **Project → Clone from GitHub…**, paste its
