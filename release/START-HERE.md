@@ -1,6 +1,6 @@
 # Start with Zero
 
-This guide is prepared for the local, unreleased Zero **0.5.23** candidate
+This guide is prepared for the local, unreleased Zero **0.5.24** candidate
 with core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
@@ -32,10 +32,17 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 
 ## Open a tutorial project
 
-Choose **Start tutorial** in Zero’s welcome or sidebar, connect GitHub if
-needed, and choose **Greeting app**. Name your repository and choose where to
-save its clone. Zero creates your repository from the verified scaffold and
-opens your clone with `Main.java` beside **Tutorials** for lesson 0.
+Choose **Start tutorial** in the 0.5.24 candidate’s welcome. Complete the
+existing GitHub device sign-in if needed. Before showing tutorial choices or
+asking for repository details, Zero checks whether the current personal account
+has the Codepet App's project access. If not, use **Open GitHub** in the native
+**Install Zero for GitHub** picker and approve the selected repositories
+on GitHub. Return to Zero; it rechecks and continues automatically when ready.
+Use **Check again** if needed. Escape cancels and leaves **Start tutorial**
+available to retry; network/account changes during a recheck do not create a
+repository. After access is ready, choose **Greeting app**, name your repository
+and choose where to save its clone. Zero creates it from the verified scaffold
+and opens your clone with `Main.java` beside **Tutorials** for lesson 0.
 
 Already cloned it? **Project → Open local project…** opens your existing Zero
 folder in a new window without cloning. With a local folder that has no origin,
@@ -94,7 +101,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.23.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.24.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

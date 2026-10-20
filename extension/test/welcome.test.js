@@ -18,7 +18,7 @@ function fixture({current, choices = [], remembered = new Map(), eligible = true
   const welcome = createWelcome({
     window:{async showInformationMessage(text,...actions) {messages.push({text,actions});const choice = choices.shift();return typeof choice === 'function' ? choice() : choice;}},
     globalState:{get:key=>remembered.get(key),update:async(key,value)=>remembered.set(key,value)},
-    authentication:auth, connect:()=>auth.signIn(), startProject:async()=>{starts++;},eligible:async()=>eligible,isBusy:()=>busy
+    authentication:auth, startProject:async()=>{if(!auth.signedIn)await auth.signIn();starts++;},eligible:async()=>eligible,isBusy:()=>busy
   });
   return {auth,welcome,calls,messages,remembered,set(value){next=value;},fail(value=true){failure=value;},event(){listener({provider:{id:'zero-github'}});},busy(value){busy=value;},get starts(){return starts;}};
 }
@@ -29,7 +29,7 @@ test('connected first launch uses silent Zero App lookup and offers the tutorial
 });
 test('disconnected modal Later and Escape never create sessions, and profile state prevents repeat offers after session changes',async()=>{
   for(const choice of ['Later',undefined]) {
-    const f=fixture({choices:[choice]});await f.welcome.show();assert.match(f.messages[0].actions[0].detail,/connect GitHub/);assert.equal(f.messages[0].actions[0].modal,true);assert.deepEqual(f.messages[0].actions.slice(1),['Start tutorial','Later']);assert.equal(f.calls.filter(call=>call.options.createIfNone).length,0);
+    const f=fixture({choices:[choice]});await f.welcome.show();assert.match(f.messages[0].actions[0].detail,/GitHub sign-in/);assert.equal(f.messages[0].actions[0].modal,true);assert.deepEqual(f.messages[0].actions.slice(1),['Start tutorial','Later']);assert.equal(f.calls.filter(call=>call.options.createIfNone).length,0);
     f.set(session('other'));f.event();await f.auth.refresh();await f.welcome.show();assert.equal(f.messages.length,1);
     const next=fixture({remembered:f.remembered,current:session('other')});await next.welcome.show();assert.equal(next.messages.length,0);assert.ok(next.calls.every(call=>call.options.silent));
   }

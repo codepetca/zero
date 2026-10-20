@@ -505,3 +505,23 @@ continues to repository creation. Cancel keeps the sidebar action available.
 Student clones open Main beside Tutorials. Preserve existing student sessions.
 Keep the completed starter under Setup help → Test installation, in a separate
 window labelled Installation test with Run test. It does not auto-open a lesson.
+
+## Guided GitHub project access — owner approval, 2026-10-20
+
+For the next release candidate, keep the native **Start tutorial** welcome and
+existing device sign-in and credential handling. Before the tutorial picker or
+repository name/location fields, do a read-only check of the current personal
+account's Codepet App access for repository creation and contents writing. If
+missing, show the native **Install Zero for GitHub** picker; **Open
+GitHub** launches the pinned App page, where the student approves selected
+repositories. Never request all-repository access. App-created repositories gain
+access automatically. On return, recheck and continue to the tutorial picker;
+keep **Check again** as fallback. Escape cancels and leaves Start tutorial
+available to retry. Network or account drift during recheck never creates a
+repository. Direct palette **Sign in** also guides access and reveals Zero.
+Reopening Zero reveals its sidebar while preserving editor tabs and work. Keep
+the completed starter at Setup help → Test installation, separate from tutorials.
+This is an interaction-flow change only; website visuals are unchanged.
+
+Owner follow-up: keep the native App prompt short: **Install Zero for GitHub**,
+with Open GitHub and Check again. Keep permission explanations in setup help.

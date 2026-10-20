@@ -6436,3 +6436,31 @@ Promotion copies exact sealed feed bytes and changes only publication status/URL
 in measured metadata. Windows preview/manual ZIP and published kit remain intact.
 Proofs: ignored .verification/onboarding-release/ and sealed dist/candidates/.
 Final promotion review/CI/live URL verification remain the next gate.
+
+## Guided GitHub setup candidate — 2026-10-20
+
+Owner authorized guided first-launch sign-in/access, merge and Mac publication.
+Start tutorial now checks the captured personal account's App installation and
+existing write permissions before tutorial/name/location choices. Read-only
+preflight; existing browser approval, selected-repo boundary, credentials and
+per-repository creation/clone guards remain. Native access picker supports
+explicit pinned Open GitHub, automatic check on return, Check again and Escape.
+Retry reveals Zero; managed Zero reopen reveals its sidebar without closing tabs.
+
+80focused tests pass. Full local suite790passed/3skipped; website157tests,
+typecheck/build, root configuration/syntax/contracts/docs and whitespace pass.
+Actual isolated VS Code native welcome→setup picker→cancel→retry→local simulated
+approval→focus return→tutorial picker→repository name passed; cancelled before
+creation. QA harness used fake account/access; no real GitHub grant, repository,
+credential or installed profile changed. Physical Windows, clean-machine setup
+and live GitHub approval remain user smoke-test coverage.
+
+Sol/high worker delivered GET-only checkSetup and22affected tests; Luna/medium
+worker delivered five setup/product/design docs. Coordinator inspected both,
+no integration conflicts or worker rework. Effective model/tokens/worker elapsed
+unavailable. Weekly remaining89% at start; storage284GB; DeepSeek dated pause
+honored. Initial Sol/high source review905a30f complete/clean, all21files and callers.
+Owner then requested concise App prompt; copy-only correction uses Install Zero
+for GitHub with two plain actions, retaining explanation in setup help.
+Targeted copy review and exact-head CI/publication gates pending. Logs retained
+under ignored .verification/github-onboarding-0.5.24/.

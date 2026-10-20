@@ -1,42 +1,31 @@
-# Product goal audit — 2026-10-19
+# Guided GitHub setup — 2026-10-20
 
-Owner requested a goal audit and feasible fixes, then explicitly said Fix and
-publish after the website/API documentation follow-up. Source PR/merge and the
-existing website Git deployment are authorized. No account/profile changes,
-student-repository actions or new installer release are part of this publication.
+Owner explicitly authorized first-launch GitHub sign-in and repository access,
+then merge/publication of a new Mac release so the smoke test can restart. This
+supersedes the prior audit phase’s no-new-installer scope for this task only.
+Base main43926b7; isolated codex/github-onboarding-0.5.24 worktree. Preserve the
+46dirty funding-checkout paths, other worktrees, accounts and student repositories.
 
-Baseline main79b0762; local branch `codex/goal-gap-audit` in the attached isolated
-worktree. Reviewed implementation5289d28 fixes native preparation after project
-switch/disposal, publication tracking during later edits, cancelled submission
-recovery through verified open-owner intake, and ambiguous Hub release selectors.
-PRODUCT now distinguishes shipped Mac source, Windows/ZIP versions and remaining
-acceptance. Original dirty funding checkout and installed0.5.23 are preserved.
+Coordinator owns setup UI, integration/tests, release and evidence. Sol/high
+worker completed GET-only repositories.checkSetup and22tests in its two files;
+Luna/medium worker completed five setup/product/design docs; coordinator inspected. No recursive delegation.
+Weekly remaining89%at start; storage healthy284GB; dated DeepSeek pause honored.
 
-Final root769pass/3skip, focused integration134pass, latest native30pass;
-sharing75pass/4skip plus4final recovery checks; website157/type/build;
-release86/installer17/update11pass+2skip;3scaffold compiles; local package,
-exact-source/ZIP/license checks and extracted Maven compile pass. Both dependency
-audits0known vulnerabilities; check/diff pass. One initial onboarding timing-test
-failure was corrected by waiting for its expected rendered state.
+Flow: Start tutorial → saved/sign-in GitHub session → verify personal-account
+App access → native Open GitHub/Check again picker when needed → recheck on
+return → tutorial picker/name/clone. No repository is created before approval.
+Keep selected repositories and per-repo checks; no scope/credential changes.
+Explicit sign-in retry reveals Zero; Zero-launched reopen reveals its sidebar.
+Completed installation starter remains under Setup help.
 
-Independent complete-diff reviews: two fresh Sol/high workers, safety and
-compatibility, zero findings at5289d28.2launches/1wave/0reviewfixes; no source
-changes after review. Effective telemetry unknown; start weekly12%account-wide,
-storage healthy293GB; DeepSeek dated pause honored.
-
-Follow-up API/docs check: live API98IDs/signatures match current framework;
-AppGuide/setup/starter release notes were stale. Local31b50d3/27d2a94 corrections
-and one Luna/medium targeted doc review resolve them; website157/API11/type/build/
-check pass. Browser/native limits and tutorial-first instructions are explicit.
-Docs publication is now authorized and in progress. See newest docs/EVIDENCE.md entry.
-
-Next: publish the reviewed source/docs through PR/CI and verify live guides;
-owner smoke test of publishedMac0.5.23 remains separate.
-Empty-account GitHub onboarding, token expiry/revocation/account drift, first and
-repeat Pages publication, novice/school trial and physical Windows remain open.
-Windows unsigned0.5.21 lacks Mac0.5.23 tutorial-first onboarding. Generic managed
-library admission remains gated. No new release is created; verified local
-artifacts are test outputs and cannot replace immutable published0.5.23 bytes.
-Evidence: docs/EVIDENCE.md and the dated audit matrix in docs/VERIFICATION.md;
-bulky receipts in ignored .verification/goal-audit/. Keep this deliverable worktree
-for review; the user's existing worktrees/projects remain intact.
+80focused checks pass; full suite790passed/3skipped, website157/typecheck/build
+and root check pass. Isolated native VS Code verified welcome, setup picker,
+Escape/retry, browser return→tutorial picker→name using fake account/access;
+no GitHub writes. Real consent/fresh-machine/Windows acceptance stays untested.
+Standard-risk review: Sol/high full diff,1initial wave, budget7launches/4fix
+batches/4targeted/1integration/60min; no authority/scope expansion. Next:
+initial review905a30f clean; owner requested concise popup copy.1launch,
+1initialwave,1copy batch; targeted copy review next, then exact-head CI/source merge,
+Mac0.5.24/build24 signing/notarization and exact-byte promotion. Windows21 and
+published kit remain unchanged. No installed app or profile is reset by this work.
+Evidence: docs/EVIDENCE.md and ignored .verification/github-onboarding/.

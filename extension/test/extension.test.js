@@ -29,7 +29,7 @@ test('commands simulate upload without Git and explicit native diagnostic tasks 
   let extension;try {extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[require.resolve('../src/extension')];});
   const accessCalls=[];
-  const repositories={access:async(repositoryUrl,{ticket,permissions})=>{assert.equal(repositoryUrl,'https://github.com/student/app');assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);accessCalls.push(permissions);return {ticket,repository:{id:12},installation:{id:99}};}};
+  const repositories={checkSetup:async()=>{},access:async(repositoryUrl,{ticket,permissions})=>{assert.equal(repositoryUrl,'https://github.com/student/app');assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);accessCalls.push(permissions);return {ticket,repository:{id:12},installation:{id:99}};}};
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appProvider,repositories});
   await commands.get('zero.uploadToGitHub')();
   assert.match(notices[0],/Simulation only — nothing uploaded/);assert.equal(mutations,0);
@@ -143,7 +143,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   };
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));
   const appProvider={removeSession:async id=>{removed.push(id);session=undefined;},dispose(){}};
-  const repositories={access:async()=>assert.fail('No live repository access is needed in this sidebar/checkout test'),create:async(input,{ticket})=>{assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);creations.push(input);return {ticket,repository:{id:12,html_url:'https://github.com/student/'+input.name},installation:{id:99}};}};
+  const repositories={checkSetup:async()=>{},access:async()=>assert.fail('No live repository access is needed in this sidebar/checkout test'),create:async(input,{ticket})=>{assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);creations.push(input);return {ticket,repository:{id:12,html_url:'https://github.com/student/'+input.name},installation:{id:99}};}};
   const cloneRepository=async input=>{assert.ok(input.signal instanceof AbortSignal);assert.equal(input.signal.aborted,false);const {signal,...reviewed}=input;clones.push(reviewed);return path.join(root,'new-project');};
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>key==='zero.cloneParent'?root:undefined,update:async()=>{}}},{provider:appProvider,repositories,cloneRepository});
   assert.deepEqual(registered.map(item=>item.id),['zero-github']);
@@ -200,7 +200,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.deepEqual(removed,['student-session']);assert.equal(dispatched.length,dispatchCount,'Signing out removes only Zero’s App session');assert.match(webview.html,/Sign in to GitHub/);
   session={id:'student-session',account:{id:'1',label:'student'},accessToken:'PRIVATE',scopes:[]};authEvent({provider:{id:'zero-github'}});await settle(()=>webview.html.includes('zero.chooseRepository'));
   connectionSession={...session,id:'replacement-session'};nextChoice='change';await commands.get('zero.githubAccount')();
-  assert.deepEqual(removed,['student-session','student-session']);assert.equal(authCalls.at(-1).options.createIfNone,true);assert.equal(authCalls.at(-1).options.clearSessionPreference,undefined,'Account replacement stays within Zero’s provider');
+  assert.deepEqual(removed,['student-session','student-session']);assert.equal(authCalls.findLast(call=>call.options.createIfNone).options.createIfNone,true);assert.equal(authCalls.findLast(call=>call.options.createIfNone).options.clearSessionPreference,undefined,'Account replacement stays within Zero’s provider');
   repo='https://github.com/student/app.git';webviewProvider.resolveWebviewView(candidate);await settle(()=>/Commit &amp; push/.test(webview.html) && /class="repo-label">student\/<wbr>app/.test(webview.html));
   assert.match(webview.html,/Commit &amp; push/);assert.match(webview.html,/class="repo-label">student\/<wbr>app/);assert.doesNotMatch(webview.html,/Create repository|Connect existing repository|Copy repository link/);assert.doesNotMatch(webview.html,/PRIVATE/);
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/,'Publishing lives in repository actions');

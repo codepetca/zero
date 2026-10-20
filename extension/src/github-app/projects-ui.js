@@ -7,13 +7,17 @@ const ORIGINAL_TEMPLATE=Object.freeze({owner:'codepetca',repo:'zero-starter'});
 function nameError(value){
   if(typeof value!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(value)||value.includes('..')||value.endsWith('.')||value.toLowerCase().endsWith('.git')||/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value))return 'Use 1–100 letters, numbers, dots, hyphens or underscores; choose an ordinary folder name.';
 }
-function createGitHubProjectCommands({vscode,authentication,repositories,folders,extensionPath,project,active=()=>true,onProgress=()=>{},onRecovery=async()=>{}}){
+function createGitHubProjectCommands({vscode,authentication,repositories,folders,extensionPath,project,prepare,active=()=>true,onProgress=()=>{},onRecovery=async()=>{}}){
   const drafts=new Map();let disposed=false;const isActive=()=>!disposed&&active();const progress=createProjectProgress(vscode,isActive);
-  async function collect(title,key,{clone=false,defaultName='my-project'}={}){
+  async function collect(title,key,{clone=false,defaultName='my-project',preparedTicket}={}){
+    if(!isActive())return;
+    if(!preparedTicket&&prepare){preparedTicket=await prepare();if(!preparedTicket)return;}
     if(!isActive())return;
     if(!authentication.signedIn)await authentication.signIn();
     if(!isActive())return;
-    const ticket=await authentication.capture(),draftKey=key+':'+ticket.session.accountId;
+    const ticket=preparedTicket||await authentication.capture();
+    await authentication.assertCurrent(ticket);
+    const draftKey=key+':'+ticket.session.accountId;
     const draft=drafts.get(draftKey)||{name:defaultName};
     const name=await vscode.window.showInputBox({title,prompt:`Create a public repository in ${ticket.session.label}'s GitHub account.${clone?'':' Files you push will be public.'}`,value:draft.name,validateInput:nameError});
     if(!name||!isActive())return;
@@ -28,8 +32,8 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     try{throwIfCancelled(signal);return await repositories.create({name:input.draft.name,private:false,...(template?{template}:{})},{ticket:input.ticket,onProgress:notify,signal});}
     catch(error){if(error.code&&error.code!=='creation-uncertain')await onRecovery(undefined);throw error;}
   }
-  async function createAndClone(title,template,key,defaultName){
-    const input=await collect(title,key,{clone:true,defaultName});
+  async function createAndClone(title,template,key,defaultName,preparedTicket){
+    const input=await collect(title,key,{clone:true,defaultName,preparedTicket});
     if(!input||!isActive())return;
     await authentication.assertCurrent(input.ticket);
     return progress.run('Create GitHub project',async(signal,reportProgress)=>{
@@ -56,11 +60,14 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
   async function startTutorial(){
     const projects=await lessonProjects.loadBundle(extensionPath);
     if(!isActive())return;
+    const preparedTicket=prepare?await prepare():undefined;
+    if(prepare&&!preparedTicket)return;
+    if(!isActive())return;
     const choice=await vscode.window.showQuickPick(projects.map(item=>({label:item.title,description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]}`,project:item})),{title:'Start tutorial',placeHolder:'Choose a tutorial project'});
     if(!choice||!isActive())return;
     if(!choice.project.template)throw Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available; no project was created.`);
     const [owner,repo]=choice.project.template.repository.split('/');
-    return createAndClone(choice.project.title,{owner,repo},choice.project.id,`my-${choice.project.id}`);
+    return createAndClone(choice.project.title,{owner,repo},choice.project.id,`my-${choice.project.id}`,preparedTicket);
   }
   async function createRepository(){
     const root=await project();await lessonProjects.assertOriginalProject(root);
