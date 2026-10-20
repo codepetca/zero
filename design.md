@@ -24,6 +24,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   downloads retain their bundled Run behavior.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
+- Use one short label for routine prompts, such as **Class name**. Omit explanatory
+  copy and Enter/Escape instructions; show validation errors when needed. Keep
+  consequential destinations and public/destructive changes concise and explicit.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.

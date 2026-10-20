@@ -1,4 +1,5 @@
 'use strict';
+const {textInputs} = require('./fixtures/text-input');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -82,7 +83,7 @@ test('local practice sharing commands stop before authentication, saves, Git or 
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
     env:{openExternal:async()=>{external++;return true;}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
-  const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
+  const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(item=>item.dispose()));
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:path.resolve(__dirname,'..')},{provider:appProvider});
@@ -125,7 +126,7 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(id,uri,options)=>{if(id==='workbench.view.extension.zero')return;assert.equal(id,'vscode.openFolder');opened.push({uri,options});}},
     env:{openExternal:async()=>{throw Error('Tutorial repository creation must use the App');}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
-  const filename=require.resolve('../src/extension'),oldCache=require.cache[filename],originalLoad=Module._load;delete require.cache[filename];Module._load=function(id,...args){if(id==='vscode')return vscode;if(id==='./project-folders'){const mod=originalLoad.call(this,id,...args);return {createProjectFolders:(api,options)=>mod.createProjectFolders(api,{...options,home:root})};}return originalLoad.call(this,id,...args);};
+  const filename=require.resolve('../src/extension'),oldCache=require.cache[filename],originalLoad=Module._load;delete require.cache[filename];Module._load=function(id,...args){if(id==='vscode')return textInputs(vscode);if(id==='./project-folders'){const mod=originalLoad.call(this,id,...args);return {createProjectFolders:(api,options)=>mod.createProjectFolders(api,{...options,home:root})};}return originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
   const profile=new Map();extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)},extensionPath:root},{provider:{dispose(){},async removeSession(){}},repositories:{async checkSetup(){},async create(input,{ticket}){creates.push({input,account:ticket.session.accountId});return {repository:{html_url:'https://github.com/student/my-greeting'}};}},cloneRepository:async input=>{assert.ok(input.signal instanceof AbortSignal);assert.equal(input.signal.aborted,false);const {signal,...reviewed}=input;clones.push(reviewed);return path.join(root,'my-greeting');}});

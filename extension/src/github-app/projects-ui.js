@@ -19,7 +19,7 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     await authentication.assertCurrent(ticket);
     const draftKey=key+':'+ticket.session.accountId;
     const draft=drafts.get(draftKey)||{name:defaultName};
-    const name=await vscode.window.showInputBox({title,prompt:`Create a public repository in ${ticket.session.label}'s GitHub account.${clone?'':' Files you push will be public.'}`,value:draft.name,validateInput:nameError});
+    const name=await vscode.window.showInputBox({placeHolder:'Repository name',prompt:`Public repository · ${ticket.session.label}`,value:draft.name,validateInput:nameError});
     if(!name||!isActive())return;
     if(nameError(name))throw Error(nameError(name));
     draft.name=name;drafts.set(draftKey,draft);
@@ -63,7 +63,7 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
     const preparedTicket=prepare?await prepare():undefined;
     if(prepare&&!preparedTicket)return;
     if(!isActive())return;
-    const choice=await vscode.window.showQuickPick(projects.map(item=>({label:item.title,description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]}`,project:item})),{title:'Start tutorial',placeHolder:'Choose a tutorial project'});
+    const choice=await vscode.window.showQuickPick(projects.map(item=>({label:item.title,description:`Lessons ${{greeting:'0–2',study:'3–7',game:'8–12'}[item.id]}`,project:item})),{title:'Start tutorial'});
     if(!choice||!isActive())return;
     if(!choice.project.template)throw Error(`The ${choice.project.title} tutorial template is not published yet. Ask your teacher when it is available; no project was created.`);
     const [owner,repo]=choice.project.template.repository.split('/');

@@ -1,4 +1,5 @@
 'use strict';
+const {textInputs} = require('./fixtures/text-input');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const Module = require('node:module');
@@ -19,13 +20,13 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   const vscode={
     authentication:{registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.equal(provider,appProvider);assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();},getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);return {id:'test-session',account:{id:'1',label:'student'},accessToken:'INTERCEPTED',scopes:[]};},onDidChangeSessions:disposable},
     workspace:{registerTextDocumentContentProvider:disposable,getConfiguration:(section,uri)=>({get:()=> {if(section!=='zero') return false; assert.equal(uri?.fsPath,root,'Upload mode must use the student folder scope, overriding global live'); return mode;}}),onDidChangeConfiguration:disposable,workspaceFolders:[{uri:{fsPath:root}}],saveAll:async()=>{saved++;if(saveGate) await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable},
-    window:{createOutputChannel:()=>({appendLine:text=>results.push(text),clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async options=>{assert.equal(options.title,'Commit Message');assert.equal(options.prompt,undefined);assert.equal(options.placeHolder,'Commit message');assert.equal(options.value,undefined);return commitMessage;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine upload must not open a confirmation');},showErrorMessage:async text=>{errors.push(text);}},
+    window:{createOutputChannel:()=>({appendLine:text=>results.push(text),clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async options=>{assert.equal(options.title,'Commit message');assert.equal(options.prompt,undefined);assert.equal(options.placeHolder,'Commit message');assert.equal(options.value,undefined);return commitMessage;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine upload must not open a confirmation');},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTaskProcess:disposable,onDidEndTask:fn=>{ends.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{const execution={task,terminate(){ends.forEach(fn=>fn({execution}));}};launches.push(execution);starts.forEach(fn=>fn({execution}));return execution;}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async()=>{}},
     Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ShellQuoting:{Strong:2},ProcessExecution:class{constructor(command,args,options){Object.assign(this,{command,args,options});}},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},Uri:{file:fsPath=>({fsPath})}
   };
-  const originalLoad=Module._load;Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
+  const originalLoad=Module._load;Module._load=function(id,...args){return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);};
   let extension;try {extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[require.resolve('../src/extension')];});
   const accessCalls=[];
@@ -135,7 +136,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
     env:{openExternal:async uri=>{opened.push(uri);return true;},clipboard:{writeText:async text=>{copied.push(text);}}},Uri:{file:fsPath=>({fsPath}),parse:url=>({url})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){
-    if(id==='vscode')return vscode;
+    if(id==='vscode')return textInputs(vscode);
     const loaded=originalLoad.call(this,id,...args);
     if(id==='./recovery')return {...loaded,createRecoveryCommands:(...options)=>{const editor=loaded.createRecoveryCommands(...options);editor.commands['zero.recovery']=async()=>{recoveryCalls++;};return editor;}};
     if(id==='./sharing/editor')return {...loaded,createSharingEditor:(...options)=>{const editor=loaded.createSharingEditor(...options);editor.commands['zero.shareGame']=async()=>{shareCalls++;};return editor;}};

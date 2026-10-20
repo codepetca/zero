@@ -52,7 +52,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
         catch(error) {
           if(error.code!=='WEB_PUBLISH_REPOSITORY_CHANGED')throw error;
           await stillCurrent(expected);
-          const chosen=await vscode.window.showInformationMessage('The saved publishing run belongs to a different repository.',{modal:true,detail:'Forget the saved run to review publishing in this connected repository. This does not cancel the old GitHub run or remove its website. Your previous verified link is kept.'},'Forget saved run');
+          const chosen=await vscode.window.showInformationMessage('The saved publishing run belongs to a different repository.',{modal:true,detail:'The old run, website and verified link are kept.'},'Forget saved run');
           await stillCurrent(expected);
           if(chosen==='Forget saved run') {
             resume=undefined;await workspaceState?.update('zero.webPublish.pending',undefined);
@@ -87,7 +87,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
         if(review.setup || review.upgrade) {
           const updating=Boolean(review.upgrade);
           if(updating) {
-            const chosen=await vscode.window.showInformationMessage('Update publishing files?',{modal:true,detail:`Zero recognizes this unchanged older publishing kit. Only these files will change:\n${review.upgrade.files.join('\n')}\nThe previous files remain in Git history. Your app source and publishing destination stay the same.\n${review.publicUrl || review.repository}`},'Update publishing files');
+            const chosen=await vscode.window.showInformationMessage('Update publishing files?',{modal:true,detail:`Files:\n${review.upgrade.files.join('\n')}\nSource and destination stay the same. Git history is kept.\n${review.publicUrl || review.repository}`},'Update publishing files');
             if(chosen!=='Update publishing files')return;
             await stillCurrent(expected);
           }

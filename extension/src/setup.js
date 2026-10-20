@@ -136,7 +136,7 @@ function createSetupHelp(vscode,{project,output,run,testInstallation,uploadMode 
       await check();
       while (true) {
         const items = [...(testInstallation ? [{label:'$(beaker) Test installation',description:'Open the bundled Hello World setup check; this is separate from your tutorial',action:'test'}] : []), ...checklist(report)];
-        const choice = await vscode.window.showQuickPick(items,{title:'Zero setup',placeHolder:'Choose an item for help, or Check again. Escape closes setup.'});
+        const choice = await vscode.window.showQuickPick(items,{placeHolder:'Setup help'});
         if (!choice) return;
         if (choice.action === 'test' && testInstallation) {await testInstallation();return;}
         if (choice.action === 'check') {await check(); continue;}

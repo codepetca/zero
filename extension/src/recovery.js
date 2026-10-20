@@ -144,7 +144,7 @@ function createRecoveryCommands(vscode, {project,isBusy,setBusy,setState,output,
       return {label:`${date} · ${subject.join(' ').replace(/[\x00-\x1f]/g,' ') || 'Saved version'}`,description:commit.slice(0,8),commit};
     });
     if (!versions.length) throw new Error('No saved versions were found for this file. Commit your work to keep recoverable versions.');
-    const selected = await vscode.window.showQuickPick(versions,{title:`Restore ${review.relative}`,placeHolder:`Choose a saved file version (latest ${HISTORY_LIMIT} changes)`});
+    const selected = await vscode.window.showQuickPick(versions,{placeHolder:`Restore ${review.relative}`});
     if (!selected) return;
     if (!versions.includes(selected)) throw new Error('Choose a listed saved version.');
     await validate(review);
@@ -166,7 +166,7 @@ function createRecoveryCommands(vscode, {project,isBusy,setBusy,setState,output,
     snapshots.set(snapshot.toString(),content);
     try {
       await vscode.commands.executeCommand('vscode.diff',snapshot,review.document.uri,`${path.basename(review.filename)} · ${selected.commit.slice(0,8)} ↔ current`,{preview:true});
-      const answer = await vscode.window.showWarningMessage(`Restore ${path.basename(review.filename)} from ${selected.commit.slice(0,8)}?`,{modal:true,detail:'Only this file’s text will change. Undo is available in the editor. Review and save it, then use Commit & push to record the correction. Git history stays intact.'},'Restore file');
+      const answer = await vscode.window.showWarningMessage(`Restore ${path.basename(review.filename)} from ${selected.commit.slice(0,8)}?`,{modal:true,detail:'Replaces this file’s text. Undo is available; Git history is kept.'},'Restore file');
       if (answer !== 'Restore file') return;
       await validate(review);
       const edit = new vscode.WorkspaceEdit();
@@ -188,10 +188,10 @@ function createRecoveryCommands(vscode, {project,isBusy,setBusy,setState,output,
       const initialDocument = vscode.window.activeTextEditor?.document;
       const base = await context();
       const choice = await vscode.window.showQuickPick([
-        {label:'Review changes',description:'Open native Source Control',action:'review'},
-        {label:'Discard changes in current file…',description:'Use the file’s native Discard Changes confirmation',action:'discard'},
-        {label:'Restore an earlier file version…',description:'Preview a saved version, then restore only this file',action:'restore'}
-      ],{title:'Review or restore changes',placeHolder:'Review or recover a file without rewriting Git history'});
+        {label:'Review changes',action:'review'},
+        {label:'Discard changes in current file…',action:'discard'},
+        {label:'Restore an earlier file version…',action:'restore'}
+      ],{title:'Review or restore changes'});
       if (!choice) return;
       if (choice.action === 'review') {
         const now = await context();

@@ -140,7 +140,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
         const pair = await deviceFlow({clientId:configuration.clientId, fetchImpl, now, signal:controller.signal,
           async onCode({userCode, verificationUri}) {
             progress.report({message:`Code ${userCode} · enter on github.com/login/device`});
-            const choice = await vscode.window.showInformationMessage('Connect Zero to GitHub', {modal:true, detail:`Paste ${userCode} on GitHub. Once connected, close the GitHub tab and return to Zero.`}, 'Copy code and continue');
+            const choice = await vscode.window.showInformationMessage('Connect Zero to GitHub', {modal:true, detail:`Code: ${userCode}`}, 'Copy code and continue');
             if (choice !== 'Copy code and continue' || controller.signal.aborted) { controller.abort(); throw failure('cancelled', 'GitHub sign-in was cancelled. Local running still works.'); }
             try { await vscode.env.clipboard.writeText(userCode); }
             catch { throw failure('clipboard-unavailable','The GitHub code could not be copied. Sign in again to retry; the browser was not opened.'); }
