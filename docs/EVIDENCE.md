@@ -6667,3 +6667,22 @@ draft timing confounded by load. Offline native compile-only2.93s, not GUI start
 Existing native diagnostic recommended for edits; browserRun remains finalcheck.
 No unproven compiler optimization shipped; repeated first-download wording fixed.
 Review/release gates pending. Receipts ignored .verification/tutorial-instructions/.
+
+## Tutorial instructions publication — 2026-10-20
+
+Source PR127 merged with reviewed452b074 tree equality; all5 CI checks green after
+one unchanged-head retry of unrelated Linux JavaFX/libLLVM startup crash. Local
+802pass/3skip,29focused,157website/typecheck/build/rootcheck pass. Full source and
+sealed candidate independent reviews clean. Actual native0/lightdark/copyfeedback/
+comparison and IAB0/7/12/mobile checked. All55 fences/original links preserved.
+
+Mac0.5.26 public release418630126, 4585784bytes SHA256
+45511d8b2f79b326635b0551157fd1e079da3956f7f9fcc4c7a0e20314287e8c. Actual signatures/notary/staple/Gatekeeper and signed update feed
+build25→26 verified. Draft/public bytes match mac-0.5.26-83d3f81e8d38. Final promotion review/CI
+and live proofs pending at this commit; completion receipt records final state.
+
+Browser compile performance unchanged. Existing native diagnostic command is the
+fast-edit workaround. Single warm native2.93s vs browser32.45s compile-only; no
+GUI measurement, no optimized flags/caching shipped. FreshOS/liveGitHub/physical
+Windows remain smoke coverage. Whole candidate/receipts/benchmarks preserved under
+primary ignored .verification/tutorial-instructions-0.5.26 before retirement.
