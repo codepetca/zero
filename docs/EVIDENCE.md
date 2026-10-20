@@ -1,5 +1,81 @@
 # Delivery evidence index
 
+## Minimal prompts — Mac 0.5.29 publication, 2026-10-20
+
+Owner authorized publication. [Source PR 135](https://github.com/codepetca/zero/pull/135)
+merged as `fb61894133f9` after all five exact-head checks at
+`98605e940079`. Independent source, integration and sealed-candidate reviews
+passed. The final local 274 affected checks, eight new helper lifecycle checks,
+root check, website typecheck, 159 website tests and production build passed.
+The actual installed Mac editor displayed one Class name field without extra
+copy or the Enter/Escape footer. Validation, cancellation and public-action facts
+remain available. Full release, Windows launcher and real browser CI passed.
+
+[Mac release 0.5.29](https://github.com/codepetca/zero/releases/tag/setup-v0.5.29)
+publishes one signed, notarized and stapled DMG built at `9a03aedeae4a` and
+sealed at preparation commit `41b072de0729`. Protected build source is identical
+to source PR 135. Authenticated draft and anonymous public bytes match
+4,584,607 bytes and SHA256
+`72875d23347e9946651091583b252db06228426066406b809ac43a79f9491f52`.
+Apple accepted submission `df834b2c-7108-491e-8df4-2a3febf45f54`; Developer ID,
+staple and Gatekeeper checks passed. The independent candidate audit verified all
+13 hashes, embedded extension, protected source and signed feed/DMG signatures.
+Sealed feed SHA256:
+`812a852c73acd9711baaf469f96cbf8fc77ef2dcfb7c7bf2f23e84f88f3ef603`.
+
+This separate promotion copies the sealed XML exactly, changes only update
+metadata publication status, and publishes the verified installer URL/snapshot.
+Promotion review, exact-head CI, merge, deployment and live checks remain pending
+in this commit; the ignored completion receipt records their actual outcomes.
+The existing Windows installer and separately published kit remain unchanged.
+Fresh-machine, physical Windows and screen-reader testing are unverified.
+
+Source and artifact review used existing GPT-6.1 Sol/medium workers; no worker
+edited this promotion. Runtime model, token attribution and effort savings are
+unavailable. Candidate, installed-preview backups and receipts are preserved under
+`.verification/minimal-prompts-0.5.29/` in the primary checkout before this
+worktree is archived. The primary dirty funding source is untouched.
+
+## Minimal prompts — local installed preview, 2026-10-20
+
+Owner requests short prompts throughout Zero and no Enter/Escape footer. Local
+source3aa887e1 plus documentation remediation5bd0864f uses a supported native
+QuickPick for text entry, through a Zero-only API facade. No host CSS/DOM or
+VS Code API object is modified. Routine inputs show a single label; public
+repository/account context and consequential action facts remain concise.
+Independent Sol/medium complete24file review found oneP3 stale commit-prompt
+contract in two docs; targeted remediation review clean. Async validation,
+cancellation, stale results, disposal and file/auth guards reviewed;8new lifecycle
+checks pass. Final274affected tests and rootcheck pass. Broad suite stopped after
+500+ passing checks when unrelated mocked publication fixtures took17–38seconds
+each; no full-suite pass claimed. Two stale copy assertions corrected and covered
+by final274; missing generated theme prepared before the passing run.
+
+Actual installed Mac editor reloaded with11reviewed source paths; native Class
+name shows a single empty field with no title, explanation or keyboard footer.
+No student files created. Original installed files backed up before atomic local
+preview patch; hashes recorded in ignored .verification/prompts/. Published28
+DMG/VSIX and native app stay unchanged; no push/merge/new release performed.
+Primary dirty funding checkout preserved. Sharing-copy worker Sol/medium owned
+one file; independent reviewer owned none; coordinator integrated/verified.
+Effective worker model/tokens and effort savings unavailable. Source/backup/logs
+retained under the attached file-prompts worktree for later authorized publication.
+
+
+## ZeroHub browser sign-in activation — 2026-10-20
+
+Owner approved production-only App credentials and session encryption. At source
+`6b46df5e`, the real GitHub account picker and callback connected as the intended
+owner account. Anonymous production reports configured; a fresh Preview reports
+unconfigured. The first real cross-owner star write returned 502 and preserved
+the initial unstarred state. Provider diagnosis remains open. Server diagnostics
+record only bounded, allowlisted failure categories, HTTP status, accepted
+Metadata/Starring permissions and rate-limit metadata, or a known transport code.
+Raw provider bodies, exception text, tokens and cookies are excluded. Focused
+auth/star/status tests pass, including privacy and oversized-error-body cases.
+Receipts remain in ignored `.verification/zerohub-sign-in-activation/` in the
+primary checkout. App permissions and selected repositories have not changed.
+
 ## Files dropdown — Mac 0.5.28 publication, 2026-10-20
 
 Owner authorized publication. [Source PR131](https://github.com/codepetca/zero/pull/131)

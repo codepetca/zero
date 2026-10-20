@@ -1,5 +1,6 @@
 'use strict';
-const vscode = require('vscode');
+const editor = require('vscode');
+const {minimalPrompts} = require('./prompts');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -38,6 +39,7 @@ const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 
 function activate(context, services = {}) {
+  const vscode = minimalPrompts(editor);
   const launchedForZero = path.isAbsolute((services.env || process.env).ZERO_KIT_DIR || '');
   for (const [id, action] of Object.entries(createNativeUpdateCommands(vscode))) {
     context.subscriptions.push(vscode.commands.registerCommand(id, action));
@@ -359,7 +361,7 @@ function activate(context, services = {}) {
       if (uploadMode(root) !== 'live') {simulation(kind === 'start' ? 'New branch' : 'Merge to main'); return;}
       let name;
       if (kind === 'start') {
-        name = await vscode.window.showInputBox({title:'New branch', prompt:'Create a branch for your next feature. Use lowercase words and dashes.', placeHolder:'add-score', validateInput:value => /^[a-z0-9][a-z0-9-]*$/.test(value) ? undefined : 'Use lowercase letters, numbers and dashes, starting with a letter or number.'});
+        name = await vscode.window.showInputBox({title:'Branch name', validateInput:value => /^[a-z0-9][a-z0-9-]*$/.test(value) ? undefined : 'Use lowercase letters, numbers and dashes, starting with a letter or number.'});
         if (!name) return;
         if (!/^[a-z0-9][a-z0-9-]*$/.test(name)) throw new Error('Use lowercase letters, numbers and dashes for your change name.');
       }
@@ -428,7 +430,7 @@ function activate(context, services = {}) {
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
         uploadProgress = ''; refresh();
-        const message = await vscode.window.showInputBox({title:'Commit Message', placeHolder:'Commit message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
+        const message = await vscode.window.showInputBox({placeHolder:'Commit message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
         uploadProgress = 'Committing & pushing…'; refresh();
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
@@ -448,7 +450,7 @@ function activate(context, services = {}) {
       const choice = await quickPick([
         {label:'Change GitHub account…', action:'change'},
         {label:'Sign out', description:'Disconnect Zero on this computer', action:'signOut'}
-      ], {title:`GitHub: ${auth.accountLabel}`, placeHolder:'Choose an account action'});
+      ], {title:`GitHub: ${auth.accountLabel}`});
       if (isBusy()) return;
       if (choice?.action === 'change') await actions['zero.signInToGitHub']();
       if (choice?.action === 'signOut') {
@@ -485,7 +487,7 @@ function activate(context, services = {}) {
       if (connected) items.push(...projectChoices); else items.unshift(...projectChoices);
       if (root) items.push({label:'Review or restore changes…', action:'recovery'});
       items.push({label:'GitHub account…', action:'account'});
-      const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project', placeHolder:'Choose a project action'});
+      const choice = await quickPick(items, {title:connected ? repository : root ? path.basename(root) : 'Project'});
       if (isBusy() || !choice) return;
       await repositoryStatus();
       if (isBusy() || projectRoot !== root || repository !== currentRepository || branch !== currentBranch) return;
@@ -534,7 +536,7 @@ function activate(context, services = {}) {
       await repositoryStatus();
       if (isBusy() || !branch || !repository.startsWith('https://github.com/')) return;
       const root = projectRoot, currentBranch = branch, currentRepository = repository;
-      const choice = await quickPick(currentBranch === 'main' ? [{label:'New branch…', action:'start'}] : [{label:'Merge to main…', action:'finish'}], {title:`${currentRepository} · ${currentBranch}`, placeHolder:'Choose a change action'});
+      const choice = await quickPick(currentBranch === 'main' ? [{label:'New branch…', action:'start'}] : [{label:'Merge to main…', action:'finish'}], {title:`${currentRepository.replace('https://github.com/','')} · ${currentBranch}`});
       if (isBusy() || !choice) return;
       await repositoryStatus();
       if (isBusy() || projectRoot !== root || branch !== currentBranch || repository !== currentRepository) return;
@@ -607,7 +609,7 @@ function activate(context, services = {}) {
         {label:'Projects', description:'Browse shared games', action:'projects'},
         {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'},
         ...(githubReady() && originalWork ? [{label:'Share project', action:'share'}] : [])
-      ], {title:'ZeroHub', placeHolder:'Choose a ZeroHub action'});
+      ], {title:'ZeroHub'});
       if (isBusy()) return;
       if (choice?.action === 'projects' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub?kind=game')))) {
         throw new Error('Could not open ZeroHub. Open https://zero.codepet.ca/hub in your browser.');
@@ -632,7 +634,7 @@ function activate(context, services = {}) {
       try {
         const root = await project();
         await lessonProjects.assertShareable(root);
-        const value = await vscode.window.showInputBox({title:'Connect your student repository', prompt:'Use your existing GitHub repository page URL. This changes only this project’s origin remote; no files are uploaded.', placeHolder:'https://github.com/you/your-app', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
+        const value = await vscode.window.showInputBox({title:'GitHub repository URL', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
         if (!value) return;
         if (await project() !== root) throw new Error('The student project changed. Connect the repository again.');
         const result = await core.connectRepository(root, value, async () => (await vscode.window.showWarningMessage('Replace this student project’s existing origin remote with the repository you entered?', {modal:true}, 'Replace origin')) === 'Replace origin');

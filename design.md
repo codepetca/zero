@@ -24,10 +24,13 @@ when adding features; a new feature does not reset the agreed interaction style.
   JavaFX window; Stop cancels the build or app process. Local Run has no browser
   compilation or Open in browser action. Publish app and advanced Export for web
   retain browser compatibility checks and production compilation; explicit export
-  preview remains available. Mac 0.5.28 ships native Run; earlier
+  preview remains available. Mac 0.5.29 ships native Run; earlier
   downloads retain their bundled Run behavior.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
+- Use one short label for routine prompts, such as **Class name**. Omit explanatory
+  copy and Enter/Escape instructions; show validation errors when needed. Keep
+  consequential destinations and public/destructive changes concise and explicit.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
@@ -56,8 +59,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   Open local project reuses a selected Zero folder in a new window. Sign-out
   preserves local folders, Git history and the open project.
 - Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
-  Title the commit input **Commit Message**, with only the native Enter/Escape
-  hint below it. Start with an empty field and **Commit message** placeholder.
+  Use one **Commit message** label and an empty field, with no footer.
   Keep repository and branch in the sidebar. Show an inline
   spinner and **Preparing commit…** on the button during preparation, then
   **Committing & pushing…** after confirmation; clear on completion/cancel/error.

@@ -1,5 +1,16 @@
 # Verification
 
+## Minimal prompts — Mac 0.5.29 publication, 2026-10-20
+
+Source PR 135 merged after all five exact-head checks and independent source,
+integration and candidate review. Local root check, 274 affected checks, eight
+helper lifecycle checks, website typecheck, 159 website tests and production
+build passed. Actual installed Mac Class name input has no extra copy/footer.
+Signed/notarized public DMG bytes match the sealed candidate. This change
+promotes its measured URL and exact signed feed; final promotion CI and live
+verification remain pending until recorded in the ignored completion receipt.
+See [publication evidence](EVIDENCE.md#minimal-prompts--mac-0529-publication-2026-10-20).
+
 ## Files dropdown — Mac 0.5.28 publication, 2026-10-20
 
 SourcePR131 merged after all five exact-head checks and independent source,

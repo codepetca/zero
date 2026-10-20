@@ -28,7 +28,7 @@ test('repository names are portable folder names including Windows device restri
 test('new original project collects name and parent for a public repository before POST then clones exact remote',async t=>{
  const f=await fixture(t);await f.commands.newProject();
  assert.equal(f.inputs[0].value,'my-project');assert.match(f.inputs[0].prompt,/student/);assert.equal(f.inputs[0].validateInput('CON'),nameError('CON'));
- assert.equal(f.picks.length,0);assert.match(f.inputs[0].prompt,/public repository/);
+ assert.equal(f.picks.length,0);assert.match(f.inputs[0].prompt,/Public repository/);
  assert.deepEqual(f.calls.map(call=>call[0]),['parent','create','clone']);assert.deepEqual(f.calls[1][1],{name:'my-project',private:false,template:{owner:'codepetca',repo:'zero-starter'}});
  assert.equal(f.calls[1][2].ticket.session.accountId,'1');assert.deepEqual(f.calls[2][1],{repositoryUrl:remote,parent:{fsPath:f.root}});
  assert.equal(f.progress.at(-1),'Project created');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'created'},undefined]);
@@ -64,7 +64,7 @@ test('project drift after creation retains remote and never connects the wrong p
 });
 test('existing project creation is public and connects only intended root and remote',async t=>{
  const f=await fixture(t);const connected=[];t.mock.method(core,'connectRepository',async(...args)=>{connected.push(args);return {page:remote};});await f.commands.createRepository();
- assert.equal(f.picks.length,0);assert.equal(f.inputs[0].prompt,"Create a public repository in student's GitHub account. Files you push will be public.");assert.deepEqual(f.calls[0][1],{name:'my-project',private:false});assert.equal(connected.length,1);assert.equal(connected[0][0],f.root);assert.equal(connected[0][1],remote);assert.equal(await connected[0][2](),false);assert.equal(f.progress.at(-1),'Repository connected');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'created'},undefined]);
+ assert.equal(f.picks.length,0);assert.equal(f.inputs[0].prompt,'Public repository · student');assert.deepEqual(f.calls[0][1],{name:'my-project',private:false});assert.equal(connected.length,1);assert.equal(connected[0][0],f.root);assert.equal(connected[0][1],remote);assert.equal(await connected[0][2](),false);assert.equal(f.progress.at(-1),'Repository connected');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',projectRoot:f.root,stage:'created'},undefined]);
 });
 test('local practice stops existing repository creation before sign-in, inputs or POST',async t=>{
  const f=await fixture(t);await fs.writeFile(path.join(f.root,'zero.json'),'{"localOnly":true}');await assert.rejects(f.commands.createRepository(),/local lesson practice/i);assert.equal(f.inputs.length,0);assert.equal(f.calls.length,0);assert.equal(f.auth.signedIn,false);
