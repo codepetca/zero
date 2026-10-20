@@ -1,6 +1,6 @@
 # Zero extension
 
-Zero **0.5.27** uses core **0.2.1**. Each published download retains its
+Zero **0.5.28** uses core **0.2.1**. Each published download retains its
 bundled extension version and behavior.
 
 Run App opens a native JavaFX window. Mac 0.5.26 and other earlier downloads
@@ -17,7 +17,7 @@ for native account controls. Tutorials
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.5.27.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.5.28.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
