@@ -14,13 +14,13 @@ function sidebarDOM() {
     remove(){if(this.contains(document.activeElement))document.activeElement=document.body;if(this.parentElement){const siblings=this.parentElement.children;siblings.splice(siblings.indexOf(this),1);this.parentElement=null;}}
     replaceChildren(...nodes){for(const child of [...this.children])child.remove();this.append(...nodes);}
     contains(node){return this===node||this.children.some(child=>child.contains(node));}
-    matches(selector){if(selector.startsWith('#'))return this.id===selector.slice(1);if(selector==='button[data-command]')return Boolean(this.dataset.command);if(selector==='[hidden]')return this.hidden;const match=selector.match(/^\[(role|data-id)="(.*)"\]$/);return !!match&&(match[1]==='role'?this.attributes.role:this.dataset.id)===match[2];}
+    matches(selector){if(selector.startsWith('#'))return this.id===selector.slice(1);if(selector==='button[data-command]')return Boolean(this.dataset.command);if(selector==='[hidden]')return this.hidden;const match=selector.match(/^\[(role|data-id|data-command)="(.*)"\]$/);return !!match&&(match[1]==='role'?this.attributes.role:match[1]==='data-id'?this.dataset.id:this.dataset.command)===match[2];}
     closest(selector){for(let node=this;node;node=node.parentElement)if(node.matches(selector))return node;return null;}
     querySelectorAll(selector){return this.children.flatMap(child=>[...(child.matches(selector)?[child]:[]),...child.querySelectorAll(selector)]);}
     querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
     addEventListener(type,listener){this.listeners[type]=listener;} focus(){document.activeElement=this;}
   }
-  const nodes=Object.fromEntries(['files','file-status','controls','file-actions','run-status','recovery','files-menu-button','files-menu'].map(id=>[id,new Element()]));
+  const nodes=Object.fromEntries(['files','file-status','controls','file-actions','run-status','recovery','files-menu-button','files-menu','run-menu-button','run-menu'].map(id=>[id,new Element()]));
   document={body:new Element(),getElementById:id=>nodes[id],createElement:()=>new Element(),addEventListener(type,listener){documentListeners[type]=listener;}};
   document.activeElement=document.body;document.body.append(...Object.values(nodes));
   for(const [id,node]of Object.entries(nodes))node.id=id;
@@ -29,6 +29,9 @@ function sidebarDOM() {
   for(const command of ['zero.newClass','zero.newFile','zero.newFolder','zero.importAssets']) {
     const button=new Element();button.dataset.command=command;button.setAttribute('role','menuitem');nodes['files-menu'].append(button);
   }
+  nodes.controls.append(nodes['run-menu-button'],nodes['run-menu']);
+  nodes['run-menu-button'].setAttribute('aria-expanded','false');nodes['run-menu'].hidden=true;
+  const publish=new Element();publish.dataset.command='zero.publishWeb';publish.setAttribute('role','menuitem');nodes['run-menu'].append(publish);
   const listeners={},sent=[];let saved,handler;
   const window={scrollY:0,scrollTo(){},addEventListener:(type,listener)=>listeners[type]=listener};
   vm.runInNewContext(sidebarScript(),{window,document,acquireVsCodeApi:()=>({getState:()=>null,setState:value=>{saved=value;},postMessage:message=>{sent.push(message);handler?.(message);}})});

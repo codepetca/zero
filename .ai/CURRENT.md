@@ -1,31 +1,24 @@
-# Files dropdown — Mac 0.5.28 promotion
+# Run dropdown — local implementation
 
-Owner authorized publication2026-10-20. SourcePR131 merged9e2943a8 after all5
-exact-head checks atbf17d109 and clean independent source/integration/candidate
-reviews. Files opens an anchored dropdown directly below its sidebar heading:
-New class, New file, New folder, New asset. Actual isolated Mac light/dark/210px
-keyboard/focus/dismissal/class-creation checks passed. Existing native Run retained.
+Owner requested a Run dropdown with Publish app on 2026-10-20. Implementation is
+isolated in the run-publish-menu worktree, based on main 6b46df5e / Mac 0.5.28.
+The primary Run/Stop path stays native; an adjacent arrow opens Publish app for
+ready connected projects. It is disabled while running/stopping. Existing guarded
+publishing, repository-menu/palette actions and sign-in remain unchanged.
 
-Mac28 is public: https://github.com/codepetca/zero/releases/tag/setup-v0.5.28
-DMG4,584,898bytes SHA2563cbcd7ba7c7f68951574a4a4cd2d0c20053fd326773709d06a00156449dd973f.
-Authenticated draft and anonymous public bytes verified. Clean build52b214dc,
-sealed candidatec407c63f; DeveloperID/staple/Gatekeeper pass; Apple accepted
-f2f3398f-feca-44f4-a025-5d3be11f98b6. Signed feed exactcandidate SHA256
-c8ca22a5f35284f837737d27d5d6e05500c99915853d290864818f08176ab663.
-This change promotes installer/snapshot/feed and current guides; independent
-metadata review, checks, merge and live website/feed verification remain pending.
-Do not rebuild or modify immutable release bytes. Earlier Mac27 promotion verified
-complete first; Windows21/general kit17 keep their own immutable versions.
+Shared anchored-menu code serves Run and Files with keyboard navigation, Escape,
+Tab, outside dismissal, mutual exclusion and focus restoration. Status-only
+updates preserve an open menu; changed controls dismiss it and fall back to Stop
+when the arrow becomes disabled. Local Run remains available signed out. Setup
+help keeps its plain Run test button.
 
-Validation: rootcheck,153 affected tests, prior816pass/3platformskips, website
-157tests/typecheck/build; full release/browser/Windows gates passed in sourceCI.
-Physical Windows/Intel/fresh-machine/screen-reader acceptance remains unverified.
-Evidence index docs/EVIDENCE.md; ignored receipts .verification/files-create/
-publication and UI screens ../dropdown. Retain receipts and exactsealedcandidate
-under primary .verification/files-create-0.5.28 before archive_worktree. Primary
-dirty funding checkout/student projects/settings/accounts remain preserved.
+Focused automated checks and root configuration checks pass. Actual renderer in
+the safe browser fixture was checked in light/dark at 240px and a 200px iframe,
+including 200% text, keyboard opening/Escape/Tab, Publish dispatch and focus return.
+No Java or publication runs in this fixture. Real VS Code/native OS and live
+GitHub publishing are not retested by this UI change. Screenshots/logs and final
+independent review receipt are in ignored .verification/run-publish-menu.
 
-Orchestrate used Sol/medium read-only reviewers; DeepSeek pause honored. Weekly77%
-remaining/272GBfree at buildstart. Worker tokens/savings unknown. Rework: reserve28
-for concurrent27; fix2READMElabels/rebuild; maintainerdocs merge conflicts only.
-No toolgoal, separate task, automation or account-credential change.
+No push, merge or installer publication is authorized for this new change yet.
+The published Mac 0.5.28 and immutable release metadata retain their versions.
+Original primary-checkout funding work, projects and credentials are preserved.

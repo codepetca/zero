@@ -14,6 +14,10 @@ when adding features; a new feature does not reset the agreed interaction style.
 
 - Use one primary **Run**/**Stop** button. It offers Stop while queued, checking,
   compiling or running; show disabled **Stopping…** until owned work settles.
+  A connected, ready project adds an adjacent **Run options** arrow with
+  **Publish app**. The main click still runs locally; disable the publishing
+  dropdown while running or stopping. This split control is current source only
+  and is not in Mac 0.5.28.
   Failures and closing the native JavaFX window return to Run. Preserve explicit
   Run App/Stop App palette commands and existing cancellation/generation guards.
   Run saves and builds through the project Maven wrapper, opening a desktop
