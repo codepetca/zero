@@ -172,7 +172,7 @@ function createAssetCommands(vscode,{project,isBusy=()=>false,setBusy=()=>{},set
       const sources=await inspectSources(selected.map(uri=>uri.fsPath));
       let policy='keep';
       if(await hasCollisions(snapshot,sources,assertCurrent)) {
-        const choice=await vscode.window.showQuickPick([{label:'Keep both',policy:'keep',description:'Add a number to matching filenames'},{label:'Skip existing',policy:'skip',description:'Keep the assets already in this project'}],{title:'Some asset names already exist',placeHolder:'Choose how to handle matching names'});
+        const choice=await vscode.window.showQuickPick([{label:'Keep both',policy:'keep',description:'Numbered copy'},{label:'Skip existing',policy:'skip',description:'Keep existing'}],{placeHolder:'Matching asset names'});
         if(!choice)return;policy=choice.policy;
       }
       await assertCurrent();setState('Adding assets…');

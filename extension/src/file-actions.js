@@ -6,9 +6,9 @@ const path = require('node:path');
 const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-web']);
 const keywords = new Set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ var yield record sealed permits').split(' '));
 const locations = [
-  {label:'Java source',description:'Beside Main.java',relative:'src/main/java'},
-  {label:'Resources',description:'Images, audio and data files',relative:'src/main/resources'},
-  {label:'Project files',description:'In the project folder',relative:''}
+  {label:'Java source',relative:'src/main/java'},
+  {label:'Resources',relative:'src/main/resources'},
+  {label:'Project files',relative:''}
 ];
 const key = value => value.normalize('NFC').toLowerCase();
 const identity = stat => `${stat.dev}:${stat.ino}`;
@@ -61,8 +61,8 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
         await assertCurrent(); await plainAncestors(root);
         if (identity(await ordinaryDirectory(root)) !== rootId) throw Error('The project folder changed. Try again in the current project.');
       };
-      const title = `New ${kind}`;
-      const location = kind === 'class' ? locations[0] : await vscode.window.showQuickPick(locations,{title,placeHolder:`Where should the ${kind} go?`});
+      const title = `${kind[0].toUpperCase()}${kind.slice(1)} name`;
+      const location = kind === 'class' ? locations[0] : await vscode.window.showQuickPick(locations,{title:'Location'});
       if (!location) return;
       await validateRoot();
       // Locations come from this native picker, never from the sidebar's messages.
@@ -81,7 +81,7 @@ function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refr
           if (error.code !== 'ENOENT') return error.message;
         }
       };
-      const value = await vscode.window.showInputBox({title,prompt:kind === 'class' ? 'Class name. Zero adds .java and opens it beside Main.java.' : `Name in ${location.label}. Use / for subfolders.`,placeHolder:kind === 'class' ? 'Player' : kind === 'file' ? 'notes.txt or images/notes.txt' : 'images',ignoreFocusOut:true,validateInput:validateName});
+      const value = await vscode.window.showInputBox({placeHolder:title,ignoreFocusOut:true,validateInput:validateName});
       if (value === undefined) return;
       const invalid = await validateName(value);
       if (invalid) throw Error(invalid);

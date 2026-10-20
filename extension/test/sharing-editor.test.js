@@ -173,7 +173,7 @@ test('cancelled or failed handoffs never fall back to a source-only form',async 
 test('game Share local guard blocks reentry while host releases the global lock for upload',async t=>{
  const f=await guidedFixture(t);let reentries=0;
  f.host.uploadForSharing=async()=>{f.host.setBusy(false);await f.editor.commands['zero.shareGame']();await f.editor.commands['zero.sharingActions']();reentries++;f.setDirty(false);f.host.setBusy(true);return {uploaded:true};};
- await f.editor.commands['zero.shareGame']();assert.equal(reentries,1);assert.equal(f.opened.length,1);assert.equal(f.prompts.filter(p=>p==='Upload your game before sharing').length,1);assert.equal(f.stats().busy,false);
+ await f.editor.commands['zero.shareGame']();assert.equal(reentries,1);assert.equal(f.opened.length,1);assert.equal(f.prompts.filter(p=>p==='Upload game before sharing').length,1);assert.equal(f.stats().busy,false);
 });
 test('handoffs recheck root, account, dirty files and committed metadata before opening a form',async t=>{
  for(const drift of ['root','account','dirty','metadata','repository','trust']) {
@@ -184,14 +184,14 @@ test('handoffs recheck root, account, dirty files and committed metadata before 
 test('new game metadata asks its version once and previews human-readable details',async t=>{
  const f=await guidedFixture(t);await fs.unlink(path.join(f.root,'zero-game.json'));const titles=[],details=[];
  f.vscode.window.showInputBox=async options=>{titles.push(options.title);return options.title==='Game name'?'game':options.value||'Game fixture';};
- f.vscode.window.showInformationMessage=async(message,options)=>{details.push(options.detail);return message==='Save these sharing details?'?'Save details':'Open GitHub form';};
- await f.editor.commands['zero.shareGame']();assert.equal(titles.filter(title=>title==='Game version').length,1);assert.equal(titles.filter(title=>title==='Game screenshot').length,1);assert.equal(JSON.parse(await fs.readFile(path.join(f.root,'zero-game.json'))).preview,'preview.png');assert.equal(titles.includes('Sharing version'),false);assert.match(details[0],/License: MIT/);assert.doesNotMatch(details[0],/"schema"/);assert.equal(f.opened.length,1);
+ f.vscode.window.showInformationMessage=async(message,options)=>{details.push(options.detail);return message==='Save sharing details?'?'Save details':'Open GitHub form';};
+ await f.editor.commands['zero.shareGame']();assert.equal(titles.filter(title=>title==='Game version').length,1);assert.equal(titles.filter(title=>title==='Square PNG path').length,1);assert.equal(JSON.parse(await fs.readFile(path.join(f.root,'zero-game.json'))).preview,'preview.png');assert.equal(titles.includes('Sharing version'),false);assert.match(details[0],/License: MIT/);assert.doesNotMatch(details[0],/"schema"/);assert.equal(f.opened.length,1);
 });
 test('new game screenshot cancellation or invalid bytes preserve source and open no form',async t=>{
  for(const scenario of ['cancel','invalid']){
   const f=await guidedFixture(t);await fs.unlink(path.join(f.root,'zero-game.json'));const original=await fs.readFile(path.join(f.root,'src/main/java/Main.java'));
   if(scenario==='invalid')await fs.writeFile(path.join(f.root,'preview.png'),'not a PNG');
-  f.vscode.window.showInputBox=async options=>options.title==='Game screenshot'&&scenario==='cancel'?undefined:options.title==='Game name'?'game':options.value||'Game fixture';
+  f.vscode.window.showInputBox=async options=>options.title==='Square PNG path'&&scenario==='cancel'?undefined:options.title==='Game name'?'game':options.value||'Game fixture';
   if(scenario==='invalid')await assert.rejects(f.editor.commands['zero.shareGame'](),/valid square PNG/);else await f.editor.commands['zero.shareGame']();
   await assert.rejects(fs.access(path.join(f.root,'zero-game.json')));assert.equal(f.opened.length,0);assert.equal(f.statsGuided().uploads,0);assert.deepEqual(await fs.readFile(path.join(f.root,'src/main/java/Main.java')),original);
  }
@@ -200,7 +200,7 @@ test('existing game without a screenshot saves its chosen path before the normal
  const f=await guidedFixture(t),filename=path.join(f.root,'zero-game.json'),descriptor=JSON.parse(await fs.readFile(filename));delete descriptor.preview;await fs.writeFile(filename,JSON.stringify(descriptor,null,2)+'\n');
  let text=await fs.readFile(filename,'utf8');const document={isDirty:false,getText:()=>text,positionAt:value=>value,save:async()=>{await fs.writeFile(filename,text);return true;}};
  f.vscode.workspace.openTextDocument=async()=>document;f.vscode.window.showTextDocument=async()=>({edit:async callback=>{callback({replace:(_range,value)=>{text=value;}});return true;}});
- f.vscode.window.showInformationMessage=async message=>message==='Save these sharing details?'?'Save details':'Open GitHub form';
+ f.vscode.window.showInformationMessage=async message=>message==='Save sharing details?'?'Save details':'Open GitHub form';
  await f.editor.commands['zero.shareGame']();assert.equal(f.request().descriptor.preview,'preview.png');assert.equal(f.statsGuided().uploads,1);assert.equal(f.opened.length,1);
 });
 test('sharingActions delegates within its existing local guard and still opens Share game',async t=>{

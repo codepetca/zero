@@ -1,31 +1,23 @@
-# Files dropdown — Mac 0.5.28 promotion
+# Minimal prompts — Mac0.5.29 publication
 
-Owner authorized publication2026-10-20. SourcePR131 merged9e2943a8 after all5
-exact-head checks atbf17d109 and clean independent source/integration/candidate
-reviews. Files opens an anchored dropdown directly below its sidebar heading:
-New class, New file, New folder, New asset. Actual isolated Mac light/dark/210px
-keyboard/focus/dismissal/class-creation checks passed. Existing native Run retained.
+Owner requests short prompts across Zero and no Enter/Escape instructions.
+Branchcodex/file-prompts, base6b46df5e/publicMac28. Implementation3aa887e1;
+docsremediation5bd0864f; finalreceiptcommit follows. Routine native text inputs
+show one label (Class name, File name, Folder name, Commit message). Optional
+short public repository/account context and consequential facts retained.
 
-Mac28 is public: https://github.com/codepetca/zero/releases/tag/setup-v0.5.28
-DMG4,584,898bytes SHA2563cbcd7ba7c7f68951574a4a4cd2d0c20053fd326773709d06a00156449dd973f.
-Authenticated draft and anonymous public bytes verified. Clean build52b214dc,
-sealed candidatec407c63f; DeveloperID/staple/Gatekeeper pass; Apple accepted
-f2f3398f-feca-44f4-a025-5d3be11f98b6. Signed feed exactcandidate SHA256
-c8ca22a5f35284f837737d27d5d6e05500c99915853d290864818f08176ab663.
-This change promotes installer/snapshot/feed and current guides; independent
-metadata review, checks, merge and live website/feed verification remain pending.
-Do not rebuild or modify immutable release bytes. Earlier Mac27 promotion verified
-complete first; Windows21/general kit17 keep their own immutable versions.
+Native QuickPick text entry via Zero-only API facade; supported APIs, no host
+CSS/DOM or global API mutation. Async validation/cancel/stale-input safeguards
+retained. Final274affected checks,8lifecyclechecks and rootcheck pass. Fullsuite
+stopped after500+pass in slow unrelated publication fixtures; no fullpassclaim.
+Independent Sol/medium complete review + targeted2docfix clean. Finaltest-only
+assertion reorders unchanged consent facts to match copy; coordinator inspected.
 
-Validation: rootcheck,153 affected tests, prior816pass/3platformskips, website
-157tests/typecheck/build; full release/browser/Windows gates passed in sourceCI.
-Physical Windows/Intel/fresh-machine/screen-reader acceptance remains unverified.
-Evidence index docs/EVIDENCE.md; ignored receipts .verification/files-create/
-publication and UI screens ../dropdown. Retain receipts and exactsealedcandidate
-under primary .verification/files-create-0.5.28 before archive_worktree. Primary
-dirty funding checkout/student projects/settings/accounts remain preserved.
-
-Orchestrate used Sol/medium read-only reviewers; DeepSeek pause honored. Weekly77%
-remaining/272GBfree at buildstart. Worker tokens/savings unknown. Rework: reserve28
-for concurrent27; fix2READMElabels/rebuild; maintainerdocs merge conflicts only.
-No toolgoal, separate task, automation or account-credential change.
+Actual installed editor patched11reviewed source paths with backup/hash checks,
+reloaded and verified Class name input only, no footer. No studentfiles created.
+Published28/nativeapp/immutableVSIX unchanged; localsource preview only. Source,
+backup and logs .verification/prompts retained in attachedworktree; preserve before
+retiring. Owner explicitly authorized publication; prepareMac0.5.29/build29 with existing
+signing/notarization/update configuration. SourcePR/CI, sealedcandidate review,
+publicDMG and separate metadata/feed promotion required. Primarydirtyfunding
+checkout untouched. One sharingcopy worker; independentreviewer; tokens unknown.

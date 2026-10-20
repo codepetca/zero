@@ -59,7 +59,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
   async function clone({repositoryUrl, parent: selectedParent, signal} = {}) {
     if (!isActive()) return;
     throwIfCancelled(signal);
-    const url = repositoryUrl || await vscode.window.showInputBox({title:'Clone from GitHub', prompt:'Paste your GitHub repository link.', placeHolder:'https://github.com/you/your-project', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
+    const url = repositoryUrl || await vscode.window.showInputBox({title:'GitHub repository URL', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
     if (!url || !isActive()) return;
     const destination = core.parseRepositoryUrl(url);
     const parent = selectedParent || await chooseCloneParent();
