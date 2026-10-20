@@ -1,5 +1,29 @@
 # Delivery evidence index
 
+## Anchored Files dropdown correction — local, 2026-10-20
+
+Owner clarified that Files must open its menu directly below the sidebar label.
+Source `f4f27eb8e71ad79dccebc1428276e46ac098ca32` replaces the native Files picker
+with a compact host-themed dropdown beneath Files. Native name/location prompts
+and the previously reviewed filesystem operations remain unchanged. Pointer,
+arrow/Home/End keys, Escape, Tab, outside focus/click, busy updates and file resets
+have explicit menu/focus handling. New menu/client regression tests cover them.
+
+`npm run check`,94 focused creation/sidebar/assets/onboarding/design tests and
+whitespace checks pass. Actual isolated Mac host verifies light/dark,210px
+sidebar fit, arrow selection, Escape to Files, Tab to Main, outside click to the
+editor, and keyboard New class → Enemy.java created/opened. Screenshots/logs:
+ignored `.verification/files-create/dropdown/`. Disposable app/profile removed;
+installed Zero and student projects unchanged. Windows/screen-reader acceptance
+remain unverified. No second full-suite run for this bounded presentation delta.
+
+Independent GPT-6.1 Sol/medium `files_menu_review/2` inspected complete12-file
+delta694421f1→f4f27eb8 plus narrow dark render: zero actionable blockers. Prior
+filesystem review retained. Total2review turns,1initial/1targeted wave,1correction
+batch; effective model, elapsed and tokens unknown. Weekly78% remaining, healthy
+280GB at follow-up start; no new source conflicts, task or automation. Local
+branch `codex/files-menu-create` retained; no push, PR, merge, release or deploy.
+
 ## Files creation menu — local source, 2026-10-20
 
 Owner requested file creation without Explorer, then specified clicking Files

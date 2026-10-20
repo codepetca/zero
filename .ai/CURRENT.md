@@ -1,14 +1,13 @@
-# Files creation menu — locally complete, 2026-10-20
+# Anchored Files dropdown — locally complete, 2026-10-20
 
-Files ▾ opens New class, New file, New folder and existing asset actions.
-Implementation22200b3 on codex/files-menu-create; independent Sol/medium complete
-12-file review clean, one launch/no fixes. Finalcheck/45focused/upload-auth24 and
-javac pass; actual isolated Mac light/dark creation/menu/duplicate/cancel checks
-pass. Initial suite785pass/6fail/3skip; corrected stale assertions, isolated UI timeout
-and missing-dependency packaging files all pass targeted45/24/23 reruns. Windows/assistive tech unverified.
-No publication or installed-app update authorized. Active managed worktree retains
-source and ignored .verification/files-create receipts; older dirty checkout intact.
-See docs/EVIDENCE.md and docs/VERIFICATION.md. Prior state follows.
+Owner correction implementedf4f27eb8: Files ▾ opens its dropdown directly below
+Files in the sidebar. Original filesystem code reviewed22200b3 unchanged.
+Sol/medium review2 complete12-file delta clean;94focused/check and actual Mac
+light/dark/210px, keyboard/Escape/Tab/outside dismissal and New class pass.
+Total2review turns/1targeted correction; Windows/screen-reader acceptance unverified.
+Local codex/files-menu-create worktree retains source and ignored
+.verification/files-create/dropdown receipts. No push/release/installed update;
+older dirty checkout untouched. See docs/EVIDENCE.md. Prior state follows.
 
 # Uniform website tab title — 2026-10-20
 

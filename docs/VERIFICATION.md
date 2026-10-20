@@ -1,5 +1,15 @@
 # Verification
 
+## Anchored Files dropdown — local, 2026-10-20
+
+Sourcef4f27eb8 supersedes the original Files picker with a dropdown directly
+beneath Files. Finalcheck/94focused/whitespace pass. Actual Mac light/dark and
+210px sidebar verify anchoring, keyboard/Escape/Tab, outside dismissal and class
+creation. Independent Sol/medium complete12-file delta review clean; previous
+filesystem review reused. Windows/screen-reader acceptance unverified. Screens,
+logs and review receipt: ignored `.verification/files-create/dropdown/`.
+See [delivery evidence](EVIDENCE.md). Local source only; no installed-app update.
+
 ## Files creation menu — local source, 2026-10-20
 
 Reviewed source22200b3: final `npm run check`,45focused tests, separate24
