@@ -28,16 +28,22 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Start here
 
-1. Download and launch **Zero**. The website needs no sign-in.
-2. Choose **Start tutorial** from **Welcome to Zero**. Complete GitHub device
-   sign-in if needed. If **Install Zero for GitHub** appears, choose **Open
-   GitHub**, approve selected repositories, then return to Zero to continue.
-   See [the setup guide](SETUP.md#start-a-tutorial-or-project) for recovery steps.
-   Local Run remains available if you cancel.
-3. After access is ready, select **Greeting app**. You can also reopen **Start
-   tutorial** from the welcome or **…** menu.
-   Enter a repository name. Zero creates a public repository in your GitHub
-   account; its source and included files will be public.
+1. Download and launch **Zero**. The website needs no sign-in. The current
+   published Mac 0.5.24 still opens its welcome screen; the local 0.5.25 candidate
+   uses the minimal sidebar described here.
+2. In candidate 0.5.25, choose **Sign in to GitHub** and complete the existing
+   device flow if needed. Zero checks project access read-only and stops at the
+   next sidebar step. If asked, choose **Install Zero for GitHub**; Zero opens
+   the pinned GitHub App page after checking again. Approve selected repositories
+   on GitHub, then return to Zero. The automatic recheck unlocks the next step;
+   **Check again** is available as a fallback. Escape or a failed check leaves
+   the current step visible for retry. A saved session is checked read-only on
+   launch without opening a browser. Local Run and Files work signed out or
+   offline; cloud repository, push and sharing controls stay hidden until ready.
+   See [the setup guide](SETUP.md#start-a-tutorial-or-project) for details.
+3. In the empty sidebar, **Start tutorial** is primary. Choose **Greeting app**,
+   enter a repository name, and choose its clone location. **New project…** is
+   the secondary action for skipping the tutorial and making original work.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
    Zero creates your repository from the verified template, checks App access,
@@ -47,10 +53,14 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
    lesson 0 and choose **Run App**. **Open in browser** opens the lesson or running
    app in your default browser. Keep this repository for the following Greeting lessons.
 
-Already cloned your project? Choose **Project → Open local project…**, select
-its existing Zero folder and open it in a new window without cloning again.
-While signed out, the Git area shows only **Sign in**; local Run and Files stay
-available. After signing in, **Project** offers the clone and open actions. An
+Already cloned your project? Choose **Open local project** in the empty sidebar
+or **Project → Open local project…** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
+lesson selection, scroll position and disclosure state are saved locally per
+project. This does not track completion or grading. Use **All tutorials** to
+choose the first lesson and restart the reading sequence; your code stays as it
+is. **Start tutorial** makes a new repository, not a reset of your existing one.
+While signed out, local Run and Files stay available. Cloud repository, push and
+sharing controls appear after access is ready. An
 original local project without an origin also offers **Create a repository…** to
 create and connect an empty remote, or **Connect to GitHub…** for an existing URL. Connected
 projects show owner/repository and retain branch actions; **Publish app** is in
@@ -224,8 +234,8 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.24, **Start tutorial** from Zero’s welcome or
-**…** menu checks project access before using the matching verified template to
+In published Mac 0.5.24, **Start tutorial** from Zero’s welcome or **…** menu
+checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a
 specific message rather than a guessed download.

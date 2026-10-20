@@ -26,7 +26,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     return {head:plan.head,branch:'main',uploaded:true};
   };
   const accessCalls=[];
-  const repositories={access:async(repositoryUrl,{ticket,permissions})=>{
+  const repositories={checkSetup:async()=>({}),access:async(repositoryUrl,{ticket,permissions})=>{
     accessCalls.push({repositoryUrl,permissions,accountId:ticket.session.accountId});
     assert.equal(repositoryUrl,plan.page);assert.deepEqual(ticket.session.scopes,[]);
     if(ticket.session.accountId!==accountId || accountId!=='1')throw Error('The GitHub account changed. Review your upload again.');

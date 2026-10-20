@@ -527,3 +527,24 @@ This is an interaction-flow change only; website visuals are unchanged.
 
 Owner follow-up: keep the native App prompt short: **Install Zero for GitHub**,
 with Open GitHub and Check again. Keep permission explanations in setup help.
+
+
+## Stateful first-run sidebar — owner approval, 2026-10-20
+
+For candidate 0.5.25, replace the tutorial welcome modal with a minimal sidebar
+sequence: **Sign in to GitHub** → **Install Zero for GitHub** → **Start tutorial**.
+Sign-in retains existing device authorization and credentials, runs a read-only
+App-access check, then stops at the next visible step. The install action opens
+the pinned App page after a recheck; Check again remains a fallback. Return to
+Zero to unlock Start tutorial. Keep the current step visible on cancel or failure.
+A saved session receives a read-only launch check without a browser or sign-in
+prompt. The ready empty sidebar makes Start tutorial primary, with New project…
+secondary for skipping; Open local project and Setup help remain available.
+Local Run and Files remain available signed out/offline, while cloud repository,
+push and sharing controls wait for readiness. Tutorial reading state persists
+locally per workspace/project path (lesson, scroll and disclosures only); it does
+not track completion or grading. All tutorials can return to the first lesson
+without changing code. Starting a tutorial creates a separate repository.
+The published Mac 0.5.24 and Windows 0.5.21 preview/manual ZIP retain their
+current behavior until their respective promotion/updates. Website visuals do not
+change.
