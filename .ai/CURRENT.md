@@ -2,9 +2,10 @@
 
 Owner requests Run App use native JavaFX by default, browser compilation only
 for publishing. Branch codex/native-run-default, base64d60a4f (Mac0.5.26 release).
-New scope implemented locally; explicit publication authority for this change
-will be requested after review. Existing live Mac0.5.26 remains browser-default.
-No push, merge, public release, credentials or student profile changes performed.
+Owner explicitly authorized merge and publication of this reviewed change
+on2026-10-20. Local kit/extension/build27 staged; public metadata remains26. Existing live Mac0.5.26 remains browser-default.
+Next: sourcePR/CI, signedMac27/candidate, publicbytes and metadata promotion.
+No credentials or student profile changes.
 
 Run App/sidebar/configured zero task run now use supported VSCode ProcessExecution
 (or Windows ShellExecution) with the same clean compile javafx:run Maven wrapper.
@@ -21,9 +22,10 @@ browser preview and stale-export recovery wrongly saidRunApp. Both fixed in one
 batch; UIhelp now nativewindow/Mavendependencies/taskterminal, all browser snapshot
 recovery directs Exportforweb/Publish. Validation logic/output guards unchanged.
 Final161affected checks pass/1Windowsruntime skip,35website/doc-render checks
-pass. Rootcheck passed before fixes; final rerun pending. Fullsuite interrupted
+pass. Rootcheck passed before fixes; final rerun passed. Fullsuite interrupted
 after unrelated Git binary fixtures took150–264s each underMacload265; no full
-suite pass claimed. Targeted remediation review pending at this commit.
+suite pass claimed. Targeted Sol/high remediation review clean atff4ab587. Release-version delta
+review next; no code changes after that reviewed source.
 
 Actual isolated officialVSCode clone /tmp/ZeroNativeQA.app/profile/project:
 sidebarRun launched actual wrapper+FX child, terminal9Java/noGWT. Stop restored

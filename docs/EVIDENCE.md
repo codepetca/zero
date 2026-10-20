@@ -6700,8 +6700,7 @@ prove browser compatibility. Current Mac0.5.26 retains its bundled behavior.
 Initial123affected checks/rootcheck passed. Sol/high full20file review found2P2
 recovery blockers (setuphelp browserinstruction and stale-export RunApp loop),
 fixed in one batch with focused tests. Final161affected pass/1Windowsruntime skip
-and35website/doc-render checks pass; finalrootcheck/remediationreview pending at
-this commit. Fullsuite interrupted underMacload265 after unrelated Gitfixtures
+and35website/doc-render checks pass; finalrootcheck and Sol/high remediation review passed. Fullsuite interrupted underMacload265 after unrelated Gitfixtures
 took150–264s each; no fullpass claimed.
 
 Actual isolated MacVSCode sidebarRun launched wrapper/JavaFX child; Stop ended
@@ -6709,5 +6708,6 @@ both exactownedprocesses/restoredRun. Real syntaxerror mappedMain.java[7,23] to
 Problems1/ShowProblems. Repaired finiteFXfixture emittedBUILD SUCCESS and ended
 normally withRun/Appstopped/noShowProblems. Nativewindowvisual/OSclose unavailable
 viaCUA, so notcertified; lifecyclefake tests coverclose/exit. No publicrelease/
-credentials/studentrepo/profile changes. Ownerpublicationdecision remains needed.
+credentials/studentrepo/profile changes. Owner explicitly authorized merge/publication after review; version/build27
+staged with sourcePR/signedcandidate/CI/public/live gates pending.
 Ignored .verification/native-run receipts record finalreview/cleanup/check status.
