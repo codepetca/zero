@@ -6,7 +6,7 @@ App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Mac 0.5.27 uses native JavaFX for Run App. Earlier downloads retain their
+Mac 0.5.28 uses native JavaFX for Run App. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
 compatibility checks and compilation.
 

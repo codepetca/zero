@@ -1,5 +1,36 @@
 # Delivery evidence index
 
+## Files dropdown — Mac 0.5.28 publication, 2026-10-20
+
+Owner authorized publication. [Source PR131](https://github.com/codepetca/zero/pull/131)
+merged as9e2943a8 after independent source/integration/candidate reviews and all
+five exact-head checks atbf17d109. Files opens an anchored sidebar dropdown with
+New class, New file, New folder and New asset. Isolated Mac light/dark/210px QA
+covered keyboard/focus/dismissal and actual class creation. Rootcheck,153 combined
+affected tests, prior full816pass/3platformskips and website typecheck/157tests/
+build passed; full release and browser checks also passed in exact-head CI.
+
+[Mac release28](https://github.com/codepetca/zero/releases/tag/setup-v0.5.28)
+publishes one signed/notarized/stapled DMG fromclean52b214dc, sealed atc407c63f.
+Authenticated draft and anonymous public bytes match4,584,898bytes and SHA256
+`3cbcd7ba7c7f68951574a4a4cd2d0c20053fd326773709d06a00156449dd973f`.
+Apple accepted submissionf2f3398f-feca-44f4-a025-5d3be11f98b6; actual DeveloperID,
+staple and Gatekeeper checks passed. Independent candidate audit verified all13
+hashes, protected source parity, embedded VSIX and signed feed/DMG signatures.
+Sealed feed SHA256c8ca22a5f35284f837737d27d5d6e05500c99915853d290864818f08176ab663.
+
+This promotion copies the sealed XML exactly, changes only update metadata's
+publication status and publishes the verified installer URL/snapshot. Website/feed
+review, exact-head CI, merge/deployment and live checks remain pending in this
+commit; the final ignored completion receipt records their outcomes. Mac27
+promotion completed first. Windows21, general kit17 and prior release bytes stay
+immutable. Physical Windows, Intel Mac, fresh-machine and screen-reader acceptance
+remain unverified. Preserve receipts/candidate under primary checkout
+`.verification/files-create-0.5.28` before retiring the owned worktree. Rework:
+reserve28 for concurrent27, correct two bundled README labels before final rebuild.
+Sol/medium read-only reviewers used; worker tokens/savings unavailable.
+
+
 ## New asset label — local, 2026-10-20
 
 Owner renamed the Files action to **New asset…**. Source203922ce updates the

@@ -20,7 +20,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   JavaFX window; Stop cancels the build or app process. Local Run has no browser
   compilation or Open in browser action. Publish app and advanced Export for web
   retain browser compatibility checks and production compilation; explicit export
-  preview remains available. Mac 0.5.27 ships native Run; earlier
+  preview remains available. Mac 0.5.28 ships native Run; earlier
   downloads retain their bundled Run behavior.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.

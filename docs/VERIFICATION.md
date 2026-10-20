@@ -1,5 +1,14 @@
 # Verification
 
+## Files dropdown — Mac 0.5.28 publication, 2026-10-20
+
+SourcePR131 merged after all five exact-head checks and independent source,
+integration and candidate review. Signed/notarized DMG public bytes match the
+sealed candidate; this change promotes its exact signed feed and verified URL.
+Website deployment/live checks remain pending until the final completion receipt.
+See [publication evidence](EVIDENCE.md#files-dropdown--mac-0528-publication-2026-10-20).
+
+
 ## Anchored Files dropdown — local, 2026-10-20
 
 Sourcef4f27eb8 supersedes the original Files picker with a dropdown directly
