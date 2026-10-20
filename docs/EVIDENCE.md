@@ -6587,3 +6587,7 @@ Final promotion review/CI/live verification pending at this commit. Preserved
 candidate and complete source/review/notary/draft/public/live/completion receipts
 are in primary ignored .verification/sidebar-setup-0.5.25. Review ledger records
 budget/timing/correction; models requested, effective model and tokens unknown.
+
+Final promotion review accepted one P2 stale welcome/current-version docs finding;
+coordinator corrected the current Mac guide/editor wording and stale version in
+one batch, without changing protected application or sealed artifact inputs.

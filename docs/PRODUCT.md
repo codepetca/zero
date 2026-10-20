@@ -364,7 +364,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   The tab retains the selected lesson, scroll and disclosures per project. It
   supports native floating windows and moves back into editor groups. Open in
   browser opens the current canonical lesson on the website; website navigation
-  does not synchronize back into the editor. Start tutorial stays in welcome and
+  does not synchronize back into the editor. Start tutorial stays in the ready empty sidebar and
   overflow; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
   a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;
@@ -397,7 +397,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Command Palette. Existing0.5.14 needs one manual replacement to gain updating;
   school policies may still require administrator approval. A loaded extension
   may require a student-chosen editor reload; no forced reload is performed.
-  Signed/notarized Mac0.5.23 is published; Windows0.5.21 is a published unsigned
+  Signed/notarized Mac0.5.25 is published; Windows0.5.21 is a published unsigned
   preview with automatic updates disabled. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while

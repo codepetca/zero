@@ -43,3 +43,8 @@ One CI-driven docs fix batch, no source reviewer findings. Review budget7launche
 1initial/4targeted/1integration/4fixbatches/60min; used2launches,1initial,1targeted
 before final promotion delta. Weekly86%remaining, storage285GB healthy at start.
 DeepSeek pause throughDec31 honored; no tool goal/task/automation created.
+
+Final promotion review found one P2 stale welcome/current-version documentation
+inconsistency in two current-guide paragraphs. Coordinator corrected both and
+another stale Mac version in one docs-only batch; packaged source unchanged.
+Correction verification and final exact-head CI/live gates remain.

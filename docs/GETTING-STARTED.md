@@ -127,16 +127,17 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.23 uses the familiar drag-to-Applications flow and tutorial-first
-welcome. Older published downloads keep their original setup apps and bytes.
+Mac setup 0.5.25 uses the familiar drag-to-Applications flow and sidebar-guided
+GitHub setup. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
 2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**
    and its progress bar prepare Java and the editor. A recognized existing kit
    receives setup-file updates; your code, assets and saved projects are kept.
-3. Zero opens its configured VS Code editor with **Start tutorial**. Choose it,
-   connect GitHub if needed, and create your **Greeting app** repository. Zero
-   opens your clone with `Main.java` beside **Tutorials**. Review your project
+3. Zero opens its configured VS Code editor and sidebar. Choose **Sign in to
+   GitHub**, then **Install Zero for GitHub** if requested. Once ready, choose
+   **Start tutorial** and create your **Greeting app** repository. Zero opens
+   your clone with `Main.java` beside **Tutorials**. Review your project
    before granting workspace trust if VS Code asks, then follow lesson 0.
    The first build needs internet for compiler dependencies, cached for reuse.
 
