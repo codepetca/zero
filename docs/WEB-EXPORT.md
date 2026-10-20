@@ -1,6 +1,6 @@
 # Browser games and playable links
 
-Mac 0.5.27 uses native JavaFX for Run App. Earlier downloads retain their
+Mac 0.5.28 uses native JavaFX for Run App. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
 compatibility checks and compilation.
 
