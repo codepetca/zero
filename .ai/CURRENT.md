@@ -12,7 +12,9 @@ updates preserve an open menu; changed controls dismiss it and fall back to Stop
 when the arrow becomes disabled. Local Run remains available signed out. Setup
 help keeps its plain Run test button.
 
-Focused automated checks and root configuration checks pass. Actual renderer in
+All 78 affected tests, root configuration and whitespace checks pass. Independent
+Sol/medium review of source 4c3ceff9 covered the complete 13-file diff and immediate
+callers, with no findings. The following delivery-evidence edit changes no code. Actual renderer in
 the safe browser fixture was checked in light/dark at 240px and a 200px iframe,
 including 200% text, keyboard opening/Escape/Tab, Publish dispatch and focus return.
 No Java or publication runs in this fixture. Real VS Code/native OS and live

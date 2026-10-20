@@ -6821,3 +6821,18 @@ Ignored .verification/native-run receipts record finalreview/cleanup/check statu
 Independent source, remediation, signed-candidate and website integration reviews passed. Two recovery-text blockers were fixed in one batch. Actual isolated Mac VS Code tests covered native Run/Stop, syntax errors in Problems and successful finite JavaFX exit to idle. Window appearance/OS close, fresh-machine installation, physical Windows and live GitHub remain manual coverage.
 
 The public Mac 0.5.27 DMG is 4,585,729 bytes with SHA-256 `c9ce6778e6b86c77eced4cc8c86e5c281c4dbc55636f1bd586d445e81995227f`. Authenticated draft and anonymous public downloads match the immutable sealed candidate. Actual Developer ID, Apple notarization, staple, Gatekeeper, both Ed25519 signatures and update build order 26→27 passed. Source parity after PR129 integration preserves all 41 protected paths. Final metadata promotion review, CI and live verification are pending in this commit; the ignored completion receipt records the final outcome. Whole investigation and candidate files are preserved under `.verification/native-run-0.5.27` in the primary checkout before worktree retirement.
+
+## Run dropdown — local implementation, 2026-10-20
+
+Reviewed source `4c3ceff9` adds a split Run control. Its main action retains native
+Run/Stop; the adjacent arrow offers the existing guarded Publish app for ready,
+connected projects and is disabled during Run/Stop. Shared Files/Run menus retain
+keyboard navigation, mutual exclusion, dismissal and dynamic focus restoration.
+All 78 affected tests, root configuration and whitespace checks passed. The actual
+renderer was checked in a safe browser fixture in light/dark/high contrast, at
+240px and a 200px iframe, including 200% text, keyboard opening/Escape/Tab, Publish
+dispatch and focus return. A complete independent Sol/medium review of all 13
+changed files and immediate callers found no actionable issues. No actual VS Code
+host, screen reader, Windows or live publishing acceptance is claimed. Receipts
+and screenshots: ignored `.verification/run-publish-menu`. This change is local;
+Mac 0.5.28 and existing release metadata retain their published bytes.
