@@ -7,11 +7,13 @@ popups, superseding the earlier no-helper preference. The shared native QuickPic
 title displays it for all Zero text inputs and preserves existing repository or
 publication context. Validation, acceptance and cancellation paths are unchanged.
 Source review of `33879d05` by independent GPT-6 Luna/medium found no issues.
+Owner then requested angle brackets; targeted review of `b3c432ab` was clean,
+with 11 prompt/integration tests and diff whitespace checks passing.
 85 affected input/caller tests, source syntax and diff whitespace pass after
 preparing generated assets and updating the superseded commit-prompt assertion.
 Actual VS Code rendering, screen readers and physical Windows were not retested.
 No push, merge, installer build or publication was requested for this change.
-Review ledger: one initial wave/launch, no source remediation, one test expectation
+Review ledger: one reviewer, one initial and one targeted turn, no source remediation, one test expectation
 correction; effective model/tokens unknown. Weekly allowance reading was 72%
 remaining (account-wide); cached storage check healthy at 283 GB available.
 
