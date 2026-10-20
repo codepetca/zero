@@ -4,7 +4,8 @@ Task worktree `zero-tab-branding`, branch `codex/zero-tab-branding`, source bbeb
 Home title zero; transparent favicon follows exact page icon colors and persisted
 light/dark mode, with one stable link across client navigation.157 tests/typecheck/
 build and alpha/browser checks pass. Luna/medium complete+targeted review clean
-after one lifecycle fix. Ready locally; no publication authorized/performed.
+after one lifecycle fix. Owner authorized website publication on2026-10-20.
+Next: reviewed feature PR, exact-head CI/merge, live production verification.
 See docs/EVIDENCE.md, docs/VERIFICATION.md and .verification/tab-branding/.
 Other task's prior current-state record follows, preserved.
 
