@@ -72,8 +72,9 @@ game); selecting one updates the reading pane and its bookmarkable
 Code blocks in tutorials, docs, source views and ZeroHub copy their exact text when
 clicked, with a keyboard-accessible Copy button and success/failure feedback.
 Dragging to select text keeps manual copying available.
-`/downloads` is the separate platform download page;
-Download is a regular top-menu page, and platform buttons do not appear below tutorials.
+`/downloads` is the separate platform download page.
+The top menu contains Tutorials, Docs and ZeroHub. The Zero logo returns to Home,
+where platform download options are available; platform buttons do not appear below tutorials.
 Docs opens the complete searchable Zero API directly; method names stay visible
 while their details scroll, and category headings scroll normally; setup and longer app guides remain linked from its sidebar.
 ZeroHub opens Projects by default and has only Projects and Libraries in its
@@ -133,6 +134,11 @@ Desktop and browser sessions do not pair or transfer credentials automatically.
 Short-lived browser sessions require reconnection after expiry. Public counts may lag; no separate vote store
 is created. Site checks show cached page reachability, not verified gameplay.
 Report a problem opens a prefilled GitHub issue for the user to review and submit.
+Project cards show a green circled check for reachable sites, a yellow warning triangle for
+unreachable sites and a question mark for an unknown check, followed by a local
+check time such as **Oct 20 · 12:56 PM**. Reporting uses a flag icon; stars show
+only a star icon and count, filled when starred. Accessible labels describe each
+control and status; an unavailable star count displays an em dash.
 See [ZeroHub feedback](ZEROHUB-FEEDBACK.md) for setup and limits.
 Contribution instructions require GitHub sign-in in Zero and the same personal
 account for the browser publication form. The replacement has no reservation or

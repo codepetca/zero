@@ -232,7 +232,8 @@ are ignored by Git; VSIX packaging includes the extension CSS. Do not edit these
 outputs or rebuild the frozen 0.5.8 artifacts to test styling.
 Home, Learn and Downloads share a circular header sun/moon light/dark toggle. The OS
 preference is the default until a mode is chosen; the choice persists. ZeroHub and Docs use the same themes.
-Downloads live at `/downloads`. Download is a regular menu item. Old
+Downloads live at `/downloads` and on Home, reached through the Zero logo. The
+shared menu contains Tutorials, Docs and ZeroHub. Old
 `/learn#downloads` links redirect there for compatibility.
 The sidebar uses native host colors/fonts/focus and high-contrast classes.
 

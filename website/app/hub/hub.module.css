@@ -33,8 +33,14 @@
 .account button, .starButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--zero-border, var(--outline)); border-radius: 6px; background: var(--zero-page); color: var(--ink); font: inherit; text-decoration: none; cursor: pointer; }
 .account button:focus-visible, .starButton:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 .starButton[aria-pressed="true"] { border-color: var(--purple); color: var(--purple); }
+.starButton[aria-pressed="true"] :global(.icon) { fill: currentColor; }
 .account button:disabled, .starButton:disabled { opacity: .65; cursor: default; }
 .feedback { margin-top: 12px; }
 .projectActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 16px; }
 .projectActions > a:not(.starButton) { display: inline-flex; align-items: center; min-height: 44px; }
+.projectActions .reportLink { justify-content: center; min-width: 44px; font-size: 18px; }
 .siteStatus, .feedbackError { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+.siteStatus { display: flex; align-items: center; gap: 8px; }
+.siteStatus time { white-space: nowrap; }
+.siteStatus[data-status="reachable"] :global(.icon) { color: light-dark(#15803d, #4ade80); }
+.siteStatus[data-status="unreachable"] :global(.icon) { color: light-dark(#a17a00, #facc15); }
