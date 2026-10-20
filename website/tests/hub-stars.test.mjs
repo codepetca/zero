@@ -99,3 +99,36 @@ test('GitHub revocation clears the local session so the user can reconnect', asy
     assert.equal('starred' in await response.json(),false);
   }
 });
+
+test('upstream star diagnostics classify access failures without logging credentials or arbitrary provider text', async t => {
+  const warnings = t.mock.method(console, 'warn', () => {});
+  const desired = {kind: 'game', id: 'drawing-pad', starred: true};
+  const response = await postStarResponse(request('POST', desired), {env, resolver, now,
+    fetchImpl: async () => Response.json({message: 'Resource not accessible by integration', token: session.token},
+      {status: 403, headers: {'x-accepted-github-permissions': `metadata=read,starring=write,${session.token}`, 'x-ratelimit-remaining': '4999'}})});
+  assert.equal(response.status, 502);
+  assert.deepEqual(warnings.mock.calls[0].arguments, ['ZeroHub GitHub star failure', {
+    stage: 'upstream', method: 'PUT', status: 403, reason: 'integration_access_denied',
+    acceptedPermissions: ['metadata=read', 'starring=write'], rateLimitRemaining: 4999
+  }]);
+  assert.equal(JSON.stringify(warnings.mock.calls).includes(session.token), false);
+  const large = await postStarResponse(request('POST', desired), {env, resolver, now,
+    fetchImpl: async () => new Response('x'.repeat(20_000), {status: 502})});
+  assert.equal(large.status, 502);
+  assert.equal(warnings.mock.calls[1].arguments[1].reason, 'upstream_error');
+});
+
+test('transport diagnostics allow only known error codes and never log exception text', async t => {
+  const warnings = t.mock.method(console, 'warn', () => {});
+  const desired = {kind: 'game', id: 'drawing-pad', starred: true};
+  for (const causeCode of ['UND_ERR_REQ_CONTENT_LENGTH_MISMATCH', session.token]) {
+    const response = await postStarResponse(request('POST', desired), {env, resolver, now,
+      fetchImpl: async () => { throw new Error(session.token, {cause: {code: causeCode}}); }});
+    assert.equal(response.status, 502);
+  }
+  assert.deepEqual(warnings.mock.calls.map(call => call.arguments[1]), [
+    {stage: 'transport', method: 'PUT', code: 'UND_ERR_REQ_CONTENT_LENGTH_MISMATCH'},
+    {stage: 'transport', method: 'PUT', code: 'unknown'}
+  ]);
+  assert.equal(JSON.stringify(warnings.mock.calls).includes(session.token), false);
+});
