@@ -477,7 +477,8 @@ source in GitHub settings and recheck; Zero does not silently broaden permission
 or change repository visibility. Commit & push shows **Preparing commit…** on its
 button while checking the project and GitHub access, then **Committing & pushing…**
 after confirmation. Progress clears on completion, cancellation or failure.
-It saves files and opens an empty input labeled **Commit message**, with no footer.
+It saves files and opens an empty input labeled **Commit message**, with the small
+**Enter to confirm · Esc to cancel** helper used by Zero's text-entry popups.
 Repository and branch remain in the sidebar;
 submitting the message proceeds directly.
 It validates and stages the captured changes, commits when needed and pushes the

@@ -1,10 +1,10 @@
 'use strict';
 
-// A native QuickPick accepts typed text without InputBox's built-in keyboard footer.
+// A native QuickPick keeps text entry and its short keyboard helper consistent.
 function textInput(vscode, options = {}) {
   const picker = vscode.window.createQuickPick();
   picker.placeholder = options.placeHolder || options.title;
-  picker.title = options.prompt;
+  picker.title = [options.prompt, 'Enter to confirm · Esc to cancel'].filter(Boolean).join(' · ');
   picker.value = options.value || '';
   picker.ignoreFocusOut = Boolean(options.ignoreFocusOut);
   picker.items = [];
