@@ -37,8 +37,10 @@ when adding features; a new feature does not reset the agreed interaction style.
   original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain
   branch actions and **Publish app** in the menu, with **Commit & push** and
   **Merge to main** as direct controls. Local-practice sharing stays blocked.
-- Put **Add assets…** beside **Files**, with **Copy asset paths** there
-  after import. **Review or restore changes…** belongs in the project menu; it
+- Clicking **Files ▾** opens **New class…**, **New file…**, **New folder…**,
+  **Add assets…** and **Copy asset paths** after import in a native picker.
+  Use native name/location prompts; keep new classes
+  ordinary Java beside Main and open new files in the editor. **Review or restore changes…** belongs in the project menu; it
   opens the existing native review/discard/restore choices. No separate tools row.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose
   another parent. Zero's explicit clone commands use its guarded GitHub App

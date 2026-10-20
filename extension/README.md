@@ -240,3 +240,14 @@ Library authors use **Extract library** inside their existing game repository, t
 ## Setup checklist
 
 **Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm the browser preview. No installation or account changes occur just by opening the checklist.
+
+## Create files from the sidebar
+
+Clicking **Files ▾** opens a native menu with **New class…**, **New file…**,
+**New folder…**, **Add assets…** and **Copy asset paths** after import. A class-name prompt creates and opens an ordinary public Java
+class in `src/main/java`. File/folder actions use native Java source, Resources
+or Project files location choices, then a relative name (with `/` for nested
+folders). Files open in the normal editor; folders appear in the refreshed tree.
+Cancellation makes no changes. Names are portable across Mac/Windows, existing
+entries are never replaced, and project/trust/symlink checks precede writes.
+These local actions work without GitHub sign-in and share the busy-state guard.

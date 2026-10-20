@@ -220,6 +220,22 @@
         "title": "Zero: Show Output"
       },
       {
+        "command": "zero.fileActions",
+        "title": "Zero: Files"
+      },
+      {
+        "command": "zero.newClass",
+        "title": "Zero: New class\u2026"
+      },
+      {
+        "command": "zero.newFile",
+        "title": "Zero: New file\u2026"
+      },
+      {
+        "command": "zero.newFolder",
+        "title": "Zero: New folder\u2026"
+      },
+      {
         "command": "zero.importAssets",
         "title": "Zero: Add assets\u2026"
       },

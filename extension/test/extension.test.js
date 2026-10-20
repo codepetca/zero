@@ -158,10 +158,10 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
     }
   };await settle(()=>authCalls.length>0 && /Sign in to GitHub/.test(webview.html));
   assert.match(webview.html,/Sign in to GitHub/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
-  await settle(()=>webview.html.includes('data-command="zero.importAssets"'));
-  assert.match(webview.html,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
+  await settle(()=>webview.html.includes('data-command="zero.fileActions"'));
+  assert.match(webview.html,/data-command="zero.fileActions"[^>]*>Files/);
   assert.doesNotMatch(webview.html,/data-command="zero.recovery"/);
-  assert.match(webview.html,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
+  assert.match(webview.html,/<div class="files-header">[\s\S]*data-command="zero.fileActions"/);
   assert.equal(typeof commands.get('zero.importAssets'),'function');assert.equal(typeof commands.get('zero.recovery'),'function');
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/data-command="zero.signInToGitHub"[^>]*>Sign in to GitHub/);

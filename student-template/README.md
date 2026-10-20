@@ -200,6 +200,24 @@ Read the bundled framework in `src/main/java/zero/App.java` and
 `GameApp.java`. It has shared startup and a small drawing/input API, with no
 component base class, scene routing, or object discovery.
 
+## Add classes, files and folders
+
+Click **Files ▾** in Zero's sidebar:
+
+- **New class…**: enter `Player` (or `Player.java`). Zero creates an ordinary
+  `public class Player` beside Main in `src/main/java` and opens it. Create and
+  call its objects from Main; no registration or build configuration is needed.
+- **New file…**: choose **Java source**, **Resources** or **Project files**, then
+  enter a filename. Zero opens the empty file for editing.
+- **New folder…**: choose the location and enter a folder name.
+
+Use `/` for subfolders, such as `data/questions.txt` or `images/backgrounds`.
+Existing files and folders are preserved; choose another name if one exists.
+Cancel leaves the project unchanged. The file list refreshes automatically.
+**Add assets…** copies existing images/audio into Resources; use **Copy asset
+paths** afterward for the paths to use in Java. Click **Run** to rebuild after
+editing (stop the current preview first if it is running).
+
 ## Try an example
 
 The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use

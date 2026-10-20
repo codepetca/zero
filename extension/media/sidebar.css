@@ -40,7 +40,7 @@ button.upload[aria-busy="true"] { opacity:.85; }
 .files-section { border-top:1px solid var(--vscode-panel-border,var(--zero-border)); margin-top:10px; padding-top:8px; }
 .files-header { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
 .files-header h2 { margin:0; }
-.file-actions { display:flex; flex:1; min-width:0; flex-wrap:wrap; justify-content:flex-end; column-gap:8px; }
+.file-actions { display:flex; flex:1; min-width:0; flex-wrap:wrap; justify-content:flex-start; column-gap:8px; }
 .file-actions button.link { width:auto; max-width:100%; overflow-wrap:anywhere; }
 h2 { font:inherit; font-weight:500; color:var(--zero-muted); margin:0 0 4px; }
 .file-row { display:flex; align-items:center; gap:6px; padding:3px 3px 3px calc(3px + var(--depth,0)*12px); min-height:26px; cursor:pointer; overflow-wrap:anywhere; }

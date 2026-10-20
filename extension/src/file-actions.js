@@ -1,0 +1,132 @@
+'use strict';
+const fs = require('node:fs/promises');
+const {constants} = require('node:fs');
+const path = require('node:path');
+
+const hidden = new Set(['.git','target','node_modules','.ds_store','.zero-sharing-recovery','.zero','.zero-web']);
+const keywords = new Set(('abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static strictfp super switch synchronized this throw throws transient try void volatile while true false null _ var yield record sealed permits').split(' '));
+const locations = [
+  {label:'Java source',description:'Beside Main.java',relative:'src/main/java'},
+  {label:'Resources',description:'Images, audio and data files',relative:'src/main/resources'},
+  {label:'Project files',description:'In the project folder',relative:''}
+];
+const key = value => value.normalize('NFC').toLowerCase();
+const identity = stat => `${stat.dev}:${stat.ino}`;
+function nameError(value, kind) {
+  if (!value || value !== value.trim()) return 'Enter a name without spaces at the beginning or end.';
+  if (kind === 'class') {
+    const name = value.endsWith('.java') ? value.slice(0,-5) : value;
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || keywords.has(name) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(name) || name.length > 175) return 'Use a Java class name, such as Player, without spaces or folders.';
+    return;
+  }
+  const parts = value.split('/');
+  if (value.length > 500 || parts.length > 12) return 'Use a shorter name or fewer folders.';
+  for (const part of parts) {
+    if (!part || part === '.' || part === '..' || part !== part.trim() || part.length > 180 || /[<>:"\\|?*\x00-\x1f\x7f]/.test(part) || /[. ]$/.test(part) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part)) return 'Use a simple name. Separate folders with /; do not use .. or special characters.';
+    if (hidden.has(key(part))) return 'Choose a name outside generated or private project folders.';
+  }
+}
+async function ordinaryDirectory(directory) {
+  const stat = await fs.lstat(directory);
+  if (stat.isSymbolicLink() || !stat.isDirectory()) throw Error('Choose an ordinary folder in this project, without symbolic links.');
+  return stat;
+}
+async function plainAncestors(filename) {
+  const absolute = path.resolve(filename);
+  let cursor = path.parse(absolute).root;
+  for (const part of absolute.slice(cursor.length).split(path.sep).filter(Boolean)) {
+    cursor = path.join(cursor,part);
+    await ordinaryDirectory(cursor);
+  }
+}
+async function collision(directory, name) {
+  return (await fs.readdir(directory)).some(existing => key(existing) === key(name));
+}
+
+function createFileCommands(vscode, {project,isBusy,setBusy,setState,output,refreshFiles = () => {}}) {
+  let running = false, disposed = false;
+  async function create(kind) {
+    if (disposed || running || isBusy()) return;
+    running = true; setBusy(true);
+    try {
+      const root = await project();
+      const assertCurrent = async () => {
+        if (disposed) throw Error('Creating the file or folder stopped.');
+        if (vscode.workspace.isTrusted === false) throw Error('Trust your own project before adding files or folders.');
+        if (await project() !== root) throw Error('The project changed. Add the file or folder in the current project.');
+      };
+      await assertCurrent(); await plainAncestors(root);
+      const rootId = identity(await ordinaryDirectory(root));
+      const validateRoot = async () => {
+        await assertCurrent(); await plainAncestors(root);
+        if (identity(await ordinaryDirectory(root)) !== rootId) throw Error('The project folder changed. Try again in the current project.');
+      };
+      const title = `New ${kind}`;
+      const location = kind === 'class' ? locations[0] : await vscode.window.showQuickPick(locations,{title,placeHolder:`Where should the ${kind} go?`});
+      if (!location) return;
+      await validateRoot();
+      // Locations come from this native picker, never from the sidebar's messages.
+      if (!locations.includes(location)) throw Error('Choose a project location from the list.');
+      const base = path.join(root,location.relative);
+      const relativeName = value => kind === 'class' ? `${value.replace(/\.java$/,'')}.java` : value;
+      const validateName = async value => {
+        const invalid = nameError(value,kind);
+        if (invalid) return invalid;
+        await validateRoot();
+        const destination = path.join(base,relativeName(value));
+        try {
+          await plainAncestors(path.dirname(destination));
+          if (await collision(path.dirname(destination),path.basename(destination))) return 'That name already exists. Choose another name.';
+        } catch (error) {
+          if (error.code !== 'ENOENT') return error.message;
+        }
+      };
+      const value = await vscode.window.showInputBox({title,prompt:kind === 'class' ? 'Class name. Zero adds .java and opens it beside Main.java.' : `Name in ${location.label}. Use / for subfolders.`,placeHolder:kind === 'class' ? 'Player' : kind === 'file' ? 'notes.txt or images/notes.txt' : 'images',ignoreFocusOut:true,validateInput:validateName});
+      if (value === undefined) return;
+      const invalid = await validateName(value);
+      if (invalid) throw Error(invalid);
+      const destination = path.join(base,relativeName(value));
+      const relative = path.relative(root,destination);
+      if (path.isAbsolute(relative) || (relative === '..' || relative.startsWith(`..${path.sep}`)) || relative.split(path.sep).some(part=>hidden.has(key(part)))) throw Error('Choose a location inside this project.');
+      // Create parents one at a time so existing links cannot redirect a write.
+      let parent = root;
+      for (const part of path.relative(root,path.dirname(destination)).split(path.sep).filter(Boolean)) {
+        await validateRoot(); await plainAncestors(parent);
+        const next = path.join(parent,part);
+        try {await ordinaryDirectory(next);} catch(error) {
+          if (error.code !== 'ENOENT') throw error;
+          if (await collision(parent,part)) throw Error('A folder with a matching name already exists. Use its exact name.');
+          await fs.mkdir(next);
+        }
+        parent = next;
+      }
+      await validateRoot(); await plainAncestors(parent);
+      if (await collision(parent,path.basename(destination))) throw Error('That name already exists. Choose another name.');
+      if (kind === 'folder') {
+        await fs.mkdir(destination);
+      } else {
+        const handle = await fs.open(destination,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|(constants.O_NOFOLLOW || 0),0o644);
+        try {
+          if (kind === 'class') await handle.writeFile(`public class ${path.basename(destination,'.java')} {\n\n}\n`);
+        } catch (error) {
+          error.message = `Could not finish writing ${path.basename(destination)}. Check the new file in Files before trying again. ${error.message}`;
+          throw error;
+        } finally {await handle.close();}
+      }
+      refreshFiles();
+      setState(`Created ${path.basename(destination)}`);
+      output?.appendLine(`Created ${relative.split(path.sep).join('/')}`);
+      if (kind !== 'folder') {
+        // A changed workspace never opens a file in a different project.
+        await validateRoot(); await plainAncestors(parent);
+        if ((await fs.lstat(destination)).isSymbolicLink()) throw Error('The new file changed. Open it again from Files.');
+        await vscode.commands.executeCommand('vscode.open',vscode.Uri.file(destination));
+      }
+    } catch (error) {
+      if (error.code === 'EEXIST') throw Error('That name already exists. Choose another name.');
+      throw error;
+    } finally {running = false; setBusy(false);}
+  }
+  return {commands:{'zero.newClass':()=>create('class'),'zero.newFile':()=>create('file'),'zero.newFolder':()=>create('folder')},dispose(){disposed=true;}};
+}
+module.exports = {createFileCommands,nameError};
