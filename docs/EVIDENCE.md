@@ -6464,3 +6464,32 @@ Owner then requested concise App prompt; copy-only correction uses Install Zero
 for GitHub with two plain actions, retaining explanation in setup help.
 Targeted copy review and exact-head CI/publication gates pending. Logs retained
 under ignored .verification/github-onboarding-0.5.24/.
+
+### Mac0.5.24 publication
+
+Source PR119 merged3477ab2217c1f6ec8030bf33b8923288e826f570, tree equals reviewed
+clean730ac8b7f8deaffc585da485bc60df4795433bae. All5exact-head CI checks passed.
+Sol/high initial905a30f and targeted copy730ac8b reviews complete/clean;64final
+affected checks passed. Separate third turn verified one-file measured preparation
+916f00c1faac7d1d08beaa260fded4b242bedccf, all13sealed hashes, exact packaged source,
+manifest/receipt, protected source parity, Ed25519 feed/enclosure and23→24order.
+No findings. One owner-requested copy batch, no source defect correction; effective
+model, per-turn elapsed seconds/tokens unavailable. Coordinator active review/
+integration ~10minutes estimated; CI8m32s source gate, no CI retries.
+
+Published setup-v0.5.24 release418426592 contains one DMG4584867bytes, SHA256
+3095ae4d9683dae0f728343942e1d03d5dc35b5a5cfd541161585ee4a5f64e86. Authenticated
+draft and anonymous public downloads both match sealed bytes. Notary
+3e926af8-b266-4563-81cc-96288c83258d Accepted; actual staple and Gatekeeper app/DMG
+checks pass with existing Developer ID/team. No credentials changed. Public notes
+use reviewed concise onboarding instructions; inherited sealed generic NOTES.md
+is retained unchanged but was not published as release notes.
+
+PR121 copies exact sealed signed appcast and changes only publication status/URL
+in measured metadata, plus current setup/product guides and delivery records.
+Windows0.5.21 preview/manualZIP, published kit and prior immutable releases stay
+unchanged. Final promotion review/CI/live-site verification pending at this commit.
+Receipts: ignored .verification/github-onboarding-0.5.24/receipts and sealed
+candidate dist/candidates/mac-0.5.24-916f00c1faac; preserved in primary checkout
+before this managed worktree is retired. No real GitHub grant or student repo
+was created during automated/native testing; classroom smoke coverage remains.
