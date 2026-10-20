@@ -23,7 +23,7 @@ GitHub setup verifies project access before tutorial choices and repository deta
 
 The shared Zero brand uses the softened, thicker slashed-circle mark from
 `design/brand`. Website title images use purple in light mode and light purple on a transparent
-background in dark mode, with lowercase outlined lettering. The home browser tab
+background in dark mode, with lowercase outlined lettering. Every website browser tab
 reads lowercase **zero**, with a transparent favicon matching the page's light/dark
 icon color. Apple touch icons and share previews keep the white-on-purple inverse.
 Editor icons follow native theme colors; future Mac and Windows

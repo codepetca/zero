@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     images: [{ url: "/generated/brand/share.png", width: 1200, height: 630, alt: "Zero" }],
   },
   twitter: { card: "summary_large_image", images: ["/generated/brand/share.png"] },
-  title: { default: "zero", template: "%s — zero" },
+  title: { default: "zero", template: "zero" },
   description:
     "A simple kit for building Java apps. Ordinary Java, VS Code and a small JavaFX library.",
 };
