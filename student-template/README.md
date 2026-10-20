@@ -1,6 +1,6 @@
 # My Zero App
 
-This source is included in Mac setup **0.5.23** with core **0.2.1**.
+This source is included in Mac setup **0.5.27** with core **0.2.1**.
 Older downloads keep their own bundled instructions and API.
 
 This bundled Hello World project is an installation check, not your lesson 0
