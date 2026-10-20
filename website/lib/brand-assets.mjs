@@ -7,7 +7,7 @@ export async function prepareBrandAssets(root, site) {
   const source=path.join(root,'design/brand');
   const output=path.join(site,'public/generated/brand');
   await mkdir(output,{recursive:true});
-  for(const name of ['zero-purple','zero-purple-on-white','zero-white-on-purple'])
+  for(const name of ['zero-purple','zero-purple-on-white','zero-white-on-purple','zero-wordmark','zero-wordmark-dark'])
     await copyFile(path.join(source,`${name}.svg`),path.join(output,`${name}.svg`));
   // Keep the existing URL usable by older cached pages.
   await copyFile(path.join(source,'zero-purple.svg'),path.join(site,'public/generated/zero.svg'));

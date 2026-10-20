@@ -1271,10 +1271,17 @@ pre code {
 /* Shared Zero mark: explicit light and inverse assets, including saved themes. */
 :is(.brand, .hero-brand) .brand-mark-dark { display: none; }
 :is(.brand, .hero-brand) .brand-mark-light { display: block; }
-:is(.brand, .hero-brand) .brand-mark-dark { border-radius: 20%; }
+
 [data-theme="dark"] :is(.brand, .hero-brand) .brand-mark-light { display: none; }
 [data-theme="dark"] :is(.brand, .hero-brand) .brand-mark-dark { display: block; }
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] :is(.brand, .hero-brand) .brand-mark-light { display: none; }
   [data-theme="system"] :is(.brand, .hero-brand) .brand-mark-dark { display: block; }
 }
+
+/* One proportionate image keeps the approved lowercase title aligned. */
+:is(.brand, .hero-brand) img.brand-wordmark { width: var(--wordmark-width, 125px); height: auto; max-width: 100%; }
+.brand { flex-shrink: 0; }
+.hero-brand { --wordmark-width: 520px; }
+@media (max-width: 760px) { .hero-brand { --wordmark-width: 342px; } }
+@media (max-width: 480px) { .hero-brand { --wordmark-width: 278px; } }

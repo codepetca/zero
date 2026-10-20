@@ -34,3 +34,12 @@ Codepet Zero GitHub App avatar. This purple-on-white version scales only the mar
 to 88%, increasing its internal edge padding from 7.5% to about 12.6%. Its square
 background remains full size. This host-specific export stays outside the general
 three-variant ZIP; website, editor and native icon geometry is unchanged.
+
+## Website title lockup — selected 2026-10-20
+
+The owner selected the icon followed by lowercase **zero** as one image.
+[Light title](zero-wordmark.svg) preserves the approved purple icon and outlined
+lettering; [dark title](zero-wordmark-dark.svg) uses the existing white-on-purple
+icon treatment and white lettering. The final-o replacement experiment is not
+the website default. Website preparation copies these authored SVGs to generated
+public assets. Preserve their aspect ratio and accessible Zero/home labels.

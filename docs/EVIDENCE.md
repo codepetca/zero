@@ -1,5 +1,23 @@
 # Delivery evidence index
 
+## Lowercase website title logo — 2026-10-20
+
+Owner selected the first title, the approved thicker softened Zero icon followed
+by outlined lowercase zero, and authorized website publication. Shared Brand
+uses complete light/dark SVG images from design/brand; generated assets preserve
+their aspect ratio and existing accessible home labels. Existing page layouts,
+downloads, icon geometry and released installers are unchanged.
+
+Current-main website157tests, typecheck, production build and whitespace check
+pass. In-app browser: Home at1280px in light/dark,320px phone in light/dark,
+Docs at390px dark; loaded125×30wordmarks, no page horizontal overflow. Keyboard
+home navigation and live deployment are checked before final handoff. Screenshots
+and detailed review/publication receipts are ignored under .verification/website-logo/.
+Physical devices, other OS browsers and text enlargement are not re-certified by
+this logo change. One bounded independent low-risk review precedes merge; final
+review/CI/deployment receipts are attached to the publication PR. Coordinator
+weekly88%remaining and healthy284GB at start; attributable usage unknown.
+
 ## Website API and guide currency follow-up — 2026-10-19
 
 Live HTTP200 `/docs` was parsed and compared with canonical API entries: all98
