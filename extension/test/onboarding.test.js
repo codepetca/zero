@@ -211,6 +211,8 @@ test('sidebar sign-in is explicit and retry needs no project or welcome modal',a
 test('setup sidebar never blocks local Run or replaces editors with a welcome modal',async t=>{
   const f=await fixture(t,{profile:new Map(),setupCheck:true,activeEditor:true});
   await settle(()=>f.remembered.has('zero.sidebarShown'));assert.equal(f.notices.length,0);
+  // Showing the sidebar precedes the asynchronous project/status render.
+  await settle(()=>/data-command="zero.toggleApp"/.test(f.webview.html));
   assert.match(f.webview.html,/Run test/);await f.commands.get('zero.runNativeApp')();assert.equal(f.launches.length,1);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview'||id==='showTextDocument'||id==='openExternal').length,0);
   assert.ok(f.authCalls.every(call=>call.options.silent));
