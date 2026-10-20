@@ -14,7 +14,7 @@ const {createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity} 
 const {createGitHubAppClone} = require('./github-app/clone');
 const {createGitHubProjectCommands} = require('./github-app/projects-ui');
 const {createProjectFolders} = require('./project-folders');
-const {createWelcome} = require('./welcome');
+const {createGitHubReadiness} = require('./github-app/readiness');
 const {createGitHubSetup} = require('./github-app/setup-ui');
 const {selectUploadAuthentication} = require('./web-publish-upload-auth');
 const {createTransport} = require('./transport');
@@ -161,7 +161,8 @@ function activate(context, services = {}) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';refresh();});
+  let githubReadiness;
+  const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';githubReadiness?.sync();refresh();});
   context.subscriptions.push(auth);
   const appConfiguration = githubAppConfiguration();
   const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,onDiagnostic:message=>output.appendLine(message)}) : null);
@@ -170,6 +171,9 @@ function activate(context, services = {}) {
     context.subscriptions.push(vscode.authentication.registerAuthenticationProvider('zero-github','Zero GitHub',appProvider,{supportsMultipleAccounts:false}));
   }
   const repositories = services.repositories || createGitHubAppRepositories({authentication:auth,configuration:appConfiguration});
+  githubReadiness = createGitHubReadiness({authentication:auth,repositories,installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,active:()=>!disposed,onChange:()=>{if (/^(?:Checking GitHub|GitHub sign-in|GitHub setup paused|GitHub is ready for your projects|Install Zero for GitHub\.)/.test(state)) state='';refresh();}});
+  context.subscriptions.push(githubReadiness);
+  const githubReady = () => auth.signedIn && githubReadiness.phase === 'ready';
   const cloneRepository = services.cloneRepository || createGitHubAppClone({authentication:auth,repositories});
   const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository});
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
@@ -178,7 +182,7 @@ function activate(context, services = {}) {
     installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,
     active:() => !disposed, report});
   context.subscriptions.push(githubSetup);
-  async function prepareGitHub() {
+  async function prepareGitHub({openBrowser = false} = {}) {
     await actions['zero.showSidebar']();
     if (disposed) return false;
     await auth.refresh();
@@ -187,9 +191,9 @@ function activate(context, services = {}) {
     if (disposed) return false;
     const ticket = await auth.capture();
     if (disposed) return false;
-    const ready = await githubSetup.ensure();
-    if (!disposed && ready) await auth.assertCurrent(ticket);
-    if (!disposed && !ready) report('GitHub setup paused · Start tutorial to continue');
+    const ready = await githubSetup.ensure({openBrowser});
+    if (!disposed && ready) {await auth.assertCurrent(ticket);githubReadiness.confirm(ticket);}
+    if (!disposed && !ready) {report('GitHub setup paused');void githubReadiness.refresh();}
     return !disposed && ready ? ticket : false;
   }
   async function signIn(changeAccount = auth.signedIn) {
@@ -199,8 +203,10 @@ function activate(context, services = {}) {
       if (disposed) return;
       if (!appProvider) throw new Error('The Codepet GitHub App is not configured in this Zero release. Local running still works.');
       if (changeAccount && auth.sessionId) {await appProvider.removeSession(auth.sessionId);await auth.refresh();}
-      await prepareGitHub();
-      if (!disposed) output.appendLine(auth.status);
+      await actions['zero.showSidebar']();
+      await auth.refresh();
+      if (!auth.signedIn) await auth.signIn(false);
+      if (!disposed) {await githubReadiness.refresh();output.appendLine(auth.status);}
     } catch (error) {
       if (!disposed) throw error;
     } finally { signingIn = false; if (!disposed) refresh(); }
@@ -438,7 +444,7 @@ function activate(context, services = {}) {
       } finally {selectedAuth?.dispose();await repositoryStatus(); uploadProgress = ''; uploading = false; refresh();}
   }
   const actions = {
-    'zero.getStarted': () => welcome.show(true),
+    'zero.getStarted': () => actions['zero.showSidebar'](),
     'zero.githubAccount': async () => {
       if (isBusy()) return;
       if (!auth.signedIn) return actions['zero.signInToGitHub']();
@@ -460,6 +466,8 @@ function activate(context, services = {}) {
       const tutorial = root && !localPractice && await lessonProjects.tutorialMarker(root);
       if (isBusy()) return;
       const connected = repository.startsWith('https://github.com/');
+    const ready = githubReady();
+    const phase = auth.signedIn ? githubReadiness.phase : 'signed-out';
       const currentRepository = repository, currentBranch = branch;
       const items = connected ? [
         {label:'Open on GitHub', action:'open'},
@@ -506,6 +514,12 @@ function activate(context, services = {}) {
       }
     },
     'zero.signInToGitHub': signIn,
+    'zero.setupGitHub': async () => {
+      if (disposed || isBusy()) return;
+      signingIn = true;refresh();
+      try {await prepareGitHub({openBrowser:true});}
+      finally {signingIn=false;if(!disposed)refresh();}
+    },
     'zero.createRepository': async () => {
       if (disposed || isBusy()) return;
       connecting=true;refresh();
@@ -594,7 +608,7 @@ function activate(context, services = {}) {
       const choice = await quickPick([
         {label:'Projects', description:'Browse shared games', action:'projects'},
         {label:'Libraries', description:'Inspect libraries and exact versions', action:'libraries'},
-        ...(auth.signedIn && originalWork ? [{label:'Share project', action:'share'}] : [])
+        ...(githubReady() && originalWork ? [{label:'Share project', action:'share'}] : [])
       ], {title:'ZeroHub', placeHolder:'Choose a ZeroHub action'});
       if (isBusy()) return;
       if (choice?.action === 'projects' && !(await vscode.env.openExternal(vscode.Uri.parse('https://zero.codepet.ca/hub?kind=game')))) {
@@ -676,9 +690,11 @@ function activate(context, services = {}) {
   context.subscriptions.push(...webExport.disposables);
   for (const [id, action] of Object.entries(actions)) context.subscriptions.push(vscode.commands.registerCommand(id, async () => {
     try {await action();} catch(error) {
-      state = error.zeroRunMessage || error.message;refresh();output.appendLine(error.message);
+      const message = error.zeroRunMessage || error.message;
+      state = /^GitHub sign-in was cancelled or unavailable\./.test(message) ? 'GitHub sign-in cancelled or unavailable. Try again.' : message;refresh();output.appendLine(error.message);
       const installUrl=appConfiguration&&`https://github.com/apps/${appConfiguration.slug}/installations/new`;
       if(installUrl && error.actionUrl===installUrl){
+        void githubReadiness.refresh();
         const choice=await vscode.window.showErrorMessage(`Zero: ${state}`,'Open GitHub');
         if(choice==='Open GitHub'&&!disposed)await vscode.env.openExternal(vscode.Uri.parse(installUrl));
       }else if(error.code==='creation-uncertain'&&typeof error.repositoryUrl==='string'){
@@ -693,7 +709,8 @@ function activate(context, services = {}) {
     const nonce = crypto.randomBytes(16).toString('hex');
     const disabled = isBusy() ? 'disabled' : '';
     const connected = repository.startsWith('https://github.com/');
-    const account = `<button class="account" data-command="zero.githubAccount" title="Sign in to GitHub" aria-label="Sign in to GitHub" aria-haspopup="dialog" ${disabled}>Sign in</button>`;
+    const ready = githubReady();
+    const phase = auth.signedIn ? githubReadiness.phase : 'signed-out';
     const repoName = connected ? repository.slice('https://github.com/'.length) : projectRoot ? path.basename(projectRoot) : 'Project';
     const repoControl = `<button class="repo-choice" data-command="zero.chooseRepository" title="${escape(connected ? repository : 'Project actions')}" aria-label="${escape(`Project: ${repoName}. Open project actions`)}" aria-haspopup="dialog" ${disabled}><span class="repo-label">${escape(repoName).replace('/', '/<wbr>')}</span>${icon('ChevronDown')}</button>`;
     const branchControl = auth.signedIn && connected && (branch || branchDetached) ? `<div class="branch-row"><span class="branch" title="${escape(branch ? `Current branch: ${branch}` : 'Detached HEAD. Use Switch branch in repository actions.')}">${icon('GitBranch')}${escape(branch || 'Detached HEAD')}</span>${auth.signedIn && branch && branch !== 'main' ? `<button class="link change" data-command="zero.finishChange" ${disabled}>Merge to main</button>` : ''}</div>` : '';
@@ -703,13 +720,16 @@ function activate(context, services = {}) {
     const publishedActions = auth.signedIn && connected && uploadMode() === 'live' && published && published.root === projectRoot && published.account === auth.accountId && published.resume?.repository === repository ? `<div class="row"><button class="link" data-command="zero.openPublishedWeb" ${disabled}>Open app</button><button class="link" data-command="zero.copyPublishedWebLink" ${disabled}>Copy playable link</button></div>` : '';
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
-    const githubPanel = !auth.signedIn ? account : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
+    const githubPanel = !ready ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
     const fileActions=projectRoot ? `<button class="link" data-command="zero.importAssets" ${disabled}>Add assets…</button>${assets.canCopyPaths()?`<button class="link" data-command="zero.copyImportedAssetPaths" ${disabled}>Copy asset paths</button>`:''}` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const setupCheck = projectRoot && isSetupProject(projectRoot);
     const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : setupCheck ? 'Run test' : 'Run';
     const runDisabled = stopPromise ? 'aria-disabled="true"' : !activeRun && isBusy() ? 'disabled' : '';
-    const controls = !projectRoot ? `<div class="main-controls"><button class="run" data-command="zero.startProject" ${disabled}>Start tutorial</button><button class="link" data-command="zero.openLocalProject" ${disabled}>Open local project…</button><button class="link" data-command="zero.showSetup" ${disabled}>Setup help</button></div><section class="repository">${githubPanel}</section>` : `${setupCheck ? `<p class="muted">Installation test · Hello World</p><button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>` : ''}<div class="main-controls"><div class="run-controls"><button class="run" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${browserAction}</div>${exportActions}</div><section class="repository">${githubPanel}</section><section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
+    const nextStep = phase === 'signed-out' ? ['zero.signInToGitHub','Sign in to GitHub'] : phase === 'install' ? ['zero.setupGitHub','Install Zero for GitHub'] : phase === 'checking' ? ['zero.setupGitHub','Checking GitHub…'] : ['zero.setupGitHub','Check GitHub setup'];
+    const setupAction = !ready ? `<button class="run" data-command="${nextStep[0]}" ${disabled} ${phase === 'checking' ? 'disabled aria-busy="true"' : ''}>${nextStep[1]}</button>${auth.signedIn ? `<button class="link" data-command="zero.githubAccount" ${disabled}>${escape(auth.accountLabel)}</button>` : ''}` : '';
+    const localActions = `<button class="link" data-command="zero.openLocalProject" ${disabled}>Open local project…</button><button class="link" data-command="zero.showSetup" ${disabled}>Setup help</button>`;
+    const controls = !projectRoot ? `<div class="main-controls">${ready ? `<button class="run" data-command="zero.startProject" ${disabled}>Start tutorial</button><button class="link" data-command="zero.newProject" ${disabled}>New project…</button>` : setupAction}${localActions}</div>${ready ? `<section class="repository">${githubPanel}</section>` : ''}` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<div class="main-controls">${setupAction}${localActions}</div>` : setupCheck ? `<button class="link" data-command="zero.startProject" ${disabled}>Start tutorial</button>` : ''}<div class="main-controls"><div class="run-controls"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${browserAction}</div>${exportActions}</div>${ready ? `<section class="repository">${githubPanel}</section>` : ''}<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
     // Keep the webview document and file tree alive across progress updates.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;
@@ -744,22 +764,17 @@ function activate(context, services = {}) {
     if (['HEAD','config'].some(name => filename === path.join(projectRoot, '.git', name))) void repositoryStatus();
   }, undefined, context.subscriptions);
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => {if (event.affectsConfiguration('zero.uploadMode')) refresh();}));
-  const welcome = createWelcome({window:vscode.window,globalState:context.globalState,authentication:auth,startProject:() => actions['zero.startProject'](),isBusy,
-    eligible:async () => {
-      if (!(vscode.workspace.workspaceFolders || []).length) return launchedForZero || !hasOpenEditors();
-      try {return isSetupProject(await project());} catch {return false;}
-    }});
-  context.subscriptions.push(welcome);
-  const startup = welcome.show().catch(error => {
-    if (!disposed) {output.appendLine(`Getting started: ${error.message}`);void vscode.window.showErrorMessage(`Zero: ${error.message}`);}
+  // The sidebar owns first-launch setup; no competing welcome modal or automatic sign-in.
+  const startup = auth.refresh().catch(error => {
+    if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
-  const introduceAfterWelcome = () => startup.then(() => {if (!disposed) return introduceProject();}).catch(error => output.appendLine(`Getting started: ${error.message}`));
+  const introduceAfterConnection = () => startup.then(() => {if (!disposed) return introduceProject();}).catch(error => output.appendLine(`Getting started: ${error.message}`));
   context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
-    projectRoot = undefined; files.reset(); refreshFiles(); repositoryStatus(); void introduceAfterWelcome();
+    projectRoot = undefined; files.reset(); refreshFiles(); repositoryStatus(); void introduceAfterConnection();
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
-  void introduceAfterWelcome();
+  void introduceAfterConnection();
 }
 module.exports = {activate};

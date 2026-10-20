@@ -87,7 +87,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(practice,/zero.browseZeroHub/);
   assert.match(practice,/data-command="zero.importAssets"/);
   assert.doesNotMatch(practice,/data-command="zero.recovery"/);
-  assert.match(practice,/>Sign in<\/button>/);
+  assert.match(practice,/>Sign in to GitHub<\/button>/);
   assert.doesNotMatch(practice,/data-command="zero.chooseRepository"/);
   assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub)"/);
 });
@@ -97,7 +97,7 @@ test('actual sidebar renderer has one Run/Stop control across idle, build, runni
     const html=sidebarSource(state);
     assert.equal((html.match(/data-command="zero.toggleApp"/g)||[]).length,1);
     assert.doesNotMatch(html,/data-command="zero.runApp"|data-command="zero.stopApp"/);
-    const button=html.match(/<button class="run"[^>]*>[\s\S]*?<\/button>/)[0];
+    const button=html.match(/<button[^>]*data-command="zero.toggleApp"[^>]*>[\s\S]*?<\/button>/)[0];
     assert.ok(button.endsWith(label+'</button>'));
     const browser=html.match(/<button[^>]*data-command="zero.openRunningAppInBrowser"[^>]*>[\s\S]*?<\/button>/);
     if(state==='running'){

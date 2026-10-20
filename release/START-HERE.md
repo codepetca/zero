@@ -1,7 +1,6 @@
 # Start with Zero
 
-This guide is prepared for the local, unreleased Zero **0.5.24** candidate
-with core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
+Zero **0.5.25** includes core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
@@ -16,10 +15,10 @@ Tutorials require **your own GitHub account and Git 2.31+**. Before starting:
 2. Check GitHub access, native VS Code sign-in and compiler downloads on your
    school machine/network. Use Setup help for missing Git; ask teacher/IT about
    restrictions rather than bypassing them.
-3. Choose **Private** for tutorial repositories unless teacher/school policy says
-   otherwise. Invite your teacher's confirmed GitHub username as a collaborator
-   on each repository and verify they accepted and can open it. A link alone
-   does not grant private access; collaborators can also edit code.
+3. Zero creates public tutorial repositories. Check your teacher's privacy rules
+   before creating one; ask your teacher if private work is required. For a
+   private repository, invite your teacher's confirmed GitHub username and verify
+   access. A link alone does not grant access.
 4. Configure a teacher-approved Git name/email in each cloned repository before
    uploading. For email privacy, copy your exact GitHub `noreply` address from
    Settings → Emails; do not put passwords or tokens in the project.
@@ -32,22 +31,32 @@ lessons. Read the [complete account/privacy setup](https://zero.codepet.ca/docs/
 
 ## Open a tutorial project
 
-Choose **Start tutorial** in the 0.5.24 candidate’s welcome. Complete the
-existing GitHub device sign-in if needed. Before showing tutorial choices or
-asking for repository details, Zero checks whether the current personal account
-has the Codepet App's project access. If not, use **Open GitHub** in the native
-**Install Zero for GitHub** picker and approve the selected repositories
-on GitHub. Return to Zero; it rechecks and continues automatically when ready.
-Use **Check again** if needed. Escape cancels and leaves **Start tutorial**
-available to retry; network/account changes during a recheck do not create a
-repository. After access is ready, choose **Greeting app**, name your repository
-and choose where to save its clone. Zero creates it from the verified scaffold
-and opens your clone with `Main.java` beside **Tutorials** for lesson 0.
+Follow the sidebar: **Sign in to GitHub**, then
+**Install Zero for GitHub** if requested, then **Start tutorial**. Sign-in uses
+the existing GitHub device flow. Zero checks project access read-only and stops
+at the next sidebar step. If access is missing, **Install Zero for GitHub**
+opens the pinned GitHub App page after a read-only recheck. Approve selected
+repositories there, then return to Zero; it checks again automatically. Use
+**Check again** as fallback. Escape or a failed check leaves the current step
+visible for retry. A saved session is checked read-only on launch without
+opening a browser. Local Run and Files remain usable signed out or offline;
+cloud repository, push and sharing controls appear after access is ready.
 
-Already cloned it? **Project → Open local project…** opens your existing Zero
-folder in a new window without cloning. With a local folder that has no origin,
+When ready, **Start tutorial** is the primary empty-sidebar action. Choose
+**Greeting app**, name the repository and choose where to save its clone.
+**New project…** is the secondary action for skipping the tutorial and creating
+original work. Zero creates the verified scaffold and opens your clone with
+`Main.java` beside **Tutorials** for lesson 0. Older downloads keep their bundled
+setup instructions.
+
+Already cloned it? **Open local project** opens your existing Zero folder
+without cloning. **Open Tutorials** resumes its saved lesson; lesson selection,
+scroll position and disclosures persist locally per project. There is no completion
+or grading tracking. Use **All tutorials** to choose the first lesson and restart
+reading without changing your code. **Start tutorial** creates a separate new
+repository, not a reset of existing work. With a local folder that has no origin,
 use **Project → Connect to GitHub…** for your own existing repository URL.
-Signed-out Git controls show only **Sign in**; local Run and Files remain.
+Signed-out Git controls show only **Sign in to GitHub**; local Run and Files remain.
 Connected projects keep their repository and branch controls, with **Publish app**
 in the repository menu. Keep tutorial source visibility under your teacher's rules.
 
@@ -56,7 +65,7 @@ in the repository menu. Keep tutorial source visibility under your teacher's rul
 Open the downloaded DMG and drag **Zero.app** into **Applications**.
 Open **Zero** from Applications. The first launch shows **Preparing Zero…**
 with a progress bar below the text while it prepares Java, editor settings and extensions.
-Zero then opens its configured VS Code editor with **Start tutorial**. Follow
+Zero then opens its configured VS Code editor with the setup sidebar. Follow
 the tutorial flow above. Setup help → Test installation is an optional completed
 Hello World check in a separate window marked Installation test; choose Run test
 there to verify the browser preview without a GitHub account.
@@ -101,7 +110,7 @@ lesson 0, then create and clone your own tutorial repository.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
    Palette (**Ctrl+Shift+P** on Windows, **Command+Shift+P** on macOS):
-   **Extensions: Install from VSIX…** → select **zero-0.5.24.vsix** beside this
+   **Extensions: Install from VSIX…** → select **zero-0.5.25.vsix** beside this
    file; then **Extensions: Install Extensions** → install **Language Support
    for Java by Red Hat** (`redhat.java`) and **Debugger for Java**
    (`vscjava.vscode-java-debug`). These Java extensions provide editor errors

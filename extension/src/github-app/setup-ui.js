@@ -3,7 +3,7 @@
 function createGitHubSetup({vscode, authentication, repositories, installationUrl, active = () => true, report = () => {}}) {
   let disposed = false, pending, controller, closePicker;
   const needsApproval = error => error?.actionUrl === installationUrl && ['installation-required', 'permission-required', 'github-error'].includes(error.code);
-  async function run() {
+  async function run({openBrowser = false} = {}) {
     const operation = controller = new AbortController();
     const alive = () => !disposed && active() && !operation.signal.aborted;
     try {
@@ -67,10 +67,8 @@ function createGitHubSetup({vscode, authentication, repositories, installationUr
           }
         }
         subscriptions.push(picker.onDidHide(() => {operation.abort();finish(false);}));
-        subscriptions.push(picker.onDidAccept(() => {
+        function open() {
           if (finished || checking || !alive()) return;
-          if (picker.selectedItems[0]?.action === 'check') {void recheck();return;}
-          if (picker.selectedItems[0]?.action !== 'open') return;
           checking = true;picker.busy = true;picker.enabled = false;
           void vscode.env.openExternal(vscode.Uri.parse(installationUrl)).then(result => {
             if (finished || !alive()) return;
@@ -79,16 +77,22 @@ function createGitHubSetup({vscode, authentication, repositories, installationUr
           }).catch(() => {
             if (!finished && alive()) picker.placeholder = 'Browser did not open. Try again.';
           }).finally(() => {checking = false;if (!finished) {picker.busy = false;picker.enabled = true;}});
+        }
+        subscriptions.push(picker.onDidAccept(() => {
+          if (picker.selectedItems[0]?.action === 'check') void recheck();
+          else if (picker.selectedItems[0]?.action === 'open') open();
         }));
         if (vscode.window.onDidChangeWindowState) subscriptions.push(vscode.window.onDidChangeWindowState(event => {if (event.focused && opened) void recheck();}));
         if (!alive()) {finish(false);return;}
         picker.show();
+        // Only an explicit Install Zero for GitHub action requests this handoff.
+        if (openBrowser) open();
       });
     } catch (error) {if (!alive()) return false;throw error;}
     finally {closePicker = undefined;if (controller === operation) controller = undefined;}
   }
   return {
-    ensure() {return pending || (pending = run().finally(() => {pending = undefined;}));},
+    ensure(options) {return pending || (pending = run(options).finally(() => {pending = undefined;}));},
     dispose() {disposed = true;controller?.abort();closePicker?.();}
   };
 }

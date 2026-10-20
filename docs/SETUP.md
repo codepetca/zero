@@ -32,21 +32,24 @@ explicit project commands create repositories only after collecting the choices 
 
 ## Start a tutorial or project
 
-Choose **Start tutorial** in the native welcome. If needed, complete the existing
-GitHub device sign-in with your personal account. Before showing tutorial choices
-or asking for a repository name or location, Zero makes a read-only check of the Codepet App's
-access in that account for repository creation and contents writing.
-If access is missing, use the native **Install Zero for GitHub** picker:
-**Open GitHub** opens the pinned App page, where you review and approve selected
-repositories. Zero never asks for all-repository access. Return to Zero; it
-rechecks and continues automatically when ready. **Check again** is available if
-the automatic check does not finish. Escape cancels and leaves **Start tutorial**
-available to retry. Rechecks that detect network or account changes never create
-a repository. A direct palette **Sign in** follows the same access guidance and
-reveals the Zero sidebar. App-created repositories are accessible automatically.
+In the local 0.5.25 candidate, follow the sidebar: **Sign in to GitHub**, then
+**Install Zero for GitHub** if requested, then **Start tutorial**. The current
+published Mac 0.5.24 still uses its welcome screen until candidate promotion.
+Sign-in uses Zero's existing GitHub device flow and credentials. After sign-in,
+Zero checks App access for repository creation and contents writing; the check is
+read-only and stops at the next sidebar step. If access is missing, **Install Zero
+for GitHub** opens the pinned App page after a read-only recheck. Approve selected
+repositories there; Zero never asks for all-repository access. Return to Zero and
+it checks again automatically. Use **Check again** if needed. Escape or a failed
+check leaves the matching step available to retry. A saved session is checked
+read-only on launch without opening a browser or starting sign-in. Local Run and
+Files remain available signed out or offline; cloud repository, push and sharing
+controls appear after access is ready. App-created repositories are accessible
+automatically.
 
-After access is ready, choose **Start tutorial** and its scaffold, or
-**Project → New project…** for original work. Enter a repository name and choose
+When ready, **Start tutorial** creates the selected scaffold. **New project…**
+creates original work instead, so students can skip the tutorial. **Open local
+project** opens existing work; Setup help remains available from the sidebar. Enter a repository name and choose
 a parent folder before creation. Zero creates a public repository in your GitHub
 account, verifies access, clones and opens the project in a new window. Its
 source and included files are public.

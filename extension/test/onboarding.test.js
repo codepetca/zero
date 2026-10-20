@@ -14,7 +14,7 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, githubAccess=async()=>{}, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):tutorial?JSON.stringify({repositoryRequired:true,tutorialProjectId:'greeting',lessonId:'0',templateVersion:'0.1.0',mainClass:'Main'}):'{}');
@@ -23,7 +23,7 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
   if(lesson && !practice) {await fs.mkdir(path.join(root,'lessons')); await fs.writeFile(path.join(root,'lessons',lessonFile),'# First lesson');if(lessonFile==='00-hello-world.md')await fs.writeFile(path.join(root,'lessons/01-quiz.md'),'# Quiz');}
   const commands=new Map(),calls=[],errors=[],starts=[],ends=[],processEnds=[],launches=[],subscriptions=[],panels=[];
   let webviewProvider, folderChanged, tabReads=0;
-  let session, interactiveSession, authFailure=false;
+  let session=initialSession, interactiveSession, authFailure=false;
   const authCalls=[],notices=[];
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
   const vscode={
@@ -69,10 +69,10 @@ test('first lesson opens once per project and can be reopened without modifying 
   assert.doesNotMatch(f.webview.html,/data-command="zero.openFirstLesson"/,'Tutorials live in the native view menu');
   assert.equal(await fs.readFile(path.join(f.root,'lessons/00-hello-world.md'),'utf8'),'# First lesson');
 });
-test('empty onboarding offers Start tutorial instead of Run or completed code',async t=>{
+test('empty onboarding offers Sign in to GitHub without cloud actions or completed code',async t=>{
   const f=await fixture(t,{empty:true});
   await settle(()=>f.remembered.has('zero.sidebarShown'));
-  assert.match(f.webview.html,/data-command="zero.startProject"[^>]*>Start tutorial<\/button>/);
+  assert.match(f.webview.html,/data-command="zero.signInToGitHub"[^>]*>Sign in to GitHub<\/button>/);
   assert.doesNotMatch(f.webview.html,/data-command="zero.toggleApp"/);
   assert.equal(f.panels.length,0);assert.equal(f.launches.length,0);
   assert.equal(f.calls.filter(([id])=>id==='showTextDocument'||id==='markdown.showPreview').length,0);
@@ -82,30 +82,30 @@ test('guided project access finishes before tutorial choice, naming or repositor
   const f=await fixture(t,{empty:true,githubAccess:async()=>{events.push('access');await new Promise(resolve=>{release=resolve;});},pick:async items=>{events.push('tutorial');return items[0];},input:async()=>{events.push('name');return 'my-greeting';},clone:async({parentPath})=>{events.push('clone');return path.join(parentPath,'my-greeting');}});
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
   const pending=f.commands.get('zero.startProject')();await settle(()=>release);
-  assert.deepEqual(events,['access']);assert.equal(f.calls.filter(([id])=>id==='createRepository').length,0);
-  await f.commands.get('zero.startProject')();assert.deepEqual(events,['access']);
+  assert.ok(events.length>=1&&events.every(event=>event==='access'));assert.equal(f.calls.filter(([id])=>id==='createRepository').length,0);
+  const count=events.length;await f.commands.get('zero.startProject')();assert.equal(events.length,count);
   release();await pending;
-  assert.deepEqual(events,['access','tutorial','name','clone']);assert.equal(f.calls.filter(([id])=>id==='createRepository').length,1);assert.deepEqual(f.errors,[]);
+  assert.deepEqual(events.filter(event=>event!=='access'),['tutorial','name','clone']);assert.equal(f.calls.filter(([id])=>id==='createRepository').length,1);assert.deepEqual(f.errors,[]);
 });
 test('failed first sign-in can retry setup and reveal Zero without creating a project',async t=>{
   let checks=0;const f=await fixture(t,{empty:true,profile:new Map([['zero.githubSetupWelcomeShown',true]]),remembered:new Map([['zero.sidebarShown',true]]),openTabs:[{}],githubAccess:async()=>{checks++;}});
   await settle(()=>f.authCalls.length>0);f.setFailure(true);await f.commands.get('zero.signInToGitHub')();assert.match(f.errors.at(-1),/cancelled or unavailable/);
   f.setFailure(false);f.setInteractiveSession({id:'retry',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
-  assert.equal(checks,1);assert.equal(f.calls.filter(([id])=>id==='workbench.view.extension.zero').length,2);assert.match(f.webview.html,/GitHub is ready for your projects/);
+  assert.equal(checks,1);assert.equal(f.calls.filter(([id])=>id==='workbench.view.extension.zero').length,2);assert.match(f.webview.html,/Start tutorial/);
   assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='cloneRepository').length,0);
 });
 test('reopening a deliberate Zero session reveals the sidebar even after its first introduction',async t=>{
   const f=await fixture(t,{empty:true,zeroLaunch:true,profile:new Map([['zero.githubSetupWelcomeShown',true]]),remembered:new Map([['zero.sidebarShown',true]]),openTabs:[{}]});
   await settle(()=>f.calls.some(([id])=>id==='workbench.view.extension.zero'));
-  assert.match(f.webview.html,/Start tutorial<\/button>/);assert.equal(f.notices.length,0);assert.equal(f.vscode.window.tabGroups.all[0].tabs.length,1);
+  assert.match(f.webview.html,/Sign in to GitHub<\/button>/);assert.equal(f.notices.length,0);assert.equal(f.vscode.window.tabGroups.all[0].tabs.length,1);
 });
 test('canceling initial access check creates nothing and retry reuses the saved connection',async t=>{
   let cancel,checks=0,entered;const ready=new Promise(resolve=>{entered=resolve;});
-  const f=await fixture(t,{empty:true,githubAccess:async({signal})=>{if(++checks>1)return;await new Promise((resolve,reject)=>{signal.addEventListener('abort',()=>reject(Object.assign(Error('Cancelled'),{code:'cancelled'})),{once:true});entered();});}});
+  const f=await fixture(t,{empty:true,githubAccess:async({signal})=>{checks++;if(checks!==2)return;await new Promise((resolve,reject)=>{signal.addEventListener('abort',()=>reject(Object.assign(Error('Cancelled'),{code:'cancelled'})),{once:true});entered();});}});
   f.vscode.ProgressLocation={Notification:15};f.vscode.window.withProgress=async(options,run)=>run({}, {onCancellationRequested:fn=>{cancel=fn;return disposable();}});
-  f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});const pending=f.commands.get('zero.startProject')();await ready;cancel();await pending;
-  assert.match(f.webview.html,/setup paused/);assert.deepEqual(f.errors,[]);assert.equal(f.calls.filter(([id])=>id==='createRepository').length,0);
-  await f.commands.get('zero.startProject')();assert.equal(checks,2);assert.equal(f.authCalls.filter(x=>x.options.createIfNone).length,1);assert.equal(f.calls.filter(([id])=>id==='createRepository').length,0);
+  f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});const pending=f.commands.get('zero.startProject')();await ready;await settle(()=>cancel);cancel();await pending;
+  await settle(()=>f.webview.html.includes('Start tutorial'));assert.deepEqual(f.errors,[]);assert.equal(f.calls.filter(([id])=>id==='createRepository').length,0);
+  await f.commands.get('zero.startProject')();assert.ok(checks>=3);assert.equal(f.authCalls.filter(x=>x.options.createIfNone).length,1);assert.equal(f.calls.filter(([id])=>id==='createRepository').length,0);
 });
 test('own tutorial opens Main and its lesson while installation check never opens a lesson',async t=>{
   const tutorial=await fixture(t,{tutorial:true});
@@ -199,27 +199,19 @@ test('idle status stays empty and a refused tutorial launch explains recovery',a
   assert.equal(f.remembered.get(`zero.firstLessonShown:${f.root}`),undefined);
 });
 
-test('empty-window welcome is silent until explicit native Connect and manual retry needs no project',async t=>{
-  let answer;
-  const f=await fixture(t,{empty:true,profile:new Map(),information:(text,...choices)=>choices.includes('Start tutorial')?new Promise(resolve=>{answer=resolve;}):undefined});
-  await settle(()=>answer);
-  assert.ok(f.authCalls.every(call=>call.provider==='zero-github'&&call.scopes.length===0&&call.options.silent));assert.equal(f.calls.length,0);assert.equal(f.launches.length,0);
-  f.setSession({id:'test',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
-  answer('Start tutorial');await settle(()=>f.remembered.has('zero.sidebarShown'));
-  assert.ok(f.authCalls.every(call=>call.options.silent),'A newly existing account is reused without another grant');
-  f.setSession(undefined);f.setFailure(true);await f.commands.get('zero.signInToGitHub')();assert.match(f.errors.at(-1),/cancelled or unavailable/);assert.doesNotMatch(f.errors.at(-1),/PRIVATE/);
-  f.setFailure(false);f.setSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/zero.chooseRepository/);assert.doesNotMatch(f.webview.html,/Signed in as retry|data-command="zero.githubAccount"/);
-  assert.deepEqual(f.authCalls.at(-1).scopes,[]);
-  assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);assert.equal(await fs.readFile(path.join(f.root,'zero.json'),'utf8'),'{}');
+test('sidebar sign-in is explicit and retry needs no project or welcome modal',async t=>{
+  const f=await fixture(t,{empty:true,profile:new Map()});
+  await settle(()=>f.remembered.has('zero.sidebarShown'));
+  assert.ok(f.authCalls.every(call=>call.options.silent));assert.equal(f.notices.length,0);assert.match(f.webview.html,/Sign in to GitHub/);
+  f.setFailure(true);await f.commands.get('zero.signInToGitHub')();assert.match(f.errors.at(-1),/cancelled or unavailable/);assert.doesNotMatch(f.errors.at(-1),/PRIVATE/);
+  f.setFailure(false);f.setInteractiveSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/Start tutorial/);assert.match(f.webview.html,/New project…/);assert.doesNotMatch(f.webview.html,/GitHub sign-in cancelled or unavailable/);
+  assert.equal(f.calls.filter(([id])=>id==='openExternal'||id==='createRepository').length,0);assert.equal(await fs.readFile(path.join(f.root,'zero.json'),'utf8'),'{}');
 });
 
-test('modal welcome holds project introduction until Later, then local Run preserves editors',async t=>{
-  let dismiss;
-  const f=await fixture(t,{profile:new Map(),setupCheck:true,activeEditor:true,information:(text,...choices)=>choices.includes('Start tutorial')?new Promise(resolve=>{dismiss=resolve;}):undefined});
-  await settle(()=>dismiss);
-  assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview').length,0);
-  dismiss('Later');await settle(()=>f.remembered.has('zero.sidebarShown'));
-  await f.commands.get('zero.runNativeApp')();assert.equal(f.launches.length,1,'Dismissing the welcome leaves local Run available');
+test('setup sidebar never blocks local Run or replaces editors with a welcome modal',async t=>{
+  const f=await fixture(t,{profile:new Map(),setupCheck:true,activeEditor:true});
+  await settle(()=>f.remembered.has('zero.sidebarShown'));assert.equal(f.notices.length,0);
+  assert.match(f.webview.html,/Run test/);await f.commands.get('zero.runNativeApp')();assert.equal(f.launches.length,1);
   assert.equal(f.calls.filter(([id])=>id==='markdown.showPreview'||id==='showTextDocument'||id==='openExternal').length,0);
   assert.ok(f.authCalls.every(call=>call.options.silent));
 });
@@ -234,21 +226,18 @@ test('manual Zero launch introduces onboarding beside VS Code startup tabs witho
   const profile=new Map(),tabs=[{input:{viewType:'welcome'}}];
   const f=await fixture(t,{empty:true,profile,zeroLaunch:true,openTabs:tabs});
   await settle(()=>f.remembered.has('zero.sidebarShown'));
-  assert.equal(f.notices.length,1);assert.match(f.notices[0].text,/Welcome to Zero/);
-  assert.match(f.webview.html,/data-command="zero.startProject"[^>]*>Start tutorial/);
+  assert.equal(f.notices.length,0);
+  assert.match(f.webview.html,/data-command="zero.signInToGitHub"[^>]*>Sign in to GitHub/);
   assert.deepEqual(f.vscode.window.tabGroups.all[0].tabs,tabs);
   assert.equal(f.calls.filter(([id])=>/close|showTextDocument|markdown.showPreview/.test(id)).length,0);
 });
 
-test('explicit welcome connection succeeds in an empty window and unpublished tutorial stays unavailable',async t=>{
-  let answer;const profile=new Map();let picks=0,offers=0;
-  const f=await fixture(t,{empty:true,profile,unpublishedTutorials:true,information:(text,...choices)=>choices.includes('Start tutorial')?(offers++===0?new Promise(resolve=>{answer=resolve;}):'Start tutorial'):undefined,pick:async items=>{picks++;return items[0];}});
-  await settle(()=>answer);f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});answer('Start tutorial');
-  await settle(()=>f.errors.length>0);assert.match(f.errors[0],/template is not published yet/);assert.equal(picks,1);
-  assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1);assert.ok(f.authCalls.every(call=>call.provider==='zero-github'&&call.scopes.length===0));
-  assert.equal(f.notices.filter(item=>item.choices.includes('Start tutorial')).length,1);assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='cloneRepository'||id==='openExternal').length,0);assert.equal(f.launches.length,0);
-  await f.commands.get('zero.getStarted')();assert.equal(picks,2,'The explicit Get Started command reopens a seen profile welcome');assert.match(f.errors.at(-1),/template is not published yet/);
-  assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1,'Connected manual welcome never reauthorizes');
+test('Get Started reveals setup without creating a project; unpublished tutorial remains unavailable',async t=>{
+  let picks=0;const f=await fixture(t,{empty:true,profile:new Map(),unpublishedTutorials:true,pick:async items=>{picks++;return items[0];}});
+  await settle(()=>f.remembered.has('zero.sidebarShown'));await f.commands.get('zero.getStarted')();assert.equal(picks,0);assert.equal(f.notices.length,0);
+  f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();await f.commands.get('zero.startProject')();
+  assert.match(f.errors.at(-1),/template is not published yet/);assert.equal(picks,1);assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1);
+  assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='cloneRepository'||id==='openExternal').length,0);assert.equal(f.launches.length,0);
 });
 
 test('pending native connect prevents a duplicate and disposal ignores its late completion',async t=>{
@@ -264,7 +253,7 @@ test('pending native connect prevents a duplicate and disposal ignores its late 
 test('signed-out empty window only shows Sign in; direct authenticated clone remains serialized', async t=>{
   let finishClone;
   const f=await fixture(t,{empty:true,clone:async()=>new Promise(resolve=>{finishClone=resolve;})});
-  assert.match(f.webview.html,/>Sign in<\/button>/);
+  assert.match(f.webview.html,/>Sign in to GitHub<\/button>/);
   assert.doesNotMatch(f.webview.html,/data-command="zero.importAssets"|data-command="zero.recovery"/,'Empty windows have no file maintenance controls');
   assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"|data-command="zero.cloneRepository"|Current branch:/);
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
@@ -310,7 +299,7 @@ test('tutorial creation serializes form and clone, then releases the shared busy
 test('signed-in empty Project menu offers New, Clone and Open local; opening reuses a local folder',async t=>{
   let selection='local';const picks=[];
   const f=await fixture(t,{empty:true,pick:async(items,options)=>{picks.push({items,options});return items.find(item=>item.action===selection);}});
-  assert.doesNotMatch(f.webview.html,/zero.chooseRepository|Current branch:/);assert.match(f.webview.html,/Start tutorial<\/button>/);
+  assert.doesNotMatch(f.webview.html,/zero.chooseRepository|Current branch:/);assert.match(f.webview.html,/Sign in to GitHub<\/button>/);
   await f.commands.get('zero.chooseRepository')();assert.equal(picks.length,0);
   f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
   assert.match(f.webview.html,/class="repo-label">Project<\/span>/);assert.match(f.webview.html,/zero.chooseRepository/);
@@ -319,7 +308,7 @@ test('signed-in empty Project menu offers New, Clone and Open local; opening reu
 });
 
 test('sign-in is independent of local practice while sharing stays unavailable',async t=>{
-  const f=await fixture(t,{practice:true});assert.match(f.webview.html,/>Sign in<\/button>/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
+  const f=await fixture(t,{practice:true});assert.match(f.webview.html,/>Sign in to GitHub<\/button>/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
   f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
   assert.doesNotMatch(f.webview.html,/Signed in as student|data-command="zero.githubAccount"/);assert.match(f.webview.html,/Local practice · no GitHub sharing/);assert.doesNotMatch(f.webview.html,/zero.uploadToGitHub|zero.finishChange|zero.publishWeb/);
   await f.commands.get('zero.uploadToGitHub')();assert.match(f.errors.at(-1),/local lesson practice/);
@@ -372,4 +361,28 @@ test('one Run/Stop button cancels native preparation and stays Stopping until th
   release();await Promise.all([running,stopping,again]);
   assert.equal(f.launches.length,0);assert.match(f.webview.html,/Run<\/button>/);
   assert.equal((f.webview.html.match(/data-command="zero.toggleApp"/g)||[]).length,1);
+});
+
+test('saved ready session skips setup without interactive sign-in and exposes tutorial or original project',async t=>{
+  const f=await fixture(t,{empty:true,zeroLaunch:true,initialSession:{id:'saved',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'}});
+  await settle(()=>f.webview.html.includes('Start tutorial'));
+  assert.match(f.webview.html,/data-command="zero.newProject"[^>]*>New project…/);assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,0);assert.equal(f.notices.length,0);
+  assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='openExternal').length,0);
+});
+test('sign-in leads to install button; explicit install opens GitHub and only readiness unlocks tutorials',async t=>{
+  let allowed=false,accept,hide,picker;
+  const f=await fixture(t,{empty:true,githubAccess:async()=>{if(!allowed)throw Object.assign(Error('Install Zero for GitHub.'),{code:'installation-required',actionUrl:'https://github.com/apps/codepet-zero/installations/new'});}});
+  f.vscode.window.createQuickPick=()=>picker={selectedItems:[],show(){},dispose(){},onDidAccept:fn=>{accept=fn;return disposable();},onDidHide:fn=>{hide=fn;return disposable();}};
+  f.setInteractiveSession({id:'student',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
+  assert.match(f.webview.html,/Install Zero for GitHub/);assert.doesNotMatch(f.webview.html,/zero.startProject|zero.newProject|zero.chooseRepository/);assert.equal(f.calls.filter(([id])=>id==='openExternal').length,0);
+  const cancelled=f.commands.get('zero.setupGitHub')();await settle(()=>hide);hide();await cancelled;await settle(()=>f.webview.html.includes('Install Zero for GitHub'));
+  hide=undefined;const installing=f.commands.get('zero.setupGitHub')();await settle(()=>hide&&f.calls.filter(([id])=>id==='openExternal').length>=2);
+  allowed=true;picker.selectedItems=picker.items.filter(item=>item.action==='check');accept();await installing;
+  assert.match(f.webview.html,/Start tutorial/);assert.match(f.webview.html,/New project…/);assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='cloneRepository').length,0);
+});
+test('offline readiness stays retryable while local Run and Files remain available',async t=>{
+  let reachable=false;const f=await fixture(t,{initialSession:{id:'saved',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'},githubAccess:async()=>{if(!reachable)throw Error('Network unavailable');}});
+  await settle(()=>f.webview.html.includes('Check GitHub setup')&&f.webview.html.includes('zero.toggleApp'));
+  assert.match(f.webview.html,/zero.toggleApp/);assert.match(f.webview.html,/Project files/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository|zero.uploadToGitHub/);
+  reachable=true;await f.commands.get('zero.setupGitHub')();assert.match(f.webview.html,/zero.chooseRepository/);
 });

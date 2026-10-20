@@ -1,41 +1,44 @@
-# Browser tab branding — local, 2026-10-20
+# Browser tab branding — publication in progress, 2026-10-20
 
-Task worktree `zero-tab-branding`, branch `codex/zero-tab-branding`, source bbeb9c8.
-Home title zero; transparent favicon follows exact page icon colors and persisted
-light/dark mode, with one stable link across client navigation.157 tests/typecheck/
-build and alpha/browser checks pass. Luna/medium complete+targeted review clean
-after one lifecycle fix. Owner authorized website publication on2026-10-20.
-Next: reviewed feature PR, exact-head CI/merge, live production verification.
-See docs/EVIDENCE.md, docs/VERIFICATION.md and .verification/tab-branding/.
-Other task's prior current-state record follows, preserved.
+Owner authorized publishing the lowercase home tab title and transparent themed
+favicon. PR124 retains the reviewed bbeb9c8 source, synced with main bfb59ea.
+Original157website tests/typecheck/build and Luna/medium initial+targeted review
+passed; first PR CI39439068440/39439068628 passed. Main advanced during CI;
+resolved CURRENT/EVIDENCE records preserving the new sidebar setup work below.
+Next: verify synchronized tree, targeted integration review/CI, merge and live QA.
+Receipts .verification/tab-branding/. Primary dirty funding checkout preserved.
 
-# Guided GitHub setup — Mac0.5.24 publication
+# Sidebar-guided setup — Mac0.5.25 candidate
 
-Owner authorized guided first-launch sign-in/access, merge and Mac publication;
-follow-up requests short Install Zero for GitHub popup. Source PR119 merged
-3477ab2217c1f6ec8030bf33b8923288e826f570; tree equals reviewed clean730ac8b.
-All5exact-head CI checks passed. Full local790pass/3skip; final64affected and
-root check pass; website157/typecheck/build pass before metadata promotion.
+Owner authorized short sidebar Sign in to GitHub → Install Zero for GitHub →
+Start tutorial, then merge/publish Mac25 for smoke restart. Questions on tutorial
+skip/restart/progress answered from source: New project skips lessons; Open
+Tutorials resumes local lesson/scroll/disclosures; selecting first lesson restarts
+reading without changing code. No grading/completion tracking added.
 
-Start tutorial checks existing personal-account App access before tutorial/name
-choices; explicit pinned GitHub approval, automatic return/recheck, Escape/retry.
-Existing credentials, selected-repo and per-repo checks preserved. Sign-in retry
-and managed Zero reopen reveal sidebar. Starter remains under Setup help.
-Isolated real native UI verified using fake account/access without GitHub writes;
-live approval, new OS user/empty account and physical Windows remain untested.
+Isolated branchcodex/sidebar-setup-0.5.25, basebe84e396. Coordinator owns extension
+integration/tests/version/release; Sol/high readiness worker's two files verified
+(33tests), Luna/medium audit corrected one fallback inference then five docs
+inspected. One writer per component, no conflicts. DeepSeek pause throughDec31
+honored; weekly86%remaining and healthy285GB at start, task cost unknown.
 
-Signed/notarized/stapled DMG published setup-v0.5.24, release418426592. Draft and
-anonymous downloads match sealed4584867bytes/SHA3095ae4d9683dae0f728343942e1d03d5dc35b5a5cfd541161585ee4a5f64e86.
-Notary3e926af8-b266-4563-81cc-96288c83258d Accepted; actual Gatekeeper app/DMG pass.
-Built730ac8b, prep916f00c. Candidate dist/candidates/mac-0.5.24-916f00c1faac.
+Native welcome modal removed. One persistent sidebar action follows read-only
+GET readiness for current captured account. Explicit install opens pinned GitHub
+URL, rechecks on return; cancellation/network errors leave retry. No scopes,
+credentials or per-repository guards changed. Saved sessions checked silently;
+local Run/Files/help remain available, cloud controls hidden until ready.
 
-Sol/high complete initial source, copy delta and candidate reviews clean;3turns,
-1initial/2targeted waves/1copy batch; final promotion delta review next. Budget
-7launches/4targeted/4fixbatches/60min from13:08UTC. Luna/medium docs worker verified.
-DeepSeek pause honored; weekly89%remaining at start/storage284GB. No conflicts.
+Full suite802pass/3skip;98focused tests,157website/typecheck/build and rootcheck
+pass. Actual isolated VS Code mock-account UI verified sign-in/cancel/retry,
+installation state/direct browser handoff/automatic return→ready, New project
+name prompt cancelled before creation, saved session reload and light/dark.
+No real GitHub grant/repo or installed profile reset. New OS/physicalWindows/live
+GitHub consent still user smoke coverage.
 
-PR121 promotes exact sealed feed and measured metadata, updates current guides.
-Next: final delta checks/review, exact-head CI/merge, live downloads/feed bytes,
-smoke-guide update, preserve ignored receipts then archive this worktree. Windows21,
-published kit and old release bytes unchanged. Dirty primary funding work and
-accounts/student repositories/profile remain untouched. See docs/EVIDENCE.md.
+Standard-risk review:1Sol/high initial full diff; budget7launches/1initial/
+4targeted/1integration/4fixbatches/60min,30min perreviewer. Next: freezecommit/
+independent review+exact-head CI; signed/notarized25 build and measured immutable
+DMG/feed promotion, finaldelta review/CI/liveverification; update smokePage and
+preserve ignored receipts/candidate before archiving. Windows21/manual/published
+kit/prior releases and dirty primary funding edits untouched.
+Evidence: docs/EVIDENCE.md; ignored .verification/sidebar-setup-0.5.25/receipts/.

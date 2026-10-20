@@ -48,24 +48,24 @@ IDs are pinned in source. Mac 0.5.24 includes this source; remaining live-provid
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
-Download and launch desktop Zero first. Its native **Start tutorial** welcome
-uses Zero's existing GitHub device sign-in when needed. Sign-in and credential
-storage remain unchanged: the supported `zero-github` provider stores expiring
-user/refresh tokens in VS Code SecretStorage; GitHub handles sign-in and consent,
-and Zero has no separate password or account. After sign-in, before showing the
-tutorial picker or collecting a repository name or location, Zero checks the
-current personal account's Codepet App access for repository creation and
-contents writing. This check is read-only. If access is missing, a native
-**Install Zero for GitHub** picker opens with **Open GitHub** for the
-pinned App page and **Check again**. The student reviews and approves selected
-repositories on GitHub; Zero never requests access to all repositories, and
-repositories Zero creates are accessible automatically. Returning to Zero
-rechecks and continues to the tutorial picker when access is ready. Network or
-account changes during recheck do not create a repository. Escape cancels this
-step and leaves **Start tutorial** available for retry; a direct palette **Sign
-in** follows the same access guidance and reveals the Zero sidebar. Opening Zero
-again reveals that sidebar while preserving editor tabs and work. Local Run
-remains available without GitHub. Publication and uploads remain explicit.
+In the current published Mac 0.5.24, the native **Start tutorial** welcome
+continues into GitHub sign-in and the read-only project-access check. The local
+0.5.25 candidate removes that modal: its minimal sidebar guides students
+through **Sign in to GitHub** → **Install Zero for GitHub** → **Start tutorial**.
+Sign-in and credential storage remain unchanged: the supported `zero-github`
+provider stores expiring user/refresh tokens in VS Code SecretStorage; GitHub
+handles sign-in and consent, and Zero has no separate password or account.
+Signing in runs a read-only check for repository creation and contents writing
+and stops at the next sidebar step. If access is missing, **Install Zero for
+GitHub** opens the pinned App page after a read-only recheck; **Check again** is
+the fallback. The student approves selected repositories on GitHub; Zero never
+requests all-repository access, and repositories Zero creates are accessible
+automatically. Returning to Zero rechecks and unlocks **Start tutorial** when
+ready. Escape or a failed check leaves the current step available to retry.
+A saved session receives a read-only check on launch without opening a browser or
+starting sign-in. Local Run and Files remain usable while signed out or offline;
+cloud repository, push and sharing controls stay hidden until access is ready.
+Publication and uploads remain explicit.
 `/learn` opens lesson 0 directly in the tutorial reader. All thirteen lessons (0–12)
 are listed under three quiet project headings (Greeting app, Study quiz and Coin
 game); selecting one updates the reading pane and its bookmarkable
@@ -222,9 +222,10 @@ account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approve
 commit identity. Repositories created through Zero are public, including their
 source and included files; students should keep secrets and private material out.
 Existing or GitHub-created repositories may retain their visibility, with teacher
-collaborator access where needed. Public game publishing remains optional. The visible
-**Start tutorial** action on the welcome screen or Zero’s **…** menu selects the
-matching verified tutorial scaffold. The flow collects a repository
+collaborator access where needed. Public game publishing remains optional. In candidate 0.5.25, the empty sidebar makes **Start tutorial** primary, with
+**New project…** as the secondary choice to skip the tutorial and create original
+work. The **…** menu also opens **Tutorials** for existing projects. The action
+selects the matching verified tutorial scaffold. The flow collects a repository
 name and parent folder before creating a public copy in
 the connected personal account, verifying App access, cloning and opening it.
 The location picker starts at `~/Zero Projects` and can choose another parent.
@@ -233,8 +234,13 @@ Existing repositories use **Clone from GitHub…** with explicit selected-reposi
 access. Zero owns these guarded clone commands and their transient credentials.
 If creation or cloning is interrupted, preserve the repository and partial folder
 and offer explicit recovery instead of blindly creating another repository.
-Students own the created repository and clone;
-there is no local-folder or project-ZIP tutorial alternative. Completed teacher
+Students own the created repository and clone; there is no local-folder or
+project-ZIP tutorial alternative. **Open local project** and Setup help remain
+available from the empty sidebar. Reopen **Tutorials** to continue reading; lesson,
+scroll position and disclosure state persist locally per project. This is reading
+state only, not completion or grading. Choose the first lesson through **All
+tutorials** to restart the reading sequence without changing student code.
+**Start tutorial** creates a new repository and is not a reset for the existing one. Completed teacher
 checkpoints and optional references stay outside the empty template scaffolds. Lesson 12 optionally downloads only two
 media resources; students may use their own assets or drawing fallback.
 Click Run App again after editing: Zero saves, stops the previous process and
@@ -573,9 +579,10 @@ pins. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
 
 ## Tutorial-first installation — 2026-10-19
 
-A fresh Zero launch opens the tutorial welcome in an empty editor window.
-Start tutorial connects GitHub when needed and creates and clones the student's
-verified tutorial scaffold. Their clone opens Main beside Tutorials. Existing
+The current published Mac 0.5.24 opens the tutorial welcome in an empty editor
+window. Candidate 0.5.25 removes that modal and uses the minimal sidebar sequence
+Sign in to GitHub → Install Zero for GitHub → Start tutorial. A saved session is
+checked read-only on launch. The clone opens Main beside Tutorials. Existing
 student sessions resume normally. The completed bundled Hello World project is
 only an explicit Setup help → Test installation action, opens in a separate
 window labelled Installation test, and never automatically opens tutorial lesson 0.

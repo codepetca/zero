@@ -6526,6 +6526,44 @@ candidate dist/candidates/mac-0.5.24-916f00c1faac; preserved in primary checkout
 before this managed worktree is retired. No real GitHub grant or student repo
 was created during automated/native testing; classroom smoke coverage remains.
 
+## Sidebar-guided setup candidate — 2026-10-20
+
+Owner approved short persistent sidebar sign-in→Install Zero for GitHub→Start
+tutorial and authorized merge/Mac publication. No welcome modal; sign-in stops
+at the next action. Read-only readiness observes the captured session/App and
+permissions, guards late checks/account changes, retries explicitly and never
+opens a browser automatically. Explicit Install hands off directly to pinned
+GitHub; return rechecks, then unlocks tutorial/original-project actions. Local
+Run/Files/help remain available signed out/offline. Existing credentials, scopes,
+selected-repo policy and creation/clone/upload guards stay unchanged.
+
+Tutorial audit/source tests confirm New project bypasses lessons, Open Tutorials
+restores local per-project lesson/scroll/disclosures, first-lesson selection
+restarts reading without resetting code. No completion/grading tracker. The
+Luna/medium audit initially misread initial-lesson fallback; coordinator checked
+cleanState and existing close/reopen regression, worker corrected receipt/docs.
+Sol/high worker delivered readiness controller/tests in two files (33affected
+checks); coordinator inspected. Luna worker updated five docs; no file conflicts.
+Effective models, per-turn tokens/elapsed unavailable; task savings not inferred.
+
+Final full local802passed/3platformskips;98affected integration/playground tests,
+157website tests/typecheck/build and rootcheck pass. Initial full run surfaced
+old renderer/upload fixtures missing readiness; adapters/fixtures updated, full
+suite rerun passed. Actual isolated native VS Code with fake account/access:
+first sidebar Sign in, explicit consent cancellation/retry, Install state with
+no cloud controls, direct simulated approval browser handoff, return→Start
+tutorial+New project, original-project name prompt cancelled before creation,
+saved session reload and light/dark inspected. A stale failed-sign-in message
+found in native trial was fixed with a concise error and cleared on state change;
+regression passes. No real grant, account/repo mutation or installed profile
+reset. Clean-machine/live GitHub/physical Windows remain user smoke coverage.
+
+Candidate25/build25 only; active Mac24 and Windows21/manual/publishedkit/prior
+immutable assets stay until verified promotion. Independent source review,
+exact-head CI and signed release gates pending. Receipts under ignored
+.verification/sidebar-setup-0.5.25/receipts; storage285GB/weekly86%remaining at
+start. DeepSeek dated pause honored. No new goal/task/automation.
+
 ## Browser tab branding — 2026-10-20
 
 Local branch `codex/zero-tab-branding`, source `bbeb9c8` from `be84e39`.
