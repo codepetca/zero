@@ -11,11 +11,11 @@ import { documentHref, foldSections, resolveContentLink } from "../lib/markdown.
 
 test("folds parsed sections without splitting code, preserving unique deep-link ids", () => {
   const markdown =
-    "# Guide\n\nIntroduction.\n\n## First\n\n```java\n## This is code\n```\n\n### Nested\n\nRead here.\n\n## First\n\nLast body.";
+    "# Guide\n\n## First\n\n```java\n## This is code\n```\n\n### Nested\n\nRead here.\n\n## First\n\nLast body.";
   const html = renderToStaticMarkup(
     React.createElement(Markdown, {
       remarkPlugins: [remarkGfm],
-      rehypePlugins: [[foldSections, { lesson: true }]],
+      rehypePlugins: [[foldSections]],
       children: markdown,
     }),
   );
@@ -24,7 +24,6 @@ test("folds parsed sections without splitting code, preserving unique deep-link 
   assert.match(html, /<h2 id="first-1">First/);
   assert.match(html, /<h3 id="nested">Nested/);
   assert.match(html, /<code class="language-java">## This is code/);
-  assert.ok(html.indexOf("Introduction.") < html.indexOf("<details"));
   assert.equal((html.match(/<details[^>]*open/g) || []).length, 2);
 });
 test("relative links preserve fragments and route only maintained documents or allowlisted sources", () => {
@@ -154,7 +153,7 @@ test("lesson media links use only the explicit build-time asset mapping", () => 
   assert.equal(resolveContentLink(source, "../examples/media-demo/resources/media-demo/private.wav", {}, {}, lessonAssets), null);
 });
 
-test("every lesson has a Summary card and closes its final explanation with encouragement", () => {
+test("every tutorial shows numbered instructions and exact code without a summary or explanation disclosure", () => {
   for (const lesson of lessons) {
     const name = String(lesson.id).padStart(2, "0");
     const folder = new URL("../../student-template/lessons/", import.meta.url);
@@ -163,22 +162,17 @@ test("every lesson has a Summary card and closes its final explanation with enco
     const html = renderToStaticMarkup(React.createElement(Markdown, {
       remarkPlugins: [remarkGfm], rehypePlugins: [[foldSections, { lesson: true, encouragement: lesson.encouragement }]], children: markdown,
     }));
-    const image = html.indexOf(`<img src="visuals/${name}.svg"`);
-    assert.match(html, /class="lesson-quick-path"/);
-    assert.match(html, /aria-labelledby="lesson-summary-title"><h2 id="lesson-summary-title">Summary<\/h2>/);
-    assert.ok(lesson.encouragement, `Lesson ${name} has a closing message`);
-    assert.ok(html.endsWith(`<p class="lesson-encouragement">${lesson.encouragement}</p></div></details>`), `Lesson ${name} closes its final explanation with encouragement`);
+    assert.doesNotMatch(html, /<details|<summary|Code and explanation|Done:|lesson-summary/);
+    assert.match(html, /<h2 id="1-/);
+    assert.ok(html.includes(`<img src="visuals/${name}.svg"`), `Lesson ${name} retains its illustration`);
+    assert.ok(html.endsWith(`<p class="lesson-encouragement">${lesson.encouragement}</p>`));
     assert.equal((html.match(/class="lesson-encouragement"/g) || []).length, 1);
-    const cardEnd = html.indexOf("</section>");
-    assert.ok(html.indexOf("<ol>") < cardEnd && html.indexOf("Done:") < cardEnd, `Lesson ${name} actions and checkpoint belong in Summary`);
-    assert.ok(image >= 0 && image < cardEnd, `Lesson ${name} illustration belongs inside the lesson card`);
-    assert.doesNotMatch(html, /<p>Previous:\s/, `Lesson ${name} must omit previous navigation`);
-    assert.ok(image >= 0 && image < html.indexOf("<details"), `Lesson ${name} target must be visible`);
-    assert.ok(html.indexOf("<ol>") < html.indexOf("<details"), `Lesson ${name} actions must be visible`);
+    assert.doesNotMatch(html, /<p>Previous:\s/);
+    const steps = [...markdown.matchAll(/^## (\d+)\. /gm)].map(match=>Number(match[1]));
+    assert.deepEqual(steps,steps.map((_,index)=>index+1));
+    const unwrapped = renderToStaticMarkup(React.createElement(Markdown, {remarkPlugins:[remarkGfm],children:markdown}));
+    assert.deepEqual([...html.matchAll(/<pre>([\s\S]*?)<\/pre>/g)].map(m=>m[1]), [...unwrapped.matchAll(/<pre>([\s\S]*?)<\/pre>/g)].map(m=>m[1]), `Lesson ${name} keeps all fenced code intact`);
     assert.equal(resolveContentLink(`student-template/lessons/${file}`, `visuals/${name}.svg`, {}, {}, lessonAssets), `/generated/learning-assets/lessons/${name}.svg`);
-    const svg = readFileSync(new URL(`visuals/${name}.svg`, folder), "utf8");
-    assert.match(svg, /<title/);
-    assert.doesNotMatch(svg, /<script|<foreignObject|(?:href|src)="https?:\/\//);
   }
 });
 

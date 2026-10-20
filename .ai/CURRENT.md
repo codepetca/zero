@@ -1,61 +1,38 @@
-# Uniform website tab title — 2026-10-20
+# Direct tutorial instructions — Mac0.5.26 candidate
 
-Prior tab branding PR124/6448259 is published, with transparent themed favicon.
-Owner now requests lowercase zero on every website page. Root template
-changed from page-title suffix to constant zero; docs/product contract updated.
-157tests/build/TypeScript pass;39successful page URLs and Chrome Tutorials verify
-zero title. Error fallbacks also use zero; final verification pending. Next: independent review, reviewed PR/CI, merge and production checks
-under the ongoing website publication authorization. Primary dirty funding work
-untouched; task worktree zero-uniform-tab-title. Logs .verification/uniform-tab-title/.
-Prior concurrent task record preserved below.
+Owner reports smoke flow working, then requests all13 tutorials omit confusing
+three-action summary/Done and Code and explanation disclosure. Owner explicitly
+authorized merge + website/newMac publication via async reply2026-10-20.
 
-# Sidebar-guided setup — Mac0.5.25
+Branchcodex/tutorial-instructions-0.5.26, basea0a11e8. One Sol/medium content
+worker edited13lessons:81consecutive numbered actions, all55 fenced blocks and
+original link targets preserved. Coordinator inspected, updated native/public
+renderers to show full instructions directly, retained optional code references,
+copy/navigation/state handling and general docs disclosures. Current teacher/
+lesson/product/design guidance aligned. Version/build26 staged; publicMac25,
+Windows21/manual/generalpublishedkit and prior immutable bytes unchanged.
 
-Owner authorized short sidebar Sign in to GitHub → Install Zero for GitHub →
-Start tutorial and merge/publish for smoke restart. Source PR123 merged
-bfb59eaafb9122e5d04188392176e52ca4af5f93, exact reviewed7cc41d1 tree. All5 corrected-head CI
-checks pass. Application built clean a4e596f; subsequent one-file docs correction
-preserves protected source parity. Independent Sol/high full source review and
-candidate/delta review clean. No welcome modal or automatic sign-in/browser;
-saved sessions checked read-only, local Run/Files/help usable signed out/offline.
-Existing scopes/credentials/selected-repo and mutation guards unchanged.
+Local full802pass/3platformskips; focused29pass; website157/typecheck/build and
+rootcheck pass. Actual IAB desktopdark+320CSSlight/quiz navigation checked; native
+isolated VSCode tutorial0 directactions/copyfeedback/comparison expansion and
+light/dark checked. Initial native app lookup bybundle timed out; binding owned
+app path succeeded. QA app/profile separate; student files/accounts untouched.
+Clean OS/physicalWindows not certified.
 
-New project skips lessons. Open Tutorials resumes locally saved lesson/scroll/
-disclosures. All tutorials can select the first lesson without resetting code;
-Start tutorial creates another repository. No completion/grades tracker added.
+User asks why edited Run is slow. Sol/high read-only3-run investigation confirms
+max-optimization fullGWT compile after edits, cached tool downloads, unchanged
+snapshot reuse160ms. Warm checkpoint0 browserexport32.45s; optimize0only28.34s
+(single samples), draft timing61s confounded by concurrent CPU. Native diagnostic
+compile-only2.93s; GUI startup not timed. Suggested existing Zero: Run Native App
+(Diagnostic) for rapid edits, normalRun forbrowsercheck. No compiler redesign or
+speed promise; misleading always-repeated first-download sentence removed.
+Benchmark logs/receipt retainedignored; future explicit unit-cache experiment
+proposal has no implementation or measured benefit claim.
 
-Final source802 local tests pass/3platformskips,98affected checks; website157,
-typecheck/build and rootcheck pass. Native isolated fake-account UI covered
-cancel/retry, saved session, explicit install/return, New project input cancel and
-light/dark. A final docs edit invalidated earlier website evidence; CI found the
-missing existing-project menu spelling, corrected7cc41d1 and157 rerun pass.
-No real GitHub grant/repo or installed profile reset. Fresh OS/live GitHub/
-physical Windows remain smoke coverage.
-
-Mac release418487190 setup-v0.5.25 contains one DMG4583531bytes, SHA256
-83b2fa4268c821ea4baa98d486a6e525e6f87b15533d33807b70cea1df591ba9.
-Authenticated draft and anonymous public bytes match immutable candidate
-mac-0.5.25-e6e85e703bf6. Notaryec27c2b7-fcc9-415e-aa0a-3808002c1179 Accepted;
-actual Developer ID/staple/Gatekeeper and both Ed25519 signatures/order24→25 pass.
-Public notes use reviewed concise instructions; inherited NOTES.md unpublished.
-
-This promotion copies exact sealed feed and measured metadata, updates setup
-instructions and delivery records. Final promotion review/exact-head CI/live
-anchor+feed and smokePage verification remain pending at this commit. Windows21/
-manual/publishedkit and prior immutable releases unchanged. Primary funding
-edits untouched. Receipts/candidate will be preserved under primary ignored
-.verification/sidebar-setup-0.5.25 before worktree retirement. Completion receipt
-records final merge/live state without another documentation-only release cycle.
-
-Orchestration: Sol/high readiness worker2files verified, Luna/medium tutorial
-and docs audit corrected one fallback inference; coordinator integrated source.
-Source review149s, candidate120s; tokens/effective models/task savings unknown.
-One CI-driven docs fix batch, no source reviewer findings. Review budget7launches/
-1initial/4targeted/1integration/4fixbatches/60min; used2launches,1initial,1targeted
-before final promotion delta. Weekly86%remaining, storage285GB healthy at start.
-DeepSeek pause throughDec31 honored; no tool goal/task/automation created.
-
-Final promotion review found one P2 stale welcome/current-version documentation
-inconsistency in two current-guide paragraphs. Coordinator corrected both and
-another stale Mac version in one docs-only batch; packaged source unchanged.
-Correction verification and final exact-head CI/live gates remain.
+Next: freeze/readiness review + exactheadCI; signed/notarized/stapled26 installer,
+sealed candidate+feed and independent delta review, immutable publicbytes,
+metadata promotionreview/CI and actual live tutorial/download/feed checks.
+Update smokePage, preserve receipts/candidate and archive only owned worktree.
+Primary dirty funding edits preserved. Weekly81%remaining, storage280GB healthy;
+DeepSeek pause throughDec31honored. Effective models/tokens/task savings unknown.
+No toolgoal, separate task, automation or credential changes.

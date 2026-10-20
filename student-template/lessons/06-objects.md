@@ -6,13 +6,9 @@
 
 Target illustration: the same quiz after Reset, with its count stored in a `Counter` object.
 
-1. Open your **Study project** from lesson 5. Keep its controls and methods.
-2. Write a `Counter` class, then change Main to call it for attempts.
-3. Click **Run App**; check twice, click **Reset**, then check again.
+Open your **Study project** from lesson 5. Keep its controls and methods.
 
-**Done:** Attempts goes **2 → 0 → 1**. Main asks Counter for the number.
-
-## Code and explanation
+## 1. Create `Counter.java` beside `Main.java`
 
 Create `src/main/java/Counter.java` beside `Main.java`. Write an ordinary class
 with one private number and three public methods:
@@ -27,12 +23,16 @@ public class Counter {
 }
 ```
 
+## 2. Replace the attempts number with a Counter field
+
 No special framework registration is needed. In `Main`, replace the old field
 `private int attempts = 0;` with:
 
 ```java
 private final Counter attempts = new Counter();
 ```
+
+## 3. Ask Counter to increment in `checkAnswer()`
 
 In `checkAnswer()`, replace the two attempt-counting lines with:
 
@@ -41,6 +41,8 @@ attempts.increment();
 attemptsLabel.setText("Attempts: " + attempts.value());
 ```
 
+## 4. Ask Counter to reset in `resetQuiz()`
+
 In `resetQuiz()`, replace `attempts = 0;` and the next label update with:
 
 ```java
@@ -48,8 +50,10 @@ attempts.reset();
 attemptsLabel.setText("Attempts: " + attempts.value());
 ```
 
+## 5. Run App and check the count after Reset
+
 Keep the answer checking, buttons and layout from lesson 5. Counter owns the
-number; Main still explicitly updates the label. If you need to compare,
+number; Main still explicitly updates the label. Click **Run App**, check twice, click **Reset**, then check again. Attempts should go **2 → 0 → 1**. If you need to compare,
 see the completed [Main](../../teaching/checkpoints/6/Main.java) and
 [Counter](../../teaching/checkpoints/6/Counter.java) checkpoints.
 

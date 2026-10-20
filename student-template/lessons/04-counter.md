@@ -6,13 +6,9 @@
 
 Target illustration: the same quiz after two checks.
 
-1. Open your **Study** project from lesson 3. Keep its question and Check action.
-2. Add an `attempts` field and a label for it, then update both on each check.
-3. Click **Run App** and check twice, using any answers.
+Open your **Study** project from lesson 3. Keep its question and Check action.
 
-**Done:** The quiz shows **Attempts: 2** after two checks. Its answer feedback still works.
-
-## Code and explanation
+## 1. Add attempts fields above `setup()`
 
 In `Main`, above `setup()` and beside your `answer` and `feedback` fields, add:
 
@@ -21,17 +17,23 @@ private int attempts = 0;
 private Label attemptsLabel;
 ```
 
+## 2. Create the attempts label in `setup()`
+
 In `setup()`, after `feedback = new Label("");`, create the new label:
 
 ```java
 attemptsLabel = new Label("Attempts: 0");
 ```
 
+## 3. Add the attempts label to the layout
+
 Add `attemptsLabel` as the **last** item in the existing `VBox`:
 
 ```java
 show(new VBox(10, question, answer, check, feedback, attemptsLabel));
 ```
+
+## 4. Count each check before the `if` statement
 
 Inside the **existing** `check.setOnAction(...)` block, put these two lines
 *before* the `if` statement:
@@ -41,9 +43,11 @@ attempts = attempts + 1;
 attemptsLabel.setText("Attempts: " + attempts);
 ```
 
+## 5. Run App and check twice
+
 `attempts` is a field because its value must survive from one click to the
 next. The label shows the current value; changing the number alone does not
-change the screen. Keep checking answers: two wrong attempts still show
+change the screen. Click **Run App** and check twice, using any answers. The label should show **Attempts: 2**. Keep checking answers: two wrong attempts still show
 **Try again.**, and a correct answer still shows **Correct!**.
 
 If you need to compare your result, see the [completed lesson 4 checkpoint](../../teaching/checkpoints/4/Main.java).

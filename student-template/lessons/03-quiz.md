@@ -6,13 +6,9 @@
 
 Target illustration: a correct answer to your first quiz question.
 
-1. [Start Study project](README.md#start-a-lesson) in a new **Study** project. Open its empty `setup()` in `Main.java`.
-2. Write a question, answer field, Check button and feedback label. Add the check action.
-3. Click **Run App**. Check `4`, then change it to `5` and check again.
+[Start Study project](README.md#start-a-lesson) in a new **Study** project. Open its empty `setup()` in `Main.java`.
 
-**Done:** Feedback changes from **Try again.** to **Correct!**.
-
-## Code and explanation
+## 1. Add these imports above `public class Main`
 
 Keep the generated `Main extends App`, `setup()` and `main(...)` lines.
 Add these imports above the class, beside the existing `zero.App` import:
@@ -24,6 +20,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 ```
 
+## 2. Add answer and feedback fields above `setup()`
+
 The button action will need the answer and feedback later. Add these fields
 inside `Main`, **above** `setup()`:
 
@@ -31,6 +29,8 @@ inside `Main`, **above** `setup()`:
 private TextField answer;
 private Label feedback;
 ```
+
+## 3. Add a settings method inside Main
 
 Add this method inside `Main`, above `setup()`, to leave space around the window edges:
 
@@ -43,6 +43,8 @@ Add this method inside `Main`, above `setup()`, to leave space around the window
 `padding(20)` leaves 20 pixels on every edge. Keep this method as you grow the Study app.
 The `10` in `new VBox(10, ...)` sets the gaps **between** controls.
 
+## 4. Create and show the controls inside `setup()`
+
 Inside `setup()`, write the controls and put them in the window:
 
 ```java
@@ -52,6 +54,8 @@ Button check = new Button("Check");
 feedback = new Label("");
 show(new VBox(10, question, answer, check, feedback));
 ```
+
+## 5. Give Check an action before `show(...)`
 
 Before the `show(...)` line, give the button an action:
 
@@ -65,8 +69,10 @@ check.setOnAction(event -> {
 });
 ```
 
+## 6. Run App and check wrong and right answers
+
 The braces after `if` run when the typed text is exactly `5`; `else` handles
-other text. Do not copy a new `Main.java` when you continue. You will grow this
+other text. Click **Run App**. Check `4`: feedback should say **Try again.**. Change it to `5` and check again: feedback should say **Correct!**. Do not copy a new `Main.java` when you continue. You will grow this
 same quiz through lesson 7. If you need to compare after trying it yourself,
 see the [completed lesson 3 checkpoint](../../teaching/checkpoints/3/Main.java).
 

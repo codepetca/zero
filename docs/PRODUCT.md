@@ -161,10 +161,11 @@ then reuses unchanged ScoreDisplay in the study app and coin game.
 welcome/result/countdown helpers. Existing published kits keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,
 Study Quiz or Coin Game. The large lesson title appears directly below that
-heading, followed by a clearly tinted Summary card (stronger in dark mode) containing numbered actions,
-Done checkpoint and always-visible target illustration. Steps and image sit beside each other inside the card on desktop
-and stack on narrow screens. The redundant short description is omitted. Each
-lesson ends its final code/explanation section with a short encouraging message. Optional
+heading, followed by the target illustration and full numbered editing/running
+instructions with copyable code. There is no short three-step Summary, Done
+checkpoint, or Code and explanation heading/disclosure. Main instructions stay
+visible; completed comparison references remain optional disclosures in the editor.
+Each lesson ends with a short encouraging message. Optional
 composed-study/composed-game examples now demonstrate the same ordinary StartScreen
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).
@@ -362,7 +363,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   once when the editor is empty. Tutorials in the view menu or Command Palette
   reopens it; ordinary older-kit Markdown guides remain supported. All13 lessons,
   illustrations, code and linked Java references are bundled for offline reading.
-  Its concise tasks stay visible; full code/explanations are optional disclosures.
+  Its numbered instructions and code stay visible; only completed code references
+  use optional disclosures.
   The tab retains the selected lesson, scroll and disclosures per project. It
   supports native floating windows and moves back into editor groups. Open in
   browser opens the current canonical lesson on the website; website navigation

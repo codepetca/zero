@@ -547,3 +547,14 @@ not track completion or grading. All tutorials can return to the first lesson
 without changing code. Starting a tutorial creates a separate repository.
 Earlier Mac downloads and the Windows 0.5.21 preview/manual ZIP retain their
 bundled behavior. Website visuals do not change.
+
+
+## Direct tutorial instructions — owner correction, 2026-10-20
+
+Remove the short three-step summary and Done checkpoint from every tutorial.
+Show the full instructions directly without the Code and explanation title or
+collapse control. Number editing and testing actions, with copyable code beneath
+the relevant instruction. Retain setup/reopen prerequisites and expected results
+in that detailed sequence. Keep completed Compare your code references optional.
+Apply the same authored lessons to website and bundled editor; preserve Java,
+student work, navigation and locally saved reading position.

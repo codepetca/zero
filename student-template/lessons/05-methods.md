@@ -6,13 +6,9 @@
 
 Target illustration: your quiz just after clicking **Reset**.
 
-1. Open the **same Study project** from lesson 4.
-2. Move the check code into `checkAnswer()`. Add `resetQuiz()` and a Reset button.
-3. Click **Run App**; check twice, click **Reset**, then check once more.
+Open the **same Study project** from lesson 4.
 
-**Done:** The label goes **Attempts: 2 → 0 → 1**. Reset clears the answer and feedback.
-
-## Code and explanation
+## 1. Create a Reset button beside Check
 
 The answer, feedback and attempts labels are already fields, so your new
 methods can use them. In `setup()`, create a button beside `check`:
@@ -21,6 +17,8 @@ methods can use them. In `setup()`, create a button beside `check`:
 Button reset = new Button("Reset");
 ```
 
+## 2. Replace the old Check action with method calls
+
 Replace the old `check.setOnAction(...)` block with two short actions:
 
 ```java
@@ -28,11 +26,15 @@ check.setOnAction(event -> checkAnswer());
 reset.setOnAction(event -> resetQuiz());
 ```
 
+## 3. Put Reset after Check in the layout
+
 Put `reset` after `check` in the existing `VBox`:
 
 ```java
 show(new VBox(10, question, answer, check, reset, feedback, attemptsLabel));
 ```
+
+## 4. Move the checking code into `checkAnswer()`
 
 Below `setup()` but **inside** `Main`, write a named method with the code you
 removed from the old Check action:
@@ -49,6 +51,8 @@ private void checkAnswer() {
 }
 ```
 
+## 5. Add `resetQuiz()` beside `checkAnswer()`
+
 Add a second method beside it:
 
 ```java
@@ -60,9 +64,11 @@ private void resetQuiz() {
 }
 ```
 
+## 6. Run App and test Reset
+
 Do not leave the old check block in `setup()`; there should be one Check
 handler. `checkAnswer()` and `resetQuiz()` name the two actions, and both
-change the state and the visible controls. For comparison after building,
+change the state and the visible controls. Click **Run App**, check twice, click **Reset**, then check once more. Attempts should go **2 → 0 → 1**; Reset should clear the answer and feedback. For comparison after building,
 see the [completed lesson 5 checkpoint](../../teaching/checkpoints/5/Main.java).
 
 Next: [Make a Counter object](06-objects.md).

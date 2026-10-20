@@ -4,11 +4,7 @@
 
 ![A blue square on the canvas with an arrow showing movement](visuals/08.svg)
 
-1. [Start the Coin game project](README.md#start-a-lesson) once. Its `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class.
-2. Write `Player.java` and fill in your existing Main methods below.
-3. **Run App**, click the canvas, then hold and release an arrow key.
-
-**Done:** The square moves while a key is held and stops when released. Keep this folder for lessons 9–12. There is no new game download for the next lesson.
+[Start the Coin game project](README.md#start-a-lesson) once. Its `Main.java` has empty `setup()`, `update(double seconds)` and `draw()` methods, and no Player class. Keep this folder for lessons 9–12; there is no new game download for the next lesson.
 
 Previous: [Your study quiz](07-study-app.md).
 
@@ -78,8 +74,8 @@ Add `import javafx.scene.input.KeyCode;` and `import javafx.scene.paint.Color;` 
 
 Keep the starter's `settings()` and `main(...)`. `GameApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls Player. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
 
-## 3. Explore and check
+## 3. Run App and check movement
 
-Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 9. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
+Click **Run App**, click the canvas, then hold and release an arrow key. The square should move while held and stop when released. Try every edge, Right + Up, Left + Right, and releasing all keys. Change `speed` to 90, run again, compare, then restore 180. Change `size` to 40 and check that the whole square remains visible; restore 24 before lesson 9. If you remove only `player.update(...)`, the square still draws but cannot move. Explain why.
 
 After writing your own code, compare with checkpoint 8's [Main.java](../../teaching/checkpoints/8/Main.java) and [Player.java](../../teaching/checkpoints/8/Player.java). Continue editing **this Coin game folder** in [lesson 9](09-coin-game.md).

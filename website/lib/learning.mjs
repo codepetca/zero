@@ -112,7 +112,7 @@ export const lessons = [
   },
   {
     id: "12",
-    encouragement: "Done! Keep experimenting with your game!",
+    encouragement: "Keep experimenting with your game!",
     title: "Build a platformer",
     description: "Grow your sprites and sounds into a two-level game.",
     topic: "Camera, scoreboard, gravity, levels, game state",
