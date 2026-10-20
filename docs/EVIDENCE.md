@@ -1,5 +1,19 @@
 # Delivery evidence index
 
+## ZeroHub browser sign-in activation — 2026-10-20
+
+Owner approved production-only App credentials and session encryption. At source
+`6b46df5e`, the real GitHub account picker and callback connected as the intended
+owner account. Anonymous production reports configured; a fresh Preview reports
+unconfigured. The first real cross-owner star write returned 502 and preserved
+the initial unstarred state. Provider diagnosis remains open. Server diagnostics
+record only bounded, allowlisted failure categories, HTTP status, accepted
+Metadata/Starring permissions and rate-limit metadata, or a known transport code.
+Raw provider bodies, exception text, tokens and cookies are excluded. Focused
+auth/star/status tests pass, including privacy and oversized-error-body cases.
+Receipts remain in ignored `.verification/zerohub-sign-in-activation/` in the
+primary checkout. App permissions and selected repositories have not changed.
+
 ## Files dropdown — Mac 0.5.28 publication, 2026-10-20
 
 Owner authorized publication. [Source PR131](https://github.com/codepetca/zero/pull/131)

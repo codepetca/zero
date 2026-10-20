@@ -1,5 +1,5 @@
 import {resolveHubProject} from './hub-project-status.mjs';
-import {cookieHeader, SESSION_COOKIE, equalSecret, githubApiHeaders, hubConfig, json, readSession, sameOrigin} from './hub-github-auth.mjs';
+import {boundedJson, cookieHeader, SESSION_COOKIE, equalSecret, githubApiHeaders, hubConfig, json, readSession, sameOrigin} from './hub-github-auth.mjs';
 
 export function publicGithubRepository(repositoryUrl) {
   if (typeof repositoryUrl !== 'string') return null;
@@ -43,12 +43,38 @@ async function boundedBody(request, limit = 2048) {
 }
 
 async function githubStar(method, repository, token, fetchImpl) {
-  const response = await fetchImpl(`https://api.github.com/user/starred/${repository.owner}/${repository.repo}`, {
-    method, headers: {...githubApiHeaders(token), ...(method === 'PUT' ? {'Content-Length': '0'} : {})},
-    redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(8000)
-  });
-  await response.body?.cancel().catch(() => {});
-  return response.status;
+  let response;
+  try {
+    response = await fetchImpl(`https://api.github.com/user/starred/${repository.owner}/${repository.repo}`, {
+      method, headers: {...githubApiHeaders(token), ...(method === 'PUT' ? {'Content-Length': '0'} : {})},
+      redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(8000)
+    });
+  } catch (error) {
+    const knownCodes = new Set(['UND_ERR_REQ_CONTENT_LENGTH_MISMATCH', 'UND_ERR_HEADERS_TIMEOUT',
+      'UND_ERR_BODY_TIMEOUT', 'UND_ERR_CONNECT_TIMEOUT', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED']);
+    const code = knownCodes.has(error?.cause?.code) ? error.cause.code : 'unknown';
+    console.warn('ZeroHub GitHub star failure', {stage: 'transport', method, code});
+    throw error;
+  }
+  try {
+    if (response.status !== 204 && !(method === 'GET' && response.status === 404)) {
+      let reason = 'upstream_error';
+      try {
+        const {message} = await boundedJson(response);
+        reason = new Map([
+          ['Resource not accessible by integration', 'integration_access_denied'],
+          ['Resource not accessible by personal access token', 'token_access_denied'],
+          ['Bad credentials', 'bad_credentials'], ['Not Found', 'not_found']
+        ]).get(message) || reason;
+      } catch { /* Error bodies are bounded and never logged. */ }
+      const remaining = response.headers.get('x-ratelimit-remaining');
+      const acceptedPermissions = (response.headers.get('x-accepted-github-permissions') || '')
+        .split(/[;,]/).map(value => value.trim()).filter(value => /^(metadata|starring)=(read|write)$/.test(value));
+      console.warn('ZeroHub GitHub star failure', {stage: 'upstream', method, status: response.status,
+        reason, acceptedPermissions, rateLimitRemaining: /^\d{1,9}$/.test(remaining || '') ? Number(remaining) : null});
+    }
+    return response.status;
+  } finally { await response.body?.cancel().catch(() => {}); }
 }
 
 export async function getStarResponse(request, {env = process.env, fetchImpl = fetch,
