@@ -13,8 +13,8 @@ to GitHub. Browser publication and ZeroHub contributions extend that learning;
 they are optional for completing the lessons. Keep ordinary Java and explicit
 object updates central as setup, publishing and community features grow.
 
-Current delivery, checked 2026-10-20: Mac 0.5.24 ships tutorial-first onboarding,
-guided GitHub setup and the browser-run/GitHub App source. Windows remains the unsigned 0.5.21
+Current delivery, checked 2026-10-20: Mac 0.5.25 ships sidebar-guided sign-in,
+GitHub setup and the browser-run/GitHub App source. Windows remains the unsigned 0.5.21
 preview and matching manual ZIP, with updates disabled and physical acceptance
 pending. The general manual kit fallback remains 0.5.17. Source availability,
 released versions and observed student/provider acceptance are separate; see
@@ -44,13 +44,11 @@ centered full-viewport layout. The old `/get-started` address redirects to Downl
 Browsing, learning and playing require no GitHub sign-in. Current desktop
 source uses one public Codepet-owned GitHub App for development and optional
 ZeroHub stars. Codepet Zero is registered under `codepetca`, and its public App
-IDs are pinned in source. Mac 0.5.24 includes this source; remaining live-provider
+IDs are pinned in source. Mac 0.5.25 includes this source; remaining live-provider
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
-In the current published Mac 0.5.24, the native **Start tutorial** welcome
-continues into GitHub sign-in and the read-only project-access check. The local
-0.5.25 candidate removes that modal: its minimal sidebar guides students
+Mac 0.5.25 uses a minimal sidebar that guides students
 through **Sign in to GitHub** → **Install Zero for GitHub** → **Start tutorial**.
 Sign-in and credential storage remain unchanged: the supported `zero-github`
 provider stores expiring user/refresh tokens in VS Code SecretStorage; GitHub
@@ -222,7 +220,7 @@ account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approve
 commit identity. Repositories created through Zero are public, including their
 source and included files; students should keep secrets and private material out.
 Existing or GitHub-created repositories may retain their visibility, with teacher
-collaborator access where needed. Public game publishing remains optional. In candidate 0.5.25, the empty sidebar makes **Start tutorial** primary, with
+collaborator access where needed. Public game publishing remains optional. In Mac 0.5.25, the empty sidebar makes **Start tutorial** primary, with
 **New project…** as the secondary choice to skip the tutorial and create original
 work. The **…** menu also opens **Tutorials** for existing projects. The action
 selects the matching verified tutorial scaffold. The flow collects a repository
@@ -368,7 +366,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   The tab retains the selected lesson, scroll and disclosures per project. It
   supports native floating windows and moves back into editor groups. Open in
   browser opens the current canonical lesson on the website; website navigation
-  does not synchronize back into the editor. Start tutorial stays in welcome and
+  does not synchronize back into the editor. Start tutorial stays in the ready empty sidebar and
   overflow; Clone from GitHub is in the project menu. Neither lesson navigation nor opening
   a browser writes student Java, signs in, pushes or publishes anything.
 - A run that exits with an error offers Show Problems for source navigation;
@@ -401,7 +399,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Command Palette. Existing0.5.14 needs one manual replacement to gain updating;
   school policies may still require administrator approval. A loaded extension
   may require a student-chosen editor reload; no forced reload is performed.
-  Signed/notarized Mac0.5.23 is published; Windows0.5.21 is a published unsigned
+  Signed/notarized Mac0.5.25 is published; Windows0.5.21 is a published unsigned
   preview with automatic updates disabled. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while
@@ -579,8 +577,7 @@ pins. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
 
 ## Tutorial-first installation — 2026-10-19
 
-The current published Mac 0.5.24 opens the tutorial welcome in an empty editor
-window. Candidate 0.5.25 removes that modal and uses the minimal sidebar sequence
+Mac 0.5.25 opens the Zero sidebar in an empty editor window with the sequence
 Sign in to GitHub → Install Zero for GitHub → Start tutorial. A saved session is
 checked read-only on launch. The clone opens Main beside Tutorials. Existing
 student sessions resume normally. The completed bundled Hello World project is

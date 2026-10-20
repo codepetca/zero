@@ -6564,6 +6564,34 @@ exact-head CI and signed release gates pending. Receipts under ignored
 .verification/sidebar-setup-0.5.25/receipts; storage285GB/weekly86%remaining at
 start. DeepSeek dated pause honored. No new goal/task/automation.
 
+## Sidebar-guided setup publication — 2026-10-20
+
+Source PR123 passed full Sol/high review and corrected exact-head CI, then merged
+with tree equality to7cc41d1. Clean built a4e596f/source parity retained through
+one two-line docs correction caught by CI after the prior local website run.
+Final source802pass/3skip,98affected tests,157website/typecheck/build and rootcheck;
+native mock-account sidebar cancellation/retry/install/return/saved session/light/
+dark checked. Live GitHub, new OS and physical Windows remain smoke coverage.
+
+Measured Mac0.5.25 candidate e6e85e7 sealed all13 hashes, verified actual Developer
+ID/staple/Gatekeeper, notarizationec27c2b7-fcc9-415e-aa0a-3808002c1179 and both
+Ed25519 signatures/build24→25. Independent candidate/delta review clean. Draft
+and anonymous public single-DMG downloads match SHA256
+83b2fa4268c821ea4baa98d486a6e525e6f87b15533d33807b70cea1df591ba9,
+4583531bytes, release418487190. Reviewed concise public notes replace inherited
+generic sealed NOTES only for publication. No credentials/profile/student repo
+changed. Tutorial state is local reading position only; skip/resume/restart claims
+verified, no completion tracker added. Windows/manual/publishedkit unchanged.
+
+Final promotion review/CI/live verification pending at this commit. Preserved
+candidate and complete source/review/notary/draft/public/live/completion receipts
+are in primary ignored .verification/sidebar-setup-0.5.25. Review ledger records
+budget/timing/correction; models requested, effective model and tokens unknown.
+
+Final promotion review accepted one P2 stale welcome/current-version docs finding;
+coordinator corrected the current Mac guide/editor wording and stale version in
+one batch, without changing protected application or sealed artifact inputs.
+
 ## Browser tab branding — 2026-10-20
 
 Local branch `codex/zero-tab-branding`, source `bbeb9c8` from `be84e39`.
@@ -6587,3 +6615,16 @@ One local alpha-check invocation used an obsolete Sharp path; corrected module
 resolution passed. Weekly85%remaining/storage283GB at start; task-specific tokens,
 effective worker config and elapsed time unknown. Small direct implementation;
 review coordination about3min estimated. Primary dirty funding checkout preserved.
+
+### Website publication integration
+
+Owner authorized website publication. PR124 source adc53aa retains reviewed
+favicon source bbeb9c8 and adds a two-line fix for an upstream onboarding test race.
+The test now waits for the Run control before asserting its original label and
+launch; all34onboarding tests pass. Luna/medium targeted review accepted the fix.
+All5checks atadc53aa passed: CI39441081828,39441082000,39441081775 and Vercel.
+Main advanced through PR123 and PR125 during the gate. Both synchronizations
+only conflicted in CURRENT/EVIDENCE; upstream sidebar and Mac0.5.25 records were
+preserved. First integration review at338d342 was complete/clean. One CI failure
+was reproduced before the test fix; one redundant rerun was cancelled. Website
+publication still pending at this record. Detailed receipts .verification/tab-branding/.
