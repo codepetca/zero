@@ -1,4 +1,4 @@
-# Minimal prompts — complete locally
+# Minimal prompts — Mac0.5.29 publication
 
 Owner requests short prompts across Zero and no Enter/Escape instructions.
 Branchcodex/file-prompts, base6b46df5e/publicMac28. Implementation3aa887e1;
@@ -17,5 +17,7 @@ Actual installed editor patched11reviewed source paths with backup/hash checks,
 reloaded and verified Class name input only, no footer. No studentfiles created.
 Published28/nativeapp/immutableVSIX unchanged; localsource preview only. Source,
 backup and logs .verification/prompts retained in attachedworktree; preserve before
-retiring. No push/merge/newrelease authorization inferred. Primarydirtyfunding
+retiring. Owner explicitly authorized publication; prepareMac0.5.29/build29 with existing
+signing/notarization/update configuration. SourcePR/CI, sealedcandidate review,
+publicDMG and separate metadata/feed promotion required. Primarydirtyfunding
 checkout untouched. One sharingcopy worker; independentreviewer; tokens unknown.
