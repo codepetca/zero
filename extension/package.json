@@ -220,10 +220,6 @@
         "title": "Zero: Show Output"
       },
       {
-        "command": "zero.fileActions",
-        "title": "Zero: Files"
-      },
-      {
         "command": "zero.newClass",
         "title": "Zero: New class\u2026"
       },

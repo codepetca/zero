@@ -243,7 +243,7 @@ Library authors use **Extract library** inside their existing game repository, t
 
 ## Create files from the sidebar
 
-Clicking **Files ▾** opens a native menu with **New class…**, **New file…**,
+Clicking **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
 **New folder…**, **Add assets…** and **Copy asset paths** after import. A class-name prompt creates and opens an ordinary public Java
 class in `src/main/java`. File/folder actions use native Java source, Resources
 or Project files location choices, then a relative name (with `/` for nested

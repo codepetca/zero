@@ -63,10 +63,59 @@ function sidebarClient() {
     }
     event.preventDefault(); if (destination) select(destination);
   });
+  const menuButton = () => document.getElementById('files-menu-button');
+  const fileMenu = () => document.getElementById('files-menu');
+  const menuItems = () => [...(fileMenu()?.querySelectorAll('[role="menuitem"]') || [])].filter(item=>!item.disabled);
+  function closeFileMenu(restoreFocus = false) {
+    const button = menuButton(), menu = fileMenu();
+    const menuHadFocus = menu?.contains(document.activeElement);
+    if (menu) menu.hidden = true;
+    button?.setAttribute('aria-expanded','false');
+    if ((restoreFocus || menuHadFocus) && !button?.disabled) button?.focus({preventScroll:true});
+  }
+  function openFileMenu(last = false) {
+    const button = menuButton(), menu = fileMenu();
+    if (!button || button.disabled || !menu) return;
+    menu.hidden = false; button.setAttribute('aria-expanded','true');
+    const choices = menuItems(); (last ? choices.at(-1) : choices[0])?.focus({preventScroll:true});
+  }
   document.addEventListener('click', event => {
+    const trigger = menuButton(), menu = fileMenu();
+    if (trigger?.contains(event.target)) {
+      event.preventDefault();
+      if (menu?.hidden) openFileMenu(); else closeFileMenu(true);
+      return;
+    }
+    if (menu && !menu.hidden && !menu.contains(event.target)) closeFileMenu();
     const button = event.target.closest('button[data-command]');
-    if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') api.postMessage({command:button.dataset.command});
+    if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') {
+      if (menu?.contains(button)) closeFileMenu(true);
+      api.postMessage({command:button.dataset.command});
+    }
   });
+  document.addEventListener('keydown', event => {
+    const trigger = menuButton(), menu = fileMenu();
+    if (trigger?.contains(event.target) && ['ArrowDown','ArrowUp'].includes(event.key)) {
+      event.preventDefault(); openFileMenu(event.key === 'ArrowUp'); return;
+    }
+    if (!menu || menu.hidden || !menu.contains(event.target)) return;
+    const choices = menuItems(), index = choices.indexOf(document.activeElement);
+    let next;
+    switch (event.key) {
+      case 'ArrowDown': next = choices[(index+1)%choices.length]; break;
+      case 'ArrowUp': next = choices[(index-1+choices.length)%choices.length]; break;
+      case 'Home': next = choices[0]; break;
+      case 'End': next = choices.at(-1); break;
+      case 'Escape': event.preventDefault(); closeFileMenu(true); return;
+      case 'Tab': closeFileMenu(true); return;
+      default:return;
+    }
+    event.preventDefault(); next?.focus({preventScroll:true});
+  });
+  document.addEventListener('focusin', event => {
+    if (!fileMenu()?.contains(event.target) && !menuButton()?.contains(event.target)) closeFileMenu();
+  });
+  window.addEventListener('blur',()=>closeFileMenu());
   window.addEventListener('scroll',save,{passive:true});
   window.addEventListener('message', event => {
     const message = event.data;
@@ -77,9 +126,12 @@ function sidebarClient() {
         if (controls && typeof content === 'string' && controls.dataset.content !== content) {
           const active = document.activeElement;
           const command = controls.contains(active) ? active.dataset.command : null;
+          const wasFileMenu = id === 'file-actions' && controls.contains(active);
+          if (id === 'file-actions') closeFileMenu();
           const oldScroll = window.scrollY;
           controls.innerHTML = content; controls.dataset.content = content;
-          if (command) controls.querySelector(`[data-command="${command}"]`)?.focus({preventScroll:true});
+          if (wasFileMenu && !menuButton()?.disabled) menuButton()?.focus({preventScroll:true});
+          else if (command) controls.querySelector(`[data-command="${command}"]`)?.focus({preventScroll:true});
           window.scrollTo(0,oldScroll);
         }
       }
@@ -92,6 +144,7 @@ function sidebarClient() {
       }
     }
     if (message?.type === 'files.reset') {
+      closeFileMenu();
       for(const [id,request] of pending) if(request.type==='files.list') pending.delete(id);
       requested.clear();request();return;
     }

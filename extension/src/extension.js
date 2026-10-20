@@ -682,21 +682,6 @@ function activate(context, services = {}) {
   const assets=createAssetCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   const fileCreation=createFileCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:()=>view?.webview.postMessage?.({type:'files.reset'})});
   Object.assign(actions,fileCreation.commands);
-  actions['zero.fileActions'] = async () => {
-    if (isBusy()) return;
-    const root = await project();
-    const items = [
-      {label:'New class…',command:'zero.newClass'},
-      {label:'New file…',command:'zero.newFile'},
-      {label:'New folder…',command:'zero.newFolder'},
-      {label:'Add assets…',command:'zero.importAssets'},
-      ...(assets.canCopyPaths() ? [{label:'Copy asset paths',command:'zero.copyImportedAssetPaths'}] : [])
-    ];
-    const choice = await quickPick(items,{title:'Files',placeHolder:'Add to your project'});
-    if (!choice) return;
-    if (await project() !== root) throw new Error('The project changed. Open Files again in the current project.');
-    await actions[choice.command]();
-  };
   context.subscriptions.push(fileCreation);
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,assets.commands,recovery.commands);
@@ -740,7 +725,7 @@ function activate(context, services = {}) {
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const githubPanel = !ready ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
-    const fileActions=`<h2 id="files-heading">${projectRoot ? `<button class="link files-menu" data-command="zero.fileActions" aria-haspopup="dialog" aria-label="Files" ${disabled}>Files${icon('ChevronDown')}</button>` : 'Files'}</h2>`;
+    const fileActions=projectRoot ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>Files${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','Add assets…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '<h2 id="files-heading">Files</h2>';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const setupCheck = projectRoot && isSetupProject(projectRoot);
     const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : setupCheck ? 'Run test' : 'Run';

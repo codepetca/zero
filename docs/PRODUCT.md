@@ -341,7 +341,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. **Files ▾** opens a native menu with **New class…**, **New file…**,
+  overflow; Copy repository link lives in the repository menu. **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
   **New folder…**, **Add assets…** and **Copy asset paths** after import. New class
   creates an ordinary public class beside Main; files/folders choose Java source,
   Resources or Project files using native prompts. Relative names can create

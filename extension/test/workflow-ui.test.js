@@ -50,16 +50,17 @@ test('branch creation and merges are direct, serialized and recover conflicts th
   let extension;try{extension=require('../src/extension');}finally{Module._load=oldLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(value=>value.dispose()));extension.activate({subscriptions,workspaceState:{get:key=>key==='zero.webPublish.lastLive'?publishedState:true}},{provider:{dispose(){},async removeSession(){session=undefined;}},repositories:{async checkSetup(){return {};},async access(url,{ticket,permissions}){accesses.push({url,ticket,permissions});assert.equal(url,'https://github.com/student/app');assert.deepEqual(permissions,{contents:'write'});assert.equal(ticket.session.accountId,'1');assert.equal(ticket.session.accessToken,'NEVER_RENDER_TOKEN');if(accessFailure)throw accessFailure;return {ticket,repository:{id:repositoryId},installation:{id:installationId}};}}});
   const webview={html:'',onDidReceiveMessage:disposable};const candidate={webview,onDidDispose:disposable};provider.resolveWebviewView(candidate);await waitFor(()=>webview.html.includes(`Current branch: ${branch}`));
-  assert.match(webview.html,/data-command="zero.fileActions"[^>]*aria-haspopup="dialog"[^>]*>Files/);
-  assert.equal(typeof commands.get('zero.fileActions'),'function');
-  for (const command of ['newClass','newFile','newFolder']) assert.equal(typeof commands.get(`zero.${command}`),'function');
-  await commands.get('zero.fileActions')();
-  assert.deepEqual(picks.at(-1).items.map(item=>item.label),['New class…','New file…','New folder…','Add assets…']);
-  choice='zero.newClass';input='Player';await commands.get('zero.fileActions')();
+  assert.match(webview.html,/id="files-menu-button"[^>]*aria-haspopup="menu"[^>]*aria-expanded="false"[^>]*aria-controls="files-menu"/);
+  assert.match(webview.html,/id="files-menu"[^>]*role="menu"[^>]*hidden/);
+  assert.equal(commands.has('zero.fileActions'),false,'Files opens locally instead of a native picker');
+  for (const command of ['newClass','newFile','newFolder']) {
+    assert.equal(typeof commands.get(`zero.${command}`),'function');
+    assert.ok(webview.html.includes(`data-command="zero.${command}"`));
+  }
+  input='Player';await commands.get('zero.newClass')();
   assert.equal(await fs.readFile(path.join(root,'src/main/java/Player.java'),'utf8'),'public class Player {\n\n}\n');
   assert.ok(dispatch.includes('vscode.open'));choice=undefined;input=undefined;
-
-  assert.doesNotMatch(webview.html,/data-command="zero.recovery"|data-command="zero.newClass"|data-command="zero.importAssets"/);
+  assert.doesNotMatch(webview.html,/data-command="zero.recovery"|data-command="zero.fileActions"/);
   assert.match(webview.html,/title="Current branch: main"/);assert.match(webview.html,/Commit &amp; push/);assert.doesNotMatch(webview.html,/data-command="zero.finishChange"|NEVER_RENDER_TOKEN/);
   for (const event of ['change','delete','create']) {
     branch=`native-${event}`;
