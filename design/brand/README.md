@@ -39,7 +39,8 @@ three-variant ZIP; website, editor and native icon geometry is unchanged.
 
 The owner selected the icon followed by lowercase **zero** as one image.
 [Light title](zero-wordmark.svg) preserves the approved purple icon and outlined
-lettering; [dark title](zero-wordmark-dark.svg) uses the existing white-on-purple
-icon treatment and white lettering. The final-o replacement experiment is not
+lettering; [dark title](zero-wordmark-dark.svg) uses the shared dark accent
+light purple (`#b19aff`) for the icon on a transparent background, with white
+lettering (owner correction, 2026-10-20). The final-o replacement experiment is not
 the website default. Website preparation copies these authored SVGs to generated
 public assets. Preserve their aspect ratio and accessible Zero/home labels.

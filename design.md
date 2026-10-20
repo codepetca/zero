@@ -151,7 +151,7 @@ current task's content visually prominent.
 | Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
 | API reference | Category titles scroll away; each method name sticks through its own details. |
 | Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
-| Website title | Use the approved icon followed by outlined lowercase zero as one SVG image, with a matching inverse for dark mode. |
+| Website title | Use the approved icon followed by outlined lowercase zero as one SVG image. Dark mode uses the light-purple accent icon without a background and white lettering. |
 | Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
 
 Keep the sidebar, Next lesson action, search, code copying, deep links, accessible
@@ -179,7 +179,8 @@ Reusable explicit-color SVGs and PNG export instructions are in
 [Zero icon assets](design/brand/README.md). Owner-selected2026-10-18: softened
 slash corners and20%thicker circle/slash (2.4-unit stroke,0.6-unit slash corner
 radius on the24-unit canvas). Use the purple transparent mark on light web
-surfaces and white-on-purple inverse on dark surfaces and browser/share icons.
+surfaces. The2026-10-20title correction uses a transparent light-purple icon on
+dark web surfaces; browser/share icons keep the white-on-purple inverse.
 Derive theme-aware editor and native raster geometry from these shared assets;
 keep action icons distinct from branding.
 

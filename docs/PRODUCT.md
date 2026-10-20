@@ -23,9 +23,9 @@ The local 0.5.24 candidate adds guided GitHub project-access setup before
 tutorial choices and repository details; it has not been promoted.
 
 The shared Zero brand uses the softened, thicker slashed-circle mark from
-`design/brand`. Website headers use purple in light mode and the white-on-purple
-inverse in dark mode; browser tabs, Apple touch icons and share previews use the
-same inverse. Editor icons follow native theme colors; future Mac and Windows
+`design/brand`. Website title images use purple in light mode and light purple on a transparent
+background in dark mode, with lowercase outlined lettering. Browser tabs, Apple
+touch icons and share previews keep the white-on-purple inverse. Editor icons follow native theme colors; future Mac and Windows
 installer builds derive their icons from the same geometry. Existing published
 installers remain unchanged.
 
