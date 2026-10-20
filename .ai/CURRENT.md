@@ -1,13 +1,14 @@
 # Files dropdown publication — active, 2026-10-20
 
 Owner authorized publishing the Files dropdown and New asset label. Preparing
-Mac0.5.27/build27 from latest publishedmain0.5.26 plus this reviewed feature.
+Mac0.5.28/build28, waiting for Native Run task’s already-building0.5.27
+release before final integration/build. Our183a1f91/27 signed candidate and its
+accepted notarization are superseded, retained ignored and never distributed.
 Current phase: source integration/version PR and CI, then signed/notarized Mac
 candidate, immutable release, reviewed metadata/feed promotion and public checks.
 Original filesystem reviewed22200b3; anchored UI reviewedf4f27eb8; label reviewed
 203922ce. Three clean Sol/medium turns; final94/34focused and Mac light/dark/
-210px keyboard/dismissal/creation checks pass. Native Run changes in another task
-remain outside scope until merged to main. Windows21 and older releases preserved.
+210px keyboard/dismissal/creation checks pass. Native Run changes will be included once their authorized publication merges. Windows21 and older releases preserved.
 Managed files-create-actions worktree owns this release; primary dirty funding
 checkout untouched. Receipts .verification/files-create/. Prior main state follows.
 
