@@ -26,7 +26,6 @@ export function Navigation({ active = "", actions = null }) {
           ["Tutorials", "/learn"],
           ["Docs", "/docs"],
           ["ZeroHub", "/hub"],
-          ["Download", "/downloads"],
         ].map(([name, href]) => (
           <a
             key={name}
