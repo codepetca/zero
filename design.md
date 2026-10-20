@@ -151,6 +151,7 @@ current task's content visually prominent.
 | Secondary guidance | No generic setup or continuation cards; keep lesson-specific notes muted and unboxed. |
 | API reference | Category titles scroll away; each method name sticks through its own details. |
 | Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
+| Website title | Use the approved icon followed by outlined lowercase zero as one SVG image, with a matching inverse for dark mode. |
 | Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
 
 Keep the sidebar, Next lesson action, search, code copying, deep links, accessible
