@@ -242,14 +242,15 @@ function activate(context, services = {}) {
     await stop();
     state = 'App stopped'; refresh();
   }
-  async function makeTask(root, definition = {type:'zero',task:'native-run'}, scope = vscode.TaskScope.Workspace) {
+  async function makeTask(root, definition = {type:'zero',task:'run'}, scope = vscode.TaskScope.Workspace) {
+    if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
     const spec = core.runSpecification(root);
     await fs.access(spec.command);
     const processExecution = spec.shell
       ? new vscode.ShellExecution({value: spec.command, quoting: vscode.ShellQuoting.Strong}, spec.args, {cwd: root})
       : new vscode.ProcessExecution(spec.command, spec.args, {cwd: root});
-    const task = new vscode.Task(definition, scope, 'Run Native App (diagnostic)', 'Zero', processExecution, '$zero-java');
+    const task = new vscode.Task(definition, scope, 'Run App', 'Zero', processExecution, '$zero-java');
     task.presentationOptions = {reveal: vscode.TaskRevealKind.Always, panel: vscode.TaskPanelKind.Dedicated, clear: true, focus: false};
     task.group = vscode.TaskGroup.Build;
     return task;
@@ -264,7 +265,7 @@ function activate(context, services = {}) {
     state = 'Building / running app — output is in the terminal'; refresh();
   }
   context.subscriptions.push(vscode.tasks.onDidStartTask(event => {
-    if (event.execution.task.definition.type === 'zero' && event.execution.task.definition.task === 'native-run') track(event.execution);
+    if (event.execution.task.definition.type === 'zero' && ['run','native-run'].includes(event.execution.task.definition.task)) track(event.execution);
   }), vscode.tasks.onDidEndTask(event => {
     const finish = taskFinishes.get(event.execution);
     if (!finish) return;
@@ -283,21 +284,15 @@ function activate(context, services = {}) {
     // Configured tasks must pass through resolveTask for saving and restart checks.
     provideTasks: async () => [],
     resolveTask: async configured => {
-      if (configured.definition.task === 'run') {
-        return new vscode.Task(configured.definition, configured.scope, 'Run App', 'Zero', new vscode.CustomExecution(async () => {
-          const closed=new vscode.EventEmitter();
-          let ticket,settled=false;
-          return {onDidClose:closed.event,open(){const running=actions['zero.runApp']();ticket=browserRun.generation;void running.then(()=>{settled=true;closed.fire(0);},error=>{settled=true;output.appendLine(error.message);closed.fire(1);});},close(){if(!settled && ticket===browserRun.generation)browserRun.stop();closed.dispose();}};
-        }));
-      }
-      if (configured.definition.task !== 'native-run') return undefined;
-      if (stopPromise) return undefined;
+      if (!['run','native-run'].includes(configured.definition.task)) return undefined;
+      if (stopPromise || isBusy()) return undefined;
       nativeStarting++;refresh();
       try {
         browserRun.stop({quiet:true});
         const generation = runGeneration;
         await stop();
         const root=await project();
+        if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
         if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
         if (disposed || generation !== runGeneration) return undefined;
         if (await project() !== root) throw new Error('The student project changed during run preparation. Run the current app explicitly.');
@@ -315,6 +310,7 @@ function activate(context, services = {}) {
     await stop();
     const root = await project();
     if (expectedRoot && root !== expectedRoot) throw new Error('The student project changed before running the dependency update. Run the original app explicitly.');
+    if (vscode.workspace.isTrusted === false) throw new Error('Trust your own project before running its Java code.');
     await core.assertTutorialRepository(root);
     if (generation !== runGeneration) return;
     if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before running the app.');
@@ -569,7 +565,8 @@ function activate(context, services = {}) {
         if (branch && branch !== previous) report(`Switched to ${branch}`);
       } finally {await repositoryStatus(); changing = false; refresh();}
     },
-    'zero.runNativeApp': async () => {if(stopPromise)return stopPromise;browserRun.stop({quiet:true});await queuedRun();},
+    // Retain the former native diagnostic command as a compatibility alias.
+    'zero.runNativeApp': expectedRoot => actions['zero.runApp'](expectedRoot),
     'zero.stopApp': stopRequested,
     'zero.openFirstLesson': async () => {
       if (!(vscode.workspace.workspaceFolders || []).length) {await tutorials.open(undefined,'0');return;}
@@ -656,7 +653,12 @@ function activate(context, services = {}) {
   const runnableProject=async()=>{const root=await project();await core.assertTutorialRepository(root);return root;};
   const browserRun=createBrowserRunCommands(vscode,{project:runnableProject,output,isBusy,setBusy:value=>{browserBusy=value;refresh();},setActive:value=>{browserActive=value;refresh();},setFailed:value=>{buildFailed=value;refresh();},setState:text=>{state=text;refresh();},cacheRoot:webCacheRoot,beforeRun:stopRequested,preferredPreviewColumn:root=>tutorials.columnFor(root)});
   Object.assign(actions,browserRun.commands);
-  actions['zero.runApp']=expectedRoot=>stopPromise || browserRun.run(expectedRoot);
+  actions['zero.runApp']=expectedRoot=>{
+    if (stopPromise) return stopPromise;
+    if (isBusy()) return Promise.resolve();
+    browserRun.stop({quiet:true});
+    return queuedRun(expectedRoot);
+  };
   actions['zero.stopApp']=()=>{
     if (stopPromise) return stopPromise;
     stopPromise=Promise.resolve().then(async()=>{

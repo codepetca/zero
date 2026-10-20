@@ -6,8 +6,12 @@ App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
+Current source changes Run App to a native JavaFX window. This change is
+unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
+their bundled behavior.
+
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
-compile locally and open a browser preview. This MVP targets **Mac with Apple
+compile locally and open its own native JavaFX window. This MVP targets **Mac with Apple
 Silicon** and **Windows**; Linux and Intel Macs are unsupported. On a supported Mac, use
 **Zero** for automatic setup. Windows now has an **unsigned installer preview**
 for x64 Windows 10 (build 19041) or later. Run the Setup EXE; Zero prepares Java
@@ -49,8 +53,8 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
    clones it and opens the project in a new window. No repository is created
    until you have chosen its name and location.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
-   lesson 0 and choose **Run App**. **Open in browser** opens the lesson or running
-   app in your default browser. Keep this repository for the following Greeting lessons.
+   lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials
+   tab’s **Open in browser** opens the lesson in your default browser. Keep this repository for the following Greeting lessons.
 
 Already cloned your project? Choose **Open local project** in the empty sidebar
 or **Project → Open local project…** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
@@ -180,7 +184,7 @@ Java editor/debugger repair uses VS Code's extension installer in the current
 profile. Java/Git repair opens an official download page and explains installation
 and restarting VS Code. **Run current app** uses the usual save/build/launch flow.
 For an optional setup check, choose **Test installation**, then **Run test**;
-confirm its browser preview, since tool detection is not a build test.
+confirm its native JavaFX window, since tool detection is not a build test.
 
 1. Install VS Code and a supported **JDK 17 or later**; install **Git 2.31 or newer** for repository
    work. JDK 17 was tested. Check `java -version`, `javac -version` and
@@ -221,7 +225,7 @@ Older starter-only downloads retain their bundled instructions.
 Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
 choose **Start tutorial → Greeting app** in Zero to create and clone a repository
 in your own GitHub account after selecting its name and location. It is public.
-Use **your repository**, not Zero's shared template. The template has empty `setup()`; its first browser preview is
+Use **your repository**, not Zero's shared template. The template has empty `setup()`; its first native JavaFX window is
 blank. Write your label following the lesson and Run App again after edits.
 Keep that repository for lessons 1 and 2 as you add a button and name field.
 GitHub/Git setup is part of the tutorial; see [tutorial repository setup](COURSE-PROJECT.md#tutorial-repositories).
@@ -247,18 +251,20 @@ The starter's example shelf remains optional reference. Try each independent
 example in its own local copy, following its exact file list; it is separate
 from the continuing lesson flow.
 
-With the profile, autosave runs after 500 ms. **Run App** also saves files, checks
-browser compatibility and compiles locally when needed, then opens the browser
-preview. After editing, Run App again rebuilds and restarts it. Use
+With the profile, autosave runs after 500 ms. **Run App** also saves files and
+uses the project’s Maven wrapper to compile and open a native JavaFX window. After editing, Run App again rebuilds and restarts it. Use
 **Ctrl+Shift+B** on Windows or **Cmd+Shift+B** on macOS for the same run action.
-**Stop** ends the owned preview and its audio.
+**Stop** cancels the owned build or app process. Closing the app window returns
+Run to idle.
 
 First-time compiler downloads can take longer; later projects reuse the cache.
-If a download fails, repair the connection and Run App again. If an API is outside
-the supported browser subset, use the indicated source error to revise the code.
+If a download fails, repair the connection and Run App again. Local Run does
+not check the supported browser subset. Publish app and advanced Export for web
+perform browser compatibility checks and production compilation; native success
+does not establish browser compatibility.
 A failed build does not open an older build as a successful new run.
 
-Read compiler errors in Zero’s output and Problems panel; use
+Read compiler errors in the task terminal and Problems panel; use
 **View: Toggle Problems** in the Command Palette and open the indicated source
 line. See **Setup help** for missing local tools. F6/F7 are optional:
 merge `optional/optional-keybindings.json` into your keyboard shortcuts if wanted.
@@ -267,8 +273,7 @@ To change appearance, run **Preferences: Color Theme** in the Command Palette.
 The sidebar supports dark themes too. To return to an imported profile, run
 **Profiles: Switch Profile → Zero**, then **Zero: Show Sidebar**.
 
-For native JavaFX troubleshooting, choose **Zero: Run Native App (Diagnostic)**
-in the Command Palette. Its terminal equivalent is `./mvnw clean compile javafx:run`
+The terminal equivalent of Run App is `./mvnw clean compile javafx:run`
 on Mac or `.\mvnw.cmd clean compile javafx:run` on Windows. Native success does
 not verify browser compatibility.
 

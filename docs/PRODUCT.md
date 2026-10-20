@@ -14,7 +14,8 @@ they are optional for completing the lessons. Keep ordinary Java and explicit
 object updates central as setup, publishing and community features grow.
 
 Current delivery, checked 2026-10-20: Mac 0.5.26 ships sidebar-guided sign-in,
-GitHub setup and the browser-run/GitHub App source. Windows remains the unsigned 0.5.21
+GitHub setup and browser-run behavior. Current source changes Run App to native
+JavaFX; that change is unreleased. Windows remains the unsigned 0.5.21
 preview and matching manual ZIP, with updates disabled and physical acceptance
 pending. The general manual kit fallback remains 0.5.17. Source availability,
 released versions and observed student/provider acceptance are separate; see
@@ -299,12 +300,14 @@ app demonstrates a shared need. See [the dogfooding record](DOGFOODING.md).
 
 ## Editor workflow
 
-Run App targets the browser after local
-compatibility checking and WebFX compilation. Students keep ordinary Java and
-approved ordinary JavaFX APIs. Publish app stays in GitHub and deploys the same
-validated local build; ZeroHub links to the student-hosted app. Cloud development
-and hosted compilation are out of scope. A strict resolved-API gate rejects unsupported
-application APIs before real WebFX compilation; see [browser builds](WEB-EXPORT.md).
+Run App saves and builds ordinary Java through the project’s Maven wrapper, then
+opens the app in its own native JavaFX desktop window. Local Run does not run the
+browser compatibility checker or WebFX compiler. Publish app and the advanced
+Export for web action perform the browser checks and production WebFX compilation
+locally; native success does not establish browser compatibility. Publish app
+deploys the validated browser build through GitHub; ZeroHub links to the
+student-hosted app. Cloud development and hosted compilation are out of scope.
+See [browser builds](WEB-EXPORT.md) for the strict resolved-API gate and limits.
 Local checks and a released installer do not replace the remaining student/provider acceptance.
 
 Browser sharing adds **Publish app** in the repository dropdown and **Export for
@@ -351,19 +354,15 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   **Review or restore changes…** in the project menu opens the existing native
   review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
-- The primary button says Run when idle, Stop while queued/checking/building/running,
-  and disabled Stopping… while owned work settles. Failures or closing the managed
-  preview return it to Run. While running, an icon-only Open in browser button
-  sits beside Stop with its tooltip/accessible name; it is absent while building,
-  stopped or stopping. Explicit palette commands keep separate run/restart
-  and stop behavior. Run saves files, checks ordinary Java against the supported browser API, builds
-  locally when inputs changed and opens an owned browser preview. Re-running
-  destroys the old runtime; Stop cancels builds and destroys the managed frame.
-  Open in browser opens a local page around the same immutable compiled files in
-  the default browser. Its liveness connection removes the app frame on Stop or
-  rerun; a silent connection expires within4.5seconds while browser events run.
-  Suspended or blocked browser execution can delay teardown. There is no hot
-  reload. A native diagnostic command remains explicit.
+- The primary button says Run when idle, Stop while queued/building/running,
+  and disabled Stopping… while owned work settles. Failures or closing the native
+  app window return it to Run. Explicit palette commands keep separate run/restart
+  and stop behavior. Run saves files and runs the project’s Maven wrapper to build
+  and open an ordinary JavaFX window. Re-running stops the previous process
+  before rebuilding; Stop cancels the owned build or running process. There is
+  no hot reload or browser compilation on local Run. The existing native command
+  ID remains a compatibility alias. Browser preview remains available explicitly
+  through Export for web; local Run has no Open in browser action.
 - A tutorial repository opens its bundled Tutorials editor tab beside Main.java
   once when the editor is empty. Tutorials in the view menu or Command Palette
   reopens it; ordinary older-kit Markdown guides remain supported. All13 lessons,
@@ -531,9 +530,9 @@ link separately in Pika. A branch upload alone does not finish a change on main.
 
 `zero.json` marks a student project in the workspace root, or its
 `student-template/` child for kit development. The project includes `mvnw`,
-`mvnw.cmd`, `pom.xml` and `.vscode/tasks.json`. Normal Run uses local browser
-compatibility checking/building and an owned preview. The explicit native
-diagnostic runs the wrapper with `clean compile javafx:run` in that project;
+`mvnw.cmd`, `pom.xml` and `.vscode/tasks.json`. Normal Run, setup Run test and
+the configured Zero run task use the project wrapper with `clean compile javafx:run`
+to build and launch native JavaFX in that project;
 cleaning avoids stale classes from the Java language server. Arguments are
 passed separately from untrusted text.
 

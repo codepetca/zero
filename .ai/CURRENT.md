@@ -1,53 +1,59 @@
-# Files dropdown publication — active, 2026-10-20
+# Files dropdown publication — active, Mac0.5.28
 
-Owner authorized publishing the Files dropdown and New asset label. Preparing
-Mac0.5.28/build28, waiting for Native Run task’s already-building0.5.27
-release before final integration/build. Our183a1f91/27 signed candidate and its
-accepted notarization are superseded, retained ignored and never distributed.
-Current phase: source integration/version PR and CI, then signed/notarized Mac
-candidate, immutable release, reviewed metadata/feed promotion and public checks.
-Original filesystem reviewed22200b3; anchored UI reviewedf4f27eb8; label reviewed
-203922ce. Three clean Sol/medium turns; final94/34focused and Mac light/dark/
-210px keyboard/dismissal/creation checks pass. Native Run changes will be included once their authorized publication merges. Windows21 and older releases preserved.
-Managed files-create-actions worktree owns this release; primary dirty funding
-checkout untouched. Receipts .verification/files-create/. Prior main state follows.
+Owner authorized publication. PR131 combines reviewed Files/Newasset with the
+exact reviewed Native Run source from dependencyPR130/head75ce9c39. Preparing
+0.5.28/build28 while Native0.5.27 publication finishes; do not publish/feed-promote
+28 until27 source/release/feed have completed. Earlier owned27 artifact superseded
+and retained ignored, never distributed. Sourceintegration/candidate review and
+exact-headCI required before merge. Preserve both user features and prior releases.
+Primary dirty checkout untouched. Receipts .verification/files-create/publication.
 
-# Direct tutorial instructions — Mac0.5.26 publication
+# Native-default Run App — local implementation
 
-Owner explicitly authorized merge and website/new Mac publication. Source PR127
-merged 0e55850049757f686bb35d3762b459fbf3a9ed62, tree equal reviewed452b074; all5 exact-head checks
-passed after one unchanged-head retry for Linux JavaFX/libLLVM startup crash.
-Independent Luna/medium full35-file source review clean. All13 lessons show81
-numbered detailed actions directly; all55 original fenced blocks and links
-preserved. Native Compare your code remains optional; general docs keep folding.
+Owner requests Run App use native JavaFX by default, browser compilation only
+for publishing. Branch codex/native-run-default, base64d60a4f (Mac0.5.26 release).
+Owner explicitly authorized merge and publication of this reviewed change
+on2026-10-20. Local kit/extension/build27 staged; public metadata remains26. Existing live Mac0.5.26 remains browser-default.
+Next: sourcePR/CI, signedMac27/candidate, publicbytes and metadata promotion.
+No credentials or student profile changes.
 
-Local802pass/3platformskips,29focused,157website/typecheck/build and rootcheck.
-Actual isolated native reader0 copyfeedback/comparison/lightdark and IAB0/7/12,
-320CSSreflow checked. OS clipboard exactness relies on copy-value tests, not IAB
-clipboard readback. Real account/student files/primary funding edits untouched.
-Fresh OS/live GitHub/physical Windows remain smoke coverage.
+Run App/sidebar/configured zero task run now use supported VSCode ProcessExecution
+(or Windows ShellExecution) with the same clean compile javafx:run Maven wrapper.
+run/native-run tasks both tracked for Stop/error lifecycle; old native command ID
+is hidden palette compatibility alias. Queue/generation/project/save guards and
+Stop settlement remain; workspace trust guards preserved before save/launch.
+Busy upload/export/publication blocks native starts. Browser/API compiler remains
+only on explicit Publish/advanced Export; validated output/publishing untouched.
+Explicit export-preview command/error wording now identifies web export correctly.
 
-Mac DMG4585784bytes SHA25645511d8b2f79b326635b0551157fd1e079da3956f7f9fcc4c7a0e20314287e8c; public release418630126 at
-https://github.com/codepetca/zero/releases/download/setup-v0.5.26/Zero-0.5.26-macos.dmg. Authenticated draft and anonymous public bytes equal sealed candidate
-mac-0.5.26-83d3f81e8d38; actual Developer ID, accepted notarydc609da6-c898-4133-822e-79ea4fcfdbc7,
-staple/Gatekeeper, bothEd25519signatures/build25→26 verified. Inherited sealed
-NOTES remains unpublished; accurate custom notes used. Windows21/manual/
-publishedkit17/prior immutable releases unchanged.
+Docs worker Sol/medium updated10operative docs, independently inspected. Initial
+Sol/high complete20file review8bcbc5f0 found2P2 blockers: setuphelp still asked for
+browser preview and stale-export recovery wrongly saidRunApp. Both fixed in one
+batch; UIhelp now nativewindow/Mavendependencies/taskterminal, all browser snapshot
+recovery directs Exportforweb/Publish. Validation logic/output guards unchanged.
+Final161affected checks pass/1Windowsruntime skip,35website/doc-render checks
+pass. Rootcheck passed before fixes; final rerun passed. Fullsuite interrupted
+after unrelated Git binary fixtures took150–264s each underMacload265; no full
+suite pass claimed. Targeted Sol/high remediation review clean atff4ab587. Release-version delta
+review next; no code changes after that reviewed source.
 
-Browser Run still performs full production GWT compilation after edits. Existing
-Zero: Run Native App (Diagnostic) skips it. Warm single fixture compile-only2.93s
-native vs32.45s browser; GUI startup not timed. No optimization/cache redesign or
-speedup shipped; only repeated misleading first-download sentence removed.
-Read-only Sol/high investigation preserved with contention/single-sample limits.
+Actual isolated officialVSCode clone /tmp/ZeroNativeQA.app/profile/project:
+sidebarRun launched actual wrapper+FX child, terminal9Java/noGWT. Stop restored
+Run and bothexactownedPIDs ended. Intentional missingsemicolon producedProblems1
+and ShowProblems with Main.java[7,23]. Repaired finiteFXfixture exitednormally,
+actualBUILD SUCCESS/Run/App stopped/noShowProblems. Its42.823s total underheavy
+hostcontention is not a benchmark. JavaFXwindowtext/OSclose unavailable viaCUA
+inventory/JDKbundle lookup; close/exitunitcontracts pass. InitialQAshellenvwarning
+dismissed; screenreader mode onlydisposableprofile. PhysicalWindows/freshOS/
+realGitHub/signedinstaller remain untested/unbuilt. No publicrelease/realstudent
+state changed. Completion receipt will capture finalreview/check/cleanup status.
 
-Promotion copies exact sealed feed and measured metadata. Final independent
-delta review/exact-head CI/merge/live download+feed+all13tutorial checks and smoke
-Page update pending at this commit. Completion receipt will record final state
-without an extra docs-only release cycle. Preserve candidate and whole ignored
-.verification/tutorial-instructions under primary before retiring owned worktree.
+Weekly78%remaining; storage276GBhealthy. DeepSeek pause honored. One docsworker,
+coordinator implementation, independent source reviewer next; effective model/
+tokens/savings unknown. Primary dirty funding checkout preserved. No toolgoal,
+separate task or automation. Keep owned worktree/ignored QA receipts until decision.
 
-Orchestration: Sol/medium13lesson worker independently verified; Sol/high compiler
-investigation read-only; Luna/medium full source and bounded release deltas.
-Review ledger captures coverage/budget/timing; effective models/tokens unknown.
-Weekly81%remaining/storage280GBhealthy atstart, DeepSeek pause honored. No tool
-goal/separate task/automation or credentials/profile changes.
+Packaging audit before sealing corrected bundled START-HERE nativeRun/setup/
+firstdeps/browser-publishing text and extension/studentREADME27labels; first
+unnotarized build cancelled, no bytes uploaded/sealed. Repackage/rebuild from
+this clean source. Include this documentation+version delta in candidate review.

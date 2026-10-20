@@ -8,17 +8,20 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
-Owner decisions consolidated through 2026-10-18. These are the current rules and
+Owner decisions consolidated through 2026-10-20. These are the current rules and
 supersede conflicting wording in the older dated notes below. Preserve them
 when adding features; a new feature does not reset the agreed interaction style.
 
 - Use one primary **Run**/**Stop** button. It offers Stop while queued, checking,
   compiling or running; show disabled **Stopping…** until owned work settles.
-  Failures and closing the managed preview return to Run. Preserve explicit
+  Failures and closing the native JavaFX window return to Run. Preserve explicit
   Run App/Stop App palette commands and existing cancellation/generation guards.
-  While a managed browser app is running, put its icon-only **Open in browser**
-  button beside Stop, with a tooltip and accessible name. Hide it when stopped,
-  building or stopping. Keep the pair on one row at narrow widths.
+  Run saves and builds through the project Maven wrapper, opening a desktop
+  JavaFX window; Stop cancels the build or app process. Local Run has no browser
+  compilation or Open in browser action. Publish app and advanced Export for web
+  retain browser compatibility checks and production compilation; explicit export
+  preview remains available. This native-default source change is unreleased;
+  published Mac 0.5.26 retains its bundled browser-run behavior.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
@@ -127,9 +130,10 @@ single public-destination warning.
 Owner selected the second tutorial concept: ordinary Java on the left and a
 native Tutorials editor tab beside it. Preserve the canonical lesson wording,
 target illustration, short numbered tasks and optional full explanation/code.
-Open in browser opens the current hosted lesson. Run places Zero App in the
-matching tutorial group; its Open in browser action opens the validated local
-build. Both actions are also available through their supported commands.
+Open in browser opens the current hosted lesson. The native-default Run decision
+in Current interaction rules supersedes this concept’s managed Zero App tab and
+its local Open in browser action. Explicit browser export preview remains
+available through Export for web.
 The panel supports native detach/reattach and restoration of reading position.
 Actual Mac/Chrome acceptance and combined visual comparison are recorded in
 [design QA](design-qa.md). Git-tab exploration remains parked. The newer account

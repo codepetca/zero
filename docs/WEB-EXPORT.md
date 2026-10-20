@@ -1,34 +1,38 @@
 # Browser games and playable links
 
-This implementation is local and unreleased. Zero remains a local Java teaching
-kit. Its primary Run App target is now an owned browser preview, using the same
-pinned WebFX/GWT pipeline as Export and Publish. Students write ordinary Java and
-approved ordinary JavaFX APIs in local VS Code. Their computer does compilation;
+Current source changes Run App to a native JavaFX window. This change is
+unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
+their bundled behavior.
+
+Zero remains a local Java teaching kit. Students write ordinary Java and JavaFX
+in local VS Code. Run App uses the project Maven wrapper to open a native desktop
+window. Browser compilation is deferred to Publish app or the explicit advanced
+Export for web action. Their computer performs the pinned WebFX/GWT compilation;
 GitHub owns source and Pages hosts static apps. Cloud development, hosted Java
 compilation and online playgrounds are outside scope.
 
-## Run App and the validated build
+## Native Run and explicit browser builds
 
-Run App saves, checks every original Java source, compiles locally when needed,
-validates a fresh complete snapshot and opens a managed browser panel. Checking,
-building, running and failure states are distinct. Restart destroys the old
-runtime before building again. Stop, cancellation, project changes and extension
-disposal abort owned work and destroy the executing frame and audio; a late build
-cannot reopen it. A failed build preserves the previous files without calling
-them a fresh running app. Run never requires GitHub sign-in.
+Run App saves files, stops a previous run and invokes the project Maven wrapper
+with `clean compile javafx:run`. Stop cancels the owned build or JavaFX process;
+closing the app window returns Run to idle. Build errors appear in the task
+terminal and Problems. Local Run does not invoke the browser API checker or
+WebFX compiler and never requires GitHub sign-in. A successful native run does
+not prove that an app can be published for the browser.
 
-The managed preview serves cloned immutable output bytes from a token-protected
+After Export for web, Preview export opens a managed browser preview. It serves
+cloned immutable output bytes from a token-protected
 loopback server. Rebuilding/exporting later cannot change an already running
-app's assets. **Open in browser** in the preview or sidebar opens a preview-only
+app's assets. **Open in browser** in the export preview opens a preview-only
 page in the default browser around those same output bytes. A persistent liveness
 connection removes its child app frame when Stop, rerun or disposal ends that run.
 The server sends one-second heartbeats; a silent channel expires within4.5seconds
 while browser timers/events run. Suspended tabs or blocked browser execution can
 delay teardown. This shell is never added to exported/published files and its
-loopback URL is not shareable publicly. Explicit **Run App Natively (diagnostic)** stays
-available in the Command Palette; browser failures never silently fall back to it.
+loopback URL is not shareable publicly. This preview is separate from normal
+native Run.
 
-Run, Export and Publish share a snapshot validator. It binds Java, resources,
+Export and Publish share a browser snapshot validator. It binds Java, resources,
 pom.xml, Maven wrappers/config, the complete exporter/compatibility profile and
 all output hashes; it verifies ZIP contents against the site and rejects missing,
 changed, additional or stale output. Unchanged successful builds can be reused.
@@ -140,7 +144,7 @@ files or making network calls. Live is the default. First/new-destination publis
 requires review and confirmation. Later explicit Publish actions revalidate and
 update the approved site without another destination dialog.
 
-For a separate export choose **Export for web** from the title menu or Command
+For advanced manual publishing preparation, choose **Export for web** from the title menu or Command
 Palette. After the cancellable build finishes, the sidebar offers **Preview export**,
 **Save ZIP**, and **Share export…**. The managed preview is local; other people cannot use its loopback URL. A
 saved ZIP can instead be uploaded as an HTML game on itch.io. Students choose

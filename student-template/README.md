@@ -3,6 +3,9 @@
 This source is included in Mac setup **0.5.28** with core **0.2.1**.
 Older downloads keep their own bundled instructions and API.
 
+Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
+earlier downloads retain their bundled Run behavior.
+
 This bundled Hello World project is an installation check, not your lesson 0
 repository. Use it to check local setup; create your own tutorial clone for
 [Lesson 0: Hello, world!](lessons/00-hello-world.md). The [lesson guide](lessons/README.md)
@@ -20,16 +23,18 @@ may ask for **Open in New Window**. For an already-cloned Zero folder, choose
 and build/framework setup. Tutorial repositories use New branch, Run App,
 Commit & push and Merge to main, like original coursework projects. Template links
 follow verified publication metadata; unavailable templates show that state.
-Run App checks and compiles your Java locally, then opens Zero’s browser preview.
+Run App compiles your Java locally with the project’s Maven wrapper, then opens
+your app in its own native JavaFX window.
 After editing, click Run App again; Zero saves your files and stops the previous
-preview before rebuilding. The default build shortcut is
+app process before rebuilding. The default build shortcut is
 **Ctrl+Shift+B** on Windows or **Command+Shift+B** on macOS. Autosave runs after 500 ms; Run App also saves your files.
 The Zero sidebar also provides Run App and Stop when its extension is installed.
 The default build task is **Zero: Run App**, owned by the extension so **Stop**
-ends the preview and its audio. For native JavaFX troubleshooting, use
-**Zero: Run Native App (Diagnostic)**. Without the extension, **Tasks: Run Task →
-Run App without Zero** is a native diagnostic; close its window or terminate the
-task before running again. A native run does not check browser compatibility.
+cancels the build or running app process. Closing the app window returns Run to
+idle. Without the extension, **Tasks: Run Task → Run App without Zero** also
+runs native JavaFX; close its window or terminate the task before running again.
+Local Run does not check browser compatibility; Publish app and advanced Export
+for web perform those checks and browser compilation when requested.
 
 ## First setup
 
@@ -84,13 +89,13 @@ and **Check again**. School IT can provide the tools before students start.
    open that folder in VS Code,
    and trust the folder if you trust its source. Keep `zero.json`, `pom.xml`,
    both Maven wrappers, and the `.mvn` folder with it.
-4. Run App. The first run needs internet to download the pinned browser compiler
-   and dependencies into Zero’s local cache; later projects reuse them. You do
+4. Run App. The first run needs internet to download the pinned Maven and JavaFX
+   dependencies; later runs reuse the local cache. You do
    not need Node.js, global Maven or a separate JavaFX installation.
    A school proxy/firewall can block these downloads; ask your teacher rather
    than adding passwords or tokens to project files.
 
-For a native JavaFX diagnostic only, from this folder:
+To run native JavaFX from a terminal in this folder:
 
 ```sh
 # Mac with Apple Silicon
@@ -111,7 +116,7 @@ artifact code do not make those platforms supported in this MVP.
 ## Make something
 
 Use the installed starter's **Run App** once to check setup: it opens a short
-Hello, world! demonstration in the browser preview. Then choose
+Hello, world! demonstration in its own JavaFX window. Then choose
 **Start tutorial → Greeting app** from Zero’s welcome or **…** menu
 to begin [Lesson 0](lessons/00-hello-world.md) with your own empty Main. Write the
 label, then continue lessons 1 and 2 in that same Greeting folder.
@@ -225,7 +230,8 @@ The `examples/` shelf is outside compiled `src/`. For Lessons 0–12, use
 repository from the matching empty template and clone it. Keep the same Greeting, Study or Game
 repository for its following lessons. Students write
 their own controls and classes; lesson 12 offers only optional image/sound assets. Some reference examples use native JavaFX APIs outside the browser subset;
-Run App reports unsupported calls, and the native diagnostic remains available.
+these run natively with Run App. Publish app or Export for web reports unsupported
+browser calls before browser compilation.
 For another example, make a fresh local copy of the starter and copy only that example's
 listed files into the new folder. Open the new folder in VS Code and click
 **Run App**. Optional reference copies are separate from the template-clone
@@ -382,12 +388,12 @@ alone does not verify layout, focus or school-machine restrictions.
 
 Zero maintainers keep the finite framework and example GUI checks in the
 [Zero source repository](https://github.com/codepetca/zero). These contributor tools are separate from this student
-project. Your normal Run App uses Zero’s pinned local browser compiler. If a
+project. Your normal Run App uses the project’s pinned Maven wrapper for JavaFX. If a
 download fails, repair the connection and Run App again. Use **Show Problems**
-for source or unsupported-API errors; a failed build does not start an old build
+for source errors; a failed build does not start an old build
 as a successful new run.
 
-For native diagnostics, pinned dependencies: JavaFX **21.0.12**, Maven **3.9.11**,
+Pinned native build dependencies: JavaFX **21.0.12**, Maven **3.9.11**,
 official Apache Maven Wrapper **3.3.4** (only-script), JavaFX Maven plugin **0.0.8**, compiler plugin
 **3.14.0**. The wrapper verifies the Maven distribution's SHA-256. Maven's normal
 local dependency cache is used; no account credentials are required.
