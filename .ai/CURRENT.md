@@ -1,12 +1,34 @@
-# Native Run release — Mac 0.5.27
+# Files dropdown — Mac 0.5.28 publication in progress
 
-The owner authorized merge and publication on 2026-10-20. Source [PR130](https://github.com/codepetca/zero/pull/130) merged as `64998626d83a6db32567289b3948c7e602592db0` after independent review and all five exact-head CI checks. Run App, its sidebar control and the configured run task now launch native JavaFX. Publish app and advanced Export for web retain browser compilation and compatibility checks. Setup help and stale browser-export recovery text follow these paths.
+Owner authorized publication on 2026-10-20. Worktree files-create-actions,
+branch codex/files-menu-create, source PR131. Native Run dependency PR130 merged;
+its separately owned Mac0.5.27 release/metadata promotion must finish before28.
+No account/credential changes or student profile changes are authorized/needed.
 
-The signed, notarized and stapled Mac installer is public: https://github.com/codepetca/zero/releases/download/setup-v0.5.27/Zero-0.5.27-macos.dmg
-Its 4,585,729 bytes match the sealed candidate SHA-256 `c9ce6778e6b86c77eced4cc8c86e5c281c4dbc55636f1bd586d445e81995227f`. Website and update-feed promotion are the current change; final review, CI, merge and live checks remain pending in this commit. The final ignored completion receipt records their outcome. Windows 0.5.21, its manual ZIP, the published general kit 0.5.17 and prior immutable releases retain their versions.
+Files opens an anchored dropdown directly below the sidebar heading: New class,
+New file, New folder, New asset. Native name/location prompts and project/trust,
+collision, portable-name and symlink guards preserve existing work. Keyboard and
+outside dismissal verified in an isolated Mac extension host, light/dark/210px.
 
-Source and candidate reviews passed after two recovery-text findings were fixed in one batch. The bundled guide was corrected before packaging clean source `75ce9c39`. Main PR129's navigation/feedback changes were integrated and independently reviewed at `ebf9a448`; all 41 protected paths remain equivalent to the built source. The original sealed candidate `mac-0.5.27-17ba04810277` and draft provenance were reused unchanged.
+Final signed build28 source52b214dc; protected payload unchanged through97236e7e.
+Apple accepted notarization f2f3398f-feca-44f4-a025-5d3be11f98b6. Stapled DMG:
+4584898 bytes, SHA256 3cbcd7ba7c7f68951574a4a4cd2d0c20053fd326773709d06a00156449dd973f.
+Measured local manifest committed; signed feed/candidate sealed at c407c63f.
+Incoming27 public metadata integrated fromPR132/c057ecb6; promotion27 must
+complete first. Remaining:
+independent candidate review, exact-head CI, source merge, verified release and
+separate metadata PR/deployment remain required. Do not distribute superseded27
+or f24-based28 artifacts retained in ignored verification evidence.
 
-Validation: 161 affected tests passed with one Windows runtime skip; 35 focused website/doc-render checks and root checks passed. Integration added 54 passing website tests and a typecheck. The broad local suite was interrupted under severe host load; full release tests and required browser checks instead passed in exact-head GitHub CI. Actual isolated Mac VS Code testing covered sidebar Run, Stop, syntax errors in Problems, and a successful finite JavaFX process returning to idle. Native window appearance and OS close, fresh-machine setup, physical Windows and live GitHub acceptance remain manual coverage. No speed benchmark is claimed; native Run skips GWT by routing.
+Validation: npm check; combined153 tests; prior full816pass/3platformskips;
+website typecheck/157tests/build; signed payload/kit checks. Independent Files,
+integration, naming and README remediation reviews clean. Incoming website129
+merge reviewed separately; no protected payload changes. Windows/Intel/fresh-
+machine/screen-reader acceptance unverified. Receipt root:
+.verification/files-create/publication; local UI screens in ../dropdown.
 
-Detailed review, build, signature, notarization, draft/public download and UI receipts are in ignored `.verification/native-run/receipts`. Preserve these and the sealed candidate under the primary checkout's `.verification/native-run-0.5.27` before retiring the owned worktree. The isolated QA app/profile/project were removed. Student projects, credentials and unrelated primary-checkout work are preserved. No tool-backed goal, separate task or automation was created.
+Orchestrate applied with Sol/medium read-only review workers; DeepSeek pause
+honored. Weekly77%remaining and272GBfree at start of publication build. Effective
+worker token use/savings unknown. Rework: reserve28 for concurrent27; correct two
+bundled README labels and rebuild before final notarization. Preserve ignored
+candidate/receipts before retiring worktree; primary dirty funding checkout intact.

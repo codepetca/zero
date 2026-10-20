@@ -350,7 +350,12 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. **Add assets…** sits beside **Files**, with **Copy asset paths** after import.
+  overflow; Copy repository link lives in the repository menu. **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
+  **New folder…**, **New asset…** and **Copy asset paths** after import. New class
+  creates an ordinary public class beside Main; files/folders choose Java source,
+  Resources or Project files using native prompts. Relative names can create
+  subfolders. Existing entries are preserved, cancellation makes no changes, and
+  creation refreshes Files and opens new files in the normal editor.
   **Review or restore changes…** in the project menu opens the existing native
   review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.

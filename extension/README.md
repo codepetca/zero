@@ -1,6 +1,6 @@
 # Zero extension
 
-Zero **0.5.27** uses core **0.2.1**. Each published download retains its
+Zero **0.5.28** uses core **0.2.1**. Each published download retains its
 bundled extension version and behavior.
 
 Run App opens a native JavaFX window. Mac 0.5.26 and other earlier downloads
@@ -17,7 +17,7 @@ for native account controls. Tutorials
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.5.27.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.5.28.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
@@ -58,9 +58,9 @@ alias for native Run. Windows native tasks
 use the task shell with strong wrapper-path quoting; other platforms use a
 process task. Physical Windows/Linux behavior remains unverified.
 
-**Add assets…**, beside **Files**, copies selected images/audio into `src/main/resources`, preserving
+**New asset…**, in the **Files ▾** dropdown, copies selected images/audio into `src/main/resources`, preserving
 originals and existing assets with **Keep both** or **Skip existing**. Copy resource
-string literals with **Copy asset paths** beside it. **Project menu → Review or
+string literals with **Copy asset paths** in the same menu. **Project menu → Review or
 restore changes…** opens native changes or
 previews an earlier tracked file version as an undoable edit. Save/test and Commit
 & push a correction; history is preserved. VS Code's auto-save preference applies.
@@ -239,3 +239,14 @@ Library authors use **Extract library** inside their existing game repository, t
 ## Setup checklist
 
 **Zero: Setup Help** checks the host-process JDK/compiler, project files, current-profile Java extensions and optional Git. Relevant terminal environment overrides leave Run readiness unverified; setup preserves those settings and explains what needs review. Choose a missing extension to install it through VS Code; Java/Git repair opens official installer guidance. Check again after repair, or Run first app to build and confirm the native JavaFX window. No installation or account changes occur just by opening the checklist.
+
+## Create files from the sidebar
+
+Clicking **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
+**New folder…**, **New asset…** and **Copy asset paths** after import. A class-name prompt creates and opens an ordinary public Java
+class in `src/main/java`. File/folder actions use native Java source, Resources
+or Project files location choices, then a relative name (with `/` for nested
+folders). Files open in the normal editor; folders appear in the refreshed tree.
+Cancellation makes no changes. Names are portable across Mac/Windows, existing
+entries are never replaced, and project/trust/symlink checks precede writes.
+These local actions work without GitHub sign-in and share the busy-state guard.

@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.27",
+  "version": "0.5.28",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -220,8 +220,20 @@
         "title": "Zero: Show Output"
       },
       {
+        "command": "zero.newClass",
+        "title": "Zero: New class\u2026"
+      },
+      {
+        "command": "zero.newFile",
+        "title": "Zero: New file\u2026"
+      },
+      {
+        "command": "zero.newFolder",
+        "title": "Zero: New folder\u2026"
+      },
+      {
         "command": "zero.importAssets",
-        "title": "Zero: Add assets\u2026"
+        "title": "Zero: New asset\u2026"
       },
       {
         "command": "zero.copyImportedAssetPaths",

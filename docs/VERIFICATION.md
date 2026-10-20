@@ -1,5 +1,30 @@
 # Verification
 
+## Anchored Files dropdown — local, 2026-10-20
+
+Sourcef4f27eb8 supersedes the original Files picker with a dropdown directly
+beneath Files. Finalcheck/94focused/whitespace pass. Actual Mac light/dark and
+210px sidebar verify anchoring, keyboard/Escape/Tab, outside dismissal and class
+creation. Independent Sol/medium complete12-file delta review clean; previous
+filesystem review reused. Windows/screen-reader acceptance unverified. Screens,
+logs and review receipt: ignored `.verification/files-create/dropdown/`.
+See [delivery evidence](EVIDENCE.md). Local source only; no installed-app update.
+
+## Files creation menu — local source, 2026-10-20
+
+Reviewed source22200b3: final `npm run check`,45focused tests, separate24
+upload-auth tests, generated-class javac compilation and whitespace checks pass.
+Actual isolated Mac extension host: Files picker light/dark; new class opens;
+nested Resources file/folder creation and refresh; duplicate-class inline error;
+Escape cancellation. Physical Windows and assistive technology remain unverified.
+Initial full suite:785pass/6fail/3platformskips. Two stale assertions pass after
+correction in45; a UI wait timeout passes in the separate24. Three missing-fflate
+packaging files pass23/23 after reusing the existing pinned0.8.3 dependencies.
+All initial failures have passing targeted reruns; the full suite was not repeated.
+Detailed logs remain ignored under `.verification/files-create/`.
+See [delivery evidence](EVIDENCE.md#files-creation-menu--local-source-2026-10-20)
+for source/review/authority and test receipts. No release or installed-app update.
+
 ## Project card icons — 2026-10-20
 
 Availability uses circled-check/warning/question-mark icons with a local date and

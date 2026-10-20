@@ -1,5 +1,76 @@
 # Delivery evidence index
 
+## New asset label — local, 2026-10-20
+
+Owner renamed the Files action to **New asset…**. Source203922ce updates the
+sidebar/command, picker title/import button and current documentation, preserving
+import behavior and guards. Syntax, whitespace and34affected tests pass.
+Sol/medium files_menu_review/3 inspected the complete8-file delta from35ad30b7:
+zero actionable issues; prior behavior reviews reused. No native/full-suite rerun
+for this text-only correction. No publication or installed-app update.
+
+## Anchored Files dropdown correction — local, 2026-10-20
+
+Owner clarified that Files must open its menu directly below the sidebar label.
+Source `f4f27eb8e71ad79dccebc1428276e46ac098ca32` replaces the native Files picker
+with a compact host-themed dropdown beneath Files. Native name/location prompts
+and the previously reviewed filesystem operations remain unchanged. Pointer,
+arrow/Home/End keys, Escape, Tab, outside focus/click, busy updates and file resets
+have explicit menu/focus handling. New menu/client regression tests cover them.
+
+`npm run check`,94 focused creation/sidebar/assets/onboarding/design tests and
+whitespace checks pass. Actual isolated Mac host verifies light/dark,210px
+sidebar fit, arrow selection, Escape to Files, Tab to Main, outside click to the
+editor, and keyboard New class → Enemy.java created/opened. Screenshots/logs:
+ignored `.verification/files-create/dropdown/`. Disposable app/profile removed;
+installed Zero and student projects unchanged. Windows/screen-reader acceptance
+remain unverified. No second full-suite run for this bounded presentation delta.
+
+Independent GPT-6.1 Sol/medium `files_menu_review/2` inspected complete12-file
+delta694421f1→f4f27eb8 plus narrow dark render: zero actionable blockers. Prior
+filesystem review retained. Total2review turns,1initial/1targeted wave,1correction
+batch; effective model, elapsed and tokens unknown. Weekly78% remaining, healthy
+280GB at follow-up start; no new source conflicts, task or automation. Local
+branch `codex/files-menu-create` retained; no push, PR, merge, release or deploy.
+
+## Files creation menu — local source, 2026-10-20
+
+Owner requested file creation without Explorer, then specified clicking Files
+opens the choices. **Files ▾** now opens a native picker for New class, New file,
+New folder, Add assets and Copy asset paths after import. Classes are ordinary
+public Java beside Main; files/folders choose Java source, Resources or Project
+files and support relative subfolders. Existing entries are preserved; trust,
+root drift, portable names, traversal and symlinks are checked before writing.
+New files open normally and the tree refreshes. Local actions need no sign-in.
+
+Implementation `22200b3898cc356784926d655b68836a01515f23` on
+`codex/files-menu-create`, based on `a0a11e8763d6889ff53a7ca46868b2eeedae068d`.
+Independent GPT-6.1 Sol/medium `files_menu_review/1` read the complete 12-file diff
+and immediate callers: zero actionable findings, one launch/initial wave, zero
+remediation waves/fix batches. Effective configuration, elapsed seconds, tokens
+and task-attributable usage unavailable. Weekly80% remaining at start; storage
+healthy280GB fresh. DeepSeek pause honored; no conflicts with the older dirty
+funding checkout. Native test-window startup retries resolved in a disposable
+profile/app clone; screenshots/logs retained, temporary clone/profile removed.
+
+Final source checks and 45 focused creation/sidebar/assets/integration/playground
+tests pass; separate upload-auth24 pass and generated Player.java compiles with
+javac. Actual isolated Mac extension host verifies light/dark Files menu, native
+class creation/opening, nested Resources folder/file creation and tree refresh,
+inline duplicate-class refusal and Escape cancellation. Physical Windows and
+assistive technology are unverified. The initial full run (started before the final test-fixture corrections) ended
+785pass/6fail/3platformskips. Two stale layout assertions were corrected and
+pass in45; one GitHub UI wait timeout passes in the separate24. Three packaging
+test files could not import the absent worktree dependency fflate; reusing the
+existing pinned0.8.3 development dependencies gives23/23pass. Every initial
+failure is covered by a passing targeted rerun; no second full-run claim.
+Full/focused/packaging logs remain ignored in `.verification/files-create/`.
+
+No push, PR, merge, release, installed-profile update, deployment or account change.
+The active managed worktree retains the local implementation and review evidence
+for an owner-authorized publication/release follow-up. Detailed evidence and
+review receipt: ignored `.verification/files-create/`.
+
 ## Transparent dark website logo — 2026-10-20
 
 Owner corrected the published dark title: use the shared dark accent `#b19aff`

@@ -40,8 +40,12 @@ button.upload[aria-busy="true"] { opacity:.85; }
 .files-section { border-top:1px solid var(--vscode-panel-border,var(--zero-border)); margin-top:10px; padding-top:8px; }
 .files-header { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
 .files-header h2 { margin:0; }
-.file-actions { display:flex; flex:1; min-width:0; flex-wrap:wrap; justify-content:flex-end; column-gap:8px; }
+.file-actions { position:relative; flex:1; min-width:0; }
 .file-actions button.link { width:auto; max-width:100%; overflow-wrap:anywhere; }
+.files-menu[aria-expanded="true"] > svg { transform:rotate(180deg); }
+.files-dropdown { position:absolute; top:100%; left:0; z-index:10; width:200px; max-width:100%; padding:4px; border:1px solid var(--vscode-menu-border,var(--zero-border)); border-radius:3px; background:var(--vscode-menu-background,var(--zero-surface)); color:var(--vscode-menu-foreground,var(--zero-text)); box-shadow:0 2px 8px var(--vscode-widget-shadow,transparent); }
+.files-dropdown button { justify-content:flex-start; text-align:left; padding:5px 8px; min-height:28px; border-color:transparent; background:transparent; color:inherit; }
+.files-dropdown button:hover,.files-dropdown button:focus-visible { background:var(--vscode-menu-selectionBackground,var(--zero-accent)); color:var(--vscode-menu-selectionForeground,var(--zero-on-accent)); }
 h2 { font:inherit; font-weight:500; color:var(--zero-muted); margin:0 0 4px; }
 .file-row { display:flex; align-items:center; gap:6px; padding:3px 3px 3px calc(3px + var(--depth,0)*12px); min-height:26px; cursor:pointer; overflow-wrap:anywhere; }
 .file-row:hover { background:var(--vscode-list-hoverBackground,var(--zero-surface)); color:var(--vscode-list-hoverForeground,var(--zero-text)); }
@@ -52,4 +56,4 @@ h2 { font:inherit; font-weight:500; color:var(--zero-muted); margin:0 0 4px; }
 .file-row[aria-expanded="false"] .file-disclosure { transform:rotate(-90deg); }
 body.vscode-high-contrast button,body.vscode-high-contrast-light button { border:1px solid var(--zero-border); }
 @media(max-width:220px) { .row,.branch-row { flex-direction:column; align-items:stretch; } .branch-row { gap:2px; } }
-@media(forced-colors:active) { button,button.secondary,button.link,button.account,button.repo-choice { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } .files-section { border-color:CanvasText; } .file-row:focus-visible { outline:1px solid Highlight; } }
+@media(forced-colors:active) { button,button.secondary,button.link,button.account,button.repo-choice { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } .files-section { border-color:CanvasText; } .file-row:focus-visible { outline:1px solid Highlight; } .files-dropdown { background:Canvas; color:CanvasText; border-color:CanvasText; } .files-dropdown button { background:Canvas; color:CanvasText; } .files-dropdown button:focus-visible,.files-dropdown button:hover { background:Highlight; color:HighlightText; } }

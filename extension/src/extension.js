@@ -28,6 +28,7 @@ const {createBrowserRunCommands} = require('./web-run-ui');
 const {createTutorialReader} = require('./tutorial-reader');
 const {createWebPublishCommands} = require('./web-publish-ui');
 const {createAssetCommands} = require('./assets');
+const {createFileCommands} = require('./file-actions');
 const {createRecoveryCommands} = require('./recovery');
 const {sidebarStyles} = require('./sidebar-style');
 const {createSidebarFiles} = require('./sidebar-files');
@@ -681,6 +682,9 @@ function activate(context, services = {}) {
     try {return await action();} finally {componentBusy=true;refresh();}
   };
   const assets=createAssetCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
+  const fileCreation=createFileCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:()=>view?.webview.postMessage?.({type:'files.reset'})});
+  Object.assign(actions,fileCreation.commands);
+  context.subscriptions.push(fileCreation);
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,assets.commands,recovery.commands);
   context.subscriptions.push(assets,recovery);
@@ -723,7 +727,7 @@ function activate(context, services = {}) {
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const githubPanel = !ready ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
-    const fileActions=projectRoot ? `<button class="link" data-command="zero.importAssets" ${disabled}>Add assets…</button>${assets.canCopyPaths()?`<button class="link" data-command="zero.copyImportedAssetPaths" ${disabled}>Copy asset paths</button>`:''}` : '';
+    const fileActions=projectRoot ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>Files${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '<h2 id="files-heading">Files</h2>';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const setupCheck = projectRoot && isSetupProject(projectRoot);
     const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : setupCheck ? 'Run test' : 'Run';
@@ -737,7 +741,7 @@ function activate(context, services = {}) {
       void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;
     }
     renderedWebview = webview;
-    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><section class="files-section" aria-labelledby="files-heading"><div class="files-header"><h2 id="files-heading">Files</h2><div id="file-actions" class="file-actions">${fileActions}</div></div><div id="files" role="tree" aria-label="Project files" data-chevron-icon="${escape(icon('ChevronDown'))}" data-folder-icon="${escape(icon('Folder'))}" data-file-icon="${escape(icon('File'))}"></div><p id="file-status" class="muted status" role="status" aria-live="polite"></p></section><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
+    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><section class="files-section" aria-labelledby="files-heading"><div class="files-header"><div id="file-actions" class="file-actions">${fileActions}</div></div><div id="files" role="tree" aria-label="Project files" data-chevron-icon="${escape(icon('ChevronDown'))}" data-folder-icon="${escape(icon('Folder'))}" data-file-icon="${escape(icon('File'))}"></div><p id="file-status" class="muted status" role="status" aria-live="polite"></p></section><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
   }
   const files = createSidebarFiles({project,open:filename=>vscode.commands.executeCommand('vscode.open',vscode.Uri.file(filename))});
   const fileMessage = createSidebarBridge({files,isEmpty:()=>!(vscode.workspace.workspaceFolders || []).length,isCurrent:webview=>!disposed && view?.webview === webview,report:error=>output.appendLine(`Files: ${error.message}`)});

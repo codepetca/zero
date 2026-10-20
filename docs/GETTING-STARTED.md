@@ -1,6 +1,6 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.27, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.28, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
@@ -32,7 +32,7 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
 
 ## Start here
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.27
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.28
    opens the Zero sidebar with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
@@ -131,7 +131,7 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.27 uses the familiar drag-to-Applications flow and sidebar-guided
+Mac setup 0.5.28 uses the familiar drag-to-Applications flow and sidebar-guided
 GitHub setup. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -238,7 +238,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.27, **Start tutorial** from the ready sidebar or **…** menu
+In Mac 0.5.28, **Start tutorial** from the ready sidebar or **…** menu
 checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a

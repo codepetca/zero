@@ -72,12 +72,12 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.doesNotMatch(ready,/<header class="sidebar-brand"|<h1>Zero<\/h1>/,'Keep the current panel height; branding stays in the activity bar');
   const hub=ready.match(/<button[^>]*data-command="zero.browseZeroHub"[^>]*>[\s\S]*?<\/button>/)[0];
   assert.ok(hub.endsWith('>ZeroHub</button>'));assert.doesNotMatch(hub,/<svg/);
-  assert.match(ready,/data-command="zero.importAssets"[^>]*>Add assets…<\/button>/);
+  assert.match(ready,/id="files-menu-button"[^>]*>Files[\s\S]*?<\/button>/);
   assert.doesNotMatch(ready,/data-command="zero.recovery"/);
-  assert.match(ready,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
+  assert.match(ready,/<div class="files-header">[\s\S]*id="files-menu-button"/);
   assert.doesNotMatch(ready,/data-command="zero.copyImportedAssetPaths"/);
   const empty = sidebarSource('empty');
-  assert.doesNotMatch(empty,/data-command="zero.importAssets"|data-command="zero.recovery"/);
+  assert.doesNotMatch(empty,/id="files-menu-button"|data-command="zero.recovery"/);
   assert.doesNotMatch(ready,/class="run"[^>]*disabled/);
   assert.doesNotMatch(ready,/Show Problems/);
   const error = sidebarSource('error');
@@ -85,7 +85,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(error,/zero.showProblems/);
   const practice = sidebarSource('practice');
   assert.match(practice,/zero.browseZeroHub/);
-  assert.match(practice,/data-command="zero.importAssets"/);
+  assert.match(practice,/id="files-menu-button"/);
   assert.doesNotMatch(practice,/data-command="zero.recovery"/);
   assert.match(practice,/>Sign in to GitHub<\/button>/);
   assert.doesNotMatch(practice,/data-command="zero.chooseRepository"/);
