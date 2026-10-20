@@ -13,7 +13,7 @@ to GitHub. Browser publication and ZeroHub contributions extend that learning;
 they are optional for completing the lessons. Keep ordinary Java and explicit
 object updates central as setup, publishing and community features grow.
 
-Current delivery, checked 2026-10-20: Mac 0.5.25 ships sidebar-guided sign-in,
+Current delivery, checked 2026-10-20: Mac 0.5.26 ships sidebar-guided sign-in,
 GitHub setup and the browser-run/GitHub App source. Windows remains the unsigned 0.5.21
 preview and matching manual ZIP, with updates disabled and physical acceptance
 pending. The general manual kit fallback remains 0.5.17. Source availability,
@@ -44,11 +44,11 @@ centered full-viewport layout. The old `/get-started` address redirects to Downl
 Browsing, learning and playing require no GitHub sign-in. Current desktop
 source uses one public Codepet-owned GitHub App for development and optional
 ZeroHub stars. Codepet Zero is registered under `codepetca`, and its public App
-IDs are pinned in source. Mac 0.5.25 includes this source; remaining live-provider
+IDs are pinned in source. Mac 0.5.26 includes this source; remaining live-provider
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
-Mac 0.5.25 uses a minimal sidebar that guides students
+Mac 0.5.26 uses a minimal sidebar that guides students
 through **Sign in to GitHub** → **Install Zero for GitHub** → **Start tutorial**.
 Sign-in and credential storage remain unchanged: the supported `zero-github`
 provider stores expiring user/refresh tokens in VS Code SecretStorage; GitHub
@@ -161,10 +161,11 @@ then reuses unchanged ScoreDisplay in the study app and coin game.
 welcome/result/countdown helpers. Existing published kits keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,
 Study Quiz or Coin Game. The large lesson title appears directly below that
-heading, followed by a clearly tinted Summary card (stronger in dark mode) containing numbered actions,
-Done checkpoint and always-visible target illustration. Steps and image sit beside each other inside the card on desktop
-and stack on narrow screens. The redundant short description is omitted. Each
-lesson ends its final code/explanation section with a short encouraging message. Optional
+heading, followed by the target illustration and full numbered editing/running
+instructions with copyable code. There is no short three-step Summary, Done
+checkpoint, or Code and explanation heading/disclosure. Main instructions stay
+visible; completed comparison references remain optional disclosures in the editor.
+Each lesson ends with a short encouraging message. Optional
 composed-study/composed-game examples now demonstrate the same ordinary StartScreen
 and Hud classes in both app types. These are source examples, not core APIs or
 ZeroHub releases. Pause remains planned. Maintained bundles now live in `libraries/`, with real JAR consumers; see [the local package proof](STARTER-UI-PACKAGE.md).
@@ -220,7 +221,7 @@ account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approve
 commit identity. Repositories created through Zero are public, including their
 source and included files; students should keep secrets and private material out.
 Existing or GitHub-created repositories may retain their visibility, with teacher
-collaborator access where needed. Public game publishing remains optional. In Mac 0.5.25, the empty sidebar makes **Start tutorial** primary, with
+collaborator access where needed. Public game publishing remains optional. In Mac 0.5.26, the empty sidebar makes **Start tutorial** primary, with
 **New project…** as the secondary choice to skip the tutorial and create original
 work. The **…** menu also opens **Tutorials** for existing projects. The action
 selects the matching verified tutorial scaffold. The flow collects a repository
@@ -367,7 +368,8 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   once when the editor is empty. Tutorials in the view menu or Command Palette
   reopens it; ordinary older-kit Markdown guides remain supported. All13 lessons,
   illustrations, code and linked Java references are bundled for offline reading.
-  Its concise tasks stay visible; full code/explanations are optional disclosures.
+  Its numbered instructions and code stay visible; only completed code references
+  use optional disclosures.
   The tab retains the selected lesson, scroll and disclosures per project. It
   supports native floating windows and moves back into editor groups. Open in
   browser opens the current canonical lesson on the website; website navigation
@@ -404,7 +406,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   Command Palette. Existing0.5.14 needs one manual replacement to gain updating;
   school policies may still require administrator approval. A loaded extension
   may require a student-chosen editor reload; no forced reload is performed.
-  Signed/notarized Mac0.5.25 is published; Windows0.5.21 is a published unsigned
+  Signed/notarized Mac0.5.26 is published; Windows0.5.21 is a published unsigned
   preview with automatic updates disabled. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while
@@ -582,7 +584,7 @@ pins. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
 
 ## Tutorial-first installation — 2026-10-19
 
-Mac 0.5.25 opens the Zero sidebar in an empty editor window with the sequence
+Mac 0.5.26 opens the Zero sidebar in an empty editor window with the sequence
 Sign in to GitHub → Install Zero for GitHub → Start tutorial. A saved session is
 checked read-only on launch. The clone opens Main beside Tutorials. Existing
 student sessions resume normally. The completed bundled Hello World project is

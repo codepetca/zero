@@ -6,11 +6,7 @@
 
 Target illustration: question 1 answered correctly after one wrong try.
 
-1. Open the **same Study project** from lessons 3–6. Keep its `Counter.java` and `Main.java`.
-2. Add a `Question` class and a small array of questions. Add Next, Restart and score controls to Main.
-3. Click **Run App**. Try a wrong answer, then a right answer; finish the three questions and restart.
-
-**Done:** A wrong answer allows retry. Each question adds at most one point; Next reaches the next question or completion; Restart returns to question 1 with score and attempts at zero.
+Open the **same Study project** from lessons 3–6. Keep its `Counter.java` and `Main.java`.
 
 ## 1. Give each question its own data
 
@@ -65,11 +61,15 @@ The array stores three ordinary Question objects. `questionIndex` selects one.
 `points` stays in Main because Main owns the quiz rules. `answered` stops a
 second point for the same question; `finished` stops checking after completion.
 
+## 3. Create the question label in `setup()`
+
 In `setup()`, change the old local `Label question` to the field:
 
 ```java
 questionLabel = new Label();
 ```
+
+## 4. Create Next, Restart and score controls
 
 Change the old local `Button check` to `check = new Button("Check");`.
 Replace the old Reset button with two fields, and create a score label:
@@ -79,6 +79,8 @@ next = new Button("Next");
 restart = new Button("Restart");
 scoreLabel = new Label();
 ```
+
+## 5. Connect the actions and replace the layout
 
 Keep your `answer`, `feedback` and `attemptsLabel` creation lines. Replace
 the old Reset action and layout with these lines. Put `showQuestion()` and
@@ -97,7 +99,7 @@ refreshStats();
 There should be one `check.setOnAction(...)` line. Remove the old
 `reset.setOnAction(...)` and old `show(...)` line.
 
-## 3. Check once, then move forward
+## 6. Check once, then move forward
 
 Replace the old `checkAnswer()` method with this version. It still counts each
 try through your Counter from lesson 6:
@@ -118,6 +120,8 @@ private void checkAnswer() {
     refreshStats();
 }
 ```
+
+## 7. Add methods to advance and show questions
 
 Add these methods below it, still inside Main:
 
@@ -154,7 +158,7 @@ At the last question, Next shows the completion message. At any new question,
 new answer is correct. The controls are reused; Main does not call `setup()`
 again.
 
-## 4. Restart and test the whole session
+## 8. Add methods to restart and refresh stats
 
 Replace the old `resetQuiz()` with `restartSession()` and add `refreshStats()`:
 
@@ -175,7 +179,9 @@ private void refreshStats() {
 }
 ```
 
-Try `4`, then `5`: feedback changes, Attempts is 2, Score is 1, and Check is
+## 9. Run App and test the whole session
+
+Click **Run App**. Try `4`, then `5`: feedback changes, Attempts is 2, Score is 1, and Check is
 disabled. Click Next and answer `1`, then Next and answer ` TRUE `, then Next.
 The end says **Finished! Score: 3 / 3**. Restart; expect question 1, empty
 input, Attempts 0, Score 0 and disabled Next. After a correct

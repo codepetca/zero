@@ -39,8 +39,9 @@ context. Avoid mandatory inheritance and automatic discovery.
 
 ## Visual quick paths and composed views
 
-Every lesson now starts with an authored target illustration, three actions and
-one observable checkpoint. Detailed code/explanation remains below. Later lessons
+Every lesson shows an authored target illustration followed by full numbered
+editing and testing instructions with copyable code. No duplicate three-action
+summary or Done checkpoint precedes the detailed sequence. Later lessons
 start with one runnable stage; the whole study app or platformer is not advertised
 as a short task. These are teaching illustrations, not runtime screenshots; no
 novice completion times have been measured. Hosted quick paths stay visible before

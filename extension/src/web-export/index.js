@@ -529,7 +529,7 @@ async function exportForWeb(options = {}) {
     compatibility.mavenDistribution = mavenDistribution;
     verifyArtifactInventory(await artifactInventory(path.join(cacheRoot, 'repository')));
     onProgress(
-      'Compiling Java for the browser. The first export downloads the compiler.'
+      'Compiling Java for the browser.'
     );
     const result = await runMaven({
       wrapper: frozenWrapper,

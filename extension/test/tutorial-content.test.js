@@ -18,20 +18,30 @@ test('all thirteen offline lessons preserve canonical bodies, titles, illustrati
   for (const lesson of bundle.lessons) {
     assert.equal(lesson.markdown,fs.readFileSync(path.join(root,lesson.source),'utf8'));
     assert.equal(fs.readFileSync(path.join(root,'extension/media/tutorial-assets',lesson.asset),'utf8'),fs.readFileSync(path.join(root,'student-template/lessons/visuals',lesson.asset),'utf8'));
-    assert.match(lesson.markdown,/\*\*Done:/);
+    assert.doesNotMatch(lesson.markdown,/\*\*Done:|Code and explanation/);
+    const steps = [...lesson.markdown.matchAll(/^## (\d+)\. /gm)].map(match=>Number(match[1]));
+    assert.deepEqual(steps,steps.map((_,index)=>index+1));
+    assert.ok(steps.length >= 2);
     for (const [name,text] of Object.entries(lesson.references)) assert.equal(text,fs.readFileSync(path.join(root,name),'utf8'));
     for (const match of lesson.markdown.matchAll(/(?<!!)\[[^\]]*\]\(([^)]+)\)/g)) assert.ok(resolveLink(lesson,match[1],bundle),`${lesson.id}: unresolved ${match[1]}`);
   }
   const {prepareTutorials} = await import(pathToFileURL(path.join(root,'scripts/prepare-tutorials.mjs')));
   assert.doesNotThrow(() => prepareTutorials({check:true}));
 });
-test('rendered lesson preserves task, checkpoint, code and optional curriculum without active markdown HTML', async () => {
+test('rendered lessons show numbered code actions directly and keep comparison references optional', async () => {
   const bundle = await prepared();
   const result = renderLessons(bundle,{assetUri:name => `webview://asset/${name}`});
   assert.equal((result.articles.match(/<article /g) || []).length,13);
   assert.match(result.articles,/What is 2 \+ 3/);
-  assert.match(result.articles,/Optional stage 5: endings and Restart/);
-  assert.match(result.articles,/Code and explanation/);
+  assert.match(result.articles,/Optional stage 5: add endings and Restart/);
+  assert.doesNotMatch(result.articles,/Code and explanation|Done:|class="quick-path"|class="explanation"/);
+  for (const lesson of bundle.lessons) {
+    const article = result.articles.split(`data-lesson-id="${lesson.id}"`)[1].split('</article>')[0];
+    const body = article.split('<div class="lesson-content">')[1].split('<section class="references"')[0];
+    assert.doesNotMatch(body,/<details|<summary/);
+    assert.match(body,/<h2>1\. /);
+    for (const match of lesson.markdown.matchAll(/^```[^\n]*\n([\s\S]*?)^```/gm)) assert.ok([...result.copies.values()].includes(match[1].replace(/\n$/,'')),`Lesson ${lesson.id} exact code copy`);
+  }
   assert.match(result.articles,/Compare your code/);
   assert.match(result.navigation,/<optgroup label="Study quiz">/);
   const exact = bundle.lessons[3].references['teaching/checkpoints/3/Main.java'];
