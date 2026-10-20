@@ -42,3 +42,8 @@ Weekly78%remaining; storage276GBhealthy. DeepSeek pause honored. One docsworker,
 coordinator implementation, independent source reviewer next; effective model/
 tokens/savings unknown. Primary dirty funding checkout preserved. No toolgoal,
 separate task or automation. Keep owned worktree/ignored QA receipts until decision.
+
+Packaging audit before sealing corrected bundled START-HERE nativeRun/setup/
+firstdeps/browser-publishing text and extension/studentREADME27labels; first
+unnotarized build cancelled, no bytes uploaded/sealed. Repackage/rebuild from
+this clean source. Include this documentation+version delta in candidate review.

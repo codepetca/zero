@@ -1,11 +1,10 @@
 # My Zero App
 
-This source is included in Mac setup **0.5.23** with core **0.2.1**.
+This source is included in Mac setup **0.5.27** with core **0.2.1**.
 Older downloads keep their own bundled instructions and API.
 
-Current source changes Run App to a native JavaFX window. This change is
-unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
-their bundled behavior.
+Zero 0.5.27 uses a native JavaFX window for Run App. Mac 0.5.26 and other
+earlier downloads retain their bundled Run behavior.
 
 This bundled Hello World project is an installation check, not your lesson 0
 repository. Use it to check local setup; create your own tutorial clone for

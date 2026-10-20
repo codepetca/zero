@@ -68,7 +68,7 @@ with a progress bar below the text while it prepares Java, editor settings and e
 Zero then opens its configured VS Code editor with the setup sidebar. Follow
 the tutorial flow above. Setup help → Test installation is an optional completed
 Hello World check in a separate window marked Installation test; choose Run test
-there to verify the browser preview without a GitHub account.
+there to verify the native JavaFX window without a GitHub account.
 
 After copying Zero into Applications, you can eject the DMG. Later, open **Zero**
 again from Applications or the Dock to return to your saved Zero editor session.
@@ -94,9 +94,9 @@ teacher or IT. Follow the setup prompts about choosing/importing a VS Code profi
 Inside VS Code, choose **Zero: Setup Help**, or **Setup help** in the sidebar.
 The checklist explains what is ready, offers extension installation and official
 Java/Git installer links, and has **Check again**, **Run current app**, and **Test installation** actions.
-Run current app downloads compiler dependencies as needed. Test installation
+Run current app downloads Maven and JavaFX dependencies as needed. Test installation
 opens the separate completed Hello World check; choose Run test and confirm
-its browser preview. A passed tool check alone does not prove the app runs.
+its JavaFX window. A passed tool check alone does not prove the app runs.
 
 You can use the manual steps below instead. The ordinary first-app tool check
 needs no GitHub account. Complete the account/privacy setup above before tutorial
@@ -105,7 +105,7 @@ lesson 0, then create and clone your own tutorial repository.
 ## Manual setup
 
 1. Install a supported **JDK 17+** and **VS Code**. Your first build needs internet
-   for the pinned browser compiler and dependencies, cached locally for reuse.
+   for Maven and JavaFX dependencies, cached locally for reuse.
    Students do not need Node.js or global Maven.
 2. Optionally import **optional/Zero.code-profile** through VS Code Profiles
    **before installing extensions**. In your chosen profile, use the Command
@@ -131,17 +131,17 @@ file contains F6/F7 shortcuts you can add yourself.
 Tutorial projects open Main beside Tutorials. Other student projects can open
 the first lesson once when their editor is empty; the installation test does not.
 Use **Zero: Open First Lesson** in the Command Palette to reopen it. A failed
-Zero run offers **Show Problems** to reach source errors. Run App saves, checks
-and compiles your Java locally; after editing, Run App again rebuilds and restarts
-the preview. **Stop** ends the preview and its audio. If a download or build
-fails, read the error, repair the connection or indicated code, and Run App again.
-Run App reports APIs outside the supported browser subset in Problems. A failed
-build does not start the previous build as a successful new run.
+Zero run offers **Show Problems** to reach source errors. Run App saves and
+compiles your Java locally, then opens a native JavaFX window. After editing,
+Run App again stops the previous process, rebuilds and starts the app. **Stop**
+ends the owned build or app process. If a download or build fails, read the task
+terminal or Problems, repair the connection or indicated code, and Run App again.
+A failed build does not start the previous build as a successful new run.
 
-For a native JavaFX diagnostic only, choose **Zero: Run Native App (Diagnostic)**.
-Its terminal equivalent inside starter is **./mvnw clean compile javafx:run**
-on Mac or **.\mvnw.cmd clean compile javafx:run** on Windows. This does not
-check whether your app can run in the browser.
+The terminal equivalent inside starter is **./mvnw clean compile javafx:run**
+on Mac or **.\mvnw.cmd clean compile javafx:run** on Windows. Native Run does
+not check browser compatibility. Publish app or advanced Export for web performs
+the browser API checks and compilation before sharing a playable browser app.
 
 After the initial tutorial clone, local Run needs no active GitHub sign-in.
 GitHub actions are live by default;

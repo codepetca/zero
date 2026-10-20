@@ -1,11 +1,10 @@
-# Zero extension — local release candidate
+# Zero extension
 
-Zero **0.5.19**, with core **0.2.1**, is prepared locally and unreleased. Published
-assets retain their existing versions and bytes.
+Zero **0.5.27** uses core **0.2.1**. Each published download retains its
+bundled extension version and behavior.
 
-Current source changes Run App to a native JavaFX window. This change is
-unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
-their bundled behavior.
+Run App opens a native JavaFX window. Mac 0.5.26 and other earlier downloads
+retain their bundled Run behavior.
 
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
@@ -18,7 +17,7 @@ for native account controls. Tutorials
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.5.19.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.5.27.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
