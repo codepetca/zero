@@ -1,5 +1,14 @@
 # Delivery evidence index
 
+## New asset label — local, 2026-10-20
+
+Owner renamed the Files action to **New asset…**. Source203922ce updates the
+sidebar/command, picker title/import button and current documentation, preserving
+import behavior and guards. Syntax, whitespace and34affected tests pass.
+Sol/medium files_menu_review/3 inspected the complete8-file delta from35ad30b7:
+zero actionable issues; prior behavior reviews reused. No native/full-suite rerun
+for this text-only correction. No publication or installed-app update.
+
 ## Anchored Files dropdown correction — local, 2026-10-20
 
 Owner clarified that Files must open its menu directly below the sidebar label.

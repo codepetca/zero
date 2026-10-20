@@ -1,10 +1,12 @@
 # Anchored Files dropdown — locally complete, 2026-10-20
 
 Owner correction implementedf4f27eb8: Files ▾ opens its dropdown directly below
-Files in the sidebar. Original filesystem code reviewed22200b3 unchanged.
+Files in the sidebar. Owner label correction203922ce uses New asset… throughout
+the menu, command and current docs;34affected checks and Sol/medium delta review
+pass. Original filesystem code reviewed22200b3 unchanged.
 Sol/medium review2 complete12-file delta clean;94focused/check and actual Mac
 light/dark/210px, keyboard/Escape/Tab/outside dismissal and New class pass.
-Total2review turns/1targeted correction; Windows/screen-reader acceptance unverified.
+Total3review turns/2targeted reviews; Windows/screen-reader acceptance unverified.
 Local codex/files-menu-create worktree retains source and ignored
 .verification/files-create/dropdown receipts. No push/release/installed update;
 older dirty checkout untouched. See docs/EVIDENCE.md. Prior state follows.
