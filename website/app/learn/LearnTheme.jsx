@@ -33,6 +33,13 @@ export function LearnTheme({ children, active }) {
 
   const dark = theme === "dark" || (theme === "system" && systemDark);
 
+  useEffect(() => {
+    // This stable root-layout link survives client navigation. Metadata links
+    // are deduplicated by href, which changes when the page theme changes.
+    const icon = document.getElementById("zero-favicon");
+    if (icon) icon.setAttribute("href", `/generated/brand/favicon-${dark ? "dark" : "light"}.svg`);
+  }, [dark]);
+
   function toggleTheme() {
     const next = dark ? "light" : "dark";
     setTheme(next);

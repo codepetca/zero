@@ -1,3 +1,14 @@
+# Browser tab branding — publication in progress, 2026-10-20
+
+Owner authorized publication. PR124 has reviewed themed transparent favicon and
+lowercase home title, synced with published Mac0.5.25 main a545c78.
+All5checks passed atadc53aa; latest synchronization has record conflicts only.
+Website source matches reviewed bbeb9c8. Upstream setup-test timing race fixed
+with retained label/launch assertions,34tests pass and targeted review clean.
+Next: synchronized CI, merge and live Chrome title/theme verification.
+See docs/EVIDENCE.md and ignored .verification/tab-branding/.
+The concurrent Mac publication task's record is preserved below.
+
 # Sidebar-guided setup — Mac0.5.25
 
 Owner authorized short sidebar Sign in to GitHub → Install Zero for GitHub →

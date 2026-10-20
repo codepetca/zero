@@ -6591,3 +6591,40 @@ budget/timing/correction; models requested, effective model and tokens unknown.
 Final promotion review accepted one P2 stale welcome/current-version docs finding;
 coordinator corrected the current Mac guide/editor wording and stale version in
 one batch, without changing protected application or sealed artifact inputs.
+
+## Browser tab branding — 2026-10-20
+
+Local branch `codex/zero-tab-branding`, source `bbeb9c8` from `be84e39`.
+Home tab title is lowercase zero; transparent favicon derives the approved mark
+and exact light/dark wordmark colors. Saved page choice, toggle and system default
+share the existing theme state. A stable root-head link survives client navigation.
+Apple/share assets retain their existing inverse appearance. No publication.
+
+157 website tests, typecheck and production build pass; final lifecycle fix build
+(including TypeScript) and whitespace check pass. Sharp verifies both 32px variants
+have transparent corners/opaque marks and colors #683bef/#b19aff. IAB Chromium
+verifies home title, both toggle directions, reload persistence and Home→Learn→Home
+with explicit light page against dark OS: exactly one matching favicon link.
+Physical Chrome chrome, Safari/WebKit and other OS tab rendering not certified.
+Evidence: ignored `.verification/tab-branding/` (build log and dark Home screenshot).
+
+Independent Luna/medium complete 5-file review at9f1729b found one navigation
+lifecycle issue, reproduced by coordinator. One fix batch, targeted 2-file review
+atbbeb9c8 clean:2launches/1initial+1targeted, zero unresolved. No conflicts.
+One local alpha-check invocation used an obsolete Sharp path; corrected module
+resolution passed. Weekly85%remaining/storage283GB at start; task-specific tokens,
+effective worker config and elapsed time unknown. Small direct implementation;
+review coordination about3min estimated. Primary dirty funding checkout preserved.
+
+### Website publication integration
+
+Owner authorized website publication. PR124 source adc53aa retains reviewed
+favicon source bbeb9c8 and adds a two-line fix for an upstream onboarding test race.
+The test now waits for the Run control before asserting its original label and
+launch; all34onboarding tests pass. Luna/medium targeted review accepted the fix.
+All5checks atadc53aa passed: CI39441081828,39441082000,39441081775 and Vercel.
+Main advanced through PR123 and PR125 during the gate. Both synchronizations
+only conflicted in CURRENT/EVIDENCE; upstream sidebar and Mac0.5.25 records were
+preserved. First integration review at338d342 was complete/clean. One CI failure
+was reproduced before the test fix; one redundant rerun was cancelled. Website
+publication still pending at this record. Detailed receipts .verification/tab-branding/.

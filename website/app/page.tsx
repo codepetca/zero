@@ -3,7 +3,7 @@ import { LearnTheme } from "./learn/LearnTheme";
 import "../.generated/learn-theme.css";
 import "./learn/learn.css";
 
-export const metadata = { title: "Learn Java" };
+export const metadata = { title: { absolute: "zero" } };
 export const dynamic = "force-dynamic";
 export default function Home() {
   return (
