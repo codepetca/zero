@@ -1,5 +1,20 @@
 # Verification
 
+## Files creation menu — local source, 2026-10-20
+
+Reviewed source22200b3: final `npm run check`,45focused tests, separate24
+upload-auth tests, generated-class javac compilation and whitespace checks pass.
+Actual isolated Mac extension host: Files picker light/dark; new class opens;
+nested Resources file/folder creation and refresh; duplicate-class inline error;
+Escape cancellation. Physical Windows and assistive technology remain unverified.
+Initial full suite:785pass/6fail/3platformskips. Two stale assertions pass after
+correction in45; a UI wait timeout passes in the separate24. Three missing-fflate
+packaging files pass23/23 after reusing the existing pinned0.8.3 dependencies.
+All initial failures have passing targeted reruns; the full suite was not repeated.
+Detailed logs remain ignored under `.verification/files-create/`.
+See [delivery evidence](EVIDENCE.md#files-creation-menu--local-source-2026-10-20)
+for source/review/authority and test receipts. No release or installed-app update.
+
 ## Goal and gap audit — 2026-10-19
 
 Audited current `main` at `79b0762638ef9cfb153a3a516b9194be76dadb79` in an

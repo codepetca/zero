@@ -1,5 +1,43 @@
 # Delivery evidence index
 
+## Files creation menu — local source, 2026-10-20
+
+Owner requested file creation without Explorer, then specified clicking Files
+opens the choices. **Files ▾** now opens a native picker for New class, New file,
+New folder, Add assets and Copy asset paths after import. Classes are ordinary
+public Java beside Main; files/folders choose Java source, Resources or Project
+files and support relative subfolders. Existing entries are preserved; trust,
+root drift, portable names, traversal and symlinks are checked before writing.
+New files open normally and the tree refreshes. Local actions need no sign-in.
+
+Implementation `22200b3898cc356784926d655b68836a01515f23` on
+`codex/files-menu-create`, based on `a0a11e8763d6889ff53a7ca46868b2eeedae068d`.
+Independent GPT-6.1 Sol/medium `files_menu_review/1` read the complete 12-file diff
+and immediate callers: zero actionable findings, one launch/initial wave, zero
+remediation waves/fix batches. Effective configuration, elapsed seconds, tokens
+and task-attributable usage unavailable. Weekly80% remaining at start; storage
+healthy280GB fresh. DeepSeek pause honored; no conflicts with the older dirty
+funding checkout. Native test-window startup retries resolved in a disposable
+profile/app clone; screenshots/logs retained, temporary clone/profile removed.
+
+Final source checks and 45 focused creation/sidebar/assets/integration/playground
+tests pass; separate upload-auth24 pass and generated Player.java compiles with
+javac. Actual isolated Mac extension host verifies light/dark Files menu, native
+class creation/opening, nested Resources folder/file creation and tree refresh,
+inline duplicate-class refusal and Escape cancellation. Physical Windows and
+assistive technology are unverified. The initial full run (started before the final test-fixture corrections) ended
+785pass/6fail/3platformskips. Two stale layout assertions were corrected and
+pass in45; one GitHub UI wait timeout passes in the separate24. Three packaging
+test files could not import the absent worktree dependency fflate; reusing the
+existing pinned0.8.3 development dependencies gives23/23pass. Every initial
+failure is covered by a passing targeted rerun; no second full-run claim.
+Full/focused/packaging logs remain ignored in `.verification/files-create/`.
+
+No push, PR, merge, release, installed-profile update, deployment or account change.
+The active managed worktree retains the local implementation and review evidence
+for an owner-authorized publication/release follow-up. Detailed evidence and
+review receipt: ignored `.verification/files-create/`.
+
 ## Transparent dark website logo — 2026-10-20
 
 Owner corrected the published dark title: use the shared dark accent `#b19aff`

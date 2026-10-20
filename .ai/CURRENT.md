@@ -1,3 +1,15 @@
+# Files creation menu — locally complete, 2026-10-20
+
+Files ▾ opens New class, New file, New folder and existing asset actions.
+Implementation22200b3 on codex/files-menu-create; independent Sol/medium complete
+12-file review clean, one launch/no fixes. Finalcheck/45focused/upload-auth24 and
+javac pass; actual isolated Mac light/dark creation/menu/duplicate/cancel checks
+pass. Initial suite785pass/6fail/3skip; corrected stale assertions, isolated UI timeout
+and missing-dependency packaging files all pass targeted45/24/23 reruns. Windows/assistive tech unverified.
+No publication or installed-app update authorized. Active managed worktree retains
+source and ignored .verification/files-create receipts; older dirty checkout intact.
+See docs/EVIDENCE.md and docs/VERIFICATION.md. Prior state follows.
+
 # Uniform website tab title — 2026-10-20
 
 Prior tab branding PR124/6448259 is published, with transparent themed favicon.
