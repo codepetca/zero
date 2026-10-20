@@ -233,7 +233,7 @@
       },
       {
         "command": "zero.importAssets",
-        "title": "Zero: Add assets\u2026"
+        "title": "Zero: New asset\u2026"
       },
       {
         "command": "zero.copyImportedAssetPaths",

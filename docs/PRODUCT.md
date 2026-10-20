@@ -342,7 +342,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
   overflow; Copy repository link lives in the repository menu. **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
-  **New folder…**, **Add assets…** and **Copy asset paths** after import. New class
+  **New folder…**, **New asset…** and **Copy asset paths** after import. New class
   creates an ordinary public class beside Main; files/folders choose Java source,
   Resources or Project files using native prompts. Relative names can create
   subfolders. Existing entries are preserved, cancellation makes no changes, and

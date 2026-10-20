@@ -38,7 +38,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   branch actions and **Publish app** in the menu, with **Commit & push** and
   **Merge to main** as direct controls. Local-practice sharing stays blocked.
 - Clicking **Files ▾** opens **New class…**, **New file…**, **New folder…**,
-  **Add assets…** and **Copy asset paths** after import in a dropdown directly beneath Files.
+  **New asset…** and **Copy asset paths** after import in a dropdown directly beneath Files.
   Use native name/location prompts; keep new classes
   ordinary Java beside Main and open new files in the editor. **Review or restore changes…** belongs in the project menu; it
   opens the existing native review/discard/restore choices. No separate tools row.

@@ -214,7 +214,7 @@ Click **Files ▾** in Zero's sidebar:
 Use `/` for subfolders, such as `data/questions.txt` or `images/backgrounds`.
 Existing files and folders are preserved; choose another name if one exists.
 Cancel leaves the project unchanged. The file list refreshes automatically.
-**Add assets…** copies existing images/audio into Resources; use **Copy asset
+**New asset…** copies existing images/audio into Resources; use **Copy asset
 paths** afterward for the paths to use in Java. Click **Run** to rebuild after
 editing (stop the current preview first if it is running).
 

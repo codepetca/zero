@@ -59,9 +59,9 @@ Native success does not establish browser compatibility. Windows native tasks
 use the task shell with strong wrapper-path quoting; other platforms use a
 process task. Physical Windows/Linux behavior remains unverified.
 
-**Add assets…**, beside **Files**, copies selected images/audio into `src/main/resources`, preserving
+**New asset…**, in the **Files ▾** dropdown, copies selected images/audio into `src/main/resources`, preserving
 originals and existing assets with **Keep both** or **Skip existing**. Copy resource
-string literals with **Copy asset paths** beside it. **Project menu → Review or
+string literals with **Copy asset paths** in the same menu. **Project menu → Review or
 restore changes…** opens native changes or
 previews an earlier tracked file version as an undoable edit. Save/test and Commit
 & push a correction; history is preserved. VS Code's auto-save preference applies.
@@ -244,7 +244,7 @@ Library authors use **Extract library** inside their existing game repository, t
 ## Create files from the sidebar
 
 Clicking **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
-**New folder…**, **Add assets…** and **Copy asset paths** after import. A class-name prompt creates and opens an ordinary public Java
+**New folder…**, **New asset…** and **Copy asset paths** after import. A class-name prompt creates and opens an ordinary public Java
 class in `src/main/java`. File/folder actions use native Java source, Resources
 or Project files location choices, then a relative name (with `/` for nested
 folders). Files open in the normal editor; folders appear in the refreshed tree.
