@@ -1,23 +1,22 @@
-# Minimal prompts — Mac0.5.29 publication
+# Minimal prompts — Mac 0.5.29 publication
 
-Owner requests short prompts across Zero and no Enter/Escape instructions.
-Branchcodex/file-prompts, base6b46df5e/publicMac28. Implementation3aa887e1;
-docsremediation5bd0864f; finalreceiptcommit follows. Routine native text inputs
-show one label (Class name, File name, Folder name, Commit message). Optional
-short public repository/account context and consequential facts retained.
+The owner authorized publication of concise prompts throughout Zero. Routine
+inputs use one label; Enter/Escape instructions are gone. Validation and concise
+public-action facts remain. The supported native QuickPick helper is scoped to
+Zero through an API facade; no host CSS, DOM or global API is modified.
 
-Native QuickPick text entry via Zero-only API facade; supported APIs, no host
-CSS/DOM or global API mutation. Async validation/cancel/stale-input safeguards
-retained. Final274affected checks,8lifecyclechecks and rootcheck pass. Fullsuite
-stopped after500+pass in slow unrelated publication fixtures; no fullpassclaim.
-Independent Sol/medium complete review + targeted2docfix clean. Finaltest-only
-assertion reorders unchanged consent facts to match copy; coordinator inspected.
+Source PR 135 merged after all five exact-head checks and independent source,
+integration and candidate review. Local checks: 274 affected tests, eight helper
+lifecycle checks, root check, website typecheck, 159 tests and production build.
+The actual installed Mac editor showed the minimal Class name prompt.
 
-Actual installed editor patched11reviewed source paths with backup/hash checks,
-reloaded and verified Class name input only, no footer. No studentfiles created.
-Published28/nativeapp/immutableVSIX unchanged; localsource preview only. Source,
-backup and logs .verification/prompts retained in attachedworktree; preserve before
-retiring. Owner explicitly authorized publication; prepareMac0.5.29/build29 with existing
-signing/notarization/update configuration. SourcePR/CI, sealedcandidate review,
-publicDMG and separate metadata/feed promotion required. Primarydirtyfunding
-checkout untouched. One sharingcopy worker; independentreviewer; tokens unknown.
+Mac 0.5.29/build 29 was built at 9a03aede, sealed at 41b072de, signed, notarized
+and stapled with the existing configuration. Authenticated draft and anonymous
+public DMG bytes match the sealed 4,584,607-byte candidate. This separate change
+promotes the measured URL, installer snapshot and exact signed update feed.
+Promotion review, CI, merge, deployment and live verification remain pending;
+the ignored completion receipt records their final outcomes.
+
+Preserve candidate and .verification/prompts receipts, including installed-file
+backups, before archiving this worktree. The primary dirty funding checkout is
+untouched. No physical Windows, fresh-machine or screen-reader test is claimed.
