@@ -209,7 +209,7 @@ test('upgrade asks for file-update consent then uploads and re-reviews the exact
   h.choices.push('Update publishing files');const result=await h.api.publish();
   assert.equal(result.status,'live');assert.equal(result.sha,'b'.repeat(40));assert.deepEqual(h.calls,['review','review','update','review','publish']);
   assert.equal(h.messages.length,1);assert.equal(h.messages[0][0],'Update publishing files?');
-  assert.match(h.messages[0][1].detail,/README.md[\s\S]*owner.json[\s\S]*Git history[\s\S]*destination stay the same/);
+  assert.match(h.messages[0][1].detail,/README.md[\s\S]*owner.json[\s\S]*destination stay the same[\s\S]*Git history/);
 });
 test('cancelled upgrade decision never authorizes workflows, updates files, uploads or publishes',async t=>{
   const h=fixture(t);h.upgrade=true;h.choices.push('Publish app');

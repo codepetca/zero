@@ -1,5 +1,31 @@
 # Delivery evidence index
 
+## Minimal prompts — local installed preview, 2026-10-20
+
+Owner requests short prompts throughout Zero and no Enter/Escape footer. Local
+source3aa887e1 plus documentation remediation5bd0864f uses a supported native
+QuickPick for text entry, through a Zero-only API facade. No host CSS/DOM or
+VS Code API object is modified. Routine inputs show a single label; public
+repository/account context and consequential action facts remain concise.
+Independent Sol/medium complete24file review found oneP3 stale commit-prompt
+contract in two docs; targeted remediation review clean. Async validation,
+cancellation, stale results, disposal and file/auth guards reviewed;8new lifecycle
+checks pass. Final274affected tests and rootcheck pass. Broad suite stopped after
+500+ passing checks when unrelated mocked publication fixtures took17–38seconds
+each; no full-suite pass claimed. Two stale copy assertions corrected and covered
+by final274; missing generated theme prepared before the passing run.
+
+Actual installed Mac editor reloaded with11reviewed source paths; native Class
+name shows a single empty field with no title, explanation or keyboard footer.
+No student files created. Original installed files backed up before atomic local
+preview patch; hashes recorded in ignored .verification/prompts/. Published28
+DMG/VSIX and native app stay unchanged; no push/merge/new release performed.
+Primary dirty funding checkout preserved. Sharing-copy worker Sol/medium owned
+one file; independent reviewer owned none; coordinator integrated/verified.
+Effective worker model/tokens and effort savings unavailable. Source/backup/logs
+retained under the attached file-prompts worktree for later authorized publication.
+
+
 ## Files dropdown — Mac 0.5.28 publication, 2026-10-20
 
 Owner authorized publication. [Source PR131](https://github.com/codepetca/zero/pull/131)
