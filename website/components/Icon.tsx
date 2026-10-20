@@ -1,14 +1,19 @@
-import { ArrowRight, ChevronDown, ChevronRight, Download, Menu, Moon, Search, Sun, X } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronRight, CircleCheck, CircleHelp, Download, Flag, Menu, Moon, Search, Star, Sun, TriangleAlert, X } from "lucide-react";
 
 const icons = {
   "arrow-right": ArrowRight,
   "chevron-down": ChevronDown,
   "chevron-right": ChevronRight,
+  "circle-check": CircleCheck,
+  "circle-help": CircleHelp,
   download: Download,
+  flag: Flag,
   menu: Menu,
   search: Search,
+  star: Star,
   moon: Moon,
   sun: Sun,
+  "triangle-alert": TriangleAlert,
   x: X,
 };
 

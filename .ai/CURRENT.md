@@ -1,3 +1,23 @@
+# Website navigation and project icons — local 2026-10-20
+
+Owner follow-up: project feedback now uses check/warning/unknown icons with local
+Oct20·12:56PM time, flag report action and icon+count stars, filled when selected.
+Accessible labels, pending/retry handling and exact report context preserved.
+TypeScript,19focused feedback/status/star tests and rendered state checks pass.
+No live-browser/account check or publication. Same isolated branch/worktree;
+ignored receipts .verification/project-card-icons/. Small direct implementation,
+no delegation; cached276GBhealthy. No external action or dependency change.
+
+Owner requested removing the redundant Download menu link. Shared Navigation now
+shows Tutorials, Docs and ZeroHub; logo still opens Home with platform downloads.
+Product/development guidance updated. TypeScript, rendered-header/link checks and
+whitespace pass; full website suite stopped after28pass due slow unrelated project
+packaging fixtures. No browser rerun/publication. Isolated codex/remove-download-menu
+worktree based on main64d60a4f preserves original funding checkout. Small direct
+change, no delegation; weekly78%remaining/storage280GBhealthy. One verification
+regex corrected for harmless HTML attribute order; no implementation rework.
+Task-specific elapsed/usage unknown; evidence .verification/remove-download-menu/.
+
 # Direct tutorial instructions — Mac0.5.26 publication
 
 Owner explicitly authorized merge and website/new Mac publication. Source PR127
