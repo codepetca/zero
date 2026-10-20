@@ -164,9 +164,9 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.match(webview.html,/<div class="files-header">[\s\S]*data-command="zero.importAssets"/);
   assert.equal(typeof commands.get('zero.importAssets'),'function');assert.equal(typeof commands.get('zero.recovery'),'function');
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
-  assert.match(webview.html,/class="account"[^>]*aria-label="Sign in to GitHub"/);
-  assert.match(webview.html,/>Sign in<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
-  const githubSection=()=>webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)[1];
+  assert.match(webview.html,/data-command="zero.signInToGitHub"[^>]*>Sign in to GitHub/);
+  assert.match(webview.html,/>Sign in to GitHub<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.chooseRepository"/);assert.doesNotMatch(webview.html,/data-command="zero.cloneRepository"|data-command="zero.startChange"/);
+  const githubSection=()=>(webview.html.match(/<section class="repository">([\s\S]*?)<\/section>/)||[])[1]||'';
   assert.doesNotMatch(githubSection(),/data-command="zero.publishWeb"/);
   assert.doesNotMatch(webview.html.split('<section class="repository">')[0],/zero.publishWeb/,'Run controls stay separate from GitHub publishing');
   assert.ok(authCalls.every(call=>call.options.silent));

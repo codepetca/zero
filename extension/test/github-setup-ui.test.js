@@ -55,3 +55,8 @@ test('changed account during approval stops continuation',async()=>{
 test('late canceled recheck cannot complete or overwrite a new setup attempt',async()=>{
   let call=0,release;const f=fixture({check:async()=>{call++;if(call===1)throw Object.assign(Error('Approval required'),{code:'installation-required',actionUrl:url});if(call===2)return new Promise(resolve=>{release=resolve;});return {};}}),first=f.setup.ensure();await waitFor(()=>f.pickers[0]?.shown);f.pickers[0].choose('check');await waitFor(()=>release);f.pickers[0].escape();assert.equal(await first,false);const next=f.setup.ensure();assert.equal(await next,true);const before=f.reports.length;release({});await new Promise(resolve=>setImmediate(resolve));assert.equal(f.reports.length,before);f.setup.dispose();
 });
+
+test('explicit sidebar installation hands off directly only when approval is missing',async()=>{
+  const f=fixture(),pending=f.setup.ensure({openBrowser:true});await waitFor(()=>f.calls.some(call=>call[0]==='open'));assert.equal(f.calls.find(call=>call[0]==='open')[1],url);f.pickers[0].escape();assert.equal(await pending,false);f.setup.dispose();
+  const ready=fixture({ready:true});assert.equal(await ready.setup.ensure({openBrowser:true}),true);assert.equal(ready.calls.filter(call=>call[0]==='open').length,0);ready.setup.dispose();
+});
