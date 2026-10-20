@@ -55,8 +55,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   Open local project reuses a selected Zero folder in a new window. Sign-out
   preserves local folders, Git history and the open project.
 - Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
-  Title the commit input **Commit Message**, with only the native Enter/Escape
-  hint below it. Start with an empty field and **Commit message** placeholder.
+  Use one **Commit message** label and an empty field, with no footer.
   Keep repository and branch in the sidebar. Show an inline
   spinner and **Preparing commit…** on the button during preparation, then
   **Committing & pushing…** after confirmation; clear on completion/cancel/error.
