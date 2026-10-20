@@ -6,7 +6,8 @@ and write their own program. The small scaffold
 contains only an empty Main and build/framework setup. Do not distribute completed
 checkpoints as starters. Keep students' current code and add the next lesson's changes.
 
-Use the visible target and Done check first; expand detailed steps as needed.
+Use the visible target and numbered editing/testing steps. Full instructions
+and code stay visible; Compare your code references are optional.
 Illustrations are teaching drawings, not native-window screenshots. Pacing has
 not been measured with novice students. Lesson 12's advanced extensions can span
 several sessions or remain optional.

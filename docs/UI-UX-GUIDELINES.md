@@ -89,9 +89,10 @@ marks a preferred pattern with documented, task-specific exceptions.
 - DEFAULT to clear reading order, restrained headings, short paragraphs and
   generous spacing. Reuse approved tokens and patterns rather than casually
   adding colors, component variants or a general-purpose UI dependency.
-- Lesson interfaces should make the target, next action and checkpoint easy to
-  find while retaining full code and explanations on request. Readable source
-  and useful errors remain part of the learning experience.
+- Lesson interfaces show the full numbered actions, explanations and copyable code
+  directly. Avoid duplicate short summaries or Done checkpoints. Completed
+  Compare your code references may use disclosures. Readable source and useful
+  errors remain part of the learning experience.
 
 ## State, feedback and recovery
 

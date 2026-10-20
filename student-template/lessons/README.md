@@ -58,7 +58,7 @@ contributions use separate original projects. See [repository setup](../../docs/
 
 ## Check your work
 
-Try each Done check and record the result. Read [teacher notes](TEACHER.md) and
+Follow each numbered run/test step and record the result. Read [teacher notes](TEACHER.md) and
 [the API](../API.md) when needed. Coursework links from your own original repository
 go separately to [Pika](../README.md#your-repository-and-pika).
 For controls in games and reusable views, read [UI and app/game flow](../UI.md).
