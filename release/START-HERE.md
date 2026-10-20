@@ -36,7 +36,7 @@ Choose **Start tutorial** in the 0.5.24 candidate’s welcome. Complete the
 existing GitHub device sign-in if needed. Before showing tutorial choices or
 asking for repository details, Zero checks whether the current personal account
 has the Codepet App's project access. If not, use **Open GitHub** in the native
-**Connect GitHub · project access** picker and approve the selected repositories
+**Install Zero for GitHub** picker and approve the selected repositories
 on GitHub. Return to Zero; it rechecks and continues automatically when ready.
 Use **Check again** if needed. Escape cancels and leaves **Start tutorial**
 available to retry; network/account changes during a recheck do not create a

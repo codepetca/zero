@@ -55,7 +55,7 @@ and Zero has no separate password or account. After sign-in, before showing the
 tutorial picker or collecting a repository name or location, Zero checks the
 current personal account's Codepet App access for repository creation and
 contents writing. This check is read-only. If access is missing, a native
-**Connect GitHub · project access** picker opens with **Open GitHub** for the
+**Install Zero for GitHub** picker opens with **Open GitHub** for the
 pinned App page and **Check again**. The student reviews and approves selected
 repositories on GitHub; Zero never requests access to all repositories, and
 repositories Zero creates are accessible automatically. Returning to Zero

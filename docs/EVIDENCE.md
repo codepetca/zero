@@ -6459,5 +6459,8 @@ Sol/high worker delivered GET-only checkSetup and22affected tests; Luna/medium
 worker delivered five setup/product/design docs. Coordinator inspected both,
 no integration conflicts or worker rework. Effective model/tokens/worker elapsed
 unavailable. Weekly remaining89% at start; storage284GB; DeepSeek dated pause
-honored. Source review and exact-head CI/publication gates pending. Logs retained
+honored. Initial Sol/high source review905a30f complete/clean, all21files and callers.
+Owner then requested concise App prompt; copy-only correction uses Install Zero
+for GitHub with two plain actions, retaining explanation in setup help.
+Targeted copy review and exact-head CI/publication gates pending. Logs retained
 under ignored .verification/github-onboarding-0.5.24/.

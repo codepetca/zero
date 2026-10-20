@@ -21,12 +21,12 @@ test('ready saved connection checks access without a browser or setup picker',as
 });
 test('explicit approval opens only the pinned URL, then returning to Zero continues automatically',async()=>{
   const f=fixture(),pending=f.setup.ensure();await waitFor(()=>f.pickers[0]?.shown);const p=f.pickers[0];
-  assert.equal(f.calls.filter(x=>x[0]==='open').length,0);assert.match(p.placeholder,/learner/);assert.match(p.items[0].detail,/selected repositories/);assert.equal(p.ignoreFocusOut,true);
+  assert.equal(f.calls.filter(x=>x[0]==='open').length,0);assert.match(p.placeholder,/learner/);assert.equal(p.title,'Install Zero for GitHub');assert.deepEqual(p.items.map(item=>Object.keys(item)),[['label','action'],['label','action']]);assert.equal(p.ignoreFocusOut,true);
   p.choose('open');await waitFor(()=>!p.busy);assert.equal(f.calls.at(-1)[1],url);
   f.ready();f.focus();assert.equal(await pending,true);assert.equal(p.disposed,true);f.focus();assert.equal(f.calls.filter(x=>x[0]==='check').length,2);f.setup.dispose();
 });
 test('unconfirmed access stays in setup; Check again resumes the same pending operation',async()=>{
-  const f=fixture(),pending=f.setup.ensure();assert.equal(f.setup.ensure(),pending);await waitFor(()=>f.pickers[0]?.shown);const p=f.pickers[0];p.choose('check');await waitFor(()=>!p.busy);assert.match(p.placeholder,/Access not confirmed/);assert.equal(p.disposed,undefined);f.ready();p.choose('check');assert.equal(await pending,true);f.setup.dispose();
+  const f=fixture(),pending=f.setup.ensure();assert.equal(f.setup.ensure(),pending);await waitFor(()=>f.pickers[0]?.shown);const p=f.pickers[0];p.choose('check');await waitFor(()=>!p.busy);assert.match(p.placeholder,/Access not ready/);assert.equal(p.disposed,undefined);f.ready();p.choose('check');assert.equal(await pending,true);f.setup.dispose();
 });
 test('Escape preserves sign-in and permits retry without granting access or reporting ready',async()=>{
   const f=fixture(),pending=f.setup.ensure();await waitFor(()=>f.pickers[0]?.shown);f.pickers[0].escape();assert.equal(await pending,false);assert.ok(f.calls[0][1].signal.aborted);assert.ok(!f.reports.includes('GitHub is ready for your projects'));f.ready();assert.equal(await f.setup.ensure(),true);f.setup.dispose();
@@ -47,7 +47,7 @@ test('permission and access rejections use the same guided approval path',async(
   for(const code of ['permission-required','github-error']){const f=fixture({check:async()=>{throw Object.assign(Error('Approval required'),{code,actionUrl:url});}}),pending=f.setup.ensure();await waitFor(()=>f.pickers[0]?.shown);f.pickers[0].escape();assert.equal(await pending,false);f.setup.dispose();}
 });
 test('browser-open failure can be retried without treating a focus event as approval',async()=>{
-  let opens=0;const f=fixture({open:async()=>++opens>1}),pending=f.setup.ensure();await waitFor(()=>f.pickers[0]?.shown);const p=f.pickers[0];p.choose('open');await waitFor(()=>!p.busy);assert.match(p.placeholder,/browser did not open/);f.focus();assert.equal(f.calls.filter(x=>x[0]==='check').length,1);p.choose('open');await waitFor(()=>!p.busy);f.ready();f.focus();assert.equal(await pending,true);f.setup.dispose();
+  let opens=0;const f=fixture({open:async()=>++opens>1}),pending=f.setup.ensure();await waitFor(()=>f.pickers[0]?.shown);const p=f.pickers[0];p.choose('open');await waitFor(()=>!p.busy);assert.match(p.placeholder,/Browser did not open/);f.focus();assert.equal(f.calls.filter(x=>x[0]==='check').length,1);p.choose('open');await waitFor(()=>!p.busy);f.ready();f.focus();assert.equal(await pending,true);f.setup.dispose();
 });
 test('changed account during approval stops continuation',async()=>{
   const f=fixture(),pending=f.setup.ensure();await waitFor(()=>f.pickers[0]?.shown);f.changed();f.ready();f.pickers[0].choose('check');await assert.rejects(pending,/Account changed/);assert.ok(!f.reports.includes('GitHub is ready for your projects'));f.setup.dispose();

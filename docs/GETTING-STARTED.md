@@ -35,8 +35,8 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
    local 0.5.24 candidate, choose **Start tutorial** from **Welcome to Zero**.
    Complete the existing device sign-in if needed. Before tutorial choices or
    repository details, Zero checks Codepet App access. If setup is needed,
-   approve selected repositories through the native **Connect GitHub · project
-   access** picker; return to Zero to continue. See [the setup guide](SETUP.md#start-a-tutorial-or-project)
+   approve selected repositories through the native **Install Zero for
+   GitHub** picker; return to Zero to continue. See [the setup guide](SETUP.md#start-a-tutorial-or-project)
    for the complete flow and recovery steps. Local Run remains available if you
    cancel.
 3. After access is ready, select **Greeting app**. You can also reopen **Start

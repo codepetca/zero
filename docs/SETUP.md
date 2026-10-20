@@ -43,7 +43,7 @@ Choose **Start tutorial** in the native welcome. If needed, complete the existin
 GitHub device sign-in with your personal account. Before showing tutorial choices
 or asking for a repository name or location, Zero makes a read-only check of the Codepet App's
 access in that account for repository creation and contents writing.
-If access is missing, use the native **Connect GitHub · project access** picker:
+If access is missing, use the native **Install Zero for GitHub** picker:
 **Open GitHub** opens the pinned App page, where you review and approve selected
 repositories. Zero never asks for all-repository access. Return to Zero; it
 rechecks and continues automatically when ready. **Check again** is available if

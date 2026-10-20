@@ -44,12 +44,12 @@ function createGitHubSetup({vscode, authentication, repositories, installationUr
           if (error) reject(error); else resolve(result);
         };
         closePicker = () => finish(false);
-        picker.title = 'Connect GitHub · project access';
-        picker.placeholder = `Signed in as ${ticket.session.label}. Approve Zero on GitHub, then return here.`;
+        picker.title = 'Install Zero for GitHub';
+        picker.placeholder = `Signed in as ${ticket.session.label}`;
         picker.ignoreFocusOut = true;
         picker.items = [
-          {label:'Open GitHub', description:'Allow Zero to create and save your projects', detail:'GitHub calls this Install. Choose selected repositories; projects created by Zero receive access automatically.', action:'open'},
-          {label:'Check again', description:'Continue after approving access on GitHub', action:'check'}
+          {label:'Open GitHub', action:'open'},
+          {label:'Check again', action:'check'}
         ];
         async function recheck() {
           if (finished || checking || !alive()) return;
@@ -60,7 +60,7 @@ function createGitHubSetup({vscode, authentication, repositories, installationUr
           } catch (error) {
             if (!alive()) {finish(false);return;}
             if (!needsApproval(error)) {finish(false,error);return;}
-            picker.placeholder = `Access not confirmed for ${ticket.session.label}. Approve Codepet Zero on GitHub, then check again.`;
+            picker.placeholder = 'Access not ready. Finish on GitHub, then check again.';
           } finally {
             checking = false;
             if (!finished) {picker.busy = false;picker.enabled = true;}
@@ -75,9 +75,9 @@ function createGitHubSetup({vscode, authentication, repositories, installationUr
           void vscode.env.openExternal(vscode.Uri.parse(installationUrl)).then(result => {
             if (finished || !alive()) return;
             opened = Boolean(result);
-            picker.placeholder = result ? 'Finish approval on GitHub. Return to Zero to continue automatically, or choose Check again.' : 'The browser did not open. Choose Open GitHub to retry.';
+            picker.placeholder = result ? 'Finish on GitHub, then return to Zero.' : 'Browser did not open. Try again.';
           }).catch(() => {
-            if (!finished && alive()) picker.placeholder = 'The browser did not open. Choose Open GitHub to retry.';
+            if (!finished && alive()) picker.placeholder = 'Browser did not open. Try again.';
           }).finally(() => {checking = false;if (!finished) {picker.busy = false;picker.enabled = true;}});
         }));
         if (vscode.window.onDidChangeWindowState) subscriptions.push(vscode.window.onDidChangeWindowState(event => {if (event.focused && opened) void recheck();}));

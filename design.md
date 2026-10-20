@@ -512,7 +512,7 @@ For the next release candidate, keep the native **Start tutorial** welcome and
 existing device sign-in and credential handling. Before the tutorial picker or
 repository name/location fields, do a read-only check of the current personal
 account's Codepet App access for repository creation and contents writing. If
-missing, show the native **Connect GitHub · project access** picker; **Open
+missing, show the native **Install Zero for GitHub** picker; **Open
 GitHub** launches the pinned App page, where the student approves selected
 repositories. Never request all-repository access. App-created repositories gain
 access automatically. On return, recheck and continue to the tutorial picker;
@@ -522,3 +522,6 @@ repository. Direct palette **Sign in** also guides access and reveals Zero.
 Reopening Zero reveals its sidebar while preserving editor tabs and work. Keep
 the completed starter at Setup help → Test installation, separate from tutorials.
 This is an interaction-flow change only; website visuals are unchanged.
+
+Owner follow-up: keep the native App prompt short: **Install Zero for GitHub**,
+with Open GitHub and Check again. Keep permission explanations in setup help.

@@ -58,7 +58,7 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     cancelled(signal);
     if (allow404 && response.status === 404) return null;
     if (!response.ok) {
-      const error = failure(response.status===401?'GitHub sign-in expired. Reconnect GitHub.':response.status===403?'Allow Zero to create and save projects on your personal GitHub account. Review its access on GitHub.':`GitHub could not complete this request (HTTP ${response.status}).`, 'github-error');
+      const error = failure(response.status===401?'GitHub sign-in expired. Reconnect GitHub.':response.status===403?'Install Zero for GitHub.':`GitHub could not complete this request (HTTP ${response.status}).`, 'github-error');
       if(response.status===403)error.actionUrl=`https://github.com/apps/${configuration.slug}/installations/new`;
       error.status = response.status; throw error;
     }
@@ -74,13 +74,13 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       if (matches.length>1) throw failure('GitHub returned conflicting Zero installations.', 'invalid-response');
       if (matches.length) {
         const item=matches[0];
-        if (!positive(item.id) || !positive(item.account?.id) || item.account?.type!=='User' || item.target_type!=='User' || item.suspended_at || !['selected','all'].includes(item.repository_selection)) throw setupFailure('Allow Zero to create and save projects on your personal GitHub account. Review its access on GitHub.', 'installation-required');
-        if (!capabilities(item.permissions,required)) throw setupFailure('Allow Zero to create and save projects on your personal GitHub account. Review its permissions on GitHub.', 'permission-required');
+        if (!positive(item.id) || !positive(item.account?.id) || item.account?.type!=='User' || item.target_type!=='User' || item.suspended_at || !['selected','all'].includes(item.repository_selection)) throw setupFailure('Install Zero for GitHub.', 'installation-required');
+        if (!capabilities(item.permissions,required)) throw setupFailure('Install Zero for GitHub.', 'permission-required');
         return item;
       }
       if (result.installations.length<100) break;
     }
-    throw setupFailure('Allow Zero to create and save projects on your personal GitHub account.', 'installation-required');
+    throw setupFailure('Install Zero for GitHub.', 'installation-required');
   }
   async function checkSetup({ticket,signal}={}) {
     configured(); cancelled(signal);

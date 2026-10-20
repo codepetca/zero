@@ -24,7 +24,8 @@ Escape/retry, browser return→tutorial picker→name using fake account/access;
 no GitHub writes. Real consent/fresh-machine/Windows acceptance stays untested.
 Standard-risk review: Sol/high full diff,1initial wave, budget7launches/4fix
 batches/4targeted/1integration/60min; no authority/scope expansion. Next:
-independent review, exact-head CI, source merge,
+initial review905a30f clean; owner requested concise popup copy.1launch,
+1initialwave,1copy batch; targeted copy review next, then exact-head CI/source merge,
 Mac0.5.24/build24 signing/notarization and exact-byte promotion. Windows21 and
 published kit remain unchanged. No installed app or profile is reset by this work.
 Evidence: docs/EVIDENCE.md and ignored .verification/github-onboarding/.

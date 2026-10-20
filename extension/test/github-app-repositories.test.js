@@ -53,7 +53,7 @@ test('setup requires the pinned App on the same numeric personal account with bo
   f=>{f.installed.permissions=null;}
  ]) {
   const f=fixture();change(f);
-  await assert.rejects(f.api.checkSetup(),error=>['installation-required','permission-required'].includes(error.code)&&error.actionUrl==='https://github.com/apps/zero-development/installations/new'&&error.message.startsWith('Allow Zero to create and save projects on your personal GitHub account')&&!/select the repository|Install Zero/.test(error.message));
+  await assert.rejects(f.api.checkSetup(),error=>['installation-required','permission-required'].includes(error.code)&&error.actionUrl==='https://github.com/apps/zero-development/installations/new'&&error.message==='Install Zero for GitHub.');
   assert.ok(f.calls.every(call=>call.options.method==='GET'));
   assert.ok(!f.calls.some(call=>new URL(call.url).pathname.endsWith('/repositories')));
  }
@@ -111,7 +111,7 @@ test('membership is checked by immutable repository ID with consistent owner and
 });
 test('read-only clone access accepts Contents read while write operations reject it',async()=>{
  const f=fixture();f.installed.permissions.contents='read';f.repo.permissions.push=false;
- await f.api.access(f.repo.html_url,{permissions:{contents:'read'}});await assert.rejects(f.api.access(f.repo.html_url),/permissions/);
+ await f.api.access(f.repo.html_url,{permissions:{contents:'read'}});await assert.rejects(f.api.access(f.repo.html_url),error=>error.code==='permission-required');
 });
 test('already all-repository installation is observed without requesting or changing its selection',async()=>{
  const f=fixture();f.installed.repository_selection='all';await f.api.access(f.repo.html_url);assert.ok(f.calls.every(call=>call.options.method==='GET'));
