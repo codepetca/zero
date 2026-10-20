@@ -14,7 +14,7 @@ function fixture() {
 }
 test('one short label and keyboard helper; native Enter accepts typed text without a selected item',async()=>{
   const f=fixture();const pending=textInput(f.vscode,{placeHolder:'Class name',ignoreFocusOut:true});
-  assert.equal(f.picker.placeholder,'Class name');assert.equal(f.picker.title,'Enter to confirm · Esc to cancel');assert.deepEqual(f.picker.items,[]);assert.equal(f.picker.ignoreFocusOut,true);
+  assert.equal(f.picker.placeholder,'Class name');assert.equal(f.picker.title,'<Enter> to confirm · <Esc> to cancel');assert.deepEqual(f.picker.items,[]);assert.equal(f.picker.ignoreFocusOut,true);
   await f.type('Player');await f.emit('accept');assert.equal(await pending,'Player');assert.equal(f.picker.disposed,1);
 });
 test('Escape/focus cancellation returns undefined; an accepted optional empty value remains empty',async()=>{
@@ -45,7 +45,7 @@ test('current validator failure rejects and disposes instead of leaving a stuck 
 });
 test('context and prefilled values remain; informational validation does not block acceptance',async()=>{
   const f=fixture();const pending=textInput(f.vscode,{placeHolder:'Repository name',prompt:'Public repository · student',value:'my-project',validateInput:()=>({message:'Info',severity:1})});
-  assert.equal(f.picker.title,'Public repository · student · Enter to confirm · Esc to cancel');assert.equal(f.picker.value,'my-project');await f.emit('accept');assert.equal(await pending,'my-project');
+  assert.equal(f.picker.title,'Public repository · student · <Enter> to confirm · <Esc> to cancel');assert.equal(f.picker.value,'my-project');await f.emit('accept');assert.equal(await pending,'my-project');
 });
 test('the Zero API facade preserves live editor state and never mutates VS Code',async()=>{
   const f=fixture();const ui=minimalPrompts(f.vscode);f.active='second';assert.equal(ui.window.activeTextEditor,'second');assert.notEqual(ui.window.showInputBox,f.vscode.window.showInputBox);

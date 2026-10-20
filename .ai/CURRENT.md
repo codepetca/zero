@@ -1,6 +1,6 @@
 # Popup keyboard helper — local change
 
-Owner requested **Enter to confirm · Esc to cancel** in Zero text-entry popups.
+Owner requested `<Enter> to confirm · <Esc> to cancel` in Zero text-entry popups.
 Implemented through the shared native QuickPick title, preserving short labels,
 existing context and validation. Independent Luna/medium source review clean;
 85 affected tests pass. Native rendering/assistive technology not retested.

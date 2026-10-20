@@ -2,7 +2,7 @@
 
 ## Popup keyboard helper — local, 2026-10-20
 
-Owner requested the small **Enter to confirm · Esc to cancel** helper in text-entry
+Owner requested the small `<Enter> to confirm · <Esc> to cancel` helper in text-entry
 popups, superseding the earlier no-helper preference. The shared native QuickPick
 title displays it for all Zero text inputs and preserves existing repository or
 publication context. Validation, acceptance and cancellation paths are unchanged.

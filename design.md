@@ -28,7 +28,7 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
 - Use one short label for routine prompts, such as **Class name**. Omit explanatory
-  copy; show the small **Enter to confirm · Esc to cancel** keyboard helper and
+  copy; show the small `<Enter> to confirm · <Esc> to cancel` keyboard helper and
   validation errors when needed. Keep
   consequential destinations and public/destructive changes concise and explicit.
 - Keep one continuous, minimal sidebar for controls and files. Use supported

@@ -4,7 +4,7 @@
 function textInput(vscode, options = {}) {
   const picker = vscode.window.createQuickPick();
   picker.placeholder = options.placeHolder || options.title;
-  picker.title = [options.prompt, 'Enter to confirm · Esc to cancel'].filter(Boolean).join(' · ');
+  picker.title = [options.prompt, '<Enter> to confirm · <Esc> to cancel'].filter(Boolean).join(' · ');
   picker.value = options.value || '';
   picker.ignoreFocusOut = Boolean(options.ignoreFocusOut);
   picker.items = [];
