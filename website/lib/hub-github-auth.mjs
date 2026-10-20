@@ -151,7 +151,7 @@ export function newSession(token, user, tokenExpiresIn, config, now = Date.now()
     Math.floor((expiresAt - now) / 1000))};
 }
 
-async function boundedJson(response, limit = 16_384) {
+export async function boundedJson(response, limit = 16_384) {
   const reader = response.body?.getReader();
   if (!reader) throw new Error('Empty GitHub response');
   const chunks = [];
