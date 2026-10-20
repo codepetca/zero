@@ -6697,11 +6697,17 @@ generation/trust checks and Errors/Problems behavior retained. Publishing/browse
 validators and generated artifact contract unchanged; native success does not
 prove browser compatibility. Current Mac0.5.26 retains its bundled behavior.
 
-123affected checks and rootcheck passed before source review. Real isolated Mac
-VSCode sidebar Run launched actual wrapper/JavaFX child; Stop ended both exact
-owned processes and restoredRun. Native JavaFX window inaccessible to current CUA
-inventory, so visualHello/OS-window close not certified; close/exit covered by
-lifecycle tests. Fullsuite still running under heavy host contention at this commit.
-No public release/credentials/student repo/profile changes. Source review and
-separate owner publication decision pending; ignored .verification/native-run
-receipts record final validation without another docs-only cycle.
+Initial123affected checks/rootcheck passed. Sol/high full20file review found2P2
+recovery blockers (setuphelp browserinstruction and stale-export RunApp loop),
+fixed in one batch with focused tests. Final161affected pass/1Windowsruntime skip
+and35website/doc-render checks pass; finalrootcheck/remediationreview pending at
+this commit. Fullsuite interrupted underMacload265 after unrelated Gitfixtures
+took150–264s each; no fullpass claimed.
+
+Actual isolated MacVSCode sidebarRun launched wrapper/JavaFX child; Stop ended
+both exactownedprocesses/restoredRun. Real syntaxerror mappedMain.java[7,23] to
+Problems1/ShowProblems. Repaired finiteFXfixture emittedBUILD SUCCESS and ended
+normally withRun/Appstopped/noShowProblems. Nativewindowvisual/OSclose unavailable
+viaCUA, so notcertified; lifecyclefake tests coverclose/exit. No publicrelease/
+credentials/studentrepo/profile changes. Ownerpublicationdecision remains needed.
+Ignored .verification/native-run receipts record finalreview/cleanup/check status.

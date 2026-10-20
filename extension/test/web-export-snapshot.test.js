@@ -31,7 +31,7 @@ test('snapshot reuses exact validated bytes and preserves ZIP member order',asyn
  assert.equal(f.builds,1);assert.equal(result.buildId,'build-1');assert.ok(result.zipBytes.equals(await fs.readFile(f.zipPath)));assert.equal(result.siteFiles.length,3);
 });
 for(const name of ['src/main/java/Main.java','src/main/resources/tone.wav','pom.xml','mvnw','.mvn/wrapper/maven-wrapper.properties'])test('input drift invalidates snapshot: '+name,async t=>{
- const f=await fixture(t);await fs.appendFile(path.join(f.root,name),' changed');await assert.rejects(validateExport(f.options),/project changed/);
+ const f=await fixture(t);await fs.appendFile(path.join(f.root,name),' changed');await assert.rejects(validateExport(f.options),/project changed.*Choose Export for web or Publish app again/);
  const result=await ensureValidatedExport({...f.options,engine:{exportForWeb:f.build}});assert.equal(result.buildId,'build-2');
 });
 test('new input file and current compiler contract invalidate reuse',async t=>{

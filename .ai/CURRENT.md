@@ -15,20 +15,26 @@ Busy upload/export/publication blocks native starts. Browser/API compiler remain
 only on explicit Publish/advanced Export; validated output/publishing untouched.
 Explicit export-preview command/error wording now identifies web export correctly.
 
-Docs worker Sol/medium updated10operative docs (no release metadata/history) and
-coordinator checked native/online compatibility distinction. 123affected tests
-pass (primary/legacy/configured tasks, errors/normalexit, cancellation/drift/dispose,
-trust, busyguard, export/publish/setup), rootcheck passed. Full suite running;
-later localized preview wording and focused tests supersede corresponding earlier
-results. No full final-head pass claimed yet. Source review pending.
+Docs worker Sol/medium updated10operative docs, independently inspected. Initial
+Sol/high complete20file review8bcbc5f0 found2P2 blockers: setuphelp still asked for
+browser preview and stale-export recovery wrongly saidRunApp. Both fixed in one
+batch; UIhelp now nativewindow/Mavendependencies/taskterminal, all browser snapshot
+recovery directs Exportforweb/Publish. Validation logic/output guards unchanged.
+Final161affected checks pass/1Windowsruntime skip,35website/doc-render checks
+pass. Rootcheck passed before fixes; final rerun pending. Fullsuite interrupted
+after unrelated Git binary fixtures took150–264s each underMacload265; no full
+suite pass claimed. Targeted remediation review pending at this commit.
 
-Actual isolated officialVSCode clone /tmp/ZeroNativeQA.app/profile/project,
-sidebar Run started actual wrapper and JavaFX process; terminal confirms9Java
-sources/noGWT, sidebarStop returnedRun and both exactownedMaven/JavaFXPIDs ended.
-Native Java window not exposed by CUA app inventory/JDKbundle lookup, so visual
-Hello/close-window coverage unverified. Fake close/exit tests pass. QA initial
-shell-environment warning dismissed; profile-only screenreader accessibility enabled.
-Physical Windows, freshOS/realGitHub and signedinstaller remain untested/unbuilt.
+Actual isolated officialVSCode clone /tmp/ZeroNativeQA.app/profile/project:
+sidebarRun launched actual wrapper+FX child, terminal9Java/noGWT. Stop restored
+Run and bothexactownedPIDs ended. Intentional missingsemicolon producedProblems1
+and ShowProblems with Main.java[7,23]. Repaired finiteFXfixture exitednormally,
+actualBUILD SUCCESS/Run/App stopped/noShowProblems. Its42.823s total underheavy
+hostcontention is not a benchmark. JavaFXwindowtext/OSclose unavailable viaCUA
+inventory/JDKbundle lookup; close/exitunitcontracts pass. InitialQAshellenvwarning
+dismissed; screenreader mode onlydisposableprofile. PhysicalWindows/freshOS/
+realGitHub/signedinstaller remain untested/unbuilt. No publicrelease/realstudent
+state changed. Completion receipt will capture finalreview/check/cleanup status.
 
 Weekly78%remaining; storage276GBhealthy. DeepSeek pause honored. One docsworker,
 coordinator implementation, independent source reviewer next; effective model/
