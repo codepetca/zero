@@ -1,56 +1,12 @@
-# Native-default Run App — local implementation
+# Native Run release — Mac 0.5.27
 
-Owner requests Run App use native JavaFX by default, browser compilation only
-for publishing. Branch codex/native-run-default, base64d60a4f (Mac0.5.26 release).
-Owner explicitly authorized merge and publication of this reviewed change
-on2026-10-20. Local kit/extension/build27 staged; public metadata remains26. Existing live Mac0.5.26 remains browser-default.
-Next: sourcePR/CI, signedMac27/candidate, publicbytes and metadata promotion.
-No credentials or student profile changes.
+The owner authorized merge and publication on 2026-10-20. Source [PR130](https://github.com/codepetca/zero/pull/130) merged as `64998626d83a6db32567289b3948c7e602592db0` after independent review and all five exact-head CI checks. Run App, its sidebar control and the configured run task now launch native JavaFX. Publish app and advanced Export for web retain browser compilation and compatibility checks. Setup help and stale browser-export recovery text follow these paths.
 
-Run App/sidebar/configured zero task run now use supported VSCode ProcessExecution
-(or Windows ShellExecution) with the same clean compile javafx:run Maven wrapper.
-run/native-run tasks both tracked for Stop/error lifecycle; old native command ID
-is hidden palette compatibility alias. Queue/generation/project/save guards and
-Stop settlement remain; workspace trust guards preserved before save/launch.
-Busy upload/export/publication blocks native starts. Browser/API compiler remains
-only on explicit Publish/advanced Export; validated output/publishing untouched.
-Explicit export-preview command/error wording now identifies web export correctly.
+The signed, notarized and stapled Mac installer is public: https://github.com/codepetca/zero/releases/download/setup-v0.5.27/Zero-0.5.27-macos.dmg
+Its 4,585,729 bytes match the sealed candidate SHA-256 `c9ce6778e6b86c77eced4cc8c86e5c281c4dbc55636f1bd586d445e81995227f`. Website and update-feed promotion are the current change; final review, CI, merge and live checks remain pending in this commit. The final ignored completion receipt records their outcome. Windows 0.5.21, its manual ZIP, the published general kit 0.5.17 and prior immutable releases retain their versions.
 
-Docs worker Sol/medium updated10operative docs, independently inspected. Initial
-Sol/high complete20file review8bcbc5f0 found2P2 blockers: setuphelp still asked for
-browser preview and stale-export recovery wrongly saidRunApp. Both fixed in one
-batch; UIhelp now nativewindow/Mavendependencies/taskterminal, all browser snapshot
-recovery directs Exportforweb/Publish. Validation logic/output guards unchanged.
-Final161affected checks pass/1Windowsruntime skip,35website/doc-render checks
-pass. Rootcheck passed before fixes; final rerun passed. Fullsuite interrupted
-after unrelated Git binary fixtures took150–264s each underMacload265; no full
-suite pass claimed. Targeted Sol/high remediation review clean atff4ab587. Release-version delta
-review next; no code changes after that reviewed source.
+Source and candidate reviews passed after two recovery-text findings were fixed in one batch. The bundled guide was corrected before packaging clean source `75ce9c39`. Main PR129's navigation/feedback changes were integrated and independently reviewed at `ebf9a448`; all 41 protected paths remain equivalent to the built source. The original sealed candidate `mac-0.5.27-17ba04810277` and draft provenance were reused unchanged.
 
-Actual isolated officialVSCode clone /tmp/ZeroNativeQA.app/profile/project:
-sidebarRun launched actual wrapper+FX child, terminal9Java/noGWT. Stop restored
-Run and bothexactownedPIDs ended. Intentional missingsemicolon producedProblems1
-and ShowProblems with Main.java[7,23]. Repaired finiteFXfixture exitednormally,
-actualBUILD SUCCESS/Run/App stopped/noShowProblems. Its42.823s total underheavy
-hostcontention is not a benchmark. JavaFXwindowtext/OSclose unavailable viaCUA
-inventory/JDKbundle lookup; close/exitunitcontracts pass. InitialQAshellenvwarning
-dismissed; screenreader mode onlydisposableprofile. PhysicalWindows/freshOS/
-realGitHub/signedinstaller remain untested/unbuilt. No publicrelease/realstudent
-state changed. Completion receipt will capture finalreview/check/cleanup status.
+Validation: 161 affected tests passed with one Windows runtime skip; 35 focused website/doc-render checks and root checks passed. Integration added 54 passing website tests and a typecheck. The broad local suite was interrupted under severe host load; full release tests and required browser checks instead passed in exact-head GitHub CI. Actual isolated Mac VS Code testing covered sidebar Run, Stop, syntax errors in Problems, and a successful finite JavaFX process returning to idle. Native window appearance and OS close, fresh-machine setup, physical Windows and live GitHub acceptance remain manual coverage. No speed benchmark is claimed; native Run skips GWT by routing.
 
-Weekly78%remaining; storage276GBhealthy. DeepSeek pause honored. One docsworker,
-coordinator implementation, independent source reviewer next; effective model/
-tokens/savings unknown. Primary dirty funding checkout preserved. No toolgoal,
-separate task or automation. Keep owned worktree/ignored QA receipts until decision.
-
-Packaging audit before sealing corrected bundled START-HERE nativeRun/setup/
-firstdeps/browser-publishing text and extension/studentREADME27labels; first
-unnotarized build cancelled, no bytes uploaded/sealed. Repackage/rebuild from
-this clean source. Include this documentation+version delta in candidate review.
-
-Main integration: PR129 mergedfe67e9a6 during sourceCI, changing onlywebsite
-navigation/project-feedback icons and operative docs. Preserveall8incomingfiles;
-CURRENT conflict resolved into this operativehandoff. No native/runtime/packaged
-protectedpath changed versus built75ce9c39; keep sealed17ba0481 candidate/draft
-immutable and recheck parity. SourcePR130returnedDraft for newintegrationhead,
-independentintegrationreview and exactheadCI before merge/publication.
+Detailed review, build, signature, notarization, draft/public download and UI receipts are in ignored `.verification/native-run/receipts`. Preserve these and the sealed candidate under the primary checkout's `.verification/native-run-0.5.27` before retiring the owned worktree. The isolated QA app/profile/project were removed. Student projects, credentials and unrelated primary-checkout work are preserved. No tool-backed goal, separate task or automation was created.

@@ -6711,3 +6711,11 @@ viaCUA, so notcertified; lifecyclefake tests coverclose/exit. No publicrelease/
 credentials/studentrepo/profile changes. Owner explicitly authorized merge/publication after review; version/build27
 staged with sourcePR/signedcandidate/CI/public/live gates pending.
 Ignored .verification/native-run receipts record finalreview/cleanup/check status.
+
+## Native Run publication — 2026-10-20
+
+[PR130](https://github.com/codepetca/zero/pull/130) merged reviewed head `ebf9a448` as `64998626d83a6db32567289b3948c7e602592db0`. All five exact-head checks passed, including full release tests and browser compatibility/build checks. Local verification passed 161 affected tests with one platform skip, 35 focused website/doc-render tests and root checks; integration passed 54 website tests and typechecking. The broad local suite was interrupted under host load and is not claimed as passing.
+
+Independent source, remediation, signed-candidate and website integration reviews passed. Two recovery-text blockers were fixed in one batch. Actual isolated Mac VS Code tests covered native Run/Stop, syntax errors in Problems and successful finite JavaFX exit to idle. Window appearance/OS close, fresh-machine installation, physical Windows and live GitHub remain manual coverage.
+
+The public Mac 0.5.27 DMG is 4,585,729 bytes with SHA-256 `c9ce6778e6b86c77eced4cc8c86e5c281c4dbc55636f1bd586d445e81995227f`. Authenticated draft and anonymous public downloads match the immutable sealed candidate. Actual Developer ID, Apple notarization, staple, Gatekeeper, both Ed25519 signatures and update build order 26→27 passed. Source parity after PR129 integration preserves all 41 protected paths. Final metadata promotion review, CI and live verification are pending in this commit; the ignored completion receipt records the final outcome. Whole investigation and candidate files are preserved under `.verification/native-run-0.5.27` in the primary checkout before worktree retirement.

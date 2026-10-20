@@ -46,9 +46,9 @@ an ordinary local starter smoke test.
 An ordinary extracted starter may be used outside another Git repository to check
 setup: follow its README, retain hidden folders and run its default Hello, world!
 app. This local smoke does not complete lesson 0 or the required tutorial setup.
-Current source Run App opens a native JavaFX window; verify rerun, Stop during
-build/running, and close-to-idle there. This change is unreleased; published Mac
-0.5.26 retains browser Run. Record which version you test.
+Mac 0.5.27 Run App opens a native JavaFX window; verify rerun, Stop during
+build/running, and close-to-idle there. Earlier downloads retain their bundled
+behavior. Record which version you test.
 
 The three empty tutorial templates are published, with verified exact pins in
 `teaching/tutorial-templates.json`. Their seven canonical helpers match the tested
