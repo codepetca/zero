@@ -12,7 +12,8 @@ with 11 prompt/integration tests and diff whitespace checks passing.
 85 affected input/caller tests, source syntax and diff whitespace pass after
 preparing generated assets and updating the superseded commit-prompt assertion.
 Actual VS Code rendering, screen readers and physical Windows were not retested.
-No push, merge, installer build or publication was requested for this change.
+The initial local change was not authorized for publication. The owner subsequently
+authorized merge and a signed Mac 0.5.32 release; final receipts follow publication.
 Review ledger: one reviewer, one initial and one targeted turn, no source remediation, one test expectation
 correction; effective model/tokens unknown. Weekly allowance reading was 72%
 remaining (account-wide); cached storage check healthy at 283 GB available.

@@ -1,6 +1,6 @@
 # Start with Zero
 
-Zero **0.5.31** includes core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
+Zero **0.5.32** includes core **0.2.1**, targeting **Mac with Apple Silicon** and **Windows**.
 Use the guide bundled with an older download for its controls. Linux and Intel
 Macs are unsupported; physical Windows/classroom testing remains pending.
 
