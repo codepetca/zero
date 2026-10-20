@@ -4,7 +4,8 @@ Owner requested `<Enter> to confirm · <Esc> to cancel` in Zero text-entry popup
 Implemented through the shared native QuickPick title, preserving short labels,
 existing context and validation. Independent Luna/medium source review clean;
 85 affected tests pass. Native rendering/assistive technology not retested.
-No new publication requested; Mac 0.5.31 remains the latest published version.
+Owner authorized merge and publication. Preparing Mac 0.5.32/build32; Mac 0.5.31
+remains the latest public download until the sealed candidate is verified and promoted.
 Owned worktree: popup-keyboard-hint. Primary dirty funding work is preserved.
 Details: docs/EVIDENCE.md, Popup keyboard helper.
 
