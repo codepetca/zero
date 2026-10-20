@@ -531,7 +531,7 @@ with Open GitHub and Check again. Keep permission explanations in setup help.
 
 ## Stateful first-run sidebar — owner approval, 2026-10-20
 
-For candidate 0.5.25, replace the tutorial welcome modal with a minimal sidebar
+Mac 0.5.25 replaces the tutorial welcome modal with a minimal sidebar
 sequence: **Sign in to GitHub** → **Install Zero for GitHub** → **Start tutorial**.
 Sign-in retains existing device authorization and credentials, runs a read-only
 App-access check, then stops at the next visible step. The install action opens
@@ -545,6 +545,5 @@ push and sharing controls wait for readiness. Tutorial reading state persists
 locally per workspace/project path (lesson, scroll and disclosures only); it does
 not track completion or grading. All tutorials can return to the first lesson
 without changing code. Starting a tutorial creates a separate repository.
-The published Mac 0.5.24 and Windows 0.5.21 preview/manual ZIP retain their
-current behavior until their respective promotion/updates. Website visuals do not
-change.
+Earlier Mac downloads and the Windows 0.5.21 preview/manual ZIP retain their
+bundled behavior. Website visuals do not change.

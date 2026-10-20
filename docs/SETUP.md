@@ -1,6 +1,6 @@
 # Guided student setup
 
-The signed, notarized Mac 0.5.24 app prepares Java and the editor, then guides
+The signed, notarized Mac 0.5.25 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
 unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
@@ -32,9 +32,8 @@ explicit project commands create repositories only after collecting the choices 
 
 ## Start a tutorial or project
 
-In the local 0.5.25 candidate, follow the sidebar: **Sign in to GitHub**, then
-**Install Zero for GitHub** if requested, then **Start tutorial**. The current
-published Mac 0.5.24 still uses its welcome screen until candidate promotion.
+In Mac 0.5.25, follow the sidebar: **Sign in to GitHub**, then
+**Install Zero for GitHub** if requested, then **Start tutorial**.
 Sign-in uses Zero's existing GitHub device flow and credentials. After sign-in,
 Zero checks App access for repository creation and contents writing; the check is
 read-only and stops at the next sidebar step. If access is missing, **Install Zero
