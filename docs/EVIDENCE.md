@@ -6563,3 +6563,27 @@ immutable assets stay until verified promotion. Independent source review,
 exact-head CI and signed release gates pending. Receipts under ignored
 .verification/sidebar-setup-0.5.25/receipts; storage285GB/weekly86%remaining at
 start. DeepSeek dated pause honored. No new goal/task/automation.
+
+## Sidebar-guided setup publication — 2026-10-20
+
+Source PR123 passed full Sol/high review and corrected exact-head CI, then merged
+with tree equality to7cc41d1. Clean built a4e596f/source parity retained through
+one two-line docs correction caught by CI after the prior local website run.
+Final source802pass/3skip,98affected tests,157website/typecheck/build and rootcheck;
+native mock-account sidebar cancellation/retry/install/return/saved session/light/
+dark checked. Live GitHub, new OS and physical Windows remain smoke coverage.
+
+Measured Mac0.5.25 candidate e6e85e7 sealed all13 hashes, verified actual Developer
+ID/staple/Gatekeeper, notarizationec27c2b7-fcc9-415e-aa0a-3808002c1179 and both
+Ed25519 signatures/build24→25. Independent candidate/delta review clean. Draft
+and anonymous public single-DMG downloads match SHA256
+83b2fa4268c821ea4baa98d486a6e525e6f87b15533d33807b70cea1df591ba9,
+4583531bytes, release418487190. Reviewed concise public notes replace inherited
+generic sealed NOTES only for publication. No credentials/profile/student repo
+changed. Tutorial state is local reading position only; skip/resume/restart claims
+verified, no completion tracker added. Windows/manual/publishedkit unchanged.
+
+Final promotion review/CI/live verification pending at this commit. Preserved
+candidate and complete source/review/notary/draft/public/live/completion receipts
+are in primary ignored .verification/sidebar-setup-0.5.25. Review ledger records
+budget/timing/correction; models requested, effective model and tokens unknown.
