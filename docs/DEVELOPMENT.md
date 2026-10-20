@@ -277,6 +277,12 @@ earlier downloads retain their bundled behavior. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.
 
+The current-source Run split button keeps native Run/Stop as its primary action.
+Its arrow opens Publish app for a ready, connected project and is disabled during
+Run/Stop. It shares anchored-menu keyboard/focus behavior with Files; both menus
+are mutually exclusive. Focused checks include `extension/test/run-dropdown.test.js`.
+The design fixture accepts `/sidebar?connected=1` for safe publishing-menu review.
+
 One supported webview (`zero.actions`) contains controls and the project file list;
 with a single view VS Code merges its title into the container header. Start
 tutorial (`zero.startProject`, stable command ID) is in welcome and the native

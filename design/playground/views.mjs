@@ -58,8 +58,8 @@ ${screen === 'home' ? homeContent : screen === 'downloads' ? '<div class="intro"
 </body>
 </html>`;
 }
-export function sidebarView(theme, state, host = true) {
-  let html = sidebarSource(state);
+export function sidebarView(theme, state, host = true, connected = false) {
+  let html = sidebarSource(state, {connected});
   // Only the preview swaps CSP and the command bridge. The production renderer
   // and its nonce-based policy remain byte-for-byte unchanged.
   html = html.replace(/<meta http-equiv="Content-Security-Policy"[^>]+>/, '');

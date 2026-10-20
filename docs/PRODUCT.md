@@ -13,6 +13,10 @@ to GitHub. Browser publication and ZeroHub contributions extend that learning;
 they are optional for completing the lessons. Keep ordinary Java and explicit
 object updates central as setup, publishing and community features grow.
 
+Current source adds a split Run control: the main button runs locally and its
+arrow opens **Publish app** for connected, ready projects. The arrow is unavailable
+while running or stopping. This change is not in the published Mac 0.5.29 installer.
+
 Current delivery, checked 2026-10-20: Mac 0.5.29 ships the Files creation dropdown, native Run App, sidebar-guided sign-in
 and GitHub setup. Windows remains the unsigned 0.5.21
 preview and matching manual ZIP, with updates disabled and physical acceptance
