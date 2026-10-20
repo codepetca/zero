@@ -53,8 +53,8 @@ See [verification evidence](VERIFICATION.md) for completed checks and platform l
    lesson 0 and choose **Run App**. **Open in browser** opens the lesson or running
    app in your default browser. Keep this repository for the following Greeting lessons.
 
-Already cloned your project? Choose **Open local project** in the sidebar to
-open it without cloning again. Choose **Open Tutorials** to resume its lesson;
+Already cloned your project? Choose **Open local project** in the empty sidebar
+or **Project → Open local project…** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
 lesson selection, scroll position and disclosure state are saved locally per
 project. This does not track completion or grading. Use **All tutorials** to
 choose the first lesson and restart the reading sequence; your code stays as it
