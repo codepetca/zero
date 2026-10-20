@@ -99,7 +99,8 @@ test('local, published, fallback and missing states offer only available verifie
   const publishedHtml=await render(published,fallback,null,false);
   assert.ok(publishedHtml.includes('Download for Windows (ZIP)'));
   assert.ok(publishedHtml.includes(`href="${published.assets.kit.url}"`));
-  assert.doesNotMatch(publishedHtml,/0\.5\.3|local preview/);
+  // Immutable download URLs contain versions; visible button labels stay plain.
+  assert.doesNotMatch(publishedHtml.replace(/href="[^"]*"/g,''),/\b\d+\.\d+\.\d+\b|local preview/);
   assert.equal(await render(current,null,null,false),'');
   const macOnly={...native,publication:{...native.publication,status:'published'},asset:{...native.asset,url:`https://github.com/codepetca/zero/releases/download/${native.publication.tag}/${native.asset.filename}`}};
   const macOnlyHtml=await render(current,null,macOnly,false);
