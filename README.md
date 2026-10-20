@@ -17,8 +17,8 @@ there is no required component or screen base class.
 
 Current source runs apps in native JavaFX windows through the project’s Maven
 wrapper, with browser compilation deferred to Publish app or advanced Export for
-web. This change is unreleased; published Mac 0.5.26 retains browser Run and other
-downloads retain their bundled behavior. GitHub actions default to live. Upload and branch changes retain their explicit review steps;
+web. Mac 0.5.27 ships native Run; earlier downloads retain
+their bundled behavior. GitHub actions default to live. Upload and branch changes retain their explicit review steps;
 tutorials use student-owned template clones and the same GitHub workflow. The individual flow is New branch →
 Commit & push → Merge to main into main, using VS Code's native GitHub session.
 First Publish confirms a public destination; later explicit Publish actions update

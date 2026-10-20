@@ -1,8 +1,8 @@
 # Browser games and playable links
 
-Current source changes Run App to a native JavaFX window. This change is
-unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
-their bundled behavior.
+Mac 0.5.27 uses native JavaFX for Run App. Earlier downloads retain their
+bundled Run behavior. Publish app or advanced Export for web performs browser
+compatibility checks and compilation.
 
 Zero remains a local Java teaching kit. Students write ordinary Java and JavaFX
 in local VS Code. Run App uses the project Maven wrapper to open a native desktop

@@ -13,7 +13,9 @@ outside dismissal verified in an isolated Mac extension host, light/dark/210px.
 Final signed build28 source52b214dc; protected payload unchanged through97236e7e.
 Apple accepted notarization f2f3398f-feca-44f4-a025-5d3be11f98b6. Stapled DMG:
 4584898 bytes, SHA256 3cbcd7ba7c7f68951574a4a4cd2d0c20053fd326773709d06a00156449dd973f.
-Measured local manifest is committed next; signed feed/candidate sealing,
+Measured local manifest committed; signed feed/candidate sealed at c407c63f.
+Incoming27 public metadata integrated fromPR132/c057ecb6; promotion27 must
+complete first. Remaining:
 independent candidate review, exact-head CI, source merge, verified release and
 separate metadata PR/deployment remain required. Do not distribute superseded27
 or f24-based28 artifacts retained in ignored verification evidence.

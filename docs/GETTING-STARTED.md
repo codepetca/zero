@@ -6,9 +6,9 @@ App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Current source changes Run App to a native JavaFX window. This change is
-unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
-their bundled behavior.
+Mac 0.5.27 uses native JavaFX for Run App. Earlier downloads retain their
+bundled Run behavior. Publish app or advanced Export for web performs browser
+compatibility checks and compilation.
 
 Zero is a local Java kit: edit ordinary Java in VS Code, then Run App to check and
 compile locally and open its own native JavaFX window. This MVP targets **Mac with Apple
