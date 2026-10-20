@@ -86,28 +86,28 @@ async function validateExport({projectRoot,result,signal,engineRoot=__dirname,sh
   const manifestPath=path.join(output,'manifest.json');
   if(result?.manifestPath&&path.resolve(result.manifestPath)!==manifestPath)throw new Error('The browser build belongs to a different project.');
   const manifest=JSON.parse(await fs.readFile(manifestPath,'utf8'));
-  if(manifest.schemaVersion!==1||typeof manifest.buildId!=='string'||!manifest.buildId||!manifest.compatibility||manifest.compatibility.status!=='passed')throw new Error('Run App again to validate this browser build with the current compatibility rules.');
-  if(result?.buildId&&result.buildId!==manifest.buildId)throw new Error('The browser build was replaced. Run App again.');
-  if(manifest.sitePath!==path.join(output,'site')||manifest.zipPath!==path.join(output,'web-export.zip'))throw new Error('Invalid browser build paths. Run App again.');
+  if(manifest.schemaVersion!==1||typeof manifest.buildId!=='string'||!manifest.buildId||!manifest.compatibility||manifest.compatibility.status!=='passed')throw new Error('Choose Export for web or Publish app again to validate this browser build with the current compatibility rules.');
+  if(result?.buildId&&result.buildId!==manifest.buildId)throw new Error('The browser build was replaced. Choose Export for web or Publish app again.');
+  if(manifest.sitePath!==path.join(output,'site')||manifest.zipPath!==path.join(output,'web-export.zip'))throw new Error('Invalid browser build paths. Choose Export for web or Publish app again.');
   const before=await captureBuildInputs(root);
-  if(!inventoryMatches(before.files,manifest.inputs))throw new Error('The project changed since its browser build. Run App again.');
+  if(!inventoryMatches(before.files,manifest.inputs))throw new Error('The project changed since its browser build. Choose Export for web or Publish app again.');
   const published=await resolveLibrarySources(root,before,{sharingSettings,fetcher,signal});
-  if(JSON.stringify(published.publishedLibraries)!==JSON.stringify(manifest.publishedLibraries||[]))throw new Error('The accepted library evidence changed since this browser build. Run App again.');
-  if(boundSourceHash(before.sourceHash,published.publishedLibraries)!==manifest.sourceHash||manifest.localSourceHash&&manifest.localSourceHash!==before.sourceHash)throw new Error('The project or accepted library changed since its browser build. Run App again.');
+  if(JSON.stringify(published.publishedLibraries)!==JSON.stringify(manifest.publishedLibraries||[]))throw new Error('The accepted library evidence changed since this browser build. Choose Export for web or Publish app again.');
+  if(boundSourceHash(before.sourceHash,published.publishedLibraries)!==manifest.sourceHash||manifest.localSourceHash&&manifest.localSourceHash!==before.sourceHash)throw new Error('The project or accepted library changed since its browser build. Choose Export for web or Publish app again.');
   const profileHash=await buildProfileHash(engineRoot);
-  if(manifest.profileHash!==profileHash)throw new Error('Zero’s browser compiler or compatibility rules changed. Run App again.');
+  if(manifest.profileHash!==profileHash)throw new Error('Zero’s browser compiler or compatibility rules changed. Choose Export for web or Publish app again.');
   const siteFiles=await tree(manifest.sitePath);
-  if(!inventoryMatches(siteFiles,manifest.files)||manifest.totalBytes!==siteFiles.reduce((sum,f)=>sum+f.bytes.length,0))throw new Error('The browser build files changed or are incomplete. Run App again.');
-  if(!siteFiles.some(f=>f.path==='index.html'&&f.bytes.length)||!siteFiles.some(f=>f.path==='zero_web.nocache.js'&&f.bytes.length)||!siteFiles.some(f=>/\.cache\.js$/.test(f.path)&&f.bytes.length))throw new Error('The browser build is incomplete. Run App again.');
+  if(!inventoryMatches(siteFiles,manifest.files)||manifest.totalBytes!==siteFiles.reduce((sum,f)=>sum+f.bytes.length,0))throw new Error('The browser build files changed or are incomplete. Choose Export for web or Publish app again.');
+  if(!siteFiles.some(f=>f.path==='index.html'&&f.bytes.length)||!siteFiles.some(f=>f.path==='zero_web.nocache.js'&&f.bytes.length)||!siteFiles.some(f=>/\.cache\.js$/.test(f.path)&&f.bytes.length))throw new Error('The browser build is incomplete. Choose Export for web or Publish app again.');
   await safePath(manifest.zipPath);
   const zipBytes=await fs.readFile(manifest.zipPath);
   const byPath=new Map(siteFiles.map(file=>[file.path,file]));
-  if(!zipBytes.equals(zipFiles(manifest.files.map(file=>byPath.get(file.path)))))throw new Error('The browser ZIP differs from the validated app. Run App again.');
+  if(!zipBytes.equals(zipFiles(manifest.files.map(file=>byPath.get(file.path)))))throw new Error('The browser ZIP differs from the validated app. Choose Export for web or Publish app again.');
   const outputFiles=await tree(output);
   const allowed=new Set(['manifest.json','web-export.zip',...siteFiles.map(f=>'site/'+f.path)]);
-  if(outputFiles.some(f=>!allowed.has(f.path)))throw new Error('The browser build folder contains unvalidated files. Run App again.');
+  if(outputFiles.some(f=>!allowed.has(f.path)))throw new Error('The browser build folder contains unvalidated files. Choose Export for web or Publish app again.');
   abort(signal);
-  if((await captureBuildInputs(root)).sourceHash!==before.sourceHash||(await buildProfileHash(engineRoot))!==profileHash)throw new Error('The project or browser compiler changed during validation. Run App again.');
+  if((await captureBuildInputs(root)).sourceHash!==before.sourceHash||(await buildProfileHash(engineRoot))!==profileHash)throw new Error('The project or browser compiler changed during validation. Choose Export for web or Publish app again.');
   return {...result,sitePath:manifest.sitePath,zipPath:manifest.zipPath,manifestPath,buildId:manifest.buildId,sourceHash:manifest.sourceHash,profileHash,totalBytes:manifest.totalBytes,files:manifest.files,logPath:manifest.buildLog,manifest,siteFiles,zipBytes};
 }
 async function ensureValidatedExport(options={}) {
@@ -125,7 +125,7 @@ async function ensureValidatedExport(options={}) {
 async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=require('../core').git}={}) {
   if(!/^[a-f0-9]{40}$/.test(sourceSha||''))throw new Error('Invalid uploaded source commit.');
   const inputs=await captureBuildInputs(projectRoot);
-  if(inputs.sourceHash!==(result?.manifest?.localSourceHash||result?.sourceHash))throw new Error('The project changed since its browser build. Run App again.');
+  if(inputs.sourceHash!==(result?.manifest?.localSourceHash||result?.sourceHash))throw new Error('The project changed since its browser build. Choose Export for web or Publish app again.');
   const raw=await git(projectRoot,['ls-tree','-r','-z',sourceSha,'--','src/main/java','src/main/resources','pom.xml','mvnw','mvnw.cmd','.mvn','zero-libraries.json','libraries']);
   const committed=new Map();
   for(const entry of String(raw).split('\0').filter(Boolean)) {
@@ -147,7 +147,7 @@ async function assertBuildInputsAtCommit({projectRoot,result,sourceSha,git=requi
     if(expected&&textSource&&expected===gitBlob(Buffer.from(file.bytes.toString('utf8').replace(/\r\n/g,'\n')))){normalized.push(file.path);continue;}
     throw new Error('The browser input '+file.path+' differs from the uploaded commit or is ignored/untracked. Upload the exact source and resources before publishing.');
   }
-  if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Run App again.');
+  if((await captureBuildInputs(projectRoot)).sourceHash!==inputs.sourceHash)throw new Error('The project changed while checking its uploaded source. Choose Export for web or Publish app again.');
   return {sourceSha,sourceHash:result.sourceHash,inputCount:inputs.files.length,normalizedSourceLineEndings:normalized};
 }
 module.exports={captureBuildInputs,buildProfileHash,boundSourceHash,validateExport,ensureValidatedExport,assertBuildInputsAtCommit,_test:{digest,inventoryMatches,tree}};

@@ -8,6 +8,10 @@ manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
+Current source changes Run App to a native JavaFX window. This change is
+unreleased; Mac 0.5.26 retains browser Run, and other published downloads keep
+their bundled behavior.
+
 The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
@@ -98,7 +102,7 @@ downloads and platform limits.
    Submit repository links in Pika separately when assigned.
 6. If setup needs troubleshooting, **Setup help → Test installation** opens the
    completed bundled Hello World app in a separate window marked Installation
-   test. Choose **Run test** and confirm its browser preview. This is optional;
+   test. Choose **Run test** and confirm its native JavaFX window. This is optional;
    it is separate from your tutorial. Older kits retain their bundled instructions.
 
 ## Automation boundaries
@@ -129,8 +133,10 @@ extensions in another profile do not satisfy this check.
 Extension repair invokes VS Code's supported extension installer on explicit
 selection. Java/Git repair opens an official installer page. Fully quit/reopen
 VS Code after installing tools or repairing environment variables, then Check
-again. Run current app saves the project, checks browser compatibility, builds it
-and opens the browser preview. Build errors appear in Zero Output and Problems.
+again. Run current app saves the project and uses its Maven wrapper to build and
+open a native JavaFX window. Build errors appear in the task terminal and Problems.
+Local Run and Run test skip browser compatibility checks and WebFX compilation;
+Publish app or advanced Export for web performs those checks when requested.
 A missing or malformed project, timeout, unparseable version or failed tool check
 must not be reported as ready. On a supported Mac, the wrapper must also have
 execute permission; re-extract the complete kit or follow the reported local

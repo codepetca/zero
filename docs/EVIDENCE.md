@@ -6686,3 +6686,28 @@ fast-edit workaround. Single warm native2.93s vs browser32.45s compile-only; no
 GUI measurement, no optimized flags/caching shipped. FreshOS/liveGitHub/physical
 Windows remain smoke coverage. Whole candidate/receipts/benchmarks preserved under
 primary ignored .verification/tutorial-instructions-0.5.26 before retirement.
+
+## Native-default Run implementation — 2026-10-20
+
+Owner requested faster native Run App with browser compilation deferred to Publish
+or explicit advanced Export. Main command/sidebar and configured zero run task now
+share native Maven ProcessExecution/Windows ShellExecution. Existing legacy native
+command remains a hidden alias. Task ownership, Stop settlement, save/project/
+generation/trust checks and Errors/Problems behavior retained. Publishing/browser
+validators and generated artifact contract unchanged; native success does not
+prove browser compatibility. Current Mac0.5.26 retains its bundled behavior.
+
+Initial123affected checks/rootcheck passed. Sol/high full20file review found2P2
+recovery blockers (setuphelp browserinstruction and stale-export RunApp loop),
+fixed in one batch with focused tests. Final161affected pass/1Windowsruntime skip
+and35website/doc-render checks pass; finalrootcheck and Sol/high remediation review passed. Fullsuite interrupted underMacload265 after unrelated Gitfixtures
+took150–264s each; no fullpass claimed.
+
+Actual isolated MacVSCode sidebarRun launched wrapper/JavaFX child; Stop ended
+both exactownedprocesses/restoredRun. Real syntaxerror mappedMain.java[7,23] to
+Problems1/ShowProblems. Repaired finiteFXfixture emittedBUILD SUCCESS and ended
+normally withRun/Appstopped/noShowProblems. Nativewindowvisual/OSclose unavailable
+viaCUA, so notcertified; lifecyclefake tests coverclose/exit. No publicrelease/
+credentials/studentrepo/profile changes. Owner explicitly authorized merge/publication after review; version/build27
+staged with sourcePR/signedcandidate/CI/public/live gates pending.
+Ignored .verification/native-run receipts record finalreview/cleanup/check status.

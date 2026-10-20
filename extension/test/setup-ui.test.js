@@ -87,7 +87,7 @@ test('selected Java and Git download help opens without waiting for notice dismi
 test('first build is only launched by user selection, rechecked and limited to expected root',async () => {
   const {help,records} = await fixture(['run']);await help();
   assert.equal(records.checks,2);assert.deepEqual(records.runs,['/student']);
-  assert.match(records.notices[0],/Confirm that the browser preview opens.*Zero Output and Problems/);
+  assert.match(records.notices[0],/Run App opens a desktop window.*Problems or the task terminal/);
 });
 test('Run current app launches without waiting for the explanatory notice to be dismissed',async t => {
   let dismiss,timer;

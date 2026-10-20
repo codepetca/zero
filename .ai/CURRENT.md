@@ -1,59 +1,56 @@
-# Website navigation and project icons — local 2026-10-20
+# Native-default Run App — local implementation
 
-Owner follow-up: project feedback now uses check/warning/unknown icons with local
-Oct20·12:56PM time, flag report action and icon+count stars, filled when selected.
-Accessible labels, pending/retry handling and exact report context preserved.
-TypeScript,19focused feedback/status/star tests and rendered state checks pass.
-No live-browser/account check or publication. Same isolated branch/worktree;
-ignored receipts .verification/project-card-icons/. Small direct implementation,
-no delegation; cached276GBhealthy. No external action or dependency change.
+Owner requests Run App use native JavaFX by default, browser compilation only
+for publishing. Branch codex/native-run-default, base64d60a4f (Mac0.5.26 release).
+Owner explicitly authorized merge and publication of this reviewed change
+on2026-10-20. Local kit/extension/build27 staged; public metadata remains26. Existing live Mac0.5.26 remains browser-default.
+Next: sourcePR/CI, signedMac27/candidate, publicbytes and metadata promotion.
+No credentials or student profile changes.
 
-Owner requested removing the redundant Download menu link. Shared Navigation now
-shows Tutorials, Docs and ZeroHub; logo still opens Home with platform downloads.
-Product/development guidance updated. TypeScript, rendered-header/link checks and
-whitespace pass; full website suite stopped after28pass due slow unrelated project
-packaging fixtures. No browser rerun/publication. Isolated codex/remove-download-menu
-worktree based on main64d60a4f preserves original funding checkout. Small direct
-change, no delegation; weekly78%remaining/storage280GBhealthy. One verification
-regex corrected for harmless HTML attribute order; no implementation rework.
-Task-specific elapsed/usage unknown; evidence .verification/remove-download-menu/.
+Run App/sidebar/configured zero task run now use supported VSCode ProcessExecution
+(or Windows ShellExecution) with the same clean compile javafx:run Maven wrapper.
+run/native-run tasks both tracked for Stop/error lifecycle; old native command ID
+is hidden palette compatibility alias. Queue/generation/project/save guards and
+Stop settlement remain; workspace trust guards preserved before save/launch.
+Busy upload/export/publication blocks native starts. Browser/API compiler remains
+only on explicit Publish/advanced Export; validated output/publishing untouched.
+Explicit export-preview command/error wording now identifies web export correctly.
 
-# Direct tutorial instructions — Mac0.5.26 publication
+Docs worker Sol/medium updated10operative docs, independently inspected. Initial
+Sol/high complete20file review8bcbc5f0 found2P2 blockers: setuphelp still asked for
+browser preview and stale-export recovery wrongly saidRunApp. Both fixed in one
+batch; UIhelp now nativewindow/Mavendependencies/taskterminal, all browser snapshot
+recovery directs Exportforweb/Publish. Validation logic/output guards unchanged.
+Final161affected checks pass/1Windowsruntime skip,35website/doc-render checks
+pass. Rootcheck passed before fixes; final rerun passed. Fullsuite interrupted
+after unrelated Git binary fixtures took150–264s each underMacload265; no full
+suite pass claimed. Targeted Sol/high remediation review clean atff4ab587. Release-version delta
+review next; no code changes after that reviewed source.
 
-Owner explicitly authorized merge and website/new Mac publication. Source PR127
-merged 0e55850049757f686bb35d3762b459fbf3a9ed62, tree equal reviewed452b074; all5 exact-head checks
-passed after one unchanged-head retry for Linux JavaFX/libLLVM startup crash.
-Independent Luna/medium full35-file source review clean. All13 lessons show81
-numbered detailed actions directly; all55 original fenced blocks and links
-preserved. Native Compare your code remains optional; general docs keep folding.
+Actual isolated officialVSCode clone /tmp/ZeroNativeQA.app/profile/project:
+sidebarRun launched actual wrapper+FX child, terminal9Java/noGWT. Stop restored
+Run and bothexactownedPIDs ended. Intentional missingsemicolon producedProblems1
+and ShowProblems with Main.java[7,23]. Repaired finiteFXfixture exitednormally,
+actualBUILD SUCCESS/Run/App stopped/noShowProblems. Its42.823s total underheavy
+hostcontention is not a benchmark. JavaFXwindowtext/OSclose unavailable viaCUA
+inventory/JDKbundle lookup; close/exitunitcontracts pass. InitialQAshellenvwarning
+dismissed; screenreader mode onlydisposableprofile. PhysicalWindows/freshOS/
+realGitHub/signedinstaller remain untested/unbuilt. No publicrelease/realstudent
+state changed. Completion receipt will capture finalreview/check/cleanup status.
 
-Local802pass/3platformskips,29focused,157website/typecheck/build and rootcheck.
-Actual isolated native reader0 copyfeedback/comparison/lightdark and IAB0/7/12,
-320CSSreflow checked. OS clipboard exactness relies on copy-value tests, not IAB
-clipboard readback. Real account/student files/primary funding edits untouched.
-Fresh OS/live GitHub/physical Windows remain smoke coverage.
+Weekly78%remaining; storage276GBhealthy. DeepSeek pause honored. One docsworker,
+coordinator implementation, independent source reviewer next; effective model/
+tokens/savings unknown. Primary dirty funding checkout preserved. No toolgoal,
+separate task or automation. Keep owned worktree/ignored QA receipts until decision.
 
-Mac DMG4585784bytes SHA25645511d8b2f79b326635b0551157fd1e079da3956f7f9fcc4c7a0e20314287e8c; public release418630126 at
-https://github.com/codepetca/zero/releases/download/setup-v0.5.26/Zero-0.5.26-macos.dmg. Authenticated draft and anonymous public bytes equal sealed candidate
-mac-0.5.26-83d3f81e8d38; actual Developer ID, accepted notarydc609da6-c898-4133-822e-79ea4fcfdbc7,
-staple/Gatekeeper, bothEd25519signatures/build25→26 verified. Inherited sealed
-NOTES remains unpublished; accurate custom notes used. Windows21/manual/
-publishedkit17/prior immutable releases unchanged.
+Packaging audit before sealing corrected bundled START-HERE nativeRun/setup/
+firstdeps/browser-publishing text and extension/studentREADME27labels; first
+unnotarized build cancelled, no bytes uploaded/sealed. Repackage/rebuild from
+this clean source. Include this documentation+version delta in candidate review.
 
-Browser Run still performs full production GWT compilation after edits. Existing
-Zero: Run Native App (Diagnostic) skips it. Warm single fixture compile-only2.93s
-native vs32.45s browser; GUI startup not timed. No optimization/cache redesign or
-speedup shipped; only repeated misleading first-download sentence removed.
-Read-only Sol/high investigation preserved with contention/single-sample limits.
-
-Promotion copies exact sealed feed and measured metadata. Final independent
-delta review/exact-head CI/merge/live download+feed+all13tutorial checks and smoke
-Page update pending at this commit. Completion receipt will record final state
-without an extra docs-only release cycle. Preserve candidate and whole ignored
-.verification/tutorial-instructions under primary before retiring owned worktree.
-
-Orchestration: Sol/medium13lesson worker independently verified; Sol/high compiler
-investigation read-only; Luna/medium full source and bounded release deltas.
-Review ledger captures coverage/budget/timing; effective models/tokens unknown.
-Weekly81%remaining/storage280GBhealthy atstart, DeepSeek pause honored. No tool
-goal/separate task/automation or credentials/profile changes.
+Main integration: PR129 mergedfe67e9a6 during sourceCI, changing onlywebsite
+navigation/project-feedback icons and operative docs. Preserveall8incomingfiles;
+CURRENT conflict resolved into this operativehandoff. No native/runtime/packaged
+protectedpath changed versus built75ce9c39; keep sealed17ba0481 candidate/draft
+immutable and recheck parity. SourcePR130returnedDraft for newintegrationhead,
+independentintegrationreview and exactheadCI before merge/publication.
