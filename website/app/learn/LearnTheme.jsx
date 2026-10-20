@@ -33,6 +33,11 @@ export function LearnTheme({ children, active }) {
 
   const dark = theme === "dark" || (theme === "system" && systemDark);
 
+  useEffect(() => {
+    const icon = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+    if (icon) icon.setAttribute("href", `/generated/brand/favicon-${dark ? "dark" : "light"}.svg`);
+  }, [dark]);
+
   function toggleTheme() {
     const next = dark ? "light" : "dark";
     setTheme(next);

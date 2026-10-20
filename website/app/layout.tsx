@@ -4,8 +4,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://zero.codepet.ca"),
   icons: {
     icon: [
-      { url: "/generated/brand/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/generated/brand/zero-white-on-purple.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/generated/brand/favicon.svg", type: "image/svg+xml", sizes: "any" },
     ],
     apple: [{ url: "/generated/brand/apple-touch-icon.png", sizes: "180x180" }],
   },
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
     images: [{ url: "/generated/brand/share.png", width: 1200, height: 630, alt: "Zero" }],
   },
   twitter: { card: "summary_large_image", images: ["/generated/brand/share.png"] },
-  title: { default: "Zero — a simple Java kit", template: "%s — Zero" },
+  title: { default: "zero", template: "%s — zero" },
   description:
     "A simple kit for building Java apps. Ordinary Java, VS Code and a small JavaFX library.",
 };
