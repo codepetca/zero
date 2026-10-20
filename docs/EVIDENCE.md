@@ -6636,8 +6636,8 @@ now resolves ordinary route metadata to lowercase zero, including dynamic docs
 and tutorials. Existing absolute home title already equals zero. Product contract
 updated.157website tests and production build/TypeScript pass;39successful page
 URLs including redirects each render exactly one zero title. Chrome Tutorials
-verified. Framework internal404/500error documents retain their stock titles;
-regular site pages are the requested surface. No new rendering or page content.
+verified. Explicit404and global-error fallback components keep the same zero
+title where the framework formerly inserted stock error titles; final checks pending.
 Direct small implementation, weekly82%remaining/storage281GB healthy; no worker
 implementation, token/elapsed usage unknown. Logs .verification/uniform-tab-title/.
 Independent review and publication gates pending.

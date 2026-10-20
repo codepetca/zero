@@ -1,10 +1,10 @@
 # Uniform website tab title — 2026-10-20
 
 Prior tab branding PR124/6448259 is published, with transparent themed favicon.
-Owner now requests lowercase zero on every regular website page. Root template
+Owner now requests lowercase zero on every website page. Root template
 changed from page-title suffix to constant zero; docs/product contract updated.
 157tests/build/TypeScript pass;39successful page URLs and Chrome Tutorials verify
-zero title. Next: independent review, reviewed PR/CI, merge and production checks
+zero title. Error fallbacks also use zero; final verification pending. Next: independent review, reviewed PR/CI, merge and production checks
 under the ongoing website publication authorization. Primary dirty funding work
 untouched; task worktree zero-uniform-tab-title. Logs .verification/uniform-tab-title/.
 Prior concurrent task record preserved below.
