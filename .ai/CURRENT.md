@@ -57,3 +57,10 @@ Packaging audit before sealing corrected bundled START-HERE nativeRun/setup/
 firstdeps/browser-publishing text and extension/studentREADME27labels; first
 unnotarized build cancelled, no bytes uploaded/sealed. Repackage/rebuild from
 this clean source. Include this documentation+version delta in candidate review.
+
+Main integration: PR129 mergedfe67e9a6 during sourceCI, changing onlywebsite
+navigation/project-feedback icons and operative docs. Preserveall8incomingfiles;
+CURRENT conflict resolved into this operativehandoff. No native/runtime/packaged
+protectedpath changed versus built75ce9c39; keep sealed17ba0481 candidate/draft
+immutable and recheck parity. SourcePR130returnedDraft for newintegrationhead,
+independentintegrationreview and exactheadCI before merge/publication.

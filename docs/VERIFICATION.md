@@ -25,6 +25,27 @@ Detailed logs remain ignored under `.verification/files-create/`.
 See [delivery evidence](EVIDENCE.md#files-creation-menu--local-source-2026-10-20)
 for source/review/authority and test receipts. No release or installed-app update.
 
+## Project card icons — 2026-10-20
+
+Availability uses circled-check/warning/question-mark icons with a local date and
+time formatted `Oct 20 · 12:56 PM`. Report uses a flag; stars use only an icon and
+count, with a filled selected state. Accessible action/status labels and report
+destinations remain. TypeScript and 19 focused feedback/status/star tests pass.
+React rendering checks pass for reachable/unreachable/unknown/unchecked, zero and
+unknown counts, signed-in/out, starred, pending and retry states. No interactive
+browser or real account action was tested. Receipts are in ignored
+`.verification/project-card-icons/`; change remains local and unpublished.
+
+## Website navigation — 2026-10-20
+
+Removed Download from the shared header menu; Tutorials, Docs and ZeroHub remain.
+TypeScript and a React server-render check pass, including the current-page link,
+mobile toggle attributes and logo link to Home. Home still renders its existing
+download controls. `git diff --check` passes. The broader website suite was stopped
+after 28 passing checks because unrelated project-packaging fixtures took several
+minutes; no full-suite pass is claimed. Interactive browser flows were not rerun.
+Change is local on `codex/remove-download-menu`; no publication.
+
 ## Goal and gap audit — 2026-10-19
 
 Audited current `main` at `79b0762638ef9cfb153a3a516b9194be76dadb79` in an
