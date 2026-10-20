@@ -1,66 +1,32 @@
-# Files dropdown publication — active, Mac0.5.28
+# Files dropdown — Mac 0.5.28 publication in progress
 
-Owner authorized publication. PR131 combines reviewed Files/Newasset with the
-exact reviewed Native Run source from dependencyPR130/head75ce9c39. Preparing
-0.5.28/build28 while Native0.5.27 publication finishes; do not publish/feed-promote
-28 until27 source/release/feed have completed. Earlier owned27 artifact superseded
-and retained ignored, never distributed. Sourceintegration/candidate review and
-exact-headCI required before merge. Preserve both user features and prior releases.
-Primary dirty checkout untouched. Receipts .verification/files-create/publication.
+Owner authorized publication on 2026-10-20. Worktree files-create-actions,
+branch codex/files-menu-create, source PR131. Native Run dependency PR130 merged;
+its separately owned Mac0.5.27 release/metadata promotion must finish before28.
+No account/credential changes or student profile changes are authorized/needed.
 
-# Native-default Run App — local implementation
+Files opens an anchored dropdown directly below the sidebar heading: New class,
+New file, New folder, New asset. Native name/location prompts and project/trust,
+collision, portable-name and symlink guards preserve existing work. Keyboard and
+outside dismissal verified in an isolated Mac extension host, light/dark/210px.
 
-Owner requests Run App use native JavaFX by default, browser compilation only
-for publishing. Branch codex/native-run-default, base64d60a4f (Mac0.5.26 release).
-Owner explicitly authorized merge and publication of this reviewed change
-on2026-10-20. Local kit/extension/build27 staged; public metadata remains26. Existing live Mac0.5.26 remains browser-default.
-Next: sourcePR/CI, signedMac27/candidate, publicbytes and metadata promotion.
-No credentials or student profile changes.
+Final signed build28 source52b214dc; protected payload unchanged through97236e7e.
+Apple accepted notarization f2f3398f-feca-44f4-a025-5d3be11f98b6. Stapled DMG:
+4584898 bytes, SHA256 3cbcd7ba7c7f68951574a4a4cd2d0c20053fd326773709d06a00156449dd973f.
+Measured local manifest is committed next; signed feed/candidate sealing,
+independent candidate review, exact-head CI, source merge, verified release and
+separate metadata PR/deployment remain required. Do not distribute superseded27
+or f24-based28 artifacts retained in ignored verification evidence.
 
-Run App/sidebar/configured zero task run now use supported VSCode ProcessExecution
-(or Windows ShellExecution) with the same clean compile javafx:run Maven wrapper.
-run/native-run tasks both tracked for Stop/error lifecycle; old native command ID
-is hidden palette compatibility alias. Queue/generation/project/save guards and
-Stop settlement remain; workspace trust guards preserved before save/launch.
-Busy upload/export/publication blocks native starts. Browser/API compiler remains
-only on explicit Publish/advanced Export; validated output/publishing untouched.
-Explicit export-preview command/error wording now identifies web export correctly.
+Validation: npm check; combined153 tests; prior full816pass/3platformskips;
+website typecheck/157tests/build; signed payload/kit checks. Independent Files,
+integration, naming and README remediation reviews clean. Incoming website129
+merge reviewed separately; no protected payload changes. Windows/Intel/fresh-
+machine/screen-reader acceptance unverified. Receipt root:
+.verification/files-create/publication; local UI screens in ../dropdown.
 
-Docs worker Sol/medium updated10operative docs, independently inspected. Initial
-Sol/high complete20file review8bcbc5f0 found2P2 blockers: setuphelp still asked for
-browser preview and stale-export recovery wrongly saidRunApp. Both fixed in one
-batch; UIhelp now nativewindow/Mavendependencies/taskterminal, all browser snapshot
-recovery directs Exportforweb/Publish. Validation logic/output guards unchanged.
-Final161affected checks pass/1Windowsruntime skip,35website/doc-render checks
-pass. Rootcheck passed before fixes; final rerun passed. Fullsuite interrupted
-after unrelated Git binary fixtures took150–264s each underMacload265; no full
-suite pass claimed. Targeted Sol/high remediation review clean atff4ab587. Release-version delta
-review next; no code changes after that reviewed source.
-
-Actual isolated officialVSCode clone /tmp/ZeroNativeQA.app/profile/project:
-sidebarRun launched actual wrapper+FX child, terminal9Java/noGWT. Stop restored
-Run and bothexactownedPIDs ended. Intentional missingsemicolon producedProblems1
-and ShowProblems with Main.java[7,23]. Repaired finiteFXfixture exitednormally,
-actualBUILD SUCCESS/Run/App stopped/noShowProblems. Its42.823s total underheavy
-hostcontention is not a benchmark. JavaFXwindowtext/OSclose unavailable viaCUA
-inventory/JDKbundle lookup; close/exitunitcontracts pass. InitialQAshellenvwarning
-dismissed; screenreader mode onlydisposableprofile. PhysicalWindows/freshOS/
-realGitHub/signedinstaller remain untested/unbuilt. No publicrelease/realstudent
-state changed. Completion receipt will capture finalreview/check/cleanup status.
-
-Weekly78%remaining; storage276GBhealthy. DeepSeek pause honored. One docsworker,
-coordinator implementation, independent source reviewer next; effective model/
-tokens/savings unknown. Primary dirty funding checkout preserved. No toolgoal,
-separate task or automation. Keep owned worktree/ignored QA receipts until decision.
-
-Packaging audit before sealing corrected bundled START-HERE nativeRun/setup/
-firstdeps/browser-publishing text and extension/studentREADME27labels; first
-unnotarized build cancelled, no bytes uploaded/sealed. Repackage/rebuild from
-this clean source. Include this documentation+version delta in candidate review.
-
-Main integration: PR129 mergedfe67e9a6 during sourceCI, changing onlywebsite
-navigation/project-feedback icons and operative docs. Preserveall8incomingfiles;
-CURRENT conflict resolved into this operativehandoff. No native/runtime/packaged
-protectedpath changed versus built75ce9c39; keep sealed17ba0481 candidate/draft
-immutable and recheck parity. SourcePR130returnedDraft for newintegrationhead,
-independentintegrationreview and exactheadCI before merge/publication.
+Orchestrate applied with Sol/medium read-only review workers; DeepSeek pause
+honored. Weekly77%remaining and272GBfree at start of publication build. Effective
+worker token use/savings unknown. Rework: reserve28 for concurrent27; correct two
+bundled README labels and rebuild before final notarization. Preserve ignored
+candidate/receipts before retiring worktree; primary dirty funding checkout intact.
