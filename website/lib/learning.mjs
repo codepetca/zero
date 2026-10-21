@@ -184,14 +184,14 @@ export const examples = [
     title: "Hello, Java",
     description: "A small interface with a name field, greeting and reset.",
     files: ["hello-app/Main.java"],
-    guide: "beginner",
+    guide: "api",
   },
   {
     id: "reach-the-coin",
     title: "Reach the coin",
     description: "Arrow keys move a square; touch the gold square to win and press R to restart.",
     files: ["reach-the-coin/Main.java", "reach-the-coin/Player.java"],
-    guide: "beginner",
+    guide: "api",
   },
   {
     id: "hello-button",
@@ -317,30 +317,8 @@ export const examples = [
   },
 ];
 export const quickLinks = [
-  { title: "ZeroHub", description: "Explore projects and libraries.", href: "/hub" },
-  {
-    title: "Beginner toolkit",
-    description: "Start with a small set for apps or games.",
-    href: "/docs/beginner",
-  },
-  {
-    title: "Make it look good",
-    description: "Fonts, colours, spacing and editable styles.",
-    href: "/docs/style",
-  },
-  {
-    title: "Setup guide",
-    description: "Install the JDK, VS Code and the Zero extension.",
-    href: "/docs/setup",
-  },
-  {
-    title: "Java API reference",
-    description: "Look up the classes and methods you will use.",
-    href: "/docs/api",
-  },
-  {
-    title: "For teachers",
-    description: "Lesson notes, expected results and assessment guidance.",
-    href: "/docs/teachers",
-  },
+  { title: "Tutorials", description: "Build your app one step at a time.", href: "/learn" },
+  { title: "API reference", description: "Look up Zero classes and methods.", href: "/docs" },
+  { title: "Setup help", description: "Install Zero and troubleshoot running.", href: "/help/setup" },
+  { title: "For teachers", description: "Teaching notes and classroom checks.", href: "/teachers" },
 ];

@@ -242,7 +242,13 @@ the desktop sidebar and a lesson selector on narrow screens. Sidebar selection
 updates the reading pane and bookmarkable lesson URL; there is no overview landing.
 The tutorial reader shares the approved appearance controls with Downloads.
 
-Docs opens the searchable API. Setup and longer guides use the shared reader.
+Docs opens the searchable API. Tutorials contain the learning explanations.
+Setup/new-project help and teacher notes use separate, small reader navigation
+under `/help` and `/teachers`; the reader never lists the entire document map.
+Legacy guide routes resolve through `website/lib/document-navigation.mjs`,
+including chapter bookmarks. Keep migrated destinations and anchors covered by
+`website/tests/document-navigation.test.mjs`. Source guides remain in the kit and
+repository for older links and advanced contributor reference.
 ZeroHub opens Projects by default, with Projects/Libraries and a separate Share
 your work action. Maintained project metadata lives in website/content/projects.json;
 Drawing Pad links to the verified codepetca repository and an actual square

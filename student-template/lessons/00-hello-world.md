@@ -36,4 +36,32 @@ Click **Run App**. The window says **Hello, world!**. Edit the quoted words to `
 Keep this **same Greeting project** for lessons 1 and 2. You will add to this
 code rather than replace `Main.java`.
 
+### App startup
+
+Your Main extends `zero.App`, a JavaFX application. The starter's
+`main(...)` calls `launch(args)`. Zero then calls `settings()` once, calls
+`setup()` once to build your interface, and shows the window. Keep that entry
+point; you do not need to construct another Main.
+
+For an optional window title and initial size, add this method inside Main,
+beside `setup()` rather than inside it:
+
+```java
+@Override public void settings() {
+    title("Greeting");
+    size(420, 240);
+    padding(20);
+}
+```
+
+If Main already has `settings()`, edit that method instead. Call `title(...)`
+and `size(...)` there, before the interface exists. `padding(20)` leaves space
+around your content. In `setup()`, `show(greeting)` displays an ordinary JavaFX
+Label; later lessons arrange several controls before calling `show(...)`.
+
+App responds to events rather than calling an automatic `update()` or `draw()`.
+In the next lesson, a button action changes your existing label with `setText(...)`,
+and JavaFX displays the change. Keep setup and actions short so the window can
+respond; sleeping or a long loop blocks its JavaFX application thread.
+
 Next: [Add a button](01-hello-button.md).

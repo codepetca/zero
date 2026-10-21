@@ -64,3 +64,51 @@ Copy that one changed class into the other project.
 Run both. The score is bold in each, while all scoring and Restart behavior remains correct. If one project still looks unchanged, check which copy of `ScoreDisplay.java` you edited and rerun that project. After writing your own code, compare the [study Main](../../teaching/checkpoints/10/study/Main.java), [game Main](../../teaching/checkpoints/10/game/Main.java) and their identical [ScoreDisplay.java](../../teaching/checkpoints/10/study/ScoreDisplay.java).
 
 ScoreDisplay owns presentation; each Main owns its score and rules. In [lesson 11](11-zerohub.md), use this boundary to evaluate a component locally before sharing original work.
+
+### Reusable views
+
+`view()` is your convention, not a Zero callback. A component can create its
+controls in its constructor, return their JavaFX `Node` through `view()`, and
+expose a few methods such as `setScore(...)`. Main creates it once in setup,
+places its view, then sends new values explicitly after state changes.
+
+Reuse the class in another layout by creating a separate instance: one live
+Node can belong to only one parent. A component may contain other components;
+a HUD can include a ScoreDisplay and a message Label. Main still owns points,
+win flags and actions such as `restart()`. If a component contains a button,
+Main can supply its action through the constructor, for example a `Runnable`
+parameter that the button calls with `onRestart.run()`.
+
+Player uses a different useful convention: Main calls its `update(...)` and
+`draw(GameApp app)` methods. A Question holds data and checks an answer. Neither
+needs a `view()` unless it actually provides JavaFX controls. These are ordinary
+classes with methods chosen for their jobs.
+
+### Screens and app flow
+
+Keep one running Main application. GameApp already extends App; a screen or HUD
+is an object inside that application, not another App to launch.
+
+For a later study-app welcome or result screen, an ordinary class can build a
+layout and return it from `view()`. Main can call `show(startScreen.view())`
+and later `show(quizScreen.view())` in an action. `show(...)` replaces App's
+visible content; Main must keep the question index, score and current-screen
+state itself. Use named methods such as `checkAnswer()`, `nextQuestion()` and
+`restart()` to change state and refresh existing controls. Disable actions that
+would score an answer twice or advance beyond the final question.
+
+In GameApp, keep the canvas in the centre and put native views around it with
+`layout().setTop(...)`, `setBottom(...)`, `setLeft(...)` or `setRight(...)`.
+Build controls once in setup rather than rebuilding them each frame. A Start
+button can remove its side panel and set a Main-owned `playing` flag. Main must
+explicitly gate updates, for example `if (!playing) return;`, while draw can keep
+showing the current scene. Inherited `show(...)` replaces the sketch layout and
+does not stop the timer; focus loss also does not pause play. After a button
+action, `canvas().requestFocus()` returns game keys to the canvas.
+
+A drawn screen can instead define `draw(GameApp app)`. Main calls
+`gameScreen.draw(this)` from its draw method. If that screen owns a Player, it
+can call `player.draw(app)` inside its own method, passing the same reference
+onward. As in [lesson 8](08-movement.md#how-player-uses-the-app-to-draw), both draw
+onto the existing canvas; neither creates another application. Keep state changes
+in explicit actions or update methods rather than hiding them in drawing.

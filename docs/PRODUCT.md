@@ -95,7 +95,12 @@ Dragging to select text keeps manual copying available.
 The top menu contains Tutorials, Docs and ZeroHub. The Zero logo returns to Home,
 where platform download options are available; platform buttons do not appear below tutorials.
 Docs opens the complete searchable Zero API directly; method names stay visible
-while their details scroll, and category headings scroll normally; setup and longer app guides remain linked from its sidebar.
+while their details scroll, and category headings scroll normally. Tutorials are
+the single learning path: startup, appearance, objects and screen flow are taught
+in the relevant lessons. Setup/troubleshooting lives under `/help`, and teacher
+notes and the classroom pilot live under `/teachers`. Product, development and
+verification records stay in repository documentation. Legacy `/docs/...` guide
+bookmarks lead to the corresponding tutorial, help, teacher or repository page.
 ZeroHub opens Projects by default and has only Projects and Libraries in its
 catalog navigation. Share your work is a separate button. Drawing Pad is a
 maintained Codepet project backed by `codepetca/zero-drawing-pad`, shown alongside
@@ -182,7 +187,7 @@ are optional continuations of the same game, with maintained references; see
 The scored quiz remains a later reuse example.
 The new local tutorial pass inserts one-coin native controls before arrays/win,
 then reuses unchanged ScoreDisplay in the study app and coin game.
-[UI and flow](../student-template/UI.md) explains controls/components in games;
+[Lesson 10](../student-template/lessons/10-components.md#screens-and-app-flow) explains controls/components and screen flow in games;
 [the teaching plan](TUTORIAL-PLAN.md) distinguishes current conventions from proposed
 welcome/result/countdown helpers. Existing published kits keep their original bytes.
 Tutorial pages use the current project name as their main heading: Greeting App,

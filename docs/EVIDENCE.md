@@ -27,6 +27,59 @@ delta and independently passed3 regression cases.3reviewer turns/1initial wave/
 attributable time unknown. Weekly43%remaining and healthy274.7GB at start.
 Logs, prior CURRENT and review ledger: ignored `.verification/publish-save-deploy/`.
 
+## Tutorials/API website publication preparation — 2026-10-21
+
+Owner authorized merge and website publication. PR159:
+https://github.com/codepetca/zero/pull/159. Synced main70a72b04 at5033cb45,
+preserving both evidence histories and the published Mac0.5.40 metadata.
+Fresh pinned dependencies,176website/tutorial checks, root checks, typecheck and
+production webpack build pass. Earlier lesson/snippet compiles and browser
+checks apply to unchanged implementation. No installer rebuild/release.
+
+Independent `docs_simplification_review/2` accepted the complete main-sync delta
+at1102ac0a; turn3 accepted the README-only correction at0bf923d1. Together with
+the full initial review, source coverage is complete:3turns,1initial wave,
+2bounded delta waves,1documentation correction batch,zero remaining findings.
+Effective configuration/tokens/attributable elapsed time unknown. Final exact-head
+CI, merge, deployment and public acceptance are recorded in the ignored completion
+receipt preserved to primary `.verification/docs-simplification-publication/`.
+
+## Tutorials and API documentation — local, 2026-10-21
+
+Owner approved Tutorials as the single learning path and Docs as API reference.
+Startup, appearance, canvas/Player, reusable views/screens and resource ownership
+now live in lessons0,2,8,10,12. Help and teacher readers each have two entries;
+maintainer destinations go to repository docs. A shared chapter-aware map keeps
+old hosted guide URLs and authored links useful. Original source guides remain
+for older kits and advanced reference. API declarations/production Java unchanged.
+
+Independent `docs_simplification_review/1`, requested GPT-6.1 Sol/medium,
+completed all31files at35eb05e9 against9ad376d9 with zero actionable findings.
+One initial review launch, no fixes/retries; effective configuration, tokens and
+attributable elapsed time unknown. Coordinator accepted the tutorial worker's
+five-file delivery after source/compile/content checks. One main sync preserved
+both evidence histories. Checks/browser limits are in [Verification](VERIFICATION.md).
+Receipts/screenshots: `.verification/docs-simplification/`. Branch
+`codex/tutorials-api-docs` remains local; no push/deployment/native release.
+Weekly44% remaining, cached storage healthy274GB at start; task cost unknown.
+
+## Passing the app to Player — local docs, 2026-10-21
+
+Lesson 8 now explains `player.draw(this)`, `draw(GameApp app)` and drawing on the
+same canvas, with the existing Player method as a short example. Beginner and
+app guides explain the parameter and link to that section. The ordinary-object
+design is unchanged. Local branch `codex/player-drawing-guide`; no publication.
+
+Independent `player_docs_review/1`, requested GPT-6 Luna/medium, completed the
+entire 3-file/40-line source-doc diff at5e7d62b4 against0c403346 and its Java
+callers with zero findings. One launch/initial wave, zero fix batches or retries;
+effective configuration, token use and attributable elapsed time unknown.
+29 focused tutorial tests, checkpoint8 compilation, website preparation,
+rendered heading/cross-link checks and whitespace check pass; see
+[verification](VERIFICATION.md#passing-the-app-to-player--local-docs-2026-10-21).
+Weekly54% remaining and cached storage healthy280GB at start; account-wide usage
+is not task cost. Primary funding edits preserved; local dependency caches reused.
+
 ## Native Explorer — Mac0.5.40 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/157 merged as 5eb1e8952344166f67fbbd59c5d9c216ad8c64b5 with five exact-head checks.

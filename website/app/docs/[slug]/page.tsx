@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { docs } from "@/lib/content";
 import { isLessonDocumentId } from "@/lib/learning.mjs";
-import { ApiDocs } from "@/components/ApiDocs";
-import { Document } from "@/components/Document";
+import { LegacyDocumentRedirect } from "@/components/LegacyDocumentRedirect";
+import { documentDestination } from "@/lib/document-navigation.mjs";
 export const dynamicParams = false;
 export function generateStaticParams() {
   return Object.keys(docs)
@@ -26,5 +26,7 @@ export default async function Page({
 }) {
   const { slug } = await params;
   if (!Object.hasOwn(docs, slug) || isLessonDocumentId(slug)) notFound();
-  return slug === "api" ? <ApiDocs /> : <Document id={slug} />;
+  const destination = documentDestination(slug);
+  if (!destination) notFound();
+  return <LegacyDocumentRedirect id={slug} destination={destination} />;
 }
