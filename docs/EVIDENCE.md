@@ -17,7 +17,12 @@ switching. Corrected by retaining recovery until an active workspace matches its
 account/remote;109 final affected checks pass. Native QA stopped when the isolated
 VS Code profile triggered a Code Key keychain prompt. Owner confirmed Cancel plus
 stopping the owned editor ended it; no keychain/credential change. Native window/
-unsaved-flow acceptance remains unverified. Targeted review pending.
+unsaved-flow acceptance remains unverified. Independent Sol/high targeted review resolved the P2 at44f2b354, with complete
+cumulative coverage and no remaining blockers:2turns/1fixbatch. Effective
+configuration, tokens and reviewer elapsed telemetry unknown. Initial coverage
+plus the targeted activation/account/recovery integration pass covers final source;
+a further integration wave adds no uncovered behavior. Final38onboarding checks
+also pass after the unchanged-record guard.
 Mac0.5.36 remains public with its original behavior; this is local source only.
 Isolated branch codex/start-page-current-window preserves primary funding work.
 Weekly57% remaining, storage healthy282GB; task cost/elapsed telemetry unknown.
