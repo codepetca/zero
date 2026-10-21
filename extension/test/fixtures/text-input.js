@@ -1,6 +1,7 @@
 'use strict';
 // Drive the native input control with the existing command fixtures' queued text.
 function textInputs(vscode) {
+  vscode.version ??= '1.108.0';
   vscode.window.createQuickPick = () => {
     const listeners = {accept:new Set(),change:new Set(),hide:new Set()};
     const event = name => fn => {listeners[name].add(fn);return {dispose:()=>listeners[name].delete(fn)};};

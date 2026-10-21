@@ -9,7 +9,7 @@ function fixture() {
   const picker = {items:[],value:'',prompt:undefined,disposed:0,shown:false,onDidChangeValue:event('change'),onDidAccept:event('accept'),onDidHide:event('hide'),show(){this.shown=true;},dispose(){this.disposed++;}};
   let active='first';
   const window = {get activeTextEditor(){return active;},createQuickPick:()=>picker,showInputBox(){throw Error('Standard InputBox must not be used');}};
-  const vscode = {window,InputBoxValidationSeverity:{Error:3,Warning:2,Info:1}};
+  const vscode = {version:'1.108.0',window,InputBoxValidationSeverity:{Error:3,Warning:2,Info:1}};
   return {vscode,picker,emit,async type(value){picker.value=value;await emit('change',value);await new Promise(resolve=>setImmediate(resolve));},set active(value){active=value;}};
 }
 test('one short label and keyboard helper; native Enter accepts typed text without a selected item',async()=>{
@@ -62,6 +62,14 @@ test('older editors use native InputBox with the same title, hint and validation
   };
   assert.equal(await textInput(f.vscode,options),'Update greeting');assert.equal(f.picker.disposed,1);assert.equal(f.picker.shown,false);
   f.vscode.window.showInputBox=async()=>undefined;assert.equal(await textInput(f.vscode,options),undefined);
+});
+test('editors with a proposed-only prompt setter fall back without invoking it',async()=>{
+  for(const version of ['1.95.0','1.106.0','1.107.0',undefined]) {
+    const f=fixture();f.vscode.version=version;
+    Object.defineProperty(f.picker,'prompt',{get:()=>undefined,set(){assert.fail('Proposed API must not be used');}});
+    f.vscode.window.showInputBox=async options=>{assert.equal(options.title,'Commit Message');assert.equal(options.prompt,'<Enter> to confirm · <Esc> to cancel');return 'Update greeting';};
+    assert.equal(await textInput(f.vscode,{title:'Commit Message'}),'Update greeting');assert.equal(f.picker.disposed,1);assert.equal(f.picker.shown,false);
+  }
 });
 test('the Zero API facade preserves live editor state and never mutates VS Code',async()=>{
   const f=fixture();const ui=minimalPrompts(f.vscode);f.active='second';assert.equal(ui.window.activeTextEditor,'second');assert.notEqual(ui.window.showInputBox,f.vscode.window.showInputBox);
