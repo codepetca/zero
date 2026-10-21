@@ -67,3 +67,12 @@ test('Escape and extension disposal cancel without a clone or stale UI updates',
     assert.equal(await pending,undefined);assert.equal(f.picker.disposed,1);
   }
 });
+test('final repository results preserve the progressive item being searched and focused',async()=>{
+ let options,finish;const chosen=repo('quiz');
+ const f=fixture({listZero:input=>{options=input;return new Promise(resolve=>{finish=resolve;});}});
+ const pending=f.ui.choose();await turn();options.onRepository(chosen);
+ const item=f.picker.items.find(i=>i.repositoryUrl===chosen.html_url);f.picker.value='quiz';f.picker.activeItems=[item];
+ finish({repositories:[repo('newer'),chosen],truncated:false});await turn();
+ assert.equal(f.picker.value,'quiz');assert.equal(f.picker.activeItems[0],item);assert.equal(f.picker.items.find(i=>i.repositoryUrl===chosen.html_url),item);
+ f.select(item);assert.equal((await pending).repositoryUrl,chosen.html_url);
+});

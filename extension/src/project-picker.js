@@ -63,7 +63,11 @@ function createProjectPicker(vscode,{authentication,repositories,history,active=
             if(!valid()||controller.signal.aborted)return;
             const url=repo.html_url;
             if(typeof url!=='string')return;
-            remote.set(url.toLowerCase(),{label:'$(repo)',description:repo.full_name,detail:repo.private?'GitHub · Private':'GitHub',action:'repository',repositoryUrl:url,pushedAt:typeof repo.pushed_at==='string'?repo.pushed_at:''});render();
+            const key=url.toLowerCase();
+            // Final results repeat progressive callbacks. Keep the same native
+            // item object so replacing items never changes the focused choice.
+            if(remote.has(key))return;
+            remote.set(key,{label:'$(repo)',description:repo.full_name,detail:repo.private?'GitHub · Private':'GitHub',action:'repository',repositoryUrl:url,pushedAt:typeof repo.pushed_at==='string'?repo.pushed_at:''});render();
           };
           const result=await repositories.listZero({ticket,signal:controller.signal,onRepository:add});
           if(!valid()||controller.signal.aborted)return;
