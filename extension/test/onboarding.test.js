@@ -82,6 +82,15 @@ test('empty onboarding opens one live Start Page and keeps the sidebar minimal',
   assert.equal(f.panels.length,1);assert.equal(f.startPage.reveals.length,2);assert.equal(f.startPage.webview.html,document);
   assert.equal(f.calls.filter(([id])=>id==='showTextDocument'||id==='markdown.showPreview').length,0);
 });
+test('Start Page Tutorials link opens the reader without a project or GitHub sign-in',async t=>{
+  const f=await fixture(t,{empty:true,execute:async id=>f.commands.get(id)?.()});
+  await settle(()=>f.startState?.phase==='signed-out');
+  await f.startPage.message({type:'action',action:'tutorials',token:f.startPage.restored.token});
+  assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage','zero.tutorials']);
+  assert.equal(f.launches.length,0);assert.ok(f.authCalls.every(call=>call.options.silent));
+  assert.equal(f.calls.filter(([id])=>['createRepository','cloneRepository','vscode.openFolder','openExternal'].includes(id)).length,0);
+  assert.deepEqual(f.errors,[]);
+});
 test('local and cloned projects persist the Start Page handoff before replacing the workspace',async t=>{
   for (const kind of ['local','clone']) {
     const profile=new Map();let target;

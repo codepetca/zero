@@ -1,5 +1,21 @@
 # Delivery evidence index
 
+## Start Page navigation — local, unreleased source, 2026-10-21
+
+Owner requested Tutorials and Project → New / Clone / Open. The link uses the
+existing native tutorial reader without sign-in or project creation. Project
+choices retain existing guarded commands, account checks and same-window tab
+preservation. Keyboard navigation and dismissal restore focus; Open stays
+available signed out while New/Clone require ready GitHub access.
+
+99affected tests and root configuration checks passed. Generated-HTML Chromium
+fixture checked light/dark,320px layout, pointer/keyboard, signed-out/busy states
+and high-contrast/enlarged text. Fixtures simulate messages only; no repository,
+credential, installer or editor launch occurred. Actual VSCode/Windows acceptance
+remains untested. Independent review/verification receipts are retained under the
+managed worktree’s ignored .verification/start-page-menu. No push or publication
+is included in this local request; Mac0.5.38 remains the available release.
+
 ## Keep the Start Page tab — Mac0.5.38, 2026-10-21
 
 https://github.com/codepetca/zero/pull/152 merged as 6f6146b12fc04216d686cb3d58197c6238bca059 with five exact-head checks.

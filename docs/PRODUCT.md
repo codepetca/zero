@@ -53,8 +53,11 @@ acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
 Current source opens a native **Zero Start Page** for onboarding and project
-selection. It contains **Start tutorial**, **New project**, **Clone project**,
-**Open local project**, account-scoped recent projects and guided GitHub setup.
+selection. Current source contains **Start tutorial**, a **Tutorials** link to the
+existing reader, **Project ▾ → New / Clone / Open**, account-scoped recent projects
+and guided GitHub setup. Tutorials and opening local work remain available without
+sign-in; New and Clone retain their GitHub access checks. Published Mac0.5.38
+retains the separate project buttons until the next release.
 An empty Zero window opens it automatically; existing student editors stay
 untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
 The sidebar retains project development: native Run/Stop, Files, contextual

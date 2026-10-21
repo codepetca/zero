@@ -1,22 +1,23 @@
-# Keep the Start Page tab — Mac0.5.38 publication
+# Start Page navigation — Mac0.5.39 release
 
-Owner’s merge/publication request for same-window project opening covers this
-clarified tab-preservation correction. Source https://github.com/codepetca/zero/pull/152 merged as
-6f6146b12fc04216d686cb3d58197c6238bca059 with independent review and five exact-head CI checks.
-An open Start Page carries across the workspace switch; Main/Tutorials and
-existing destination editors remain available. Failed opens/cancellation during
-persistence clear their own handoff; abandoned records expire after ten minutes.
+Owner explicitly authorized merge and publication of the Project dropdown and
+Tutorials link on2026-10-21. Reuse clean reviewed3184a0ba from maina59662f4;
+prepare new immutable Mac0.5.39/build39. Primary education-funding edits stay
+untouched. Published38 remains available during preparation.
 
-Public signed/notarized/stapled Mac0.5.38: https://github.com/codepetca/zero/releases/download/setup-v0.5.38/Zero-0.5.38-macos.dmg
-DMG 4595428 bytes SHA256 4f93454771c4cfc7781c0b617ea311e0bf61ed74b20645faf8a34013a55bf48b. Sealed mac-0.5.38-f52d6204268b.
-Built clean reviewed fc7de603; measured manifest f52d6204. Apple Accepted
- e63b521a-386f-4bef-8693-4ecbe32c8865; staple/app/DMG Gatekeeper accepted.
-Exact-source CI894full/3skip;119affected locally,116release/2skip,159website tests,
-type/build/root/kit checks passed. Source, fix/version and exact-candidate
-reviews passed; final promotion review/CI/live verification pending.
+Tutorials uses existing zero.openFirstLesson, including project-free reading
+without GitHub sign-in. Start tutorial stays guided; Project → New / Clone / Open
+uses existing guarded commands. Open remains available signed out. Menu pointer,
+keyboard, dismissal, status/busy/account and focus behavior verified in generated
+HTML Chromium fixtures (light1000px, dark320px, high-contrast/enlarged text).
 
-No native VSCode QA after the earlier isolated-HOME Code Key popup. No credentials
-or keychain changed. Interactive Mac tab/focus/unsaved-work, Windows/fresh-machine
-and live-provider acceptance remain untested. Windows21/manualkit17 unchanged.
-Preserve logs/candidate under primary .verification/keep-start-page-release0.5.38
-before retiring the managed worktree. Primary education-funding work untouched.
+99affected tests/root checks passed; independent Sol/medium complete source review
+passed3184a0ba with54independent tests. Reuse source coverage and browser artifacts
+in .verification/start-page-menu. Release/version and candidate review, checks,
+source PR CI/merge, public DMG and separate reviewed feed promotion follow.
+Release receipts under .verification/start-menu39; preserve them/candidate to the
+primary .verification/start-page-menu-release0.5.39 before worktree retirement.
+
+No native VSCode QA after prior isolated-HOME Code Key popup. No credentials or
+keychain changes. Actual Mac editor/Windows/fresh-machine/provider interaction
+remains untested. Windows21/manualkit17 unchanged.

@@ -291,8 +291,13 @@ windows open it automatically without replacing existing editors.
 and Command Palette reopen it. `zero.startProject` still starts the existing
 guarded tutorial workflow. Sign-in/setup live on the Start Page; local Run/Files
 remain available offline. Cloud actions unlock only after access is ready.
-The page exposes **Clone project**, **New project**, **Open local project** and
-recent entries, using existing guarded commands/folder resolution.
+Current source groups project choices under **Project ▾ → New / Clone / Open**,
+using the existing guarded commands/folder resolution. The **Tutorials** link
+invokes `zero.openFirstLesson`, including its project-free reader, without sign-in
+or repository creation. The menu supports arrows, Home/End, Escape, Tab and outside
+dismissal, skips disabled items and preserves focus through status/account updates.
+Recent entries remain directly available. Published Mac0.5.38 has separate project
+buttons until the next release.
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
 with another location selectable. Zero remembers the selected clone parent in the
 local editor profile for future clones; cancelling the picker or opening a local

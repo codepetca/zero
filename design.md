@@ -34,8 +34,8 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
-- The **Zero Start Page** owns onboarding: Start tutorial, New project, Clone
-  project, Open local project, recent projects and guided GitHub sign-in/access.
+- The **Zero Start Page** owns onboarding: Start tutorial, a **Tutorials** link,
+  **Project ▾ → New / Clone / Open**, recent projects and guided GitHub sign-in/access.
   Show it automatically in an empty Zero window; preserve existing editors and
   restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar's **⋯ → Start Page**. Keep local opening available without GitHub.
