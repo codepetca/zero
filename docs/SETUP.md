@@ -1,6 +1,6 @@
 # Guided student setup
 
-The signed, notarized Mac 0.5.38 app prepares Java and the editor, then guides
+The signed, notarized Mac 0.5.39 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
 unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
@@ -8,7 +8,7 @@ manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
-Mac 0.5.38 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.39 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -18,10 +18,14 @@ The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
+The Project dropdown offers New, Clone, and Open. The Tutorials link opens the
+reader without creating a project or signing in. Start tutorial begins the guided
+project setup.
+
 Opening a project keeps the Zero Start Page tab available in the same window.
 Return to that tab to choose another project or tutorial.
 
-**Start Page → Clone project** opens a searchable picker: recent projects on this Mac
+**Start Page → Project → Clone** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
 
@@ -64,19 +68,19 @@ Files remain available signed out or offline; cloud repository, push and sharing
 controls appear after access is ready. App-created repositories are accessible
 automatically.
 
-When ready, **Start tutorial** creates the selected scaffold. **Start Page → New project**
-creates original work instead, so students can skip the tutorial. **Start Page → Open local project** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
+When ready, **Start tutorial** creates the selected scaffold. **Start Page → Project → New**
+creates original work instead, so students can skip the tutorial. **Start Page → Project → Open** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
 a parent folder before creation. Zero creates a public repository in your GitHub
 account, verifies access, clones and opens the project in the current VS Code window. Its
 source and included files are public.
 The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
-For an existing repository, choose **Start Page → Clone project**, paste its
+For an existing repository, choose **Start Page → Project → Clone**, paste its
 HTTPS URL and ensure it is available to Zero's App. A failed or uncertain creation
 keeps its recovery link and offers **⋯ → Repository Actions → Resume created project…**; a failed
 clone keeps its partial folder. Check those before retrying or creating another repository.
 
-For an existing cloned Zero folder, choose **Start Page → Open local project**;
+For an existing cloned Zero folder, choose **Start Page → Project → Open**;
 it opens that valid project without cloning again, using the same window policy. An original
 local project without a GitHub origin offers **⋯ → Repository Actions → Create a repository…**
 to create and connect an empty public remote after entering its name.

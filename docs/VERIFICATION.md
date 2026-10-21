@@ -1,5 +1,24 @@
 # Verification
 
+## Project dropdown and Tutorials — Mac0.5.39 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/154 merged as c853cfac5de94a51510bb483e2b10177f7739d29 with five exact-head checks.
+Clean source 64eba2c2fba9c4776e6fe08acb010edf35dba767; measured manifest 2a7e3bfd304609746ecb671163cbf247ad712829.
+Exact candidate mac-0.5.39-2a7e3bfd3046 verified; signed feed38→39. Apple accepted
+d23942a0-0343-42de-a28a-7bc0b1c03340; staple and app/DMG Gatekeeper passed.
+Public DMG 4596133 bytes SHA256 debeb620f78abf32169ba91e56f6c059d16535a1bcc939bba2289b4406012fc1 matches candidate,
+authenticated draft download and anonymous public download.
+
+99affected tests/root checks,116release/2skip,159website tests/type/build and kit
+verification passed; exact-source CI897pass/3skip proof is retained with release logs.
+Independent Sol/medium source, release delta and exact-candidate reviews passed;
+source coverage reused without runtime changes. Effective model/tokens/attributable
+elapsed unknown. Final promotion/CI/live acceptance receipts are retained in primary
+.verification/start-page-menu-release0.5.39. Initial dependency-download timeout was
+retried after the owner explicitly resumed the paused task; no source fix required.
+Actual Mac editor/Windows/provider acceptance remains untested; no further native
+VSCode launch or keychain/credential changes. Primary funding work preserved.
+
 ## Keep the Start Page tab — Mac0.5.38, 2026-10-21
 
 https://github.com/codepetca/zero/pull/152 merged as 6f6146b12fc04216d686cb3d58197c6238bca059 with five exact-head checks.
