@@ -1,23 +1,22 @@
-# Current-window project opening — authorized Mac0.5.37 release
+# Current-window project opening — Mac0.5.37 publication
 
-Owner explicitly requested merge and publication on2026-10-21. Source review covers
-44f2b354 plus metadata-only1dea08b6. Clone/New/tutorial/local/recent project actions
-use supported forceReuseWindow; VS Code retains native dirty-editor/Hot Exit rules.
-Recovery remains until the actual workspace/account/remote matches, including a
-resolved native unload veto. Installation-test/ZeroHub windows stay separate.
+Owner authorized merge and publication. Source https://github.com/codepetca/zero/pull/150 merged as
+c7d5cd2a54bd063c99f43b7a1cd1c46b7069e333 after independent source/release/candidate review and
+five exact-head CI checks. Start Page Clone/New/Open/tutorial/recent actions reuse
+the current VS Code window. Native editor owns unsaved handling; creation recovery
+survives a resolved native veto until active project/account/remote verification.
 
-Branch codex/start-page-current-window; base f16189b7 remains origin/main.
-Primary dirty education-funding checkout preserved.109affected/38finalonboarding
-and root checks pass. Independent Sol/high source2turns/1fixbatch plus one receipt
-check resolved P2 and covers final implementation. Effective telemetry unknown.
+Public signed/notarized/stapled Mac0.5.37: https://github.com/codepetca/zero/releases/download/setup-v0.5.37/Zero-0.5.37-macos.dmg
+DMG 4594169 bytes SHA256 6ab7785e8f2a354d4fc9d38c2c964bc91ec0f74d3d8d77b748f04a323054f3c0. Exact mac-0.5.37-9e016e77e3fe.
+Built clean reviewed4ab9a8ffdd1dda8ade395f71fc32867d29ef6273; measured manifest
+commit9e016e77e3feb5e3a6dc0c3faae1376baf75f587 changes no runtime source.
+Apple Accepted b89ec916-0e8e-41ff-aa6a-3726f8eed11b; app/DMG Gatekeeper accepted.
+109affected/38finalonboarding,116release2skip,159website tests/type/build and
+root/kit checks passed. Final promotion review/CI/merge/live checks pending.
 
-Current phase: bump37/build37, review release delta, clean signed/notarized/stapled
-build, sealed candidate, draft sourcePR/CI/merge, exact DMG publication, separate
-metadata/feed promotion review/CI/merge and live checks. PublicMac36/Windows21/
-manualkit17 unchanged until promotion. No published37asset exists yet.
-
-No further native VS Code QA: isolated HOME triggered Code Key popup, stopped
-ownedPID15107, owner confirmed Cancel ended popup. No keychain/credential changes.
-Native window/unsaved interaction, Windows and live provider acceptance unverified.
-Evidence .verification/current-window and .verification/current-window37.
-Storage healthy282GB fresh, weekly56%remaining; attributable cost unknown.
+No further native VSCode QA: isolated HOME caused Code Key popup; stopped owned
+PID15107, owner confirmed Cancel ended it. No keychain/credentials changed. Native
+window/dirty-editor, Windows, fresh-machine and live provider acceptance untested.
+Evidence .verification/current-window plus .verification/current-window37; preserve
+to primary .verification/current-window-release0.5.37 before worktree retirement.
+Primary dirty education-funding work preserved. Windows21/manualkit17 unchanged.

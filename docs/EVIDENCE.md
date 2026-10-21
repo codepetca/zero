@@ -1,5 +1,31 @@
 # Delivery evidence index
 
+## Current-window projects — Mac0.5.37 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/150 merged as c7d5cd2a54bd063c99f43b7a1cd1c46b7069e333 after independent code/version/
+candidate review and all five exact-head CI checks. Clean build4ab9a8ff; measured
+manifest9e016e77. Apple accepted b89ec916-0e8e-41ff-aa6a-3726f8eed11b; staple and
+actual app/DMG Gatekeeper checks passed. Sealed candidate mac-0.5.37-9e016e77e3fe has13verified
+hashes plus SHA256SUMS. Published DMG 4594169 bytes SHA256 6ab7785e8f2a354d4fc9d38c2c964bc91ec0f74d3d8d77b748f04a323054f3c0
+matches draft download, sealed candidate and anonymous public download. Signed
+feed advances36→37; Windows21/manualkit17 remain unchanged.
+
+109affected,38finalonboarding,116release/2skips,159website tests, root/type/build/
+kit checks pass. Independent Sol/high original review found P2 recovery loss on
+resolved native veto; one fix batch retains the receipt until matching active
+workspace verification. Complete targeted review plus unchanged initial coverage
+covers runtime; receipt/version/candidate deltas independently reviewed. Effective
+configuration/tokens/attributable elapsed telemetry unknown. Detailed turn receipts
+and final metadata/CI/live proof retained in primary
+.verification/current-window-release0.5.37 after completion.
+
+Native QA was stopped after the isolated Code temporary HOME prompted for Code
+Key storage. Owner confirmed Cancel plus stopping ownedPID15107 ended it. No
+keychain/credential reset, ordinary editor-profile changes or further Code launch.
+Actual current-window/unsaved interaction, Windows/fresh-machine and real provider
+flows remain untested. Promotion review/CI/merge/live checks pending until the
+final ignored completion receipt records them. Primary funding work preserved.
+
 ## Current-window project opening — local, 2026-10-21
 
 Owner requested Start Page Clone/Open/New reuse the current VS Code window.

@@ -272,12 +272,12 @@ explicit browser export/preview, deployment-only publishing kit and strict
 resolved-API gate. Normal Run App, setup Run test and the configured Zero run task
 use the project Maven wrapper for native JavaFX, without browser compatibility
 checking or WebFX compilation. Publish app and advanced Export for web retain
-the full browser production build and validation. Mac 0.5.36 ships native Run;
+the full browser production build and validation. Mac 0.5.37 ships native Run;
 earlier downloads retain their bundled behavior. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.
 
-The Mac 0.5.36 Run split button keeps native Run/Stop as its primary action.
+The Mac 0.5.37 Run split button keeps native Run/Stop as its primary action.
 Its arrow opens Publish app for a ready, connected project and is disabled during
 Run/Stop. It shares anchored-menu keyboard/focus behavior with Files; both menus
 are mutually exclusive. Focused checks include `extension/test/run-dropdown.test.js`.
