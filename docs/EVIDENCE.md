@@ -7033,8 +7033,14 @@ linked/malformed markers, monotonic versions, errors and duplicate requests.
 One native test's pre-existing fixed20ms callback delay failed under load; the
 bounded correction pumps until the queued callback completes. First website run
 lacked dependencies; installed pinned dependencies before the passing rerun.
-Signed/notarized Sparkle manual UI acceptance and production34 publication remain
-in progress. Existing33 updater bytes still require one manual reopen/reload to
+Signed/notarized real manual Sparkle UI A2→B3 passed: exact updated bundle, new
+ordinary cold-launch PID and handoff; student fixtures/dummy editor preserved.
+Automatic A→B, no-update, bad feed/archive signature, unavailable-feed and runtime
+isolation checks also passed. Independent source review found two blockers: a
+retained completed-Run promise and pending silent auth renewal. One fix batch
+removes the stale flag and observes queued auth/provider/removal work before reload,
+with actual activation/task-end/renewal and real-provider credential regressions.
+Production34 publication remains in progress. Existing33 updater bytes still require one manual reopen/reload to
 gain the correction. Windows21/manual kit17 are unchanged. Receipts:
 .verification/update-relaunch; final preserved evidence will be in primary
 .verification/update-relaunch-0.5.34. Weekly remaining67% at start, storage healthy

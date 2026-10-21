@@ -48,6 +48,44 @@ test('two windows refresh once and reread the winning atomic pair',async t=>{
  const f=await fixture(t,{saved:{...record(),expiresAt:999999}});const second=f.create();t.after(()=>second.dispose());
  const [a,b]=await Promise.all([f.provider.getSessions([]),second.getSessions([])]);assert.equal(a[0].accessToken,pair.access_token);assert.equal(b[0].accessToken,pair.access_token);assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,1);const saved=JSON.parse(f.data.get(SECRET_KEY));assert.equal(saved.refreshToken,pair.refresh_token);assert.equal(saved.state,'active');
 });
+test('provider remains busy throughout silent rotating renewal and account removal',async t=>{
+ let release,started;
+ const rotating=new Promise(resolve=>{started=resolve;});
+ const f=await fixture(t,{saved:{...record(),expiresAt:999999},overrides:{fetch:async url=>{
+  if(url.endsWith('/access_token')){started();await new Promise(resolve=>{release=resolve;});return response(pair);}
+  return response(url.includes('/apps/')?metadata:{id:42,login:'learner',type:'User'});
+ }}});
+ const pending=f.provider.getSessions([]);assert.equal(f.provider.busy,true);
+ await rotating;assert.equal(JSON.parse(f.data.get(SECRET_KEY)).state,'refreshing');assert.equal(f.provider.busy,true);
+ release();await pending;assert.equal(f.provider.busy,false);assert.equal(JSON.parse(f.data.get(SECRET_KEY)).state,'active');
+ const remove=f.context.secrets.delete;let finishDelete,deleteStarted;
+ const deleting=new Promise(resolve=>{deleteStarted=resolve;});
+ f.context.secrets.delete=async key=>{deleteStarted();await new Promise(resolve=>{finishDelete=resolve;});return remove(key);};
+ const removal=f.provider.removeSession(record().sessionId);assert.equal(f.provider.busy,true);
+ await deleting;assert.equal(f.provider.busy,true);finishDelete();await removal;
+ assert.equal(f.provider.busy,false);assert.equal(f.data.has(SECRET_KEY),false);
+});
+test('automatic update reload waits for real provider rotation and leaves its new pair active',async t=>{
+ const {createNativeUpdateReload}=require('../src/native-update-reload');
+ let release,started;const rotating=new Promise(resolve=>{started=resolve;});
+ const f=await fixture(t,{saved:{...record(),expiresAt:999999},overrides:{fetch:async url=>{
+  if(url.endsWith('/access_token')){started();await new Promise(resolve=>{release=resolve;});return response(pair);}
+  return response(url.includes('/apps/')?metadata:{id:42,login:'learner',type:'User'});
+ }}});
+ const auth=integratedAuthentication(f,t),renewal=auth.refresh();await rotating;
+ let reloads=0;
+ const home='/private/isolated-home';
+ const reload=createNativeUpdateReload({commands:{executeCommand:async id=>{assert.equal(id,'workbench.action.reloadWindow');reloads++;f.provider.dispose();}}},{
+  context:{extensionPath:home+'/Library/Application Support/Zero/editor/extensions/zero.zero-0.5.34',extension:{packageJSON:{version:'0.5.34'}}},
+  platform:'darwin',home,realpath:async value=>value,read:async()=>({schema:1,version:'0.5.35',requestId:'00000000-0000-0000-0000-000000000001'}),
+  isBusy:()=>auth.busy||f.provider.busy,setTimer:()=>0,clearTimer:()=>{}
+ });
+ t.after(()=>reload.dispose());assert.equal(await reload.ready,false);assert.equal(reloads,0);assert.equal(JSON.parse(f.data.get(SECRET_KEY)).state,'refreshing');
+ release();await renewal;const deadline=Date.now()+5000;
+ while(auth.busy||f.provider.busy){assert.ok(Date.now()<deadline);await new Promise(resolve=>setImmediate(resolve));}
+ assert.equal(await reload.check(),true);assert.equal(reloads,1);
+ const saved=JSON.parse(f.data.get(SECRET_KEY));assert.equal(saved.state,'active');assert.equal(saved.refreshToken,pair.refresh_token);
+});
 test('unknown rotation outcome persists reconnect state and restart never retries old refresh',async t=>{
  let rotations=0;const f=await fixture(t,{saved:{...record(),expiresAt:999999},overrides:{fetch:async url=>{if(url.endsWith('/access_token')){rotations++;throw Error('ghr_do_not_leak');}return response(metadata);}}});
  await assert.rejects(f.provider.getSessions([]),error=>error.code==='reconnect-required'&&!error.message.includes('do_not_leak'));assert.equal(JSON.parse(f.data.get(SECRET_KEY)).state,'reconnect');assert.deepEqual(await f.provider.getSessions([]),[]);

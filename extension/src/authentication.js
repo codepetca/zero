@@ -13,9 +13,10 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
   const sessionScopes = Object.freeze([...requestedScopes]);
   // Supported native account hint; callers still enforce the captured account.
   const account = preferredAccount && Object.freeze({id:preferredAccount.id,label:preferredAccount.label});
-  let current, revision = 0, disposed = false, unavailable = false;
+  let current, revision = 0, disposed = false, unavailable = false, pendingRequests = 0;
   let queue = Promise.resolve();
   function request(options) {
+    pendingRequests++;
     const next = queue.then(async () => {
       if (disposed) return;
       let session;
@@ -25,7 +26,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
       if (!same(current, session)) revision++;
       current = session; onChange();
       return current;
-    });
+    }).finally(() => {pendingRequests--;});
     queue = next.catch(() => {});
     return next;
   }
@@ -42,6 +43,7 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
   });
   return {
     refresh,
+    get busy() {return pendingRequests > 0;},
     async signIn(changeAccount = false) {
       const session = await request({createIfNone: true, ...(changeAccount ? {clearSessionPreference: true} : {})});
       if (!session) throw new Error(unavailable ? 'GitHub sign-in was cancelled or unavailable. Use Sign in to GitHub to try again. Local running still works.' : 'Sign in to GitHub to upload. Local running still works.');

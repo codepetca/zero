@@ -804,7 +804,7 @@ function activate(context, services = {}) {
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
   context.subscriptions.push(createNativeUpdateReload(vscode, {context,
-    isBusy:()=>disposed || isBusy() || Boolean(execution || ending || pendingLaunch || nativeStarting || browserActive),
+    isBusy:()=>disposed || isBusy() || auth.busy || Boolean(appProvider?.busy || execution || pendingLaunch || nativeStarting || browserActive),
     log:message=>output.appendLine(message)}));
   void introduceAfterConnection();
 }

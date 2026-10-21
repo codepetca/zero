@@ -22,7 +22,12 @@ Native harness319 assertions pass; affected JS/release checks27pass/1skip. Pinne
 Sparkle signing/load/tamper check passed. One old native event-loop test used a
 fixed20ms delay; it now pumps until the queued callback completes. First website
 run missed dependencies; installed pinned dependencies before final rerun.
-Real signed/notarized manual Sparkle fixture is running. Source review, exact-head
+Real signed/notarized manual Sparkle fixture passed: exact B bytes, new ordinary
+cold-launch PID and handoff. Automatic A→B/no-update/bad-signature/unavailable-feed/
+runtime-isolation live checks also passed. Independent review found two blockers:
+retained completed-Run promise and unguarded silent credential renewal. One batch
+removes the stale guard and observes queued auth/provider/removal activity; actual
+activation/task-end/renewal and real-provider rotation regression tests cover them. Source review, exact-head
 CI, signed production build/notary, candidate review, source merge, public asset,
 feed promotion and live verification remain. Prior Mac33 feed/download snapshots
 stay pinned until verified34 bytes are public.

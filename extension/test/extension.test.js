@@ -13,12 +13,12 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   const root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-extension-')));
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),'{}');await fs.writeFile(path.join(root,'mvnw'),'');
-  const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[],results=[],errors=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', commitMessage;
+  const commands = new Map();const starts=[];const ends=[];const launches=[];const notices=[],results=[],errors=[];let provider, saved=0, mutations=0, saveGate, mode='simulation', commitMessage, reloadIsBusy, authGate, authEvent;
   const originalGit=core.git;core.git=async(_,args)=>{if (args[0] === 'remote' || args[0] === 'rev-parse' || args[0] === 'symbolic-ref') throw new Error('No repository'); mutations++;throw new Error('Unexpected git');};t.after(()=>{core.git=originalGit;});
   class Task {constructor(definition,scope,name,source,execution,matcher){Object.assign(this,{definition,scope,name,source,execution,matcher});}}
-  const appProvider={dispose(){},async removeSession(){assert.fail('Run and upload must not remove a GitHub session');}};
+  const appProvider={reloadBusy:false,get busy(){return this.reloadBusy;},dispose(){},async removeSession(){assert.fail('Run and upload must not remove a GitHub session');}};
   const vscode={
-    authentication:{registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.equal(provider,appProvider);assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();},getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);return {id:'test-session',account:{id:'1',label:'student'},accessToken:'INTERCEPTED',scopes:[]};},onDidChangeSessions:disposable},
+    authentication:{registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.equal(provider,appProvider);assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();},getSession:async(provider,scopes)=>{assert.equal(provider,'zero-github');assert.deepEqual(scopes,[]);if(authGate)await authGate;return {id:'test-session',account:{id:'1',label:'student'},accessToken:'INTERCEPTED',scopes:[]};},onDidChangeSessions:fn=>{authEvent=fn;return disposable();}},
     workspace:{registerTextDocumentContentProvider:disposable,getConfiguration:(section,uri)=>({get:()=> {if(section!=='zero') return false; assert.equal(uri?.fsPath,root,'Upload mode must use the student folder scope, overriding global live'); return mode;}}),onDidChangeConfiguration:disposable,workspaceFolders:[{uri:{fsPath:root}}],saveAll:async()=>{saved++;if(saveGate) await saveGate;return true;},createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}}),onDidChangeWorkspaceFolders:disposable},
     window:{createOutputChannel:()=>({appendLine:text=>results.push(text),clear(){},show(){},dispose(){}}),registerWebviewViewProvider:disposable,registerTreeDataProvider:disposable,showWarningMessage:async text=>{notices.push(text);},showInputBox:async options=>{assert.equal(options.title,'Commit message');assert.equal(options.prompt,'<Enter> to confirm · <Esc> to cancel');assert.equal(options.placeHolder,'Commit message');assert.equal(options.value,undefined);return commitMessage;},showInformationMessage:async(text,options)=>{notices.push(text);assert.ok(!options?.modal,'Routine upload must not open a confirmation');},showErrorMessage:async text=>{errors.push(text);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTaskProcess:disposable,onDidEndTask:fn=>{ends.push(fn);return disposable();},registerTaskProvider:(_,value)=>{provider=value;return disposable();},executeTask:async task=>{const execution={task,terminate(){ends.forEach(fn=>fn({execution}));}};launches.push(execution);starts.forEach(fn=>fn({execution}));return execution;}},
@@ -26,21 +26,31 @@ test('commands simulate upload without Git and native Run App tasks retain resta
     Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ShellQuoting:{Strong:2},ProcessExecution:class{constructor(command,args,options){Object.assign(this,{command,args,options});}},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},Uri:{file:fsPath=>({fsPath})}
   };
-  const originalLoad=Module._load;Module._load=function(id,...args){return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);};
+  const originalLoad=Module._load;Module._load=function(id,...args){if(id==='./native-update-reload')return {createNativeUpdateReload:(_v,options)=>{reloadIsBusy=options.isBusy;return disposable();}};return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);};
   let extension;try {extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[require.resolve('../src/extension')];});
   const accessCalls=[];
   const repositories={checkSetup:async()=>{},access:async(repositoryUrl,{ticket,permissions})=>{assert.equal(repositoryUrl,'https://github.com/student/app');assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);accessCalls.push(permissions);return {ticket,repository:{id:12},installation:{id:99}};}};
+  let releaseAuth;authGate=new Promise(resolve=>{releaseAuth=resolve;});
   extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appProvider,repositories});
+  const waitReloadIdle=async()=>{const deadline=Date.now()+5000;while(reloadIsBusy()){assert.ok(Date.now()<deadline,'Update reload must become idle');await new Promise(resolve=>setImmediate(resolve));}};
+  assert.equal(reloadIsBusy(),true,'Startup silent renewal must defer automatic reload');
+  releaseAuth();authGate=undefined;await waitReloadIdle();
+  authGate=new Promise(resolve=>{releaseAuth=resolve;});authEvent({provider:{id:'zero-github'}});
+  assert.equal(reloadIsBusy(),true,'A later session-event renewal must defer automatic reload');
+  releaseAuth();authGate=undefined;await waitReloadIdle();
+  appProvider.reloadBusy=true;assert.equal(reloadIsBusy(),true,'Provider work outside the facade also defers reload');appProvider.reloadBusy=false;
   await commands.get('zero.uploadToGitHub')();
   assert.match(notices[0],/Simulation only — nothing uploaded/);assert.equal(mutations,0);
   await commands.get('zero.publishWeb')();
   assert.equal(saved,0,'Simulated publishing must not save student files');
   assert.equal(mutations,0,'Simulated publishing must not change Git or setup files');
   await commands.get('zero.runApp')();assert.equal(launches.length,1);assert.equal(saved,1);
+  assert.equal(reloadIsBusy(),true,'A running Java task defers reload');
   assert.deepEqual(launches[0].task.execution.args,['clean','compile','javafx:run']);assert.equal(launches[0].task.matcher,'$zero-java');
   await commands.get('zero.runApp')();assert.equal(launches.length,2);
   await commands.get('zero.stopApp')();
+  assert.equal(reloadIsBusy(),false,'A completed task must not leave its resolved ending promise blocking update reload');
   assert.deepEqual(await provider.provideTasks(),[], 'Detected executable tasks would bypass the save/restart resolver');
   const shortcut=await provider.resolveTask({definition:{type:'zero',task:'run'},scope:2});
   await vscode.tasks.executeTask(shortcut);assert.equal(saved,3);

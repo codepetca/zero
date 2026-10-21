@@ -75,3 +75,14 @@ test('cancelled interactive sign-in without a session remains disconnected',asyn
   await assert.rejects(auth.signIn(),/Sign in to GitHub/);assert.equal(auth.signedIn,false);
   assert.ok(f.calls.every(call=>call.provider==='zero-github'&&call.scopes.length===0));auth.dispose();
 });
+test('busy includes queued, active and session-event renewal until completion or failure',async()=>{
+  const f=fixture();let release;
+  f.api.getSession=async()=>{await new Promise(resolve=>{release=resolve;});throw new Error('unavailable');};
+  const auth=createAuthentication(f.api);
+  const first=auth.refresh(),second=auth.refresh();assert.equal(auth.busy,true);
+  await new Promise(resolve=>setImmediate(resolve));release();await first;
+  assert.equal(auth.busy,true,'Queued work still protects renewal');
+  await new Promise(resolve=>setImmediate(resolve));release();await second;assert.equal(auth.busy,false);
+  f.event();assert.equal(auth.busy,true);await new Promise(resolve=>setImmediate(resolve));release();
+  while(auth.busy)await new Promise(resolve=>setImmediate(resolve));auth.dispose();
+});
