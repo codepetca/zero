@@ -1,6 +1,6 @@
 # Guided student setup
 
-The signed, notarized Mac 0.5.40 app prepares Java and the editor, then guides
+The signed, notarized Mac 0.5.42 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
 unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
@@ -8,7 +8,7 @@ manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
-Mac 0.5.40 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.42 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser

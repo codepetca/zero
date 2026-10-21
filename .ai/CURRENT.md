@@ -1,22 +1,23 @@
-# Publish commit/push — Mac0.5.42 release in progress
+# Publish commit/push — Mac0.5.42 publication
 
-Owner explicitly authorized merge and release on2026-10-21. Worktree branch
-`codex/publish-save-deploy`; current integration base is origin/main5e3dc4dc,
-which includes the released native Explorer Mac0.5.40. Source264ebcd7 has complete
-initial safety/compatibility and targeted cancellation-fix reviews. Main sync,
-new version42, exact-source CI and release candidate review remain pending.
+Owner explicitly authorized merge and release. Source https://github.com/codepetca/zero/pull/160
+merged as f994c178704a553e35e088a383b186dc0b5258e2 with five exact-head CI checks. Publish saves,
+commits only when needed, pushes main and deploys the exact version. Change
+branches get Merge to main guidance; cancellation/failure stops publication.
+Verified results expose Open app/Copy playable link and log the playable URL.
+Native Explorer from40 is retained.
 
-Publish saves files, commits only when needed, pushes unuploaded main, then
-deploys the exact version. Change branches get Merge to main guidance. Verified
-live results retain Open app/Copy playable link and log the URL.81UI/native upload,
-103affected,45publisher+1preflight and50integration checks passed before main sync;
-counts overlap. Receipts: `.verification/publish-save-deploy/`.
+Public signed/notarized/stapled Mac0.5.42: https://github.com/codepetca/zero/releases/download/setup-v0.5.42/Zero-0.5.42-macos.dmg
+DMG 4601119 bytes SHA256 37316ab8f7f5e9af1134f2140918146a11bd154eedf3849c92cc7a5c92976d45; candidate mac-0.5.42-462166892a0b.
+Clean reviewed build 5e877200510fbbc209145c75d8385cd87caac1b0; measured manifest 462166892a0ba937c423e92e952ffae617ad851a.
+Apple Accepted 269100f6-79b9-45d6-9a28-a3b2ab8ff719; staple and actual app/DMG Gatekeeper accepted.
+85affected source tests,99release/2skip,162website/type/build, exact kit and
+candidate checks passed. Source integration/version and candidate reviews clean;
+initial cancellation P2 was fixed and independently accepted before release.
 
-Next: verify integration/version delta, source PR/CI/merge, signed/notarized sealed
-Mac42, verified public DMG and feed promotion. Preserve previous immutable assets,
-primary funding work and credentials. No native editor launch after prior Code
-Key popup; user will try the release. Physical Windows/provider flows untested.
-Prior release evidence remains in docs/EVIDENCE.md.
-
-Main advanced with tutorial/API documentation during41verification. Include it in
-42; preserve the sealed41candidate and verified41draft as unpublished evidence.
+Signed feed advances40→42. Final metadata exact-head CI, production download/feed
+verification and retirement receipts are retained in primary ignored
+.verification/publish-flow-release0.5.42 after completion. Prior public assets,
+Windows21/manualkit17 and primary funding work are preserved. No native editor
+launch after prior Code Key popup; Mac update and live student Pages acceptance
+remain owner smoke tests. No credentials changed.
