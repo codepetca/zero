@@ -11,7 +11,7 @@ import setupProject from '../../extension/src/setup-project.js';
 // production code. Fail visibly if its function boundary changes.
 const source = readFileSync(new URL('../../extension/src/extension.js', import.meta.url), 'utf8');
 const start = source.indexOf('  function render(webview) {');
-const end = source.indexOf('  const files = createSidebarFiles', start);
+const end = source.indexOf('  context.subscriptions.push(vscode.window.registerWebviewViewProvider', start);
 if (start < 0 || end < 0) throw new Error('Sidebar renderer changed; update the review adapter.');
 const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export function sidebarSource(state = 'ready', {connected = false} = {}) {

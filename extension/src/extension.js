@@ -37,8 +37,6 @@ const {createAssetCommands} = require('./assets');
 const {createFileCommands} = require('./file-actions');
 const {createRecoveryCommands} = require('./recovery');
 const {sidebarStyles} = require('./sidebar-style');
-const {createSidebarFiles} = require('./sidebar-files');
-const {createSidebarBridge} = require('./sidebar-bridge');
 const {sidebarScript} = require('./sidebar-script');
 const {icon} = require('./sidebar-icons');
 const escape = text => String(text).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -82,7 +80,6 @@ function activate(context, services = {}) {
   const isBusy = () => Boolean(stopPromise) || uploading || connecting || startingTutorial || signingIn || changing || menuOpen || componentBusy || maintenanceBusy || exportingWeb || publishingWeb || browserBusy;
   let projectRoot;
   let renderedWebview, startPage;
-  let fileRefreshTimer;
   const uploadMode = (root = projectRoot) => root ? vscode.workspace.getConfiguration('zero', vscode.Uri.file(root)).get('uploadMode', 'live') : 'live';
   let runQueue = Promise.resolve();
   let state = '';
@@ -164,8 +161,9 @@ function activate(context, services = {}) {
       return;
     }
     if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
-    if (launchedForZero || !context.workspaceState.get('zero.sidebarShown')) {
+    if (launchedForZero || !context.workspaceState.get('zero.explorerShown')) {
       await actions['zero.showSidebar']();
+      await context.workspaceState.update('zero.explorerShown', true);
       await context.workspaceState.update('zero.sidebarShown', true);
     }
     if (!root || isSetupProject(root)) return;
@@ -673,7 +671,8 @@ function activate(context, services = {}) {
     'zero.showOutput': () => output.show(true),
     'zero.showProblems': () => vscode.commands.executeCommand('workbench.actions.view.problems'),
     'zero.showSidebar': async () => {
-      await vscode.commands.executeCommand('workbench.view.extension.zero');
+      await vscode.commands.executeCommand('workbench.view.explorer');
+      await vscode.commands.executeCommand('zero.controls.focus');
       if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
     },
     'zero.uploadToGitHub': () => uploadProject(),
@@ -733,7 +732,7 @@ function activate(context, services = {}) {
     try {return await action();} finally {componentBusy=true;refresh();}
   };
   const assets=createAssetCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
-  const fileCreation=createFileCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output,refreshFiles:()=>view?.webview.postMessage?.({type:'files.reset'})});
+  const fileCreation=createFileCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
   Object.assign(actions,fileCreation.commands);
   context.subscriptions.push(fileCreation);
   const recovery=createRecoveryCommands(vscode,{project,isBusy,setBusy:value=>{maintenanceBusy=value;refresh();},setState:report,output});
@@ -778,7 +777,7 @@ function activate(context, services = {}) {
     const exportActions = projectRoot && exportReadyRoot === projectRoot ? `<div class="row"><button class="link" data-command="zero.previewWebExport" ${disabled}>Preview export</button><button class="link" data-command="zero.saveWebExport" ${disabled}>Save ZIP</button><button class="link" data-command="zero.shareWebExport" ${disabled}>Share export…</button></div>` : '';
     const browserAction = browserActive && !stopPromise && browserRun.canOpenInBrowser ? `<button class="secondary browser-open" data-command="zero.openRunningAppInBrowser" title="Open in browser" aria-label="Open in browser" ${disabled}>${icon('ExternalLink')}</button>` : '';
     const githubPanel = !ready || !projectRoot ? '' : `<div class="context-row">${repoControl}</div>${localPractice ? '<p class="muted">Local practice · no GitHub sharing</p>' : `${repositoryWarning}${branchControl}${githubActions}${publishedActions}`}`;
-    const fileActions=projectRoot ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>Files${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '<h2 id="files-heading">Files</h2>';
+    const fileActions=projectRoot ? `<h2 id="files-heading"><button id="files-menu-button" class="link files-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="files-menu" ${disabled}>New${icon('ChevronDown')}</button></h2><div id="files-menu" class="files-dropdown" role="menu" aria-labelledby="files-menu-button" hidden>${[['zero.newClass','New class…'],['zero.newFile','New file…'],['zero.newFolder','New folder…'],['zero.importAssets','New asset…'],...(assets.canCopyPaths() ? [['zero.copyImportedAssetPaths','Copy asset paths']] : [])].map(([command,label])=>`<button role="menuitem" tabindex="-1" data-command="${command}" ${disabled}>${label}</button>`).join('')}</div>` : '';
     const activeRun = execution || pendingLaunch || nativeStarting || browserActive || browserBusy;
     const setupCheck = projectRoot && isSetupProject(projectRoot);
     const runLabel = stopPromise ? 'Stopping…' : activeRun ? 'Stop' : setupCheck ? 'Run test' : 'Run';
@@ -786,32 +785,24 @@ function activate(context, services = {}) {
     const publishMenu = !setupCheck && ready && auth.signedIn && connected ? `<button id="run-menu-button" class="run-menu-button" aria-label="Run options" title="Run options" aria-haspopup="menu" aria-expanded="false" aria-controls="run-menu" ${isBusy() || activeRun ? 'disabled' : ''}>${icon('ChevronDown')}</button><div id="run-menu" class="files-dropdown run-dropdown" role="menu" aria-labelledby="run-menu-button" hidden><button role="menuitem" tabindex="-1" data-command="zero.publishWeb" ${isBusy() || activeRun ? 'disabled' : ''}>Publish app</button></div>` : '';
     const runControl = `<div class="run-split"><button class="${ready ? 'run' : 'secondary'}" data-command="zero.toggleApp" ${runDisabled}>${icon(activeRun || stopPromise ? 'Square' : 'Play')}${runLabel}</button>${publishMenu}</div>`;
     const controls = !projectRoot ? `<button class="link" data-command="zero.startPage" ${disabled}>Open Start Page</button>` : `${setupCheck ? '<p class="muted">Installation test · Hello World</p>' : ''}${!ready ? `<button class="link" data-command="zero.startPage" ${disabled}>GitHub setup</button>` : ''}<div class="main-controls"><div class="run-controls">${runControl}${browserAction}</div>${exportActions}</div>${ready ? `<section class="repository">${githubPanel}</section>` : ''}<section class="hub-actions"><button class="link hub" data-command="zero.browseZeroHub" aria-haspopup="dialog" ${disabled}>ZeroHub</button></section>`;
-    // Keep the webview document and file tree alive across progress updates.
+    // Keep the controls document alive across progress updates; VS Code owns the file tree.
     if (renderedWebview === webview && webview.postMessage) {
       void webview.postMessage({type:'sidebar.update',controls,fileActions,status:state,failed:buildFailed}); return;
     }
     renderedWebview = webview;
-    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><section class="files-section" aria-labelledby="files-heading"><div class="files-header"><div id="file-actions" class="file-actions">${fileActions}</div></div><div id="files" role="tree" aria-label="Project files" data-chevron-icon="${escape(icon('ChevronDown'))}" data-folder-icon="${escape(icon('Folder'))}" data-file-icon="${escape(icon('File'))}"></div><p id="file-status" class="muted status" role="status" aria-live="polite"></p></section><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
+    webview.html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';"><style nonce="${nonce}">${sidebarStyles()}</style></head><body><div id="controls">${controls}</div><div class="feedback"><p id="run-status" class="muted status" role="status" aria-live="polite">${escape(state)}</p><div id="recovery" ${buildFailed ? '' : 'hidden'}>${buildFailed ? '<button class="link" data-command="zero.showProblems">Show Problems</button><button class="link" data-command="zero.showOutput">Show Output</button>' : ''}</div></div><div id="file-actions" class="file-actions">${fileActions}</div><script nonce="${nonce}">${sidebarScript()}</script></body></html>`;
   }
-  const files = createSidebarFiles({project,open:filename=>vscode.commands.executeCommand('vscode.open',vscode.Uri.file(filename))});
-  const fileMessage = createSidebarBridge({files,isEmpty:()=>!(vscode.workspace.workspaceFolders || []).length,isCurrent:webview=>!disposed && view?.webview === webview,report:error=>output.appendLine(`Files: ${error.message}`)});
-  context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.actions', {resolveWebviewView(candidate) {
+  context.subscriptions.push(vscode.window.registerWebviewViewProvider('zero.controls', {resolveWebviewView(candidate) {
     view = candidate; candidate.webview.options = {enableScripts:true, localResourceRoots:[]};
     candidate.webview.onDidReceiveMessage(message => {
       if (!message || typeof message !== 'object' || disposed) return;
       if (message.type === 'sidebar.ready') {refresh();return;}
-      if (message.type === 'files.list' || message.type === 'files.open') {void fileMessage(candidate.webview,message);return;}
       if (Object.hasOwn(actions, message.command)) vscode.commands.executeCommand(message.command);
     }, undefined, context.subscriptions);
     candidate.onDidDispose(() => {if(view === candidate) {view = undefined; renderedWebview = undefined;}}, undefined, context.subscriptions); refresh(); repositoryStatus();
   }}));
-  const refreshFiles = () => {
-    clearTimeout(fileRefreshTimer);
-    fileRefreshTimer = setTimeout(()=>{if (!disposed) void view?.webview.postMessage?.({type:'files.reset'});},100);
-  };
-  context.subscriptions.push(output,{dispose:()=>clearTimeout(fileRefreshTimer)});
-  const watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  for (const method of ['onDidCreate','onDidDelete']) watcher[method](uri => {if (/(?:^|[\\/])(?:target|node_modules|\.git|\.zero-sharing-recovery|\.zero|\.zero-web)(?:[\\/]|$)/.test(uri.fsPath)) return; refreshFiles();}, undefined, context.subscriptions);
+  context.subscriptions.push(output);
+  const watcher = vscode.workspace.createFileSystemWatcher('**/zero.json');
   for(const method of ['onDidCreate','onDidChange','onDidDelete']) watcher[method](uri=>{if(path.basename(uri.fsPath)==='zero.json')browserRun.stop();},undefined,context.subscriptions);
   const metadataWatcher = vscode.workspace.createFileSystemWatcher('**/.git/{HEAD,config}');
   for (const method of ['onDidCreate','onDidChange','onDidDelete']) metadataWatcher[method](uri => {
@@ -829,7 +820,7 @@ function activate(context, services = {}) {
   context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));
-    projectRoot = undefined; files.reset(); refreshFiles(); repositoryStatus(); void introduceAfterConnection();
+    projectRoot = undefined; repositoryStatus(); void introduceAfterConnection();
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
   context.subscriptions.push(createNativeUpdateReload(vscode, {context,
