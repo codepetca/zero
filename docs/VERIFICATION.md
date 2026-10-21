@@ -1,5 +1,24 @@
 # Verification
 
+## Project menu simplification — local, 2026-10-20
+
+123 affected tests passed across project/menu keyboard behavior, onboarding,
+repository controls, setup diagnostics, native overflow contribution contracts,
+Run options and design fixtures. npm run check and git diff --check pass.
+Independent complete review plus two bounded targeted passes covers83b7374c.
+Browser fixture light/dark and dark200% text verified exact three-item Project
+menu and Escape focus restoration; this does not prove actual VS Code/native
+overflow, GitHub account flow or Windows interaction. No installer built or
+published. Broad matrix logs and reviewer details are under
+.verification/project-menu-cleanup; see docs/EVIDENCE.md.
+
+Broad npm test completed:847passed,5failed,3skipped at its earlier snapshot.
+Two stale menu expectations were corrected and pass within the final123affected
+checks. Three test files could not import fflate in the fresh worktree; npm ci
+restored pinned dependencies and all23 tests in those files passed. No remaining
+failure is unaccounted for; the full matrix was not rerun after these targeted
+corrections. Existing platform skips remain separate from native acceptance.
+
 ## Minimal prompts — Mac 0.5.29 publication, 2026-10-20
 
 Source PR 135 merged after all five exact-head checks and independent source,

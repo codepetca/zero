@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.34",
+  "version": "0.5.35",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -147,8 +147,8 @@
       },
       {
         "command": "zero.showSetup",
-        "title": "Zero: Setup Help",
-        "shortTitle": "Setup help"
+        "title": "Zero: Troubleshooting",
+        "shortTitle": "Troubleshooting"
       },
       {
         "command": "zero.showSidebar",
@@ -354,6 +354,16 @@
         }
       ],
       "view/title": [
+        {
+          "command": "zero.githubAccount",
+          "when": "view == zero.actions",
+          "group": "zero-account@1"
+        },
+        {
+          "command": "zero.chooseRepository",
+          "when": "view == zero.actions",
+          "group": "zero-project@1"
+        },
         {
           "command": "zero.exportWeb",
           "when": "view == zero.actions",

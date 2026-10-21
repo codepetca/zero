@@ -136,7 +136,7 @@ function createSetupHelp(vscode,{project,output,run,testInstallation,uploadMode 
       await check();
       while (true) {
         const items = [...(testInstallation ? [{label:'$(beaker) Test installation',description:'Open the bundled Hello World setup check; this is separate from your tutorial',action:'test'}] : []), ...checklist(report)];
-        const choice = await vscode.window.showQuickPick(items,{placeHolder:'Setup help'});
+        const choice = await vscode.window.showQuickPick(items,{placeHolder:'Troubleshooting'});
         if (!choice) return;
         if (choice.action === 'test' && testInstallation) {await testInstallation();return;}
         if (choice.action === 'check') {await check(); continue;}
@@ -158,14 +158,14 @@ function createSetupHelp(vscode,{project,output,run,testInstallation,uploadMode 
         if (EXTENSIONS.some(extension => extension.id === choice.action)) {
           try {
             await vscode.commands.executeCommand('workbench.extensions.installExtension',choice.action);
-            await vscode.window.showInformationMessage('Use VS Code’s install or enable prompts for this profile. If it requests a reload, reload the window, then open Setup help and Check again.');
+            await vscode.window.showInformationMessage('Use VS Code’s install or enable prompts for this profile. If it requests a reload, reload the window, then open Troubleshooting and Check again.');
           } catch (error) {await vscode.window.showWarningMessage(`VS Code could not install this extension: ${error.message}. On a school laptop, ask your teacher or IT to enable it in this profile.`);}
           await check(); continue;
         }
         if (choice.action === 'jdk' || choice.action === 'git') {
           const jdk = choice.action === 'jdk', url = jdk ? JDK_URL : GIT_URL;
           const platform = report.platform === 'win32' ? 'Windows' : report.platform === 'darwin' ? 'macOS' : 'Linux';
-          const guidance = `${jdk ? 'Use a JDK 17 or newer (JDK, not JRE)' : 'Use Git 2.31 or newer'} for ${platform}. Keep a working school-provided installation. On a managed school laptop, ask your teacher or IT if installation is blocked. ${report.platform === 'linux' ? 'Follow the official Linux instructions manually. ' : 'Follow the official installer instructions. '}${jdk ? 'If JAVA_HOME is set, it must point to that JDK; otherwise java and javac must be on PATH. Ask IT to repair an old or invalid JAVA_HOME. ' : ''}Fully quit and reopen VS Code after installation or environment repair, then use Setup help → Check again.`;
+          const guidance = `${jdk ? 'Use a JDK 17 or newer (JDK, not JRE)' : 'Use Git 2.31 or newer'} for ${platform}. Keep a working school-provided installation. On a managed school laptop, ask your teacher or IT if installation is blocked. ${report.platform === 'linux' ? 'Follow the official Linux instructions manually. ' : 'Follow the official installer instructions. '}${jdk ? 'If JAVA_HOME is set, it must point to that JDK; otherwise java and javac must be on PATH. Ask IT to repair an old or invalid JAVA_HOME. ' : ''}Fully quit and reopen VS Code after installation or environment repair, then use Troubleshooting → Check again.`;
           void vscode.window.showInformationMessage(guidance);
           if (!(await vscode.env.openExternal(vscode.Uri.parse(url)))) await vscode.window.showWarningMessage(`Open ${url} in your browser. ${guidance}`);
         }

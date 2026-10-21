@@ -63,7 +63,7 @@ test('native update contributions are Mac/Windows Palette-only and retain the mi
       if (location !== 'commandPalette') assert.ok(entries.every(entry => entry.command !== command));
     }
   }
-  assert.deepEqual(manifest.contributes.menus['view/title'].map(entry => entry.command), ['zero.exportWeb', 'zero.copyPublishedWebLink', 'zero.openPublishedWeb', 'zero.openFirstLesson', 'zero.showSetup', 'zero.startProject', 'zero.showOutput']);
+  assert.deepEqual(manifest.contributes.menus['view/title'].map(entry => entry.command), ['zero.githubAccount', 'zero.chooseRepository', 'zero.exportWeb', 'zero.copyPublishedWebLink', 'zero.openPublishedWeb', 'zero.openFirstLesson', 'zero.showSetup', 'zero.startProject', 'zero.showOutput']);
 });
 
 function windowsFixture(options = {}) {

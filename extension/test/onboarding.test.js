@@ -205,7 +205,7 @@ test('sidebar sign-in is explicit and retry needs no project or welcome modal',a
   await settle(()=>f.remembered.has('zero.sidebarShown'));
   assert.ok(f.authCalls.every(call=>call.options.silent));assert.equal(f.notices.length,0);assert.match(f.webview.html,/Sign in to GitHub/);
   f.setFailure(true);await f.commands.get('zero.signInToGitHub')();assert.match(f.errors.at(-1),/cancelled or unavailable/);assert.doesNotMatch(f.errors.at(-1),/PRIVATE/);
-  f.setFailure(false);f.setInteractiveSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/Start tutorial/);assert.match(f.webview.html,/New project…/);assert.doesNotMatch(f.webview.html,/GitHub sign-in cancelled or unavailable/);
+  f.setFailure(false);f.setInteractiveSession({id:'retry',account:{id:'retry',label:'retry'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();assert.match(f.webview.html,/Start tutorial/);assert.match(f.webview.html,/New project/);assert.doesNotMatch(f.webview.html,/GitHub sign-in cancelled or unavailable/);
   assert.equal(f.calls.filter(([id])=>id==='openExternal'||id==='createRepository').length,0);assert.equal(await fs.readFile(path.join(f.root,'zero.json'),'utf8'),'{}');
 });
 
@@ -261,7 +261,7 @@ test('signed-out empty window only shows Sign in; direct authenticated clone rem
   assert.doesNotMatch(f.webview.html,/data-command="zero.chooseRepository"|data-command="zero.cloneRepository"|Current branch:/);
   f.setInteractiveSession({id:'app',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});
   const clone=f.commands.get('zero.cloneRepository')();await settle(()=>finishClone);
-  assert.match(f.webview.html,/data-command="zero.chooseRepository"[^>]*disabled/);
+  assert.match(f.webview.html,/id="project-menu-button"[^>]*disabled/);
   assert.doesNotMatch(f.webview.html,/data-command="zero.githubAccount"/);
   await f.commands.get('zero.cloneRepository')();await f.commands.get('zero.startProject')();await f.commands.get('zero.signInToGitHub')();
   assert.equal(f.calls.filter(([id])=>id==='cloneRepository').length,1);assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,1);
@@ -305,7 +305,7 @@ test('signed-in empty Project menu offers New, Clone and Open local; opening reu
   assert.doesNotMatch(f.webview.html,/zero.chooseRepository|Current branch:/);assert.match(f.webview.html,/Sign in to GitHub<\/button>/);
   await f.commands.get('zero.chooseRepository')();assert.equal(picks.length,0);
   f.setInteractiveSession({id:'native',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
-  assert.match(f.webview.html,/class="repo-label">Project<\/span>/);assert.match(f.webview.html,/zero.chooseRepository/);
+  assert.match(f.webview.html,/id="project-menu-button"/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository/);
   await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>[item.label,item.action]),[['New project…','new'],['Clone from GitHub…','clone'],['Open local project…','local'],['GitHub account…','account']]);assert.equal(picks[0].options.title,'Project');
   assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceNewWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
 });
@@ -369,7 +369,7 @@ test('one Run/Stop button cancels native preparation and stays Stopping until th
 test('saved ready session skips setup without interactive sign-in and exposes tutorial or original project',async t=>{
   const f=await fixture(t,{empty:true,zeroLaunch:true,initialSession:{id:'saved',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'}});
   await settle(()=>f.webview.html.includes('Start tutorial'));
-  assert.match(f.webview.html,/data-command="zero.newProject"[^>]*>New project…/);assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,0);assert.equal(f.notices.length,0);
+  assert.match(f.webview.html,/data-command="zero.newProject"[^>]*>New project/);assert.equal(f.authCalls.filter(call=>call.options.createIfNone).length,0);assert.equal(f.notices.length,0);
   assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='openExternal').length,0);
 });
 test('sign-in leads to install button; explicit install opens GitHub and only readiness unlocks tutorials',async t=>{
@@ -381,7 +381,7 @@ test('sign-in leads to install button; explicit install opens GitHub and only re
   const cancelled=f.commands.get('zero.setupGitHub')();await settle(()=>hide);hide();await cancelled;await settle(()=>f.webview.html.includes('Install Zero for GitHub'));
   hide=undefined;const installing=f.commands.get('zero.setupGitHub')();await settle(()=>hide&&f.calls.filter(([id])=>id==='openExternal').length>=2);
   allowed=true;picker.selectedItems=picker.items.filter(item=>item.action==='check');accept();await installing;
-  assert.match(f.webview.html,/Start tutorial/);assert.match(f.webview.html,/New project…/);assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='cloneRepository').length,0);
+  assert.match(f.webview.html,/Start tutorial/);assert.match(f.webview.html,/New project/);assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='cloneRepository').length,0);
 });
 test('offline readiness stays retryable while local Run and Files remain available',async t=>{
   let reachable=false;const f=await fixture(t,{initialSession:{id:'saved',account:{id:'student',label:'student'},accessToken:'MOCK_ONLY'},githubAccess:async()=>{if(!reachable)throw Error('Network unavailable');}});

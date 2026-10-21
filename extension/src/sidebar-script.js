@@ -64,6 +64,7 @@ function sidebarClient() {
     event.preventDefault(); if (destination) select(destination);
   });
   const menus = [
+    {button:'project-menu-button',menu:'project-menu',container:'controls'},
     {button:'files-menu-button',menu:'files-menu',container:'file-actions'},
     {button:'run-menu-button',menu:'run-menu',container:'controls',fallback:'zero.toggleApp'}
   ];

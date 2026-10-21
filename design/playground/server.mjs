@@ -23,7 +23,7 @@ export function handle(request, response) {
     if (request.method !== 'GET') { response.writeHead(405); return response.end('Read-only review server'); }
     if (url.pathname === '/') body = reviewPage();
     else if (url.pathname === '/web') body = webView(theme, downloads, ["home", "learn", "downloads"].includes(url.searchParams.get("screen")) ? url.searchParams.get("screen") : "learn");
-    else if (url.pathname === '/sidebar') body = sidebarView(editorTheme, ['error','building','running','stopping'].includes(url.searchParams.get('state')) ? url.searchParams.get('state') : 'ready', url.searchParams.get('host') !== 'none', url.searchParams.get('connected') === '1');
+    else if (url.pathname === '/sidebar') body = sidebarView(editorTheme, ['empty','error','building','running','stopping'].includes(url.searchParams.get('state')) ? url.searchParams.get('state') : 'ready', url.searchParams.get('host') !== 'none', url.searchParams.get('connected') === '1');
     else if (url.pathname === '/tokens-web.css') { type = 'text/css'; body = webThemeCss(theme); }
     else if (url.pathname === '/tokens-vscode.css') { type = 'text/css'; body = vscodeThemeCss(); }
     else if (url.pathname === '/host-fixture.css') {

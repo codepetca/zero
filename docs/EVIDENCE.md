@@ -1,5 +1,35 @@
 # Delivery evidence index
 
+## Sidebar project menu — local, 2026-10-20
+
+Base0de8f075 → implementation15dde7d0 → corrections7d059f33/83b7374c.
+Owner approved Start tutorial plus one three-item Project menu and Troubleshooting
+in native overflow. Empty repository row/duplicate welcome links removed. Contextual
+repository actions retained; native overflow keeps account and creation recovery
+available in empty windows. Stable project/auth/transport commands unchanged.
+
+Independent GPT-6.1 Sol/medium review: initial complete13-file diff found oneP2
+outdated recovery route; corrected and targeted delta passed. Further single-line
+old overflow test expectation correction passed targeted review. Three reviewer
+turns, one initial/two targeted waves, two fix batches; no integration wave needed
+for unchanged production source and bounded fixture/docs/test corrections. Runtime
+model/effort effective configuration and token costs unavailable. Weekly allowance
+64% remaining at task start is account-wide, not attributable cost. Review receipts
+and command logs retained in .verification/project-menu-cleanup.
+
+123 final affected tests, npm run check and diff check pass. Browser fixture
+light/dark Project menu has exactly three labels; Escape restores focus; dark200%
+text wraps legibly. No real student sign-in/repo mutation or installed-profile
+changes. Native editor and Windows interactive acceptance remain untested. Local
+branch only: no push/merge/new installer/publication for this request.
+
+Broad npm test completed:847passed,5failed,3skipped at its earlier snapshot.
+Two stale menu expectations were corrected and pass within the final123affected
+checks. Three test files could not import fflate in the fresh worktree; npm ci
+restored pinned dependencies and all23 tests in those files passed. No remaining
+failure is unaccounted for; the full matrix was not rerun after these targeted
+corrections. Existing platform skips remain separate from native acceptance.
+
 ## Searchable project picker — local, 2026-10-20
 
 Owner authorized picker, merge and publication. Sol/high implemented the bounded
