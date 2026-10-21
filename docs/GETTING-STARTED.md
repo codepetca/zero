@@ -32,7 +32,7 @@ it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
-**Clone from GitHub** opens a searchable picker: recent projects on this Mac
+**Project → Clone project** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
 
@@ -56,8 +56,8 @@ later updates use the corrected handoff.
    offline; cloud repository, push and sharing controls stay hidden until ready.
    See [the setup guide](SETUP.md#start-a-tutorial-or-project) for details.
 3. In the empty sidebar, **Start tutorial** is primary. Choose **Greeting app**,
-   enter a repository name, and choose its clone location. **New project…** is
-   the secondary action for skipping the tutorial and making original work.
+   enter a repository name, and choose its clone location. **Project → New project** is
+   the menu action for skipping the tutorial and making original work.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
    Zero creates your repository from the verified template, checks App access,
@@ -67,27 +67,26 @@ later updates use the corrected handoff.
    lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials
    tab’s **Open in browser** opens the lesson in your default browser. Keep this repository for the following Greeting lessons.
 
-Already cloned your project? Choose **Open local project** in the empty sidebar
-or **Project → Open local project…** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
+Already cloned your project? Choose **Project → Open local project** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
 lesson selection, scroll position and disclosure state are saved locally per
 project. This does not track completion or grading. Use **All tutorials** to
 choose the first lesson and restart the reading sequence; your code stays as it
 is. **Start tutorial** makes a new repository, not a reset of your existing one.
 While signed out, local Run and Files stay available. Cloud repository, push and
 sharing controls appear after access is ready. An
-original local project without an origin also offers **Create a repository…** to
-create and connect an empty remote, or **Connect to GitHub…** for an existing URL. Connected
+original local project without an origin offers **⋯ → Repository Actions → Create a repository…** to
+create and connect an empty remote, or **⋯ → Repository Actions → Connect to GitHub…** for an existing URL. Connected
 projects show owner/repository and retain branch actions; **Publish app** is in
 that repository menu.
 
 Zero needs no separate account. Cancelling setup leaves the current sidebar
-step available to retry; an existing local project's Run remains available. **Setup help → Test
+step available to retry; an existing local project's Run remains available. **⋯ → Troubleshooting → Test
 installation** opens the bundled Hello World separately as **Installation test**. To return
 to setup, use **Zero: Get Started** from VS Code's Command Palette.
-For an existing remote, **Project → Clone from GitHub…** accepts its HTTPS URL
+For an existing remote, **Project → Clone project** accepts its HTTPS URL
 and uses the same location picker; add that repository to the App's selection
-when needed. **Project → New project…** creates original work from Zero's starter.
-If creation or cloning is interrupted, choose **Project → Resume created project…**
+when needed. **Project → New project** creates original work from Zero's starter.
+If creation or cloning is interrupted, choose **⋯ → Repository Actions → Resume created project…**
 when offered, review its saved link and check any preserved project folder before
 trying again. Zero does not blindly repeat an
 uncertain creation request or remove the repository.
@@ -112,7 +111,7 @@ continuing tutorials start from your own template-created repository and clone.
    already have one, and verify its email; [GitHub's account guide](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github) explains this step. Use an email you can access under the
    school's instructions. Keep the account yours; never share its password or
    put passwords, tokens or recovery codes in project files.
-3. Have **Git 2.31+** available locally; **Setup help** explains missing tools.
+3. Have **Git 2.31+** available locally; **Troubleshooting** explains missing tools.
    On the school machine, check that you can open GitHub, complete Zero's device
    sign-in and download Zero's compiler dependencies. Use the same account for
    your repository, cloning and Zero pushes. Nothing pushes just by signing in.
@@ -161,10 +160,10 @@ or the Dock to return to the saved Zero editor session. Reopening checks readine
 without repeating preparation when the current installation is ready.
 
 Complete the GitHub account/privacy steps above before starting tutorial lesson 0.
-The optional **Setup help → Test installation** opens the bundled completed
+The optional **⋯ → Troubleshooting → Test installation** opens the bundled completed
 Hello World project in a separate window marked **Installation test**. It does
 not require GitHub and is separate from your tutorial; tutorial creation,
-cloning and pushes do. Use Setup help for missing Git. You do not need
+cloning and pushes do. Use **⋯ → Troubleshooting** for missing Git. You do not need
 Python, Node.js, Homebrew or a separate Maven/JavaFX installation.
 If setup fails, **Details** shows technical output and useful errors.
 Clean-machine security prompts, physical Windows and novice classroom flows
@@ -189,7 +188,7 @@ No Node.js or separate Maven is needed.
 Actual Windows installers, school policies and clean personal-machine installation
 remain unverified; see [setup behaviour and limits](SETUP.md).
 
-With the current extension, **Setup help** inside VS Code shows a native checklist
+With the current extension, **⋯ → Troubleshooting** inside VS Code shows a native checklist
 with **Check again**. Older extensions may show a simpler setup guide.
 Java editor/debugger repair uses VS Code's extension installer in the current
 profile. Java/Git repair opens an official download page and explains installation
@@ -228,7 +227,7 @@ confirm its native JavaFX window, since tool detection is not a build test.
    problems with your teacher; do not place credentials in the project.
 
 The bundled `starter` is a completed installation check, available through
-**Setup help → Test installation**. It is separate from your tutorial repository.
+**⋯ → Troubleshooting → Test installation**. It is separate from your tutorial repository.
 Older starter-only downloads retain their bundled instructions.
 
 ## Edit and run
@@ -277,7 +276,7 @@ A failed build does not open an older build as a successful new run.
 
 Read compiler errors in the task terminal and Problems panel; use
 **View: Toggle Problems** in the Command Palette and open the indicated source
-line. See **Setup help** for missing local tools. F6/F7 are optional:
+line. See **⋯ → Troubleshooting** for missing local tools. F6/F7 are optional:
 merge `optional/optional-keybindings.json` into your keyboard shortcuts if wanted.
 
 To change appearance, run **Preferences: Color Theme** in the Command Palette.
@@ -294,7 +293,7 @@ Local running needs no GitHub sign-in. Live push and publishing need Git
 **2.31+** and your own GitHub account. For sharing work, follow your teacher's
 privacy and account instructions. Repositories created through Zero are public;
 existing/cloned repositories keep their visibility. If you used **Start tutorial** or
-**New project…**, Zero already created and cloned **your repository**.
+**Project → New project**, Zero already created and cloned **your repository**.
 That clone already has Git history and its own origin: keep that repository,
 complete sign-in and identity setup below, and skip creating an empty repository.
 The empty-repository steps below apply to an extracted source ZIP:
@@ -304,11 +303,11 @@ The empty-repository steps below apply to an extracted source ZIP:
    for **Change GitHub account…** or **Sign out**. Sign out clears only Zero's
    connection on this computer and preserves local work and other extensions'
    accounts. Canceling authentication leaves local Run available.
-2. With your original local project open, choose **Project → Create a repository…**.
+2. With your original local project open, choose **⋯ → Repository Actions → Create a repository…**.
    Enter a name. Zero creates an empty public remote
    in your personal account, verifies App access and connects this project.
    No source is uploaded by creation. This workflow does not use GitHub Classroom.
-3. If you already created an empty repository on GitHub, use **Project → Connect to GitHub…**
+3. If you already created an empty repository on GitHub, use **⋯ → Repository Actions → Connect to GitHub…**
    and paste its HTTPS URL instead. Zero initializes Git in this
    standalone folder if needed and adds its origin; it asks before replacing an
    existing origin. This local connection does not prove remote ownership,
