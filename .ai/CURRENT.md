@@ -1,22 +1,25 @@
-# Current-window project opening — Mac0.5.37 publication
+# Keep the Zero Start Page across project switches
 
-Owner authorized merge and publication. Source https://github.com/codepetca/zero/pull/150 merged as
-c7d5cd2a54bd063c99f43b7a1cd1c46b7069e333 after independent source/release/candidate review and
-five exact-head CI checks. Start Page Clone/New/Open/tutorial/recent actions reuse
-the current VS Code window. Native editor owns unsaved handling; creation recovery
-survives a resolved native veto until active project/account/remote verification.
+Owner clarified that the Zero Start Page tab should stay available alongside the
+new project; previous project file tabs need not carry over. Implemented locally
+from main0c403346 in the keep-start-page managed worktree. Owner’s existing request to merge and publish current-window project opening
+covers this correction to that same flow. Preparing Mac0.5.38; published37 stays
+available until exact candidate verification and reviewed promotion.
 
-Public signed/notarized/stapled Mac0.5.37: https://github.com/codepetca/zero/releases/download/setup-v0.5.37/Zero-0.5.37-macos.dmg
-DMG 4594169 bytes SHA256 6ab7785e8f2a354d4fc9d38c2c964bc91ec0f74d3d8d77b748f04a323054f3c0. Exact mac-0.5.37-9e016e77e3fe.
-Built clean reviewed4ab9a8ffdd1dda8ade395f71fc32867d29ef6273; measured manifest
-commit9e016e77e3feb5e3a6dc0c3faae1376baf75f587 changes no runtime source.
-Apple Accepted b89ec916-0e8e-41ff-aa6a-3726f8eed11b; app/DMG Gatekeeper accepted.
-109affected/38finalonboarding,116release2skip,159website tests/type/build and
-root/kit checks passed. Final promotion review/CI/merge/live checks pending.
+A ten-minute local profile handoff carries an open Start Page to the exact
+project in the next extension host. Recheck account/lifetime after persistence;
+failed opens clear their own record. Restore before first-lesson introduction,
+ignore only the Start Page when checking for existing student editors, and reuse
+an already restored panel. Native unload veto does not consume its ticket.
 
-No further native VSCode QA: isolated HOME caused Code Key popup; stopped owned
-PID15107, owner confirmed Cancel ended it. No keychain/credentials changed. Native
-window/dirty-editor, Windows, fresh-machine and live provider acceptance untested.
-Evidence .verification/current-window plus .verification/current-window37; preserve
-to primary .verification/current-window-release0.5.37 before worktree retirement.
-Primary dirty education-funding work preserved. Windows21/manualkit17 unchanged.
+Configuration checks,118affected and47final onboarding/handoff tests passed.
+Full suite893pass/3skip. Independent Sol/high full review found cancellation during
+handoff persistence could still open the folder; fixed in one batch with actual
+folders/window regression coverage.119affected and release-delta review pending. Keep detailed logs/receipts ignored under
+.verification/keep-start-page. Primary education-funding work remains untouched.
+
+No further native VSCode QA: an isolated HOME test previously caused Code Key
+popups; owner confirmed they stopped after its process ended. No credentials or
+keychain changed. Interactive Mac tab/focus/unsaved-work behavior, Windows and
+fresh-machine acceptance remain untested. Next: finish targeted review/checks, build/sign/notarize/seal38, review the exact
+candidate, merge with passing CI, publish and verify the live download/feed.

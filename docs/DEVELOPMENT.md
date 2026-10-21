@@ -308,6 +308,16 @@ General Git/terminal network actions do not inherit Zero’s credentials. Open l
 validates and opens an existing Zero folder without cloning, moving it or creating
 the default folder. Website/tutorial instructions use these visible labels.
 
+Current source carries an open Start Page across a project switch with a local
+profile handoff written before `vscode.openFolder` restarts the extension host.
+Only a different host opening the exact destination consumes it; an abandoned
+handoff expires after ten minutes. Failed opens remove their own handoff. Restore
+the page before first-lesson introduction so Main and Tutorials can open normally;
+the Start Page alone does not count as a student editor. Existing destination
+editors are preserved, and an already restored Start Page is reused. No files from
+the previous project are carried over. Focused coverage includes
+`extension/test/project-window.test.js` and `extension/test/onboarding.test.js`.
+
 Windows signing-account choices and private feed-key custody are documented in
 [Windows signing](WINDOWS-SIGNING.md). Use [Windows trial](WINDOWS-TRIAL.md) for
 the disposable real-install smoke and owner acceptance checklist; configuring CI
