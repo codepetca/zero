@@ -48,13 +48,13 @@ public abstract class App extends Application {
         appTitle = Objects.requireNonNull(title, "Window title must not be null.");
     }
 
-    /** Initial space around all content, in pixels on each edge. Call inside settings(). */
+    /** Space on every edge, in pixels. Call in settings, setup or an event handler. */
     public final void padding(double pixels) {
-        if (!configuring) throw new IllegalStateException("Call padding inside settings().");
         if (!Double.isFinite(pixels) || pixels < 0) {
             throw new IllegalArgumentException("Padding must be a non-negative finite number.");
         }
         appPadding = pixels;
+        if (root != null) root.setPadding(new Insets(pixels));
     }
 
     /** Display an ordinary JavaFX node after startup, usually inside setup(). */

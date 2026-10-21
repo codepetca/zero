@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 /** Finite contributor GUI check, selected only with -Psmoke. */
 public final class SmokeLauncher extends GameApp {
     private int phase;
+    private long phaseStarted = System.nanoTime();
     private boolean setupRan;
     private TextField input;
     private FailingGame failing;
@@ -51,14 +52,7 @@ public final class SmokeLauncher extends GameApp {
                 canvas().getScene().getWindow().requestFocus();
                 canvas().requestFocus();
             } else if (phase == 2) {
-                // Native window activation may arrive after the first animation pulses.
-                if (!canvas().getScene().getWindow().isFocused()) {
-                    canvas().getScene().getWindow().requestFocus();
-                    canvas().requestFocus();
-                    phase = 1;
-                    return; // The existing watchdog bounds this wait.
-                }
-                require(canvas().isFocused(), "canvas focus");
+                if (!NativeFocus.await(canvas(), phaseStarted, "canvas focus")) return;
                 for (KeyCode arrow : new KeyCode[] {KeyCode.DOWN, KeyCode.UP, KeyCode.LEFT, KeyCode.RIGHT}) {
                     key(canvas(), KeyEvent.KEY_PRESSED, arrow);
                     require(canvas().isFocused(), "arrow retains canvas focus: " + arrow);
@@ -78,7 +72,7 @@ public final class SmokeLauncher extends GameApp {
                 require(mouseDown(MouseButton.PRIMARY), "canvas owns mouse press");
                 input.requestFocus();
             } else if (phase == 3) {
-                require(input.isFocused(), "native TextField focus");
+                if (!NativeFocus.await(input, phaseStarted, "native TextField focus")) return;
                 require(!keyDown(KeyCode.SPACE) && !mouseDown(MouseButton.PRIMARY), "focus transfer clears held inputs");
                 key(input, KeyEvent.KEY_PRESSED);
                 require(!keyDown(KeyCode.SPACE), "typing does not drive game keys");
@@ -107,7 +101,6 @@ public final class SmokeLauncher extends GameApp {
             } else if (phase == 6) {
                 // Window-manager resize/configure events can outlast a few animation pulses.
                 if (uiStage.getScene().getWidth() <= 300 || uiField.getWidth() <= initialFieldWidth + 50) {
-                    phase = 5;
                     return; // Require actual scene/layout growth before the watchdog expires.
                 }
                 require(uiStage.getScene().getWidth() > 300, "UI scene resizes");
@@ -124,6 +117,8 @@ public final class SmokeLauncher extends GameApp {
                 System.out.println("ZERO_SMOKE_OK shared lifecycle, resize, pixels, canvas/control focus, releases, configuration/setup/frame errors, shutdown");
                 Platform.exit();
             }
+            phase++;
+            phaseStarted = System.nanoTime();
         } catch (Throwable failure) { failure.printStackTrace(); System.exit(1); }
     }
     private void verifyApp() {
@@ -156,8 +151,8 @@ public final class SmokeLauncher extends GameApp {
         uiStage.setHeight(240); // Submit both native dimensions together, including on GTK.
         try { uiApp.size(10, 10); throw new AssertionError("late size accepted"); }
         catch (IllegalStateException expected) { require(expected.getMessage().contains("settings"), "useful size error"); }
-        try { uiApp.padding(10); throw new AssertionError("late padding accepted"); }
-        catch (IllegalStateException expected) { require(expected.getMessage().contains("settings"), "useful padding error"); }
+        uiApp.padding(10);
+        require(root.getPadding().equals(new javafx.geometry.Insets(10)), "runtime app padding updates root");
     }
     private void verifyErrors() {
         for (double value : new double[] {-1, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
@@ -202,7 +197,6 @@ public final class SmokeLauncher extends GameApp {
         background(Color.WHITE);
         fill(Color.RED); rect(10, 10, 30, 30);
         fill(Color.BLUE); circle(70, 50, 20);
-        phase++;
     }
     private static void require(boolean condition, String description) {
         if (!condition) throw new AssertionError(description);

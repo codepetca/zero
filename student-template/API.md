@@ -43,13 +43,20 @@ These methods are public and final; call them without overriding them.
 | --- | --- |
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Dimensions must be positive and finite. On GameApp, these are fixed canvas dimensions. |
 | `void title(String title)` | Set a non-null initial window title, inside `settings()` only. |
-| `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a sketch keeps its fixed canvas size. |
+| `void padding(double pixels)` | Set space around all four content edges in `settings()`, `setup()` or later JavaFX handlers. The number must be non-negative and finite. Default: 0. GameApp keeps its fixed canvas size. |
 | `void show(Node content)` | Replace the root's centre with a non-null JavaFX node, in `setup()` or later. No screen history is stored. On GameApp this replaces the visible sketch layout while its loop continues. |
 
-`size`, `title` and `padding` throw `IllegalStateException` outside `settings()`;
+`size` and `title` throw `IllegalStateException` outside `settings()`;
 invalid dimensions or padding throw `IllegalArgumentException`. `show` throws `IllegalStateException`
 before content creation. Null title/content throws `NullPointerException`.
-`size`, `title` and `padding` do not change an already-open window.
+`size` and `title` do not change an already-open window.
+
+`padding(20)` sets 20 pixels on every edge; repeated calls replace the amount,
+and `padding(0)` removes it. Invalid padding leaves the previous amount unchanged.
+App keeps its configured initial window content size, leaving less room for
+controls. GameApp's initial window includes padding around its fixed canvas and
+controls; canvas dimensions and drawing coordinates stay unchanged. Later padding
+changes rearrange content within the current window without resizing it.
 
 ## GameApp
 

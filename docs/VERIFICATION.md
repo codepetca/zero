@@ -1,5 +1,24 @@
 # Verification
 
+## Shared padding and native focus tests — 2026-10-21
+
+App.padding is shared with GameApp and now supports settings, setup and later
+JavaFX handlers. Zero removes padding; negative and non-finite values preserve
+the prior amount and fail clearly. Focused native checks cover replacement
+content, fractional values, initial game sizing and unchanged canvas coordinates.
+
+NativeFocus is test-only: capability-checked application activation, throttled
+stage focus requests, actual node focus and a three-second deadline. Smoke phases
+advance only after checks finish; the example verifier shares the same readiness
+helper. Browser helper fingerprint remains exact and includes the updated App.
+The minimal greeting starter is preserved; the quiz example uses padding(20).
+
+The implementation's original macOS checks passed full smoke, all seven examples,
+three repeated smoke runs, a delayed-focus case and an expected unavailable-focus
+failure. Integration checks for current main are recorded with the PR. Physical
+Windows/Linux and manual input acceptance are not claimed. No release assets,
+installer versions, credentials or product input handling are changed.
+
 ## Keep the Start Page tab — Mac0.5.38, 2026-10-21
 
 https://github.com/codepetca/zero/pull/152 merged as 6f6146b12fc04216d686cb3d58197c6238bca059 with five exact-head checks.

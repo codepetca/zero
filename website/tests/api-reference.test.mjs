@@ -108,7 +108,8 @@ test('documents current padding, arrow handling, bundled media and retained app 
   assert.equal(entry('padding').signature, 'void padding(double pixels)');
   assert.match(entry('padding').description, /non-negative and finite/);
   assert.match(entry('padding').description, /Default: 0/);
-  assert.match(entry('padding').description, /inside `settings\(\)` only/);
+  assert.match(entry('padding').description, /`settings\(\)`, `setup\(\)` or later JavaFX handlers/);
+  assert.match(entry('padding').note, /GameApp keeps its canvas dimensions/);
   assert.match(entry('padding').parameters[0].description, /content edge/);
   assert.equal(entry('padding').example, 'padding(20);');
   assert.ok(entry('padding').related.includes('settings'));
