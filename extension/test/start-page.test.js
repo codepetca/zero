@@ -56,9 +56,9 @@ test('one reusable native start tab, stable document, explicit focus and lifecyc
 test('cloud choices require verified ready access; local is available through setup states', async () => {
   for (const phase of ['signed-out','checking','install','unavailable','ready']) {
     const f = fake({phase, accountId:phase === 'signed-out' ? undefined : '42'}), {page, panel} = await open(f);
-    for (const action of ['tutorial','new','clone','local','signIn','setup']) await f.message(panel, {type:'action', action});
-    const expected = phase === 'ready' ? ['zero.startProject','zero.newProject','zero.cloneRepository','zero.openLocalProject']
-      : ['zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
+    for (const action of ['tutorial','tutorials','new','clone','local','signIn','setup']) await f.message(panel, {type:'action', action});
+    const expected = phase === 'ready' ? ['zero.startProject','zero.openFirstLesson','zero.newProject','zero.cloneRepository','zero.openLocalProject']
+      : ['zero.openFirstLesson','zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
     assert.deepEqual(f.commands, expected, phase);page.dispose();
   }
 });
@@ -177,13 +177,47 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   assert.equal(browser.elements.get('recent-section').hidden, true);page.dispose();
 });
 
+test('Project dropdown navigates enabled actions and closes on selection, Escape, Tab and outside interaction',async()=>{
+  const f=fake(),{page,panel}=await open(f),b=domHarness(panel.webview.html);b.update(panel.messages.at(-1));
+  const trigger=b.elements.get('project-button'),menu=b.elements.get('project-menu');
+  const action=name=>b.buttons.find(button=>button.dataset.action===name);
+  assert.equal(menu.hidden,true);trigger.click();assert.equal(menu.hidden,false);assert.equal(trigger.getAttribute('aria-expanded'),'true');
+  assert.equal(b.document.activeElement,action('new'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('clone'));
+  b.key('End');assert.equal(b.document.activeElement,action('local'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('new'));
+  b.key('Home');b.key('ArrowUp');assert.equal(b.document.activeElement,action('local'));
+  action('local').click();assert.equal(b.sent.at(-1).action,'local');assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
+  b.key('ArrowUp',trigger);assert.equal(b.document.activeElement,action('local'));
+  assert.equal(b.key('Escape'),true);assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
+  trigger.click();assert.equal(b.key('Tab'),false);assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
+  for(const close of [()=>b.event('click',action('tutorials')),()=>b.event('focusin',action('tutorials')),()=>b.blur()]){
+    trigger.click();close();assert.equal(menu.hidden,true);assert.equal(trigger.getAttribute('aria-expanded'),'false');
+  }
+  page.dispose();
+});
+test('signed-out menu keeps Open and Tutorials available; auth drift and busy updates keep focus out of hidden items',async()=>{
+  const f=fake({phase:'signed-out'}),{page,panel}=await open(f),b=domHarness(panel.webview.html);b.update(panel.messages.at(-1));
+  const trigger=b.elements.get('project-button'),menu=b.elements.get('project-menu'),action=name=>b.buttons.find(button=>button.dataset.action===name);
+  assert.equal(trigger.disabled,false);assert.equal(action('tutorials').disabled,false);assert.equal(action('new').disabled,true);assert.equal(action('clone').disabled,true);
+  trigger.click();assert.equal(b.document.activeElement,action('local'));b.key('ArrowDown');assert.equal(b.document.activeElement,action('local'));
+  f.setState({phase:'ready',accountId:'42'});await page.refresh();b.update(panel.messages.at(-1));b.key('Home');assert.equal(b.document.activeElement,action('new'));
+  f.setState({phase:'ready',accountId:'42',status:'Updated'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(b.document.activeElement,action('new'));assert.equal(menu.hidden,false);
+  f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));assert.equal(b.document.activeElement,action('local'));
+  f.setState({phase:'signed-out',busy:true});await page.refresh();b.update(panel.messages.at(-1));assert.equal(menu.hidden,true);assert.equal(trigger.disabled,true);assert.equal(b.document.activeElement,b.elements.get('start-title'));
+  page.dispose();
+});
+
 function domHarness(html) {
-  const elements = new Map(), sent = [], events = new Map();
-  function element() {return {dataset:{}, children:[], textContent:'', hidden:false, listeners:{}, append(...items) {this.children.push(...items);}, replaceChildren() {this.children = [];}, addEventListener(name, fn) {this.listeners[name] = fn;}, click() {if (!this.disabled) this.listeners.click?.();}, focus() {document.activeElement = this;}, querySelectorAll() {return this.children.flatMap(li => li.children);}};}
+  const elements = new Map(), sent = [], events = new Map(), documentEvents = new Map();
+  function element() {return {dataset:{}, children:[], attributes:{}, textContent:'', hidden:false, listeners:{}, append(...items) {this.children.push(...items);}, replaceChildren() {this.children = [];}, addEventListener(name, fn) {this.listeners[name] = fn;}, click() {if (!this.disabled) this.listeners.click?.();}, focus() {document.activeElement = this;}, setAttribute(name,value) {this.attributes[name]=value;}, getAttribute(name) {return this.attributes[name];}, contains(target) {return target===this || this.children.some(child=>child.contains(target));}, querySelectorAll() {return this.children.flatMap(li => li.dataset.action ? [li] : li.children);}};}
   for (const id of html.matchAll(/id="([^"]+)"/g)) elements.set(id[1], element());
   const buttons = [...html.matchAll(/data-action="([^"]+)"/g)].map(match => {const button = element();button.dataset.action = match[1];return button;});
-  const document = {getElementById:id => elements.get(id), querySelectorAll:() => buttons, createElement:element, activeElement:undefined};
+  elements.get('project-menu').hidden=true;
+  elements.get('project-menu').append(...buttons.filter(button=>['new','clone','local'].includes(button.dataset.action)));
+  elements.get('project-actions').append(elements.get('project-button'),elements.get('project-menu'));
+  const document = {getElementById:id => elements.get(id), querySelectorAll:() => buttons, createElement:element, activeElement:undefined,addEventListener:(name,fn)=>documentEvents.set(name,fn)};
   const sandbox = {document, window:{addEventListener:(name, fn) => events.set(name, fn)}, acquireVsCodeApi:() => ({postMessage:message => sent.push(message)})};
   vm.runInNewContext(html.match(/<script nonce="[^"]+">([\s\S]+)<\/script>/)[1], sandbox);
-  return {elements, buttons, sent, update:message => events.get('message')({data:message})};
+  return {elements, buttons, sent, document, update:message => events.get('message')({data:message}),
+    event:(type,target)=>documentEvents.get(type)?.({target}), blur:()=>events.get('blur')?.(),
+    key:(key,target=document.activeElement)=>{let prevented=false;documentEvents.get('keydown')?.({key,target,preventDefault(){prevented=true;}});return prevented;}};
 }
