@@ -1,5 +1,22 @@
 # Delivery evidence index
 
+## Passing the app to Player — local docs, 2026-10-21
+
+Lesson 8 now explains `player.draw(this)`, `draw(GameApp app)` and drawing on the
+same canvas, with the existing Player method as a short example. Beginner and
+app guides explain the parameter and link to that section. The ordinary-object
+design is unchanged. Local branch `codex/player-drawing-guide`; no publication.
+
+Independent `player_docs_review/1`, requested GPT-6 Luna/medium, completed the
+entire 3-file/40-line source-doc diff at5e7d62b4 against0c403346 and its Java
+callers with zero findings. One launch/initial wave, zero fix batches or retries;
+effective configuration, token use and attributable elapsed time unknown.
+29 focused tutorial tests, checkpoint8 compilation, website preparation,
+rendered heading/cross-link checks and whitespace check pass; see
+[verification](VERIFICATION.md#passing-the-app-to-player--local-docs-2026-10-21).
+Weekly54% remaining and cached storage healthy280GB at start; account-wide usage
+is not task cost. Primary funding edits preserved; local dependency caches reused.
+
 ## Current-window projects — Mac0.5.37 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/150 merged as c7d5cd2a54bd063c99f43b7a1cd1c46b7069e333 after independent code/version/

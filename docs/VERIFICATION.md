@@ -1,5 +1,18 @@
 # Verification
 
+## Passing the app to Player — local docs, 2026-10-21
+
+29 focused checks pass: `node --test extension/test/tutorial-content.test.js
+extension/test/tutorial-reader.test.js website/tests/learning.test.mjs`. The first
+reader run lacked the generated tutorial bundle; running the existing
+`node scripts/prepare-tutorials.mjs` resolved it before the passing run.
+`node scripts/verify-project-progression.mjs --compile-only --only=8` compiles.
+Website preparation includes the updated docs; rendered Markdown exposes the
+new lesson8 heading and both guide links resolve to its `/tutorials/8` fragment.
+`git diff --check` passes. Independent complete source-doc review at5e7d62b4
+found no issues. No runtime Java or API changes, native interactive/OS checks,
+push, deployment or installer release. These docs remain local.
+
 ## Current-window projects — Mac0.5.37 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/150 merged as c7d5cd2a54bd063c99f43b7a1cd1c46b7069e333 after independent code/version/
