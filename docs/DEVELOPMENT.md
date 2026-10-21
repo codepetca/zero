@@ -279,12 +279,13 @@ earlier downloads retain their bundled behavior. Run
 
 The Mac 0.5.40 Run split button keeps native Run/Stop as its primary action.
 Its arrow opens Publish app for a ready, connected project and is disabled during
-Run/Stop. It shares anchored-menu keyboard/focus behavior with Files; both menus
+Run/Stop. It shares anchored-menu keyboard/focus behavior with New; both menus
 are mutually exclusive. Focused checks include `extension/test/run-dropdown.test.js`.
 The design fixture accepts `/sidebar?connected=1` for safe publishing-menu review.
 
-The supported sidebar webview (`zero.actions`) contains development controls and
-the file list. Native `zero.startPage` opens one reusable/restorable editor panel
+The supported `zero.controls` webview in Explorer contains development controls
+and teaching helpers; native Explorer owns the file list. Native `zero.startPage`
+opens one reusable/restorable editor panel
 for onboarding, tutorial/project choices and account-scoped recents. Empty Zero
 windows open it automatically without replacing existing editors.
 `zero.getStarted` remains a compatibility alias. The native **⋯ → Start Page**
