@@ -1,22 +1,23 @@
-# Current-window project opening — Mac0.5.37 publication
+# Project dropdown and Tutorials — Mac0.5.39 publication
 
-Owner authorized merge and publication. Source https://github.com/codepetca/zero/pull/150 merged as
-c7d5cd2a54bd063c99f43b7a1cd1c46b7069e333 after independent source/release/candidate review and
-five exact-head CI checks. Start Page Clone/New/Open/tutorial/recent actions reuse
-the current VS Code window. Native editor owns unsaved handling; creation recovery
-survives a resolved native veto until active project/account/remote verification.
+Owner explicitly authorized merge and publication; global pause was explicitly
+revoked before continuing. Source https://github.com/codepetca/zero/pull/154 merged as
+c853cfac5de94a51510bb483e2b10177f7739d29 after independent source/version/candidate review and
+five exact-head CI checks. Project → New / Clone / Open replaces separate project
+buttons; Tutorials opens the existing reader without sign-in or project creation.
+Start tutorial remains guided. Existing same-window Start Page retention stays.
 
-Public signed/notarized/stapled Mac0.5.37: https://github.com/codepetca/zero/releases/download/setup-v0.5.37/Zero-0.5.37-macos.dmg
-DMG 4594169 bytes SHA256 6ab7785e8f2a354d4fc9d38c2c964bc91ec0f74d3d8d77b748f04a323054f3c0. Exact mac-0.5.37-9e016e77e3fe.
-Built clean reviewed4ab9a8ffdd1dda8ade395f71fc32867d29ef6273; measured manifest
-commit9e016e77e3feb5e3a6dc0c3faae1376baf75f587 changes no runtime source.
-Apple Accepted b89ec916-0e8e-41ff-aa6a-3726f8eed11b; app/DMG Gatekeeper accepted.
-109affected/38finalonboarding,116release2skip,159website tests/type/build and
-root/kit checks passed. Final promotion review/CI/merge/live checks pending.
+Public signed/notarized/stapled Mac0.5.39: https://github.com/codepetca/zero/releases/download/setup-v0.5.39/Zero-0.5.39-macos.dmg
+DMG 4596133 bytes SHA256 debeb620f78abf32169ba91e56f6c059d16535a1bcc939bba2289b4406012fc1. Sealed mac-0.5.39-2a7e3bfd3046.
+Clean reviewed build 64eba2c2fba9c4776e6fe08acb010edf35dba767; measured manifest 2a7e3bfd304609746ecb671163cbf247ad712829.
+Apple Accepted d23942a0-0343-42de-a28a-7bc0b1c03340; staple/app/DMG Gatekeeper accepted.
+99affected tests/root checks,116release/2skips,159website tests/type/build and
+kit verification passed. Exact-source CI897pass/3skip; proof retained with release logs.
+Final promotion review, CI and live acceptance are recorded in the completion
+receipt under primary .verification/start-page-menu-release0.5.39 after completion.
 
-No further native VSCode QA: isolated HOME caused Code Key popup; stopped owned
-PID15107, owner confirmed Cancel ended it. No keychain/credentials changed. Native
-window/dirty-editor, Windows, fresh-machine and live provider acceptance untested.
-Evidence .verification/current-window plus .verification/current-window37; preserve
-to primary .verification/current-window-release0.5.37 before worktree retirement.
-Primary dirty education-funding work preserved. Windows21/manualkit17 unchanged.
+Initial Sparkle dependency download timed out; resumed signed build reused verified
+kit and unchanged source. No native VSCode QA after previous Code Key popup, no
+keychain/credential changes. Actual Mac editor/Windows/fresh-machine/provider
+acceptance remains untested. Windows21/manualkit17 unchanged. Preserve all evidence
+and candidate before retiring the managed worktree; primary funding edits preserved.

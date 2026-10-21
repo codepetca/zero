@@ -31,7 +31,7 @@ function createProjectProgress(vscode, active = () => true) {
 }
 
 // Projects are ordinary folders; Zero owns only its explicit authenticated clone action.
-function createProjectFolders(vscode, {home = os.homedir(), globalState, active = () => true, report = () => {}, cloneRepository, onOpened=async()=>{}} = {}) {
+function createProjectFolders(vscode, {home = os.homedir(), globalState, active = () => true, report = () => {}, cloneRepository, onOpened=async()=>{}, openFolder = root => vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(root), {forceReuseWindow:true})} = {}) {
   const defaultParent = path.join(home, 'Zero Projects');
   let disposed=false;const isActive=()=>!disposed&&active();const progress=createProjectProgress(vscode,isActive);
   async function chooseFolder(title, openLabel, createDefault = false) {
@@ -73,7 +73,10 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
       await assertCurrent();
       if (result && isActive()) {
         try {await onOpened({projectPath:result,repositoryUrl:destination.page});}catch(error){report(`Could not remember this project. ${error.message}`);}
-        if(isActive()) {await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(result), {forceReuseWindow:true});}
+        if(isActive()) {
+          const beforeOpen=async()=>{throwIfCancelled(operationSignal);await assertCurrent();throwIfCancelled(operationSignal);};
+          await beforeOpen();await openFolder(result,beforeOpen);
+        }
       }
       return result;
     },signal);
@@ -95,7 +98,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     await assertCurrent();
     if(isActive()) {
       try {await onOpened({projectPath:root});}catch(error){report(`Could not remember this project. ${error.message}`);}
-      if(isActive()){await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(root), {forceReuseWindow:true});}
+      if(isActive()){await assertCurrent();await openFolder(root,assertCurrent);}
     }
   }
   return {clone, openLocal, chooseCloneParent,dispose(){disposed=true;progress.dispose();}};

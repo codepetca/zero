@@ -55,10 +55,10 @@ These public methods are `final` (call them; do not override them):
 | --- | --- |
 | `void size(double width, double height)` | Set initial content dimensions in pixels, inside `settings()` only. Both numbers must be positive and finite. Default: 800 × 500. |
 | `void title(String title)` | Set the window title inside `settings()` only. It must not be null. Default: `"Zero"`. |
-| `void padding(double pixels)` | Set equal space around every content edge, inside `settings()` only. The number must be non-negative and finite. Default: 0. Space is inside the window dimensions; a game keeps its fixed canvas size. |
+| `void padding(double pixels)` | Set space around all four content edges in `settings()`, `setup()` or later JavaFX handlers. The number must be non-negative and finite. Default: 0. GameApp keeps its fixed canvas size. |
 | `void show(Node content)` | Replace the root's centre with a non-null JavaFX node. Call in `setup()` or later in an event handler. |
 
-`size`, `title` and `padding` throw `IllegalStateException` outside settings;
+`size` and `title` throw `IllegalStateException` outside settings;
 invalid size or padding throws `IllegalArgumentException`. `show` before startup throws
 `IllegalStateException`; null title/content is rejected. These methods do not
 resize or retitle an already-open window.
@@ -96,13 +96,23 @@ App has no animation loop. The window is resizable; native layouts arrange
 their children. `show` replaces content; it does not store screens or create a
 navigation history. Keep any state you need in your own fields and objects.
 
+No constructor is needed in Main: App and GameApp have implicit public
+no-argument constructors, and JavaFX creates your app through `launch(args)`.
+Use `settings()` for initial configuration, including `padding(20)` in either
+app type. You can also call padding in `setup()` or a JavaFX event handler.
+Repeated calls replace the amount; `padding(0)` removes it. In App, padding uses
+space inside the configured window dimensions. In GameApp, the initial window
+grows to include padding around the fixed canvas and controls, preserving canvas
+dimensions and drawing coordinates. Later changes rearrange the existing window.
+
 ## Ordinary JavaFX and reusable objects
 
 Useful native starting points include `Label.setText(String)`,
 `Button.setOnAction(...)`, `TextField.getText()` and `setPromptText(String)`,
 `Node.setDisable(boolean)`, and `VBox`, `HBox` and `BorderPane` layouts.
 For example, `new VBox(12, firstNode, secondNode)` uses 12-pixel spacing;
-`screen.setPadding(new Insets(20))` uses 20-pixel padding. Import controls from
+`screen.setPadding(new Insets(20))` adds 20-pixel padding to that specific layout.
+Use `padding(20)` for the whole app; using both adds their padding together. Import controls from
 `javafx.scene.control`, layouts from `javafx.scene.layout`, and `Insets` from
 `javafx.geometry`. These are JavaFX APIs, not extra Zero methods.
 

@@ -15,8 +15,9 @@ const settle = async predicate => {
     await new Promise(resolve=>setImmediate(resolve));
   }
 };
-async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
+async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEditor=false, zeroLaunch=false, openTabs=[], trackPanelTabs=false, tabsDuringPreparation=false, remembered=new Map(), practice=false, tutorial=false, setupCheck=false, externalResult=true, empty=false, profile, initialSession, githubAccess=async()=>{}, unpublishedTutorials=false, information=async()=>undefined, pick=async()=>undefined, input=async()=>'my-project', clone=async()=>undefined, execute=async()=>undefined}={}) {
   const root=await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(),'zero-onboarding-')));
+  if (typeof profile === 'function') profile=profile(root);
   t.after(()=>fs.rm(root,{recursive:true,force:true}));
   await fs.writeFile(path.join(root,'zero.json'),practice?JSON.stringify({localOnly:true,practiceProjectId:'study',lessonId:'3',templateVersion:'0.1.0',mainClass:'Main'}):tutorial?JSON.stringify({repositoryRequired:true,tutorialProjectId:'greeting',lessonId:'0',templateVersion:'0.1.0',mainClass:'Main'}):'{}');
   if(practice||tutorial) {await fs.mkdir(path.join(root,'src/main/java'),{recursive:true});await fs.writeFile(path.join(root,'src/main/java/Main.java'),'class Main {}\n');}
@@ -31,11 +32,11 @@ async function fixture(t, {lesson=true, lessonFile='00-hello-world.md', activeEd
     authentication:{getSession:async(provider,scopes,options)=>{authCalls.push({provider,scopes,options});if(authFailure)throw new Error('PRIVATE');if(options.createIfNone&&interactiveSession)session=typeof interactiveSession==='function'?await interactiveSession():interactiveSession;return session;},onDidChangeSessions:fn=>{sessionChanged=fn;return disposable();},registerAuthenticationProvider:(id,label,provider,options)=>{assert.equal(id,'zero-github');assert.equal(label,'Zero GitHub');assert.deepEqual(options,{supportsMultipleAccounts:false});return disposable();}},
     workspace:{registerTextDocumentContentProvider:disposable,workspaceFolders:empty?[]:[{uri:{fsPath:root}}],getConfiguration:()=>({get:(_,fallback)=>fallback}),saveAll:async()=>true,onDidChangeConfiguration:disposable,
       onDidChangeWorkspaceFolders:fn=>{folderChanged=fn;return disposable();},openTextDocument:async uri=>({uri}),createFileSystemWatcher:()=>({onDidCreate:disposable,onDidChange:disposable,onDidDelete:disposable,dispose(){}})},
-    window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,messages:[],reveals:[],reveal(...args){this.reveals.push(args);},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.messages.push(message);panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);if(type==='zero.startPage')queueMicrotask(()=>panel.message?.({type:'ready'}));return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInputBox:async options=>options.title==='GitHub repository URL'?'https://github.com/student/app':input(options),showOpenDialog:async()=>[{fsPath:root}],showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
+    window:{createWebviewPanel:(type,title,column,options)=>{const panel={type,title,column,options,messages:[],reveals:[],reveal(...args){this.reveals.push(args);},onDidDispose:disposable,dispose(){},webview:{html:'',cspSource:'https://resources.invalid',asWebviewUri:uri=>({toString:()=>`https://resources.invalid/${path.basename(uri.fsPath)}`}),postMessage:async message=>{panel.messages.push(message);panel.restored=message;return true;},onDidReceiveMessage:fn=>{panel.message=fn;return disposable();}}};panels.push(panel);if(type==='zero.startPage')queueMicrotask(()=>panel.message?.({type:'ready'}));return panel;},tabGroups:{get all(){tabReads++;return [{tabs:tabsDuringPreparation&&tabReads>1?[{}]:openTabs.concat(trackPanelTabs?panels.map(panel=>({input:{viewType:panel.type}})):[])}];}},activeTextEditor:activeEditor?{}:undefined,createOutputChannel:()=>({appendLine(){},clear(){},show(){},dispose(){}}),registerWebviewViewProvider:(_,provider)=>{webviewProvider=provider;return disposable();},registerTreeDataProvider:disposable,showQuickPick:pick,showInputBox:async options=>options.title==='GitHub repository URL'?'https://github.com/student/app':input(options),showOpenDialog:async()=>[{fsPath:root}],showInformationMessage:async(text,...choices)=>{notices.push({text,choices});return information(text,...choices);},showErrorMessage:text=>errors.push(text),showTextDocument:async(document,options)=>{calls.push(['showTextDocument',document.uri,options]);}},
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(...args)=>{calls.push(args);return execute(...args);}},
     tasks:{onDidStartTask:fn=>{starts.push(fn);return disposable();},onDidEndTask:fn=>{ends.push(fn);return disposable();},onDidEndTaskProcess:fn=>{processEnds.push(fn);return disposable();},registerTaskProvider:disposable,
       executeTask:async task=>{const active={task,terminate(){processEnds.forEach(fn=>fn({execution:active,exitCode:undefined}));ends.forEach(fn=>fn({execution:active}));}};launches.push(active);starts.forEach(fn=>fn({execution:active}));return active;}},
-    ViewColumn:{Beside:2},Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
+    ViewColumn:{One:1,Beside:2},Task,TaskScope:{Workspace:2},TaskGroup:{Build:{}},TaskRevealKind:{Always:1},TaskPanelKind:{Dedicated:2},ProcessExecution:class{},ShellExecution:class{},
     EventEmitter:class{event(){}fire(){}dispose(){}},env:{openExternal:async uri=>{calls.push(['openExternal',uri]);return externalResult;}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})}
   };
   const filename=require.resolve('../src/extension'), oldCache=require.cache[filename], load=Module._load;
@@ -80,6 +81,57 @@ test('empty onboarding opens one live Start Page and keeps the sidebar minimal',
   await f.commands.get('zero.startPage')();await f.commands.get('zero.getStarted')();
   assert.equal(f.panels.length,1);assert.equal(f.startPage.reveals.length,2);assert.equal(f.startPage.webview.html,document);
   assert.equal(f.calls.filter(([id])=>id==='showTextDocument'||id==='markdown.showPreview').length,0);
+});
+test('Start Page Tutorials link opens the reader without a project or GitHub sign-in',async t=>{
+  const f=await fixture(t,{empty:true,execute:async id=>f.commands.get(id)?.()});
+  await settle(()=>f.startState?.phase==='signed-out');
+  await f.startPage.message({type:'action',action:'tutorials',token:f.startPage.restored.token});
+  assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage','zero.tutorials']);
+  assert.equal(f.launches.length,0);assert.ok(f.authCalls.every(call=>call.options.silent));
+  assert.equal(f.calls.filter(([id])=>['createRepository','cloneRepository','vscode.openFolder','openExternal'].includes(id)).length,0);
+  assert.deepEqual(f.errors,[]);
+});
+test('local and cloned projects persist the Start Page handoff before replacing the workspace',async t=>{
+  for (const kind of ['local','clone']) {
+    const profile=new Map();let target;
+    const f=await fixture(t,{empty:true,profile,clone:async()=>target,execute:async id=>{
+      if(id==='vscode.openFolder')assert.equal(profile.get('zero.startPageHandoff')?.root,target);
+    }});
+    await settle(()=>f.startState?.phase==='signed-out');
+    if(kind==='local') {
+      target=f.root;await f.commands.get('zero.openLocalProject')();
+    } else {
+      target=path.join(f.root,'cloned');
+      f.setInteractiveSession({id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'});
+      await f.commands.get('zero.cloneRepository')();
+    }
+    assert.equal(f.calls.filter(([id])=>id==='vscode.openFolder').length,1);
+    assert.equal(profile.get('zero.startPageHandoff').root,target);
+    assert.equal(f.panels.filter(panel=>panel.type==='zero.startPage').length,1);
+  }
+});
+test('destination activation retains Start Page while opening Main and Tutorials',async t=>{
+  let profile;
+  const f=await fixture(t,{tutorial:true,trackPanelTabs:true,profile:root=>profile=new Map([['zero.startPageHandoff',{
+    id:'handoff',origin:'previous-host',root,createdAt:Date.now()
+  }]])});
+  await settle(()=>f.remembered.get(`zero.firstLessonShown:${f.root}`));
+  assert.equal(f.calls.filter(([id])=>id==='showTextDocument').length,1);
+  assert.deepEqual(f.panels.map(panel=>panel.type),['zero.startPage','zero.tutorials']);
+  assert.deepEqual(f.startPage.column,{viewColumn:1,preserveFocus:true});
+  assert.equal(profile.get('zero.startPageHandoff'),undefined);
+  f.folderChanged();await new Promise(resolve=>setTimeout(resolve,30));
+  assert.equal(f.panels.filter(panel=>panel.type==='zero.startPage').length,1);
+});
+test('destination editors stay available while a handed-off Start Page opens in the background',async t=>{
+  const tabs=[{input:{viewType:'markdown.preview'}}];
+  const f=await fixture(t,{openTabs:tabs,activeEditor:true,profile:root=>new Map([['zero.startPageHandoff',{
+    id:'handoff',origin:'previous-host',root,createdAt:Date.now()
+  }]])});
+  await settle(()=>f.startPage);
+  assert.equal(f.calls.filter(([id])=>id==='showTextDocument'||id==='markdown.showPreview').length,0);
+  assert.deepEqual(f.vscode.window.tabGroups.all[0].tabs,tabs);
+  assert.deepEqual(f.startPage.column,{viewColumn:1,preserveFocus:true});
 });
 test('guided project access finishes before tutorial choice, naming or repository creation',async t=>{
   const events=[];let release;

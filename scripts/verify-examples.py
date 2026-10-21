@@ -388,6 +388,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import zero.GameApp;
+import zero.NativeFocus;
 public class ExampleCheck extends Application {
     static Object field(Object object, String name) throws Exception {
         var field = object.getClass().getDeclaredField(name);
@@ -434,9 +435,15 @@ public class ExampleCheck extends Application {
         Main app = new Main();
         app.start(stage);
         System.err.println("EXAMPLE_STAGE KIND started");
+        long started = System.nanoTime();
         PauseTransition wait = new PauseTransition(Duration.millis(200));
         wait.setOnFinished(event -> {
             try {
+                if ((Object) app instanceof GameApp game
+                        && !NativeFocus.await(game.canvas(), started, "Example canvas focus")) {
+                    wait.playFromStart();
+                    return;
+                }
                 System.err.println("EXAMPLE_STAGE KIND checking");
                 CHECK
                 System.err.println("EXAMPLE_STAGE KIND checked");
@@ -444,13 +451,12 @@ public class ExampleCheck extends Application {
             } catch (Throwable failure) {
                 failure.printStackTrace();
                 System.exit(1);
-            } finally {
-                System.err.println("EXAMPLE_STAGE KIND cleanup");
-                app.stop();
-                System.err.println("EXAMPLE_STAGE KIND stopped");
-                stage.close();
-                Platform.exit();
             }
+            System.err.println("EXAMPLE_STAGE KIND cleanup");
+            app.stop();
+            System.err.println("EXAMPLE_STAGE KIND stopped");
+            stage.close();
+            Platform.exit();
         });
         wait.play();
     }
@@ -464,6 +470,7 @@ with tempfile.TemporaryDirectory(prefix='zero-examples-') as temp:
     for kind, check in selected.items():
         dest = root / kind
         shutil.copytree(source, dest, ignore=shutil.ignore_patterns('target', 'examples'))
+        shutil.copy2(source.parent/'framework/checks/zero/NativeFocus.java', dest/'src/main/java/zero/NativeFocus.java')
         if kind != 'hello-world':
             for previous in (dest/'src/main/java').glob('*.java'):
                 previous.unlink()

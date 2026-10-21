@@ -16,6 +16,59 @@ rendered heading/cross-link checks and whitespace check pass; see
 [verification](VERIFICATION.md#passing-the-app-to-player--local-docs-2026-10-21).
 Weekly54% remaining and cached storage healthy280GB at start; account-wide usage
 is not task cost. Primary funding edits preserved; local dependency caches reused.
+## Project dropdown and Tutorials — Mac0.5.39 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/154 merged as c853cfac5de94a51510bb483e2b10177f7739d29 with five exact-head checks.
+Clean source 64eba2c2fba9c4776e6fe08acb010edf35dba767; measured manifest 2a7e3bfd304609746ecb671163cbf247ad712829.
+Exact candidate mac-0.5.39-2a7e3bfd3046 verified; signed feed38→39. Apple accepted
+d23942a0-0343-42de-a28a-7bc0b1c03340; staple and app/DMG Gatekeeper passed.
+Public DMG 4596133 bytes SHA256 debeb620f78abf32169ba91e56f6c059d16535a1bcc939bba2289b4406012fc1 matches candidate,
+authenticated draft download and anonymous public download.
+
+99affected tests/root checks,116release/2skip,159website tests/type/build and kit
+verification passed; exact-source CI897pass/3skip proof is retained with release logs.
+Independent Sol/medium source, release delta and exact-candidate reviews passed;
+source coverage reused without runtime changes. Effective model/tokens/attributable
+elapsed unknown. Final promotion/CI/live acceptance receipts are retained in primary
+.verification/start-page-menu-release0.5.39. Initial dependency-download timeout was
+retried after the owner explicitly resumed the paused task; no source fix required.
+Actual Mac editor/Windows/provider acceptance remains untested; no further native
+VSCode launch or keychain/credential changes. Primary funding work preserved.
+
+## Start Page navigation — local implementation, 2026-10-21
+
+Owner requested Tutorials and Project → New / Clone / Open. The link uses the
+existing native tutorial reader without sign-in or project creation. Project
+choices retain existing guarded commands, account checks and same-window tab
+preservation. Keyboard navigation and dismissal restore focus; Open stays
+available signed out while New/Clone require ready GitHub access.
+
+99affected tests and root configuration checks passed. Generated-HTML Chromium
+fixture checked light/dark,320px layout, pointer/keyboard, signed-out/busy states
+and high-contrast/enlarged text. Fixtures simulate messages only; no repository,
+credential, installer or editor launch occurred. Actual VSCode/Windows acceptance
+remains untested. Independent review/verification receipts are retained under the
+managed worktree’s ignored .verification/start-page-menu. This entry records the local implementation; the subsequent publication
+record above tracks its release.
+
+## Keep the Start Page tab — Mac0.5.38, 2026-10-21
+
+https://github.com/codepetca/zero/pull/152 merged as 6f6146b12fc04216d686cb3d58197c6238bca059 with five exact-head checks.
+Clean reviewed source fc7de603; measured manifest f52d6204. Exact13-file candidate
+mac-0.5.38-f52d6204268b verified, signed feed37→38. Apple accepted
+e63b521a-386f-4bef-8693-4ecbe32c8865; stapled, app/DMG Gatekeeper accepted.
+Public DMG 4595428 bytes SHA256 4f93454771c4cfc7781c0b617ea311e0bf61ed74b20645faf8a34013a55bf48b matches
+candidate, authenticated draft download and anonymous public download.
+
+Exact-source CI894full/3skip;119affected locally,116release/2skip,159website tests,
+type/build/root/kit checks passed. Independent Sol/high initial review found one
+cancellation-during-persistence issue; fixed once and reviewed with version38.
+Exact-candidate review verified13hashes, runtime parity and signatures/provenance.
+Effective model/tokens/attributable elapsed unknown. Promotion review/CI/live
+completion receipts retained in primary .verification/keep-start-page-release0.5.38.
+No further native VSCode QA after earlier Code Key popup; no keychain/credentials
+changed. Interactive Mac tab/focus/unsaved-work and Windows/live-provider acceptance
+pending. Windows21/manualkit17 and primary funding work preserved.
 
 ## Current-window projects — Mac0.5.37 publication, 2026-10-21
 

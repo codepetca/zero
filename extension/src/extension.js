@@ -15,6 +15,7 @@ const {createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity} 
 const {createGitHubAppClone} = require('./github-app/clone');
 const {createGitHubProjectCommands} = require('./github-app/projects-ui');
 const {createProjectFolders} = require('./project-folders');
+const {createProjectWindow} = require('./project-window');
 const {createRecentProjects} = require('./recent-projects');
 const {createProjectPicker} = require('./project-picker');
 const {createGitHubReadiness} = require('./github-app/readiness');
@@ -104,7 +105,7 @@ function activate(context, services = {}) {
   const report = (text, detail = text) => {state=text;output.appendLine(detail);refresh();};
   const tutorials = createTutorialReader(vscode,{context,output,project});
   context.subscriptions.push(tutorials);
-  const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.length));
+  const hasOpenEditors = () => Boolean(vscode.window.activeTextEditor) || Boolean(vscode.window.tabGroups?.all.some(group => group.tabs.some(tab => !startPage?.owns(tab))));
   async function openFirstLesson(root, onlyWhenEmpty = false) {
     if (isSetupProject(root)) return false;
     let filename;
@@ -159,7 +160,7 @@ function activate(context, services = {}) {
     if (!folders.length && hasOpenEditors() && !launchedForZero) return;
     const root = folders.length ? await project() : undefined;
     if (!root) {
-      if (!hasOpenEditors()) await startPage.show({preserveFocus:false});
+      if (!hasOpenEditors() && !startPage.isOpen()) await startPage.show({preserveFocus:false});
       return;
     }
     if (vscode.workspace.getConfiguration('chat').get('disableAIFeatures', false)) await vscode.commands.executeCommand('workbench.action.closeAuxiliaryBar');
@@ -205,7 +206,8 @@ function activate(context, services = {}) {
     if(disposed||auth.accountId!==accountId||auth.accountLabel!==label||JSON.stringify(context.globalState.get('zero.repositoryCreationRecovery'))!==JSON.stringify(recovery))return;
     await context.globalState.update('zero.repositoryCreationRecovery',undefined);
   }
-  const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository,onOpened:rememberOpened});
+  const projectWindow = createProjectWindow(vscode, {globalState:context.globalState, startPage:()=>startPage, active:()=>!disposed});
+  const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository,onOpened:rememberOpened,openFolder:projectWindow.open});
   projectPicker=createProjectPicker(vscode,{authentication:auth,repositories,history:recentProjects,active:()=>!disposed,report:text=>output.appendLine(text)});
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
   context.subscriptions.push(projectFolders,githubProjects,projectPicker);
@@ -823,7 +825,7 @@ function activate(context, services = {}) {
     if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
   if (!(vscode.workspace.workspaceFolders || []).length) void introduceProject().catch(error=>output.appendLine(`Start Page: ${error.message}`));
-  const introduceAfterConnection = () => startup.then(async() => {if (!disposed) {try {await rememberOpened({projectPath:await project()});}catch{}return introduceProject();}}).catch(error => output.appendLine(`Getting started: ${error.message}`));
+  const introduceAfterConnection = () => startup.then(async() => {if (!disposed) {try {await rememberOpened({projectPath:await project()});}catch{}await projectWindow.restore();await introduceProject();}}).catch(error => output.appendLine(`Getting started: ${error.message}`));
   context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));

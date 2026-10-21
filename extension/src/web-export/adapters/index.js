@@ -22,7 +22,7 @@ const helperHashes = Object.freeze({
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
   'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
   'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',
-  'zero/App.java': 'bdcb1060ad5a30f16f1a395c522a520d2506530584bda71a0e4cbe1e7c467c09',
+  'zero/App.java': 'eb830cd7270ba9f4f83d3824e0216674492db72abe9e704d9e2f52134450faae',
   'zero/GameApp.java': '218f45f20f585938fd7c8e4b152fd69b8ca4ad3daf6ff7d5bc45132c8fd3a4d7',
   'zero/Sound.java': '6247f0a0d6af9b610727094967af249321c58e6dda21ce1a2a989a3fc6e75286',
   'zero/SpriteAnimation.java': 'c68e48317388de67be2f6170c990baef6c7a20e028f6ce3b6163e74f6d67e0f0'

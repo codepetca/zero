@@ -11,6 +11,9 @@ try {
   for (const name of readdirSync(path.join(root, 'framework/checks/zero'))) {
     if (name.endsWith('.java')) copyFileSync(path.join(root, 'framework/checks/zero', name), path.join(project, 'src/main/java/zero', name));
   }
+  const padding = maven(project, ['-q', '-Dapp.mainClass=zero.PaddingLauncher', 'clean', 'compile', 'javafx:run']);
+  if (!padding.stdout.includes('ZERO_PADDING_OK')) throw new Error(padding.stdout + '\n' + padding.stderr);
+  console.log('ZERO_PADDING_OK: shared padding in App and GameApp.');
   const result = maven(project, ['-q', '-Dapp.mainClass=zero.SmokeLauncher', 'clean', 'compile', 'javafx:run']);
   if (!result.stdout.includes('ZERO_SMOKE_OK')) throw new Error(result.stdout + '\n' + result.stderr);
   const helpers = maven(project, ['-q', '-Dapp.mainClass=zero.GameHelpersCheck', 'compile', 'javafx:run']);

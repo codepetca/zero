@@ -3,6 +3,7 @@ const crypto = require('node:crypto');
 
 const COMMANDS = Object.freeze({
   tutorial: 'zero.startProject',
+  tutorials: 'zero.openFirstLesson',
   new: 'zero.newProject',
   clone: 'zero.cloneRepository',
   local: 'zero.openLocalProject',
@@ -105,7 +106,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
   function allowed(action, snapshot) {
     if (snapshot.busy) return false;
     if (CLOUD.has(action)) return snapshot.phase === 'ready' && Boolean(snapshot.accountId);
-    if (action === 'local') return true;
+    if (action === 'local' || action === 'tutorials') return true;
     if (action === 'signIn') return snapshot.phase === 'signed-out';
     if (action === 'setup') return Boolean(snapshot.accountId) && ['install', 'unavailable'].includes(snapshot.phase);
     return false;
@@ -125,7 +126,7 @@ function createStartPage(vscode, {getState = () => ({}), listRecent = async () =
       else await vscode.commands.executeCommand(COMMANDS[action]);
     } catch (error) {
       if (!current(target) || state().accountId !== accountId) return;
-      failure = `Could not ${choice ? 'open this project' : ({tutorial:'start the tutorial', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
+      failure = `Could not ${choice ? 'open this project' : ({tutorial:'start the tutorial', tutorials:'open Tutorials', new:'create a project', clone:'clone a project', local:'open a local project', signIn:'sign in to GitHub', setup:'check GitHub access'})[action]}. Try again.`;
       retry = {action, choice, accountId};
       try {report(failure, error?.message || String(error));} catch {}
     } finally {
@@ -208,11 +209,14 @@ function documentHtml() {
 body{margin:0;color:var(--vscode-foreground);background:var(--vscode-editor-background);font-family:var(--vscode-font-family);font-size:var(--vscode-font-size);line-height:1.5}
 main{max-width:760px;margin:0 auto;padding:48px 28px}h1{font-size:2em;font-weight:600;margin:0 0 28px}h2{font-size:1.15em;font-weight:600;margin:0 0 12px}section{margin-top:36px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
 button{font:inherit;line-height:1.4;cursor:pointer;min-height:36px;border:1px solid var(--vscode-button-border,transparent);border-radius:3px;padding:8px 16px;color:var(--vscode-button-secondaryForeground);background:var(--vscode-button-secondaryBackground)}button:hover{background:var(--vscode-button-secondaryHoverBackground)}button.primary{color:var(--vscode-button-foreground);background:var(--vscode-button-background)}button.primary:hover{background:var(--vscode-button-hoverBackground)}button:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}button:disabled{opacity:.6;cursor:default}
-p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}@media(max-width:480px){main{padding:28px 20px}.actions{flex-direction:column}.actions button{width:100%}}
+p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}
+.actions{align-items:center}.project-actions{position:relative}.project-menu{position:absolute;z-index:1;top:calc(100% + 4px);left:0;min-width:140px;padding:4px;background:var(--vscode-menu-background,var(--vscode-editor-background));border:1px solid var(--vscode-menu-border,var(--vscode-widget-border,transparent));border-radius:3px;box-shadow:0 2px 8px var(--vscode-widget-shadow)}.project-menu button{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-menu-foreground,var(--vscode-foreground));border-color:transparent}.project-menu button:hover:not(:disabled),.project-menu button:focus-visible{background:var(--vscode-menu-selectionBackground,var(--vscode-list-hoverBackground));color:var(--vscode-menu-selectionForeground,var(--vscode-foreground))}button.link{padding:8px 4px;color:var(--vscode-textLink-foreground);background:transparent;border-color:transparent}button.link:hover{color:var(--vscode-textLink-activeForeground,var(--vscode-textLink-foreground));text-decoration:underline}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
+.vscode-high-contrast .project-menu,.vscode-high-contrast-light .project-menu{border-color:var(--vscode-contrastBorder)}
+@media(max-width:480px){main{padding:28px 20px}.actions{flex-direction:column;align-items:stretch}.actions button{width:100%}.project-menu{box-sizing:border-box;width:100%}}
 </style></head><body><main>
-<h1>Start with Zero</h1>
+<h1 id="start-title" tabindex="-1">Start with Zero</h1>
 <button class="primary" data-action="tutorial" disabled>Start tutorial</button>
-<div class="actions"><button data-action="new" disabled>New project</button><button data-action="clone" disabled>Clone project</button><button data-action="local" disabled>Open local project</button></div>
+<div class="actions"><div class="project-actions" id="project-actions"><button id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project <span aria-hidden="true">▾</span></button><div class="project-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" data-action="new" disabled>New</button><button role="menuitem" data-action="clone" disabled>Clone</button><button role="menuitem" data-action="local" disabled>Open</button></div></div><button class="link" data-action="tutorials" disabled>Tutorials</button></div>
 <section aria-labelledby="github-heading"><h2 id="github-heading">GitHub</h2><p id="account" class="muted"></p><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="signIn" hidden>Sign in to GitHub</button><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
@@ -222,8 +226,42 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
   let token, revision = -1, recentKey;
   const byId = id => document.getElementById(id);
   const buttons = Array.from(document.querySelectorAll('[data-action]'));
+  const projectButton = byId('project-button'), projectMenu = byId('project-menu');
+  const menuItems = () => Array.from(projectMenu.querySelectorAll('[role="menuitem"]')).filter(button => !button.disabled);
+  function closeMenu(restoreFocus = false) {
+    const hadFocus = projectMenu.contains(document.activeElement);
+    projectMenu.hidden = true;projectButton.setAttribute('aria-expanded','false');
+    if (restoreFocus || hadFocus) (projectButton.disabled ? byId('start-title') : projectButton).focus({preventScroll:true});
+  }
+  function openMenu(last = false) {
+    if (projectButton.disabled) return;
+    projectMenu.hidden = false;projectButton.setAttribute('aria-expanded','true');
+    const items = menuItems();(last ? items.at(-1) : items[0])?.focus({preventScroll:true});
+  }
+  projectButton.addEventListener('click', () => projectMenu.hidden ? openMenu() : closeMenu(true));
+  document.addEventListener('click', event => {if (!byId('project-actions').contains(event.target)) closeMenu();});
+  document.addEventListener('focusin', event => {if (!byId('project-actions').contains(event.target)) closeMenu();});
+  window.addEventListener('blur', () => closeMenu());
+  document.addEventListener('keydown', event => {
+    if (event.target === projectButton && ['ArrowDown','ArrowUp'].includes(event.key)) {
+      event.preventDefault();openMenu(event.key === 'ArrowUp');return;
+    }
+    if (projectMenu.hidden || (!projectMenu.contains(event.target) && event.target !== projectButton)) return;
+    const items = menuItems(), index = items.indexOf(document.activeElement);
+    let next;
+    switch (event.key) {
+      case 'ArrowDown': next = items[(index+1)%items.length];break;
+      case 'ArrowUp': next = items[(index-1+items.length)%items.length];break;
+      case 'Home': next = items[0];break;
+      case 'End': next = items.at(-1);break;
+      case 'Escape': event.preventDefault();closeMenu(true);return;
+      case 'Tab': closeMenu(true);return;
+      default:return;
+    }
+    event.preventDefault();next?.focus({preventScroll:true});
+  });
   const send = message => vscode.postMessage({...message, token});
-  for (const button of buttons) button.addEventListener('click', () => send({type:'action',action:button.dataset.action}));
+  for (const button of buttons) button.addEventListener('click', () => {if (projectMenu.contains(button)) closeMenu(true);send({type:'action',action:button.dataset.action});});
   byId('retry').addEventListener('click', () => send({type:'retry'}));
   byId('retry-recent').addEventListener('click', () => send({type:'retryRecent'}));
   window.addEventListener('message', event => {
@@ -238,6 +276,9 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'setup') {button.hidden = !signedIn || !['install','unavailable'].includes(state.phase);button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';}
     }
+    projectButton.disabled = state.busy;
+    if (state.busy && !projectMenu.hidden) closeMenu(true);
+    else if (projectMenu.contains(document.activeElement) && document.activeElement.disabled) menuItems()[0]?.focus({preventScroll:true});
     byId('account').textContent = state.accountLabel;
     byId('account').hidden = !state.accountLabel;
     byId('guidance').textContent = ready ? 'Ready to start.' : state.phase === 'signed-out' ? 'Sign in to start a tutorial or create a GitHub project. You can open a local project anytime.' : state.phase === 'install' ? 'Give Zero access to your selected repositories on GitHub, then return here.' : state.phase === 'checking' ? 'Checking GitHub access…' : 'GitHub access could not be checked. Try again, or open a local project.';

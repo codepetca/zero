@@ -272,12 +272,12 @@ explicit browser export/preview, deployment-only publishing kit and strict
 resolved-API gate. Normal Run App, setup Run test and the configured Zero run task
 use the project Maven wrapper for native JavaFX, without browser compatibility
 checking or WebFX compilation. Publish app and advanced Export for web retain
-the full browser production build and validation. Mac 0.5.37 ships native Run;
+the full browser production build and validation. Mac 0.5.39 ships native Run;
 earlier downloads retain their bundled behavior. Run
 `npm run test:web` and `npm run verify:web` when changing these boundaries.
 `npm run check` rejects unreviewed helper inventory/fingerprint drift.
 
-The Mac 0.5.37 Run split button keeps native Run/Stop as its primary action.
+The Mac 0.5.39 Run split button keeps native Run/Stop as its primary action.
 Its arrow opens Publish app for a ready, connected project and is disabled during
 Run/Stop. It shares anchored-menu keyboard/focus behavior with Files; both menus
 are mutually exclusive. Focused checks include `extension/test/run-dropdown.test.js`.
@@ -291,8 +291,12 @@ windows open it automatically without replacing existing editors.
 and Command Palette reopen it. `zero.startProject` still starts the existing
 guarded tutorial workflow. Sign-in/setup live on the Start Page; local Run/Files
 remain available offline. Cloud actions unlock only after access is ready.
-The page exposes **Clone project**, **New project**, **Open local project** and
-recent entries, using existing guarded commands/folder resolution.
+Current source groups project choices under **Project ▾ → New / Clone / Open**,
+using the existing guarded commands/folder resolution. The **Tutorials** link
+invokes `zero.openFirstLesson`, including its project-free reader, without sign-in
+or repository creation. The menu supports arrows, Home/End, Escape, Tab and outside
+dismissal, skips disabled items and preserves focus through status/account updates.
+Recent entries remain directly available. Mac0.5.39 ships the Project dropdown and Tutorials link.
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
 with another location selectable. Zero remembers the selected clone parent in the
 local editor profile for future clones; cancelling the picker or opening a local
@@ -307,6 +311,16 @@ configuration and never falls back to the built-in broad GitHub OAuth provider.
 General Git/terminal network actions do not inherit Zero’s credentials. Open local project
 validates and opens an existing Zero folder without cloning, moving it or creating
 the default folder. Website/tutorial instructions use these visible labels.
+
+Current source carries an open Start Page across a project switch with a local
+profile handoff written before `vscode.openFolder` restarts the extension host.
+Only a different host opening the exact destination consumes it; an abandoned
+handoff expires after ten minutes. Failed opens remove their own handoff. Restore
+the page before first-lesson introduction so Main and Tutorials can open normally;
+the Start Page alone does not count as a student editor. Existing destination
+editors are preserved, and an already restored Start Page is reused. No files from
+the previous project are carried over. Focused coverage includes
+`extension/test/project-window.test.js` and `extension/test/onboarding.test.js`.
 
 Windows signing-account choices and private feed-key custody are documented in
 [Windows signing](WINDOWS-SIGNING.md). Use [Windows trial](WINDOWS-TRIAL.md) for
