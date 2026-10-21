@@ -31,7 +31,7 @@ function createProjectProgress(vscode, active = () => true) {
 }
 
 // Projects are ordinary folders; Zero owns only its explicit authenticated clone action.
-function createProjectFolders(vscode, {home = os.homedir(), globalState, active = () => true, report = () => {}, cloneRepository} = {}) {
+function createProjectFolders(vscode, {home = os.homedir(), globalState, active = () => true, report = () => {}, cloneRepository, onOpened=async()=>{}} = {}) {
   const defaultParent = path.join(home, 'Zero Projects');
   let disposed=false;const isActive=()=>!disposed&&active();const progress=createProjectProgress(vscode,isActive);
   async function chooseFolder(title, openLabel, createDefault = false) {
@@ -56,7 +56,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     const selection = await vscode.window.showOpenDialog({title, openLabel, canSelectFiles:false, canSelectFolders:true, canSelectMany:false, defaultUri:vscode.Uri.file(initial)});
     return isActive() ? selection?.[0] : undefined;
   }
-  async function clone({repositoryUrl, parent: selectedParent, signal} = {}) {
+  async function clone({repositoryUrl, parent: selectedParent, signal, assertCurrent=async()=>{}} = {}) {
     if (!isActive()) return;
     throwIfCancelled(signal);
     const url = repositoryUrl || await vscode.window.showInputBox({title:'GitHub repository URL', validateInput:value => {try {core.parseRepositoryUrl(value);} catch(error) {return error.message;}}});
@@ -64,11 +64,17 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     const destination = core.parseRepositoryUrl(url);
     const parent = selectedParent || await chooseCloneParent();
     if (!parent || !isActive()) return;
+    await assertCurrent();
+    if(!isActive())return;
     if (typeof cloneRepository !== 'function') throw new Error('Connect Zero to GitHub before cloning this project.');
     return progress.run('Clone from GitHub',async operationSignal => {
       const result = await cloneRepository({repositoryUrl:destination.page,parentPath:parent.fsPath,signal:operationSignal});
       throwIfCancelled(operationSignal);
-      if (result && isActive()) await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(result), {forceNewWindow:true});
+      await assertCurrent();
+      if (result && isActive()) {
+        try {await onOpened({projectPath:result,repositoryUrl:destination.page});}catch(error){report(`Could not remember this project. ${error.message}`);}
+        if(isActive()) {await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(result), {forceNewWindow:true});}
+      }
       return result;
     },signal);
   }
@@ -82,11 +88,15 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     }
     return isActive() ? parent : undefined;
   }
-  async function openLocal() {
-    const folder = await chooseFolder('Open local project', 'Open project');
+  async function openLocal({projectPath,assertCurrent=async()=>{}}={}) {
+    const folder = projectPath ? {fsPath:projectPath} : await chooseFolder('Open local project', 'Open project');
     if (!folder || !isActive()) return;
     const root = await core.resolveProject([folder.fsPath]);
-    if (isActive()) await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(root), {forceNewWindow:true});
+    await assertCurrent();
+    if(isActive()) {
+      try {await onOpened({projectPath:root});}catch(error){report(`Could not remember this project. ${error.message}`);}
+      if(isActive()){await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(root), {forceNewWindow:true});}
+    }
   }
   return {clone, openLocal, chooseCloneParent,dispose(){disposed=true;progress.dispose();}};
 }

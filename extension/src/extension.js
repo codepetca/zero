@@ -15,6 +15,8 @@ const {createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity} 
 const {createGitHubAppClone} = require('./github-app/clone');
 const {createGitHubProjectCommands} = require('./github-app/projects-ui');
 const {createProjectFolders} = require('./project-folders');
+const {createRecentProjects} = require('./recent-projects');
+const {createProjectPicker} = require('./project-picker');
 const {createGitHubReadiness} = require('./github-app/readiness');
 const {createGitHubSetup} = require('./github-app/setup-ui');
 const {selectUploadAuthentication} = require('./web-publish-upload-auth');
@@ -164,8 +166,8 @@ function activate(context, services = {}) {
     // Preserve text editors and non-text tabs, including other lesson previews.
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
-  let githubReadiness;
-  const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';githubReadiness?.sync();refresh();});
+  let githubReadiness,projectPicker;
+  const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';githubReadiness?.sync();projectPicker?.sessionChanged();refresh();});
   context.subscriptions.push(auth);
   const appConfiguration = githubAppConfiguration();
   const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,onDiagnostic:message=>output.appendLine(message)}) : null);
@@ -178,9 +180,18 @@ function activate(context, services = {}) {
   context.subscriptions.push(githubReadiness);
   const githubReady = () => auth.signedIn && githubReadiness.phase === 'ready';
   const cloneRepository = services.cloneRepository || createGitHubAppClone({authentication:auth,repositories});
-  const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository});
+  const recentProjects=createRecentProjects({globalState:context.globalState,active:()=>!disposed,eligible:root=>!isSetupProject(root)});
+  async function rememberOpened({projectPath,repositoryUrl}) {
+    const accountId=auth.accountId,label=auth.accountLabel;
+    if(!accountId||disposed||!projectPath||isSetupProject(projectPath))return;
+    if(!repositoryUrl) {try {repositoryUrl=core.parseRepositoryUrl(await core.git(projectPath,['remote','get-url','origin'])).page;}catch{}}
+    if(repositoryUrl&&core.parseRepositoryUrl(repositoryUrl).page.split('/')[3].toLowerCase()!==label?.toLowerCase())return;
+    await recentProjects.remember(projectPath,{accountId,repositoryUrl,isCurrent:()=>!disposed&&auth.accountId===accountId&&auth.accountLabel===label});
+  }
+  const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository,onOpened:rememberOpened});
+  projectPicker=createProjectPicker(vscode,{authentication:auth,repositories,history:recentProjects,active:()=>!disposed,report:text=>output.appendLine(text)});
   const githubProjects = createGitHubProjectCommands({vscode,authentication:auth,repositories,folders:projectFolders,prepare:prepareGitHub,extensionPath:context.extensionPath || path.resolve(__dirname,'..'),project,active:()=>!disposed,onProgress:text=>report(text),onRecovery:record=>context.globalState?.update('zero.repositoryCreationRecovery',record)});
-  context.subscriptions.push(projectFolders,githubProjects);
+  context.subscriptions.push(projectFolders,githubProjects,projectPicker);
   const githubSetup = createGitHubSetup({vscode, authentication:auth, repositories,
     installationUrl:appConfiguration && `https://github.com/apps/${appConfiguration.slug}/installations/new`,
     active:() => !disposed, report});
@@ -209,7 +220,7 @@ function activate(context, services = {}) {
       await actions['zero.showSidebar']();
       await auth.refresh();
       if (!auth.signedIn) await auth.signIn(false);
-      if (!disposed) {await githubReadiness.refresh();output.appendLine(auth.status);}
+      if (!disposed) {await githubReadiness.refresh();output.appendLine(auth.status);try {await rememberOpened({projectPath:await project()});}catch{}}
     } catch (error) {
       if (!disposed) throw error;
     } finally { signingIn = false; if (!disposed) refresh(); }
@@ -589,7 +600,13 @@ function activate(context, services = {}) {
       try {
         if(uploadMode()!=='live')return simulation('Clone from GitHub');
         if(!auth.signedIn)await auth.signIn();
-        await projectFolders.clone();
+        try {await rememberOpened({projectPath:await project()});}catch{}
+        const choice=await projectPicker.choose();
+        if(!choice||disposed)return;
+        const assertCurrent=()=>auth.assertCurrent(choice.ticket);
+        await assertCurrent();
+        if(choice.action==='recent')await projectFolders.openLocal({projectPath:choice.projectPath,assertCurrent});
+        else await projectFolders.clone({repositoryUrl:choice.repositoryUrl,assertCurrent});
       } catch (error) {
         if (error?.name !== 'Canceled' && error?.name !== 'CancellationError') {output.appendLine(error.message);throw new Error(`Could not clone this repository. ${error.message} Check Zero’s GitHub access, then try Clone from GitHub again.`);}
       } finally {connecting = false; if (!disposed) refresh();}
@@ -778,7 +795,7 @@ function activate(context, services = {}) {
   const startup = auth.refresh().catch(error => {
     if (!disposed) output.appendLine(`Getting started: ${error.message}`);
   });
-  const introduceAfterConnection = () => startup.then(() => {if (!disposed) return introduceProject();}).catch(error => output.appendLine(`Getting started: ${error.message}`));
+  const introduceAfterConnection = () => startup.then(async() => {if (!disposed) {try {await rememberOpened({projectPath:await project()});}catch{}return introduceProject();}}).catch(error => output.appendLine(`Getting started: ${error.message}`));
   context.subscriptions.push(watcher, metadataWatcher, vscode.workspace.onDidChangeWorkspaceFolders(() => {
     runGeneration++;
     if (execution || pendingLaunch || nativeStarting) void actions['zero.stopApp']().catch(error => output.appendLine(error.message));

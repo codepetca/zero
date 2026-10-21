@@ -53,7 +53,13 @@ when adding features; a new feature does not reset the agreed interaction style.
   ordinary Java beside Main and open new files in the editor. **Review or restore changes…** belongs in the project menu; it
   opens the existing native review/discard/restore choices. No separate tools row.
 - Clone defaults to **~/Zero Projects**, with a native location picker to choose
-  another parent. Zero's explicit clone commands use its guarded GitHub App
+  another parent. Clone opens a searchable native picker: recent projects on this
+  Mac first, then the signed-in account's accessible Zero repositories, with
+  **Paste a GitHub URL…** always available. A recent entry reopens its local folder;
+  it never clones another copy. Repository discovery loads in the background and
+  preserves local choices when offline or cancelled. Remember at most 20 projects
+  per numeric GitHub account, excluding the bundled setup project.
+  Zero's explicit clone commands use its guarded GitHub App
   transport and a fresh destination. General Source Control and terminal network
   commands do not automatically share Zero's authentication.
   Open local project reuses a selected Zero folder in a new window. Sign-out

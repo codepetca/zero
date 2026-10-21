@@ -44,7 +44,7 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     if (!session || !/^[1-9]\d*$/.test(session.accountId || '') || !session.accessToken || /[\r\n\0]/.test(session.accessToken)) throw failure('Reconnect GitHub using your personal account.', 'authentication-required');
     return session;
   }
-  async function api(ticket, method, suffix, {body,allow404=false,signal,onSend}={}) {
+  async function api(ticket, method, suffix, {body,allow404=false,signal,onSend,maxBytes}={}) {
     cancelled(signal);
     await current(ticket);
     cancelled(signal);
@@ -62,13 +62,35 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       if(response.status===403)error.actionUrl=`https://github.com/apps/${configuration.slug}/installations/new`;
       error.status = response.status; throw error;
     }
-    try { return await response.json(); }
+    try {
+      if (!maxBytes) return await response.json();
+      // Contents and discovery metadata have bounded bodies even when a server
+      // omits or lies about Content-Length. Never fetch a supplied download URL.
+      let bytes;
+      if (response.body?.getReader) {
+        const reader=response.body.getReader(),chunks=[];let size=0;
+        try {
+          while (true) {
+            cancelled(signal);
+            const {done,value}=await reader.read();
+            if (done) break;
+            size+=value.byteLength;
+            if (size>maxBytes) throw Error('response too large');
+            chunks.push(Buffer.from(value));
+          }
+          bytes=Buffer.concat(chunks,size);
+        } finally {await reader.cancel().catch(()=>{});}
+      } else if (typeof response.text==='function') bytes=Buffer.from(await response.text(),'utf8');
+      else bytes=Buffer.from(JSON.stringify(await response.json()),'utf8');
+      if (bytes.length>maxBytes) throw Error('response too large');
+      return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+    }
     catch { throw failure('GitHub returned an invalid response. Recheck the repository.', 'invalid-response'); }
   }
-  async function installation(ticket, required, signal) {
+  async function installation(ticket, required, signal, {maxPages=100,maxBytes}={}) {
     const accountId = String(ticket.session.accountId);
-    for (let page=1;page<=100;page++) {
-      const result = await api(ticket,'GET',`/user/installations?per_page=100&page=${page}`,{signal});
+    for (let page=1;page<=maxPages;page++) {
+      const result = await api(ticket,'GET',`/user/installations?per_page=100&page=${page}`,{signal,maxBytes});
       if (!Array.isArray(result?.installations) || result.installations.length>100 || result.installations.some(item=>!item || typeof item!=='object' || Array.isArray(item))) throw failure('GitHub returned an invalid installation list.', 'invalid-response');
       const matches = result.installations.filter(item=>item.app_id===configuration.appId && item.app_slug===configuration.slug && String(item.account?.id)===accountId);
       if (matches.length>1) throw failure('GitHub returned conflicting Zero installations.', 'invalid-response');
@@ -126,6 +148,79 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
     await current(ticket);
     return Object.freeze({ticket,repository:Object.freeze(repo),installation:Object.freeze(installed),checkedAt:now()});
   }
+  async function listZero({ticket,signal,onRepository=()=>{}}={}) {
+    configured();cancelled(signal);
+    ticket ||= await authentication.capture();
+    await current(ticket);
+    const controller=new AbortController();
+    const discoverySignal=signal?AbortSignal.any([signal,controller.signal]):controller.signal;
+    const repositories=[],seenIds=new Map(),seenNames=new Map();
+    let truncated=false;
+    try {
+      const user=await api(ticket,'GET','/user',{signal:discoverySignal,maxBytes:64*1024});
+      if (!positive(user?.id) || String(user.id)!==String(ticket.session.accountId) || user.type!=='User' || !safeOwner(user.login)) throw failure('Connect the same personal GitHub account to find Zero projects.', 'account-mismatch');
+      const installed=await installation(ticket,{contents:'read'},discoverySignal,{maxPages:10,maxBytes:1024*1024});
+      const candidates=[];
+      for (let page=1;page<=10;page++) {
+        const result=await api(ticket,'GET',`/user/installations/${installed.id}/repositories?per_page=100&page=${page}`,{signal:discoverySignal,maxBytes:2*1024*1024});
+        if (!Array.isArray(result?.repositories) || result.repositories.length>100 || (result.total_count!==undefined && (!Number.isSafeInteger(result.total_count)||result.total_count<0))) throw failure('GitHub returned an invalid selected-repository list.', 'invalid-response');
+        for (const value of result.repositories) {
+          let repo;
+          try {repo=repository(value,core.parseRepositoryUrl(value?.html_url),ticket.session.accountId);}
+          catch {continue;} // Foreign/malformed entries never become request paths.
+          const name=repo.full_name.toLowerCase();
+          if ((seenIds.has(repo.id)&&seenIds.get(repo.id)!==name) || (seenNames.has(name)&&seenNames.get(name)!==repo.id)) throw failure('GitHub returned conflicting repository identities.', 'invalid-response');
+          if (seenIds.has(repo.id)) continue;
+          seenIds.set(repo.id,name);seenNames.set(name,repo.id);
+          candidates.push(Object.freeze({id:repo.id,name:repo.name,full_name:repo.full_name,html_url:repo.html_url,clone_url:repo.clone_url,default_branch:repo.default_branch,private:repo.private,pushed_at:typeof repo.pushed_at==='string' && Number.isFinite(Date.parse(repo.pushed_at))?repo.pushed_at:null}));
+        }
+        if (result.repositories.length<100) break;
+        if (page===10) truncated=true; // Conservatively expose an unknown next page.
+      }
+      candidates.sort(newestFirst);
+      let index=0,firstError;
+      async function worker() {
+        try {
+          while (index<candidates.length) {
+            cancelled(discoverySignal);
+            const repo=candidates[index++];
+            if (!await zeroMarker(repo,ticket,discoverySignal)) continue;
+            await current(ticket);cancelled(discoverySignal);
+            repositories.push(repo);
+            onRepository(repo);
+          }
+        } catch (error) {
+          if (!firstError) firstError=error;
+          controller.abort();
+        }
+      }
+      await Promise.all(Array.from({length:Math.min(4,candidates.length)},()=>worker()));
+      if (firstError) throw firstError;
+      await current(ticket);cancelled(discoverySignal);
+      repositories.sort(newestFirst);
+      return Object.freeze({repositories:Object.freeze(repositories),truncated});
+    } finally {controller.abort();}
+  }
+  function newestFirst(a,b) {
+    return (Date.parse(b.pushed_at)||0)-(Date.parse(a.pushed_at)||0) || a.full_name.localeCompare(b.full_name);
+  }
+  async function zeroMarker(repo,ticket,signal) {
+    for (const markerPath of ['zero.json','student-template/zero.json']) {
+      let result;
+      try {result=await api(ticket,'GET',`/repos/${repo.full_name}/contents/${markerPath}`,{signal,allow404:true,maxBytes:128*1024});}
+      catch (error) {if(error.code==='invalid-response')continue;throw error;}
+      if (!result || result.type!=='file' || result.path!==markerPath || result.encoding!=='base64' || !Number.isSafeInteger(result.size) || result.size<1 || result.size>64*1024 || typeof result.content!=='string' || result.content.length>96*1024) continue;
+      const encoded=result.content.replace(/[\r\n]/g,'');
+      if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) continue;
+      const bytes=Buffer.from(encoded,'base64');
+      if (bytes.length!==result.size || bytes.toString('base64')!==encoded) continue;
+      try {
+        const marker=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+        if (marker && typeof marker==='object' && !Array.isArray(marker) && typeof marker.name==='string' && marker.name.trim() && marker.name.length<=120 && !/[\x00-\x1f]/.test(marker.name) && typeof marker.templateVersion==='string' && /^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$/.test(marker.templateVersion) && marker.templateVersion.length<=80 && typeof marker.mainClass==='string' && marker.mainClass.length<=512 && /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*$/.test(marker.mainClass)) return true;
+      } catch {} // Non-Zero JSON/files are irrelevant to discovery.
+    }
+    return false;
+  }
   function uncertainCreation(url) {
     return failure(`GitHub may have created this repository: ${url}. Check it and use Clone from GitHub to recover before creating another project.`, 'creation-uncertain',url);
   }
@@ -164,6 +259,6 @@ function createGitHubAppRepositories({authentication,configuration,fetchImpl=glo
       throw error;
     } finally {creating.delete(key);}
   }
-  return {checkSetup,access,create};
+  return {checkSetup,access,create,listZero};
 }
 module.exports={createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity};

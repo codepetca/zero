@@ -600,3 +600,24 @@ checked read-only on launch. The clone opens Main beside Tutorials. Existing
 student sessions resume normally. The completed bundled Hello World project is
 only an explicit Setup help → Test installation action, opens in a separate
 window labelled Installation test, and never automatically opens tutorial lesson 0.
+
+## Searchable project picker
+
+Current source changes **Clone from GitHub** to a native searchable picker.
+**Recent projects** on this Mac appear first, ordered by last open, followed by
+**Your Zero repositories** ordered by latest push. **Paste a GitHub URL…** remains
+available while loading, after failure, and while filtering. Choosing a recent
+entry validates and opens the existing Zero folder without cloning it again.
+
+History records successful Zero clones, local opens and the currently opened
+project, capped at20 per numeric GitHub account. It starts with this feature; it
+does not infer earlier work from filesystem timestamps. Missing or unmarked
+folders and the bundled setup starter are omitted. Other accounts' history is
+not offered. History storage failures do not prevent opening projects.
+
+GitHub discovery reads only repositories accessible through the same account's
+Codepet App installation and recognizes bounded root/legacy zero.json markers.
+Results load progressively; selection, Escape, disposal or account drift cancels
+pending requests. A20-second discovery budget and bounded pagination keep the
+picker usable; truncated or unavailable results retain the URL fallback. Existing
+clone/account/destination guards remain. This feature is not in Mac0.5.32.

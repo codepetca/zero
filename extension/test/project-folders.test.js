@@ -99,3 +99,13 @@ test('outer cancellation shares one operation without a nested notification or c
  const f=await fixture(t);let notifications=0;f.vscode.window.withProgress=async()=>{notifications++;throw Error('Nested progress');};
  const controller=new AbortController();controller.abort();await assert.rejects(f.folders.clone({repositoryUrl:'https://github.com/student/app',parent:{fsPath:f.home},signal:controller.signal}),error=>error.code==='cancelled');assert.equal(notifications,0);assert.equal(f.calls.length,0);
 });
+
+test('recent selection opens its existing folder without dialogs or cloning and rechecks the account',async t=>{
+ const f=await fixture(t),existing=path.join(f.home,'Recent');await fs.mkdir(existing);await fs.writeFile(path.join(existing,'zero.json'),'{}');
+ let checks=0;await f.folders.openLocal({projectPath:existing,assertCurrent:async()=>{checks++;}});
+ assert.equal(checks,2);assert.equal(f.dialogs.length,0);assert.deepEqual(f.calls,[['vscode.openFolder',{fsPath:existing},{forceNewWindow:true}]]);
+ f.calls.length=0;await assert.rejects(f.folders.openLocal({projectPath:existing,assertCurrent:async()=>{throw Error('Account changed');}}),/Account changed/);assert.equal(f.calls.length,0);
+});
+test('account drift in the location picker blocks cloning before authenticated transport runs',async t=>{
+ const f=await fixture(t);f.selection=[{fsPath:f.home}];await assert.rejects(f.folders.clone({repositoryUrl:'https://github.com/student/app',assertCurrent:async()=>{throw Error('Account changed');}}),/Account changed/);assert.equal(f.calls.length,0);
+});
