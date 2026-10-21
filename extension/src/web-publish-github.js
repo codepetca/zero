@@ -112,8 +112,9 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
   async function review(root,{signal}={}) {
     if(isSimulation())return simulation();
     const plan=await prepareUpload(root,git);
-    if(plan.branch!=='main')throw new Error('Finish your change on main before publishing the web game.');
-    if(plan.status || !shaPattern.test(plan.head||''))throw new Error('Commit & push your changes on main before publishing. The public game must match your saved version.');
+    if(plan.branch!=='main')throw new Error('Finish your change with Merge to main before publishing the app.');
+    const needsUpload=message=>{const error=new Error(message);error.code='WEB_PUBLISH_UPLOAD_REQUIRED';error.plan=plan;throw error;};
+    if(plan.status || !shaPattern.test(plan.head||''))needsUpload('Commit & push your changes on main before publishing. The public game must match your saved version.');
     const ticket=await authentication.capture();
     const slug=plan.page.slice('https://github.com/'.length);
     const state={root:plan.root,plan,ticket,slug};
@@ -124,8 +125,8 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     state.repositoryId=repo.id;
     if(repo.default_branch!=='main')throw new Error('Web publishing needs main as the repository default branch. Check your GitHub repository settings.');
     if(!repo.permissions?.push)throw new Error('Your signed-in account needs permission to upload to this repository.');
-    const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
-    if(remote.object?.sha!==plan.head)throw new Error('Commit & push your main version first. GitHub currently has a different commit.');
+    const remote=await api(state,'GET','/git/ref/heads/main',null,{signal,allow404:true});
+    if(remote?.object?.sha!==plan.head)needsUpload('Commit & push your main version first. GitHub currently has a different commit.');
     const files=providedFiles || await publishingFiles(engineRoot);
     const inspection=migration.inspect(plan.root,files),{missing,upgrade}=inspection;
     if(upgrade)await migration.assertRecoverable(plan.root,plan.head,inspection.original,git);

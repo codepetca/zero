@@ -487,7 +487,14 @@ replacing origin. It rejects nested projects. Connection is local: it does not
 verify remote ownership, existence or access and does not upload.
 
 `zero.uploadMode` defaults to `live`. Nothing uploads or publishes on activation,
-sign-in or connection alone. First/new-destination Publish shows a short warning
+sign-in or connection alone. Explicit Publish saves open files, commits changes
+through the existing message input when needed, pushes unuploaded commits, then
+deploys that exact version. Already committed work needs no new message; a clean
+uploaded main skips uploading. Cancellation or upload failure stops deployment.
+On a change branch, Publish asks the student to finish with Merge to main first;
+it never switches or merges branches. After verified deployment, Open app and
+Copy playable link appear in the sidebar and Zero Output includes the actual URL.
+First/new-destination Publish shows a short warning
 that the app and included assets will be public;
 later explicit Publish actions revalidate and update that approved site without
 another destination dialog. Publishing setup continues through its upload without

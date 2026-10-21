@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');const assert=require('node:assert/strict');
 const {createWebPublishCommands}=require('../src/web-publish-ui');
-function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)}}={}) {
+function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:true,head:'a'.repeat(40)},uploadError}={}) {
   let simulation=false,busy=false,active='/student',reviewed=0,published=0,checks=0,setup=false,upgrade=false,uploaded=0,sha='a'.repeat(40);
   const messages=[],states=[],copied=[],opened=[],authCalls=[],choices=[];
   const stored=new Map(),workspaceState={get:key=>stored.get(key),update:async(key,value)=>{if(value===undefined)stored.delete(key);else stored.set(key,JSON.parse(JSON.stringify(value)));}};
@@ -14,7 +14,7 @@ function fixture(t,{resolveProject,cancelUpload=false,uploadResult={uploaded:tru
   const publisher={review:async()=>{calls.push('review');reviewed++;return review();},setup:async()=>{calls.push('setup');return {status:'upload-required',message:'Upload setup'};},publish:async()=>{calls.push('publish');published++;return {status:'pending',resume:{runId:42}};},check:async()=>{checks++;return {status:'live',url:'https://student.github.io/game/',sha,resume:{runId:42,sha,repository:'https://github.com/student/game'}};}};
   publisher.update=async()=>{calls.push('update');return {status:'upload-required',message:'Updated publishing files'};};
   publisher.verifyLink=async()=>publisher.check();
-  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async()=>{assert.equal(busy,false);uploaded++;setup=false;upgrade=false;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
+  const api=createWebPublishCommands(vscode,{project:resolveProject || (async()=>active),authentication:auth,repositories,workspaceState,isSimulation:()=>simulation,isBusy:()=>busy,setBusy:v=>{busy=v;},setState:message=>states.push(message),publisherFactory:()=>publisher,uploadChanges:async(_auth,options)=>{assert.equal(busy,false);assert.equal(options.forPublish,true);assert.equal(options.expectedRoot,active);await options.assertPublishCurrent();uploaded++;setup=false;upgrade=false;if(uploadError)throw uploadError;if(cancelUpload)return;sha=uploadResult.head;return uploadResult;},pollIntervalMs:0,maxChecks:2});
   t.after(()=>api.disposables.forEach(d=>d.dispose()));
   return {api,choices,vscode,workspaceState,stored,messages,states,copied,opened,calls,authCalls,set simulation(v){simulation=v;},set setup(v){setup=v;},set upgrade(v){upgrade=v;},set active(v){active=v;},get busy(){return busy;},get reviewed(){return reviewed;},get published(){return published;},get checks(){return checks;},get uploaded(){return uploaded;},publisher};
 }
@@ -22,7 +22,7 @@ test('simulation publish never saves, authenticates, writes setup or calls publi
   const h=fixture(t);h.simulation=true;const result=await h.api.publish();assert.equal(result.status,'simulated');assert.deepEqual(h.calls,[]);assert.deepEqual(h.authCalls,[]);assert.equal(h.busy,false);
 });
 test('publish completion reports in sidebar and its verified copy command remains available',async t=>{
-  const h=fixture(t);h.choices.push('Publish app');const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(h.reviewed,1);assert.equal(h.published,1);assert.equal(h.checks,1);assert.deepEqual(h.copied,[]);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
+  const h=fixture(t);h.choices.push('Publish app');const result=await h.api.publish();assert.equal(result.status,'live');assert.equal(h.reviewed,1);assert.equal(h.published,1);assert.equal(h.uploaded,0);assert.equal(h.checks,1);assert.deepEqual(h.copied,[]);assert.deepEqual(h.opened,[]);assert.equal(h.busy,false);
   assert.equal(h.states.at(-1),'App published');assert.equal(h.messages.length,1,'Only first-publish warning remains');
   await h.api.commands['zero.copyPublishedWebLink']();assert.deepEqual(h.copied,['https://student.github.io/game/']);
   const warning=h.messages.find(message=>message[1]?.modal);
@@ -226,4 +226,39 @@ test('upgrade rejects project and kit drift after consent or workflow authorizat
   const kit=fixture(t);kit.upgrade=true;kit.choices.push('Publish app','Update publishing files');
   const original=kit.publisher.review;let n=0;kit.publisher.review=async()=>{const r=await original();if(++n===2)r.upgrade={...r.upgrade,files:['different']};return r;};
   await assert.rejects(kit.api.publish(),/kit changed/);assert.equal(kit.uploaded,0);assert.ok(!kit.calls.includes('update'));
+});
+
+function requireUploadOnce(h) {
+  const original=h.publisher.review;
+  let first=true;
+  h.publisher.review=async()=>{
+    if(first){first=false;throw Object.assign(new Error('Commit & push first'),{code:'WEB_PUBLISH_UPLOAD_REQUIRED',plan:{branch:'main'}});}
+    return original();
+  };
+}
+test('Publish uploads pending source once, revalidates its exact commit, then deploys',async t=>{
+  const h=fixture(t,{uploadResult:{uploaded:true,head:'b'.repeat(40)}});requireUploadOnce(h);h.choices.push('Publish app');
+  assert.equal((await h.api.publish()).status,'live');assert.equal(h.uploaded,1);assert.equal(h.published,1);
+  assert.equal(h.stored.get('zero.webPublish.lastLive').sha,'b'.repeat(40));
+  assert.equal(h.stored.get('zero.webPublish.lastLive').url,'https://student.github.io/game/');
+});
+test('cancelled or failed source upload never proceeds to deployment',async t=>{
+  for(const options of [{cancelUpload:true},{uploadError:Error('Push failed; local commit preserved')}]) {
+    const h=fixture(t,options);requireUploadOnce(h);h.choices.push('Publish app');
+    if(options.uploadError)await assert.rejects(h.api.publish(),/Push failed/);else await h.api.publish();
+    assert.equal(h.uploaded,1);assert.equal(h.published,0);assert.equal(h.busy,false);assert.equal(h.stored.has('zero.webPublish.lastLive'),false);
+  }
+});
+test('change branches and unrelated review errors do not invoke the uploader',async t=>{
+  const h=fixture(t);h.publisher.review=async()=>{throw Error('Finish your change with Merge to main before publishing the app.');};
+  await assert.rejects(h.api.publish(),/Merge to main/);assert.equal(h.uploaded,0);assert.equal(h.published,0);
+});
+test('a different source commit after upload stops before public deployment',async t=>{
+  const h=fixture(t);const original=h.publisher.review;requireUploadOnce(h);
+  const uploadReview=h.publisher.review;let calls=0;h.publisher.review=async()=>++calls===1?uploadReview():({...await original(),sha:'c'.repeat(40)});
+  await assert.rejects(h.api.publish(),/version changed after upload/);assert.equal(h.uploaded,1);assert.equal(h.published,0);
+});
+test('disabling live mode during save prevents upload and deployment',async t=>{
+  const h=fixture(t);h.vscode.workspace.textDocuments=[{isDirty:true}];h.vscode.workspace.saveAll=async()=>{h.simulation=true;return true;};
+  await assert.rejects(h.api.publish(),/Live publishing was disabled/);assert.equal(h.reviewed,0);assert.equal(h.uploaded,0);assert.equal(h.published,0);
 });

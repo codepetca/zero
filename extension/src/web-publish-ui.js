@@ -9,6 +9,20 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
   async function stillCurrent(expected) {
     if(disposed || controller?.signal.aborted || await project()!==expected)throw new Error('The project changed or publishing was cancelled. Check GitHub Actions for any run already started.');
   }
+  async function stillPublishable(expected) {
+    await stillCurrent(expected);
+    if(isSimulation(expected))throw new Error('Live publishing was disabled. Choose Publish app again after enabling live uploads.');
+  }
+  async function uploadForPublish(expected,expectedPlan) {
+    await stillPublishable(expected);
+    if(!uploadChanges)throw new Error('Choose Commit & push on main, then Publish app.');
+    progress('Saving changes before publishing…');
+    // The upload command claims its own lock synchronously. Keep our separate
+    // publication guard held while handing the coordinator lock to it.
+    setBusy(false);
+    try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,assertPublishCurrent:()=>stillPublishable(expected)});}
+    finally {setBusy(true);}
+  }
   const progress=(message,detail=message)=>{setState(message);output?.appendLine(detail);};
   async function showAction(result) {
     progress(result.message || result.action?.message || 'Publishing needs one more step.');
@@ -67,7 +81,17 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           if(!await vscode.workspace.saveAll(false))throw Error('Save your project before publishing its browser app.');
           await stillCurrent(expected);
         }
-        let review=await publisher.review(expected,{signal:controller.signal});
+        await stillPublishable(expected);
+        let review,uploadedSource;
+        try {review=await publisher.review(expected,{signal:controller.signal});}
+        catch(error) {
+          if(error.code!=='WEB_PUBLISH_UPLOAD_REQUIRED')throw error;
+          uploadedSource=await uploadForPublish(expected,error.plan);
+          if(!uploadedSource?.uploaded)return;
+          await stillCurrent(expected);
+          review=await publisher.review(expected,{signal:controller.signal});
+          if(review.status==='review' && review.sha!==uploadedSource.head)throw new Error('The project version changed after upload. Choose Publish app again to publish the intended version.');
+        }
         await stillCurrent(expected);
         if(review.status!=='review'){await showAction(review);return review;}
         const previous=lastLive || workspaceState?.get('zero.webPublish.lastLive');
@@ -107,11 +131,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           if(result.status!=='upload-required'){await showAction(result);return result;}
           progress(result.message);
           if(!uploadChanges){await showAction({...result,action:{message:'Choose Commit & push to save the publishing setup on main, then choose Publish web game again.'}});return result;}
-          // The coordinator's existing upload action owns its busy flag and
-          // input. Keep this command's separate operation guard held throughout.
-          setBusy(false);
-          let uploaded;
-          try {uploaded=await uploadChanges(authentication);} finally {setBusy(true);}
+          const uploaded=await uploadForPublish(expected);
           if(!uploaded?.uploaded)return;
           await stillCurrent(expected);
           review=await publisher.review(expected,{signal:controller.signal});
@@ -127,7 +147,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
       result=await waitForDeployment(result,expected,approvedAccount);
       await stillCurrent(expected);
       if(result.status==='live') {
-        resume=undefined;progress('App published','Your playable game is live.');
+        resume=undefined;progress('App published',`Your playable app is live: ${result.url}`);
         await workspaceState?.update('zero.webPublish.pending',undefined);
         lastLive={root:expected,url:result.url,sha:result.sha,resume:result.resume,account:approvedAccount};
         await workspaceState?.update('zero.webPublish.lastLive',lastLive);
