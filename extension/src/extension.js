@@ -26,6 +26,7 @@ const {readKitConfiguration} = require('./sharing/configuration');
 const {createSetupHelp} = require('./setup');
 const {isSetupProject,findSetupProject} = require('./setup-project');
 const {createNativeUpdateCommands} = require('./native-updates');
+const {createNativeUpdateReload} = require('./native-update-reload');
 const {createWebExportCommands} = require('./web-export-ui');
 const {createBrowserRunCommands} = require('./web-run-ui');
 const {createTutorialReader} = require('./tutorial-reader');
@@ -802,6 +803,9 @@ function activate(context, services = {}) {
     projectRoot = undefined; files.reset(); refreshFiles(); repositoryStatus(); void introduceAfterConnection();
   }));
   context.subscriptions.push({dispose:() => {runGeneration++;if (execution) execution.terminate();}});
+  context.subscriptions.push(createNativeUpdateReload(vscode, {context,
+    isBusy:()=>disposed || isBusy() || auth.busy || Boolean(appProvider?.busy || execution || pendingLaunch || nativeStarting || browserActive),
+    log:message=>output.appendLine(message)}));
   void introduceAfterConnection();
 }
 module.exports = {activate};

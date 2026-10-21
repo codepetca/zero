@@ -33,7 +33,7 @@ async function accountFor(record, fetchImpl, signal) {
 }
 function createGitHubAppProvider({vscode, context, configuration, fetchImpl = globalThis.fetch, now = Date.now, onDiagnostic = () => {}}) {
   const emitter = new vscode.EventEmitter();
-  let disposed = false, cached, signInPromise, verifiedConfiguration;
+  let disposed = false, cached, signInPromise, verifiedConfiguration, pendingRemovals = 0;
   const controllers = new Set();
   const store = configuration ? createCredentialStore({secrets:context.secrets, configuration}) : undefined;
   // Delay local-path validation until connection use; an unconfigured build and
@@ -163,6 +163,7 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
   }
   return {
     onDidChangeSessions:emitter.event,
+    get busy() {return controllers.size > 0 || pendingRemovals > 0;},
     async getSessions(scopes, options) {
       supportedScopes(scopes);
       if (!configuration || disposed) return [];
@@ -176,14 +177,17 @@ function createGitHubAppProvider({vscode, context, configuration, fetchImpl = gl
     },
     async removeSession(id) {
       if (disposed || !configuration) return;
-      // Abort this window's pending login before clearing. Other windows observe
-      // the immediate SecretStorage invalidation and compare their baseline.
-      for (const controller of controllers) controller.abort();
-      return withLock(async () => {
-        let record;
-        try { record = await store.read(); } catch { await clearInvalid(); return; }
-        if (!record || record.sessionId === id) await clearInvalid();
-      });
+      pendingRemovals++;
+      try {
+        // Abort this window's pending login before clearing. Other windows observe
+        // the immediate SecretStorage invalidation and compare their baseline.
+        for (const controller of controllers) controller.abort();
+        return await withLock(async () => {
+          let record;
+          try { record = await store.read(); } catch { await clearInvalid(); return; }
+          if (!record || record.sessionId === id) await clearInvalid();
+        });
+      } finally {pendingRemovals--;}
     },
     dispose() {
       disposed = true; cached = undefined;

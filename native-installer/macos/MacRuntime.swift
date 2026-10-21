@@ -224,6 +224,28 @@ struct MacRuntime {
         for line in output.components(separatedBy: .newlines) { let pair = line.split(separator: "@"); if pair.count == 2 { result[String(pair[0]).lowercased()] = String(pair[1]) } }
         return result
     }
+    func publishEditorUpdate() throws {
+        // Written only after check() verified the supplied extension is installed.
+        // The loaded Zero extension consumes this fixed marker in the private
+        // profile and uses VS Code's normal Reload Window when its work is idle.
+        let directory = root.appendingPathComponent("editor")
+        let publication = try AnchoredZeroFile(directory: directory)
+        let leaf = "update-ready.json"
+        let previous = try publication.identity(leaf)
+        if let previous {
+            let bytes = try publication.read(leaf, expected: previous)
+            guard let value = try JSONSerialization.jsonObject(with: bytes) as? [String: Any],
+                  Set(value.keys) == ["schema", "version", "requestId"],
+                  value["schema"] as? Int == 1,
+                  let oldVersion = value["version"] as? String,
+                  oldVersion.range(of: #"^\d{1,9}\.\d{1,9}\.\d{1,9}$"#, options: .regularExpression) != nil,
+                  let request = value["requestId"] as? String, UUID(uuidString: request) != nil else {
+                throw SetupFailure(message: "Zero's update marker is unrecognized; its contents were kept. See Details for help.")
+            }
+        }
+        let bytes = try JSONSerialization.data(withJSONObject: ["schema": 1, "version": version, "requestId": UUID().uuidString], options: [.sortedKeys])
+        try publication.publish(bytes, leaf: leaf, mode: 0o600, expected: previous)
+    }
     func check() throws -> Bool {
         // Read-only: do not launch CLI with absent user-data-dir (it creates files).
         let java = try javaHome(); let cli = try editorCLI(java)
@@ -293,6 +315,7 @@ struct MacRuntime {
             case ["--native-install", "--approved"]: try runtime.configure()
             case ["--native-open"], ["--native-resume"]:
                 guard try runtime.check(), let java = try runtime.javaHome(), let cli = try runtime.editorCLI(java) else { throw SetupFailure(message: "Readiness changed. Run setup again.") }
+                try runtime.publishEditorUpdate()
                 _ = try execute(cli.path, runtime.editorArguments(resuming: arguments.last == "--native-resume"), environment: runtime.environment(java))
             default: throw SetupFailure(message: "Invalid native setup action.")
             }

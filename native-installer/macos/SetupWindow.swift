@@ -37,7 +37,20 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
             #if ZERO_UPDATER_FIXTURE
             if Bundle.main.bundleIdentifier == "ca.codepet.zero.update-test",
                UpdateConfiguration().eligible,
-               CommandLine.arguments.contains("--updater-fixture-handoff") {
+               Bundle.main.object(forInfoDictionaryKey: "ZeroUpdaterFixtureHandoff") as? Bool == true {
+                // The receipt lives beside this invocation's isolated installed app,
+                // outside its signed bundle. Sparkle relaunches without test arguments.
+                let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
+                let receipt: [String: Any] = ["schema": 1, "build": build, "pid": ProcessInfo.processInfo.processIdentifier,
+                                             "ordinaryColdLaunch": !self.updateOnlyLaunch && !CommandLine.arguments.contains("--updater-fixture-handoff")]
+                do {
+                    let data = try JSONSerialization.data(withJSONObject: receipt, options: [.sortedKeys])
+                    let destination = Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("handoff-\(build).json")
+                    try data.write(to: destination, options: .atomic)
+                } catch {
+                    fputs("Could not record isolated updater handoff.\n", stderr)
+                    NSApp.terminate(nil); return
+                }
                 self.completeHandoff(); return
             }
             #endif
@@ -54,7 +67,7 @@ final class SetupApplication: NSObject, NSApplicationDelegate {
     }
     func start(_ controller: SetupController) {
         handedOff = false
-        controller.mayBeginWork = { [weak self] in self?.updateCoordinator?.mayBeginSetup ?? true }
+        controller.mayBeginWork = { [weak self] in self?.updateCoordinator?.mayContinueSetup ?? true }
         setupWindow = SetupWindow(controller: controller)
         setupWindow?.closed = { [weak self] in self?.updateCoordinator?.setupClosed() }
         controller.opened = { [weak self] in self?.completeHandoff() }
