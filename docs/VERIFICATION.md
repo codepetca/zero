@@ -1,5 +1,29 @@
 # Verification
 
+## Corrected editor popups — Mac0.5.43 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/162 merged as 63bbf25d96a2ff953c48f806a2f7a0b23f041575 with five exact-head checks.
+Build 27c18737c0f21bdaeed419b562e8b29227e399a7; measured manifest b1fb96ce99b6f9b7b50fa19b5b0307cf8fca54c2; sealed candidate mac-0.5.43-b1fb96ce99b6.
+Apple Accepted 959aaad8-6d64-40b9-bbee-f95463392a5d; staple and actual app/DMG Gatekeeper passed.
+Public DMG 4602116 bytes SHA256 53d1b32079f30d063eda59f7a49a0504dedb34ee136378979a5725a0f908670a matches sealed candidate,
+authenticated draft and anonymous download. Signed feed advances42→43 using the
+same feed URL and public signing key.
+
+The shared popup helper now renders the requested short title above text entry
+and the keyboard hint below it. Commit & push and Publish show Commit Message
+above an empty field. Stable-version detection keeps native InputBox fallback
+before1.108; proposed-only setters in1.106–1.107 are never invoked.
+55focused and16isolated recovery checks passed; broader167passes/1recovery timeout
+under parallel load passed on the isolated rerun. Configuration and99release
+checks/2skips passed. Independent initial/correction/version source reviews passed
+with one accepted compatibility P2 fixed. Candidate/promotion reviews and final
+website/CI/public-byte evidence are retained under primary ignored
+.verification/popup-release0.5.43 at completion. Effective model, per-task tokens
+and attributable active time unknown; weekly36%remaining and healthy269GB at start.
+Native rendered-popup/update, live student Publish and physical Windows remain
+user acceptance checks. Prior public assets, Windows21/manualkit17 and primary
+funding work preserved. No account credentials changed.
+
 ## Prompt titles and keyboard hints — local correction, 2026-10-21
 
 Installed Mac0.5.42 still uses the shared QuickPick wrapper that puts the keyboard
