@@ -348,6 +348,11 @@ public class Main extends GameApp {
 
 For an object-based version, see [animation Main](examples/animation/Main.java):
 Main calls `player.update(mouseX(), mouseY(), seconds)` and `player.draw(this)`.
+In that draw call, `this` is the running Main object, which extends `GameApp`.
+Player receives the same object as the parameter in `draw(GameApp app)` and
+calls drawing methods through it, such as `app.circle(x, y, 44)`. Player owns its
+position; the app provides the canvas. Player does not need to extend `GameApp`.
+See [lesson 8's explanation and example](lessons/08-movement.md#how-player-uses-the-app-to-draw).
 Zero never calls a Player's methods automatically.
 
 ## Threading, errors and advanced Java

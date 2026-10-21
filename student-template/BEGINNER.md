@@ -131,6 +131,12 @@ player.update(horizontal, vertical, seconds, width(), height());
 player.draw(this);
 ```
 
+In `player.draw(this)`, `this` is the running Main object. Main extends `GameApp`,
+so Player can receive it in `draw(GameApp app)` and call `app.fill(...)` or
+`app.rect(...)` on the same canvas. Player stays an ordinary class; passing the
+app creates no new window. See [how Player uses the app to draw](lessons/08-movement.md#how-player-uses-the-app-to-draw)
+in lesson 8 for the matching Player method.
+
 Zero never discovers Player or updates it automatically. In Reach the coin,
 Main owns the win flag and Player owns its position and movement methods.
 Follow the game's two tiny changes, then try changing its colours.
