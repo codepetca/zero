@@ -176,6 +176,7 @@ current task's content visually prominent.
 | Learning and documentation | Tutorials are the single learning path; Docs is the API reference. Explain startup, appearance, objects and screen flow in the relevant lessons. Keep setup help and teacher material separate, and maintainer records in the repository. |
 | Scrollbars | Transparent tracks matching the surrounding background, with thin muted thumbs. |
 | Website title | Use the approved icon followed by outlined lowercase zero as one SVG image. Dark mode uses the light-purple accent icon without a background and white lettering. |
+| ZeroHub Projects | One square with title over a contrasting image header and long-text fade; muted unconfirmed previews; stars/flag/author at the bottom. Reveal description on hover/focus with a title toggle for touch. Preserve readable content when text is enlarged. |
 | Themes | Apply the same choices in light and dark; the root page follows the selected theme too. |
 
 Keep the sidebar, Next lesson action, search, code copying, deep links, accessible
