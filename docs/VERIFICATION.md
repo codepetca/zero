@@ -1,5 +1,32 @@
 # Verification
 
+## Publish saves source before deploying — local implementation, 2026-10-21
+
+Branch `codex/publish-save-deploy`, source `264ebcd7` on base `9ad376d9`.
+Publish now hands pending main changes to the existing guarded uploader, asks for
+an ordinary commit message only when creating a commit, pushes existing commits
+without another message, and revalidates the exact uploaded SHA before deployment.
+An already uploaded main skips upload. Change branches get Merge to main guidance.
+Cancellation/failure stops deployment. Verified live results keep Open app/Copy
+playable link in the sidebar and include the actual URL in Zero Output.
+
+Final UI/native upload suite81/81; affected Git/prompts103/103; existing full
+publisher regression45/45 plus added upload-preflight1/1; additional bundle,
+verification, migration, upload-auth, extension and workflow checks50/50.
+These suites overlap. Configuration/syntax/doc-link and whitespace checks pass.
+GitHub responses and network dispatch are mocked; Git fixtures are disposable.
+Native VS Code interaction, live GitHub Pages and physical Windows were not tested.
+No push, merge, installer release, deployment, visibility or credential change.
+
+Independent GPT6.1Sol/high safety and compatibility reviews completed the full
+nine-file initial diff. One P2 late-cancellation race was reproduced and fixed by
+propagating synchronous Publish cancellation/live-mode checks into transport's
+final session guard. Targeted independent review accepted the complete three-file
+delta and independently passed3 regression cases.3reviewer turns/1initial wave/
+1targeted wave/1fix batch,0unresolved findings; effective model, tokens and
+attributable time unknown. Weekly43%remaining and healthy274.7GB at start.
+Logs, prior CURRENT and review ledger: ignored `.verification/publish-save-deploy/`.
+
 ## Project dropdown and Tutorials — Mac0.5.39 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/154 merged as c853cfac5de94a51510bb483e2b10177f7739d29 with five exact-head checks.
