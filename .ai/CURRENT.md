@@ -1,24 +1,23 @@
-# Start Page Project dropdown and Tutorials link — local source
+# Start Page navigation — Mac0.5.39 release
 
-Owner requested a Tutorials link and one Project button containing New, Clone,
-and Open. Implemented in the managed start-page-project-menu worktree from
-main a59662f4. No merge/publication request for these new controls; released Mac
-remains0.5.38. Preserve primary education-funding changes.
+Owner explicitly authorized merge and publication of the Project dropdown and
+Tutorials link on2026-10-21. Reuse clean reviewed3184a0ba from maina59662f4;
+prepare new immutable Mac0.5.39/build39. Primary education-funding edits stay
+untouched. Published38 remains available during preparation.
 
-Tutorials uses existing zero.openFirstLesson and opens the reader without a
-project or GitHub sign-in. Start tutorial remains the guided project action.
-Project opens an anchored accessible menu; New/Clone retain readiness checks,
-Open works signed out. Arrow/Home/End navigation, Escape/Tab, outside dismissal,
-busy/account transitions and status-update focus behavior are covered.
+Tutorials uses existing zero.openFirstLesson, including project-free reading
+without GitHub sign-in. Start tutorial stays guided; Project → New / Clone / Open
+uses existing guarded commands. Open remains available signed out. Menu pointer,
+keyboard, dismissal, status/busy/account and focus behavior verified in generated
+HTML Chromium fixtures (light1000px, dark320px, high-contrast/enlarged text).
 
-99affected tests and root configuration checks passed. Browser fixture checks
-cover actual generated HTML in Chromium: light1000px, dark320px, keyboard/pointer,
-signed-out/busy state and high-contrast/enlarged text. Review and acceptance
-receipts are retained in .verification/start-page-menu; the final review receipt
-records the reviewed revision and verdict. No native VSCode launch after the
-previous Code Key popup; actual editor/Windows acceptance remains untested.
+99affected tests/root checks passed; independent Sol/medium complete source review
+passed3184a0ba with54independent tests. Reuse source coverage and browser artifacts
+in .verification/start-page-menu. Release/version and candidate review, checks,
+source PR CI/merge, public DMG and separate reviewed feed promotion follow.
+Release receipts under .verification/start-menu39; preserve them/candidate to the
+primary .verification/start-page-menu-release0.5.39 before worktree retirement.
 
-Keep this worktree available for a subsequent authorized release. Before any
-publication, require the completed independent review, matching PR CI and a new
-immutable installer version. Prior0.5.38 release completion evidence is preserved
-in the primary .verification/keep-start-page-release0.5.38/completion.json.
+No native VSCode QA after prior isolated-HOME Code Key popup. No credentials or
+keychain changes. Actual Mac editor/Windows/fresh-machine/provider interaction
+remains untested. Windows21/manualkit17 unchanged.
