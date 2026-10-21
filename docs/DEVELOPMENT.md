@@ -287,8 +287,8 @@ One supported webview (`zero.actions`) contains controls and the project file li
 with a single view VS Code merges its title into the container header. Start
 tutorial (`zero.startProject`, stable command ID) is in welcome and the native
 **…** menu. Signed-out GitHub controls show only **Sign in**; local Run and files
-remain available. Signed in reveals the project dropdown with **Clone from GitHub…**
-(`zero.cloneRepository`), **New project…** and **Open local project…** (`zero.openLocalProject`).
+remain available. Signed in reveals one Project menu with **Clone project**
+(`zero.cloneRepository`), **New project** and **Open local project** (`zero.openLocalProject`).
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
 with another location selectable. Zero remembers the selected clone parent in the
 local editor profile for future clones; cancelling the picker or opening a local

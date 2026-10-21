@@ -18,7 +18,7 @@ The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
-**Clone from GitHub** opens a searchable picker: recent projects on this Mac
+**Project → Clone project** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
 
@@ -61,15 +61,14 @@ Files remain available signed out or offline; cloud repository, push and sharing
 controls appear after access is ready. App-created repositories are accessible
 automatically.
 
-When ready, **Start tutorial** creates the selected scaffold. **New project…**
-creates original work instead, so students can skip the tutorial. **Open local
-project** opens existing work; Setup help remains available from the sidebar. Enter a repository name and choose
+When ready, **Start tutorial** creates the selected scaffold. **Project → New project**
+creates original work instead, so students can skip the tutorial. **Project → Open local project** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
 a parent folder before creation. Zero creates a public repository in your GitHub
 account, verifies access, clones and opens the project in a new window. Its
 source and included files are public.
 The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
-For an existing repository, choose **Project → Clone from GitHub…**, paste its
+For an existing repository, choose **Project → Clone project**, paste its
 HTTPS URL and ensure it is available to Zero's App. A failed or uncertain creation
 keeps its recovery link and offers **Project → Resume created project…**; a failed
 clone keeps its partial folder. Check those before retrying or creating another repository.
@@ -111,7 +110,7 @@ downloads and platform limits.
    **Start tutorial**, connect GitHub if needed, then name and save your own
    **Greeting app** repository. Zero opens your clone with Main and Tutorials.
    Submit repository links in Pika separately when assigned.
-6. If setup needs troubleshooting, **Setup help → Test installation** opens the
+6. If setup needs troubleshooting, **Troubleshooting → Test installation** opens the
    completed bundled Hello World app in a separate window marked Installation
    test. Choose **Run test** and confirm its native JavaFX window. This is optional;
    it is separate from your tutorial. Older kits retain their bundled instructions.
@@ -136,7 +135,7 @@ a bad JAVA_HOME must not be hidden by a working PATH installation. The new nativ
 Mac launcher explicitly selects Zero’s private JDK only for its own editor and
 child processes; it does not repair or change the system JAVA_HOME.
 Git 2.31+ is required before tutorial lesson 0 because the lessons use real
-uploads. Setup Help includes Git in tutorial Run readiness; ordinary local apps
+uploads. Troubleshooting includes Git in tutorial Run readiness; ordinary local apps
 can run without Git. Java editor support and the debugger are checked in the
 active VS Code profile; debugger absence does not block Run App. Installed
 extensions in another profile do not satisfy this check.
@@ -164,7 +163,7 @@ starts when clicked. First Publish approves its public destination once; later
 explicit Publish actions update that site. The App omits Administration permission.
 For first-time Pages setup, enable GitHub Actions as the Pages source in GitHub
 settings, then return to Publish app and recheck. Keep your repository visibility.
-Setup Help and installer checks do not create accounts or repositories, upload,
+Troubleshooting and installer checks do not create accounts or repositories, upload,
 publish or submit anything in Pika; the separate project commands above create
 repositories only when explicitly chosen.
 

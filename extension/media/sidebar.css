@@ -44,6 +44,9 @@ button.upload[aria-busy="true"] { opacity:.85; }
 .files-section { border-top:1px solid var(--vscode-panel-border,var(--zero-border)); margin-top:10px; padding-top:8px; }
 .files-header { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
 .files-header h2 { margin:0; }
+.project-actions { position:relative; }
+.project-actions > button > svg { transform:rotate(-90deg); }
+.project-actions > button[aria-expanded="true"] > svg { transform:none; }
 .file-actions { position:relative; flex:1; min-width:0; }
 .file-actions button.link { width:auto; max-width:100%; overflow-wrap:anywhere; }
 .files-menu[aria-expanded="true"] > svg { transform:rotate(180deg); }

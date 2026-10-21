@@ -273,7 +273,7 @@ test("Zero controls and Files share one supported view with minimal overflow",()
   const manifest=require("../package.json");
   assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions"]);
   assert.equal(manifest.contributes.views.zero[0].name,"Zero");
-  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startProject","zero.showOutput"]);
+  assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startProject","zero.showOutput"]);
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startProject").title,"Zero: Start Tutorial");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.cloneRepository").title,"Zero: Clone from GitHub");

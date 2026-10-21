@@ -576,3 +576,12 @@ the relevant instruction. Retain setup/reopen prerequisites and expected results
 in that detailed sequence. Keep completed Compare your code references optional.
 Apply the same authored lessons to website and bundled editor; preserve Java,
 student work, navigation and locally saved reading position.
+
+## Project menu simplification — accepted 2026-10-20
+
+Ready welcome shows Start tutorial plus one Project menu: New project, Clone
+project, Open local project. Remove duplicate welcome links and the empty Project
+repository control. Open projects keep their repository-name menu for contextual
+actions. Troubleshooting replaces Setup help and lives in the native ⋯ menu;
+it retains prerequisites and the bundled installation test. Account and repository
+actions remain in ⋯ for empty-window account changes and creation recovery.
