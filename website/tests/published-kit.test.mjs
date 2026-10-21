@@ -125,7 +125,7 @@ test('hosted starter and setup share download-aware guidance rather than package
   assert.match(guide,/Project → Open local project/);
   assert.match(guide,/VS Code 1\.95 fallback/);
   assert.match(guide,/⋯ → Troubleshooting → Test installation/);
-  assert.doesNotMatch(guide,/Setup help|Project → Resume created project/);
+  assert.doesNotMatch(guide,/Setup help|Project → (?:Resume created project|Create a repository|Connect to GitHub)/);
   assert.match(guide,/⋯ → Repository Actions → Connect to GitHub…/);
   assert.doesNotMatch(guide,/Clone repository|Connect a repository|Connect GitHub/);
 });

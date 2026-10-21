@@ -303,11 +303,11 @@ The empty-repository steps below apply to an extracted source ZIP:
    for **Change GitHub account…** or **Sign out**. Sign out clears only Zero's
    connection on this computer and preserves local work and other extensions'
    accounts. Canceling authentication leaves local Run available.
-2. With your original local project open, choose **Project → Create a repository…**.
+2. With your original local project open, choose **⋯ → Repository Actions → Create a repository…**.
    Enter a name. Zero creates an empty public remote
    in your personal account, verifies App access and connects this project.
    No source is uploaded by creation. This workflow does not use GitHub Classroom.
-3. If you already created an empty repository on GitHub, use **Project → Connect to GitHub…**
+3. If you already created an empty repository on GitHub, use **⋯ → Repository Actions → Connect to GitHub…**
    and paste its HTTPS URL instead. Zero initializes Git in this
    standalone folder if needed and adds its origin; it asks before replacing an
    existing origin. This local connection does not prove remote ownership,
