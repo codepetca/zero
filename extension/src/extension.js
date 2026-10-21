@@ -194,6 +194,16 @@ function activate(context, services = {}) {
     if(repositoryUrl&&core.parseRepositoryUrl(repositoryUrl).page.split('/')[3].toLowerCase()!==label?.toLowerCase())return;
     await recentProjects.remember(projectPath,{accountId,repositoryUrl,isCurrent:()=>!disposed&&auth.accountId===accountId&&auth.accountLabel===label});
     startPage?.refresh({recent:true});
+    // Folder opening can be vetoed without rejecting its command. Retain the
+    // creation receipt until the intended workspace is actually active.
+    const recovery=context.globalState?.get('zero.repositoryCreationRecovery');
+    if(!repositoryUrl||recovery?.stage!=='created'||recovery.projectRoot||recovery.accountId!==accountId)return;
+    let recoveryUrl;
+    try {recoveryUrl=core.parseRepositoryUrl(recovery.repositoryUrl).page;}catch{return;}
+    if(recoveryUrl!==repositoryUrl)return;
+    try {if(await project()!==projectPath)return;}catch{return;}
+    if(disposed||auth.accountId!==accountId||auth.accountLabel!==label||JSON.stringify(context.globalState.get('zero.repositoryCreationRecovery'))!==JSON.stringify(recovery))return;
+    await context.globalState.update('zero.repositoryCreationRecovery',undefined);
   }
   const projectFolders = createProjectFolders(vscode, {globalState:context.globalState, active:() => !disposed, report:text => output.appendLine(text), cloneRepository,onOpened:rememberOpened});
   projectPicker=createProjectPicker(vscode,{authentication:auth,repositories,history:recentProjects,active:()=>!disposed,report:text=>output.appendLine(text)});

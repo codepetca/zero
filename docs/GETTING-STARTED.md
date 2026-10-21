@@ -66,7 +66,8 @@ return to it. The sidebar stays focused on Run, Files and project development.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
    Zero creates your repository from the verified template, checks App access,
-   clones it and opens the project in a new window. No repository is created
+   clones it and opens the project. Current source reuses the VS Code window;
+   published Mac0.5.36 opens a new window. No repository is created
    until you have chosen its name and location.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
    lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials

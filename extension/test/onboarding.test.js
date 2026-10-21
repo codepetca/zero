@@ -312,7 +312,7 @@ test('empty project actions stay on Start Page and direct local open reuses a fo
   assert.equal(f.startState.phase,'ready');assert.doesNotMatch(f.webview.html,/project-menu-button|zero.chooseRepository/);
   await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>item.action),['account']);assert.equal(picks[0].options.title,'Project');
   await f.commands.get('zero.openLocalProject')();
-  assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceNewWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
+  assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceReuseWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
 });
 
 test('sign-in is independent of local practice while sharing stays unavailable',async t=>{
@@ -424,4 +424,36 @@ test('account drift cannot publish an old ready state or reuse its Start Page ac
   await f.startPage.message({type:'action',action:'tutorial',token:oldToken});
   assert.equal(f.calls.filter(([id])=>id==='zero.startProject'||id==='createRepository'||id==='cloneRepository').length,0);
   assert.equal(f.startState.accountLabel,'other-student');assert.equal(f.startState.busy,false);
+});
+
+test('native folder-open veto keeps creation recovery until the matching workspace is active',async t=>{
+ const profile=new Map();let created;
+ const git=core.git;t.mock.method(core,'git',async(root,args,...rest)=>args.join(' ')==='remote get-url origin'?'https://github.com/student/my-project':git(root,args,...rest));
+ const f=await fixture(t,{empty:true,profile,initialSession:{id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},clone:async({parentPath})=>{
+  created=path.join(parentPath,'my-project');await fs.mkdir(created);await fs.writeFile(path.join(created,'zero.json'),'{}');await fs.writeFile(path.join(created,'mvnw'),'');return created;
+ }});
+ await settle(()=>f.startState?.phase==='ready');await f.commands.get('zero.newProject')();
+ assert.equal(f.vscode.workspace.workspaceFolders.length,0,'Resolved openFolder can leave the current workspace untouched');
+ assert.equal(profile.get('zero.repositoryCreationRecovery').stage,'created');
+ assert.ok(f.calls.some(([command,uri,options])=>command==='vscode.openFolder'&&uri.fsPath===created&&options.forceReuseWindow));
+ f.vscode.workspace.workspaceFolders=[{uri:{fsPath:created}}];f.folderChanged();
+ await settle(()=>profile.get('zero.repositoryCreationRecovery')===undefined);
+ assert.deepEqual(f.errors,[]);
+});
+
+test('active-workspace recovery acknowledgement requires its exact account, repository and completed creation',async t=>{
+ const git=core.git;t.mock.method(core,'git',async(root,args,...rest)=>args.join(' ')==='remote get-url origin'?'https://github.com/student/my-project':git(root,args,...rest));
+ for(const record of [
+  {accountId:'18',repositoryUrl:'https://github.com/student/my-project',stage:'created'},
+  {accountId:'17',repositoryUrl:'https://github.com/student/other-project',stage:'created'},
+  {accountId:'17',repositoryUrl:'https://github.com/student/my-project',stage:'creating'},
+  {accountId:'17',repositoryUrl:'https://github.com/student/my-project',stage:'created',projectRoot:'/another/project'}
+ ]) {
+  const profile=new Map([['zero.repositoryCreationRecovery',record]]);
+  const f=await fixture(t,{profile,initialSession:{id:'app',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'}});
+  await settle(()=>profile.has('zero.recentProjects.v1:17'));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(profile.get('zero.repositoryCreationRecovery'),record);
+  f.subscriptions.forEach(item=>item.dispose());
+ }
 });

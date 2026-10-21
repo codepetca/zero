@@ -31,7 +31,7 @@ test('new original project collects name and parent for a public repository befo
  assert.equal(f.picks.length,0);assert.match(f.inputs[0].prompt,/Public repository/);
  assert.deepEqual(f.calls.map(call=>call[0]),['parent','create','clone']);assert.deepEqual(f.calls[1][1],{name:'my-project',private:false,template:{owner:'codepetca',repo:'zero-starter'}});
  assert.equal(f.calls[1][2].ticket.session.accountId,'1');assert.deepEqual(f.calls[2][1],{repositoryUrl:remote,parent:{fsPath:f.root}});
- assert.equal(f.progress.at(-1),'Project created');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'created'},undefined]);
+ assert.equal(f.progress.at(-1),'Project created');assert.deepEqual(f.recovery,[{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'creating'},{repositoryUrl:remote,accountId:'1',parentPath:f.root,stage:'created'}]);
 });
 test('all cancelled form inputs stop before repository creation',async t=>{
  for(const stop of ['name','parent']){const f=await fixture(t);f[stop]=undefined;await f.commands.newProject();assert.ok(f.calls.every(call=>call[0]!=='create'&&call[0]!=='clone'),stop);}
@@ -108,8 +108,8 @@ test('resume rejects account drift, wrong project and changed origin without cle
  assert.equal(connects,kind==='origin'?1:0);assert.equal(f.recovery.length,0);assert.ok(!f.calls.some(c=>c[0]==='create'||c[0]==='clone'));
  }
 });
-test('successful resumed clone clears receipt only after opening',async t=>{
- const f=await fixture(t);assert.equal(await f.commands.resumeCreated({repositoryUrl:remote,accountId:'1'}),true);assert.deepEqual(f.calls.map(c=>c[0]),['access','clone']);assert.deepEqual(f.recovery,[undefined]);
+test('resumed clone retains receipt until the opened workspace verifies it',async t=>{
+ const f=await fixture(t);assert.equal(await f.commands.resumeCreated({repositoryUrl:remote,accountId:'1'}),true);assert.deepEqual(f.calls.map(c=>c[0]),['access','clone']);assert.deepEqual(f.recovery,[]);
 });
 
 function nativeProgress(f,{cancelled=false}={}){

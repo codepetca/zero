@@ -1,5 +1,33 @@
 # Verification
 
+## Current-window project opening — local, 2026-10-21
+
+Owner requested Start Page Clone/Open/New reuse the current VS Code window.
+The shared folder opener now uses supported vscode.openFolder forceReuseWindow
+for clones, tutorial/new projects, local folders and recent entries. VS Code owns
+workspace-switch and unsaved-editor handling; Zero adds no save/discard operation.
+Creation/resume recovery stays saved if native Cancel vetoes the window switch.
+Only an actually active workspace with the matching account/repository clears it.
+Installation test and separate ZeroHub project opening keep their own behavior.
+
+109 affected checks, npm run check and git diff --check pass. GitHub transports
+are mocked; no actual sign-in, repository creation/clone or account writes.
+Independent initial review found one P2: native Cancel can resolve without
+switching. Corrected by retaining recovery until an active workspace matches its
+account/remote;109 final affected checks pass. Native QA stopped when the isolated
+VS Code profile triggered a Code Key keychain prompt. Owner confirmed Cancel plus
+stopping the owned editor ended it; no keychain/credential change. Native window/
+unsaved-flow acceptance remains unverified. Independent Sol/high targeted review resolved the P2 at44f2b354, with complete
+cumulative coverage and no remaining blockers:2turns/1fixbatch. Effective
+configuration, tokens and reviewer elapsed telemetry unknown. Initial coverage
+plus the targeted activation/account/recovery integration pass covers final source;
+a further integration wave adds no uncovered behavior. Final38onboarding checks
+also pass after the unchanged-record guard.
+Mac0.5.36 remains public with its original behavior; this is local source only.
+Isolated branch codex/start-page-current-window preserves primary funding work.
+Weekly57% remaining, storage healthy282GB; task cost/elapsed telemetry unknown.
+Detailed logs under .verification/current-window.
+
 ## Zero Start Page — Mac0.5.36 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/148 merged as 4cf34f9d1b455945e7dff58e0d232453a47b6c64 after independent source/candidate

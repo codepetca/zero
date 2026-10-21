@@ -73,7 +73,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
       await assertCurrent();
       if (result && isActive()) {
         try {await onOpened({projectPath:result,repositoryUrl:destination.page});}catch(error){report(`Could not remember this project. ${error.message}`);}
-        if(isActive()) {await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(result), {forceNewWindow:true});}
+        if(isActive()) {await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(result), {forceReuseWindow:true});}
       }
       return result;
     },signal);
@@ -95,7 +95,7 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
     await assertCurrent();
     if(isActive()) {
       try {await onOpened({projectPath:root});}catch(error){report(`Could not remember this project. ${error.message}`);}
-      if(isActive()){await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(root), {forceNewWindow:true});}
+      if(isActive()){await assertCurrent();await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(root), {forceReuseWindow:true});}
     }
   }
   return {clone, openLocal, chooseCloneParent,dispose(){disposed=true;progress.dispose();}};

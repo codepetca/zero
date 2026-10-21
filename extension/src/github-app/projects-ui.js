@@ -50,8 +50,9 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal});
         throwIfCancelled(signal);
         if(!cloned||!isActive())throw Error('The project was not opened.');
+        // Only the next activation can confirm a same-window switch was accepted.
+        // Native dirty-editor Cancel can resolve openFolder without switching.
         drafts.delete(input.draftKey);
-        await onRecovery(undefined);
         notify('Project created');
         return result;
       }catch(error){throw Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);}
@@ -123,9 +124,9 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         const cloned=await folders.clone({repositoryUrl:destination.page,signal});
         throwIfCancelled(signal);
         if(!cloned||!isActive())return false;
-        onProgress('Project opened');
+        onProgress('Project cloned');
       }
-      await onRecovery(undefined);return true;
+      if(record.projectRoot)await onRecovery(undefined);return true;
     });
   }
   return {startTutorial,resumeCreated,newProject:()=>createAndClone('New project',ORIGINAL_TEMPLATE,'original','my-project'),createRepository,dispose(){disposed=true;progress.dispose();}};

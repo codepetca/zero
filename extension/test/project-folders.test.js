@@ -18,9 +18,9 @@ test('clone location starts at Zero Projects and selected alternative is passed 
  await f.folders.clone();assert.equal(f.dialogs[0].defaultUri.fsPath,path.join(f.home,'Zero Projects'));assert.equal(f.dialogs[0].canSelectFolders,true);assert.equal(f.dialogs[0].openLabel,'Clone here');
  assert.deepEqual(f.calls,[['cloneRepository',{repositoryUrl:'https://github.com/student/app',parentPath:alternative}]],'No folder opens unless authenticated cloning returns a destination');
 });
-test('authenticated clone opens its actual returned folder in a new window',async t=>{
+test('authenticated clone opens its actual returned folder in the current window',async t=>{
  const f=await fixture(t);const parent={fsPath:path.join(f.home,'Zero Projects')},actual=path.join(f.home,'existing-clone');f.selection=[parent];f.cloneResult=actual;
- await f.folders.clone();assert.deepEqual(f.calls,[['cloneRepository',{repositoryUrl:'https://github.com/student/app',parentPath:parent.fsPath}],['vscode.openFolder',{fsPath:actual},{forceNewWindow:true}]]);
+ await f.folders.clone();assert.deepEqual(f.calls,[['cloneRepository',{repositoryUrl:'https://github.com/student/app',parentPath:parent.fsPath}],['vscode.openFolder',{fsPath:actual},{forceReuseWindow:true}]]);
 });
 test('cancelled URL/location/authenticated clone never opens a folder or reports success',async t=>{
  const f=await fixture(t);f.input=undefined;await f.folders.clone();assert.equal(f.dialogs.length,0);await assert.rejects(fs.stat(path.join(f.home,'Zero Projects')),/ENOENT/);
@@ -34,7 +34,7 @@ test('bad URLs and clone failures preserve existing files',async t=>{
 });
 test('open local validates a Zero folder and opens it without cloning or moving source',async t=>{
  const f=await fixture(t);const project=path.join(f.home,'Existing');await fs.mkdir(project);await fs.writeFile(path.join(project,'zero.json'),'{}');await fs.writeFile(path.join(project,'Main.java'),'keep');f.selection=[{fsPath:project}];
- await f.folders.openLocal();assert.equal(f.dialogs[0].title,'Open local project');assert.deepEqual(f.calls,[['vscode.openFolder',{fsPath:project},{forceNewWindow:true}]]);assert.equal(await fs.readFile(path.join(project,'Main.java'),'utf8'),'keep');await assert.rejects(fs.stat(path.join(f.home,'Zero Projects')),/ENOENT/,'Open existing must not create a default folder');
+ await f.folders.openLocal();assert.equal(f.dialogs[0].title,'Open local project');assert.deepEqual(f.calls,[['vscode.openFolder',{fsPath:project},{forceReuseWindow:true}]]);assert.equal(await fs.readFile(path.join(project,'Main.java'),'utf8'),'keep');await assert.rejects(fs.stat(path.join(f.home,'Zero Projects')),/ENOENT/,'Open existing must not create a default folder');
  f.selection=[{fsPath:f.home}];await assert.rejects(f.folders.openLocal(),/zero.json/);assert.equal(f.calls.length,1);
 });
 test('cancellation and disposal stop opening local projects',async t=>{
@@ -44,7 +44,7 @@ test('cancellation and disposal stop opening local projects',async t=>{
 test('a blocked default still allows cloning elsewhere and opening an existing project',async t=>{
  const f=await fixture(t),blocked=path.join(f.home,'Zero Projects'),alternative=path.join(f.home,'Existing');await fs.writeFile(blocked,'keep');await fs.mkdir(alternative);await fs.writeFile(path.join(alternative,'zero.json'),'{}');f.selection=[{fsPath:alternative}];
  await f.folders.clone();assert.equal(f.dialogs[0].defaultUri.fsPath,f.home);assert.deepEqual(f.calls[0],['cloneRepository',{repositoryUrl:'https://github.com/student/app',parentPath:alternative}]);
- await f.folders.openLocal();assert.equal(f.dialogs[1].defaultUri.fsPath,f.home);assert.deepEqual(f.calls[1],['vscode.openFolder',{fsPath:alternative},{forceNewWindow:true}]);assert.equal(await fs.readFile(blocked,'utf8'),'keep');
+ await f.folders.openLocal();assert.equal(f.dialogs[1].defaultUri.fsPath,f.home);assert.deepEqual(f.calls[1],['vscode.openFolder',{fsPath:alternative},{forceReuseWindow:true}]);assert.equal(await fs.readFile(blocked,'utf8'),'keep');
 });
 
 test('clone remembers the chosen parent across instances, even when authenticated clone is cancelled',async t=>{
@@ -103,7 +103,7 @@ test('outer cancellation shares one operation without a nested notification or c
 test('recent selection opens its existing folder without dialogs or cloning and rechecks the account',async t=>{
  const f=await fixture(t),existing=path.join(f.home,'Recent');await fs.mkdir(existing);await fs.writeFile(path.join(existing,'zero.json'),'{}');
  let checks=0;await f.folders.openLocal({projectPath:existing,assertCurrent:async()=>{checks++;}});
- assert.equal(checks,2);assert.equal(f.dialogs.length,0);assert.deepEqual(f.calls,[['vscode.openFolder',{fsPath:existing},{forceNewWindow:true}]]);
+ assert.equal(checks,2);assert.equal(f.dialogs.length,0);assert.deepEqual(f.calls,[['vscode.openFolder',{fsPath:existing},{forceReuseWindow:true}]]);
  f.calls.length=0;await assert.rejects(f.folders.openLocal({projectPath:existing,assertCurrent:async()=>{throw Error('Account changed');}}),/Account changed/);assert.equal(f.calls.length,0);
 });
 test('account drift in the location picker blocks cloning before authenticated transport runs',async t=>{
