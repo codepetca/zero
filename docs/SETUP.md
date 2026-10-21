@@ -70,14 +70,14 @@ The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
 For an existing repository, choose **Project → Clone project**, paste its
 HTTPS URL and ensure it is available to Zero's App. A failed or uncertain creation
-keeps its recovery link and offers **Project → Resume created project…**; a failed
+keeps its recovery link and offers **⋯ → Repository Actions → Resume created project…**; a failed
 clone keeps its partial folder. Check those before retrying or creating another repository.
 
-For an existing cloned Zero folder, choose **Project → Open local project…**;
+For an existing cloned Zero folder, choose **Project → Open local project**;
 it opens that valid project in a new window without cloning again. An original
-local project without a GitHub origin offers **Project → Create a repository…**
+local project without a GitHub origin offers **⋯ → Repository Actions → Create a repository…**
 to create and connect an empty public remote after entering its name.
-**Project → Connect to GitHub…** connects an existing repository URL locally;
+**⋯ → Repository Actions → Connect to GitHub…** connects an existing repository URL locally;
 it does not push or prove remote access. Connected projects show
 owner/repository and retain branch actions, with **Publish app** in the menu.
 Zero's own clone/push/publish commands use its guarded connection. General Source

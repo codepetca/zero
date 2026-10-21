@@ -16,6 +16,10 @@ window.acquireVsCodeApi = () => ({
   postMessage: message => {
     if (message.type === 'sidebar.ready') return;
     if (message.type === 'files.list') {
+      if (new URLSearchParams(location.search).get('state') === 'empty') {
+        setTimeout(()=>window.dispatchEvent(new MessageEvent('message',{data:{type:'files.empty',requestId:message.requestId}})),0);
+        return;
+      }
       setTimeout(()=>window.dispatchEvent(new MessageEvent('message',{data:{type:'files.result',requestId:message.requestId,result:{generation:'fixture',parent:message.id || null,items:fixtureFiles[message.id || 'root'] || [],truncated:false}}})),0);
       return;
     }
