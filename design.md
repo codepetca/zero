@@ -27,8 +27,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   downloads retain their bundled Run behavior.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
-- Use one short label for routine prompts, such as **Class name**. Omit explanatory
-  copy; show the small `<Enter> to confirm · <Esc> to cancel` keyboard helper and
+- Use one short title above routine text inputs, such as **Class name** or
+  **Commit Message**. Omit explanatory copy; put the small
+  `<Enter> to confirm · <Esc> to cancel` keyboard helper below the input and show
   validation errors when needed. Keep
   consequential destinations and public/destructive changes concise and explicit.
 - Use native Explorer for files, with Zero controls and teaching helpers in the same sidebar. Use supported
@@ -69,7 +70,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   Sign-out
   preserves local folders, Git history and the open project.
 - Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
-  Use one **Commit message** label and an empty field, with the same small keyboard helper.
+  Use the **Commit Message** title and an empty field, with the same small keyboard helper below the input.
   Keep repository and branch in the sidebar. Show an inline
   spinner and **Preparing commit…** on the button during preparation, then
   **Committing & pushing…** after confirmation; clear on completion/cancel/error.

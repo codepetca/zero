@@ -1,3 +1,21 @@
+# Prompt title/hint investigation — local fix
+
+The installed Mac0.5.42 prompt helper still puts keyboard instructions in its title.
+The earlier title edits remained only in the dirty primary funding checkout.
+Clean local branch `codex/prompt-title-hint` fixes the shared helper and sets
+`Commit Message` above the empty input. The keyboard hint appears below via the
+stable QuickPick.prompt API, with native InputBox fallback before VS Code1.108.
+Fixtures preserve the actual title/prompt/placeholder mapping.
+
+Focused55/55 and isolated recovery16/16 pass; broader167passes/1timeout under load.
+Initial independent review found one P2 proposed-API gate issue, corrected with a
+stable-version guard and regression coverage. Receipt/check logs are ignored at
+`.verification/prompt-title-hint/`; delivery summary is in docs/EVIDENCE.md.
+This is local source only. No new release/native visual acceptance/live student
+Publish test, student commit/push, credentials or primary dirty files changed.
+
+Previous published release details follow.
+
 # Publish commit/push — Mac0.5.42 publication
 
 Owner explicitly authorized merge and release. Source https://github.com/codepetca/zero/pull/160

@@ -478,7 +478,7 @@ function activate(context, services = {}) {
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
         uploadProgress = ''; refresh();
-        const message = forPublish && !plan.changes.length ? 'Publish app' : await vscode.window.showInputBox({placeHolder:'Commit message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
+        const message = forPublish && !plan.changes.length ? 'Publish app' : await vscode.window.showInputBox({title:'Commit Message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
         uploadProgress = 'Committing & pushing…'; refresh();
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');

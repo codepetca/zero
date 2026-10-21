@@ -1,5 +1,30 @@
 # Delivery evidence index
 
+## Prompt titles and keyboard hints — local correction, 2026-10-21
+
+Installed Mac0.5.42 still uses the shared QuickPick wrapper that puts the keyboard
+helper in the title and uses the requested label as placeholder text. The earlier
+Commit Message/title edits remained uncommitted in the primary funding checkout;
+changing those call sites alone would not fix the wrapper.
+
+Local branch `codex/prompt-title-hint` now uses a short title above the input and
+`<Enter> to confirm · <Esc> to cancel` in the prompt below. Commit & push and
+Publish use the explicit `Commit Message` title and an empty input. Supported
+editors before1.108 use native InputBox; the version guard avoids proposed-only
+QuickPick.prompt setters in1.106–1.107. The fixture now preserves title, placeholder
+and prompt separately. Enter/Escape, validation, stale async results and fallback
+coverage pass.
+
+Final focused55/55 passed; the broader sweep passed167 with one unchanged recovery
+10s timeout under parallel load; isolated recovery16/16 passed. Initial test run
+without generated design/lesson fixtures was stopped and rerun after preparation.
+Syntax and whitespace pass. Independent initial Sol/medium review found the
+proposed-API compatibility P2 and the stable-version guard corrects it. Exact
+review/check receipts are retained in ignored `.verification/prompt-title-hint/`.
+No new installer, native prompt rendering or live Publish flow was tested. No
+student-project commit/push, account change, source push/merge or release occurred.
+The primary dirty checkout and immutable Mac0.5.42 remain intact.
+
 ## Publish commit/push — Mac0.5.42 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/160 merged as f994c178704a553e35e088a383b186dc0b5258e2 with five exact-head checks.

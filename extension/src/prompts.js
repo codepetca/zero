@@ -2,9 +2,20 @@
 
 // A native QuickPick keeps text entry and its short keyboard helper consistent.
 function textInput(vscode, options = {}) {
+  const title = options.title || options.placeHolder;
+  const prompt = [options.prompt, '<Enter> to confirm · <Esc> to cancel'].filter(Boolean).join(' · ');
   const picker = vscode.window.createQuickPick();
-  picker.placeholder = options.placeHolder || options.title;
-  picker.title = [options.prompt, '<Enter> to confirm · <Esc> to cancel'].filter(Boolean).join(' · ');
+  const [major, minor] = String(vscode.version || '').split('.').map(Number);
+  const stablePrompt = major > 1 || (major === 1 && minor >= 108);
+  // QuickPick.prompt is supported from VS Code 1.108. Older supported editors
+  // can expose a proposed-only setter; use native InputBox on those editors.
+  if (!stablePrompt || !('prompt' in picker)) {
+    picker.dispose();
+    return vscode.window.showInputBox({...options, title, prompt});
+  }
+  picker.placeholder = options.placeHolder;
+  picker.title = title;
+  picker.prompt = prompt;
   picker.value = options.value || '';
   picker.ignoreFocusOut = Boolean(options.ignoreFocusOut);
   picker.items = [];
