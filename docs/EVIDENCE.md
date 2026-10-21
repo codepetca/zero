@@ -1,5 +1,24 @@
 # Delivery evidence index
 
+## Tutorials and API documentation — local, 2026-10-21
+
+Owner approved Tutorials as the single learning path and Docs as API reference.
+Startup, appearance, canvas/Player, reusable views/screens and resource ownership
+now live in lessons0,2,8,10,12. Help and teacher readers each have two entries;
+maintainer destinations go to repository docs. A shared chapter-aware map keeps
+old hosted guide URLs and authored links useful. Original source guides remain
+for older kits and advanced reference. API declarations/production Java unchanged.
+
+Independent `docs_simplification_review/1`, requested GPT-6.1 Sol/medium,
+completed all31files at35eb05e9 against9ad376d9 with zero actionable findings.
+One initial review launch, no fixes/retries; effective configuration, tokens and
+attributable elapsed time unknown. Coordinator accepted the tutorial worker's
+five-file delivery after source/compile/content checks. One main sync preserved
+both evidence histories. Checks/browser limits are in [Verification](VERIFICATION.md).
+Receipts/screenshots: `.verification/docs-simplification/`. Branch
+`codex/tutorials-api-docs` remains local; no push/deployment/native release.
+Weekly44% remaining, cached storage healthy274GB at start; task cost unknown.
+
 ## Passing the app to Player — local docs, 2026-10-21
 
 Lesson 8 now explains `player.draw(this)`, `draw(GameApp app)` and drawing on the

@@ -1,5 +1,22 @@
 # Verification
 
+## Tutorials and API documentation — local, 2026-10-21
+
+Full website and focused native tutorial suites pass; final focused28tests cover
+API inventory, tutorial content/reader and legacy destinations reaching real
+headings. Root checks, website typecheck and production webpack build pass.
+Checkpoints0,2,8,10/game compile. Exact new settings/font snippets also compile
+together in a generated Greeting scaffold. Independent complete31file review
+at35eb05e9 found no actionable issue. API declarations and production Java unchanged.
+
+Real IAB verifies API search/jump, old app-guide/UI chapter redirects, two-entry
+Help and teacher navigation, light/dark and Tab-to-search. API/lesson2/Help320px
+iframe layouts inspected; cross-frame mobile pointer actions unavailable.
+Physical mobile, WebKit, text/browser zoom and native editor/Windows interactions
+not tested. Receipts/screenshots in `.verification/docs-simplification/`.
+One unchanged obsolete lesson9 fragment remains in the retained UI source guide;
+new lesson/API/help links are valid. This is local source, not a published update.
+
 ## Passing the app to Player — local docs, 2026-10-21
 
 29 focused checks pass: `node --test extension/test/tutorial-content.test.js
