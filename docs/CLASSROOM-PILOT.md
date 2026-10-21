@@ -46,7 +46,7 @@ an ordinary local starter smoke test.
 An ordinary extracted starter may be used outside another Git repository to check
 setup: follow its README, retain hidden folders and run its default Hello, world!
 app. This local smoke does not complete lesson 0 or the required tutorial setup.
-Mac 0.5.35 Run App opens a native JavaFX window; verify rerun, Stop during
+Mac 0.5.36 Run App opens a native JavaFX window; verify rerun, Stop during
 build/running, and close-to-idle there. Earlier downloads retain their bundled
 behavior. Record which version you test.
 
@@ -105,7 +105,7 @@ account/network trial. Current development checks mock authentication and transp
 - Use a fresh VS Code window/profile to test actual native browser sign-in,
   cancellation and denied authentication. Confirm local Run still works, retry
   successfully, and check the displayed account. Record browser/school restrictions.
-- For an original local app, use **Project → Create a repository…** to create a
+- For an original local app, use **⋯ → Repository Actions → Create a repository…** to create a
   student-owned empty public repository. Confirm the displayed account and
   public destination. Skip this step for a tutorial clone. If using an existing
   GitHub-created repository instead, connect its HTTPS URL from the standalone

@@ -1,5 +1,28 @@
 # Verification
 
+## Zero Start Page — Mac0.5.36 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/148 merged as 4cf34f9d1b455945e7dff58e0d232453a47b6c64 after independent source/candidate
+review and five exact-head CI checks. Built reviewed ad2ced03 cleanly; preparation
+ff23b5e7 changes only measured installer metadata. Public DMG 4593053 bytes
+SHA256 f7f216fc7d8349abce3c454f9cb10cde1ba3ca34c762165c0e4f47085e371c9c matches authenticated draft, sealed candidate and anonymous
+public download. Apple accepted b4ab91b7-1d7a-4270-af6e-bb0a6a5ffa6a; staple and
+actual app/DMG Gatekeeper verified. Signed feed advances35→36.
+
+92 affected,116release/2skips and159website tests, root/type/build/kit checks pass.
+Broad local matrix881pass/1fixturefailure/3skip; fixture correction passes affected
+checks and complete exact-head CI passes. Native isolated VS Code confirmed auto
+signed-out Start Page, local-open availability, tab reuse/reload restoration,
+unsaved-editor retention when revealing, and empty sidebar. Real provider/repo
+mutations, project-sidebar native interaction, Windows and fresh-machine acceptance
+remain untested. Primary profile/auth and dirty education-funding branch untouched.
+Two Sol/high implementation workers delivered bounded components; one independent
+Sol/high reviewer covers source plus candidate delta. Initial source review had
+one P3 version-attribution finding corrected here; no code blockers. Effective
+configuration/tokens and elapsed effort unknown. Detailed final review/CI/live and
+archive receipts retained under primary .verification/start-page-release0.5.36.
+Promotion review/CI/merge and production/live checks pending until final receipt.
+
 ## Zero Start Page — local source, 2026-10-21
 
 Owner authorized a native Start Page, development-only sidebar, merge and Mac

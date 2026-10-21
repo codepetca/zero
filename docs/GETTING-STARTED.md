@@ -1,12 +1,12 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.35, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.36, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Mac 0.5.35 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.36 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -48,7 +48,7 @@ Open **Zero: Start Page** from the Command Palette or **⋯ → Start Page** to
 return to it. The sidebar stays focused on Run, Files and project development.
 
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.35
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.36
    opens the Zero Start Page with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
@@ -62,7 +62,7 @@ return to it. The sidebar stays focused on Run, Files and project development.
    See [the setup guide](SETUP.md#start-a-tutorial-or-project) for details.
 3. On the **Zero Start Page**, **Start tutorial** is primary. Choose **Greeting app**,
    enter a repository name, and choose its clone location. **Start Page → New project** is
-   the menu action for skipping the tutorial and making original work.
+   the action for skipping the tutorial and making original work.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
    Zero creates your repository from the verified template, checks App access,
@@ -81,13 +81,12 @@ While signed out, local Run and Files stay available. Cloud repository, push and
 sharing controls appear after access is ready. An
 original local project without an origin offers **⋯ → Repository Actions → Create a repository…** to
 create and connect an empty remote, or **⋯ → Repository Actions → Connect to GitHub…** for an existing URL. Connected
-projects show owner/repository and retain branch actions; **Publish app** is in
-that repository menu.
+projects show owner/repository and retain branch actions; **Publish app** is available from the arrow beside **Run**.
 
 Zero needs no separate account. Cancelling setup leaves the current Start Page
 step available to retry; an existing local project's Run remains available. **⋯ → Troubleshooting → Test
 installation** opens the bundled Hello World separately as **Installation test**. To return
-to setup, use **Zero: Get Started** from VS Code's Command Palette.
+to setup, use **Zero: Start Page** from VS Code's Command Palette.
 For an existing remote, **Start Page → Clone project** accepts its HTTPS URL
 and uses the same location picker; add that repository to the App's selection
 when needed. **Start Page → New project** creates original work from Zero's starter.
@@ -146,7 +145,7 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.35 uses the familiar drag-to-Applications flow. Current source guides
+Mac setup 0.5.36 uses the familiar drag-to-Applications flow. Current source guides
 GitHub setup on the Zero Start Page. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -253,7 +252,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.35, **Start tutorial** from the ready sidebar or **…** menu
+In Mac 0.5.36, **Start tutorial** on the **Zero Start Page**
 checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a
