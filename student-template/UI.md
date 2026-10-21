@@ -1,5 +1,8 @@
 # UI and app/game flow
 
+Learn reusable views and screen flow in [lesson 10](lessons/10-components.md#screens-and-app-flow).
+This source guide remains available for older kits and contributor reference.
+
 Use the same ordinary JavaFX controls in apps and games. A game can have buttons,
 labels and reusable views alongside its drawing canvas.
 Use [the appearance guide](STYLE.md) for fonts, spacing, colours and editable CSS.

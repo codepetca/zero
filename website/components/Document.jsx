@@ -18,6 +18,7 @@ import { ReaderNavigation } from "./ReaderNavigation";
 import { CodeBlock } from "./CodeBlock";
 import { TutorialProject } from "./TutorialProject";
 import { DownloadRequirements } from "./Downloads";
+import { helpItems, teacherItems } from '@/lib/document-navigation.mjs';
 export function Document({ id, lesson = "" }) {
   const doc = docs[id];
   const title =
@@ -25,22 +26,18 @@ export function Document({ id, lesson = "" }) {
     "Documentation";
   const { related, next } = lessonNavigation(lesson);
   const practiceProject = lesson ? projectForLesson(lesson) : null;
+  const teacher = id === 'teachers' || id === 'pilot';
+  const section = lesson ? 'Tutorials' : teacher ? 'For teachers' : 'Help';
   const pageTitle = practiceProject
     ? practiceProject.title.replace(/\b\w/g, (letter) => letter.toUpperCase())
-    : lesson ? "Tutorials" : "Docs";
+    : section;
   const items = lesson
     ? lessons.map((item) => ({
         id: item.id,
         title: `${item.id}. ${item.title}`,
         href: `/tutorials/${item.id}`,
       }))
-    : Object.entries(docs)
-        .filter(([key]) => !key.startsWith("lesson-") || key === "lesson-guide")
-        .map(([id, doc]) => ({
-          id,
-          title: doc.markdown.match(/^# (.+)$/m)?.[1] || id,
-          href: documentHref(id),
-        }));
+    : teacher ? teacherItems : helpItems;
   const content = (
       <main
         id="page-content"
@@ -51,7 +48,7 @@ export function Document({ id, lesson = "" }) {
           <ReaderNavigation
             items={items}
             current={lesson || id}
-            section={lesson ? "Tutorials" : "Docs"}
+            section={section}
             groups={lesson ? lessonGroups : undefined}
           />
         </aside>
@@ -109,7 +106,7 @@ export function Document({ id, lesson = "" }) {
           </FoldingReader>
           {related && related.doc !== "api" && (
             <section className="compact-related" aria-label="Related docs">
-              <a href={`/docs/${related.doc}#${related.anchor}`}>
+              <a href={documentHref(related.doc, related.anchor)}>
                 Contribution guide
               </a>
             </section>
@@ -135,5 +132,5 @@ export function Document({ id, lesson = "" }) {
         </article>
       </main>
   );
-  return <LearnTheme active={lesson ? "Tutorials" : "Docs"}>{content}</LearnTheme>;
+  return <LearnTheme active={lesson ? "Tutorials" : undefined}>{content}</LearnTheme>;
 }

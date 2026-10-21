@@ -2,15 +2,16 @@
 
 For the complete list of Zero methods, see the [API reference](API.md).
 
-Normal Run builds a browser preview and checks the supported Java/JavaFX subset.
-Native JavaFX may provide methods that browser builds reject with source
-locations. For the run/stop flow and explicit native diagnostic, see
+Normal Run builds and opens a native JavaFX window. Publishing for the browser
+checks the supported Java/JavaFX subset; some native methods are outside that
+subset. For the run/stop flow and browser compatibility, see
 [running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
 
 
-New to Zero? Start with the [beginner toolkit](BEGINNER.md), then
-[make it look good](STYLE.md) and [UI and app/game flow](UI.md). This page is the complete reference; you can
-learn a small set first:
+Learn step by step through the [tutorials](lessons/00-hello-world.md).
+This source guide remains available for older kits and contributor reference;
+the [API reference](API.md) is the canonical method lookup. The tutorials introduce
+the small set you need for each project:
 
 | Build | Start with |
 | --- | --- |
@@ -358,6 +359,11 @@ public class Main extends GameApp {
 
 For an object-based version, see [animation Main](examples/animation/Main.java):
 Main calls `player.update(mouseX(), mouseY(), seconds)` and `player.draw(this)`.
+In that draw call, `this` is the running Main object, which extends `GameApp`.
+Player receives the same object as the parameter in `draw(GameApp app)` and
+calls drawing methods through it, such as `app.circle(x, y, 44)`. Player owns its
+position; the app provides the canvas. Player does not need to extend `GameApp`.
+See [lesson 8's explanation and example](lessons/08-movement.md#how-player-uses-the-app-to-draw).
 Zero never calls a Player's methods automatically.
 
 ## Threading, errors and advanced Java

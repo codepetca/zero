@@ -27,7 +27,7 @@ test("only starting lessons offer the published template and a concise own-repos
     assert.match(html, /Create your own GitHub repository from the template/);
     assert.match(html, /Project → Clone from GitHub…<\/strong> in Zero/);
     assert.match(html, /paste your URL and choose <strong>Clone here<\/strong>/);
-    assert.match(html, /href="\/docs\/setup#start-here">Setup<\/a>/);
+    assert.match(html, /href="\/help\/setup#start-here">Setup<\/a>/);
     assert.equal((html.match(/<p>/g) || []).length, 1);
     assert.doesNotMatch(html, /Template not available yet|\.zip|download=|<ol|Publish app|New branch|Open in browser/);
   }
@@ -39,7 +39,7 @@ test("unpublished templates explain recovery without a guessed GitHub link or ZI
     assert.match(html, /Template not available yet/);
     assert.ok(html.includes(`Ask your teacher for the published ${projectForLesson(lesson).title} tutorial template`));
     assert.match(html, /your own already-cloned repository/);
-    assert.match(html, /href="\/docs\/setup#start-here">Setup<\/a>/);
+    assert.match(html, /href="\/help\/setup#start-here">Setup<\/a>/);
     assert.doesNotMatch(html, /href="https:\/\/github\.com|class="button"|\.zip|download=/);
   }
 });

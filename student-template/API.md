@@ -5,8 +5,8 @@ The complete public/protected API declared by `zero.App`, `zero.GameApp`,
 `zero.Music`.
 Mac setup 0.5.23 includes these helpers with core 0.2.1. Older downloads keep
 their bundled API; use their own reference when working with an older kit.
-For setup, explanations and complete examples, see the [app guide](APP-GUIDE.md)
-or [starter guide](README.md).
+Learn through the [tutorials](lessons/00-hello-world.md); use this reference to
+look up methods. Installation and troubleshooting are in [setup help](README.md).
 
 [App](#app) · [GameApp](#gameapp) ·
 [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
@@ -21,9 +21,9 @@ Extend `zero.App` for event-driven interfaces. It has an implicit public
 no-argument constructor. The default window is resizable, 800 × 500 pixels,
 with title `"Zero"` and zero content-edge padding. Import JavaFX `Node` from `javafx.scene`.
 
-Normal Run builds a browser preview and checks the supported Java/JavaFX subset.
-Availability in native JavaFX does not imply browser support; unsupported calls
-produce source diagnostics. The explicit native diagnostic runs a JavaFX window.
+Normal Run builds and opens a native JavaFX window. Publishing for the browser
+checks the supported Java/JavaFX subset; unsupported calls produce source
+diagnostics. Availability in native JavaFX does not imply browser support.
 See [running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
 
 ### Callbacks
@@ -340,10 +340,11 @@ The readable [App source](src/main/java/zero/App.java) and
 [GameApp source](src/main/java/zero/GameApp.java) are the authority for a
 locally modified framework. Ordinary JavaFX controls and example classes such as
 ScoreDisplay, Player and Question have their own APIs; see the
-[app guide](APP-GUIDE.md) for their use.
+[object lesson](lessons/06-objects.md), [Player lesson](lessons/08-movement.md#how-player-uses-the-app-to-draw)
+and [reusable views lesson](lessons/10-components.md#reusable-views) for their use.
 
 The source starter includes JavaFX controls, graphics and media. Use `loadSound` for effects and `loadMusic` for tracks; see the
-[app guide](APP-GUIDE.md#short-sound-effects). Raw JavaFX AudioClip/MediaPlayer
+[audio reference](#audio). Raw JavaFX AudioClip/MediaPlayer
 remain available. Persistence, FXML and web need their own dependencies.
 ZeroHub provides exact-version shared libraries through ordinary Java imports;
 it does not change this core API or require a component base class. Public managed library admission remains gated; local checks and pinned

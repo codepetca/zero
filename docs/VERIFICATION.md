@@ -1,5 +1,46 @@
 # Verification
 
+## Tutorials/API publication preparation — 2026-10-21
+
+PR159 integrates main70a72b04 without native/release changes. Fresh176website/
+tutorial tests, root checks, website typecheck and production webpack build pass.
+Full initial review plus main-sync/README delta reviews cover source0bf923d1;
+3reviewer turns,1documentation correction batch,no remaining actionable findings.
+Prior compile/browser coverage applies to unchanged source. Final exact-head CI,
+merge and live website proof are in primary ignored
+`.verification/docs-simplification-publication/` after completion. Native editor,
+physical mobile/WebKit and browser/text zoom limits remain as recorded below.
+
+## Tutorials and API documentation — local, 2026-10-21
+
+Full website and focused native tutorial suites pass; final focused28tests cover
+API inventory, tutorial content/reader and legacy destinations reaching real
+headings. Root checks, website typecheck and production webpack build pass.
+Checkpoints0,2,8,10/game compile. Exact new settings/font snippets also compile
+together in a generated Greeting scaffold. Independent complete31file review
+at35eb05e9 found no actionable issue. API declarations and production Java unchanged.
+
+Real IAB verifies API search/jump, old app-guide/UI chapter redirects, two-entry
+Help and teacher navigation, light/dark and Tab-to-search. API/lesson2/Help320px
+iframe layouts inspected; cross-frame mobile pointer actions unavailable.
+Physical mobile, WebKit, text/browser zoom and native editor/Windows interactions
+not tested. Receipts/screenshots in `.verification/docs-simplification/`.
+One unchanged obsolete lesson9 fragment remains in the retained UI source guide;
+new lesson/API/help links are valid. This is local source, not a published update.
+
+## Passing the app to Player — local docs, 2026-10-21
+
+29 focused checks pass: `node --test extension/test/tutorial-content.test.js
+extension/test/tutorial-reader.test.js website/tests/learning.test.mjs`. The first
+reader run lacked the generated tutorial bundle; running the existing
+`node scripts/prepare-tutorials.mjs` resolved it before the passing run.
+`node scripts/verify-project-progression.mjs --compile-only --only=8` compiles.
+Website preparation includes the updated docs; rendered Markdown exposes the
+new lesson8 heading and both guide links resolve to its `/tutorials/8` fragment.
+`git diff --check` passes. Independent complete source-doc review at5e7d62b4
+found no issues. No runtime Java or API changes, native interactive/OS checks,
+push, deployment or installer release. These docs remain local.
+
 ## Native Explorer — Mac0.5.40 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/157 merged as 5eb1e8952344166f67fbbd59c5d9c216ad8c64b5 with five exact-head checks.

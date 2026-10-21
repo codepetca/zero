@@ -52,7 +52,7 @@ test("relative links preserve fragments and route only maintained documents or a
       documents,
       sources,
     ),
-    "/docs/api#input-methods",
+    "/docs#input-methods",
   );
   assert.equal(
     resolveContentLink(
@@ -220,11 +220,11 @@ test("legacy starter links retain hosted setup and Pika destinations after sourc
   const documents = {starter:{source:"docs/GETTING-STARTED.md",aliases:{"student-template/README.md":{
     "first-setup":"one-time-setup", "your-repository-and-pika":"your-individual-workflow"
   }}}};
-  assert.equal(resolveContentLink("student-template/lessons/README.md","../README.md#first-setup",documents,{}),"/docs/starter#one-time-setup");
-  assert.equal(resolveContentLink("student-template/lessons/README.md","../README.md#your-repository-and-pika",documents,{}),"/docs/starter#your-individual-workflow");
-  assert.equal(resolveContentLink("docs/PRODUCT.md","../student-template/README.md",documents,{}),"/docs/starter");
-  assert.equal(resolveContentLink("docs/DEVELOPMENT.md","../student-template/README.md",documents,{}),"/docs/starter");
-  assert.equal(resolveContentLink("docs/PRODUCT.md","../student-template/README.md#old-heading",documents,{}),"/docs/starter");
+  assert.equal(resolveContentLink("student-template/lessons/README.md","../README.md#first-setup",documents,{}),"/help/setup#one-time-setup");
+  assert.equal(resolveContentLink("student-template/lessons/README.md","../README.md#your-repository-and-pika",documents,{}),"/help/setup#your-individual-workflow");
+  assert.equal(resolveContentLink("docs/PRODUCT.md","../student-template/README.md",documents,{}),"/help/setup");
+  assert.equal(resolveContentLink("docs/DEVELOPMENT.md","../student-template/README.md",documents,{}),"/help/setup");
+  assert.equal(resolveContentLink("docs/PRODUCT.md","../student-template/README.md#old-heading",documents,{}),"/help/setup");
   const prepare = readFileSync(new URL("../scripts/prepare.mjs",import.meta.url),"utf8");
   assert.match(prepare,/docs\.starter\.aliases =/);
   assert.match(prepare,/"first-setup": "one-time-setup"/);
