@@ -12,6 +12,13 @@ overflow, GitHub account flow or Windows interaction. No installer built or
 published. Broad matrix logs and reviewer details are under
 .verification/project-menu-cleanup; see docs/EVIDENCE.md.
 
+Broad npm test completed:847passed,5failed,3skipped at its earlier snapshot.
+Two stale menu expectations were corrected and pass within the final123affected
+checks. Three test files could not import fflate in the fresh worktree; npm ci
+restored pinned dependencies and all23 tests in those files passed. No remaining
+failure is unaccounted for; the full matrix was not rerun after these targeted
+corrections. Existing platform skips remain separate from native acceptance.
+
 ## Minimal prompts — Mac 0.5.29 publication, 2026-10-20
 
 Source PR 135 merged after all five exact-head checks and independent source,

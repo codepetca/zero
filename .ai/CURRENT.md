@@ -7,7 +7,7 @@ Open repository-name actions remain contextual; ⋯ preserves empty-window accou
 and repository-creation recovery. No credentials or student files changed.
 
 Source reviewed through83b7374c after two bounded correction batches (documentation
-and stale regression expectations).123 affected tests and root check pass.
+and stale regression expectations).123 affected tests,23 restored-dependency packaging checks and root check pass.
 Actual browser fixture: connected empty light/dark menu, Escape focus restoration,
 dark200% text. Native-host/Windows interaction not tested for this change.
 No push, merge, installer rebuild or publication authorized for this menu request.

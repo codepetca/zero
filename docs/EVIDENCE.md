@@ -23,6 +23,13 @@ text wraps legibly. No real student sign-in/repo mutation or installed-profile
 changes. Native editor and Windows interactive acceptance remain untested. Local
 branch only: no push/merge/new installer/publication for this request.
 
+Broad npm test completed:847passed,5failed,3skipped at its earlier snapshot.
+Two stale menu expectations were corrected and pass within the final123affected
+checks. Three test files could not import fflate in the fresh worktree; npm ci
+restored pinned dependencies and all23 tests in those files passed. No remaining
+failure is unaccounted for; the full matrix was not rerun after these targeted
+corrections. Existing platform skips remain separate from native acceptance.
+
 ## Searchable project picker — local, 2026-10-20
 
 Owner authorized picker, merge and publication. Sol/high implemented the bounded
