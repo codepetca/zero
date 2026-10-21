@@ -1,5 +1,23 @@
 # Delivery evidence index
 
+
+## Native Explorer integration — 2026-10-21
+
+Owner authorized replacing the custom file tree and publishing Mac0.5.40.
+Controls now use `zero.controls` inside built-in Explorer; guarded teaching New
+actions remain. Existing projects migrate once without using private layout APIs.
+View order is editor-owned: drag the Zero heading above files once if necessary.
+78 affected extension/design checks and root configuration/syntax/docs checks
+passed. Chromium checked actual controls HTML at240px light,200px dark and200px
+high contrast with200% text, keyboard/pointer helpers, focus restoration, empty
+and busy states; no horizontal overflow. Only review-server favicon404 observed.
+Full regression suite, independent review and release receipts are retained in
+ignored `.verification/explorer40` during work and primary
+`.verification/native-explorer-release0.5.40` at completion.
+No native editor launch after Code Key popup: actual Explorer order, selection,
+rename/drag and Mac update interaction remain owner smoke tests. Windows and
+fresh-machine/live-provider acceptance remain untested. No credentials changed.
+
 ## Project dropdown and Tutorials — Mac0.5.39 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/154 merged as c853cfac5de94a51510bb483e2b10177f7739d29 with five exact-head checks.

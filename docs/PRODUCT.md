@@ -59,7 +59,7 @@ and guided GitHub setup. Tutorials and opening local work remain available witho
 sign-in; New and Clone retain their GitHub access checks. Mac0.5.39 ships these controls.
 An empty Zero window opens it automatically; existing student editors stay
 untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
-The sidebar retains project development: native Run/Stop, Files, contextual
+The Explorer sidebar hosts a Zero controls view for native Run/Stop, teaching helpers, contextual
 repository/branch/push actions and ZeroHub. Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
@@ -347,8 +347,10 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
 - Preserve the current panel height, with the shared Zero mark in the existing
   activity-bar/view icon. VS Code owns the native title; no content heading is added.
-- One continuous Zero view contains one Run/Stop button, repository actions and Files,
-  without extra GitHub/ZeroHub headings or a separate collapsible controls row.
+- The native Explorer handles all file browsing, selection, editor tracking and file operations.
+  A Zero view in the same Explorer container holds Run/Stop, repository actions and teaching helpers,
+  without extra GitHub/ZeroHub headings. VS Code owns the view order: drag Zero above the file tree
+  once if needed; the editor remembers it. No private layout commands or state edits are used.
   Idle status is empty; app progress/errors
   appear when there is a message. Signed-out GitHub controls show only Sign in;
   the project dropdown and branch are hidden, and local Run/files remain usable.
@@ -369,13 +371,13 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
+  overflow; Copy repository link lives in the repository menu. **New ▾** opens a dropdown in the Zero controls with **New class…**, **New file…**,
   **New folder…**, **New asset…** and **Copy asset paths** after import. New class
   creates an ordinary public class beside Main; files/folders choose Java source,
   Resources or Project files using native prompts. Routine text inputs show one short
   label with no explanatory or confirm/cancel footer; validation errors appear as needed. Relative names can create
   subfolders. Existing entries are preserved, cancellation makes no changes, and
-  creation refreshes Files and opens new files in the normal editor.
+  the native Explorer notices created files and new files open in the normal editor.
   **Review or restore changes…** in the project menu opens the existing native
   review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.

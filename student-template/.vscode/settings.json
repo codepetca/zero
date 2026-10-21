@@ -3,5 +3,14 @@
   "files.autoSaveDelay": 500,
   "java.autobuild.enabled": false,
   "java.configuration.updateBuildConfiguration": "automatic",
-  "java.inlayHints.parameterNames.enabled": "none"
+  "java.inlayHints.parameterNames.enabled": "none",
+  "explorer.autoReveal": true,
+  "explorer.compactFolders": true,
+  "files.exclude": {
+    "**/target": true,
+    "**/node_modules": true,
+    "**/.zero": true,
+    "**/.zero-web": true,
+    "**/.zero-sharing-recovery": true
+  }
 }

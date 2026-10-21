@@ -31,7 +31,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   copy; show the small `<Enter> to confirm · <Esc> to cancel` keyboard helper and
   validation errors when needed. Keep
   consequential destinations and public/destructive changes concise and explicit.
-- Keep one continuous, minimal sidebar for controls and files. Use supported
+- Use native Explorer for files, with Zero controls and teaching helpers in the same sidebar. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
 - The **Zero Start Page** owns onboarding: Start tutorial, a **Tutorials** link,
@@ -39,7 +39,7 @@ when adding features; a new feature does not reset the agreed interaction style.
   Show it automatically in an empty Zero window; preserve existing editors and
   restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar's **⋯ → Start Page**. Keep local opening available without GitHub.
-- The sidebar is for project development: Run/Stop, Files, contextual repository
+- The sidebar is for project development: Run/Stop, native Explorer, contextual repository
   and branch actions, Commit & push, Merge to main and ZeroHub. Empty windows
   offer only Open Start Page. A local project needing cloud setup offers GitHub
   setup navigation to the Start Page; local Run/Files remain available offline.
@@ -48,8 +48,8 @@ when adding features; a new feature does not reset the agreed interaction style.
   New/Clone/Open project choices. Keep labels wrapped and fully accessible.
   ZeroHub offers Projects, Libraries and eligible Share project; tutorial/local
   practice sharing remains blocked. Troubleshooting stays in native ⋯.
-- Clicking **Files ▾** opens **New class…**, **New file…**, **New folder…**,
-  **New asset…** and **Copy asset paths** after import in a dropdown directly beneath Files.
+- Clicking **New ▾** opens **New class…**, **New file…**, **New folder…**,
+  **New asset…** and **Copy asset paths** after import in a dropdown beneath New.
   Use native name/location prompts; keep new classes
   ordinary Java beside Main and open new files in the editor. **Review or restore changes…** belongs in the project menu; it
   opens the existing native review/discard/restore choices. No separate tools row.

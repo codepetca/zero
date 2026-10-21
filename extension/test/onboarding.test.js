@@ -71,6 +71,18 @@ test('first lesson opens once per project and can be reopened without modifying 
   assert.doesNotMatch(f.webview.html,/data-command="zero.openFirstLesson"/,'Tutorials live in the native view menu');
   assert.equal(await fs.readFile(path.join(f.root,'lessons/00-hello-world.md'),'utf8'),'# First lesson');
 });
+test('existing projects migrate once to native Explorer and expand the Zero controls',async t=>{
+  const remembered=new Map([['zero.sidebarShown',true]]);
+  const f=await fixture(t,{remembered,activeEditor:true});
+  await settle(()=>remembered.get('zero.explorerShown'));
+  const shown=()=>f.calls.filter(([id])=>['workbench.view.explorer','zero.controls.focus'].includes(id));
+  assert.deepEqual(shown().map(([id])=>id),['workbench.view.explorer','zero.controls.focus']);
+  assert.equal(f.calls.some(([id])=>id==='workbench.view.extension.zero'),false);
+  assert.doesNotMatch(f.webview.html,/role="tree"|files\.list|files\.open/);
+  assert.match(f.webview.html,/zero.newClass/);assert.match(f.webview.html,/zero.importAssets/);
+  f.folderChanged();await new Promise(resolve=>setTimeout(resolve,30));assert.equal(shown().length,2);
+  await f.commands.get('zero.showSidebar')();assert.equal(shown().length,4);
+});
 test('empty onboarding opens one live Start Page and keeps the sidebar minimal',async t=>{
   const f=await fixture(t,{empty:true});
   await settle(()=>f.startState?.phase==='signed-out');
@@ -147,7 +159,7 @@ test('failed first sign-in can retry setup and reveal Zero without creating a pr
   let checks=0;const f=await fixture(t,{empty:true,profile:new Map([['zero.githubSetupWelcomeShown',true]]),remembered:new Map([['zero.sidebarShown',true]]),openTabs:[{}],githubAccess:async()=>{checks++;}});
   await settle(()=>f.authCalls.length>0);f.setFailure(true);await f.commands.get('zero.signInToGitHub')();assert.match(f.errors.at(-1),/cancelled or unavailable/);
   f.setFailure(false);f.setInteractiveSession({id:'retry',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'});await f.commands.get('zero.signInToGitHub')();
-  assert.equal(checks,1);assert.equal(f.calls.filter(([id])=>id==='workbench.view.extension.zero').length,0);assert.equal(f.startState.phase,'ready');assert.equal(f.startState.accountId,'17');assert.equal(f.startPage.reveals.length,1);
+  assert.equal(checks,1);assert.equal(f.calls.filter(([id])=>id==='zero.controls.focus').length,0);assert.equal(f.startState.phase,'ready');assert.equal(f.startState.accountId,'17');assert.equal(f.startPage.reveals.length,1);
   assert.equal(f.calls.filter(([id])=>id==='createRepository'||id==='cloneRepository').length,0);
 });
 test('deliberate Zero launch preserves an existing editor until Start Page is requested',async t=>{
@@ -444,7 +456,7 @@ test('offline readiness stays retryable while local Run and Files remain availab
   let reachable=false;const f=await fixture(t,{initialSession:{id:'saved',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'},githubAccess:async()=>{if(!reachable)throw Error('Network unavailable');}});
   await settle(()=>f.webview.html.includes('GitHub setup')&&f.webview.html.includes('zero.toggleApp'));
   await f.commands.get('zero.startPage')();await settle(()=>f.startState?.phase==='unavailable');assert.equal(f.startState.accountId,'17');
-  assert.match(f.webview.html,/zero.toggleApp/);assert.match(f.webview.html,/Project files/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository|zero.uploadToGitHub/);
+  assert.match(f.webview.html,/zero.toggleApp/);assert.match(f.webview.html,/>New/);assert.doesNotMatch(f.webview.html,/role="tree"|id="files"/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository|zero.uploadToGitHub/);
   reachable=true;await f.commands.get('zero.setupGitHub')();assert.equal(f.startState.phase,'ready');assert.match(f.webview.html,/zero.chooseRepository/);
 });
 

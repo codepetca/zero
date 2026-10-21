@@ -388,3 +388,20 @@ and creates ICNS/ICO files only in build directories; Windows embeds the icon in
 the executable and passes it to Velopack. Source changes do not replace released
 installer bytes. Use the existing website/design/installer checks plus actual
 light/dark web inspection; physical Windows icon rendering remains separate.
+
+## Native Explorer integration
+
+Zero contributes the `zero.controls` webview to `contributes.views.explorer`.
+`Zero: Show Sidebar` reveals Explorer and expands the controls using its generated
+focus command. Existing marked workspaces receive this introduction once under
+`zero.explorerShown`; the old `zero.sidebarShown` key remains for compatibility.
+VS Code owns file selection, active-editor reveal, file watching and context actions.
+No custom file-tree messages, provider or broad file-list watcher remains.
+The New menu retains guarded Java class/file/folder and asset helpers.
+
+Supported contribution APIs do not set the order of views inside built-in Explorer.
+Users can drag the Zero header above the files and resize the divider once;
+VS Code preserves that choice. Do not use private move/layout commands, modify
+workbench storage or alter host DOM/CSS to force a placement. Native editor QA
+remains held after the Code Key popup; mocks/browser fixtures do not prove actual
+Explorer layout, file highlighting or drag/rename interactions.
