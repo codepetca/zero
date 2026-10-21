@@ -1,12 +1,12 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.36, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.37, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Mac 0.5.36 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.37 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -48,7 +48,7 @@ Open **Zero: Start Page** from the Command Palette or **⋯ → Start Page** to
 return to it. The sidebar stays focused on Run, Files and project development.
 
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.36
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.37
    opens the Zero Start Page with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
@@ -66,8 +66,7 @@ return to it. The sidebar stays focused on Run, Files and project development.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
    Zero creates your repository from the verified template, checks App access,
-   clones it and opens the project. Current source reuses the VS Code window;
-   published Mac0.5.36 opens a new window. No repository is created
+   clones it and opens the project in the current VS Code window. No repository is created
    until you have chosen its name and location.
 5. Follow the **Tutorials** tab beside `Main.java`, write the ordinary Java from
    lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials
@@ -146,7 +145,7 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.36 uses the familiar drag-to-Applications flow. Current source guides
+Mac setup 0.5.37 uses the familiar drag-to-Applications flow. Current source guides
 GitHub setup on the Zero Start Page. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -253,7 +252,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.36, **Start tutorial** on the **Zero Start Page**
+In Mac 0.5.37, **Start tutorial** on the **Zero Start Page**
 checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a

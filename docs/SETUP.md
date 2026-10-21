@@ -1,6 +1,6 @@
 # Guided student setup
 
-The signed, notarized Mac 0.5.36 app prepares Java and the editor, then guides
+The signed, notarized Mac 0.5.37 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
 unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
@@ -8,7 +8,7 @@ manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
-Mac 0.5.36 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.37 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -64,8 +64,7 @@ automatically.
 When ready, **Start tutorial** creates the selected scaffold. **Start Page → New project**
 creates original work instead, so students can skip the tutorial. **Start Page → Open local project** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
 a parent folder before creation. Zero creates a public repository in your GitHub
-account, verifies access, clones and opens the project. Current source reuses the VS Code window;
-published Mac0.5.36 opens a new window. Its
+account, verifies access, clones and opens the project in the current VS Code window. Its
 source and included files are public.
 The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
