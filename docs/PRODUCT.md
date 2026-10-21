@@ -63,6 +63,8 @@ recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
 cloned, local and recent projects in the current VS Code window, with the editor
 owning unsaved-work handling. Mac0.5.37 includes this window-opening behavior.
+The next source change also keeps an open Zero Start Page tab available when
+switching projects, alongside the destination's code and tutorial tabs.
 
 The Start Page guides students through **Sign in to GitHub** →
 **Install Zero for GitHub** → **Start tutorial**.
