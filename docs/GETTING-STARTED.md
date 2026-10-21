@@ -1,12 +1,12 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.32, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.33, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Mac 0.5.32 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.33 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -32,9 +32,13 @@ it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
+**Clone from GitHub** opens a searchable picker: recent projects on this Mac
+first, then your accessible Zero repositories. Choose a recent project to reopen
+its existing folder, or choose **Paste a GitHub URL…**.
+
 ## Start here
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.32
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.33
    opens the Zero sidebar with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
@@ -133,7 +137,7 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.32 uses the familiar drag-to-Applications flow and sidebar-guided
+Mac setup 0.5.33 uses the familiar drag-to-Applications flow and sidebar-guided
 GitHub setup. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -240,7 +244,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.32, **Start tutorial** from the ready sidebar or **…** menu
+In Mac 0.5.33, **Start tutorial** from the ready sidebar or **…** menu
 checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a
