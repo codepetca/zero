@@ -23,7 +23,10 @@ test('recent projects lead sorted GitHub results; duplicates disappear and paste
   const pending=f.ui.choose();await turn();
   assert.deepEqual(f.calls,['17']);assert.equal(f.shown,true);
   assert.deepEqual(f.picker.items.map(i=>i.action||i.label),['Recent projects','recent','Your Zero repositories','repository','repository','paste']);
-  assert.deepEqual(f.picker.items.filter(i=>i.action==='repository').map(i=>i.label),['student/newer','student/older']);
+  assert.deepEqual(f.picker.items.filter(i=>i.action==='repository').map(i=>i.description),['student/newer','student/older']);
+  assert.ok(f.picker.items.filter(i=>i.action).every(i=>/^\$\([a-z]+\)$/.test(i.label)),'Searchable names must not enter the native label-ranking field');
+  assert.match(f.picker.items.find(i=>i.action==='recent').detail,/^On this Mac · /);
+  assert.equal(f.picker.items.find(i=>i.action==='repository').detail,'GitHub · Private');
   assert.equal(f.picker.items.at(-1).alwaysShow,true);assert.equal(f.picker.matchOnDescription,true);assert.equal(f.picker.matchOnDetail,true);
   f.select(f.picker.items.find(i=>i.action==='recent'));const result=await pending;
   assert.equal(result.projectPath,local.path);assert.equal(result.ticket,f.ticket);assert.equal(f.picker.disposed,1);
@@ -38,7 +41,7 @@ test('paste is available during discovery; selection aborts requests and ignores
 test('account changes dismiss private results and abort discovery without a selection',async()=>{
   let options,finish;
   const f=fixture({listZero:input=>{options=input;input.onRepository({...repo('private'),private:true});return new Promise(resolve=>{finish=resolve;});}});
-  const pending=f.ui.choose();await turn();assert.ok(f.picker.items.some(i=>i.label==='student/private'));
+  const pending=f.ui.choose();await turn();assert.ok(f.picker.items.some(i=>i.description==='student/private'));
   f.account=false;f.ui.sessionChanged();assert.equal(await pending,undefined);assert.equal(options.signal.aborted,true);
   options.onRepository(repo('late'));finish({repositories:[],truncated:false});await turn();assert.equal(f.picker.disposed,1);
 });
