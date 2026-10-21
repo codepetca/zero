@@ -1,6 +1,6 @@
 # Guided student setup
 
-The signed, notarized Mac 0.5.31 app prepares Java and the editor, then guides
+The signed, notarized Mac 0.5.32 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
 unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
@@ -8,7 +8,7 @@ manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
-Mac 0.5.31 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.32 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -38,7 +38,7 @@ explicit project commands create repositories only after collecting the choices 
 
 ## Start a tutorial or project
 
-In Mac 0.5.31, follow the sidebar: **Sign in to GitHub**, then
+In Mac 0.5.32, follow the sidebar: **Sign in to GitHub**, then
 **Install Zero for GitHub** if requested, then **Start tutorial**.
 Sign-in uses Zero's existing GitHub device flow and credentials. After sign-in,
 Zero checks App access for repository creation and contents writing; the check is

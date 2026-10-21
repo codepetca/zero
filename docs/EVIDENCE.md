@@ -6949,3 +6949,23 @@ retained; actual VS Code/live publishing and fresh-device/platform acceptance
 remain manual. Final metadata review, exact-head CI, merge, live feed/download
 checks and owned-worktree retirement are recorded in the ignored completion
 receipt under primary .verification/run-publish-menu-0.5.31.
+
+## Popup keyboard helper Mac release — 2026-10-20
+
+[PR139](https://github.com/codepetca/zero/pull/139) merged as
+`3d810044a28a6ce18e9e79dca59d0693925e26c6` after five exact-head checks and independent
+Sol/medium source and candidate reviews. Two documentation nits were corrected
+before the clean final32build; prior unsealed bytes are retained, undistributed.
+85 input/caller tests,99release tests/2skips,159website tests/typecheck/build,
+kit verification, actual signatures/notarization/staple/Gatekeeper and signed
+update-feed checks passed. Native appearance, screen readers, fresh-machine and
+physical Windows remain manual acceptance.
+
+Public Mac0.5.32: 4,585,577 bytes, SHA256 `fad07d368aebe13af25ac126eab5f0fafc2ef74796a38b376451c28d15d06e35`. Authenticated draft
+and anonymous public downloads equal the sealed candidate. Build31→32 advances
+monotonically; earlier releases are preserved. Final promotion review/CI/merge
+and live download/feed checks are recorded in the ignored completion receipt
+under primary .verification/popup-helper-0.5.32. Review session: one reviewer,
+initial source plus candidate and promotion deltas, one documentation fix batch.
+Account-wide weekly remaining72%; storage healthy280GB at release start.
+Effective reviewer model, attributable tokens and coordinator active time unknown.
