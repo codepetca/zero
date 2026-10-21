@@ -90,9 +90,11 @@ to production packaging:
   Provide an **Update Settings…** entry there for the two automatic-update
   preferences. These explicit sessions remain open while the student interacts;
   they must not start ordinary kit setup or force-open the starter.
-  Suppress automatic relaunch for manual update-only sessions too. Settings close
-  when their window closes; manual no-update/error results remain until dismissed,
-  then terminate when there is no other active work.
+  From0.5.34, **Install and Relaunch** lets Sparkle reopen the updated app through
+  ordinary setup, without inheriting the update-only launch marker. Retain its
+  continuation only while an existing helper/launch/modal interaction finishes.
+  Settings close when their window closes; manual no-update/error results remain
+  until dismissed, then terminate when there is no other active work.
 - Define a narrowly parsed native request for those commands that reaches an
   already-running Zero process as well as a new launch. Ordinary launch arguments
   alone are insufficient for that case. Do not accept arbitrary feed URLs,
@@ -126,10 +128,13 @@ settings as a side effect of updating the launcher. Java/VS Code vendor update
 policies and student library dependency pins are separate work.
 
 Installing a newer VSIX does not prove it is active in an already-running editor
-window. Verify the extension's installed and active versions independently. Never
-force-reload an editor containing unsaved work; use VS Code's supported reload
-guidance if necessary, with the student choosing when to apply it. Distinguish
-that activation step from the automatic replacement of Zero.app.
+window. Verify the extension's installed and active versions independently. From
+0.5.34, verified setup publishes a fixed private version/request-ID marker. Only
+the isolated Zero profile consumes it, using the native Reload Window command
+when Java tasks, Zero operations and GitHub renewal/removal are idle. Preserve
+normal editor dirty-buffer/Hot Exit safeguards; never force-quit Code or save
+student files to implement reload. Earlier updaters need one manual reopen/reload
+after upgrading. Distinguish activation from automatic replacement of Zero.app.
 
 ## Trust, packaging and release contract
 

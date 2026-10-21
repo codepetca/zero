@@ -1,39 +1,38 @@
-# Mac update relaunch correction — 0.5.34 source
+# Mac0.5.34 update relaunch — reviewed source and notarized candidate
 
-Owner authorized fix, merge and publication. Base main51fb5700 is published Mac33.
-Primary dirty education-funding checkout is preserved; coordinator owns this
-managed update-relaunch worktree. Native worker delivered four bounded files;
-coordinator owns extension reload, runtime marker, integration and release.
+Owner authorized fix, merge and publication. Main51fb5700 is published Mac33;
+primary dirty education-funding work stays separate. Native worker Sol/high
+implementation accepted after319native assertions, optimized compilation and
+fixture typecheck. Independent Sol/high complete source and targeted review clean
+at737af4b0:2turns,1fixbatch. Retained completed-Run promise and pending silent auth
+renewal blockers resolved;51focused regressions pass, including actual task-end/
+auth activity wiring and real provider rotation retaining the newly active pair.
 
-Manual Install and Relaunch now returns control to Sparkle, retaining its
-continuation only while existing setup/helper/modal work finishes. New setup is
-blocked during installation; existing launch may finish. Silent automatic
-installation on quit still does not reopen the app.
+Manual Install and Relaunch now lets Sparkle reopen the new Zero app. Existing
+setup/helper/modal work postpones its continuation once; silent automatic install
+on quit remains separate. Verified native setup writes only schema/version/UUID
+to a fixed atomic private marker. Zero34+ in its isolated Mac profile reloads its
+idle window with the native command, preserving normal unsaved-buffer safeguards.
+Running Java/Zero work and queued/active GitHub renewal/removal defer reload.
 
-After verified native readiness, atomic private editor/update-ready.json records
-only schema/version/request UUID. Loaded Zero34+ in that isolated Mac profile
-reloads its own idle window with the native Reload Window command. Running apps
-and Zero operations defer reload; ordinary profiles and student files stay separate.
-An actual isolated Code34→35 fixture loaded the new extension automatically and
-preserved an unsaved untitled document's exact text and dirty state. QA-only
-telemetry and synthetic marker were used; native publication has separate tests.
+Actual signed/notarized manual Sparkle UI A2→B3 installed exact bytes and cold
+relaunched to new PID/handoff. Automatic A→B/no-update/bad feed/archive signatures/
+unavailable-feed/runtime-isolation acceptance passed. Separate actual Code34→35
+fixture loaded the new extension automatically and retained exact unsaved untitled
+text and dirty state. Its marker is synthetic after CLI install; native marker
+publication has separate tests. Fixtures do not touch the original student profile.
+159website/type/build,99release checks/2skips,rootcheck andkitverification passed.
 
-Native harness319 assertions pass; affected JS/release checks27pass/1skip. Pinned
-Sparkle signing/load/tamper check passed. One old native event-loop test used a
-fixed20ms delay; it now pumps until the queued callback completes. First website
-run missed dependencies; installed pinned dependencies before final rerun.
-Real signed/notarized manual Sparkle fixture passed: exact B bytes, new ordinary
-cold-launch PID and handoff. Automatic A→B/no-update/bad-signature/unavailable-feed/
-runtime-isolation live checks also passed. Independent review found two blockers:
-retained completed-Run promise and unguarded silent credential renewal. One batch
-removes the stale guard and observes queued auth/provider/removal activity; actual
-activation/task-end/renewal and real-provider rotation regression tests cover them. Source review, exact-head
-CI, signed production build/notary, candidate review, source merge, public asset,
-feed promotion and live verification remain. Prior Mac33 feed/download snapshots
-stay pinned until verified34 bytes are public.
+Production34 built clean737af4b0; Apple acceptedfacd4703-9db2-4375-8beb-7092f92422c6.
+Staple and actual app/DMG Gatekeeper accepted. DMG4,589,439bytes SHA256
+ aa11a6055e5574814c2c380d595a9dcd677c63d2c994d6ddf4c776b87031375f.
+Local measured manifest is prepared; exact signed feed/candidate review, source
+CI/merge, public asset and reviewed feed promotion/live verification remain.
+Published33 snapshots remain until34public bytes are verified. Windows21/kit17
+unchanged. This first upgrade from33or earlier still needs one manual Zero reopen/
+editor reload because already-installed updater bytes retain the old handoff.
 
-Important transition: already-installed33 and earlier updaters keep their old
-handoff; this first upgrade needs one manual Zero reopen/editor reload. Later
-updates from34 use the corrected behavior. Windows21/general kit17 unchanged.
-Receipts: .verification/update-relaunch. Preserve all useful ignored receipts and
-sealed candidate to primary .verification/update-relaunch-0.5.34 before retirement.
+Receipts: .verification/update-relaunch. Preserve useful ignored receipts, native
+live fixtures and sealed candidate to primary .verification/update-relaunch-0.5.34
+before retiring the owned worktree. Managed Mac/Intel/macOS12/authorization and
+read-only-DMG interactive acceptance remain untested. No credential/account change.

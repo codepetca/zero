@@ -7046,3 +7046,11 @@ gain the correction. Windows21/manual kit17 are unchanged. Receipts:
 .verification/update-relaunch-0.5.34. Weekly remaining67% at start, storage healthy
 266GB fresh; no account/credential changes. Requested native worker Sol/high;
 effective configuration, attributable tokens and total coordinator time unknown.
+
+Mac34 source corrections737af4b0 accepted by independent targeted Sol/high review:
+2turns,1fixbatch,zero remaining blockers.51focused extension/auth checks pass.
+Production installer built clean737af4b0 and Apple accepted submission
+facd4703-9db2-4375-8beb-7092f92422c6; stapled actual app/DMG Gatekeeper checks pass.
+DMG4,589,439bytes SHA256
+`aa11a6055e5574814c2c380d595a9dcd677c63d2c994d6ddf4c776b87031375f`.
+This is local measured preparation; candidate/source/publication gates remain.
