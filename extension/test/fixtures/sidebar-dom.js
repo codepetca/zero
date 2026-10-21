@@ -20,7 +20,7 @@ function sidebarDOM() {
     querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
     addEventListener(type,listener){this.listeners[type]=listener;} focus(){document.activeElement=this;}
   }
-  const nodes=Object.fromEntries(['files','file-status','controls','file-actions','run-status','recovery','files-menu-button','files-menu','run-menu-button','run-menu'].map(id=>[id,new Element()]));
+  const nodes=Object.fromEntries(['controls','file-actions','run-status','recovery','files-menu-button','files-menu','run-menu-button','run-menu'].map(id=>[id,new Element()]));
   document={body:new Element(),getElementById:id=>nodes[id],createElement:()=>new Element(),addEventListener(type,listener){documentListeners[type]=listener;}};
   document.activeElement=document.body;document.body.append(...Object.values(nodes));
   for(const [id,node]of Object.entries(nodes))node.id=id;
@@ -36,7 +36,6 @@ function sidebarDOM() {
   const window={scrollY:0,scrollTo(){},addEventListener:(type,listener)=>listeners[type]=listener};
   vm.runInNewContext(sidebarScript(),{window,document,acquireVsCodeApi:()=>({getState:()=>null,setState:value=>{saved=value;},postMessage:message=>{sent.push(message);handler?.(message);}})});
   const emit=message=>listeners.message({data:message});
-  const row=id=>nodes.files.querySelector(`[data-id="${id}"]`);
-  return {nodes,document,sent,emit,row,clickCommand:button=>documentListeners.click({target:button,preventDefault(){}}),key(target,key){let prevented=false;documentListeners.keydown({target,key,preventDefault(){prevented=true;}});return prevented;},focus(target){target.focus();documentListeners.focusin({target});},blur(){listeners.blur();},get saved(){return saved;},connect(fn){handler=fn;for(const message of [...sent])fn(message);},reply(request,result){emit({type:'files.result',requestId:request.requestId,result});},click(id){nodes.files.listeners.click({target:row(id)});}};
+  return {nodes,document,sent,emit,clickCommand:button=>documentListeners.click({target:button,preventDefault(){}}),key(target,key){let prevented=false;documentListeners.keydown({target,key,preventDefault(){prevented=true;}});return prevented;},focus(target){target.focus();documentListeners.focusin({target});},blur(){listeners.blur();},get saved(){return saved;}};
 }
 module.exports={sidebarDOM};

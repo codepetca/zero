@@ -1,6 +1,6 @@
 # Zero extension
 
-Zero **0.5.31** uses core **0.2.1**. Each published download retains its
+Zero **0.5.40** uses core **0.2.1**. Each published download retains its
 bundled extension version and behavior.
 
 Run App opens a native JavaFX window. Mac 0.5.26 and other earlier downloads
@@ -8,16 +8,17 @@ retain their bundled Run behavior.
 
 Open a student folder containing `zero.json`, or the kit with its
 `student-template/zero.json`. The extension uses supported VS Code sidebar,
-webview, tree, task and command APIs. Files use Zero’s Files view or native Explorer
-and open in the normal editor. The shared Zero logo remains in the activity bar; no extra title row is added.
-Controls and Files share one continuous view; idle status is empty. After GitHub
+webview, task and command APIs. VS Code’s native Explorer owns file browsing, selection,
+active-editor tracking and file operations. The Zero controls view lives in Explorer;
+drag its heading above the file tree once if needed. VS Code remembers the layout.
+No separate Zero activity-bar container or custom file tree remains. Idle status is empty. After GitHub
 sign-in, the project menu shows the folder or owner/repository on up to two lines,
 without a duplicate username row, with a right chevron indicating the menu. Choose **GitHub account…** inside it
 for native account controls. Tutorials
 and Setup help are in its native overflow menu.
 
 Import the settings-only Zero profile first, then install the local
-**zero-0.5.31.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
+**zero-0.5.40.vsix**, `redhat.java` and `vscjava.vscode-java-debug` in that profile.
 The extension ID is **zero.zero**. **Zero: Show Sidebar** reveals the sidebar
 when the activity bar is hidden; a marked workspace reveals it on first activation.
 
@@ -58,7 +59,7 @@ alias for native Run. Windows native tasks
 use the task shell with strong wrapper-path quoting; other platforms use a
 process task. Physical Windows/Linux behavior remains unverified.
 
-**New asset…**, in the **Files ▾** dropdown, copies selected images/audio into `src/main/resources`, preserving
+**New asset…**, in the **New ▾** dropdown, copies selected images/audio into `src/main/resources`, preserving
 originals and existing assets with **Keep both** or **Skip existing**. Copy resource
 string literals with **Copy asset paths** in the same menu. **Project menu → Review or
 restore changes…** opens native changes or
@@ -102,7 +103,7 @@ a feature branch directly merges and pushes it to main. Its account, destination
 source and conflict checks still run.
 **Commit & push** proceeds from its commit-message input.
 Local Run works without sign-in. Local-practice projects continue to block GitHub
-sharing. Native VS Code owns move and hide controls for the continuous Zero view.
+sharing. Native VS Code owns move and hide controls for the Zero controls view.
 
 Sign-in uses VS Code's built-in GitHub authentication provider. It requests
 `repo` access, including private repositories, so students can choose Public or
@@ -242,7 +243,7 @@ Library authors use **Extract library** inside their existing game repository, t
 
 ## Create files from the sidebar
 
-Clicking **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
+Clicking **New ▾** opens a dropdown directly below New with **New class…**, **New file…**,
 **New folder…**, **New asset…** and **Copy asset paths** after import. A class-name prompt creates and opens an ordinary public Java
 class in `src/main/java`. File/folder actions use native Java source, Resources
 or Project files location choices, then a relative name (with `/` for nested

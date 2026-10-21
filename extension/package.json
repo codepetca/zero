@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.39",
+  "version": "0.5.40",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -258,20 +258,11 @@
         "shortTitle": "Start Page"
       }
     ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "zero",
-          "title": "Zero",
-          "icon": "media/zero.svg"
-        }
-      ]
-    },
     "views": {
-      "zero": [
+      "explorer": [
         {
           "type": "webview",
-          "id": "zero.actions",
+          "id": "zero.controls",
           "name": "Zero",
           "icon": "media/zero.svg"
         }
@@ -362,47 +353,47 @@
       "view/title": [
         {
           "command": "zero.githubAccount",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-account@1"
         },
         {
           "command": "zero.chooseRepository",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-project@1"
         },
         {
           "command": "zero.exportWeb",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-web@1"
         },
         {
           "command": "zero.copyPublishedWebLink",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-web@2"
         },
         {
           "command": "zero.openPublishedWeb",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-web@3"
         },
         {
           "command": "zero.openFirstLesson",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-help@1"
         },
         {
           "command": "zero.showSetup",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-help@2"
         },
         {
           "command": "zero.startPage",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-help@0"
         },
         {
           "command": "zero.showOutput",
-          "when": "view == zero.actions",
+          "when": "view == zero.controls",
           "group": "zero-help@3"
         }
       ]

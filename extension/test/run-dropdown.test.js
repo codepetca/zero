@@ -19,17 +19,17 @@ test('Run options supports arrow keys, Escape, Tab and mutually exclusive Files/
  h.clickCommand(h.trigger);h.clickCommand(h.nodes['files-menu-button']);assert.equal(h.menu.hidden,true);assert.equal(h.nodes['files-menu'].hidden,false);
  h.clickCommand(h.trigger);assert.equal(h.nodes['files-menu'].hidden,true);assert.equal(h.menu.hidden,false);
 });
-test('busy controls cannot open or publish; outside focus, blur and project reset dismiss Run options',()=>{
+test('busy controls cannot open or publish; outside focus, blur dismiss Run options',()=>{
  const h=fixture();h.trigger.disabled=true;h.clickCommand(h.trigger);h.key(h.trigger,'ArrowDown');assert.equal(h.menu.hidden,true);
  h.publish.disabled=true;h.clickCommand(h.publish);assert.equal(h.sent.some(message=>message.command),false);
- for(const dismiss of [h=>h.clickCommand(h.nodes.controls),h=>h.focus(h.nodes.files),h=>h.blur(),h=>h.emit({type:'files.reset'})]) {
+ for(const dismiss of [h=>h.clickCommand(h.nodes.controls),h=>h.focus(h.nodes['run-status']),h=>h.blur()]) {
   const f=fixture();f.clickCommand(f.trigger);dismiss(f);assert.equal(f.menu.hidden,true);assert.equal(f.trigger.getAttribute('aria-expanded'),'false');
  }
 });
-test('status-only updates keep Run options open; changed controls close it without replacing the tree',()=>{
+test('status-only updates keep Run options open; changed controls close it without replacing the status region',()=>{
  const h=fixture();h.emit({type:'sidebar.update',controls:'ready',status:'',failed:false});h.clickCommand(h.trigger);
  h.emit({type:'sidebar.update',controls:'ready',status:'Ready',failed:false});assert.equal(h.menu.hidden,false);
- const tree=h.nodes.files;h.emit({type:'sidebar.update',controls:'busy',status:'Building',failed:false});assert.equal(h.menu.hidden,true);assert.equal(h.nodes.files,tree);
+ const tree=h.nodes['run-status'];h.emit({type:'sidebar.update',controls:'busy',status:'Building',failed:false});assert.equal(h.menu.hidden,true);assert.equal(h.nodes['run-status'],tree);
 });
 test('a busy refresh moves focus from Publish to Stop when its dropdown becomes disabled',()=>{
  const h=fixture(),stop=h.document.createElement('button');stop.dataset.command='zero.toggleApp';h.nodes.controls.append(stop);

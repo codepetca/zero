@@ -171,9 +171,9 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   };await settle(()=>authCalls.length>0 && /GitHub setup/.test(webview.html));
   assert.match(webview.html,/GitHub setup/);assert.doesNotMatch(webview.html,/data-command="zero.uploadToGitHub"|data-command="zero.createRepository"/);
   await settle(()=>webview.html.includes('id="files-menu-button"'));
-  assert.match(webview.html,/id="files-menu-button"[^>]*>Files/);
-  assert.doesNotMatch(webview.html,/data-command="zero.recovery"/);
-  assert.match(webview.html,/<div class="files-header">[\s\S]*id="files-menu-button"/);
+  assert.match(webview.html,/id="files-menu-button"[^>]*>New/);
+  assert.doesNotMatch(webview.html,/data-command="zero.recovery"|role="tree"|id="files"|files\.list/);
+  assert.match(webview.html,/<div id="file-actions" class="file-actions">[\s\S]*id="files-menu-button"/);
   assert.equal(typeof commands.get('zero.importAssets'),'function');assert.equal(typeof commands.get('zero.recovery'),'function');
   assert.doesNotMatch(webview.html,/zero.checkForUpdates|zero.updateSettings/,'Native update commands stay out of the sidebar');
   assert.match(webview.html,/data-command="zero.startPage"[^>]*>GitHub setup/);
@@ -270,10 +270,12 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   assert.equal(gitChanges,0);assert.ok(webview.html.includes('zero.toggleApp'),'Local Run is always available');
 });
 
-test("Zero controls and Files share one supported view with minimal overflow",()=>{
+test("Zero controls live in native Explorer with minimal overflow",()=>{
   const manifest=require("../package.json");
-  assert.deepEqual(manifest.contributes.views.zero.map(view=>view.id),["zero.actions"]);
-  assert.equal(manifest.contributes.views.zero[0].name,"Zero");
+  assert.deepEqual(manifest.contributes.views.explorer.map(view=>view.id),["zero.controls"]);
+  assert.equal(manifest.contributes.views.explorer[0].name,"Zero");
+  assert.equal(manifest.contributes.viewsContainers,undefined);
+  assert.ok(manifest.contributes.menus["view/title"].every(item=>item.when === "view == zero.controls"));
   assert.deepEqual(manifest.contributes.menus["view/title"].map(item=>item.command),["zero.githubAccount","zero.chooseRepository","zero.exportWeb","zero.copyPublishedWebLink","zero.openPublishedWeb","zero.openFirstLesson","zero.showSetup","zero.startPage","zero.showOutput"]);
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startChange").title,"Zero: New Branch");
   assert.equal(manifest.contributes.commands.find(item=>item.command==="zero.startProject").title,"Zero: Start Tutorial");

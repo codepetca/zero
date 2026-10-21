@@ -1,18 +1,19 @@
-# Publish saves source before deploying — local implementation, 2026-10-21
+# Publish commit/push — Mac0.5.41 release in progress
 
-Local branch `codex/publish-save-deploy`; reviewed source `264ebcd7` based on
-`9ad376d9`. Publish saves files, commits only when needed, pushes unuploaded main,
-then deploys the exact verified version. Already uploaded main skips upload.
-Change branches get Merge to main guidance; cancellation/failure stops deployment.
-Verified live results retain Open app/Copy playable link and log the actual URL.
+Owner explicitly authorized merge and release on2026-10-21. Worktree branch
+`codex/publish-save-deploy`; current integration base is origin/main70a72b04,
+which includes the released native Explorer Mac0.5.40. Source264ebcd7 has complete
+initial safety/compatibility and targeted cancellation-fix reviews. Main sync,
+new version41, exact-source CI and release candidate review remain pending.
 
-Checks and independent review complete; see docs/EVIDENCE.md and
-`docs/VERIFICATION.md`. Final81 UI/native upload tests, prior103 affected tests,
-45 publisher regression +1 new preflight,50 integration checks, configuration and
-whitespace pass. Counts overlap. Independent Sol/high initial safety/compatibility
-reviews plus targeted remediation review:3turns,1accepted P2 fixed,0open findings.
+Publish saves files, commits only when needed, pushes unuploaded main, then
+deploys the exact version. Change branches get Merge to main guidance. Verified
+live results retain Open app/Copy playable link and log the URL.81UI/native upload,
+103affected,45publisher+1preflight and50integration checks passed before main sync;
+counts overlap. Receipts: `.verification/publish-save-deploy/`.
 
-Local source only; no push, merge, installer release, deployment or account change.
-Native VS Code interaction, live GitHub Pages and physical Windows remain untested.
-Task receipts: `.verification/publish-save-deploy/`. Original checkout preserved.
-Earlier released-state evidence remains in docs/EVIDENCE.md.
+Next: verify integration/version delta, source PR/CI/merge, signed/notarized sealed
+Mac41, verified public DMG and feed promotion. Preserve previous immutable assets,
+primary funding work and credentials. No native editor launch after prior Code
+Key popup; user will try the release. Physical Windows/provider flows untested.
+Prior release evidence remains in docs/EVIDENCE.md.

@@ -13,11 +13,11 @@ to GitHub. Browser publication and ZeroHub contributions extend that learning;
 they are optional for completing the lessons. Keep ordinary Java and explicit
 object updates central as setup, publishing and community features grow.
 
-Mac 0.5.39 includes a split Run control: the main button runs locally and its
+Mac 0.5.40 includes a split Run control: the main button runs locally and its
 arrow opens **Publish app** for connected, ready projects. Stop the app before
 publishing; the arrow is unavailable while running or stopping.
 
-Current delivery, checked 2026-10-21: Mac 0.5.39 ships the Files creation dropdown, native Run App, Start Page sign-in
+Current delivery, checked 2026-10-21: Mac 0.5.40 ships native Explorer and the teaching New dropdown, native Run App, Start Page sign-in
 and GitHub setup. Windows remains the unsigned 0.5.21
 preview and matching manual ZIP, with updates disabled and physical acceptance
 pending. The general manual kit fallback remains 0.5.17. Source availability,
@@ -48,7 +48,7 @@ centered full-viewport layout. The old `/get-started` address redirects to Downl
 Browsing, learning and playing require no GitHub sign-in. Current desktop
 source uses one public Codepet-owned GitHub App for development and optional
 ZeroHub stars. Codepet Zero is registered under `codepetca`, and its public App
-IDs are pinned in source. Mac 0.5.39 includes this source; remaining live-provider
+IDs are pinned in source. Mac 0.5.40 includes this source; remaining live-provider
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
@@ -56,16 +56,16 @@ Current source opens a native **Zero Start Page** for onboarding and project
 selection. Current source contains **Start tutorial**, a **Tutorials** link to the
 existing reader, **Project ▾ → New / Clone / Open**, account-scoped recent projects
 and guided GitHub setup. Tutorials and opening local work remain available without
-sign-in; New and Clone retain their GitHub access checks. Mac0.5.39 ships these controls.
+sign-in; New and Clone retain their GitHub access checks. Mac0.5.40 ships these controls.
 An empty Zero window opens it automatically; existing student editors stay
 untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
-The sidebar retains project development: native Run/Stop, Files, contextual
+The Explorer sidebar hosts a Zero controls view for native Run/Stop, teaching helpers, contextual
 repository/branch/push actions and ZeroHub. Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
 project remain available without signing in. Current source opens tutorial, new,
 cloned, local and recent projects in the current VS Code window, with the editor
-owning unsaved-work handling. Mac0.5.39 includes this window-opening behavior.
-Mac0.5.39 also keeps an open Zero Start Page tab available when switching
+owning unsaved-work handling. Mac0.5.40 includes this window-opening behavior.
+Mac0.5.40 also keeps an open Zero Start Page tab available when switching
 projects, alongside the destination's code and tutorial tabs.
 
 The Start Page guides students through **Sign in to GitHub** →
@@ -347,8 +347,10 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
 
 - Preserve the current panel height, with the shared Zero mark in the existing
   activity-bar/view icon. VS Code owns the native title; no content heading is added.
-- One continuous Zero view contains one Run/Stop button, repository actions and Files,
-  without extra GitHub/ZeroHub headings or a separate collapsible controls row.
+- The native Explorer handles all file browsing, selection, editor tracking and file operations.
+  A Zero view in the same Explorer container holds Run/Stop, repository actions and teaching helpers,
+  without extra GitHub/ZeroHub headings. VS Code owns the view order: drag Zero above the file tree
+  once if needed; the editor remembers it. No private layout commands or state edits are used.
   Idle status is empty; app progress/errors
   appear when there is a message. Signed-out GitHub controls show only Sign in;
   the project dropdown and branch are hidden, and local Run/files remain usable.
@@ -369,13 +371,13 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   remains visibly labeled. ZeroHub offers Browse (Projects on
   the website, or native library browsing) and signed-in Share project for original
   work. Tutorial repositories use GitHub normally but are not original ZeroHub contributions. Tutorials and Setup help live in the native view
-  overflow; Copy repository link lives in the repository menu. **Files ▾** opens a dropdown directly below Files with **New class…**, **New file…**,
+  overflow; Copy repository link lives in the repository menu. **New ▾** opens a dropdown in the Zero controls with **New class…**, **New file…**,
   **New folder…**, **New asset…** and **Copy asset paths** after import. New class
   creates an ordinary public class beside Main; files/folders choose Java source,
   Resources or Project files using native prompts. Routine text inputs show one short
   label with no explanatory or confirm/cancel footer; validation errors appear as needed. Relative names can create
   subfolders. Existing entries are preserved, cancellation makes no changes, and
-  creation refreshes Files and opens new files in the normal editor.
+  the native Explorer notices created files and new files open in the normal editor.
   **Review or restore changes…** in the project menu opens the existing native
   review, discard and file-history choices. There is no separate tools row. Supported VS Code
   user controls can still move/hide views. There is no team/PR mode.
@@ -429,14 +431,14 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   last project. Manual checks/settings are available in the Mac app menu and
   Command Palette. Existing0.5.14 needs one manual replacement to gain updating;
   school policies may still require administrator approval. A loaded extension
-  may require a student-chosen editor reload in earlier downloads. Mac0.5.39
+  may require a student-chosen editor reload in earlier downloads. Mac0.5.40
   lets **Install and Relaunch** reopen Zero and verify the updated extension.
   Its isolated Zero editor windows reload when idle through VS Code's native
   Reload Window command, retaining normal unsaved-buffer safeguards. Running apps
   and Zero operations defer reload; ordinary Code profiles are untouched.
   Upgrading from0.5.33 or earlier still needs one manual Zero reopen/editor reload
   because those installed updaters contain the previous handoff.
-  Signed/notarized Mac0.5.39 is published; Windows0.5.21 is a published unsigned
+  Signed/notarized Mac0.5.40 is published; Windows0.5.21 is a published unsigned
   preview with automatic updates disabled. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts
   with Preparing Zero and automatically places or updates installer files while
@@ -622,7 +624,7 @@ pins. See [the adoption plan](GITHUB-SHARING-PLAN.md) and
 
 ## Tutorial-first installation — 2026-10-19
 
-Mac 0.5.39 opens the Zero Start Page in an empty editor window with the sequence
+Mac 0.5.40 opens the Zero Start Page in an empty editor window with the sequence
 Sign in to GitHub → Install Zero for GitHub → Start tutorial. A saved session is
 checked read-only on launch. The clone opens Main beside Tutorials. Existing
 student sessions resume normally. The completed bundled Hello World project is
@@ -648,4 +650,4 @@ Codepet App installation and recognizes bounded root/legacy zero.json markers.
 Results load progressively; selection, Escape, disposal or account drift cancels
 pending requests. A20-second discovery budget and bounded pagination keep the
 picker usable; truncated or unavailable results retain the URL fallback. Existing
-clone/account/destination guards remain. Mac0.5.39 ships this picker; earlier downloads retain their bundled clone flow.
+clone/account/destination guards remain. Mac0.5.40 ships this picker; earlier downloads retain their bundled clone flow.
