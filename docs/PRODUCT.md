@@ -414,7 +414,13 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   last project. Manual checks/settings are available in the Mac app menu and
   Command Palette. Existing0.5.14 needs one manual replacement to gain updating;
   school policies may still require administrator approval. A loaded extension
-  may require a student-chosen editor reload; no forced reload is performed.
+  may require a student-chosen editor reload in earlier downloads. New Mac0.5.34
+  source lets **Install and Relaunch** reopen Zero and verify the updated extension.
+  Its isolated Zero editor windows reload when idle through VS Code's native
+  Reload Window command, retaining normal unsaved-buffer safeguards. Running apps
+  and Zero operations defer reload; ordinary Code profiles are untouched.
+  Upgrading from0.5.33 or earlier still needs one manual Zero reopen/editor reload
+  because those installed updaters contain the previous handoff.
   Signed/notarized Mac0.5.33 is published; Windows0.5.21 is a published unsigned
   preview with automatic updates disabled. Native setup uses a `Zero` folder
   in the user’s home with no location/name picker. Current native source starts

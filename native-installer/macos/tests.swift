@@ -125,11 +125,26 @@ struct SetupTests {
         try expect(policy.commitTermination(helperActive: false) && !policy.mayBeginSetup, "termination commit prevents all later setup")
         var manual = UpdateLifecycle(); manual.manualCheck = true; manual.updateUI = true; manual.cycleFinished = true
         try expect(!manual.shouldTerminate(now: 100000, helperActive: false), "manual no-update result survives until dismissal")
-        var prepared = manual; prepared.installationCommitted = true; prepared.terminationDeferred = true
-        try expect(!prepared.shouldTerminate(now: 100000, helperActive: true) && !prepared.mayBeginSetup, "prepared manual installation freezes new helpers and waits for current helper")
-        try expect(prepared.shouldTerminate(now: 100000, helperActive: false), "prepared manual installation quits without invoking a relaunch handler")
-        prepared.modalUI = true
-        try expect(!prepared.shouldTerminate(now: 100000, helperActive: false), "deferred installation never dismisses modal authorization")
+        var prepared = manual; prepared.installationCommitted = true
+        var continuation = UpdateRelaunchContinuation(); var resumed = 0
+        try expect(continuation.postpone(until: { resumed += 1 }, lifecycle: prepared, helperActive: true), "manual relaunch waits for active helper")
+        try expect(!prepared.mayBeginSetup && !prepared.mayContinueSetup, "prepared installation freezes new setup")
+        try expect(!prepared.shouldTerminate(now: 100000, helperActive: false), "manual relaunch never uses normal idle termination")
+        try expect(continuation.takeIfReady(lifecycle: prepared, helperActive: true) == nil, "helper blocks continuation")
+        prepared.launching = true
+        try expect(prepared.mayContinueSetup && !prepared.mayBeginSetup, "existing launch can finish while new launches stay blocked")
+        try expect(continuation.takeIfReady(lifecycle: prepared, helperActive: false) == nil, "launch transition blocks continuation")
+        prepared.launching = false; prepared.modalUI = true
+        try expect(continuation.takeIfReady(lifecycle: prepared, helperActive: false) == nil, "modal authorization blocks continuation")
+        prepared.modalUI = false
+        continuation.takeIfReady(lifecycle: prepared, helperActive: false)?()
+        continuation.takeIfReady(lifecycle: prepared, helperActive: false)?()
+        try expect(resumed == 1, "idle resumes Sparkle continuation exactly once")
+        try expect(!continuation.postpone(until: { resumed += 1 }, lifecycle: prepared, helperActive: false), "idle installation proceeds directly through Sparkle")
+        try expect(continuation.takeIfReady(lifecycle: prepared, helperActive: false) == nil && resumed == 1, "direct path does not retain or invoke handler")
+        try expect(continuation.postpone(until: { resumed += 1 }, lifecycle: prepared, helperActive: true), "another prepared continuation can wait")
+        continuation.cancel()
+        try expect(continuation.takeIfReady(lifecycle: prepared, helperActive: false) == nil && resumed == 1, "failed cycle discards continuation")
         manual.updateUI = false
         try expect(manual.shouldTerminate(now: 100000, helperActive: false), "manual result dismissal permits exit")
         var settings = UpdateLifecycle(); settings.settingsVisible = true; settings.cycleFinished = true
@@ -161,7 +176,9 @@ struct SetupTests {
             delegate.launchForTesting = { launches += 1 }; delegate.handleRequestForTesting = { requests.append($0) }
             if early { delegate.application(app, open: [URL(string: NativeUpdateRequest.settings.rawValue)!]) }
             delegate.applicationDidFinishLaunching(Notification(name: NSApplication.didFinishLaunchingNotification))
-            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            var launchCallbackDrained = false
+            DispatchQueue.main.async { launchCallbackDrained = true }
+            try pump(until: { launchCallbackDrained })
             if !early { delegate.application(app, open: [URL(string: NativeUpdateRequest.settings.rawValue)!]) }
             try expect(launches == 0 && requests == [.settings], "cold URL skips setup regardless of AppleEvent ordering")
             delegate.application(app, open: [URL(string: NativeUpdateRequest.check.rawValue)!])
@@ -619,6 +636,26 @@ struct SetupTests {
         let argumentRuntime = try MacRuntime(kit: runtimeKit.root, home: temporary.appendingPathComponent("argument home"))
         try expect(argumentRuntime.editorArguments(resuming: false) == argumentRuntime.isolated + ["--new-window"], "first runtime opening selects empty window and separate Zero environment")
         try expect(argumentRuntime.editorArguments(resuming: true) == argumentRuntime.isolated, "resume uses separate Zero environment and lets VS Code restore session")
+        let updateMarker = argumentRuntime.root.appendingPathComponent("editor/update-ready.json")
+        try MacRuntime.mkdir(updateMarker.deletingLastPathComponent())
+        try expect(!manager.fileExists(atPath: updateMarker.path), "constructing runtime does not publish update readiness")
+        try argumentRuntime.publishEditorUpdate()
+        let firstMarker = try JSONSerialization.jsonObject(with: Data(contentsOf: updateMarker)) as! [String: Any]
+        try expect(Set(firstMarker.keys) == ["schema", "version", "requestId"] && firstMarker["schema"] as? Int == 1 && firstMarker["version"] as? String == "1.2.3", "update marker records exact bundled version and strict schema")
+        try expect(UUID(uuidString: firstMarker["requestId"] as? String ?? "") != nil, "update marker carries a fresh request UUID")
+        try argumentRuntime.publishEditorUpdate()
+        let secondMarker = try JSONSerialization.jsonObject(with: Data(contentsOf: updateMarker)) as! [String: Any]
+        try expect(secondMarker["requestId"] as? String != firstMarker["requestId"] as? String, "each verified opening requests a fresh reload")
+        for text in ["student file", "{", "{\"schema\":1,\"version\":\"1.2.3\",\"requestId\":\"invalid\"}", "{\"schema\":1,\"version\":\"1.2.3\",\"requestId\":\"00000000-0000-0000-0000-000000000000\",\"extra\":true}"] {
+            try text.write(to: updateMarker, atomically: true, encoding: .utf8)
+            try rejected("foreign or malformed update marker") { try argumentRuntime.publishEditorUpdate() }
+            try expect(try String(contentsOf: updateMarker) == text, "unrecognized update marker bytes preserved")
+        }
+        let markerOutside = temporary.appendingPathComponent("outside update marker")
+        try "student update marker".write(to: markerOutside, atomically: true, encoding: .utf8)
+        try manager.removeItem(at: updateMarker); try manager.createSymbolicLink(at: updateMarker, withDestinationURL: markerOutside)
+        try rejected("linked update marker") { try argumentRuntime.publishEditorUpdate() }
+        try expect(try String(contentsOf: markerOutside) == "student update marker", "linked update marker never writes outside private profile")
         let runtimeHome = temporary.appendingPathComponent("private runtime home")
         try MacRuntime.mkdir(runtimeHome)
         var runtime = try MacRuntime(kit: runtimeKit.root, home: runtimeHome)

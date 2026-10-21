@@ -66,8 +66,8 @@ try {
   const publicED = publicRaw.toString('base64');
   const config = {schema:1,buildNumber:2,feedURL:updaterFeedURL,publicKey:publicED,sparkle:sparklePin};
   // Keep all extraction/cache mutations inside this unique fixture evidence folder.
-  const pinArchive = path.join(root,`.verification/sparkle-${sparklePin.version}/Sparkle-${sparklePin.version}.tar.xz`);
-  const fixtureArchive = path.join(output,`.verification/sparkle-${sparklePin.version}/Sparkle-${sparklePin.version}.tar.xz`);
+  const pinArchive = path.join(root,`.verification/sparkle-cache/${sparklePin.sha256}/Sparkle.tar.xz`);
+  const fixtureArchive = path.join(output,`.verification/sparkle-cache/${sparklePin.sha256}/Sparkle.tar.xz`);
   if (existsSync(pinArchive)) { mkdirSync(path.dirname(fixtureArchive),{recursive:true}); cpSync(pinArchive,fixtureArchive); }
   distribution = acquireSparkle(run,output,config);
   receipt.sparkle = distribution.source;
@@ -96,7 +96,7 @@ try {
     cpSync(compiled,path.join(contents,'MacOS/ZeroSetup'));
     const framework = copySparkleFramework(distribution,contents);
     // No URL types: launching this fixture cannot become the production scheme handler.
-    const plist = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>CFBundleName</key><string>Zero Update Fixture</string><key>CFBundleIdentifier</key><string>${domain}</string><key>CFBundleExecutable</key><string>ZeroSetup</string><key>CFBundlePackageType</key><string>APPL</string><key>CFBundleVersion</key><string>${build}</string><key>CFBundleShortVersionString</key><string>${version}</string><key>LSMinimumSystemVersion</key><string>12.0</string><key>NSPrincipalClass</key><string>NSApplication</string><key>ZeroDevelopmentBuild</key><false/><key>SUFeedURL</key><string>${origin}/appcast.xml</string><key>SUPublicEDKey</key><string>${publicED}</string><key>SUEnableAutomaticChecks</key><true/><key>SUAutomaticallyUpdate</key><true/><key>SUVerifyUpdateBeforeExtraction</key><true/><key>SURequireSignedFeed</key><true/><key>SUSignedFeedFailureExpirationInterval</key><integer>0</integer><key>SUScheduledCheckInterval</key><integer>86400</integer><key>SUEnableSystemProfiling</key><false/><key>SUEnableJavaScript</key><false/><key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/><key>NSAllowsArbitraryLoads</key><true/></dict></dict></plist>`;
+    const plist = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>CFBundleName</key><string>Zero Update Fixture</string><key>CFBundleIdentifier</key><string>${domain}</string><key>CFBundleExecutable</key><string>ZeroSetup</string><key>CFBundlePackageType</key><string>APPL</string><key>CFBundleVersion</key><string>${build}</string><key>CFBundleShortVersionString</key><string>${version}</string><key>LSMinimumSystemVersion</key><string>12.0</string><key>NSPrincipalClass</key><string>NSApplication</string><key>ZeroDevelopmentBuild</key><false/><key>ZeroUpdaterFixtureHandoff</key><true/><key>SUFeedURL</key><string>${origin}/appcast.xml</string><key>SUPublicEDKey</key><string>${publicED}</string><key>SUEnableAutomaticChecks</key><true/><key>SUAutomaticallyUpdate</key><true/><key>SUVerifyUpdateBeforeExtraction</key><true/><key>SURequireSignedFeed</key><true/><key>SUSignedFeedFailureExpirationInterval</key><integer>0</integer><key>SUScheduledCheckInterval</key><integer>86400</integer><key>SUEnableSystemProfiling</key><false/><key>SUEnableJavaScript</key><false/><key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/><key>NSAllowsArbitraryLoads</key><true/></dict></dict></plist>`;
     writeFileSync(path.join(contents,'Info.plist'),plist);
     signSparkleFramework(run,framework,identity);
     run('/usr/bin/codesign',['--force','--options','runtime','--timestamp','--sign',identity,app]);
@@ -142,10 +142,20 @@ try {
     child.stdout.on('data', bytes => { stream.push(bytes.toString()); writeFileSync(destination,bytes,{flag:'a'}); }); child.stderr.on('data', bytes => { stream.push(bytes.toString()); writeFileSync(destination,bytes,{flag:'a'}); });
     return {pid:child.pid, exited:()=>child.exitCode !== null || child.signalCode !== null, text:()=>stream.join('')};
   };
+  const fixturePIDs = () => {
+    const listing = spawnSync('/bin/ps',['-axo','pid=,comm='],{encoding:'utf8'});
+    assert.equal(listing.status,0);
+    return listing.stdout.split('\n').flatMap(line => {
+      const match = line.match(/^\s*(\d+)\s+(.+)$/);
+      return match && match[2] === path.join(installed,'Contents/MacOS/ZeroSetup') ? [Number(match[1])] : [];
+    });
+  };
   if (manualMode) {
     // Explicit target plus --update-request protects both existing and new-app delivery.
     // The fixture declares no URL types and never becomes a scheme default.
     run('/usr/bin/open',['-n','--stdout',path.join(output,'manual.log'),'--stderr',path.join(output,'manual-errors.log'),'-a',installed,'zero-updates://check','--args','--update-request']);
+    await waitFor(()=>fixturePIDs().length === 1,10000,'manual A process');
+    const initialPID=fixturePIDs()[0], handoffFile=path.join(path.dirname(installed),'handoff-3.json');
     const stopFile=path.join(output,'stop-manual'), expiresAt=new Date(Date.now()+300000).toISOString();
     writeFileSync(path.join(output,'manual-ready.json'),JSON.stringify({installed,origin,stopFile,expiresAt,bundleIdentifier:domain,expectedBuild:3},null,2));
     log(`Manual UI ready; interact with Zero Update Fixture, bounded until ${expiresAt}; create ${stopFile} to stop.`);
@@ -153,13 +163,16 @@ try {
     if (existsSync(stopFile)) { receipt.results.manualUpgrade={passed:false,stopped:true}; receipt.passed=false; }
     else {
       assert.deepEqual(treeManifest(installed),expectedB); assert.deepEqual(treeManifest(student),studentBefore); process.kill(editorDummy.pid,0);
-      await sleep(2500);
-      const remaining=spawnSync('/bin/ps',['-axo','pid=,comm='],{encoding:'utf8'});
-      assert.equal(remaining.status,0); assert.ok(!remaining.stdout.includes(`${installed}/Contents/MacOS/ZeroSetup`),'Manual replacement must not relaunch app');
-      receipt.results.manualUpgrade={passed:true,finalBuild:3,studentFilesUnchanged:true,dummyEditorSurvived:true,automaticRelaunch:false,requests:[...requests]}; receipt.passed=true;
+      await waitFor(()=>existsSync(handoffFile),45000,'B cold launch reaches native handoff');
+      const handoff=JSON.parse(readFileSync(handoffFile,'utf8'));
+      assert.deepEqual(Object.keys(handoff).sort(),['build','ordinaryColdLaunch','pid','schema']);
+      assert.equal(handoff.schema,1); assert.equal(handoff.build,'3'); assert.equal(handoff.ordinaryColdLaunch,true);
+      assert.ok(Number.isInteger(handoff.pid) && handoff.pid > 0 && handoff.pid !== initialPID,'Manual replacement launches a new B process');
+      assert.deepEqual(treeManifest(installed),expectedB); assert.deepEqual(treeManifest(student),studentBefore); process.kill(editorDummy.pid,0);
+      receipt.results.manualUpgrade={passed:true,initialPID,finalBuild:3,relaunchedPID:handoff.pid,nativeHandoff:handoff,studentFilesUnchanged:true,dummyEditorSurvived:true,automaticRelaunch:true,requests:[...requests]}; receipt.passed=true;
       receipt.limits=receipt.limits.filter(limit=>!limit.startsWith('Manual standard UI,'));
       receipt.limits.push('Authorization, read-only DMG launch, managed Mac, Intel, macOS 12 and repeated real editor handoff remain untested.');
-      log('PASS: manual standard UI installed exact signed/notarized B');
+      log('PASS: manual standard UI installed exact signed/notarized B and relaunched a new B process through native handoff');
     }
   } else {
   log('Running real automatic A → B Sparkle replacement');

@@ -258,8 +258,17 @@ to gain automatic updating. The launcher opens the configured editor first,
 then performs a due background update check. A prepared update replaces only
 Zero.app after Zero's setup helpers finish; the editor is not terminated.
 Owned kit support files prepare on the next launch, preserving student work.
-An already-running editor may need a student-chosen reload to activate a newly
-installed Zero extension.
+Mac0.5.34 source restores manual **Install and Relaunch**: Sparkle reopens the new
+Zero app, which updates and verifies its kit/extension before opening the saved
+editor session. A fixed atomic marker in the private Zero editor directory asks
+older loaded Zero extensions from0.5.34 onward to reload their own idle window.
+It carries only schema, version and request ID; it cannot select commands or paths.
+Running apps/Zero operations defer reload. The native Reload Window command keeps
+VS Code's normal dirty-buffer/Hot Exit safeguards; Zero never quits Code or saves
+student files for this step. Ordinary profiles do not consume the marker.
+Silent automatic installation on quit still waits for the next ordinary launch.
+Existing0.5.33 and earlier updaters retain their old bytes: after this first
+upgrade, reopen Zero and reload the editor once to gain the corrected handoff.
 
 `release/mac-updater.json` contains only public trust/dependency configuration
 and the strictly increasing native build number. Production enables signed feeds

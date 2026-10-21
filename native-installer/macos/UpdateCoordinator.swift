@@ -41,6 +41,11 @@ struct UpdateLifecycle {
     private(set) var terminationCommitted = false
 
     var mayBeginSetup: Bool { !installationCommitted && !terminationCommitted }
+    // Finish the launch already in progress before committing Sparkle's relaunch.
+    var mayContinueSetup: Bool { !terminationCommitted && (!installationCommitted || launching) }
+    func mayResumeRelaunch(helperActive: Bool) -> Bool {
+        !helperActive && !launching && !modalUI && !terminationCommitted
+    }
     static func checkIsDue(enabled: Bool, lastCheck: Date?, interval: TimeInterval, now: Date) -> Bool {
         enabled && (lastCheck.map { now.timeIntervalSince($0) >= max(0, interval) } ?? true)
     }
@@ -51,8 +56,8 @@ struct UpdateLifecycle {
     }
     func shouldTerminate(now: TimeInterval, helperActive: Bool) -> Bool {
         guard !helperActive, !launching, !terminationCommitted, !modalUI else { return false }
-        // A prepared manual install explicitly requested normal termination. Its
-        // former update window is no longer an interaction that can be interrupted.
+        // Sparkle may retry termination after an already committed installation
+        // was temporarily blocked by a helper.
         if terminationDeferred { return true }
         guard !settingsVisible, !updateUI else { return false }
         if installationCommitted { return false }
@@ -65,6 +70,24 @@ struct UpdateLifecycle {
         terminationCommitted = true
         return true
     }
+}
+
+/// Retains Sparkle's continuation only while existing setup work must finish.
+/// Taking it before invoking prevents duplicate timer callbacks from restarting it.
+struct UpdateRelaunchContinuation {
+    private var pending: (() -> Void)?
+    mutating func postpone(until handler: @escaping () -> Void, lifecycle: UpdateLifecycle, helperActive: Bool) -> Bool {
+        guard !lifecycle.mayResumeRelaunch(helperActive: helperActive) else { return false }
+        pending = handler
+        return true
+    }
+    mutating func takeIfReady(lifecycle: UpdateLifecycle, helperActive: Bool) -> (() -> Void)? {
+        guard lifecycle.mayResumeRelaunch(helperActive: helperActive) else { return nil }
+        let handler = pending
+        pending = nil
+        return handler
+    }
+    mutating func cancel() { pending = nil }
 }
 
 /// Sparkle owns and persists these preferences. Zero writes them only on a click.
@@ -116,6 +139,7 @@ final class UpdateCoordinator: NSObject, SPUUpdaterDelegate, SPUStandardUserDriv
     private let terminate: () -> Void
     private var terminationRequested = false
     private var started = false
+    private var relaunchContinuation = UpdateRelaunchContinuation()
 
 
     init(helperActive: @escaping () -> Bool, terminate: @escaping () -> Void) {
@@ -125,6 +149,7 @@ final class UpdateCoordinator: NSObject, SPUUpdaterDelegate, SPUStandardUserDriv
     }
     deinit { timer?.invalidate() }
     var mayBeginSetup: Bool { lifecycle.mayBeginSetup && !terminationRequested }
+    var mayContinueSetup: Bool { lifecycle.mayContinueSetup && !terminationRequested }
     var requiresForeground: Bool { lifecycle.manualCheck || lifecycle.settingsVisible || lifecycle.updateUI || lifecycle.modalUI }
     func beginLaunching() -> Bool {
         guard mayBeginSetup else { return false }
@@ -194,6 +219,11 @@ final class UpdateCoordinator: NSObject, SPUUpdaterDelegate, SPUStandardUserDriv
         RunLoop.main.add(timer!, forMode: .common)
     }
     private func tick() {
+        if let resume = relaunchContinuation.takeIfReady(lifecycle: lifecycle, helperActive: helperActive()) {
+            trace("relaunch-resumed")
+            resume()
+            return
+        }
         guard !terminationRequested, lifecycle.shouldTerminate(now: ProcessInfo.processInfo.systemUptime, helperActive: helperActive()) else { return }
         terminationRequested = true
         trace(lifecycle.installOnQuit || lifecycle.terminationDeferred ? "quit-to-install" : "finished")
@@ -209,17 +239,15 @@ final class UpdateCoordinator: NSObject, SPUUpdaterDelegate, SPUStandardUserDriv
     func updater(_ updater: SPUUpdater, mayPerform updateCheck: SPUUpdateCheck) throws {
         guard !helperActive(), !lifecycle.launching, lifecycle.mayBeginSetup else { throw NSError(domain: "ca.codepet.zero.updates", code: 1, userInfo: [NSLocalizedDescriptionKey: "Please wait for Zero preparation to finish."]) }
     }
-    // In Sparkle 2.10 returning false here cancels the manual installation itself.
-    // Intercept the prepared relaunch below and quit normally instead.
+    // Sparkle 2.10 cancels installation if this returns false.
     func updaterShouldRelaunchApplication(_ updater: SPUUpdater) -> Bool { true }
     func updater(_ updater: SPUUpdater, shouldPostponeRelaunchForUpdate item: SUAppcastItem, untilInvokingBlock installHandler: @escaping () -> Void) -> Bool {
         lifecycle.installationCommitted = true
-        lifecycle.terminationDeferred = true
-        trace("relaunch-intercepted")
-        DispatchQueue.main.async { [weak self] in self?.tick() }
-        // The prepared installer observes normal app termination and installs on quit.
-        // Do not invoke installHandler, which asks Sparkle to relaunch this app.
-        return true
+        let postponed = relaunchContinuation.postpone(until: installHandler, lifecycle: lifecycle, helperActive: helperActive())
+        trace(postponed ? "relaunch-postponed" : "relaunch-ready")
+        // Returning false lets Sparkle install and relaunch normally. When busy,
+        // tick invokes Sparkle's continuation after the existing work finishes.
+        return postponed
     }
     func allowedChannels(for updater: SPUUpdater) -> Set<String> { [] }
     func updater(_ updater: SPUUpdater, willInstallUpdateOnQuit item: SUAppcastItem, immediateInstallationBlock immediateInstallHandler: @escaping () -> Void) -> Bool {
@@ -233,7 +261,10 @@ final class UpdateCoordinator: NSObject, SPUUpdaterDelegate, SPUStandardUserDriv
     }
     func updater(_ updater: SPUUpdater, didFinishUpdateCycleFor updateCheck: SPUUpdateCheck, error: Error?) {
         lifecycle.cycleFinished = true
-        if error != nil { lifecycle.installationCommitted = false; lifecycle.installOnQuit = false }
+        if error != nil {
+            relaunchContinuation.cancel()
+            lifecycle.installationCommitted = false; lifecycle.installOnQuit = false; lifecycle.terminationDeferred = false
+        }
         trace(error == nil ? "cycle-finished" : "cycle-error")
         #if ZERO_UPDATER_FIXTURE
         if let error = error as NSError? {

@@ -7011,3 +7011,32 @@ feed/download checks and retirement proofs are in primary ignored receipts
 .verification/project-picker-0.5.33. Review budget: one initial source reviewer,
 two targeted source fixes, candidate and promotion deltas;2fixbatches. Requested
 Sol/high, effective model/tokens unknown. Weekly remaining71%, storage healthy.
+
+## Mac update relaunch correction — 2026-10-20
+
+Owner authorized the Install and Relaunch repair, merge and publication. Manual
+Sparkle installation now resumes its own relaunch continuation after existing
+setup/helper/modal work finishes. Silent automatic install-on-quit is retained.
+Verified native setup writes a fixed atomic private version/request-ID marker;
+loaded Zero34+ reloads only its idle isolated editor window with the supported
+native command, preserving VS Code's normal unsaved-buffer safeguards.
+
+Native optimized Swift harness passed319 assertions; fixture-flag typecheck and
+pinned Sparkle ad-hoc signing/load/tamper rejection passed. Affected JS/release
+checks27pass/1skip. Real isolated VS Code CLI installation34→35, automatic window
+reload and new extension-host activation passed with exact unsaved untitled text
+and dirty state retained. Its fixture uses QA-only activation telemetry and a
+synthetic marker after verified CLI installation; native marker publication is
+covered separately. Unit guards cover busy/disposed windows, other profiles,
+linked/malformed markers, monotonic versions, errors and duplicate requests.
+
+One native test's pre-existing fixed20ms callback delay failed under load; the
+bounded correction pumps until the queued callback completes. First website run
+lacked dependencies; installed pinned dependencies before the passing rerun.
+Signed/notarized Sparkle manual UI acceptance and production34 publication remain
+in progress. Existing33 updater bytes still require one manual reopen/reload to
+gain the correction. Windows21/manual kit17 are unchanged. Receipts:
+.verification/update-relaunch; final preserved evidence will be in primary
+.verification/update-relaunch-0.5.34. Weekly remaining67% at start, storage healthy
+266GB fresh; no account/credential changes. Requested native worker Sol/high;
+effective configuration, attributable tokens and total coordinator time unknown.
