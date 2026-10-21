@@ -126,6 +126,7 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
     commands:{registerCommand:(id,fn)=>{commands.set(id,fn);return disposable();},executeCommand:async(id,uri,options)=>{if(id==='workbench.view.extension.zero')return;assert.equal(id,'vscode.openFolder');opened.push({uri,options});}},
     env:{openExternal:async()=>{throw Error('Tutorial repository creation must use the App');}},Uri:{file:fsPath=>({fsPath}),parse:value=>({value})},EventEmitter:class{event(){}fire(){}dispose(){}}
   };
+  require('./fixtures/start-page-panel').startPagePanels(vscode);
   const filename=require.resolve('../src/extension'),oldCache=require.cache[filename],originalLoad=Module._load;delete require.cache[filename];Module._load=function(id,...args){if(id==='vscode')return textInputs(vscode);if(id==='./project-folders'){const mod=originalLoad.call(this,id,...args);return {createProjectFolders:(api,options)=>mod.createProjectFolders(api,{...options,home:root})};}return originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});

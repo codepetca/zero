@@ -8,7 +8,7 @@ in [Product](docs/PRODUCT.md), and commands in [Development](docs/DEVELOPMENT.md
 
 ## Current interaction rules
 
-Owner decisions consolidated through 2026-10-20. These are the current rules and
+Owner decisions consolidated through 2026-10-21. These are the current rules and
 supersede conflicting wording in the older dated notes below. Preserve them
 when adding features; a new feature does not reset the agreed interaction style.
 
@@ -34,19 +34,20 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Keep one continuous, minimal sidebar for controls and files. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
-- When signed out, show only **Sign in** in the GitHub area; hide the project
-  dropdown and branch, while keeping local Run and files available. When signed
-  in, show the open folder / connected **owner/repository** as the project menu,
-  without a duplicate username row. Show a right chevron to indicate the menu opens.
-  Allow its label to wrap to
-  two lines; retain the full accessible name and tooltip. **GitHub account…** in
-  that menu opens account actions through Zero's supported GitHub App provider.
-  A single text-only **ZeroHub** menu contains **Projects**, **Libraries** and **Share project**
-  for eligible signed-in original projects; tutorials and local practice cannot share. The menu offers **New
-  project…**, **Clone from GitHub…** and **Open local project…**; an eligible
-  original local project can **Create a repository…** or **Connect to GitHub…**. Connected projects retain
-  branch actions and **Publish app** in the menu, with **Commit & push** and
-  **Merge to main** as direct controls. Local-practice sharing stays blocked.
+- The **Zero Start Page** owns onboarding: Start tutorial, New project, Clone
+  project, Open local project, recent projects and guided GitHub sign-in/access.
+  Show it automatically in an empty Zero window; preserve existing editors and
+  restore its native editor tab. Reopen it through **Zero: Start Page** or the
+  sidebar's **⋯ → Start Page**. Keep local opening available without GitHub.
+- The sidebar is for project development: Run/Stop, Files, contextual repository
+  and branch actions, Commit & push, Merge to main and ZeroHub. Empty windows
+  offer only Open Start Page. A local project needing cloud setup offers GitHub
+  setup navigation to the Start Page; local Run/Files remain available offline.
+  A ready project shows owner/repository without a duplicate username row. Its
+  contextual menu retains repository/account/recovery actions and omits global
+  New/Clone/Open project choices. Keep labels wrapped and fully accessible.
+  ZeroHub offers Projects, Libraries and eligible Share project; tutorial/local
+  practice sharing remains blocked. Troubleshooting stays in native ⋯.
 - Clicking **Files ▾** opens **New class…**, **New file…**, **New folder…**,
   **New asset…** and **Copy asset paths** after import in a dropdown directly beneath Files.
   Use native name/location prompts; keep new classes

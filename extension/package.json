@@ -2,7 +2,7 @@
   "name": "zero",
   "displayName": "Zero",
   "description": "A small local Java teaching sidebar.",
-  "version": "0.5.35",
+  "version": "0.5.36",
   "publisher": "zero",
   "license": "MIT",
   "engines": {
@@ -20,7 +20,8 @@
     "onCommand:zero.startProject",
     "onCommand:zero.cloneRepository",
     "onCommand:zero.openLocalProject",
-    "onWebviewPanel:zero.tutorials"
+    "onWebviewPanel:zero.tutorials",
+    "onWebviewPanel:zero.startPage"
   ],
   "scripts": {
     "test": "node --test",
@@ -250,6 +251,11 @@
       {
         "command": "zero.setupGitHub",
         "title": "Zero: Set Up GitHub"
+      },
+      {
+        "command": "zero.startPage",
+        "title": "Zero: Start Page",
+        "shortTitle": "Start Page"
       }
     ],
     "viewsContainers": {
@@ -390,7 +396,7 @@
           "group": "zero-help@2"
         },
         {
-          "command": "zero.startProject",
+          "command": "zero.startPage",
           "when": "view == zero.actions",
           "group": "zero-help@0"
         },

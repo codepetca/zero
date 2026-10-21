@@ -32,7 +32,7 @@ it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
-**Project → Clone project** opens a searchable picker: recent projects on this Mac
+**Start Page → Clone project** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
 
@@ -43,11 +43,16 @@ later updates use the corrected handoff.
 
 ## Start here
 
+The Zero Start Page contains tutorial/project choices and recent projects.
+Open **Zero: Start Page** from the Command Palette or **⋯ → Start Page** to
+return to it. The sidebar stays focused on Run, Files and project development.
+
+
 1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.35
-   opens the Zero sidebar with the next setup action.
+   opens the Zero Start Page with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
-   next sidebar step. If asked, choose **Install Zero for GitHub**; Zero opens
+   next Start Page step. If asked, choose **Install Zero for GitHub**; Zero opens
    the pinned GitHub App page after checking again. Approve selected repositories
    on GitHub, then return to Zero. The automatic recheck unlocks the next step;
    **Check again** is available as a fallback. Escape or a failed check leaves
@@ -55,8 +60,8 @@ later updates use the corrected handoff.
    launch without opening a browser. Local Run and Files work signed out or
    offline; cloud repository, push and sharing controls stay hidden until ready.
    See [the setup guide](SETUP.md#start-a-tutorial-or-project) for details.
-3. In the empty sidebar, **Start tutorial** is primary. Choose **Greeting app**,
-   enter a repository name, and choose its clone location. **Project → New project** is
+3. On the **Zero Start Page**, **Start tutorial** is primary. Choose **Greeting app**,
+   enter a repository name, and choose its clone location. **Start Page → New project** is
    the menu action for skipping the tutorial and making original work.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
@@ -67,7 +72,7 @@ later updates use the corrected handoff.
    lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials
    tab’s **Open in browser** opens the lesson in your default browser. Keep this repository for the following Greeting lessons.
 
-Already cloned your project? Choose **Project → Open local project** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
+Already cloned your project? Choose **Start Page → Open local project** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
 lesson selection, scroll position and disclosure state are saved locally per
 project. This does not track completion or grading. Use **All tutorials** to
 choose the first lesson and restart the reading sequence; your code stays as it
@@ -79,13 +84,13 @@ create and connect an empty remote, or **⋯ → Repository Actions → Connect 
 projects show owner/repository and retain branch actions; **Publish app** is in
 that repository menu.
 
-Zero needs no separate account. Cancelling setup leaves the current sidebar
+Zero needs no separate account. Cancelling setup leaves the current Start Page
 step available to retry; an existing local project's Run remains available. **⋯ → Troubleshooting → Test
 installation** opens the bundled Hello World separately as **Installation test**. To return
 to setup, use **Zero: Get Started** from VS Code's Command Palette.
-For an existing remote, **Project → Clone project** accepts its HTTPS URL
+For an existing remote, **Start Page → Clone project** accepts its HTTPS URL
 and uses the same location picker; add that repository to the App's selection
-when needed. **Project → New project** creates original work from Zero's starter.
+when needed. **Start Page → New project** creates original work from Zero's starter.
 If creation or cloning is interrupted, choose **⋯ → Repository Actions → Resume created project…**
 when offered, review its saved link and check any preserved project folder before
 trying again. Zero does not blindly repeat an
@@ -141,8 +146,8 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.35 uses the familiar drag-to-Applications flow and sidebar-guided
-GitHub setup. Older published downloads keep their original setup apps and bytes.
+Mac setup 0.5.35 uses the familiar drag-to-Applications flow. Current source guides
+GitHub setup on the Zero Start Page. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
 2. Open **Zero** from Applications. On first launch, wait while **Preparing Zero…**
@@ -293,13 +298,13 @@ Local running needs no GitHub sign-in. Live push and publishing need Git
 **2.31+** and your own GitHub account. For sharing work, follow your teacher's
 privacy and account instructions. Repositories created through Zero are public;
 existing/cloned repositories keep their visibility. If you used **Start tutorial** or
-**Project → New project**, Zero already created and cloned **your repository**.
+**Start Page → New project**, Zero already created and cloned **your repository**.
 That clone already has Git history and its own origin: keep that repository,
 complete sign-in and identity setup below, and skip creating an empty repository.
 The empty-repository steps below apply to an extracted source ZIP:
 
-1. Choose **Sign in** in Zero's sidebar and complete the device-code flow on
-   GitHub with your personal account. The control shows your username; click it
+1. Choose **Sign in to GitHub** on the **Zero Start Page** and complete the
+   device-code flow with your personal account. Use **⋯ → GitHub Account**
    for **Change GitHub account…** or **Sign out**. Sign out clears only Zero's
    connection on this computer and preserves local work and other extensions'
    accounts. Canceling authentication leaves local Run available.

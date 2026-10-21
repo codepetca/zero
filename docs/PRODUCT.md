@@ -52,18 +52,23 @@ IDs are pinned in source. Mac 0.5.35 includes this source; remaining live-provid
 acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
-The ready welcome shows **Start tutorial** and one **Project** menu with
-**New project**, **Clone project**, and **Open local project**. Diagnostics and
-the bundled installation test live in **⋯ → Troubleshooting**; account and
-repository recovery remain in the native overflow.
+Current source opens a native **Zero Start Page** for onboarding and project
+selection. It contains **Start tutorial**, **New project**, **Clone project**,
+**Open local project**, account-scoped recent projects and guided GitHub setup.
+An empty Zero window opens it automatically; existing student editors stay
+untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
+The sidebar retains project development: native Run/Stop, Files, contextual
+repository/branch/push actions and ZeroHub. Troubleshooting and repository/account
+recovery remain in the native overflow. Local Run, Files and opening a local
+project remain available without signing in.
 
-Mac 0.5.35 uses a minimal sidebar that guides students
-through **Sign in to GitHub** → **Install Zero for GitHub** → **Start tutorial**.
+The Start Page guides students through **Sign in to GitHub** →
+**Install Zero for GitHub** → **Start tutorial**.
 Sign-in and credential storage remain unchanged: the supported `zero-github`
 provider stores expiring user/refresh tokens in VS Code SecretStorage; GitHub
 handles sign-in and consent, and Zero has no separate password or account.
 Signing in runs a read-only check for repository creation and contents writing
-and stops at the next sidebar step. If access is missing, **Install Zero for
+and stops at the next Start Page step. If access is missing, **Install Zero for
 GitHub** opens the pinned App page after a read-only recheck; **Check again** is
 the fallback. The student approves selected repositories on GitHub; Zero never
 requests all-repository access, and repositories Zero creates are accessible
@@ -236,9 +241,8 @@ account, Git 2.31+, school GitHub/VS Code/compilation access and teacher-approve
 commit identity. Repositories created through Zero are public, including their
 source and included files; students should keep secrets and private material out.
 Existing or GitHub-created repositories may retain their visibility, with teacher
-collaborator access where needed. Public game publishing remains optional. In Mac 0.5.35, the empty sidebar makes **Start tutorial** primary, with
-**New project…** as the secondary choice to skip the tutorial and create original
-work. The **…** menu also opens **Tutorials** for existing projects. The action
+collaborator access where needed. Public game publishing remains optional. On the Zero Start Page, **Start tutorial**
+is primary; **New project** skips the tutorial and creates original work. The **…** menu also opens **Tutorials** for existing projects. The action
 selects the matching verified tutorial scaffold. The flow collects a repository
 name and parent folder before creating a public copy in
 the connected personal account, verifying App access, cloning and opening it.

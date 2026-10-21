@@ -18,7 +18,7 @@ The Codepet Zero GitHub App is registered under `codepetca`, with public IDs
 pinned in source. Students approve access on GitHub. See
 [the identity plan](ZERO-IDENTITY-PLAN.md) for account and permission details.
 
-**Project → Clone project** opens a searchable picker: recent projects on this Mac
+**Start Page → Clone project** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
 
@@ -47,11 +47,11 @@ explicit project commands create repositories only after collecting the choices 
 
 ## Start a tutorial or project
 
-In Mac 0.5.35, follow the sidebar: **Sign in to GitHub**, then
+On the **Zero Start Page**, follow: **Sign in to GitHub**, then
 **Install Zero for GitHub** if requested, then **Start tutorial**.
 Sign-in uses Zero's existing GitHub device flow and credentials. After sign-in,
 Zero checks App access for repository creation and contents writing; the check is
-read-only and stops at the next sidebar step. If access is missing, **Install Zero
+read-only and stops at the next Start Page step. If access is missing, **Install Zero
 for GitHub** opens the pinned App page after a read-only recheck. Approve selected
 repositories there; Zero never asks for all-repository access. Return to Zero and
 it checks again automatically. Use **Check again** if needed. Escape or a failed
@@ -61,19 +61,19 @@ Files remain available signed out or offline; cloud repository, push and sharing
 controls appear after access is ready. App-created repositories are accessible
 automatically.
 
-When ready, **Start tutorial** creates the selected scaffold. **Project → New project**
-creates original work instead, so students can skip the tutorial. **Project → Open local project** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
+When ready, **Start tutorial** creates the selected scaffold. **Start Page → New project**
+creates original work instead, so students can skip the tutorial. **Start Page → Open local project** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
 a parent folder before creation. Zero creates a public repository in your GitHub
 account, verifies access, clones and opens the project in a new window. Its
 source and included files are public.
 The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
-For an existing repository, choose **Project → Clone project**, paste its
+For an existing repository, choose **Start Page → Clone project**, paste its
 HTTPS URL and ensure it is available to Zero's App. A failed or uncertain creation
 keeps its recovery link and offers **⋯ → Repository Actions → Resume created project…**; a failed
 clone keeps its partial folder. Check those before retrying or creating another repository.
 
-For an existing cloned Zero folder, choose **Project → Open local project**;
+For an existing cloned Zero folder, choose **Start Page → Open local project**;
 it opens that valid project in a new window without cloning again. An original
 local project without a GitHub origin offers **⋯ → Repository Actions → Create a repository…**
 to create and connect an empty public remote after entering its name.

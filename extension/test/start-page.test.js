@@ -1,0 +1,189 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const vm = require('node:vm');
+const {createStartPage} = require('../src/start-page');
+
+const tick = () => new Promise(resolve => setImmediate(resolve));
+function deferred() {let resolve, reject;const promise = new Promise((yes, no) => {resolve = yes;reject = no;});return {promise, resolve, reject};}
+function fake(initial = {phase:'ready', accountId:'42', accountLabel:'student'}) {
+  let state = initial;
+  const panels = [], commands = [], opens = [], reports = [], serializers = new Map(), listings = [];
+  const vscode = {ViewColumn:{Active:1}, commands:{executeCommand:async command => {commands.push(command);}}, window:{
+    registerWebviewPanelSerializer(type, serializer) {serializers.set(type, serializer);return {dispose:() => serializers.delete(type)};},
+    createWebviewPanel(kind, title, show, options) {
+      let receive;const close = new Set();let writes = 0, html;
+      const panel = {kind, title, show, options, viewColumn:2, reveals:[], messages:[],
+        webview:{options, postMessage:async message => {panel.messages.push(message);return true;}, onDidReceiveMessage(callback) {receive = callback;return {dispose:() => {receive = undefined;}};},
+          get html() {return html;}, set html(value) {writes++;html = value;}},
+        get htmlWrites() {return writes;},
+        onDidDispose(callback) {close.add(callback);return {dispose:() => close.delete(callback)};},
+        dispose() {panel.disposed = true;for (const callback of close) callback();},
+        receive:message => receive?.(message), reveal:(...args) => panel.reveals.push(args)};
+      panels.push(panel);return panel;
+    }
+  }};
+  const dependencies = {getState:() => state, listRecent:async accountId => {listings.push(accountId);return [];}, openRecent:async (item, accountId) => opens.push({item, accountId}), report:(...args) => reports.push(args)};
+  return {vscode, dependencies, panels, commands, opens, reports, serializers, listings, setState:value => {state = value;},
+    message(panel, value) {return panel.receive({...value, token:panel.messages.at(-1)?.token});}};
+}
+async function open(f) {
+  const page = createStartPage(f.vscode, f.dependencies), panel = page.show();
+  await tick();await panel.receive({type:'ready'});
+  return {page, panel};
+}
+const payload = panel => panel.messages.at(-1).state;
+
+test('one reusable native start tab, stable document, explicit focus and lifecycle', async () => {
+  const f = fake(), {page, panel} = await open(f);
+  assert.equal(panel.kind, 'zero.startPage');assert.equal(panel.title, 'Zero Start Page');
+  assert.deepEqual(panel.show, {viewColumn:1, preserveFocus:false});
+  assert.equal(panel.options.enableCommandUris, false);assert.deepEqual(panel.options.localResourceRoots, []);
+  assert.equal(panel.options.retainContextWhenHidden, true);
+  const html = panel.webview.html;
+  assert.equal(page.show({preserveFocus:true, viewColumn:3}), panel);
+  assert.deepEqual(panel.reveals, [[3, true]]);assert.equal(f.panels.length, 1);
+  for (let index = 0; index < 10; index++) await page.refresh();
+  assert.equal(panel.webview.html, html);assert.equal(panel.htmlWrites, 1);assert.equal(page.isOpen(), true);
+  assert.equal(page.owns({input:{viewType:'zero.startPage'}}), true);
+  assert.equal(page.owns({input:{viewType:'zero.tutorials'}}), false);
+  panel.dispose();assert.equal(page.isOpen(), false);
+  const reopened = page.show({preserveFocus:true});assert.notEqual(reopened, panel);
+  page.dispose();assert.equal(reopened.disposed, true);assert.equal(page.show(), undefined);
+  assert.equal(f.serializers.size, 0);
+});
+
+test('cloud choices require verified ready access; local is available through setup states', async () => {
+  for (const phase of ['signed-out','checking','install','unavailable','ready']) {
+    const f = fake({phase, accountId:phase === 'signed-out' ? undefined : '42'}), {page, panel} = await open(f);
+    for (const action of ['tutorial','new','clone','local','signIn','setup']) await f.message(panel, {type:'action', action});
+    const expected = phase === 'ready' ? ['zero.startProject','zero.newProject','zero.cloneRepository','zero.openLocalProject']
+      : ['zero.openLocalProject', ...(phase === 'signed-out' ? ['zero.signInToGitHub'] : ['install','unavailable'].includes(phase) ? ['zero.setupGitHub'] : [])];
+    assert.deepEqual(f.commands, expected, phase);page.dispose();
+  }
+});
+
+test('message allowlist rejects arbitrary commands, paths, URLs, inherited names and stale generations', async () => {
+  const f = fake(), {page, panel} = await open(f), stale = panel.messages.at(-1).token;
+  for (const message of [{type:'execute', command:'workbench.action.closeWindow'}, {type:'action', action:'toString'}, {type:'action', action:'constructor'}, {type:'action', action:'zero.startProject'}, {type:'recent', path:'/private'}, {type:'external', url:'https://evil.test'}, {type:'action', action:'local', token:'fake'}]) {
+    await panel.receive({token:stale, ...message});
+  }
+  f.setState({phase:'ready', accountId:'42', status:'Changed'});await page.refresh();
+  await panel.receive({type:'action', action:'local', token:stale});
+  assert.deepEqual(f.commands, []);assert.deepEqual(f.opens, []);
+  await f.message(panel, {type:'action', action:'local'});assert.deepEqual(f.commands, ['zero.openLocalProject']);page.dispose();
+});
+
+test('opaque recent IDs capture vetted entries and never accept webview destination fields', async () => {
+  const f = fake();const item = {path:'/Projects/Greeting', lastOpened:123, repositoryUrl:'https://github.com/student/greeting'};
+  f.dependencies.listRecent = async () => [item];
+  const {page, panel} = await open(f), entry = payload(panel).recent[0];
+  assert.match(entry.id, /^[a-f0-9]{36}$/);assert.equal(entry.label, 'Greeting');
+  assert.equal(JSON.stringify(payload(panel)).includes('github.com'), false);
+  item.path = '/mutated';
+  await f.message(panel, {type:'recent', id:entry.id, path:'/private', repositoryUrl:'file:///private'});
+  assert.deepEqual(f.opens, [{item:{path:'/Projects/Greeting', lastOpened:123, repositoryUrl:'https://github.com/student/greeting'}, accountId:'42'}]);
+  page.dispose();
+});
+
+test('account drift and sign-out invalidate rendered recent choices even without refresh', async () => {
+  for (const next of [{phase:'ready', accountId:'99'}, {phase:'signed-out'}]) {
+    const f = fake();f.dependencies.listRecent = async () => [{path:'/Projects/Private', lastOpened:1}];
+    const {page, panel} = await open(f), entry = payload(panel).recent[0];
+    f.setState(next);
+    await f.message(panel, {type:'recent', id:entry.id});await tick();
+    assert.deepEqual(f.opens, []);
+    if (next.phase === 'signed-out') {assert.deepEqual(payload(panel).recent, []);assert.equal(payload(panel).recentState, 'hidden');}
+    page.dispose();
+  }
+});
+
+test('recent loading coalesces frequent refreshes and discards old account and closed-panel results', async () => {
+  const f = fake(), first = deferred(), second = deferred();
+  f.dependencies.listRecent = accountId => {f.listings.push(accountId);return accountId === '42' ? first.promise : second.promise;};
+  const page = createStartPage(f.vscode, f.dependencies), panel = page.show();await panel.receive({type:'ready'});await tick();
+  for (let index = 0; index < 20; index++) void page.refresh();
+  assert.deepEqual(f.listings, ['42']);
+  f.setState({phase:'ready', accountId:'99'});void page.refresh();await tick();
+  first.resolve([{path:'/old-account', lastOpened:1}]);await tick();assert.deepEqual(payload(panel).recent, []);
+  second.resolve([{path:'/new-account', lastOpened:2}]);await tick();assert.equal(payload(panel).recent[0].path, '/new-account');
+  await page.refresh();assert.deepEqual(f.listings, ['42','99']);
+  const pending = deferred();f.dependencies.listRecent = () => pending.promise;void page.refresh({recent:true});await tick();
+  panel.dispose();const count = panel.messages.length;pending.resolve([{path:'/late', lastOpened:3}]);await tick();
+  assert.equal(panel.messages.length, count);assert.equal(panel.htmlWrites, 1);page.dispose();
+});
+
+test('busy guards serialize actions, recover cancellation and keep useful errors with a retry', async () => {
+  const f = fake(), wait = deferred();f.vscode.commands.executeCommand = command => {f.commands.push(command);return wait.promise;};
+  const {page, panel} = await open(f);
+  const running = f.message(panel, {type:'action', action:'local'});
+  assert.equal(payload(panel).busy, true);
+  await f.message(panel, {type:'action', action:'local'});assert.equal(f.commands.length, 1);
+  wait.resolve(undefined);await running;assert.equal(payload(panel).busy, false);assert.equal(payload(panel).error, '');
+  f.vscode.commands.executeCommand = async () => {throw new Error('picker unavailable');};
+  await f.message(panel, {type:'action', action:'local'});
+  assert.match(payload(panel).error, /Could not open a local project/);assert.equal(payload(panel).canRetry, true);
+  assert.equal(f.reports.at(-1)[1], 'picker unavailable');
+  f.vscode.commands.executeCommand = async command => f.commands.push(command);
+  await f.message(panel, {type:'retry'});assert.equal(f.commands.length, 2);assert.equal(payload(panel).error, '');
+  f.setState({phase:'ready', accountId:'42', busy:true});await page.refresh();
+  await f.message(panel, {type:'action', action:'local'});assert.equal(f.commands.length, 2);page.dispose();
+});
+
+test('recent failure remains visible across refreshes with an explicit retry', async () => {
+  const f = fake();let count = 0;
+  f.dependencies.listRecent = async () => {count++;if (count === 1) throw new Error('disk offline');return [{path:'/retried', lastOpened:1}];};
+  const {page, panel} = await open(f);
+  assert.equal(payload(panel).recentState, 'error');await page.refresh();assert.equal(count, 1);
+  await f.message(panel, {type:'retryRecent'});assert.equal(count, 2);assert.equal(payload(panel).recent[0].path, '/retried');page.dispose();
+});
+
+test('restoration reuses the supplied panel without focus changes or duplicate tabs', async () => {
+  const f = fake(), page = createStartPage(f.vscode, f.dependencies), serializer = f.serializers.get('zero.startPage');
+  const restored = f.vscode.window.createWebviewPanel('zero.startPage', 'Old', {}, {});
+  await serializer.deserializeWebviewPanel(restored, {path:'/untrusted'});await tick();await restored.receive({type:'ready'});
+  assert.equal(page.isOpen(), true);assert.equal(restored.title, 'Zero Start Page');assert.deepEqual(restored.reveals, []);
+  const duplicate = f.vscode.window.createWebviewPanel('zero.startPage', 'Duplicate', {}, {});
+  await serializer.deserializeWebviewPanel(duplicate);assert.equal(duplicate.disposed, true);
+  assert.equal(page.show(), restored);assert.equal(restored.htmlWrites, 1);
+  page.dispose();
+  const late = f.vscode.window.createWebviewPanel('zero.startPage', 'Late', {}, {});
+  await serializer.deserializeWebviewPanel(late);assert.equal(late.disposed, true);
+  const legacy = fake();delete legacy.vscode.window.registerWebviewPanelSerializer;
+  const lazy = createStartPage(legacy.vscode);lazy.dispose();
+});
+
+test('strict nonce CSP and text-only rendering keep account, status and path markup inert', async () => {
+  const attack = '</script><img src=x onerror=alert(1)>', f = fake({phase:'ready', accountId:'42', accountLabel:attack, status:attack});
+  f.dependencies.listRecent = async () => [{path:`/Projects/${attack}`, lastOpened:1}];
+  const {page, panel} = await open(f), html = panel.webview.html;
+  assert.match(html, /default-src 'none'/);assert.match(html, /connect-src 'none'/);assert.match(html, /style-src 'nonce-[A-Za-z0-9+/]+=*'/);
+  assert.match(html, /script-src 'nonce-[A-Za-z0-9+/]+=*'/);assert.equal(html.includes(attack), false);
+  assert.doesNotMatch(html, /https?:\/\/|innerHTML|onclick=|eval\(/);
+  assert.equal(payload(panel).accountLabel, attack);
+  const browser = domHarness(html);browser.update(panel.messages.at(-1));
+  assert.equal(browser.elements.get('account').textContent, attack);
+  assert.equal(browser.elements.get('status').textContent, attack);
+  const recentButton = browser.elements.get('recent-list').children[0].children[0];
+  assert.equal(recentButton.children[1].textContent, `/Projects/${attack}`);
+  const local = browser.buttons.find(button => button.dataset.action === 'local');local.click();
+  assert.equal(browser.sent.at(-1).action, 'local');assert.equal(browser.sent.at(-1).token, panel.messages.at(-1).token);
+  const oldButton = recentButton;
+  f.setState({phase:'ready', accountId:'42', accountLabel:attack, status:'Working', busy:true});await page.refresh();browser.update(panel.messages.at(-1));
+  assert.equal(browser.elements.get('recent-list').children[0].children[0], oldButton);
+  assert.equal(oldButton.disabled, true);assert.equal(local.disabled, true);
+  f.setState({phase:'signed-out'});await page.refresh();browser.update(panel.messages.at(-1));
+  assert.equal(local.disabled, false);assert.equal(browser.buttons.find(button => button.dataset.action === 'tutorial').disabled, true);
+  assert.equal(browser.elements.get('recent-section').hidden, true);page.dispose();
+});
+
+function domHarness(html) {
+  const elements = new Map(), sent = [], events = new Map();
+  function element() {return {dataset:{}, children:[], textContent:'', hidden:false, listeners:{}, append(...items) {this.children.push(...items);}, replaceChildren() {this.children = [];}, addEventListener(name, fn) {this.listeners[name] = fn;}, click() {if (!this.disabled) this.listeners.click?.();}, focus() {document.activeElement = this;}, querySelectorAll() {return this.children.flatMap(li => li.children);}};}
+  for (const id of html.matchAll(/id="([^"]+)"/g)) elements.set(id[1], element());
+  const buttons = [...html.matchAll(/data-action="([^"]+)"/g)].map(match => {const button = element();button.dataset.action = match[1];return button;});
+  const document = {getElementById:id => elements.get(id), querySelectorAll:() => buttons, createElement:element, activeElement:undefined};
+  const sandbox = {document, window:{addEventListener:(name, fn) => events.set(name, fn)}, acquireVsCodeApi:() => ({postMessage:message => sent.push(message)})};
+  vm.runInNewContext(html.match(/<script nonce="[^"]+">([\s\S]+)<\/script>/)[1], sandbox);
+  return {elements, buttons, sent, update:message => events.get('message')({data:message})};
+}
