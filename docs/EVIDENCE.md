@@ -35,6 +35,47 @@ rendered heading/cross-link checks and whitespace check pass; see
 [verification](VERIFICATION.md#passing-the-app-to-player--local-docs-2026-10-21).
 Weekly54% remaining and cached storage healthy280GB at start; account-wide usage
 is not task cost. Primary funding edits preserved; local dependency caches reused.
+
+## Native Explorer — Mac0.5.40 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/157 merged as 5eb1e8952344166f67fbbd59c5d9c216ad8c64b5 with five exact-head checks.
+Clean build e508cf063223870a503c014d50a2876fc516907c; measured manifest aed95fca0806198bb093c522110d2f195cf82337; exact candidate mac-0.5.40-aed95fca0806.
+Apple Accepted 9a9d5e62-182a-44b3-927e-3869f3e45e86; staple/app/DMG Gatekeeper passed.
+Public DMG 4591706 bytes SHA256 702f63902c61179413ab016bb0a99fcb17068a8619308b447711ca923d62a800 matches sealed candidate,
+authenticated draft and anonymous public downloads; feed advances39→40.
+
+78affected checks plus corrected project-menu regression, root checks,116release/
+2skips,159website tests/type/build and kit verification passed. Complete source and
+CI-correction review plus measured candidate review passed. Initial obsolete test
+was corrected without runtime changes and final build uses the corrected source.
+Chromium checked actual controls HTML themes/narrow200/240px,200%text and menus.
+Final source CI passed890tests/3skips. The bundled general student README still
+uses the earlier Files menu label in its helper section; the teaching menu is
+New. This nonblocking guide carryover is recorded for the next immutable version;
+the current public setup guides name New. Native Explorer itself was not simulated. Source/metadata exact-head CI, review,
+production/live and retirement receipts are preserved in primary ignored
+.verification/native-explorer-release0.5.40. Native Explorer order/selection/rename/
+drag and Mac update interaction await owner smoke test under the prior Code Key
+hold. No native VSCode launch or credentials changes; Windows/fresh-provider flows
+remain untested. Prior immutable versions and primary funding work preserved.
+
+## Native Explorer integration — 2026-10-21
+
+Owner authorized replacing the custom file tree and publishing Mac0.5.40.
+Controls now use `zero.controls` inside built-in Explorer; guarded teaching New
+actions remain. Existing projects migrate once without using private layout APIs.
+View order is editor-owned: drag the Zero heading above files once if necessary.
+78 affected extension/design checks and root configuration/syntax/docs checks
+passed. Chromium checked actual controls HTML at240px light,200px dark and200px
+high contrast with200% text, keyboard/pointer helpers, focus restoration, empty
+and busy states; no horizontal overflow. Only review-server favicon404 observed.
+Full regression suite, independent review and release receipts are retained in
+ignored `.verification/explorer40` during work and primary
+`.verification/native-explorer-release0.5.40` at completion.
+No native editor launch after Code Key popup: actual Explorer order, selection,
+rename/drag and Mac update interaction remain owner smoke tests. Windows and
+fresh-machine/live-provider acceptance remain untested. No credentials changed.
+
 ## Project dropdown and Tutorials — Mac0.5.39 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/154 merged as c853cfac5de94a51510bb483e2b10177f7739d29 with five exact-head checks.

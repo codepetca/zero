@@ -72,9 +72,9 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.doesNotMatch(ready,/<header class="sidebar-brand"|<h1>Zero<\/h1>/,'Keep the current panel height; branding stays in the activity bar');
   const hub=ready.match(/<button[^>]*data-command="zero.browseZeroHub"[^>]*>[\s\S]*?<\/button>/)[0];
   assert.ok(hub.endsWith('>ZeroHub</button>'));assert.doesNotMatch(hub,/<svg/);
-  assert.match(ready,/id="files-menu-button"[^>]*>Files[\s\S]*?<\/button>/);
+  assert.match(ready,/id="files-menu-button"[^>]*>New[\s\S]*?<\/button>/);
   assert.doesNotMatch(ready,/data-command="zero.recovery"/);
-  assert.match(ready,/<div class="files-header">[\s\S]*id="files-menu-button"/);
+  assert.match(ready,/<div id="file-actions" class="file-actions">[\s\S]*id="files-menu-button"/);
   assert.doesNotMatch(ready,/data-command="zero.copyImportedAssetPaths"/);
   const empty = sidebarSource('empty');
   assert.doesNotMatch(empty,/id="files-menu-button"|data-command="zero.recovery"/);

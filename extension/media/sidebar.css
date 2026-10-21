@@ -5,7 +5,7 @@ body { margin:0; padding:10px 12px; background:var(--zero-page); color:var(--zer
 button { width:100%; margin:0; padding:6px 8px; border:1px solid var(--vscode-button-border,transparent); border-radius:3px; background:var(--zero-accent); color:var(--zero-on-accent); font:inherit; line-height:1.4; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; white-space:normal; overflow-wrap:anywhere; min-width:0; }
 button svg { width:16px; height:16px; flex:none; }
 button:hover { background:var(--zero-accent-hover); }
-button:focus-visible,.file-row:focus-visible { outline:1px solid var(--zero-focus); outline-offset:-1px; }
+button:focus-visible { outline:1px solid var(--zero-focus); outline-offset:-1px; }
 button:disabled,button[aria-disabled="true"] { opacity:.45; cursor:default; }
 button.secondary { color:var(--vscode-button-secondaryForeground,var(--zero-text)); background:var(--vscode-button-secondaryBackground,var(--zero-surface)); }
 button.secondary:hover { background:var(--vscode-button-secondaryHoverBackground,var(--zero-surface)); }
@@ -41,10 +41,7 @@ button.upload[aria-busy="true"] { opacity:.85; }
 @keyframes zero-busy { to { transform:rotate(360deg); } }
 @media(prefers-reduced-motion:reduce) { .busy-indicator { animation:none; } }
 .hub-actions { margin-top:4px; }
-.files-section { border-top:1px solid var(--vscode-panel-border,var(--zero-border)); margin-top:10px; padding-top:8px; }
-.files-header { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; }
-.files-header h2 { margin:0; }
-.file-actions { position:relative; flex:1; min-width:0; }
+.file-actions { position:relative; min-width:0; margin-top:8px; }
 .file-actions button.link { width:auto; max-width:100%; overflow-wrap:anywhere; }
 .files-menu[aria-expanded="true"] > svg { transform:rotate(180deg); }
 .files-dropdown { position:absolute; top:100%; left:0; z-index:10; width:200px; max-width:100%; padding:4px; border:1px solid var(--vscode-menu-border,var(--zero-border)); border-radius:3px; background:var(--vscode-menu-background,var(--zero-surface)); color:var(--vscode-menu-foreground,var(--zero-text)); box-shadow:0 2px 8px var(--vscode-widget-shadow,transparent); }
@@ -52,13 +49,8 @@ button.upload[aria-busy="true"] { opacity:.85; }
 .files-dropdown button { justify-content:flex-start; text-align:left; padding:5px 8px; min-height:28px; border-color:transparent; background:transparent; color:inherit; }
 .files-dropdown button:hover,.files-dropdown button:focus-visible { background:var(--vscode-menu-selectionBackground,var(--zero-accent)); color:var(--vscode-menu-selectionForeground,var(--zero-on-accent)); }
 h2 { font:inherit; font-weight:500; color:var(--zero-muted); margin:0 0 4px; }
-.file-row { display:flex; align-items:center; gap:6px; padding:3px 3px 3px calc(3px + var(--depth,0)*12px); min-height:26px; cursor:pointer; overflow-wrap:anywhere; }
-.file-row:hover { background:var(--vscode-list-hoverBackground,var(--zero-surface)); color:var(--vscode-list-hoverForeground,var(--zero-text)); }
-.file-row:focus { background:var(--vscode-list-focusBackground,var(--zero-surface)); color:var(--vscode-list-focusForeground,var(--zero-text)); }
-.file-glyph { width:16px; height:16px; display:inline-flex; flex:none; color:var(--vscode-icon-foreground,var(--zero-muted)); }
-.file-disclosure { display:inline-flex; width:10px; height:12px; flex:none; }
-.file-disclosure svg { width:12px; height:12px; }
-.file-row[aria-expanded="false"] .file-disclosure { transform:rotate(-90deg); }
 body.vscode-high-contrast button,body.vscode-high-contrast-light button { border:1px solid var(--zero-border); }
 @media(max-width:220px) { .row,.branch-row { flex-direction:column; align-items:stretch; } .branch-row { gap:2px; } }
-@media(forced-colors:active) { button,button.secondary,button.link,button.account,button.repo-choice { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } .files-section { border-color:CanvasText; } .file-row:focus-visible { outline:1px solid Highlight; } .files-dropdown { background:Canvas; color:CanvasText; border-color:CanvasText; } .files-dropdown button { background:Canvas; color:CanvasText; } .files-dropdown button:focus-visible,.files-dropdown button:hover { background:Highlight; color:HighlightText; } }
+@media(forced-colors:active) { button,button.secondary,button.link,button.account,button.repo-choice { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } .files-dropdown { background:Canvas; color:CanvasText; border-color:CanvasText; } .files-dropdown button { background:Canvas; color:CanvasText; } .files-dropdown button:focus-visible,.files-dropdown button:hover { background:Highlight; color:HighlightText; } }
+
+.file-actions h2 { margin:0; }
