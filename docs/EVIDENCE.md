@@ -1,5 +1,29 @@
 # Delivery evidence index
 
+## Publish commit/push — Mac0.5.42 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/160 merged as f994c178704a553e35e088a383b186dc0b5258e2 with five exact-head checks.
+Clean build 5e877200510fbbc209145c75d8385cd87caac1b0; measured manifest 462166892a0ba937c423e92e952ffae617ad851a; exact candidate mac-0.5.42-462166892a0b.
+Apple Accepted 269100f6-79b9-45d6-9a28-a3b2ab8ff719; staple/app/DMG Gatekeeper passed.
+Public DMG 4601119 bytes SHA256 37316ab8f7f5e9af1134f2140918146a11bd154eedf3849c92cc7a5c92976d45 matches sealed candidate,
+authenticated draft and anonymous downloads. Signed feed advances40→42.
+
+Publish now saves open files, commits changes when needed, pushes main and deploys
+that exact version. Already committed work needs no message. Change branches get
+Merge to main guidance. Cancellation/failure stops publication; verified results
+keep Open app/Copy playable link and log the URL. Existing native Explorer retained.
+85affected source tests,99release/2skips,162website/type/build, exact kit and
+candidate verification passed; earlier publisher45+1preflight coverage reused.
+Full source safety/compatibility, cancellation correction, main integration,
+version correction and exact candidate reviews passed. Promotion/live evidence
+and review ledger are retained under primary ignored
+.verification/publish-flow-release0.5.42 after completion. Effective model,
+task-attributable tokens and active time unknown. Weekly42%remaining, healthy
+storage at release start. Native editor/update and live student Pages acceptance
+are owner smoke tests; physical Windows/fresh-machine flows untested. Prior
+immutable versions, Windows21/manualkit17 and primary funding changes preserved.
+No account credentials changed.
+
 ## Publish saves source before deploying — local implementation, 2026-10-21
 
 Branch `codex/publish-save-deploy`, source `264ebcd7` on base `9ad376d9`.

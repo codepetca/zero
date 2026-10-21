@@ -406,16 +406,19 @@ does not push code, establish that the remote is current or submit in Pika.
 ## Publish your playable app
 
 In your own project, **Run App** and test the version you want other people to
-play. Merge your change and push it on **main**, then choose **Publish app**
-in Zero’s repository menu. Sign in and connect your own repository to enable
-it. Publishing is a separate explicit action from pushing your source.
+play. Stop the app and choose **Publish app** from the arrow beside Run. Publish
+saves open files, asks for a commit message when needed, then commits and pushes
+your changes before deploying. Already committed work needs no new message; an
+already uploaded main skips the upload. If you are on a change branch, finish it
+with **Merge to main** first. Cancelling or failing the upload stops deployment.
+Sign in and connect your own repository to enable publishing.
 
 The first publish reviews the public destination and prepares publishing files.
 Keep the repository selected for Zero's App and review any missing Contents,
 Workflows, Actions or Pages permission on GitHub. The App omits Administration:
 for first-time Pages setup, enable GitHub Actions as the Pages source in the
 repository's GitHub settings, then return to Publish app and recheck. Enter a
-commit message if the setup files need to be pushed; Zero then continues
+commit message if the setup files need to be committed; Zero then continues
 publishing without another publication confirmation. Zero uses the locally checked build; GitHub deploys it to
 Pages. The playable app and its included assets are public, even if your source
 repository is private and your GitHub plan supports Pages. Zero keeps the
