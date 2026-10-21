@@ -74,6 +74,36 @@ Add `import javafx.scene.input.KeyCode;` and `import javafx.scene.paint.Color;` 
 
 Keep the starter's `settings()` and `main(...)`. `GameApp` calls update and draw each frame; it does not find Player automatically. Main reads keys and explicitly calls Player. Click the canvas for keyboard focus. Switching windows clears held keys; click the canvas again to resume.
 
+### Frames, input and canvas
+
+GameApp extends App. Startup runs `settings()`, creates the canvas, runs
+`setup()`, then shows the window and starts frames. Create your objects once in
+setup. Each frame calls Main's `update(seconds)` before `draw()`; Main calls its
+objects explicitly. App alone has no frame loop.
+
+`seconds` measures elapsed time, so `speed * seconds` gives movement in pixels
+at a speed measured in pixels per second. Frame rate can vary. The first frame
+receives 0 seconds; later values are capped at 0.1 after a long delay. Keep frame
+methods short so JavaFX can handle input and display the next frame.
+
+Canvas coordinates start at `(0, 0)` in the top left: x increases rightward and
+y downward. `width()` and `height()` return canvas dimensions, available in setup
+and later. `size(...)` in settings chooses those fixed dimensions; resizing the
+window does not scale the canvas. Optional App `padding(...)` surrounds it;
+initial padding grows the game window while preserving the canvas dimensions.
+
+`keyDown(...)` reports a held key while the canvas has focus. Typing in a text
+field belongs to that control. Focus loss clears held input but does not pause
+the frame loop. For pointer experiments, `mouseX()` and `mouseY()` report the
+tracked canvas position, and `mouseDown(MouseButton.PRIMARY)` checks a held
+button; import `javafx.scene.input.MouseButton` when using it.
+
+The canvas keeps its pixels until you draw over them. `background(...)` clears
+it for each fresh frame; `fill(...)` chooses the colour for following filled
+shapes and text. Drawing styles persist until changed. `textSize(...)` chooses
+the default font at that size, and the y coordinate in `text(...)` is its
+baseline. A JavaFX control stylesheet does not style these drawn pixels.
+
 ### How Player uses the app to draw
 
 Main extends `GameApp`, so it can call drawing methods such as `background(...)`

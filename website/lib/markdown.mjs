@@ -1,5 +1,5 @@
 import path from "node:path";
-import { isLessonDocumentId } from "./learning.mjs";
+import { documentDestination } from "./document-navigation.mjs";
 export const slugify = (text) =>
   text
     .toLowerCase()
@@ -9,10 +9,8 @@ const nodeText = (node) =>
   node.type === "text"
     ? node.value
     : (node.children ?? []).map(nodeText).join("");
-export function documentHref(id) {
-  return isLessonDocumentId(id)
-    ? `/tutorials/${id.slice("lesson-".length)}`
-    : `/docs/${id}`;
+export function documentHref(id, fragment = '') {
+  return documentDestination(id, fragment) ?? `/docs/${id}`;
 }
 export function resolveContentLink(source, href, documents, sources, assets = {}) {
   const lessonDownload = href?.match(/^(?:https:\/\/zero\.codepet\.ca)?(\/generated\/learning-assets\/game-assets\.zip)$/);
@@ -24,6 +22,8 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
     if (local.origin === "https://zero.codepet.ca" && local.pathname === "/hub" &&
         (local.searchParams.has("example") || local.searchParams.getAll("kind").some(kind => ["example", "all"].includes(kind)))) return null;
   }
+  const legacy = href?.match(/^(?:https:\/\/zero\.codepet\.ca)?\/docs\/([a-z-]+)(?:#(.*))?$/);
+  if (legacy) return documentDestination(legacy[1], legacy[2] ?? '') ?? href;
   if (!href || href.startsWith("#") || /^(https?:|mailto:)/.test(href))
     return href;
   const [file, fragment] = href.split("#");
@@ -34,13 +34,13 @@ export function resolveContentLink(source, href, documents, sources, assets = {}
   const target = Object.entries(documents).find(
     ([, doc]) => doc.source === key,
   );
-  if (target) return documentHref(target[0]) + (fragment ? `#${fragment}` : "");
+  if (target) return documentHref(target[0], fragment);
   const alias = Object.entries(documents).find(
     ([, doc]) => Object.hasOwn(doc.aliases ?? {}, key),
   );
   if (alias) {
     const anchor = fragment ? alias[1].aliases[key][fragment] : "";
-    return documentHref(alias[0]) + (anchor ? `#${anchor}` : "");
+    return documentHref(alias[0], anchor);
   }
   if (Object.hasOwn(sources, key))
     return (

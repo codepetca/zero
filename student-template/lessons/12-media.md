@@ -52,6 +52,23 @@ if (soundFile != null) {
 
 The `/` starts at `src/main/resources/`. Missing optional files leave `sprite` and `chime` null so the drawn game still runs. An invalid image or sound reports its resource path. If you use your own files with different names, change these two paths to match. Run after adding the files; no asset download is needed to compile.
 
+### Resource ownership
+
+Load resources once in setup and keep them in fields, then reuse them while
+drawing or responding to collection. Main owns this sprite and chime; Player
+receives the sprite to draw at its existing position. Loading an image does not
+create a second player or change collision rules. `loadImage(...)` reports a
+missing or unreadable required image; the checks above deliberately make these
+two files optional. Keep a small asset set rather than loading files each frame.
+
+Use artwork and audio you created or have permission to redistribute, and include
+required licence files with the project. Resource paths are bundled project paths,
+not absolute paths on your computer. The same resource-root rule applies to an
+optional font in `src/main/resources/fonts/`. Start with the System font from
+[lesson 2](02-hello-name.md#layout-and-appearance); custom fonts and larger audio
+controls can wait until your game needs them. Docs contains the API reference
+for additional image and sound methods.
+
 ## 4. Add and reset the chime count control
 
 In `setup()`, after creating your score and message controls, add `soundStatus = new Label();`. In the **existing** `new HBox(...)`, add `soundStatus` between `score.view()` and `message`; keep the Restart button. In `restart()`, after resetting points, add:

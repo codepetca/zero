@@ -9,7 +9,7 @@ export function ReaderNavigation({
 }: {
   items: { id: string; title: string; href: string }[];
   current: string;
-  section?: "Tutorials" | "Docs" | "Examples";
+  section?: "Tutorials" | "Docs" | "Examples" | "Help" | "For teachers";
   groups?: { id: string; title: string; lessons: string[] }[];
 }) {
   const router = useRouter();
@@ -24,7 +24,7 @@ export function ReaderNavigation({
   const grouped = lesson && groups?.length ? groups.map(group => ({
     ...group, items: items.filter(item => group.lessons.includes(item.id)),
   })) : null;
-  const links = <nav aria-label={lesson ? "Lesson navigation" : section === "Examples" ? "Example navigation" : "Documentation navigation"}>
+  const links = <nav aria-label={lesson ? "Lesson navigation" : `${section} navigation`}>
     {grouped ? grouped.map(group => (
       <div className="lesson-navigation-group" key={group.id}>
         <h2>{group.title}</h2>
@@ -57,7 +57,7 @@ export function ReaderNavigation({
         </select>
       </label>
       <div className="reader-menu lesson-menu">
-        {!grouped && <h2>{lesson ? `Lessons ${items[0]?.id}–${items.at(-1)?.id}` : section === "Examples" ? "Examples" : "Documentation"}</h2>}
+        {!grouped && <h2>{lesson ? `Lessons ${items[0]?.id}–${items.at(-1)?.id}` : section}</h2>}
         {links}
       </div>
     </>

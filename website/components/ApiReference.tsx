@@ -128,7 +128,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
           return related ? <span key={id}>{index > 0 && ' · '}{methodLink(related)}</span> : null;
         })}</p>}
       </article>)}
-      {category.notes && <details className="api-notes"><summary>More about {category.title.toLowerCase()}</summary><RichText links={links}>{category.notes}</RichText><p><Link href="/docs/app-guide">Read the app guide for complete examples.</Link></p></details>}
+      {category.notes && <details className="api-notes"><summary>More about {category.title.toLowerCase()}</summary><RichText links={links}>{category.notes}</RichText></details>}
     </section>;
   }
 
@@ -155,7 +155,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
               <ul hidden={!isOpen} id={`nav-${category.id}`}>{category.entries.map(entry => <li key={entry.id}>{methodLink(entry, `${entry.name}()${entry.id === 'image-scaled' ? ' · scaled' : ''}${category.id === 'advanced' ? ` · ${entry.owner}` : ''}`)}</li>)}</ul>
             </div>;
           })}</nav>
-          <div className="api-guide-links"><Link href="/docs/app-guide">App guide</Link><Link href="/docs/setup">Setup and other guides</Link><Link href="/learn">Tutorials</Link></div>
+          <div className="api-guide-links"><Link href="/learn">Tutorials</Link><Link href="/help/setup">Setup help</Link><Link href="/teachers">For teachers</Link></div>
         </div>}
     </aside>
     <main className="api-content" id="page-content" tabIndex={-1}>
@@ -164,7 +164,7 @@ export function ApiReference({ categories, links }: { categories: Category[]; li
         <summary>Advanced lifecycle and extension hooks</summary>
         {categories.filter(category => category.id === 'advanced').map(renderCategory)}
       </details>
-      <footer className="api-source">Reference maintained with the readable framework in your starter. <Link href="/docs/app-guide">App guide</Link></footer>
+      <footer className="api-source">Reference maintained with the readable framework in your starter. <Link href="/learn">Learn through the tutorials</Link></footer>
     </main>
   </div>;
 }

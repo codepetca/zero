@@ -1,6 +1,8 @@
 # Start small
 
-Zero helps you make Java apps and games. Start with one of the two tracks below.
+Zero helps you make Java apps and games. Follow the [tutorials](lessons/00-hello-world.md)
+as the learning path; the first app and game lessons explain these ideas in context.
+This source overview remains available for older kits and contributor reference.
 Use ordinary Java fields, methods and objects to hold your app's state.
 You can learn more JavaFX when your project needs it.
 

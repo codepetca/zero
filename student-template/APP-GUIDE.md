@@ -2,15 +2,16 @@
 
 For the complete list of Zero methods, see the [API reference](API.md).
 
-Normal Run builds a browser preview and checks the supported Java/JavaFX subset.
-Native JavaFX may provide methods that browser builds reject with source
-locations. For the run/stop flow and explicit native diagnostic, see
+Normal Run builds and opens a native JavaFX window. Publishing for the browser
+checks the supported Java/JavaFX subset; some native methods are outside that
+subset. For the run/stop flow and browser compatibility, see
 [running and browser compatibility](https://zero.codepet.ca/docs/setup#edit-and-run).
 
 
-New to Zero? Start with the [beginner toolkit](BEGINNER.md), then
-[make it look good](STYLE.md) and [UI and app/game flow](UI.md). This page is the complete reference; you can
-learn a small set first:
+Learn step by step through the [tutorials](lessons/00-hello-world.md).
+This source guide remains available for older kits and contributor reference;
+the [API reference](API.md) is the canonical method lookup. The tutorials introduce
+the small set you need for each project:
 
 | Build | Start with |
 | --- | --- |

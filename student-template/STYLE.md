@@ -1,5 +1,7 @@
 # Make it look good
 
+Learn layout and appearance in the [Greeting App tutorial](lessons/02-hello-name.md#layout-and-appearance).
+This source guide retains additional experiments for older kits and contributors.
 Start with the [Greeting App tutorial](lessons/02-hello-name.md) for controls or
 [Coin Game tutorial](lessons/08-movement.md) for a canvas game.
 Keep the layout clear, then change a few deliberate values.

@@ -14,7 +14,7 @@ export default function DownloadPage() {
         <div className="hub-intro"><h1>Download Zero</h1></div>
         <Downloads />
         <div className="download-help">
-          <Link href="/docs/setup">Installation steps and setup help</Link>
+          <Link href="/help/setup">Installation steps and setup help</Link>
         </div>
       </main>
     </LearnTheme>
