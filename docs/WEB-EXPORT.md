@@ -1,6 +1,6 @@
 # Browser games and playable links
 
-Mac 0.5.34 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.35 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser

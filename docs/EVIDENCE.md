@@ -7103,3 +7103,13 @@ reload;34+ later updates use corrected handoff. Final promotion review/CI/merge,
 live verification and retirement receipts are retained in primary ignored
 .verification/update-relaunch-0.5.34. Requested Sol/high, effective configuration/
 tokens unknown. Weekly remaining67% at start; healthy storage, no cleanup.
+
+## Mac0.5.35 sidebar release — 2026-10-20
+
+https://github.com/codepetca/zero/pull/145 merged as 8fa39ed3bab31afbb2f105e67baa52b1aa18d5b2. Reviewed source unchanged
+through clean build5fd61f52; notarized/stapled and sealed exactcandidatemac-0.5.35-b639b08dec48.
+Public DMG 4589031 bytes SHA256 83a91fc03b0654268518eb5b70cfac75bf0ee64f65bd8bb421a585fcc578afaf; authenticated draft and
+anonymous public bytes match.99release/2skips,123affected,159website tests,
+type/build/kitverify passed. Independent release/candidate/metadata reviews and
+exact-head CI receipts retained in primary .verification/sidebar-release0.5.35.
+Native/Windows interactive sidebar acceptance untested; browser fixture checked.

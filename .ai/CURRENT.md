@@ -1,15 +1,21 @@
-# Mac0.5.35 sidebar cleanup — authorized publication
+# Mac0.5.35 sidebar cleanup publication
 
-Owner approved Start tutorial plus one Project menu with New project, Clone
-project, Open local project. Setup help becomes Troubleshooting in native ⋯.
-Implemented in managed worktree project-menu-cleanup, branch codex/project-menu-cleanup.
-Open repository-name actions remain contextual; ⋯ preserves empty-window account
-and repository-creation recovery. No credentials or student files changed.
+Owner authorized merge and publication. https://github.com/codepetca/zero/pull/145 merged as
+8fa39ed3bab31afbb2f105e67baa52b1aa18d5b2 after independent source/release/candidate reviews and
+five exact-head checks. Ready welcome has Start tutorial and one Project menu:
+New project, Clone project, Open local project. Troubleshooting is in native ⋯;
+account and repository creation recovery remain reachable.
 
-Source reviewed through83b7374c after two bounded correction batches (documentation
-and stale regression expectations).123 affected tests,23 restored-dependency packaging checks and root check pass.
-Actual browser fixture: connected empty light/dark menu, Escape focus restoration,
-dark200% text. Native-host/Windows interaction not tested for this change.
-Owner now explicitly authorized merge and publication. Build a clean signed,
-notarized Mac0.5.35 and promote only its verified sealed DMG/feed after CI/review.
-Previous public Mac0.5.34 remains current; see docs/EVIDENCE.md and VERIFICATION.md.
+Public signed/notarized/stapled Mac0.5.35: https://github.com/codepetca/zero/releases/download/setup-v0.5.35/Zero-0.5.35-macos.dmg
+DMG 4589031 bytes SHA256 83a91fc03b0654268518eb5b70cfac75bf0ee64f65bd8bb421a585fcc578afaf. Exact sealed mac-0.5.35-b639b08dec48.
+123 affected checks,99 release checks/2skips,159website/type/build andkitverify
+passed. Apple acceptedae1f4301-7291-41bd-8183-5879fb577311. Actual app/DMG
+Gatekeeper, archive/feed signatures and build34→35 checked. Native editor/Windows
+interactive acceptance for this menu change remains untested; browser light/dark
+menu and Escape checked. Prior update-relaunch behavior unchanged.
+
+Metadata review, exact-head CI, merge and live verification receipts accompany
+the sealed candidate in the preserved receipt directory.
+Preserve sealed candidate and receipts to primary .verification/sidebar-release0.5.35
+before retiring owned worktree. Windows21/manualkit17 unchanged; primary dirty
+education-funding work preserved.
