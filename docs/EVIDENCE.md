@@ -1,5 +1,22 @@
 # Delivery evidence index
 
+## Tutorials/API website publication preparation — 2026-10-21
+
+Owner authorized merge and website publication. PR159:
+https://github.com/codepetca/zero/pull/159. Synced main70a72b04 at5033cb45,
+preserving both evidence histories and the published Mac0.5.40 metadata.
+Fresh pinned dependencies,176website/tutorial checks, root checks, typecheck and
+production webpack build pass. Earlier lesson/snippet compiles and browser
+checks apply to unchanged implementation. No installer rebuild/release.
+
+Independent `docs_simplification_review/2` accepted the complete main-sync delta
+at1102ac0a; turn3 accepted the README-only correction at0bf923d1. Together with
+the full initial review, source coverage is complete:3turns,1initial wave,
+2bounded delta waves,1documentation correction batch,zero remaining findings.
+Effective configuration/tokens/attributable elapsed time unknown. Final exact-head
+CI, merge, deployment and public acceptance are recorded in the ignored completion
+receipt preserved to primary `.verification/docs-simplification-publication/`.
+
 ## Tutorials and API documentation — local, 2026-10-21
 
 Owner approved Tutorials as the single learning path and Docs as API reference.

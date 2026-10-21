@@ -1,5 +1,16 @@
 # Verification
 
+## Tutorials/API publication preparation — 2026-10-21
+
+PR159 integrates main70a72b04 without native/release changes. Fresh176website/
+tutorial tests, root checks, website typecheck and production webpack build pass.
+Full initial review plus main-sync/README delta reviews cover source0bf923d1;
+3reviewer turns,1documentation correction batch,no remaining actionable findings.
+Prior compile/browser coverage applies to unchanged source. Final exact-head CI,
+merge and live website proof are in primary ignored
+`.verification/docs-simplification-publication/` after completion. Native editor,
+physical mobile/WebKit and browser/text zoom limits remain as recorded below.
+
 ## Tutorials and API documentation — local, 2026-10-21
 
 Full website and focused native tutorial suites pass; final focused28tests cover
