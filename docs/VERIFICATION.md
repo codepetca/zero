@@ -1,5 +1,24 @@
 # Verification
 
+## Keep the Start Page tab — Mac0.5.38, 2026-10-21
+
+https://github.com/codepetca/zero/pull/152 merged as 6f6146b12fc04216d686cb3d58197c6238bca059 with five exact-head checks.
+Clean reviewed source fc7de603; measured manifest f52d6204. Exact13-file candidate
+mac-0.5.38-f52d6204268b verified, signed feed37→38. Apple accepted
+e63b521a-386f-4bef-8693-4ecbe32c8865; stapled, app/DMG Gatekeeper accepted.
+Public DMG 4595428 bytes SHA256 4f93454771c4cfc7781c0b617ea311e0bf61ed74b20645faf8a34013a55bf48b matches
+candidate, authenticated draft download and anonymous public download.
+
+Exact-source CI894full/3skip;119affected locally,116release/2skip,159website tests,
+type/build/root/kit checks passed. Independent Sol/high initial review found one
+cancellation-during-persistence issue; fixed once and reviewed with version38.
+Exact-candidate review verified13hashes, runtime parity and signatures/provenance.
+Effective model/tokens/attributable elapsed unknown. Promotion review/CI/live
+completion receipts retained in primary .verification/keep-start-page-release0.5.38.
+No further native VSCode QA after earlier Code Key popup; no keychain/credentials
+changed. Interactive Mac tab/focus/unsaved-work and Windows/live-provider acceptance
+pending. Windows21/manualkit17 and primary funding work preserved.
+
 ## Current-window projects — Mac0.5.37 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/150 merged as c7d5cd2a54bd063c99f43b7a1cd1c46b7069e333 after independent code/version/

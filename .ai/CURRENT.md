@@ -1,25 +1,22 @@
-# Keep the Zero Start Page across project switches
+# Keep the Start Page tab — Mac0.5.38 publication
 
-Owner clarified that the Zero Start Page tab should stay available alongside the
-new project; previous project file tabs need not carry over. Implemented locally
-from main0c403346 in the keep-start-page managed worktree. Owner’s existing request to merge and publish current-window project opening
-covers this correction to that same flow. Preparing Mac0.5.38; published37 stays
-available until exact candidate verification and reviewed promotion.
+Owner’s merge/publication request for same-window project opening covers this
+clarified tab-preservation correction. Source https://github.com/codepetca/zero/pull/152 merged as
+6f6146b12fc04216d686cb3d58197c6238bca059 with independent review and five exact-head CI checks.
+An open Start Page carries across the workspace switch; Main/Tutorials and
+existing destination editors remain available. Failed opens/cancellation during
+persistence clear their own handoff; abandoned records expire after ten minutes.
 
-A ten-minute local profile handoff carries an open Start Page to the exact
-project in the next extension host. Recheck account/lifetime after persistence;
-failed opens clear their own record. Restore before first-lesson introduction,
-ignore only the Start Page when checking for existing student editors, and reuse
-an already restored panel. Native unload veto does not consume its ticket.
+Public signed/notarized/stapled Mac0.5.38: https://github.com/codepetca/zero/releases/download/setup-v0.5.38/Zero-0.5.38-macos.dmg
+DMG 4595428 bytes SHA256 4f93454771c4cfc7781c0b617ea311e0bf61ed74b20645faf8a34013a55bf48b. Sealed mac-0.5.38-f52d6204268b.
+Built clean reviewed fc7de603; measured manifest f52d6204. Apple Accepted
+ e63b521a-386f-4bef-8693-4ecbe32c8865; staple/app/DMG Gatekeeper accepted.
+Exact-source CI894full/3skip;119affected locally,116release/2skip,159website tests,
+type/build/root/kit checks passed. Source, fix/version and exact-candidate
+reviews passed; final promotion review/CI/live verification pending.
 
-Configuration checks,118affected and47final onboarding/handoff tests passed.
-Full suite893pass/3skip. Independent Sol/high full review found cancellation during
-handoff persistence could still open the folder; fixed in one batch with actual
-folders/window regression coverage.119affected and release-delta review pending. Keep detailed logs/receipts ignored under
-.verification/keep-start-page. Primary education-funding work remains untouched.
-
-No further native VSCode QA: an isolated HOME test previously caused Code Key
-popups; owner confirmed they stopped after its process ended. No credentials or
-keychain changed. Interactive Mac tab/focus/unsaved-work behavior, Windows and
-fresh-machine acceptance remain untested. Next: finish targeted review/checks, build/sign/notarize/seal38, review the exact
-candidate, merge with passing CI, publish and verify the live download/feed.
+No native VSCode QA after the earlier isolated-HOME Code Key popup. No credentials
+or keychain changed. Interactive Mac tab/focus/unsaved-work, Windows/fresh-machine
+and live-provider acceptance remain untested. Windows21/manualkit17 unchanged.
+Preserve logs/candidate under primary .verification/keep-start-page-release0.5.38
+before retiring the managed worktree. Primary education-funding work untouched.
