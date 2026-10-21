@@ -123,10 +123,11 @@ are separate. The shared preview embeds matching licensed Lucide artwork.
 
 ## Searchable API reference
 
-`/docs` and `/docs/api` share the complete reference, generated from maintained
+`/docs` presents the complete reference (`/docs/api` redirects there), generated from maintained
 `student-template/API.md` tables. The adapter verifies all current public/protected
 declarations against source in tests. Categories, exact-name/keyword search,
 parameters, examples, source links and Advanced deep links share one page.
 The existing theme/navigation and click/keyboard code-copy controls are retained.
-Longer guidance lives at `/docs/app-guide`; setup and other guides stay available
-from the sidebar. Old API section fragments remain supported.
+Learning explanations live in the relevant tutorials. Setup help and teacher
+notes have separate navigation; old guide URLs resolve to their new destinations.
+Old API section fragments remain supported.
