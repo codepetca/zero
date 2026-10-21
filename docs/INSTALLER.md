@@ -258,7 +258,7 @@ to gain automatic updating. The launcher opens the configured editor first,
 then performs a due background update check. A prepared update replaces only
 Zero.app after Zero's setup helpers finish; the editor is not terminated.
 Owned kit support files prepare on the next launch, preserving student work.
-Mac0.5.34 source restores manual **Install and Relaunch**: Sparkle reopens the new
+Mac0.5.34 restores manual **Install and Relaunch**: Sparkle reopens the new
 Zero app, which updates and verifies its kit/extension before opening the saved
 editor session. A fixed atomic marker in the private Zero editor directory asks
 older loaded Zero extensions from0.5.34 onward to reload their own idle window.
