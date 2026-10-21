@@ -20,5 +20,11 @@ preserve them in future UI work unless the owner asks to change them.
 - Keep the option-2 sidebar minimal. Use supported VS Code extension APIs.
 - Preserve readable source and useful errors. Run the relevant checks; report
   untested operating systems and interactive flows accurately.
+- Keep public API documentation synchronized with additions, removals, renames
+  and behavior changes in the same PR. Update `student-template/API.md`,
+  `student-template/APP-GUIDE.md`, website API metadata/examples in
+  `website/lib/api-reference.mjs`, and the relevant API coverage tests. Run the
+  API-reference checks and verify the website `/docs` entry reflects the change.
+  Distinguish local/PR documentation updates from a published website update.
 - One writer per component. Coordinate shared contracts before edits. Keep
   dependencies pinned and generated files out of Git.

@@ -50,7 +50,7 @@ const methodNotes = {
   setup: 'Override this callback. On GameApp the canvas already exists.',
   size: 'Call inside settings() only. Dimensions must be positive and finite.',
   title: 'Call inside settings() only. The title must not be null.',
-  padding: 'Call in settings(), setup() or a JavaFX handler. Padding must be non-negative and finite; default: 0. GameApp keeps its canvas dimensions.',
+  padding: 'Inherited by GameApp from App. Call in settings(), setup() or a JavaFX event handler. The default is 0; padding(0) removes it and repeated calls replace the amount. GameApp keeps its canvas dimensions. Later calls rearrange content without resizing the window.',
   show: 'Call in setup() or later. Content must not be null.',
   update: 'The example assumes a double field named x. First-frame seconds is 0; later values are capped at 0.1.',
   draw: 'The canvas is not cleared automatically. Drawing styles persist between frames.',

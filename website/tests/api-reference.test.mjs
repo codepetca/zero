@@ -109,7 +109,12 @@ test('documents current padding, arrow handling, bundled media and retained app 
   assert.match(entry('padding').description, /non-negative and finite/);
   assert.match(entry('padding').description, /Default: 0/);
   assert.match(entry('padding').description, /`settings\(\)`, `setup\(\)` or later JavaFX handlers/);
+  assert.match(entry('padding').note, /Inherited by GameApp from App/);
+  assert.match(entry('padding').note, /settings\(\), setup\(\) or a JavaFX event handler/);
+  assert.match(entry('padding').note, /padding\(0\) removes it/);
+  assert.match(entry('padding').note, /repeated calls replace the amount/);
   assert.match(entry('padding').note, /GameApp keeps its canvas dimensions/);
+  assert.match(entry('padding').note, /without resizing the window/);
   assert.match(entry('padding').parameters[0].description, /content edge/);
   assert.equal(entry('padding').example, 'padding(20);');
   assert.ok(entry('padding').related.includes('settings'));

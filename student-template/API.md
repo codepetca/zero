@@ -51,7 +51,8 @@ invalid dimensions or padding throw `IllegalArgumentException`. `show` throws `I
 before content creation. Null title/content throws `NullPointerException`.
 `size` and `title` do not change an already-open window.
 
-`padding(20)` sets 20 pixels on every edge; repeated calls replace the amount,
+GameApp inherits `padding` from App. `padding(20)` sets 20 pixels on every edge;
+repeated calls replace the amount,
 and `padding(0)` removes it. Invalid padding leaves the previous amount unchanged.
 App keeps its configured initial window content size, leaving less room for
 controls. GameApp's initial window includes padding around its fixed canvas and

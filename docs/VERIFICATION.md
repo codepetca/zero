@@ -2,6 +2,15 @@
 
 ## Shared padding and native focus tests — 2026-10-21
 
+API follow-up: the website padding entry explicitly explains inheritance from
+App, settings/setup/handler use, padding(0), replacement semantics and fixed
+canvas/window behavior. All11 API-reference checks pass; the actual local
+`/docs#padding` entry and example were inspected in the in-app browser.
+`AGENTS.md` now requires canonical API, guide, website metadata/examples and
+coverage updates with API changes. Source updates remain in PR156, not a claim
+of published website changes. Preview evidence is retained in ignored
+`.verification/shared-padding/api-padding-preview.png` in the primary checkout.
+
 App.padding is shared with GameApp and now supports settings, setup and later
 JavaFX handlers. Zero removes padding; negative and non-finite values preserve
 the prior amount and fail clearly. Focused native checks cover replacement
