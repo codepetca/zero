@@ -7,6 +7,9 @@ function textInputs(vscode) {
     const emit = (name,value) => {for (const fn of [...listeners[name]]) fn(value);};
     const picker = {value:'',items:[],onDidAccept:event('accept'),onDidChangeValue:event('change'),onDidHide:event('hide'),
       dispose(){},show(){
+        if(picker.title==='Clone from GitHub') {
+          queueMicrotask(()=>{picker.selectedItems=[picker.items.find(item=>item.action==='paste')];emit('accept');});return;
+        }
         Promise.resolve().then(()=>vscode.window.showInputBox({title:picker.placeholder,placeHolder:picker.placeholder,prompt:picker.title,value:picker.value||undefined})).then(value=>{
           if(value===undefined)emit('hide');else{picker.value=value;emit('change',value);emit('accept');}
         }).catch(error=>{emit('hide');queueMicrotask(()=>{throw error;});});

@@ -1,26 +1,20 @@
-# Popup keyboard helper — Mac 0.5.32 publication
+# Searchable project picker — local Mac 0.5.33 work
 
-Owner authorized merge and publication. Source PR139 merged as
-`3d810044a28a6ce18e9e79dca59d0693925e26c6` after independent source/candidate review and all
-five exact-head checks. Zero's text-entry popups show
-`<Enter> to confirm · <Esc> to cancel`; existing labels, validation and context
-are preserved. Prior native Run, Run/Publish dropdown, Files and onboarding remain.
+Owner authorized implementation, merge and publication. Base ce1d6f6e/Mac32.
+Clone from GitHub shows account-scoped recent local projects first, accessible
+Zero repositories second, and an always-available Paste URL fallback. Local
+selection reopens its existing folder. Discovery uses bounded read-only GitHub
+requests, progressive results and cancellation/session guards. History records
+recognized project opens/clones, excludes the setup starter, and is capped at20.
 
-Signed/notarized/stapled Mac32 is public: https://github.com/codepetca/zero/releases/download/setup-v0.5.32/Zero-0.5.32-macos.dmg
-DMG 4,585,577 bytes; SHA256 `fad07d368aebe13af25ac126eab5f0fafc2ef74796a38b376451c28d15d06e35`.
-Authenticated draft and anonymous public downloads match sealed `mac-0.5.32-e628e0f42fce`.
-Build source41c91e2d and preparatione628e0f4 have equal protected source.
-Apple accepted f3154418-fac3-47fd-b93a-f6ba3dba5e2e; actual Developer ID,
-Gatekeeper, staple, Ed25519 archive/feed signatures and build31→32 checks pass.
-This promotion carries the exact sealed feed and measured download metadata.
+Coordinator owns picker/history/folder integration/docs/release. Sol/high worker
+implemented only repository discovery and its targeted tests;35passed and parent
+verified code/tests. Full affected99pass. Native-host visual automation could not target the isolated
+VS Code instance; see EVIDENCE for the explicit limit. Complete tests and
+independent source review passed after ordering/focus fixes. Mac33 signing,
+notarization, sealing and exact-head CI precede publication.
+Mac32 remains the public download and feed until verified promotion.
 
-85 affected input/caller checks,99release checks/2skips,159website tests,
-typecheck/build and kit verification passed. Source review found two doc nits,
-fixed before final build. Actual VS Code visual appearance, assistive technology,
-fresh-machine installation and physical Windows remain manual smoke coverage.
-Windows21/manual and general kit17 retain their existing versions.
-
-Final metadata review/CI/merge and live feed/download proofs are retained under
-.verification/popup-keyboard-hint; preserve all useful artifacts and sealed bytes
-to primary .verification/popup-helper-0.5.32 before retiring the owned worktree.
-Primary dirty funding work is preserved. Detailed delivery: docs/EVIDENCE.md.
+Owned worktree project-picker; preserve primary dirty funding work and existing
+release evidence. DeepSeek automatic pilot is paused through Dec31. Weekly
+remaining71%; cached storage healthy278GB. Runtime/token costs unknown.

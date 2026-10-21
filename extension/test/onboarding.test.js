@@ -389,3 +389,18 @@ test('offline readiness stays retryable while local Run and Files remain availab
   assert.match(f.webview.html,/zero.toggleApp/);assert.match(f.webview.html,/Project files/);assert.doesNotMatch(f.webview.html,/zero.chooseRepository|zero.uploadToGitHub/);
   reachable=true;await f.commands.get('zero.setupGitHub')();assert.match(f.webview.html,/zero.chooseRepository/);
 });
+
+test('Clone picker seeds the current project as a recent and opens it without duplicating its clone',async t=>{
+ const profile=new Map();const f=await fixture(t,{empty:false,profile,initialSession:{id:'saved',account:{id:'17',label:'student'},accessToken:'MOCK_ONLY'}});
+ await settle(()=>profile.get('zero.recentProjects.v1:17')?.length);
+ const prior=f.vscode.window.createQuickPick;
+ f.vscode.window.createQuickPick=()=>{
+  const events={accept:new Set(),hide:new Set()};const event=name=>fn=>{events[name].add(fn);return {dispose:()=>events[name].delete(fn)};};
+  const q={items:[],selectedItems:[],activeItems:[],onDidAccept:event('accept'),onDidHide:event('hide'),dispose(){},show(){
+   assert.equal(q.title,'Clone from GitHub');assert.equal(q.items[0].label,'Recent projects');
+   q.selectedItems=[q.items.find(item=>item.action==='recent')];queueMicrotask(()=>{for(const fn of events.accept)fn();});
+  }};return q;
+ };
+ const before=f.calls.length;await f.commands.get('zero.cloneRepository')();f.vscode.window.createQuickPick=prior;
+ assert.ok(f.calls.slice(before).some(([command,uri])=>command==='vscode.openFolder'&&uri.fsPath===f.root));assert.equal(f.calls.filter(([command])=>command==='cloneRepository').length,0);
+});
