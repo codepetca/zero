@@ -6,13 +6,18 @@ Owner requested Start Page Clone/Open/New reuse the current VS Code window.
 The shared folder opener now uses supported vscode.openFolder forceReuseWindow
 for clones, tutorial/new projects, local folders and recent entries. VS Code owns
 workspace-switch and unsaved-editor handling; Zero adds no save/discard operation.
-Creation/resume recovery is cleared durably before the old extension host exits,
-with restoration on failed dispatch, cancellation or last-moment account drift.
+Creation/resume recovery stays saved if native Cancel vetoes the window switch.
+Only an actually active workspace with the matching account/repository clears it.
 Installation test and separate ZeroHub project opening keep their own behavior.
 
 109 affected checks, npm run check and git diff --check pass. GitHub transports
 are mocked; no actual sign-in, repository creation/clone or account writes.
-Native window/unsaved-flow verification and independent review remain pending.
+Independent initial review found one P2: native Cancel can resolve without
+switching. Corrected by retaining recovery until an active workspace matches its
+account/remote;109 final affected checks pass. Native QA stopped when the isolated
+VS Code profile triggered a Code Key keychain prompt. Owner confirmed Cancel plus
+stopping the owned editor ended it; no keychain/credential change. Native window/
+unsaved-flow acceptance remains unverified. Targeted review pending.
 Mac0.5.36 remains public with its original behavior; this is local source only.
 Isolated branch codex/start-page-current-window preserves primary funding work.
 Weekly57% remaining, storage healthy282GB; task cost/elapsed telemetry unknown.

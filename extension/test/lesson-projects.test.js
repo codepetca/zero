@@ -138,7 +138,7 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
   name='my-greeting';location=false;await commands.get('zero.startProject')();assert.equal(creates.length,0);
   location=true;const beforeErrors=errors.length;await commands.get('zero.startProject')();assert.equal(errors.length,beforeErrors);
   assert.deepEqual(creates,[{input:{name:'my-greeting',private:false,template:{owner:'codepetca',repo:'zero-tutorial-greeting'}},account:'student'}]);
-  assert.deepEqual(clones,[{repositoryUrl:'https://github.com/student/my-greeting',parentPath:root}]);assert.deepEqual(opened,[{uri:{fsPath:path.join(root,'my-greeting')},options:{forceReuseWindow:true}}]);assert.equal(profile.get('zero.repositoryCreationRecovery'),undefined);assert.ok(dialogs.every(dialog=>dialog.canSelectFolders&&!dialog.canSelectFiles));
+  assert.deepEqual(clones,[{repositoryUrl:'https://github.com/student/my-greeting',parentPath:root}]);assert.deepEqual(opened,[{uri:{fsPath:path.join(root,'my-greeting')},options:{forceReuseWindow:true}}]);assert.equal(profile.get('zero.repositoryCreationRecovery').stage,'created');assert.ok(dialogs.every(dialog=>dialog.canSelectFolders&&!dialog.canSelectFiles));
   assert.ok(authCalls.every(call=>call.provider==='zero-github'&&call.scopes.length===0&&call.options.silent),'Activation and captured App sessions stay silent when already connected');
   bundle.projects[0].template.templateHref='https://github.com/attacker/template/generate';await fs.writeFile(bundlePath,JSON.stringify(bundle));
   await commands.get('zero.startProject')();assert.match(errors.at(-1),/invalid published template metadata/);assert.equal(creates.length,1);assert.equal(clones.length,1);

@@ -43,14 +43,15 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
       await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'creating'});
       notify('Creating your GitHub project…');
       const result=await createRemote(input,template,signal,notify);
-      const recovery={repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'created'};
-      await onRecovery(recovery);
+      await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'created'});
       if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
       try{
         throwIfCancelled(signal);notify('Opening your project…');
-        const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal,beforeOpen:async()=>{await onRecovery(undefined);return ()=>onRecovery(recovery);}});
+        const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal});
         throwIfCancelled(signal);
         if(!cloned||!isActive())throw Error('The project was not opened.');
+        // Only the next activation can confirm a same-window switch was accepted.
+        // Native dirty-editor Cancel can resolve openFolder without switching.
         drafts.delete(input.draftKey);
         notify('Project created');
         return result;
@@ -120,10 +121,10 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         if(!connected)throw Error('The existing repository connection was kept.');
         onProgress('Repository connected');
       }else{
-        const cloned=await folders.clone({repositoryUrl:destination.page,signal,beforeOpen:async()=>{await onRecovery(undefined);return ()=>onRecovery(record);}});
+        const cloned=await folders.clone({repositoryUrl:destination.page,signal});
         throwIfCancelled(signal);
         if(!cloned||!isActive())return false;
-        onProgress('Project opened');
+        onProgress('Project cloned');
       }
       if(record.projectRoot)await onRecovery(undefined);return true;
     });

@@ -109,25 +109,3 @@ test('recent selection opens its existing folder without dialogs or cloning and 
 test('account drift in the location picker blocks cloning before authenticated transport runs',async t=>{
  const f=await fixture(t);f.selection=[{fsPath:f.home}];await assert.rejects(f.folders.clone({repositoryUrl:'https://github.com/student/app',assertCurrent:async()=>{throw Error('Account changed');}}),/Account changed/);assert.equal(f.calls.length,0);
 });
-
-test('clone completes durable recovery handoff before replacing the host and restores it on failed opening',async t=>{
- for(const outcome of ['opened','rejected','cancelled','account-changed','disposed']) {
-  const f=await fixture(t),controller=new AbortController(),project=path.join(f.home,'created');
-  let recovery={repositoryUrl:'https://github.com/student/app'},prepared=false,opens=0;
-  const original=recovery;
-  f.vscode.commands.executeCommand=async(command,uri,options)=>{
-   opens++;assert.equal(command,'vscode.openFolder');assert.equal(uri.fsPath,project);
-   assert.deepEqual(options,{forceReuseWindow:true});assert.equal(recovery,undefined,'Recovery must finish before the old host can exit');
-   if(outcome==='rejected')throw Error('Window opening failed');
-  };
-  f.cloneResult=project;
-  const operation=f.folders.clone({repositoryUrl:'https://github.com/student/app',parent:{fsPath:f.home},signal:controller.signal,
-   assertCurrent:async()=>{if(prepared&&outcome==='account-changed')throw Error('Account changed');},
-   beforeOpen:async()=>{recovery=undefined;prepared=true;if(outcome==='cancelled')controller.abort();if(outcome==='disposed')f.active=false;return async()=>{recovery=original;};}
-  });
-  if(['rejected','cancelled','account-changed'].includes(outcome))await assert.rejects(operation);
-  else await operation;
-  assert.equal(opens,['opened','rejected'].includes(outcome)?1:0);
-  assert.equal(recovery,outcome==='opened'?undefined:original);
- }
-});
