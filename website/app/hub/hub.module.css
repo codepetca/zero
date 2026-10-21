@@ -24,8 +24,7 @@
 .playImage:hover .playOverlay, .playImage:focus-visible .playOverlay, .playPlaceholder + .playOverlay { opacity: 1; }
 .playImage:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
 @media (hover: none) { .playImage .playOverlay { opacity: 1; } }
-@media (max-width: 540px) { .card { gap: 16px; } .thumbnail, .playImage { width: 88px; height: 88px; } }
-@media (max-width: 360px) { .card { flex-direction: column; } }
+@media (max-width: 540px) { .card { gap: 16px; } }
 .card a { overflow-wrap: anywhere; }
 .metadata { color: var(--muted); font-size: 16px; }
 
@@ -36,7 +35,8 @@
 .starButton[aria-pressed="true"] :global(.icon) { fill: currentColor; }
 .account button:disabled, .starButton:disabled { opacity: .65; cursor: default; }
 .feedback { margin-top: 12px; }
-.projectActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 16px; }
+.projectActions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 16px; }
+.projectActions .metadata { flex: 1 1 auto; min-width: 0; margin: 0; }
 .projectActions > a:not(.starButton) { display: inline-flex; align-items: center; min-height: 44px; }
 .projectActions .reportLink { justify-content: center; min-width: 44px; font-size: 18px; }
 .siteStatus, .feedbackError { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
@@ -44,3 +44,39 @@
 .siteStatus time { white-space: nowrap; }
 .siteStatus[data-status="reachable"] :global(.icon) { color: light-dark(#15803d, #4ade80); }
 .siteStatus[data-status="unreachable"] :global(.icon) { color: light-dark(#a17a00, #facc15); }
+
+/* One square per project. Title and actions stay visible over the preview. */
+.discovery:has(.projectCards) { max-width: 1120px; }
+.projectCards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+.projectCard { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; position: relative; width: 100%; max-width: 100%; min-width: 0; min-height: calc(8em + 96px); aspect-ratio: 1; isolation: isolate; border-radius: 6px; background: var(--zero-surface); color: white; font-size: 16px; line-height: 1.45; }
+.projectCard > * { min-width: 0; }
+.projectCard .playImage { position: absolute; inset: 0; width: 100%; height: 100%; }
+.projectCard .thumbnail, .projectCard .playPlaceholder { width: 100%; height: 100%; }
+.projectCard [data-muted] .thumbnail { filter: grayscale(1); opacity: .45; }
+.projectCard .imageTitle { position: relative; z-index: 2; margin: 0; padding: 0 0 12px; border-radius: 6px 6px 0 0; background: linear-gradient(rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 80%) 75%, transparent 100%); font-size: 18px; line-height: 1.4; }
+.imageTitle button { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: white; font: inherit; text-align: left; cursor: pointer; }
+.imageTitle button > span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; mask-image: linear-gradient(to right, black calc(100% - 20px), transparent); }
+.imageTitle button :global(.icon) { width: 16px; height: 16px; }
+.imageTitle button:focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; }
+.projectCard .description { position: relative; z-index: 1; min-height: 0; margin: 0; padding: 10px 12px; overflow: auto; background: rgb(0 0 0 / 88%); color: white; opacity: 0; visibility: hidden; }
+.projectCard:not([data-description-dismissed]):hover .description, .projectCard:not([data-description-dismissed]):focus-within .description, .projectCard[data-description-open] .description { opacity: 1; visibility: visible; }
+.projectCard .cardFooter { position: relative; z-index: 2; padding: 16px 10px 8px; border-radius: 0 0 6px 6px; background: linear-gradient(transparent, rgb(0 0 0 / 88%) 16px); }
+.projectCard .feedback { margin: 0; }
+.projectCard .siteStatus { margin: 0 0 4px; gap: 4px; font-size: 12px; line-height: 1.4; color: white; }
+.projectCard .siteStatus time { white-space: normal; }
+.projectCard .starButton { min-width: 44px; padding: 6px 8px; border-color: rgb(255 255 255 / 50%); background: rgb(0 0 0 / 35%); color: white; }
+.projectCard .starButton[aria-pressed="true"] { border-color: white; }
+.projectCard .reportLink { min-width: 32px; }
+.projectCard .metadata { font-size: 14px; line-height: 1.4; }
+.projectCard .metadata a, .projectCard .reportLink, .projectCard .feedbackError { color: white; }
+.projectCard .feedbackError { margin: 4px 0 0; font-size: 14px; }
+.projectCard .playOverlay { background: none; }
+.projectCard .playOverlay > span { background: rgb(0 0 0 / 80%); }
+/* Leave the image link available, while description text can be scrolled. */
+.projectCard .description { pointer-events: none; }
+.projectCard[data-description-open] .description { pointer-events: auto; }
+.projectCard .description:focus-visible { outline: 3px solid var(--purple); outline-offset: -3px; }
+.projectCard .siteStatus[data-status="reachable"] :global(.icon) { color: #4ade80; }
+.projectCard .siteStatus[data-status="unreachable"] :global(.icon) { color: #facc15; }
+
+.projectCard:not([data-description-dismissed]):hover .playOverlay, .projectCard:not([data-description-dismissed]):focus-within .playOverlay, .projectCard[data-description-open] .playOverlay { opacity: 0; }

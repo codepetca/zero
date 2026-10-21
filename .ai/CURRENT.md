@@ -1,3 +1,12 @@
+# Compact ZeroHub project squares — local, 2026-10-21
+
+Owner refined the layout to one square: title fades over the top, stars/report/
+author sit at the bottom, description appears on hover/focus or title toggle.
+Unconfirmed site previews are muted using repository-matched reachability only.
+Implementation is isolated from the primary dirty funding checkout at base59c414f7.
+No publication authorized. Preview http://127.0.0.1:3135/hub. See
+[delivery evidence](../docs/EVIDENCE.md) for checks, review and limits.
+
 # Corrected editor popups — Mac0.5.43 publication
 
 Owner explicitly authorized merge and release. Source https://github.com/codepetca/zero/pull/162

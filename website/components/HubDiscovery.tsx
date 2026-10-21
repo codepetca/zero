@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useState} from 'react';
+import {useEffect, useState, type ReactNode} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {dependencySnippet, maintainedPlayLink, playLink, projectSummary, releaseAuthor, releaseImage, releaseSummary, selectMaintainedProjects, selectReleases, sourceLink} from '@/lib/sharing-client.mjs';
 import maintainedProjects from '@/content/projects.json';
@@ -53,18 +53,18 @@ export function HubDiscovery() {
     }).catch(()=>{/* Counts and checks are optional; browsing and reporting remain available. */});
     return()=>{active=false;controller.abort();};
   },[kind,feedbackIds]);
-  const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=><HubProjectFeedback {...entry} kind={kind} feedback={feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined} />;
+  const projectFeedback=(entry:{id:string;title:string;repositoryHref:string;playHref?:string;sourceCommit?:string;version?:string})=>(identity?:ReactNode)=><HubProjectFeedback {...entry} kind={kind} feedback={feedback[entry.id]?.repositoryUrl===entry.repositoryHref?feedback[entry.id]:undefined}>{identity}</HubProjectFeedback>;
   return <section className={styles.catalog} aria-labelledby="sharing-heading">
     <h2 id="sharing-heading" className="sr-only">{kind === 'game' ? 'Projects' : 'Libraries'}</h2>
     <HubNavigation active={kind} />
     {id || version ? <p className="hub-note">Exact release: {id || 'Missing ID'} · {version || 'Missing version'}. <Link href={`/hub?kind=${kind}`}>Browse all {kind==='game'?'projects':'libraries'}</Link></p> : <div className="hub-form"><label htmlFor="sharing-search">Find {kind==='game'?'a project':'a library'}</label><input id="sharing-search" type="search" value={search} onChange={event=>setSearch(event.target.value)} maxLength={200} placeholder="Title, author or description" /></div>}
-    <div className={styles.cards}>
+    <div className={`${styles.cards}${kind==='game'?` ${styles.projectCards}`:''}`}>
     {projects.map(project => <HubProjectCard key={project.id} title={project.title} description={projectSummary(project.description)} author={project.author}
-      image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:maintainedPlayLink(project),sourceCommit:project.sourceCommit})} />)}
+      compact siteReachable={feedback[project.id]?.repositoryUrl===project.repositoryUrl && feedback[project.id]?.site.status==='reachable'} image={project.image} playHref={maintainedPlayLink(project)} repositoryHref={project.repositoryUrl} feedback={projectFeedback({id:project.id,title:project.title,repositoryHref:project.repositoryUrl,playHref:maintainedPlayLink(project),sourceCommit:project.sourceCommit})} />)}
     {error ? <div role="status"><p>{error}</p><button className={styles.retry} onClick={()=>setRetry(value=>value+1)}>Try again</button></div> : !catalog ? <p role="status">Loading {kind==='game'?'projects':'libraries'}…</p> : selectionError ? <p role="status">{selectionError}</p> : <>
       {!releases.length && !projects.length && <p role="status">{id || version ? 'This exact release is not in the catalog. No other version was substituted.' : search.trim() ? `No ${kind==='game'?'projects':'libraries'} match this search.` : `No ${kind==='game'?'projects':'libraries'} are available yet.`}</p>}
       {releases.map(release=><HubProjectCard key={`${release.id}/${release.version}`} title={release.title} description={releaseSummary(release, projectPreviews)} author={releaseAuthor(release, releaseAuthors)}
-        version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)} feedback={release.status==='available'?projectFeedback({id:release.id,title:release.title,repositoryHref:release.repository.url,playHref:playLink(release),sourceCommit:release.source.commit,version:release.version}):undefined}>
+        compact={release.kind==='game'} siteReachable={feedback[release.id]?.repositoryUrl===release.repository.url && feedback[release.id]?.site.status==='reachable'} version={release.version} repositoryHref={release.repository.url} image={releaseImage(release, projectPreviews)} playHref={playLink(release)} feedback={release.status==='available'?projectFeedback({id:release.id,title:release.title,repositoryHref:release.repository.url,playHref:playLink(release),sourceCommit:release.source.commit,version:release.version}):undefined}>
         {release.status !== 'available' ? <p role="status">This release has been withdrawn.</p> : release.kind === 'library' ? <details><summary>Use this library</summary>
           <p>In Zero, choose Browse ZeroHub → {release.title} → Add library → Apply.</p>
           <p><a href={`${sourceLink(release)}/examples`}>View examples</a></p>

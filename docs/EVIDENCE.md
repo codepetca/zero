@@ -1,5 +1,37 @@
 # Delivery evidence index
 
+## Compact ZeroHub project squares — local, 2026-10-21
+
+Owner replaced the initial two-column request with one square per project.
+Title has a contrasting header and overflow fade; stars, flag, author/version
+and cached page-check time overlay the bottom. Description appears on hover or
+keyboard focus, with an About title toggle for touch, scrolling and Escape dismissal.
+Escape from the description restores visible focus to About. Previews are muted
+until repository-matched page reachability succeeds; gameplay is not certified.
+Library usage retains its text/disclosure layout. Product and remembered design
+preferences updated together. Base59c414f7; isolated managed worktree preserves
+all original funding/Java changes. No push, PR, merge, deployment or account writes.
+
+Focused21tests, final TypeScript, whitespace and final production build pass. Chrome/Playwright fixture checks pass for
+four252px squares, reachable/unreachable/unknown/placeholder states, long title,
+39-character author, hover, keyboard, About click, Escape and focus restoration,
+390/320px widths, light/dark and simulated enlarged text. Library and manual
+Maven disclosures also pass a390px browser compatibility check. Enlarged cards grow
+vertically without horizontal page overflow. Full website run was stopped after
+unrelated local-installer Git subprocess timeouts under load; no full-suite pass
+is claimed. Physical touch devices, WebKit/Safari and authenticated writes untested.
+Ignored screenshot/script receipts: `output/playwright/`; focused/type/build logs
+are copied into `.verification/compact-project-cards/` at completion.
+
+Independent Luna/medium review: first assignment interrupted when scope changed;
+updated complete6file review found1P2 Escape focus issue. One fix batch and one
+targeted review accepted the refs/focus correction plus Play-label suppression;
+zero remaining findings. Three reviewer turns total, one superseded partial,
+no integration wave or conflicts; effective model/tokens/attributable time unknown.
+Coordinator implemented directly. Weekly35%remaining, storage healthy270.9GB at
+start; machine load caused slow tools/tests. No task/goal/automation created.
+
+
 ## Corrected editor popups — Mac0.5.43 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/162 merged as 63bbf25d96a2ff953c48f806a2f7a0b23f041575 with five exact-head checks.

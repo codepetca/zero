@@ -128,11 +128,16 @@ Website tutorial steps and reference sections are expanded by default; full guid
 available. Tutorial step headings use subtle highlights instead of horizontal
 dividers. Generic setup/continuation cards are omitted; specific component or
 media notes stay muted and unboxed. Previous lesson prose is omitted in favor of the sidebar and Next lesson action. `/hub` is ZeroHub: discover student-hosted games and reusable libraries.
-Show only the latest available release of each project, with a plain title,
-one short sentence and author/version. Clicking the screenshot opens the verified
-hosted game in a new tab. A Play overlay appears on hover or keyboard focus and
-stays visible on touch screens; there is no separate Play button. Older playable
-releases without screenshots use a Play tile. Withdrawn images remain static.
+Show only the latest available release of each project. Each project occupies one
+square screenshot: the title overlays its top on a dark background and fades at
+the edge when too long. Stars, the report flag and author/version sit at the bottom,
+with the cached page-check time. Hover or keyboard focus reveals the description;
+the title's About button toggles it for touch and keyboard users. Full title and
+description remain available to assistive technology. Unconfirmed or unreachable
+previews are muted until the existing page-reachability check succeeds; this does
+not verify gameplay. The screenshot opens the hosted game in a new tab. Older
+playable releases without screenshots use a Play tile. Withdrawn images remain static.
+Library cards retain their text layout and usage disclosure.
 The version opens the GitHub repository;
 unversioned maintained projects link through the author instead. There is no
 separate GitHub action. Game cards omit controls,
