@@ -312,7 +312,7 @@ test('empty project actions stay on Start Page and direct local open reuses a fo
   assert.equal(f.startState.phase,'ready');assert.doesNotMatch(f.webview.html,/project-menu-button|zero.chooseRepository/);
   await f.commands.get('zero.chooseRepository')();assert.deepEqual(picks[0].items.map(item=>item.action),['account']);assert.equal(picks[0].options.title,'Project');
   await f.commands.get('zero.openLocalProject')();
-  assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceNewWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
+  assert.ok(f.calls.some(([id,uri,options])=>id==='vscode.openFolder' && uri.fsPath===f.root && options.forceReuseWindow));assert.ok(!f.calls.some(([id])=>id==='git.clone'));
 });
 
 test('sign-in is independent of local practice while sharing stays unavailable',async t=>{

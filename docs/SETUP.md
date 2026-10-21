@@ -64,7 +64,8 @@ automatically.
 When ready, **Start tutorial** creates the selected scaffold. **Start Page → New project**
 creates original work instead, so students can skip the tutorial. **Start Page → Open local project** opens existing work; Troubleshooting is in the sidebar’s **⋯** menu. Enter a repository name and choose
 a parent folder before creation. Zero creates a public repository in your GitHub
-account, verifies access, clones and opens the project in a new window. Its
+account, verifies access, clones and opens the project. Current source reuses the VS Code window;
+published Mac0.5.36 opens a new window. Its
 source and included files are public.
 The **Clone location** chooser starts at `~/Zero Projects`; keep it or choose
 another folder outside any Git repository, then choose **Clone here**.
@@ -74,7 +75,7 @@ keeps its recovery link and offers **⋯ → Repository Actions → Resume creat
 clone keeps its partial folder. Check those before retrying or creating another repository.
 
 For an existing cloned Zero folder, choose **Start Page → Open local project**;
-it opens that valid project in a new window without cloning again. An original
+it opens that valid project without cloning again, using the same window policy. An original
 local project without a GitHub origin offers **⋯ → Repository Actions → Create a repository…**
 to create and connect an empty public remote after entering its name.
 **⋯ → Repository Actions → Connect to GitHub…** connects an existing repository URL locally;

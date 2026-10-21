@@ -63,7 +63,8 @@ when adding features; a new feature does not reset the agreed interaction style.
   Zero's explicit clone commands use its guarded GitHub App
   transport and a fresh destination. General Source Control and terminal network
   commands do not automatically share Zero's authentication.
-  Open local project reuses a selected Zero folder in a new window. Sign-out
+  Clone, New project, Start tutorial, Open local project and recent projects
+  reuse the current VS Code window with native unsaved-work handling. Sign-out
   preserves local folders, Git history and the open project.
 - Use clear Git labels: **New branch**, **Commit & push**, **Merge to main**.
   Use one **Commit message** label and an empty field, with the same small keyboard helper.

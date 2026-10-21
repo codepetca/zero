@@ -298,7 +298,10 @@ with another location selectable. Zero remembers the selected clone parent in th
 local editor profile for future clones; cancelling the picker or opening a local
 project leaves that choice unchanged. An unavailable saved folder falls back to
 `~/Zero Projects`, then home if necessary. The unreleased shared-identity source uses Zero’s guarded authenticated clone and
-opens the returned folder in a new window. It requires the pinned Codepet App
+opens the returned folder in the current VS Code window using supported
+`vscode.openFolder` with `forceReuseWindow:true`. Local and recent project opens
+use the same window policy. Creation recovery is persisted before dispatch because
+the workspace switch replaces the extension host; failed dispatch restores it. It requires the pinned Codepet App
 configuration and never falls back to the built-in broad GitHub OAuth provider.
 General Git/terminal network actions do not inherit Zero’s credentials. Open local project
 validates and opens an existing Zero folder without cloning, moving it or creating

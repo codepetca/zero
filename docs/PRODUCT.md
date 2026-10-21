@@ -60,7 +60,10 @@ untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time
 The sidebar retains project development: native Run/Stop, Files, contextual
 repository/branch/push actions and ZeroHub. Troubleshooting and repository/account
 recovery remain in the native overflow. Local Run, Files and opening a local
-project remain available without signing in.
+project remain available without signing in. Current source opens tutorial, new,
+cloned, local and recent projects in the current VS Code window, with the editor
+owning unsaved-work handling. Published Mac0.5.36 keeps its new-window behavior
+until the next release.
 
 The Start Page guides students through **Sign in to GitHub** →
 **Install Zero for GitHub** → **Start tutorial**.

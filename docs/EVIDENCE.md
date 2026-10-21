@@ -1,5 +1,23 @@
 # Delivery evidence index
 
+## Current-window project opening — local, 2026-10-21
+
+Owner requested Start Page Clone/Open/New reuse the current VS Code window.
+The shared folder opener now uses supported vscode.openFolder forceReuseWindow
+for clones, tutorial/new projects, local folders and recent entries. VS Code owns
+workspace-switch and unsaved-editor handling; Zero adds no save/discard operation.
+Creation/resume recovery is cleared durably before the old extension host exits,
+with restoration on failed dispatch, cancellation or last-moment account drift.
+Installation test and separate ZeroHub project opening keep their own behavior.
+
+109 affected checks, npm run check and git diff --check pass. GitHub transports
+are mocked; no actual sign-in, repository creation/clone or account writes.
+Native window/unsaved-flow verification and independent review remain pending.
+Mac0.5.36 remains public with its original behavior; this is local source only.
+Isolated branch codex/start-page-current-window preserves primary funding work.
+Weekly57% remaining, storage healthy282GB; task cost/elapsed telemetry unknown.
+Detailed logs under .verification/current-window.
+
 ## Zero Start Page — Mac0.5.36 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/148 merged as 4cf34f9d1b455945e7dff58e0d232453a47b6c64 after independent source/candidate

@@ -43,15 +43,15 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
       await onRecovery({repositoryUrl:intended,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'creating'});
       notify('Creating your GitHub project…');
       const result=await createRemote(input,template,signal,notify);
-      await onRecovery({repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'created'});
+      const recovery={repositoryUrl:result.repository.html_url,accountId:input.ticket.session.accountId,parentPath:input.parent.fsPath,stage:'created'};
+      await onRecovery(recovery);
       if(!isActive())throw Error(`Your repository was created at ${result.repository.html_url}. Clone it from Zero when you return.`);
       try{
         throwIfCancelled(signal);notify('Opening your project…');
-        const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal});
+        const cloned=await folders.clone({repositoryUrl:result.repository.html_url,parent:input.parent,signal,beforeOpen:async()=>{await onRecovery(undefined);return ()=>onRecovery(recovery);}});
         throwIfCancelled(signal);
         if(!cloned||!isActive())throw Error('The project was not opened.');
         drafts.delete(input.draftKey);
-        await onRecovery(undefined);
         notify('Project created');
         return result;
       }catch(error){throw Error(`Your GitHub repository is ready at ${result.repository.html_url}. ${error.message} Use Clone from GitHub to continue; the repository was kept.`);}
@@ -120,12 +120,12 @@ function createGitHubProjectCommands({vscode,authentication,repositories,folders
         if(!connected)throw Error('The existing repository connection was kept.');
         onProgress('Repository connected');
       }else{
-        const cloned=await folders.clone({repositoryUrl:destination.page,signal});
+        const cloned=await folders.clone({repositoryUrl:destination.page,signal,beforeOpen:async()=>{await onRecovery(undefined);return ()=>onRecovery(record);}});
         throwIfCancelled(signal);
         if(!cloned||!isActive())return false;
         onProgress('Project opened');
       }
-      await onRecovery(undefined);return true;
+      if(record.projectRoot)await onRecovery(undefined);return true;
     });
   }
   return {startTutorial,resumeCreated,newProject:()=>createAndClone('New project',ORIGINAL_TEMPLATE,'original','my-project'),createRepository,dispose(){disposed=true;progress.dispose();}};
