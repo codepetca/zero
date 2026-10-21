@@ -1,12 +1,12 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.39, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.40, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Mac 0.5.39 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.40 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -39,6 +39,11 @@ project setup.
 Opening a project keeps the Zero Start Page tab available in the same window.
 Return to that tab to choose another project or tutorial.
 
+Files now use native Explorer. The Zero controls and teaching New menu live in
+that sidebar. If Zero appears below the files, drag its heading above them once;
+VS Code remembers the order. Use New to create a Java class or import an asset.
+Selecting files, editor tracking, rename, delete and drag-and-drop use Explorer.
+
 **Start Page → Project → Clone** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
@@ -55,7 +60,7 @@ Open **Zero: Start Page** from the Command Palette or **⋯ → Start Page** to
 return to it. The sidebar stays focused on Run, Files and project development.
 
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.39
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.40
    opens the Zero Start Page with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
@@ -152,7 +157,7 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.39 uses the familiar drag-to-Applications flow. Current source guides
+Mac setup 0.5.40 uses the familiar drag-to-Applications flow. Current source guides
 GitHub setup on the Zero Start Page. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -259,7 +264,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.39, **Start tutorial** on the **Zero Start Page**
+In Mac 0.5.40, **Start tutorial** on the **Zero Start Page**
 checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a

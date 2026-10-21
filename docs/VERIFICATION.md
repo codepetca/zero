@@ -1,5 +1,27 @@
 # Verification
 
+## Native Explorer — Mac0.5.40 publication, 2026-10-21
+
+https://github.com/codepetca/zero/pull/157 merged as 5eb1e8952344166f67fbbd59c5d9c216ad8c64b5 with five exact-head checks.
+Clean build e508cf063223870a503c014d50a2876fc516907c; measured manifest aed95fca0806198bb093c522110d2f195cf82337; exact candidate mac-0.5.40-aed95fca0806.
+Apple Accepted 9a9d5e62-182a-44b3-927e-3869f3e45e86; staple/app/DMG Gatekeeper passed.
+Public DMG 4591706 bytes SHA256 702f63902c61179413ab016bb0a99fcb17068a8619308b447711ca923d62a800 matches sealed candidate,
+authenticated draft and anonymous public downloads; feed advances39→40.
+
+78affected checks plus corrected project-menu regression, root checks,116release/
+2skips,159website tests/type/build and kit verification passed. Complete source and
+CI-correction review plus measured candidate review passed. Initial obsolete test
+was corrected without runtime changes and final build uses the corrected source.
+Chromium checked actual controls HTML themes/narrow200/240px,200%text and menus.
+Final source CI passed890tests/3skips. The bundled general student README still
+uses the earlier Files menu label in its helper section; the teaching menu is
+New. This nonblocking guide carryover is recorded for the next immutable version;
+the current public setup guides name New. Native Explorer itself was not simulated. Source/metadata exact-head CI, review,
+production/live and retirement receipts are preserved in primary ignored
+.verification/native-explorer-release0.5.40. Native Explorer order/selection/rename/
+drag and Mac update interaction await owner smoke test under the prior Code Key
+hold. No native VSCode launch or credentials changes; Windows/fresh-provider flows
+remain untested. Prior immutable versions and primary funding work preserved.
 
 ## Native Explorer integration — 2026-10-21
 

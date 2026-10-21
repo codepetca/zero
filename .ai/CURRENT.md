@@ -1,18 +1,24 @@
-# Native Explorer — implementation and authorized Mac release
+# Native Explorer — Mac0.5.40 publication
 
-Owner authorized replacing the custom file tree with native VS Code Explorer,
-keeping Zero controls/teaching helpers together, then merging and publishing.
-Base 9ad376d955957d392c832ff463bb142f8d65e375 (published Mac0.5.39).
-Worktree native-explorer; primary funding work remains untouched.
+Owner explicitly authorized implementation, merge and publication. Source https://github.com/codepetca/zero/pull/157
+merged as 5eb1e8952344166f67fbbd59c5d9c216ad8c64b5 after independent review and five exact-head checks.
+Native Explorer replaces the custom tree; Zero controls and teaching New helpers
+live in Explorer. Existing projects reveal the new view once. VS Code owns view
+order: drag Zero above files once if needed; no private layout/state APIs used.
 
-Zero controls now contribute to Explorer under a new view ID so existing custom
-view placement cannot retain the old container. Native file tree owns selection,
-editor tracking and file operations. Teaching New menu and guarded commands remain.
-Supported APIs cannot force built-in view ordering; drag Zero above files once,
-then VS Code remembers. No private APIs or workbench storage edits.
+Public signed/notarized/stapled Mac0.5.40: https://github.com/codepetca/zero/releases/download/setup-v0.5.40/Zero-0.5.40-macos.dmg
+DMG 4591706 bytes SHA256 702f63902c61179413ab016bb0a99fcb17068a8619308b447711ca923d62a800; candidate mac-0.5.40-aed95fca0806.
+Clean reviewed build e508cf063223870a503c014d50a2876fc516907c; measured manifest aed95fca0806198bb093c522110d2f195cf82337.
+Apple Accepted 9a9d5e62-182a-44b3-927e-3869f3e45e86; staple and actual app/DMG Gatekeeper accepted.
+78affected checks plus corrected project-menu regression, root checks,116release/
+2skips,159website tests/type/build and exact kit verification passed. Source CI890pass/3skip; final exact-
+head metadata CI, promotion/live feed and cleanup receipts are retained under primary
+.verification/native-explorer-release0.5.40 after completion.
 
-Next: affected/root/browser checks, independent source review, new clean signed
-Mac0.5.40 build, notarize/seal, exact-head CI/merge, public DMG and reviewed feed
-promotion, live verification, preserve evidence and retire owned worktree.
-No native VS Code QA after prior Code Key popup; no keychain/credential changes.
-Windows21/manualkit17 and immutable prior releases stay unchanged.
+Initial CI found one obsolete test expecting the retired custom row; corrected
+and independently reviewed. Runtime unchanged; final build uses corrected source.
+No native editor launch after Code Key popup or keychain/credential changes.
+Native Explorer layout/selection/rename/drag and Mac update interaction await owner
+smoke test. Windows21/manualkit17 and earlier immutable assets remain unchanged.
+Preserve evidence and candidate before archiving the owned managed worktree.
+Primary funding edits stay untouched.

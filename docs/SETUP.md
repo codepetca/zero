@@ -1,6 +1,6 @@
 # Guided student setup
 
-The signed, notarized Mac 0.5.39 app prepares Java and the editor, then guides
+The signed, notarized Mac 0.5.40 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
 unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
@@ -8,7 +8,7 @@ manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
-Mac 0.5.39 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.40 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -24,6 +24,11 @@ project setup.
 
 Opening a project keeps the Zero Start Page tab available in the same window.
 Return to that tab to choose another project or tutorial.
+
+Files now use native Explorer. The Zero controls and teaching New menu live in
+that sidebar. If Zero appears below the files, drag its heading above them once;
+VS Code remembers the order. Use New to create a Java class or import an asset.
+Selecting files, editor tracking, rename, delete and drag-and-drop use Explorer.
 
 **Start Page → Project → Clone** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
