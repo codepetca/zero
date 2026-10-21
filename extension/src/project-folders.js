@@ -73,7 +73,10 @@ function createProjectFolders(vscode, {home = os.homedir(), globalState, active 
       await assertCurrent();
       if (result && isActive()) {
         try {await onOpened({projectPath:result,repositoryUrl:destination.page});}catch(error){report(`Could not remember this project. ${error.message}`);}
-        if(isActive()) {await assertCurrent();await openFolder(result,assertCurrent);}
+        if(isActive()) {
+          const beforeOpen=async()=>{throwIfCancelled(operationSignal);await assertCurrent();throwIfCancelled(operationSignal);};
+          await beforeOpen();await openFolder(result,beforeOpen);
+        }
       }
       return result;
     },signal);

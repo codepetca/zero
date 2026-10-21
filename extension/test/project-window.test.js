@@ -3,6 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const {createProjectWindow} = require('../src/project-window');
+const {createProjectFolders} = require('../src/project-folders');
 
 function fixture() {
   const root = path.resolve('/zero/student-app'), profile = new Map(), calls = [], shown = [];
@@ -56,4 +57,12 @@ test('disposal during persistence prevents dispatch; disposal or folder change d
 test('a restored destination panel is reused without revealing it or creating a duplicate',async()=>{
   const f=fixture();await f.host().open(f.root);f.vscode.workspace.workspaceFolders=[{uri:{fsPath:f.root}}];
   await f.host().restore();assert.equal(f.ticket,undefined);assert.equal(f.shown.length,0);
+});
+test('cancelling a clone during handoff persistence never opens the folder and removes the handoff',async()=>{
+  const f=fixture(),controller=new AbortController();f.vscode.window={};
+  const update=f.globalState.update;
+  f.globalState.update=async(key,value)=>{await update(key,value);if(value)controller.abort();};
+  const folders=createProjectFolders(f.vscode,{cloneRepository:async()=>f.root,openFolder:f.host().open});
+  await assert.rejects(folders.clone({repositoryUrl:'https://github.com/student/app',parent:{fsPath:path.dirname(f.root)},signal:controller.signal}),error=>error.code==='cancelled');
+  assert.equal(f.calls.length,0);assert.equal(f.ticket,undefined);
 });
