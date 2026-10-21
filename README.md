@@ -17,7 +17,7 @@ there is no required component or screen base class.
 
 Current source runs apps in native JavaFX windows through the project’s Maven
 wrapper, with browser compilation deferred to Publish app or advanced Export for
-web. Mac 0.5.35 ships native Run and a Files dropdown for New class, New file,
+web. Mac 0.5.36 ships native Run and a Files dropdown for New class, New file,
 New folder and New asset; earlier downloads retain
 their bundled behavior. GitHub actions default to live. Upload and branch changes retain their explicit review steps;
 tutorials use student-owned template clones and the same GitHub workflow. The individual flow is New branch →
