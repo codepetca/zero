@@ -7,7 +7,11 @@ read-only GitHub discovery in its two owned files;35 targeted checks passed and
 coordinator inspected the implementation and contract. Coordinator implemented
 account-scoped recent history, native searchable picker, existing-folder reopen,
 cancellation/session guards and URL fallback.98 affected checks and root check
-pass. Full extension and website verification are in progress before publication.
+pass.159website tests/typecheck/build and99release tests/2skips pass. The
+broad local Mac suite was stopped without observed failures after unrelated
+publishing fixtures ran unusually slowly; full exact-head CI remains required.
+Independent source review found ordering and focus issues; two fix batches and
+targeted reviews resolved both.99affected checks pass at8469ee9b.
 
 Native QA attempted in an isolated VS Code profile with synthetic repositories
 and no credentials. Initial long socket path prevented startup; a short owned

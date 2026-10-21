@@ -9,9 +9,10 @@ recognized project opens/clones, excludes the setup starter, and is capped at20.
 
 Coordinator owns picker/history/folder integration/docs/release. Sol/high worker
 implemented only repository discovery and its targeted tests;35passed and parent
-verified code/tests. Full affected98pass. Native-host visual automation could not target the isolated
+verified code/tests. Full affected99pass. Native-host visual automation could not target the isolated
 VS Code instance; see EVIDENCE for the explicit limit. Complete tests and
-independent review precede Mac33 signing/notarization/sealing/publication.
+independent source review passed after ordering/focus fixes. Mac33 signing,
+notarization, sealing and exact-head CI precede publication.
 Mac32 remains the public download and feed until verified promotion.
 
 Owned worktree project-picker; preserve primary dirty funding work and existing
