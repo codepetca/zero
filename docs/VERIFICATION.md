@@ -19,6 +19,34 @@ retried after the owner explicitly resumed the paused task; no source fix requir
 Actual Mac editor/Windows/provider acceptance remains untested; no further native
 VSCode launch or keychain/credential changes. Primary funding work preserved.
 
+## Shared padding and native focus tests — 2026-10-21
+
+API follow-up: the website padding entry explicitly explains inheritance from
+App, settings/setup/handler use, padding(0), replacement semantics and fixed
+canvas/window behavior. All11 API-reference checks pass; the actual local
+`/docs#padding` entry and example were inspected in the in-app browser.
+`AGENTS.md` now requires canonical API, guide, website metadata/examples and
+coverage updates with API changes. Source updates remain in PR156, not a claim
+of published website changes. Preview evidence is retained in ignored
+`.verification/shared-padding/api-padding-preview.png` in the primary checkout.
+
+App.padding is shared with GameApp and now supports settings, setup and later
+JavaFX handlers. Zero removes padding; negative and non-finite values preserve
+the prior amount and fail clearly. Focused native checks cover replacement
+content, fractional values, initial game sizing and unchanged canvas coordinates.
+
+NativeFocus is test-only: capability-checked application activation, throttled
+stage focus requests, actual node focus and a three-second deadline. Smoke phases
+advance only after checks finish; the example verifier shares the same readiness
+helper. Browser helper fingerprint remains exact and includes the updated App.
+The minimal greeting starter is preserved; the quiz example uses padding(20).
+
+The implementation's original macOS checks passed full smoke, all seven examples,
+three repeated smoke runs, a delayed-focus case and an expected unavailable-focus
+failure. Integration checks for current main are recorded with the PR. Physical
+Windows/Linux and manual input acceptance are not claimed. No release assets,
+installer versions, credentials or product input handling are changed.
+
 ## Keep the Start Page tab — Mac0.5.38, 2026-10-21
 
 https://github.com/codepetca/zero/pull/152 merged as 6f6146b12fc04216d686cb3d58197c6238bca059 with five exact-head checks.

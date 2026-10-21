@@ -1,4 +1,3 @@
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -16,6 +15,7 @@ public class Main extends App {
     @Override public void settings() {
         title("Mini quiz");
         size(420, 300);
+        padding(20);
     }
 
     @Override public void setup() {
@@ -27,7 +27,6 @@ public class Main extends App {
         score = new ScoreDisplay();
         check.setOnAction(event -> checkAnswer());
         VBox screen = new VBox(12, question, answer, check, feedback, score.view());
-        screen.setPadding(new Insets(20));
         show(screen);
     }
 
