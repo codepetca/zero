@@ -283,12 +283,16 @@ Run/Stop. It shares anchored-menu keyboard/focus behavior with Files; both menus
 are mutually exclusive. Focused checks include `extension/test/run-dropdown.test.js`.
 The design fixture accepts `/sidebar?connected=1` for safe publishing-menu review.
 
-One supported webview (`zero.actions`) contains controls and the project file list;
-with a single view VS Code merges its title into the container header. Start
-tutorial (`zero.startProject`, stable command ID) is in welcome and the native
-**…** menu. Signed-out GitHub controls show only **Sign in**; local Run and files
-remain available. Signed in reveals one Project menu with **Clone project**
-(`zero.cloneRepository`), **New project** and **Open local project** (`zero.openLocalProject`).
+The supported sidebar webview (`zero.actions`) contains development controls and
+the file list. Native `zero.startPage` opens one reusable/restorable editor panel
+for onboarding, tutorial/project choices and account-scoped recents. Empty Zero
+windows open it automatically without replacing existing editors.
+`zero.getStarted` remains a compatibility alias. The native **⋯ → Start Page**
+and Command Palette reopen it. `zero.startProject` still starts the existing
+guarded tutorial workflow. Sign-in/setup live on the Start Page; local Run/Files
+remain available offline. Cloud actions unlock only after access is ready.
+The page exposes **Clone project**, **New project**, **Open local project** and
+recent entries, using existing guarded commands/folder resolution.
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
 with another location selectable. Zero remembers the selected clone parent in the
 local editor profile for future clones; cancelling the picker or opening a local

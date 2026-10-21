@@ -1,5 +1,27 @@
 # Verification
 
+## Zero Start Page — local source, 2026-10-21
+
+Owner authorized a native Start Page, development-only sidebar, merge and Mac
+publication. Start Page owns tutorial, new/clone/open, account setup and scoped
+recent projects; stable guarded project/auth commands remain the action boundary.
+The native overflow and Command Palette reopen one reusable/restorable page.
+An empty window opens it automatically while existing editors stay intact.
+
+Two bounded GPT-6.1 Sol/high implementation workers supplied the controller/tests
+and onboarding-test migration. Coordinator integrated and inspected both. Effective
+model configuration, tokens and attributable coordination time are unavailable.
+Weekly allowance at start was61% remaining; storage healthy285GB. No DeepSeek
+used (pilot paused). Working data/screenshots/logs: .verification/start-page36.
+
+92 affected checks, root syntax/check,159website tests, website typecheck/build
+pass. Broad matrix:881pass,1fail,3skip; the single failure was a missing native
+panel test fixture, corrected and passing in the92affected checks. Exact-head CI
+will rerun the full matrix. Isolated native VS Code verifies automatic signed-out
+page, local-open availability, reuse, reload restoration, an intact unsaved editor,
+and empty sidebar navigation. Real provider sign-in/repo mutation and Windows
+interactive acceptance are untested. Source review and release remain pending.
+
 ## Project menu simplification — local, 2026-10-20
 
 123 affected tests passed across project/menu keyboard behavior, onboarding,

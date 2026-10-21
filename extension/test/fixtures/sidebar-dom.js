@@ -20,7 +20,7 @@ function sidebarDOM() {
     querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
     addEventListener(type,listener){this.listeners[type]=listener;} focus(){document.activeElement=this;}
   }
-  const nodes=Object.fromEntries(['files','file-status','controls','file-actions','run-status','recovery','files-menu-button','files-menu','run-menu-button','run-menu','project-menu-button','project-menu'].map(id=>[id,new Element()]));
+  const nodes=Object.fromEntries(['files','file-status','controls','file-actions','run-status','recovery','files-menu-button','files-menu','run-menu-button','run-menu'].map(id=>[id,new Element()]));
   document={body:new Element(),getElementById:id=>nodes[id],createElement:()=>new Element(),addEventListener(type,listener){documentListeners[type]=listener;}};
   document.activeElement=document.body;document.body.append(...Object.values(nodes));
   for(const [id,node]of Object.entries(nodes))node.id=id;
@@ -32,11 +32,6 @@ function sidebarDOM() {
   nodes.controls.append(nodes['run-menu-button'],nodes['run-menu']);
   nodes['run-menu-button'].setAttribute('aria-expanded','false');nodes['run-menu'].hidden=true;
   const publish=new Element();publish.dataset.command='zero.publishWeb';publish.setAttribute('role','menuitem');nodes['run-menu'].append(publish);
-  nodes.controls.append(nodes['project-menu-button'],nodes['project-menu']);
-  nodes['project-menu-button'].setAttribute('aria-expanded','false');nodes['project-menu'].hidden=true;
-  for(const command of ['zero.newProject','zero.cloneRepository','zero.openLocalProject']) {
-    const button=new Element();button.dataset.command=command;button.setAttribute('role','menuitem');nodes['project-menu'].append(button);
-  }
   const listeners={},sent=[];let saved,handler;
   const window={scrollY:0,scrollTo(){},addEventListener:(type,listener)=>listeners[type]=listener};
   vm.runInNewContext(sidebarScript(),{window,document,acquireVsCodeApi:()=>({getState:()=>null,setState:value=>{saved=value;},postMessage:message=>{sent.push(message);handler?.(message);}})});

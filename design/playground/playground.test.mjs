@@ -68,7 +68,7 @@ test('download review shows a published Mac fixture and omits a local Mac candid
 test('actual sidebar renderer retains local Run while signed out and useful Error recovery', async () => {
   const ready = sidebarSource();
   assert.match(ready,/zero.toggleApp/); assert.doesNotMatch(ready,/Ready to run/);
-  assert.match(ready,/Sign in to GitHub/);
+  assert.match(ready,/GitHub setup/);
   assert.doesNotMatch(ready,/<header class="sidebar-brand"|<h1>Zero<\/h1>/,'Keep the current panel height; branding stays in the activity bar');
   const hub=ready.match(/<button[^>]*data-command="zero.browseZeroHub"[^>]*>[\s\S]*?<\/button>/)[0];
   assert.ok(hub.endsWith('>ZeroHub</button>'));assert.doesNotMatch(hub,/<svg/);
@@ -87,7 +87,7 @@ test('actual sidebar renderer retains local Run while signed out and useful Erro
   assert.match(practice,/zero.browseZeroHub/);
   assert.match(practice,/id="files-menu-button"/);
   assert.doesNotMatch(practice,/data-command="zero.recovery"/);
-  assert.match(practice,/>Sign in to GitHub<\/button>/);
+  assert.match(practice,/>GitHub setup<\/button>/);
   assert.doesNotMatch(practice,/data-command="zero.chooseRepository"/);
   assert.doesNotMatch(practice,/data-command="zero\.(?:uploadToGitHub)"/);
 });
