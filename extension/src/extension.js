@@ -450,12 +450,14 @@ function activate(context, services = {}) {
       if(native && await fs.realpath(native.rootUri.fsPath)===root)await native.status();
     } catch(error) {output.appendLine(`Source Control refresh: ${error.message}`);}
   }
-  async function uploadProject(uploadAuth = auth) {
+  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
       if (isBusy()) return;
       uploading = true; uploadProgress = 'Preparing commit…'; refresh();
       let selectedAuth;
       try {
         const root = await project();
+        if(expectedRoot && root!==expectedRoot)throw new Error('The student project changed. Choose Publish app again.');
+        await assertPublishCurrent();
         await lessonProjects.assertShareable(root);
         if (uploadMode(root) !== 'live') {
           const result = core.simulatedUpload();
@@ -466,19 +468,22 @@ function activate(context, services = {}) {
         const initialTicket = await uploadAuth.capture();
         if (!(await vscode.workspace.saveAll(false))) throw new Error('Save your files before reviewing the upload.');
         const assertCurrentProject=async()=>{
+          await assertPublishCurrent();
           if(await project()!==root)throw new Error('The student project changed. Review the upload again.');
           if(uploadMode(root)!=='live')throw new Error('Live uploads were disabled. Review the upload again.');
         };
         const plan = await github.prepareUpload(root);
+        if(forPublish && plan.branch!=='main')throw new Error('Finish your change with Merge to main before publishing the app.');
+        if(expectedPlan && ['root','remote','branch','head','status','fingerprint'].some(key=>plan[key]!==expectedPlan[key]))throw new Error('The project changed before upload. Choose Publish app again.');
         selectedAuth=await selectUploadAuthentication({root,authentication:uploadAuth,initialTicket,repositories,repositoryUrl:plan.page,assertCurrentProject});
         const ticket=selectedAuth.ticket, activeAuth=selectedAuth.authentication;
         uploadProgress = ''; refresh();
-        const message = await vscode.window.showInputBox({placeHolder:'Commit message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
+        const message = forPublish && !plan.changes.length ? 'Publish app' : await vscode.window.showInputBox({placeHolder:'Commit message', validateInput:value => value.trim() && !value.includes('\0') ? undefined : 'Describe your changes in a short message.'});
         if (!message) return;
         uploadProgress = 'Committing & pushing…'; refresh();
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
         const assertCurrent = async () => {await assertCurrentProject();assertRepositoryIdentity(selectedAuth.identity,await repositories.access(plan.page,{ticket,permissions:selectedAuth.permissions}));await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
-        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
+        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => {assertPublishCurrentNow();return activeAuth.assertCurrentNow(ticket);}}), onProgress:text => {state=text; refresh();}});
         await refreshNativeGit(root);
         await repositoryStatus();
         report(`Pushed to ${result.branch}`, `Pushed ${result.head} to ${result.branch}. Copy your repository link for Pika.`);
@@ -723,7 +728,7 @@ function activate(context, services = {}) {
     if (!isBusy()) return actions['zero.runApp']();
   };
   context.subscriptions.push(...browserRun.disposables);
-  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:uploadAuth=>uploadProject(uploadAuth)});
+  const webPublish=createWebPublishCommands(vscode,{project,authentication:auth,repositories,isSimulation:root=>uploadMode(root)!=='live',isBusy,setBusy:value=>{publishingWeb=value;refresh();},setState:text=>{state=text;refresh();},output,workspaceState:context.workspaceState,cacheRoot:webCacheRoot,uploadChanges:(uploadAuth,options)=>uploadProject(uploadAuth,options)});
   Object.assign(actions,webPublish.commands);
   context.subscriptions.push(...webPublish.disposables);
   const sharingHandoff=async(root,action)=>{

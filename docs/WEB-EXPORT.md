@@ -107,8 +107,14 @@ simple labels, and a timer advanced from `update(seconds)` instead of sleeping.
 
 ## Student flow
 
-Choose **Publish app** in Zero's sidebar after merging and pushing a
-change on `main`. Sign in and connect your repository to enable it. First setup
+Choose **Publish app** from the arrow beside Run after testing the app.
+Sign in and connect your repository to enable it. Publish saves open files, commits
+pending changes through the normal message input, pushes any unuploaded commits,
+and validates that the deployed source matches the uploaded commit. A clean,
+uploaded `main` skips the upload; already committed work needs no new message.
+A cancelled or failed upload stops deployment. A change branch gets guidance to
+finish with **Merge to main** first; Publish never merges or switches branches.
+First setup
 shows a short public-visibility warning and destination, prepares a small
 deployment-only publishing kit, asks VS Code for GitHub workflow permission,
 and uses the Commit & push message input. Zero validates the uploaded version

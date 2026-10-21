@@ -1,20 +1,22 @@
-# Tutorials and API documentation — website publication
+# Publish commit/push — Mac0.5.42 release in progress
 
-Owner authorized merge and website publication on2026-10-21.
-PR159: https://github.com/codepetca/zero/pull/159.
-Tutorials contain the learning explanations; Docs is the complete API.
-Help/teacher areas have separate small navigation; legacy guide chapters resolve
-to their corresponding lesson, support or repository destination.
+Owner explicitly authorized merge and release on2026-10-21. Worktree branch
+`codex/publish-save-deploy`; current integration base is origin/main5e3dc4dc,
+which includes the released native Explorer Mac0.5.40. Source264ebcd7 has complete
+initial safety/compatibility and targeted cancellation-fix reviews. Main sync,
+new version42, exact-source CI and release candidate review remain pending.
 
-Source0bf923d1 includes current-main70a72b04 and has complete independent review
-coverage. Fresh176website/tutorial tests, root checks, typecheck and production
-webpack build pass. Prior lesson/snippet compiles and desktop/320px browser
-checks apply to unchanged implementation. Detailed tracked receipts are in
-EVIDENCE/VERIFICATION. Final exact-head CI, merge/deployment/public acceptance
-and retirement proof are retained in primary
-`.verification/docs-simplification-publication/` after completion.
+Publish saves files, commits only when needed, pushes unuploaded main, then
+deploys the exact version. Change branches get Merge to main guidance. Verified
+live results retain Open app/Copy playable link and log the URL.81UI/native upload,
+103affected,45publisher+1preflight and50integration checks passed before main sync;
+counts overlap. Receipts: `.verification/publish-save-deploy/`.
 
-Mac0.5.40 and Windows21/manualkit17 release metadata remain unchanged. No native
-VSCode launch under the existing Code Key hold; no credentials/account changes.
-Primary dirty funding work is preserved. This publication does not issue a new
-installer or change existing downloaded kits.
+Next: verify integration/version delta, source PR/CI/merge, signed/notarized sealed
+Mac42, verified public DMG and feed promotion. Preserve previous immutable assets,
+primary funding work and credentials. No native editor launch after prior Code
+Key popup; user will try the release. Physical Windows/provider flows untested.
+Prior release evidence remains in docs/EVIDENCE.md.
+
+Main advanced with tutorial/API documentation during41verification. Include it in
+42; preserve the sealed41candidate and verified41draft as unpublished evidence.

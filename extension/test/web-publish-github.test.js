@@ -38,7 +38,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
     if(url.startsWith('https://uploads.github.com/')) {asset={id:8,digest:'sha256:'+require('../src/web-publish-bundle').hash(options.body),size:options.body.length,state:'uploaded',name:'zero-web-bundle.json.gz',...assetPatch};await afterUpload();return response(asset,201);}
     const suffix=url.slice('https://api.github.com/repos/student/game'.length);
     if(suffix==='')return response(repo);
-    if(suffix==='/git/ref/heads/main')return response({object:{sha:remoteHead}});
+    if(suffix==='/git/ref/heads/main')return remoteHead?response({object:{sha:remoteHead}}):response({},404);
     if(suffix==='/pages'){
       if(options.method==='POST'){if(createStatus===201)pages={build_type:'workflow',public:true,html_url:'https://student.github.io/game/'};return response(pages,createStatus);}
       return response(pages,pages?200:404);
@@ -364,4 +364,18 @@ test('upgrade review refuses legacy bytes that are not recoverable tracked regul
   await h.git(['rm','--cached','.zero-web/README.md']);await fs.appendFile(path.join(h.root,'.git/info/exclude'),'.zero-web/README.md\n');
   await h.git(['commit','-m','Untrack guide']);h.remoteHead=await h.git(['rev-parse','HEAD']);
   await assert.rejects(h.publisher.review(h.root),/saved unchanged in Git history/);
+});
+
+
+test('source upload requests carry a guarded main snapshot, including a new remote without main',async t=>{
+  const h=await fixture(t);
+  for(const remote of [null,'f'.repeat(40)]) {
+    h.remoteHead=remote;
+    await assert.rejects(h.publisher.review(h.root),error=>error.code==='WEB_PUBLISH_UPLOAD_REQUIRED' && error.plan.root===h.root && error.plan.branch==='main' && error.plan.head===h.head);
+  }
+  h.remoteHead=h.head;await fs.writeFile(path.join(h.root,'Main.java'),'class Main {}');
+  await assert.rejects(h.publisher.review(h.root),error=>error.code==='WEB_PUBLISH_UPLOAD_REQUIRED' && Boolean(error.plan.status));
+  await h.git(['switch','-c','add-score']);
+  await assert.rejects(h.publisher.review(h.root),error=>!error.code && /Merge to main/.test(error.message));
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));
 });

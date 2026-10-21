@@ -357,11 +357,16 @@ private. Zero does not submit assignments or change Pika grades.
 ## Publish a playable app
 
 Use your own original project with Git **2.31+** and your own GitHub account.
-**Run App** and test it, then merge and push the completed version on **main**.
-Choose **Publish app** in Zero’s repository menu. The first publish reviews the public Pages
+**Run App** and test it, then choose **Publish app** from the arrow beside Run.
+Publish saves open files, asks for a commit message when there are changes, and
+commits and pushes before deploying. Already committed work is pushed without
+another message; an already uploaded version goes straight to publication.
+On a change branch, finish it with **Merge to main** first; Publish does not merge
+or switch branches. Cancelling the commit message or a failed push stops deployment.
+The first publish reviews the public Pages
 destination, prepares publishing files, and uses the reviewed push flow.
 If VS Code requests workflow permission, use the same GitHub account as Zero.
-Enter a commit message if the setup files need to be pushed; Zero then continues
+Enter a commit message if the setup files need to be committed; Zero then continues
 publishing. The app and included assets will be
 public; your source repository keeps its visibility. Later explicit Publish actions
 revalidate and update that same approved site without another destination dialog.
