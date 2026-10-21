@@ -1,6 +1,6 @@
 # Guided student setup
 
-The signed, notarized Mac 0.5.33 app prepares Java and the editor, then guides
+The signed, notarized Mac 0.5.34 app prepares Java and the editor, then guides
 GitHub sign-in and project access before the tutorial choices. The current MVP
 targets **Mac with Apple Silicon** and **Windows**. Linux and Intel Macs are
 unsupported. Windows keeps the unsigned 0.5.21 installer preview and its matching
@@ -8,7 +8,7 @@ manual ZIP; automatic Windows updates and physical acceptance remain pending.
 The general manual kit fallback remains 0.5.17. Each download retains its bundled
 instructions. See [Windows installation and updates](WINDOWS-INSTALLER.md).
 
-Mac 0.5.33 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.34 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -21,6 +21,11 @@ pinned in source. Students approve access on GitHub. See
 **Clone from GitHub** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
+
+**Updating Zero:** choose **Zero: Check for Updates**, then **Install and Relaunch**.
+Zero reopens and loads the updated extension when its editor work is idle. The
+first upgrade from 0.5.33 or earlier needs one manual Zero reopen/editor reload;
+later updates use the corrected handoff.
 
 ## Before tutorial lesson 0
 
@@ -42,7 +47,7 @@ explicit project commands create repositories only after collecting the choices 
 
 ## Start a tutorial or project
 
-In Mac 0.5.33, follow the sidebar: **Sign in to GitHub**, then
+In Mac 0.5.34, follow the sidebar: **Sign in to GitHub**, then
 **Install Zero for GitHub** if requested, then **Start tutorial**.
 Sign-in uses Zero's existing GitHub device flow and credentials. After sign-in,
 Zero checks App access for repository creation and contents writing; the check is

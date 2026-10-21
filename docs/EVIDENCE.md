@@ -7054,3 +7054,22 @@ facd4703-9db2-4375-8beb-7092f92422c6; stapled actual app/DMG Gatekeeper checks p
 DMG4,589,439bytes SHA256
 `aa11a6055e5574814c2c380d595a9dcd677c63d2c994d6ddf4c776b87031375f`.
 This is local measured preparation; candidate/source/publication gates remain.
+
+## Mac0.5.34 relaunch publication — 2026-10-20
+
+https://github.com/codepetca/zero/pull/143 merged as `54fdbe3d580e205def3d6a50b462f995081e31e7` after complete source,
+one targeted fix batch and candidate reviews plus five exact-head checks.
+Both original blockers fixed;51focused regressions and319native assertions pass.
+99release tests/2skips,159website/type/build,kitverify andactualsigned/notarized
+manual/automaticSparklefixtures passed. Separate actual Code fixture retained
+unsaved text/dirty state while loading a new extension. Fixture boundaries and
+remaining physical/managed/authorization/OS limits are accurately retained.
+
+Public DMG 4,589,439 bytes SHA256 `aa11a6055e5574814c2c380d595a9dcd677c63d2c994d6ddf4c776b87031375f`; authenticated draft
+and anonymous public downloads match sealed candidate. Actual signing/notary/
+staple/Gatekeeper and both Ed25519 signatures/build33→34 passed. Exact sealed
+feed and download are promoted. Existing33and earlier need one bootstrap reopen/
+reload;34+ later updates use corrected handoff. Final promotion review/CI/merge,
+live verification and retirement receipts are retained in primary ignored
+.verification/update-relaunch-0.5.34. Requested Sol/high, effective configuration/
+tokens unknown. Weekly remaining67% at start; healthy storage, no cleanup.

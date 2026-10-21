@@ -16,14 +16,14 @@ when adding features; a new feature does not reset the agreed interaction style.
   compiling or running; show disabled **Stopping…** until owned work settles.
   A connected, ready project adds an adjacent **Run options** arrow with
   **Publish app**. The main click still runs locally; disable the publishing
-  dropdown while running or stopping. Mac 0.5.33 includes this split control.
+  dropdown while running or stopping. Mac 0.5.34 includes this split control.
   Failures and closing the native JavaFX window return to Run. Preserve explicit
   Run App/Stop App palette commands and existing cancellation/generation guards.
   Run saves and builds through the project Maven wrapper, opening a desktop
   JavaFX window; Stop cancels the build or app process. Local Run has no browser
   compilation or Open in browser action. Publish app and advanced Export for web
   retain browser compatibility checks and production compilation; explicit export
-  preview remains available. Mac 0.5.33 ships native Run; earlier
+  preview remains available. Mac 0.5.34 ships native Run; earlier
   downloads retain their bundled Run behavior.
 - Keep the current panel height; show the Zero mark only in its existing native
   activity-bar/view icon. Do not add an in-panel heading or alter host CSS/DOM.
