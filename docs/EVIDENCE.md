@@ -6991,3 +6991,23 @@ under primary .verification/popup-helper-0.5.32. Review session: one reviewer,
 initial source plus candidate and promotion deltas, one documentation fix batch.
 Account-wide weekly remaining72%; storage healthy280GB at release start.
 Effective reviewer model, attributable tokens and coordinator active time unknown.
+
+## Searchable project picker Mac publication — 2026-10-20
+
+https://github.com/codepetca/zero/pull/141 merged as `21aac65652d7688a70eb3d05f4423f20e7dc0bcd` after independent Sol/high
+source and targeted reviews. Two fixes retain native search ordering and focused
+selection;99 affected tests pass.99release tests/2skips,159website tests/typecheck/
+build, kit parity and five exact-head CI checks passed. The broad optional local
+Mac suite was stopped without observed failures in slow unrelated publishing
+fixtures; the full CI suite passed. Native visual/assistive, live student provider
+and fresh/physical Windows trials remain manual. Isolated QA used no credentials
+and was stopped; its automation could not target the separate Code instance.
+
+Public Mac0.5.33 DMG: 4,587,567 bytes, SHA256 `eab1284a867708a2c2923533eb723a7876278c856023c472262aebbee7fee565`. Authenticated
+draft and anonymous public downloads equal the independently reviewed sealed
+candidate. Actual signing/notarization/staple/Gatekeeper and Ed25519 archive/feed
+verification passed, advancing build32→33. Final promotion review/CI/merge, live
+feed/download checks and retirement proofs are in primary ignored receipts
+.verification/project-picker-0.5.33. Review budget: one initial source reviewer,
+two targeted source fixes, candidate and promotion deltas;2fixbatches. Requested
+Sol/high, effective model/tokens unknown. Weekly remaining71%, storage healthy.

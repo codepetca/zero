@@ -1,20 +1,29 @@
-# Searchable project picker — local Mac 0.5.33 work
+# Searchable project picker — Mac 0.5.33 publication
 
-Owner authorized implementation, merge and publication. Base ce1d6f6e/Mac32.
-Clone from GitHub shows account-scoped recent local projects first, accessible
-Zero repositories second, and an always-available Paste URL fallback. Local
-selection reopens its existing folder. Discovery uses bounded read-only GitHub
-requests, progressive results and cancellation/session guards. History records
-recognized project opens/clones, excludes the setup starter, and is capped at20.
+Owner authorized implementation, merge and publication. https://github.com/codepetca/zero/pull/141 merged
+as `21aac65652d7688a70eb3d05f4423f20e7dc0bcd` after source/targeted/candidate reviews and five
+exact-head checks. Clone shows account-scoped recent local projects first, then
+accessible Zero repositories, and Paste URL. Local entries reopen existing folders.
+Names search in descriptions with native icons to preserve order. Per-item detail
+retains category while native filtering hides headers. URL objects preserve focus.
+Discovery is bounded, read-only and cancelled on selection/dismissal/account drift.
 
-Coordinator owns picker/history/folder integration/docs/release. Sol/high worker
-implemented only repository discovery and its targeted tests;35passed and parent
-verified code/tests. Full affected99pass. Native-host visual automation could not target the isolated
-VS Code instance; see EVIDENCE for the explicit limit. Complete tests and
-independent source review passed after ordering/focus fixes. Mac33 signing,
-notarization, sealing and exact-head CI precede publication.
-Mac32 remains the public download and feed until verified promotion.
+Signed/notarized/stapled Mac33 is public: https://github.com/codepetca/zero/releases/download/setup-v0.5.33/Zero-0.5.33-macos.dmg
+DMG 4,587,567 bytes; SHA256 `eab1284a867708a2c2923533eb723a7876278c856023c472262aebbee7fee565`.
+Authenticated draft and anonymous public bytes match sealed `mac-0.5.33-258cdf4b8dc3`.
+Build source8469ee9b and the preparation source have equal protected inputs.
+Apple accepted 30f50991-64d5-4d6b-bf1b-0d1cb82cd693. Actual Developer ID,
+staple/Gatekeeper, both Ed25519 signatures and update build32→33 checks passed.
+This promotion carries exact sealed feed and measured download metadata.
 
-Owned worktree project-picker; preserve primary dirty funding work and existing
-release evidence. DeepSeek automatic pilot is paused through Dec31. Weekly
-remaining71%; cached storage healthy278GB. Runtime/token costs unknown.
+99 affected checks,99release checks/2skips,159website tests/typecheck/build and
+kit verification pass. Full exact-head CI passed; the optional broad local Mac
+suite was stopped without observed failures because unrelated publishing tests
+were unusually slow. Isolated native QA launched but automation could not target
+that Code instance; visual/screen-reader and live student cloning remain manual.
+Fresh/physical Windows acceptance remains; Windows21/general kit17 unchanged.
+
+Final promotion review/CI/merge and live verification are retained under
+.verification/project-picker. Preserve receipts and sealed bytes to primary
+.verification/project-picker-0.5.33 before retiring the owned worktree.
+Primary dirty funding work remains separate. Delivery: docs/EVIDENCE.md.
