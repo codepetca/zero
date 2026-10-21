@@ -9,9 +9,13 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
   async function stillCurrent(expected) {
     if(disposed || controller?.signal.aborted || await project()!==expected)throw new Error('The project changed or publishing was cancelled. Check GitHub Actions for any run already started.');
   }
+  function assertPublishCurrentNow(expected) {
+    if(disposed || controller?.signal.aborted)throw new Error('Publishing was cancelled. Check GitHub Actions for any run already started.');
+    if(isSimulation(expected))throw new Error('Live publishing was disabled. Choose Publish app again after enabling live uploads.');
+  }
   async function stillPublishable(expected) {
     await stillCurrent(expected);
-    if(isSimulation(expected))throw new Error('Live publishing was disabled. Choose Publish app again after enabling live uploads.');
+    assertPublishCurrentNow(expected);
   }
   async function uploadForPublish(expected,expectedPlan) {
     await stillPublishable(expected);
@@ -20,7 +24,7 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
     // The upload command claims its own lock synchronously. Keep our separate
     // publication guard held while handing the coordinator lock to it.
     setBusy(false);
-    try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,assertPublishCurrent:()=>stillPublishable(expected)});}
+    try {return await uploadChanges(authentication,{forPublish:true,expectedRoot:expected,expectedPlan,assertPublishCurrent:()=>stillPublishable(expected),assertPublishCurrentNow:()=>assertPublishCurrentNow(expected)});}
     finally {setBusy(true);}
   }
   const progress=(message,detail=message)=>{setState(message);output?.appendLine(detail);};

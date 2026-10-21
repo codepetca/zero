@@ -452,7 +452,7 @@ function activate(context, services = {}) {
       if(native && await fs.realpath(native.rootUri.fsPath)===root)await native.status();
     } catch(error) {output.appendLine(`Source Control refresh: ${error.message}`);}
   }
-  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,assertPublishCurrent=async()=>{}} = {}) {
+  async function uploadProject(uploadAuth = auth, {forPublish=false,expectedRoot,expectedPlan,assertPublishCurrent=async()=>{},assertPublishCurrentNow=()=>{}} = {}) {
       if (isBusy()) return;
       uploading = true; uploadProgress = 'Preparing commit…'; refresh();
       let selectedAuth;
@@ -485,7 +485,7 @@ function activate(context, services = {}) {
         uploadProgress = 'Committing & pushing…'; refresh();
         if (await project() !== root) throw new Error('The student project changed. Review the upload again.');
         const assertCurrent = async () => {await assertCurrentProject();assertRepositoryIdentity(selectedAuth.identity,await repositories.access(plan.page,{ticket,permissions:selectedAuth.permissions}));await assertCurrentProject();return activeAuth.assertCurrent(ticket);};
-        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => activeAuth.assertCurrentNow(ticket)}), onProgress:text => {state=text; refresh();}});
+        const result = await github.uploadPrepared(plan, message, {beforeUpload:assertCurrent, networkRun:createTransport(plan.remote, assertCurrent, {assertCurrentNow:() => {assertPublishCurrentNow();return activeAuth.assertCurrentNow(ticket);}}), onProgress:text => {state=text; refresh();}});
         await refreshNativeGit(root);
         await repositoryStatus();
         report(`Pushed to ${result.branch}`, `Pushed ${result.head} to ${result.branch}. Copy your repository link for Pika.`);
