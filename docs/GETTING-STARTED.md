@@ -1,12 +1,12 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.38, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.39, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Mac 0.5.38 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.39 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -32,10 +32,14 @@ it includes the starter, extension, profile and keyboard shortcuts. A separate
 starter-only ZIP is available from [GitHub releases](https://github.com/codepetca/zero/releases).
 See [verification evidence](VERIFICATION.md) for completed checks and platform limits.
 
+The Project dropdown offers New, Clone, and Open. The Tutorials link opens the
+reader without creating a project or signing in. Start tutorial begins the guided
+project setup.
+
 Opening a project keeps the Zero Start Page tab available in the same window.
 Return to that tab to choose another project or tutorial.
 
-**Start Page → Clone project** opens a searchable picker: recent projects on this Mac
+**Start Page → Project → Clone** opens a searchable picker: recent projects on this Mac
 first, then your accessible Zero repositories. Choose a recent project to reopen
 its existing folder, or choose **Paste a GitHub URL…**.
 
@@ -51,7 +55,7 @@ Open **Zero: Start Page** from the Command Palette or **⋯ → Start Page** to
 return to it. The sidebar stays focused on Run, Files and project development.
 
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.38
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.39
    opens the Zero Start Page with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
@@ -64,7 +68,7 @@ return to it. The sidebar stays focused on Run, Files and project development.
    offline; cloud repository, push and sharing controls stay hidden until ready.
    See [the setup guide](SETUP.md#start-a-tutorial-or-project) for details.
 3. On the **Zero Start Page**, **Start tutorial** is primary. Choose **Greeting app**,
-   enter a repository name, and choose its clone location. **Start Page → New project** is
+   enter a repository name, and choose its clone location. **Start Page → Project → New** is
    the action for skipping the tutorial and making original work.
 4. In **Clone location**, keep the default `~/Zero Projects`
    or choose another folder outside any Git repository, then choose **Clone here**.
@@ -75,7 +79,7 @@ return to it. The sidebar stays focused on Run, Files and project development.
    lesson 0 and choose **Run App** to open your native JavaFX window. The Tutorials
    tab’s **Open in browser** opens the lesson in your default browser. Keep this repository for the following Greeting lessons.
 
-Already cloned your project? Choose **Start Page → Open local project** to open it without cloning again. Choose **Open Tutorials** to resume its lesson;
+Already cloned your project? Choose **Start Page → Project → Open** to open it without cloning again. Choose the **Tutorials** link to open the reader;
 lesson selection, scroll position and disclosure state are saved locally per
 project. This does not track completion or grading. Use **All tutorials** to
 choose the first lesson and restart the reading sequence; your code stays as it
@@ -90,9 +94,9 @@ Zero needs no separate account. Cancelling setup leaves the current Start Page
 step available to retry; an existing local project's Run remains available. **⋯ → Troubleshooting → Test
 installation** opens the bundled Hello World separately as **Installation test**. To return
 to setup, use **Zero: Start Page** from VS Code's Command Palette.
-For an existing remote, **Start Page → Clone project** accepts its HTTPS URL
+For an existing remote, **Start Page → Project → Clone** accepts its HTTPS URL
 and uses the same location picker; add that repository to the App's selection
-when needed. **Start Page → New project** creates original work from Zero's starter.
+when needed. **Start Page → Project → New** creates original work from Zero's starter.
 If creation or cloning is interrupted, choose **⋯ → Repository Actions → Resume created project…**
 when offered, review its saved link and check any preserved project folder before
 trying again. Zero does not blindly repeat an
@@ -148,7 +152,7 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.38 uses the familiar drag-to-Applications flow. Current source guides
+Mac setup 0.5.39 uses the familiar drag-to-Applications flow. Current source guides
 GitHub setup on the Zero Start Page. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -255,7 +259,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.38, **Start tutorial** on the **Zero Start Page**
+In Mac 0.5.39, **Start tutorial** on the **Zero Start Page**
 checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a
@@ -300,7 +304,7 @@ Local running needs no GitHub sign-in. Live push and publishing need Git
 **2.31+** and your own GitHub account. For sharing work, follow your teacher's
 privacy and account instructions. Repositories created through Zero are public;
 existing/cloned repositories keep their visibility. If you used **Start tutorial** or
-**Start Page → New project**, Zero already created and cloned **your repository**.
+**Start Page → Project → New**, Zero already created and cloned **your repository**.
 That clone already has Git history and its own origin: keep that repository,
 complete sign-in and identity setup below, and skip creating an empty repository.
 The empty-repository steps below apply to an extracted source ZIP:
