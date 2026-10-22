@@ -1,4 +1,5 @@
 'use strict';
+const {appSessions}=require('./fixtures/app-sessions');
 const {textInputs} = require('./fixtures/text-input');
 const test=require('node:test'),assert=require('node:assert/strict'),Module=require('node:module');
 const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
@@ -69,7 +70,7 @@ async function harness(t,{kit=true,mode,cancelMessage=false,practice=false,tutor
     return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);
   };
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
-  const subscriptions=[];extension.activate({subscriptions,workspaceState:{get:key=>stored.get(key),update:async(key,value)=>{stored.set(key,value);}}},{provider:appProvider,repositories});await new Promise(resolve=>setImmediate(resolve));
+  const subscriptions=[];extension.activate({subscriptions,workspaceState:{get:key=>stored.get(key),update:async(key,value)=>{stored.set(key,value);}}},{provider:appSessions(vscode,appProvider),repositories});await new Promise(resolve=>setImmediate(resolve));
   t.after(()=>{subscriptions.forEach(item=>item.dispose());core.git=originalGit;github.prepareUpload=originalPrepare;github.uploadPrepared=originalUpload;delete require.cache[require.resolve('../src/extension')];});
   return {commands,calls,accessCalls,errors,notices,results,picks,plan,stored,get publishApi(){return publishApi;},get transportDispatches(){return transportDispatches;},set afterTransportPreparation(value){afterTransportPreparation=value;},set mode(value){mode=value;},get deploys(){return deploys;},get pushes(){return pushes;},set repositoryId(value){repositoryId=value;},set installationId(value){installationId=value;},set privacy(value){privacy=value;},set selected(value){selected=value;},set accountId(value){accountId=value;},set afterAccess(value){afterAccess=value;},set afterInput(value){afterInput=value;},set afterSave(value){afterSave=value;},set afterUpload(value){afterUpload=value;},removePermission(name){delete capabilities[name];},render(){const webview={html:'',onDidReceiveMessage:disposable};webviewProvider.resolveWebviewView({webview,onDidDispose:disposable});return webview;},get saves(){return saves;},get inputs(){return inputs;},get reviews(){return reviews;},get uploads(){return uploads;},get disposed(){return disposed;},set failPush(value){failPush=value;}};
 }

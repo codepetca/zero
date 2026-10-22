@@ -1,4 +1,5 @@
 'use strict';
+const {appSessions}=require('./fixtures/app-sessions');
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs/promises');
@@ -26,7 +27,7 @@ test('Run App, sidebar and configured tasks use native Java while web export ret
  Module._load=function(id,...args){return id==='vscode'?vscode:originalLoad.call(this,id,...args);};
  let extension;try{extension=require(filename);}finally{Module._load=originalLoad;}
  const subscriptions=[];t.after(()=>{subscriptions.forEach(d=>d.dispose());snapshot.ensureValidatedExport=originalEnsure;snapshot.validateExport=originalValidate;delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
- extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appProvider});
+ extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appSessions(vscode,appProvider)});
  await commands.get('zero.runApp')();assert.equal(saves,1);assert.equal(launches.length,1);assert.equal(builds,0);assert.equal(validated,0);
  assert.deepEqual(launches[0].task.execution.args,['clean','compile','javafx:run']);assert.equal(launches[0].task.name,'Run App');assert.equal(launches[0].task.matcher,'$zero-java');
  assert.match(webview.html,/data-command="zero.toggleApp"[^>]*>[\s\S]*Stop<\/button>/);assert.doesNotMatch(webview.html,/data-command="zero.openRunningAppInBrowser"/);

@@ -1,4 +1,5 @@
 'use strict';
+const {appSessions}=require('./fixtures/app-sessions');
 const {textInputs} = require('./fixtures/text-input');
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -32,7 +33,7 @@ test('commands simulate upload without Git and native Run App tasks retain resta
   const accessCalls=[];
   const repositories={checkSetup:async()=>{},access:async(repositoryUrl,{ticket,permissions})=>{assert.equal(repositoryUrl,'https://github.com/student/app');assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);accessCalls.push(permissions);return {ticket,repository:{id:12},installation:{id:99}};}};
   let releaseAuth;authGate=new Promise(resolve=>{releaseAuth=resolve;});
-  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appProvider,repositories});
+  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}}},{provider:appSessions(vscode,appProvider),repositories});
   const waitReloadIdle=async()=>{const deadline=Date.now()+5000;while(reloadIsBusy()){assert.ok(Date.now()<deadline,'Update reload must become idle');await new Promise(resolve=>setImmediate(resolve));}};
   assert.equal(reloadIsBusy(),true,'Startup silent renewal must defer automatic reload');
   releaseAuth();authGate=undefined;await waitReloadIdle();
@@ -157,7 +158,7 @@ test('minimal GitHub section follows Zero App sign-in and connection state; proj
   const appProvider={removeSession:async id=>{removed.push(id);session=undefined;},dispose(){}};
   const repositories={checkSetup:async()=>{},access:async()=>assert.fail('No live repository access is needed in this sidebar/checkout test'),create:async(input,{ticket})=>{assert.equal(ticket.session.accountId,'1');assert.deepEqual(ticket.session.scopes,[]);creations.push(input);return {ticket,repository:{id:12,html_url:'https://github.com/student/'+input.name},installation:{id:99}};}};
   const cloneRepository=async input=>{assert.ok(input.signal instanceof AbortSignal);assert.equal(input.signal.aborted,false);const {signal,...reviewed}=input;clones.push(reviewed);return path.join(root,'new-project');};
-  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>key==='zero.cloneParent'?root:undefined,update:async()=>{}}},{provider:appProvider,repositories,cloneRepository});
+  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>key==='zero.cloneParent'?root:undefined,update:async()=>{}}},{provider:appSessions(vscode,appProvider),repositories,cloneRepository});
   assert.deepEqual(registered.map(item=>item.id),['zero-github']);
   assert.equal(typeof commands.get('zero.checkForUpdates'),'function');
   assert.equal(typeof commands.get('zero.updateSettings'),'function');

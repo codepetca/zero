@@ -86,3 +86,46 @@ test('busy includes queued, active and session-event renewal until completion or
   f.event();assert.equal(auth.busy,true);await new Promise(resolve=>setImmediate(resolve));release();
   while(auth.busy)await new Promise(resolve=>setImmediate(resolve));auth.dispose();
 });
+
+function ownedFixture() {
+  let sessions=[], listener, disposed=false, failure;
+  const calls=[];
+  const provider={
+    async getSessions(scopes,options) {calls.push({method:'getSessions',scopes,options});if(failure)throw failure;return sessions;},
+    async createSession(scopes) {calls.push({method:'createSession',scopes});if(failure)throw failure;return sessions[0]=session();},
+    onDidChangeSessions(fn) {listener=fn;return {dispose(){disposed=true;}};}
+  };
+  return {provider,calls,set(value){sessions=value;},fail(){failure=new Error('PRIVATE');},event(){listener({added:[],changed:[],removed:[]});},get disposed(){return disposed;}};
+}
+test('Zero uses its owned provider directly: silent reads never create and explicit sign-in avoids host session consent',async()=>{
+  const {ownedProviderApi}=require('../src/authentication');const f=ownedFixture();
+  const auth=createAuthentication(ownedProviderApi(f.provider));
+  await auth.refresh();assert.equal(auth.signedIn,false);
+  assert.deepEqual(f.calls,[{method:'getSessions',scopes:[],options:undefined}]);
+  await auth.signIn();assert.equal(auth.signedIn,true);
+  assert.deepEqual(f.calls.slice(-2),[{method:'getSessions',scopes:[],options:undefined},{method:'createSession',scopes:[]}]);
+  await auth.signIn();assert.equal(f.calls.filter(call=>call.method==='createSession').length,1);
+  const ticket=await auth.capture();f.set([]);f.event();
+  assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
+  await auth.refresh();assert.equal(auth.signedIn,false);auth.dispose();assert.equal(f.disposed,true);
+});
+test('owned provider preserves account hints, token drift and fail-closed session selection',async()=>{
+  const {ownedProviderApi}=require('../src/authentication');const f=ownedFixture(),account={id:'student',label:'student'};
+  f.set([session()]);const auth=createAuthentication(ownedProviderApi(f.provider),()=>{},[],account);
+  const ticket=await auth.capture();assert.deepEqual(f.calls[0].options,{account});
+  f.set([session('student','rotated')]);await assert.rejects(auth.assertCurrent(ticket),/account or sign-in changed/);
+  f.set([session(),session('other')]);await auth.refresh();assert.equal(auth.signedIn,false);
+  await assert.rejects(auth.signIn(),/unavailable/);assert.equal(f.calls.some(call=>call.method==='createSession'),false);
+  auth.dispose();
+});
+test('unconfigured or failing owned providers cannot prompt from silent reads or leak errors',async()=>{
+  const {ownedProviderApi}=require('../src/authentication');
+  const offline=createAuthentication(ownedProviderApi(null));await offline.refresh();assert.equal(offline.status,'Not signed in');
+  await assert.rejects(offline.signIn(),/Sign in to GitHub/);offline.dispose();
+  const f=ownedFixture();f.fail();const auth=createAuthentication(ownedProviderApi(f.provider));
+  await auth.refresh();await assert.rejects(auth.signIn(),error=>/unavailable/.test(error.message)&&!error.message.includes('PRIVATE'));
+  assert.equal(f.calls.some(call=>call.method==='createSession'),false);auth.dispose();
+  const silent=ownedFixture();await ownedProviderApi(silent.provider).getSession('zero-github',[],{silent:true,createIfNone:true});
+  assert.equal(silent.calls.length,1);assert.equal(silent.calls[0].method,'getSessions');
+  await assert.rejects(ownedProviderApi(silent.provider).getSession('github',[],{createIfNone:true}));
+});

@@ -1,29 +1,26 @@
-# Zero Dev and faster development — 2026-10-22
+# Direct Zero GitHub sign-in — 2026-10-22
 
-Zero Dev PR173 merged0d31bcfc5591298f13f5d8576f8a01a9dfc960a0 after all5checks
-passed at7100b0e8. Independent implementation/native/integration reviews clean.
-Full Mac native smoke, automated sample win/Restart/recollection, Run/Stop/Run,
-7Dev and21UI checks passed. Physical keyboard gameplay and Windows/Linux Dev UI
-remain untested. No installer release or version bump was part of this work.
-Details and exact CI/review receipts: docs/EVIDENCE.md and ignored
-.verification/zero-dev/acceptance/progress.json.
+Owner requested removing VS Code's redundant request for Zero to access its own
+Zero GitHub provider. Branch codex/direct-zero-sign-in now has owner authorization for PR and merge
+after tests/reviews/CI pass; no installer release is requested. Zero calls its owned provider via
+the existing guarded facade. Keep device authorization, SecretStorage, Accounts
+registration, third-party host consent and session/account drift checks intact.
+Full local suite passed997tests with3platform skips; npm run check passed.
+Both independent authentication reviews are complete/clean at88781454. Source Dev
+recognized its saved session without host confirmation. First-time native GUI
+acceptance remains unverified; actual provider/facade device-flow tests pass.
+Exact-head CI gates the authorized PR/merge. Current external receipt is kept
+in ignored .verification/direct-auth/progress.json; tracked review evidence is
+in docs/EVIDENCE.md.
 
-Owner authorized implementing faster CI, PR publication and merge after checks.
-Branch codex/zero-fast-dev-flow includes the prepared/default Zero Dev guidance
-and current CI implementation. Four workflows use conservative affected-code
-selection, always-running final gates, PR-only superseded-run cancellation,
-verified runner Chrome reuse/fallback and Maven/WebFX download caches. Native
-selection exercises the sample playthrough and framework checks. Unknown/shared
-inputs and manual dispatch retain the full matrix. Nineteen local CI/Dev tests,
-actionlint and configuration pass. Two Sol6.1/high reviews at80dc77dd completed
-clean with no findings. Exact-head CI and full-run/cache/cancellation evidence
-gate merge. No installer release requested.
-See docs/FAST-DEV-FLOW.md; implementation receipts: .verification/fast-ci/.
+Faster CI PR174 merged0aad1481edf88cdb6deceeb0cf7999293b0ff43c after all11checks
+passed; live UI-only PR175 completed in128seconds, then closed unmerged. Cold/warm
+cache, browser and run-isolation evidence passed. See docs/FAST-DEV-FLOW.md and
+docs/EVIDENCE.md. Zero Dev PR173 is also merged; default to its source loop.
 
-Keep the active tutorial-padding worktree and ~/.zero-dev/fce53b51730d/ profile:
-they own the user's scratch game, watcher and preview3153. Preserve scratch edits
-and the unrelated dirty primary funding checkout. Never infer publication
-permission for future changes from the completed PR173 authorization.
+Keep active tutorial-padding worktree and ~/.zero-dev/fce53b51730d/ profiles:
+they own the scratch game, watcher and preview3153. Preserve scratch edits and
+the unrelated dirty primary funding checkout. No installer build is needed.
 
 # System appearance — Mac0.5.46 publication, 2026-10-22
 

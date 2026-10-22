@@ -6,7 +6,7 @@ const os=require('node:os');
 const path=require('node:path');
 const {createGitHubAppProvider}=require('../src/github-app/provider');
 const {binding,SECRET_KEY}=require('../src/github-app/credential-store');
-const {createAuthentication}=require('../src/authentication');
+const {createAuthentication,ownedProviderApi}=require('../src/authentication');
 const {createGitHubAppRepositories}=require('../src/github-app/repositories');
 const permissions={metadata:'read',repository_creation:'write',contents:'write',workflows:'write',actions:'write',pages:'write',starring:'write'};
 const configuration={appId:123,clientId:'Iv1234567890',owner:'codepetca',slug:'codepet-zero',permissions};
@@ -106,6 +106,24 @@ test('completed device sign-in stores one expiring pair and verifies personal nu
  assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,1);
  for(const [url,options]of f.calls){assert(!url.includes('ghu_'));assert(!url.includes('ghr_'));assert(!url.includes('device_code'));assert(!options.body?.includes('client_secret'));}
 });
+test('owned facade starts at the device-code prompt and cancellation never opens GitHub or saves a session',async t=>{
+ const f=await fixture(t,{saved:null});const prompts=[];let opened=0,copied=0;
+ f.vscode.window.showInformationMessage=async(message,options,...buttons)=>{prompts.push({message,options,buttons});return undefined;};
+ f.vscode.env.openExternal=async()=>{opened++;return true;};f.vscode.env.clipboard.writeText=async()=>{copied++;};
+ const auth=integratedAuthentication(f,t);await auth.refresh();assert.equal(prompts.length,0);assert.equal(f.calls.length,0);
+ await assert.rejects(auth.signIn(),/cancelled or unavailable/);
+ assert.equal(prompts.length,1);assert.equal(prompts[0].message,'Connect Zero to GitHub');assert.equal(prompts[0].options.modal,true);
+ assert.deepEqual(prompts[0].buttons,['Copy code and continue']);assert.match(prompts[0].options.detail,/ABCD-1234/);
+ assert.equal(opened,0);assert.equal(copied,0);assert.equal(f.data.has(SECRET_KEY),false);assert.equal(auth.signedIn,false);
+ assert.equal(f.calls.filter(([url])=>url.endsWith('/access_token')).length,0);
+});
+test('owned facade completes device authorization and retains renewal and sign-out invalidation',async t=>{
+ const f=await fixture(t,{saved:null}),auth=integratedAuthentication(f,t);
+ await auth.signIn();assert.equal(auth.accountId,'42');const ticket=await auth.capture();
+ assert.equal(JSON.parse(f.data.get(SECRET_KEY)).state,'active');
+ await f.provider.removeSession(auth.sessionId);assert.throws(()=>auth.assertCurrentNow(ticket),/account or sign-in changed/);
+ await auth.refresh();assert.equal(auth.signedIn,false);assert.equal(f.data.has(SECRET_KEY),false);
+});
 test('revoked connection clears only the Zero secret',async t=>{
  const f=await fixture(t,{overrides:{fetch:async url=>url.endsWith('/user')?new Response('token details must not leak',{status:401}):response(metadata)}});f.data.set('other.extension','keep');
  await assert.rejects(f.provider.getSessions([]),error=>error.code==='unauthorized'&&!error.message.includes('token details'));assert.equal(f.data.has(SECRET_KEY),false);assert.equal(f.data.get('other.extension'),'keep');
@@ -133,9 +151,8 @@ test('metadata cache binds the complete pinned configuration and never caches a 
  assert.equal(f.calls.filter(([url])=>url.includes('/apps/')).length,3);assert.ok(f.calls.every(([,options])=>options.headers.Authorization==='Bearer '+record().accessToken));
 });
 function integratedAuthentication(f,t) {
- const events=new Emitter();const subscription=f.provider.onDidChangeSessions(()=>events.fire({provider:{id:'zero-github'}}));
- const auth=createAuthentication({onDidChangeSessions:events.event,getSession:async(id,scopes)=>{assert.equal(id,'zero-github');return (await f.provider.getSessions(scopes))[0];}});
- t.after(()=>{auth.dispose();subscription.dispose();events.dispose();});return auth;
+ const auth=createAuthentication(ownedProviderApi(f.provider));
+ t.after(()=>auth.dispose());return auth;
 }
 test('actual provider, facade and repository access have a bounded authenticated metadata request budget',async t=>{
  const repo={id:75,name:'project',full_name:'learner/project',owner:{id:42,login:'learner',type:'User'},html_url:'https://github.com/learner/project',clone_url:'https://github.com/learner/project.git',default_branch:'main',private:true,permissions:{push:true}};
@@ -190,8 +207,7 @@ test('lock repair diagnostic reaches Zero Output callback even when authenticati
  let time=1000000;const f=await fixture(t,{clock:()=>time+=10000});
  await fs.writeFile(path.join(f.context.globalStorageUri.fsPath,'github-app-refresh.lock'),'{}');
  await fs.writeFile(path.join(f.context.globalStorageUri.fsPath,'github-app-refresh.recovery.lock'),'');
- const {createAuthentication}=require('../src/authentication');
- const auth=createAuthentication({getSession:async()=> (await f.provider.getSessions([]))[0],onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
+ const auth=integratedAuthentication(f,t);
  await auth.refresh();assert.equal(auth.signedIn,false);assert.ok(f.diagnostics.length>0);assert.match(f.diagnostics[0],/https:\/\/github.com\/codepetca\/zero\/blob\/main\/docs\/ZERO-AUTH-RECOVERY.md/);assert.ok(f.diagnostics[0].includes(f.context.globalStorageUri.fsPath));
 });
 

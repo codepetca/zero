@@ -1,5 +1,44 @@
 # Delivery evidence index
 
+## Direct Zero GitHub sign-in — 2026-10-22
+
+Owner requested removal of VS Code's extra request for Zero to access its own
+Zero GitHub session, then authorized PR/merge after tests, reviews and CI pass.
+Base0aad1481edf88cdb6deceeb0cf7999293b0ff43c; implementation88781454271d1c08104aa68797ac53a258929cb9.
+The first-party adapter calls Zero's owned provider through the existing guarded
+facade. Registration remains for Accounts/other extensions; host trust settings,
+third-party consent, GitHub authorization, scopes, SecretStorage and cross-window
+rotation/dispatch guards retain their existing boundaries. No public Java API,
+installer version, account permission or published artifact changed.
+
+Local `npm test` passed997tests, skipped3platform-specific Windows/PowerShell
+checks, failed0, duration170.263seconds. `npm run check` and diff whitespace checks
+passed. New regressions cover silent reads, direct explicit creation, multiple
+session refusal, error redaction, immediate ticket invalidation and actual
+provider/facade device-code cancellation and successful authorization. Activation
+fixtures now trap host authentication calls; upload/Publish, account switching,
+onboarding and native Run contracts pass.
+
+Independent security/correctness and lifecycle/compatibility reviews both
+completed clean at implementation88781454, zero findings. Each requested
+GPT-6.1 Sol/high in a fresh context, inspected the complete14file diff and bounded
+callers/provider/storage, and independently passed37auth/provider tests (15.663s
+and15.475s respectively). Effective model, total review wall time and tokens were
+unavailable. Ledger:2launches,3turns (first security turn interrupted by user
+steering, then resumed),1initial wave,0remediation waves/fix batches. This receipt
+and CURRENT form the subsequent documentation-only delta; executable source and
+tests retain the reviewed implementation.
+
+Source Zero Dev was reloaded and observed recognizing its saved account without
+the host confirmation. Fresh-profile native GUI acceptance remains unconfirmed:
+computer control selected the existing Code instance. The isolated auth-test
+process was stopped; the owner's Dev editor, watcher and scratch game remain.
+No live device grant, credential copy, account permission change or installer
+build/release was performed. Actual GitHub renewal/account switching and
+third-party consumer native consent were not re-exercised. Exact-head GitHub CI
+must pass before the authorized merge; external PR/check receipts are kept in
+ignored .verification/direct-auth/progress.json.
+
 ## Zero Dev local workflow — 2026-10-22
 
 Owner requested source UI/framework iteration, a playable sample and smoke tests

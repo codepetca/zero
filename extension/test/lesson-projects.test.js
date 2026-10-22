@@ -1,4 +1,5 @@
 'use strict';
+const {appSessions}=require('./fixtures/app-sessions');
 const {textInputs} = require('./fixtures/text-input');
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -86,7 +87,7 @@ test('local practice sharing commands stop before authentication, saves, Git or 
   const originalLoad=Module._load;delete require.cache[require.resolve('../src/extension')];Module._load=function(id,...args){return id==='vscode'?textInputs(vscode):originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>subscriptions.forEach(item=>item.dispose()));
-  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:path.resolve(__dirname,'..')},{provider:appProvider});
+  extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},extensionPath:path.resolve(__dirname,'..')},{provider:appSessions(vscode,appProvider)});
   await commands.get('zero.chooseRepository')();assert.equal(repositoryPicks.length,0,'Signed-out practice hides the project menu');
   for(const id of ['zero.switchBranch','zero.connectRepository','zero.createRepository','zero.uploadToGitHub','zero.startChange','zero.finishChange','zero.extractLibrary','zero.shareGame','zero.shareLibrary']) {
     await commands.get(id)();assert.match(errors.at(-1),/local lesson practice/i,id);
@@ -130,7 +131,7 @@ test('Start project cancels cleanly and creates only from verified tutorial meta
   const filename=require.resolve('../src/extension'),oldCache=require.cache[filename],originalLoad=Module._load;delete require.cache[filename];Module._load=function(id,...args){if(id==='vscode')return textInputs(vscode);if(id==='./project-folders'){const mod=originalLoad.call(this,id,...args);return {createProjectFolders:(api,options)=>mod.createProjectFolders(api,{...options,home:root})};}return originalLoad.call(this,id,...args);};
   let extension;try{extension=require('../src/extension');}finally{Module._load=originalLoad;}
   const subscriptions=[];t.after(()=>{subscriptions.forEach(item=>item.dispose());delete require.cache[filename];if(oldCache)require.cache[filename]=oldCache;});
-  const profile=new Map();extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)},extensionPath:root},{provider:{dispose(){},async removeSession(){}},repositories:{async checkSetup(){},async create(input,{ticket}){creates.push({input,account:ticket.session.accountId});return {repository:{html_url:'https://github.com/student/my-greeting'}};}},cloneRepository:async input=>{assert.ok(input.signal instanceof AbortSignal);assert.equal(input.signal.aborted,false);const {signal,...reviewed}=input;clones.push(reviewed);return path.join(root,'my-greeting');}});
+  const profile=new Map();extension.activate({subscriptions,workspaceState:{get:()=>true,update:async()=>{}},globalState:{get:key=>profile.get(key),update:async(key,value)=>profile.set(key,value)},extensionPath:root},{provider:appSessions(vscode,{dispose(){},async removeSession(){}}),repositories:{async checkSetup(){},async create(input,{ticket}){creates.push({input,account:ticket.session.accountId});return {repository:{html_url:'https://github.com/student/my-greeting'}};}},cloneRepository:async input=>{assert.ok(input.signal instanceof AbortSignal);assert.equal(input.signal.aborted,false);const {signal,...reviewed}=input;clones.push(reviewed);return path.join(root,'my-greeting');}});
   await commands.get('zero.startProject')();assert.equal(errors.length,0);assert.equal(creates.length,0);assert.equal(opened.length,0);
   choose=true;await commands.get('zero.startProject')();assert.match(errors.at(-1),/not published yet/);assert.equal(creates.length,0);assert.equal(opened.length,0);
   bundle.projects[0].template={repository:'codepetca/zero-tutorial-greeting',repositoryUrl:'https://github.com/codepetca/zero-tutorial-greeting',templateHref:'https://github.com/codepetca/zero-tutorial-greeting/generate'};await fs.writeFile(bundlePath,JSON.stringify(bundle));
