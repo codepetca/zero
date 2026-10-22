@@ -289,6 +289,7 @@ async function runMaven({
       windowsVerbatimArguments: process.platform === 'win32',
       detached: process.platform !== 'win32'
     });
+    if (child.pid) buildLock?.trackCompiler(child.pid);
     const registered = child.pid ? buildLock?.update({ phase: 'compiling', compilerPid: child.pid }) : undefined;
     // Register before settling: a crashed editor must not hide its detached group.
     registered?.catch(() => {});

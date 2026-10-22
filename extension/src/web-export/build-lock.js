@@ -119,6 +119,8 @@ async function acquireBuildLock({ locks, projectRoot, signal, onProgress = () =>
     }
   }
   let owned;
+  let launchedCompilerPid;
+  let compilerRegistrationPersisted = false;
   await guarded(async () => {
     const previous = await snapshot(lockPath);
     if (previous) {
@@ -142,18 +144,34 @@ async function acquireBuildLock({ locks, projectRoot, signal, onProgress = () =>
         await fs.writeFile(temporary, JSON.stringify({ ...owned.record, ...changes }), { flag: 'wx', mode: 0o600 });
         await fs.rename(temporary, lockPath);
         owned = await snapshot(lockPath);
+        if (changes.phase === 'compiling' && changes.compilerPid === launchedCompilerPid)
+          compilerRegistrationPersisted = true;
       } finally { await fs.rm(temporary, { force: true }); }
     });
   }
+  function compilerStopped() {
+    const pid = launchedCompilerPid ?? (owned.record.phase === 'compiling' ? owned.record.compilerPid : undefined);
+    if (pid === undefined) return true;
+    // Windows has no POSIX process-group probe. Preserve the launch-gap lock if
+    // registration failed even when the wrapper itself has already exited.
+    if (platform === 'win32') return launchedCompilerPid === undefined || compilerRegistrationPersisted;
+    return probe(pid) === false && probe(-pid) === false;
+  }
+  const compilerBusy = () => busy('The compiler process group is still active or unverified; its lock was preserved.');
   return {
     path: lockPath,
+    trackCompiler(pid) {
+      // Synchronous and independent of disk: a failed post-spawn write must not
+      // make finally cleanup forget the detached compiler that was just started.
+      launchedCompilerPid = pid;
+      compilerRegistrationPersisted = false;
+    },
     update,
     canCleanTemporary() {
-      return owned.record.phase !== 'compiling' || platform === 'win32' || probe(-owned.record.compilerPid) === false;
+      return compilerStopped();
     },
     async compilerFinished() {
-      if (owned.record.phase === 'compiling' && platform !== 'win32' && probe(-owned.record.compilerPid) !== false)
-        throw busy('The compiler process group is still active; its lock was preserved.');
+      if (!compilerStopped()) throw compilerBusy();
       await update({ phase: 'finished' });
     },
     async release() {
@@ -161,8 +179,7 @@ async function acquireBuildLock({ locks, projectRoot, signal, onProgress = () =>
       const savedSignal = signal; signal = undefined;
       try { await guarded(async () => {
         if (!await unchanged(lockPath, owned)) return;
-        if (owned.record.phase === 'compiling' && platform !== 'win32' && probe(-owned.record.compilerPid) !== false)
-          throw busy('The compiler process group is still active; its lock was preserved.');
+        if (!compilerStopped()) throw compilerBusy();
         await fs.unlink(lockPath);
       }); }
       finally { signal = savedSignal; }

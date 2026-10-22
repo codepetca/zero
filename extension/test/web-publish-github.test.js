@@ -406,11 +406,18 @@ test('invalid local browser source never creates a first Pages site',async t=>{
 });
 test('Publish helper preparation updates stock source before upload and refuses a change branch',async t=>{
  const h=await fixture(t);
+ // This suite runs directly in the compatibility job, before packaging has
+ // generated extension/media. Supply a real minimal bundle in its own fixture.
+ const extension=await fs.mkdtemp(path.join(os.tmpdir(),'zero-prepare-extension-'));t.after(()=>fs.rm(extension,{recursive:true,force:true}));
+ await fs.mkdir(path.join(extension,'media'));
+ const {lessonProjects}=await import('../../scripts/lesson-projects.mjs');
+ await fs.writeFile(path.join(extension,'media/lesson-projects.json'),JSON.stringify(lessonProjects(path.resolve(__dirname,'../..'))));
+ const preparation=createGitHubPagesPublisher({isSimulation:()=>false,engineRoot:path.join(extension,'src/web-export')});
  const current=await fs.readFile(path.join(__dirname,'../../framework/src/main/java/zero/App.java'),'utf8');
  const previous=current.replace('/** Space on every edge, in pixels. Call in settings, setup or an event handler. */','/** Initial space around all content, in pixels on each edge. Call inside settings(). */').replace('    public final void padding(double pixels) {\n','    public final void padding(double pixels) {\n        if (!configuring) throw new IllegalStateException("Call padding inside settings().");\n').replace('        if (root != null) root.setPadding(new Insets(pixels));\n','');
  const target=path.join(h.root,'src/main/java/zero/App.java');await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,previous);await h.git(['add','.']);await h.git(['commit','-m','stock helper']);
- await h.git(['switch','-c','change']);await assert.rejects(h.publisher.prepare(h.root),/Merge to main/);assert.equal(await fs.readFile(target,'utf8'),previous);
- await h.git(['switch','main']);let guard=0;assert.deepEqual(await h.publisher.prepare(h.root,{beforeWrite:async()=>{guard++;}}),{updated:['src/main/java/zero/App.java']});
+ await h.git(['switch','-c','change']);await assert.rejects(preparation.prepare(h.root),/Merge to main/);assert.equal(await fs.readFile(target,'utf8'),previous);
+ await h.git(['switch','main']);let guard=0;assert.deepEqual(await preparation.prepare(h.root,{beforeWrite:async()=>{guard++;}}),{updated:['src/main/java/zero/App.java']});
  assert.ok(guard>=2);assert.equal(await fs.readFile(target,'utf8'),current);assert.match(await h.git(['status','--porcelain']),/App.java/);
  await assert.rejects(h.publisher.review(h.root),error=>error.code==='WEB_PUBLISH_UPLOAD_REQUIRED');assert.equal(h.calls.length,0);
 });

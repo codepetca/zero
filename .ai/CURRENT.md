@@ -2,8 +2,9 @@
 
 Owner requests automatic Pages setup, untouched stock-helper upgrades and stale
 browser-build lock recovery. Work is isolated on codex/publish-recovery from
-6e584267; the primary funding checkout remains untouched. Source checks and
-independent review are in progress; see docs/EVIDENCE.md. No new installer,
+6e584267; the primary funding checkout remains untouched. The local374-test affected
+suite passed; initial reviews found oneP2 now corrected, with targeted review
+pending. See docs/EVIDENCE.md and PR165. No new installer,
 production permission grant, student repository mutation or live release yet.
 The reviewed Pages setup path needs Administration write; the compatible client
 must release before the existing App registration changes, because older clients

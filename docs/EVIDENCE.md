@@ -7519,6 +7519,15 @@ ambiguous Windows compiler ownership and interrupted same-boot recovery guards
 fail closed. Physical Windows/Linux and a released-client live replay remain pending.
 
 Checks before review: root check;73 Pages/provider/config assertions;46 Publish UI
-assertions;6 focused integrated Pages/helper cases passed. Broader affected suite
-and independent security/correctness plus compatibility review are in progress.
-Review budget:2 initial reviewers, at most7launches/4fix batches/60minutes total.
+assertions;6 focused integrated Pages/helper cases, then374 broader affected
+export/Publish/GitHub App assertions passed locally. CI exposed a generated-bundle
+dependency in one new integration fixture; batch1 makes that fixture self-contained.
+Initial independent GPT-6.1 Sol/high reviewers covered the complete8d613ac1 diff:
+compatibility complete/clean; security complete with one acceptedP2. An EIO after
+compiler spawn could lose its in-memory group ownership before PID persistence.
+Batch1 tracks the PID synchronously, protects cleanup after registration failure,
+and adds a real surviving-child regression plus ambiguous Windows coverage.
+Lock/engine31assertions and the isolated CI fixture pass; targeted review pending.
+Review budget used:2initial reviewer turns,1fix batch; at most7launches/4batches/
+60minutes. Effective models, per-turn tokens and attributable coordinator effort
+are unknown; no claim of savings from account-wide usage.

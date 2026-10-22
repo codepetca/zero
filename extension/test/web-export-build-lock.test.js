@@ -153,3 +153,84 @@ test('Maven spawn error does not leave a compiler PID or mask its error', { skip
   await lock.release();
   assert.deepEqual(await fs.readdir(f.options.locks), []);
 });
+test('failed compiler registration preserves a real orphan group and build folder until it exits', { skip: process.platform === 'win32' }, async t => {
+  const f = await fixture(t), lock = await acquireBuildLock(f.options);
+  const buildRoot = path.join(f.root, 'build');
+  await fs.mkdir(buildRoot);
+  const marker = path.join(buildRoot, 'keep-while-compiling');
+  await fs.writeFile(marker, 'compiler work');
+  const releaseMarker = path.join(f.root, 'release-compiler');
+  const waiter = path.join(f.root, 'wait-for-release.js');
+  await fs.writeFile(waiter, `
+    const fs = require('node:fs');
+    const deadline = Date.now() + 30000;
+    const timer = setInterval(() => {
+      if (fs.existsSync(process.env.ZERO_RELEASE_FILE) || Date.now() >= deadline) clearInterval(timer);
+    }, 20);
+  `);
+  const wrapper = path.join(f.root, 'mvnw');
+  await fs.writeFile(wrapper, '#!/bin/sh\n"$ZERO_NODE" "$ZERO_WAITER_SCRIPT" > /dev/null 2>&1 &\nexit 0\n', { mode: 0o755 });
+  const writeFile = fs.writeFile;
+  const failure = Object.assign(new Error('Injected compiler registration failure'), { code: 'EIO' });
+  const writeMock = t.mock.method(fs, 'writeFile', async (file, data, ...args) => {
+    if (file.startsWith(f.file + '.') && file.endsWith('.tmp') && JSON.parse(data).phase === 'compiling') throw failure;
+    return writeFile(file, data, ...args);
+  });
+  let compilerPid;
+  const trackedLock = { update: lock.update, trackCompiler(pid) { compilerPid = pid; lock.trackCompiler(pid); } };
+  async function waitForCompilerExit() {
+    if (!compilerPid) return;
+    const deadline = Date.now() + 35000;
+    while (_test.alive(-compilerPid) !== false && Date.now() < deadline)
+      await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(_test.alive(-compilerPid), false, 'the owned test descendant exited after release or its bounded fallback');
+  }
+  try {
+    await assert.rejects(engine.runMaven({ wrapper, projectRoot: f.options.projectRoot, buildRoot, cacheRoot: f.root,
+      env: { ZERO_NODE: process.execPath, ZERO_WAITER_SCRIPT: waiter, ZERO_RELEASE_FILE: releaseMarker },
+      onProgress: () => {}, buildLock: trackedLock }), failure);
+    writeMock.mock.restore();
+    assert.ok(compilerPid > 0);
+    assert.equal(_test.alive(compilerPid), false);
+    assert.equal(_test.alive(-compilerPid), true);
+    assert.equal(JSON.parse(await fs.readFile(f.file)).phase, 'launching');
+    assert.equal(lock.canCleanTemporary(), false);
+    if (lock.canCleanTemporary()) await fs.rm(buildRoot, { recursive: true });
+    await assert.rejects(lock.compilerFinished(), /process group is still active or unverified/);
+    await assert.rejects(lock.release(), /process group is still active or unverified/);
+    assert.equal(await fs.readFile(marker, 'utf8'), 'compiler work');
+    await fs.stat(f.file);
+    await fs.writeFile(releaseMarker, 'release');
+    await waitForCompilerExit();
+    assert.equal(lock.canCleanTemporary(), true);
+    await lock.compilerFinished();
+    await fs.rm(buildRoot, { recursive: true });
+    await lock.release();
+    await assert.rejects(fs.stat(f.file), { code: 'ENOENT' });
+    await assert.rejects(fs.stat(buildRoot), { code: 'ENOENT' });
+  } finally {
+    writeMock.mock.restore();
+    await writeFile(releaseMarker, 'release');
+    await waitForCompilerExit();
+    if (lock.canCleanTemporary()) {
+      await fs.rm(buildRoot, { recursive: true, force: true });
+      await lock.release();
+    }
+  }
+});
+test('failed Windows compiler registration preserves unknown descendants even after the PID exits', async t => {
+  const f = await fixture(t), lock = await acquireBuildLock({ ...f.options, _test: { platform: 'win32', alive: () => false } });
+  await lock.update({ phase: 'launching' });
+  lock.trackCompiler(1234);
+  const writeFile = fs.writeFile;
+  const writeMock = t.mock.method(fs, 'writeFile', async (file, data, ...args) => {
+    if (file.startsWith(f.file + '.') && file.endsWith('.tmp')) throw Object.assign(new Error('Injected write failure'), { code: 'EIO' });
+    return writeFile(file, data, ...args);
+  });
+  await assert.rejects(lock.update({ phase: 'compiling', compilerPid: 1234 }), { code: 'EIO' });
+  writeMock.mock.restore();
+  assert.equal(lock.canCleanTemporary(), false);
+  await assert.rejects(lock.compilerFinished(), /active or unverified/);
+  await assert.rejects(lock.release(), /active or unverified/);
+  assert.equal(JSON.parse(await fs.readFile(f.file)).phase, 'launching');
+});
