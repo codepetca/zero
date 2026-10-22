@@ -7715,5 +7715,7 @@ to match macOS Dark, including Start Page, sidebar and Tutorials. OS light/dark
 round-trip and fresh-machine/physical Windows acceptance were not performed.
 Configuration and9focused release/version tests pass (1conditional skip);
 whitespace passes. Source release target0.5.46/build46 follows0.5.45.
-Independent source review and CI pending. Owner authorized merge after CI and
+Independent Luna/medium complete12file review found one outdated starter-note
+sentence; corrected in one documentation fix batch. Targeted review and CI pending.
+Owner authorized merge after CI and
 publication only after the Update popup commit prompt chat finishes.

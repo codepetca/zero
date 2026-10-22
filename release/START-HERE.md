@@ -125,8 +125,8 @@ lesson 0, then create and clone your own tutorial repository.
    Test installation**, separate from the tutorial. Its README and API remain
    optional framework reference.
 
-The optional profile uses a light theme and autosave. The optional keybindings
-file contains F6/F7 shortcuts you can add yourself.
+The optional profile follows the system light/dark appearance and enables autosave.
+The optional keybindings file contains F6/F7 shortcuts you can add yourself.
 
 Tutorial projects open Main beside Tutorials. Other student projects can open
 the first lesson once when their editor is empty; the installation test does not.
