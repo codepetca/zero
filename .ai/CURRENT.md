@@ -1,20 +1,26 @@
-# Automatic Publish recovery — Mac0.5.44 promotion, 2026-10-21
+# Automatic Publish recovery — Mac0.5.44 delivered, 2026-10-22
 
-Owner explicitly authorized merge, Mac release and the Administration write App
-permission needed for first-time Pages setup. Source PR165 merged as3bc83141;
-version PR166 merged asc01de5ee after all five exact-head checks passed.
-Signed/notarized/stapled Mac0.5.44 is public and its anonymous bytes verified:
-https://github.com/codepetca/zero/releases/tag/setup-v0.5.44.
-This promotion updates only measured native manifests and the exact signed feed;
-Windows21/manualkit17 and the primary dirty funding checkout remain preserved.
-Original build be445910; sealed candidate mac-0.5.44-312987625370. Independent
-source, version and native candidate reviews are clean. See docs/EVIDENCE.md.
-Next: metadata review/CI/merge, verify live feed/download, install44, then add
-Administration write and approve the existing installation grant. The live App
-permission has not changed yet. Earlier43 clients reject the added grant, so
-update before approval. New Pages setup and native Publish acceptance remain
-separate interactive checks; custom helpers, existing sites and active builds
-stay protected.
+Owner-authorized source/release work is complete. Source PR165 merged3bc83141,
+version PR166 mergedc01de5ee and promotion PR167 merged68386794, each after five
+exact-head checks. Signed/notarized/stapled Mac0.5.44 and its exact signed update
+feed are live: https://github.com/codepetca/zero/releases/tag/setup-v0.5.44.
+The built-in updater installed43→44 on the owner's Mac and preserved the project
+edit. Administration write is now registered on Codepet Zero and the existing
+owner installation approved the added grant. Future installations request it;
+existing users must update their client before approving. Older43 clients reject
+the additional scope. No credential or repository-selection changes were made.
+
+In installed Zero44, Publish committed an uncommitted greeting edit, pushed main,
+built and deployed successfully. The public https://armorup.github.io/my-greeting/
+showed the new greeting and passed the name/button interaction. The corrected
+Commit Message title and hint below the field were observed in the native editor.
+See docs/EVIDENCE.md and retained primary ignored
+.verification/publish-recovery-release0.5.44/progress.json for exact receipts.
+This acceptance used an existing Pages site. First-time Pages creation, stock-helper
+upgrade and stale-lock recovery have automated coverage but were not re-exercised
+live in this run. Physical Windows/Intel/macOS12 remain untested. Windows21,
+manualkit17, immutable older assets and the dirty primary funding checkout remain
+preserved. No pending release or permission step remains for this request.
 
 # Compact ZeroHub project squares — local, 2026-10-21
 

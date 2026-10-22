@@ -1,6 +1,6 @@
 # Delivery evidence index
 
-## Automatic Publish recovery — Mac0.5.44 promotion, 2026-10-21
+## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
 
 Owner authorized source merge/release and the specific Administration write
 expansion after review. Source PR165 merged3bc83141; version PR166 mergedc01de5ee,
@@ -21,12 +21,41 @@ public DMG bytes match. Signed feed advances43→44 without changing key/feed UR
 Receipts retained in primary ignored .verification/publish-recovery-release0.5.44;
 source receipts in .verification/publish-recovery-source-20261021.
 
-This metadata promotion has not yet established live feed deployment, client
-update or the subsequent GitHub permission grant. Compatible44 must be installed
-before Administration write is added/approved. Existing installations still need
-GitHub approval; automated recovery does not bypass consent. Windows21/manualkit17
-and all older assets stay immutable. Native Publish and first-time Pages creation
-remain interactive acceptance checks until observed.
+Promotion PR167 merged as68386794c26c1b205414c88382ac7537ba5cb649 after five
+exact-head CI checks and one complete clean metadata review (Sol/medium, no fix
+batch). Local configuration,13focused Mac tests (2skipped), website typecheck,
+162website tests and production build passed. Automatic production deployment
+served the exact sealed signed feed (SHA256
+685709c0ac8f3a505f2fa5da9316e82189be053bd7f8f4baf8eaa7abb94222a0), actual44
+Downloads anchor and setup guide. Another anonymous DMG download matched the
+candidate. No public asset was rebuilt or replaced.
+
+Live acceptance2026-10-22: Zero's actual native updater offered43→44 and completed
+Install Update / Install and Relaunch. Native bundle, installed kit and extension
+all report0.5.44; the uncommitted project edit survived. After that compatible
+update, the owner confirmed Administration write at action time. GitHub saved
+only administration:write alongside the prior exact App permission set. The
+existing owner installation approved that added grant without changing repository
+selection. Future installations request the updated permission set; existing users
+must update before approving, because older43 clients reject the additional scope.
+No credentials changed. GitHub consent remains explicit.
+
+Publish in the installed Zero44 committed an uncommitted Main.java greeting edit
+as264930132c813a79e924e23dd22919de95041f7e, pushed main, built locally and completed
+https://github.com/armorup/my-greeting/actions/runs/39773783349 successfully.
+https://armorup.github.io/my-greeting/ displayed Hello, Zero!; entering Student
+and clicking Say hello produced Hello, Student! The project tree is clean and
+GitHub main matches that commit. The native popup displayed Commit Message above
+an empty textbox and <Enter> to confirm · <Esc> to cancel below it. Screenshots,
+run/permission/update proofs and the13sealed candidate files are retained under
+the primary ignored release receipt directory above. Primary local main was
+fast-forwarded without changing the dirty funding checkout.
+
+This live run used an existing Pages site. First-time Pages creation, legacy stock
+helper migration and stale-lock recovery retain automated coverage but were not
+re-exercised live here. Physical Windows/Intel/macOS12 remain untested. Windows21,
+manualkit17 and older public asset bytes are unchanged. Source, publication,
+permission rollout and the existing-site uncommitted-change acceptance are complete.
 
 
 ## Compact ZeroHub project squares — local, 2026-10-21
