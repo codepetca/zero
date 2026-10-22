@@ -1,18 +1,20 @@
-# Tutorial and Start Page polish — local, 2026-10-22
+# Tutorial and reusable editor controls — local, 2026-10-22
 
-Branch codex/tutorial-padding contains owner-requested20px padding across tutorial
-scaffolds/checkpoints/unpadded reference programs, a compact GitHub · username
-account row, and Start tutorial with a Tutorials dropdown. Start tutorial's whole
-split control and Project are180px wide (full width on narrow views). Tutorials
-remains available signed out. Main clicks retain guarded project creation.
+Owner-requested source is on codex/tutorial-padding: tutorial padding, compact
+GitHub account row, Tutorials under the equally wide Start tutorial split control,
+and Start Page dropdowns matching Sidebar. Source2d041c7c extracts shared button/
+menu/split/chevron styles and adds actual-renderer component prototypes. The
+reuse preference is recorded in design.md, design/EDITOR-COMPONENTS.md and saved
+Product Design context. Review future controls in the local /components gallery.
 
-Source699c25f3 has14passing Start Page tests and a complete/clean Sol/medium
-review; configuration checks and browser fixture interactions pass. Earlier
-padding and account reviews/checks remain valid. Both local owner Greeting
-projects have separate uncommitted padding edits. Installed Zero44, public
-templates, website and published demo pages remain unchanged. Merge/publication
-await applicable owner authorization. See docs/EVIDENCE.md and primary ignored
-.verification/{tutorial-padding,start-page-account,start-page-dropdown}-20261022.
+35focused tests, configuration and generated-design checks pass; independent
+Sol6.1/medium review complete/clean. IAB verifies matching menu styles, theme/state
+switching and320px reflow. Gallery running at http://127.0.0.1:3152/components.
+Earlier padding/account/menu validation remains valid. Both local owner Greeting
+projects retain separate uncommitted padding edits. Installed Zero44, public
+templates/site/demo pages are unchanged; merge/publication awaits applicable
+owner authorization. See docs/EVIDENCE.md and primary ignored
+.verification/shared-editor-controls-20261022/result.json for receipts.
 
 # Automatic Publish recovery — Mac0.5.44 delivered, 2026-10-22
 

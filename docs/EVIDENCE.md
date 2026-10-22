@@ -7669,3 +7669,39 @@ Independent standard-risk source review startpage_menu_review, requested
 Sol6.1/medium, complete/clean for3bf8df3a→699c25f3 with no findings. One initial
 reviewer turn, zero fix batches; effective model/tokens/attributable effort
 unknown. No merge, deployment, installer or public-template update occurred.
+
+
+## Shared editor dropdowns and prototypes — local, 2026-10-22
+
+Owner requested Sidebar dropdown styling on Start Page, reusable components,
+remembered conventions and prototype screens. Source2d041c7c (base0ea042c9)
+extracts canonical button/split/menu styles into extension/media/controls.css.
+Sidebar generated CSS and nonce-protected Start Page consume the same bytes;
+Start Page reuses the existing Lucide ChevronDown. Screen sizing and guarded
+commands stay in their hosts. The component catalog and canonical design/UI
+instructions record the preference. A scoped saved Product Design reference
+and gallery screenshot are retained outside Git for future work.
+
+The source-backed /components gallery compares actual Start Page/Sidebar HTML;
+/start-page is its standalone screen. Three themes and six account/busy states,
+keyboard menus and simulated action feedback are available. Fixtures never
+activate the extension, authenticate, access student files or execute commands.
+The gallery's local GET form alone permits form-action self; other local routes
+retain none, frames retain their script-only sandbox and production CSP is unchanged.
+
+All35focused extension/design/playground tests, configuration, generated-design
+and whitespace checks pass. IAB verified dark ready menus, light signed-out,
+high-contrast busy, Apply navigation and320px reflow without horizontal overflow.
+Both menus compute13px system type,5px/8px item inset and28px minimum item height;
+Start tutorial/Project widths remain equal. Screenshots and exact receipt live in
+primary ignored .verification/shared-editor-controls-20261022. Local gallery runs
+at http://127.0.0.1:3152/components. Installed/native Zero44 and physical OS behavior
+remain separate; no merge, deployment or installer update occurred.
+
+Bounded prototype author component_prototypes requested Sol6.1/medium, delivered
+and accepted after coordinator source inspection, focused checks and browser QA.
+Coordinator caught/fixed the blocked gallery Apply path with narrow policy and
+regression coverage. No writer/integration conflict. Independent standard-risk
+review startpage_menu_review requested Sol6.1/medium complete/clean for the full
+18-file delta0ea042c9→2d041c7c. Review1initial turn,0remediation batches; effective
+models, token usage and attributable effort unknown. No savings claim.
