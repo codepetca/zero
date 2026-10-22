@@ -7742,3 +7742,17 @@ manualkit17, older immutable assets and dirty primary funding files are preserve
 Review sessions stayed within bounded one-reviewer passes; effective model,
 per-turn tokens and attributable effort unknown. DeepSeek remains owner-paused
 through2026-12-31; no automatic provider delegation occurred.
+
+## System editor appearance — 2026-10-22
+
+Profile enables VS Code native system light/dark detection in new editor settings;
+existing settings remain preserved. Setup wording and appearance guidance match.
+Owner current Zero window enabled through Settings and visibly switched to dark
+to match macOS Dark, including Start Page, sidebar and Tutorials. OS light/dark
+round-trip and fresh-machine/physical Windows acceptance were not performed.
+Configuration and9focused release/version tests pass (1conditional skip);
+whitespace passes. Source release target0.5.46/build46 follows0.5.45.
+Independent Luna/medium complete12file review found one outdated starter-note
+sentence; corrected in one documentation fix batch. Targeted review and CI pending.
+Owner authorized merge after CI and
+publication only after the Update popup commit prompt chat finishes.

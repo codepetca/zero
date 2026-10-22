@@ -63,7 +63,7 @@ The published Mac0.5.14 app uses the familiar drag-to-Applications flow. Open Ze
 from Applications to prepare its private Java runtime and separate editor automatically.
 Later, open Zero again to restore your saved editor session. Windows uses
 the complete-kit ZIP with manual setup. See [native setup](docs/INSTALLER.md).
-The optional settings-only profile for ZIP/manual setup defaults to light, with 500 ms autosave.
+The optional settings-only profile for ZIP/manual setup follows the system light/dark appearance, with 500 ms autosave.
 Import it before installing the local Zero VSIX and Java extensions in that
 profile. The sidebar also supports dark themes.
 
