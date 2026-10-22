@@ -7625,3 +7625,24 @@ Luna/medium: full39-file source delta0601a593→e255b2d4 complete/clean; targete
 verifier deltae255b2d4→9293af54 complete/clean. Budget2reviewer turns,1initial wave,
 1targeted wave,1fix batch; no unresolved findings. Effective model, tokens and
 attributable effort unknown. The dirty primary funding checkout is preserved.
+
+
+## Compact Start Page GitHub row — local, 2026-10-22
+
+Owner requested GitHub · armorup on one line, with Sign in to GitHub when signed
+out. Source92e37adc (base d70ceb0e) nests the text-only account label and decorative
+separator in the GitHub heading, hides routine ready guidance, and keeps checking,
+installation and unavailable guidance/actions. Signed out has only its sign-in
+action, with a stable accessible GitHub section label. Other Start Page commands
+and authorization checks are unchanged. The design preference is recorded in design.md.
+
+All13Start Page tests and configuration/syntax/command/doc-link checks pass.
+Production-HTML browser fixtures show ready, signed-out and installation states;
+screenshots live in primary ignored .verification/start-page-account-20261022.
+These fixtures use fake account state and did not sign out or alter credentials.
+Native installed Zero44 and published installers remain unchanged.
+
+Independent low-risk review tutorial_padding_review, requested Luna/medium,
+complete/clean for d70ceb0e→92e37adc; no actionable findings. One reviewer turn,
+one initial wave, zero fix batches in this UI review session; effective model,
+tokens and attributable effort unknown. Dirty primary checkout remains preserved.

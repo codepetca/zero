@@ -40,6 +40,9 @@ when adding features; a new feature does not reset the agreed interaction style.
   Show it automatically in an empty Zero window; preserve existing editors and
   restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar's **⋯ → Start Page**. Keep local opening available without GitHub.
+- On the Start Page, ready GitHub access is one line: **GitHub · username**.
+  Signed out shows **Sign in to GitHub**. Keep checking, setup and error guidance
+  visible when action is needed; omit the routine Ready to start line.
 - The sidebar is for project development: Run/Stop, native Explorer, contextual repository
   and branch actions, Commit & push, Merge to main and ZeroHub. Empty windows
   offer only Open Start Page. A local project needing cloud setup offers GitHub

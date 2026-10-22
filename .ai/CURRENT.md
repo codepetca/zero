@@ -1,3 +1,14 @@
+# Compact Start Page account — local, 2026-10-22
+
+Owner requested GitHub · username on one line when signed in and a concise
+sign-in action when signed out. Source92e37adc implements this in the Start Page;
+checking/setup/error guidance remains. Thirteen focused tests, configuration
+checks and production-HTML browser fixtures pass. Independent Luna/medium review
+complete/clean. This follows the local tutorial-padding work on the same branch.
+Installed Zero44 is unchanged; no merge/publication has been requested for these
+UI changes. See docs/EVIDENCE.md and primary ignored
+.verification/start-page-account-20261022 for screenshots.
+
 # Tutorial padding — local, 2026-10-22
 
 Owner requested padding across tutorial projects. Branch codex/tutorial-padding
