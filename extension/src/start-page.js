@@ -326,3 +326,5 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
 }
 
 module.exports = {createStartPage};
+
+// CI selection fixture: no behavior change.
