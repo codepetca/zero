@@ -1,20 +1,18 @@
-# System editor appearance — 2026-10-22
+# System appearance — Mac0.5.46 publication, 2026-10-22
 
-Owner authorized PR171 merge after CI and Mac release after the Update popup
-commit prompt chat finishes, so the owner can update once. Work is isolated on
-codex/system-theme; primary funding changes and the other release are preserved.
-Profile enables system color-scheme detection instead of forcing Light Modern.
-Existing settings are preserved. Owner current Zero window was enabled and
-observed dark to match macOS Dark. Target0.5.46/build46 follows0.5.45.
-Luna/medium full source review plus one documentation correction is clean;
-configuration,9focused release tests(1conditional skip),17installer tests pass.
-Main sync brings in0.5.45 promotion and verified tutorial pins; delta review/CI
-pending. No46 artifact or feed published.
+Owner authorized source PR/merge after CI and release after the Update popup
+commit prompt chat finishes. That chat completed0.5.45/native acceptance before
+this publication. Source PR171 merged0b4a2ec2 after exact-head workflow/check-suite
+success; Luna/medium initial, documentation correction and main-sync reviews clean.
 
-# Prior release dependency — 2026-10-22
-
-Mac0.5.45 source PR169 and promotion PR170 are merged; signed release and feed
-are live. It includes tutorial padding and shared Start Page controls, with
-three public template pins refreshed. The owning popup chat is completing native
-update acceptance; wait for its completion before publishing46. Preserve signed
-Windows21/manualkit17 and older immutable assets. Detailed receipts: docs/EVIDENCE.md.
+Signed/notarized/stapled0.5.46 is public at
+https://github.com/codepetca/zero/releases/tag/setup-v0.5.46.
+It includes0.5.45 tutorial/Start Page changes and system light/dark detection in
+new editor settings. Existing preferences are preserved; owner current Zero
+window was explicitly enabled and observed dark to match macOS Dark.
+Sealed candidate mac-0.5.46-243826d36ba2 built atccf060f1; preparation243826d3.
+Anonymous public DMG matches the measured candidate. Sol6.1/medium candidate
+review complete/clean. Metadata and signed-feed promotion await CI/merge and
+live verification; previous45 feed remains live until then. No46 install requested.
+Windows21/manualkit17, older immutable assets and primary funding work preserved.
+See docs/EVIDENCE.md and primary .verification/system-theme-release0.5.46/.
