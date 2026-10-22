@@ -56,7 +56,8 @@ Current source opens a native **Zero Start Page** for onboarding and project
 selection. Current source contains **Start tutorial** with a **Tutorials** dropdown to the
 existing reader, **Project ▾ → New / Clone / Open**, account-scoped recent projects
 and guided GitHub setup. Tutorials and opening local work remain available without
-sign-in; New and Clone retain their GitHub access checks. Mac0.5.43 ships these controls.
+sign-in; New and Clone retain their GitHub access checks. Mac0.5.45 ships these controls with an equally wide Start tutorial split control
+and Project button, shared Sidebar dropdown styling and compact GitHub account row.
 An empty Zero window opens it automatically; existing student editors stay
 untouched. **Zero: Start Page** and **⋯ → Start Page** reopen it at any time.
 The Explorer sidebar hosts a Zero controls view for native Run/Stop, teaching helpers, contextual

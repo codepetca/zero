@@ -1,20 +1,20 @@
-# Tutorial and reusable editor controls — local, 2026-10-22
+# Tutorial padding and Start Page — Mac0.5.45 promotion, 2026-10-22
 
-Owner-requested source is on codex/tutorial-padding: tutorial padding, compact
-GitHub account row, Tutorials under the equally wide Start tutorial split control,
-and Start Page dropdowns matching Sidebar. Source2d041c7c extracts shared button/
-menu/split/chevron styles and adds actual-renderer component prototypes. The
-reuse preference is recorded in design.md, design/EDITOR-COMPONENTS.md and saved
-Product Design context. Review future controls in the local /components gallery.
+Owner authorized merge after CI and release. PR169 merged4e19c71e after all5checks
+on reviewed598a01c4. Signed/notarized/stapled Mac0.5.45 is public at
+https://github.com/codepetca/zero/releases/tag/setup-v0.5.45; downloaded public
+bytes match the sealed candidate. Source598a01c4/preparation9f3be980, Apple Accepted
+00c75145-4a66-4fce-b2f5-4b11ae15e68d. DMG4614065bytes SHA18201f0f…efc949;
+exact signed feed SHA91566c36…39d2ed. Independent source/candidate reviews clean.
 
-35focused tests, configuration and generated-design checks pass; independent
-Sol6.1/medium review complete/clean. IAB verifies matching menu styles, theme/state
-switching and320px reflow. Gallery running at http://127.0.0.1:3152/components.
-Earlier padding/account/menu validation remains valid. Both local owner Greeting
-projects retain separate uncommitted padding edits. Installed Zero44, public
-templates/site/demo pages are unchanged; merge/publication awaits applicable
-owner authorization. See docs/EVIDENCE.md and primary ignored
-.verification/shared-editor-controls-20261022/result.json for receipts.
+Three tutorial templates now have20px padding; exact new commits/trees and source
+were verified anonymously. Their metadata and the installer/feed are being
+promoted in this branch; website deployment and native44→45 acceptance remain
+pending. Shared control/prototype references remain in design.md and
+ design/EDITOR-COMPONENTS.md. Both local owner Greeting projects retain uncommitted
+padding edits. Windows21/manualkit17, older immutable releases and dirty primary
+funding checkout are preserved. See docs/EVIDENCE.md and primary ignored
+.verification/tutorial-startpage-release0.5.45/progress.json.
 
 # Automatic Publish recovery — Mac0.5.44 delivered, 2026-10-22
 
