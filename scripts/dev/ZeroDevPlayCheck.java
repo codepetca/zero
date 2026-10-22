@@ -76,6 +76,8 @@ public final class ZeroDevPlayCheck extends Main {
             require(proof != null && ImageIO.write(pixels, "png", Path.of(proof).toFile()), "win image saved");
             Button restart = button(root);
             require(restart != null, "Restart button exists");
+            restart.requestFocus();
+            require(restart.isFocused() && !canvas().isFocused(), "Restart owns focus before activation");
             restart.fire();
             require(((Number) field(this, Main.class, "points")).intValue() == 0
                     && !(boolean) field(this, Main.class, "won"), "Restart resets score and win");
