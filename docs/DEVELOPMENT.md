@@ -8,6 +8,26 @@ work. Keep one writer per component and inspect changes before integration.
 Follow [AI workflow](AI-WORKFLOW.md) for delegation/review and recovery.
 Record compact durable delivery evidence in [EVIDENCE.md](EVIDENCE.md).
 
+## Default iteration loop
+
+Owner preference,2026-10-22: use Zero Dev for routine UI/framework/game changes.
+Reuse the appropriate active checkout/profile and useful caches. Run `npm ci`
+when dependencies need installation, then keep `npm run dev` running while editing.
+Reload the Dev window for extension changes; Stop/Run for framework or game edits.
+Use the live component preview for UI states, focused tests for each change, and
+`npm run dev:smoke` for game/framework integration. Record actual native evidence
+and any untested platforms. Local iteration needs no version bump or installer.
+
+Finish implementation, focused validation, independent review and documentation
+before the final CI push where practical. Fixes still require checks and review;
+reuse valid evidence for unchanged code. Build installer candidates when testing
+packaging/setup/update behavior or preparing an authorized release. Source merges
+alone do not require an installer release.
+
+The [faster CI plan](FAST-DEV-FLOW.md) is prepared but not implemented. All current
+PR CI gates still apply. Its next work is dependency-aware job selection,
+cancellation of superseded PR runs and faster browser/dependency provisioning.
+
 ## Commands
 
 For daily UI/framework iteration, use [Zero Dev](ZERO-DEV.md): `npm run dev`

@@ -4,6 +4,8 @@ Read `.ai/CURRENT.md` and `docs/PRODUCT.md` before changing code. Read
 `docs/DEVELOPMENT.md` for commands and verification when it exists.
 Use `docs/AI-WORKFLOW.md` for bounded delegation, independent review and durable
 handoffs. Keep CURRENT short; archived phase records are not active instructions.
+Use the Zero Dev loop in `docs/DEVELOPMENT.md` by default for local UI/framework
+work; read `docs/FAST-DEV-FLOW.md` when planning CI or release-workflow changes.
 For UI work, start with `design.md`, then read the canonical
 `docs/UI-UX-GUIDELINES.md`. Preserve approved designs; shared light/dark playground
 proposals require owner review before production visual changes.

@@ -85,6 +85,20 @@ time unknown. This receipt-only follow-up changes no code. Exact-head CI and
 merge verification remain gates; final receipt is retained in the existing ignored
 acceptance/progress.json. No installer release or version bump is requested.
 
+## Faster development follow-up preparation — 2026-10-22
+
+Zero Dev PR173 merged0d31bcfc after five successful checks at7100b0e8. Active Dev
+checkout fast-forwarded cleanly with identical tree; primary funding work preserved.
+Owner then asked to prepare/remember the future faster flow. AGENTS routes local
+iteration to DEVELOPMENT; FAST-DEV-FLOW records the unimplemented CI plan, input
+classification/coverage matrix, concurrency/cache work and acceptance conditions.
+A scoped private reminder outside Git routes future Zero chats to this preference.
+No CI definition, installer, credential or publication authority changed. Static
+Markdown link/command/workflow-reference checks and whitespace are the applicable
+verification; no application suite is rerun for this documentation-only change.
+Independent preparation review receipt will be retained with the existing ignored
+Zero Dev acceptance records. This follow-up is local, with no new task/automation.
+
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
 
 Owner authorized source merge/release and the specific Administration write
