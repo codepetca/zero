@@ -415,10 +415,11 @@ Sign in and connect your own repository to enable publishing.
 
 The first publish reviews the public destination and prepares publishing files.
 Keep the repository selected for Zero's App and review any missing Contents,
-Workflows, Actions or Pages permission on GitHub. The App omits Administration:
-for first-time Pages setup, enable GitHub Actions as the Pages source in the
-repository's GitHub settings, then return to Publish app and recheck. Enter a
-commit message if the setup files need to be committed; Zero then continues
+Workflows, Actions, Pages or first-time setup permission on GitHub. Publish sets
+up the app page automatically once Zero's updated permission is approved. It also
+updates recognized untouched older Zero helpers before the normal commit review
+and recovers locks from confirmed stopped builds. Your own helper edits are kept.
+Enter a commit message if the source/setup files need committing; Zero then continues
 publishing without another publication confirmation. Zero uses the locally checked build; GitHub deploys it to
 Pages. The playable app and its included assets are public, even if your source
 repository is private and your GitHub plan supports Pages. Zero keeps the

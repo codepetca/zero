@@ -17,7 +17,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
   const head=await git(['rev-parse','HEAD']);
   let current=true,simulation=false,remoteHead=head,pages=installed?{build_type:'workflow',public:true,html_url:'https://student.github.io/game/'}:null;
   let run={id:42,head_sha:head,path:'.github/workflows/zero-web.yml',event:'workflow_dispatch',head_branch:'main',repository:{id:12,full_name:'student/game'},status:'completed',conclusion:'success'};
-  let marker=head+'\n42\n',publicStatus=200,dispatchStatus=200,createStatus=201;
+  let marker=head+'\n42\n',publicStatus=200,dispatchStatus=200,createStatus=201,losePagesResponse=false,createdPages;
   let repo={id:12,full_name:'student/game',owner:{id:1,type:'User'},default_branch:'main',permissions:{push:true},private:false};
   let release,asset,afterUpload=async()=>{},assetPatch={},loseCreationResponse=false,listError=false;const calls=[];const session={accountId:'1',label:'student',accessToken:'TEST_SECRET',scopes:[]};
   const ticket={session};
@@ -26,7 +26,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
   const accessCalls=[];
   const repositories={access:async(url,{ticket:observed,permissions})=>{
     await authentication.assertCurrent(observed);accessCalls.push({url,permissions});
-    if(!allowed || (deniedPermission && permissions[deniedPermission]))throw Error('Zero GitHub App repository access was removed');
+    if(!allowed || (deniedPermission && permissions[deniedPermission]))throw Object.assign(Error('Zero GitHub App repository access was removed'),{code:deniedPermission?'permission-required':'installation-required',actionUrl:'https://github.com/apps/codepet-zero/installations/new'});
     await afterAccess();return {ticket:observed,repository:repo,installation:{id:installationId}};
   }};
   const response=(value,status=200)=>new Response(status===204?null:JSON.stringify(value),{status,headers:{'content-type':'application/json'}});
@@ -40,7 +40,7 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
     if(suffix==='')return response(repo);
     if(suffix==='/git/ref/heads/main')return remoteHead?response({object:{sha:remoteHead}}):response({},404);
     if(suffix==='/pages'){
-      if(options.method==='POST'){if(createStatus===201)pages={build_type:'workflow',public:true,html_url:'https://student.github.io/game/'};return response(pages,createStatus);}
+      if(options.method==='POST'){assert.deepEqual(JSON.parse(options.body),{build_type:'workflow'});if(createStatus===201)pages=createdPages || {build_type:'workflow',public:true,html_url:'https://student.github.io/game/'};if(losePagesResponse)throw Error('Pages creation response lost');return response(pages,createStatus);}
       return response(pages,pages?200:404);
     }
     if(suffix.endsWith('/dispatches'))return response({workflow_run_id:42},dispatchStatus);
@@ -57,11 +57,11 @@ async function fixture(t,{installed=true,publisherOptions={},sourceFiles,memoize
   const localBuild=async()=>result;let validationError;const validateExport=async()=>{if(validationError)throw validationError;const siteFiles=[];for(const file of outputFiles)siteFiles.push({path:file.path,bytes:await fs.readFile(path.join(site,file.path))});if(siteFiles.some(file=>require('../src/web-publish-bundle').hash(file.bytes)!==outputFiles.find(output=>output.path===file.path).sha256))throw Error('browser output changed');return {...result,manifest:{files:outputFiles},siteFiles};};
   const gitReads=new Map();const guardedGit=memoizeGit?((cwd,args)=>{const key=JSON.stringify([cwd,args]);if(!gitReads.has(key))gitReads.set(key,core.git(cwd,args));return gitReads.get(key);}):core.git;
   const publisher=createGitHubPagesPublisher({git:guardedGit,authentication,repositories,fetch,files,isSimulation:()=>simulation,localBuild,validateExport,assertBuildInputsAtCommit:validateExport,...publisherOptions});
-  return {root,git,head,files,publisher,calls,authentication,result,accessCalls,set afterAccess(v){afterAccess=v;},set allowed(v){allowed=v;},set installationId(v){installationId=v;},set deniedPermission(v){deniedPermission=v;},set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
+  return {root,git,head,files,publisher,calls,authentication,result,accessCalls,set afterAccess(v){afterAccess=v;},set allowed(v){allowed=v;},set installationId(v){installationId=v;},set deniedPermission(v){deniedPermission=v;},set validationError(value){validationError=value;},set afterUpload(value){afterUpload=value;},set loseCreationResponse(value){loseCreationResponse=value;},set listError(value){listError=value;},set assetPatch(value){assetPatch=value;},set losePagesResponse(v){losePagesResponse=v;},set createdPages(v){createdPages=v;},get pages(){return pages;},set pages(v){pages=v;},get repo(){return repo;},set repo(v){repo=v;},get run(){return run;},set marker(v){marker=v;},set current(v){current=v;},set simulation(v){simulation=v;},set remoteHead(v){remoteHead=v;},set dispatchStatus(v){dispatchStatus=v;},set createStatus(v){createStatus=v;},set publicStatus(v){publicStatus=v;}};
 }
 test('simulation never looks up auth, reads repository, creates files or requests network',async()=>{
   const no=()=>assert.fail('Unexpected side effect');const p=createGitHubPagesPublisher({authentication:{capture:no},fetch:no,git:no});
-  assert.equal((await p.review('/missing')).status,'simulated');assert.equal((await p.setup({})).status,'simulated');assert.equal((await p.update({})).status,'simulated');assert.equal((await p.publish({})).status,'simulated');assert.equal((await p.check({})).status,'simulated');
+  assert.equal((await p.prepare('/missing')).status,'simulated');assert.equal((await p.review('/missing')).status,'simulated');assert.equal((await p.setup({})).status,'simulated');assert.equal((await p.update({})).status,'simulated');assert.equal((await p.publish({})).status,'simulated');assert.equal((await p.check({})).status,'simulated');
 });
 test('clean uploaded main dispatches exact reviewed source and confirms actual public run marker without token',async t=>{
   const h=await fixture(t);const review=await h.publisher.review(h.root);assert.equal(review.setup,false);
@@ -118,7 +118,7 @@ test('unknown run IDs, unrelated runs, old public version and failed deployment 
 });
 test('Pages creation denial provides one guided action and never changes repository visibility',async t=>{
   const h=await fixture(t);h.pages=null;h.createStatus=403;const result=await h.publisher.publish(await h.publisher.review(h.root));assert.equal(result.status,'action-required');
-  assert.match(result.action.url,/settings\/pages$/);assert.ok(h.calls.every(c=>c.options.method==='GET'));assert.equal(h.repo.private,false);
+  assert.match(result.action.url,/apps\/codepet-zero\/installations/);assert.equal(h.calls.filter(c=>c.url.endsWith('/pages') && c.options.method==='POST').length,1);assert.equal(h.repo.private,false);
 });
 test('generated workflow pins source, separates build and deployment privileges and leaves generated site out of Git',async()=>{
   assert.match(pagesPublishWorkflow,/ref: \$\{\{ inputs.source_sha \}\}/);assert.match(pagesPublishWorkflow,/inputs.source_sha == github.sha/);assert.match(pagesPublishWorkflow,/ZERO_BUNDLE_SHA256/);assert.doesNotMatch(pagesPublishWorkflow,/setup-java|mvn|exportForWeb|Build the browser/);assert.match(pagesPublishWorkflow,/if: always\(\)/);
@@ -273,13 +273,32 @@ test('approved Pages destination persists through restart and rejects changed de
   assert.equal(h.calls.filter(call=>!call.url.startsWith('https://api.github.com/')).length,before,'An unapproved domain is never queried or returned live');
   delete saved.destination;await assert.rejects(h.publisher.restore(h.root,saved),/public destination/);
 });
-test('initial Pages setup uses settings without requesting Administration or building/staging bytes',async t=>{
-  const h=await fixture(t,{memoizeGit:true});h.pages=null;const reviewed=await h.publisher.review(h.root);assert.equal(reviewed.needsPages,true);
-  h.validationError=Error('must not build');
-  const result=await h.publisher.publish(reviewed);assert.equal(result.status,'action-required');assert.match(result.action.message,/Enable GitHub Actions/);
-  assert.ok(h.calls.every(call=>call.options.method==='GET'));assert.ok(h.accessCalls.every(call=>!call.permissions.administration));
-  h.pages={build_type:'workflow',public:true,html_url:'https://student.github.io/game/'};h.validationError=undefined;
+test('initial Pages setup creates only the approved workflow site, then continues deployment',async t=>{
+  const h=await fixture(t,{memoizeGit:true});h.pages=null;const reviewed=await h.publisher.review(h.root);assert.equal(reviewed.needsPages,true);assert.equal(reviewed.publicUrl,'https://student.github.io/game/');
+  const result=await h.publisher.publish(reviewed);assert.equal(result.status,'pending');
+  assert.deepEqual(h.accessCalls.filter(call=>call.permissions.administration).map(call=>call.permissions),[{pages:'write',administration:'write'},{pages:'write',administration:'write'}]);
+  assert.equal(h.calls.filter(call=>call.url.endsWith('/pages') && call.options.method==='POST').length,1);
+  assert.ok(!h.calls.some(call=>['PUT','PATCH'].includes(call.options.method)));
+  assert.equal((await h.publisher.check(result.resume)).status,'live');
+});
+test('existing Pages never requests Administration and denied setup preserves repository settings',async t=>{
+  const existing=await fixture(t,{memoizeGit:true});existing.deniedPermission='administration';
+  assert.equal((await existing.publisher.publish(await existing.publisher.review(existing.root))).status,'pending');
+  assert.ok(existing.accessCalls.every(call=>!call.permissions.administration));
+  const h=await fixture(t,{memoizeGit:true});h.pages=null;h.deniedPermission='administration';h.validationError=Error('must not build');
+  const result=await h.publisher.publish(await h.publisher.review(h.root));assert.equal(result.status,'action-required');assert.match(result.action.message,/updated GitHub permissions/);
+  assert.ok(h.calls.every(call=>call.options.method==='GET'));assert.equal(h.pages,null);assert.equal(h.repo.private,false);
+});
+test('uncertain Pages creation reconciles once and never repeats or adopts an unapproved site',async t=>{
+  const h=await fixture(t,{memoizeGit:true});h.pages=null;h.losePagesResponse=true;
   assert.equal((await h.publisher.publish(await h.publisher.review(h.root))).status,'pending');
+  assert.equal(h.calls.filter(call=>call.url.endsWith('/pages') && call.options.method==='POST').length,1);
+  for(const actual of [{build_type:'legacy',public:true,html_url:'https://student.github.io/game/'},{build_type:'workflow',public:false,html_url:'https://student.github.io/game/'},{build_type:'workflow',public:true,cname:'other.example.org',html_url:'https://other.example.org/'}]){
+    const f=await fixture(t,{memoizeGit:true});f.pages=null;f.createdPages=actual;
+    await assert.rejects(f.publisher.publish(await f.publisher.review(f.root)),/Pages settings changed/);
+    assert.ok(!f.calls.some(call=>call.url.endsWith('/dispatches')));
+    assert.ok(!f.calls.some(call=>['PUT','PATCH','DELETE'].includes(call.options.method)));
+  }
 });
 test('abort during the release guard sends no create request and clears its preflight stage receipt',async t=>{
   const h=await fixture(t,{memoizeGit:true}),controller=new AbortController(),stages=[];
@@ -378,4 +397,27 @@ test('source upload requests carry a guarded main snapshot, including a new remo
   await h.git(['switch','-c','add-score']);
   await assert.rejects(h.publisher.review(h.root),error=>!error.code && /Merge to main/.test(error.message));
   assert.ok(h.calls.every(call=>call.options.method==='GET'));
+});
+
+test('invalid local browser source never creates a first Pages site',async t=>{
+ const h=await fixture(t,{memoizeGit:true});h.pages=null;h.validationError=Error('browser source invalid');
+ await assert.rejects(h.publisher.publish(await h.publisher.review(h.root)),/browser source invalid/);
+ assert.equal(h.pages,null);assert.ok(h.calls.every(call=>call.options.method==='GET'));
+});
+test('Publish helper preparation updates stock source before upload and refuses a change branch',async t=>{
+ const h=await fixture(t);
+ // This suite runs directly in the compatibility job, before packaging has
+ // generated extension/media. Supply a real minimal bundle in its own fixture.
+ const extension=await fs.mkdtemp(path.join(os.tmpdir(),'zero-prepare-extension-'));t.after(()=>fs.rm(extension,{recursive:true,force:true}));
+ await fs.mkdir(path.join(extension,'media'));
+ const {lessonProjects}=await import('../../scripts/lesson-projects.mjs');
+ await fs.writeFile(path.join(extension,'media/lesson-projects.json'),JSON.stringify(lessonProjects(path.resolve(__dirname,'../..'))));
+ const preparation=createGitHubPagesPublisher({isSimulation:()=>false,engineRoot:path.join(extension,'src/web-export')});
+ const current=await fs.readFile(path.join(__dirname,'../../framework/src/main/java/zero/App.java'),'utf8');
+ const previous=current.replace('/** Space on every edge, in pixels. Call in settings, setup or an event handler. */','/** Initial space around all content, in pixels on each edge. Call inside settings(). */').replace('    public final void padding(double pixels) {\n','    public final void padding(double pixels) {\n        if (!configuring) throw new IllegalStateException("Call padding inside settings().");\n').replace('        if (root != null) root.setPadding(new Insets(pixels));\n','');
+ const target=path.join(h.root,'src/main/java/zero/App.java');await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target,previous);await h.git(['add','.']);await h.git(['commit','-m','stock helper']);
+ await h.git(['switch','-c','change']);await assert.rejects(preparation.prepare(h.root),/Merge to main/);assert.equal(await fs.readFile(target,'utf8'),previous);
+ await h.git(['switch','main']);let guard=0;assert.deepEqual(await preparation.prepare(h.root,{beforeWrite:async()=>{guard++;}}),{updated:['src/main/java/zero/App.java']});
+ assert.ok(guard>=2);assert.equal(await fs.readFile(target,'utf8'),current);assert.match(await h.git(['status','--porcelain']),/App.java/);
+ await assert.rejects(h.publisher.review(h.root),error=>error.code==='WEB_PUBLISH_UPLOAD_REQUIRED');assert.equal(h.calls.length,0);
 });

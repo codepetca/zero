@@ -9,13 +9,14 @@ function session(record) {
 function supportedScopes(scopes) {
   if (scopes && (!Array.isArray(scopes) || scopes.length)) throw failure('unsupported-scopes', 'Zero uses GitHub App permissions. OAuth scopes are not supported.');
 }
-function samePermissions(actual, expected) {
-  return actual && expected && Object.keys(actual).length === Object.keys(expected).length && Object.entries(expected).every(([key,value]) => actual[key] === value);
+function samePermissions(actual, expected, optional = {}) {
+  return actual && expected && Object.entries(expected).every(([key,value]) => actual[key] === value) &&
+    Object.entries(actual).every(([key,value]) => Object.hasOwn(expected,key) ? expected[key]===value : Object.hasOwn(optional,key) && optional[key]===value);
 }
 async function verifyApp(configuration, fetchImpl, signal, token) {
   const app = await requestJson(fetchImpl, `https://api.github.com/apps/${configuration.slug}`, {signal,token});
   if (app.id !== configuration.appId || app.client_id !== configuration.clientId || app.slug !== configuration.slug ||
-      app.owner?.login?.toLowerCase() !== configuration.owner || !samePermissions(app.permissions, configuration.permissions)) {
+      app.owner?.login?.toLowerCase() !== configuration.owner || !samePermissions(app.permissions, configuration.permissions, configuration.optionalPermissions)) {
     throw failure('app-mismatch', 'The Codepet GitHub App does not match this Zero release. Connection is unavailable until its configuration is reviewed.');
   }
 }

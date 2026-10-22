@@ -7491,3 +7491,47 @@ anonymous public bytes match.99release/2skips,123affected,159website tests,
 type/build/kitverify passed. Independent release/candidate/metadata reviews and
 exact-head CI receipts retained in primary .verification/sidebar-release0.5.35.
 Native/Windows interactive sidebar acceptance untested; browser fixture checked.
+
+
+## Automatic Publish recovery — source, 2026-10-21
+
+Owner requested automatic handling after the Mac0.5.43 live greeting deployment
+succeeded only with manual Pages source setup, an old stock App helper update,
+and recovery of a lock left by reboot. Isolated base6e584267; coordinator owns
+Pages/auth/UI integration. GPT-6.1 Sol/high workers owned helper preparation and
+compiler locks separately, with no integration conflicts. Worker helper checks
+70passed; lock/engine29passed. Effective runtime model and token cost unknown.
+Account-wide weekly usage at start:30% remaining; storage healthy292GB.
+
+Source creates only a missing Pages workflow site after validated local output,
+using Pages+Administration write; installation approval is guided on GitHub.
+Existing sites, custom domains, repository visibility and account/root/source
+checks remain. It accepts the old exact App permission set or its reviewed
+Administration addition for staged rollout. Do not change the registration
+before a compatible native release:0.5.43 and older reject the additional grant.
+No live permission, account, website or student repository changed for this work.
+
+Publish prepares allowlisted untouched older App.java before normal commit/push;
+source edits, links, unknown helpers and change branches are preserved/refused.
+Compiler locks recover after reboot or proven dead tracked owners/groups, under
+a serialized boot-scoped guard. Unknown/live compilers, legacy same-boot locks,
+ambiguous Windows compiler ownership and interrupted same-boot recovery guards
+fail closed. Physical Windows/Linux and a released-client live replay remain pending.
+
+Checks before review: root check;73 Pages/provider/config assertions;46 Publish UI
+assertions;6 focused integrated Pages/helper cases, then374 broader affected
+export/Publish/GitHub App assertions passed locally. CI exposed a generated-bundle
+dependency in one new integration fixture; batch1 makes that fixture self-contained.
+Initial independent GPT-6.1 Sol/high reviewers covered the complete8d613ac1 diff:
+compatibility complete/clean; security complete with one acceptedP2. An EIO after
+compiler spawn could lose its in-memory group ownership before PID persistence.
+Batch1 tracks the PID synchronously, protects cleanup after registration failure,
+and adds a real surviving-child regression plus ambiguous Windows coverage.
+Lock/engine31assertions and the isolated CI fixture pass. Targeted Sol/high review
+of5617d266 is complete/clean, independently repeating both failed-registration
+regressions. Source coverage reuses the unchanged initial Pages/helper review;
+no remaining actionable finding or coverage gap. CI is linked from
+https://github.com/codepetca/zero/pull/165. The feature is not yet in a public installer.
+Review budget used:3reviewer turns (2initial+1targeted),1fix batch; at most7launches/4batches/
+60minutes. Effective models, per-turn tokens and attributable coordinator effort
+are unknown; no claim of savings from account-wide usage.
