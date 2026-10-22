@@ -70,6 +70,9 @@ export async function handle(request, response) {
     const formAction = url.pathname === '/components' ? "'self'" : "'none'";
     if (liveRevision && type === 'text/html') {
       const nonce = String(body).match(/<script nonce="([^"]+)"/)?.[1];
+      // The real Start Page also has a meta CSP. Both policies apply, so
+      // permit the same-origin reload probe there only in opted-in dev mode.
+      body = body.replace("connect-src 'none'", "connect-src 'self'");
       body = body.replace('</head>', `<script ${nonce ? `nonce="${nonce}" ` : ''}src="/__zero-dev/reload.js?revision=${liveRevision}" defer></script></head>`);
     }
     response.writeHead(200, { 'Content-Type':`${type}; charset=utf-8`, 'Cache-Control':'no-store', 'Content-Security-Policy':`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src ${liveRevision ? "'self'" : "'none'"}; frame-src 'self'; base-uri 'none'; form-action ${formAction}`, 'X-Content-Type-Options':'nosniff' });

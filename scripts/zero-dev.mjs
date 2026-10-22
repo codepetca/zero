@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {spawn, spawnSync} from 'node:child_process';
-import {chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync} from 'node:fs';
+import {chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync} from 'node:fs';
 import {homedir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -15,8 +15,8 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const json = value => Buffer.from(JSON.stringify(value, null, 2) + '\n');
 const commonFiles = ['pom.xml', 'mvnw', 'mvnw.cmd', '.mvn/wrapper/maven-wrapper.properties', '.mvn/wrapper/LICENSE-APACHE-2.0.txt', '.mvn/wrapper/NOTICE'];
 
-// All mutable developer state stays inside this checkout. Refuse linked outputs
-// and edited managed files before writing any file; game edits are preserved.
+// Generated projects stay in this checkout. VS Code state uses a short, separate
+// home path because macOS IPC sockets cannot use long worktree paths.
 function ordinary(filename, directory = false) {
   const stat = lstatSync(filename, {throwIfNoEntry:false});
   if (stat && (stat.isSymbolicLink() || !(directory ? stat.isDirectory() : stat.isFile()))) {
@@ -38,18 +38,25 @@ function source(root, relative) {
 }
 function write(filename, bytes) {
   mkdirSync(path.dirname(filename), {recursive:true});
-  if (!existsSync(filename) || !readFileSync(filename).equals(bytes)) writeFileSync(filename, bytes);
+  if (!existsSync(filename) || !readFileSync(filename).equals(bytes)) {
+    const temporary = `${filename}.zero-dev-${process.pid}`;
+    try {writeFileSync(temporary, bytes, {flag:'wx'}); renameSync(temporary, filename);}
+    finally {rmSync(temporary, {force:true});}
+  }
 }
-export function devPaths(root) {
+export function devPaths(root, home = homedir()) {
   const base = path.join(root, '.verification/zero-dev');
+  const editor = path.join(home, '.zero-dev', hash(root).slice(0,12));
   return {base, game:path.join(base, 'game'), workspace:path.join(base, 'Zero Dev.code-workspace'),
-    userData:path.join(base, 'editor/user-data'), extensions:path.join(base, 'editor/extensions')};
+    userData:path.join(editor, 'user'), extensions:path.join(editor, 'extensions')};
 }
 
-export function prepareGame(inputRoot = repository) {
-  const root = realpathSync(inputRoot), locations = devPaths(root);
+export function prepareGame(inputRoot = repository, {home = homedir()} = {}) {
+  const root = realpathSync(inputRoot), locations = devPaths(root, home);
   const receiptPath = output(root, '.verification/zero-dev/managed.json');
-  output(root, '.verification/zero-dev/editor/extensions/.reserved');
+  const editorRelative = `.zero-dev/${hash(root).slice(0,12)}`;
+  output(home, `${editorRelative}/extensions/.reserved`);
+  const profilePath = output(home, `${editorRelative}/user/User/settings.json`);
   const previous = existsSync(receiptPath) ? JSON.parse(readFileSync(receiptPath, 'utf8')) : {};
   const files = new Map();
   const add = (relative, bytes, preserve = false) => files.set(relative, {bytes:Buffer.from(bytes), preserve});
@@ -80,7 +87,6 @@ export function prepareGame(inputRoot = repository) {
   profileSettings['window.autoDetectColorScheme'] = true;
   profileSettings['workbench.preferredLightColorTheme'] = 'Default Light Modern';
   profileSettings['workbench.preferredDarkColorTheme'] = 'Default Dark Modern';
-  add('editor/user-data/User/settings.json', json(profileSettings), true);
   const preserved = [], receipt = {};
   const updates = [...files].map(([relative, item]) => {
     const filename = output(root, `.verification/zero-dev/${relative}`);
@@ -98,6 +104,8 @@ export function prepareGame(inputRoot = repository) {
   const provenancePath = output(root, '.verification/zero-dev/game/.zero/dev-source.json');
   const sourceHash = hash(Buffer.concat(coreSources.flatMap(name => [Buffer.from(name), source(root, `framework/src/main/java/zero/${name}`)])));
   for (const item of updates.filter(Boolean)) write(item.filename, item.bytes);
+  mkdirSync(path.join(home, '.zero-dev'), {recursive:true, mode:0o700});
+  if (!existsSync(profilePath)) write(profilePath, json(profileSettings));
   chmodSync(path.join(locations.game, 'mvnw'), 0o755);
   write(receiptPath, json(receipt));
   write(provenancePath, json({sourceRoot:root, frameworkSha256:sourceHash, sources:coreSources}));
@@ -127,8 +135,8 @@ export function developmentEnvironment(env = process.env, home = homedir()) {
   if (result.JAVA_HOME) result.PATH = path.join(result.JAVA_HOME, 'bin') + path.delimiter + (result.PATH || '');
   return result;
 }
-export function editorArguments(root) {
-  const paths = devPaths(root);
+export function editorArguments(root, home = homedir()) {
+  const paths = devPaths(root, home);
   return ['--new-window', '--user-data-dir', paths.userData, '--extensions-dir', paths.extensions,
     `--extensionDevelopmentPath=${path.join(root, 'extension')}`, paths.workspace];
 }
@@ -237,7 +245,9 @@ async function watch({open = true} = {}) {
     if (next === fingerprint) return;
     updating = true;
     try {
-      prepareDev();
+      // A new process also reloads token JSON and renderer/preparation modules.
+      // Merely calling their imported functions would retain stale inputs.
+      await child(process.execPath, ['scripts/zero-dev.mjs', 'prepare']);
       await stopPreview(server);
       server = await preview(next);
       fingerprint = next;

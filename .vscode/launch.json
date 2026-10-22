@@ -3,15 +3,11 @@
   "configurations": [
     {
       "name": "Zero Dev · Coin Game",
-      "type": "extensionHost",
+      "type": "node",
       "request": "launch",
-      "args": [
-        "--user-data-dir=${workspaceFolder}/.verification/zero-dev/editor/user-data",
-        "--extensions-dir=${workspaceFolder}/.verification/zero-dev/editor/extensions",
-        "--extensionDevelopmentPath=${workspaceFolder}/extension",
-        "${workspaceFolder}/.verification/zero-dev/Zero Dev.code-workspace"
-      ],
-      "preLaunchTask": "Zero Dev: Prepare"
+      "program": "${workspaceFolder}/scripts/zero-dev.mjs",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
     },
     {
       "name": "Zero Extension",

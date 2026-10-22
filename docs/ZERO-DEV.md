@@ -24,8 +24,10 @@ Otherwise provide a working JDK through JAVA_HOME/PATH. Set ZERO_DEV_CODE to the
 VS Code CLI path if `code` is not on PATH or VS Code is installed elsewhere.
 First Maven use may download pinned dependencies. Later runs use its normal cache.
 
-All game, editor and generated state lives in `.verification/zero-dev/` within
-this checkout. It has its own user-data and extensions directories, with no
+The game and generated state live in `.verification/zero-dev/` within this
+checkout. Editor state lives in `~/.zero-dev/<checkout-id>/` so VS Code's native
+IPC sockets fit within macOS path limits, even in a long worktree path. Each
+checkout has its own user-data and extensions directories, with no
 copied credentials or installed Zero extension. Java language-server completion
 is optional; Run/build works without it. Git integration is off, the sample is
 local-only and uploads are simulated. Live Publish acceptance uses a separate,

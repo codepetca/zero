@@ -18,16 +18,17 @@ function fixture(t) {
   put('student-template/.vscode/settings.json', '{}');
   put('student-template/.vscode/tasks.json', '{"version":"2.0.0","tasks":[]}');
   put('profile/Zero.code-profile', JSON.stringify({settings:JSON.stringify({settings:'{}'})}));
-  return {root, put};
+  const home = path.join(root, 'home'); mkdirSync(home);
+  return {root, home, put, prepare:() => prepareGame(root, {home})};
 }
 test('refresh uses local framework bytes and records the source, preserving edited game code', t => {
-  const {root, put} = fixture(t);
-  const first = prepareGame(root);
+  const {root, put, prepare} = fixture(t);
+  const first = prepare();
   const main = path.join(first.game, 'src/main/java/Main.java');
   assert.match(readFileSync(main, 'utf8'), /Zero Dev · Coin Game/);
   writeFileSync(main, '// my game edits');
   put('framework/src/main/java/zero/App.java', '// framework edit');
-  const second = prepareGame(root);
+  const second = prepare();
   assert.notEqual(second.sourceHash, first.sourceHash);
   assert.equal(readFileSync(main, 'utf8'), '// my game edits');
   assert.equal(readFileSync(path.join(first.game, 'src/main/java/zero/App.java'), 'utf8'), '// framework edit');
@@ -36,30 +37,32 @@ test('refresh uses local framework bytes and records the source, preserving edit
   assert.equal(provenance.frameworkSha256, second.sourceHash);
 });
 test('an edited generated framework copy blocks the entire refresh before any overwrite', t => {
-  const {root, put} = fixture(t);
-  const {game} = prepareGame(root);
+  const {root, put, prepare} = fixture(t);
+  const {game} = prepare();
   const app = path.join(game, 'src/main/java/zero/App.java');
   writeFileSync(path.join(game, 'src/main/java/zero/GameApp.java'), '// accidental generated edit');
   put('framework/src/main/java/zero/App.java', '// new canonical app');
-  assert.throws(() => prepareGame(root), /Preserved edited.*GameApp.java/);
+  assert.throws(prepare, /Preserved edited.*GameApp.java/);
   assert.equal(readFileSync(app, 'utf8'), '// local App.java');
 });
 test('linked output directories are rejected, including the separate extension directory', t => {
   if (process.platform === 'win32') return t.skip('symlink permission varies on Windows');
-  const {root, put} = fixture(t);
+  const {root, home, put, prepare} = fixture(t);
   const elsewhere = path.join(root, 'elsewhere'); mkdirSync(elsewhere);
-  mkdirSync(path.join(root, '.verification/zero-dev/editor'), {recursive:true});
-  symlinkSync(elsewhere, path.join(root, '.verification/zero-dev/editor/extensions'));
-  assert.throws(() => prepareGame(root), /ordinary directory/);
+  const extensions = devPaths(root, home).extensions;
+  mkdirSync(path.dirname(extensions), {recursive:true});
+  symlinkSync(elsewhere, extensions);
+  assert.throws(prepare, /ordinary directory/);
   put('untouched', 'ok');
   assert.equal(readFileSync(path.join(root, 'untouched'), 'utf8'), 'ok');
 });
 test('launch keeps source extension, project and editor state separate from installed Zero', t => {
-  const {root} = fixture(t), result = prepareGame(root), args = editorArguments(root);
+  const {root, home, prepare} = fixture(t), result = prepare(), args = editorArguments(root, home);
   assert.equal(args[args.indexOf('--user-data-dir') + 1], result.userData);
   assert.equal(args[args.indexOf('--extensions-dir') + 1], result.extensions);
   assert.ok(args.includes(`--extensionDevelopmentPath=${path.join(root, 'extension')}`));
   assert.equal(args.at(-1), result.workspace);
+  assert.ok(!result.userData.startsWith(result.base));
   assert.equal(JSON.parse(readFileSync(path.join(result.game, 'zero.json'))).localOnly, true);
   const settings = JSON.parse(readFileSync(path.join(result.game, '.vscode/settings.json')));
   assert.equal(settings['zero.uploadMode'], 'simulation');
@@ -69,7 +72,7 @@ test('launch keeps source extension, project and editor state separate from inst
   assert.equal(env.VSCODE_IPC_HOOK_CLI, undefined);
 });
 test('watcher notices authored changes while ignoring generated game/editor state', t => {
-  const {root, put} = fixture(t); prepareGame(root);
+  const {root, put, prepare} = fixture(t); prepare();
   const initial = inputFingerprint(root);
   put('.verification/zero-dev/game/src/main/java/Main.java', '// scratch');
   put('.verification/zero-dev/editor/state.json', '{}');
@@ -77,6 +80,18 @@ test('watcher notices authored changes while ignoring generated game/editor stat
   put('extension/src/new-control.js', '// source');
   assert.notEqual(inputFingerprint(root), initial);
   assert.ok(devPaths(root).base.startsWith(root));
+});
+test('long worktree paths do not lengthen editor IPC paths and profile edits survive refresh', t => {
+  const {root, home, prepare} = fixture(t), result = prepare();
+  const settings = path.join(result.userData, 'User/settings.json');
+  writeFileSync(settings, '{"editor.fontSize":19}');
+  prepare();
+  assert.equal(readFileSync(settings, 'utf8'), '{"editor.fontSize":19}');
+  const longRoot = '/Users/stew/.codex/worktrees/' + 'long-worktree-name-'.repeat(12) + '/zero';
+  const args = editorArguments(longRoot, '/Users/stew');
+  const userData = args[args.indexOf('--user-data-dir') + 1];
+  assert.ok(Buffer.byteLength(userData + '/1.14-main.sock') < 103);
+  assert.notEqual(devPaths(root, home).userData, devPaths(root + '-another', home).userData);
 });
 test('browser live reload is opt-in and stays on the loopback preview', async t => {
   const previous = process.env.ZERO_DEV_PREVIEW;
@@ -89,11 +104,15 @@ test('browser live reload is opt-in and stays on the loopback preview', async t 
   let response = await fetch(base + '/components');
   assert.match(response.headers.get('content-security-policy'), /connect-src 'none'/);
   assert.doesNotMatch(await response.text(), /__zero-dev\/reload/);
+  response = await fetch(base + '/start-page');
+  assert.match(await response.text(), /connect-src 'none'/);
   assert.equal((await fetch(base + '/__zero-dev/revision')).status, 404);
   process.env.ZERO_DEV_PREVIEW = 'a'.repeat(64);
   response = await fetch(base + '/start-page');
   assert.match(response.headers.get('content-security-policy'), /connect-src 'self'/);
   const body = await response.text();
+  assert.doesNotMatch(body, /connect-src 'none'/);
+  assert.match(body, /connect-src 'self'/);
   assert.match(body, /<script nonce="[^"]+" src="\/__zero-dev\/reload.js\?revision=/);
   assert.equal(await (await fetch(base + '/__zero-dev/revision')).text(), 'a'.repeat(64));
   assert.equal((await fetch(base + '/__zero-dev/revision', {method:'POST'})).status, 405);
