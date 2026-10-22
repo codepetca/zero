@@ -1,25 +1,18 @@
-# Compact Start Page account — local, 2026-10-22
+# Tutorial and Start Page polish — local, 2026-10-22
 
-Owner requested GitHub · username on one line when signed in and a concise
-sign-in action when signed out. Source92e37adc implements this in the Start Page;
-checking/setup/error guidance remains. Thirteen focused tests, configuration
-checks and production-HTML browser fixtures pass. Independent Luna/medium review
-complete/clean. This follows the local tutorial-padding work on the same branch.
-Installed Zero44 is unchanged; no merge/publication has been requested for these
-UI changes. See docs/EVIDENCE.md and primary ignored
-.verification/start-page-account-20261022 for screenshots.
+Branch codex/tutorial-padding contains owner-requested20px padding across tutorial
+scaffolds/checkpoints/unpadded reference programs, a compact GitHub · username
+account row, and Start tutorial with a Tutorials dropdown. Start tutorial's whole
+split control and Project are180px wide (full width on narrow views). Tutorials
+remains available signed out. Main clicks retain guarded project creation.
 
-# Tutorial padding — local, 2026-10-22
-
-Owner requested padding across tutorial projects. Branch codex/tutorial-padding
-adds20px outer padding to both scaffold kinds, Greeting/game checkpoints,
-unpadded reference programs and the default starter; existing styled App views
-retain their own Insets. Lessons0/3/8 match the padded scaffold. Public API and
-framework defaults are unchanged. The two local owner Greeting projects also
-have an uncommitted padding edit. Public templates, website, installers and
-published demo pages remain unchanged; pushing/merge/publication needs applicable
-owner authorization. See docs/EVIDENCE.md and primary ignored
-.verification/tutorial-padding-20261022 for validation/review receipts.
+Source699c25f3 has14passing Start Page tests and a complete/clean Sol/medium
+review; configuration checks and browser fixture interactions pass. Earlier
+padding and account reviews/checks remain valid. Both local owner Greeting
+projects have separate uncommitted padding edits. Installed Zero44, public
+templates, website and published demo pages remain unchanged. Merge/publication
+await applicable owner authorization. See docs/EVIDENCE.md and primary ignored
+.verification/{tutorial-padding,start-page-account,start-page-dropdown}-20261022.
 
 # Automatic Publish recovery — Mac0.5.44 delivered, 2026-10-22
 

@@ -299,11 +299,13 @@ and Command Palette reopen it. `zero.startProject` still starts the existing
 guarded tutorial workflow. Sign-in/setup live on the Start Page; local Run/Files
 remain available offline. Cloud actions unlock only after access is ready.
 Current source groups project choices under **Project ▾ → New / Clone / Open**,
-using the existing guarded commands/folder resolution. The **Tutorials** link
-invokes `zero.openFirstLesson`, including its project-free reader, without sign-in
+using the existing guarded commands/folder resolution. The equally wide
+**Start tutorial** split button starts a project on its main click; its arrow
+contains **Tutorials**, which invokes `zero.openFirstLesson`, including its project-free reader, without sign-in
 or repository creation. The menu supports arrows, Home/End, Escape, Tab and outside
 dismissal, skips disabled items and preserves focus through status/account updates.
-Recent entries remain directly available. Mac0.5.43 ships the Project dropdown and Tutorials link.
+Recent entries remain directly available. Mac0.5.43 ships the Project dropdown and separate Tutorials link; the Start
+tutorial split control is local source awaiting a future installer.
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
 with another location selectable. Zero remembers the selected clone parent in the
 local editor profile for future clones; cancelling the picker or opening a local

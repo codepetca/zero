@@ -53,7 +53,7 @@ acceptance is listed below. Each published download keeps its bundled behavior.
 See [the identity plan](ZERO-IDENTITY-PLAN.md) for the rollout and permissions.
 
 Current source opens a native **Zero Start Page** for onboarding and project
-selection. Current source contains **Start tutorial**, a **Tutorials** link to the
+selection. Current source contains **Start tutorial** with a **Tutorials** dropdown to the
 existing reader, **Project ▾ → New / Clone / Open**, account-scoped recent projects
 and guided GitHub setup. Tutorials and opening local work remain available without
 sign-in; New and Clone retain their GitHub access checks. Mac0.5.43 ships these controls.

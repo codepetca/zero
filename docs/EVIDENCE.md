@@ -7646,3 +7646,26 @@ Independent low-risk review tutorial_padding_review, requested Luna/medium,
 complete/clean for d70ceb0e→92e37adc; no actionable findings. One reviewer turn,
 one initial wave, zero fix batches in this UI review session; effective model,
 tokens and attributable effort unknown. Dirty primary checkout remains preserved.
+
+
+## Start tutorial dropdown and equal widths — local, 2026-10-22
+
+Owner requested moving Tutorials into Start tutorial's dropdown, then equal
+widths for Start tutorial and Project. Source699c25f3 (base3bf8df3a) uses a split
+primary control: main click starts the guarded tutorial workflow, its arrow
+opens Tutorials through the existing project-free reader command. Tutorials is
+available signed out; busy state disables/closes both menus. Shared dropdown
+handling retains Project keyboard/focus/outside-click behavior. Whole split
+control and Project measure180px each, becoming full width on narrow views.
+
+All14Start Page tests and configuration/syntax/command/doc-link checks pass.
+Production-HTML Chrome fixtures verify arrow opening, Escape focus restoration,
+signed-out reading access and mutually exclusive menus. Measured both rendered
+control widths as180px; screenshots/preview script are retained in primary
+ignored .verification/start-page-dropdown-20261022. This is fixture acceptance;
+installed native Zero44 and other operating systems were not exercised.
+
+Independent standard-risk source review startpage_menu_review, requested
+Sol6.1/medium, complete/clean for3bf8df3a→699c25f3 with no findings. One initial
+reviewer turn, zero fix batches; effective model/tokens/attributable effort
+unknown. No merge, deployment, installer or public-template update occurred.
