@@ -1,15 +1,20 @@
-# Automatic Publish recovery — source work, 2026-10-21
+# Automatic Publish recovery — Mac0.5.44 promotion, 2026-10-21
 
-Owner requests automatic Pages setup, untouched stock-helper upgrades and stale
-browser-build lock recovery. Work is isolated on codex/publish-recovery from
-6e584267; the primary funding checkout remains untouched. The local374-test affected
-suite and31remediation checks passed. Two independent reviews and the targeted
-correction review are complete with no remaining blockers. See docs/EVIDENCE.md
-and https://github.com/codepetca/zero/pull/165 for CI and rollout approval. No new installer,
-production permission grant, student repository mutation or live release yet.
-The reviewed Pages setup path needs Administration write; the compatible client
-must release before the existing App registration changes, because older clients
-pin the former exact grant. Existing sites and custom helpers remain protected.
+Owner explicitly authorized merge, Mac release and the Administration write App
+permission needed for first-time Pages setup. Source PR165 merged as3bc83141;
+version PR166 merged asc01de5ee after all five exact-head checks passed.
+Signed/notarized/stapled Mac0.5.44 is public and its anonymous bytes verified:
+https://github.com/codepetca/zero/releases/tag/setup-v0.5.44.
+This promotion updates only measured native manifests and the exact signed feed;
+Windows21/manualkit17 and the primary dirty funding checkout remain preserved.
+Original build be445910; sealed candidate mac-0.5.44-312987625370. Independent
+source, version and native candidate reviews are clean. See docs/EVIDENCE.md.
+Next: metadata review/CI/merge, verify live feed/download, install44, then add
+Administration write and approve the existing installation grant. The live App
+permission has not changed yet. Earlier43 clients reject the added grant, so
+update before approval. New Pages setup and native Publish acceptance remain
+separate interactive checks; custom helpers, existing sites and active builds
+stay protected.
 
 # Compact ZeroHub project squares — local, 2026-10-21
 

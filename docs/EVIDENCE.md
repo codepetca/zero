@@ -1,5 +1,34 @@
 # Delivery evidence index
 
+## Automatic Publish recovery — Mac0.5.44 promotion, 2026-10-21
+
+Owner authorized source merge/release and the specific Administration write
+expansion after review. Source PR165 merged3bc83141; version PR166 mergedc01de5ee,
+each after five exact-head checks passed. Affected374 tests and31remediation checks
+passed; all accepted review findings fixed with independent follow-up coverage.
+Four source reviewer turns (Sol/high), one version review (Sol/medium), one sealed
+native-candidate review (Sol/high): no unresolved findings. Effective model,
+per-turn tokens and attributable coordinator time unknown; account usage is shared.
+
+Public release https://github.com/codepetca/zero/releases/tag/setup-v0.5.44 targets
+preparation3129876253701c5f9b310361a93d1c343b272edd, built from clean
+be44591047e5619e21a9b92e774f0d71378885b0. DMG4612003 bytes, SHA256
+5d6db793dcae8b6195557c2d1cd01432959fab402578ae28c62213e0c0c6ce3a.
+Apple Accepted1af77fe2-88f3-4da2-94db-cf518f9ff8a2; app/DMG signature, staple and
+Gatekeeper checks passed. Independent review checked all13sealed files, embedded
+source/kit, signer continuity and both Ed25519 signatures. Draft and anonymous
+public DMG bytes match. Signed feed advances43→44 without changing key/feed URL.
+Receipts retained in primary ignored .verification/publish-recovery-release0.5.44;
+source receipts in .verification/publish-recovery-source-20261021.
+
+This metadata promotion has not yet established live feed deployment, client
+update or the subsequent GitHub permission grant. Compatible44 must be installed
+before Administration write is added/approved. Existing installations still need
+GitHub approval; automated recovery does not bypass consent. Windows21/manualkit17
+and all older assets stay immutable. Native Publish and first-time Pages creation
+remain interactive acceptance checks until observed.
+
+
 ## Compact ZeroHub project squares — local, 2026-10-21
 
 Owner replaced the initial two-column request with one square per project.
