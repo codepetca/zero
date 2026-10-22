@@ -67,6 +67,10 @@ marks a preferred pattern with documented, task-specific exceptions.
   browser policy is eight hours. Explicit Publish sets up a missing Pages site
   after GitHub permission approval; preserve existing sites and source visibility.
   Stock helper updates join the ordinary commit review; active build locks stay protected.
+- Reuse [editor components](../design/EDITOR-COMPONENTS.md) for buttons, split
+  actions and dropdowns. The sidebar is the dropdown visual reference. Keep
+  shared styles and source-backed prototype states together; avoid a new
+  screen-specific copy of an existing pattern.
 - DEFAULT to platform controls in native setup and JavaFX examples, and semantic
   HTML controls on the website. HIG informs hierarchy and ergonomics; native
   iOS navigation, pickers and visual chrome are not a universal Zero design.

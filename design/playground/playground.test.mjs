@@ -109,3 +109,80 @@ test('actual sidebar renderer has one Run/Stop control across idle, build, runni
     if(state==='stopping')assert.match(button,/aria-disabled="true"/);else assert.doesNotMatch(button,/ disabled>|aria-disabled="true"/);
   }
 });
+
+test('Start Page fixture renders the production panel and its actual phase snapshots', async () => {
+  const {startPageSource, startPageView, componentStates} = await import('./start-page-source.mjs');
+  for (const state of componentStates) {
+    const {html, snapshot} = await startPageSource(state);
+    assert.match(html, /Start with Zero/);
+    assert.match(html, /aria-controls="tutorial-menu"/);
+    assert.match(html, /aria-controls="project-menu"/);
+    assert.match(html, /script-src 'nonce-/);
+    assert.match(html, /connect-src 'none'/);
+    assert.equal(snapshot.state.phase, state === 'busy' ? 'ready' : state);
+    assert.equal(snapshot.state.busy, state === 'busy');
+    assert.equal(snapshot.state.accountId, state === 'signed-out' ? undefined : '123456');
+    assert.equal(snapshot.state.recent.length, state === 'signed-out' ? 0 : 2);
+    const fixture = await startPageView('hc', state);
+    assert.match(fixture, /class="vscode-high-contrast"/);
+    assert.match(fixture, /style-src 'self' 'nonce-/);
+    assert.match(fixture, /script-src 'nonce-/);
+    assert.doesNotMatch(fixture, /script-src[^;]*unsafe-inline/);
+    assert.match(fixture, /Fixture only:/);
+    assert.match(fixture, /Nothing ran, signed in or changed/);
+    assert.doesNotMatch(fixture, /fetch\(|executeCommand\(|https:\/\//);
+  }
+});
+
+test('component gallery routes expose theme/state controls and sandbox actual editor screens', async () => {
+  const server = http.createServer(handle);
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  try {
+    const galleryResponse = await fetch(`${origin}/components?theme=hc&state=busy`);
+    const galleryPolicy = galleryResponse.headers.get('content-security-policy');
+    assert.match(galleryPolicy, /form-action 'self'$/);
+    assert.match(galleryPolicy, /connect-src 'none'; frame-src 'self'; base-uri 'none'/);
+    const gallery = await galleryResponse.text();
+    assert.match(gallery, /<form method="get" action="\/components"/);
+    for (const route of ['/', '/web', '/sidebar', '/start-page', '/components.css']) {
+      const screenResponse = await fetch(origin + route);
+      const screenPolicy = screenResponse.headers.get('content-security-policy');
+      assert.equal(screenPolicy, galleryPolicy.replace("form-action 'self'", "form-action 'none'"), route);
+    }
+    assert.match(gallery, /name="theme"/);
+    assert.match(gallery, /name="state"/);
+    assert.match(gallery, /value="busy" selected/);
+    assert.match(gallery, /value="hc" selected/);
+    assert.equal((gallery.match(/sandbox="allow-scripts"/g) || []).length, 2);
+    assert.match(gallery, /src="\/start-page\?theme=hc&state=busy"/);
+    assert.match(gallery, /src="\/sidebar\?theme=hc&state=busy&connected=1"/);
+    for (const state of ['ready','signed-out','install','checking','unavailable','busy']) {
+      const response = await fetch(`${origin}/start-page?theme=dark&state=${state}`);
+      assert.equal(response.status, 200);
+      assert.match(await response.text(), new RegExp(`Local fixture · dark · ${state}`));
+      assert.equal((await fetch(`${origin}/sidebar?theme=dark&state=${state}&connected=1`)).status, 200);
+    }
+    const host = await (await fetch(`${origin}/host-fixture.css?theme=hc`)).text();
+    for (const variable of ['editor-background','button-separator','menu-selectionBackground','menu-selectionForeground','menu-selectionBorder','contrastBorder']) assert.ok(host.includes(`--vscode-${variable}:`));
+    assert.match(host, /--vscode-editor-background:#000000/);
+    assert.equal((await fetch(`${origin}/components.css`)).status, 200);
+    assert.equal((await fetch(`${origin}/start-page`, {method: 'POST'})).status, 405);
+  } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+
+test('sidebar gallery phases retain access gating and busy disables existing controls', () => {
+  const ready = sidebarSource('ready', {connected:true});
+  assert.match(ready, /id="run-menu-button"/);
+  for (const phase of ['signed-out','install','checking','unavailable']) {
+    const html = sidebarSource(phase, {connected:true});
+    assert.match(html, />GitHub setup<\/button>/);
+    assert.doesNotMatch(html, /id="run-menu-button"|data-command="zero.uploadToGitHub"/);
+    assert.doesNotMatch(html.match(/<button[^>]*data-command="zero.toggleApp"[^>]*>/)[0], /disabled/);
+  }
+  const busy = sidebarSource('busy', {connected:true});
+  assert.match(busy, /id="run-menu-button"[^>]*disabled/);
+  assert.match(busy, /id="files-menu-button"[^>]*disabled/);
+  assert.match(busy, /data-command="zero.toggleApp"[^>]*disabled/);
+});

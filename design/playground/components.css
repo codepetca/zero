@@ -1,0 +1,12 @@
+.component-review{padding:var(--zero-space-5)}
+.component-review>header{display:flex;align-items:center;justify-content:space-between;gap:var(--zero-space-4);flex-wrap:wrap}
+.component-review h1{margin:0;font-size:1.65rem}
+.component-review header p{color:var(--zero-muted);margin:var(--zero-space-2) 0}
+.component-review .controls{margin:var(--zero-space-5) 0;align-items:end;justify-content:start}
+.component-review .controls button{min-height:36px;padding:6px 16px}
+.component-comparison{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:var(--zero-space-5)}
+.component-comparison>section{min-width:0;border:1px solid var(--zero-border);border-radius:var(--zero-radius);overflow:hidden}
+.component-comparison .panel-heading{padding:var(--zero-space-3);gap:var(--zero-space-3);flex-wrap:wrap}
+.component-comparison h2{font-size:1rem;margin:0}
+.component-comparison iframe{display:block;width:100%;height:680px;border:0;background:var(--zero-page)}
+@media(max-width:850px){.component-comparison{grid-template-columns:minmax(0,1fr)}.component-comparison>section:last-child{max-width:320px;width:100%}.component-review{padding:var(--zero-space-3)}}

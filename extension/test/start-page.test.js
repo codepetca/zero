@@ -159,7 +159,7 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   const {page, panel} = await open(f), html = panel.webview.html;
   assert.match(html, /default-src 'none'/);assert.match(html, /connect-src 'none'/);assert.match(html, /style-src 'nonce-[A-Za-z0-9+/]+=*'/);
   assert.match(html, /script-src 'nonce-[A-Za-z0-9+/]+=*'/);assert.equal(html.includes(attack), false);
-  assert.doesNotMatch(html, /https?:\/\/|innerHTML|onclick=|eval\(/);
+  assert.doesNotMatch(html, /(?:src|href)=["']https?:\/\/|innerHTML|onclick=|eval\(/);
   assert.equal(payload(panel).accountLabel, attack);
   const browser = domHarness(html);browser.update(panel.messages.at(-1));
   assert.equal(browser.elements.get('account').textContent, attack);

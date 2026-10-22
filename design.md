@@ -35,6 +35,11 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Use native Explorer for files, with Zero controls and teaching helpers in the same sidebar. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
+- Reuse the sidebar's native dropdown appearance across editor screens. Shared
+  controls live in `extension/media/controls.css`; extend the existing component
+  instead of copying its styles. Record repeated patterns in
+  [editor components](design/EDITOR-COMPONENTS.md) and compare actual renderer
+  states in the local `/components` prototype before introducing a new variant.
 - The **Zero Start Page** owns onboarding: **Start tutorial** with a **Tutorials** dropdown,
   **Project ▾ → New / Clone / Open**, recent projects and guided GitHub sign-in/access.
   The Start tutorial split control and Project button share the same width.
