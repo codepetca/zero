@@ -21,7 +21,9 @@ editor state is ~/.zero-dev/fce53b51730d/, outside the checkout for Mac IPC limi
 The sample is running and local-only, with Git off and upload simulation. No
 installer/version, account permission or installed Zero change. Owner now
 authorizes PR publication and merge after CI. Main sync preserves Mac0.5.46
-system appearance; bounded integration review and final CI are next. Receipts, final logs
+system appearance. PR173 is open; bounded integration review completed clean
+at5dec75d7, and post-sync configuration,7Dev and21UI checks pass. Final CI gates
+merge. No installer release is part of this request. Receipts, final logs
 and rendered game-win.png: .verification/zero-dev/acceptance/.
 
 # System appearance — Mac0.5.46 publication, 2026-10-22

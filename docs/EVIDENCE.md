@@ -70,7 +70,20 @@ and negative-mutation proof: complete/clean. 1launch,2turns,1initial+1targeted w
 Final local logs: smoke-final.log, unit-final.log, check-final.log and
 focus-mutation.log in .verification/zero-dev/acceptance/. Native/full-suite work
 used14%weekly remaining and healthy271GB available storage; DeepSeek stayed paused.
-No source publication or installer release was performed for this tooling work.
+Initial local acceptance did not publish source or an installer. The owner then
+authorized a PR and CI-gated merge. PR https://github.com/codepetca/zero/pull/173
+syncs current main81f88041 into reviewed96974242 at5dec75d7, preserving main's
+system-theme profile and Mac0.5.46 release/version metadata unchanged. Post-sync
+configuration,7Dev and21UI checks pass; native/game behavior is unchanged, so the
+prior full native smoke and Run/Stop/Run evidence remains applicable.
+Independent final integration review zero_dev_merge_review, requested
+GPT6.1Sol/medium, covered the complete96974242→5dec75d7 sync and final feature
+interaction against81f88041: complete/clean, no findings. Profile seeding,
+preservation, launcher isolation and release/provenance guards inspected. One
+launch/turn/integration wave,0fixbatches; effective model, tokens and attributable
+time unknown. This receipt-only follow-up changes no code. Exact-head CI and
+merge verification remain gates; final receipt is retained in the existing ignored
+acceptance/progress.json. No installer release or version bump is requested.
 
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
 
