@@ -1,5 +1,23 @@
 # Delivery evidence index
 
+## Live sign-in acceptance and Mac0.5.47 preparation — 2026-10-22
+
+PR176 merged3589903def589af7ec083c10c847f8da075e88a7 after all11CI checks and both
+independent authentication reviews passed. The owner then authorized live Dev
+sign-in testing and a release after success. Native Mac acceptance observed the
+first Connect Zero to GitHub/device-code sheet without host session-sharing
+consent, cancellation, explicit retry, browser authorization completed by the
+owner, GitHub armorup with Start tutorial enabled, and the same saved account
+after Developer: Reload Window. Device codes/tokens were not retained in receipts.
+
+Release0.5.47/build47 advances kit/extension metadata and student version labels;
+core0.2.1 is unchanged. This clean checkout excludes other uncommitted Explorer/
+Start Page work in the Dev checkout and unrelated primary funding work. Current
+Mac46 assets/feed and Windows21/kit17 remain immutable while preparing a single
+new signed/notarized Mac DMG. Candidate/source/CI/public download/live feed proof
+will be recorded in ignored .verification/release47/progress.json. Preparation
+alone does not establish publication, installation or update acceptance.
+
 ## Direct Zero GitHub sign-in — 2026-10-22
 
 Owner requested removal of VS Code's extra request for Zero to access its own
