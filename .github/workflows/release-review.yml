@@ -14,13 +14,24 @@ on:
         required: false
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
 jobs:
+  scope:
+    uses: ./.github/workflows/ci-scope.yml
   review:
+    needs: scope
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    # Xvfb has no physical GPU. Avoid Mesa/LLVM driver crashes while preserving
+    # all JavaFX behavior assertions, native toolkit startup and finite timeouts.
+    env:
+      JAVA_TOOL_OPTIONS: -Dprism.order=sw
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -36,10 +47,18 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: maven
+          cache-dependency-path: |
+            **/pom.xml
+            student-template/.mvn/wrapper/maven-wrapper.properties
+            extension/src/web-export/toolchain-lock.json
       - name: Install pinned dependencies
-        run: |
-          npm ci
-          npm ci --prefix website
+        run: npm ci
+      - name: Install website dependencies
+        if: needs.scope.outputs.website == 'true'
+        run: npm ci --prefix website
+      - name: CI selection, gate, browser provisioning and Dev contracts
+        run: node --test scripts/ci-*.test.mjs scripts/zero-dev.test.mjs
       - name: Check version and immutable release boundary
         id: release
         run: node scripts/release-review.mjs plan
@@ -49,19 +68,26 @@ jobs:
       - name: Configuration and release guard tests
         run: |
           npm run check
-          npm run test:release
+      - name: Release guard tests
+        if: needs.scope.outputs.source == 'true'
+        run: npm run test:release
       - name: Extension and standalone starter tests
+        if: needs.scope.outputs.source == 'true'
         run: xvfb-run -a npm test
       - name: GitHub registry and immutable publication contracts
+        if: needs.scope.outputs.sharing == 'true'
         run: npm run test:sharing
       - name: Exact Maven consumption over local HTTPS
+        if: needs.scope.outputs.sharing == 'true'
         run: node scripts/verify-sharing-consumers.mjs --output .verification/sharing-consumers-ci
       - name: Three local project builds
+        if: needs.scope.outputs.lessons == 'true'
         run: node scripts/verify-lesson-projects.mjs
-      - name: Configure virtual audio for media checks
+      - name: Configure native audio and window manager
+        if: needs.scope.outputs.native == 'true' || needs.scope.outputs.lessons == 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y pulseaudio libasound2-plugins
+          sudo apt-get install -y pulseaudio libasound2-plugins openbox
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=zero_ci
           pactl set-default-sink zero_ci
@@ -70,25 +96,27 @@ jobs:
           pcm.!default { type pulse }
           ctl.!default { type pulse }
           EOF
-      - name: Canvas and native control input checks
+      - name: Game playthrough, canvas and native control input checks
+        if: needs.scope.outputs.native == 'true'
         env:
           ALSA_CONFIG_PATH: ${{ runner.temp }}/zero-asound.conf
         run: |
-          sudo apt-get update
-          sudo apt-get install -y openbox
-          xvfb-run -a bash -c '
-            openbox --sm-disable > "$RUNNER_TEMP/zero-window-manager.log" 2>&1 &
-            npm run verify:framework
-          '
+          xvfb-run -a bash <<'EOF'
+          openbox --sm-disable > "$RUNNER_TEMP/zero-window-manager.log" 2>&1 &
+          npm run dev:smoke
+          EOF
       - name: Finite JavaFX example checks
+        if: needs.scope.outputs.lessons == 'true'
         env:
           ALSA_CONFIG_PATH: ${{ runner.temp }}/zero-asound.conf
         run: xvfb-run -a python3 scripts/verify-examples.py
       - name: Finite lesson progression checks
+        if: needs.scope.outputs.lessons == 'true'
         env:
           ALSA_CONFIG_PATH: ${{ runner.temp }}/zero-asound.conf
         run: xvfb-run -a node scripts/verify-project-progression.mjs
       - name: Website checks
+        if: needs.scope.outputs.website == 'true'
         run: |
           npm run typecheck --prefix website
           npm test --prefix website
@@ -115,3 +143,19 @@ jobs:
             dist/release.json
             dist/SHA256SUMS
             dist/SOURCE.txt
+
+  source-gate:
+    if: ${{ always() }}
+    needs: [scope, review]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Require successful source checks
+        run: node scripts/ci-gate.mjs
+        env:
+          ZERO_CI_GATE: '1'
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SELECTED: 'true'
+          JOB_RESULT: ${{ needs.review.result }}

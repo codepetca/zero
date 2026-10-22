@@ -85,6 +85,55 @@ time unknown. This receipt-only follow-up changes no code. Exact-head CI and
 merge verification remain gates; final receipt is retained in the existing ignored
 acceptance/progress.json. No installer release or version bump is requested.
 
+## Faster development follow-up preparation — 2026-10-22
+
+Zero Dev PR173 merged0d31bcfc after five successful checks at7100b0e8. Active Dev
+checkout fast-forwarded cleanly with identical tree; primary funding work preserved.
+Owner then asked to prepare/remember the future faster flow. AGENTS routes local
+iteration to DEVELOPMENT; FAST-DEV-FLOW records the unimplemented CI plan, input
+classification/coverage matrix, concurrency/cache work and acceptance conditions.
+A scoped private reminder outside Git routes future Zero chats to this preference.
+No CI definition, installer, credential or publication authority changed. Static
+Markdown link/command/workflow-reference checks and whitespace are the applicable
+verification; no application suite is rerun for this documentation-only change.
+Independent preparation review receipt will be retained with the existing ignored
+Zero Dev acceptance records. This follow-up is local, with no new task/automation.
+
+## Faster CI implementation — 2026-10-22
+
+Owner authorized implementing FAST-DEV-FLOW, opening a PR and merging after
+checks. A shared fail-closed classifier now selects work in the three existing
+workflows; unknown/shared inputs and manual dispatch run the full matrix. Native
+selection runs sample playthrough plus existing framework checks. Stable final
+gates reject failed classification and failed/cancelled/skipped selected work.
+PR-only concurrency cancels superseded runs without sharing release/dispatch
+or other-PR groups. Runner Chrome must launch before reuse; the existing pinned
+CLI fallback installs and verifies missing/incompatible Chrome. Maven and verified
+WebFX download caches use dependency/OS/version keys and never cache builds or
+credentials. Original release preparation and Windows install/update checks remain.
+
+Nineteen local CI/Dev tests pass, including actual Git rename/deletion history,
+unknown/malformed input fallback, selected-work gate failures and browser warm/
+cold/error paths. Four workflows pass actionlint1.7.12. Configuration/syntax/local
+links and whitespace pass. Application/public API and installed Zero unchanged.
+Bounded read-only input inventory ci_input_inventory, requested Sol6.1/medium,
+identified shared website/release/curriculum/brand/process inputs; coordinator
+verified imports and kept shared/unrecognized executable inputs on the full path.
+No worker edits or conflicts. Independent ci_gates_review and ci_coverage_review,
+requested Sol6.1/high, each completed the full80dc77dd implementation delta and
+immediate callers: clean, no P0-P2 findings. Gate review covered diff/history,
+output fallbacks, manual selection, cancellation, permissions and release-publisher
+compatibility. Coverage review traced allowlisted inputs, native harness retention
+and browser/cache verification, and reran10focused tests successfully. One initial
+wave,2launches/turns,0initial fixbatches; effective models, per-turn tokens and
+attributable reviewer time unknown. Final source CI at9143ab70 passed991tests but
+one existing JavaFX widget check timed out and the JVM crashed in libLLVM. Failure
+log retained. One CI-only correction selects JavaFX software rendering for the
+Linux virtual-display job, with assertions/timeouts unchanged; targeted review
+and corrected exact-head CI gate merge. This receipt follow-up changes no code. Actual GitHub
+full/cold+warm/cancellation results are retained in the existing ignored
+.verification/fast-ci/progress.json receipt. No installer release is requested.
+
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
 
 Owner authorized source merge/release and the specific Administration write

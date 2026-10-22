@@ -1,30 +1,29 @@
-# Zero Dev — owner-authorized PR/merge, 2026-10-22
+# Zero Dev and faster development — 2026-10-22
 
-Owner requested fast UI/framework/game/smoke iteration without an installer.
-Branch codex/zero-dev reuses the tutorial-padding checkout from origin/main
-d131bd43, preserving the dirty primary funding checkout. `npm run dev` opens an
-isolated source extension host, watches source and serves live preview3153.
-Game edits and editor state are preserved; managed-copy drift blocks overwrite.
-See docs/ZERO-DEV.md. Implementation and native-test fixes committed through
-c269210bd552a659fbce2fcda71ba66e72963109; independent source and native-test
-reviews completed clean after targeted fixes. Seven dev tests,21UI tests,
-configuration, source refresh and browser live reload passed. Warm preparation
-measured0.664s with existing dependencies. Final full dev:smoke exits0 with
-ZERO_DEV_SMOKE_OK: checkpoint game, native automated three-coin win/Restart/
-recollection, framework input/focus/padding/media and UI contracts pass. Native
-Run/Stop/Run passed in the actual source extension host; Stop terminated Main,
-Run launched it again. Restart focus assertion was also mutation-tested: removing
-focus restoration fails as expected; original game restored. Automated JavaFX
-input is not physical keyboard/mouse acceptance; Windows/Linux UI untested.
-Keep this worktree active: it owns the Dev game, watcher and preview3153. Dev
-editor state is ~/.zero-dev/fce53b51730d/, outside the checkout for Mac IPC limits.
-The sample is running and local-only, with Git off and upload simulation. No
-installer/version, account permission or installed Zero change. Owner now
-authorizes PR publication and merge after CI. Main sync preserves Mac0.5.46
-system appearance. PR173 is open; bounded integration review completed clean
-at5dec75d7, and post-sync configuration,7Dev and21UI checks pass. Final CI gates
-merge. No installer release is part of this request. Receipts, final logs
-and rendered game-win.png: .verification/zero-dev/acceptance/.
+Zero Dev PR173 merged0d31bcfc5591298f13f5d8576f8a01a9dfc960a0 after all5checks
+passed at7100b0e8. Independent implementation/native/integration reviews clean.
+Full Mac native smoke, automated sample win/Restart/recollection, Run/Stop/Run,
+7Dev and21UI checks passed. Physical keyboard gameplay and Windows/Linux Dev UI
+remain untested. No installer release or version bump was part of this work.
+Details and exact CI/review receipts: docs/EVIDENCE.md and ignored
+.verification/zero-dev/acceptance/progress.json.
+
+Owner authorized implementing faster CI, PR publication and merge after checks.
+Branch codex/zero-fast-dev-flow includes the prepared/default Zero Dev guidance
+and current CI implementation. Four workflows use conservative affected-code
+selection, always-running final gates, PR-only superseded-run cancellation,
+verified runner Chrome reuse/fallback and Maven/WebFX download caches. Native
+selection exercises the sample playthrough and framework checks. Unknown/shared
+inputs and manual dispatch retain the full matrix. Nineteen local CI/Dev tests,
+actionlint and configuration pass. Two Sol6.1/high reviews at80dc77dd completed
+clean with no findings. Exact-head CI and full-run/cache/cancellation evidence
+gate merge. No installer release requested.
+See docs/FAST-DEV-FLOW.md; implementation receipts: .verification/fast-ci/.
+
+Keep the active tutorial-padding worktree and ~/.zero-dev/fce53b51730d/ profile:
+they own the user's scratch game, watcher and preview3153. Preserve scratch edits
+and the unrelated dirty primary funding checkout. Never infer publication
+permission for future changes from the completed PR173 authorization.
 
 # System appearance — Mac0.5.46 publication, 2026-10-22
 
