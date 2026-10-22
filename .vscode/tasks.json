@@ -2,6 +2,13 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Zero Dev: Prepare",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/zero-dev.mjs", "prepare"],
+      "problemMatcher": []
+    },
+    {
       "type": "zero",
       "task": "run",
       "label": "Zero: Run App",

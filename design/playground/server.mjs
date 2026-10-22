@@ -22,9 +22,15 @@ export async function handle(request, response) {
   const theme = url.searchParams.get('theme') === 'dark' ? 'dark' : 'light';
   const editorTheme = ['light','dark','hc'].includes(url.searchParams.get('theme')) ? url.searchParams.get('theme') : 'light';
   let body, type = 'text/html';
+  const liveRevision = /^[a-f0-9]{64}$/.test(process.env.ZERO_DEV_PREVIEW || '') ? process.env.ZERO_DEV_PREVIEW : '';
   try {
     if (request.method !== 'GET') { response.writeHead(405); return response.end('Read-only review server'); }
-    if (url.pathname === '/') body = reviewPage();
+    if (liveRevision && url.pathname === '/__zero-dev/revision') { type = 'text/plain'; body = liveRevision; }
+    else if (liveRevision && url.pathname === '/__zero-dev/reload.js') {
+      type = 'text/javascript';
+      body = `if(window.top===window){const expected=new URL(document.currentScript.src).searchParams.get('revision');setInterval(async()=>{try{const response=await fetch('/__zero-dev/revision',{cache:'no-store'});if(response.ok&&(await response.text())!==expected)location.reload();}catch{}},1000);}`;
+    }
+    else if (url.pathname === '/') body = reviewPage();
     else if (url.pathname === '/components') body = componentsPage(editorTheme, url.searchParams.get('state'));
     else if (url.pathname === '/start-page') body = await startPageView(editorTheme, url.searchParams.get('state'));
     else if (url.pathname === '/web') body = webView(theme, downloads, ["home", "learn", "downloads"].includes(url.searchParams.get("screen")) ? url.searchParams.get("screen") : "learn");
@@ -62,12 +68,19 @@ export async function handle(request, response) {
     // Only the gallery submits a local GET form to select fixture parameters.
     // Embedded screens retain the no-form policy and their existing sandbox/CSP.
     const formAction = url.pathname === '/components' ? "'self'" : "'none'";
-    response.writeHead(200, { 'Content-Type':`${type}; charset=utf-8`, 'Cache-Control':'no-store', 'Content-Security-Policy':`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'none'; frame-src 'self'; base-uri 'none'; form-action ${formAction}`, 'X-Content-Type-Options':'nosniff' });
+    if (liveRevision && type === 'text/html') {
+      const nonce = String(body).match(/<script nonce="([^"]+)"/)?.[1];
+      body = body.replace('</head>', `<script ${nonce ? `nonce="${nonce}" ` : ''}src="/__zero-dev/reload.js?revision=${liveRevision}" defer></script></head>`);
+    }
+    response.writeHead(200, { 'Content-Type':`${type}; charset=utf-8`, 'Cache-Control':'no-store', 'Content-Security-Policy':`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src ${liveRevision ? "'self'" : "'none'"}; frame-src 'self'; base-uri 'none'; form-action ${formAction}`, 'X-Content-Type-Options':'nosniff' });
     response.end(body);
   } catch(error) { response.writeHead(500, {'Content-Type':'text/plain'}); response.end(`Review unavailable: ${error.message}`); }
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.ZERO_DESIGN_PORT || 3256);
   if (!Number.isInteger(port) || port < 1024 || port > 65535 || port === 3245) throw new Error('Choose an unused preview port other than 3245.');
-  http.createServer(handle).listen(port, '127.0.0.1', () => console.log(`Zero design review: http://127.0.0.1:${port}`));
+  http.createServer(handle).listen(port, '127.0.0.1', () => {
+    console.log(`Zero design review: http://127.0.0.1:${port}`);
+    if (process.env.ZERO_DEV_PREVIEW) process.send?.({type:'zero-preview-ready'});
+  });
 }

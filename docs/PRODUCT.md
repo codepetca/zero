@@ -2,6 +2,12 @@
 
 ## Outcome
 
+Maintainers iterate locally through [Zero Dev](ZERO-DEV.md): a separate source
+extension host, a playable Coin Game using current framework sources, a live
+component preview and finite smoke checks. This development loop does not require
+an installer rebuild or change installed student Zero; distribution and native
+installation/update acceptance remain separate release steps.
+
 A downloadable teaching kit for high school students who know beginning Java
 through CodeHS. Students make interfaces, games, drawings, simulations and quizzes
 using ordinary Java, then contribute understandable examples and helpers for

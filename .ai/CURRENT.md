@@ -1,4 +1,17 @@
-# Tutorial padding and Start Page — Mac0.5.45 promotion, 2026-10-22
+# Zero Dev — local implementation, 2026-10-22
+
+Owner requested fast UI/framework/game/smoke iteration without an installer.
+Branch codex/zero-dev reuses the tutorial-padding checkout from origin/main
+d131bd43, preserving the dirty primary funding checkout and existing prototype.
+`npm run dev` prepares an isolated source extension host and local Coin Game,
+watches source, refreshes framework/UI bundles and serves live preview3153.
+Game edits are preserved; managed-copy drift blocks overwrite. Editor state is
+separate, sample local-only, Git off and upload simulation. No release/version,
+publication, account permission or installed Zero changes are part of this work.
+See docs/ZERO-DEV.md. Local verification and independent review are in progress;
+the sample game's finite behavior check and six dev unit tests have passed.
+
+# Tutorial padding and Start Page — Mac0.5.45 delivered, 2026-10-22
 
 Owner authorized merge after CI and release. PR169 merged4e19c71e after all5checks
 on reviewed598a01c4. Signed/notarized/stapled Mac0.5.45 is public at
@@ -9,8 +22,9 @@ exact signed feed SHA91566c36…39d2ed. Independent source/candidate reviews cle
 
 Three tutorial templates now have20px padding; exact new commits/trees and source
 were verified anonymously. Their metadata and the installer/feed are being
-promoted in this branch; website deployment and native44→45 acceptance remain
-pending. Shared control/prototype references remain in design.md and
+promoted by PR170, merged d131bd43 after successful CI workflows. Production
+signed feed bytes match the candidate; native44→45 and installed Start Page/
+padding lesson acceptance passed. Shared control/prototype references remain in design.md and
  design/EDITOR-COMPONENTS.md. Both local owner Greeting projects retain uncommitted
 padding edits. Windows21/manualkit17, older immutable releases and dirty primary
 funding checkout are preserved. See docs/EVIDENCE.md and primary ignored

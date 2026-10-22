@@ -10,6 +10,11 @@ Record compact durable delivery evidence in [EVIDENCE.md](EVIDENCE.md).
 
 ## Commands
 
+For daily UI/framework iteration, use [Zero Dev](ZERO-DEV.md): `npm run dev`
+opens an isolated source extension host and a playable game, watches generated
+framework/UI inputs and serves the auto-refreshing component preview.
+`npm run dev:smoke` runs local game/framework/UI checks without building an installer.
+
 Use Node.js 22+ for developer tooling. Students use a supported JDK 17+ and
 VS Code; Git 2.31+ is needed for authenticated uploads. Students do not need Node.js or
 global Maven.
