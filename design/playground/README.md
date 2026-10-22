@@ -64,3 +64,25 @@ Selecting a lesson updates fixture content; full canonical lesson content is
 available in the applied website at http://127.0.0.1:3257/learn.
 
 The Home fixture shows Mac Silicon and Windows ZIP download buttons; GitHub connection belongs in desktop Zero.
+
+## Editor component screens
+
+Open http://127.0.0.1:3256/components to compare the actual Start Page and sidebar
+renderers. Select Light, Dark or High contrast and Ready, Signed out, Install,
+Checking, Unavailable or Busy, then Apply. Each panel has an Open screen link.
+Standalone examples: `/start-page?theme=dark&state=ready` and
+`/sidebar?theme=dark&state=ready&connected=1`. Ready shows the Start tutorial/Run
+split buttons and Project/New menus together. The sidebar represents an open
+project; access states therefore show its existing GitHub setup action, while
+the Start Page shows the detailed onboarding state. Busy disables production
+controls; it simulates pending work, not completion.
+
+The Start Page is created by production `createStartPage` with an in-memory
+panel, fixed `armorup` account and synthetic recent projects. Its real state
+snapshot is delivered to the unchanged client renderer. Its nonce CSP stays
+in place, allowing local fixture stylesheets only; the injected nonce bridge
+turns actions into visible fixture feedback. No extension activates, and no
+production command, account, filesystem or network operation is connected.
+The host colors are simulated VS Code variables, including menu selection,
+button separator and high-contrast borders. This is browser review evidence,
+not native VS Code acceptance. No public website or installed app is changed.

@@ -266,6 +266,17 @@ public class CheckpointHarness extends Application {
             boolean passed = false;
             try {
                 if (((App) app) instanceof GameApp) app.stop(); // Stop timer before deterministic update calls.
+                BorderPane root = (BorderPane) stage.getScene().getRoot();
+                require(root.getPadding().equals(new javafx.geometry.Insets(20)),
+                        "tutorial content has 20 pixels of outer padding");
+                if (((App) app) instanceof GameApp game) {
+                    require(game.width() == 640 && game.height() == 400,
+                            "outer padding preserves the fixed game canvas");
+                } else {
+                    var bounds = root.getCenter().localToScene(root.getCenter().getLayoutBounds());
+                    require(bounds.getMinX() >= 19.99 && bounds.getMinY() >= 19.99,
+                            "controls stay inset from the window edges");
+                }
                 check(app, stage);
                 System.out.println("CHECKPOINT_OK " + id + (withMedia ? " with-media" : ""));
                 passed = true;

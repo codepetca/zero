@@ -23,6 +23,7 @@ public class Main extends GameApp {
     private Platform[] platforms;
 
     @Override public void settings() {
+        padding(20);
         title("Jump across platforms");
         size(640, 360);
     }

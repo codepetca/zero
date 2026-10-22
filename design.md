@@ -35,11 +35,20 @@ when adding features; a new feature does not reset the agreed interaction style.
 - Use native Explorer for files, with Zero controls and teaching helpers in the same sidebar. Use supported
   VS Code APIs, native themes, accessible keyboard behavior and the existing
   visual system. Avoid extra headings, duplicate controls and explanatory clutter.
-- The **Zero Start Page** owns onboarding: Start tutorial, a **Tutorials** link,
+- Reuse the sidebar's native dropdown appearance across editor screens. Shared
+  controls live in `extension/media/controls.css`; extend the existing component
+  instead of copying its styles. Record repeated patterns in
+  [editor components](design/EDITOR-COMPONENTS.md) and compare actual renderer
+  states in the local `/components` prototype before introducing a new variant.
+- The **Zero Start Page** owns onboarding: **Start tutorial** with a **Tutorials** dropdown,
   **Project ▾ → New / Clone / Open**, recent projects and guided GitHub sign-in/access.
-  Show it automatically in an empty Zero window; preserve existing editors and
+  The Start tutorial split control and Project button share the same width.
+  Keep Tutorials available without sign-in. Show it automatically in an empty Zero window; preserve existing editors and
   restore its native editor tab. Reopen it through **Zero: Start Page** or the
   sidebar's **⋯ → Start Page**. Keep local opening available without GitHub.
+- On the Start Page, ready GitHub access is one line: **GitHub · username**.
+  Signed out shows **Sign in to GitHub**. Keep checking, setup and error guidance
+  visible when action is needed; omit the routine Ready to start line.
 - The sidebar is for project development: Run/Stop, native Explorer, contextual repository
   and branch actions, Commit & push, Merge to main and ZeroHub. Empty windows
   offer only Open Start Page. A local project needing cloud setup offers GitHub

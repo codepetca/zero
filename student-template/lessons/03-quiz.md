@@ -30,9 +30,11 @@ private TextField answer;
 private Label feedback;
 ```
 
-## 3. Add a settings method inside Main
+## 3. Keep the starter’s padding
 
-Add this method inside `Main`, above `setup()`, to leave space around the window edges:
+Your starter already has this method inside `Main`, above `setup()`. Keep it
+to leave space around the window edges. If you started with an older template,
+add it once:
 
 ```java
 @Override public void settings() {

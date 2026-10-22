@@ -26,6 +26,7 @@ public class Main extends GameApp {
     private boolean lost;
 
     @Override public void settings() {
+        padding(20);
         title("My complete game");
         size(640, 360);
     }

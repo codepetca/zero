@@ -5,6 +5,8 @@ import javafx.scene.layout.VBox;
 import zero.App;
 
 public class Main extends App {
+    @Override public void settings() { padding(20); }
+
     public void setup() {
         var question = new Label("What is 2 + 3?");
         var answer = new TextField();

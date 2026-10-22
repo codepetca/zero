@@ -13,7 +13,8 @@ public class Main extends GameApp {
     double x = 140, y = 220;
     boolean paused;
 
-    @Override public void settings() { title("Sprite playground"); size(640, 420); }
+    @Override public void settings() {
+        padding(20); title("Sprite playground"); size(640, 420); }
     @Override public void setup() {
         Image sheet = loadImage("/bird-flap-sheet.png");
         // This generated atlas needs an alignment correction in its lower row.

@@ -404,9 +404,15 @@ public class ExampleCheck extends Application {
         if (!value) throw new AssertionError(message);
     }
     static void mouse(GameApp app, javafx.event.EventType<MouseEvent> type, double x, double y, MouseButton button) {
-        Event.fireEvent(app.canvas(), new MouseEvent(type, x, y, x, y, button, 1,
+        // MouseEvent without a source starts in scene coordinates. The canvas
+        // can be inset by App padding; target picking converts back to local x/y.
+        var scene = app.canvas().localToScene(x, y);
+        var screen = app.canvas().localToScreen(x, y);
+        Event.fireEvent(app.canvas(), new MouseEvent(type, scene.getX(), scene.getY(),
+                screen.getX(), screen.getY(), button, 1,
                 false, false, false, false, button == MouseButton.PRIMARY,
-                false, button == MouseButton.SECONDARY, false, false, false, null));
+                false, button == MouseButton.SECONDARY, false, false, false,
+                new javafx.scene.input.PickResult(app.canvas(), scene.getX(), scene.getY())));
     }
     static Button button(javafx.scene.Node node, String text) {
         if (node instanceof Button b && b.getText().equals(text)) return b;

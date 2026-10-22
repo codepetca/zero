@@ -1,3 +1,4 @@
+import startPage from '../../extension/src/start-page.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -16,4 +17,14 @@ test('prepared production CSS is exactly derived from shared source and has no g
   assert.match(sidebar, /--vscode-font-family/);
   assert.match(sidebar, /--vscode-focusBorder/);
   assert.doesNotMatch(sidebar, /#6655cd|\.monaco-workbench/);
+});
+
+test('both editor surfaces consume the canonical control stylesheet', () => {
+  const controls = readFileSync(new URL('../../extension/media/controls.css', import.meta.url), 'utf8');
+  assert.ok(designOutputs()['extension/media/generated-theme.css'].includes(controls));
+  const panel = {webview:{onDidReceiveMessage:()=>({dispose(){}})}, onDidDispose(){}, dispose(){}};
+  const page = startPage.createStartPage({window:{createWebviewPanel:()=>panel}});
+  page.show();
+  assert.ok(panel.webview.html.includes(controls));
+  page.dispose();
 });

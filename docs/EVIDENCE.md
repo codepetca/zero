@@ -7593,3 +7593,115 @@ https://github.com/codepetca/zero/pull/165. The feature is not yet in a public i
 Review budget used:3reviewer turns (2initial+1targeted),1fix batch; at most7launches/4batches/
 60minutes. Effective models, per-turn tokens and attributable coordinator effort
 are unknown; no claim of savings from account-wide usage.
+
+
+## Tutorial project padding — local, 2026-10-22
+
+Owner requested padding across tutorial projects. Reviewed source e255b2d4 and
+pointer-verifier delta9293af54 on codex/tutorial-padding add20px outer padding
+to App/GameApp scaffolds, previously unpadded checkpoints/reference programs and
+the default starter. Existing styled App examples retain their own layout Insets.
+Lessons0/3/8 explain existing scaffold padding. Framework/API defaults stay unchanged.
+Both local owner Greeting projects have a separate uncommitted Main padding edit.
+No public template, website, installer or published demo was updated.
+
+Validation: configuration/syntax/local-doc links and diff whitespace pass;
+7lesson-project tests and9extension tutorial/content tests pass; all3generated
+scaffolds compile; all16checkpoint variants pass finite native behavior, outer
+padding/control inset and fixed640×400game canvas checks. Thirteen selected
+reference examples pass across bounded runs. Initial hello-name/object-counter
+assertions passed on isolated retries. Drawing initially exposed synthetic mouse
+coordinates assuming a canvas at the scene origin; the verifier now transforms
+canvas points to scene/screen coordinates and supplies the matching PickResult.
+Drawing/keyboard/animation all3pass after that correction.
+
+The local fresh Greeting project passed the real browser compiler/profile and
+Chrome input/button test (Hello, Student!), with visible20px inset. Preview
+http://127.0.0.1:3148/; screenshot and logs retained in primary ignored
+.verification/tutorial-padding-20261022. Mac acceptance only; Windows untested.
+
+Independent low-risk review by native tutorial_padding_review, requested
+Luna/medium: full39-file source delta0601a593→e255b2d4 complete/clean; targeted
+verifier deltae255b2d4→9293af54 complete/clean. Budget2reviewer turns,1initial wave,
+1targeted wave,1fix batch; no unresolved findings. Effective model, tokens and
+attributable effort unknown. The dirty primary funding checkout is preserved.
+
+
+## Compact Start Page GitHub row — local, 2026-10-22
+
+Owner requested GitHub · armorup on one line, with Sign in to GitHub when signed
+out. Source92e37adc (base d70ceb0e) nests the text-only account label and decorative
+separator in the GitHub heading, hides routine ready guidance, and keeps checking,
+installation and unavailable guidance/actions. Signed out has only its sign-in
+action, with a stable accessible GitHub section label. Other Start Page commands
+and authorization checks are unchanged. The design preference is recorded in design.md.
+
+All13Start Page tests and configuration/syntax/command/doc-link checks pass.
+Production-HTML browser fixtures show ready, signed-out and installation states;
+screenshots live in primary ignored .verification/start-page-account-20261022.
+These fixtures use fake account state and did not sign out or alter credentials.
+Native installed Zero44 and published installers remain unchanged.
+
+Independent low-risk review tutorial_padding_review, requested Luna/medium,
+complete/clean for d70ceb0e→92e37adc; no actionable findings. One reviewer turn,
+one initial wave, zero fix batches in this UI review session; effective model,
+tokens and attributable effort unknown. Dirty primary checkout remains preserved.
+
+
+## Start tutorial dropdown and equal widths — local, 2026-10-22
+
+Owner requested moving Tutorials into Start tutorial's dropdown, then equal
+widths for Start tutorial and Project. Source699c25f3 (base3bf8df3a) uses a split
+primary control: main click starts the guarded tutorial workflow, its arrow
+opens Tutorials through the existing project-free reader command. Tutorials is
+available signed out; busy state disables/closes both menus. Shared dropdown
+handling retains Project keyboard/focus/outside-click behavior. Whole split
+control and Project measure180px each, becoming full width on narrow views.
+
+All14Start Page tests and configuration/syntax/command/doc-link checks pass.
+Production-HTML Chrome fixtures verify arrow opening, Escape focus restoration,
+signed-out reading access and mutually exclusive menus. Measured both rendered
+control widths as180px; screenshots/preview script are retained in primary
+ignored .verification/start-page-dropdown-20261022. This is fixture acceptance;
+installed native Zero44 and other operating systems were not exercised.
+
+Independent standard-risk source review startpage_menu_review, requested
+Sol6.1/medium, complete/clean for3bf8df3a→699c25f3 with no findings. One initial
+reviewer turn, zero fix batches; effective model/tokens/attributable effort
+unknown. No merge, deployment, installer or public-template update occurred.
+
+
+## Shared editor dropdowns and prototypes — local, 2026-10-22
+
+Owner requested Sidebar dropdown styling on Start Page, reusable components,
+remembered conventions and prototype screens. Source2d041c7c (base0ea042c9)
+extracts canonical button/split/menu styles into extension/media/controls.css.
+Sidebar generated CSS and nonce-protected Start Page consume the same bytes;
+Start Page reuses the existing Lucide ChevronDown. Screen sizing and guarded
+commands stay in their hosts. The component catalog and canonical design/UI
+instructions record the preference. A scoped saved Product Design reference
+and gallery screenshot are retained outside Git for future work.
+
+The source-backed /components gallery compares actual Start Page/Sidebar HTML;
+/start-page is its standalone screen. Three themes and six account/busy states,
+keyboard menus and simulated action feedback are available. Fixtures never
+activate the extension, authenticate, access student files or execute commands.
+The gallery's local GET form alone permits form-action self; other local routes
+retain none, frames retain their script-only sandbox and production CSP is unchanged.
+
+All35focused extension/design/playground tests, configuration, generated-design
+and whitespace checks pass. IAB verified dark ready menus, light signed-out,
+high-contrast busy, Apply navigation and320px reflow without horizontal overflow.
+Both menus compute13px system type,5px/8px item inset and28px minimum item height;
+Start tutorial/Project widths remain equal. Screenshots and exact receipt live in
+primary ignored .verification/shared-editor-controls-20261022. Local gallery runs
+at http://127.0.0.1:3152/components. Installed/native Zero44 and physical OS behavior
+remain separate; no merge, deployment or installer update occurred.
+
+Bounded prototype author component_prototypes requested Sol6.1/medium, delivered
+and accepted after coordinator source inspection, focused checks and browser QA.
+Coordinator caught/fixed the blocked gallery Apply path with narrow policy and
+regression coverage. No writer/integration conflict. Independent standard-risk
+review startpage_menu_review requested Sol6.1/medium complete/clean for the full
+18-file delta0ea042c9→2d041c7c. Review1initial turn,0remediation batches; effective
+models, token usage and attributable effort unknown. No savings claim.

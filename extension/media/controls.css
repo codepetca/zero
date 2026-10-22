@@ -1,0 +1,22 @@
+/* Shared editor controls. Sidebar is the visual reference; both webviews consume this file. */
+button { min-height:0; width:100%; margin:0; padding:6px 8px; border:1px solid var(--vscode-button-border,transparent); border-radius:3px; background:var(--vscode-button-background,var(--zero-accent,#0078d4)); color:var(--vscode-button-foreground,var(--zero-on-accent,#ffffff)); font:inherit; line-height:1.4; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; white-space:normal; overflow-wrap:anywhere; min-width:0; }
+button svg { width:16px; height:16px; flex:none; }
+button:hover { background:var(--vscode-button-hoverBackground,var(--zero-accent-hover,#026ec1)); }
+button:focus-visible { outline:1px solid var(--vscode-focusBorder,var(--zero-focus,#0078d4)); outline-offset:-1px; }
+button:disabled,button[aria-disabled="true"] { opacity:.45; cursor:default; }
+button.secondary { color:var(--vscode-button-secondaryForeground,var(--zero-text,var(--vscode-foreground,#202020))); background:var(--vscode-button-secondaryBackground,var(--zero-surface,var(--vscode-editor-background,#ffffff))); }
+button.secondary:hover { background:var(--vscode-button-secondaryHoverBackground,var(--zero-surface,var(--vscode-editor-background,#ffffff))); }
+.run-split,.zero-split { display:flex; position:relative; flex:1; min-width:0; }
+.run-split > button:first-child,.zero-split > button:first-child { flex:1; }
+.run-split:has(.run-menu-button) > button:first-child,.zero-split > button:first-child { border-top-right-radius:0; border-bottom-right-radius:0; }
+button.run-menu-button,button.zero-menu-button { flex:0 0 30px; width:30px; padding:6px; border-top-left-radius:0; border-bottom-left-radius:0; border-left-color:var(--vscode-button-separator,var(--vscode-button-foreground,var(--zero-on-accent,#ffffff))); }
+.run-menu-button[aria-expanded="true"] > svg,.zero-menu-button[aria-expanded="true"] > svg,.zero-menu-trigger[aria-expanded="true"] > svg { transform:rotate(180deg); }
+.files-menu[aria-expanded="true"] > svg { transform:rotate(180deg); }
+.files-dropdown,.zero-menu { position:absolute; top:100%; left:0; z-index:10; width:200px; max-width:100%; padding:4px; border:1px solid var(--vscode-menu-border,var(--zero-border,var(--vscode-contrastBorder,transparent))); border-radius:3px; background:var(--vscode-menu-background,var(--zero-surface,var(--vscode-editor-background,#ffffff))); color:var(--vscode-menu-foreground,var(--zero-text,var(--vscode-foreground,#202020))); box-shadow:0 2px 8px var(--vscode-widget-shadow,transparent); }
+.run-dropdown { right:0; left:auto; width:100%; }
+.files-dropdown button,.zero-menu button { width:100%; justify-content:flex-start; text-align:left; padding:5px 8px; min-height:28px; border-color:transparent; background:transparent; color:inherit; }
+.files-dropdown button:hover:not(:disabled),.files-dropdown button:focus-visible,.zero-menu button:hover:not(:disabled),.zero-menu button:focus-visible { background:var(--vscode-menu-selectionBackground,var(--vscode-button-background,var(--zero-accent,#0078d4))); color:var(--vscode-menu-selectionForeground,var(--vscode-button-foreground,var(--zero-on-accent,#ffffff))); }
+body.vscode-high-contrast button,body.vscode-high-contrast-light button { border:1px solid var(--zero-border,var(--vscode-contrastBorder,transparent)); }
+@media(forced-colors:active) { button,button.secondary,button.link,button.account,button.repo-choice { background:ButtonFace; color:ButtonText; border:1px solid ButtonText; } .files-dropdown,.zero-menu { background:Canvas; color:CanvasText; border-color:CanvasText; } .files-dropdown button,.zero-menu button { background:Canvas; color:CanvasText; } .files-dropdown button:focus-visible,.files-dropdown button:hover:not(:disabled),.zero-menu button:focus-visible,.zero-menu button:hover:not(:disabled) { background:Highlight; color:HighlightText; } }
+.zero-menu { width:100%; box-sizing:border-box; }
+.zero-menu-trigger { justify-content:space-between; }

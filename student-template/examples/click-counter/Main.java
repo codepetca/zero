@@ -4,6 +4,8 @@ import javafx.scene.layout.VBox;
 import zero.App;
 
 public class Main extends App {
+    @Override public void settings() { padding(20); }
+
     private int count = 0;
 
     public void setup() {

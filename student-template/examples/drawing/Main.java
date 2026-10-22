@@ -10,6 +10,7 @@ public class Main extends GameApp {
 
     @Override
     public void settings() {
+        padding(20);
         size(640, 400);
         title("Mouse painting");
     }

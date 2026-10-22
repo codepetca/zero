@@ -2,6 +2,7 @@ import zero.GameApp;
 
 public class Main extends GameApp {
     @Override public void settings() {
+        padding(20);
         size(640, 400);
     }
 

@@ -70,7 +70,7 @@ export function sidebarView(theme, state, host = true, connected = false) {
 <script src="/fixture.js">
 </script>
 </head>`);
-  html = html.replace('<div class="row">', `${label(`Zero sidebar · ${state === 'error' ? 'Error' : 'Ready'} · ${theme} · ${host ? 'simulated host colors' : 'adapter fallback'}`)}<div class="row">`);
+  html = html.replace(/(<body[^>]*>)/, `$1${label(`Zero sidebar · ${state[0].toUpperCase() + state.slice(1)} · ${theme} · ${host ? 'simulated host colors' : 'adapter fallback'}`)}`);
   return html.replace('</body>', '<p id="fixture-feedback" role="status" aria-live="polite"></p></body>');
 }
 export function reviewPage() {
@@ -83,7 +83,7 @@ export function reviewPage() {
 <h1>Zero design review</h1>
 <p>Proposed themes · Learn/downloads + sidebar · base ${baseRevision.slice(0,12)} + local review</p>
 </div>
-<a href="/guide">Review instructions</a>
+<nav><a href="/components">Components</a> · <a href="/guide">Review instructions</a></nav>
 </header>
 <form class="controls" aria-label="Preview controls">
 <label>Website page<select id="web-screen"><option value="home">Home</option><option value="learn">Tutorials</option><option value="downloads">Download</option></select></label>

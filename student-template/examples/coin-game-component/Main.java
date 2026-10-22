@@ -17,6 +17,7 @@ public class Main extends GameApp {
     private Label goal;
 
     @Override public void settings() {
+        padding(20);
         title("Coins with a shared score display");
         size(640, 400);
     }

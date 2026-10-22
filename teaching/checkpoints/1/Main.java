@@ -4,6 +4,8 @@ import javafx.scene.layout.VBox;
 import zero.App;
 
 public class Main extends App {
+    @Override public void settings() { padding(20); }
+
     @Override public void setup() {
         Label greeting = new Label("Hello, Java!");
         Button button = new Button("Say hello");

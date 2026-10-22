@@ -16,6 +16,7 @@ public class Main extends GameApp {
     private Label message;
 
     @Override public void settings() {
+        padding(20);
         title("Collect the coins");
         size(640, 400);
     }

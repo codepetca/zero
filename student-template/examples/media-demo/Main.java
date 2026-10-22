@@ -15,6 +15,7 @@ public class Main extends GameApp {
     private int plays;
 
     @Override public void settings() {
+        padding(20);
         title("My sprite and sound");
         size(640, 360);
     }

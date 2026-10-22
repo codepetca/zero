@@ -13,6 +13,7 @@ public class Main extends GameApp {
     private Hud hud;
 
     @Override public void settings() {
+        padding(20);
         title("Collect coins with shared views");
         size(640, 400);
     }
