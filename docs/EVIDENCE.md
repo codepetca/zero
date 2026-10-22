@@ -1,5 +1,90 @@
 # Delivery evidence index
 
+## Zero Dev local workflow — 2026-10-22
+
+Owner requested source UI/framework iteration, a playable sample and smoke tests
+without installer packaging. Base d131bd4397bd36de9784c7e1cd500e1d3345d2da;
+implementation f563715d and corrected130207c0c0eedfbac7726687ab99e21cd2d8aac7.
+No extension/framework public API, published artifact, version, credentials or
+account permissions changed. Primary dirty funding work remains untouched.
+
+Seven dev tests pass: source refresh/provenance, user game preservation, managed
+drift preflight, symlink refusal, profile separation, generated-state exclusion,
+short IPC paths/profile preservation and opt-in preview CSP. Twenty-one Start
+Page/playground tests and npm run check pass. Actual watch acceptance changed and
+restored a framework comment and theme token, verified generated source/CSS,
+preserved a game edit, and observed browser gallery and standalone screen reload
+without manual refresh. Warm npm run dev:prepare measured0.664seconds, one local
+run with existing dependencies; not a cold-start guarantee.
+
+The actual sample's copied finite checkpoint harness passed CHECKPOINT_OK11/game
+(movement, bounds, scoring once per coin, win, restart). The isolated source
+extension activated in its own VS Code profile. Initial long worktree editor
+path failed macOS IPC binding; the corrected checkout-specific ~/.zero-dev path
+successfully started the source extension host. Editor profile has no installed
+Zero extension or copied credentials. Dev sample is local-only, Git disabled,
+upload simulation. Generated state stays ignored; useful scratch game edits must
+be retained before worktree retirement.
+
+After the owner unlocked the Mac, final full `npm run dev:smoke` passed exit0
+at source c269210bd552a659fbce2fcda71ba66e72963109, with CHECKPOINT_OK11/game,
+ZERO_DEV_PLAY_OK, ZERO_PADDING_OK, ZERO_AUDIO_OK (57native checks),
+ZERO_GAME_HELPERS_OK, ZERO_SMOKE_OK,21UI passes and ZERO_DEV_SMOKE_OK.
+Seven dev unit tests and npm run check also passed on the final source. Initial
+locked-display failures are retained as diagnostic history, not successful runs.
+GameHelpersCheck now uses the existing NativeFocus helper for initial/restored
+canvas focus; runtime behavior, assertions and timeouts are unchanged.
+
+The new native play check extends the actual sample Main and sends JavaFX canvas
+key events through GameApp across real AnimationTimer update/draw frames. It
+collects three coins, verifies win, focuses/activates Restart, checks score reset
+and canvas focus, then collects again. The rendered game-win.png shows Score:3
+and the win message. A negative mutation removed only Main.restart's canvas focus
+restoration: the check failed with the expected focus AssertionError and exit1;
+the exact original Main was restored before the final passing suite. This is
+native automated integration, not physical keyboard/mouse gameplay acceptance.
+
+The actual isolated source extension host's sidebar Run launched Main (PID7821),
+Stop displayed App stopped and terminated that process, and Run launched a new
+Main (PID9143). The Dev editor, watcher/preview and sample were left running for
+the owner. Native screenshot native-dev-ready.png records the real editor/task.
+Windows/Linux UI remains untested. Browser automatic policy review rejected
+acquiring the old3152preview tab because URL authority could not be established;
+that tab was left unchanged, without an alternate browser workaround.
+
+Independent review zero_dev_review/1 requested GPT6.1Sol/medium completed full
+12file diff atf563715d; two acceptedP2s: cached preparation dependencies and direct
+Start Page meta CSP blocking reload. One fix batch also addressed observed Mac
+IPC path length. zero_dev_review/2 inspected the complete5file delta through
+130207c0, both findings and the new per-checkout profile/path boundary: clean,
+no remaining actionable findings. 1launch,2turns,1initial+1targeted wave,1fixbatch;
+effective model, reviewer seconds and token telemetry unknown. Weekly remaining
+16% at start, DeepSeek explicitly paused through2026-12-31; cached storage269GB
+healthy. Local receipts/screenshots/logs: .verification/zero-dev/acceptance/.
+Independent native-test review zero_dev_native_review requested GPT6.1Sol/medium
+covered bb3a8093→d0cd4117 and relevant game/input/focus callers. One acceptedP2:
+Restart's programmatic action could pass while canvas was already focused.
+Targeted review through c269210b verified the explicit button-focus precondition
+and negative-mutation proof: complete/clean. 1launch,2turns,1initial+1targeted wave,
+1fixbatch; effective model, tokens and attributable reviewer time unknown.
+Final local logs: smoke-final.log, unit-final.log, check-final.log and
+focus-mutation.log in .verification/zero-dev/acceptance/. Native/full-suite work
+used14%weekly remaining and healthy271GB available storage; DeepSeek stayed paused.
+Initial local acceptance did not publish source or an installer. The owner then
+authorized a PR and CI-gated merge. PR https://github.com/codepetca/zero/pull/173
+syncs current main81f88041 into reviewed96974242 at5dec75d7, preserving main's
+system-theme profile and Mac0.5.46 release/version metadata unchanged. Post-sync
+configuration,7Dev and21UI checks pass; native/game behavior is unchanged, so the
+prior full native smoke and Run/Stop/Run evidence remains applicable.
+Independent final integration review zero_dev_merge_review, requested
+GPT6.1Sol/medium, covered the complete96974242→5dec75d7 sync and final feature
+interaction against81f88041: complete/clean, no findings. Profile seeding,
+preservation, launcher isolation and release/provenance guards inspected. One
+launch/turn/integration wave,0fixbatches; effective model, tokens and attributable
+time unknown. This receipt-only follow-up changes no code. Exact-head CI and
+merge verification remain gates; final receipt is retained in the existing ignored
+acceptance/progress.json. No installer release or version bump is requested.
+
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
 
 Owner authorized source merge/release and the specific Administration write

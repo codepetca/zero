@@ -18,11 +18,13 @@ import javafx.stage.Stage;
 /** Finite checks delivered through the real AnimationTimer update/draw loop. */
 public final class GameHelpersCheck extends GameApp {
     private int phase;
+    private long phaseStarted;
     private TextField field;
     private Stage other;
     private Image cached;
     @Override public void settings() { size(160, 120); title("Zero game helper checks"); }
     @Override public void setup() {
+        phaseStarted = System.nanoTime();
         field = new TextField(); layout().setBottom(field);
         Thread watchdog = new Thread(() -> {
             try { Thread.sleep(15_000); } catch (InterruptedException ignored) { return; }
@@ -34,8 +36,7 @@ public final class GameHelpersCheck extends GameApp {
         try {
             switch (phase) {
                 case 0:
-                    if (!windowFocused()) { canvas().getScene().getWindow().requestFocus(); canvas().requestFocus(); return; }
-                    canvas().requestFocus();
+                    if (!NativeFocus.await(canvas(), phaseStarted, "game helper canvas focus")) return;
                     verifyImages(); verifyDrawing(); verifyCollisions();
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.SPACE);
                     key(canvas(), KeyEvent.KEY_RELEASED, KeyCode.SPACE);
@@ -74,9 +75,11 @@ public final class GameHelpersCheck extends GameApp {
                     if (windowFocused()) { other.requestFocus(); return; }
                     require(!keyDown(KeyCode.C) && !keyPressed(KeyCode.C) && !mouseDown(MouseButton.PRIMARY)
                             && !mousePressed(MouseButton.PRIMARY), "window focus loss clears all input");
-                    other.close(); canvas().getScene().getWindow().requestFocus(); canvas().requestFocus(); phase = 7; break;
+                    other.close();
+                    phaseStarted = System.nanoTime();
+                    canvas().getScene().getWindow().requestFocus(); canvas().requestFocus(); phase = 7; break;
                 case 7:
-                    if (!windowFocused()) { canvas().getScene().getWindow().requestFocus(); canvas().requestFocus(); return; }
+                    if (!NativeFocus.await(canvas(), phaseStarted, "game helper restored canvas focus")) return;
                     require(!keyPressed(KeyCode.C) && !mousePressed(MouseButton.PRIMARY), "regaining focus does not replay edges");
                     key(canvas(), KeyEvent.KEY_PRESSED, KeyCode.D); mouse(MouseEvent.MOUSE_PRESSED);
                     stop();

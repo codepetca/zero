@@ -7,6 +7,12 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "node scripts/zero-dev.mjs",
+    "dev:prepare": "node scripts/zero-dev.mjs prepare",
+    "dev:ui": "node scripts/zero-dev.mjs ui",
+    "dev:game": "node scripts/zero-dev.mjs game",
+    "dev:smoke": "node scripts/zero-dev.mjs smoke",
+    "test:dev": "node --test scripts/zero-dev.test.mjs",
     "prepare:starter": "node scripts/prepare-starter.mjs",
     "prepare:lessons": "node scripts/lesson-projects.mjs",
     "check": "node scripts/check.mjs",
