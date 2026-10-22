@@ -304,8 +304,7 @@ using the existing guarded commands/folder resolution. The equally wide
 contains **Tutorials**, which invokes `zero.openFirstLesson`, including its project-free reader, without sign-in
 or repository creation. The menu supports arrows, Home/End, Escape, Tab and outside
 dismissal, skips disabled items and preserves focus through status/account updates.
-Recent entries remain directly available. Mac0.5.43 ships the Project dropdown and separate Tutorials link; the Start
-tutorial split control is local source awaiting a future installer.
+Recent entries remain directly available. Mac0.5.45 ships the Project dropdown and Start tutorial split control.
 Clone asks for a GitHub URL and a parent folder starting at `~/Zero Projects`,
 with another location selectable. Zero remembers the selected clone parent in the
 local editor profile for future clones; cancelling the picker or opening a local
