@@ -7756,3 +7756,38 @@ Independent Luna/medium complete12file review found one outdated starter-note
 sentence; corrected in one documentation fix batch. Targeted review and CI pending.
 Owner authorized merge after CI and
 publication only after the Update popup commit prompt chat finishes.
+
+## System appearance source and Mac0.5.46 release — 2026-10-22
+
+Owner authorized PR/merge after CI and publication after the Update popup commit
+prompt chat finishes, allowing one final update. That chat completed0.5.45 and
+native acceptance before46 publication. PR171 merged0b4a2ec2f594f1edf804592cb172dad7267c884e
+after all three workflows and check suites succeeded at exact reviewed head
+ccf060f1dc5cccabb3aaf63bfffbd8f3187e70f4: release39795107367, browser39795107371,
+Windows39795107387. The PR rollup lagged the authoritative successful runs/suites.
+Source Luna/medium review: one launch, three turns (complete12file, one starter-doc
+correction, main integration), one fix batch; no remaining findings. Configuration,
+9focused release tests/1conditional skip,17installer tests, native319assertions,
+kit exact source/archive/license/permissions and extracted Maven build pass.
+
+Signed universal Mac46 was built clean atccf060f1, measured at preparation
+243826d36ba22ae84ce946cdea1a0ce70a0bfcef; protected source equivalence passes.
+Apple Accepted7d752f2f-510e-4a17-be2d-7bb6309ce04e; staple, actual app/DMG
+Gatekeeper and both-architecture signature checks pass. Sparkle DMG/feed signatures
+and all13sealed hashes verify. Candidate mac-0.5.46-243826d36ba2 is retained in
+primary ignored .verification/system-theme-release0.5.46/. Initial build stopped
+at missing pinned DMG layout helper; pinned helper installed, second build passed.
+No public bytes were replaced. Sol6.1/medium complete candidate review clean,
+including independently rerun signatures/staple/Gatekeeper. Effective models,
+per-turn tokens and attributable elapsed effort are unknown; source-phase account
+reading17%remaining, release-phase15%remaining are shared allowance, not task cost.
+
+Public https://github.com/codepetca/zero/releases/tag/setup-v0.5.46 has exactly one
+DMG,4612255bytes,SHA256 e298a91c199490a54d5444521e018e6ec137628fac9701f0b0838016e4f18b1d.
+Draft and anonymous public downloads match the exact sealed bytes. New settings
+enable system detection without a fixed theme; the embedded payload was inspected.
+Existing settings are preserved. Owner current window detection was enabled via
+native Settings and visibly switched dark to match macOS Dark, including Sidebar,
+Start Page and Tutorials. No OS roundtrip, fresh-machine, physical Windows/Intel
+acceptance or46installation is claimed. Windows21/manualkit17 and previous assets
+remain unchanged. Metadata/feed promotion and live verification pending below.

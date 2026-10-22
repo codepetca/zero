@@ -1,5 +1,18 @@
 # Verification
 
+## System editor appearance — 2026-10-22
+
+New Zero settings enable native OS light/dark detection. Existing settings remain
+preserved. In the owner's existing Zero window, enabling the setting visibly
+changed the sidebar, Start Page and Tutorials to dark, matching macOS Dark.
+Source PR171 passed the complete release/browser/Windows CI workflows and suites
+atccf060f1, then merged0b4a2ec2. Local configuration,17installer tests,319native
+assertions and extracted kit Maven checks pass. Signed/notarized/stapled Mac46
+and anonymous exact-byte download verification pass; signed feed metadata is
+awaiting promotion. Independent source and sealed candidate reviews are clean.
+No OS appearance roundtrip, fresh-machine, physical Windows/Intel or46install
+claim. See EVIDENCE.md for exact source, CI, notarization, digest and review receipts.
+
 ## Corrected editor popups — Mac0.5.43 publication, 2026-10-21
 
 https://github.com/codepetca/zero/pull/162 merged as 63bbf25d96a2ff953c48f806a2f7a0b23f041575 with five exact-head checks.
