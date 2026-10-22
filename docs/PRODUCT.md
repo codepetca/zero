@@ -77,9 +77,12 @@ projects, alongside the destination's code and tutorial tabs.
 
 The Start Page guides students through **Sign in to GitHub** →
 **Install Zero for GitHub** → **Start tutorial**.
-Sign-in and credential storage remain unchanged: the supported `zero-github`
-provider stores expiring user/refresh tokens in VS Code SecretStorage; GitHub
-handles sign-in and consent, and Zero has no separate password or account.
+Zero calls its own `zero-github` provider directly, so explicit sign-in starts
+with **Connect Zero to GitHub** and the device code, without a second VS Code
+request to share Zero's session with itself. The provider remains registered for
+the Accounts menu and other extensions, whose host consent checks still apply.
+It stores expiring user/refresh tokens in VS Code SecretStorage; GitHub handles
+sign-in and consent, and Zero has no separate password or account.
 Signing in runs a read-only check for repository creation and contents writing
 and stops at the next Start Page step. If access is missing, **Install Zero for
 GitHub** opens the pinned App page after a read-only recheck; **Check again** is

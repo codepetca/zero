@@ -8,7 +8,7 @@ const core = require('./core');
 const lessonProjects = require('./lesson-projects');
 const github = require('./github');
 const workflow = require('./workflow');
-const {createAuthentication} = require('./authentication');
+const {createAuthentication,ownedProviderApi} = require('./authentication');
 const {githubAppConfiguration} = require('./github-app/config');
 const {createGitHubAppProvider} = require('./github-app/provider');
 const {createGitHubAppRepositories,repositoryIdentity,assertRepositoryIdentity} = require('./github-app/repositories');
@@ -172,10 +172,10 @@ function activate(context, services = {}) {
     if (!context.workspaceState.get(key) && !hasOpenEditors() && await openFirstLesson(root, true)) await context.workspaceState.update(key, true);
   }
   let githubReadiness,projectPicker;
-  const auth = createAuthentication(vscode.authentication, () => {if (state.startsWith('Signed in as ')) state='';githubReadiness?.sync();projectPicker?.sessionChanged();refresh();});
-  context.subscriptions.push(auth);
   const appConfiguration = githubAppConfiguration();
   const appProvider = services.provider || (appConfiguration ? createGitHubAppProvider({vscode,context,configuration:appConfiguration,onDiagnostic:message=>output.appendLine(message)}) : null);
+  const auth = createAuthentication(ownedProviderApi(appProvider), () => {if (state.startsWith('Signed in as ')) state='';githubReadiness?.sync();projectPicker?.sessionChanged();refresh();});
+  context.subscriptions.push(auth);
   if (appProvider) {
     context.subscriptions.push(appProvider);
     context.subscriptions.push(vscode.authentication.registerAuthenticationProvider('zero-github','Zero GitHub',appProvider,{supportsMultipleAccounts:false}));

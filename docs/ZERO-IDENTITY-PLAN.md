@@ -79,6 +79,13 @@ secretless refresh for tokens originally issued through device flow. No client
 secret/private key ships in the extension. Register Zero's own supported
 provider ID; do not repurpose Microsoft's built-in github provider. Replace
 Zero's broad repo/workflow OAuth requests and do not fall back to them silently.
+Zero's first-party commands call their owned provider directly, retaining the
+shared guarded authentication facade. This avoids the host's redundant request
+to share Zero's own session with Zero. Keep provider registration for Accounts
+and third-party consumers; never change host trust or consent settings. Silent
+reads cannot start device authorization, and only explicit sign-in can create a
+session. GitHub's device authorization and secure credential lifecycle remain
+required.
 
 Keep the existing capture/assert-current/synchronous-before-dispatch contract.
 Invalidate pending operations on account/token/session/installation changes.

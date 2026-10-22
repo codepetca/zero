@@ -9,6 +9,25 @@ function snapshot(session) {
 function same(a, b) {
   return a?.id === b?.id && a?.accountId === b?.accountId && a?.accessToken === b?.accessToken && (a?.scopes || []).join('\0') === (b?.scopes || []).join('\0');
 }
+// Zero owns this provider and its credentials. Calling the host's getSession
+// would additionally ask the user to share Zero's own session back with Zero.
+// Keep registration with VS Code for Accounts and other extensions; their
+// requests still go through the host's normal consent checks.
+function ownedProviderApi(provider) {
+  return {
+    async getSession(providerId, requestedScopes, options = {}) {
+      if (providerId !== 'zero-github') throw new Error('Unsupported authentication provider');
+      if (!provider) return undefined;
+      const sessions = await provider.getSessions(requestedScopes, options.account ? {account:options.account} : undefined);
+      if (sessions.length > 1) throw new Error('Zero requires a single GitHub account');
+      if (sessions.length || options.silent || !options.createIfNone) return sessions[0];
+      return provider.createSession(requestedScopes);
+    },
+    onDidChangeSessions(listener) {
+      return provider ? provider.onDidChangeSessions(() => listener({provider:{id:'zero-github'}})) : {dispose(){}};
+    }
+  };
+}
 function createAuthentication(api, onChange = () => {}, requestedScopes = scopes, preferredAccount, providerId = 'zero-github') {
   const sessionScopes = Object.freeze([...requestedScopes]);
   // Supported native account hint; callers still enforce the captured account.
@@ -66,4 +85,4 @@ function createAuthentication(api, onChange = () => {}, requestedScopes = scopes
     dispose() { disposed = true; current = undefined; revision++; subscription.dispose(); }
   };
 }
-module.exports = {createAuthentication, scopes};
+module.exports = {createAuthentication, ownedProviderApi, scopes};
