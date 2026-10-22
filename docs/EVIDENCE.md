@@ -7527,7 +7527,11 @@ compatibility complete/clean; security complete with one acceptedP2. An EIO afte
 compiler spawn could lose its in-memory group ownership before PID persistence.
 Batch1 tracks the PID synchronously, protects cleanup after registration failure,
 and adds a real surviving-child regression plus ambiguous Windows coverage.
-Lock/engine31assertions and the isolated CI fixture pass; targeted review pending.
-Review budget used:2initial reviewer turns,1fix batch; at most7launches/4batches/
+Lock/engine31assertions and the isolated CI fixture pass. Targeted Sol/high review
+of5617d266 is complete/clean, independently repeating both failed-registration
+regressions. Source coverage reuses the unchanged initial Pages/helper review;
+no remaining actionable finding or coverage gap. CI is linked from
+https://github.com/codepetca/zero/pull/165. The feature is not yet in a public installer.
+Review budget used:3reviewer turns (2initial+1targeted),1fix batch; at most7launches/4batches/
 60minutes. Effective models, per-turn tokens and attributable coordinator effort
 are unknown; no claim of savings from account-wide usage.
