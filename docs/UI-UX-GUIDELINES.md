@@ -64,8 +64,9 @@ marks a preferred pattern with documented, task-specific exceptions.
 - MUST not call the one-App browser user token star-only: it can carry installed
   repository permissions. Keep browser/editor credentials separate, explain
   reconnection when needed and do not claim indefinite browser login. The current
-  browser policy is eight hours. First-time Pages setup uses GitHub settings and
-  recheck rather than requesting Administration or changing source visibility.
+  browser policy is eight hours. Explicit Publish sets up a missing Pages site
+  after GitHub permission approval; preserve existing sites and source visibility.
+  Stock helper updates join the ordinary commit review; active build locks stay protected.
 - DEFAULT to platform controls in native setup and JavaFX examples, and semantic
   HTML controls on the website. HIG informs hierarchy and ergonomics; native
   iOS navigation, pickers and visual chrome are not a universal Zero design.

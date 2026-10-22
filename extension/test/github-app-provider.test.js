@@ -194,3 +194,15 @@ test('lock repair diagnostic reaches Zero Output callback even when authenticati
  const auth=createAuthentication({getSession:async()=> (await f.provider.getSessions([]))[0],onDidChangeSessions:()=>({dispose(){}})});t.after(()=>auth.dispose());
  await auth.refresh();assert.equal(auth.signedIn,false);assert.ok(f.diagnostics.length>0);assert.match(f.diagnostics[0],/https:\/\/github.com\/codepetca\/zero\/blob\/main\/docs\/ZERO-AUTH-RECOVERY.md/);assert.ok(f.diagnostics[0].includes(f.context.globalStorageUri.fsPath));
 });
+
+test('reviewed optional Pages setup permission supports staged rollout without accepting other grants',async t=>{
+ const config={...configuration,optionalPermissions:{administration:'write'}};
+ for(const added of [{},{administration:'write'}]){
+  const f=await fixture(t,{config,overrides:{fetch:async url=>response(url.includes('/apps/')?{...metadata,permissions:{...permissions,...added}}:{id:42,login:'learner',type:'User'})}});
+  assert.equal((await f.provider.getSessions([]))[0].account.id,'42');
+ }
+ for(const changed of [{administration:'read'},{administration:'write',issues:'write'},{pages:'read'}]){
+  const f=await fixture(t,{config,overrides:{fetch:async()=>response({...metadata,permissions:{...permissions,...changed}})}});
+  await assert.rejects(f.provider.getSessions([]),error=>error.code==='app-mismatch');
+ }
+});

@@ -7,6 +7,7 @@ const core = require('./core');
 const {prepareUpload} = require('./github');
 const {pagesFiles, pagesWorkflow} = require('./web-publishing');
 const migration = require('./web-publish-migration');
+const helpers = require('./web-publish-helpers');
 
 const workflowPath = '.github/workflows/zero-web.yml';
 const shaPattern = /^[a-f0-9]{40}$/;
@@ -89,8 +90,9 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(tracking && (method!=='GET' || !/^(?:|\/pages|\/actions\/runs\/\d+)$/.test(suffix)))throw new Error('Unsupported publishing status request.');
     if(cleanup){await authentication.assertCurrent(review.ticket);const now=await prepareUpload(review.root,git);if(now.root!==review.plan.root||now.remote!==review.plan.remote)throw Error('The repository changed; temporary app cleanup needs its original repository.');}
     else await guard(review,signal,{tracking});
+    if(suffix==='/pages' && !['GET','POST'].includes(method))throw Error('Unsupported Pages settings mutation.');
     const permissions=suffix.startsWith('/actions/')?{actions:method==='POST'?'write':'read'}:
-      suffix==='/pages'?{pages:'write'}:{contents:method==='GET'?'read':'write'};
+      suffix==='/pages'?(method==='POST'?{pages:'write',administration:'write'}:{pages:'read'}):{contents:method==='GET'?'read':'write'};
     await access(review,permissions,cleanup?undefined:signal);
     // Access verification can wait on GitHub. Recheck local source/destination
     // after it completes before sending any publishing request.
@@ -108,6 +110,23 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(allow404 && response.status===404)return null;
     if(!response.ok) {const error=new Error(response.status===401?'GitHub sign-in expired. Sign in and review publishing again.':response.status===403?'GitHub blocked publishing. Check repository Pages and Actions permissions, then recheck.':`GitHub could not complete publishing (HTTP ${response.status}). Recheck the repository before retrying.`);error.status=response.status;throw error;}
     return response.status===204 ? null : await response.json();
+  }
+  async function prepare(root,{signal,beforeWrite=async()=>{},onProgress=()=>{}}={}) {
+    if(isSimulation())return simulation();
+    const plan=await prepareUpload(root,git);
+    if(plan.branch!=='main')throw Error('Finish your change with Merge to main before publishing the app.');
+    const current=async()=>{
+      if(signal?.aborted)throw Error('Web publishing cancelled.');
+      await beforeWrite();
+      if(isSimulation())throw Error('Live publishing was disabled. Choose Publish app again after enabling live uploads.');
+      const now=await prepareUpload(root,git);
+      if(['root','remote','branch','head'].some(key=>now[key]!==plan[key]))throw Error('The publishing project, repository or branch changed. Choose Publish again.');
+    };
+    await current();
+    const inspection=await helpers.inspect(root,{extensionPath:path.resolve(engineRoot,'../..')});
+    if(!inspection.upgrade)return {updated:[]};
+    onProgress('Updating the bundled Zero helpers before committing…');
+    return helpers.apply(root,inspection,{beforeWrite:current});
   }
   async function review(root,{signal}={}) {
     if(isSimulation())return simulation();
@@ -133,7 +152,7 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
     if(pages && (pages.build_type!=='workflow' || missing.length))return action('This repository already has a Pages site or a different publishing setup. Keep it and choose another repository for this game.',plan.page+'/settings/pages');
     if(pages && pages.public!==true)return action('This Pages site is not a public playable page. Review its access settings in GitHub and recheck.',plan.page+'/settings/pages');
-    const result=Object.freeze({status:'review',root:plan.root,repository:plan.page,sha:plan.head,setup:missing.length>0,upgrade:upgrade?Object.freeze({files:Object.freeze([...inspection.changed]),previousSha:plan.head}):undefined,needsPages:!pages,publicUrl:pages?.html_url ? safeUrl(pages.html_url,pages.cname):undefined,account:ticket.session.accountId});
+    const result=Object.freeze({status:'review',root:plan.root,repository:plan.page,sha:plan.head,setup:missing.length>0,upgrade:upgrade?Object.freeze({files:Object.freeze([...inspection.changed]),previousSha:plan.head}):undefined,needsPages:!pages,publicUrl:pages?.html_url ? safeUrl(pages.html_url,pages.cname):defaultDestination(repo.full_name).url,account:ticket.session.accountId});
     reviews.set(result,{...state,files,missing,pages,upgrade,original:inspection.original,approvedDestination:pages?pagesDestination(pages):defaultDestination(repo.full_name)});return result;
   }
   async function setup(reviewed,{signal}={}) {
@@ -189,14 +208,41 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     if(unresolvedStages.has(state.root)) {await cleanupStaging(state,unresolvedStages.get(state.root));unresolvedStages.delete(state.root);await onStaging(undefined);}
     const remote=await api(state,'GET','/git/ref/heads/main',null,{signal});
     if(remote.object?.sha!==state.plan.head)throw new Error('GitHub main changed after review. Commit & push or sync your project and review publishing again.');
-    const pages=await api(state,'GET','/pages',null,{allow404:true,signal});
+    let pages=await api(state,'GET','/pages',null,{allow404:true,signal});
     if(pages && (!state.pages || pages.build_type!=='workflow' || pages.public!==true || pages.html_url!==state.pages.html_url || pages.cname!==state.pages.cname))throw new Error('Pages settings changed after review. Review publishing again.');
-    if(!pages)return action('Enable GitHub Actions as the source in this repository’s Pages settings, then recheck. Repository visibility stays unchanged.',state.plan.page+'/settings/pages');
+    if(!pages) {
+      if(state.pages)throw Error('Pages settings changed after review. Review publishing again.');
+      try {await access(state,{pages:'write',administration:'write'},signal);}
+      catch(error) {
+        if(error.code==='permission-required' || error.status===403)return action('Approve Zero’s updated GitHub permissions, then choose Publish again. This lets Zero set up the app page automatically.',error.actionUrl || 'https://github.com/apps/codepet-zero/installations/new');
+        throw error;
+      }
+    }
     onProgress('Validating the browser app locally…');
     const resultBuild=await localBuild({projectRoot:state.root,cacheRoot,signal,onProgress});
     await guard(state,signal);
     await assertBuildInputsAtCommit({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,git});
     const bundle=await pack({projectRoot:state.root,result:resultBuild,sourceSha:state.plan.head,validateExport,signal});
+    if(!pages) {
+      // Do not take over a site that appeared while the local compiler ran.
+      if(await api(state,'GET','/pages',null,{allow404:true,signal}))throw Error('Pages settings changed after review. Review publishing again.');
+      onProgress('Setting up the public app page…');
+      let creationError;
+      try {await api(state,'POST','/pages',{build_type:'workflow'},{signal});}
+      catch(error) {
+        if(error.code==='permission-required' || error.status===403)return action('Approve Zero’s updated GitHub permissions, then choose Publish again. This lets Zero set up the app page automatically.',error.actionUrl || 'https://github.com/apps/codepet-zero/installations/new');
+        creationError=error;
+      }
+      // A timed-out creation can have succeeded. Reconcile with one read; never
+      // repeat the POST or change an existing site's source/domain/visibility.
+      pages=await api(state,'GET','/pages',null,{allow404:true,signal});
+      if(!pages) {
+        if(creationError?.status===422)return action('GitHub could not enable a public app page for this repository. Check that your GitHub plan supports Pages for it, then choose Publish again.',state.plan.page);
+        throw creationError || Error('GitHub has not confirmed the app page yet. Choose Publish again to recheck.');
+      }
+      assertDestination(pages,state.approvedDestination);
+      state.pages=pages;
+    }
     await guard(state,signal);
     const destination=await api(state,'GET','',null,{signal});
     if(destination.id!==state.repositoryId||String(destination.owner?.id)!==String(state.ticket.session.accountId)||destination.owner?.type!=='User'||destination.default_branch!=='main'||!destination.permissions?.push)throw Error('The repository or account permissions changed. Review publishing again.');
@@ -311,6 +357,6 @@ function createGitHubPagesPublisher({authentication,repositories,fetch:request=g
     await cleanupStaging({root:plan.root,plan,ticket,slug:plan.page.slice('https://github.com/'.length),cleanupSha:saved.sha},saved.staging);
     unresolvedStages.delete(plan.root);
   }
-  return {review,setup,update,publish,check,restore,verifyLink,cleanup};
+  return {prepare,review,setup,update,publish,check,restore,verifyLink,cleanup};
 }
 module.exports={createGitHubPagesPublisher,publishingFiles,workflowPath,pagesPublishWorkflow:compiledWorkflow,publicAddress,_test:{publicReadiness,boundedText}};

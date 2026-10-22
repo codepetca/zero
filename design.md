@@ -137,10 +137,11 @@ starring. Do not describe it as star-only or imply that desktop sign-in creates
 a browser session. Browsing/learning/playing stay public; the browser currently
 requires reconnection after eight hours.
 
-The App omits Administration permission. First-time Pages setup can require
-enabling GitHub Actions as the Pages source in GitHub settings, then rechecking
-Publish app. Preserve existing/cloned repository visibility and the existing
-single public-destination warning.
+Publish automatically sets up a missing Pages site after GitHub approves the
+reviewed Administration write grant. Preserve existing sites, custom domains,
+existing/cloned repository visibility and the single public-destination warning.
+Untouched allowlisted older helpers update before the normal commit review;
+confirmed stopped browser builds recover their stale locks automatically.
 
 ## Tutorial tab and browser actions — accepted 2026-10-16
 

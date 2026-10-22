@@ -511,10 +511,15 @@ that the app and included assets will be public;
 later explicit Publish actions revalidate and update that approved site without
 another destination dialog. Publishing setup continues through its upload without
 a second publish confirmation. The App requests Contents, Workflows, Actions and
-Pages capabilities on permitted repositories, without Administration. First-time
-Pages setup therefore asks the student to enable GitHub Actions as the Pages
-source in GitHub settings and recheck; Zero does not silently broaden permission
-or change repository visibility. Commit & push shows **Preparing commit…** on its
+Pages capabilities on permitted repositories. First-time Publish creates a missing
+Pages site with GitHub Actions as its build source, using the separately approved
+Administration write grant. Existing sites, domains and repository visibility are
+not changed. An installation that has not approved the grant gets one GitHub
+permission-approval action instead of manual Pages settings. Before committing,
+Publish upgrades only allowlisted, untouched older Zero helpers to the bundled
+browser-supported source; custom helpers are preserved and require review. Build
+locks left by a stopped, identifiable build are recovered automatically; active
+or uncertain owners remain protected. Commit & push shows **Preparing commit…** on its
 button while checking the project and GitHub access, then **Committing & pushing…**
 after confirmation. Progress clears on completion, cancellation or failure.
 It saves files and opens an empty input labeled **Commit message**, with the small

@@ -50,13 +50,15 @@ Browser stars and remaining provider acceptance are pending. Registered settings
 - User permissions: **Starring — Read and write**.
 - Repository permissions: **Metadata — Read**, **Repository creation — Write**,
   **Contents — Write**, **Workflows — Write**, **Actions — Write**, **Pages — Write**.
-  Omit **Administration**; first-time Pages creation uses GitHub settings.
+  The reviewed recovery source additionally supports **Administration — Write**
+  for automatic first-time Pages creation; rollout requires the compatible native
+  release before the separately approved registration change. See ZERO-IDENTITY-PLAN.md.
 - Device flow: enabled. Test installation: selected repositories. The App automatically
   receives access to repositories it creates. Zero does not select all repositories.
 - Organization permissions: none. Webhooks: inactive. No events subscribed.
 - User access tokens: expiring. No App private key or installation-token service
-  is deployed. Do not request classic OAuth `repo`/`public_repo`, Administration
-  or additional permissions to make a failed test pass.
+  is deployed. Do not request classic OAuth `repo`/`public_repo` or unreviewed
+  additional permissions to make a failed test pass.
 - Pin the same App ID/client ID/slug in the native reviewed source configuration
   and production website. A configured native client ID mismatch disables web sign-in.
 

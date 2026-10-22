@@ -175,9 +175,10 @@ without an active GitHub session; uploads require sign-in and internet access.
 GitHub actions default to live. Check your work before choosing an action;
 entering a branch name or commit message proceeds directly, and Merge to main
 starts when clicked. First Publish approves its public destination once; later
-explicit Publish actions update that site. The App omits Administration permission.
-For first-time Pages setup, enable GitHub Actions as the Pages source in GitHub
-settings, then return to Publish app and recheck. Keep your repository visibility.
+explicit Publish actions update that site. With Zero's updated GitHub permission
+approved, Publish sets up a missing app page automatically. It updates recognized
+untouched older helpers before committing and recovers confirmed stopped build
+locks. It preserves your helper edits, existing sites and repository visibility.
 Troubleshooting and installer checks do not create accounts or repositories, upload,
 publish or submit anything in Pika; the separate project commands above create
 repositories only when explicitly chosen.

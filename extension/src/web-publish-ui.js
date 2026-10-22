@@ -86,6 +86,10 @@ function createWebPublishCommands(vscode,{project,authentication,repositories,is
           await stillCurrent(expected);
         }
         await stillPublishable(expected);
+        // Upgrade only recognized stock sources before the normal commit/push
+        // review, so the deployed version includes the exact helper bytes.
+        if(publisher.prepare)await publisher.prepare(expected,{signal:controller.signal,beforeWrite:()=>stillPublishable(expected),onProgress:progress});
+        await stillPublishable(expected);
         let review,uploadedSource;
         try {review=await publisher.review(expected,{signal:controller.signal});}
         catch(error) {

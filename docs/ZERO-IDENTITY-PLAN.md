@@ -34,15 +34,26 @@ one surface's token rotation does not invalidate the other.
 | Clone, commit/push and temporary release staging | Contents write on permitted repositories |
 | Install/update Zero's publishing workflow | Workflows write on permitted repositories |
 | Dispatch and inspect the existing publishing workflow | Actions write on permitted repositories |
-| Read/update Pages deployment configuration | Pages write; first-time site creation has a separate limit below |
+| Read existing Pages / create a missing workflow site | Pages read / Pages write + Administration write for first setup |
 | Star/unstar as the connected user | Starring user write |
-| Repository deletion/transfer, organization management, secrets | Not requested |
+| Repository deletion/transfer, organization management, secrets | No Zero operation; Administration grants broader repository capability but Zero exposes no such mutation |
 
 First-time Pages site creation currently requires both Pages write and
-Administration write. Omit Administration from the default grant. Preserve the
-existing action-required path: enable GitHub Actions as the Pages source on
-GitHub, then return and recheck. This is a deliberate UX/security tradeoff;
-initial publication must not silently broaden access or change visibility.
+Administration write. The owner requested automatic first-time setup on2026-10-21
+and allows the required permission change. The source accepts the previous exact
+grant or that grant plus Administration write, and checks installation approval
+only when creating a missing workflow site. It never converts an existing site,
+changes a custom domain or changes repository visibility. Permission approval
+remains GitHub's native installation flow.
+
+Rollout order: review and release the compatible native source first, then
+explicitly approve changing the App registration to Administration read/write.
+Mac0.5.43 and older pin the former exact permission set and require updating
+before that registration change. Existing installations must approve GitHub's
+new grant before automatic setup works; existing-site deployment can continue
+without it on the new client. The live App permission has not yet been changed
+by this source implementation. Administration is a broad GitHub permission even
+though Zero uses it only for first-time Pages creation.
 
 An ordinary web-flow user token can carry the App/user intersection of these
 repository permissions after the user installs the App. The owner selected this

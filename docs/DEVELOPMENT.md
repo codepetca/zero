@@ -363,7 +363,10 @@ as the public [`codepet-zero` App](https://github.com/apps/codepet-zero) under
 `Iv23liWzC8OE2WN5f6qV`. Registration enables device flow and expiring user tokens;
 wildcard callbacks and webhooks are off, with no webhook events selected. Reviewed
 permissions are Actions, Contents, Pages, repository creation, Workflows and
-starring write, plus Metadata read; no broad Administration permission is used.
+starring write, plus Metadata read. The source also accepts the reviewed optional
+Administration write grant needed to create a missing Pages site. It is requested
+only for that operation; existing-site deployment and other operations retain
+their narrower checks. See the staged rollout in ZERO-IDENTITY-PLAN.md.
 Registration and pinning do not prove installation, device authorization, token
 issuance or live acceptance. The source remains unreleased and local Run stays
 available without a connection. The extension registers the supported

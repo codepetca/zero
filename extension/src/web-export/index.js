@@ -5,6 +5,7 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const https = require('node:https');
 const { spawn } = require('node:child_process');
+const { acquireBuildLock } = require('./build-lock');
 const { generateProject } = require('./project');
 const { zipFiles } = require('./zip');
 const { captureBuildInputs, buildProfileHash, boundSourceHash } = require('./snapshot');
@@ -240,15 +241,17 @@ function mapDiagnostics(log, sourceMap = {}) {
     })
     .join('\n');
 }
-function runMaven({
+async function runMaven({
   wrapper,
   projectRoot,
   buildRoot,
   cacheRoot,
   env,
   signal,
-  onProgress
+  onProgress,
+  buildLock
 }) {
+  await buildLock?.update({ phase: 'launching' });
   return new Promise((resolve, reject) => {
     abort(signal);
     const settings = path.join(buildRoot, 'settings.xml');
@@ -286,6 +289,9 @@ function runMaven({
       windowsVerbatimArguments: process.platform === 'win32',
       detached: process.platform !== 'win32'
     });
+    const registered = child.pid ? buildLock?.update({ phase: 'compiling', compilerPid: child.pid }) : undefined;
+    // Register before settling: a crashed editor must not hide its detached group.
+    registered?.catch(() => {});
     let output = '';
     let finished = false;
     let forceKillTimer;
@@ -332,13 +338,13 @@ function runMaven({
       finished = true;
       clearTimeout(forceKillTimer);
       signal?.removeEventListener('abort', onAbort);
-      reject(e);
+      Promise.resolve(registered).then(() => reject(e), reject);
     });
     child.on('close', (code, terminationSignal) => {
       finished = true;
       clearTimeout(forceKillTimer);
       signal?.removeEventListener('abort', onAbort);
-      resolve({ code, terminationSignal, output });
+      Promise.resolve(registered).then(() => resolve({ code, terminationSignal, output }), reject);
     });
   });
 }
@@ -399,25 +405,7 @@ async function exportForWeb(options = {}) {
   const locks = path.join(cacheRoot, 'locks');
   await noSymlinks(locks);
   await fs.mkdir(locks, { recursive: true });
-  const lockPath = path.join(locks, sha(projectRoot) + '.lock');
-  let handle;
-  try {
-    handle = await fs.open(lockPath, 'wx');
-    await handle.writeFile(
-      JSON.stringify({
-        pid: process.pid,
-        projectRoot,
-        startedAt: new Date().toISOString()
-      })
-    );
-  } catch (e) {
-    if (e.code === 'EEXIST')
-      throw new Error(
-        'A web export is already running for this project. If a previous editor crashed, remove its lock after confirming the process has stopped: ' +
-          lockPath
-      );
-    throw e;
-  }
+  const buildLock = await acquireBuildLock({ locks, projectRoot, signal, onProgress });
   const buildId = crypto.randomUUID();
   let buildRoot;
   let diagnosticText = `Zero web export ${buildId}\n`;
@@ -501,10 +489,12 @@ async function exportForWeb(options = {}) {
       await noSymlinks(directory);
     await fs.mkdir(builds, { recursive: true });
     buildRoot = await fs.mkdtemp(path.join(builds, 'export-'));
+    await buildLock.update({ phase: 'launching' });
     const compatibility = await checkCompatibility({
       sources: Object.fromEntries(javaFiles.map(file => [file.path, file.bytes.toString('utf8')])),
       pom, libraries, sourceOrigins, workRoot: buildRoot, cacheRoot, env: options.env, signal, onProgress, getArtifact: get
     });
+    await buildLock.update({ phase: 'preparing' });
     const adapted = require('./adapters').adaptSources({
       sources: Object.fromEntries(
         javaFiles.map((file) => [file.path, file.bytes.toString('utf8')])
@@ -538,8 +528,10 @@ async function exportForWeb(options = {}) {
       cacheRoot,
       env: options.env,
       signal,
-      onProgress
+      onProgress,
+      buildLock
     });
+    await buildLock.compilerFinished();
     await verifyMavenDistribution({ cacheRoot });
     const resolvedArtifactInventory = verifyArtifactInventory(await artifactInventory(path.join(cacheRoot, 'repository')));
     diagnosticText += mapDiagnostics(result.output, adapted.sourceMap);
@@ -718,7 +710,7 @@ async function exportForWeb(options = {}) {
     }
     throw e;
   } finally {
-    if (buildRoot)
+    if (buildRoot && buildLock.canCleanTemporary())
       try {
         await fs.rm(buildRoot, { recursive: true, force: true });
       } catch (cleanupError) {
@@ -730,8 +722,7 @@ async function exportForWeb(options = {}) {
             ')'
         );
       }
-    await handle.close();
-    await fs.unlink(lockPath);
+    await buildLock.release();
   }
 }
 module.exports = {
