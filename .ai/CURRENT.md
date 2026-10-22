@@ -1,12 +1,17 @@
 # Direct Zero GitHub sign-in — 2026-10-22
 
 Owner requested removing VS Code's redundant request for Zero to access its own
-Zero GitHub provider. Branch codex/direct-zero-sign-in is local only; no new
-PR, push, merge or release is authorized. Zero now calls its owned provider via
+Zero GitHub provider. Branch codex/direct-zero-sign-in now has owner authorization for PR and merge
+after tests/reviews/CI pass; no installer release is requested. Zero calls its owned provider via
 the existing guarded facade. Keep device authorization, SecretStorage, Accounts
 registration, third-party host consent and session/account drift checks intact.
-Focused authentication/activation/upload tests and npm run check passed; full
-local suite, independent reviews and fresh-profile native acceptance in progress.
+Full local suite passed997tests with3platform skips; npm run check passed.
+Both independent authentication reviews are complete/clean at88781454. Source Dev
+recognized its saved session without host confirmation. First-time native GUI
+acceptance remains unverified; actual provider/facade device-flow tests pass.
+Exact-head CI gates the authorized PR/merge. Current external receipt is kept
+in ignored .verification/direct-auth/progress.json; tracked review evidence is
+in docs/EVIDENCE.md.
 
 Faster CI PR174 merged0aad1481edf88cdb6deceeb0cf7999293b0ff43c after all11checks
 passed; live UI-only PR175 completed in128seconds, then closed unmerged. Cold/warm
