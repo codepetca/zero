@@ -466,7 +466,7 @@ See [browser export](WEB-EXPORT.md) for the tested profile and limits.
   restores the saved editor session without kit copies or backups. Student work
   and later editor choices remain intact. The bundled guide is updated for13.
   See [native setup](INSTALLER.md).
-- An optional settings-only profile defaults to light with 500 ms autosave;
+- An optional settings-only profile follows the system light/dark appearance with 500 ms autosave;
   the sidebar also supports dark themes. Import the profile before installing
   the local VSIX and Java extensions in it. The standard build shortcut runs
   the app; optional F6/F7 bindings stay separate.

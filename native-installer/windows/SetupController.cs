@@ -101,7 +101,7 @@ namespace ZeroSetup
         {
             get
             {
-                if (Stage == SetupStage.ProfileConsent) return "Import the supplied light theme and autosave settings in a separate profile named Zero. Existing profiles are preserved. Follow each instruction here, then choose Check profile.";
+                if (Stage == SetupStage.ProfileConsent) return "Import the supplied system appearance and autosave settings in a separate profile named Zero. Existing profiles are preserved. Follow each instruction here, then choose Check profile.";
                 if (Stage == SetupStage.ExtensionConsent) return "Install bundled Zero and missing Java language support (redhat.java) in the Zero profile? Java support downloads from the VS Code Marketplace. Compatible extensions and other profiles are preserved.";
                 return "";
             }

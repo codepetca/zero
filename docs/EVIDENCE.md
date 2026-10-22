@@ -7705,3 +7705,15 @@ regression coverage. No writer/integration conflict. Independent standard-risk
 review startpage_menu_review requested Sol6.1/medium complete/clean for the full
 18-file delta0ea042c9→2d041c7c. Review1initial turn,0remediation batches; effective
 models, token usage and attributable effort unknown. No savings claim.
+
+## System editor appearance — 2026-10-22
+
+Profile enables VS Code native system light/dark detection in new editor settings;
+existing settings remain preserved. Setup wording and appearance guidance match.
+Owner current Zero window enabled through Settings and visibly switched to dark
+to match macOS Dark, including Start Page, sidebar and Tutorials. OS light/dark
+round-trip and fresh-machine/physical Windows acceptance were not performed.
+Configuration and9focused release/version tests pass (1conditional skip);
+whitespace passes. Source release target0.5.46/build46 follows0.5.45.
+Independent source review and CI pending. Owner authorized merge after CI and
+publication only after the Update popup commit prompt chat finishes.
