@@ -125,8 +125,12 @@ immediate callers: clean, no P0-P2 findings. Gate review covered diff/history,
 output fallbacks, manual selection, cancellation, permissions and release-publisher
 compatibility. Coverage review traced allowlisted inputs, native harness retention
 and browser/cache verification, and reran10focused tests successfully. One initial
-wave,2launches/turns,0fixbatches; effective models, per-turn tokens and attributable
-reviewer time unknown. This receipt follow-up changes no code. Actual GitHub
+wave,2launches/turns,0initial fixbatches; effective models, per-turn tokens and
+attributable reviewer time unknown. Final source CI at9143ab70 passed991tests but
+one existing JavaFX widget check timed out and the JVM crashed in libLLVM. Failure
+log retained. One CI-only correction selects JavaFX software rendering for the
+Linux virtual-display job, with assertions/timeouts unchanged; targeted review
+and corrected exact-head CI gate merge. This receipt follow-up changes no code. Actual GitHub
 full/cold+warm/cancellation results are retained in the existing ignored
 .verification/fast-ci/progress.json receipt. No installer release is requested.
 

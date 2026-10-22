@@ -28,6 +28,10 @@ jobs:
     needs: scope
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    # Xvfb has no physical GPU. Avoid Mesa/LLVM driver crashes while preserving
+    # all JavaFX behavior assertions, native toolkit startup and finite timeouts.
+    env:
+      JAVA_TOOL_OPTIONS: -Dprism.order=sw
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:

@@ -37,7 +37,9 @@ coverage until its dependencies have been reviewed. In particular, shared
 website curriculum feeds generated extension lessons, branding feeds native
 icons, and starter files ship in the kit, so those are not website/docs-only.
 Native selections run `dev:smoke`, including actual sample-game frames and the
-existing framework checks. Full runs retain sharing/Maven consumers, lesson
+existing framework checks. Linux virtual-display checks use JavaFX software
+rendering to avoid Mesa/LLVM driver crashes; assertions and timeouts are unchanged.
+Full runs retain sharing/Maven consumers, lesson
 builds/examples/progression, website and release guards, Windows installation/
 update/native JavaFX checks, and real WebFX browser checks.
 
