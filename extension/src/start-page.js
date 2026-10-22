@@ -210,13 +210,13 @@ body{margin:0;color:var(--vscode-foreground);background:var(--vscode-editor-back
 main{max-width:760px;margin:0 auto;padding:48px 28px}h1{font-size:2em;font-weight:600;margin:0 0 28px}h2{font-size:1.15em;font-weight:600;margin:0 0 12px}section{margin-top:36px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
 button{font:inherit;line-height:1.4;cursor:pointer;min-height:36px;border:1px solid var(--vscode-button-border,transparent);border-radius:3px;padding:8px 16px;color:var(--vscode-button-secondaryForeground);background:var(--vscode-button-secondaryBackground)}button:hover{background:var(--vscode-button-secondaryHoverBackground)}button.primary{color:var(--vscode-button-foreground);background:var(--vscode-button-background)}button.primary:hover{background:var(--vscode-button-hoverBackground)}button:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}button:disabled{opacity:.6;cursor:default}
 p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#status,#error{overflow-wrap:anywhere}#github-heading{margin-bottom:0}#account{font-weight:400}#error{color:var(--vscode-errorForeground)}[hidden]{display:none!important}ul{list-style:none;padding:0;margin:0}li{margin:4px 0}.recent{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-textLink-foreground);padding:8px 4px}.recent:hover{background:var(--vscode-list-hoverBackground)}.name,.path{display:block;overflow-wrap:anywhere}.path{font-size:.9em}.vscode-high-contrast button,.vscode-high-contrast-light button{border-color:var(--vscode-contrastBorder)}
-.actions{align-items:center}.project-actions{position:relative}.project-menu{position:absolute;z-index:1;top:calc(100% + 4px);left:0;min-width:140px;padding:4px;background:var(--vscode-menu-background,var(--vscode-editor-background));border:1px solid var(--vscode-menu-border,var(--vscode-widget-border,transparent));border-radius:3px;box-shadow:0 2px 8px var(--vscode-widget-shadow)}.project-menu button{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-menu-foreground,var(--vscode-foreground));border-color:transparent}.project-menu button:hover:not(:disabled),.project-menu button:focus-visible{background:var(--vscode-menu-selectionBackground,var(--vscode-list-hoverBackground));color:var(--vscode-menu-selectionForeground,var(--vscode-foreground))}button.link{padding:8px 4px;color:var(--vscode-textLink-foreground);background:transparent;border-color:transparent}button.link:hover{color:var(--vscode-textLink-activeForeground,var(--vscode-textLink-foreground));text-decoration:underline}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
+.actions{align-items:center}.project-actions,.tutorial-actions{position:relative;width:180px;max-width:100%}.project-actions>button{width:100%}.tutorial-split{display:flex}.tutorial-split>[data-action="tutorial"]{flex:1;border-radius:3px 0 0 3px}.tutorial-split>.tutorial-toggle{padding:8px 10px;border-radius:0 3px 3px 0;border-left:1px solid var(--vscode-button-foreground)}.project-menu{position:absolute;z-index:1;top:calc(100% + 4px);left:0;min-width:140px;width:100%;box-sizing:border-box;padding:4px;background:var(--vscode-menu-background,var(--vscode-editor-background));border:1px solid var(--vscode-menu-border,var(--vscode-widget-border,transparent));border-radius:3px;box-shadow:0 2px 8px var(--vscode-widget-shadow)}.project-menu button{display:block;width:100%;text-align:left;background:transparent;color:var(--vscode-menu-foreground,var(--vscode-foreground));border-color:transparent}.project-menu button:hover:not(:disabled),.project-menu button:focus-visible{background:var(--vscode-menu-selectionBackground,var(--vscode-list-hoverBackground));color:var(--vscode-menu-selectionForeground,var(--vscode-foreground))}button.link{padding:8px 4px;color:var(--vscode-textLink-foreground);background:transparent;border-color:transparent}button.link:hover{color:var(--vscode-textLink-activeForeground,var(--vscode-textLink-foreground));text-decoration:underline}h1:focus-visible{outline:2px solid var(--vscode-focusBorder);outline-offset:3px}
 .vscode-high-contrast .project-menu,.vscode-high-contrast-light .project-menu{border-color:var(--vscode-contrastBorder)}
-@media(max-width:480px){main{padding:28px 20px}.actions{flex-direction:column;align-items:stretch}.actions button{width:100%}.project-menu{box-sizing:border-box;width:100%}}
+@media(max-width:480px){main{padding:28px 20px}.actions{flex-direction:column;align-items:stretch}.actions button{width:100%}.project-actions,.tutorial-actions{width:100%}.project-menu{box-sizing:border-box;width:100%}}
 </style></head><body><main>
 <h1 id="start-title" tabindex="-1">Start with Zero</h1>
-<button class="primary" data-action="tutorial" disabled>Start tutorial</button>
-<div class="actions"><div class="project-actions" id="project-actions"><button id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project <span aria-hidden="true">▾</span></button><div class="project-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" data-action="new" disabled>New</button><button role="menuitem" data-action="clone" disabled>Clone</button><button role="menuitem" data-action="local" disabled>Open</button></div></div><button class="link" data-action="tutorials" disabled>Tutorials</button></div>
+<div class="tutorial-actions" id="tutorial-actions"><div class="tutorial-split"><button class="primary" data-action="tutorial" disabled>Start tutorial</button><button class="primary tutorial-toggle" id="tutorial-button" aria-label="Tutorial options" aria-haspopup="menu" aria-expanded="false" aria-controls="tutorial-menu" disabled><span aria-hidden="true">▾</span></button></div><div class="project-menu" id="tutorial-menu" role="menu" aria-labelledby="tutorial-button" hidden><button role="menuitem" data-action="tutorials" disabled>Tutorials</button></div></div>
+<div class="actions"><div class="project-actions" id="project-actions"><button id="project-button" aria-haspopup="menu" aria-expanded="false" aria-controls="project-menu" disabled>Project <span aria-hidden="true">▾</span></button><div class="project-menu" id="project-menu" role="menu" aria-labelledby="project-button" hidden><button role="menuitem" data-action="new" disabled>New</button><button role="menuitem" data-action="clone" disabled>Clone</button><button role="menuitem" data-action="local" disabled>Open</button></div></div></div>
 <section aria-label="GitHub"><h2 id="github-heading">GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·</span> <span id="account" class="muted"></span></span></h2><p id="guidance">Checking GitHub access…</p><button class="primary" data-action="signIn" hidden>Sign in to GitHub</button><button class="primary" data-action="setup" hidden>Install Zero for GitHub</button></section>
 <section id="recent-section" aria-labelledby="recent-heading" hidden><h2 id="recent-heading">Recent projects</h2><p id="recent-status" class="muted"></p><ul id="recent-list"></ul><button id="retry-recent" hidden>Try again</button></section>
 <p id="status" role="status" aria-live="polite"></p><div id="error-region" hidden><p id="error" role="alert"></p><button id="retry" hidden>Try again</button></div>
@@ -226,27 +226,28 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
   let token, revision = -1, recentKey;
   const byId = id => document.getElementById(id);
   const buttons = Array.from(document.querySelectorAll('[data-action]'));
-  const projectButton = byId('project-button'), projectMenu = byId('project-menu');
-  const menuItems = () => Array.from(projectMenu.querySelectorAll('[role="menuitem"]')).filter(button => !button.disabled);
+  function dropdown(prefix) {
+  const trigger = byId(prefix + '-button'), menu = byId(prefix + '-menu');
+  const menuItems = () => Array.from(menu.querySelectorAll('[role="menuitem"]')).filter(button => !button.disabled);
   function closeMenu(restoreFocus = false) {
-    const hadFocus = projectMenu.contains(document.activeElement);
-    projectMenu.hidden = true;projectButton.setAttribute('aria-expanded','false');
-    if (restoreFocus || hadFocus) (projectButton.disabled ? byId('start-title') : projectButton).focus({preventScroll:true});
+    const hadFocus = menu.contains(document.activeElement);
+    menu.hidden = true;trigger.setAttribute('aria-expanded','false');
+    if (restoreFocus || hadFocus) (trigger.disabled ? byId('start-title') : trigger).focus({preventScroll:true});
   }
   function openMenu(last = false) {
-    if (projectButton.disabled) return;
-    projectMenu.hidden = false;projectButton.setAttribute('aria-expanded','true');
+    if (trigger.disabled) return;
+    menu.hidden = false;trigger.setAttribute('aria-expanded','true');
     const items = menuItems();(last ? items.at(-1) : items[0])?.focus({preventScroll:true});
   }
-  projectButton.addEventListener('click', () => projectMenu.hidden ? openMenu() : closeMenu(true));
-  document.addEventListener('click', event => {if (!byId('project-actions').contains(event.target)) closeMenu();});
-  document.addEventListener('focusin', event => {if (!byId('project-actions').contains(event.target)) closeMenu();});
+  trigger.addEventListener('click', () => menu.hidden ? openMenu() : closeMenu(true));
+  document.addEventListener('click', event => {if (!byId(prefix + '-actions').contains(event.target)) closeMenu();});
+  document.addEventListener('focusin', event => {if (!byId(prefix + '-actions').contains(event.target)) closeMenu();});
   window.addEventListener('blur', () => closeMenu());
   document.addEventListener('keydown', event => {
-    if (event.target === projectButton && ['ArrowDown','ArrowUp'].includes(event.key)) {
+    if (event.target === trigger && ['ArrowDown','ArrowUp'].includes(event.key)) {
       event.preventDefault();openMenu(event.key === 'ArrowUp');return;
     }
-    if (projectMenu.hidden || (!projectMenu.contains(event.target) && event.target !== projectButton)) return;
+    if (menu.hidden || (!menu.contains(event.target) && event.target !== trigger)) return;
     const items = menuItems(), index = items.indexOf(document.activeElement);
     let next;
     switch (event.key) {
@@ -260,8 +261,15 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
     }
     event.preventDefault();next?.focus({preventScroll:true});
   });
+  return {contains: button => menu.contains(button), close: closeMenu, refresh(busy) {
+    trigger.disabled = busy;
+    if (busy && !menu.hidden) closeMenu(true);
+    else if (menu.contains(document.activeElement) && document.activeElement.disabled) menuItems()[0]?.focus({preventScroll:true});
+  }};
+  }
+  const dropdowns = [dropdown('project'), dropdown('tutorial')];
   const send = message => vscode.postMessage({...message, token});
-  for (const button of buttons) button.addEventListener('click', () => {if (projectMenu.contains(button)) closeMenu(true);send({type:'action',action:button.dataset.action});});
+  for (const button of buttons) button.addEventListener('click', () => {for (const menu of dropdowns) if (menu.contains(button)) menu.close(true);send({type:'action',action:button.dataset.action});});
   byId('retry').addEventListener('click', () => send({type:'retry'}));
   byId('retry-recent').addEventListener('click', () => send({type:'retryRecent'}));
   window.addEventListener('message', event => {
@@ -276,9 +284,7 @@ p{margin:8px 0}.muted,.path{color:var(--vscode-descriptionForeground)}#account,#
       if (action === 'signIn') button.hidden = state.phase !== 'signed-out';
       if (action === 'setup') {button.hidden = !signedIn || !['install','unavailable'].includes(state.phase);button.textContent = state.phase === 'install' ? 'Install Zero for GitHub' : 'Check again';}
     }
-    projectButton.disabled = state.busy;
-    if (state.busy && !projectMenu.hidden) closeMenu(true);
-    else if (projectMenu.contains(document.activeElement) && document.activeElement.disabled) menuItems()[0]?.focus({preventScroll:true});
+    for (const menu of dropdowns) menu.refresh(state.busy);
     byId('account').textContent = state.accountLabel;
     byId('account-group').hidden = !state.accountLabel;
     byId('github-heading').hidden = state.phase === 'signed-out';

@@ -221,6 +221,29 @@ test('Project dropdown navigates enabled actions and closes on selection, Escape
   }
   page.dispose();
 });
+test('Tutorial options keeps reading available signed out and shares menu focus behavior', async () => {
+  const f=fake({phase:'signed-out'}),{page,panel}=await open(f),b=domHarness(panel.webview.html);
+  b.update(panel.messages.at(-1));
+  const trigger=b.elements.get('tutorial-button'),menu=b.elements.get('tutorial-menu');
+  const tutorials=b.buttons.find(button=>button.dataset.action==='tutorials');
+  const start=b.buttons.find(button=>button.dataset.action==='tutorial');
+  assert.equal(start.disabled,true);assert.equal(trigger.disabled,false);
+  trigger.click();assert.equal(menu.hidden,false);assert.equal(b.document.activeElement,tutorials);
+  b.key('ArrowDown');assert.equal(b.document.activeElement,tutorials);
+  b.key('Escape');assert.equal(menu.hidden,true);assert.equal(b.document.activeElement,trigger);
+  b.key('ArrowUp',trigger);tutorials.click();
+  assert.equal(menu.hidden,true);assert.equal(b.sent.at(-1).action,'tutorials');
+  await f.message(panel,{type:'action',action:'tutorials'});
+  assert.deepEqual(f.commands,['zero.openFirstLesson']);
+  for(const close of [()=>b.key('Tab'),()=>b.event('click',start),()=>b.blur()]) {
+    trigger.click();close();assert.equal(menu.hidden,true);
+  }
+  trigger.click();f.setState({phase:'signed-out',busy:true});await page.refresh();b.update(panel.messages.at(-1));
+  assert.equal(menu.hidden,true);assert.equal(trigger.disabled,true);
+  assert.equal(b.document.activeElement,b.elements.get('start-title'));
+  page.dispose();
+});
+
 test('signed-out menu keeps Open and Tutorials available; auth drift and busy updates keep focus out of hidden items',async()=>{
   const f=fake({phase:'signed-out'}),{page,panel}=await open(f),b=domHarness(panel.webview.html);b.update(panel.messages.at(-1));
   const trigger=b.elements.get('project-button'),menu=b.elements.get('project-menu'),action=name=>b.buttons.find(button=>button.dataset.action===name);
@@ -238,13 +261,18 @@ function domHarness(html) {
   function element() {return {dataset:{}, children:[], attributes:{}, textContent:'', hidden:false, listeners:{}, append(...items) {this.children.push(...items);}, replaceChildren() {this.children = [];}, addEventListener(name, fn) {this.listeners[name] = fn;}, click() {if (!this.disabled) this.listeners.click?.();}, focus() {document.activeElement = this;}, setAttribute(name,value) {this.attributes[name]=value;}, getAttribute(name) {return this.attributes[name];}, contains(target) {return target===this || this.children.some(child=>child.contains(target));}, querySelectorAll() {return this.children.flatMap(li => li.dataset.action ? [li] : li.children);}};}
   for (const id of html.matchAll(/id="([^"]+)"/g)) elements.set(id[1], element());
   const buttons = [...html.matchAll(/data-action="([^"]+)"/g)].map(match => {const button = element();button.dataset.action = match[1];return button;});
+  elements.get('tutorial-menu').hidden=true;
+  elements.get('tutorial-menu').append(...buttons.filter(button=>button.dataset.action==='tutorials'));
+  elements.get('tutorial-actions').append(elements.get('tutorial-button'),elements.get('tutorial-menu'));
   elements.get('project-menu').hidden=true;
   elements.get('project-menu').append(...buttons.filter(button=>['new','clone','local'].includes(button.dataset.action)));
   elements.get('project-actions').append(elements.get('project-button'),elements.get('project-menu'));
-  const document = {getElementById:id => elements.get(id), querySelectorAll:() => buttons, createElement:element, activeElement:undefined,addEventListener:(name,fn)=>documentEvents.set(name,fn)};
-  const sandbox = {document, window:{addEventListener:(name, fn) => events.set(name, fn)}, acquireVsCodeApi:() => ({postMessage:message => sent.push(message)})};
+  const listen = (map,name,fn) => map.set(name,[...(map.get(name)||[]),fn]);
+  const emit = (map,name,event) => {for(const fn of map.get(name)||[])fn(event);};
+  const document = {getElementById:id => elements.get(id), querySelectorAll:() => buttons, createElement:element, activeElement:undefined,addEventListener:(name,fn)=>listen(documentEvents,name,fn)};
+  const sandbox = {document, window:{addEventListener:(name, fn) => listen(events,name,fn)}, acquireVsCodeApi:() => ({postMessage:message => sent.push(message)})};
   vm.runInNewContext(html.match(/<script nonce="[^"]+">([\s\S]+)<\/script>/)[1], sandbox);
-  return {elements, buttons, sent, document, update:message => events.get('message')({data:message}),
-    event:(type,target)=>documentEvents.get(type)?.({target}), blur:()=>events.get('blur')?.(),
-    key:(key,target=document.activeElement)=>{let prevented=false;documentEvents.get('keydown')?.({key,target,preventDefault(){prevented=true;}});return prevented;}};
+  return {elements, buttons, sent, document, update:message => emit(events,'message',{data:message}),
+    event:(type,target)=>emit(documentEvents,type,{target}), blur:()=>emit(events,'blur'),
+    key:(key,target=document.activeElement)=>{let prevented=false;emit(documentEvents,'keydown',{key,target,preventDefault(){prevented=true;}});return prevented;}};
 }
