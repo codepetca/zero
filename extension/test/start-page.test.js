@@ -177,6 +177,33 @@ test('strict nonce CSP and text-only rendering keep account, status and path mar
   assert.equal(browser.elements.get('recent-section').hidden, true);page.dispose();
 });
 
+test('GitHub account stays compact while signed-out and setup states keep their actions', async () => {
+  const f = fake({phase:'ready', accountId:'42', accountLabel:'armorup'});
+  const {page,panel} = await open(f), b = domHarness(panel.webview.html);
+  const action = name => b.buttons.find(button => button.dataset.action === name);
+  b.update(panel.messages.at(-1));
+  assert.match(panel.webview.html, /GitHub<span id="account-group" hidden> <span class="muted" aria-hidden="true">·<\/span> <span id="account"/);
+  assert.equal(b.elements.get('account').textContent, 'armorup');
+  assert.equal(b.elements.get('account-group').hidden, false);
+  assert.equal(b.elements.get('github-heading').hidden, false);
+  assert.equal(b.elements.get('guidance').hidden, true);
+  assert.equal(action('signIn').hidden, true);
+  for (const phase of ['checking','install','unavailable']) {
+    f.setState({phase, accountId:'42', accountLabel:'armorup'});
+    await page.refresh();b.update(panel.messages.at(-1));
+    assert.equal(b.elements.get('guidance').hidden, false);
+    assert.ok(b.elements.get('guidance').textContent);
+    assert.equal(action('setup').hidden, phase === 'checking');
+  }
+  f.setState({phase:'signed-out'});await page.refresh();b.update(panel.messages.at(-1));
+  assert.equal(b.elements.get('account-group').hidden, true);
+  assert.equal(b.elements.get('github-heading').hidden, true);
+  assert.equal(b.elements.get('guidance').hidden, true);
+  assert.equal(action('signIn').hidden, false);
+  assert.equal(action('signIn').disabled, false);
+  page.dispose();
+});
+
 test('Project dropdown navigates enabled actions and closes on selection, Escape, Tab and outside interaction',async()=>{
   const f=fake(),{page,panel}=await open(f),b=domHarness(panel.webview.html);b.update(panel.messages.at(-1));
   const trigger=b.elements.get('project-button'),menu=b.elements.get('project-menu');
