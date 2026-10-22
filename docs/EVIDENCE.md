@@ -26,12 +26,31 @@ Zero extension or copied credentials. Dev sample is local-only, Git disabled,
 upload simulation. Generated state stays ignored; useful scratch game edits must
 be retained before worktree retirement.
 
-Full dev:smoke is not claimed passing. The existing GameHelpersCheck timed out
-at phase5 twice; a diagnostic-only scratch copy later reported native
-CVDisplayLink display errors and phase0 timeout. Native CUA screenshots were also
-unavailable. No timing/focus assertion was weakened, no runtime source changed,
-and no automatic retry was added. Owner was asked to wake/unlock Mac for native
-play/Run/Stop and final full smoke verification. Windows/Linux UI not exercised.
+After the owner unlocked the Mac, final full `npm run dev:smoke` passed exit0
+at source c269210bd552a659fbce2fcda71ba66e72963109, with CHECKPOINT_OK11/game,
+ZERO_DEV_PLAY_OK, ZERO_PADDING_OK, ZERO_AUDIO_OK (57native checks),
+ZERO_GAME_HELPERS_OK, ZERO_SMOKE_OK,21UI passes and ZERO_DEV_SMOKE_OK.
+Seven dev unit tests and npm run check also passed on the final source. Initial
+locked-display failures are retained as diagnostic history, not successful runs.
+GameHelpersCheck now uses the existing NativeFocus helper for initial/restored
+canvas focus; runtime behavior, assertions and timeouts are unchanged.
+
+The new native play check extends the actual sample Main and sends JavaFX canvas
+key events through GameApp across real AnimationTimer update/draw frames. It
+collects three coins, verifies win, focuses/activates Restart, checks score reset
+and canvas focus, then collects again. The rendered game-win.png shows Score:3
+and the win message. A negative mutation removed only Main.restart's canvas focus
+restoration: the check failed with the expected focus AssertionError and exit1;
+the exact original Main was restored before the final passing suite. This is
+native automated integration, not physical keyboard/mouse gameplay acceptance.
+
+The actual isolated source extension host's sidebar Run launched Main (PID7821),
+Stop displayed App stopped and terminated that process, and Run launched a new
+Main (PID9143). The Dev editor, watcher/preview and sample were left running for
+the owner. Native screenshot native-dev-ready.png records the real editor/task.
+Windows/Linux UI remains untested. Browser automatic policy review rejected
+acquiring the old3152preview tab because URL authority could not be established;
+that tab was left unchanged, without an alternate browser workaround.
 
 Independent review zero_dev_review/1 requested GPT6.1Sol/medium completed full
 12file diff atf563715d; two acceptedP2s: cached preparation dependencies and direct
@@ -42,6 +61,15 @@ no remaining actionable findings. 1launch,2turns,1initial+1targeted wave,1fixbat
 effective model, reviewer seconds and token telemetry unknown. Weekly remaining
 16% at start, DeepSeek explicitly paused through2026-12-31; cached storage269GB
 healthy. Local receipts/screenshots/logs: .verification/zero-dev/acceptance/.
+Independent native-test review zero_dev_native_review requested GPT6.1Sol/medium
+covered bb3a8093→d0cd4117 and relevant game/input/focus callers. One acceptedP2:
+Restart's programmatic action could pass while canvas was already focused.
+Targeted review through c269210b verified the explicit button-focus precondition
+and negative-mutation proof: complete/clean. 1launch,2turns,1initial+1targeted wave,
+1fixbatch; effective model, tokens and attributable reviewer time unknown.
+Final local logs: smoke-final.log, unit-final.log, check-final.log and
+focus-mutation.log in .verification/zero-dev/acceptance/. Native/full-suite work
+used14%weekly remaining and healthy271GB available storage; DeepSeek stayed paused.
 No source publication or installer release was performed for this tooling work.
 
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22

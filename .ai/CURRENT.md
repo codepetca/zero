@@ -1,25 +1,27 @@
-# Zero Dev — local implementation, 2026-10-22
+# Zero Dev — local acceptance complete, 2026-10-22
 
 Owner requested fast UI/framework/game/smoke iteration without an installer.
 Branch codex/zero-dev reuses the tutorial-padding checkout from origin/main
-d131bd43, preserving the dirty primary funding checkout and existing prototype.
-`npm run dev` prepares an isolated source extension host and local Coin Game,
-watches source, refreshes framework/UI bundles and serves live preview3153.
-Game edits are preserved; managed-copy drift blocks overwrite. Editor state is
-separate, sample local-only, Git off and upload simulation. No release/version,
-publication, account permission or installed Zero changes are part of this work.
-See docs/ZERO-DEV.md. Local code is committed through130207c0; independent
-Sol/medium full review plus targeted fix review completed clean (2turns,
-1initial+1targeted wave,1fixbatch). Seven dev unit and21UI tests, configuration,
-browser gallery/standalone live reload and actual core refresh/game-edit retention
-passed. Warm source preparation measured0.664s. The sample finite game passed.
-Native framework smoke remains incomplete: game-helper focus timed out, later
-JavaFX reported CVDisplayLink errors and native CUA screenshots were unavailable.
-Owner was asked to wake/unlock the Mac; final play/Run/Stop/full smoke acceptance
-awaits that response. Keep this worktree active: it owns the Dev game, source,
-watcher and preview3153. Dev editor state is ~/.zero-dev/fce53b51730d/, outside
-the checkout to avoid macOS IPC socket path limits. No push/merge is authorized
-for this new local tooling request. Receipts: .verification/zero-dev/acceptance/.
+d131bd43, preserving the dirty primary funding checkout. `npm run dev` opens an
+isolated source extension host, watches source and serves live preview3153.
+Game edits and editor state are preserved; managed-copy drift blocks overwrite.
+See docs/ZERO-DEV.md. Implementation and native-test fixes committed through
+c269210bd552a659fbce2fcda71ba66e72963109; independent source and native-test
+reviews completed clean after targeted fixes. Seven dev tests,21UI tests,
+configuration, source refresh and browser live reload passed. Warm preparation
+measured0.664s with existing dependencies. Final full dev:smoke exits0 with
+ZERO_DEV_SMOKE_OK: checkpoint game, native automated three-coin win/Restart/
+recollection, framework input/focus/padding/media and UI contracts pass. Native
+Run/Stop/Run passed in the actual source extension host; Stop terminated Main,
+Run launched it again. Restart focus assertion was also mutation-tested: removing
+focus restoration fails as expected; original game restored. Automated JavaFX
+input is not physical keyboard/mouse acceptance; Windows/Linux UI untested.
+Keep this worktree active: it owns the Dev game, watcher and preview3153. Dev
+editor state is ~/.zero-dev/fce53b51730d/, outside the checkout for Mac IPC limits.
+The sample is running and local-only, with Git off and upload simulation. No
+installer/version, publication, account permission or installed Zero change;
+no push/merge authorized for this local tooling request. Receipts, final logs
+and rendered game-win.png: .verification/zero-dev/acceptance/.
 
 # Tutorial padding and Start Page — Mac0.5.45 delivered, 2026-10-22
 
