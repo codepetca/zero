@@ -24,9 +24,10 @@ reuse valid evidence for unchanged code. Build installer candidates when testing
 packaging/setup/update behavior or preparing an authorized release. Source merges
 alone do not require an installer release.
 
-The [faster CI plan](FAST-DEV-FLOW.md) is prepared but not implemented. All current
-PR CI gates still apply. Its next work is dependency-aware job selection,
-cancellation of superseded PR runs and faster browser/dependency provisioning.
+The [CI selection guide](FAST-DEV-FLOW.md) describes the affected-check matrix,
+PR cancellation, browser reuse and version-keyed dependency caches. Unknown/shared
+inputs and manual full-suite dispatches retain full coverage. Merge only after
+the stable final gates and all selected jobs pass for the reviewed commit.
 
 ## Commands
 

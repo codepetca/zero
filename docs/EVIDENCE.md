@@ -99,6 +99,30 @@ verification; no application suite is rerun for this documentation-only change.
 Independent preparation review receipt will be retained with the existing ignored
 Zero Dev acceptance records. This follow-up is local, with no new task/automation.
 
+## Faster CI implementation — 2026-10-22
+
+Owner authorized implementing FAST-DEV-FLOW, opening a PR and merging after
+checks. A shared fail-closed classifier now selects work in the three existing
+workflows; unknown/shared inputs and manual dispatch run the full matrix. Native
+selection runs sample playthrough plus existing framework checks. Stable final
+gates reject failed classification and failed/cancelled/skipped selected work.
+PR-only concurrency cancels superseded runs without sharing release/dispatch
+or other-PR groups. Runner Chrome must launch before reuse; the existing pinned
+CLI fallback installs and verifies missing/incompatible Chrome. Maven and verified
+WebFX download caches use dependency/OS/version keys and never cache builds or
+credentials. Original release preparation and Windows install/update checks remain.
+
+Nineteen local CI/Dev tests pass, including actual Git rename/deletion history,
+unknown/malformed input fallback, selected-work gate failures and browser warm/
+cold/error paths. Four workflows pass actionlint1.7.12. Configuration/syntax/local
+links and whitespace pass. Application/public API and installed Zero unchanged.
+Bounded read-only input inventory ci_input_inventory, requested Sol6.1/medium,
+identified shared website/release/curriculum/brand/process inputs; coordinator
+verified imports and kept shared/unrecognized executable inputs on the full path.
+No worker edits or conflicts. Independent full implementation review and actual
+GitHub full/cold+warm/cancellation results are pending in the existing ignored
+.verification/fast-ci/progress.json receipt. No installer release is requested.
+
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
 
 Owner authorized source merge/release and the specific Administration write

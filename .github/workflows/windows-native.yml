@@ -1,20 +1,19 @@
 name: Windows launcher checks
 on:
   pull_request:
-    paths:
-      - 'native-installer/windows/**'
-      - 'setup/**'
-      - 'scripts/**'
-      - 'extension/**'
-      - 'release/**'
-      - '.config/dotnet-tools.json'
-      - '.gitattributes'
-      - '.github/workflows/windows-native.yml'
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:
-  windows:
+  scope:
+    uses: ./.github/workflows/ci-scope.yml
+  windows-tests:
+    needs: scope
+    if: needs.scope.outputs.windows == 'true'
     runs-on: windows-2022
     timeout-minutes: 50
     steps:
@@ -41,6 +40,15 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or "$version" -notmatch '^javac 21\.') { throw 'Expected Java 21 compiler.' }
           "JAVA_HOME=$env:JAVA_HOME_21_X64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           $javaBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: |
+            **/pom.xml
+            student-template/.mvn/wrapper/maven-wrapper.properties
+            extension/src/web-export/toolchain-lock.json
       - name: Native fixtures and update authentication
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
@@ -100,3 +108,19 @@ jobs:
             dist/installers/Zero-Setup-*-windows-development.exe
             dist/installers/Zero-*-full.nupkg
             dist/installers/build-windows.json
+
+  windows:
+    if: ${{ always() }}
+    needs: [scope, windows-tests]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Require selected windows checks
+        run: node scripts/ci-gate.mjs
+        env:
+          ZERO_CI_GATE: '1'
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SELECTED: ${{ needs.scope.outputs.windows || 'true' }}
+          JOB_RESULT: ${{ needs.windows-tests.result }}

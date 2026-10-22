@@ -8,13 +8,16 @@ remain untested. No installer release or version bump was part of this work.
 Details and exact CI/review receipts: docs/EVIDENCE.md and ignored
 .verification/zero-dev/acceptance/progress.json.
 
-Owner now requests a remembered faster default and preparation of future CI work.
-AGENTS routes to docs/DEVELOPMENT.md: use Zero Dev for routine local iteration,
-focused checks, review/docs before final CI push, installer builds for relevant
-setup/update/release work. docs/FAST-DEV-FLOW.md is the prepared next implementation
-plan: dependency-aware job selection, superseded-run cancellation and measured
-browser/toolchain caching. It is not implemented; current CI gates still apply.
-This preparation is local; no new PR/merge/release or automation is requested.
+Owner authorized implementing faster CI, PR publication and merge after checks.
+Branch codex/zero-fast-dev-flow includes the prepared/default Zero Dev guidance
+and current CI implementation. Four workflows use conservative affected-code
+selection, always-running final gates, PR-only superseded-run cancellation,
+verified runner Chrome reuse/fallback and Maven/WebFX download caches. Native
+selection exercises the sample playthrough and framework checks. Unknown/shared
+inputs and manual dispatch retain the full matrix. Relevant local contract tests
+and actionlint/configuration checks precede independent review; exact-head CI and
+full-run/cache/cancellation evidence gate merge. No installer release requested.
+See docs/FAST-DEV-FLOW.md; implementation receipts: .verification/fast-ci/.
 
 Keep the active tutorial-padding worktree and ~/.zero-dev/fce53b51730d/ profile:
 they own the user's scratch game, watcher and preview3153. Preserve scratch edits

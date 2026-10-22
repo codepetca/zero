@@ -1,9 +1,9 @@
 # Faster Zero development flow
 
-Status: prepared follow-up,2026-10-22. Zero Dev is available on main through
-[PR173](https://github.com/codepetca/zero/pull/173), merge0d31bcfc. The owner asked
-to remember the faster loop and prepare the next work. CI selection/caching below
-is planned; no workflow or existing merge gate changes are made by this document.
+Status: implemented locally,2026-10-22; independent review and exact-head GitHub
+CI gate the owner-authorized PR/merge. Zero Dev is available on main through
+[PR173](https://github.com/codepetca/zero/pull/173). No installer release is part
+of this CI change.
 
 ## Use now
 
@@ -13,58 +13,83 @@ finish review/docs before the final PR push when practical. Stop the sample befo
 native focus smoke. Preserve scratch game edits before retiring its worktree.
 Installer setup/update acceptance remains separate from source-loop acceptance.
 
-## Next implementation: scope PR CI
+## Affected checks
 
-The current `release-review.yml` runs broad source/native/website checks,
-`windows-native.yml` builds and installs an actual development installer for
-`scripts/**` and other broad paths, and `web-export.yml` installs a browser and
-runs real WebFX builds for every PR. These workflows explain why a tooling PR can
-wait on packaging or browser provisioning after local tests pass. In PR173,
-browser installation alone took382seconds; this is one observation, not a benchmark.
+`ci-scope.yml` is called by the three existing workflows. It reads the actual PR
+base/head diff at their merge base, includes deleted paths and treats renames as
+old+new paths. A small explicit allowlist permits narrow runs; unknown paths,
+invalid input, missing history or classifier errors select every lane. A failed
+scope job fails the final gate. Mixed changes select the union.
 
-Implement this as one bounded CI/workflow change with its own checks and review:
-
-1. Inventory each existing job's inputs, shared generators and transitive
-   dependencies before narrowing triggers. Add an always-running classifier/check
-   with a stable result; run the full affected matrix for unknown inputs,
-   classification failures or shared changes whose impact is uncertain. Keep
-   release/provenance and auth/publish coverage wherever those boundaries change.
-2. Separate fast source checks from expensive platform/export jobs. Use the
-   proposed matrix below; exact path rules must follow the dependency inventory.
-   Preserve full release-candidate validation and a manual full-suite path.
-3. Add PR-specific workflow concurrency with cancellation of superseded runs.
-   Keep different PRs and explicit release/preparation runs independent.
-4. Measure browser provisioning, Maven downloads, compilation and job queue time.
-   Reuse compatible browser/toolchain caches or runner-provided browsers where
-   verified; key caches to pinned versions/OS and retain a cold-install fallback.
-5. Update the workflow guidance with the actual implemented commands/triggers.
-   Record before/after timings separately for cold and warm runs; do not promise
-   a speedup from a cached local preparation measurement alone.
-
-| Affected behavior | Proposed PR verification |
+| Input | Checks selected beyond always-running checks |
 | --- | --- |
-| Documentation/guidance only | Applicable documentation/configuration/link checks |
-| Dev tooling | Dev tests, configuration, preparation/isolation contracts; native smoke when game harness or native checks change |
-| Extension UI/shared design | Affected extension/UI tests and rendered interaction checks; website checks when shared inputs affect it |
-| Framework/input/media/public API | Native framework/game checks, API-reference coverage and applicable browser-export compatibility |
-| Export/Publish/auth/transport | Existing relevant safety/lifecycle tests and real export/browser checks; required authority reviews |
-| Installer/profile/wrappers/release/build inputs | Kit/provenance checks and affected platform setup/install/update validation |
-| Unknown or cross-cutting impact | Full applicable existing matrix |
+| AGENTS, .ai, design.md | None |
+| README and docs Markdown/styles/images | Website typecheck/tests/build (docs are website inputs) |
+| Zero Dev launcher/test and root editor launch configuration | Existing Dev contracts |
+| Zero Dev implementation or scripts/dev harness | Native sample playthrough and framework/input/media smoke |
+| Explicit Start Page/sidebar render/style/control files and tests, design/playground | Broad extension/setup/design/kit contract suite |
+| Shared control CSS and design tokens/adapters/preparation | Source contract suite and website |
+| Website app/components/styles/tests/public/content and explicit package/build configuration | Website |
+| Website libraries/scripts, shared curriculum metadata, framework, starter, teaching, export/Publish/auth, installer/profile/release, manifests, workflow changes and any unknown input | Full existing matrix |
 
-## Acceptance for that follow-up
+The exact allowlist lives in `scripts/ci-scope.mjs`; a new file defaults to full
+coverage until its dependencies have been reviewed. In particular, shared
+website curriculum feeds generated extension lessons, branding feeds native
+icons, and starter files ship in the kit, so those are not website/docs-only.
+Native selections run `dev:smoke`, including actual sample-game frames and the
+existing framework checks. Full runs retain sharing/Maven consumers, lesson
+builds/examples/progression, website and release guards, Windows installation/
+update/native JavaFX checks, and real WebFX browser checks.
 
-- Test the classifier against docs-only, Dev-only, UI, framework, export/Publish,
-  installer/profile, shared-input and unknown-path changes. Mixed changes take
-  the union of affected checks; errors never silently select a smaller set.
-- Show a tooling/UI PR avoiding unrelated installer and WebFX builds while
-  relevant changes still trigger them. Changes to smoke harnesses exercise
-  native behavior. Required aggregate checks complete for every selection.
-- Verify a superseded PR run cancels without canceling another PR or a release run.
-- Verify cold-cache and warm-cache execution, pinned-tool compatibility and a
-  working explicit full-suite invocation. Keep credentials and permissions scoped
-  as before; this work does not add release/publication authority.
-- Compare time and coverage with current behavior, complete independent review,
-  and pass the actual CI gate before merging workflow changes. Until then, follow
-  the current workflow definitions rather than manually omitting checks.
+Always-running source checks include CI selection/gate/browser-fallback tests,
+Dev contracts, configuration/syntax/local doc links and the immutable release
+boundary check. The `source-gate`, `windows` and `compatible` final gates require
+successful scope calculation and successful selected work. A selected job that
+fails, cancels or skips cannot pass its gate; intentionally unselected platform/
+browser work is reported as skipped. No account permissions or publication
+credentials were added.
 
-No new task, automation, installer release or CI bypass is created by this plan.
+## Cancellation, provisioning and caches
+
+Each workflow groups PR runs by workflow+event+PR number and cancels superseded
+runs. Other PRs and manual dispatches have distinct groups; dispatch cancellation
+is disabled. There are no scheduled jobs or automatic releases.
+
+Browser CI first launches the runner's Chrome using the pinned Playwright
+package. A successful launch reuses it; unavailable/incompatible Chrome falls
+back to the existing pinned CLI installation and must then launch successfully.
+The helper reports provisioning milliseconds. There is no browser-binary cache
+that could silently supply a different pinned toolchain.
+
+Java setup caches Maven downloads by OS/architecture and dependency inputs.
+WebFX separately caches only its verified download directories, keyed by
+OS/architecture, JDK21, npm lockfile, starter Maven inputs and exporter inputs.
+It never caches exported builds, lock state, logs or credentials. The existing
+exporter still verifies its artifact/distribution inventory. Cache misses use
+normal downloads; cache service failure does not omit verification.
+
+## Run and verify
+
+```sh
+node --test scripts/ci-*.test.mjs
+npm run test:dev
+npm run check
+```
+
+Local actionlint validates the four workflow files when available. Classifier
+tests cover guidance/Dev/UI/framework/export/auth/installer/shared/unknown cases,
+mixed inputs and actual Git rename/deletion history. Gate tests reject selected
+skips/failures and failed classification. Browser tests cover warm reuse, cold
+fallback and failing installs/launches.
+
+For an explicit full run on a selected ref, dispatch **Release checks and
+preparation** (supply its exact current kit version), **Windows launcher checks**
+and **Browser export compatibility** from Actions. Every manual dispatch selects
+all lanes; release preparation retains its existing version/immutable-asset rules
+and does not publish. PR checks are scoped automatically; no manual skip flags
+are provided.
+
+PR173's browser install took382seconds. Treat that as one baseline observation;
+compare actual GitHub job/step timings and cache-hit receipts for this PR and a
+warm full dispatch before claiming measured improvement. Fixture selection is
+not a measured small-PR runtime or physical Windows/Linux Zero Dev acceptance.

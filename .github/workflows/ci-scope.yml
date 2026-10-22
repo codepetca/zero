@@ -1,0 +1,43 @@
+name: Select affected CI checks
+on:
+  workflow_call:
+    outputs:
+      source:
+        value: ${{ jobs.classify.outputs.source }}
+      native:
+        value: ${{ jobs.classify.outputs.native }}
+      browser:
+        value: ${{ jobs.classify.outputs.browser }}
+      windows:
+        value: ${{ jobs.classify.outputs.windows }}
+      website:
+        value: ${{ jobs.classify.outputs.website }}
+      sharing:
+        value: ${{ jobs.classify.outputs.sharing }}
+      lessons:
+        value: ${{ jobs.classify.outputs.lessons }}
+permissions:
+  contents: read
+jobs:
+  classify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source: ${{ steps.scope.outputs.source || 'true' }}
+      native: ${{ steps.scope.outputs.native || 'true' }}
+      browser: ${{ steps.scope.outputs.browser || 'true' }}
+      windows: ${{ steps.scope.outputs.windows || 'true' }}
+      website: ${{ steps.scope.outputs.website || 'true' }}
+      sharing: ${{ steps.scope.outputs.sharing || 'true' }}
+      lessons: ${{ steps.scope.outputs.lessons || 'true' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Select affected checks (unknown inputs run everything)
+        id: scope
+        run: node scripts/ci-scope.mjs

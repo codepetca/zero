@@ -2,10 +2,18 @@ name: Browser export compatibility
 on:
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 jobs:
-  compatible:
+  scope:
+    uses: ./.github/workflows/ci-scope.yml
+  browser-tests:
+    needs: scope
+    if: needs.scope.outputs.browser == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -20,10 +28,41 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: maven
+          cache-dependency-path: |
+            **/pom.xml
+            student-template/.mvn/wrapper/maven-wrapper.properties
+            extension/src/web-export/toolchain-lock.json
       - run: npm ci
       - name: Check reviewed helper profiles and export/publish safety
         run: npm run test:web
-      - name: Install browser for behavioral checks
-        run: npx playwright-cli install-browser chrome --with-deps
+      - name: Reuse working runner Chrome or install pinned fallback
+        run: node scripts/ci-browser.mjs
+      - name: Cache verified WebFX toolchain downloads (no builds or credentials)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        continue-on-error: true
+        with:
+          path: |
+            .verification/web-export-checks/cache/repository
+            .verification/web-export-checks/cache/artifacts
+            .verification/web-export-checks/cache/maven-home
+            .verification/web-export-checks/cache/compatibility-artifacts
+          key: webfx-v1-${{ runner.os }}-${{ runner.arch }}-jdk21-${{ hashFiles('package-lock.json', 'student-template/pom.xml', 'student-template/.mvn/**', 'extension/src/web-export/**') }}
       - name: Real WebFX compiles and browser behavior
         run: npm run verify:web
+
+  compatible:
+    if: ${{ always() }}
+    needs: [scope, browser-tests]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Require selected browser checks
+        run: node scripts/ci-gate.mjs
+        env:
+          ZERO_CI_GATE: '1'
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          SELECTED: ${{ needs.scope.outputs.browser || 'true' }}
+          JOB_RESULT: ${{ needs.browser-tests.result }}
