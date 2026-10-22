@@ -10,8 +10,8 @@ Target illustration: your greeting after you write it.
 
 ## 1. Add this import above `public class Main`
 
-The new `Main.java` has `Main extends App`, an empty `setup()` and a
-`main` method. Keep those lines. The empty setup opens a blank window, so your
+The new `Main.java` has `Main extends App`, `settings()` with `padding(20)`, an empty
+`setup()` and a `main` method. Keep those lines. The empty setup opens a blank window, so your
 first control is yours to write. Add this import above `public class Main`:
 
 ```java
@@ -43,8 +43,9 @@ Your Main extends `zero.App`, a JavaFX application. The starter's
 `setup()` once to build your interface, and shows the window. Keep that entry
 point; you do not need to construct another Main.
 
-For an optional window title and initial size, add this method inside Main,
-beside `setup()` rather than inside it:
+The starter already uses `padding(20)` to leave space around the content.
+For an optional window title and initial size, edit its existing `settings()`
+method:
 
 ```java
 @Override public void settings() {
@@ -54,8 +55,8 @@ beside `setup()` rather than inside it:
 }
 ```
 
-If Main already has `settings()`, edit that method instead. Call `title(...)`
-and `size(...)` there, before the interface exists. `padding(20)` leaves space
+Keep one `settings()` method. Call `title(...)` and `size(...)` there, before
+the interface exists. `padding(20)` leaves space
 around your content. In `setup()`, `show(greeting)` displays an ordinary JavaFX
 Label; later lessons arrange several controls before calling `show(...)`.
 

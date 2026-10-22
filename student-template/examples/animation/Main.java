@@ -8,6 +8,7 @@ public class Main extends GameApp {
 
     @Override
     public void settings() {
+        padding(20);
         size(800, 500);
         title("My Zero App");
     }

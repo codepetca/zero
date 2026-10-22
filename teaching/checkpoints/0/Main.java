@@ -2,6 +2,8 @@ import javafx.scene.control.Label;
 import zero.App;
 
 public class Main extends App {
+    @Override public void settings() { padding(20); }
+
     @Override public void setup() {
         Label greeting = new Label("Hello, Java!");
         show(greeting);

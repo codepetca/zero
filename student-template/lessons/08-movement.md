@@ -89,8 +89,9 @@ methods short so JavaFX can handle input and display the next frame.
 Canvas coordinates start at `(0, 0)` in the top left: x increases rightward and
 y downward. `width()` and `height()` return canvas dimensions, available in setup
 and later. `size(...)` in settings chooses those fixed dimensions; resizing the
-window does not scale the canvas. Optional App `padding(...)` surrounds it;
-initial padding grows the game window while preserving the canvas dimensions.
+window does not scale the canvas. The starter’s `padding(20)` leaves space
+around it. Initial padding grows the game window while preserving the
+640 by 400 canvas dimensions and all game coordinates.
 
 `keyDown(...)` reports a held key while the canvas has focus. Typing in a text
 field belongs to that control. Focus loss clears held input but does not pause

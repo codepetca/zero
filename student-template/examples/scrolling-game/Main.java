@@ -21,6 +21,7 @@ public class Main extends GameApp {
     private final double worldWidth = 1600;
 
     @Override public void settings() {
+        padding(20);
         title("A scrolling world");
         size(640, 360);
     }

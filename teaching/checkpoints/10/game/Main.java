@@ -15,6 +15,7 @@ public class Main extends GameApp {
     private Label message;
 
     @Override public void settings() {
+        padding(20);
         size(640, 400);
     }
 

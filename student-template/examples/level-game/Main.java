@@ -23,6 +23,7 @@ public class Main extends GameApp {
     private int bankedPoints;
 
     @Override public void settings() {
+        padding(20);
         title("Enemies and levels");
         size(640, 360);
     }

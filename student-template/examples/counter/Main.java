@@ -12,6 +12,7 @@ public class Main extends GameApp {
 
     @Override
     public void settings() {
+        padding(20);
         size(480, 240);
         title("Click counter");
     }
