@@ -211,6 +211,14 @@ export async function smokeGame(game) {
       ['-B', '--no-transfer-progress', '-q', '-Dapp.mainClass=CheckpointHarness', 'clean', 'compile', 'javafx:run'],
       {cwd:temp, env:{...developmentEnvironment(), ZERO_CHECKPOINT_ID:'11/game'}, timeout:120000, capture:true});
     if (!result.includes('CHECKPOINT_OK 11/game')) throw new Error('Sample game did not report its smoke-test success marker.');
+    copyFileSync(path.join(repository, 'scripts/dev/ZeroDevPlayCheck.java'), path.join(temp, 'src/main/java/ZeroDevPlayCheck.java'));
+    copyFileSync(path.join(repository, 'framework/checks/zero/NativeFocus.java'), path.join(temp, 'src/main/java/zero/NativeFocus.java'));
+    const proof = output(repository, '.verification/zero-dev/acceptance/game-win.png');
+    mkdirSync(path.dirname(proof), {recursive:true});
+    const played = await child(path.join(temp, process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw'),
+      ['-B', '--no-transfer-progress', '-q', '-Dapp.mainClass=ZeroDevPlayCheck', 'compile', 'javafx:run'],
+      {cwd:temp, env:{...developmentEnvironment(), ZERO_DEV_PLAY_PROOF:proof}, timeout:120000, capture:true});
+    if (!played.includes('ZERO_DEV_PLAY_OK')) throw new Error('Sample game did not complete its keyboard playthrough.');
   } finally {rmSync(temp, {recursive:true, force:true});}
 }
 async function preview(revision) {

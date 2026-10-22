@@ -73,7 +73,11 @@ then restore that generated copy. Your game and profile edits are preserved.
 the Dev window. It copies the current game to a disposable build directory, tests
 movement, scoring once per coin, win and restart using the maintained checkpoint
 harness, then runs the existing finite framework checks and focused UI tests. The
-game smoke expects the maintained sample's class/field contracts; intentionally
+native keyboard playthrough then follows the real update/draw loop to collect
+all coins, win, activate Restart and collect again. It saves a rendered win image
+at `.verification/zero-dev/acceptance/game-win.png`. Events go through the game's
+JavaFX canvas input handlers; this is an automated integration check, not a claim
+of physical keyboard/mouse acceptance. The game smoke expects the maintained sample's class/field contracts; intentionally
 changing those requires a corresponding smoke harness. It does not substitute
 for manually playing a substantially different game. Smoke output must contain
 `ZERO_DEV_SMOKE_OK`; compilation/errors/timeouts fail the command. Build products
