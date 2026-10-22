@@ -119,8 +119,15 @@ links and whitespace pass. Application/public API and installed Zero unchanged.
 Bounded read-only input inventory ci_input_inventory, requested Sol6.1/medium,
 identified shared website/release/curriculum/brand/process inputs; coordinator
 verified imports and kept shared/unrecognized executable inputs on the full path.
-No worker edits or conflicts. Independent full implementation review and actual
-GitHub full/cold+warm/cancellation results are pending in the existing ignored
+No worker edits or conflicts. Independent ci_gates_review and ci_coverage_review,
+requested Sol6.1/high, each completed the full80dc77dd implementation delta and
+immediate callers: clean, no P0-P2 findings. Gate review covered diff/history,
+output fallbacks, manual selection, cancellation, permissions and release-publisher
+compatibility. Coverage review traced allowlisted inputs, native harness retention
+and browser/cache verification, and reran10focused tests successfully. One initial
+wave,2launches/turns,0fixbatches; effective models, per-turn tokens and attributable
+reviewer time unknown. This receipt follow-up changes no code. Actual GitHub
+full/cold+warm/cancellation results are retained in the existing ignored
 .verification/fast-ci/progress.json receipt. No installer release is requested.
 
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
