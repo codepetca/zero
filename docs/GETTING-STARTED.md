@@ -1,12 +1,12 @@
 # Getting started with Zero
 
-This guide describes Mac setup 0.5.45, including guided GitHub sign-in and
+This guide describes Mac setup 0.5.46, including guided GitHub sign-in and
 project access before tutorial choices or repository details. The shared GitHub
 App is registered as Codepet Zero under `codepetca`, with public IDs pinned in
 source. Windows keeps the unsigned 0.5.21 preview and its matching manual ZIP.
 Each published download retains its bundled behavior.
 
-Mac 0.5.45 uses native JavaFX for Run App. To publish, stop the app, open the
+Mac 0.5.46 uses native JavaFX for Run App. To publish, stop the app, open the
 arrow beside **Run**, then choose **Publish app**. GitHub setup and a connected
 repository are required for publishing. Earlier downloads retain their
 bundled Run behavior. Publish app or advanced Export for web performs browser
@@ -60,7 +60,7 @@ Open **Zero: Start Page** from the Command Palette or **⋯ → Start Page** to
 return to it. The sidebar stays focused on Run, Files and project development.
 
 
-1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.45
+1. Download and launch **Zero**. The website needs no sign-in. Mac 0.5.46
    opens the Zero Start Page with the next setup action.
 2. Choose **Sign in to GitHub** and complete the existing
    device flow if needed. Zero checks project access read-only and stops at the
@@ -157,7 +157,7 @@ without an active GitHub session; pushes still need sign-in and internet.
 
 ## Zero app for Mac
 
-Mac setup 0.5.45 uses the familiar drag-to-Applications flow. Current source guides
+Mac setup 0.5.46 uses the familiar drag-to-Applications flow. Current source guides
 GitHub setup on the Zero Start Page. Older published downloads keep their original setup apps and bytes.
 
 1. Open the downloaded DMG and drag **Zero.app** into **Applications**.
@@ -222,7 +222,7 @@ confirm its native JavaFX window, since tool detection is not a build test.
    builds currently need a Java 25+ tooling JDK; see the
    [Java extension setup](https://github.com/redhat-developer/vscode-java#quick-start).
 2. Optionally import **optional/Zero.code-profile first** through VS Code Profiles. It
-   contains settings only, defaults to light and enables 500 ms autosave.
+   contains settings only, follows the system light/dark appearance and enables 500 ms autosave.
    In VS Code 1.141, open **Preferences: Open Profiles (UI)**, choose the menu
    beside **New Profile → Import Profile… → Select File…**, then **Create** and
    **Use this Profile for Current Window**. In the chosen profile, install the **Zero .vsix included with your downloaded kit** through
@@ -246,6 +246,14 @@ The bundled `starter` is a completed installation check, available through
 **⋯ → Troubleshooting → Test installation**. It is separate from your tutorial repository.
 Older starter-only downloads retain their bundled instructions.
 
+## Editor appearance
+
+New Zero editor settings follow the system light/dark appearance. Updates preserve
+existing settings. In an existing Zero window, enable **Window: Auto Detect Color
+Scheme** in Settings to follow the system. Use **Workbench: Preferred Light Color
+Theme** and **Workbench: Preferred Dark Color Theme** to choose the matching themes.
+Disable automatic detection to keep a fixed theme.
+
 ## Edit and run
 
 Open [the online lessons](https://zero.codepet.ca/tutorials/0). At lesson 0,
@@ -264,7 +272,7 @@ start **Game** once and extend it through lessons 9–12. Lesson 10 reopens Stud
 and Game to reuse your own ScoreDisplay. Lesson 12's only optional download is
 an image and sound ZIP; your own assets or the drawing fallback also work.
 
-In Mac 0.5.45, **Start tutorial** on the **Zero Start Page**
+In Mac 0.5.46, **Start tutorial** on the **Zero Start Page**
 checks project access before using the matching verified template to
 create your repository and clone it; it does not create a local-only practice folder. Templates
 follow verified publication metadata. An unavailable template shows a
