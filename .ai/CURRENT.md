@@ -1,3 +1,15 @@
+# Tutorial padding — local, 2026-10-22
+
+Owner requested padding across tutorial projects. Branch codex/tutorial-padding
+adds20px outer padding to both scaffold kinds, Greeting/game checkpoints,
+unpadded reference programs and the default starter; existing styled App views
+retain their own Insets. Lessons0/3/8 match the padded scaffold. Public API and
+framework defaults are unchanged. The two local owner Greeting projects also
+have an uncommitted padding edit. Public templates, website, installers and
+published demo pages remain unchanged; pushing/merge/publication needs applicable
+owner authorization. See docs/EVIDENCE.md and primary ignored
+.verification/tutorial-padding-20261022 for validation/review receipts.
+
 # Automatic Publish recovery — Mac0.5.44 delivered, 2026-10-22
 
 Owner-authorized source/release work is complete. Source PR165 merged3bc83141,

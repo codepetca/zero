@@ -7593,3 +7593,35 @@ https://github.com/codepetca/zero/pull/165. The feature is not yet in a public i
 Review budget used:3reviewer turns (2initial+1targeted),1fix batch; at most7launches/4batches/
 60minutes. Effective models, per-turn tokens and attributable coordinator effort
 are unknown; no claim of savings from account-wide usage.
+
+
+## Tutorial project padding — local, 2026-10-22
+
+Owner requested padding across tutorial projects. Reviewed source e255b2d4 and
+pointer-verifier delta9293af54 on codex/tutorial-padding add20px outer padding
+to App/GameApp scaffolds, previously unpadded checkpoints/reference programs and
+the default starter. Existing styled App examples retain their own layout Insets.
+Lessons0/3/8 explain existing scaffold padding. Framework/API defaults stay unchanged.
+Both local owner Greeting projects have a separate uncommitted Main padding edit.
+No public template, website, installer or published demo was updated.
+
+Validation: configuration/syntax/local-doc links and diff whitespace pass;
+7lesson-project tests and9extension tutorial/content tests pass; all3generated
+scaffolds compile; all16checkpoint variants pass finite native behavior, outer
+padding/control inset and fixed640×400game canvas checks. Thirteen selected
+reference examples pass across bounded runs. Initial hello-name/object-counter
+assertions passed on isolated retries. Drawing initially exposed synthetic mouse
+coordinates assuming a canvas at the scene origin; the verifier now transforms
+canvas points to scene/screen coordinates and supplies the matching PickResult.
+Drawing/keyboard/animation all3pass after that correction.
+
+The local fresh Greeting project passed the real browser compiler/profile and
+Chrome input/button test (Hello, Student!), with visible20px inset. Preview
+http://127.0.0.1:3148/; screenshot and logs retained in primary ignored
+.verification/tutorial-padding-20261022. Mac acceptance only; Windows untested.
+
+Independent low-risk review by native tutorial_padding_review, requested
+Luna/medium: full39-file source delta0601a593→e255b2d4 complete/clean; targeted
+verifier deltae255b2d4→9293af54 complete/clean. Budget2reviewer turns,1initial wave,
+1targeted wave,1fix batch; no unresolved findings. Effective model, tokens and
+attributable effort unknown. The dirty primary funding checkout is preserved.
