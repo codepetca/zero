@@ -1,5 +1,49 @@
 # Delivery evidence index
 
+## Zero Dev local workflow — 2026-10-22
+
+Owner requested source UI/framework iteration, a playable sample and smoke tests
+without installer packaging. Base d131bd4397bd36de9784c7e1cd500e1d3345d2da;
+implementation f563715d and corrected130207c0c0eedfbac7726687ab99e21cd2d8aac7.
+No extension/framework public API, published artifact, version, credentials or
+account permissions changed. Primary dirty funding work remains untouched.
+
+Seven dev tests pass: source refresh/provenance, user game preservation, managed
+drift preflight, symlink refusal, profile separation, generated-state exclusion,
+short IPC paths/profile preservation and opt-in preview CSP. Twenty-one Start
+Page/playground tests and npm run check pass. Actual watch acceptance changed and
+restored a framework comment and theme token, verified generated source/CSS,
+preserved a game edit, and observed browser gallery and standalone screen reload
+without manual refresh. Warm npm run dev:prepare measured0.664seconds, one local
+run with existing dependencies; not a cold-start guarantee.
+
+The actual sample's copied finite checkpoint harness passed CHECKPOINT_OK11/game
+(movement, bounds, scoring once per coin, win, restart). The isolated source
+extension activated in its own VS Code profile. Initial long worktree editor
+path failed macOS IPC binding; the corrected checkout-specific ~/.zero-dev path
+successfully started the source extension host. Editor profile has no installed
+Zero extension or copied credentials. Dev sample is local-only, Git disabled,
+upload simulation. Generated state stays ignored; useful scratch game edits must
+be retained before worktree retirement.
+
+Full dev:smoke is not claimed passing. The existing GameHelpersCheck timed out
+at phase5 twice; a diagnostic-only scratch copy later reported native
+CVDisplayLink display errors and phase0 timeout. Native CUA screenshots were also
+unavailable. No timing/focus assertion was weakened, no runtime source changed,
+and no automatic retry was added. Owner was asked to wake/unlock Mac for native
+play/Run/Stop and final full smoke verification. Windows/Linux UI not exercised.
+
+Independent review zero_dev_review/1 requested GPT6.1Sol/medium completed full
+12file diff atf563715d; two acceptedP2s: cached preparation dependencies and direct
+Start Page meta CSP blocking reload. One fix batch also addressed observed Mac
+IPC path length. zero_dev_review/2 inspected the complete5file delta through
+130207c0, both findings and the new per-checkout profile/path boundary: clean,
+no remaining actionable findings. 1launch,2turns,1initial+1targeted wave,1fixbatch;
+effective model, reviewer seconds and token telemetry unknown. Weekly remaining
+16% at start, DeepSeek explicitly paused through2026-12-31; cached storage269GB
+healthy. Local receipts/screenshots/logs: .verification/zero-dev/acceptance/.
+No source publication or installer release was performed for this tooling work.
+
 ## Automatic Publish recovery — Mac0.5.44 publication and acceptance, 2026-10-22
 
 Owner authorized source merge/release and the specific Administration write

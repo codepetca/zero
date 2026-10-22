@@ -8,8 +8,18 @@ watches source, refreshes framework/UI bundles and serves live preview3153.
 Game edits are preserved; managed-copy drift blocks overwrite. Editor state is
 separate, sample local-only, Git off and upload simulation. No release/version,
 publication, account permission or installed Zero changes are part of this work.
-See docs/ZERO-DEV.md. Local verification and independent review are in progress;
-the sample game's finite behavior check and six dev unit tests have passed.
+See docs/ZERO-DEV.md. Local code is committed through130207c0; independent
+Sol/medium full review plus targeted fix review completed clean (2turns,
+1initial+1targeted wave,1fixbatch). Seven dev unit and21UI tests, configuration,
+browser gallery/standalone live reload and actual core refresh/game-edit retention
+passed. Warm source preparation measured0.664s. The sample finite game passed.
+Native framework smoke remains incomplete: game-helper focus timed out, later
+JavaFX reported CVDisplayLink errors and native CUA screenshots were unavailable.
+Owner was asked to wake/unlock the Mac; final play/Run/Stop/full smoke acceptance
+awaits that response. Keep this worktree active: it owns the Dev game, source,
+watcher and preview3153. Dev editor state is ~/.zero-dev/fce53b51730d/, outside
+the checkout to avoid macOS IPC socket path limits. No push/merge is authorized
+for this new local tooling request. Receipts: .verification/zero-dev/acceptance/.
 
 # Tutorial padding and Start Page — Mac0.5.45 delivered, 2026-10-22
 
