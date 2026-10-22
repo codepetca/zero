@@ -7706,6 +7706,43 @@ review startpage_menu_review requested Sol6.1/medium complete/clean for the full
 18-file delta0ea042c9→2d041c7c. Review1initial turn,0remediation batches; effective
 models, token usage and attributable effort unknown. No savings claim.
 
+
+## Tutorial padding / Start Page Mac0.5.45 publication — 2026-10-22
+
+Owner explicitly authorized CI-gated merge and release. Source PR169 merged
+4e19c71eeda370de82ebba2f4cfc83c1d46b5e15 after all5exact-head checks passed for
+598a01c49404753120be630ca002676e2492a29a. Sol6.1/medium final integration/version
+review complete/clean; prior scoped UI/padding reviews reused. Version tests9pass,
+1signer skip, no failures. Actual native signing/notarization verification is separate.
+
+Mac0.5.45 public release: https://github.com/codepetca/zero/releases/tag/setup-v0.5.45.
+One DMG only; no standalone kit or Windows publication. Built source598a01c4,
+preparation9f3be9807ff147389e11c87a30a8f84ef06e8593; clean protected-source
+ equivalence, kit/source/archive/license/Maven and actual native payload/signatures,
+staple and Gatekeeper checks pass. Apple Accepted00c75145-4a66-4fce-b2f5-4b11ae15e68d.
+SignerACE8EE40F3615C5062CBBD5F085E299E049BAE08/team88FT6QZJP8 unchanged.
+DMG4614065bytes SHA25618201f0fc8092dd903fda46fe78c188a06b184470b1d1b4b93096e1154efc949.
+Signed feed1178bytes SHA25691566c366d59de6217160206aec213a7427e612a72c375a4e56d24f0e039d2ed.
+Native release audit Sol/medium independently verified all13sealed hashes, source,
+version/key/signature continuity and44→45ordering; complete/clean. Draft target and
+single downloaded DMG verified before publication; anonymous public download
+matches sealed size/hash. Promotion copies the exact sealed XML, never regenerates it.
+
+After source CI passed, three public tutorial templates received only their
+Main padding edit: greeting3c01cfa5d8422ec26c4f5a3c7be1e82584f8a335,
+study50a16d74ba727d812e6736cb0903664c83b087d1,
+gamea9bfc773cd72f6c14c2168ad5dd673f60a20b737. All3actual own-wrapper clean compiles
+pass, Luna/medium three-diff review clean, anonymous public commit/tree/source
+verification passes. Existing independent student repositories are not rewritten.
+
+Exact native candidate and receipts remain in the task worktree and primary
+ignored .verification/tutorial-startpage-release0.5.45. Feed/website promotion
+and native44→45update acceptance are pending at this record. Existing Windows21,
+manualkit17, older immutable assets and dirty primary funding files are preserved.
+Review sessions stayed within bounded one-reviewer passes; effective model,
+per-turn tokens and attributable effort unknown. DeepSeek remains owner-paused
+through2026-12-31; no automatic provider delegation occurred.
+
 ## System editor appearance — 2026-10-22
 
 Profile enables VS Code native system light/dark detection in new editor settings;
