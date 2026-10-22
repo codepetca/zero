@@ -11,7 +11,9 @@ independent authentication reviews passed. Release0.5.47/build47 is prepared fro
 that clean main source in zero-sign-in-release. Keep core0.2.1, prior immutable
 assets, published-kit17, Windows21 and the current signed Mac46 feed unchanged
 until exact new native bytes are verified. Publish one Mac DMG; no separate kit
-publication is requested. Review source/candidate, pass exact-head CI, then promote
+publication is requested. Source review is clean atfc0b8bf1; PR177 CI is running. One signed build passed
+Apple notarization, stapling and both Gatekeeper assessments; measured local
+installer manifest47 is committed for immutable sealing. Review candidate, pass exact-head CI, then promote
 verified download/feed metadata and verify live bytes before claiming delivery.
 
 Preserve the tutorial-padding Dev checkout/profile/scratch game/watcher: it has

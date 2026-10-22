@@ -18,6 +18,14 @@ new signed/notarized Mac DMG. Candidate/source/CI/public download/live feed proo
 will be recorded in ignored .verification/release47/progress.json. Preparation
 alone does not establish publication, installation or update acceptance.
 
+Source/version review atfc0b8bf1 completed clean. Configuration,17release/update
+checks (2conditional skips),17installer contracts, packaging/extracted Maven and
+signed installer verification passed. One clean signed build fromfc0b8bf1 was
+accepted by Apple submission6d8ef1c8-fc3e-4003-9351-7e107643eb38, stapled and
+accepted by DMG/app Gatekeeper. The final post-stapling measurement is recorded
+in the local installer manifest and immutable candidate receipts; the previous
+published46 snapshot/feed remains unchanged at this preparation phase.
+
 ## Direct Zero GitHub sign-in — 2026-10-22
 
 Owner requested removal of VS Code's extra request for Zero to access its own
