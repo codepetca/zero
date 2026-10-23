@@ -37,6 +37,13 @@ async (page) => {
     };
     p.fillText = function (...args) {
       window.__zeroCheck.draws++;
+      const actorFontMarkers = {'Actor checks ready':'before', 'Actor shape':'inside',
+        'Actor failing font':'failing', 'Actor scope restored':'after'};
+      const actorFontMarker = actorFontMarkers[String(args[0])];
+      if (actorFontMarker) {
+        window.__zeroCheck.actorFonts ||= {};
+        window.__zeroCheck.actorFonts[actorFontMarker] = this.font;
+      }
       if (String(args[0]) === 'Actor scope restored') {
         const matrix = this.getTransform();
         window.__zeroCheck.actorScope = {font:this.font,fill:this.fillStyle,lineWidth:this.lineWidth,
@@ -79,6 +86,10 @@ async (page) => {
   });
   check(JSON.stringify(actorDrawingPixels) === '[[0,0,255,255],[255,255,255,255],[255,215,0,255],[0,0,255,255],[255,215,0,255],[0,0,255,255],[255,215,0,255],[0,0,0,255]]',
     'Actor own draw uses centered local coordinates, clockwise rotation, nested contexts and legacy dispatch', actorDrawingPixels);
+  const actorFonts = await page.evaluate(() => window.__zeroCheck.actorFonts);
+  check(/20px/.test(actorFonts.before) && /9px/.test(actorFonts.inside)
+      && /42px/.test(actorFonts.failing) && /20px/.test(actorFonts.after),
+    'Canvas text uses requested font sizes before, inside and after Actor callbacks', actorFonts);
   const actorScope = await page.evaluate(() => window.__zeroCheck.actorScope);
   check(actorScope.fill === '#000000' && actorScope.lineWidth === 2 && /20px/.test(actorScope.font)
       && JSON.stringify(actorScope.transform) === '[1,0,0,1,0,0]',

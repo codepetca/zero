@@ -53,6 +53,8 @@ function overlay(file, source) {
   if (file.endsWith('SpriteAnimation.java')) return source.replace('frames.clone()', 'java.util.Arrays.copyOf(frames, frames.length)');
   source = source.replace('import java.net.URL;\n', '\n').replace('import java.nio.file.Path;\n', '\n');
   source = source.replace('    private Canvas canvas;', '    private Canvas canvas; private zero.web.BrowserGameViewport browserViewport;');
+  // WebFX Font.font(double) omits the CSS-required family; preserve the requested canvas size.
+  source = source.replace('graphics.setFont(Font.font(pixels));', 'graphics.setFont(Font.font("sans-serif", pixels));');
   const sceneStart = source.indexOf('    @Override protected final Scene createScene(BorderPane content) {');
   const sceneEnd = source.indexOf('    @Override protected final void ready(Stage stage) {', sceneStart);
   if (sceneStart < 0 || sceneEnd < 0) fail(file, 'reviewed game scene adapter placement changed.');

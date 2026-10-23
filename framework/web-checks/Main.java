@@ -181,6 +181,7 @@ public final class Main extends GameApp {
         FailingActor() { super(440, 110); setRotation(30); }
         @Override public void draw() {
             fill(zero.Color.GOLD); strokeWidth(7); textSize(42); rect(-3, -3, 6, 6);
+            text("Actor failing font", 0, 0);
             throw new IllegalStateException("Expected shape failure");
         }
         void outside() { fill(zero.Color.BLUE); }

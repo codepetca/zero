@@ -119,3 +119,12 @@ test('subpackage UI helpers retain exact source and reject changes at their revi
     assert.throws(() => adaptSources({ sources: {...sources, [file]: sources[file] + '// changed\n'} }), /helper differs/);
   }
 });
+
+
+test('reviewed GameApp canvas text size supplies a valid browser font family without rewriting student Font calls', () => {
+  const sources = {...helpers(), 'Main.java': app.replace('public void setup() {}', 'public void setup() { javafx.scene.text.Font f = javafx.scene.text.Font.font(20); }')};
+  const result = adaptSources({sources}).sources;
+  assert.match(result['zero/GameApp.java'], /graphics.setFont\(Font.font\("sans-serif", pixels\)\)/);
+  assert.match(result['zero/exported/Main.java'], /javafx.scene.text.Font.font\(20\)/);
+  assert.match(sources['zero/GameApp.java'], /graphics.setFont\(Font.font\(pixels\)\)/);
+});

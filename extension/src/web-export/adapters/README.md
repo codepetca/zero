@@ -26,7 +26,8 @@ Image loading becomes a manifest-driven preload before student setup, with
 progress, individual failures, a 30-second named timeout and original dimension
 validation. Browser focus loss clears input and latches one unfocused frame even
 if requestAnimationFrame was suspended. Canvas accessible text becomes a browser
-ARIA label.
+ARIA label. The exact reviewed GameApp text-size adapter supplies a sans-serif
+family so pinned WebFX emits valid canvas CSS fonts and honors the requested size.
 
 The audio bridge implements the JavaFX Media/MediaPlayer/AudioClip calls used by
 the unchanged reviewed `zero.Sound` and `zero.Music` helpers. It uses browser audio elements,
