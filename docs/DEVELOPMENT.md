@@ -220,11 +220,12 @@ pending. Use [CLASSROOM-PILOT.md](CLASSROOM-PILOT.md) for a teacher-authorized t
 ## Dependencies and contributions
 
 Follow [project versioning/preservation](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation):
-exact framework/build-kit pins independent of editor updates; one maintained
-current line and immutable downloadable historical kits/output. Same-major
-compatibility uses a small representative regression set, not all-version CI or
-old maintenance branches. Project-bound browser profiles and archive/restore
-flows remain future work; existing Run/export behavior is unchanged.
+project-owned framework/build source and exact version records independent of
+editor updates; one maintained current line with no required central historical-kit
+storage/database. Same-major compatibility uses a small representative regression
+set, not all-version CI/old branches. Retained web output and optional student-owned
+offline bundles use existing artifact formats. Safe project-bound browser tooling,
+launcher and backup/upgrade flows remain future work; current Run/export is unchanged.
 
 Pin JavaFX, Maven wrapper/distribution and npm tooling; commit the npm lockfile.
 Keep generated artifacts and caches out of Git. The framework source ships inside

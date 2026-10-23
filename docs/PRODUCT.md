@@ -38,16 +38,19 @@ evaluates PostHog for optional structured operational signals and Clarity for
 supplementary website usability. Neither replaces compiler/tests or automatically
 instruments student-owned sites. No new collector or analytics deployment exists.
 
-Project longevity, owner direction 2026-10-23: each project pins an exact Zero
-framework release and matching native/browser build kit. Editor updates never
-upgrade projects automatically. Actively maintain the current release line;
-preserve older source/build kits as immutable archives without promising old
-maintenance branches or backports. Stable same-major releases preserve the
-documented API; upgrades remain optional/reversible. Keep editable source and a
-downloadable finished web build so graduates can retain/rehost their work.
+Project longevity, owner direction 2026-10-23: the student's repository owns its
+framework source, native/browser build files, Zero-specific build tooling, version
+records and exact dependencies. Editor updates never upgrade them automatically.
+No required central historical-kit storage, database or kit registry. Maintain the
+current release line without old-version branches/backports. Stable same-major
+releases preserve the documented API; upgrades remain optional/reversible. Keep
+editable source and a retained finished web build. Full offline backups are
+optional and student-retained; default future rebuilds depend on usable tools
+and availability of normal dependency hosts, not a promise of permanent support.
 See the [versioning and preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
-for current gaps, experimental 0.x rules and bounded restore acceptance. These
-new release-lock/archive/upgrade capabilities are not implemented yet.
+for current gaps, experimental 0.x rules and bounded clone/build/rehost acceptance.
+Project-owned browser tooling/launcher, complete locks and backup/upgrade flows
+remain proposed.
 
 ## Core goal: students grow the framework
 

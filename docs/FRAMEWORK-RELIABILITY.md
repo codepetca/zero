@@ -183,16 +183,19 @@ callbacks. No additional gameplay-screen class is needed for these checks.
 ## Version and preservation evidence
 
 Apply the [version policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
-to every compatibility/build result: bind it to the project's recorded framework,
-profile/build kit and library pins, not merely the installed editor. An unavailable
-historical kit is a tooling/availability result, not evidence of a student API
-error or permission to upgrade automatically. Existing validation currently uses
-the installed exporter; project-bound selection is future work.
+to every compatibility/build result: bind it to the project's owned build files,
+recorded framework/profile and library pins, not merely the installed editor.
+Missing tools/artifacts or an unsupported project entry point are tooling/
+availability results, not student API errors or permission to upgrade. Existing
+validation uses the installed exporter; safe project-bound tooling remains future
+work. A manifest/hash alone must not authorize execution of arbitrary project code.
 
 Current-line CI uses a small fixed set of representative projects for same-major
-compatibility and one real archive restore/rehost/rollback proof at release
-acceptance. It does not continually build every old release. Assert that an editor
-update leaves old inputs/pins unchanged and that preserved static output plays
-without Zero services. Check archive provenance and retained dependency bytes;
-hashes/URLs alone do not establish recoverability. No service telemetry replaces
-these tests or promises indefinite old-version support.
+compatibility and one project clone/build/rehost/rollback proof. Use empty caches,
+project-owned Zero build files and normal pinned dependency hosts without a
+central kit service. It does not continually build every old release. Assert that
+an editor update leaves inputs unchanged, missing dependencies report unavailable,
+and saved static output plays without Zero services. Only when offering an optional
+full offline bundle, restore it with upstream downloads disabled and verify bytes/
+provenance. No central kit mirror/database or offline bundle is a default gate.
+No service telemetry replaces these checks or guarantees indefinite rebuilding.

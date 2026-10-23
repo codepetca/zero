@@ -236,7 +236,8 @@ with actual implementation. Existing releases do not silently acquire new APIs.
 
 Project/framework versions are separate from editor updates. Follow the
 [preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation):
-exact framework/build-kit and library pins, immutable archives, optional reversible
-upgrades and retained playable web output. Maintain the current line rather than
-adding old-API branches/shims to this class hierarchy. Historical kit selection
-and complete restore archives still need implementation and proof.
+project-owned framework source/build files, exact dependency records, optional
+reversible upgrades and retained playable output. No central historical-kit
+database/storage or old-API branches/shims. Full offline bundles are optional and
+student-retained; normal future rebuilds depend on tools/artifact availability.
+Project-owned browser tooling, safe launch and backup flows still need proof.

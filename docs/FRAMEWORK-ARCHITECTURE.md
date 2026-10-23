@@ -284,91 +284,90 @@ format replaces readable Java source, normal Git history or student authorship.
 
 ## Project versions and preservation
 
-Owner direction,2026-10-23: develop Zero quickly while preserving student work
-without maintaining every historical version. Each project stays on an **exact
-Zero framework release**, such as `1.2.3`, until its owner chooses to upgrade.
-A major-only pin, version range, `latest` or mutable snapshot is insufficient.
-One generated project release record identifies the matching framework and build kit;
-ZeroHub libraries retain their own exact pins. The editor/installer version is
-separate. Updating it, opening an old project or changing the current teaching
-template must not replace project source, dependencies or browser rules.
+Owner direction,2026-10-23: projects own their source and build files. **No central
+historical-kit storage, database or kit registry is required.** This supersedes
+the earlier requirement to archive a complete Zero-hosted kit for each release.
+Develop Zero quickly while retaining student ownership and a simple build path.
 
-Keep the policy small:
+1. **Keep the project in the student's repository.** Commit readable framework
+   source, assets, native build files/wrapper, browser build recipe, Zero-specific
+   builder/adapters/checker/profile files, dependency locks and build instructions.
+   A version label or link to an old editor download is not a build recipe.
+   Generate a small record of the exact original Zero release, build-file/profile
+   identities and library pins; students need not maintain these by hand. Build
+   tooling is supplied infrastructure, not another language students must learn.
+   Keep actual build source/config tracked; generated outputs/caches stay ignored.
+2. **Separate editor updates from project upgrades.** Opening/editing a project
+   or updating Zero must not replace its framework, build files, pins or browser
+   rules. The editor is a launcher for the project's recorded build path where
+   supported; it does not resolve an old kit from a new central service. If the
+   path/tools cannot run, report a tooling limitation and show project-owned
+   instructions or an optional upgrade of a copy. Do not call old source broken
+   merely because it differs from the installed exporter. Do not promise that
+   the latest editor can execute every historical builder.
+3. **Maintain one current line.** No historical maintenance branches, backport
+   promise, per-student builders, all-version CI or old-API shims. Preserve normal
+   published version identities/artifacts without creating a new kit-hosting
+   obligation. Ordinary versioned dependency repositories and existing ZeroHub
+   sharing remain available options; neither is a new historical-kit database.
+   A teacher can select one tested classroom release while Dev work continues.
+4. **Version and upgrade deliberately.** Pin an exact framework release and exact
+   build/dependency inputs, never a major-only range, `latest` or mutable snapshot.
+   After 1.0, minor/patch releases preserve supported signatures and documented
+   behavior; breaking API changes require a major release. Explained bug fixes
+   may correct incorrect behavior. During 0.x, minors may break compatibility and
+   patches preserve it. Follow [Semantic Versioning](https://semver.org/).
+   Even compatible upgrades are explicit: preview changes on a branch, preserve
+   edits, run native/WebFX build and smoke checks, review behavior and retain the
+   old commit/output for rollback. Existing Commit & push/Merge permissions apply.
+   Core adoption never rewrites accepted ZeroHub releases, credit or installed pins.
+5. **Save the playable result.** Reuse the existing validated web-export ZIP/hash
+   manifest. Offer a retained copy with the actual exported source snapshot/digest,
+   release/build/library provenance, assets and license notices. Record the commit
+   when available and dirty state when relevant; HEAD alone cannot identify an
+   uncommitted export. The student may explicitly attach it to their GitHub release
+   or keep it locally. A compiled static game needs no Zero login or live Zero
+   runtime service and can be rehosted without recompiling. Source and release
+   assets stay separate; publication remains explicit. Hosting/browser/external
+   game-service longevity cannot be guaranteed.
+6. **Make full offline backup optional.** Students may retain a separate bundle
+   containing the project's build files, required redistributable dependencies/
+   library sources/JARs/resources, licenses and documented tool requirements.
+   Zero need not centrally store or manage these bundles. Default projects use
+   exact dependencies from normal artifact hosts, including pinned source inputs
+   where needed; hashes and URLs do not guarantee those bytes remain available.
+   Without a complete retained bundle and usable tools, indefinite rebuilding is
+   best effort, especially for timestamped snapshot artifacts. Editing retained
+   source and playing saved output are separate from successfully rebuilding it.
 
-1. **One actively maintained release line.** Develop and test the current line.
-   Retain older releases as immutable archives, not parallel maintenance branches.
-   No promise of backports, indefinite security updates, every-old-version CI or
-   compatibility layers for every historical API. A teacher selects one tested
-   classroom release for a term; rapid development continues independently.
-2. **Compatibility within a stable major.** After 1.0, minor releases add compatible
-   features and patches fix bugs; supported signatures and documented behavior
-   remain compatible within that major. Breaking changes require a new major.
-   Bug fixes can correct previously incorrect behavior and must be explained.
-   Projects still upgrade explicitly, including patches. During experimental 0.x,
-   minor releases may break compatibility; patches preserve compatibility. Do not
-   promise that every 0.x release works with every other. Follow
-   [Semantic Versioning](https://semver.org/) and record the supported API clearly.
-3. **Archive a complete release build kit once.** Preserve framework source,
-   version-matched API/build instructions, native dependency/plugin/wrapper pins,
-   Java requirements, browser exporter/adapters/checker/contract and WebFX/GWT lock
-   as one immutable release bundle with checksums. Retain the required redistributable
-   dependency bytes too; a URL or checksum alone is not availability, especially
-   for timestamped snapshots. Reuse one release archive across projects rather
-   than maintaining a different builder for every student. Projects keep readable
-   framework source, their release record, assets and exact library requirements;
-   students can download the build kit for independent retention. A project backup
-   also retains its exact ZeroHub/third-party library source/JAR/resources and
-   license notices; catalog URLs/pins alone are not independent retention. Archive
-   inputs for the documented supported platforms, without claiming all future OSes.
-   The kit must be usable separately from the current editor/Zero website with
-   documented tools; archiving only an old editor installer is insufficient.
-   Archive student-facing framework/build-kit releases, not every Dev iteration
-   or editor-only patch that leaves the project build kit unchanged.
-4. **Respect the project's browser profile.** A new editor must not substitute
-   its newest helper hashes, adapters or API rules and then call old source broken.
-   Use the project's verified release build kit when supported. If the editor
-   cannot use that kit, explain the tooling limitation and point to its archived
-   standalone build instructions; offer an explicit upgrade separately. The latest
-   editor need not embed or execute every historical exporter. A recorded version
-   does not bypass source/hash checks or authorize arbitrary downloaded code.
-5. **Make upgrades explicit and reversible.** A proposed Upgrade Zero flow previews
-   source/build/library changes on a Git branch, preserves student edits and pins,
-   and validates the candidate with native and WebFX build/smoke checks before
-   recording success. Let the owner review behavior and choose Commit & push/Merge
-   through the existing workflow. Retain the old commit/build for rollback. Never
-   rewrite an accepted release or silently migrate old ZeroHub consumers.
-6. **Preserve the finished result too.** At a successful export/publish, offer a
-   downloadable, self-contained static web-build ZIP with its source commit,
-   exact release/library/build provenance and checksums. The student can retain
-   it and attach it to their own GitHub release through an explicit action.
-   Do not rely only on a hosted URL, temporary CI artifacts or ZeroHub listing.
-   Package runtime assets rather than depending on a live Zero service; the same
-   output should be rehostable on an ordinary static server without compiling
-   Java again. Generated build output remains outside source Git; release assets
-   are separate from committed source. Existing publication permissions apply.
+Project-owned build code remains untrusted project input. Owning a file or editing
+its hash record does not grant a trusted-helper exemption. No automatic build-hook
+execution on open, arbitrary download-and-run from a version record, credential
+access or bypass of the existing frozen-wrapper/no-project-hook export safeguards
+is authorized. A safe supported project-build entry point requires implementation
+review; an unsupported path must report unavailable rather than execute a fallback
+script silently. Standalone instructions must also document tools and explicit
+local execution. Browser output must still pass the selected validated profile,
+real pinned WebFX compilation and source/output snapshot checks before publishing.
 
-This preserves three useful things: editable source, a recorded/recoverable build
-environment and playable output. It is not a guarantee that every future OS,
-browser, hosting provider or external service stays compatible forever. Preservation
-does not mean active support. Normal local projects and retained static games
-must not depend on signing into Zero or on the Zero website continuing to operate.
+Current limits: projects already include readable framework source and native
+Maven/JavaFX pins. The existing exporter already emits a web ZIP and source/profile/
+output hashes and has a standalone CLI. Browser rules and builder files still
+come from the installed exporter; templateVersion is not a complete project build
+record. Project-owned browser tooling, a supported safe launcher, complete locks,
+retention/optional backup and upgrade UI remain future work. This policy does not
+implement them or establish a complete offline rebuild guarantee.
 
-Current limits: the starter already includes readable framework source, pinned
-JavaFX and Maven inputs. Its `zero.json` records a template version, not a complete
-framework/build-kit lock. Browser profiles/helper hashes currently come from the
-installed exporter. Release-bound kit selection, complete archived inputs, project
-release metadata, upgrade UI and preserved output ZIP/provenance are **acceptance
-work, not implemented promises**. Do not infer them from existing exact library
-pins or snapshot validation.
-
-At each new framework/build-kit release, test native/browser examples plus a small fixed set of
-representative earlier student projects for supported same-major upgrades. Add a
-regression example when needed; do not create a matrix of every historical release.
-Prove preservation with one older project: a newer editor leaves it unchanged,
-reports an unavailable kit honestly, its retained kit rebuilds on the documented
-environment, an explicit upgrade can be rolled back, and its saved web ZIP plays
-from a local static server with Zero services unavailable. Artifact availability,
-hash/provenance and a real restore/rehost check matter more than a version label.
+Acceptance stays bounded: current examples and a small fixed set of representative
+same-major projects, not every historical release. Clone one older project with
+its committed build files into a clean environment, with empty caches and no
+central Zero kit service, and build using the recorded normal dependency sources.
+Verify that a newer editor leaves inputs unchanged, explains unsupported tooling,
+and makes an optional upgrade reversible. Rehost the saved web ZIP with Zero
+services unavailable. If an optional full offline bundle is offered, separately
+restore it with upstream downloads disabled and verify its retained bytes and
+provenance. Missing dependencies must be reported honestly. No database, central
+kit mirror or all-old-version support is an acceptance prerequisite.
 
 ## How proven ideas enter core
 
@@ -418,8 +417,9 @@ The public API, app guide, website reference and coverage checks change together
    pause/restart and a retained previous site after a failed update. Existing
    Sky Hop Pages evidence does not prove new contracts. Broader browser/device
    claims require their own evidence; first acceptance stays honestly scoped.
-   Include the one-old-project restore/rehost/optional-upgrade checks above;
-   preserving an artifact alone is not proof that it can be rebuilt or played.
+   Include the project-owned clone/build/rehost/optional-upgrade checks above.
+   Offline restore is additional acceptance only when offering a full backup;
+   source/pins alone do not prove indefinite rebuilding.
 6. **Test the learning loop.** A novice can explain the Java, add an enemy, swap
    animation, import an asset, extract/use a component, diagnose one unsupported
    browser call and propose an improvement. Measure explanation quality and errors,

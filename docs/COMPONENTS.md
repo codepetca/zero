@@ -35,10 +35,12 @@ releases retain their original bytes and do not acquire these controls until a
 new kit is deliberately released.
 
 The [project preservation policy](FRAMEWORK-ARCHITECTURE.md#project-versions-and-preservation)
-also retains exact library inputs with the student's backup. Library/API claims
-remain bound to its recorded Zero/core/browser requirements; a newer editor or
-core adoption must not replace them. This archive capability is proposed, not
-already supplied by the current Add/Update flow.
+keeps exact library requirements with the student's project; an optional full
+offline backup also retains the library inputs/licenses. Library/API claims remain
+bound to recorded Zero/core/browser requirements; a new editor or core adoption
+must not replace them. No additional historical-kit registry/storage is required;
+existing ZeroHub catalogs/artifacts and immutable sharing rules are unchanged.
+Offline backup is proposed, not already supplied by the current Add/Update flow.
 
 ### Manual setup for current downloads
 
