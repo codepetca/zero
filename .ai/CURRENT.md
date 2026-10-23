@@ -24,12 +24,21 @@ PostHog is recommended for evaluation as primary optional sink, Clarity for
 supplementary website UX. No automatic tracking injection into student games.
 
 Checks: npm run check passed; focused website navigation/API/learning30pass/0fail.
-Next: independent Astra/xhigh review of the fixed model/reliability revision,
-resolve material findings and record evidence. Prior accepted extension plan at
-2bcacd5d and receipts under .verification/architecture-extension-astra/ remain
-baseline; the new Zero-first direction supersedes its default direct-JavaFX UI.
-Audit receipts: .verification/zero-first-plan/ (ignored). Preserve existing
-Actor receipts and source6f0ee4e1; no new public API/runtime change.
+Independent Astra/xhigh review accepted the complete nine-file plan at
+eeb0a55481e867910995759bee3e91de29f71bbf
+with no actionable findings or required corrections. Reports/receipts:
+.verification/zero-first-plan/astra-review/ (ignored); audit is in its parent.
+Requested configuration recorded; effective configuration/tokens unavailable.
+Prior accepted extension plan at 2bcacd5d remains baseline; the new Zero-first
+direction supersedes its default direct-JavaFX UI. See docs/EVIDENCE.md.
+
+Next proposed exemplar phase: smallest concrete facade/lifecycle contracts,
+Zero-only app/game, actual managed component consumers and signature evidence.
+Retain review details: every supported call/hook reachable in browser fixtures;
+App ready after setup/view activation rather than waiting for a game frame;
+sanitized PostHog events need explicit grouping/trends/alerts rather than assuming
+Error Tracking issue ingestion. No implementation/collection is delivered or
+newly authorized by plan acceptance. Preserve prior Actor receipts/source6f0ee4e1.
 
 Retain this attached Actor checkout for continued local planning. Preserve the
 primary funding and tutorial-padding Dev work, profiles/scratch/watcher. No push,

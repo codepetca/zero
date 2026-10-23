@@ -1,5 +1,43 @@
 # Delivery evidence index
 
+## Zero-first framework model and reliability — 2026-10-23
+
+Owner clarified Zero packages should cover almost all normal student game/app
+development, with JavaFX underneath and an advanced interoperability path. Added
+[complete bounded class/ownership model](FRAMEWORK-MODEL.md) and
+[automatic failure-detection design](FRAMEWORK-RELIABILITY.md) to the canonical
+architecture. App is the shared host; GameApp is a thin default-game convenience;
+Screen/GameScreen, explicit WorldContent, Actor behavior/playback and composed
+Zero UI share one lifecycle driver. Public facade signatures, background browser
+checks and telemetry remain proposed, not delivered API changes.
+
+Read-only retained Sol/medium audit inventoried existing guards/compiler mappings,
+real browser CI and local runtime errors. Coordinator checked key source claims.
+Current native Run is native-only; preview exceptions lack an editor-state bridge;
+Hub checks reachability; no source-managed Clarity/PostHog collector was found.
+Worker elapsed/effective configuration/tokens unavailable. No runtime tests or
+external hosting settings inspected. Planned detection layers: exact-signature
+evidence, saved-source compatibility, real pinned builds/behavior, truthful local
+status and optional sanitized operational collection. PostHog is recommended for
+evaluation; no SDK, account, alert or tracking injection was activated.
+
+Independent requested Astra/xhigh accepted the complete nine-file documentation
+diff from 9502440e to eeb0a55481e867910995759bee3e91de29f71bbf
+without actionable findings: one full wave, 221.1 seconds,
+zero correction batches. Reviewed current source and official provider docs;
+prior unchanged architecture coverage reused. Effective configuration/tokens
+unavailable. Implementation notes retained: calls/hooks reachable in browser
+fixtures; UI-only readiness after setup/view activation; sanitized PostHog
+events require explicit grouping/alert logic rather than automatic Error Tracking
+issues. Reports/receipts: ignored .verification/zero-first-plan/.
+
+Checks: npm run check passes; focused website navigation/API/learning30pass/0fail;
+diff check passes. No runtime/source/API implementation or browser rerun. Weekly
+90%remaining and healthy279.4GB at start are account/machine context, not task
+cost. No push, PR, merge, deployment, collection, publication or credential change.
+Other checkouts/profiles/watchers preserved. This receipt changes no reviewed
+architecture behavior; browser/Pages/library/novice acceptance remains future work.
+
 ## Student-led framework architecture plan — 2026-10-23
 
 Owner made student-led framework evolution a core goal: build → extract → share
