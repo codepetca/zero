@@ -2,6 +2,7 @@
 async (page) => {
   const urls = __URLS__;
   const results = [];
+  const helperImageDraws = 15;
   // JavaFX label peers also have aria-hidden text measurement nodes.
   const visibleText = (text) =>
     page.getByText(text, { exact: true }).filter({ visible: true });
@@ -71,7 +72,7 @@ async (page) => {
   s = await state();
   check(s.texts.includes('Digits: 123 Escapes: 1'), 'Number-row and Escape keys reach ordinary Java KeyCode checks');
   check(
-    s.images.length === 15,
+    s.images.length === helperImageDraws,
     'Drawing and sprite overloads render',
     s.images.length
   );
@@ -129,7 +130,7 @@ async (page) => {
   try {
     await page.goto(urls.helpers, {waitUntil:'domcontentloaded'});
     await page.waitForFunction(() => window.__zeroCheck?.last?.texts.includes('Web helpers ready'), null, {timeout:45000});
-    check((await state()).images.length === 12, 'Image progress extends startup beyond the original 30-second deadline');
+    check((await state()).images.length === helperImageDraws, 'Image progress extends startup beyond the original 30-second deadline');
   } finally {
     await page.unroute('**/tiles.png', delayed);
     await page.unroute('**/late-image.png', delayed);
