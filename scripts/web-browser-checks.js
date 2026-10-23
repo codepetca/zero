@@ -425,8 +425,11 @@ async (page) => {
   await page.goto(urls['zero-ui']);
   await visibleText('Probe title').waitFor();
   await visibleText('TextField checks ready').waitFor();
-  const zeroName = page.getByPlaceholder('Your name', {exact:true});
+  const zeroName = page.locator('input[type="text"]');
   check(await zeroName.inputValue() === '', 'Zero TextField constructor, prompt and setter/error checks pass');
+  await zeroName.press('Tab');
+  await page.getByPlaceholder('Your name', {exact:true}).waitFor();
+  check(true, 'An empty unfocused Zero TextField displays its prompt');
   await zeroName.click();
   await zeroName.pressSequentially('Sam');
   check(await zeroName.inputValue() === 'Sam', 'Typing edits the Zero TextField');

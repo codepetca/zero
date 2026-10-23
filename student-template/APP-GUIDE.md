@@ -52,6 +52,8 @@ reads the latest value. `getPromptText()` reads the hint; `setPromptText("")`
 removes it. Null text/prompt setters throw a useful NullPointerException and
 preserve the previous value. Use Tab to move from the field to the button and
 Space to activate the focused button. Keep the normal keyboard focus visible.
+In the browser, an empty field shows its hint while unfocused; focus hides the
+hint until you leave the field again.
 
 A reusable display can be an ordinary class with a view and an explicit setter.
 Save this as `ScoreDisplay.java` beside Main; the same class works in an App or

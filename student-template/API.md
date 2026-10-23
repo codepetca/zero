@@ -166,6 +166,7 @@ onClick again replaces the previous callback; it does not accumulate handlers.
 `zero.ui.TextField`. It inherits `fxNode()`. Text and prompt start empty.
 Read getText inside a Button.onClick callback to use the text entered at that
 moment. A prompt is a hint shown when the field is empty; it is not entered text.
+In the browser, focusing the empty field hides its hint; leaving it restores the hint.
 Typing and Tab navigation retain the native control's focus behavior.
 Both setters reject null with `NullPointerException` and keep the previous value.
 Use an empty string to remove text or a prompt. Create and change it in setup or
