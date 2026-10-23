@@ -91,7 +91,8 @@ public abstract class App extends Application {
 
     private void commitContent(Node content) {
         root.setCenter(content);
-        contentChanged(content);
+        // Synchronous center listeners can navigate again; reconcile the view that remains.
+        contentChanged(root.getCenter());
     }
 
     protected final double initialWidth() { return appWidth; }

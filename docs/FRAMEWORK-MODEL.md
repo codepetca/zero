@@ -26,8 +26,10 @@ native, pinned WebFX and actual browser evidence.
 
 Today App extends JavaFX Application and manages startup, window, content and
 audio cleanup. GameApp already extends App and adds canvas/input/timer plus
-`update(seconds)` and `draw()`. Current `show(Node)` does not stop the timer;
-that behavior still needs an explicit migration.
+`update(seconds)` and `draw()`. Local unreleased `show(Node/Element)` now suspends
+gameplay callbacks/input while another view is displayed; `showGame()` returns
+to the retained canvas/HUD. Older published kits retain their bundled behavior.
+The internal driver remains single; the proposed Screen lifetime API is separate.
 
 The simpler target retains those two starting points:
 

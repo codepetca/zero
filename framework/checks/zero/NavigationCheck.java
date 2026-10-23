@@ -3,6 +3,7 @@ package zero;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
@@ -118,8 +119,58 @@ public final class NavigationCheck extends Application {
             require(stopped.updates == 1 && stopped.draws == 0, "stop during update prevents later draw and frames");
             require(root(stoppedStage).getCenter() == stopped.layout(), "stop discards pending navigation");
             stopped.stop(); stoppedStage.close();
+            game = new GameProbe(); gameStage = new Stage(); game.start(gameStage);
+            focusStarted = 0;
+            next();
+        } else if (phase == 13) {
+            ChangeListener<Node> returnToGame = (property, before, after) -> {
+                if (after == game.menuA.fxNode()) game.showGame();
+            };
+            BorderPane root = root(gameStage);
+            root.centerProperty().addListener(returnToGame);
+            try {
+                game.expectZero = true;
+                game.show(game.menuA);
+                require(root.getCenter() == game.layout(), "menu listener redirects to actual game view");
+            } finally { root.centerProperty().removeListener(returnToGame); }
+            next();
+        } else if (phase == 14 && waited()) {
+            require(game.updates > 0 && game.draws > 0, "listener-restored game continues updates and drawing");
+            if (focusStarted == 0) focusStarted = System.nanoTime();
+            if (!NativeFocus.await(game.canvas(), focusStarted, "listener-restored canvas focus")) return;
+            key(game.canvas(), KeyEvent.KEY_PRESSED); mouse(game.canvas());
+            require(game.keyDown(KeyCode.SPACE) && game.mouseDown(MouseButton.PRIMARY), "listener-restored game accepts input");
+            game.show(game.title);
+            savedUpdates = game.updates; savedDraws = game.draws;
+            ChangeListener<Node> returnToMenu = (property, before, after) -> {
+                if (after == game.layout()) game.show(game.menuB);
+            };
+            BorderPane root = root(gameStage);
+            root.centerProperty().addListener(returnToMenu);
+            try {
+                game.showGame();
+                require(root.getCenter() == game.menuB.fxNode(), "game listener redirects to actual menu view");
+            } finally { root.centerProperty().removeListener(returnToMenu); }
+            cleanInput(game);
+            next();
+        } else if (phase == 15 && waited()) {
+            require(game.updates == savedUpdates && game.draws == savedDraws, "listener-restored menu has no hidden game frames");
+            key(game.canvas(), KeyEvent.KEY_PRESSED); mouse(game.canvas()); cleanInput(game);
+            game.expectZero = true; game.showGame(); focusStarted = 0; next();
+        } else if (phase == 16 && waited()) {
+            require(game.updates > savedUpdates && game.draws > savedDraws && !game.expectZero,
+                    "normal navigation resumes with zero delta after listeners are removed");
+            if (focusStarted == 0) focusStarted = System.nanoTime();
+            if (!NativeFocus.await(game.canvas(), focusStarted, "normal canvas focus after listener removal")) return;
+            key(game.canvas(), KeyEvent.KEY_PRESSED); mouse(game.canvas());
+            require(game.keyDown(KeyCode.SPACE) && game.mouseDown(MouseButton.PRIMARY), "normal gameplay input after listener removal");
+            game.show(game.title); cleanInput(game);
+            savedUpdates = game.updates; savedDraws = game.draws; next();
+        } else if (phase == 17 && waited()) {
+            require(game.updates == savedUpdates && game.draws == savedDraws, "normal menu navigation still suspends gameplay");
+            game.stop(); gameStage.close();
             Thread.currentThread().setUncaughtExceptionHandler(previousHandler);
-            System.out.println("ZERO_NAVIGATION_OK immediate UI, title sizing/suspension, retained game/HUD, pause drawing, zero delta/input reset, deferred navigation, failure/stop cleanup");
+            System.out.println("ZERO_NAVIGATION_OK immediate UI, title sizing/suspension, retained game/HUD, pause drawing, zero delta/input reset, deferred navigation, reentrant view redirects, failure/stop cleanup");
             Platform.exit();
         }
     }
