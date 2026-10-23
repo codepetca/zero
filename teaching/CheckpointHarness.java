@@ -30,6 +30,13 @@ public class CheckpointHarness extends Application {
         return field.get(target);
     }
 
+    // Maintainer checks inspect the actual controls in both Zero-first and older
+    // JavaFX checkpoints. Students do not need this interoperability bridge.
+    private static Node node(Object component) {
+        if (component instanceof zero.ui.Element element) return element.fxNode();
+        return (Node) component;
+    }
+
     private static void setDouble(Object target, String name, double value) throws Exception {
         Field field = target.getClass().getDeclaredField(name);
         field.setAccessible(true);
@@ -58,7 +65,7 @@ public class CheckpointHarness extends Application {
     }
 
     private static Label score(Main app) throws Exception {
-        if (id.equals("7") || id.equals("9")) return (Label) field(app, "scoreLabel");
+        if (id.equals("7") || id.equals("9")) return (Label) node(field(app, "scoreLabel"));
         Object display = field(app, "score");
         return (Label) display.getClass().getMethod("view").invoke(display);
     }
@@ -90,8 +97,8 @@ public class CheckpointHarness extends Application {
     private static void checkSingleQuiz(Main app, Stage stage) throws Exception {
         VBox screen = (VBox) ((BorderPane) stage.getScene().getRoot()).getCenter();
         Label prompt = (Label) screen.getChildren().get(0);
-        TextField answer = (TextField) field(app, "answer");
-        Label feedback = (Label) field(app, "feedback");
+        TextField answer = (TextField) node(field(app, "answer"));
+        Label feedback = (Label) node(field(app, "feedback"));
         Button check = button(stage, "Check");
         require(prompt.getText().equals("What is 2 + 3?"), "same question continues through lessons 3–6");
         answer.setText("4"); check.fire();
@@ -99,7 +106,7 @@ public class CheckpointHarness extends Application {
         answer.setText("5"); check.fire();
         require(feedback.getText().equals("Correct!"), "correct answer updates feedback");
         if (id.equals("3")) return;
-        Label attemptsLabel = (Label) field(app, "attemptsLabel");
+        Label attemptsLabel = (Label) node(field(app, "attemptsLabel"));
         require(attemptsLabel.getText().equals("Attempts: 2"), "two checks count as two attempts");
         if (id.equals("4")) return;
         button(stage, "Reset").fire();
@@ -120,10 +127,10 @@ public class CheckpointHarness extends Application {
     }
 
     private static void checkStudy(Main app, Stage stage) throws Exception {
-        TextField answer = (TextField) field(app, "answer");
-        Label question = (Label) field(app, "questionLabel");
-        Label feedback = (Label) field(app, "feedback");
-        Label attempts = (Label) field(app, "attemptsLabel");
+        TextField answer = (TextField) node(field(app, "answer"));
+        Label question = (Label) node(field(app, "questionLabel"));
+        Label feedback = (Label) node(field(app, "feedback"));
+        Label attempts = (Label) node(field(app, "attemptsLabel"));
         Label score = score(app);
         Button check = button(stage, "Check");
         Button next = button(stage, "Next");
@@ -154,6 +161,19 @@ public class CheckpointHarness extends Application {
                 && attempts.getText().equals("Attempts: 0") && answer.getText().isEmpty()
                 && !answer.isDisabled() && !check.isDisabled() && next.isDisabled(), "Restart resets all visible state");
         require((int) field(app, "points") == 0 && !(boolean) field(app, "finished"), "Restart resets owned rule state");
+        if (id.equals("7")) {
+            for (String response : new String[] {"5", "1", " TRUE "}) {
+                answer.setText(response);
+                check.fire();
+                require(check.isDisabled() && !next.isDisabled(), "second session still locks Check and unlocks Next");
+                next.fire();
+            }
+            require((boolean) field(app, "finished") && score.getText().equals("Score: 3")
+                    && answer.isDisabled(), "second complete session reuses controls and scores normally");
+            restart.fire();
+            require(score.getText().equals("Score: 0") && !answer.isDisabled()
+                    && !check.isDisabled() && next.isDisabled(), "second Restart restores enabled state again");
+        }
         if (id.startsWith("10/") || id.startsWith("11/")) checkScoreDisplay(app);
     }
 
@@ -208,12 +228,12 @@ public class CheckpointHarness extends Application {
                     "coin " + (index + 1) + " scores exactly once");
             require(score.getText().equals("Score: " + (index + 1)), "score view follows app-owned points");
         }
-        require((boolean) field(app, "won") && ((Label) field(app, "message")).getText().contains("You win"),
+        require((boolean) field(app, "won") && ((Label) node(field(app, "message"))).getText().contains("You win"),
                 "all coins show win state");
         if (id.startsWith("12/")) {
             int expected = withMedia ? coins.length : 0;
             require((int) field(app, "plays") == expected
-                    && ((Label) field(app, "soundStatus")).getText().equals("Chimes: " + expected),
+                    && ((Label) node(field(app, "soundStatus"))).getText().equals("Chimes: " + expected),
                     "sound counter matches available media");
         }
         Button restart = button(stage, "Restart");

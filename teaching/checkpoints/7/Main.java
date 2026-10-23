@@ -1,7 +1,7 @@
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import zero.ui.Button;
+import zero.ui.Label;
+import zero.ui.TextField;
+import zero.ui.Column;
 import zero.App;
 
 public class Main extends App {
@@ -27,18 +27,18 @@ public class Main extends App {
     @Override public void settings() { padding(20); }
 
     @Override public void setup() {
-        questionLabel = new Label();
+        questionLabel = new Label("");
         answer = new TextField();
         check = new Button("Check");
         next = new Button("Next");
         restart = new Button("Restart");
         feedback = new Label("");
-        attemptsLabel = new Label();
-        scoreLabel = new Label();
-        check.setOnAction(event -> checkAnswer());
-        next.setOnAction(event -> nextQuestion());
-        restart.setOnAction(event -> restartSession());
-        show(new VBox(10, questionLabel, answer, check, next, restart,
+        attemptsLabel = new Label("");
+        scoreLabel = new Label("");
+        check.onClick(() -> checkAnswer());
+        next.onClick(() -> nextQuestion());
+        restart.onClick(() -> restartSession());
+        show(new Column(10, questionLabel, answer, check, next, restart,
                 feedback, attemptsLabel, scoreLabel));
         showQuestion();
         refreshStats();
@@ -51,8 +51,8 @@ public class Main extends App {
             answered = true;
             points = points + 1;
             feedback.setText("Correct! " + questions[questionIndex].explanation());
-            check.setDisable(true);
-            next.setDisable(false);
+            check.setEnabled(false);
+            next.setEnabled(true);
         } else {
             feedback.setText("Try again.");
         }
@@ -64,9 +64,9 @@ public class Main extends App {
         if (questionIndex == questions.length - 1) {
             finished = true;
             questionLabel.setText("Finished! Score: " + points + " / " + questions.length);
-            answer.setDisable(true);
-            check.setDisable(true);
-            next.setDisable(true);
+            answer.setEnabled(false);
+            check.setEnabled(false);
+            next.setEnabled(false);
             feedback.setText("Choose Restart to try again.");
             return;
         }
@@ -78,10 +78,10 @@ public class Main extends App {
     private void showQuestion() {
         questionLabel.setText("Question " + (questionIndex + 1) + " of "
                 + questions.length + ": " + questions[questionIndex].prompt());
-        answer.clear();
-        answer.setDisable(false);
-        check.setDisable(false);
-        next.setDisable(true);
+        answer.setText("");
+        answer.setEnabled(true);
+        check.setEnabled(true);
+        next.setEnabled(false);
         feedback.setText("");
     }
 

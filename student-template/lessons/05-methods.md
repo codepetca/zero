@@ -19,19 +19,19 @@ Button reset = new Button("Reset");
 
 ## 2. Replace the old Check action with method calls
 
-Replace the old `check.setOnAction(...)` block with two short actions:
+Replace the old `check.onClick(...)` block with two short actions:
 
 ```java
-check.setOnAction(event -> checkAnswer());
-reset.setOnAction(event -> resetQuiz());
+check.onClick(() -> checkAnswer());
+reset.onClick(() -> resetQuiz());
 ```
 
 ## 3. Put Reset after Check in the layout
 
-Put `reset` after `check` in the existing `VBox`:
+Put `reset` after `check` in the existing `Column`:
 
 ```java
-show(new VBox(10, question, answer, check, reset, feedback, attemptsLabel));
+show(new Column(10, question, answer, check, reset, feedback, attemptsLabel));
 ```
 
 ## 4. Move the checking code into `checkAnswer()`
@@ -59,10 +59,12 @@ Add a second method beside it:
 private void resetQuiz() {
     attempts = 0;
     attemptsLabel.setText("Attempts: 0");
-    answer.clear();
+    answer.setText("");
     feedback.setText("");
 }
 ```
+
+`answer.setText("")` replaces the entered answer with an empty string.
 
 ## 6. Run App and test Reset
 

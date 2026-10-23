@@ -447,6 +447,29 @@ async (page) => {
   await page.getByRole('button', {name:'Greet probe', exact:true}).click();
   await visibleText('Hello, Ada!').waitFor();
   check(true, 'Zero Button callback reads the current field text on each activation');
+  await visibleText('Greeting actions: 2').waitFor();
+  await page.getByRole('button', {name:'Disable greeting controls', exact:true}).click();
+  await zeroName.waitFor({state:'visible'});
+  await page.waitForFunction(() => document.querySelector('input[type="text"]')?.disabled === true);
+  const disabledGreet = page.getByRole('button', {name:'Greet probe', exact:true});
+  await page.waitForFunction(() => [...document.querySelectorAll('[role="button"]')]
+    .some(button => button.textContent.includes('Greet probe') && button.getAttribute('aria-disabled') === 'true'));
+  const disabledGreetBox = await disabledGreet.boundingBox();
+  await page.mouse.click(disabledGreetBox.x + disabledGreetBox.width / 2, disabledGreetBox.y + disabledGreetBox.height / 2);
+  const disabledNameBox = await zeroName.boundingBox();
+  await page.mouse.click(disabledNameBox.x + disabledNameBox.width / 2, disabledNameBox.y + disabledNameBox.height / 2);
+  await page.keyboard.type('blocked');
+  check(await zeroName.inputValue() === 'Ada' && await visibleText('Greeting actions: 2').isVisible(),
+    'Disabled Zero TextField blocks typing and disabled Button blocks mouse activation without losing state');
+  await page.getByRole('button', {name:'Enable greeting controls', exact:true}).click();
+  await page.waitForFunction(() => document.querySelector('input[type="text"]')?.disabled === false);
+  await zeroName.click();
+  await zeroName.press('End');
+  await zeroName.pressSequentially('!');
+  await page.getByRole('button', {name:'Greet probe', exact:true}).click();
+  await visibleText('Hello, Ada!!').waitFor();
+  await visibleText('Greeting actions: 3').waitFor();
+  check(true, 'Re-enabling existing controls restores editing and the retained button action');
   await page.waitForTimeout(100);
   const initialIdle = await page.evaluate(() => window.__zeroCheck.clears);
   await page.waitForTimeout(120);

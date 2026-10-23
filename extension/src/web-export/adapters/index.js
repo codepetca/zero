@@ -31,7 +31,7 @@ const helperHashes = Object.freeze({
   'zero/SpriteAnimation.java': 'c68e48317388de67be2f6170c990baef6c7a20e028f6ce3b6163e74f6d67e0f0',
   'zero/ui/Button.java': '396bac56f3c35fe2274aadab10a0047d974600eef0c2815204168b71aac12c55',
   'zero/ui/Column.java': 'eeecc92fa722974da5b63ea842d5152b74436087953ab26b8d257a06fe3808e3',
-  'zero/ui/Element.java': '064e358541fce2fe45441aadf22a23c564cf6cbeea8b41dfcda95419f3dd7fbf',
+  'zero/ui/Element.java': '4ad21695876906252a91beba1e499f2da4ae15bcbb0dce883525ca91393a80b6',
   'zero/ui/Label.java': '0165a8e484828ba82542f8bbc01c5db55d8ab0226dff4221c6fc97c7024808e0'
 });
 function overlay(file, source) {

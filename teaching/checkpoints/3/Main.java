@@ -1,7 +1,7 @@
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import zero.ui.Button;
+import zero.ui.Label;
+import zero.ui.TextField;
+import zero.ui.Column;
 import zero.App;
 
 public class Main extends App {
@@ -15,14 +15,14 @@ public class Main extends App {
         answer = new TextField();
         Button check = new Button("Check");
         feedback = new Label("");
-        check.setOnAction(event -> {
+        check.onClick(() -> {
             if (answer.getText().equals("5")) {
                 feedback.setText("Correct!");
             } else {
                 feedback.setText("Try again.");
             }
         });
-        show(new VBox(10, question, answer, check, feedback));
+        show(new Column(10, question, answer, check, feedback));
     }
 
     public static void main(String[] args) { launch(args); }

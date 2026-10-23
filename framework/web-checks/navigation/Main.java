@@ -81,10 +81,23 @@ public final class Main extends GameApp {
         name.setText("");
         Label greeting = new Label("TextField checks ready");
         Button disabled = new Button("Disabled greeting action");
-        disabled.fxNode().setDisable(true);
+        disabled.setEnabled(false);
         disabled.onClick(() -> { throw new IllegalStateException("Disabled button must be skipped"); });
+        Label actions = new Label("Greeting actions: 0");
+        int[] actionCount = {0};
         Button greet = new Button("Greet probe");
-        greet.onClick(() -> greeting.setText("Hello, " + name.getText() + "!"));
+        greet.onClick(() -> {
+            greeting.setText("Hello, " + name.getText() + "!");
+            actions.setText("Greeting actions: " + ++actionCount[0]);
+        });
+        Button toggle = new Button("Disable greeting controls");
+        boolean[] enabled = {true};
+        toggle.onClick(() -> {
+            enabled[0] = !enabled[0];
+            name.setEnabled(enabled[0]);
+            greet.setEnabled(enabled[0]);
+            toggle.setText(enabled[0] ? "Disable greeting controls" : "Enable greeting controls");
+        });
         Button play = new Button("Play probe");
         play.onClick(() -> {
             if (firstPlay) {
@@ -94,7 +107,7 @@ public final class Main extends GameApp {
             expectZero = true;
             showGame();
         });
-        show(new Column(new Label("Probe title"), name, disabled, greet, greeting, play));
+        show(new Column(new Label("Probe title"), name, disabled, greet, greeting, actions, toggle, play));
     }
     private void showMenu() {
         Button back = new Button("Return to probe game");

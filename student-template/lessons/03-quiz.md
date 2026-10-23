@@ -14,10 +14,10 @@ Keep the generated `Main extends App`, `setup()` and `main(...)` lines.
 Add these imports above the class, beside the existing `zero.App` import:
 
 ```java
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import zero.ui.Button;
+import zero.ui.Label;
+import zero.ui.TextField;
+import zero.ui.Column;
 ```
 
 ## 2. Add answer and feedback fields above `setup()`
@@ -43,7 +43,9 @@ add it once:
 ```
 
 `padding(20)` leaves 20 pixels on every edge. Keep this method as you grow the Study app.
-The `10` in `new VBox(10, ...)` sets the gaps **between** controls.
+The `10` in `new Column(10, ...)` sets the gaps **between** controls.
+These controls come from Zero, just like the Greeting project; no JavaFX imports
+are needed for the quiz.
 
 ## 4. Create and show the controls inside `setup()`
 
@@ -54,7 +56,7 @@ Label question = new Label("What is 2 + 3?");
 answer = new TextField();
 Button check = new Button("Check");
 feedback = new Label("");
-show(new VBox(10, question, answer, check, feedback));
+show(new Column(10, question, answer, check, feedback));
 ```
 
 ## 5. Give Check an action before `show(...)`
@@ -62,7 +64,7 @@ show(new VBox(10, question, answer, check, feedback));
 Before the `show(...)` line, give the button an action:
 
 ```java
-check.setOnAction(event -> {
+check.onClick(() -> {
     if (answer.getText().equals("5")) {
         feedback.setText("Correct!");
     } else {

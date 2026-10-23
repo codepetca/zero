@@ -375,6 +375,7 @@
     "zero.ui.Column#setSpacing(double)",
     "zero.ui.Element#<init>(javafx.scene.Node)",
     "zero.ui.Element#fxNode()",
+    "zero.ui.Element#setEnabled(boolean)",
     "zero.ui.Label#<init>(java.lang.String)",
     "zero.ui.Label#getText()",
     "zero.ui.Label#setText(java.lang.String)",

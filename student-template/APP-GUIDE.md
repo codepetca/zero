@@ -55,6 +55,16 @@ Space to activate the focused button. Keep the normal keyboard focus visible.
 In the browser, an empty field shows its hint while unfocused; focus hides the
 hint until you leave the field again.
 
+Every Element, including Label, Button, TextField and Column, inherits
+`setEnabled(boolean)`. Controls start enabled. For a quiz, use
+`answer.setEnabled(false)` and `check.setEnabled(false)` after a correct answer,
+then call setEnabled(true) on those same controls for the next question. Disabling
+preserves entered text, prompts and button callbacks. A disabled Column blocks
+interaction with its children; enabling it does not override a child's separate
+disabled state. Calling setEnabled(true) changes the element's own flag; a
+disabled parent still prevents its interaction. Keep an ordinary boolean such as answered in your quiz model to
+prevent double scoring; control availability follows that rule.
+
 A reusable display can be an ordinary class with a view and an explicit setter.
 Save this as `ScoreDisplay.java` beside Main; the same class works in an App or
 GameApp. The maintained [shared ScoreDisplay source](../framework/prototypes/shared/ScoreDisplay.java)

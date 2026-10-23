@@ -12,6 +12,9 @@ public abstract class Element {
         this.node = Objects.requireNonNull(node, "Element node must not be null.");
     }
 
+    /** Enable interaction, or temporarily disable it without discarding the element's state. */
+    public final void setEnabled(boolean enabled) { node.setDisable(!enabled); }
+
     /** Advanced interoperability bridge; the returned node has ordinary JavaFX ownership. */
     public final Node fxNode() { return node; }
 }

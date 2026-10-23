@@ -122,6 +122,14 @@ Create, change and mount elements on the JavaFX application thread (in setup or
 callbacks). A Column's children are supplied only in its constructor; there is
 no public add/remove/reparent API in this slice.
 
+Elements start enabled. Call setEnabled(false) to block user interaction without
+removing the element or discarding its text, prompt or callback. setEnabled(true)
+clears the element's own disabled flag; a disabled ancestor still prevents its
+interaction. A disabled Column also disables interaction with its
+children; a child disabled separately remains disabled when the Column is enabled.
+The UI state reflects your app's rules. Keep rules such as whether an answer was
+already scored in ordinary Java fields rather than relying on a disabled button.
+
 The protected constructor and fxNode are an advanced JavaFX interoperability
 bridge for custom elements, not a requirement for using Label/Button/TextField/Column.
 Subclasses wrap their own node or a newly created Column's node. Null backing
@@ -131,6 +139,7 @@ than a copy. Advanced code must preserve JavaFX ownership/thread rules.
 | Signature | Behavior |
 | --- | --- |
 | `protected Element(Node node)` | Wrap a non-null JavaFX node in a custom Element subclass. |
+| `final void setEnabled(boolean enabled)` | Set this element's own enabled flag while preserving values and callbacks. False blocks interaction; true allows interaction unless an ancestor remains disabled. Inherited by Label, Button, TextField and Column. |
 | `final Node fxNode()` | Return the underlying JavaFX node for advanced interoperability. Inherited by Label, Button, TextField and Column. |
 
 ## zero.ui.Label

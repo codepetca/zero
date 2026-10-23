@@ -18,7 +18,7 @@ import zero.ui.TextField;
 
 /** Finite native checks for Zero UI composition and live game controls. */
 public final class UiCheck extends GameApp {
-    private int phase, updates, score, resets;
+    private int phase, updates, score, resets, greetings;
     private long phaseStarted = System.nanoTime();
     private Label scoreLabel;
     private Button reset;
@@ -51,7 +51,7 @@ public final class UiCheck extends GameApp {
         name.setPromptText("Your name");
         greeting = new Label("Waiting for a name");
         greet = new Button("Say hello");
-        greet.onClick(() -> greeting.setText("Hello, " + name.getText() + "!"));
+        greet.onClick(() -> { greetings++; greeting.setText("Hello, " + name.getText() + "!"); });
         hud = new Column(scoreLabel, reset, name, greet, greeting);
         controls(hud);
         controls(hud);
@@ -104,6 +104,12 @@ public final class UiCheck extends GameApp {
         expectNull(() -> add.setText(null));
         expectNull(() -> label.setText(null));
         require(add.getText().equals("Increase") && label.getText().equals("Count: 2"), "invalid text preserves content");
+        add.setEnabled(false);
+        nativeButton.fire();
+        require(count[0] == 2 && add.getText().equals("Increase"), "disabled button blocks activation and preserves text/action");
+        add.setEnabled(true);
+        nativeButton.fire();
+        require(count[0] == 3 && label.getText().equals("Count: 3"), "re-enabled button retains its action");
         Button reset = new Button("Reset");
         reset.onClick(() -> { count[0] = 0; label.setText("Count: 0"); });
         for (int i = 0; i < 3; i++) {
@@ -115,6 +121,23 @@ public final class UiCheck extends GameApp {
         require(column.getSpacing() == 8 && ((VBox) column.fxNode()).getChildren().size() == 3,
                 "default spacing and child order");
         require(((VBox) column.fxNode()).getChildren().get(1) == add.fxNode(), "column preserves supplied order");
+        for (Element element : new Element[] {new Label("Ready"), new Button("Ready"), new TextField(), new Column()}) {
+            require(!element.fxNode().isDisabled(), "elements start enabled");
+            element.setEnabled(false);
+            require(element.fxNode().isDisabled(), "each element inherits disabled state");
+            element.setEnabled(true);
+            require(!element.fxNode().isDisabled(), "each element can be re-enabled");
+        }
+        column.setEnabled(false);
+        add.setEnabled(true);
+        require(label.fxNode().isDisabled() && add.fxNode().isDisabled(), "disabled column disables its children");
+        column.setEnabled(true);
+        require(!label.fxNode().isDisabled() && !add.fxNode().isDisabled(), "re-enabled column restores children");
+        add.setEnabled(false);
+        column.setEnabled(false);
+        column.setEnabled(true);
+        require(add.fxNode().isDisabled() && !label.fxNode().isDisabled(), "parent re-enable preserves a child's separate disabled state");
+        add.setEnabled(true);
         column.setSpacing(0);
         column.setSpacing(12.5);
         for (double bad : new double[] {-1, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
@@ -221,10 +244,29 @@ public final class UiCheck extends GameApp {
                 name.setText("Ada");
                 ((javafx.scene.control.Button) greet.fxNode()).fire();
                 require(greeting.getText().equals("Hello, Ada!"), "button reads the latest programmatic text");
+            } else if (phase == 6) {
+                name.setEnabled(false);
+                greet.setEnabled(false);
+                Event.fireEvent(name.fxNode(), new KeyEvent(KeyEvent.KEY_TYPED, "X", "X", KeyCode.UNDEFINED,
+                        false, false, false, false));
+                key(greet.fxNode(), KeyEvent.KEY_PRESSED, KeyCode.SPACE);
+                key(greet.fxNode(), KeyEvent.KEY_RELEASED, KeyCode.SPACE);
+                require(name.getText().equals("Ada") && greeting.getText().equals("Hello, Ada!") && greetings == 2,
+                        "disabled field blocks typing and disabled button blocks keyboard activation");
+                name.setEnabled(true);
+                greet.setEnabled(true);
+                name.fxNode().requestFocus();
+            } else if (phase == 7) {
+                if (!NativeFocus.await(name.fxNode(), phaseStarted, "re-enabled Zero text field focus")) return;
+                Event.fireEvent(name.fxNode(), new KeyEvent(KeyEvent.KEY_TYPED, "!", "!", KeyCode.UNDEFINED,
+                        false, false, false, false));
+                ((javafx.scene.control.Button) greet.fxNode()).fire();
+                require(name.getText().contains("!") && greeting.getText().equals("Hello, " + name.getText() + "!") && greetings == 3,
+                        "re-enabled field accepts typing and button retains its callback");
             } else if (phase == 8) {
                 require(updates >= 6 && score > 0, "game update continues while a control has focus");
                 require(layout().getBottom() == hud.fxNode() && layout().getCenter() == canvas(), "HUD and canvas remain mounted");
-                System.out.println("ZERO_UI_OK TextField five signatures, typed greeting, prompt/errors, tab/button focus, text/callback replacement, atomic composition, reuse, App show, colors and live game frames");
+                System.out.println("ZERO_UI_OK inherited setEnabled, disabled input/button blocking and reuse, TextField five signatures, typed greeting, prompt/errors, tab/button focus, text/callback replacement, atomic composition, App show, colors and live game frames");
                 stop();
                 Platform.exit();
             }

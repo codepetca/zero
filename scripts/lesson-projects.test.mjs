@@ -50,6 +50,23 @@ test('Greeting teaching path uses Zero UI with ordinary Java callbacks', () => {
     }
   }
 });
+test('Study teaching path keeps quiz rules in ordinary Java and uses Zero UI', () => {
+  const lessons = ['03-quiz', '04-counter', '05-methods', '06-objects', '07-study-app'];
+  for (const [offset, lesson] of lessons.entries()) {
+    const source = readFileSync(path.join(root, `teaching/checkpoints/${offset + 3}/Main.java`), 'utf8');
+    const instructions = readFileSync(path.join(root, `student-template/lessons/${lesson}.md`), 'utf8');
+    for (const text of [source, instructions]) {
+      assert.doesNotMatch(text, /import javafx\.|setOnAction|new VBox\(|answer\.clear\(|\.setDisable\(/);
+    }
+    assert.match(source, /extends App/);
+    assert.match(source, /check\.onClick\(\(\) ->/);
+    if (offset >= 2) assert.match(source, /answer\.setText\(""\)/);
+  }
+  const session = readFileSync(path.join(root, 'teaching/checkpoints/7/Main.java'), 'utf8');
+  assert.match(session, /if \(answered \|\| finished\) return;/);
+  assert.match(session, /check\.setEnabled\(false\)/);
+  assert.match(session, /next\.setEnabled\(true\)/);
+});
 test('optional asset archive contains only the two media resources', () => {
   const files=gameAssetFiles(root);
   assert.deepEqual(files.map(file=>file.path),['media-demo/player.png','media-demo/chime.wav']);

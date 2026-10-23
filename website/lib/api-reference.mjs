@@ -90,6 +90,7 @@ function parameterDescription(name, method) {
     width: method === 'size' ? 'Initial content width in pixels; positive and finite.' : 'Width in pixels.',
     height: method === 'size' ? 'Initial content height in pixels; positive and finite.' : 'Height in pixels.',
     title: 'Initial window title; must not be null.',
+    enabled: 'True to allow interaction unless an ancestor is disabled; false to disable this element while preserving its state.',
     text: 'Non-null text to display.', action: 'Non-null Runnable action; replaces the previous click callback.',
     node: 'Non-null backing JavaFX node for advanced interoperability.',
     children: 'Elements in order; non-null, distinct and not already attached to a parent or scene.',
@@ -257,6 +258,7 @@ export function buildApiReference(markdown) {
         TextField: 'TextField textfield = new TextField();',
         getPromptText: 'String hint = textfield.getPromptText();', setPromptText: 'textfield.setPromptText("Your name");',
         Column: sourceType === 'double' ? 'Column column = new Column(12, label, button);' : 'Column column = new Column(label, button);',
+        setEnabled: 'button.setEnabled(false); // Keep the action for later reuse',
         fxNode: 'Node node = score.fxNode(); // Advanced JavaFX bridge',
         getText: `String text = ${variable}.getText();`, setText: `${variable}.setText("Ready");`,
         onClick: 'button.onClick(() -> score.setScore(1));', getSpacing: 'double gap = column.getSpacing();', setSpacing: 'column.setSpacing(12);',
@@ -264,7 +266,7 @@ export function buildApiReference(markdown) {
       entry.example = uiExamples[name];
       entry.related = name === 'fxNode' || className === 'Element' ? ['ui-label-constructor', 'show-element', 'controls']
         : ['ui-element-fxNode', 'show-element', 'controls'];
-      entry.note = 'Unreleased Zero UI addition. Use zero.ui imports; Label, Button, TextField and Column inherit fxNode() from Element. JavaFX remains available through the advanced bridge.';
+      entry.note = 'Unreleased Zero UI addition. Use zero.ui imports; Label, Button, TextField and Column inherit setEnabled(boolean) and fxNode() from Element. JavaFX remains available through the advanced bridge.';
     }
     if (owner === 'Color') {
       entry.example = field ? `fill(zero.Color.${name});` : 'fill(zero.Color.rgb(80, 120, 200));';
@@ -297,8 +299,8 @@ export function buildApiReference(markdown) {
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 21 || entries.length !== 164 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected twenty-one sections and 164 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 21 || entries.length !== 165 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected twenty-one sections and 165 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -314,6 +316,7 @@ export function buildApiReference(markdown) {
 const aliases = {
   showGame: 'navigation screen title help results replay retained canvas hud', pause: 'game gameplay freeze updates explicit pause', resume: 'game gameplay continue unpause clock input', isPaused: 'game gameplay explicit pause state',
   Element: 'zero ui component reusable view JavaFX bridge', Label: 'zero ui component text', TextField: 'zero ui component input text prompt typing greeting', Button: 'zero ui component click callback action', Column: 'zero ui component vertical layout spacing',
+  setEnabled: 'enabled disabled interaction availability quiz answer controls',
   onClick: 'click callback action Runnable lambda', controls: 'game hud panel live canvas', fxNode: 'advanced JavaFX interoperability node bridge', rgb: 'color colour red green blue channels',
   draw: 'render actor callback local shape sprite',
   Actor: 'player enemy sprite centre center position facing movement subclass',

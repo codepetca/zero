@@ -22,7 +22,7 @@ test('every class-level public/protected Java declaration has an exact canonical
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 164);
+  assert.equal(expected.length, 165);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
   assert.equal(JSON.parse(JSON.stringify(categories)).length, 15);
@@ -77,8 +77,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 164);
-  assert.equal(search(' \n\t ').length, 164);
+  assert.equal(search('').length, 165);
+  assert.equal(search(' \n\t ').length, 165);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -247,7 +247,7 @@ test('Actor has exact overload anchors, explicit lifecycle examples and movement
 
 
 test('Zero UI and colour slice covers qualified owners, fields, overloads and inherited bridge', async () => {
-  assert.equal(category('components').entries.length, 18);
+  assert.equal(category('components').entries.length, 19);
   assert.equal(category('colors').entries.length, 5);
   for (const name of ['WHITE', 'BLACK', 'BLUE', 'GOLD']) {
     assert.equal(entry(`color-${name}`).kind, 'field');
@@ -349,4 +349,21 @@ test('TextField exposes exactly the greeting API with prompt and current text ex
   assert.equal(entry('ui-textfield-setPromptText').example, 'textfield.setPromptText("Your name");');
   assert.ok(searchApiReference(categories, 'typing greeting').some(item => item.id === 'ui-textfield-constructor'));
   assert.match(category('components').notes, /Both setters reject null/);
+});
+
+
+test('all Zero elements inherit the one availability operation without extra query APIs', async () => {
+  const availability = entry('ui-element-setEnabled');
+  assert.equal(availability.owner, 'zero.ui.Element');
+  assert.equal(availability.signature, 'final void setEnabled(boolean enabled)');
+  assert.match(availability.description, /preserving values and callbacks/);
+  assert.equal(availability.parameters[0].name, 'enabled');
+  assert.match(availability.parameters[0].description, /True to allow interaction/);
+  assert.match(availability.example, /button.setEnabled\(false\)/);
+  assert.ok(searchApiReference(categories, 'disabled availability').some(item => item.id === availability.id));
+  assert.match(category('components').notes, /child disabled separately remains disabled/);
+  assert.equal(entries.filter(item => item.name === 'setEnabled').length, 1);
+  assert.ok(!entries.some(item => item.name === 'isEnabled'));
+  const guide = await readFile(new URL('../../student-template/APP-GUIDE.md', import.meta.url), 'utf8');
+  assert.match(guide, /prevent double scoring/);
 });

@@ -235,6 +235,8 @@ test('Zero UI exact APIs and advanced fxNode interop do not grant neighboring Ja
     zero.ui.Column column = new zero.ui.Column(12, label, button);
     zero.ui.TextField name = new zero.ui.TextField(); name.setText(name.getText());
     name.setPromptText("Your name"); label.setText(name.getPromptText());
+    column.setEnabled(false); column.setEnabled(true); name.setEnabled(false);
+    button.setEnabled(false); label.setEnabled(true);
     column.setSpacing(column.getSpacing()); javafx.scene.Node advanced = column.fxNode(); show(column);`)});
   assert.equal(result.status, 'passed');
   await assert.rejects(check({'Main.java': app('new zero.ui.Label("Ready").fxNode().setUserData("hidden");')}), /javafx.scene.Node#setUserData/);
