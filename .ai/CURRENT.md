@@ -1,43 +1,41 @@
-# Actor-owned drawing — completed locally, 2026-10-23
+# Animated Actor stress demo — completed locally, 2026-10-23
 
-Owner authorized Actor drawing helpers, beginner Player/Coin own artwork and
-actual WebFX proof. Worktree /Users/stew/.codex/worktrees/actor/zero; local only.
-No push/PR/merge/install/release/deploy/account authority. Preserve unrelated
-primary funding and tutorial-padding Dev scratch/profile/watcher state.
+Owner requested100/250/500animatedActors through WebFX with live FPS. Worktree
+/Users/stew/.codex/worktrees/actor/zero; accepted source53c653517da156d0d8c172f317b99a6a9f436ae2.
+Local only: no push/PR/merge/install/release/deploy/telemetry/account authority.
+Preserve primary funding and tutorial-padding Dev scratch/profile/watcher state.
 
-Accepted source291aca9e5a4467f4bc86e9631faea916b9031562 plus browser font correction
-5c753a8a11a17f9ab70682c18bc8801216e8df03. Actor(x,y), draw() callback and ten
-protected drawing helpers; Main calls draw(actor) explicitly. Base legacy
-Actor.draw(GameApp) scopes local centre/rotation and restores styles/transform/
-per-instance context in finally, including nested/failing/cross-app rendering.
-No global app, automatic update/register or public context abstraction. Sprite
-APIs and virtual legacy overrides retained. Same13helpers/159declarations.
+framework/prototypes/actor-stress has Main,StressActor, original401byte128x32PNG
+and README. Count buttons; completed-frame FPS+average/worst wall-clock intervals.
+800x450canvas,32x32sprites,four frames at8animationfps; cachedimage,separate clocks,
+moving/rotating35degrees/s, no collision/physics. Metrics use currentTimeMillis,
+not clamped movement seconds. Exact core clock signature added to browser gate;
+no Zero API change (13helpers/159decl). Generic assembler/native driver adds fourth
+standalone project; existing three still pass. Source preservation remains.
 
-Beginner Main retains title/help/HUD/pause/results and rules. New Player/Coin
-extend Actor and draw their artwork; Coin collision uses x()/y(); Player uses
-inherited movement and faces travel. Assembler uses their own local three files.
-Structured game remains an alternative with ordinary objects. API/guide/website
-metadata+coverage updated together; no published website/tutorial change.
+Native all4pass (stress183frames, oldgames636/640). Actual one pinned WebFX build
+17.3s plus functional actualspritecounts/fourcrops/visibleHUD. Coordinated quiet
+sixsamples ascending100/250/500+descending500/250/100,3swarmup+10smeasure each:
+3600game frames,59.998–60.007FPS,p95interval16.8–17.4ms,max18.1ms,0>33.3msgaps,
+UI60FPS. Per-sprite hooks removed before timing. No threshold through500 on local
+headlessChrome156/900x900/DPR1; displaycadence caps FPS, no schoolhardware/spare
+capacity/otherOS/browser/physicalpresentation claims. Unrelated watchers preserved.
+Initial hidden-WebFX-text selector failure fixed before timed data; one build only.
 
-Native full framework and all3prototypes pass (beginner640frames). Zero Dev smoke
-passes this run (synthetic keyboard, real frames, win/restart,21contracts); prior
-foreground failure not reproduced, no focus-specific fix. Tooling23/migration33,
-web-export274, API/navigation18, website166 tests pass; website types/build/docs
-13newanchors+legacyanchor and rootcheck/diff pass. Actual browser: initial3builds
-compiled but exposed invalid font CSS; exact browser adapter now supplies family.
-Corrected3freshbuilds+Chrome40/40 pass; actual fonts20/9/42/20 verify size and
-restoration. Sixbuilds total, prior mobile/timeout/unrelatedfixture evidence
-explicitly reused. OtherOS/engines/devices/physicalinput/novicetrials untested.
+Semantic20/20, npmcheck/syntax/links/diff pass. One Sol6.1/high complete11file review
+clean; independent raw-stat/hash/export validation. Oneinitialwave/turn,0fixes or
+extra waves. Effective model/token telemetry unknown. Details docs/EVIDENCE.md;
+ignored .verification/actor-stress-{native,check,final-check,semantic}.log and
+actor-stress-web/{build,receipt,samples}.json. Only completion docs after review.
 
-Sol6.1/high initialcomplete21file+targeted5file reviews clean. Two turns, one
-fixbatch/targetedwave, no extra integration wave; unchanged initial coverage reused.
-Final source/test/engine receipt hashes verified. Details docs/EVIDENCE.md and
-ignored .verification/actor-drawing-{framework,native,dev-smoke,web-suite}.log,
-actor-drawing-web/receipt.json and actor-drawing-review/. Only completion docs
-follow reviewed source. Worker-owned temporary browser/previews closed; useful
-previous game/counter previews and other active Dev state preserved.
+IABtab4 is userdeliverable aftertiming, selected500 withvisible60FPS/16.6msavg.
+Screenshot .verification/actor-stress-web/live-500.png. Parentpreview execsession
+34613 stayslive http://127.0.0.1:49710/9793e5539f80f2010fdf9adc9fb8181b5a82/.
+Worker-owned benchmark Chrome/server closed; userlivepreviewnotpartoftimeddata.
+Next report table and no observed lagthreshold; link livepreview and source.
 
-Next: explain delivered Actor-owned drawing and link beginner Main/Player/Coin.
-Use Zero Dev source loop for future work. Broader proposed World/animation,
-ZeroHub evolution, telemetry and complete project-owned browser tooling remain
-outside this increment. Students own source/build pins; no old-kit database.
+Prior accepted Actor drawing source291aca9e +fontadapter5c753a8a unchanged. Base
+receipt edbd6697; prior nativeframework/Dev/website/browser evidence remains in
+EVIDENCE, explicitly reused. Keep source Zero Dev workflow. Broader World,
+ZeroHub evolution/telemetry/project-owned browser tooling remain outside this
+increment. Students own source/build pins; no required historical-kit database.

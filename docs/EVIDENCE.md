@@ -1,5 +1,86 @@
 # Delivery evidence index
 
+## Animated Actor stress demo and browser measurements — 2026-10-23
+
+Owner requested100/250/500animatedActors through actual WebFX with live FPS.
+Accepted source53c653517da156d0d8c172f317b99a6a9f436ae2 adds the standalone
+framework/prototypes/actor-stress project and a finite reproducible maintainer
+runner. Main has count buttons, completed-frame FPS, average/worst wall-clock
+frame intervals refreshed about once a second. Metrics use System.currentTimeMillis,
+not GameApp's clamped update delta; changing workload/backward wall time resets
+the sample. The compatibility contract allows only that exact additional core
+Java signature; nanoTime remains rejected. No Zero API change:13helpers/159decl.
+
+Workload is800x450canvas with32x32sprites, four frames at8animationfps from one
+original401byte128x32MIT fixture image. Every actor owns an animation clock,
+moves at deterministic velocities and rotates35degrees/second. The image cache
+is shared. No collision/physics workload, automatic culling or rendering
+optimization was added. Generic source-preserving assembly now creates a fourth
+project and copies its resource. All four native acceptance checks pass:
+counter, structuredgame636frames, beginnergame640frames, stress183realframes.
+Stress native acceptance checks actual100/250/500actor arrays, workload reset,
+motion/rotation and positive visible FPS/frame times. Native results are
+functional proof, not the browser performance measurement.
+
+One actual pinned WebFX build passed in17.3seconds. BuildID
+5c39e06b-0665-48f0-80dd-f9ec8090f0ed, engine/profile
+d8ae6532f86f2a38a9bc80595d554051309f6fdfa005bc44e37d424256abe39d.
+Functional browser probes verify100/250/500actual sprite draws each frame,
+all four source regions, visible workload/HUD and nonzero FPS. An initial test
+locator was ambiguous because of WebFX's hidden text peer; fixed to visible
+non-aria-hidden peers before collecting any timing data. Failed-probe evidence
+retained. No extra build or game/runtime change was required.
+
+Measured six serial samples:100/250/500 then500/250/100, each3seconds warmup and
+10seconds timed. Browser per-sprite hooks were removed before performance timing.
+A lightweight once-per-clear timestamp measures actual game frame cadence;
+independent requestAnimationFrame timestamps and HUD FPS are also recorded.
+FPS/frame intervals measure cadence, not isolated CPU/GPU draw cost or presented
+physical display frames. Parent-owned builds/tests/native jobs were stopped
+throughout the measurement; unrelated watchers and user state were preserved,
+so no exclusive-host claim. No CPU throttling/artificial lag. Headless Chrome156,
+900x900viewport,DPR1,hardwareConcurrency8, visible focused page on this Mac.
+
+All six samples have600game draws and600rAFcallbacks,3600measured game frames.
+Ascending FPS:100=60.0044,250=60.0074,500=59.9978; descending FPS:
+500=60.0026,250=60.0050,100=60.0020. Draw p95 intervals respectively
+17.1/17.4/17.1/16.8/17.1/17.1ms; overall max18.1ms,0gaps above33.3ms.
+HUD reports60FPS in all samples and agrees with draw cadence. No slowdown
+threshold established through500 for this workload/configuration. Refresh cadence
+caps the result; these measurements do not establish spare rendering capacity
+or guarantee school laptop, phone, other browser or OS performance.
+
+Runner uses a portable checkout cache default plus optional ZERO_STRESS_CACHE_ROOT
+for an existing verified cache. Full export validation binds all assembled
+source/resources/ZIP/site and current compiler; canonical helper/student/artwork
+bytes are checked before measuring, then export validity is checked again before
+the receipt. Raw samples, build/source/engine/script hashes and protocol:
+.verification/actor-stress-web/{build,receipt,samples}.json. Native/check/semantic
+logs: .verification/actor-stress-{native,check,final-check,semantic}.log.
+Full semantic20/20, rootconfiguration/syntax/contracts/docs links and diff pass.
+Existing exact framework/Dev/website API evidence remains applicable to unchanged
+runtime and159declaration UI; not rerun or reported as new measurements.
+
+Independent Sol6.1/high complete11-file review, baseedbd6697809f99c0309f2f41133b37b6e989e4d2
+→53c653517da156d0d8c172f317b99a6a9f436ae2, found no actionable findings. Reviewer
+followed GameApp/Actor/SpriteAnimation, assembler preservation/export validation,
+independently validated export and13helper bindings, matched all six receipt
+hashes and recomputed raw statistics. Syntax/diff checks pass. Oneinitialwave,
+one reviewerturn,0fixbatches/targeted/integrationwaves; about3minutes sessionwall,
+effective configuration/per-turn elapsed/tokens and attributable effort unknown.
+Build/probe worker Sol/medium reused existing cache and onebuild; initial locator
+retry included in evidence. Start observations:273.989GBhealthy, accountweekly1%
+used (shared reading, not task cost). Details .verification/actor-stress-review/.
+
+After timed runs ended, user-facing IAB tab4 was opened/marked deliverable and
+selected500: visible60FPS,16.6msaverage/18msworst. Screenshot
+.verification/actor-stress-web/live-500.png. Its separate parent-owned localpreview
+server remains in execsession34613 at
+http://127.0.0.1:49710/9793e5539f80f2010fdf9adc9fb8181b5a82/.
+Worker-owned benchmark browser/server closed. No live-preview data was mixed into
+the saved timed samples. Only completion EVIDENCE/CURRENT follows reviewed code.
+No push/PR/merge/install/release/deploy/telemetry/account changes.
+
 ## Actor-owned drawing and beginner game — 2026-10-23
 
 Owner authorized Actor drawing callbacks and beginner Player/Coin owning their
