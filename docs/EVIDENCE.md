@@ -1,5 +1,81 @@
 # Delivery evidence index
 
+## Actor-owned drawing and beginner game — 2026-10-23
+
+Owner authorized Actor drawing callbacks and beginner Player/Coin owning their
+artwork without a GameApp parameter, with actual WebFX proof. Implementation
+291aca9e5a4467f4bc86e9631faea916b9031562 adds Actor(x,y), overridable draw(),
+GameApp.draw(Actor) and ten protected Zero drawing helpers. Same13helper sources,
+159public/protected declarations. Image-free actors begin with logical1x1 size;
+setSize does not automatically scale custom shapes. Main owns explicit drawing
+and updates. Legacy sprite constructors and virtual draw(GameApp) remain.
+
+Base draw(GameApp) saves canvas state, binds the actor's per-instance app,
+translates/rotates, invokes draw(), then restores canvas and prior context in
+finally. No static current app or registration. Nested rendering composes the
+parent transform; same-actor cross-app calls restore prior binding on failure.
+Helpers outside active drawing fail with useful errors. Existing legacy overrides
+that bypass the base scope retain their old behavior. Beginner Main retains all
+UI, background and grid; its new local Player/Coin subclasses own all their
+artwork. Player uses inherited movement and faces travel. Coin uses x()/y() for
+collision and skips collected artwork. Structured game remains unchanged.
+The source-preserving assembler copies the beginner's own three Java classes;
+the shared native driver supports ordinary and Actor positions.
+
+Actual native full framework checks pass: Actor movement/sprites plus local and
+rotated shape pixels, sibling/main styles, nesting, cross-app binding, exception
+cleanup and misuse; UI, navigation, media, input and padding regressions pass.
+Native all3prototypes pass (structured633frames, beginner640frames), including
+title/help, pause/freeze/resume, two wins, replay/restart/title and a direct timeout
+model step. Zero Dev smoke passes this run: real-frame synthetic arrow movement,
+score/win/restart/recollection, framework checks and21contracts. The previous
+macOS foreground failure was not reproduced; no dedicated focus fix was made.
+Tooling23/23 and helper migration33/33 pass. npm check and diff checks pass.
+Logs: .verification/actor-drawing-{framework,native,dev-smoke,tooling,
+helper-migration,check,check-after-font,web-suite}.log.
+
+Initial3actual pinned WebFX builds compiled but the browser font assertion failed.
+An actual fillText probe found requested20/9/42sizes emitted invalid family-free
+CSS and all rendered at10px. Browser-only correction
+5c753a8a11a17f9ab70682c18bc8801216e8df03 supplies sans-serif in the exact
+fingerprint-checked GameApp textSize adapter. Native source, student Font calls
+and API count are unchanged. Adapter11/11, semantic19/19 and13/159profile checks
+pass. Full web-export/publish regression:274tests pass,0fail/skip in188.679seconds.
+
+Three corrected fresh WebFX builds (helpers, navigation, beginner) plus Chrome
+40/40 assertions pass: shapes and original sprites, local/rotated/nested pixels,
+legacy dispatch, style/transform/error restoration, navigation, two complete game
+wins and pause/resume/restart/replay. Actual fillText font sizes are20px before,
+9px in a normal Actor,42px in a failing Actor and20px afterward. Six real builds
+total; initial failed-browser evidence retained separately. Corrected compile
+113.499seconds, corrected build/browser135.453seconds. Receipt/source/test/engine
+hashes independently matched current source:
+.verification/actor-drawing-web/receipt.json. Prior unrelated fixture/mobile136
+and real30second browser timeout evidence reused explicitly, not rerun.
+
+API/guide/website metadata and coverage synchronized. API/navigation18/18 and full
+website166/166 pass; typecheck/build pass; generated /docs has13new anchors and
+legacy actor-draw once each. Three existing updater filesystem-tracing warnings
+remain. No website publication or interactive website QA. Native macOS arm64 and
+headless Chrome only; other OS/engines/devices, physical input and novice trials
+untested. Source/build preservation policy and student-owned repositories remain.
+
+Independent Sol6.1/high complete21-file review, base553b266768b4e372aabb7b24074806631ce97266
+→291aca9e5a4467f4bc86e9631faea916b9031562, found no actionable source issues but
+correctly left browser acceptance pending. Targeted complete five-file font fix
+review291aca9e→5c753a8a also found no issues, covering exact hash isolation,
+student calls, line mapping and retained/expanded browser assertions. Initial
+coverage remains applicable to unchanged code; targeted coverage plus final
+passing receipts closes the changed boundary, so no extra integration wave.
+Budget:2reviewer turns,1initialwave,1targetedwave,1fixbatch,0integrationwaves;
+review-session wall471seconds at final validation. Effective configurations,
+per-turn elapsed/tokens and attributable coordinator effort unavailable. Storage
+273.574GB healthy and account weekly0%used at start are shared observations, not
+attributable task costs. Receipts: .verification/actor-drawing-review/.
+Only completion EVIDENCE/CURRENT text follows reviewed code. Local source only:
+no push/PR/merge/install/release/deploy/account changes. Worker-owned browser and
+preview servers closed; prior useful previews and other active Dev state kept.
+
 ## Beginner Coin Quest with UI in Main — 2026-10-23
 
 Owner requested the same game without needing student Element declarations or
