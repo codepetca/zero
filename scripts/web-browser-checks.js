@@ -49,6 +49,15 @@ async (page) => {
   const state = () => page.evaluate(() => window.__zeroCheck.last);
   let s = await state();
   check(s.texts.includes('Game API checks ready'), 'Native/browser math and ArrayList semantics agree');
+  check(s.texts.includes('Actor checks ready'), 'Actor subclasses, movement, aiming, validation and explicit animation updates agree');
+  const actorPixels = await page.locator('canvas').evaluate(canvas => {
+    const bounds = canvas.getBoundingClientRect();
+    return [[269, 289], [281, 289], [314, 289], [359, 289]].map(([x, y]) =>
+      Array.from(canvas.getContext('2d').getImageData(
+        Math.floor(x * canvas.width / bounds.width), Math.floor(y * canvas.height / bounds.height), 1, 1).data));
+  });
+  check(JSON.stringify(actorPixels) === '[[80,200,80,255],[240,90,40,255],[240,90,40,255],[40,120,240,255]]',
+    'Actor draws centered images with clockwise rotation, regions and the explicitly advanced animation frame', actorPixels);
   const rgbPixel = await page.locator('canvas').evaluate(canvas => {
     const bounds = canvas.getBoundingClientRect();
     return Array.from(canvas.getContext('2d').getImageData(
@@ -62,7 +71,7 @@ async (page) => {
   s = await state();
   check(s.texts.includes('Digits: 123 Escapes: 1'), 'Number-row and Escape keys reach ordinary Java KeyCode checks');
   check(
-    s.images.length === 12,
+    s.images.length === 15,
     'Drawing and sprite overloads render',
     s.images.length
   );

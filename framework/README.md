@@ -1,6 +1,6 @@
 # Local Zero core library
 
-This development module packages the canonical App, GameApp, ImageRegion, SpriteAnimation, Collisions, Sound and Music source
+This development module packages the canonical App, GameApp, ImageRegion, SpriteAnimation, Actor, Collisions, Sound and Music source
 for the Component Workshop. The student starter still ships editable core source;
 this module does not migrate existing projects or change their API.
 
@@ -31,6 +31,16 @@ share their backing Image. Successful image loads use an app-scoped cache
 cleared at shutdown. Grid assets require aligned equal-size cells dividing the
 image exactly; explicit region sequences support irregular atlases. Frame-edge
 input is non-consuming during one real update/draw, and focus loss clears it.
+
+Actor is an unreleased local source addition. It is an extensible ordinary Java
+object with a centre position, drawing size, clockwise facing and an Image,
+ImageRegion or SpriteAnimation. Main explicitly updates and draws each actor;
+there is no registration, automatic movement or collision geometry. Subclass
+updates call super.update(seconds) to advance animation. Separate animations
+keep independent clocks; sharing an animation shares its clock. See the
+[Actor API](../student-template/API.md#actor) and
+[complete chase example](../student-template/APP-GUIDE.md#moving-objects-with-actor).
+Existing installed kits and published website bytes are unchanged.
 
 App and GameApp both provide loadSound/loadMusic. Sound caches each
 successful canonical resource as one live wrapper, sharing volume/mute settings;

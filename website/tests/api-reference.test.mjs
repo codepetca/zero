@@ -12,30 +12,30 @@ const normalizeSignature = signature => signature.replace(/\b(public|protected|f
 
 test('every class-level public/protected Java declaration has an exact canonical entry', async () => {
   const expected = [];
-  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music']) {
+  for (const owner of ['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music']) {
     const source = await readFile(new URL(`../../framework/src/main/java/zero/${owner}.java`, import.meta.url), 'utf8');
     // Class-level declarations have four-space indentation; the anonymous timer callback has twelve.
     for (const match of source.matchAll(/^ {4}(?:@Override )?((?:public|protected) (?:(?:final|static) )?(?:[\w.]+ )?\w+\([^)]*\))\s*\{/gm)) {
       expected.push(`${owner}:${normalizeSignature(match[1])}`);
     }
   }
-  assert.equal(expected.length, 98);
+  assert.equal(expected.length, 119);
   assert.deepEqual(entries.map(item => `${item.owner}:${normalizeSignature(item.signature)}`).sort(), expected.sort());
   assert.ok(!entries.some(item => item.name === 'handle'));
-  assert.equal(JSON.parse(JSON.stringify(categories)).length, 11);
+  assert.equal(JSON.parse(JSON.stringify(categories)).length, 12);
 });
 
 test('categories and entries have unique anchors, valid relationships and complete metadata', () => {
   assert.deepEqual(categories.map(item => [item.id, item.title]), [
     ['startup', 'App startup'], ['interface', 'Window and interface'], ['canvas', 'Canvas'],
     ['drawing', 'Drawing'], ['images', 'Images'], ['regions', 'Image regions'],
-    ['animation', 'Sprite animation'], ['audio', 'Audio'], ['collisions', 'Collisions'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
+    ['animation', 'Sprite animation'], ['actors', 'Actors'], ['audio', 'Audio'], ['collisions', 'Collisions'], ['input', 'Keyboard and mouse'], ['advanced', 'Advanced'],
   ]);
   const ids = [...categories, ...entries].map(item => item.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const item of entries) {
     assert.ok(item.description);
-    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(item.owner));
+    assert.ok(['App', 'GameApp', 'ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(item.owner));
     for (const parameter of item.parameters) assert.ok(parameter.name && parameter.description);
     for (const target of item.related) assert.ok(entry(target), `${item.id} relates to missing ${target}`);
   }
@@ -74,8 +74,8 @@ test('keeps canonical class defaults, constructors and lifecycle caveats', () =>
 
 test('search handles aliases, case, multiple terms, whitespace and empty results', () => {
   const search = query => searchApiReference(categories, query);
-  assert.equal(search('').length, 98);
-  assert.equal(search(' \n\t ').length, 98);
+  assert.equal(search('').length, 119);
+  assert.equal(search(' \n\t ').length, 119);
   assert.ok(search('KEYBOARD').some(item => item.id === 'keyDown'));
   assert.deepEqual(search('rectangle').slice(0, 2).map(item => item.id), ['rect', 'outlineRect']);
   assert.ok(search('mouse').some(item => item.id === 'mouseDown'));
@@ -178,7 +178,7 @@ test('documents all source-type overloads with unique stable anchors and helper 
 
 
 test('fails closed when any new overload or constructor table row is omitted', () => {
-  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
+  for (const item of entries.filter(item => ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(item.owner) || /ImageRegion|SpriteAnimation|Pressed|Focused|Centered|Flipped|loadSound|loadMusic/.test(item.signature))) {
     const line = markdown.split('\n').find(candidate => candidate.startsWith(`| \`${item.signature}\``));
     assert.ok(line, item.signature);
     assert.throws(() => buildApiReference(markdown.replace(line + '\n', '')), /Incomplete API reference/, item.signature);
@@ -201,4 +201,43 @@ test('audio declarations use owner-qualified anchors and preserve app lifecycle 
   assert.match(entry('sound-setMuted').parameters[0].description, /chosen volume/);
   assert.ok(searchApiReference(categories, 'music pause').some(item => item.id === 'music-pause'));
   assert.ok(searchApiReference(categories, 'audio effect').some(item => item.id === 'loadSound'));
+});
+
+
+test('Actor has exact overload anchors, explicit lifecycle examples and movement guidance', async () => {
+  assert.equal(category('actors').entries.length, 21);
+  for (const suffix of ['', '-region', '-animation']) {
+    assert.equal(entry(`actor-constructor${suffix}`).owner, 'Actor');
+    assert.equal(entry(`actor-constructor${suffix}`).parameters.length, 3);
+    assert.equal(entry(`actor-setImage${suffix}`).parameters.length, 1);
+    assert.match(entry(`actor-constructor${suffix}`).example, /new Actor/);
+    assert.match(entry(`actor-setImage${suffix}`).example, /actor.setImage/);
+  }
+  for (const item of category('actors').entries) {
+    assert.ok(item.example, item.id);
+    assert.match(item.note, /unreleased/);
+    assert.ok(item.related.length, item.id);
+  }
+  assert.equal(entry('actor-update').example, 'actor.update(seconds);');
+  assert.equal(entry('actor-draw').example, 'actor.draw(this);');
+  assert.equal(entry('update').owner, 'GameApp');
+  assert.equal(entry('draw').owner, 'GameApp');
+  assert.equal(entry('width').owner, 'GameApp');
+  assert.match(entry('actor-constructor').parameters[1].description, /centre/);
+  assert.match(entry('actor-setSize').parameters[0].description, /strictly positive/);
+  assert.match(entry('actor-moveToward').parameters[2].description, /non-negative/);
+  assert.match(entry('actor-moveForward').parameters[0].description, /Signed/);
+  assert.match(category('actors').notes, /super.update\(seconds\)/);
+  assert.match(category('actors').notes, /without changing actor state/);
+  assert.match(category('actors').notes, /Sharing one SpriteAnimation shares its clock/);
+  assert.match(entry('actor-moveToward').description, /without overshooting/);
+  assert.ok(searchApiReference(categories, 'enemy chase').some(item => item.id === 'actor-moveToward'));
+  assert.ok(searchApiReference(categories, 'actor center').some(item => item.id === 'actor-constructor'));
+  const guide = await readFile(new URL('../../student-template/APP-GUIDE.md', import.meta.url), 'utf8');
+  assert.match(guide, /public class Player extends Actor/);
+  assert.match(guide, /public class Enemy extends Actor/);
+  assert.match(guide, /enemy.update\(seconds\)/);
+  assert.match(guide, /enemy.draw\(this\)/);
+  assert.match(guide, /super.update\(seconds\)/);
+  assert.match(guide, /actor.x\(\) - actor.width\(\) \/ 2/);
 });

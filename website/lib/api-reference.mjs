@@ -7,6 +7,7 @@ const categoryDefinitions = [
   ['images', 'Images', 'Load bundled images and draw them on the canvas.'],
   ['regions', 'Image regions', 'Select source rectangles without copying image pixels.'],
   ['animation', 'Sprite animation', 'Advance independent looping frame sequences explicitly.'],
+  ['actors', 'Actors', 'Keep sprites, centre positions and explicit movement in ordinary Java objects.'],
   ['audio', 'Audio', 'Load effects and independent music players in either app type.'],
   ['collisions', 'Collisions', 'Test ordinary geometry without moving objects.'],
   ['input', 'Keyboard and mouse', 'Read held keys, mouse buttons and canvas coordinates.'],
@@ -87,6 +88,11 @@ function parameterDescription(name, method) {
     height: method === 'size' ? 'Initial content height in pixels; positive and finite.' : 'Height in pixels.',
     title: 'Initial window title; must not be null.',
     content: method === 'show' ? 'JavaFX node to display; must not be null.' : 'Root layout containing the app content.',
+    app: 'GameApp canvas to draw on; must not be null.',
+    dx: 'Finite horizontal movement in pixels.', dy: 'Finite vertical movement in pixels.',
+    targetX: 'Finite target horizontal centre in canvas pixels.', targetY: 'Finite target vertical centre in canvas pixels.',
+    degrees: 'Finite clockwise degrees; rotation is normalized to [0, 360).',
+    speed: method === 'moveToward' ? 'Pixels per second; non-negative and finite.' : 'Signed pixels per second; finite. Negative moves backward.',
     seconds: 'Elapsed seconds; non-negative and finite. GameApp supplies first 0, then at most 0.1.',
     color: 'JavaFX Color to use.', pixels: method === 'padding' ? 'Space around each content edge in pixels; non-negative and finite.'
       : method === 'textSize' ? 'Font size in pixels.' : 'Stroke width in pixels.',
@@ -123,7 +129,7 @@ export function buildApiReference(markdown) {
   const noteLines = Object.fromEntries(categories.map(category => [category.id, []]));
   const route = () => {
     if (section === 'App') return subsection === 'Window and content' ? 'interface' : 'startup';
-    return { Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
+    return { Audio: 'audio', Sound: 'audio', Music: 'audio', GameApp: 'startup', Canvas: 'canvas', Drawing: 'drawing', Images: 'images', Input: 'input', ImageRegion: 'regions', SpriteAnimation: 'animation', Actor: 'actors', Collisions: 'collisions', 'Lifecycle and extension hooks': 'advanced' }[section];
   };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^## (.+)$/);
@@ -144,17 +150,18 @@ export function buildApiReference(markdown) {
     const declaration = signature.match(/^(?:(?:public|protected|final|static)\s+)*(?:(\w+(?:\.\w+)*)\s+)?(\w+)\(([^()]*)\)$/);
     if (!declaration) throw new Error(`Malformed API signature: ${signature}`);
     const [, , name, argumentsText] = declaration;
-    const helper = ['ImageRegion', 'SpriteAnimation', 'Collisions', 'Sound', 'Music'].includes(section);
+    const helper = ['ImageRegion', 'SpriteAnimation', 'Actor', 'Collisions', 'Sound', 'Music'].includes(section);
     if (!declaration[1] && (!helper || name !== section)) throw new Error(`Malformed API constructor: ${signature}`);
     const owner = helper ? section : ['App', 'Audio'].includes(section) || (categoryId === 'advanced' && subsection !== 'Protected GameApp overrides') ? 'App' : 'GameApp';
     const parameters = argumentsText ? argumentsText.split(',').map(argument => {
       const parameter = argument.trim().match(/^(\w+(?:\.\w+)*(?:\.\.\.)?)\s+(\w+)$/);
       if (!parameter) throw new Error(`Malformed API parameter: ${argument}`);
-      return { type: parameter[1], name: parameter[2], description: parameterDescription(parameter[2], name) };
+      return { type: parameter[1], name: parameter[2], description: section === 'Actor' && ['x', 'y'].includes(parameter[2]) ? `Finite ${parameter[2] === 'x' ? 'horizontal' : 'vertical'} centre in canvas pixels.` : section === 'Actor' && ['width', 'height'].includes(parameter[2]) ? 'Drawing dimension in pixels; strictly positive and finite.' : section === 'Actor' && parameter[2] === 'seconds' ? 'Elapsed seconds; non-negative and finite. Main passes this explicitly.' : parameterDescription(parameter[2], name) };
     }) : [];
     const sourceType = parameters[0]?.type;
     const variant = sourceType === 'ImageRegion' ? '-region' : sourceType === 'SpriteAnimation' ? '-animation' : '';
     const id = signature.startsWith('protected ') ? `${owner.toLowerCase()}-${name}`
+      : owner === 'Actor' ? `actor-${name === owner ? 'constructor' : name}${['Actor', 'setImage'].includes(name) ? variant : ''}`
       : helper ? `${owner.toLowerCase()}-${name === owner ? `constructor${sourceType === 'double' ? '-frames' : ''}` : name}`
       : name === 'image' ? `image${variant}${parameters.length === 5 ? '-scaled' : ''}`
       : ['imageCentered', 'imageFlippedY'].includes(name) ? `${name}${variant}`
@@ -180,13 +187,34 @@ export function buildApiReference(markdown) {
       const argument = name === 'setVolume' ? '0.5' : name === 'setMuted' ? 'true' : '';
       entry.example = `${variable}.${name}(${argument});`;
     }
+    if (owner === 'Actor') {
+      const argument = sourceType === 'ImageRegion' ? 'region' : sourceType === 'SpriteAnimation' ? 'walk' : 'image';
+      const actorExamples = {
+        Actor: `Actor actor = new Actor(${argument}, 100, 80);`,
+        x: 'double centreX = actor.x();', y: 'double centreY = actor.y();',
+        width: 'double left = actor.x() - actor.width() / 2;', height: 'double top = actor.y() - actor.height() / 2;',
+        rotation: 'double facing = actor.rotation();', setPosition: 'actor.setPosition(100, 80);',
+        setSize: 'actor.setSize(48, 48);', setRotation: 'actor.setRotation(90);',
+        move: 'actor.move(100 * seconds, 0);', moveForward: 'actor.moveForward(100, seconds);',
+        rotate: 'actor.rotate(90 * seconds);', face: 'actor.face(mouseX(), mouseY());',
+        moveToward: 'enemy.moveToward(player.x(), player.y(), 70, seconds);',
+        setImage: `actor.setImage(${argument});`, update: 'actor.update(seconds);', draw: 'actor.draw(this);',
+      };
+      entry.example = actorExamples[name];
+      entry.related = name === 'Actor' ? ['actor-update', 'actor-draw', 'actor-setSize']
+        : name === 'draw' ? ['actor-update', 'imageCentered']
+        : name === 'update' ? ['actor-draw', 'spriteanimation-update']
+        : name === 'moveToward' ? ['actor-face', 'actor-moveForward', 'collisions-rectHitsRect']
+        : ['actor-constructor', 'actor-update', 'actor-draw'];
+      entry.note = 'Actor is an unreleased local source addition. Main calls update(seconds) and draw(this) explicitly. Position is the centre; creating an actor does not register it with the app.';
+    }
     if (id === 'image-scaled') entry.note = methodNotes.image;
     byId[categoryId].entries.push(entry);
   }
   for (const category of categories) category.notes = noteLines[category.id].join('\n').trim();
   const entries = categories.flatMap(category => category.entries);
-  if (seenSections.size !== 13 || entries.length !== 98 || categories.some(category => !category.entries.length)) {
-    throw new Error(`Incomplete API reference: expected thirteen sections and 98 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
+  if (seenSections.size !== 14 || entries.length !== 119 || categories.some(category => !category.entries.length)) {
+    throw new Error(`Incomplete API reference: expected fourteen sections and 119 declarations, found ${seenSections.size} sections and ${entries.length} declarations.`);
   }
   const ids = new Set(categories.map(category => category.id));
   for (const entry of entries) {
@@ -200,6 +228,9 @@ export function buildApiReference(markdown) {
 }
 
 const aliases = {
+  Actor: 'player enemy sprite centre center position facing movement subclass',
+  moveForward: 'actor heading facing forward backward speed', moveToward: 'actor enemy chase follow target stop overshoot',
+  face: 'actor heading facing turn target', rotate: 'actor clockwise turn heading', setPosition: 'actor centre center coordinates',
   loadSound: 'audio effect clip wav', loadMusic: 'audio music track loop', Sound: 'audio effect', Music: 'audio track',
   keyDown: 'keyboard keys held pressed input', keyPressed: 'keyboard edge once input', mousePressed: 'mouse edge click once input',
   SpriteAnimation: 'sprite sheet animation frames grid', ImageRegion: 'atlas crop source image rectangle', textCentered: 'text centre center baseline', rect: 'rectangle', outlineRect: 'rectangle outline',

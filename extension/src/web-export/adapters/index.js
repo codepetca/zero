@@ -19,6 +19,7 @@ function apply(source, edits) {
 }
 function fail(file, detail) { throw new Error(`Web export: ${file}: ${detail}`); }
 const helperHashes = Object.freeze({
+  'zero/Actor.java': 'b1cbdf896def29c79e4efdbcb4fda3a969f51bbddbec3c8177e1001c59122cab',
   'zero/Collisions.java': '1d1cc1c57fcbbcb8421bf469c6d74e5f1707c5542c265d1819f38e59fb4e67fe',
   'zero/ImageRegion.java': '0fd6961541501815c80f1979f7aa54d36f724a794f8d241ae26ba9c27e54d83d',
   'zero/Music.java': '4c183bb3c7807cac3086dbbb29a388541c606c11b654ca4aad914ad3a5db8450',

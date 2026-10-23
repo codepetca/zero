@@ -1,9 +1,10 @@
 # Zero API reference
 
 The complete public/protected API declared by `zero.App`, `zero.GameApp`,
-`zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Collisions`, `zero.Sound` and
-`zero.Music`.
-Mac setup 0.5.23 includes these helpers with core 0.2.1. Older downloads keep
+`zero.ImageRegion`, `zero.SpriteAnimation`, `zero.Actor`, `zero.Collisions`,
+`zero.Sound` and `zero.Music`.
+Actor is a local source addition and is unreleased. Mac setup 0.5.23 includes
+the earlier image, animation, collision and audio helpers with core 0.2.1. Older downloads keep
 their bundled API; use their own reference when working with an older kit.
 Learn through the [tutorials](lessons/00-hello-world.md); use this reference to
 look up methods. Installation and troubleshooting are in [setup help](README.md).
@@ -11,7 +12,7 @@ look up methods. Installation and troubleshooting are in [setup help](README.md)
 [App](#app) · [GameApp](#gameapp) ·
 [Canvas](#canvas) · [Drawing](#drawing) · [Images](#images) ·
 [ImageRegion](#imageregion) · [SpriteAnimation](#spriteanimation) ·
-[Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
+[Actor](#actor) · [Collisions](#collisions) · [Audio](#audio) · [Sound](#sound) · [Music](#music) · [Input](#input) · [Lifecycle and extension hooks](#lifecycle-and-extension-hooks)
 
 ## App
 
@@ -183,6 +184,57 @@ throw `IllegalArgumentException`. There is no automatic registration or update.
 | `int rows()` | Grid rows, or 1 for an explicit sequence. |
 | `double fps()` | Configured frames per second. |
 | `Image image()` | Shared backing image. |
+
+## Actor
+
+`public class Actor` is an optional ordinary Java object you can extend. Import
+`zero.Actor`. Its x/y position is the image's **centre**, and its initial size is
+the image or frame's natural size. Rotation starts at 0 (facing right); positive
+degrees turn clockwise and rotation is normalized to [0, 360).
+
+Main explicitly calls `actor.update(seconds)` and `actor.draw(this)`; there is no
+registration or automatic lifecycle. Default update advances only the assigned
+SpriteAnimation; drawing never advances it. Override update for your own movement,
+and call `super.update(seconds)` to keep animation running. Use separate animation
+objects for independent clocks. Sharing one SpriteAnimation shares its clock,
+so updating two actors with it advances that same clock twice.
+
+All numeric arguments must be finite; sizes must be strictly positive, seconds
+must be non-negative, and moveToward speed must be non-negative. moveForward
+accepts signed speed (negative moves backward). Null references throw
+`NullPointerException`; invalid arguments, unloaded/failed images and non-finite
+movement results throw `IllegalArgumentException` without changing actor state.
+Image replacements keep position, size and rotation, and do not reset the supplied
+animation's clock. A target at the current position leaves rotation unchanged.
+
+Actor adds no collision shape or automatic collision response. Use Collisions
+explicitly; for a rectangular test use top-left `actor.x() - actor.width() / 2`
+and `actor.y() - actor.height() / 2`. Rotation does not rotate that test rectangle.
+This class is an unreleased local source addition; older kits are unchanged.
+
+| Signature | Behavior |
+| --- | --- |
+| `Actor(Image image, double x, double y)` | Create an actor centred at x/y using a loaded image's natural dimensions. |
+| `Actor(ImageRegion region, double x, double y)` | Create an actor centred at x/y using the region's natural dimensions. |
+| `Actor(SpriteAnimation animation, double x, double y)` | Create an actor centred at x/y using the current frame's natural dimensions, preserving the animation clock. |
+| `final double x()` | Read the horizontal centre in canvas pixels. |
+| `final double y()` | Read the vertical centre in canvas pixels. |
+| `final double width()` | Read the drawing width in pixels. |
+| `final double height()` | Read the drawing height in pixels. |
+| `final double rotation()` | Read clockwise degrees in [0, 360), with 0 facing right. |
+| `final void setPosition(double x, double y)` | Set the centre to finite x/y. |
+| `final void setSize(double width, double height)` | Set strictly positive finite drawing dimensions. |
+| `final void setRotation(double degrees)` | Set finite clockwise degrees, normalized to [0, 360). |
+| `final void move(double dx, double dy)` | Add finite offsets to the centre; reject non-finite results before changing either coordinate. |
+| `final void moveForward(double speed, double seconds)` | Move in the facing direction by signed pixels-per-second speed times non-negative seconds. Reject non-finite results atomically. |
+| `final void rotate(double degrees)` | Add finite clockwise degrees and normalize to [0, 360). |
+| `final void face(double targetX, double targetY)` | Face a finite target point; a target at the centre leaves rotation unchanged. |
+| `final void moveToward(double targetX, double targetY, double speed, double seconds)` | Face and approach a finite target at non-negative pixels-per-second speed for non-negative seconds. Stop exactly at the target without overshooting; reject non-finite results atomically. |
+| `final void setImage(Image image)` | Replace the sprite with a loaded image, keeping size, position and rotation. |
+| `final void setImage(ImageRegion region)` | Replace the sprite with a region, keeping size, position and rotation. |
+| `final void setImage(SpriteAnimation animation)` | Replace the sprite with an animation, preserving its clock and actor size, position and rotation. |
+| `void update(double seconds)` | Advance the assigned animation by finite non-negative seconds; perform no automatic movement. |
+| `void draw(GameApp app)` | Draw the current sprite centred, scaled and rotated in the supplied app without advancing animation. |
 
 ## Collisions
 

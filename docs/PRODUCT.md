@@ -247,6 +247,13 @@ rules stay in ordinary student classes. Sky Hop and the optional sprite playgrou
 exercise this contract; see [game systems](GAME-SYSTEMS.md). Published core0.1.2
 and kit bytes are unchanged.
 
+The local source also adds optional `Actor` objects. Students can write
+`Player extends Actor` or `Enemy extends Actor`, inheriting a centre position,
+size, clockwise rotation, sprite drawing and explicit `move`, `moveForward`,
+`rotate`, `face` and `moveToward` helpers. Main calls each actor's update and draw;
+subclasses add their own game rules. Actors do not register themselves or supply
+physics or collision responses. This source addition is not an installer release.
+
 
 The scored quiz and practice tracker reuse the canonical
 `examples/shared/ScoreDisplay.java` unchanged. Each app creates its own instance;

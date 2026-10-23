@@ -264,6 +264,127 @@ edges count. Coordinates must be finite; dimensions/radii are non-negative and
 finite. These predicates leave movement, scoring and collision response in your
 own Java objects. The [API reference](API.md) lists every overload and constructor.
 
+### Moving objects with Actor
+
+`zero.Actor` is an optional local source addition and is unreleased; older kits
+keep their bundled API. You can still write your own Player with ordinary fields.
+Actor keeps a sprite, centre position, size and facing direction together, so a
+subclass can focus on its own rules. It accepts a loaded Image, an ImageRegion or
+a SpriteAnimation. Initial size is the image/frame size; `setSize` changes it.
+
+This small example needs `player.png` and `enemy.png` in `src/main/resources`.
+Put each public class in its matching file. Hold an arrow key to move the player;
+the enemy faces and follows the player, stopping at its centre.
+
+```java
+// Player.java
+import javafx.scene.image.Image;
+import zero.Actor;
+
+public class Player extends Actor {
+    public Player(Image image, double x, double y) {
+        super(image, x, y);
+    }
+}
+```
+
+```java
+// Enemy.java
+import javafx.scene.image.Image;
+import zero.Actor;
+
+public class Enemy extends Actor {
+    private final Actor target;
+
+    public Enemy(Image image, double x, double y, Actor target) {
+        super(image, x, y);
+        this.target = target;
+    }
+
+    @Override
+    public void update(double seconds) {
+        super.update(seconds);
+        moveToward(target.x(), target.y(), 70, seconds);
+    }
+}
+```
+
+```java
+// Main.java
+import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import zero.GameApp;
+
+public class Main extends GameApp {
+    private Player player;
+    private Enemy enemy;
+
+    @Override
+    public void settings() {
+        size(800, 500);
+        title("Actor chase");
+    }
+
+    @Override
+    public void setup() {
+        player = new Player(loadImage("/player.png"), 400, 250);
+        enemy = new Enemy(loadImage("/enemy.png"), 100, 100, player);
+        player.setSize(48, 48);
+        enemy.setSize(48, 48);
+    }
+
+    @Override
+    public void update(double seconds) {
+        double dx = 0;
+        double dy = 0;
+        if (keyDown(KeyCode.LEFT)) dx -= 160 * seconds;
+        if (keyDown(KeyCode.RIGHT)) dx += 160 * seconds;
+        if (keyDown(KeyCode.UP)) dy -= 160 * seconds;
+        if (keyDown(KeyCode.DOWN)) dy += 160 * seconds;
+        player.move(dx, dy);
+        player.update(seconds);
+        enemy.update(seconds);
+    }
+
+    @Override
+    public void draw() {
+        background(Color.WHITE);
+        player.draw(this);
+        enemy.draw(this);
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+```
+
+Main owns every update and draw call; creating an actor does not register it with
+the app. Rotation 0 faces right, and positive angles turn clockwise. For a ship,
+`player.rotate(90 * seconds)` turns it and `player.moveForward(160, seconds)`
+moves along its facing direction; negative speed moves backward. `face(x, y)`
+turns without moving. `moveToward` turns and moves, stops exactly at its target,
+and leaves facing unchanged when already there. The artwork should face right
+at rotation 0 to match these directions. This example lets the player leave the
+canvas; add your own boundary rules when needed.
+
+For animation, you can use `new Actor(loadAnimation("/walk.png", 4, 2, 8), x, y)`.
+Keep calling update explicitly. A subclass that overrides update calls
+`super.update(seconds)` so its sprite still animates. Drawing never advances the
+clock. Separate animation objects have independent clocks; assigning the same
+SpriteAnimation to two actors shares a clock, which advances on each update call.
+`setImage` can switch to an Image, region or animation while retaining the actor's
+size, centre and rotation; it does not reset the supplied animation.
+
+Use finite numbers, strictly positive sizes and non-negative elapsed seconds.
+`moveToward` also needs non-negative speed. Invalid arguments or non-finite
+movement results throw IllegalArgumentException without changing the actor;
+null references throw NullPointerException. Actor has no collision geometry.
+For a simple axis-aligned rectangle, call Collisions using
+`actor.x() - actor.width() / 2`, `actor.y() - actor.height() / 2`,
+`actor.width()` and `actor.height()`. That rectangle does not rotate with the art.
+See the [Actor API](API.md#actor) for every constructor and method.
+
 ### Short sound effects
 
 The starter provides `zero.Sound` for short effects and `zero.Music` for longer

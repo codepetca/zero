@@ -44,14 +44,14 @@ test('dependency gate rejects unpinned, injected, inherited and profile dependen
   for (const changed of [pom.replace('21.0.12', '21.0.11'), pom.replace('javafx-controls', 'javafx-web'), pom.replace('<dependencies>', '<profiles/><dependencies>'), pom.replace('<dependencies>', '<parent/><dependencies>'), pom.replace('<dependencies>', '<dependencyManagement/><dependencies>'), pom.replace('org.openjfx', 'org.openjfx.evil'), pom.replace('<artifactId>javafx-controls</artifactId>', '<artifactId>javafx-controls</artifactId><classifier>other</classifier>')]) assert.throws(() => validateDependencies(changed), /browser|Browser|POM/);
   assert.throws(() => validateDependencies(pom.replace('<dependencies>', '<!-- fake <dependency> ignored -->\n<dependencies>').replace('org.openjfx', 'evil')), /browser dependency/);
 });
-test('all seven reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
+test('all eight reviewed helper APIs and quiz, drawing, audio and controls retain resolved compatibility', { timeout: 240000 }, async () => {
   const fixtures = [
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/Main.java'), 'utf8'), 'GameApiChecks.java': await fs.readFile(path.join(root, 'framework/web-checks/GameApiChecks.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/quiz/Main.java'), 'utf8'), 'ScoreDisplay.java': await fs.readFile(path.join(root, 'student-template/examples/shared/ScoreDisplay.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'student-template/examples/drawing/Main.java'), 'utf8') },
     { 'Main.java': await fs.readFile(path.join(root, 'framework/web-checks/audio/Main.java'), 'utf8') }
   ];
-  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 7); }
+  for (const sources of fixtures) { const result = await check(sources); assert.equal(result.status, 'passed'); assert.equal(result.trustedHelpers.length, 8); }
 });
 test('resolved owners, overloads, references, static imports, dead code and Java APIs fail with source positions', { timeout: 240000 }, async () => {
   const sources = {
@@ -193,4 +193,32 @@ test('resolved resource URL types remain consistent across helpers, fields and w
  assert.match(result.sources['zero/exported/Reference.java'],/zero.web.ResourceURL pass\(zero.web.ResourceURL value\)/);
  assert.match(result.sources['zero/exported/Reference.java'],/ResourceURL local = new ResourceURL\(\)/);
  await assert.rejects(check({'Main.java':app('var resource = getClass().getResource("/theme.css"); resource.openConnection();')}), /java.net.URL#openConnection\(\)/);
+});
+
+
+test('Actor subclasses inherit reviewed methods while forged Actor identities fail', { timeout: 240000 }, async () => {
+  const result = await check({ 'Main.java': app(''), 'Player.java': `import zero.Actor;
+import zero.GameApp;
+import zero.ImageRegion;
+import zero.SpriteAnimation;
+import javafx.scene.image.Image;
+class Player extends Actor {
+ Player(Image image) { super(image, 10, 20); }
+ Player(ImageRegion region) { super(region, 10, 20); }
+ Player(SpriteAnimation animation) { super(animation, 10, 20); }
+ @Override public void update(double seconds) { super.update(seconds); moveForward(30, seconds); }
+ @Override public void draw(GameApp app) { super.draw(app); }
+ void exercise(Image image, ImageRegion region, SpriteAnimation animation) {
+  setPosition(x() + 1, y()); setSize(width(), height()); setRotation(rotation());
+  move(1, 2); rotate(15); face(20, 30); moveToward(20, 30, 5, .5);
+  setImage(image); setImage(region); setImage(animation);
+ }
+}` });
+  assert.equal(result.status, 'passed');
+  const helpers = await helpersPromise;
+  await assert.rejects(check({ 'Main.java': app(''), 'zero/Actor.java': helpers['zero/Actor.java'] + '\n// edited\n' }), /helper differs/);
+  const sources = { ...helpers, 'Main.java': app('') };
+  delete sources['zero/Actor.java'];
+  sources['other/Actor.java'] = 'package zero; public class Actor {}';
+  await assert.rejects(check({}, { sources }), /helper identity requires/);
 });

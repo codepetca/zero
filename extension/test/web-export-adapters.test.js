@@ -69,9 +69,9 @@ test('ambiguous applications, path escapes, reserved packages and unsupported me
 });
 
 
-test('all seven native helpers retain declarations and generated audio ownership/aliases', () => {
+test('all eight native helpers retain declarations and generated audio ownership/aliases', () => {
   const sources = { ...helpers(), 'Main.java': app };
-  assert.equal(Object.keys(helperHashes).length, 7);
+  assert.equal(Object.keys(helperHashes).length, 8);
   const result = adaptSources({ sources, resourcePaths: ['audio/tone.wav'] });
   const originalAPI = text => text.split('\n').filter(line => /^    (?:@Override )?(?:public|protected) /.test(line)).map(line => line.split('{')[0].trim());
   for (const file of Object.keys(helperHashes)) assert.deepEqual(originalAPI(result.sources[file]), originalAPI(sources[file]), file + ' public/protected API');
@@ -95,4 +95,12 @@ test('ordinary instance resource lookup supports stylesheets without enabling re
   assert.match(adapted,/var theme=zero.web.Resources.get\(getClass\(\), "\/theme.css"\)/);
   assert.match(adapted,/zero.web.ResourceURL same=zero.web.Resources.get\(Main.class, "\/theme.css"\)/);
   assert.ok(adapted.includes('"getClass().getResource(ignored)"'));
+});
+
+
+test('Actor is hash-guarded and keeps its ordinary movement and drawing source', () => {
+  const sources = { ...helpers(), 'Main.java': app };
+  assert.equal(adaptSources({ sources }).sources['zero/Actor.java'], sources['zero/Actor.java']);
+  sources['zero/Actor.java'] += '// edited actor\n';
+  assert.throws(() => adaptSources({ sources }), /Actor.java: this Zero helper differs/);
 });

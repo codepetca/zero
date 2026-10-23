@@ -1,24 +1,24 @@
-# Direct GitHub sign-in — Mac0.5.47 publication, 2026-10-22
+# Actor prototype and game-system references — 2026-10-22
 
-Owner authorized native Dev sign-in testing and release after success. Native
-acceptance passed the direct device-code prompt without extra host confirmation,
-cancel/retry, human GitHub authorization as armorup and persisted account after
-reload. Auth PR176 merged3589903d after11CI checks and two clean reviews.
+Owner agreed to an Actor superclass; implemented locally in this actor worktree
+from origin/main bf2083a3. Player/Enemy extend Actor; Main explicitly updates and
+draws instances. Centre coordinates, clockwise rotation, movement/aiming helpers,
+images/regions/animation and synchronized API docs are in scope. No release,
+push, PR, merge or website publication is authorized by this conversation.
 
-Signed/notarized/stapled Mac0.5.47 is public at
-https://github.com/codepetca/zero/releases/tag/setup-v0.5.47.
-Anonymous DMG size/SHA256 matches the reviewed sealed candidate. Source/version
-PR177 merged3d506bae after11checks. Clean built sourcefc0b8bf1; preparation7c08bcd9;
-separate source and candidate reviews clean. One installer build only. Installer
-snapshot and exact signed feed47 reflect those immutable bytes. Integration must
-pass exact-head CI, then verify deployed feed/download bytes before delivery is
-claimed; current external PR/CI/live verdict is in .verification/release47/progress.json.
-Website promotion also pins Next16.4.2 after the existing16.4.0 production build
-reported security advisories. Patched production audit reports0vulnerabilities;
-website typecheck,162tests and production build pass. Native bytes are unchanged.
-No installed-Zero update or fresh-machine/physical Intel/Windows trial was done.
-Prior immutable assets, kit17 and Windows21 are retained; no separate kit release.
+Latest direction: use established game systems for reference before adding
+World/UI abstractions. Greenfoot is the primary Java teaching reference; FXGL,
+libGDX Scene2D and Godot inform UI/world/camera/input boundaries. Proposals and
+links are in docs/GAME-SYSTEMS.md. World, camera and screen APIs are not implemented.
 
-Preserve tutorial-padding Dev checkout/profile/scratch/watcher and its unrelated
-uncommitted Explorer/Start Page work, plus primary funding work. Release candidate
-and receipts must be retained before archiving the clean release worktree.
+Native framework/Actor pixels and Zero Dev smoke pass. Website typecheck,
+163tests and production build pass; local /docs search/entry verified. Guide
+Player/Enemy/Main extracted for compilation. Full source tests and real WebFX
+browser checks are running; independent review follows the stable snapshot.
+Worker ownership finished: actor_docs owns five API/guide/reference files;
+actor_browser owns browser contracts/adapters/fixtures/verifier/docs. Coordinator
+owns Actor, native checks, assembly and final acceptance. Requested workers:
+GPT6.1Sol/medium; effective configuration/time/tokens unknown. No rework reported.
+
+Preserve primary funding checkout and tutorial-padding Dev scratch/profile/watcher
+and unrelated edits. Last release reference: docs/EVIDENCE.md (Mac0.5.47).

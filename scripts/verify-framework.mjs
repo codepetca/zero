@@ -18,6 +18,9 @@ try {
   if (!result.stdout.includes('ZERO_SMOKE_OK')) throw new Error(result.stdout + '\n' + result.stderr);
   const helpers = maven(project, ['-q', '-Dapp.mainClass=zero.GameHelpersCheck', 'compile', 'javafx:run']);
   if (!helpers.stdout.includes('ZERO_GAME_HELPERS_OK')) throw new Error(helpers.stdout + '\n' + helpers.stderr);
+  const actors = maven(project, ['-q', '-Dapp.mainClass=zero.ActorCheck', 'compile', 'javafx:run']);
+  if (!actors.stdout.includes('ZERO_ACTOR_OK')) throw new Error(actors.stdout + '\n' + actors.stderr);
+  console.log(actors.stdout.trim());
   const audio = maven(project, ['-q', '-Dapp.mainClass=zero.AudioCheck', 'compile', 'javafx:run']);
   if (!audio.stdout.includes('ZERO_AUDIO_OK')) throw new Error(audio.stdout + '\n' + audio.stderr);
   console.log(audio.stdout.trim());

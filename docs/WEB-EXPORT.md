@@ -55,7 +55,7 @@ approve every inherited API. Unsupported or unresolved use produces original
 file/line/column diagnostics in Problems. Native methods/JSNI and source-defined
 runtime namespace spoofing are rejected.
 
-Only seven helpers at exact reviewed paths/hashes receive trusted adapters; a
+Only eight helpers at exact reviewed paths/hashes receive trusted adapters; a
 package name is not an exemption. Keep ordinary JavaFX control names and explicit
 object updates. Ordinary class-resource lookup is supported in
 `Main.class.getResource(...)` and `getClass().getResource(...)`; unrelated
@@ -91,7 +91,11 @@ wrapper language or second transpiler is introduced.
 
 The verified game subset includes `Math.hypot(double, double)`, `Math.abs(double)`,
 `Math.atan2(double, double)`, `Math.sin(double)`, `Math.cos(double)` and `Math.PI`.
-Angles use radians. `ArrayList.isEmpty()` and `ArrayList.remove(Object)` work with
+Angles in those Math methods use radians. `Actor` uses clockwise degrees from the
+right, with explicit `update(seconds)` and `draw(app)` calls. Its reviewed browser
+fixture exercises subclass inheritance, movement and aiming, image replacement,
+animation advancement and centered drawing. Actors do not register themselves
+with the game loop. `ArrayList.isEmpty()` and `ArrayList.remove(Object)` work with
 ordinary Java semantics: object removal deletes the first equal item and returns
 whether it found one; `remove(int)` still removes by index and returns the item.
 The declared receiver must be an `ArrayList`; approval does not extend to every
@@ -189,7 +193,7 @@ Students keep `Main.java`, explicit object updates, ordinary Java classes and
 JavaFX APIs. The exporter compiles a temporary copy with pinned WebFX/GWT modules.
 Its adapters cover the reviewed Zero helpers, canvas images and sprite regions,
 keyboard/mouse state, focus, supported JavaFX controls and the bounded JavaFX
-media calls used by the tested game. All seven reviewed helpers, including
+media calls used by the tested game. All eight reviewed helpers, including
 `Sound` and `Music`, retain the ordinary Java API. Image preloading completes before `setup`.
 Image startup allows 30 seconds between completed images and at most two minutes
 overall; a progressing slow download can outlast the first 30 seconds. Timeouts
@@ -216,7 +220,7 @@ must be reviewed before their profile fingerprints are updated. Publishing requi
 compatibility check. Branch-protection settings remain an owner decision and
 were not changed.
 
-The supported profile guards seven helper sources and 98 public/protected Java
+The supported profile guards eight helper sources and 119 public/protected Java
 API declarations. Changes must update reviewed adapters and behavior coverage;
 passing source checks alone is insufficient. Sound aliases share the native cache,
 effects overlap, Music players stay independent, and app/window shutdown releases
