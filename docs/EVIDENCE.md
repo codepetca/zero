@@ -1,5 +1,40 @@
 # Delivery evidence index
 
+## Simpler App/GameApp architecture — 2026-10-23
+
+Owner approved removing GameScreen from the target design. Revised the
+[canonical architecture](FRAMEWORK-ARCHITECTURE.md),
+[class/ownership model](FRAMEWORK-MODEL.md) and reliability/product/repository/
+component guidance. GameApp extends App and owns one gameplay view, canvas,
+input, camera and loop. Main keeps update/draw and explicitly delegates to objects,
+optional World or replacement content/controllers. Screen is optional UI only.
+Menu navigation suspends gameplay; composed HUD/live controls do not. Resume,
+manual pause, idle UI transitions and restart ownership are explicit.
+
+Ordinary apps, animated simulations, Zero-first signatures, alternative animation/
+content/UI, managed local and exact-pinned ZeroHub source sharing, credited core
+adoption and pinned WebFX/browser/Pages gates remain required. Reliability now
+explicitly includes reachable browser calls/hooks, UI-only readiness without a
+frame and separate grouping/alerts for sanitized PostHog events. These remain
+planned capabilities; no runtime or field collector was added.
+
+Independent requested Astra/xhigh accepted the complete nine-file diff from
+ff2b3147287c83d71e89d10b420d69ab4e2fc732 to
+797541f611895d6c020641ddd7f35240719921ad without actionable findings: one initial
+wave, 194.9 seconds, no correction batches. Reviewer verified no runtime/API
+source delta, searched for stale GameScreen obligations and reused unchanged
+source/provider evidence. Effective configuration and tokens unavailable.
+Receipts/report: ignored .verification/simple-model-astra/. One gameplay view per
+GameApp is the deliberate simplification; classroom usability still needs the
+planned novice trial.
+
+Validation: configuration/syntax/contracts/local links pass; focused website
+navigation/API/learning tests 30 pass, 0 fail; diff check passes. No runtime build,
+new browser run, telemetry configuration, push, PR, merge, deployment or release.
+Start context: weekly 88% remaining, storage healthy with 277.9GB available;
+account/machine readings are not task cost. Other checkouts/profiles/watchers
+preserved. This final receipt changes no reviewed design behavior.
+
 ## Zero-first framework model and reliability — 2026-10-23
 
 Owner clarified Zero packages should cover almost all normal student game/app

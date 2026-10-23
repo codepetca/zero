@@ -20,13 +20,19 @@ student-led contribution-to-core loop. Native Run/background checks, runtime
 signals and optional sanitized PostHog collection remain as previously planned,
 not implemented. UI-only readiness requires no game frame.
 
-Next: run configuration/links and focused website tests, commit a fixed revision,
-then independent Astra/xhigh full-diff review. One reviewer, one initial wave,
-up to four targeted correction waves/batches, 60min session/30min reviewer caps.
-No source/runtime build is warranted for this documentation-only delta. Retain
-prior source/audit receipts; previous model review at eeb0a554 is historical
-baseline, superseded where it required GameScreen. Final evidence belongs in
-docs/EVIDENCE.md; new review receipts under .verification/simple-model-astra/.
+Accepted plan revision: 797541f611895d6c020641ddd7f35240719921ad. Independent
+requested Astra/xhigh reviewed the complete nine-file diff in 194.9 seconds,
+with no actionable findings or required corrections. One initial wave, no fix
+batches. Effective model/effort and tokens unavailable. Reports/receipts:
+.verification/simple-model-astra/. Previous model review at eeb0a554 is historical
+baseline, superseded where it required GameScreen. See docs/EVIDENCE.md.
+
+Checks: npm run check passes; focused website navigation/API/learning tests
+30 pass, 0 fail; diff check passes. No runtime/source/API changes or new browser
+build. Next proposed phase is the bounded exemplars and smallest contracts in the
+canonical plan, including one gameplay view per GameApp, live controls versus
+navigation, replacement and managed component export. Plan acceptance is not
+runtime/novice/WebFX acceptance or new implementation/publication authority.
 
 Keep this Actor worktree attached. Preserve primary funding and tutorial-padding
 Dev work, profiles/scratch/watcher. No push, PR, merge, deployment, hosted checker
