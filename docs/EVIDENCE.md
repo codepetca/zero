@@ -1,5 +1,43 @@
 # Delivery evidence index
 
+## Actor prototype and reference design — 2026-10-22
+
+Local source head6f0ee4e10a3db2107b2ad365352767f2516790f4 adds optional Actor
+for Player/Enemy subclasses: centre position, size, clockwise rotation, explicit
+movement/aiming, images/regions/animation and overridable update/draw. No automatic
+registration, physics or collision responses. Starter/tutorial/example assembly,
+exact browser fingerprints/contracts and all21new API declarations are synchronized
+with student/website docs (119total). Source addition only; no version bump,
+push, PR, merge, template publication, installer release or deployed website change.
+
+Validation: source999pass/3conditional Windows/PowerShell skips/0fail in205.44s;
+website163pass/typecheck/production build; configuration/syntax/links; extracted
+three-class guide compiles. Native Actor movement/aiming/overflow/atomicity,
+subclass animation and rotated pixels pass, as do existing framework/input/audio
+checks and Zero Dev real-frame Coin Game win/restart/recollection. All6real
+WebFX/GWT fixtures compile; browser-only verification passes58desktop checks and
+136mobile checks, including Actor state and4exact sprite pixels. Physical other
+OS/phones, other browser engines and audible output were not certified. Local
+/docs search and moveToward entry were verified through the in-app browser DOM.
+
+Independent GPT6.1Sol/high review covers complete bf2083a3..1fee83ea diff and
+1fee83ea..6f0ee4e correction:1launch/2turns,1initial+1targeted wave,1acceptedP2
+fixed in1batch,0remaining blockers. Correction shares the15-image expectation
+between initial and delayed-loader checks; initial browser failure was a stale
+12-image assertion. Initial focused adapter/API21tests pass; final native/browser
+and source evidence reused for delta. Effective model/tokens/reviewer elapsed are
+unknown. Docs and browser implementation workers requested GPT6.1Sol/medium;
+coordinator verified delivery. Weekly93%remaining and healthy278.8GB at start;
+account-wide allowance is not task cost. Receipts: .verification/actor/progress.json
+and logs. This delivery receipt changes no reviewed behavior.
+
+Latest owner direction is captured in GAME-SYSTEMS.md: Greenfoot primary teaching
+reference, with FXGL world/UI separation, libGDX explicit container updates/input
+priority and Godot HUD layering. World/camera/screen APIs remain proposals pending
+three complete example designs. Primary funding and tutorial-padding Dev work,
+profiles, scratch game and watcher were preserved. Actor worktree remains attached
+for continued local design; its Zero Dev UI watcher uses port3158.
+
 ## Live sign-in acceptance and Mac0.5.47 preparation — 2026-10-22
 
 PR176 merged3589903def589af7ec083c10c847f8da075e88a7 after all11CI checks and both
